@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "target": "ES2024",
+    "baseUrl": "./",
+    "outDir": "./dist",
+    "strict": true,
+    "sourceMap": true,
+    "declaration": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "incremental": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "paths": {
+      "@appweaver/common": ["./packages/common"],
+      "@appweaver/common/*": ["./packages/common/*"],
+      "@appweaver/core": ["./packages/core"],
+      "@appweaver/core/*": ["./packages/core/*"],
+      "@appweaver/cli": ["./packages/cli"],
+      "@appweaver/cli/*": ["./packages/cli/*"]
+    }
+  },
+  "include": ["packages/**/*"],
+  "exclude": ["node_modules", "dist", "sample", "**/*(spec|test).ts"]
+}

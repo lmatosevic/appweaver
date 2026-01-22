@@ -1,0 +1,31 @@
+{
+  "name": "sample-blog-cms",
+  "version": "1.0.0",
+  "description": "Appweaver sample - Blog CMS",
+  "author": "Luka Matosevic",
+  "private": true,
+  "license": "UNLICENSED",
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node ./dist/main.js",
+    "start-dev": "tsc-watch -p tsconfig.build.json --onSuccess \"node ./dist/main.js\"",
+    "test": "jest --forceExit --detectOpenHandles --coverage",
+    "format": "prettier --write \"./src/**/*.ts\" \"./test/**/*.ts\"",
+    "lint": "eslint \"./{src,test}/**/*.ts\"",
+    "lint-fix": "npm run lint -- --fix",
+    "migrate": "prisma migrate deploy",
+    "generate-client": "prisma generate"
+  },
+  "dependencies": {
+    "@appweaver/common": "0.1.0",
+    "@appweaver/core": "0.1.0"
+  },
+  "devDependencies": {
+    "@appweaver/cli": "0.1.0",
+    "@types/node": "25.0.10",
+    "eslint": "9.39.2",
+    "typescript": "5.9.3"
+  }
+}

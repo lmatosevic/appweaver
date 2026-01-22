@@ -1,0 +1,37 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testRegex": ".*\\.(spec|test)\\.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": [
+      "@swc/jest",
+      {
+        "jsc": {
+          "target": "ES2024"
+        },
+        "module": {
+          "type": "commonjs"
+        }
+      }
+    ]
+  },
+  "reporters": [
+    "default",
+    [
+      "jest-junit",
+      {
+        "outputDirectory": "./reports",
+        "outputName": "junit.xml"
+      }
+    ]
+  ],
+  "coverageReporters": ["cobertura", "text"],
+  "collectCoverageFrom": ["**/*.(t|j)s"],
+  "coverageDirectory": "./reports",
+  "testEnvironment": "node",
+  "roots": [
+    "<rootDir>/packages/common/test",
+    "<rootDir>/packages/core/test",
+    "<rootDir>/packages/cli/test"
+  ]
+}
