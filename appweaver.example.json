@@ -12,7 +12,7 @@
   "log": {
     "level": "info",
     "path": "./logs",
-    "rotate": "true",
+    "rotate": true,
     "rotateSize": "100M",
     "rotateMaxSize": "5G",
     "rotateMaxFiles": 1000,
