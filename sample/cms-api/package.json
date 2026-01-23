@@ -1,7 +1,7 @@
 {
-  "name": "sample-blog-cms",
+  "name": "sample-cms-api",
   "version": "1.0.0",
-  "description": "Appweaver sample - Blog CMS",
+  "description": "Appweaver sample - CMS API",
   "author": "Luka Matosevic",
   "private": true,
   "license": "UNLICENSED",

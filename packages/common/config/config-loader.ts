@@ -8,10 +8,14 @@ export function loadConfigFromEnv(
   const config = {};
 
   // Load variables from the default .env file.
-  dotenvConfig();
+  dotenvConfig({ quiet: true });
 
   // Load and override variables from the environment-specific .env.* file.
-  dotenvConfig({ path: `.env.${process.env.NODE_ENV}`, override: true });
+  dotenvConfig({
+    path: `.env.${process.env.NODE_ENV}`,
+    override: true,
+    quiet: true
+  });
 
   const variables = Object.entries({ ...process.env });
 
