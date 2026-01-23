@@ -75,7 +75,7 @@ export function loadConfigFromFile(
   const rawData = fs.readFileSync(absoluteFilePath, 'utf8');
   const data = JSON.parse(rawData);
 
-  const variables = recurseConfig(data, {});
+  const variables = recurseConfig(data.config ?? {}, {});
 
   for (const [name, value] of Object.entries(variables)) {
     const schemaProp = schema.properties[name];

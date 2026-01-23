@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "appweaver://config/schema.json",
+  "title": "Appweaver Workspace Configuration",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "version": {
+      "$ref": "#/definitions/fileVersion"
+    },
+    "config": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "required": ["version"],
+  "definitions": {
+    "fileVersion": {
+      "type": "integer",
+      "description": "File format version",
+      "minimum": 1
+    }
+  }
+}
