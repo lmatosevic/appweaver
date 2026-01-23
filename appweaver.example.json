@@ -17,8 +17,8 @@
     "rotateMaxSize": "5G",
     "rotateMaxFiles": 1000,
     "rotateInterval": "1d",
-    "rotateCompress": "true",
-    "pretty": "false"
+    "rotateCompress": true,
+    "pretty": false
   },
   "rateLimit": {
     "enabled": true,
