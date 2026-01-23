@@ -9,6 +9,6 @@
     "host": "0.0.0.0"
   },
   "log": {
-    "pretty": true
+    "pretty": false
   }
 }

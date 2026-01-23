@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { Value } from '@sinclair/typebox/value';
-import { loadConfigFromEnv, loadConfigFromFile } from './config-loader';
+import { loadConfigFromEnv, loadConfigFromFiles } from './config-loader';
 import { Environment, LogLevel } from '../enums';
 
 const configSchema = Type.Object({
@@ -101,9 +101,9 @@ const configSchema = Type.Object({
   SEND_REMINDERS_CRON: Type.String({ default: '0 10 * * *' })
 });
 
-const config = Value.Parse(configSchema, {
-  ...loadConfigFromFile(configSchema),
-  ...loadConfigFromEnv(configSchema)
-});
+const envConfig = loadConfigFromEnv(configSchema);
+const filesConfig = loadConfigFromFiles(configSchema);
+
+const config = Value.Parse(configSchema, { ...filesConfig, ...envConfig });
 
 export { config };

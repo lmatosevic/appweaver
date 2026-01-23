@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import { config as dotenvConfig } from 'dotenv';
 import { TObject } from '@sinclair/typebox';
 import { camelToSnakeCase, parseArray } from '../utils';
+import { APPWEAVER } from '../constants';
 
 export function loadConfigFromEnv(
   schema: TObject
@@ -49,9 +50,20 @@ export function loadConfigFromEnv(
   return config;
 }
 
+export function loadConfigFromFiles(
+  schema: TObject
+): Record<string, string | string[]> {
+  const globalConfig = loadConfigFromFile(schema, `./${APPWEAVER}.json`);
+  const envConfig = loadConfigFromFile(
+    schema,
+    `./${APPWEAVER}.${process.env.NODE_ENV}.json`
+  );
+  return { ...globalConfig, ...envConfig };
+}
+
 export function loadConfigFromFile(
   schema: TObject,
-  filePath: string = './appweaver.json'
+  filePath: string
 ): Record<string, string | string[]> {
   const config = {};
 
@@ -67,7 +79,7 @@ export function loadConfigFromFile(
 
   for (const [name, value] of Object.entries(variables)) {
     const schemaProp = schema.properties[name];
-    if (!schemaProp || !value) {
+    if (!schemaProp || value === null || value === undefined || value === '') {
       continue;
     }
 
