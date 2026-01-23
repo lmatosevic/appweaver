@@ -1,6 +1,8 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { config as dotenvConfig } from 'dotenv';
 import { TObject } from '@sinclair/typebox';
-import { parseArray } from '../utils';
+import { camelToSnakeCase, parseArray } from '../utils';
 
 export function loadConfigFromEnv(
   schema: TObject
@@ -42,6 +44,58 @@ export function loadConfigFromEnv(
     } else {
       config[name] = value;
     }
+  }
+
+  return config;
+}
+
+export function loadConfigFromFile(
+  schema: TObject,
+  filePath: string = './appweaver.json'
+): Record<string, string | string[]> {
+  const config = {};
+
+  const absoluteFilePath = path.resolve(filePath);
+  if (!fs.existsSync(absoluteFilePath)) {
+    return config;
+  }
+
+  const rawData = fs.readFileSync(absoluteFilePath, 'utf8');
+  const data = JSON.parse(rawData);
+
+  const variables = recurseConfig(data, {});
+
+  for (const [name, value] of Object.entries(variables)) {
+    const schemaProp = schema.properties[name];
+    if (!schemaProp || !value) {
+      continue;
+    }
+
+    config[name] = value;
+  }
+
+  return config;
+}
+
+function recurseConfig(
+  current: Map<string, string | string[]>,
+  config: Record<string, string | string[]>,
+  pathParts: string[] = []
+): Record<string, string | string[]> {
+  if (
+    current !== null &&
+    typeof current === 'object' &&
+    !Array.isArray(current)
+  ) {
+    for (const [k, v] of Object.entries(current)) {
+      recurseConfig(v, config, [
+        ...pathParts,
+        camelToSnakeCase(k).toUpperCase()
+      ]);
+    }
+  } else {
+    const key = pathParts.join('_');
+    config[key] = current;
   }
 
   return config;

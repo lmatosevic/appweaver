@@ -1,3 +1,101 @@
 {
-  "sample": 123
+  "app": {
+    "name": "Appweaver",
+    "description": "Appweaver - simple, fast, and reliable web application builder tool",
+    "hostname": "http://localhost:6000"
+  },
+  "server": {
+    "port": 6000,
+    "host": "0.0.0.0",
+    "bodyLimitBytes": 104857600
+  },
+  "log": {
+    "level": "info",
+    "path": "./logs",
+    "rotate": "true",
+    "rotateSize": "100M",
+    "rotateMaxSize": "5G",
+    "rotateMaxFiles": 1000,
+    "rotateInterval": "1d",
+    "rotateCompress": "true",
+    "pretty": "false"
+  },
+  "rateLimit": {
+    "enabled": true,
+    "max": 1000,
+    "window": 60000,
+    "store": "redis"
+  },
+  "swagger": {
+    "enabled": true,
+    "path": "/swagger"
+  },
+  "cors": {
+    "origin": "*",
+    "methods": "*",
+    "allowedHeaders": "*",
+    "exposedHeaders": "*",
+    "maxAge": 86400,
+    "credentials": true
+  },
+  "database": {
+    "url": "postgresql://appweaver:appweaver@localhost:5432/appweaver-sample?schema=public",
+    "transactionMaxWait": 2000,
+    "transactionTimeout": 5000
+  },
+  "redis": {
+    "url": "redis://localhost:6379/0"
+  },
+  "storage": {
+    "path": "./storage",
+    "namePattern": "{name}-{hash}.{extension}",
+    "cacheDuration": 86400
+  },
+  "security": {
+    "jwt": {
+      "secret": "GdvCFezoPIZdOAN3IQZR3JhaAZH6S6AJ",
+      "expiresIn": 2592000,
+      "refreshExpiresIn": 5184000
+    }
+  },
+  "queue": {
+    "keepCompletedCount": 0,
+    "keepCompletedSeconds": null,
+    "keepFailedCount": 50,
+    "keepFailedSeconds": null,
+    "retryAttempts": 3,
+    "retryBackoff": 3000,
+    "retryBackoffType": "fixed"
+  },
+  "scheduler": {
+    "autoStartJob": true
+  },
+  "events": {
+    "maxListeners": 10
+  },
+  "export": {
+    "csv": {
+      "delimiter": ";",
+      "joinDelimiter": ",",
+      "addHeaders": true,
+      "addSepRow": false
+    },
+    "batchSize": 1000
+  },
+  "mail": {
+    "smtp": {
+      "host": "mail.appweaver.com",
+      "port": 587,
+      "secure": false,
+      "user": "no-reply@appweaver.com",
+      "password": ""
+    },
+    "senderName": "John Doe",
+    "senderAddress": "no-reply@appweaver.com",
+    "mockSend": false
+  },
+  "system": {
+    "adminInitialEmail": "admin@appweaver.com",
+    "adminInitialPassword": "Password1!"
+  }
 }

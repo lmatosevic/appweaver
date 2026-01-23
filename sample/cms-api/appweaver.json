@@ -1,3 +1,14 @@
 {
-  "sample": 123
+  "app": {
+    "name": "CMS API",
+    "description": "Sample Appweaver application for CMS API",
+    "hostname": "http://localhost:6001"
+  },
+  "server": {
+    "port": 6001,
+    "host": "0.0.0.0"
+  },
+  "log": {
+    "pretty": true
+  }
 }
