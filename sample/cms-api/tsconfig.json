@@ -17,6 +17,14 @@
     "skipLibCheck": true,
     "strictNullChecks": true,
     "noImplicitAny": false,
-    "noUnusedLocals": false
+    "noUnusedLocals": false,
+    "paths": {
+      "@appweaver/common": ["../../packages/common"],
+      "@appweaver/common/*": ["../../packages/common/*"],
+      "@appweaver/core": ["../../packages/core"],
+      "@appweaver/core/*": ["../../packages/core/*"],
+      "@appweaver/cli": ["../../packages/cli"],
+      "@appweaver/cli/*": ["../../packages/cli/*"]
+    }
   }
 }
