@@ -22,10 +22,12 @@
     "node": ">= 20"
   },
   "scripts": {
-    "clean": "rimraf --glob \"packages/**/dist\"",
-    "prebuild": "npm run clean",
+    "clean:packages": "rimraf --glob \"packages/**/dist\"",
+    "clean:modules": "rimraf node_modules/@appweaver",
+    "prebuild": "npm run clean:packages",
     "build": "tsc -b -v packages",
-    "postbuild": "node ./tools/copy-packages.js",
+    "build:dev": "tsc -b -v packages --watch",
+    "postbuild": "npm run clean:modules && node ./tools/copy-packages.js",
     "test": "jest --forceExit --detectOpenHandles --coverage",
     "format": "prettier --write \"./packages/**/*.ts\" \"./sample/**/*.ts\"",
     "lint": "eslint \"./{packages,sample}/**/*.ts\"",

@@ -3,7 +3,7 @@ import { logger } from '@appweaver/common';
 
 async function main() {
   const app = await createApp();
-  logger.info('Application created successfully');
+  await app.start();
 }
 
 main().catch((err) => {

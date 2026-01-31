@@ -5,6 +5,16 @@ import { TObject } from '@sinclair/typebox';
 import { camelToSnakeCase, parseArray } from '../utils';
 import { APPWEAVER } from '../constants';
 
+/**
+ * Loads configuration values from the environment variables based on the provided schema object.
+ * Supports parsing environment variables into scalar or array values as defined in the schema.
+ * Automatically handles loading of `.env` files (default and environment-specific).
+ *
+ * @param {TObject} schema The schema object that defines the expected structure and mapping of configuration properties.
+ *                         Each property in the schema should include `type`, `mapFrom`, and optionally `default` definitions.
+ * @return {Record<string, string | string[]>} An object containing the configuration values mapped according to the schema.
+ *                                             Values can be strings or arrays based on the schema specifications.
+ */
 export function loadConfigFromEnv(
   schema: TObject
 ): Record<string, string | string[]> {
@@ -50,6 +60,13 @@ export function loadConfigFromEnv(
   return config;
 }
 
+/**
+ * Loads configuration from multiple JSON files based on the provided schema.
+ *
+ * @param {TObject} schema - The schema used to validate and parse the configuration files.
+ * @return {Record<string, string | string[]>} An object containing the merged configuration data
+ *                                             from the global and environment-specific files.
+ */
 export function loadConfigFromFiles(
   schema: TObject
 ): Record<string, string | string[]> {
@@ -61,6 +78,14 @@ export function loadConfigFromFiles(
   return { ...globalConfig, ...envConfig };
 }
 
+/**
+ * Loads configuration data from a specified file and validates it against a given schema.
+ *
+ * @param {TObject} schema - The schema to validate the configuration data against.
+ * @param {string} filePath - The path to the configuration file.
+ * @return {Record<string, string | string[]>} A record containing the validated configuration data.
+ * Invalid or unspecified properties are omitted from the result.
+ */
 export function loadConfigFromFile(
   schema: TObject,
   filePath: string
@@ -89,6 +114,15 @@ export function loadConfigFromFile(
   return config;
 }
 
+/**
+ * Recursively processes a map of configurations and flattens its key structure
+ * into a single record with snake_case uppercase keys joined by underscores.
+ *
+ * @param current A map containing nested configuration data. Keys can map to strings or arrays of strings.
+ * @param config A record where the processed key-value pairs will be stored. Keys will be transformed and flattened.
+ * @param pathParts An array of strings representing the current path in the nested structure. Optional, defaults to an empty array.
+ * @return A record containing the flattened configuration with transformed keys and the associated values.
+ */
 function recurseConfig(
   current: Map<string, string | string[]>,
   config: Record<string, string | string[]>,

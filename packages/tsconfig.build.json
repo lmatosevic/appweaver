@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "composite": true,
     "module": "CommonJS",
     "target": "ES2024",
     "strict": true,

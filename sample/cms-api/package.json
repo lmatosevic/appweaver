@@ -10,13 +10,13 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "start": "node ./dist/main.js",
-    "start-dev": "tsc-watch -p tsconfig.build.json --onSuccess \"node ./dist/main.js\"",
+    "start:dev": "tsc-watch -p tsconfig.build.json --onSuccess \"node ./dist/main.js\"",
     "test": "jest --forceExit --detectOpenHandles --coverage",
     "format": "prettier --write \"./src/**/*.ts\" \"./test/**/*.ts\"",
     "lint": "eslint \"./{src,test}/**/*.ts\"",
-    "lint-fix": "npm run lint -- --fix",
+    "lint:fix": "npm run lint -- --fix",
     "migrate": "prisma migrate deploy",
-    "generate-client": "prisma generate"
+    "generate": "prisma generate"
   },
   "dependencies": {
     "@appweaver/common": "0.1.0",

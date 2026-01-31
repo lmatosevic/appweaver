@@ -3,8 +3,15 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "./dist",
-    "paths": {}
+    "paths": {
+      "@appweaver/common": ["../common"],
+      "@appweaver/common/*": ["../common/*"]
+    }
   },
   "exclude": ["node_modules", "dist", "test/**/*", "*.(spec|test).ts"],
-  "references": []
+  "references": [
+    {
+      "path": "../common/tsconfig.build.json"
+    }
+  ]
 }
