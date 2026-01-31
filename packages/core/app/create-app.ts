@@ -63,7 +63,9 @@ export async function createApp(): Promise<Application> {
 
   // Register static public file serving.
   server.register(fastifyStatic, {
-    root: path.join(process.cwd(), config.SERVER_STATIC_DIR_PATH),
+    root: path.isAbsolute(config.SERVER_STATIC_DIR_PATH)
+      ? config.SERVER_STATIC_DIR_PATH
+      : path.join(process.cwd(), config.SERVER_STATIC_DIR_PATH),
     prefix: config.SERVER_STATIC_ROUTE_PREFIX,
     maxAge: config.SERVER_STATIC_MAX_AGE,
     constraints: config.SERVER_STATIC_ALLOWED_HOST
