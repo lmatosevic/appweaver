@@ -10,7 +10,7 @@ generator client {
   output   = "../node_modules/.prisma/client"
 }
 
-model User {
+model Identity {
   id        Int      @id @default(autoincrement())
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())

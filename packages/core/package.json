@@ -17,6 +17,10 @@
   "engines": {
     "node": ">= 20"
   },
+  "scripts": {
+    "db:migrate": "prisma migrate deploy",
+    "db:generate": "prisma generate"
+  },
   "dependencies": {
     "@fastify/cors": "11.2.0",
     "@fastify/helmet": "13.0.2",
@@ -27,8 +31,11 @@
     "@fastify/swagger": "9.6.1",
     "@fastify/swagger-ui": "5.2.4",
     "@fastify/type-provider-typebox": "6.1.0",
+    "@prisma/adapter-better-sqlite3": "7.3.0",
+    "@prisma/client": "7.3.0",
     "@sinclair/typebox": "0.34.47",
-    "fastify": "5.7.1"
+    "fastify": "5.7.1",
+    "prisma": "7.3.0"
   },
   "devDependencies": {
     "@appweaver/common": "^0.1.0"

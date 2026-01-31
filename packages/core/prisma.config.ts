@@ -2,14 +2,13 @@
 // npm install --save-dev prisma dotenv
 import 'dotenv/config';
 import { defineConfig } from 'prisma/config';
-import { config } from '@appweaver/common';
 
 export default defineConfig({
-  schema: 'database/schema.prisma',
+  schema: 'prisma/schema.prisma',
   migrations: {
-    path: 'database/migrations'
+    path: 'prisma/migrations'
   },
   datasource: {
-    url: config.DATABASE_URL
+    url: 'file:./dev.db'
   }
 });

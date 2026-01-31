@@ -1,7 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import { Value } from '@sinclair/typebox/value';
 import { loadConfigFromEnv, loadConfigFromFiles } from './config-loader';
-import { Environment, LogLevel } from '../enums';
+import { DatabaseType, Environment, LogLevel } from '../enums';
 
 const configSchema = Type.Object({
   APP_ENV: Type.Enum(Environment, {
@@ -49,6 +49,9 @@ const configSchema = Type.Object({
   CORS_MAX_AGE: Type.Integer({ default: 86400 }),
   CORS_CREDENTIALS: Type.Boolean({ default: true }),
 
+  DATABASE_TYPE: Type.Enum(DatabaseType, {
+    default: DatabaseType.Sqlite
+  }),
   DATABASE_URL: Type.String(),
   DATABASE_TRANSACTION_MAX_WAIT: Type.Integer({ default: 2000 }),
   DATABASE_TRANSACTION_TIMEOUT: Type.Integer({ default: 5000 }),
