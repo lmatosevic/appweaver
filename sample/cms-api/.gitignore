@@ -42,4 +42,4 @@ storage
 !.vscode/extensions.json
 
 # Dev database file
-dev.db
+cms-api.db

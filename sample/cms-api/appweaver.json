@@ -13,6 +13,9 @@
     },
     "log": {
       "pretty": false
+    },
+    "database": {
+      "url": "file:./cms-api.db"
     }
   }
 }
