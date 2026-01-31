@@ -20,13 +20,15 @@ const options = {
  * @return {Object} The database client object for the specified or default database type.
  */
 export function createClient(): PrismaClient {
-  switch (config.DATABASE_URL) {
+  switch (config.DATABASE_TYPE) {
     case DatabaseType.PostgresSQL:
       return postgresClient();
     case DatabaseType.Sqlite:
       return sqliteClient();
     default:
-      return sqliteClient();
+      return config.DATABASE_URL.startsWith('postgresql:')
+        ? postgresClient()
+        : sqliteClient();
   }
 }
 
