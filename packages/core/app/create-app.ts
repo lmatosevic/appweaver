@@ -11,6 +11,10 @@ import fastifySwaggerUI from '@fastify/swagger-ui';
 import { config, HttpError, loggerConfig } from '@appweaver/common';
 import { Application } from './application';
 
+export type CreateAppParams = {
+  start?: boolean;
+};
+
 /**
  * Creates and configures a new application instance.
  *
@@ -21,7 +25,9 @@ import { Application } from './application';
  *
  * @return {Promise<Application>} A promise that resolves with the configured application instance.
  */
-export async function createApp(): Promise<Application> {
+export async function createApp(
+  params: CreateAppParams = {}
+): Promise<Application> {
   // Create a Fastify server instance.
   const server = Fastify({
     ajv: {
@@ -164,6 +170,13 @@ export async function createApp(): Promise<Application> {
         );
     }
   );
+
+  const app = new Application(server);
+
+  if (params.start) {
+    await app.start();
+    return app;
+  }
 
   return new Application(server);
 }

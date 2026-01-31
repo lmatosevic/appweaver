@@ -1,12 +1,7 @@
 import { createApp } from '@appweaver/core';
 import { logger } from '@appweaver/common';
 
-async function main() {
-  const app = await createApp();
-  await app.start();
-}
-
-main().catch((err) => {
+createApp({ start: true }).catch((err) => {
   logger.error(err);
   process.exit(1);
 });
