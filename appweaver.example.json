@@ -10,7 +10,11 @@
     "server": {
       "port": 6000,
       "host": "0.0.0.0",
-      "bodyLimitBytes": 104857600
+      "bodyLimitBytes": 104857600,
+      "staticDirPath": "./public",
+      "staticRoutePrefix": "/public/",
+      "staticMaxAge": "30d",
+      "staticAllowedHost": null
     },
     "log": {
       "level": "info",

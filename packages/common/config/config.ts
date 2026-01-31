@@ -11,7 +11,6 @@ const configSchema = Type.Object({
   APP_NAME: Type.String({ default: 'Appweaver' }),
   APP_DESCRIPTION: Type.Optional(Type.String()),
   APP_HOSTNAME: Type.String({ default: 'http://localhost:6000' }),
-  APP_FRONTEND_URL: Type.Optional(Type.String()),
   APP_VERSION: Type.String({
     default: 'unknown',
     mapFrom: 'npm_package_version'
@@ -30,6 +29,10 @@ const configSchema = Type.Object({
   SERVER_PORT: Type.Integer({ default: 6000 }),
   SERVER_HOST: Type.String({ default: '0.0.0.0' }),
   SERVER_BODY_LIMIT_BYTES: Type.Integer({ default: 104857600 }),
+  SERVER_STATIC_DIR_PATH: Type.String({ default: './public' }),
+  SERVER_STATIC_ROUTE_PREFIX: Type.String({ default: '/public/' }),
+  SERVER_STATIC_MAX_AGE: Type.String({ default: '30d' }),
+  SERVER_STATIC_ALLOWED_HOST: Type.Optional(Type.String()),
 
   RATE_LIMIT_ENABLED: Type.Boolean({ default: true }),
   RATE_LIMIT_MAX: Type.Integer({ default: 1000 }),

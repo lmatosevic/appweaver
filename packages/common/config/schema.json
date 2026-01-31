@@ -3,24 +3,401 @@
   "$id": "appweaver://config/schema.json",
   "title": "Appweaver Workspace Configuration",
   "type": "object",
+  "additionalProperties": false,
+  "required": ["version"],
   "properties": {
     "$schema": {
       "type": "string"
     },
     "version": {
-      "$ref": "#/definitions/fileVersion"
-    },
-    "config": {
-      "type": "object"
-    }
-  },
-  "additionalProperties": false,
-  "required": ["version"],
-  "definitions": {
-    "fileVersion": {
       "type": "integer",
       "description": "File format version",
       "minimum": 1
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "object",
+          "properties": {
+            "env": {
+              "type": "string",
+              "enum": ["development", "staging", "production"],
+              "default": "production"
+            },
+            "name": {
+              "type": "string",
+              "default": "Appweaver"
+            },
+            "description": {
+              "type": ["string", "null"]
+            },
+            "hostname": {
+              "type": "string",
+              "default": "http://localhost:6000"
+            },
+            "version": {
+              "type": "string",
+              "default": "unknown"
+            }
+          }
+        },
+        "log": {
+          "type": "object",
+          "properties": {
+            "level": {
+              "type": "string",
+              "enum": ["trace", "debug", "info", "warn", "error", "fatal"],
+              "default": "info"
+            },
+            "path": {
+              "type": ["string", "null"]
+            },
+            "rotate": {
+              "type": "boolean",
+              "default": true
+            },
+            "rotateSize": {
+              "type": "string",
+              "default": "100M"
+            },
+            "rotateMaxSize": {
+              "type": "string",
+              "default": "5G"
+            },
+            "rotateMaxFiles": {
+              "type": "integer",
+              "default": 1000
+            },
+            "rotateInterval": {
+              "type": "string",
+              "default": "1d"
+            },
+            "rotateCompress": {
+              "type": "boolean",
+              "default": true
+            },
+            "pretty": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "server": {
+          "type": "object",
+          "properties": {
+            "port": {
+              "type": "integer",
+              "default": 6000
+            },
+            "host": {
+              "type": "string",
+              "default": "0.0.0.0"
+            },
+            "bodyLimitBytes": {
+              "type": "integer",
+              "default": 104857600
+            },
+            "staticDirPath": {
+              "type": "string",
+              "default": "./public"
+            },
+            "staticRoutePrefix": {
+              "type": "string",
+              "default": "/public/"
+            },
+            "staticMaxAge": {
+              "type": "string",
+              "default": "30d"
+            },
+            "staticAllowedHost": {
+              "type": ["string", "null"]
+            }
+          }
+        },
+        "rateLimit": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "max": {
+              "type": "integer",
+              "default": 1000
+            },
+            "window": {
+              "type": "integer",
+              "default": 60000
+            },
+            "store": {
+              "type": "string",
+              "enum": ["redis", "memory"],
+              "default": "redis"
+            }
+          }
+        },
+        "swagger": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "path": {
+              "type": "string",
+              "default": "/swagger"
+            }
+          }
+        },
+        "cors": {
+          "type": "object",
+          "properties": {
+            "origin": {
+              "type": "string",
+              "default": "*"
+            },
+            "methods": {
+              "oneOf": [
+                { "type": "string" },
+                {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              ],
+              "default": ["*"]
+            },
+            "allowedHeaders": {
+              "oneOf": [
+                { "type": "string" },
+                {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              ],
+              "default": ["*"]
+            },
+            "exposedHeaders": {
+              "oneOf": [
+                { "type": "string" },
+                {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              ],
+              "default": ["*"]
+            },
+            "maxAge": {
+              "type": "integer",
+              "default": 86400
+            },
+            "credentials": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
+        "database": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["sqlite", "postgres", "mysql"],
+              "default": "sqlite"
+            },
+            "url": {
+              "type": "string"
+            },
+            "transactionMaxWait": {
+              "type": "integer",
+              "default": 2000
+            },
+            "transactionTimeout": {
+              "type": "integer",
+              "default": 5000
+            }
+          },
+          "required": ["url"]
+        },
+        "redis": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string",
+              "default": "redis://localhost:6379/0"
+            }
+          }
+        },
+        "storage": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "default": "./storage"
+            },
+            "namePattern": {
+              "type": "string",
+              "default": "{name}-{hash}.{extension}"
+            },
+            "cacheDuration": {
+              "type": "integer",
+              "default": 86400
+            }
+          }
+        },
+        "security": {
+          "type": "object",
+          "properties": {
+            "jwt": {
+              "type": "object",
+              "properties": {
+                "secret": {
+                  "type": "string",
+                  "default": "abcdefghijklmnopqrst12345"
+                },
+                "expiresIn": {
+                  "type": "integer",
+                  "default": 2592000
+                },
+                "refreshExpiresIn": {
+                  "type": "integer",
+                  "default": 5184000
+                }
+              }
+            }
+          }
+        },
+        "queue": {
+          "type": "object",
+          "properties": {
+            "keepCompletedCount": {
+              "type": "integer",
+              "default": 0
+            },
+            "keepCompletedSeconds": {
+              "type": ["integer", "null"]
+            },
+            "keepFailedCount": {
+              "type": "integer",
+              "default": 50
+            },
+            "keepFailedSeconds": {
+              "type": ["integer", "null"]
+            },
+            "retryAttempts": {
+              "type": "integer",
+              "default": 3
+            },
+            "retryBackoff": {
+              "type": "integer",
+              "default": 3000
+            },
+            "retryBackoffType": {
+              "type": "string",
+              "enum": ["fixed", "exponential"],
+              "default": "fixed"
+            }
+          }
+        },
+        "scheduler": {
+          "type": "object",
+          "properties": {
+            "autoStartJob": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
+        "events": {
+          "type": "object",
+          "properties": {
+            "maxListeners": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        },
+        "export": {
+          "type": "object",
+          "properties": {
+            "batchSize": {
+              "type": "integer",
+              "default": 1000
+            },
+            "csv": {
+              "type": "object",
+              "properties": {
+                "delimiter": {
+                  "type": "string",
+                  "default": ";"
+                },
+                "joinDelimiter": {
+                  "type": "string",
+                  "default": ","
+                },
+                "addHeaders": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "addSepRow": {
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            }
+          }
+        },
+        "mail": {
+          "type": "object",
+          "properties": {
+            "smtp": {
+              "type": "object",
+              "properties": {
+                "host": {
+                  "type": "string",
+                  "default": "127.0.0.1"
+                },
+                "port": {
+                  "type": "integer",
+                  "default": 587
+                },
+                "secure": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "user": {
+                  "type": ["string", "null"]
+                },
+                "password": {
+                  "type": ["string", "null"]
+                }
+              }
+            },
+            "senderName": {
+              "type": ["string", "null"]
+            },
+            "senderAddress": {
+              "type": ["string", "null"]
+            },
+            "mockSend": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "system": {
+          "type": "object",
+          "properties": {
+            "adminInitialEmail": {
+              "type": "string",
+              "default": "admin@appweaver.co"
+            },
+            "adminInitialPassword": {
+              "type": ["string", "null"]
+            }
+          }
+        }
+      }
     }
   }
 }

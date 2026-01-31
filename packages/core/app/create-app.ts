@@ -1,7 +1,9 @@
+import path from 'node:path';
 import Fastify, { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import fastifyCors from '@fastify/cors';
 import fastifyHelmet from '@fastify/helmet';
+import fastifyStatic from '@fastify/static';
 import fastifyRateLimit from '@fastify/rate-limit';
 import fastifyMultipart, { ajvFilePlugin } from '@fastify/multipart';
 import fastifySwagger from '@fastify/swagger';
@@ -14,7 +16,8 @@ import { Application } from './application';
  *
  * This function initializes a Fastify server with various plugins and configurations,
  * including CORS, security rules (e.g., Helmet), multipart file uploads, rate limiting,
- * and Swagger documentation (if enabled). It also sets a global error handler for all routes.
+ * static file serving, and Swagger documentation (if enabled). It also sets a global
+ * error handler for all routes.
  *
  * @return {Promise<Application>} A promise that resolves with the configured application instance.
  */
@@ -56,6 +59,16 @@ export async function createApp(): Promise<Application> {
         'connect-src': ['*']
       }
     }
+  });
+
+  // Register static public file serving.
+  server.register(fastifyStatic, {
+    root: path.join(process.cwd(), config.SERVER_STATIC_DIR_PATH),
+    prefix: config.SERVER_STATIC_ROUTE_PREFIX,
+    maxAge: config.SERVER_STATIC_MAX_AGE,
+    constraints: config.SERVER_STATIC_ALLOWED_HOST
+      ? { host: config.SERVER_STATIC_ALLOWED_HOST }
+      : {}
   });
 
   // Register multipart file upload plugin.
