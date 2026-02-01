@@ -10,9 +10,11 @@
     "server": {
       "port": 6000,
       "host": "0.0.0.0",
+      "apiPrefix": "/api",
       "bodyLimitBytes": 104857600,
+      "staticEnabled": true,
       "staticDirPath": "./public",
-      "staticRoutePrefix": "/public/",
+      "staticRoutePrefix": "/public",
       "staticMaxAge": "30d",
       "staticAllowedHost": null
     },
@@ -60,6 +62,7 @@
       "cacheDuration": 86400
     },
     "security": {
+      "routePrefix": "/auth",
       "jwt": {
         "secret": "GdvCFezoPIZdOAN3IQZR3JhaAZH6S6AJ",
         "expiresIn": 2592000,

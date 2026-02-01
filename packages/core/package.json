@@ -18,6 +18,8 @@
     "node": ">= 20"
   },
   "scripts": {
+    "db:remove": "rimraf dev.db && rimraf prisma/migrations --glob \"*_init\"",
+    "db:recreate": "npm run db:remove && prisma migrate dev --name init",
     "db:migrate": "prisma migrate deploy",
     "db:generate": "prisma generate"
   },
@@ -35,6 +37,8 @@
     "@prisma/adapter-better-sqlite3": "7.3.0",
     "@prisma/client": "7.3.0",
     "@sinclair/typebox": "0.34.47",
+    "cron": "4.4.0",
+    "date-fns": "4.1.0",
     "fastify": "5.7.1",
     "prisma": "7.3.0"
   },

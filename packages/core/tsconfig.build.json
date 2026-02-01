@@ -4,6 +4,8 @@
     "rootDir": ".",
     "outDir": "./dist",
     "paths": {
+      "@prisma/client": ["./node_modules/.prisma/client"],
+      "@prisma/client/*": ["./node_modules/.prisma/client/*"],
       "@appweaver/common": ["../common"],
       "@appweaver/common/*": ["../common/*"]
     }

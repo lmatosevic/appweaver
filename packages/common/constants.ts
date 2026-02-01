@@ -1,1 +1,1 @@
-export const APPWEAVER = 'appweaver';
+export const CONFIG_NAME = 'appweaver';

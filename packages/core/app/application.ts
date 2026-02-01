@@ -1,11 +1,21 @@
 import { FastifyInstance } from 'fastify';
 import { config } from '@appweaver/common';
+import { db } from '../database';
 
 /**
  * Represents an application that manages the lifecycle of a Fastify server instance.
  */
 export class Application {
-  constructor(private readonly server: FastifyInstance) {}
+  constructor(private readonly _server: FastifyInstance) {}
+
+  /**
+   * Retrieves the Fastify instance.
+   *
+   * @return {FastifyInstance} The underlying Fastify server instance.
+   */
+  get server(): FastifyInstance {
+    return this._server;
+  }
 
   /**
    * Starts the server and begins listening on the specified host and port.
@@ -13,10 +23,11 @@ export class Application {
    * @return {Promise<string>} A promise that resolves with the address where the server is running.
    */
   public async start(): Promise<string> {
-    this.server.log.info(
+    this._server.log.info(
       `Application started in "${config.APP_ENV}" environment`
     );
-    return this.server.listen({
+    await db.connect();
+    return this._server.listen({
       port: config.SERVER_PORT,
       host: config.SERVER_HOST
     });
@@ -29,7 +40,8 @@ export class Application {
    * @return {Promise<void>} A promise that resolves when the server has been successfully stopped.
    */
   public async stop(): Promise<void> {
-    await this.server.close();
+    await db.disconnect();
+    await this._server.close();
   }
 
   /**
@@ -38,8 +50,8 @@ export class Application {
    * @return {Promise<string>} A promise that resolves to a JSON-formatted string containing the API documentation.
    */
   public async docs(): Promise<string> {
-    await this.server.ready();
-    const document = this.server.swagger();
+    await this._server.ready();
+    const document = this._server.swagger();
     return JSON.stringify(document, null, 4);
   }
 }

@@ -94,6 +94,14 @@
               "type": "string",
               "default": "0.0.0.0"
             },
+            "apiPrefix": {
+              "type": "string",
+              "default": "/api"
+            },
+            "staticEnabled": {
+              "type": "boolean",
+              "default": true
+            },
             "bodyLimitBytes": {
               "type": "integer",
               "default": 104857600
@@ -104,7 +112,7 @@
             },
             "staticRoutePrefix": {
               "type": "string",
-              "default": "/public/"
+              "default": "/public"
             },
             "staticMaxAge": {
               "type": "string",
@@ -248,6 +256,10 @@
         "security": {
           "type": "object",
           "properties": {
+            "routePrefix": {
+              "type": "string",
+              "default": "/auth"
+            },
             "jwt": {
               "type": "object",
               "properties": {

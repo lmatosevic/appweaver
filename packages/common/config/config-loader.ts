@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { config as dotenvConfig } from 'dotenv';
 import { TObject } from '@sinclair/typebox';
 import { camelToSnakeCase, parseArray } from '../utils';
-import { APPWEAVER } from '../constants';
+import { CONFIG_NAME } from '../constants';
 
 /**
  * Loads configuration values from the environment variables based on the provided schema object.
@@ -70,10 +70,10 @@ export function loadConfigFromEnv(
 export function loadConfigFromFiles(
   schema: TObject
 ): Record<string, string | string[]> {
-  const globalConfig = loadConfigFromFile(schema, `./${APPWEAVER}.json`);
+  const globalConfig = loadConfigFromFile(schema, `./${CONFIG_NAME}.json`);
   const envConfig = loadConfigFromFile(
     schema,
-    `./${APPWEAVER}.${process.env.NODE_ENV}.json`
+    `./${CONFIG_NAME}.${process.env.NODE_ENV}.json`
   );
   return { ...globalConfig, ...envConfig };
 }

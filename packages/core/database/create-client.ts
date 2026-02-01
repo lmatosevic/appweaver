@@ -1,6 +1,6 @@
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
-import { config, DatabaseType } from '@appweaver/common';
 import { PrismaClient } from '@prisma/client';
+import { config, DatabaseType } from '@appweaver/common';
 
 const options = {
   transactionOptions: {

@@ -28,9 +28,11 @@ const configSchema = Type.Object({
 
   SERVER_PORT: Type.Integer({ default: 6000 }),
   SERVER_HOST: Type.String({ default: '0.0.0.0' }),
+  SERVER_API_PREFIX: Type.String({ default: '/api' }),
   SERVER_BODY_LIMIT_BYTES: Type.Integer({ default: 104857600 }),
+  SERVER_STATIC_ENABLED: Type.Boolean({ default: true }),
   SERVER_STATIC_DIR_PATH: Type.String({ default: './public' }),
-  SERVER_STATIC_ROUTE_PREFIX: Type.String({ default: '/public/' }),
+  SERVER_STATIC_ROUTE_PREFIX: Type.String({ default: '/public' }),
   SERVER_STATIC_MAX_AGE: Type.String({ default: '30d' }),
   SERVER_STATIC_ALLOWED_HOST: Type.Optional(Type.String()),
 
@@ -65,6 +67,7 @@ const configSchema = Type.Object({
   STORAGE_NAME_PATTERN: Type.String({ default: '{name}-{hash}.{extension}' }),
   STORAGE_CACHE_DURATION: Type.Integer({ default: 86400 }),
 
+  SECURITY_ROUTE_PREFIX: Type.String({ default: '/auth' }),
   SECURITY_JWT_SECRET: Type.String({ default: 'abcdefghijklmnopqrst12345' }),
   SECURITY_JWT_EXPIRES_IN: Type.Integer({ default: 2592000 }),
   SECURITY_JWT_REFRESH_EXPIRES_IN: Type.Integer({ default: 5184000 }),

@@ -8,7 +8,9 @@ import fastifyRateLimit from '@fastify/rate-limit';
 import fastifyMultipart, { ajvFilePlugin } from '@fastify/multipart';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
-import { config, HttpError, loggerConfig } from '@appweaver/common';
+import { config, HttpError, loggerConfig, plural } from '@appweaver/common';
+import { context } from '../context';
+import auth from '../security/auth';
 import { Application } from './application';
 
 export type CreateAppParams = {
@@ -20,8 +22,8 @@ export type CreateAppParams = {
  *
  * This function initializes a Fastify server with various plugins and configurations,
  * including CORS, security rules (e.g., Helmet), multipart file uploads, rate limiting,
- * static file serving, and Swagger documentation (if enabled). It also sets a global
- * error handler for all routes.
+ * static file serving, authentication, and Swagger documentation (if enabled).
+ * It also sets a global error handler for all routes.
  *
  * @return {Promise<Application>} A promise that resolves with the configured application instance.
  */
@@ -68,16 +70,19 @@ export async function createApp(
   });
 
   // Register static public file serving.
-  server.register(fastifyStatic, {
-    root: path.isAbsolute(config.SERVER_STATIC_DIR_PATH)
-      ? config.SERVER_STATIC_DIR_PATH
-      : path.join(process.cwd(), config.SERVER_STATIC_DIR_PATH),
-    prefix: config.SERVER_STATIC_ROUTE_PREFIX,
-    maxAge: config.SERVER_STATIC_MAX_AGE,
-    constraints: config.SERVER_STATIC_ALLOWED_HOST
-      ? { host: config.SERVER_STATIC_ALLOWED_HOST }
-      : {}
-  });
+  if (config.SERVER_STATIC_ENABLED) {
+    server.register(fastifyStatic, {
+      root: path.isAbsolute(config.SERVER_STATIC_DIR_PATH)
+        ? config.SERVER_STATIC_DIR_PATH
+        : path.join(process.cwd(), config.SERVER_STATIC_DIR_PATH),
+      prefix: config.SERVER_STATIC_ROUTE_PREFIX,
+      maxAge: config.SERVER_STATIC_MAX_AGE,
+      prefixAvoidTrailingSlash: true,
+      constraints: config.SERVER_STATIC_ALLOWED_HOST
+        ? { host: config.SERVER_STATIC_ALLOWED_HOST }
+        : {}
+    });
+  }
 
   // Register multipart file upload plugin.
   server.register(fastifyMultipart, { throwFileSizeLimit: false });
@@ -170,6 +175,17 @@ export async function createApp(
         );
     }
   );
+
+  // Register authentication plugin.
+  server.register(auth);
+
+  // Register resource API routes.
+  for (const [name, route] of Object.entries(context.routes)) {
+    const parts = [config.SERVER_API_PREFIX, plural(name).toLowerCase()];
+    server.register(route, { prefix: parts.join('/') });
+  }
+
+  context.server = server;
 
   const app = new Application(server);
 
