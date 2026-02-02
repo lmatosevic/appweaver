@@ -6,5 +6,5 @@ export * from './resource';
 export * from './scheduler';
 export * from './schema';
 export * from './security/auth-service';
-export * from './storage';
+export { fileService, storage } from './storage';
 export * from './utils/schema-util';

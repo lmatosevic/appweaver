@@ -47,7 +47,7 @@ export type ResourceSchemaConfig = {
 
 export type ResourceRoutesConfig = {
   default?: RouteConfig;
-  find?: RouteConfig;
+  find?: RouteConfig & CacheConfig;
   query?: RouteConfig & CacheConfig;
   aggregate?: RouteConfig & CacheConfig;
   create?: RouteConfig;

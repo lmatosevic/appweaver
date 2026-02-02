@@ -11,6 +11,7 @@ import fastifySwaggerUI from '@fastify/swagger-ui';
 import { config, loggerConfig, plural } from '@appweaver/common';
 import { context } from '../context';
 import auth from '../security/auth';
+import { files } from '../storage';
 import { errorHandler } from './error-handler';
 import { info } from './info-route';
 import { Application } from './application';
@@ -151,6 +152,9 @@ export async function createApp(
 
   // Register authentication plugin.
   server.register(auth);
+
+  // Register files route.
+  server.register(files, { prefix: config.SERVER_API_PREFIX });
 
   // Register info route.
   server.register(info, { prefix: config.SERVER_API_PREFIX });
