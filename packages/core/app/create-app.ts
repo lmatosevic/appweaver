@@ -1,5 +1,5 @@
 import path from 'node:path';
-import Fastify, { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
+import Fastify from 'fastify';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import fastifyCors from '@fastify/cors';
 import fastifyHelmet from '@fastify/helmet';
@@ -8,9 +8,11 @@ import fastifyRateLimit from '@fastify/rate-limit';
 import fastifyMultipart, { ajvFilePlugin } from '@fastify/multipart';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
-import { config, HttpError, loggerConfig, plural } from '@appweaver/common';
+import { config, loggerConfig, plural } from '@appweaver/common';
 import { context } from '../context';
 import auth from '../security/auth';
+import { errorHandler } from './error-handler';
+import { info } from './info-route';
 import { Application } from './application';
 
 export type CreateAppParams = {
@@ -145,41 +147,13 @@ export async function createApp(
   }
 
   // Set global error handler for all routes.
-  server.setErrorHandler(
-    (
-      err: FastifyError | HttpError,
-      request: FastifyRequest,
-      reply: FastifyReply
-    ) => {
-      const { message, statusCode, error, errorCode } = err as HttpError;
-
-      if (!statusCode || statusCode >= 500) {
-        if (!error) {
-          request.log.error(err.stack);
-        } else {
-          request.log.error(error);
-        }
-      }
-
-      const errorResponse = {
-        errorCode: errorCode || statusCode || 500,
-        message: message || 'Unknown error'
-      };
-
-      const contentType = reply.getHeader('Content-Type');
-
-      reply
-        .status(statusCode || 500)
-        .send(
-          contentType && contentType !== 'application/json'
-            ? errorResponse.message
-            : errorResponse
-        );
-    }
-  );
+  server.setErrorHandler(errorHandler);
 
   // Register authentication plugin.
   server.register(auth);
+
+  // Register info route.
+  server.register(info, { prefix: config.SERVER_API_PREFIX });
 
   // Register resource API routes.
   for (const [name, route] of Object.entries(context.routes)) {
@@ -191,10 +165,11 @@ export async function createApp(
 
   const app = new Application(server);
 
-  if (params.autoStart !== false) {
-    await app.start();
+  if (params.autoStart === false) {
     return app;
   }
 
-  return new Application(server);
+  await app.start();
+
+  return app;
 }
