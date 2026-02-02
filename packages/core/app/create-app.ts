@@ -14,7 +14,9 @@ import auth from '../security/auth';
 import { Application } from './application';
 
 export type CreateAppParams = {
-  start?: boolean;
+  /** A boolean flag indicating whether the application should automatically
+   * start after being created. (default: true) **/
+  autoStart?: boolean;
 };
 
 /**
@@ -189,7 +191,7 @@ export async function createApp(
 
   const app = new Application(server);
 
-  if (params.start) {
+  if (params.autoStart !== false) {
     await app.start();
     return app;
   }
