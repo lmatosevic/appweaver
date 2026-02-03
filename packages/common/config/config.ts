@@ -4,7 +4,7 @@ import { loadConfigFromEnv, loadConfigFromFiles } from './config-loader';
 import { DatabaseType, Environment, LogLevel } from '../enums';
 
 const configSchema = Type.Object({
-  APP_ENV: Type.Enum(Environment, {
+  APP_ENV: Type.Union([Type.Enum(Environment), Type.String()], {
     default: Environment.Production,
     mapFrom: 'NODE_ENV'
   }),

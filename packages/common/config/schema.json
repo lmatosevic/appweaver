@@ -21,9 +21,14 @@
           "type": "object",
           "properties": {
             "env": {
-              "type": "string",
-              "enum": ["development", "staging", "production"],
-              "default": "production"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": ["test", "local", "dev", "staging", "qa", "prod"],
+                  "default": "prod"
+                },
+                { "type": "string" }
+              ]
             },
             "name": {
               "type": "string",
