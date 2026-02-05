@@ -1,25 +1,21 @@
 import { Static, Type } from '@sinclair/typebox';
-import {
-  resourceConfig,
-  CommonId,
-  CommonData,
-  CommonProperties,
-  File,
-  Nullable
-} from '@appweaver/core';
+import { resourceConfig, Id, AuditData, File, Nullable } from '@appweaver/core';
 
 export const User = Type.Composite([
-  CommonId,
+  Id,
   Type.Object({
     firstName: Type.String({ maxLength: 255 }),
     lastName: Type.String({ maxLength: 255 }),
     email: Type.String({ maxLength: 255, format: 'email' }),
     phone: Nullable(Type.String({ maxLength: 25 }))
   }),
-  CommonData
+  AuditData
 ]);
 
-export const UserCreate = Type.Omit(User, CommonProperties);
+export const UserCreate = Type.Omit(User, [
+  ...Object.keys(Id.properties),
+  ...Object.keys(AuditData.properties)
+]);
 
 export const UserUpdate = Type.Partial(UserCreate);
 

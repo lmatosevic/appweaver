@@ -2,6 +2,7 @@ export * from './app';
 export * from './context';
 export * from './errors';
 export * from './events';
+export * from './factory';
 export * from './database';
 export * from './resource';
 export * from './scheduler';

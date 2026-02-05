@@ -1,6 +1,6 @@
 import { Static } from '@sinclair/typebox';
 import { plural } from '@appweaver/common';
-import { CommonId, createSchema } from '../resource';
+import { createSchema, Id } from '../resource';
 import { context } from '../context';
 import { exportService } from '../export';
 import { fileService } from '../storage';
@@ -56,7 +56,7 @@ export function resourceRoutes(
 
     const findConfig = routeConfig('find');
     if (!findConfig?.exclude && resourceSchema.findSchema) {
-      server.get<{ Params: Static<typeof CommonId> }>(
+      server.get<{ Params: Static<typeof Id> }>(
         '/:id',
         {
           schema: resourceSchema.findSchema,
@@ -135,7 +135,7 @@ export function resourceRoutes(
 
     const updateConfig = routeConfig('update');
     if (!updateConfig?.exclude && resourceSchema.updateSchema) {
-      server.put<{ Params: Static<typeof CommonId> }>(
+      server.put<{ Params: Static<typeof Id> }>(
         '/:id',
         {
           schema: resourceSchema.updateSchema,
@@ -155,7 +155,7 @@ export function resourceRoutes(
 
     const deleteConfig = routeConfig('delete');
     if (!deleteConfig?.exclude && resourceSchema.deleteSchema) {
-      server.delete<{ Params: Static<typeof CommonId> }>(
+      server.delete<{ Params: Static<typeof Id> }>(
         '/:id',
         {
           schema: resourceSchema.deleteSchema,
@@ -209,7 +209,7 @@ export function resourceRoutes(
       const config = resourceConfig.fileConfig as FileConfigProps;
       const maxSize = maxFileSize(config);
 
-      server.post<{ Params: Static<typeof CommonId> }>(
+      server.post<{ Params: Static<typeof Id> }>(
         '/:id/files',
         {
           schema: resourceSchema.fileUploadSchema,
@@ -243,7 +243,7 @@ export function resourceRoutes(
       const config = resourceConfig.fileConfig as FileConfigProps;
 
       server.post<{
-        Params: Static<typeof CommonId>;
+        Params: Static<typeof Id>;
         Body: Record<string, string | string[]>;
       }>(
         '/:id/delete-files',

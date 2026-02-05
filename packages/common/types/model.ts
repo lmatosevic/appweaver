@@ -9,7 +9,7 @@ export type FieldType =
   | 'blob'
   | 'enum';
 
-export type IdType = 'text' | 'number';
+export type IdType = 'text' | 'int' | 'bigInt';
 
 export type IdGenerator =
   | 'autoincrement()'
@@ -51,13 +51,13 @@ export type IdField = {
   generator?: IdGenerator;
 };
 
-export type AuditField = {
+export type AuditFields = {
   updatedAt?: boolean;
   createdAt?: boolean;
-  createdBy?: boolean;
+  createdById?: boolean;
 };
 
-export type Field = {
+export type ScalarField = {
   type: FieldType;
   default?: FieldDefault;
   values?: string[];
@@ -66,8 +66,10 @@ export type Field = {
   unique?: boolean;
   minLength?: number;
   maxLength?: number;
+  minimum?: number;
+  maximum?: number;
   format?: FieldFormat;
-  pattern?: string | RegExp;
+  pattern?: string;
 };
 
 export type RelationReferences = {
@@ -80,7 +82,7 @@ export type RelationInput = {
   uniqueKey?: string;
   additionalProps?: Array<{
     name: string;
-    optional?: boolean;
+    required?: boolean;
   }>;
 };
 
@@ -89,15 +91,15 @@ export type RelationOutput = {
   count?: boolean;
 };
 
-export type Relation = {
+export type RelationField = {
   references: RelationReferences;
   includes?: {
-    [key: string]: Omit<Relation, 'references'>;
+    [key: string]: Omit<RelationField, 'references'>;
   };
   input?: RelationInput;
   output?: RelationOutput;
   minItems?: number;
-  optional?: boolean;
+  required?: boolean;
   createIfNotExists?: boolean;
   orphanRemoval?: boolean;
 };
@@ -105,7 +107,6 @@ export type Relation = {
 export type FileField = {
   mimeType?: string | RegExp;
   namePattern?: string | ((file: any, resource: any) => string);
-  optional?: boolean;
   array?: boolean;
   maxSize?: number | string;
   maxCount?: number;
@@ -127,10 +128,7 @@ export type VirtualOutput = {
   value?: any | ((resource: any) => any);
 };
 
-export type VirtualField = {
-  type: FieldType;
-  array?: boolean;
-  optional?: boolean;
+export type VirtualField = ScalarField & {
   input?: VirtualInput;
   output?: VirtualOutput;
 };
@@ -144,12 +142,12 @@ export type ExportField = {
 export type ResourceModel = {
   name?: string;
   id?: IdField;
-  audit?: AuditField;
-  fields?: {
-    [key: string]: Field;
+  audit?: AuditFields;
+  scalars?: {
+    [key: string]: ScalarField;
   };
   relations?: {
-    [key: string]: Relation;
+    [key: string]: RelationField;
   };
   files?: {
     [key: string]: FileField;
@@ -162,5 +160,5 @@ export type ResourceModel = {
   virtual?: {
     [key: string]: VirtualField;
   };
-  index?: string[];
+  index?: string[] | string[][];
 };

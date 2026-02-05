@@ -1,6 +1,6 @@
-import * as fsp from 'node:fs/promises';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import fsp from 'node:fs/promises';
+import fs from 'node:fs';
+import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { Readable } from 'node:stream';
 import { logger, config } from '@appweaver/common';

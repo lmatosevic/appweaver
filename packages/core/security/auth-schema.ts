@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { CommonData, CommonId } from '../resource';
+import { AuditData, Id } from '../resource';
 import { AllErrorResponses } from '../errors';
 
 export const LoginRequest = Type.Object({
@@ -32,12 +32,12 @@ export const LogoutResponse = Type.Object({
 });
 
 export const Identity = Type.Composite([
-  CommonId,
+  Id,
   Type.Object({
     username: Type.String({ maxLength: 255 }),
     enabled: Type.Boolean()
   }),
-  CommonData
+  AuditData
 ]);
 
 export const loginSchema = {

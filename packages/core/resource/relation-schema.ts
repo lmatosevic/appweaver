@@ -1,5 +1,5 @@
 import { TObject, TSchema, Type } from '@sinclair/typebox';
-import { CommonId } from './common-schema';
+import { Id } from './common-schema';
 import { countFieldName, Nullable } from '../utils';
 import {
   FileConfigProps,
@@ -17,8 +17,8 @@ export function relationInputProperties<T extends TObject>(
   const relationInputType = (key: string) => {
     const { type, items, ...options } = object.properties[key];
 
-    let inputObjectType: TSchema = CommonId;
-    let uniqueKeyType: TSchema = CommonId.properties.id;
+    let inputObjectType: TSchema = Id;
+    let uniqueKeyType: TSchema = Id.properties.id;
 
     const config = relationConfig?.[key];
     if (config) {

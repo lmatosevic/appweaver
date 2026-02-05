@@ -1,20 +1,20 @@
 import { Type } from '@sinclair/typebox';
-import { StringDate } from '../utils';
+import { Nullable, StringDate } from '../utils';
 
-export const CommonId = Type.Object({
+export const Id = Type.Object({
   id: Type.Integer({ minimum: 1 })
 });
 
-export const CommonData = Type.Object({
+export const IdString = Type.Object({
+  id: Type.String({ maxLength: 36 })
+});
+
+export const AuditData = Type.Object({
   updatedAt: StringDate({
     examples: ['2025-04-11T11:27:58.590Z']
   }),
   createdAt: StringDate({
     examples: ['2025-04-11T11:27:58.590Z']
-  })
+  }),
+  createdById: Nullable(Type.Integer({ minimum: 1, examples: [1] }))
 });
-
-export const CommonProperties = [
-  ...Object.keys(CommonId.properties),
-  ...Object.keys(CommonData.properties)
-];

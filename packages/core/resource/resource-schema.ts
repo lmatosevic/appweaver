@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { camelToSnakeCase } from '@appweaver/common';
-import { CommonId } from './common-schema';
+import { Id } from './common-schema';
 import { relationInputModels, relationOutputModels } from './relation-schema';
 import { fileInputModels, FileResponse } from '../storage';
 import { AllErrorResponses } from '../errors';
@@ -100,7 +100,7 @@ export function createSchema(
         200: resourceConfig.readOneModel,
         ...AllErrorResponses
       },
-      params: CommonId
+      params: Id
     },
     querySchema: {
       tags: [tag],
@@ -150,7 +150,7 @@ export function createSchema(
         ...AllErrorResponses
       },
       body: resourceConfig.updateOneModel,
-      params: CommonId
+      params: Id
     },
     deleteSchema: {
       tags: [tag],
@@ -161,7 +161,7 @@ export function createSchema(
         200: resourceConfig.readOneModel,
         ...AllErrorResponses
       },
-      params: CommonId
+      params: Id
     },
     exportSchema: {
       tags: [tag],
@@ -191,7 +191,7 @@ export function createSchema(
         ...AllErrorResponses
       },
       body: resourceConfig.fileUploadModel,
-      params: CommonId
+      params: Id
     },
     fileDeleteSchema: {
       tags: [tag],
@@ -203,7 +203,7 @@ export function createSchema(
         ...AllErrorResponses
       },
       body: resourceConfig.fileDeleteModel,
-      params: CommonId
+      params: Id
     }
   };
 }

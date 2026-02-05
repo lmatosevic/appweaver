@@ -1,11 +1,11 @@
 import { TObject, Type } from '@sinclair/typebox';
-import { CommonData, CommonId } from '../resource';
+import { AuditData, Id } from '../resource';
 import { AllErrorResponses } from '../errors';
 import { Nullable } from '../utils';
 import { FileConfigProps } from '../types';
 
 export const File = Type.Composite([
-  CommonId,
+  Id,
   Type.Object({
     name: Type.String({ examples: ['image_123.png'] }),
     originalName: Type.String({ examples: ['image.png'] }),
@@ -14,7 +14,7 @@ export const File = Type.Composite([
     title: Nullable(Type.String()),
     description: Nullable(Type.String())
   }),
-  CommonData
+  AuditData
 ]);
 
 export const FileName = Type.Object({

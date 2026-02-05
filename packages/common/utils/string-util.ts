@@ -1,7 +1,7 @@
 import { DefaultGenerationOptions, generateApiKey } from 'generate-api-key';
 import { getDayOfYear, getISOWeek } from 'date-fns';
 import { v4 as uuidV4 } from 'uuid';
-import { plural as pluralize } from 'pluralize';
+import { plural as pluralize, singular as singularize } from 'pluralize';
 
 /**
  * Parses a string into an array of strings, splitting it by a specified delimiter.
@@ -129,6 +129,26 @@ export function uuid(): string {
  */
 export function plural(name: string): string {
   return pluralize(name);
+}
+
+/**
+ * Converts a given plural string into its singular form.
+ *
+ * @param name The plural string to be converted.
+ * @return The singular form of the given string.
+ */
+export function singular(name: string): string {
+  return singularize(name);
+}
+
+/**
+ * Converts the first character of a string to uppercase while leaving the rest unchanged.
+ *
+ * @param text - The input string to be capitalized.
+ * @return The string with the first character converted to uppercase.
+ */
+export function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 /**
