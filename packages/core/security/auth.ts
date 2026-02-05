@@ -9,7 +9,7 @@ import {
 import { config, HttpError } from '@appweaver/common';
 import { authService } from './auth-service';
 import { authRoutes } from './auth-routes';
-import { currentIdentity, hasRoles } from './helper';
+import { currentIdentity, hasPermissions, hasRoles } from './helper';
 import { JwtPayload, ServerInstance } from '../types';
 
 export default fastifyPlugin(async (server: ServerInstance): Promise<void> => {
@@ -54,8 +54,11 @@ export default fastifyPlugin(async (server: ServerInstance): Promise<void> => {
           return;
         }
 
-        const { roles } = request.routeOptions.config;
-        if (roles && !hasRoles(identity, roles)) {
+        const { roles, permissions } = request.routeOptions.config;
+        if (
+          !hasRoles(identity, roles) ||
+          !hasPermissions(identity, permissions)
+        ) {
           reply.code(403).send({ message: 'Forbidden access', errorCode: 403 });
           return;
         }

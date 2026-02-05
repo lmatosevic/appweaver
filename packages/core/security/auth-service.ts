@@ -12,7 +12,7 @@ export type AuthTokens = {
 };
 
 export class AuthService {
-  private readonly include = { roles: true };
+  private readonly include = { roles: { include: { permissions: true } } };
 
   public async findById(id: number): Promise<Identity | null> {
     try {

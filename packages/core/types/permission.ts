@@ -1,10 +1,7 @@
-import { Permission } from './permission';
-
-export type Role = {
+export type Permission = {
   id: number;
   name: string;
-  permissions: Permission[];
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-};
+}

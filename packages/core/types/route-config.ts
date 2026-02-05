@@ -1,8 +1,8 @@
-import { Role } from './role';
 import { ServerInstance } from './server-instance';
 
 export type RouteConfig = {
-  roles?: Role[];
+  roles?: string[];
+  permissions?: string[];
   auth?: any[];
   exclude?: boolean;
   public?: boolean;

@@ -19,7 +19,7 @@
   },
   "scripts": {
     "db:remove": "rimraf dev.db && rimraf prisma/migrations --glob \"*_init\"",
-    "db:recreate": "npm run db:remove && prisma migrate dev --name init",
+    "db:recreate": "npm run db:remove && prisma migrate dev --name init && npm run db:generate",
     "db:migrate": "prisma migrate deploy",
     "db:generate": "prisma generate"
   },
