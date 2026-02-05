@@ -12,5 +12,5 @@ export type ResourceService = {
   afterCreate?: (resource: any) => any;
   afterUpdate?: (resource: any) => any;
   afterDelete?: (resource: any) => any;
-  textSearch?: (input: string) => any;
+  textSearch?: any | ((input: string) => any);
 };
