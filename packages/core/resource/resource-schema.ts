@@ -1,14 +1,10 @@
 import { Type } from '@sinclair/typebox';
 import { camelToSnakeCase } from '@appweaver/common';
+import { CommonId } from './common-schema';
+import { relationInputModels, relationOutputModels } from './relation-schema';
+import { fileInputModels, FileResponse } from '../storage';
+import { AllErrorResponses } from '../errors';
 import { context } from '../context';
-import {
-  CommonId,
-  AllErrorResponses,
-  fileInputModels,
-  FileResponse,
-  relationInputModels,
-  relationOutputModels
-} from '../schema';
 import { ResourceNameSymbol } from '../constants';
 import { StringDate } from '../utils';
 import {

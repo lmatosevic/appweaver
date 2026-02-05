@@ -3,8 +3,8 @@ import { CommonId } from './common-schema';
 import { countFieldName, Nullable } from '../utils';
 import {
   FileConfigProps,
-  OutputType,
   InputType,
+  OutputType,
   RelationConfigProps,
   ResourceModelConfig
 } from '../types';

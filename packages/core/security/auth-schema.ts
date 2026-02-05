@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
-import { CommonData, CommonId } from './common-schema';
-import { AllErrorResponses } from './error-schema';
+import { CommonData, CommonId } from '../resource';
+import { AllErrorResponses } from '../errors';
 
 export const LoginRequest = Type.Object({
   username: Type.String({ examples: ['john.doe@example.com'] }),

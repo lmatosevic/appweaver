@@ -10,9 +10,9 @@ import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
 import { config, loggerConfig, plural } from '@appweaver/common';
 import { context } from '../context';
-import auth from '../security/auth';
+import { auth } from '../security/auth';
+import { errorHandler } from '../errors';
 import { files } from '../storage';
-import { errorHandler } from './error-handler';
 import { info } from './info-route';
 import { Application } from './application';
 

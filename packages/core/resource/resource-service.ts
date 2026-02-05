@@ -12,7 +12,6 @@ import {
   subDays
 } from 'date-fns';
 import {
-  HttpError,
   isArray,
   isObject,
   removeUndefinedValues,
@@ -22,6 +21,7 @@ import { db } from '../database';
 import { events } from '../events';
 import { context } from '../context';
 import { currentIdentity } from '../security';
+import { HttpError } from '../errors';
 import {
   ActionType,
   AggregateResponse,
@@ -31,8 +31,8 @@ import {
   QueryResponse,
   RelationConfig,
   Resource,
-  ResourceOmit,
-  ResourceModel
+  ResourceModel,
+  ResourceOmit
 } from '../types';
 import { countFieldName, extractResourceName } from '../utils';
 

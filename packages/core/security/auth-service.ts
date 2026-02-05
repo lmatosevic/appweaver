@@ -1,7 +1,8 @@
-import { HttpError, config } from '@appweaver/common';
+import { config } from '@appweaver/common';
 import { checkPassword, hashPassword, updatePasswordHash } from './helper';
 import { db } from '../database';
 import { context } from '../context';
+import { HttpError } from '../errors';
 import { Identity, JwtPayload } from '../types';
 
 export type AuthTokens = {

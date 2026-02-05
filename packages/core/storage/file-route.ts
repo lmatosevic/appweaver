@@ -2,7 +2,7 @@ import { FastifyReply } from 'fastify';
 import { Static } from '@sinclair/typebox';
 import { config } from '@appweaver/common';
 import { fileService, FileStream } from './file-service';
-import { createFileAccessSchema, FileName } from '../schema';
+import { createFileAccessSchema, FileName } from './file-schema';
 import { ServerInstance } from '../types';
 
 export function files(server: ServerInstance): void {

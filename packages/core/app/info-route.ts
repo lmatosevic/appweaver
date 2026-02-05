@@ -1,5 +1,5 @@
 import { config } from '@appweaver/common';
-import { infoSchema } from '../schema';
+import { infoSchema } from './info-schema';
 import { ServerInstance } from '../types';
 
 export function info(server: ServerInstance): void {

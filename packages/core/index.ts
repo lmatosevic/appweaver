@@ -1,10 +1,10 @@
 export * from './app';
 export * from './context';
+export * from './errors';
 export * from './events';
 export * from './database';
 export * from './resource';
 export * from './scheduler';
-export * from './schema';
 export * from './security/helper';
-export { fileService, storage } from './storage';
+export { fileService, storage, File } from './storage';
 export * from './utils/schema-util';

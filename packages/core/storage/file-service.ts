@@ -1,5 +1,6 @@
 import { Multipart, MultipartFile } from '@fastify/multipart';
-import { HttpError, isArray } from '@appweaver/common';
+import { isArray } from '@appweaver/common';
+import { HttpError } from '../errors';
 import { context } from '../context';
 import { storage, ContentStream } from './storage';
 import { db } from '../database';

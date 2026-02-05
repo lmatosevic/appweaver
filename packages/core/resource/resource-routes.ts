@@ -1,7 +1,6 @@
 import { Static } from '@sinclair/typebox';
 import { plural } from '@appweaver/common';
-import { createSchema } from '../resource';
-import { CommonId } from '../schema';
+import { CommonId, createSchema } from '../resource';
 import { context } from '../context';
 import { exportService } from '../export';
 import { fileService } from '../storage';

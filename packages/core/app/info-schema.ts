@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { AllErrorResponses } from './error-schema';
+import { AllErrorResponses } from '../errors';
 
 export const InfoResponse = Type.Object({
   name: Type.String(),

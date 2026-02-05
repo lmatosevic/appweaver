@@ -5,7 +5,7 @@ import {
   loginSchema,
   logoutSchema,
   refreshSchema
-} from '../schema';
+} from './auth-schema';
 import { ServerInstance } from '../types';
 
 export function authRoutes(server: ServerInstance): void {

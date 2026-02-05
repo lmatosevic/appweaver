@@ -1,6 +1,6 @@
 import { TObject, Type } from '@sinclair/typebox';
-import { CommonData, CommonId } from './common-schema';
-import { AllErrorResponses } from './error-schema';
+import { CommonData, CommonId } from '../resource';
+import { AllErrorResponses } from '../errors';
 import { Nullable } from '../utils';
 import { FileConfigProps } from '../types';
 

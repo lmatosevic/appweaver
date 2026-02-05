@@ -1,13 +1,7 @@
 import { Readable } from 'node:stream';
-import {
-  config,
-  HttpError,
-  isArray,
-  isObject,
-  logger,
-  plural
-} from '@appweaver/common';
+import { config, isArray, isObject, logger, plural } from '@appweaver/common';
 import { context } from '../context';
+import { HttpError } from '../errors';
 import { ResourceService } from '../resource';
 import {
   extractResourceName,
