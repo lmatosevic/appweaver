@@ -25,17 +25,50 @@ export function parseArray(
 }
 
 /**
- * Generates a random string based on the specified length and character pool.
+ * Generates a random string based on the specified length and character set configuration.
  *
- * @param {number} length - The desired length of the generated string. Defaults to 16.
- * @param {string} pool - A string representing the set of characters to use for the random string.
- *        Defaults to "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".
- * @return {string} The generated random string.
+ * @param {number} [length=16] - The desired length of the generated string.
+ * @param {Object} [config={}] - Configuration object to specify which character sets to include.
+ *                               Everything is included by default.
+ * @param {boolean} [config.numbers] - Whether to include numeric characters (0-9).
+ * @param {boolean} [config.lowercase] - Whether to include lowercase alphabetic characters (a-z).
+ * @param {boolean} [config.uppercase] - Whether to include uppercase alphabetic characters (A-Z).
+ * @param {boolean} [config.special] - Whether to include special characters (!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~).
+ * @return {string} A randomly generated string based on the provided length and configuration.
  */
 export function randomString(
   length: number = 16,
-  pool: string = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  config: {
+    numbers?: boolean;
+    lowercase?: boolean;
+    uppercase?: boolean;
+    special?: boolean;
+  } = {}
 ): string {
+  const categories = {
+    numbers: '0123456789',
+    lowercase: 'abcdefghijklmnopqrstuvwxyz',
+    uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    special: '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
+  };
+
+  let pool = '';
+  let includeUndefined = true;
+  for (let [category, include] of Object.entries(config)) {
+    if (include) {
+      pool += categories[category];
+      includeUndefined = false;
+    }
+  }
+
+  if (includeUndefined) {
+    for (let [key, value] of Object.entries(categories)) {
+      if (config[key] === undefined) {
+        pool += value;
+      }
+    }
+  }
+
   return generateToken('string', length, undefined, { pool });
 }
 

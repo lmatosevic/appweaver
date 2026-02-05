@@ -36,27 +36,6 @@ export class AuthService {
     }
   }
 
-  public async createIdentity(
-    data: Pick<Identity, 'username' | 'enabled' | 'roles'> & {
-      password: string;
-    }
-  ): Promise<Identity> {
-    try {
-      await updatePasswordHash(data, data.password);
-      return db.client.identity.create({
-        include: this.include,
-        data: {
-          ...data,
-          roles: {
-            connect: data.roles?.map((role) => ({ id: role.id }))
-          }
-        }
-      });
-    } catch (e) {
-      throw new HttpError('Identity update error', 500, e);
-    }
-  }
-
   public async updateIdentity(
     id: number,
     data: Partial<Identity> & { password?: string }

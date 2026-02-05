@@ -16,7 +16,8 @@
     "lint": "eslint \"./{src,test}/**/*.ts\"",
     "lint:fix": "npm run lint -- --fix",
     "db:migrate": "prisma migrate deploy",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "db:seed": "ts-node -r tsconfig-paths/register ./database/seeder/index.ts"
   },
   "dependencies": {
     "@appweaver/common": "0.1.0",

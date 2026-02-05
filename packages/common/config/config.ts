@@ -105,9 +105,7 @@ const configSchema = Type.Object({
   MAIL_MOCK_SEND: Type.Optional(Type.Boolean({ default: false })),
 
   SYSTEM_ADMIN_INITIAL_EMAIL: Type.String({ default: 'admin@appweaver.co' }),
-  SYSTEM_ADMIN_INITIAL_PASSWORD: Type.Optional(Type.String()),
-
-  SEND_REMINDERS_CRON: Type.String({ default: '0 10 * * *' })
+  SYSTEM_ADMIN_INITIAL_PASSWORD: Type.Optional(Type.String())
 });
 
 const envConfig = loadConfigFromEnv(configSchema);
