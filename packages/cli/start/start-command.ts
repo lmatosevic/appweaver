@@ -7,8 +7,8 @@ export function startCommand(program: Command): void {
     .alias('s')
     .description('Start the application')
     .option('-w, --watch', 'Run in watch mode.')
-    .action(async (app: string, options: Command) => {
-      if (options.getOptionValue('watch')) {
+    .action(async (app: string, command: Command) => {
+      if (command.getOptionValue('watch')) {
         spawn(
           'tsc-watch -p tsconfig.build.json --onSuccess "node ./dist/main.js"',
           { stdio: 'inherit', shell: true }

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { generateCommand } from './generate';
 import { loadPackage } from './utils';
+import { buildCommand } from './build';
+import { generateCommand } from './generate';
 import { migrateCommand } from './migrate';
 import { seedCommand } from './seed';
 import { startCommand } from './start';
-import { buildCommand } from './build';
 
 const pkg = loadPackage();
 const program = new Command();
@@ -18,14 +18,14 @@ program
   .usage('<command> [options]')
   .helpOption('-h, --help', 'Output usage information.');
 
-generateCommand(program);
-
 buildCommand(program);
 
-startCommand(program);
+generateCommand(program);
 
 migrateCommand(program);
 
 seedCommand(program);
+
+startCommand(program);
 
 program.parse();
