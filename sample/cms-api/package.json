@@ -17,7 +17,8 @@
     "lint:fix": "npm run lint -- --fix",
     "db:migrate": "prisma migrate deploy",
     "db:generate": "prisma generate",
-    "db:seed": "ts-node -r tsconfig-paths/register ./database/seeder/index.ts"
+    "db:seed": "ts-node -r tsconfig-paths/register ./database/seeder/index.ts",
+    "appw": "node ./../../node_modules/@appweaver/cli/dist/appw.js"
   },
   "dependencies": {
     "@appweaver/common": "0.1.0",

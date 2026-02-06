@@ -19,12 +19,6 @@ export function setObjectValue(
   return obj;
 }
 
-export function removeUndefinedValues<T extends object = any>(obj: T) {
-  return Object.fromEntries(
-    Object.entries(obj).filter(([_, value]) => value !== undefined)
-  );
-}
-
 export function setObjectProperties<T extends object = any>(
   obj: T,
   value: keyof T | undefined
@@ -59,5 +53,11 @@ export function omitObjectProperties<T extends object = any>(
       return acc;
     },
     {} as Omit<T, keyof T>
+  );
+}
+
+export function removeUndefinedValues<T extends object = any>(obj: T) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([_, value]) => value !== undefined)
   );
 }

@@ -38,8 +38,9 @@
     "@prisma/client": "7.3.0",
     "@sinclair/typebox": "0.34.47",
     "cron": "4.4.0",
+    "csv-stringify": "6.6.0",
     "date-fns": "4.1.0",
-    "fastify": "5.7.1",
+    "fastify": "5.7.3",
     "prisma": "7.3.0"
   },
   "devDependencies": {
