@@ -215,7 +215,7 @@
           "properties": {
             "type": {
               "type": "string",
-              "enum": ["sqlite", "postgres", "mysql"],
+              "enum": ["sqlite", "postgresql", "mysql"],
               "default": "sqlite"
             },
             "url": {

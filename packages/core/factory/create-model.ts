@@ -58,6 +58,7 @@ export function createModel(model: ResourceModel): ResourceModelSchema {
 
   return {
     name,
+    model,
     readModel,
     createModel,
     updateModel,

@@ -48,7 +48,7 @@
       "credentials": true
     },
     "database": {
-      "type": "postgres",
+      "type": "postgresql",
       "url": "postgresql://appweaver:appweaver@localhost:5432/appweaver-sample?schema=public",
       "transactionMaxWait": 2000,
       "transactionTimeout": 5000

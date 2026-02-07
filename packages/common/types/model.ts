@@ -166,6 +166,7 @@ export type ResourceModel = {
 
 export type ResourceModelSchema = {
   name: string;
+  model: ResourceModel;
   readModel: TSchema;
   createModel: TSchema;
   updateModel: TSchema;
