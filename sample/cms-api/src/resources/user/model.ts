@@ -1,39 +1,55 @@
-import { Static, Type } from '@sinclair/typebox';
-import { resourceConfig, Id, AuditData, File, Nullable } from '@appweaver/core';
+import { createModel } from '@appweaver/core';
 
-export const User = Type.Composite([
-  Id,
-  Type.Object({
-    firstName: Type.String({ maxLength: 255 }),
-    lastName: Type.String({ maxLength: 255 }),
-    email: Type.String({ maxLength: 255, format: 'email' }),
-    phone: Nullable(Type.String({ maxLength: 25 }))
-  }),
-  AuditData
-]);
-
-export const UserCreate = Type.Omit(User, [
-  ...Object.keys(Id.properties),
-  ...Object.keys(AuditData.properties)
-]);
-
-export const UserUpdate = Type.Partial(UserCreate);
-
-export const UserFiles = Type.Object({ avatar: File });
-
-export default resourceConfig<
-  Static<typeof User>,
-  unknown,
-  Static<typeof UserFiles>
->('User', {
-  readModel: User,
-  createModel: UserCreate,
-  updateModel: UserUpdate,
-  fileModel: UserFiles,
-  fileConfig: {
-    avatar: {
-      optional: true,
-      maxSize: '5 MB'
+export default createModel({
+  name: 'User',
+  id: {
+    type: 'int',
+    generator: 'autoincrement()'
+  },
+  audit: {
+    updatedAt: true,
+    createdAt: true,
+    createdById: true
+  },
+  scalars: {
+    firstName: {
+      type: 'text',
+      maxLength: 255
+    },
+    lastName: {
+      type: 'text',
+      maxLength: 255
+    },
+    email: {
+      type: 'text',
+      format: 'email',
+      maxLength: 255
+    },
+    phone: {
+      type: 'text',
+      maxLength: 32
     }
-  }
+  },
+  relations: {
+    posts: {
+      references: {
+        model: 'Post',
+        array: true
+      }
+    }
+  },
+  files: {
+    avatar: {
+      mimeType: 'image/*',
+      namePattern: 'avatars/{name}-{hash}.{extension}',
+      maxSize: '2 MB'
+    }
+  },
+  virtual: {
+    active: {
+      type: 'boolean',
+      default: true
+    }
+  },
+  index: ['email']
 });

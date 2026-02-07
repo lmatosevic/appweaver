@@ -30,7 +30,8 @@ export default createModel({
       pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
     },
     content: {
-      type: 'text'
+      type: 'text',
+      required: false
     },
     counter: {
       type: 'int',
@@ -39,10 +40,10 @@ export default createModel({
     }
   },
   relations: {
-    comments: {
+    author: {
       references: {
-        model: 'Comment',
-        type: 'oneToMany'
+        model: 'User',
+        owner: true
       },
       includes: {
         user: {
@@ -89,13 +90,13 @@ export default createModel({
     }
   },
   create: {
-    omit: ['id', 'updatedAt']
+    omit: ['counter']
   },
   update: {
     pick: ['title', 'content']
   },
   virtual: {
-    randomNumber: {
+    randomNumbers: {
       type: 'float',
       array: true,
       required: true,

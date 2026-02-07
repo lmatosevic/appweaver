@@ -9,6 +9,7 @@ import { seedCommand } from './seed';
 import { startCommand } from './start';
 
 const pkg = loadPackage();
+
 const program = new Command();
 
 program

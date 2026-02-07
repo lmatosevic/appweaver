@@ -4,18 +4,21 @@ import { AllErrorResponses } from '../errors';
 import { Nullable } from '../utils';
 import { FileConfigProps } from '../types';
 
-export const File = Type.Composite([
-  Id,
-  Type.Object({
-    name: Type.String({ examples: ['image_123.png'] }),
-    originalName: Type.String({ examples: ['image.png'] }),
-    mimeType: Type.String({ examples: ['image/png'] }),
-    sizeBytes: Type.Integer({ minimum: 0, examples: [1024] }),
-    title: Nullable(Type.String()),
-    description: Nullable(Type.String())
-  }),
-  AuditData
-]);
+export const File = Type.Composite(
+  [
+    Id,
+    Type.Object({
+      name: Type.String({ examples: ['image_123.png'] }),
+      originalName: Type.String({ examples: ['image.png'] }),
+      mimeType: Type.String({ examples: ['image/png'] }),
+      sizeBytes: Type.Integer({ minimum: 0, examples: [1024] }),
+      title: Nullable(Type.String()),
+      description: Nullable(Type.String())
+    }),
+    AuditData
+  ],
+  { $id: 'File' }
+);
 
 export const FileName = Type.Object({
   '*': Type.String()

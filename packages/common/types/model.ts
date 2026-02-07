@@ -1,3 +1,5 @@
+import { TSchema } from '@sinclair/typebox';
+
 export type FieldType =
   | 'text'
   | 'int'
@@ -40,8 +42,6 @@ export type FieldFormat =
   | 'uuid'
   | 'regex';
 
-export type RelationType = 'oneToOne' | 'oneToMany' | 'manyToMany';
-
 export type InputType = 'all' | 'create' | 'update' | 'none';
 
 export type OutputType = 'always' | 'single' | 'multiple' | 'none';
@@ -74,7 +74,8 @@ export type ScalarField = {
 
 export type RelationReferences = {
   model: string;
-  type: RelationType;
+  array?: boolean;
+  owner?: boolean;
 };
 
 export type RelationInput = {
@@ -161,4 +162,14 @@ export type ResourceModel = {
     [key: string]: VirtualField;
   };
   index?: string[] | string[][];
+};
+
+export type ResourceModelSchema = {
+  name: string;
+  readModel: TSchema;
+  createModel: TSchema;
+  updateModel: TSchema;
+  virtualModel: TSchema;
+  filesModel: TSchema;
+  relationsModel: TSchema;
 };

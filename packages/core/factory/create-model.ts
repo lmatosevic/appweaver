@@ -8,22 +8,13 @@ import {
   pickObjectProperties,
   RelationField,
   ResourceModel,
+  ResourceModelSchema,
   ScalarField
 } from '@appweaver/common';
 import { AuditData, Id, IdString } from '../resource';
-import { File } from '../storage';
 import { Nullable, StringDate, StringEnum } from '../utils';
 
-export type ModelVariants = {
-  readModel: TSchema;
-  createModel: TSchema;
-  updateModel: TSchema;
-  virtualModel: TSchema;
-  filesModel: TSchema;
-  relationsModel: TSchema;
-};
-
-export function createModel(model: ResourceModel): ModelVariants {
+export function createModel(model: ResourceModel): ResourceModelSchema {
   const name = capitalize(model.name ?? path.basename(path.dirname(__dirname)));
 
   const idSchema = buildIdSchema(model?.id);
@@ -34,48 +25,39 @@ export function createModel(model: ResourceModel): ModelVariants {
   const relationsSchema = buildRelationsSchema(model?.relations);
 
   const readModel = Type.Composite([idSchema, scalarsSchema, auditSchema], {
-    $id: `${name}`
+    $id: name
   });
 
-  const virtualModel = Type.Object(virtualSchema, {
+  const virtualModel = Type.Composite([virtualSchema], {
     $id: `${name}Virtual`
   });
 
-  const filesModel = Type.Object(filesSchema, {
+  const filesModel = Type.Composite([filesSchema], {
     $id: `${name}Files`
   });
 
-  const relationsModel = Type.Object(relationsSchema, {
+  const relationsModel = Type.Composite([relationsSchema], {
     $id: `${name}Relations`
   });
 
-  let createModel = Type.Omit(
-    readModel,
-    [...Object.keys(idSchema), ...Object.keys(auditSchema)],
-    { $id: `${name}Create` }
-  );
-
-  let updateModel = Type.Partial(createModel, { $id: `${name}Update` });
-
-  if (model.create) {
-    if (model.create.pick) {
-      createModel = Type.Pick(createModel, model.create.pick);
-    }
-    if (model.create.omit) {
-      createModel = Type.Pick(createModel, model.create.omit);
-    }
+  let createModel: TSchema = scalarsSchema;
+  if (model.create?.pick) {
+    createModel = Type.Pick(scalarsSchema, model.create.pick);
+  } else if (model.create?.omit) {
+    createModel = Type.Omit(scalarsSchema, model.create.omit);
   }
+  createModel = Type.Composite([createModel], { $id: `${name}Create` });
 
-  if (model.update) {
-    if (model.update.pick) {
-      updateModel = Type.Pick(createModel, model.update.pick);
-    }
-    if (model.update.omit) {
-      updateModel = Type.Pick(createModel, model.update.omit);
-    }
+  let updateModel: TSchema = Type.Partial(scalarsSchema);
+  if (model.update?.pick) {
+    updateModel = Type.Partial(Type.Pick(scalarsSchema, model.update.pick));
+  } else if (model.update?.omit) {
+    updateModel = Type.Partial(Type.Omit(scalarsSchema, model.update.omit));
   }
+  updateModel = Type.Composite([updateModel], { $id: `${name}Update` });
 
   return {
+    name,
     readModel,
     createModel,
     updateModel,
@@ -183,8 +165,9 @@ function buildFilesSchema(files: Record<string, FileField> = {}): TSchema {
 }
 
 function buildFileSchema(name: string, file: FileField): TSchema {
+  const fileSchema = Type.Ref('File');
   return Type.Object({
-    [name]: file.array ? Type.Array(File) : File
+    [name]: file.array ? Type.Array(fileSchema) : fileSchema
   });
 }
 
@@ -200,10 +183,9 @@ function buildRelationSchema(name: string, relation: RelationField): TSchema {
   const modelName = capitalize(relation.references.model);
   let relationType: TSchema = Type.Ref(modelName);
 
-  relationType =
-    relation.references.type !== 'oneToOne'
-      ? Type.Array(relationType, pickObjectProperties(relation, ['minItems']))
-      : relationType;
+  relationType = relation.references.array
+    ? Type.Array(relationType, pickObjectProperties(relation, ['minItems']))
+    : relationType;
 
   return Type.Object({
     [name]:

@@ -1,4 +1,5 @@
 import {
+  Kind,
   Static,
   StringOptions,
   TSchema,
@@ -13,6 +14,7 @@ export const StringEnum = <T extends object>(
   return Type.Unsafe<T[keyof T]>({
     type: 'string',
     enum: Object.values(value),
+    [Kind]: 'String',
     ...options
   });
 };
@@ -21,7 +23,13 @@ export const StringDate = (
   options: Parameters<typeof Type.Unsafe<Date>>[0] & {
     format?: 'date' | 'date-time';
   } = {}
-) => Type.Unsafe<Date>({ type: 'string', format: 'date-time', ...options });
+) =>
+  Type.Unsafe<Date>({
+    type: 'string',
+    format: 'date-time',
+    [Kind]: 'String',
+    ...options
+  });
 
 export const Nullable = <T extends TSchema>(schema: T) =>
   Type.Optional(
