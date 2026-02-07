@@ -20,6 +20,9 @@
   "engines": {
     "node": ">= 20"
   },
+  "scripts": {
+    "appw": "node ./dist/appw.js"
+  },
   "dependencies": {
     "@sinclair/typebox": "0.34.47",
     "commander": "14.0.3"

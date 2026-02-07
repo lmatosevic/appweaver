@@ -9,7 +9,7 @@ export function generateCommand(program: Command): void {
     .description('Generate types and/or schemas')
     .option('-t, --types', 'Generate TypeScript types.', false)
     .option('-s, --schema', 'Generate Prisma schema.', false)
-    .action(async (app: string, command: Command) => {
+    .action(async (_, command: Command) => {
       const generateAll =
         !command.getOptionValue('types') && !command.getOptionValue('schema');
 
