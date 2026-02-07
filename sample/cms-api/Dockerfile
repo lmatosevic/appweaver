@@ -14,7 +14,7 @@ COPY ../.. .
 RUN npm install
 
 # Generate Prisma client files
-RUN npm run generate-client
+RUN npm run db:generate
 
 # Build project
 RUN npm run build
@@ -29,7 +29,7 @@ RUN apk add build-base python3 py3-pip make gcc
 # Create app directory
 WORKDIR /usr/app
 
-# Copy npm
+# Copy NPM package
 COPY package*.json /usr/app/
 
 # Install NPM dependencies
@@ -38,9 +38,12 @@ RUN npm install --production
 # Copy build files
 COPY --from=build /usr/app/dist /usr/app/dist
 
-# Copy Prisma client and schema files
+# Copy Prisma client and database files
 COPY --from=build /usr/app/node_modules/.prisma /usr/app/node_modules/.prisma
-COPY --from=build /usr/app/prisma /usr/app/prisma
+COPY --from=build /usr/app/database /usr/app/database
+
+# Copy config file/s
+COPY --from=build /usr/app/appweaver*.json /usr/app/
 
 # Copy start script
 COPY --from=build /usr/app/start.sh /usr/app/start.sh
