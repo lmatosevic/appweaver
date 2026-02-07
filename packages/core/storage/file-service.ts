@@ -1,5 +1,5 @@
 import { Multipart, MultipartFile } from '@fastify/multipart';
-import { isArray } from '@appweaver/common';
+import { generateToken, isArray } from '@appweaver/common';
 import { HttpError } from '../errors';
 import { context } from '../context';
 import { storage, ContentStream } from './storage';
@@ -134,13 +134,33 @@ export class FileService {
       pattern = config.namePattern;
     }
 
-    const generatedName = generateFileName(data.filename, pattern, {
+    let generatedName = generateFileName(data.filename, pattern, {
       resourceField: data.fieldname,
       resourceName: model.name,
       resourceId: resource.id,
       userId: identity?.id,
       userName: identity?.username
     });
+
+    let nameRegenCount = 0;
+    while (await storage.exists(generatedName)) {
+      nameRegenCount++;
+
+      if (nameRegenCount === 10) {
+        throw new HttpError('Unable to generate unique file name', 500);
+      }
+
+      const hash = generateToken('bytes');
+      const nameParts = generatedName.split('.');
+
+      if (nameParts.length > 1) {
+        const ext = nameParts.pop();
+        const base = nameParts.join('.');
+        generatedName = `${base}-${hash}.${ext}`;
+      } else {
+        generatedName = `${nameParts[0]}-${hash}`;
+      }
+    }
 
     const createFile = {
       name: generatedName,

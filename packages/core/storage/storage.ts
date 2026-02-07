@@ -14,7 +14,7 @@ export class Storage {
   protected readonly dirPath: string = config.STORAGE_PATH;
 
   public async init(): Promise<void> {
-    const directoryExists = await this.exists(this.dirPath);
+    const directoryExists = await this.exists('');
     if (!directoryExists) {
       await fsp.mkdir(this.dirPath, { recursive: true });
       logger.info(`Storage directory initialized: ${this.dirPath}`);
@@ -70,9 +70,10 @@ export class Storage {
     }
   }
 
-  public async exists(path: string): Promise<boolean> {
+  public async exists(fileName: string): Promise<boolean> {
+    const filePath = await this.getFilePath(fileName);
     try {
-      await fsp.access(path, fs.constants.F_OK);
+      await fsp.access(filePath, fs.constants.F_OK);
       return true;
     } catch (e) {
       return false;
