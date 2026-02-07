@@ -13,7 +13,7 @@ const pkg = loadPackage();
 const program = new Command();
 
 program
-  .name('appw')
+  .name('weaver')
   .description('Appweaver CLI - Build and manage your application')
   .version(pkg.version, '-v, --version', 'Output the current version.')
   .usage('<command> [options]')

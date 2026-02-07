@@ -4,10 +4,10 @@
   "description": "Appweaver - simple, fast, and reliable web application builder tool (@cli)",
   "author": "Luka Matosevic",
   "license": "UNLICENSED",
-  "main": "./dist/appw.js",
-  "types": "./dist/appw.d.ts",
+  "main": "./dist/weaver.js",
+  "types": "./dist/weaver.d.ts",
   "bin": {
-    "appw": "./dist/appw.js"
+    "weaver": "./dist/weaver.js"
   },
   "repository": {
     "type": "git",
@@ -21,7 +21,7 @@
     "node": ">= 20"
   },
   "scripts": {
-    "appw": "node ./dist/appw.js"
+    "weaver": "node ./dist/weaver.js"
   },
   "dependencies": {
     "@sinclair/typebox": "0.34.47",
