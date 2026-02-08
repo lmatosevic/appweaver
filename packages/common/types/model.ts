@@ -64,6 +64,7 @@ export type ScalarField = {
   array?: boolean;
   required?: boolean;
   unique?: boolean;
+  hidden?: boolean;
   minLength?: number;
   maxLength?: number;
   minimum?: number;
@@ -141,7 +142,7 @@ export type ExportField = {
 };
 
 export type ResourceModel = {
-  name?: string;
+  name: string;
   id?: IdField;
   audit?: AuditFields;
   scalars?: {

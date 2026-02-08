@@ -4,11 +4,11 @@ import { spawn } from 'node:child_process';
 import { config, ResourceModelSchema } from '@appweaver/common';
 
 export async function generateSchema(
-  resources: Record<string, ResourceModelSchema>,
+  models: Record<string, ResourceModelSchema>,
   schemaPath: string
 ): Promise<void> {
-  const currentDir = process.cwd();
-  const schemaDir = path.join(currentDir, path.dirname(schemaPath));
+  const cwd = process.cwd();
+  const schemaDir = path.join(cwd, path.dirname(schemaPath));
 
   if (!fs.existsSync(schemaDir)) {
     fs.mkdirSync(schemaDir, { recursive: true });
@@ -33,7 +33,7 @@ export async function generateSchema(
   ];
 
   try {
-    const outputPath = path.join(currentDir, schemaPath);
+    const outputPath = path.join(cwd, schemaPath);
     fs.writeFileSync(outputPath, schemaContent.join('\n'));
 
     spawn(`prisma generate`, { stdio: 'inherit', shell: true });

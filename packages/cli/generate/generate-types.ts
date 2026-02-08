@@ -7,11 +7,11 @@ import { File } from '@appweaver/core';
 import { ResourceModelSchema } from '@appweaver/common';
 
 export async function generateTypes(
-  resources: Record<string, ResourceModelSchema>,
+  models: Record<string, ResourceModelSchema>,
   typesPath: string
 ): Promise<void> {
-  const currentDir = process.cwd();
-  const typesDir = path.join(currentDir, path.dirname(typesPath));
+  const cwd = process.cwd();
+  const typesDir = path.join(cwd, path.dirname(typesPath));
 
   if (!fs.existsSync(typesDir)) {
     fs.mkdirSync(typesDir, { recursive: true });
@@ -23,7 +23,7 @@ export async function generateTypes(
       File: File
     };
 
-    for (const [modelName, schema] of Object.entries(resources)) {
+    for (const [modelName, schema] of Object.entries(models)) {
       resourceModels[modelName] = schema.readModel;
       resourceModels[`${modelName}Create`] = schema.createModel;
       resourceModels[`${modelName}Update`] = schema.updateModel;
@@ -43,7 +43,7 @@ export async function generateTypes(
       typesContent.push(generateTypeScriptType(module, modelName), ``);
     }
 
-    const outputPath = path.join(currentDir, typesPath);
+    const outputPath = path.join(cwd, typesPath);
     fs.writeFileSync(outputPath, typesContent.join('\n'));
 
     spawn(`prettier --log-level silent --write ${outputPath}`, {

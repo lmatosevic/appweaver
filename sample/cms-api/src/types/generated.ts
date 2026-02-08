@@ -8,44 +8,9 @@ export type File = {
   sizeBytes: number;
   title?: string;
   description?: string;
-  updatedAt: string;
-  createdAt: string;
-  createdById?: number;
-};
-
-export type Post = {
-  id: number;
-  title: string;
-  slug: string;
-  content?: string;
-  counter: number;
-  updatedAt: string;
-  createdAt: string;
-  createdById?: number;
-};
-
-export type PostCreate = {
-  title: string;
-  slug: string;
-  content?: string;
-};
-
-export type PostUpdate = {
-  title?: string;
-  content?: string;
-};
-
-export type PostRelations = {
-  author?: User;
-};
-
-export type PostFiles = {
-  coverImage: File;
-  galleryImages: Array<File>;
-};
-
-export type PostVirtual = {
-  randomNumbers: Array<number>;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
 };
 
 export type User = {
@@ -54,9 +19,12 @@ export type User = {
   lastName: string;
   email: string;
   phone: string;
-  updatedAt: string;
-  createdAt: string;
-  createdById?: number;
+  posts: Array<Post>;
+  avatar?: File | null;
+  active: boolean;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
 };
 
 export type UserCreate = {
@@ -78,9 +46,52 @@ export type UserRelations = {
 };
 
 export type UserFiles = {
-  avatar: File;
+  avatar?: File | null;
 };
 
 export type UserVirtual = {
   active: boolean;
+};
+
+export type Post = {
+  id: number;
+  title: string;
+  slug: string;
+  content?: string | null;
+  counter: number;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  lastActivity?: Date | null;
+  author?: User;
+  coverImage?: File | null;
+  galleryImages: Array<File>;
+  randomNumbers: Array<number>;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type PostCreate = {
+  title: string;
+  slug: string;
+  content?: string | null;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  lastActivity?: Date | null;
+};
+
+export type PostUpdate = {
+  title?: string;
+  content?: string | null;
+};
+
+export type PostRelations = {
+  author?: User;
+};
+
+export type PostFiles = {
+  coverImage?: File | null;
+  galleryImages: Array<File>;
+};
+
+export type PostVirtual = {
+  randomNumbers: Array<number>;
 };

@@ -1,2 +1,2 @@
 export * from './load-package';
-export * from './load-resources';
+export * from './load-models';

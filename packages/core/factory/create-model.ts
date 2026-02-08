@@ -12,7 +12,7 @@ import {
   ScalarField
 } from '@appweaver/common';
 import { AuditData, Id, IdString } from '../resource';
-import { Nullable, StringDate, StringEnum } from '../utils';
+import { EnumType, NullType, DateType } from '../utils';
 
 export function createModel(model: ResourceModel): ResourceModelSchema {
   const name = capitalize(model.name ?? path.basename(path.dirname(__dirname)));
@@ -24,9 +24,19 @@ export function createModel(model: ResourceModel): ResourceModelSchema {
   const filesSchema = buildFilesSchema(model?.files);
   const relationsSchema = buildRelationsSchema(model?.relations);
 
-  const readModel = Type.Composite([idSchema, scalarsSchema, auditSchema], {
-    $id: name
-  });
+  const readModel = Type.Composite(
+    [
+      idSchema,
+      scalarsSchema,
+      relationsSchema,
+      filesSchema,
+      virtualSchema,
+      auditSchema
+    ],
+    {
+      $id: name
+    }
+  );
 
   const virtualModel = Type.Composite([virtualSchema], {
     $id: `${name}Virtual`
@@ -138,13 +148,18 @@ function buildScalarSchema(name: string, field: ScalarField): TSchema {
       fieldType = Type.Boolean({});
       break;
     case 'dateTime':
-      fieldType = StringDate();
+      fieldType = DateType({
+        format:
+          field.format == 'date' || field.format == 'date-time'
+            ? field.format
+            : 'date-time'
+      });
       break;
     case 'json':
       fieldType = Type.Any();
       break;
     case 'enum':
-      fieldType = StringEnum(field.values ?? []);
+      fieldType = EnumType(field.values);
       break;
   }
 
@@ -153,7 +168,7 @@ function buildScalarSchema(name: string, field: ScalarField): TSchema {
   }
 
   if (field.required === false) {
-    fieldType = Nullable(fieldType);
+    fieldType = NullType(fieldType);
   }
 
   return Type.Object({ [name]: fieldType });
@@ -168,7 +183,7 @@ function buildFilesSchema(files: Record<string, FileField> = {}): TSchema {
 function buildFileSchema(name: string, file: FileField): TSchema {
   const fileSchema = Type.Ref('File');
   return Type.Object({
-    [name]: file.array ? Type.Array(fileSchema) : fileSchema
+    [name]: file.array ? Type.Array(fileSchema) : NullType(fileSchema)
   });
 }
 

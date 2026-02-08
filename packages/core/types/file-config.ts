@@ -1,6 +1,6 @@
 import { MultipartFile } from '@fastify/multipart';
-import { File } from './file';
-import { Identity } from './identity';
+import { File } from './generated';
+import { Identity } from './generated';
 import { Resource } from './resource';
 import { OutputType } from './relation-config';
 

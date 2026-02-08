@@ -219,7 +219,8 @@
               "default": "sqlite"
             },
             "url": {
-              "type": "string"
+              "type": "string",
+              "default": ""
             },
             "transactionMaxWait": {
               "type": "integer",

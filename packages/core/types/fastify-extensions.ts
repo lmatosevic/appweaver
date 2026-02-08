@@ -1,5 +1,5 @@
 import { RouteConfig } from './route-config';
-import { Identity } from './identity';
+import { Identity } from './generated';
 
 import '@fastify/request-context';
 import '@fastify/auth';

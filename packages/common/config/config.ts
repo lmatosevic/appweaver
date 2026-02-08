@@ -57,7 +57,7 @@ const configSchema = Type.Object({
   DATABASE_TYPE: Type.Enum(DatabaseType, {
     default: DatabaseType.Sqlite
   }),
-  DATABASE_URL: Type.String(),
+  DATABASE_URL: Type.String({ default: '' }),
   DATABASE_TRANSACTION_MAX_WAIT: Type.Integer({ default: 2000 }),
   DATABASE_TRANSACTION_TIMEOUT: Type.Integer({ default: 5000 }),
 

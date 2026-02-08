@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { generateTypes } from './generate-types';
 import { generateSchema } from './generate-schema';
-import { loadResources } from '../utils';
+import { loadModels } from '../utils';
 
 export function generateCommand(program: Command): void {
   program
@@ -11,9 +11,9 @@ export function generateCommand(program: Command): void {
     .option('-t, --types', 'Generate TypeScript types.', false)
     .option('-s, --schema', 'Generate Prisma schema.', false)
     .option(
-      '--resourcesDir [path]',
-      'Path to resources directory.',
-      './src/resources'
+      '--modelPattern [pattern]',
+      'Glob pattern for finding model files.',
+      './src/resources/*/model.ts'
     )
     .option(
       '--typesPath [path]',
@@ -29,14 +29,14 @@ export function generateCommand(program: Command): void {
       const generateAll =
         !command.getOptionValue('types') && !command.getOptionValue('schema');
 
-      const resources = loadResources(command.getOptionValue('resourcesDir'));
+      const models = loadModels(command.getOptionValue('modelPattern'));
 
       if (command.getOptionValue('types') || generateAll) {
-        await generateTypes(resources, command.getOptionValue('typesPath'));
+        await generateTypes(models, command.getOptionValue('typesPath'));
       }
 
       if (command.getOptionValue('schema') || generateAll) {
-        await generateSchema(resources, command.getOptionValue('schemaPath'));
+        await generateSchema(models, command.getOptionValue('schemaPath'));
       }
     });
 }

@@ -42,7 +42,7 @@ export function createClient(): PrismaClient {
  */
 function sqliteClient(): PrismaClient {
   const adapter = new PrismaBetterSqlite3({
-    url: config.DATABASE_URL
+    url: config.DATABASE_URL || 'file:./sqlite.db'
   });
   return new PrismaClient({ adapter, ...options });
 }

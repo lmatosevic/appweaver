@@ -37,6 +37,16 @@ export default createModel({
       type: 'int',
       minimum: 1,
       maximum: 1023
+    },
+    status: {
+      type: 'enum',
+      required: false,
+      default: 'Draft',
+      values: ['Draft', 'Published', 'Archived'],
+    },
+    lastActivity: {
+      type: 'dateTime',
+      required: false
     }
   },
   relations: {
