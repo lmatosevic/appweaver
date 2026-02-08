@@ -14,12 +14,10 @@ export function loadResources(
     return {};
   }
 
-  // Register ts-node to handle .ts imports
   register({
     transpileOnly: true,
     compilerOptions: {
-      module: 'CommonJS',
-      target: 'ES2024',
+      module: 'CommonJS'
     }
   });
 
