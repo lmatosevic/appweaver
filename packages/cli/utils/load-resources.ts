@@ -4,12 +4,12 @@ import { register } from 'ts-node';
 import { capitalize, ResourceModelSchema } from '@appweaver/common';
 
 export function loadResources(
-  dirName: string = 'resources'
+  resourcesDir: string
 ): Record<string, ResourceModelSchema> {
   const cwd = process.cwd();
-  const resourcesDir = path.join(cwd, 'src', dirName);
+  const resourcesPath = path.join(cwd, resourcesDir);
 
-  if (!fs.existsSync(resourcesDir)) {
+  if (!fs.existsSync(resourcesPath)) {
     console.error('Resources directory not found.');
     return {};
   }
@@ -18,19 +18,20 @@ export function loadResources(
   register({
     transpileOnly: true,
     compilerOptions: {
-      module: 'CommonJS'
+      module: 'CommonJS',
+      target: 'ES2024',
     }
   });
 
   const directories = fs
-    .readdirSync(resourcesDir, { withFileTypes: true })
+    .readdirSync(resourcesPath, { withFileTypes: true })
     .filter((dirent) => dirent.isDirectory());
 
   const resources: Record<string, ResourceModelSchema> = {};
 
   for (const dir of directories) {
     const dirName = dir.name;
-    const modelPath = path.join(resourcesDir, dirName, 'model.ts');
+    const modelPath = path.join(resourcesPath, dirName, 'model.ts');
 
     if (!fs.existsSync(modelPath)) {
       console.log(

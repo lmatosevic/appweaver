@@ -8,13 +8,14 @@ import { ResourceModelSchema } from '@appweaver/common';
 
 export async function generateTypes(
   resources: Record<string, ResourceModelSchema>,
-  outputFile: string = 'generated.d.ts'
+  typesPath: string
 ): Promise<void> {
-  const typesDir = path.join(process.cwd(), 'src', 'types');
+  const currentDir = process.cwd();
+  const typesDir = path.join(currentDir, path.dirname(typesPath));
 
   if (!fs.existsSync(typesDir)) {
     fs.mkdirSync(typesDir, { recursive: true });
-    console.log('Types directory created.');
+    console.log(`Types directory created ${typesDir}`);
   }
 
   try {
@@ -42,12 +43,15 @@ export async function generateTypes(
       typesContent.push(generateTypeScriptType(module, modelName), ``);
     }
 
-    const outputPath = path.join(typesDir, outputFile);
+    const outputPath = path.join(currentDir, typesPath);
     fs.writeFileSync(outputPath, typesContent.join('\n'));
 
-    spawn(`prettier --write ${outputPath}`, { stdio: 'inherit', shell: true });
+    spawn(`prettier --log-level silent --write ${outputPath}`, {
+      stdio: 'inherit',
+      shell: true
+    });
 
-    console.log(`Generated types to ${typesDir}/${outputFile}`);
+    console.log(`Types generated to ${outputPath}`);
   } catch (error) {
     console.error(`Types generation failed:`, error);
   }

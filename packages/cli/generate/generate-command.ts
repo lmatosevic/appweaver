@@ -10,18 +10,33 @@ export function generateCommand(program: Command): void {
     .description('Generate types and/or schemas')
     .option('-t, --types', 'Generate TypeScript types.', false)
     .option('-s, --schema', 'Generate Prisma schema.', false)
+    .option(
+      '--resourcesDir [path]',
+      'Path to resources directory.',
+      './src/resources'
+    )
+    .option(
+      '--typesPath [path]',
+      'Output path for generated types.',
+      './src/types/generated.ts'
+    )
+    .option(
+      '--schemaPath [path]',
+      'Output path for generated schema.',
+      './database/schema.prisma'
+    )
     .action(async (_, command: Command) => {
       const generateAll =
         !command.getOptionValue('types') && !command.getOptionValue('schema');
 
-      const resources = loadResources();
+      const resources = loadResources(command.getOptionValue('resourcesDir'));
 
       if (command.getOptionValue('types') || generateAll) {
-        await generateTypes(resources);
+        await generateTypes(resources, command.getOptionValue('typesPath'));
       }
 
       if (command.getOptionValue('schema') || generateAll) {
-        await generateSchema(resources);
+        await generateSchema(resources, command.getOptionValue('schemaPath'));
       }
     });
 }

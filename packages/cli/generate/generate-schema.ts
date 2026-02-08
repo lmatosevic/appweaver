@@ -5,13 +5,14 @@ import { config, ResourceModelSchema } from '@appweaver/common';
 
 export async function generateSchema(
   resources: Record<string, ResourceModelSchema>,
-  outputFile: string = 'schema.prisma'
+  schemaPath: string
 ): Promise<void> {
-  const databaseDir = path.join(process.cwd(), 'database');
+  const currentDir = process.cwd();
+  const schemaDir = path.join(currentDir, path.dirname(schemaPath));
 
-  if (!fs.existsSync(databaseDir)) {
-    fs.mkdirSync(databaseDir, { recursive: true });
-    console.log('Database directory created.');
+  if (!fs.existsSync(schemaDir)) {
+    fs.mkdirSync(schemaDir, { recursive: true });
+    console.log('Schema directory created.');
   }
 
   const schemaContent = [
@@ -32,12 +33,12 @@ export async function generateSchema(
   ];
 
   try {
-    const outputPath = path.join(databaseDir, outputFile);
+    const outputPath = path.join(currentDir, schemaPath);
     fs.writeFileSync(outputPath, schemaContent.join('\n'));
 
     spawn(`prisma generate`, { stdio: 'inherit', shell: true });
 
-    console.log(`Generated schema to ${databaseDir}/${outputFile}`);
+    console.log(`Schema generated to ${outputPath}`);
   } catch (error) {
     console.error(`Schema generation failed:`, error);
   }
