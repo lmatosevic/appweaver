@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
-import { AuditData, Id } from '../resource';
 import { AllErrorResponses } from '../errors';
+import identity from './resources/identity/model';
 
 export const LoginRequest = Type.Object({
   username: Type.String({ examples: ['john.doe@example.com'] }),
@@ -30,15 +30,6 @@ export const ChangePasswordRequest = Type.Object({
 export const LogoutResponse = Type.Object({
   success: Type.Boolean({ examples: [true] })
 });
-
-export const Identity = Type.Composite([
-  Id,
-  Type.Object({
-    username: Type.String({ maxLength: 255 }),
-    enabled: Type.Boolean()
-  }),
-  AuditData
-]);
 
 export const loginSchema = {
   tags: ['Auth'],
@@ -91,7 +82,7 @@ export const currentIdentitySchema = {
   summary: 'Return current identity',
   description: 'Return current identity',
   response: {
-    200: Identity,
+    200: identity.readOneModel,
     ...AllErrorResponses
   }
 };

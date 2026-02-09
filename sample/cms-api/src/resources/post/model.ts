@@ -14,15 +14,9 @@ export default createModel({
   scalars: {
     title: {
       type: 'text',
-      default: 'something',
-      values: ['Draft', 'Published', 'Archived'],
-      array: false,
-      required: true,
-      unique: false,
+      default: 'something...',
       minLength: 0,
-      maxLength: 255,
-      format: 'email',
-      pattern: 'something.*'
+      maxLength: 255
     },
     slug: {
       type: 'text',
@@ -42,7 +36,7 @@ export default createModel({
       type: 'enum',
       required: false,
       default: 'Draft',
-      values: ['Draft', 'Published', 'Archived'],
+      values: ['Draft', 'Published', 'Archived']
     },
     lastActivity: {
       type: 'dateTime',
@@ -51,27 +45,10 @@ export default createModel({
   },
   relations: {
     author: {
-      references: {
-        model: 'User',
-        owner: true
-      },
-      includes: {
-        user: {
-          input: {
-            type: 'none'
-          },
-          required: true
-        }
-      },
+      model: 'User',
+      owner: true,
       input: {
-        type: 'all',
-        uniqueKey: 'tag',
-        additionalProps: [
-          {
-            name: 'value',
-            required: true
-          }
-        ]
+        type: 'none'
       },
       output: {
         type: 'always',
@@ -109,13 +86,12 @@ export default createModel({
     randomNumbers: {
       type: 'float',
       array: true,
-      required: true,
       input: {
         type: 'none'
       },
       output: {
         type: 'always',
-        value: 321
+        value: [321.23, 432.54]
       }
     }
   },
@@ -128,8 +104,19 @@ export default createModel({
     content: {
       exclude: true
     },
-    comments: {
-      mapValue: 'username'
+    coverImage: {
+      mapValue: 'originalName'
+    },
+    galleryImages: {
+      mapValue: 'originalName'
+    },
+    author: {
+      firstName: {
+        headerName: 'Given Name'
+      },
+      lastName: {
+        headerName: 'Family Name'
+      }
     }
   },
   index: ['slug']

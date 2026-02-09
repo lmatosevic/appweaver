@@ -4,17 +4,12 @@
     "rootDir": ".",
     "outDir": "./dist",
     "paths": {
-      "@appweaver/core": ["../core"],
-      "@appweaver/core/*": ["../core/*"],
       "@appweaver/common": ["../common"],
       "@appweaver/common/*": ["../common/*"]
     }
   },
   "exclude": ["node_modules", "dist", "test/**/*", "*.(spec|test).ts"],
   "references": [
-    {
-      "path": "../core/tsconfig.build.json"
-    },
     {
       "path": "../common/tsconfig.build.json"
     }

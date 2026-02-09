@@ -1,5 +1,13 @@
 import { Readable } from 'node:stream';
-import { config, isArray, isObject, logger, plural } from '@appweaver/common';
+import {
+  config,
+  ExportConfig,
+  ExportRelations,
+  isArray,
+  isObject,
+  logger,
+  plural
+} from '@appweaver/common';
 import { context } from '../context';
 import { HttpError } from '../errors';
 import { ResourceService } from '../resource';
@@ -9,7 +17,6 @@ import {
   isCountField,
   toCsv
 } from '../utils';
-import { ExportConfig } from '../types';
 
 export type ExportStream = {
   stream: Readable;
@@ -88,11 +95,11 @@ export class ExportService {
     resourceExportConfig?: ExportConfig,
     parentKey: string = ''
   ): any {
-    const resourceConfig = context.resources[resourceName];
-    const readModel = resourceConfig?.readModel;
-    const relationModel = resourceConfig?.relationModel;
-    const fileModel = resourceConfig?.fileModel;
-    const exportConfig = resourceExportConfig ?? resourceConfig?.exportConfig;
+    const resourceModel = context.models[resourceName];
+    const readModel = resourceModel?.readModel;
+    const relationModel = resourceModel?.relationsModel;
+    const fileModel = resourceModel?.filesModel;
+    const exportConfig = resourceExportConfig ?? resourceModel?.config.export;
 
     const property = {};
 
@@ -116,33 +123,34 @@ export class ExportService {
 
       const isArrayValue = isArray(value);
 
-      const propConfig = exportConfig?.[key];
-      if (propConfig) {
-        if (propConfig.exclude) {
+      const exportField = exportConfig?.[key];
+      if (exportField) {
+        if (exportField.exclude === true) {
           // Skip mapping for excluded fields.
           continue;
         }
 
-        if (propConfig.headerName) {
+        if (typeof exportField.headerName === 'string') {
           header = parentKey
-            ? `${parentKey}.${propConfig.headerName}`
-            : propConfig.headerName;
+            ? `${parentKey}.${exportField.headerName}`
+            : exportField.headerName;
         }
 
-        if (propConfig.mapValue) {
+        if (exportField.mapValue) {
           const mappedValues: string[] = [];
 
           // Transform value items using mapValue configuration.
-          for (const subItem of isArrayValue ? value : [value]) {
-            if (typeof propConfig.mapValue === 'function') {
+          const subItems = isArrayValue ? value : [value];
+          for (const subItem of subItems) {
+            if (typeof exportField.mapValue === 'function') {
               try {
-                mappedValues.push(propConfig.mapValue(subItem));
+                mappedValues.push(exportField.mapValue(subItem));
               } catch (e) {
                 mappedValues.push('');
                 logger.error(e, 'Export value mapping error.');
               }
-            } else {
-              mappedValues.push(subItem?.[propConfig.mapValue]);
+            } else if (typeof exportField.mapValue !== 'object') {
+              mappedValues.push(subItem?.[exportField.mapValue]);
             }
           }
 
@@ -157,11 +165,12 @@ export class ExportService {
           continue;
         }
 
-        for (const subItem of isArrayValue ? value : [value]) {
+        const subItems = isArrayValue ? value : [value];
+        for (const subItem of subItems) {
           const mappedItem = this.mapProperty(
             relationName,
             subItem,
-            propConfig,
+            exportField as ExportRelations,
             header
           );
           for (const subKey in mappedItem) {

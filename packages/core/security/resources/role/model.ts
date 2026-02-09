@@ -10,10 +10,8 @@ export default createModel({
   },
   relations: {
     permissions: {
-      references: {
-        model: 'Permission',
-        array: true
-      }
+      model: 'Permission',
+      array: true
     }
   }
 });

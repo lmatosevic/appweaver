@@ -6,6 +6,10 @@ export * from './factory';
 export * from './database';
 export * from './resource';
 export * from './scheduler';
-export * from './security/helper';
-export { fileService, storage, File } from './storage';
-export * from './utils/schema-util';
+export * from './security';
+export * from './storage';
+
+export { default as identity } from './security/resources/identity/model';
+export { default as role } from './security/resources/role/model';
+export { default as permission } from './security/resources/permission/model';
+export { default as file } from './storage/resources/file/model';

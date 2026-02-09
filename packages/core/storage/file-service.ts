@@ -1,8 +1,8 @@
 import { Multipart, MultipartFile } from '@fastify/multipart';
-import { generateToken, isArray } from '@appweaver/common';
+import { FileField, generateToken, isArray } from '@appweaver/common';
 import { HttpError } from '../errors';
 import { context } from '../context';
-import { storage, ContentStream } from './storage';
+import { ContentStream, storage } from './storage';
 import { db } from '../database';
 import { currentIdentity } from '../security';
 import {
@@ -11,7 +11,7 @@ import {
   parseRange,
   sizeInBytes
 } from '../utils';
-import { File, FileConfig, Resource, ResourceModel } from '../types';
+import { File, Resource, ResourceModel } from '../types';
 
 export type FileStream = {
   content: ContentStream;
@@ -48,25 +48,25 @@ export class FileService {
       throw new HttpError('File does not exist', 404);
     }
 
-    const config = this.getFileConfig(file.resourceName, file.resourceField);
+    const policy = this.getFilePolicy(file.resourceName, file.resourceField);
 
-    if (!identity && config.accessType !== 'public') {
+    if (!identity && policy.accessType !== 'public') {
       throw new HttpError('Public file access is forbidden', 403);
     }
 
-    if (config.accessType === 'private' && identity?.id !== file.createdById) {
+    if (policy.accessType === 'private' && identity?.id !== file.createdById) {
       throw new HttpError('Private file access is forbidden', 403);
     }
 
     if (
-      config.accessType == 'protected' &&
+      policy.accessType == 'protected' &&
       file.resourceName &&
       file.resourceId
     ) {
       const resourceService = context.services[file.resourceName];
       const resource = await resourceService.find(file.resourceId);
 
-      if (identity && config.canAccess?.(identity, resource, file) === false) {
+      if (identity && policy.canAccess?.(identity, resource, file) === false) {
         throw new HttpError('File access is forbidden', 403);
       }
     }
@@ -108,12 +108,13 @@ export class FileService {
     }
 
     const config = this.getFileConfig(model.name, data.fieldname);
+    const policy = this.getFilePolicy(model.name, data.fieldname);
 
     if (!isValidMimeType(data.mimetype, config.mimeType)) {
       throw new HttpError(`Unsupported media file type: ${data.mimetype}`, 400);
     }
 
-    if (config.isArray) {
+    if (config.array) {
       const fileCount = await this.fileCount(
         data.fieldname,
         model.name,
@@ -175,7 +176,7 @@ export class FileService {
 
     if (
       identity &&
-      config.canCreate?.(identity, resource, createFile) === false
+      policy.canCreate?.(identity, resource, createFile) === false
     ) {
       throw new HttpError('Creating file is forbidden', 403);
     }
@@ -205,7 +206,7 @@ export class FileService {
       // Check if a resource already has a file for a single file property and
       // delete it after successfully creating the new one.
       let existingFile: File | null = null;
-      if (!config.isArray) {
+      if (!config.array) {
         const resourceWithFile = await model.findFirst({
           where: { id: resource.id },
           include: { [data.fieldname]: true }
@@ -296,11 +297,11 @@ export class FileService {
       );
     }
 
-    const config = this.getFileConfig(file.resourceName, file.resourceField);
+    const policy = this.getFilePolicy(file.resourceName, file.resourceField);
 
     if (
       currentUser &&
-      config.canDelete?.(currentUser, resource, file) === false
+      policy.canDelete?.(currentUser, resource, file) === false
     ) {
       throw new HttpError('Deleting file is forbidden', 403);
     }
@@ -395,15 +396,28 @@ export class FileService {
   private getFileConfig(
     resourceName?: string | null,
     resourceField?: string | null
-  ): FileConfig {
+  ): FileField {
     if (!resourceName || !resourceField) {
       return {};
     }
 
     const config =
-      context.resources[resourceName].fileConfig?.[resourceField] ?? {};
+      context.models[resourceName].config.files?.[resourceField] ?? {};
 
     return { ...config };
+  }
+
+  private getFilePolicy(
+    resourceName?: string | null,
+    resourceField?: string | null
+  ): any {
+    if (!resourceName || !resourceField) {
+      return {};
+    }
+
+    const policy = context.policies[resourceName].files?.[resourceField] ?? {};
+
+    return { ...policy };
   }
 }
 

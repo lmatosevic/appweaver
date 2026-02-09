@@ -6,7 +6,6 @@ import { exportService } from '../export';
 import { fileService } from '../storage';
 import { aggregateFiles, maxFileSize } from '../utils';
 import {
-  FileConfigProps,
   ResourceRoutesConfig,
   RouteConfig,
   RouteHandler,
@@ -21,7 +20,7 @@ export function resourceRoutes(
     const { auth, authenticateJWT } = server;
 
     const service = context.services[name];
-    const resourceConfig = context.resources[name];
+    const resourceModel = context.models[name];
 
     const routeConfig = (
       configName: keyof ResourceRoutesConfig
@@ -52,7 +51,7 @@ export function resourceRoutes(
     );
 
     const hasFiles =
-      Object.keys(resourceConfig.fileModel?.properties ?? {}).length > 0;
+      Object.keys(resourceModel.filesModel?.properties ?? {}).length > 0;
 
     const findConfig = routeConfig('find');
     if (!findConfig?.exclude && resourceSchema.findSchema) {
@@ -204,9 +203,9 @@ export function resourceRoutes(
       hasFiles &&
       !fileUploadConfig?.exclude &&
       resourceSchema.fileUploadSchema &&
-      resourceConfig.fileConfig
+      resourceModel.config.files
     ) {
-      const config = resourceConfig.fileConfig as FileConfigProps;
+      const config = resourceModel.config.files;
       const maxSize = maxFileSize(config);
 
       server.post<{ Params: Static<typeof Id> }>(
@@ -238,9 +237,9 @@ export function resourceRoutes(
       hasFiles &&
       !fileDeleteConfig?.exclude &&
       resourceSchema.fileDeleteSchema &&
-      resourceConfig.fileConfig
+      resourceModel.config.files
     ) {
-      const config = resourceConfig.fileConfig as FileConfigProps;
+      const config = resourceModel.config.files;
 
       server.post<{
         Params: Static<typeof Id>;

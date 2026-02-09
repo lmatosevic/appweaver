@@ -1,10 +1,15 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import { spawn } from 'node:child_process';
-import { TModule, TSchema, Type } from '@sinclair/typebox';
+import { TModule, TObject, TSchema, Type } from '@sinclair/typebox';
 import { ModelToTypeScript } from '@sinclair/typebox-codegen';
-import { File } from '@appweaver/core';
-import { ResourceModelSchema } from '@appweaver/common';
+import {
+  NullType,
+  isArray,
+  ResourceModelSchema,
+  EnumType,
+  DateType
+} from '@appweaver/common';
 
 export async function generateTypes(
   models: Record<string, ResourceModelSchema>,
@@ -19,17 +24,19 @@ export async function generateTypes(
   }
 
   try {
-    const resourceModels: Record<string, TSchema> = {
-      File: File
-    };
+    const resourceModels: Record<string, TSchema> = {};
 
     for (const [modelName, schema] of Object.entries(models)) {
-      resourceModels[modelName] = schema.readModel;
-      resourceModels[`${modelName}Create`] = schema.createModel;
-      resourceModels[`${modelName}Update`] = schema.updateModel;
-      resourceModels[`${modelName}Relations`] = schema.relationsModel;
-      resourceModels[`${modelName}Files`] = schema.filesModel;
-      resourceModels[`${modelName}Virtual`] = schema.virtualModel;
+      resourceModels[modelName] = transformUnsafeTypes(schema.readOneModel);
+      resourceModels[`${modelName}Multiple`] = transformUnsafeTypes(
+        schema.readManyModel
+      );
+      resourceModels[`${modelName}Create`] = transformUnsafeTypes(
+        schema.createOneModel
+      );
+      resourceModels[`${modelName}Update`] = transformUnsafeTypes(
+        schema.updateOneModel
+      );
     }
 
     const module = Type.Module(resourceModels);
@@ -62,6 +69,29 @@ function generateTypeScriptType(
   name: string
 ): string {
   const model: TSchema = module.Import(name);
-  const types = [model.$defs[name]];
-  return ModelToTypeScript.GenerateType({ types }, name);
+  const schema = model.$defs[name];
+  return ModelToTypeScript.GenerateType({ types: [schema] }, name);
+}
+
+function transformUnsafeTypes(schema: TObject): TObject {
+  const properties: Record<string, TSchema> = {};
+
+  for (let [name, field] of Object.entries(schema.properties)) {
+    if (field.type === 'string' && isArray(field.enum)) {
+      properties[name] = EnumType(field.enum);
+    } else if (
+      field.type === 'string' &&
+      ['date-time', 'date'].includes(field.format)
+    ) {
+      properties[name] = DateType(field);
+    } else {
+      properties[name] = field;
+    }
+
+    if (field.nullable === true) {
+      properties[name] = NullType(properties[name]);
+    }
+  }
+
+  return Type.Object(properties, { ...schema });
 }

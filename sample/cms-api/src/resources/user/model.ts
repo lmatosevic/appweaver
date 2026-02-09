@@ -28,14 +28,16 @@ export default createModel({
     phone: {
       type: 'text',
       maxLength: 32
+    },
+    secret: {
+      type: 'text',
+      hidden: true
     }
   },
   relations: {
     posts: {
-      references: {
-        model: 'Post',
-        array: true
-      }
+      model: 'Post',
+      array: true
     }
   },
   files: {

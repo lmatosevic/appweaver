@@ -1,0 +1,79 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { globSync } from 'glob';
+import { register } from 'ts-node';
+import { ResourceModelSchema } from '@appweaver/common';
+
+export function loadPackage(): Record<string, string> {
+  let pkgPath = path.join(__dirname, '../../package.json');
+  if (!fs.existsSync(pkgPath)) {
+    pkgPath = path.join(__dirname, '../package.json');
+  }
+
+  return JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+}
+
+export function loadModels(
+  modelPattern: string
+): Record<string, ResourceModelSchema> {
+  const cwd = process.cwd();
+
+  register({
+    transpileOnly: true,
+    compilerOptions: {
+      module: 'CommonJS'
+    }
+  });
+
+  const resources: Record<string, ResourceModelSchema> = {};
+
+  const modelPaths = globSync(modelPattern, { cwd, absolute: true });
+
+  // Add exported core module resource models
+  modelPaths.push('@appweaver/core');
+
+  if (modelPaths.length === 0) {
+    console.log('No models found matching pattern:', modelPattern);
+    return resources;
+  }
+
+  for (const modelPath of modelPaths) {
+    let modelExport: any;
+    try {
+      // Clear cache to ensure fresh model data
+      delete require.cache[require.resolve(modelPath)];
+      modelExport = require(modelPath);
+    } catch (error) {
+      console.log('Path is not accessible:', modelPath, '\nSkipping...');
+      continue;
+    }
+
+    const modelSchema: ResourceModelSchema = modelExport.default || modelExport;
+
+    // Add only exports that satisfy the resource model schema requirements
+    if (modelSchema.name && modelSchema.config && modelSchema.readModel) {
+      resources[modelSchema.name] = modelSchema;
+    } else {
+      for (const maybeSchema of Object.values(modelSchema)) {
+        if (
+          typeof maybeSchema === 'object' &&
+          'name' in maybeSchema &&
+          'config' in maybeSchema &&
+          'readModel' in maybeSchema
+        ) {
+          resources[maybeSchema.name] =
+            maybeSchema as unknown as ResourceModelSchema;
+        }
+      }
+    }
+  }
+
+  if (Object.keys(resources).length === 0) {
+    console.log(
+      'No resource models exports found matching pattern:',
+      modelPattern
+    );
+  }
+
+  return resources;
+}

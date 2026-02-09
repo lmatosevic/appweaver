@@ -1,4 +1,4 @@
-export function setObjectValue(
+export function setValue(
   obj: Record<string, any>,
   path: string,
   value: any
@@ -19,7 +19,7 @@ export function setObjectValue(
   return obj;
 }
 
-export function setObjectProperties<T extends object = any>(
+export function setProperties<T extends object = any>(
   obj: T,
   value: keyof T | undefined
 ): T {
@@ -29,7 +29,7 @@ export function setObjectProperties<T extends object = any>(
   }, {} as T);
 }
 
-export function pickObjectProperties<T extends object = any>(
+export function pickProperties<T extends object = any>(
   obj: T,
   props: (keyof T)[]
 ): Partial<T> {
@@ -41,7 +41,7 @@ export function pickObjectProperties<T extends object = any>(
   }, {} as Partial<T>);
 }
 
-export function omitObjectProperties<T extends object = any>(
+export function omitProperties<T extends object = any>(
   obj: T,
   props: (keyof T)[]
 ): Omit<T, keyof T> {
@@ -56,7 +56,7 @@ export function omitObjectProperties<T extends object = any>(
   );
 }
 
-export function removeUndefinedValues<T extends object = any>(obj: T) {
+export function removeUndefined<T extends object = any>(obj: T) {
   return Object.fromEntries(
     Object.entries(obj).filter(([_, value]) => value !== undefined)
   );

@@ -1,18 +1,10 @@
 import { Type } from '@sinclair/typebox';
-import { camelToSnakeCase } from '@appweaver/common';
+import { camelToSnakeCase, StringDate } from '@appweaver/common';
 import { Id } from './common-schema';
-import { relationInputModels, relationOutputModels } from './relation-schema';
-import { fileInputModels, FileResponse } from '../storage';
+import { FileResponse } from '../storage';
 import { AllErrorResponses } from '../errors';
 import { context } from '../context';
-import { ResourceNameSymbol } from '../constants';
-import { StringDate } from '../utils';
-import {
-  ResourceConfig,
-  ResourceModelConfig,
-  ResourceRoutesConfig,
-  ResourceSchemaConfig
-} from '../types';
+import { ResourceRoutesConfig, ResourceSchemaConfig } from '../types';
 
 export const QueryRequestData = Type.Object({
   filter: Type.Optional(Type.Any({ examples: [{ field: 'value' }] })),
@@ -42,48 +34,12 @@ export const AggregateResponseData = Type.Optional(
   Type.Any({ examples: [{ field: 'value' }] })
 );
 
-export function resourceConfig<
-  Model = any,
-  Relations = unknown,
-  Files = unknown
->(
-  name: string,
-  modelConfig: ResourceModelConfig<Model, Relations, Files>
-): ResourceConfig<Model, Relations, Files> {
-  const { readOneModel, readManyModel } = relationOutputModels(modelConfig);
-  const { createOneModel, updateOneModel } = relationInputModels(modelConfig);
-  const { fileUploadModel, fileDeleteModel } = fileInputModels(
-    modelConfig.fileConfig ?? {}
-  );
-
-  const config: ResourceConfig<Model, Relations, Files> = {
-    ...modelConfig,
-    readOneModel,
-    readManyModel,
-    createOneModel,
-    updateOneModel,
-    fileUploadModel,
-    fileDeleteModel
-  };
-
-  for (const value of Object.values(config)) {
-    if (value) {
-      value[ResourceNameSymbol] = name;
-    }
-  }
-
-  config[ResourceNameSymbol] = name;
-  context.resources[name] = config;
-
-  return config;
-}
-
 export function createSchema(
   name: string,
   tag: string,
   publicRoutes: Array<keyof ResourceRoutesConfig> = []
 ): ResourceSchemaConfig {
-  const resourceConfig = context.resources[name];
+  const resourceModel = context.models[name];
 
   const resourceName = camelToSnakeCase(name, ' ');
 
@@ -97,7 +53,7 @@ export function createSchema(
       summary: `Find ${resourceName} data`,
       description: `Find ${resourceName} data`,
       response: {
-        200: resourceConfig.readOneModel,
+        200: resourceModel.readOneModel,
         ...AllErrorResponses
       },
       params: Id
@@ -111,7 +67,7 @@ export function createSchema(
         200: Type.Composite([
           QueryResponseData,
           Type.Object({
-            items: Type.Array(resourceConfig.readManyModel ?? Type.Object({}))
+            items: Type.Array(resourceModel.readManyModel ?? Type.Object({}))
           })
         ]),
         ...AllErrorResponses
@@ -135,10 +91,10 @@ export function createSchema(
       summary: `Create ${resourceName} data`,
       description: `Create ${resourceName} data`,
       response: {
-        201: resourceConfig.readOneModel,
+        201: resourceModel.readOneModel,
         ...AllErrorResponses
       },
-      body: resourceConfig.createOneModel
+      body: resourceModel.createOneModel
     },
     updateSchema: {
       tags: [tag],
@@ -146,10 +102,10 @@ export function createSchema(
       summary: `Update ${resourceName} data`,
       description: `Update ${resourceName} data`,
       response: {
-        200: resourceConfig.readOneModel,
+        200: resourceModel.readOneModel,
         ...AllErrorResponses
       },
-      body: resourceConfig.updateOneModel,
+      body: resourceModel.updateOneModel,
       params: Id
     },
     deleteSchema: {
@@ -158,7 +114,7 @@ export function createSchema(
       summary: `Delete ${resourceName} data`,
       description: `Delete ${resourceName} data`,
       response: {
-        200: resourceConfig.readOneModel,
+        200: resourceModel.readOneModel,
         ...AllErrorResponses
       },
       params: Id
@@ -187,10 +143,10 @@ export function createSchema(
       description: `Upload ${resourceName} files`,
       consumes: ['multipart/form-data'],
       response: {
-        200: resourceConfig.fileModel,
+        200: resourceModel.filesModel,
         ...AllErrorResponses
       },
-      body: resourceConfig.fileUploadModel,
+      body: resourceModel.fileUploadModel,
       params: Id
     },
     fileDeleteSchema: {
@@ -199,10 +155,10 @@ export function createSchema(
       summary: `Delete ${resourceName} files`,
       description: `Delete ${resourceName} files`,
       response: {
-        200: resourceConfig.fileModel,
+        200: resourceModel.filesModel,
         ...AllErrorResponses
       },
-      body: resourceConfig.fileDeleteModel,
+      body: resourceModel.fileDeleteModel,
       params: Id
     }
   };

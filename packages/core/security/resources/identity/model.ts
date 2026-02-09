@@ -24,10 +24,8 @@ export default createModel({
   },
   relations: {
     roles: {
-      references: {
-        model: 'Role',
-        array: true
-      }
+      model: 'Role',
+      array: true
     }
   }
 });

@@ -1,24 +1,5 @@
-import { TObject, Type } from '@sinclair/typebox';
-import { AuditData, Id } from '../resource';
+import { Kind, Type } from '@sinclair/typebox';
 import { AllErrorResponses } from '../errors';
-import { Nullable } from '../utils';
-import { FileConfigProps } from '../types';
-
-export const File = Type.Composite(
-  [
-    Id,
-    Type.Object({
-      name: Type.String({ examples: ['image_123.png'] }),
-      originalName: Type.String({ examples: ['image.png'] }),
-      mimeType: Type.String({ examples: ['image/png'] }),
-      sizeBytes: Type.Integer({ minimum: 0, examples: [1024] }),
-      title: Nullable(Type.String()),
-      description: Nullable(Type.String())
-    }),
-    AuditData
-  ],
-  { $id: 'File' }
-);
 
 export const FileName = Type.Object({
   '*': Type.String()
@@ -30,13 +11,13 @@ export const FileRangeHeader = Type.Object({
 
 export const FileResponse = Type.String({ format: 'binary' });
 
-export const FileUpload = Type.Unsafe({ isFile: true });
-
-export const FileArrayUpload = Type.Array(FileUpload);
+export const FileUpload = Type.Unsafe({
+  isFile: true,
+  type: 'string',
+  [Kind]: 'String'
+});
 
 export const FileDelete = Type.String({ examples: ['image_123.png'] });
-
-export const FileArrayDelete = Type.Array(FileDelete);
 
 export function createFileAccessSchema(isPublic: boolean): Record<string, any> {
   return {
@@ -66,29 +47,4 @@ export function createFileAccessSchema(isPublic: boolean): Record<string, any> {
     params: FileName,
     headers: FileRangeHeader
   };
-}
-
-export function fileInputModels(fileConfig: FileConfigProps): {
-  fileUploadModel: TObject;
-  fileDeleteModel: TObject;
-} {
-  const fileUploadModel = Type.Object(
-    Object.fromEntries(
-      Object.entries(fileConfig).map(([key, conf]) => [
-        key,
-        Type.Optional(conf.isArray ? FileArrayUpload : FileUpload)
-      ])
-    )
-  );
-
-  const fileDeleteModel = Type.Object(
-    Object.fromEntries(
-      Object.entries(fileConfig).map(([key, conf]) => [
-        key,
-        Type.Optional(conf.isArray ? FileArrayDelete : FileDelete)
-      ])
-    )
-  );
-
-  return { fileUploadModel, fileDeleteModel };
 }

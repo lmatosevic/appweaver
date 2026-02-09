@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { DateType, NullType } from '../utils';
+import { Nullable, StringDate } from '@appweaver/common';
 
 export const Id = Type.Object({
   id: Type.Integer({ minimum: 1 })
@@ -10,11 +10,11 @@ export const IdString = Type.Object({
 });
 
 export const AuditData = Type.Object({
-  updatedAt: DateType({
+  updatedAt: StringDate({
     examples: ['2025-04-11T11:27:58.590Z']
   }),
-  createdAt: DateType({
+  createdAt: StringDate({
     examples: ['2025-04-11T11:27:58.590Z']
   }),
-  createdById: NullType(Type.Integer({ minimum: 1, examples: [1] }))
+  createdById: Nullable(Type.Integer({ minimum: 1, examples: [1] }))
 });

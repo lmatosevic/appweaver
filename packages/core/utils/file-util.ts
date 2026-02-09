@@ -1,5 +1,9 @@
-import { config, replacePatternVariables } from '@appweaver/common';
-import { File, FileConfigProps } from '../types';
+import {
+  config,
+  FilesConfig,
+  replacePatternVariables
+} from '@appweaver/common';
+import { File } from '../types';
 
 export function parseRange(range?: string): { start: number; end?: number } {
   if (!range) {
@@ -12,7 +16,7 @@ export function parseRange(range?: string): { start: number; end?: number } {
   return { start, end };
 }
 
-export function maxFileSize(fileConfig: FileConfigProps): number {
+export function maxFileSize(fileConfig: FilesConfig): number {
   const sizes = Object.values(fileConfig)
     .map((conf) => sizeInBytes(conf.maxSize))
     .filter((v) => v > 0);
@@ -121,18 +125,18 @@ export function sanitizeFilename(fileName: string): string {
 
 export function aggregateFiles(
   files: File[],
-  fileConfig: FileConfigProps
+  filesConfig: FilesConfig
 ): Record<string, File | File[] | null> {
   const aggregated: Partial<Record<string, File | File[] | null>> =
-    Object.entries(fileConfig)
-      .map(([field, value]) => ({ [field]: value.isArray ? [] : null }))
+    Object.entries(filesConfig)
+      .map(([field, value]) => ({ [field]: value.array ? [] : null }))
       .reduce((acc, obj) => Object.assign(acc, obj), {});
 
   for (const file of files) {
     const resourceField = file.resourceField;
 
     if (resourceField) {
-      if (fileConfig[resourceField].isArray) {
+      if (filesConfig[resourceField].array) {
         if (!aggregated[resourceField]) {
           aggregated[resourceField] = [];
         }

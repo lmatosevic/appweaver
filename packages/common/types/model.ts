@@ -1,4 +1,4 @@
-import { TSchema } from '@sinclair/typebox';
+import { TObject } from '@sinclair/typebox';
 
 export type FieldType =
   | 'text'
@@ -71,12 +71,7 @@ export type ScalarField = {
   maximum?: number;
   format?: FieldFormat;
   pattern?: string;
-};
-
-export type RelationReferences = {
-  model: string;
-  array?: boolean;
-  owner?: boolean;
+  examples?: (string | number | boolean)[];
 };
 
 export type RelationInput = {
@@ -94,9 +89,11 @@ export type RelationOutput = {
 };
 
 export type RelationField = {
-  references: RelationReferences;
+  model: string;
+  array?: boolean;
+  owner?: boolean;
   includes?: {
-    [key: string]: Omit<RelationField, 'references'>;
+    [key: string]: Omit<RelationField, 'model' | 'array' | 'owner'>;
   };
   input?: RelationInput;
   output?: RelationOutput;
@@ -141,37 +138,47 @@ export type ExportField = {
   mapValue?: string | ((value: any) => string);
 };
 
-export type ResourceModel = {
+export type ExportRelations = {
+  [key: string]: ExportField;
+};
+
+export type ScalarConfig = Record<string, ScalarField>;
+
+export type RelationConfig = Record<string, RelationField>;
+
+export type FilesConfig = Record<string, FileField>;
+
+export type VirtualConfig = Record<string, VirtualField>;
+
+export type ExportConfig = Record<string, ExportField | ExportRelations>;
+
+export type ResourceModelConfig = {
   name: string;
   id?: IdField;
   audit?: AuditFields;
-  scalars?: {
-    [key: string]: ScalarField;
-  };
-  relations?: {
-    [key: string]: RelationField;
-  };
-  files?: {
-    [key: string]: FileField;
-  };
+  scalars?: ScalarConfig;
+  relations?: RelationConfig;
+  files?: FilesConfig;
   create?: OperationConfig;
   update?: OperationConfig;
-  export?: {
-    [key: string]: ExportField;
-  };
-  virtual?: {
-    [key: string]: VirtualField;
-  };
+  export?: ExportConfig;
+  virtual?: VirtualConfig;
   index?: string[] | string[][];
 };
 
 export type ResourceModelSchema = {
-  name: string;
-  model: ResourceModel;
-  readModel: TSchema;
-  createModel: TSchema;
-  updateModel: TSchema;
-  virtualModel: TSchema;
-  filesModel: TSchema;
-  relationsModel: TSchema;
+  name: string; // Model name in singular with the first capital letter (Model)
+  config: ResourceModelConfig; // Received model config from default export
+  readModel: TObject; // Response for find and query methods, all fields
+  createModel: TObject; // Input for create method
+  updateModel: TObject; // Input for update method
+  relationsModel: TObject; // Internal use only
+  filesModel: TObject; // Internal use only
+  virtualModel: TObject; // Internal use only
+  readOneModel: TObject; // Response for find route
+  readManyModel: TObject; // Response for query route
+  createOneModel: TObject; // Request for create route
+  updateOneModel: TObject; // Request for update route
+  fileUploadModel: TObject; // Request for file upload route
+  fileDeleteModel: TObject; // Request for file delete route
 };

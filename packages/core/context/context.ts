@@ -1,16 +1,19 @@
+import { ResourceModelSchema } from '@appweaver/common';
 import { ResourceService } from '../resource';
-import { ResourceConfig, RouteHandler, ServerInstance } from '../types';
+import { RouteHandler, ServerInstance } from '../types';
 
 export type Context = {
   server: ServerInstance | null;
-  resources: Record<string, ResourceConfig>;
+  models: Record<string, ResourceModelSchema>;
   routes: Record<string, RouteHandler>;
   services: Record<string, ResourceService<any>>;
+  policies: Record<string, any>;
 };
 
 export const context: Context = {
   server: null,
-  resources: {},
+  models: {},
   routes: {},
-  services: {}
+  services: {},
+  policies: {}
 };

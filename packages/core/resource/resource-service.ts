@@ -12,16 +12,19 @@ import {
   subDays
 } from 'date-fns';
 import {
+  FileField,
   isArray,
   isObject,
-  removeUndefinedValues,
-  setObjectValue
+  RelationField,
+  removeUndefined,
+  setValue
 } from '@appweaver/common';
 import { db } from '../database';
 import { events } from '../events';
 import { context } from '../context';
 import { currentIdentity } from '../security';
 import { HttpError } from '../errors';
+import { countFieldName, extractResourceName } from '../utils';
 import {
   ActionType,
   AggregateResponse,
@@ -29,12 +32,10 @@ import {
   AggregateValue,
   PeriodIncrementFn,
   QueryResponse,
-  RelationConfig,
   Resource,
   ResourceModel,
   ResourceOmit
 } from '../types';
-import { countFieldName, extractResourceName } from '../utils';
 
 export abstract class ResourceService<T = Resource, D = any, Q = any> {
   private readonly _model: ResourceModel;
@@ -220,7 +221,7 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
 
     const restrictions = await this.writeRestrictions('create', data);
 
-    const createData = removeUndefinedValues({
+    const createData = removeUndefined({
       ...data,
       ...restrictions
     });
@@ -266,7 +267,7 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
       ...data
     });
 
-    const updateData = removeUndefinedValues({
+    const updateData = removeUndefined({
       ...data,
       ...writeRestrictions
     });
@@ -475,7 +476,7 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
         path = path.replace('Count', '._count');
       }
 
-      setObjectValue(sortMap, path, order);
+      setValue(sortMap, path, order);
     }
 
     return Object.entries(sortMap).map(([key, value]) => ({ [key]: value }));
@@ -496,7 +497,7 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
           ? `${operator}.${field.substring(1)}`
           : `_${operator}.${field}`;
 
-        setObjectValue(aggregationMap, path, value);
+        setValue(aggregationMap, path, value);
       }
     }
 
@@ -583,10 +584,10 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
   private mapQueryFilter(filter: any, resourceName?: string): any {
     const queryFilter = {};
 
-    const resourceConfig = context.resources[resourceName ?? this._model.name];
-    const readModel = resourceConfig?.readModel;
-    const relationModel = resourceConfig?.relationModel;
-    const fileModel = resourceConfig?.fileModel;
+    const resourceModel = context.models[resourceName ?? this._model.name];
+    const readModel = resourceModel?.readModel;
+    const relationModel = resourceModel?.relationsModel;
+    const fileModel = resourceModel?.filesModel;
 
     for (const key in filter) {
       const value = filter[key];
@@ -651,12 +652,12 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
   private mapRelationInclusions(action?: ActionType): Record<string, boolean> {
     const inclusion: Record<string, any> = {};
 
-    const resourceConfig = context.resources[this._model.name];
-    const relationConfig = resourceConfig?.relationConfig;
-    const fileConfig = resourceConfig?.fileConfig;
+    const resourceModel = context.models[this._model.name];
+    const relationConfig = resourceModel?.config.relations;
+    const fileConfig = resourceModel?.config.files;
 
-    const relationModelProps = resourceConfig?.relationModel?.properties ?? {};
-    const fileModelProps = resourceConfig?.fileModel?.properties ?? {};
+    const relationModelProps = resourceModel?.relationsModel?.properties ?? {};
+    const fileModelProps = resourceModel?.filesModel?.properties ?? {};
 
     // Add relation and file fields to the inclusion map if the include type is
     // satisfied or the requested action is not specified. Also, add the count
@@ -665,17 +666,20 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
       ...relationModelProps,
       ...fileModelProps
     })) {
-      const config: RelationConfig = relationConfig?.[key] || fileConfig?.[key];
+      const relationField: RelationField | FileField | undefined =
+        relationConfig?.[key] || fileConfig?.[key];
 
-      if (config?.outputCount) {
+      if (relationField?.output?.count) {
         inclusion._count = inclusion._count ?? { select: {} };
         inclusion._count.select[key] = true;
       }
 
       if (
-        config?.outputType === 'none' ||
-        (config?.outputType === 'single' && action === 'query') ||
-        (config?.outputType === 'multiple' && action && action !== 'query')
+        relationField?.output?.type === 'none' ||
+        (relationField?.output?.type === 'single' && action === 'query') ||
+        (relationField?.output?.type === 'multiple' &&
+          action &&
+          action !== 'query')
       ) {
         continue;
       }
@@ -697,10 +701,10 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
 
     const createdBy = this.createdByConnect();
 
-    const resourceConfig = context.resources[this._model.name];
-    const readModel = resourceConfig?.readModel;
-    const relationModel = resourceConfig?.relationModel;
-    const relationConfig = resourceConfig?.relationConfig;
+    const resourceModel = context.models[this._model.name];
+    const readModel = resourceModel?.readModel;
+    const relationModel = resourceModel?.relationsModel;
+    const relationConfig = resourceModel?.config.relations;
 
     for (const key in data) {
       let value = data[key];
@@ -720,8 +724,8 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
         continue;
       }
 
-      const config: RelationConfig = relationConfig?.[key];
-      const uniqueKey = config?.inputUniqueKey || 'id';
+      const config: RelationField | undefined = relationConfig?.[key];
+      const uniqueKey = config?.input?.uniqueKey || 'id';
       const isArrayType = relationSchema.type === 'array';
 
       // Normalize array values to single values if a value type is not an array.
