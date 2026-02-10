@@ -1,5 +1,10 @@
 import { Multipart, MultipartFile } from '@fastify/multipart';
-import { FileField, generateToken, isArray } from '@appweaver/common';
+import {
+  FileField,
+  FilePolicy,
+  generateToken,
+  isArray
+} from '@appweaver/common';
 import { HttpError } from '../errors';
 import { context } from '../context';
 import { ContentStream, storage } from './storage';
@@ -410,7 +415,7 @@ export class FileService {
   private getFilePolicy(
     resourceName?: string | null,
     resourceField?: string | null
-  ): any {
+  ): FilePolicy {
     if (!resourceName || !resourceField) {
       return {};
     }

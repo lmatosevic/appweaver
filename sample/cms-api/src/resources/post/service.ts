@@ -1,21 +1,14 @@
-import { ResourceService } from '@appweaver/common';
+import { createService } from '@appweaver/core';
 
-export default {
+export default createService({
   name: 'Post',
-  beforeFind: () => null,
-  beforeQuery: () => null,
-  beforeAggregate: () => null,
-  beforeCreate: () => null,
-  beforeUpdate: () => null,
-  beforeDelete: () => null,
-  afterFind: () => null,
-  afterQuery: () => null,
-  afterAggregate: () => null,
-  afterCreate: () => null,
-  afterUpdate: () => null,
-  afterDelete: () => null,
+  beforeFind: (id: number) => {
+    console.log('Finding post with ID:', id);
+  },
+  afterFind: (resource: any) => {
+    console.log('Found resource:', resource);
+  },
   textSearch: {
-    // it can also be a function (input) => ({ title: `User: ${input}` })
     OR: {
       title: {
         contains: '{input}',
@@ -27,4 +20,4 @@ export default {
       }
     }
   }
-} satisfies ResourceService;
+});

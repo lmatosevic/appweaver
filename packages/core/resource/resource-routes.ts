@@ -1,22 +1,22 @@
 import { Static } from '@sinclair/typebox';
-import { Id, plural } from '@appweaver/common';
+import {
+  Id,
+  plural,
+  ResourceRoutesConfig,
+  RouteConfig
+} from '@appweaver/common';
 import { createSchema } from '../resource';
 import { context } from '../context';
 import { exportService } from '../export';
 import { fileService } from '../storage';
 import { aggregateFiles, maxFileSize } from '../utils';
-import {
-  ResourceRoutesConfig,
-  RouteConfig,
-  RouteHandler,
-  ServerInstance
-} from '../types';
+import { RouteHandler, ServerInstance } from '../types';
 
 export function resourceRoutes(
   name: string,
-  routesConfig: ResourceRoutesConfig = {}
+  routesConfig: Omit<ResourceRoutesConfig, 'name'> = {}
 ): RouteHandler {
-  const route = (server: ServerInstance) => {
+  return (server: ServerInstance) => {
     const { auth, authenticateJWT } = server;
 
     const service = context.services[name];
@@ -24,8 +24,7 @@ export function resourceRoutes(
 
     const routeConfig = (
       configName: keyof ResourceRoutesConfig
-    ): RouteConfig | undefined =>
-      routesConfig[configName] || routesConfig.default;
+    ): RouteConfig | undefined => routesConfig[configName];
 
     const routeAuth = (config: RouteConfig | undefined) =>
       config?.public ? undefined : auth(config?.auth ?? [authenticateJWT]);
@@ -42,7 +41,7 @@ export function resourceRoutes(
       })
       .filter((v) => v !== null);
 
-    const resourceName = service.model.name;
+    const resourceName = service.modelName;
     const resourceNamePlural = plural(resourceName);
     const resourceSchema = createSchema(
       resourceName,
@@ -265,6 +264,4 @@ export function resourceRoutes(
       );
     }
   };
-  context.routes[name] = route;
-  return route;
 }

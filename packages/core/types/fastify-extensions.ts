@@ -1,4 +1,4 @@
-import { RouteConfig } from './route-config';
+import { RouteConfig } from '@appweaver/common';
 import { Identity } from './generated';
 
 import '@fastify/request-context';

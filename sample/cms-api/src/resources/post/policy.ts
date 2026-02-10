@@ -1,6 +1,6 @@
-import { ResourcePolicy } from '@appweaver/common';
+import { createPolicy } from '@appweaver/core';
 
-export default {
+export default createPolicy({
   name: 'Post',
   checkAccess: (action, resource) => true,
   readRestrictions: (action, resource) => null,
@@ -8,12 +8,12 @@ export default {
   files: {
     coverImage: {
       accessType: 'protected',
-      canAccess: (user, resource, file) => true,
-      canCreate: (user, resource, file) => true,
-      canDelete: (user, resource, file) => true
+      canAccess: (identity, resource, file) => true,
+      canCreate: (identity, resource, file) => true,
+      canDelete: (identity, resource, file) => true
     },
     galleryImages: {
       accessType: 'public'
     }
   }
-} satisfies ResourcePolicy;
+});

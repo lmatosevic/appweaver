@@ -1,3 +1,3 @@
-import { resourceRoutes } from '@appweaver/core';
+import { createRoutes } from '@appweaver/core';
 
-export default resourceRoutes('User', {});
+export default createRoutes({ name: 'User' });

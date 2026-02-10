@@ -1,6 +1,6 @@
-import { ResourceRoute } from '@appweaver/common';
+import { createRoutes } from '@appweaver/core';
 
-export default {
+export default createRoutes({
   name: 'Post',
   path: '/posts',
   find: {
@@ -23,4 +23,4 @@ export default {
   },
   fileUpload: {},
   fileDelete: {}
-} satisfies ResourceRoute;
+});

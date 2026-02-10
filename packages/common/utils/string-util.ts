@@ -152,6 +152,16 @@ export function capitalize(text: string): string {
 }
 
 /**
+ * Converts the first character of the given string to lowercase while leaving the rest of the string unchanged.
+ *
+ * @param {string} text - The string to be processed.
+ * @return {string} The resulting string with the first character converted to lowercase.
+ */
+export function uncapitalize(text: string): string {
+  return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
+/**
  * Converts an array of strings into a URL-friendly slug.
  *
  * @param {...string[]} values - The strings to be combined and converted into a slug.

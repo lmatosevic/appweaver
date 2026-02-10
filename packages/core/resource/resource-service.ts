@@ -12,12 +12,19 @@ import {
   subDays
 } from 'date-fns';
 import {
+  ActionType,
+  AggregateResponse,
+  AggregateSelect,
+  AggregateValue,
   FileField,
   isArray,
   isObject,
+  PeriodIncrementFn,
+  QueryResponse,
   RelationField,
   removeUndefined,
-  setValue
+  setValue,
+  uncapitalize
 } from '@appweaver/common';
 import { db } from '../database';
 import { events } from '../events';
@@ -25,36 +32,35 @@ import { context } from '../context';
 import { currentIdentity } from '../security';
 import { HttpError } from '../errors';
 import { countFieldName, extractResourceName } from '../utils';
-import {
-  ActionType,
-  AggregateResponse,
-  AggregateSelect,
-  AggregateValue,
-  PeriodIncrementFn,
-  QueryResponse,
-  Resource,
-  ResourceModel,
-  ResourceOmit
-} from '../types';
+import { Resource, ResourceModel, ResourceOmit } from '../types';
 
-export abstract class ResourceService<T = Resource, D = any, Q = any> {
+export abstract class ResourceService<
+  ReadOne = Resource,
+  ReadMany = Resource,
+  Create = ResourceOmit<Resource>,
+  Update = Partial<ResourceOmit<Resource>>,
+  Query = any
+> {
   private readonly _model: ResourceModel;
 
-  protected constructor(public readonly model: D) {
-    this._model = model as ResourceModel;
+  constructor(public readonly modelName: string) {
+    this._model = db.client[uncapitalize(modelName)];
     if (!this._model) {
       throw new Error(
-        `ResourceService initialized with invalid model: ${model}`
+        `ResourceService initialized with invalid model: ${modelName}`
       );
     }
-    context.services[this._model.name] = this;
   }
 
-  public async find(id: number): Promise<T> {
+  public get model(): ResourceModel {
+    return this._model;
+  }
+
+  public async find(id: number): Promise<ReadOne> {
     const restrictions = await this.readRestrictions('find', id);
     const includeRelations = this.mapRelationInclusions('find');
 
-    let resource: T;
+    let resource: ReadOne;
     try {
       resource = await this._model.findFirst({
         where: { id, ...restrictions },
@@ -68,7 +74,7 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
       throw new HttpError(`${this._model.name} data not found`, 404);
     }
 
-    const access = await this.checkAccess('find', resource as T);
+    const access = await this.checkAccess('find', resource);
     if (!access) {
       throw new HttpError(`${this._model.name} data access is forbidden`, 403);
     }
@@ -79,11 +85,11 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
   }
 
   public async query(
-    filter: Q = {} as any,
+    filter: Query = {} as any,
     page = 1,
     size = 50,
     sort = '-createdAt,id'
-  ): Promise<QueryResponse<T>> {
+  ): Promise<QueryResponse<ReadMany>> {
     const restrictions = await this.readRestrictions('query', filter);
     const textSearch = this.extractTextSearchQuery(filter);
     const mappedFilter = this.mapQueryFilter(filter);
@@ -92,7 +98,7 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
     const includeRelations = this.mapRelationInclusions('query');
     const orderBy = this.mapSortValues(sort);
 
-    let resources: T[];
+    let resources: ReadMany[];
     let totalCount: number;
     try {
       [resources, totalCount] = await db.client.$transaction([
@@ -121,14 +127,14 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
   }
 
   public async aggregate(
-    filter: Q = {} as any,
-    select: AggregateSelect<T>,
+    filter: Query = {} as any,
+    select: AggregateSelect<ReadOne>,
     dateField: string = 'createdAt',
     from?: string,
     to?: string,
     step?: number,
     safeIncrement = true
-  ): Promise<AggregateResponse<T>> {
+  ): Promise<AggregateResponse<ReadOne>> {
     const toDate = parseISO(to ?? new Date().toISOString());
     const fromDate = from ? parseISO(from) : subDays(toDate, 7);
     const iterator = this.makeAggregationIterator(
@@ -216,7 +222,7 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
     };
   }
 
-  public async create(data: Partial<ResourceOmit<T>>): Promise<T> {
+  public async create(data: Create): Promise<ReadOne> {
     const createdBy = this.createdByConnect();
 
     const restrictions = await this.writeRestrictions('create', data);
@@ -226,7 +232,7 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
       ...restrictions
     });
 
-    const access = await this.checkAccess('create', createData as T);
+    const access = await this.checkAccess('create', createData as ReadOne);
     if (!access) {
       throw new HttpError(
         `${this._model.name} create action is forbidden`,
@@ -237,7 +243,7 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
     const connectRelations = this.mapRelationActions('create', createData);
     const includeRelations = this.mapRelationInclusions('create');
 
-    let resource: T;
+    let resource: ReadOne;
     try {
       resource = await this._model.create({
         data: {
@@ -256,7 +262,7 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
     return this.projectValues(resource);
   }
 
-  public async update(id: number, data: Partial<ResourceOmit<T>>): Promise<T> {
+  public async update(id: number, data: Update): Promise<ReadOne> {
     const readRestrictions = await this.readRestrictions('update', {
       id,
       ...data
@@ -274,8 +280,8 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
 
     const includeRelations = this.mapRelationInclusions('update');
 
-    let updateResource: T;
-    let resource: T;
+    let updateResource: ReadOne;
+    let resource: ReadOne;
     try {
       [updateResource, resource] = await db.client.$transaction(async (tx) => {
         const txModel = tx[this._model.name];
@@ -288,7 +294,7 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
           throw new HttpError(`${this._model.name} data not found`, 404);
         }
 
-        const access = await this.checkAccess('update', current as T);
+        const access = await this.checkAccess('update', current);
         if (!access) {
           throw new HttpError(
             `${this._model.name} update action is forbidden`,
@@ -325,10 +331,10 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
     return this.projectValues(resource);
   }
 
-  public async delete(id: number): Promise<T> {
+  public async delete(id: number): Promise<ReadOne> {
     const restrictions = await this.readRestrictions('delete', id);
 
-    let resource: T;
+    let resource: ReadOne;
     try {
       resource = await db.client.$transaction(async (tx) => {
         const txModel = tx[this._model.name];
@@ -340,7 +346,7 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
           throw new HttpError(`${this._model.name} data not found`, 404);
         }
 
-        const access = await this.checkAccess('delete', current as T);
+        const access = await this.checkAccess('delete', current);
         if (!access) {
           throw new HttpError(
             `${this._model.name} delete action is forbidden`,
@@ -391,8 +397,8 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
   protected async readRestrictions(
     action: Exclude<ActionType, 'create'>,
     data: any
-  ): Promise<Q> {
-    return {} as Q;
+  ): Promise<Query> {
+    return {} as Query;
   }
 
   /**
@@ -415,7 +421,7 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
   protected async writeRestrictions(
     action: Extract<ActionType, 'create' | 'update'>,
     data: any
-  ): Promise<Partial<T>> {
+  ): Promise<Partial<Create & Update>> {
     return {};
   }
 
@@ -432,7 +438,7 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
    */
   protected async checkAccess(
     action: ActionType,
-    resource: T
+    resource: ReadOne
   ): Promise<boolean> {
     return true;
   }
@@ -448,17 +454,17 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
    * search operation. This will be used by the database query methods to
    * retrieve matching resources.
    */
-  protected textSearchQuery(searchText: string): Q {
-    return {} as Q;
+  protected textSearchQuery(searchText: string): Query {
+    return {} as Query;
   }
 
-  private extractTextSearchQuery(filter: any): Q {
+  private extractTextSearchQuery(filter: any): Query {
     if (filter.searchText) {
       const searchQuery = this.textSearchQuery(filter.searchText);
       delete filter.searchText;
       return searchQuery;
     }
-    return {} as Q;
+    return {} as Query;
   }
 
   private mapSortValues(sort: string): any[] {
@@ -483,9 +489,9 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
   }
 
   private mapAggregationValues(
-    select: AggregateSelect<T> | Record<string, Record<string, number>>,
+    select: AggregateSelect<ReadOne> | Record<string, Record<string, number>>,
     isOutput: boolean = false
-  ): AggregateValue<T> {
+  ): AggregateValue<ReadOne> {
     const aggregationMap = {};
 
     for (const field in select) {
@@ -566,7 +572,7 @@ export abstract class ResourceService<T = Resource, D = any, Q = any> {
     };
   }
 
-  private projectValues(resource: T): T {
+  private projectValues<T>(resource: T): T {
     if (!isObject(resource['_count'])) {
       return resource;
     }

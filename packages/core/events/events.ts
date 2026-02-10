@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events';
-import { logger, config, uuid } from '@appweaver/common';
-import { ActionType, ResourceName } from '../types';
+import { ActionType, config, logger, uuid } from '@appweaver/common';
+import { ResourceName } from '../types';
 
 export type EventData<T = any> = { previous?: T; current: T };
 

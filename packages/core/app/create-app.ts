@@ -8,7 +8,12 @@ import fastifyRateLimit from '@fastify/rate-limit';
 import fastifyMultipart, { ajvFilePlugin } from '@fastify/multipart';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
-import { config, loggerConfig, plural } from '@appweaver/common';
+import {
+  camelToSnakeCase,
+  config,
+  loggerConfig,
+  plural
+} from '@appweaver/common';
 import { context } from '../context';
 import { auth } from '../security/auth';
 import { errorHandler } from '../errors';
@@ -161,8 +166,12 @@ export async function createApp(
 
   // Register resource API routes.
   for (const [name, route] of Object.entries(context.routes)) {
-    const parts = [config.SERVER_API_PREFIX, plural(name).toLowerCase()];
-    server.register(route, { prefix: parts.join('/') });
+    const routesPath =
+      route.config.path || camelToSnakeCase(plural(name), '-').toLowerCase();
+    const prefix = [config.SERVER_API_PREFIX, routesPath]
+      .join('/')
+      .replaceAll('//', '/');
+    server.register(route.handler, { prefix });
   }
 
   context.server = server;

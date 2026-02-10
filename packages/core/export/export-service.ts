@@ -26,7 +26,7 @@ export type ExportStream = {
 
 export class ExportService {
   public async exportCsv(
-    service: ResourceService<any>,
+    service: ResourceService,
     filter: any = {},
     sort: string = '-createdAt,id'
   ): Promise<ExportStream> {
@@ -40,7 +40,7 @@ export class ExportService {
       let page = 0;
 
       const mapValues = (items: any[]) =>
-        this.mapProperties(service.model.name, items);
+        this.mapProperties(service.modelName, items);
 
       exportStream = new Readable({
         async read() {
@@ -55,7 +55,7 @@ export class ExportService {
               );
             }
           } catch (e) {
-            logger.error(e, `${service.model.name} export error`);
+            logger.error(e, `${service.modelName} export error`);
             this.push(null);
             return;
           }
@@ -70,10 +70,10 @@ export class ExportService {
         exportStream.push(`SEP=${config.EXPORT_CSV_DELIMITER}\n`);
       }
     } catch (e) {
-      throw new HttpError(`${service.model.name} export error`, 500, e);
+      throw new HttpError(`${service.modelName} export error`, 500, e);
     }
 
-    const fileName = this.generateExportFileName(service.model.name, 'csv');
+    const fileName = this.generateExportFileName(service.modelName, 'csv');
 
     return { stream: exportStream, mimeType: 'text/csv', fileName };
   }

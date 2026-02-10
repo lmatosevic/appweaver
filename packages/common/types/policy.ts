@@ -1,19 +1,18 @@
-export type PolicyAction = 'find' | 'create' | 'update';
+export type ActionType =
+  | 'find'
+  | 'query'
+  | 'aggregate'
+  | 'create'
+  | 'update'
+  | 'delete';
 
 export type FileAccessType = 'protected' | 'private' | 'public';
 
-export type FileAccessFn = (user: any, resource: any, file: any) => boolean;
-
-export type ResourceAccessFn = (action: PolicyAction, resource: any) => boolean;
-
-export type ResourceRestrictionFn = (
-  action: PolicyAction,
-  resource: any
-) => any;
+export type FileAccessFn = (identity: any, resource: any, file: any) => boolean;
 
 export type FilePolicy = {
   /**
-   * **protected** - Accessible by any authenticated users. (default option)
+   * **protected** - Accessible by any authenticated identities. (default option)
    *
    * **private** - Accessible only by the authenticated file owner.
    *
@@ -25,10 +24,16 @@ export type FilePolicy = {
   canDelete?: FileAccessFn;
 };
 
-export type ResourcePolicy = {
+export type ResourcePolicyConfig = {
   name: string;
-  checkAccess?: ResourceAccessFn;
-  readRestrictions?: ResourceRestrictionFn;
-  writeRestrictions?: ResourceRestrictionFn;
+  checkAccess?: (action: ActionType, resource: any) => boolean;
+  readRestrictions?: (
+    action: Exclude<ActionType, 'create'>,
+    resource: any
+  ) => any;
+  writeRestrictions?: (
+    action: Extract<ActionType, 'create' | 'update'>,
+    resource: any
+  ) => any;
   files?: Record<string, FilePolicy>;
 };

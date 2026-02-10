@@ -2,6 +2,7 @@ export type RouteConfig = {
   exclude?: boolean;
   public?: boolean;
   roles?: string[];
+  permissions?: string[];
   auth?: string[];
 };
 
@@ -11,7 +12,7 @@ export type CacheConfig = {
   cacheTTL?: number;
 };
 
-export type ResourceRoute = {
+export type ResourceRoutesConfig = {
   name: string;
   path?: string;
   find?: RouteConfig & CacheConfig;

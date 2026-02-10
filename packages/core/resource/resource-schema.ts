@@ -1,9 +1,14 @@
 import { Type } from '@sinclair/typebox';
-import { camelToSnakeCase, Id, StringDate } from '@appweaver/common';
+import {
+  camelToSnakeCase,
+  Id,
+  ResourceRoutesConfig,
+  StringDate
+} from '@appweaver/common';
 import { FileResponse } from '../storage';
 import { AllErrorResponses } from '../errors';
 import { context } from '../context';
-import { ResourceRoutesConfig, ResourceSchemaConfig } from '../types';
+import { ResourceSchemaConfig } from '../types';
 
 export const QueryRequestData = Type.Object({
   filter: Type.Optional(Type.Any({ examples: [{ field: 'value' }] })),
