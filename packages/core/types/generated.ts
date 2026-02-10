@@ -16,6 +16,32 @@ export type File = {
   createdById?: number | null;
 };
 
+export type FileSingle = {
+  id: number;
+  name: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  title?: string | null;
+  description?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById?: number | null;
+};
+
+export type FileMultiple = {
+  id: number;
+  name: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  title?: string | null;
+  description?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById?: number | null;
+};
+
 export type FileCreate = {
   name: string;
   originalName: string;
@@ -23,9 +49,6 @@ export type FileCreate = {
   sizeBytes: number;
   title?: string | null;
   description?: string | null;
-  resourceField?: string | null;
-  resourceName?: string | null;
-  resourceId?: number | null;
 };
 
 export type FileUpdate = {
@@ -35,16 +58,7 @@ export type FileUpdate = {
   sizeBytes?: number;
   title?: string | null;
   description?: string | null;
-  resourceField?: string | null;
-  resourceName?: string | null;
-  resourceId?: number | null;
 };
-
-export type FileRelations = {};
-
-export type FileFiles = {};
-
-export type FileVirtual = {};
 
 export type Role = {
   id: number;
@@ -55,23 +69,59 @@ export type Role = {
   createdById?: number | null;
 };
 
+export type RoleSingle = {
+  id: number;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById?: number | null;
+  permissions: Array<Permission>;
+};
+
+export type RoleMultiple = {
+  id: number;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById?: number | null;
+  permissions: Array<Permission>;
+};
+
 export type RoleCreate = {
   name: string;
+  permissions:
+    | Array<{
+        id: number;
+      }>
+    | Array<number>;
 };
 
 export type RoleUpdate = {
   name?: string;
+  permissions?:
+    | Array<{
+        id: number;
+      }>
+    | Array<number>;
 };
-
-export type RoleRelations = {
-  permissions: Array<Permission>;
-};
-
-export type RoleFiles = {};
-
-export type RoleVirtual = {};
 
 export type Permission = {
+  id: number;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById?: number | null;
+};
+
+export type PermissionSingle = {
+  id: number;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById?: number | null;
+};
+
+export type PermissionMultiple = {
   id: number;
   name: string;
   createdAt: Date;
@@ -87,12 +137,6 @@ export type PermissionUpdate = {
   name?: string;
 };
 
-export type PermissionRelations = {};
-
-export type PermissionFiles = {};
-
-export type PermissionVirtual = {};
-
 export type Identity = {
   id: number;
   username: string;
@@ -105,24 +149,46 @@ export type Identity = {
   createdById?: number | null;
 };
 
-export type IdentityCreate = {
+export type IdentitySingle = {
+  id: number;
   username: string;
-  passwordHash?: string | null;
   enabled: boolean;
   logoutAt?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById?: number | null;
+  roles: Array<Role>;
+};
+
+export type IdentityMultiple = {
+  id: number;
+  username: string;
+  enabled: boolean;
+  logoutAt?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById?: number | null;
+  roles: Array<Role>;
+};
+
+export type IdentityCreate = {
+  username: string;
+  enabled: boolean;
+  logoutAt?: Date | null;
+  roles:
+    | Array<{
+        id: number;
+      }>
+    | Array<number>;
 };
 
 export type IdentityUpdate = {
   username?: string;
-  passwordHash?: string | null;
   enabled?: boolean;
   logoutAt?: Date | null;
+  roles?:
+    | Array<{
+        id: number;
+      }>
+    | Array<number>;
 };
-
-export type IdentityRelations = {
-  roles: Array<Role>;
-};
-
-export type IdentityFiles = {};
-
-export type IdentityVirtual = {};

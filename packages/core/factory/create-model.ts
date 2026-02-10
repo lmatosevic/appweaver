@@ -1,10 +1,13 @@
 import path from 'node:path';
-import { TObject, TSchema, Type } from '@sinclair/typebox';
+import { Kind, TObject, TSchema, Type } from '@sinclair/typebox';
 import {
+  AuditData,
   AuditFields,
   capitalize,
   FileField,
+  Id,
   IdField,
+  IdString,
   InputType,
   Nullable,
   OutputType,
@@ -16,8 +19,6 @@ import {
   StringDate,
   StringEnum
 } from '@appweaver/common';
-import { AuditData, Id, IdString } from '../resource';
-import { FileDelete, FileUpload } from '../storage';
 import { context } from '../context';
 import { ResourceNameSymbol } from '../constants';
 import { countFieldName } from '../utils';
@@ -34,9 +35,21 @@ export function createModel(config: ResourceModelConfig): ResourceModelSchema {
   const filesSchema = buildFilesSchema(config?.files);
   const relationsSchema = buildRelationsSchema(config?.relations);
 
-  const readModel = Type.Composite([idSchema, scalarsSchema, auditSchema], {
-    $id: name
-  });
+  const baseReadModel = Type.Composite([idSchema, scalarsSchema, auditSchema]);
+
+  const readModel = Type.Composite(
+    [
+      idSchema,
+      scalarsSchema,
+      relationsSchema,
+      filesSchema,
+      virtualSchema,
+      auditSchema
+    ],
+    {
+      $id: name
+    }
+  );
 
   const virtualModel = Type.Composite([virtualSchema], {
     $id: `${name}Virtual`
@@ -69,7 +82,7 @@ export function createModel(config: ResourceModelConfig): ResourceModelSchema {
   updateModel = Type.Composite([updateModel], { $id: `${name}Update` });
 
   const { readOneModel, readManyModel } = buildOutputModels(
-    removeHiddenFields(readModel),
+    removeHiddenFields(baseReadModel),
     relationsModel,
     filesModel,
     config
@@ -342,6 +355,13 @@ function buildFileInputModels(fileConfig: Record<string, FileField> = {}): {
   fileUploadModel: TObject;
   fileDeleteModel: TObject;
 } {
+  const FileUpload = Type.Unsafe({
+    isFile: true,
+    type: 'string',
+    [Kind]: 'String'
+  });
+  const FileDelete = Type.String({ examples: ['image_123.png'] });
+
   const fileUploadModel = Type.Object(
     Object.fromEntries(
       Object.entries(fileConfig).map(([key, conf]) => [

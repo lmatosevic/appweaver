@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { AllErrorResponses } from '../errors';
-import identity from './resources/identity/model';
+import securityResources from './resources';
 
 export const LoginRequest = Type.Object({
   username: Type.String({ examples: ['john.doe@example.com'] }),
@@ -82,7 +82,7 @@ export const currentIdentitySchema = {
   summary: 'Return current identity',
   description: 'Return current identity',
   response: {
-    200: identity.readOneModel,
+    200: securityResources.Import('Identity'),
     ...AllErrorResponses
   }
 };

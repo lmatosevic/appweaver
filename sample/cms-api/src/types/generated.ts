@@ -6,6 +6,21 @@ export type User = {
   lastName: string;
   email: string;
   phone: string;
+  secret: string;
+  posts: Array<Post>;
+  avatar?: File | null;
+  active: boolean;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type UserSingle = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
@@ -58,6 +73,23 @@ export type Post = {
   counter: number;
   status?: ('Draft' | 'Published' | 'Archived') | null;
   lastActivity?: Date | null;
+  author?: User;
+  coverImage?: File | null;
+  galleryImages: Array<File>;
+  randomNumbers: Array<number>;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type PostSingle = {
+  id: number;
+  title: string;
+  slug: string;
+  content?: string | null;
+  counter: number;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  lastActivity?: Date | null;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
@@ -99,6 +131,18 @@ export type PostUpdate = {
 };
 
 export type Identity = {
+  id: number;
+  username: string;
+  passwordHash?: string | null;
+  enabled: boolean;
+  logoutAt?: Date | null;
+  roles: Array<Role>;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById?: number | null;
+};
+
+export type IdentitySingle = {
   id: number;
   username: string;
   enabled: boolean;
@@ -145,6 +189,15 @@ export type IdentityUpdate = {
 export type Role = {
   id: number;
   name: string;
+  permissions: Array<Permission>;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById?: number | null;
+};
+
+export type RoleSingle = {
+  id: number;
+  name: string;
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
@@ -186,6 +239,14 @@ export type Permission = {
   createdById?: number | null;
 };
 
+export type PermissionSingle = {
+  id: number;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById?: number | null;
+};
+
 export type PermissionMultiple = {
   id: number;
   name: string;
@@ -203,6 +264,22 @@ export type PermissionUpdate = {
 };
 
 export type File = {
+  id: number;
+  name: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  title?: string | null;
+  description?: string | null;
+  resourceField?: string | null;
+  resourceName?: string | null;
+  resourceId?: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById?: number | null;
+};
+
+export type FileSingle = {
   id: number;
   name: string;
   originalName: string;

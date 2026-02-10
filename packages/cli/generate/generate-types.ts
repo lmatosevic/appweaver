@@ -4,11 +4,11 @@ import { spawn } from 'node:child_process';
 import { TModule, TObject, TSchema, Type } from '@sinclair/typebox';
 import { ModelToTypeScript } from '@sinclair/typebox-codegen';
 import {
-  NullType,
-  isArray,
-  ResourceModelSchema,
+  DateType,
   EnumType,
-  DateType
+  isArray,
+  NullType,
+  ResourceModelSchema
 } from '@appweaver/common';
 
 export async function generateTypes(
@@ -27,7 +27,10 @@ export async function generateTypes(
     const resourceModels: Record<string, TSchema> = {};
 
     for (const [modelName, schema] of Object.entries(models)) {
-      resourceModels[modelName] = transformUnsafeTypes(schema.readOneModel);
+      resourceModels[modelName] = transformUnsafeTypes(schema.readModel);
+      resourceModels[`${modelName}Single`] = transformUnsafeTypes(
+        schema.readOneModel
+      );
       resourceModels[`${modelName}Multiple`] = transformUnsafeTypes(
         schema.readManyModel
       );

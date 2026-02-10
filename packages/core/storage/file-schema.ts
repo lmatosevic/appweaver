@@ -1,4 +1,4 @@
-import { Kind, Type } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 import { AllErrorResponses } from '../errors';
 
 export const FileName = Type.Object({
@@ -10,14 +10,6 @@ export const FileRangeHeader = Type.Object({
 });
 
 export const FileResponse = Type.String({ format: 'binary' });
-
-export const FileUpload = Type.Unsafe({
-  isFile: true,
-  type: 'string',
-  [Kind]: 'String'
-});
-
-export const FileDelete = Type.String({ examples: ['image_123.png'] });
 
 export function createFileAccessSchema(isPublic: boolean): Record<string, any> {
   return {

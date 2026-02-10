@@ -44,7 +44,13 @@ export function loadModels(
       delete require.cache[require.resolve(modelPath)];
       modelExport = require(modelPath);
     } catch (error) {
-      console.log('Path is not accessible:', modelPath, '\nSkipping...');
+      console.log(
+        'Cannot load module:',
+        modelPath,
+        '\nError:',
+        error,
+        '\nSkipping...'
+      );
       continue;
     }
 

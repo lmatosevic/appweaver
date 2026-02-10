@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { Nullable, StringDate } from '@appweaver/common';
+import { Nullable, StringDate } from '../utils';
 
 export const Id = Type.Object({
   id: Type.Integer({ minimum: 1 })

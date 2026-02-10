@@ -1,5 +1,6 @@
 import { config } from '@appweaver/common';
 import { db } from '../database';
+import { context } from '../context';
 import { ServerInstance } from '../types';
 
 /**
@@ -18,15 +19,22 @@ export class Application {
   }
 
   /**
-   * Starts the server and begins listening on the specified host and port.
+   * Starts the application by initializing the server and connecting to the database.
+   * This process includes logging the environment in which the application is running,
+   * establishing a database connection, freezing the application context to prevent
+   * further changes, and starting a server to listen for incoming requests.
    *
-   * @return {Promise<string>} A promise that resolves with the address where the server is running.
+   * @return {Promise<string>} A promise that resolves to a string denoting the server URL on a successful start.
    */
   public async start(): Promise<string> {
     this._server.log.info(
       `Application started in "${config.APP_ENV}" environment`
     );
+
     await db.connect();
+
+    Object.freeze(context);
+
     return this._server.listen({
       port: config.SERVER_PORT,
       host: config.SERVER_HOST
