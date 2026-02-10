@@ -26,7 +26,7 @@ export type FilePolicy = {
 };
 
 export type ResourcePolicy = {
-  name?: string;
+  name: string;
   checkAccess?: ResourceAccessFn;
   readRestrictions?: ResourceRestrictionFn;
   writeRestrictions?: ResourceRestrictionFn;

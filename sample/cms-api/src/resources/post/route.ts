@@ -1,8 +1,8 @@
 import { ResourceRoute } from '@appweaver/common';
 
 export default {
-  name: 'Post', // optional (default: folder path from path.join(cwd, ../)
-  path: '/posts', // default plural of directory
+  name: 'Post',
+  path: '/posts',
   find: {
     exclude: false,
     public: false,

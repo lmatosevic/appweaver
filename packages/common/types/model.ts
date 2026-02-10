@@ -167,18 +167,32 @@ export type ResourceModelConfig = {
 };
 
 export type ResourceModelSchema = {
-  name: string; // Model name in singular with the first capital letter (Model)
-  config: ResourceModelConfig; // Received model config from default export
-  readModel: TObject; // Response for find and query methods, all fields
-  createModel: TObject; // Input for create method
-  updateModel: TObject; // Input for update method
-  relationsModel: TObject; // Internal use only
-  filesModel: TObject; // Internal use only
-  virtualModel: TObject; // Internal use only
-  readOneModel: TObject; // Response for find route
-  readManyModel: TObject; // Response for query route
-  createOneModel: TObject; // Request for create route
-  updateOneModel: TObject; // Request for update route
-  fileUploadModel: TObject; // Request for file upload route
-  fileDeleteModel: TObject; // Request for file delete route
+  /** Model name in singular with the first capital letter (e.g., Model) */
+  name: string;
+  /** Received model config from default export */
+  config: ResourceModelConfig;
+  /** Full resource model with all configured fields (scalars, relations, files, and virtual) */
+  readModel: TObject;
+  /** Internal use only */
+  createModel: TObject;
+  /** Internal use only */
+  updateModel: TObject;
+  /** Internal use only */
+  relationsModel: TObject;
+  /** Internal use only */
+  filesModel: TObject;
+  /** Internal use only */
+  virtualModel: TObject;
+  /** Response for find, create, update, and delete routes */
+  readOneModel: TObject;
+  /** Response for query route */
+  readManyModel: TObject;
+  /** Request for create route */
+  createOneModel: TObject;
+  /** Request for update route */
+  updateOneModel: TObject;
+  /** Request for file upload route */
+  fileUploadModel: TObject;
+  /** Request for file delete route */
+  fileDeleteModel: TObject;
 };

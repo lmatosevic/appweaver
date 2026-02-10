@@ -1,5 +1,5 @@
 export type ResourceService = {
-  name?: string;
+  name: string;
   beforeFind?: (id: any) => any;
   beforeQuery?: (filter: any) => any;
   beforeAggregate?: (filter: any) => any;

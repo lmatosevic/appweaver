@@ -17,7 +17,8 @@ import {
   ResourceModelSchema,
   ScalarField,
   StringDate,
-  StringEnum
+  StringEnum,
+  VirtualConfig
 } from '@appweaver/common';
 import { context } from '../context';
 import { ResourceNameSymbol } from '../constants';
@@ -35,15 +36,20 @@ export function createModel(config: ResourceModelConfig): ResourceModelSchema {
   const filesSchema = buildFilesSchema(config?.files);
   const relationsSchema = buildRelationsSchema(config?.relations);
 
-  const baseReadModel = Type.Composite([idSchema, scalarsSchema, auditSchema]);
+  const baseReadModel = Type.Composite([
+    idSchema,
+    scalarsSchema,
+    virtualSchema,
+    auditSchema
+  ]);
 
   const readModel = Type.Composite(
     [
       idSchema,
       scalarsSchema,
+      virtualSchema,
       relationsSchema,
       filesSchema,
-      virtualSchema,
       auditSchema
     ],
     {
@@ -64,32 +70,34 @@ export function createModel(config: ResourceModelConfig): ResourceModelSchema {
   });
 
   // Omit or pick create model scalar fields
-  let createModel: TObject = scalarsSchema;
+  let createModel: TObject = Type.Composite([scalarsSchema, virtualSchema]);
   if (config.create?.pick) {
-    createModel = Type.Pick(scalarsSchema, config.create.pick);
+    createModel = Type.Pick(createModel, config.create.pick);
   } else if (config.create?.omit) {
-    createModel = Type.Omit(scalarsSchema, config.create.omit);
+    createModel = Type.Omit(createModel, config.create.omit);
   }
   createModel = Type.Composite([createModel], { $id: `${name}Create` });
 
   // Omit or pick update model scalar fields
-  let updateModel: TObject = Type.Partial(scalarsSchema);
+  let updateModel: TObject = Type.Partial(
+    Type.Composite([scalarsSchema, virtualSchema])
+  );
   if (config.update?.pick) {
-    updateModel = Type.Partial(Type.Pick(scalarsSchema, config.update.pick));
+    updateModel = Type.Partial(Type.Pick(updateModel, config.update.pick));
   } else if (config.update?.omit) {
-    updateModel = Type.Partial(Type.Omit(scalarsSchema, config.update.omit));
+    updateModel = Type.Partial(Type.Omit(updateModel, config.update.omit));
   }
   updateModel = Type.Composite([updateModel], { $id: `${name}Update` });
 
   const { readOneModel, readManyModel } = buildOutputModels(
-    removeHiddenFields(baseReadModel),
+    baseReadModel,
     relationsModel,
     filesModel,
     config
   );
   const { createOneModel, updateOneModel } = buildInputModels(
-    removeHiddenFields(createModel),
-    removeHiddenFields(updateModel),
+    createModel,
+    updateModel,
     relationsModel,
     config
   );
@@ -101,17 +109,17 @@ export function createModel(config: ResourceModelConfig): ResourceModelSchema {
     name,
     config,
     readModel,
+    createModel,
+    updateModel,
+    relationsModel,
+    filesModel,
+    virtualModel,
     readOneModel,
     readManyModel,
-    createModel,
     createOneModel,
-    updateModel,
     updateOneModel,
-    virtualModel,
-    filesModel,
     fileUploadModel,
-    fileDeleteModel,
-    relationsModel
+    fileDeleteModel
   };
 
   for (const value of Object.values(resourceModel)) {
@@ -124,18 +132,6 @@ export function createModel(config: ResourceModelConfig): ResourceModelSchema {
   context.models[name] = resourceModel;
 
   return resourceModel;
-}
-
-function removeHiddenFields(schema: TObject): TObject {
-  const properties: Record<string, TSchema> = {};
-
-  for (const [name, field] of Object.entries(schema.properties)) {
-    if (!field.hidden) {
-      properties[name] = field;
-    }
-  }
-
-  return Type.Object(properties);
 }
 
 function buildIdSchema(idField: IdField = { type: 'int' }): TObject {
@@ -284,22 +280,25 @@ function buildOutputModels(
   readModel: TObject,
   relationsModel: TObject,
   filesModel: TObject,
-  modelConfig: ResourceModelConfig
+  config: ResourceModelConfig
 ): {
   readOneModel: TObject;
   readManyModel: TObject;
 } {
-  const relationsConfig = modelConfig.relations;
-  const filesConfig = modelConfig.files;
+  const virtualConfig = config.virtual;
+  const relationsConfig = config.relations;
+  const filesConfig = config.files;
+
+  const adjustedReadModel = removeHiddenFields(readModel);
 
   const readOneModel = Type.Composite([
-    readModel,
+    resolveOutputVirtualFields(adjustedReadModel, virtualConfig, 'single'),
     relationOutputProperties(relationsModel, relationsConfig, 'single'),
     relationOutputProperties(filesModel, filesConfig, 'single')
   ]);
 
   const readManyModel = Type.Composite([
-    readModel,
+    resolveOutputVirtualFields(adjustedReadModel, virtualConfig, 'multiple'),
     relationOutputProperties(relationsModel, relationsConfig, 'multiple'),
     relationOutputProperties(filesModel, filesConfig, 'multiple')
   ]);
@@ -311,39 +310,51 @@ function buildInputModels(
   createModel: TObject,
   updateModel: TObject,
   relationsModel: TObject,
-  modelConfig: ResourceModelConfig
+  config: ResourceModelConfig
 ): {
   createOneModel: TObject;
   updateOneModel: TObject;
 } {
-  const relationsConfig = modelConfig.relations;
+  const virtualConfig = config.virtual;
+  const relationsConfig = config.relations;
+
+  const adjustedCreateModel = resolveInputVirtualFields(
+    removeHiddenFields(createModel),
+    virtualConfig,
+    'create'
+  );
+  const adjustedUpdateModel = resolveInputVirtualFields(
+    removeHiddenFields(updateModel),
+    virtualConfig,
+    'update'
+  );
 
   if (Object.keys(relationsConfig ?? {}).length === 0) {
     return {
-      createOneModel: createModel,
-      updateOneModel: updateModel
+      createOneModel: adjustedCreateModel,
+      updateOneModel: adjustedUpdateModel
     };
   }
 
   let createOneModel: TObject = Type.Object({});
-  if (Object.keys(createModel.properties).length > 0) {
+  if (Object.keys(adjustedCreateModel.properties).length > 0) {
     const relationInputs = relationInputProperties(
       relationsModel,
       relationsConfig,
       'create'
     );
-    createOneModel = Type.Composite([createModel, relationInputs]);
+    createOneModel = Type.Composite([adjustedCreateModel, relationInputs]);
   }
 
   let updateOneModel: TObject = Type.Object({});
-  if (Object.keys(updateModel.properties).length > 0) {
+  if (Object.keys(adjustedUpdateModel.properties).length > 0) {
     const relationInputs = relationInputProperties(
       relationsModel,
       relationsConfig,
       'update'
     );
     updateOneModel = Type.Composite([
-      updateModel,
+      adjustedUpdateModel,
       Type.Partial(relationInputs)
     ]);
   }
@@ -515,4 +526,56 @@ function relationOutputProperties<T extends TObject>(
       return acc;
     }, {})
   });
+}
+
+function removeHiddenFields(schema: TObject): TObject {
+  const properties: Record<string, TSchema> = {};
+
+  for (const [name, field] of Object.entries(schema.properties)) {
+    if (!field.hidden) {
+      properties[name] = field;
+    }
+  }
+
+  return Type.Object(properties);
+}
+
+function resolveInputVirtualFields(
+  schema: TObject,
+  virtualConfig?: VirtualConfig,
+  inputType?: InputType
+): TObject {
+  const excludeFields: string[] = [];
+
+  for (const [name, virtual] of Object.entries(virtualConfig ?? {})) {
+    if (
+      virtual.input?.type === 'none' ||
+      (inputType === 'create' && virtual.input?.type === 'update') ||
+      (inputType === 'update' && virtual.input?.type === 'create')
+    ) {
+      excludeFields.push(name);
+    }
+  }
+
+  return Type.Omit(schema, excludeFields);
+}
+
+function resolveOutputVirtualFields(
+  schema: TObject,
+  virtualConfig?: VirtualConfig,
+  outputType?: OutputType
+): TObject {
+  const excludeFields: string[] = [];
+
+  for (const [name, virtual] of Object.entries(virtualConfig ?? {})) {
+    if (
+      virtual.output?.type === 'none' ||
+      (outputType === 'single' && virtual.output?.type === 'multiple') ||
+      (outputType === 'multiple' && virtual.output?.type === 'single')
+    ) {
+      excludeFields.push(name);
+    }
+  }
+
+  return Type.Omit(schema, excludeFields);
 }

@@ -1,7 +1,7 @@
 import { ResourceService } from '@appweaver/common';
 
 export default {
-  name: 'Post', // optional (default: folder path from path.join(cwd, ../)
+  name: 'Post',
   beforeFind: () => null,
   beforeQuery: () => null,
   beforeAggregate: () => null,

@@ -12,7 +12,7 @@ export type CacheConfig = {
 };
 
 export type ResourceRoute = {
-  name?: string;
+  name: string;
   path?: string;
   find?: RouteConfig & CacheConfig;
   query?: RouteConfig & CacheConfig;

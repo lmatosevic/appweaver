@@ -7,9 +7,9 @@ export type User = {
   email: string;
   phone: string;
   secret: string;
+  active: boolean;
   posts: Array<Post>;
   avatar?: File | null;
-  active: boolean;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
@@ -21,6 +21,7 @@ export type UserSingle = {
   lastName: string;
   email: string;
   phone: string;
+  active: boolean;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
@@ -34,6 +35,7 @@ export type UserMultiple = {
   lastName: string;
   email: string;
   phone: string;
+  active: boolean;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
@@ -46,6 +48,7 @@ export type UserCreate = {
   lastName: string;
   email: string;
   phone: string;
+  active: boolean;
   posts:
     | Array<{
         id: number;
@@ -58,6 +61,7 @@ export type UserUpdate = {
   lastName?: string;
   email?: string;
   phone?: string;
+  active?: boolean;
   posts?:
     | Array<{
         id: number;
@@ -73,10 +77,10 @@ export type Post = {
   counter: number;
   status?: ('Draft' | 'Published' | 'Archived') | null;
   lastActivity?: Date | null;
+  randomNumbers: Array<number>;
   author?: User;
   coverImage?: File | null;
   galleryImages: Array<File>;
-  randomNumbers: Array<number>;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
@@ -90,6 +94,7 @@ export type PostSingle = {
   counter: number;
   status?: ('Draft' | 'Published' | 'Archived') | null;
   lastActivity?: Date | null;
+  randomNumbers: Array<number>;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
@@ -108,6 +113,7 @@ export type PostMultiple = {
   counter: number;
   status?: ('Draft' | 'Published' | 'Archived') | null;
   lastActivity?: Date | null;
+  randomNumbers: Array<number>;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
