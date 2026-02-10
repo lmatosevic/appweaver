@@ -4,14 +4,19 @@ import { context } from '../context';
 import { resourceRoutes } from '../resource';
 import { RouteHandler } from '../types';
 
-export function createRoutes(config: ResourceRoutesConfig): RouteHandler {
+export function createRoutes(config: ResourceRoutesConfig): {
+  config: ResourceRoutesConfig;
+  handler: RouteHandler;
+} {
   const name = capitalize(
     config.name || path.basename(path.dirname(__dirname))
   );
 
-  const resourceRoute = resourceRoutes(name, config);
+  const routes = resourceRoutes(name, config);
 
-  context.routes[name] = { config, handler: resourceRoute };
+  const routeData = { config, handler: routes };
 
-  return resourceRoute;
+  context.routes[name] = routeData;
+
+  return routeData;
 }

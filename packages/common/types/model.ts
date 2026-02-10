@@ -180,9 +180,9 @@ export type ResourceModelSchema = {
   /** Internal use only */
   relationsModel: TObject;
   /** Internal use only */
-  filesModel: TObject;
-  /** Internal use only */
   virtualModel: TObject;
+  /** Response for files route */
+  filesModel: TObject;
   /** Response for find, create, update, and delete routes */
   readOneModel: TObject;
   /** Response for query route */

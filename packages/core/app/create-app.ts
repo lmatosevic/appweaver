@@ -18,6 +18,7 @@ import { context } from '../context';
 import { auth } from '../security/auth';
 import { errorHandler } from '../errors';
 import { files } from '../storage';
+import { loadResources } from '../utils';
 import { info } from './info-route';
 import { Application } from './application';
 
@@ -25,6 +26,9 @@ export type CreateAppParams = {
   /** A boolean flag indicating whether the application should automatically
    * start after being created. (default: true) **/
   autoStart?: boolean;
+  /** A boolean flag indicating whether the application should automatically load resources
+   * configured and exported using factory functions. (default: true) */
+  autoLoadResources?: boolean;
 };
 
 /**
@@ -163,6 +167,11 @@ export async function createApp(
 
   // Register info route.
   server.register(info, { prefix: config.SERVER_API_PREFIX });
+
+  // Autoload resource models, routes, policies and services
+  if (params.autoLoadResources !== false) {
+    await loadResources();
+  }
 
   // Register resource API routes.
   for (const [name, route] of Object.entries(context.routes)) {

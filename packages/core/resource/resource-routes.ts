@@ -49,8 +49,7 @@ export function resourceRoutes(
       publicRoutes
     );
 
-    const hasFiles =
-      Object.keys(resourceModel.filesModel?.properties ?? {}).length > 0;
+    const hasFiles = Object.keys(resourceModel.config.files ?? {}).length > 0;
 
     const findConfig = routeConfig('find');
     if (!findConfig?.exclude && resourceSchema.findSchema) {

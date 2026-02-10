@@ -6,8 +6,7 @@ export default createRoutes({
   find: {
     exclude: false,
     public: false,
-    roles: ['admin', 'user'],
-    auth: ['authenticateJWT']
+    roles: ['Admin', 'User']
   },
   query: {
     cacheTTL: 500

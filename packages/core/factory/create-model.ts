@@ -57,17 +57,9 @@ export function createModel(config: ResourceModelConfig): ResourceModelSchema {
     }
   );
 
-  const virtualModel = Type.Composite([virtualSchema], {
-    $id: `${name}Virtual`
-  });
-
-  const filesModel = Type.Composite([filesSchema], {
-    $id: `${name}Files`
-  });
-
-  const relationsModel = Type.Composite([relationsSchema], {
-    $id: `${name}Relations`
-  });
+  const virtualModel = Type.Composite([virtualSchema]);
+  const filesModel = Type.Composite([filesSchema]);
+  const relationsModel = Type.Composite([relationsSchema]);
 
   // Omit or pick create model scalar fields
   let createModel: TObject = Type.Composite([scalarsSchema, virtualSchema]);
@@ -76,7 +68,7 @@ export function createModel(config: ResourceModelConfig): ResourceModelSchema {
   } else if (config.create?.omit) {
     createModel = Type.Omit(createModel, config.create.omit);
   }
-  createModel = Type.Composite([createModel], { $id: `${name}Create` });
+  createModel = Type.Composite([createModel]);
 
   // Omit or pick update model scalar fields
   let updateModel: TObject = Type.Partial(
@@ -87,7 +79,7 @@ export function createModel(config: ResourceModelConfig): ResourceModelSchema {
   } else if (config.update?.omit) {
     updateModel = Type.Partial(Type.Omit(updateModel, config.update.omit));
   }
-  updateModel = Type.Composite([updateModel], { $id: `${name}Update` });
+  updateModel = Type.Composite([updateModel]);
 
   const { readOneModel, readManyModel } = buildOutputModels(
     baseReadModel,
@@ -101,9 +93,7 @@ export function createModel(config: ResourceModelConfig): ResourceModelSchema {
     relationsModel,
     config
   );
-  const { fileUploadModel, fileDeleteModel } = buildFileInputModels(
-    config.files
-  );
+  const { fileUploadModel, fileDeleteModel } = buildFileInputModels(config);
 
   const resourceModel: ResourceModelSchema = {
     name,
@@ -291,17 +281,23 @@ function buildOutputModels(
 
   const adjustedReadModel = removeHiddenFields(readModel);
 
-  const readOneModel = Type.Composite([
-    resolveOutputVirtualFields(adjustedReadModel, virtualConfig, 'single'),
-    relationOutputProperties(relationsModel, relationsConfig, 'single'),
-    relationOutputProperties(filesModel, filesConfig, 'single')
-  ]);
+  const readOneModel = Type.Composite(
+    [
+      resolveOutputVirtualFields(adjustedReadModel, virtualConfig, 'single'),
+      relationOutputProperties(relationsModel, relationsConfig, 'single'),
+      relationOutputProperties(filesModel, filesConfig, 'single')
+    ],
+    { $id: `${config.name}Single` }
+  );
 
-  const readManyModel = Type.Composite([
-    resolveOutputVirtualFields(adjustedReadModel, virtualConfig, 'multiple'),
-    relationOutputProperties(relationsModel, relationsConfig, 'multiple'),
-    relationOutputProperties(filesModel, filesConfig, 'multiple')
-  ]);
+  const readManyModel = Type.Composite(
+    [
+      resolveOutputVirtualFields(adjustedReadModel, virtualConfig, 'multiple'),
+      relationOutputProperties(relationsModel, relationsConfig, 'multiple'),
+      relationOutputProperties(filesModel, filesConfig, 'multiple')
+    ],
+    { $id: `${config.name}Multiple` }
+  );
 
   return { readOneModel, readManyModel };
 }
@@ -336,33 +332,41 @@ function buildInputModels(
     };
   }
 
-  let createOneModel: TObject = Type.Object({});
+  let createOneModel: TObject = Type.Object(
+    {},
+    { $id: `${config.name}Create` }
+  );
   if (Object.keys(adjustedCreateModel.properties).length > 0) {
     const relationInputs = relationInputProperties(
       relationsModel,
       relationsConfig,
       'create'
     );
-    createOneModel = Type.Composite([adjustedCreateModel, relationInputs]);
+    createOneModel = Type.Composite([adjustedCreateModel, relationInputs], {
+      $id: `${config.name}Create`
+    });
   }
 
-  let updateOneModel: TObject = Type.Object({});
+  let updateOneModel: TObject = Type.Object(
+    {},
+    { $id: `${config.name}Update` }
+  );
   if (Object.keys(adjustedUpdateModel.properties).length > 0) {
     const relationInputs = relationInputProperties(
       relationsModel,
       relationsConfig,
       'update'
     );
-    updateOneModel = Type.Composite([
-      adjustedUpdateModel,
-      Type.Partial(relationInputs)
-    ]);
+    updateOneModel = Type.Composite(
+      [adjustedUpdateModel, Type.Partial(relationInputs)],
+      { $id: `${config.name}Update` }
+    );
   }
 
   return { createOneModel, updateOneModel };
 }
 
-function buildFileInputModels(fileConfig: Record<string, FileField> = {}): {
+function buildFileInputModels(config: ResourceModelConfig): {
   fileUploadModel: TObject;
   fileDeleteModel: TObject;
 } {
@@ -371,6 +375,7 @@ function buildFileInputModels(fileConfig: Record<string, FileField> = {}): {
     type: 'string',
     [Kind]: 'String'
   });
+  const fileConfig = config.files ?? {};
   const FileDelete = Type.String({ examples: ['image_123.png'] });
 
   const fileUploadModel = Type.Object(
@@ -379,7 +384,8 @@ function buildFileInputModels(fileConfig: Record<string, FileField> = {}): {
         key,
         Type.Optional(conf.array ? Type.Array(FileUpload) : FileUpload)
       ])
-    )
+    ),
+    { $id: `${config.name}FileUpload` }
   );
 
   const fileDeleteModel = Type.Object(
@@ -388,7 +394,8 @@ function buildFileInputModels(fileConfig: Record<string, FileField> = {}): {
         key,
         Type.Optional(conf.array ? Type.Array(FileDelete) : FileDelete)
       ])
-    )
+    ),
+    { $id: `${config.name}FileDelete` }
   );
 
   return { fileUploadModel, fileDeleteModel };

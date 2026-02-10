@@ -3,7 +3,7 @@ export type RouteConfig = {
   public?: boolean;
   roles?: string[];
   permissions?: string[];
-  auth?: string[];
+  auth?: any[];
 };
 
 export type CacheConfig = {

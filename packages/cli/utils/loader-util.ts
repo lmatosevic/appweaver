@@ -25,7 +25,7 @@ export function loadModels(
     }
   });
 
-  const resources: Record<string, ResourceModelSchema> = {};
+  const models: Record<string, ResourceModelSchema> = {};
 
   const modelPaths = globSync(modelPattern, { cwd, absolute: true });
 
@@ -34,7 +34,7 @@ export function loadModels(
 
   if (modelPaths.length === 0) {
     console.log('No models found matching pattern:', modelPattern);
-    return resources;
+    return models;
   }
 
   for (const modelPath of modelPaths) {
@@ -58,7 +58,7 @@ export function loadModels(
 
     // Add only exports that satisfy the resource model schema requirements
     if (modelSchema.name && modelSchema.config && modelSchema.readModel) {
-      resources[modelSchema.name] = modelSchema;
+      models[modelSchema.name] = modelSchema;
     } else {
       for (const maybeSchema of Object.values(modelSchema)) {
         if (
@@ -67,19 +67,19 @@ export function loadModels(
           'config' in maybeSchema &&
           'readModel' in maybeSchema
         ) {
-          resources[maybeSchema.name] =
+          models[maybeSchema.name] =
             maybeSchema as unknown as ResourceModelSchema;
         }
       }
     }
   }
 
-  if (Object.keys(resources).length === 0) {
+  if (Object.keys(models).length === 0) {
     console.log(
       'No resource models exports found matching pattern:',
       modelPattern
     );
   }
 
-  return resources;
+  return models;
 }

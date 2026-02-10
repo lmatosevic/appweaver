@@ -1,3 +1,4 @@
+export * from './application-context';
 export * from './generated';
 export * from './jwt-payload';
 export * from './resource';

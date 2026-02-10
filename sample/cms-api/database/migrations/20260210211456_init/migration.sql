@@ -14,6 +14,25 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
+CREATE TABLE "Post" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "title" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "content" TEXT,
+    "counter" INTEGER NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'Draft',
+    "lastActivity" DATETIME,
+    "authorId" INTEGER NOT NULL,
+    "coverImageId" INTEGER,
+    "updatedAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdById" INTEGER,
+    CONSTRAINT "Post_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Post_coverImageId_fkey" FOREIGN KEY ("coverImageId") REFERENCES "File" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT "Post_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "Identity" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateTable
 CREATE TABLE "Identity" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "username" TEXT NOT NULL,
@@ -80,8 +99,22 @@ CREATE TABLE "_RolePermissions" (
     CONSTRAINT "_RolePermissions_B_fkey" FOREIGN KEY ("B") REFERENCES "Role" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+-- CreateTable
+CREATE TABLE "_PostGalleryImagesFile" (
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL,
+    CONSTRAINT "_PostGalleryImagesFile_A_fkey" FOREIGN KEY ("A") REFERENCES "File" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "_PostGalleryImagesFile_B_fkey" FOREIGN KEY ("B") REFERENCES "Post" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Post_slug_key" ON "Post"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Post_authorId_key" ON "Post"("authorId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Identity_username_key" ON "Identity"("username");
@@ -109,3 +142,9 @@ CREATE UNIQUE INDEX "_RolePermissions_AB_unique" ON "_RolePermissions"("A", "B")
 
 -- CreateIndex
 CREATE INDEX "_RolePermissions_B_index" ON "_RolePermissions"("B");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "_PostGalleryImagesFile_AB_unique" ON "_PostGalleryImagesFile"("A", "B");
+
+-- CreateIndex
+CREATE INDEX "_PostGalleryImagesFile_B_index" ON "_PostGalleryImagesFile"("B");

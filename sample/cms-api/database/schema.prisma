@@ -18,6 +18,9 @@ model User {
   email     String  @unique
   phone     String?
 
+  /// Related columns
+  post Post?
+
   /// File columns
   avatar   File? @relation("UserAvatarFile", fields: [avatarId], references: [id])
   avatarId Int?
@@ -26,6 +29,37 @@ model User {
   updatedAt   DateTime  @updatedAt
   createdAt   DateTime  @default(now())
   createdBy   Identity? @relation("UserCreatedByIdentity", fields: [createdById], references: [id])
+  createdById Int?
+}
+
+enum PostStatus {
+  Draft
+  Published
+  Archived
+}
+
+model Post {
+  id           Int        @id @default(autoincrement())
+  title        String
+  slug         String     @unique
+  content      String?
+  counter      Int
+  status       PostStatus @default(Draft)
+  lastActivity DateTime?
+
+  /// Related columns
+  author   User @relation(fields: [authorId], references: [id])
+  authorId Int  @unique
+
+  /// File columns
+  coverImage    File?  @relation("PostCoverImageFile", fields: [coverImageId], references: [id])
+  coverImageId  Int?
+  galleryImages File[] @relation("PostGalleryImagesFile")
+
+  /// Audit columns
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
+  createdBy   Identity? @relation("PostCreatedByIdentity", fields: [createdById], references: [id])
   createdById Int?
 }
 
@@ -50,7 +84,8 @@ model Identity {
   createdPermissions Permission[] @relation("PermissionCreatedByIdentity")
   createdIdentities  Identity[]   @relation("IdentityCreatedByIdentity")
   createdFiles       File[]       @relation("FileCreatedByIdentity")
-  createdusers       User[]       @relation("UserCreatedByIdentity")
+  createdUsers       User[]       @relation("UserCreatedByIdentity")
+  createdPosts       Post[]       @relation("PostCreatedByIdentity")
 }
 
 model Role {
@@ -101,7 +136,9 @@ model File {
   createdById Int?
 
   /// Related models with files
-  avatarUsers User[] @relation("UserAvatarFile")
+  avatarUsers        User[] @relation("UserAvatarFile")
+  coverImagePosts    Post[] @relation("PostCoverImageFile")
+  galleryImagesPosts Post[] @relation("PostGalleryImagesFile")
 
   @@index([resourceField, resourceName, resourceId])
 }
