@@ -71,7 +71,7 @@ export function createSchema(
         200: Type.Composite([
           QueryResponseData,
           Type.Object({
-            items: Type.Array(resourceModel.readManyModel ?? Type.Object({}))
+            items: Type.Array(resourceModel.readManyModel)
           })
         ]),
         ...AllErrorResponses

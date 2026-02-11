@@ -21,7 +21,8 @@ export default createModel({
     slug: {
       type: 'text',
       unique: true,
-      pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+      pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
+      examples: ['title-of-post']
     },
     content: {
       type: 'text',
@@ -85,6 +86,7 @@ export default createModel({
   virtual: {
     randomNumbers: {
       type: 'float',
+      examples: [12.24],
       array: true,
       input: {
         type: 'none'

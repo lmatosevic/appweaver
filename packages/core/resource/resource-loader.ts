@@ -2,20 +2,21 @@ import { globSync } from 'glob';
 import { TObject, TSchema, Type } from '@sinclair/typebox';
 import {
   logger,
+  resourceModelProps,
   ResourceModelSchema,
   ResourcePolicyConfig,
   ResourceRoutesConfig
 } from '@appweaver/common';
-import { ResourceService } from '../resource';
+import { ResourceService } from './resource-service';
 import { ApplicationContext, RouteHandler } from '../types';
 
-export async function loadResources(): Promise<
-  Omit<ApplicationContext, 'server'>
-> {
-  const models = await loadModels();
-  const services = await loadServices();
-  const policies = await loadPolicies();
-  const routes = await loadRoutes();
+export async function loadResources(
+  baseDir?: string
+): Promise<Omit<ApplicationContext, 'server'>> {
+  const models = await loadModels(baseDir);
+  const services = await loadServices(baseDir);
+  const policies = await loadPolicies(baseDir);
+  const routes = await loadRoutes(baseDir);
 
   return {
     models,
@@ -26,15 +27,16 @@ export async function loadResources(): Promise<
 }
 
 export async function loadModels(
-  modelPattern: string = './dist/resources/**/*model.js'
+  baseDir?: string,
+  modelPattern: string = './resources/**/*model.js'
 ): Promise<Record<string, ResourceModelSchema>> {
-  const cwd = process.cwd();
+  const cwd = baseDir ?? process.cwd();
 
   const models: Record<string, ResourceModelSchema> = {};
 
   const modelPaths = globSync(modelPattern, { cwd, absolute: true });
 
-  // Add exported core module resource models
+  // Include core module resource models from the @appweaver/core package
   modelPaths.push('@appweaver/core');
 
   const isModelSchema = (schema: unknown): schema is ResourceModelSchema => {
@@ -64,34 +66,20 @@ export async function loadModels(
     }
   }
 
-  const modelNameProps: Record<
-    string,
-    keyof Partial<Omit<ResourceModelSchema, 'name' | 'config'>>
-  > = {
-    '': 'readModel',
-    Single: 'readOneModel',
-    Multiple: 'readManyModel',
-    Create: 'createOneModel',
-    Update: 'updateOneModel',
-    Files: 'filesModel',
-    FileUpload: 'fileUploadModel',
-    FileDelete: 'fileDeleteModel'
-  };
-
-  // Map models to schemas using ids (suffixes)
+  // Map model variants to schemas using their corresponding suffixes
   const resourceModels: Record<string, TSchema> = {};
   for (const model of Object.values(models)) {
-    for (const [suffix, property] of Object.entries(modelNameProps)) {
+    for (const [suffix, property] of Object.entries(resourceModelProps)) {
       resourceModels[`${model.name}${suffix}`] = model[property];
     }
   }
 
-  // Resolve all models references
+  // Resolve all model references through the TypeBox module system
   const module = Type.Module(resourceModels);
 
-  // Return resolved models to the resource schema model
+  // Apply resolved models back to the resource schema definitions
   for (const model of Object.values(models)) {
-    for (const [suffix, property] of Object.entries(modelNameProps)) {
+    for (const [suffix, property] of Object.entries(resourceModelProps)) {
       const schemaKey = `${model.name}${suffix}`;
       const importedModel = module.Import(schemaKey);
       model[property] = importedModel as unknown as TObject;
@@ -102,9 +90,10 @@ export async function loadModels(
 }
 
 export async function loadServices(
-  servicePattern: string = './dist/resources/**/*service.js'
+  baseDir?: string,
+  servicePattern: string = './resources/**/*service.js'
 ): Promise<Record<string, ResourceService>> {
-  const cwd = process.cwd();
+  const cwd = baseDir ?? process.cwd();
 
   const services: Record<string, ResourceService> = {};
 
@@ -140,9 +129,10 @@ export async function loadServices(
 }
 
 export async function loadPolicies(
-  policyPattern: string = './dist/resources/**/*policy.js'
+  baseDir?: string,
+  policyPattern: string = './resources/**/*policy.js'
 ): Promise<Record<string, ResourcePolicyConfig>> {
-  const cwd = process.cwd();
+  const cwd = baseDir ?? process.cwd();
 
   const policies: Record<string, ResourcePolicyConfig> = {};
 
@@ -175,11 +165,12 @@ export async function loadPolicies(
 }
 
 export async function loadRoutes(
-  routePattern: string = './dist/resources/**/*route.js'
+  baseDir?: string,
+  routePattern: string = './resources/**/*route.js'
 ): Promise<
   Record<string, { config: ResourceRoutesConfig; handler: RouteHandler }>
 > {
-  const cwd = process.cwd();
+  const cwd = baseDir ?? process.cwd();
 
   const routes: Record<
     string,

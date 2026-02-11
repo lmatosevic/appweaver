@@ -5,9 +5,7 @@ import fastifyCors from '@fastify/cors';
 import fastifyHelmet from '@fastify/helmet';
 import fastifyStatic from '@fastify/static';
 import fastifyRateLimit from '@fastify/rate-limit';
-import fastifyMultipart, { ajvFilePlugin } from '@fastify/multipart';
-import fastifySwagger from '@fastify/swagger';
-import fastifySwaggerUI from '@fastify/swagger-ui';
+import fastifyMultipart from '@fastify/multipart';
 import {
   camelToSnakeCase,
   config,
@@ -15,11 +13,12 @@ import {
   plural
 } from '@appweaver/common';
 import { context } from '../context';
-import { auth } from '../security/auth';
+import auth from '../security/auth';
 import { errorHandler } from '../errors';
 import { files } from '../storage';
-import { loadResources } from '../utils';
+import { loadResources } from '../resource';
 import { info } from './info-route';
+import swagger from './swagger';
 import { Application } from './application';
 
 export type CreateAppParams = {
@@ -49,9 +48,6 @@ export async function createApp(
     ajv: {
       customOptions: {
         removeAdditional: 'all'
-      },
-      onCreate: (ajv): void => {
-        ajvFilePlugin(ajv);
       }
     },
     routerOptions: {
@@ -117,43 +113,16 @@ export async function createApp(
     });
   }
 
-  // Register swagger documentation and UI.
-  if (config.SWAGGER_ENABLED) {
-    server.register(fastifySwagger, {
-      hideUntagged: true,
-      openapi: {
-        info: {
-          title: config.APP_NAME,
-          description: config.APP_DESCRIPTION,
-          version: config.APP_VERSION
-        },
-        externalDocs: {
-          url: 'https://swagger.io',
-          description: 'Find more info here'
-        },
-        servers: [
-          {
-            url: config.APP_HOSTNAME
-          }
-        ],
-        tags: [],
-        components: {
-          securitySchemes: {
-            bearer: {
-              scheme: 'bearer',
-              bearerFormat: 'token',
-              type: 'http'
-            }
-          }
-        }
-      }
-    });
+  // Autoload resource models, routes, policies and services.
+  if (params.autoLoadResources !== false) {
+    await loadResources(
+      path.dirname(require.main?.filename || process.argv[1])
+    );
+  }
 
-    server.register(fastifySwaggerUI, {
-      routePrefix: config.SWAGGER_PATH,
-      indexPrefix: new URL(config.APP_HOSTNAME).pathname,
-      staticCSP: false
-    });
+  // Register swagger documentation and UI. Must be called after loadResources.
+  if (config.SWAGGER_ENABLED) {
+    server.register(swagger);
   }
 
   // Set global error handler for all routes.
@@ -167,11 +136,6 @@ export async function createApp(
 
   // Register info route.
   server.register(info, { prefix: config.SERVER_API_PREFIX });
-
-  // Autoload resource models, routes, policies and services
-  if (params.autoLoadResources !== false) {
-    await loadResources();
-  }
 
   // Register resource API routes.
   for (const [name, route] of Object.entries(context.routes)) {
@@ -187,11 +151,9 @@ export async function createApp(
 
   const app = new Application(server);
 
-  if (params.autoStart === false) {
-    return app;
+  if (params.autoStart !== false) {
+    await app.start();
   }
-
-  await app.start();
 
   return app;
 }

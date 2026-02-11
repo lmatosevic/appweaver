@@ -57,9 +57,13 @@ export function createModel(config: ResourceModelConfig): ResourceModelSchema {
     }
   );
 
-  const virtualModel = Type.Composite([virtualSchema]);
-  const filesModel = Type.Composite([filesSchema]);
-  const relationsModel = Type.Composite([relationsSchema]);
+  const virtualModel = Type.Composite([virtualSchema], {
+    $id: `${name}Virtual`
+  });
+  const relationsModel = Type.Composite([relationsSchema], {
+    $id: `${name}Relations`
+  });
+  const filesModel = Type.Composite([filesSchema], { $id: `${name}Files` });
 
   // Omit or pick create model scalar fields
   let createModel: TObject = Type.Composite([scalarsSchema, virtualSchema]);
@@ -370,12 +374,12 @@ function buildFileInputModels(config: ResourceModelConfig): {
   fileUploadModel: TObject;
   fileDeleteModel: TObject;
 } {
+  const fileConfig = config.files ?? {};
   const FileUpload = Type.Unsafe({
-    isFile: true,
     type: 'string',
+    format: 'binary',
     [Kind]: 'String'
   });
-  const fileConfig = config.files ?? {};
   const FileDelete = Type.String({ examples: ['image_123.png'] });
 
   const fileUploadModel = Type.Object(
