@@ -4,12 +4,12 @@ export default createModel({
   name: 'Identity',
   scalars: {
     username: {
-      type: 'text',
+      type: 'string',
       unique: true,
       maxLength: 255
     },
     passwordHash: {
-      type: 'text',
+      type: 'string',
       required: false,
       hidden: true
     },

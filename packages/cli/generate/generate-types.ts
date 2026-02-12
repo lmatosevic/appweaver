@@ -1,4 +1,5 @@
 import path from 'node:path';
+import fsp from 'node:fs/promises';
 import fs from 'node:fs';
 import { spawn } from 'node:child_process';
 import { TModule, TObject, TSchema, Type } from '@sinclair/typebox';
@@ -18,26 +19,27 @@ export async function generateTypes(
   const cwd = process.cwd();
   const typesDir = path.join(cwd, path.dirname(typesPath));
 
-  if (!fs.existsSync(typesDir)) {
-    fs.mkdirSync(typesDir, { recursive: true });
-    console.log(`Types directory created ${typesDir}`);
+  try {
+    await fsp.access(typesDir, fs.constants.F_OK);
+  } catch (e) {
+    await fsp.mkdir(typesDir, { recursive: true });
   }
 
   try {
     const resourceModels: Record<string, TSchema> = {};
 
-    for (const [modelName, schema] of Object.entries(models)) {
-      resourceModels[modelName] = transformUnsafeTypes(schema.readModel);
-      resourceModels[`${modelName}Single`] = transformUnsafeTypes(
+    for (const [name, schema] of Object.entries(models)) {
+      resourceModels[name] = transformUnsafeTypes(schema.readModel);
+      resourceModels[`${name}Single`] = transformUnsafeTypes(
         schema.readOneModel
       );
-      resourceModels[`${modelName}Multiple`] = transformUnsafeTypes(
+      resourceModels[`${name}Multiple`] = transformUnsafeTypes(
         schema.readManyModel
       );
-      resourceModels[`${modelName}Create`] = transformUnsafeTypes(
+      resourceModels[`${name}Create`] = transformUnsafeTypes(
         schema.createOneModel
       );
-      resourceModels[`${modelName}Update`] = transformUnsafeTypes(
+      resourceModels[`${name}Update`] = transformUnsafeTypes(
         schema.updateOneModel
       );
     }
@@ -49,12 +51,12 @@ export async function generateTypes(
       ``
     ];
 
-    for (const modelName of Object.keys(resourceModels)) {
-      typesContent.push(generateTypeScriptType(module, modelName), ``);
+    for (const name of Object.keys(resourceModels)) {
+      typesContent.push(generateTypeScriptType(module, name), ``);
     }
 
     const outputPath = path.join(cwd, typesPath);
-    fs.writeFileSync(outputPath, typesContent.join('\n'));
+    await fsp.writeFile(outputPath, typesContent.join('\n'));
 
     spawn(`prettier --log-level silent --write ${outputPath}`, {
       stdio: 'inherit',

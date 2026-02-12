@@ -15,11 +15,11 @@ export type IsObject<T> =
             ? true
             : false;
 
-export function isArray(variable: any): boolean {
+export function isArray(variable: any): variable is Array<any> {
   return Array.isArray(variable);
 }
 
-export function isObject(variable: any): boolean {
+export function isObject(variable: any): variable is Object {
   return isTypeOf(variable, Object);
 }
 

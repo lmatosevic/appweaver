@@ -4,7 +4,7 @@ export default createModel({
   name: 'Permission',
   scalars: {
     name: {
-      type: 'text',
+      type: 'string',
       maxLength: 255
     }
   }

@@ -132,7 +132,7 @@ function buildIdSchema(idField: IdField = { type: 'int' }): TObject {
   let idType: TObject;
 
   switch (idField.type) {
-    case 'text':
+    case 'string':
       idType = IdString;
       break;
     case 'int':
@@ -176,8 +176,7 @@ function buildScalarSchema(field: ScalarField): TSchema {
   let fieldType: TSchema;
 
   switch (field.type) {
-    case 'text':
-    case 'blob':
+    case 'string':
       fieldType = Type.String(
         pickProperties(field, [
           'minLength',

@@ -13,23 +13,23 @@ export default createModel({
   },
   scalars: {
     title: {
-      type: 'text',
+      type: 'string',
       default: 'something...',
       minLength: 0,
       maxLength: 255
     },
     slug: {
-      type: 'text',
+      type: 'string',
       unique: true,
       pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
       examples: ['title-of-post']
     },
     content: {
-      type: 'text',
+      type: 'string',
       required: false
     },
     counter: {
-      type: 'int',
+      type: 'string',
       minimum: 1,
       maximum: 1023
     },

@@ -1,17 +1,16 @@
 import { TObject } from '@sinclair/typebox';
 
 export type FieldType =
-  | 'text'
+  | 'string'
   | 'int'
   | 'bigInt'
   | 'float'
   | 'boolean'
   | 'dateTime'
   | 'json'
-  | 'blob'
   | 'enum';
 
-export type IdType = 'text' | 'int' | 'bigInt';
+export type IdType = 'string' | 'int' | 'bigInt';
 
 export type IdGenerator =
   | 'autoincrement()'
@@ -24,7 +23,8 @@ export type FieldDefault =
   | string
   | number
   | boolean
-  | any[]
+  | (string | number)[]
+  | Record<string, any>
   | 'uuid()'
   | 'cuid()'
   | 'now()'
@@ -152,6 +152,8 @@ export type VirtualConfig = Record<string, VirtualField>;
 
 export type ExportConfig = Record<string, ExportField | ExportRelations>;
 
+export type IndexConfig = string[] | string[][];
+
 export type ResourceModelConfig = {
   name: string;
   id?: IdField;
@@ -161,9 +163,9 @@ export type ResourceModelConfig = {
   files?: FilesConfig;
   create?: OperationConfig;
   update?: OperationConfig;
-  export?: ExportConfig;
   virtual?: VirtualConfig;
-  index?: string[] | string[][];
+  export?: ExportConfig;
+  index?: IndexConfig;
 };
 
 export type ResourceModelSchema = {

@@ -4,18 +4,18 @@ export default createModel({
   name: 'File',
   scalars: {
     name: {
-      type: 'text',
+      type: 'string',
       maxLength: 1023,
       unique: true,
       examples: ['image_123.png']
     },
     originalName: {
-      type: 'text',
+      type: 'string',
       maxLength: 255,
       examples: ['image.png']
     },
     mimeType: {
-      type: 'text',
+      type: 'string',
       maxLength: 127
     },
     sizeBytes: {
@@ -24,23 +24,23 @@ export default createModel({
       examples: [1024]
     },
     title: {
-      type: 'text',
+      type: 'string',
       maxLength: 511,
       required: false
     },
     description: {
-      type: 'text',
+      type: 'string',
       maxLength: 4095,
       required: false
     },
     resourceField: {
-      type: 'text',
+      type: 'string',
       maxLength: 255,
       required: false,
       hidden: true
     },
     resourceName: {
-      type: 'text',
+      type: 'string',
       maxLength: 255,
       required: false,
       hidden: true

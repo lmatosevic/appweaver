@@ -13,24 +13,24 @@ export default createModel({
   },
   scalars: {
     firstName: {
-      type: 'text',
+      type: 'string',
       maxLength: 255
     },
     lastName: {
-      type: 'text',
+      type: 'string',
       maxLength: 255
     },
     email: {
-      type: 'text',
+      type: 'string',
       format: 'email',
       maxLength: 255
     },
     phone: {
-      type: 'text',
+      type: 'string',
       maxLength: 32
     },
     secret: {
-      type: 'text',
+      type: 'string',
       hidden: true
     }
   },
