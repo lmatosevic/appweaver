@@ -90,10 +90,15 @@ export type RelationOutput = {
 
 export type RelationField = {
   model: string;
+  mappedBy?: string;
   array?: boolean;
   owner?: boolean;
+  unique?: boolean;
   includes?: {
-    [key: string]: Omit<RelationField, 'model' | 'array' | 'owner'>;
+    [key: string]: Omit<
+      RelationField,
+      'model' | 'mappedBy' | 'array' | 'owner' | 'unique'
+    >;
   };
   input?: RelationInput;
   output?: RelationOutput;

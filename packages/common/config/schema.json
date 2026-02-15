@@ -222,6 +222,10 @@
               "type": "string",
               "default": ""
             },
+            "clientOutputPath": {
+              "type": "string",
+              "default": "./node_modules/.prisma/client"
+            },
             "transactionMaxWait": {
               "type": "integer",
               "default": 2000

@@ -37,6 +37,7 @@ export default createModel({
   relations: {
     posts: {
       model: 'Post',
+      mappedBy: 'author',
       array: true
     }
   },

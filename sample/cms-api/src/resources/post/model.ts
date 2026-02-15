@@ -47,6 +47,7 @@ export default createModel({
   relations: {
     author: {
       model: 'User',
+      mappedBy: 'posts',
       owner: true,
       input: {
         type: 'none'

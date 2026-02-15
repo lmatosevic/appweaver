@@ -43,7 +43,7 @@ export type CreateAppParams = {
 export async function createApp(
   params: CreateAppParams = {}
 ): Promise<Application> {
-  // Create a Fastify server instance.
+  // Create a Fastify server instance
   const server = Fastify({
     ajv: {
       customOptions: {
@@ -59,7 +59,7 @@ export async function createApp(
     logger: loggerConfig
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  // Register CORS rules.
+  // Register CORS rules
   server.register(fastifyCors, {
     origin: config.CORS_ORIGIN,
     methods: config.CORS_METHODS,
@@ -69,7 +69,7 @@ export async function createApp(
     credentials: config.CORS_CREDENTIALS
   });
 
-  // Register security rules.
+  // Register security rules
   server.register(fastifyHelmet, {
     contentSecurityPolicy: {
       directives: {
@@ -79,7 +79,7 @@ export async function createApp(
     }
   });
 
-  // Register static public file serving.
+  // Register static public file serving
   if (config.SERVER_STATIC_ENABLED) {
     server.register(fastifyStatic, {
       root: path.isAbsolute(config.SERVER_STATIC_DIR_PATH)
@@ -94,10 +94,10 @@ export async function createApp(
     });
   }
 
-  // Register multipart file upload plugin.
+  // Register multipart file upload plugin
   server.register(fastifyMultipart, { throwFileSizeLimit: false });
 
-  // Register global request rate limiter.
+  // Register global request rate limiter
   if (config.RATE_LIMIT_ENABLED) {
     server.register(fastifyRateLimit, {
       max: config.RATE_LIMIT_MAX,
@@ -113,31 +113,31 @@ export async function createApp(
     });
   }
 
-  // Autoload resource models, routes, policies and services.
+  // Autoload resource models, routes, policies and services
   if (params.autoLoadResources !== false) {
     await loadResources(
       path.dirname(require.main?.filename || process.argv[1])
     );
   }
 
-  // Register swagger documentation and UI. Must be called after loadResources.
+  // Register swagger documentation and UI, must be called after loadResources
   if (config.SWAGGER_ENABLED) {
     server.register(swagger);
   }
 
-  // Set global error handler for all routes.
+  // Set global error handler for all routes
   server.setErrorHandler(errorHandler);
 
-  // Register authentication plugin.
+  // Register authentication plugin
   server.register(auth);
 
-  // Register files route.
+  // Register files route
   server.register(files, { prefix: config.SERVER_API_PREFIX });
 
-  // Register info route.
+  // Register info route
   server.register(info, { prefix: config.SERVER_API_PREFIX });
 
-  // Register resource API routes.
+  // Register resource API routes
   for (const [name, route] of Object.entries(context.routes)) {
     const routesPath =
       route.config.path || camelToSnakeCase(plural(name), '-').toLowerCase();
