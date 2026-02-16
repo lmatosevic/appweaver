@@ -178,45 +178,57 @@ export async function generateSchema(
     // Add Prisma models to the schema content
     for (const [name, model] of Object.entries(prismaModels)) {
       schemaContent.push(`model ${name} {`);
-      schemaContent.push(buildPrismaField(model.id));
 
+      // Group 1: id + scalars
+      const initialFields = [model.id, ...model.scalars];
+      const { nameLength, typeLength } = calculateMaxLengths(initialFields);
+      schemaContent.push(buildPrismaField(model.id, nameLength, typeLength));
       for (const scalar of model.scalars) {
-        schemaContent.push(buildPrismaField(scalar));
+        schemaContent.push(buildPrismaField(scalar, nameLength, typeLength));
       }
 
+      // Group 2: relations
       if (model.relations.length > 0) {
         schemaContent.push(``);
         schemaContent.push(`  /// Related columns`);
-      }
-
-      for (const relation of model.relations) {
-        schemaContent.push(buildPrismaField(relation));
-      }
-
-      if (model.files.length > 0) {
-        schemaContent.push(``);
-        schemaContent.push(`  /// File columns`);
-      }
-
-      for (const file of model.files) {
-        schemaContent.push(buildPrismaField(file));
-      }
-
-      for (const [title, extraFields] of Object.entries(model.extra ?? {})) {
-        schemaContent.push(``);
-        schemaContent.push(`  /// ${title}`);
-        for (const extraField of extraFields) {
-          schemaContent.push(buildPrismaField(extraField));
+        const { nameLength, typeLength } = calculateMaxLengths(model.relations);
+        for (const relation of model.relations) {
+          schemaContent.push(
+            buildPrismaField(relation, nameLength, typeLength)
+          );
         }
       }
 
+      // Group 3: files
+      if (model.files.length > 0) {
+        schemaContent.push(``);
+        schemaContent.push(`  /// File columns`);
+        const { nameLength, typeLength } = calculateMaxLengths(model.files);
+        for (const file of model.files) {
+          schemaContent.push(buildPrismaField(file, nameLength, typeLength));
+        }
+      }
+
+      // Group 4: extra fields
+      for (const [title, extraFields] of Object.entries(model.extra ?? {})) {
+        schemaContent.push(``);
+        schemaContent.push(`  /// ${title}`);
+        const { nameLength, typeLength } = calculateMaxLengths(extraFields);
+        for (const extraField of extraFields) {
+          schemaContent.push(
+            buildPrismaField(extraField, nameLength, typeLength)
+          );
+        }
+      }
+
+      // Group 5: audit
       if (model.audit.length > 0) {
         schemaContent.push(``);
         schemaContent.push(`  /// Audit columns`);
-      }
-
-      for (const audit of model.audit) {
-        schemaContent.push(buildPrismaField(audit));
+        const { nameLength, typeLength } = calculateMaxLengths(model.audit);
+        for (const audit of model.audit) {
+          schemaContent.push(buildPrismaField(audit, nameLength, typeLength));
+        }
       }
 
       if (model.index.length) {
@@ -252,8 +264,33 @@ export async function generateSchema(
   }
 }
 
-function buildPrismaField(field: PrismaSchemaField): string {
-  return `  ${field.name} ${field.type} ${field.attributes?.join(' ') ?? ''}`.trimEnd();
+function buildPrismaField(
+  field: PrismaSchemaField,
+  nameLength = 0,
+  typeLength = 0
+): string {
+  const paddedName = field.name.padEnd(nameLength);
+  const paddedType = field.type.padEnd(typeLength);
+  return `  ${paddedName} ${paddedType} ${field.attributes?.join(' ') ?? ''}`.trimEnd();
+}
+
+function calculateMaxLengths(fields: PrismaSchemaField[]): {
+  nameLength: number;
+  typeLength: number;
+} {
+  let nameLength = 0;
+  let typeLength = 0;
+
+  for (const field of fields) {
+    if (field.name.length > nameLength) {
+      nameLength = field.name.length;
+    }
+    if (field.type.length > typeLength) {
+      typeLength = field.type.length;
+    }
+  }
+
+  return { nameLength, typeLength };
 }
 
 function createIdSchema(id: IdField = {}): PrismaSchemaField {
@@ -351,8 +388,17 @@ function createRelationSchema(
   if (relation.array) {
     attributes.push(`@relation("${relationName}")`);
   } else {
+    let referentialActions: string[] = [];
+    if (relation.onDelete) {
+      referentialActions.push(`onDelete: ${relation.onDelete}`);
+    }
+    if (relation.onUpdate) {
+      referentialActions.push(`onUpdate: ${relation.onUpdate}`);
+    }
+    const referentialConfig =
+      referentialActions.length > 0 ? `, ${referentialActions.join(', ')}` : '';
     attributes.push(
-      `@relation("${relationName}", fields: [${relationFieldName}], references: [id])`
+      `@relation("${relationName}", fields: [${relationFieldName}], references: [id]${referentialConfig})`
     );
   }
 

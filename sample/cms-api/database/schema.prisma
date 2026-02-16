@@ -43,7 +43,7 @@ model Post {
   lastActivity DateTime?
 
   /// Related columns
-  author   User? @relation("UserPostsPost", fields: [authorId], references: [id])
+  author   User? @relation("UserPostsPost", fields: [authorId], references: [id], onDelete: SetNull)
   authorId Int?
 
   /// File columns

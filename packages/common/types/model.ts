@@ -46,6 +46,13 @@ export type InputType = 'all' | 'create' | 'update' | 'none';
 
 export type OutputType = 'always' | 'single' | 'multiple' | 'none';
 
+export type ReferentialAction =
+  | 'Cascade'
+  | 'Restrict'
+  | 'NoAction'
+  | 'SetNull'
+  | 'SetDefault';
+
 export type IdField = {
   type?: IdType;
   generator?: IdGenerator;
@@ -106,6 +113,8 @@ export type RelationField = {
   required?: boolean;
   createIfNotExists?: boolean;
   orphanRemoval?: boolean;
+  onDelete?: ReferentialAction;
+  onUpdate?: ReferentialAction;
 };
 
 export type FileField = {
