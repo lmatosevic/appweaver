@@ -47,11 +47,11 @@ export type InputType = 'all' | 'create' | 'update' | 'none';
 export type OutputType = 'always' | 'single' | 'multiple' | 'none';
 
 export type ReferentialAction =
-  | 'Cascade'
-  | 'Restrict'
-  | 'NoAction'
-  | 'SetNull'
-  | 'SetDefault';
+  | 'cascade'
+  | 'restrict'
+  | 'noAction'
+  | 'setNull'
+  | 'setDefault';
 
 export type IdField = {
   type?: IdType;

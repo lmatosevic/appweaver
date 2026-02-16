@@ -60,7 +60,7 @@ export default createModel({
       required: false,
       createIfNotExists: false,
       orphanRemoval: true,
-      onDelete: 'SetNull'
+      onDelete: 'setNull'
     }
   },
   files: {

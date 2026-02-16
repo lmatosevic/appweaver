@@ -345,8 +345,14 @@ function createScalarSchema(
       attributes.push(`@default("${scalar.default}")`);
     } else if (scalar.array) {
       let defaultValues = scalar.default;
-      if (isArray(scalar.default)) {
-        defaultValues = scalar.default.map((v) => `"${v}"`).join(', ');
+      if (isArray(defaultValues)) {
+        defaultValues = defaultValues
+          .map((v: any) =>
+            ['string', 'dateTime', 'json'].includes(scalar.type)
+              ? `"${v}"`
+              : `${v}`
+          )
+          .join(', ');
       }
       attributes.push(`@default([${defaultValues}])`);
     } else {
@@ -392,10 +398,10 @@ function createRelationSchema(
   } else {
     let referentialActions: string[] = [];
     if (relation.onDelete) {
-      referentialActions.push(`onDelete: ${relation.onDelete}`);
+      referentialActions.push(`onDelete: ${capitalize(relation.onDelete)}`);
     }
     if (relation.onUpdate) {
-      referentialActions.push(`onUpdate: ${relation.onUpdate}`);
+      referentialActions.push(`onUpdate: ${capitalize(relation.onUpdate)}`);
     }
     const referentialConfig =
       referentialActions.length > 0 ? `, ${referentialActions.join(', ')}` : '';
