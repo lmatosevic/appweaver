@@ -38,14 +38,14 @@
     "@fastify/swagger-ui": "5.2.4",
     "@fastify/type-provider-typebox": "6.1.0",
     "@prisma/adapter-better-sqlite3": "7.3.0",
-    "@prisma/client": "7.3.0",
+    "@prisma/client": "7.4.0",
     "@sinclair/typebox": "0.34.47",
     "cron": "4.4.0",
     "csv-stringify": "6.6.0",
     "date-fns": "4.1.0",
     "fastify": "5.7.3",
     "glob": "13.0.1",
-    "prisma": "7.3.0"
+    "prisma": "7.4.0"
   },
   "devDependencies": {
     "@appweaver/common": "^0.1.0"

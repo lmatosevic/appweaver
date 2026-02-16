@@ -39,7 +39,7 @@ model Post {
   title        String      @default("something...")
   slug         String      @unique
   content      String?
-  counter      String
+  counter      Int
   status       PostStatus? @default(Draft)
   lastActivity DateTime?
 
@@ -86,7 +86,7 @@ model Identity {
 
 model Role {
   id   Int    @id @default(autoincrement())
-  name String
+  name String @unique
 
   /// Related columns
   permissions Permission[] @relation("RolePermissionsPermission")
@@ -101,7 +101,7 @@ model Role {
 
 model Permission {
   id   Int    @id @default(autoincrement())
-  name String
+  name String @unique
 
   /// Related columns
   roles Role[] @relation("RolePermissionsPermission")

@@ -4,7 +4,8 @@ CREATE TABLE "User" (
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "phone" TEXT,
+    "phone" TEXT NOT NULL,
+    "secret" TEXT NOT NULL,
     "avatarId" INTEGER,
     "updatedAt" DATETIME NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -16,18 +17,18 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "Post" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "title" TEXT NOT NULL,
+    "title" TEXT NOT NULL DEFAULT 'something...',
     "slug" TEXT NOT NULL,
     "content" TEXT,
     "counter" INTEGER NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'Draft',
+    "status" TEXT DEFAULT 'Draft',
     "lastActivity" DATETIME,
-    "authorId" INTEGER NOT NULL,
+    "authorId" INTEGER,
     "coverImageId" INTEGER,
     "updatedAt" DATETIME NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdById" INTEGER,
-    CONSTRAINT "Post_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Post_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT "Post_coverImageId_fkey" FOREIGN KEY ("coverImageId") REFERENCES "File" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT "Post_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "Identity" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
@@ -84,19 +85,19 @@ CREATE TABLE "File" (
 );
 
 -- CreateTable
-CREATE TABLE "_IdentityRoles" (
+CREATE TABLE "_IdentityRolesRole" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL,
-    CONSTRAINT "_IdentityRoles_A_fkey" FOREIGN KEY ("A") REFERENCES "Identity" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "_IdentityRoles_B_fkey" FOREIGN KEY ("B") REFERENCES "Role" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "_IdentityRolesRole_A_fkey" FOREIGN KEY ("A") REFERENCES "Identity" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "_IdentityRolesRole_B_fkey" FOREIGN KEY ("B") REFERENCES "Role" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
-CREATE TABLE "_RolePermissions" (
+CREATE TABLE "_RolePermissionsPermission" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL,
-    CONSTRAINT "_RolePermissions_A_fkey" FOREIGN KEY ("A") REFERENCES "Permission" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "_RolePermissions_B_fkey" FOREIGN KEY ("B") REFERENCES "Role" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "_RolePermissionsPermission_A_fkey" FOREIGN KEY ("A") REFERENCES "Permission" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "_RolePermissionsPermission_B_fkey" FOREIGN KEY ("B") REFERENCES "Role" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -108,13 +109,13 @@ CREATE TABLE "_PostGalleryImagesFile" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE UNIQUE INDEX "User_avatarId_key" ON "User"("avatarId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Post_slug_key" ON "Post"("slug");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Post_authorId_key" ON "Post"("authorId");
+CREATE UNIQUE INDEX "Post_coverImageId_key" ON "Post"("coverImageId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Identity_username_key" ON "Identity"("username");
@@ -129,19 +130,16 @@ CREATE UNIQUE INDEX "Permission_name_key" ON "Permission"("name");
 CREATE UNIQUE INDEX "File_name_key" ON "File"("name");
 
 -- CreateIndex
-CREATE INDEX "File_resourceField_resourceName_resourceId_idx" ON "File"("resourceField", "resourceName", "resourceId");
+CREATE UNIQUE INDEX "_IdentityRolesRole_AB_unique" ON "_IdentityRolesRole"("A", "B");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "_IdentityRoles_AB_unique" ON "_IdentityRoles"("A", "B");
+CREATE INDEX "_IdentityRolesRole_B_index" ON "_IdentityRolesRole"("B");
 
 -- CreateIndex
-CREATE INDEX "_IdentityRoles_B_index" ON "_IdentityRoles"("B");
+CREATE UNIQUE INDEX "_RolePermissionsPermission_AB_unique" ON "_RolePermissionsPermission"("A", "B");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "_RolePermissions_AB_unique" ON "_RolePermissions"("A", "B");
-
--- CreateIndex
-CREATE INDEX "_RolePermissions_B_index" ON "_RolePermissions"("B");
+CREATE INDEX "_RolePermissionsPermission_B_index" ON "_RolePermissionsPermission"("B");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_PostGalleryImagesFile_AB_unique" ON "_PostGalleryImagesFile"("A", "B");

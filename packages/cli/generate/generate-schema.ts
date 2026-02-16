@@ -1,6 +1,7 @@
 import path from 'node:path';
 import fsp from 'node:fs/promises';
 import fs from 'node:fs';
+import { spawn } from 'node:child_process';
 import {
   AuditFields,
   capitalize,
@@ -257,7 +258,7 @@ export async function generateSchema(
     const outputPath = path.join(cwd, schemaPath);
     await fsp.writeFile(outputPath, schemaContent.join('\n'));
 
-    // spawn(`prisma generate`, { stdio: 'inherit', shell: true });
+    spawn(`prisma generate`, { stdio: 'inherit', shell: true });
 
     console.log(`Schema generated to ${outputPath}`);
   } catch (error) {

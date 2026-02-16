@@ -29,7 +29,7 @@ export default createModel({
       required: false
     },
     counter: {
-      type: 'string',
+      type: 'int',
       minimum: 1,
       maximum: 1023
     },

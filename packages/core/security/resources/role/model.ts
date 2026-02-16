@@ -5,6 +5,7 @@ export default createModel({
   scalars: {
     name: {
       type: 'string',
+      unique: true,
       maxLength: 255
     }
   },
