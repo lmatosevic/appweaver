@@ -1,5 +1,5 @@
 import { db, hashPassword } from '@appweaver/core';
-import { config, randomString, logger } from '@appweaver/common';
+import { config, logger, randomString } from '@appweaver/common';
 
 export async function identityRolesPermissions(): Promise<any> {
   let password = config.SYSTEM_ADMIN_INITIAL_PASSWORD;
