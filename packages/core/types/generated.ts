@@ -72,8 +72,6 @@ export type Role = {
 export type RoleSingle = {
   id: number;
   name: string;
-  createdAt: Date;
-  updatedAt: Date;
   createdById?: number | null;
   permissions: Array<Permission>;
 };
@@ -81,8 +79,6 @@ export type RoleSingle = {
 export type RoleMultiple = {
   id: number;
   name: string;
-  createdAt: Date;
-  updatedAt: Date;
   createdById?: number | null;
   permissions: Array<Permission>;
 };
@@ -116,16 +112,12 @@ export type Permission = {
 export type PermissionSingle = {
   id: number;
   name: string;
-  createdAt: Date;
-  updatedAt: Date;
   createdById?: number | null;
 };
 
 export type PermissionMultiple = {
   id: number;
   name: string;
-  createdAt: Date;
-  updatedAt: Date;
   createdById?: number | null;
 };
 

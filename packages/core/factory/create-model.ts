@@ -12,6 +12,7 @@ import {
   InputType,
   isObject,
   Nullable,
+  OperationConfig,
   OutputType,
   pickProperties,
   RelationField,
@@ -38,13 +39,6 @@ export function createModel(config: ResourceModelConfig): ResourceModelSchema {
   const filesSchema = buildFilesSchema(config?.files);
   const relationsSchema = buildRelationsSchema(config?.relations);
 
-  const baseReadModel = Type.Composite([
-    idSchema,
-    scalarsSchema,
-    virtualSchema,
-    auditSchema
-  ]);
-
   const readModel = Type.Composite(
     [
       idSchema,
@@ -67,25 +61,20 @@ export function createModel(config: ResourceModelConfig): ResourceModelSchema {
   });
   const filesModel = Type.Composite([filesSchema], { $id: `${name}Files` });
 
-  // Omit or pick create model scalar fields
-  let createModel: TObject = Type.Composite([scalarsSchema, virtualSchema]);
-  if (config.create?.pick) {
-    createModel = Type.Pick(createModel, config.create.pick);
-  } else if (config.create?.omit) {
-    createModel = Type.Omit(createModel, config.create.omit);
-  }
-  createModel = Type.Composite([createModel]);
-
-  // Omit or pick update model scalar fields
-  let updateModel: TObject = Type.Partial(
-    Type.Composite([scalarsSchema, virtualSchema])
+  const baseReadModel = omitOrPickScalars(
+    Type.Composite([idSchema, scalarsSchema, virtualSchema, auditSchema]),
+    config.read
   );
-  if (config.update?.pick) {
-    updateModel = Type.Partial(Type.Pick(updateModel, config.update.pick));
-  } else if (config.update?.omit) {
-    updateModel = Type.Partial(Type.Omit(updateModel, config.update.omit));
-  }
-  updateModel = Type.Composite([updateModel]);
+
+  const createModel = omitOrPickScalars(
+    Type.Composite([scalarsSchema, virtualSchema]),
+    config.create
+  );
+
+  const updateModel = omitOrPickScalars(
+    Type.Composite([scalarsSchema, virtualSchema]),
+    config.update
+  );
 
   const { readOneModel, readManyModel } = buildOutputModels(
     baseReadModel,
@@ -231,6 +220,21 @@ function buildScalarSchema(field: ScalarField): TSchema {
   return fieldType;
 }
 
+function omitOrPickScalars(
+  type: TObject,
+  operationConfig?: OperationConfig
+): TObject {
+  let restrictedType: TObject = type;
+
+  if (operationConfig?.pick) {
+    restrictedType = Type.Pick(type, operationConfig.pick);
+  } else if (operationConfig?.omit) {
+    restrictedType = Type.Omit(type, operationConfig.omit);
+  }
+
+  return Type.Composite([restrictedType]);
+}
+
 function buildFilesSchema(files: Record<string, FileField> = {}): TObject {
   const properties: Record<string, TSchema> = {};
 
@@ -242,7 +246,8 @@ function buildFilesSchema(files: Record<string, FileField> = {}): TObject {
 }
 
 function buildFileSchema(file: FileField): TSchema {
-  const fileSchema = Type.Ref('File');
+  const fileRefName = file.array ? 'FileMultiple' : 'FileSingle';
+  const fileSchema = Type.Ref(fileRefName);
   return file.array ? Type.Array(fileSchema) : Nullable(fileSchema);
 }
 
@@ -260,7 +265,10 @@ function buildRelationsSchema(
 
 function buildRelationSchema(relation: RelationField): TSchema {
   const modelName = capitalize(relation.model);
-  let relationType: TSchema = Type.Ref(modelName);
+  const modelRefName = relation.array
+    ? `${modelName}Multiple`
+    : `${modelName}Single`;
+  let relationType: TSchema = Type.Ref(modelRefName);
 
   relationType = relation.array
     ? Type.Array(relationType, pickProperties(relation, ['minItems']))

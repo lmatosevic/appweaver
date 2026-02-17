@@ -8,5 +8,8 @@ export default createModel({
       unique: true,
       maxLength: 255
     }
+  },
+  read: {
+    omit: ['updatedAt', 'createdAt', 'createdById']
   }
 });

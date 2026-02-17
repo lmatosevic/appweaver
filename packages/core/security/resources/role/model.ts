@@ -14,5 +14,8 @@ export default createModel({
       model: 'Permission',
       array: true
     }
+  },
+  read: {
+    omit: ['updatedAt', 'createdAt', 'createdById']
   }
 });

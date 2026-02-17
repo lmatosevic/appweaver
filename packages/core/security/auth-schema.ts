@@ -81,7 +81,7 @@ export const currentIdentitySchema = {
   summary: 'Return current identity',
   description: 'Return current identity',
   response: {
-    200: Type.Ref('Identity'),
+    200: Type.Ref('IdentitySingle'),
     ...AllErrorResponses
   }
 };

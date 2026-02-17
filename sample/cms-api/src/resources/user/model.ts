@@ -38,7 +38,8 @@ export default createModel({
     posts: {
       model: 'Post',
       mappedBy: 'author',
-      array: true
+      array: true,
+      required: false
     }
   },
   files: {

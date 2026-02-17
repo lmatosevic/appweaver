@@ -175,6 +175,7 @@ export type ResourceModelConfig = {
   scalars?: ScalarConfig;
   relations?: RelationConfig;
   files?: FilesConfig;
+  read?: OperationConfig;
   create?: OperationConfig;
   update?: OperationConfig;
   virtual?: VirtualConfig;

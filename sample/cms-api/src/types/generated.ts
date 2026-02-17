@@ -8,8 +8,8 @@ export type User = {
   phone: string;
   secret: string;
   active: boolean;
-  posts: Array<Post>;
-  avatar?: File | null;
+  posts?: Array<PostMultiple>;
+  avatar?: FileSingle | null;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
@@ -25,8 +25,8 @@ export type UserSingle = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  posts: Array<Post>;
-  avatar?: File | null;
+  posts?: Array<PostMultiple>;
+  avatar?: FileSingle | null;
 };
 
 export type UserMultiple = {
@@ -39,8 +39,8 @@ export type UserMultiple = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  posts: Array<Post>;
-  avatar?: File | null;
+  posts?: Array<PostMultiple>;
+  avatar?: FileSingle | null;
 };
 
 export type UserCreate = {
@@ -49,7 +49,7 @@ export type UserCreate = {
   email: string;
   phone: string;
   active: boolean;
-  posts:
+  posts?:
     | Array<{
         id: number;
       }>
@@ -57,11 +57,11 @@ export type UserCreate = {
 };
 
 export type UserUpdate = {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-  active?: boolean;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  active: boolean;
   posts?:
     | Array<{
         id: number;
@@ -80,9 +80,9 @@ export type Post = {
   jsonLd?: any | null;
   lastActivity?: Date | null;
   randomNumbers: Array<number>;
-  author?: User;
-  coverImage?: File | null;
-  galleryImages: Array<File>;
+  author?: UserSingle;
+  coverImage?: FileSingle | null;
+  galleryImages: Array<FileMultiple>;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
@@ -102,10 +102,10 @@ export type PostSingle = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  author?: User | null;
+  author?: UserSingle | null;
   authorCount: number;
-  coverImage?: File | null;
-  galleryImages: Array<File>;
+  coverImage?: FileSingle | null;
+  galleryImages: Array<FileMultiple>;
   galleryImagesCount: number;
 };
 
@@ -123,9 +123,9 @@ export type PostMultiple = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  author?: User | null;
+  author?: UserSingle | null;
   authorCount: number;
-  coverImage?: File | null;
+  coverImage?: FileSingle | null;
   galleryImagesCount: number;
 };
 
@@ -140,7 +140,7 @@ export type PostCreate = {
 };
 
 export type PostUpdate = {
-  title?: string;
+  title: string;
   content?: string | null;
 };
 
@@ -150,7 +150,7 @@ export type Identity = {
   passwordHash?: string | null;
   enabled: boolean;
   logoutAt?: Date | null;
-  roles: Array<Role>;
+  roles: Array<RoleMultiple>;
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
@@ -164,7 +164,7 @@ export type IdentitySingle = {
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
-  roles: Array<Role>;
+  roles: Array<RoleMultiple>;
 };
 
 export type IdentityMultiple = {
@@ -175,7 +175,7 @@ export type IdentityMultiple = {
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
-  roles: Array<Role>;
+  roles: Array<RoleMultiple>;
 };
 
 export type IdentityCreate = {
@@ -190,8 +190,8 @@ export type IdentityCreate = {
 };
 
 export type IdentityUpdate = {
-  username?: string;
-  enabled?: boolean;
+  username: string;
+  enabled: boolean;
   logoutAt?: Date | null;
   roles?:
     | Array<{
@@ -203,7 +203,7 @@ export type IdentityUpdate = {
 export type Role = {
   id: number;
   name: string;
-  permissions: Array<Permission>;
+  permissions: Array<PermissionMultiple>;
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
@@ -212,19 +212,13 @@ export type Role = {
 export type RoleSingle = {
   id: number;
   name: string;
-  createdAt: Date;
-  updatedAt: Date;
-  createdById?: number | null;
-  permissions: Array<Permission>;
+  permissions: Array<PermissionMultiple>;
 };
 
 export type RoleMultiple = {
   id: number;
   name: string;
-  createdAt: Date;
-  updatedAt: Date;
-  createdById?: number | null;
-  permissions: Array<Permission>;
+  permissions: Array<PermissionMultiple>;
 };
 
 export type RoleCreate = {
@@ -237,7 +231,7 @@ export type RoleCreate = {
 };
 
 export type RoleUpdate = {
-  name?: string;
+  name: string;
   permissions?:
     | Array<{
         id: number;
@@ -256,17 +250,11 @@ export type Permission = {
 export type PermissionSingle = {
   id: number;
   name: string;
-  createdAt: Date;
-  updatedAt: Date;
-  createdById?: number | null;
 };
 
 export type PermissionMultiple = {
   id: number;
   name: string;
-  createdAt: Date;
-  updatedAt: Date;
-  createdById?: number | null;
 };
 
 export type PermissionCreate = {
@@ -274,7 +262,7 @@ export type PermissionCreate = {
 };
 
 export type PermissionUpdate = {
-  name?: string;
+  name: string;
 };
 
 export type File = {
@@ -329,10 +317,10 @@ export type FileCreate = {
 };
 
 export type FileUpdate = {
-  name?: string;
-  originalName?: string;
-  mimeType?: string;
-  sizeBytes?: number;
+  name: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
   title?: string | null;
   description?: string | null;
 };
