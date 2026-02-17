@@ -76,6 +76,8 @@ export type Post = {
   content?: string | null;
   counter: number;
   status?: ('Draft' | 'Published' | 'Archived') | null;
+  tags: string;
+  jsonLd?: any | null;
   lastActivity?: Date | null;
   randomNumbers: Array<number>;
   author?: User;
@@ -93,6 +95,8 @@ export type PostSingle = {
   content?: string | null;
   counter: number;
   status?: ('Draft' | 'Published' | 'Archived') | null;
+  tags: string;
+  jsonLd?: any | null;
   lastActivity?: Date | null;
   randomNumbers: Array<number>;
   updatedAt: Date;
@@ -112,6 +116,8 @@ export type PostMultiple = {
   content?: string | null;
   counter: number;
   status?: ('Draft' | 'Published' | 'Archived') | null;
+  tags: string;
+  jsonLd?: any | null;
   lastActivity?: Date | null;
   randomNumbers: Array<number>;
   updatedAt: Date;
@@ -128,6 +134,8 @@ export type PostCreate = {
   slug: string;
   content?: string | null;
   status?: ('Draft' | 'Published' | 'Archived') | null;
+  tags: string;
+  jsonLd?: any | null;
   lastActivity?: Date | null;
 };
 

@@ -6,11 +6,14 @@ import {
   AuditFields,
   capitalize,
   config,
+  DatabaseType,
+  FieldDefault,
   FileField,
   FilesConfig,
   IdField,
   IndexConfig,
   isArray,
+  isString,
   plural,
   RelationConfig,
   RelationField,
@@ -213,6 +216,10 @@ export async function generateSchema(
 
       // Group 4: extra fields
       for (const [title, extraFields] of Object.entries(model.extra ?? {})) {
+        if (extraFields.length === 0) {
+          continue;
+        }
+
         schemaContent.push(``);
         schemaContent.push(`  /// ${title}`);
         const { nameLength, typeLength } = calculateMaxLengths(extraFields);
@@ -326,6 +333,16 @@ function createScalarSchema(
 ): PrismaSchemaField {
   const attributes: string[] = [];
 
+  const isSqlite = config.DATABASE_TYPE === DatabaseType.Sqlite;
+
+  const sanitize = (val: FieldDefault) => {
+    if (isString(val)) {
+      return val.replace(/"/g, '\\"');
+    } else {
+      return JSON.stringify(val).replace(/"/g, '\\"');
+    }
+  };
+
   let typeSuffix = scalar.required === false ? '?' : '';
   if (scalar.array) {
     typeSuffix = '[]';
@@ -341,23 +358,33 @@ function createScalarSchema(
   }
 
   if (scalar.default) {
+    let defaultAttribute: string;
+
     if (['string', 'dateTime', 'json'].includes(scalar.type) && !scalar.array) {
-      attributes.push(`@default("${scalar.default}")`);
+      defaultAttribute = `@default("${sanitize(scalar.default)}")`;
     } else if (scalar.array) {
-      let defaultValues = scalar.default;
-      if (isArray(defaultValues)) {
-        defaultValues = defaultValues
-          .map((v: any) =>
-            ['string', 'dateTime', 'json'].includes(scalar.type)
-              ? `"${v}"`
-              : `${v}`
-          )
-          .join(', ');
-      }
-      attributes.push(`@default([${defaultValues}])`);
+      let defaultValues = isArray(scalar.default)
+        ? scalar.default
+        : [scalar.default];
+      const mappedValues = defaultValues
+        .map((v: any) =>
+          ['string', 'dateTime', 'json'].includes(scalar.type)
+            ? `"${sanitize(v)}"`
+            : `${v}`
+        )
+        .join(', ');
+      defaultAttribute = `@default([${mappedValues}])`;
     } else {
-      attributes.push(`@default(${scalar.default})`);
+      defaultAttribute = `@default(${scalar.default})`;
     }
+
+    if (defaultAttribute) {
+      attributes.push(defaultAttribute);
+    }
+  }
+
+  if (scalar.type === 'string' && scalar.maxLength && !isSqlite) {
+    attributes.push(`@db.VarChar(${scalar.maxLength})`);
   }
 
   return {
@@ -525,7 +552,7 @@ function createIndexSchema(index?: IndexConfig): string[] {
     return indexes;
   }
 
-  if (typeof index[0] === 'string') {
+  if (isString(index[0])) {
     for (const idx of index) {
       indexes.push(`@@index(${idx})`);
     }

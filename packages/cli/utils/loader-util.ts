@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { globSync } from 'glob';
 import { register } from 'ts-node';
-import { ResourceModelSchema } from '@appweaver/common';
+import { isObject, ResourceModelSchema } from '@appweaver/common';
 
 export function loadPackage(): Record<string, string> {
   let pkgPath = path.join(__dirname, '../../package.json');
@@ -62,7 +62,7 @@ export function loadModels(
     } else {
       for (const maybeSchema of Object.values(modelSchema)) {
         if (
-          typeof maybeSchema === 'object' &&
+          isObject(maybeSchema) &&
           'name' in maybeSchema &&
           'config' in maybeSchema &&
           'readModel' in maybeSchema

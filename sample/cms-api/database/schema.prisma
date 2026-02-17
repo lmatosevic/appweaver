@@ -41,6 +41,8 @@ model Post {
   content      String?
   counter      Int
   status       PostStatus? @default(Draft)
+  tags         String      @default("Nature,Animals")
+  jsonLd       Json?
   lastActivity DateTime?
 
   /// Related columns

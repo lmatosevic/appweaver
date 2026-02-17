@@ -26,6 +26,13 @@ export const StringDate = (
     type: 'string',
     format: 'date-time',
     [Kind]: 'String',
+    examples: [new Date().toISOString()],
+    ...options
+  });
+
+export const AnyJson = (options: Parameters<typeof Type.Unsafe<any>>[0] = {}) =>
+  Type.Any({
+    examples: [{}],
     ...options
   });
 
@@ -33,7 +40,9 @@ export const Nullable = <T extends TSchema>(schema: T) =>
   Type.Optional(
     Type.Unsafe<Static<T> | null>({
       ...schema,
-      ...(TypeGuard.IsUnion(schema) ? {} : { nullable: true })
+      ...(TypeGuard.IsUnion(schema) || TypeGuard.IsAny(schema)
+        ? Type.Union([schema, Type.Null()])
+        : { nullable: true })
     })
   );
 

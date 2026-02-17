@@ -22,6 +22,8 @@ CREATE TABLE "Post" (
     "content" TEXT,
     "counter" INTEGER NOT NULL,
     "status" TEXT DEFAULT 'Draft',
+    "tags" TEXT NOT NULL DEFAULT 'Nature,Animals',
+    "jsonLd" JSONB,
     "lastActivity" DATETIME,
     "authorId" INTEGER,
     "coverImageId" INTEGER,

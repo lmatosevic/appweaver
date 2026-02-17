@@ -1,6 +1,7 @@
 import { globSync } from 'glob';
 import { TObject, TSchema, Type } from '@sinclair/typebox';
 import {
+  isObject,
   logger,
   resourceModelProps,
   ResourceModelSchema,
@@ -41,7 +42,7 @@ export async function loadModels(
 
   const isModelSchema = (schema: unknown): schema is ResourceModelSchema => {
     return (
-      typeof schema === 'object' &&
+      isObject(schema) &&
       schema !== null &&
       'name' in schema &&
       'config' in schema &&
@@ -101,7 +102,7 @@ export async function loadServices(
 
   const isResourceService = (service: unknown): service is ResourceService => {
     return (
-      typeof service === 'object' &&
+      isObject(service) &&
       service !== null &&
       'modelName' in service &&
       'model' in service
@@ -141,7 +142,7 @@ export async function loadPolicies(
   const isResourcePolicy = (
     policy: unknown
   ): policy is ResourcePolicyConfig => {
-    return typeof policy === 'object' && policy !== null && 'name' in policy;
+    return isObject(policy) && policy !== null && 'name' in policy;
   };
 
   for (const path of policyPaths) {
@@ -183,11 +184,11 @@ export async function loadRoutes(
     route: unknown
   ): route is { config: ResourceRoutesConfig; handler: RouteHandler } => {
     return (
-      typeof route === 'object' &&
+      isObject(route) &&
       route !== null &&
       'config' in route &&
       'handler' in route &&
-      typeof route.config === 'object' &&
+      isObject(route.config) &&
       route.config !== null &&
       'name' in route.config
     );

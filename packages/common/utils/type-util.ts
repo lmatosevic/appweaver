@@ -15,15 +15,31 @@ export type IsObject<T> =
             ? true
             : false;
 
-export function isArray(variable: any): variable is Array<any> {
+export function isArray<T = any>(variable: any): variable is Array<T> {
   return Array.isArray(variable);
 }
 
-export function isObject(variable: any): variable is Object {
-  return isTypeOf(variable, Object);
+export function isObject(variable: any): variable is object {
+  return typeof variable === 'object';
 }
 
-export function isTypeOf(variable: any, type: any): boolean {
+export function isFunction(variable: any): variable is Function {
+  return typeof variable === 'function';
+}
+
+export function isNumber(variable: any): variable is number {
+  return typeof variable === 'number' && !isNaN(variable);
+}
+
+export function isString(variable: any): variable is string {
+  return typeof variable === 'string';
+}
+
+export function isBoolean(variable: any): variable is boolean {
+  return typeof variable === 'boolean';
+}
+
+function isTypeOf(variable: any, type: any): boolean {
   try {
     return variable.constructor === type;
   } catch (e) {

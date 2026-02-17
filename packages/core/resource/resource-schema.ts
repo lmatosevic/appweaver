@@ -1,5 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import {
+  AnyJson,
   camelToSnakeCase,
   Id,
   ResourceRoutesConfig,
@@ -11,7 +12,7 @@ import { context } from '../context';
 import { ResourceSchemaConfig } from '../types';
 
 export const QueryRequestData = Type.Object({
-  filter: Type.Optional(Type.Any({ examples: [{ field: 'value' }] })),
+  filter: Type.Optional(AnyJson({ examples: [{ field: 'value' }] })),
   page: Type.Optional(Type.Number({ minimum: 1, examples: [1] })),
   size: Type.Optional(
     Type.Number({ minimum: 0, maximum: 1000, examples: [50] })
@@ -25,17 +26,17 @@ export const QueryResponseData = Type.Object({
 });
 
 export const AggregateRequestData = Type.Object({
-  filter: Type.Optional(Type.Any({ examples: [{ field: 'value' }] })),
-  select: Type.Optional(Type.Any({ examples: [{ field: 'value' }] })),
+  filter: Type.Optional(AnyJson({ examples: [{ field: 'value' }] })),
+  select: Type.Optional(AnyJson({ examples: [{ field: 'value' }] })),
   dateField: Type.Optional(Type.String({ examples: ['createdAt'] })),
-  from: Type.Optional(StringDate({ examples: ['2025-04-11T11:27:58.590Z'] })),
-  to: Type.Optional(StringDate({ examples: ['2025-04-11T11:27:58.590Z'] })),
+  from: Type.Optional(StringDate()),
+  to: Type.Optional(StringDate()),
   step: Type.Optional(Type.Integer({ minimum: 1, examples: [3600] })),
   safeIncrement: Type.Optional(Type.Boolean({ examples: [true] }))
 });
 
 export const AggregateResponseData = Type.Optional(
-  Type.Any({ examples: [{ field: 'value' }] })
+  AnyJson({ examples: [{ field: 'value' }] })
 );
 
 export function createSchema(

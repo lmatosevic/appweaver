@@ -4,6 +4,8 @@ import {
   AggregateResponse,
   AggregateSelect,
   capitalize,
+  isFunction,
+  isObject,
   QueryResponse,
   ResourceServiceConfig
 } from '@appweaver/common';
@@ -107,11 +109,11 @@ export function createService(config: ResourceServiceConfig): ResourceService {
     }
 
     protected textSearchQuery(searchText: string): any {
-      if (typeof config.textSearch === 'function') {
+      if (isFunction(config.textSearch)) {
         return config.textSearch(searchText);
       }
 
-      if (typeof config.textSearch === 'object') {
+      if (isObject(config.textSearch)) {
         return config.textSearch;
       }
 

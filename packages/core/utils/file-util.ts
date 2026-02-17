@@ -1,6 +1,7 @@
 import {
   config,
   FilesConfig,
+  isString,
   replacePatternVariables
 } from '@appweaver/common';
 import { File } from '../types';
@@ -29,7 +30,7 @@ export function maxFileSize(fileConfig: FilesConfig): number {
 }
 
 export function sizeInBytes(size?: string | number): number {
-  return typeof size === 'string' ? sizeTextToBytes(size) : 0;
+  return isString(size) ? sizeTextToBytes(size) : 0;
 }
 
 export function sizeTextToBytes(sizeText: string): number {

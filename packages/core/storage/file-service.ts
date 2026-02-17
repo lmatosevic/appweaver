@@ -3,7 +3,8 @@ import {
   FileField,
   FilePolicy,
   generateToken,
-  isArray
+  isArray,
+  isFunction
 } from '@appweaver/common';
 import { HttpError } from '../errors';
 import { context } from '../context';
@@ -134,7 +135,7 @@ export class FileService {
     }
 
     let pattern: string | undefined;
-    if (typeof config.namePattern === 'function') {
+    if (isFunction(config.namePattern)) {
       pattern = config.namePattern(data, resource);
     } else {
       pattern = config.namePattern;

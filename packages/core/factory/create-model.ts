@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { Kind, TObject, TSchema, Type } from '@sinclair/typebox';
 import {
+  AnyJson,
   AuditData,
   AuditFields,
   capitalize,
@@ -9,6 +10,7 @@ import {
   IdField,
   IdString,
   InputType,
+  isObject,
   Nullable,
   OutputType,
   pickProperties,
@@ -117,7 +119,7 @@ export function createModel(config: ResourceModelConfig): ResourceModelSchema {
   };
 
   for (const value of Object.values(resourceModel)) {
-    if (typeof value === 'object') {
+    if (isObject(value)) {
       value[ResourceNameSymbol] = name;
     }
   }
@@ -208,7 +210,7 @@ function buildScalarSchema(field: ScalarField): TSchema {
       );
       break;
     case 'json':
-      fieldType = Type.Any(pickProperties(field, ['hidden', 'examples']));
+      fieldType = AnyJson(pickProperties(field, ['hidden', 'examples']));
       break;
     case 'enum':
       fieldType = StringEnum(

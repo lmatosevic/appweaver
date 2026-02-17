@@ -4,7 +4,9 @@ import {
   ExportConfig,
   ExportRelations,
   isArray,
+  isFunction,
   isObject,
+  isString,
   logger,
   plural
 } from '@appweaver/common';
@@ -130,7 +132,7 @@ export class ExportService {
           continue;
         }
 
-        if (typeof exportField.headerName === 'string') {
+        if (isString(exportField.headerName)) {
           header = parentKey
             ? `${parentKey}.${exportField.headerName}`
             : exportField.headerName;
@@ -142,14 +144,14 @@ export class ExportService {
           // Transform value items using mapValue configuration.
           const subItems = isArrayValue ? value : [value];
           for (const subItem of subItems) {
-            if (typeof exportField.mapValue === 'function') {
+            if (isFunction(exportField.mapValue)) {
               try {
                 mappedValues.push(exportField.mapValue(subItem));
               } catch (e) {
                 mappedValues.push('');
                 logger.error(e, 'Export value mapping error.');
               }
-            } else if (typeof exportField.mapValue !== 'object') {
+            } else if (!isObject(exportField.mapValue)) {
               mappedValues.push(subItem?.[exportField.mapValue]);
             }
           }

@@ -39,6 +39,14 @@ export default createModel({
       default: 'Draft',
       values: ['Draft', 'Published', 'Archived']
     },
+    tags: {
+      type: 'string',
+      default: 'Nature,Animals'
+    },
+    jsonLd: {
+      type: 'json',
+      required: false
+    },
     lastActivity: {
       type: 'dateTime',
       required: false

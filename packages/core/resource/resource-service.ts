@@ -748,13 +748,13 @@ export abstract class ResourceService<
 
       // Normalize plain unique key values or arrays to object values.
       if (isArrayType) {
-        if (isArray(value) && typeof value[0] !== 'object') {
+        if (isArray(value) && !isObject([0])) {
           value = value.map((v: any) => ({
             [uniqueKey]: v
           }));
         }
       } else {
-        if (typeof value !== 'object') {
+        if (!isObject(value)) {
           value = { [uniqueKey]: value };
         }
       }
