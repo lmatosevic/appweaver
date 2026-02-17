@@ -1,7 +1,6 @@
 import path from 'node:path';
 import fsp from 'node:fs/promises';
 import fs from 'node:fs';
-import { spawn } from 'node:child_process';
 import { TModule, TObject, TSchema, Type } from '@sinclair/typebox';
 import { ModelToTypeScript } from '@sinclair/typebox-codegen';
 import {
@@ -11,6 +10,7 @@ import {
   NullType,
   ResourceModelSchema
 } from '@appweaver/common';
+import { runProcess } from '../utils';
 
 export async function generateTypes(
   models: Record<string, ResourceModelSchema>,
@@ -58,10 +58,10 @@ export async function generateTypes(
     const outputPath = path.join(cwd, typesPath);
     await fsp.writeFile(outputPath, typesContent.join('\n'));
 
-    spawn(`prettier --log-level silent --write ${outputPath}`, {
-      stdio: 'inherit',
-      shell: true
-    });
+    await runProcess('prettier', [
+      '--log-level silent',
+      `--write ${outputPath}`
+    ]);
 
     console.log(`Types generated to ${outputPath}`);
   } catch (error) {

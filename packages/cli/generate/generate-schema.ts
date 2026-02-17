@@ -1,7 +1,6 @@
 import path from 'node:path';
 import fsp from 'node:fs/promises';
 import fs from 'node:fs';
-import { spawn } from 'node:child_process';
 import {
   AuditFields,
   capitalize,
@@ -22,6 +21,7 @@ import {
   ScalarField,
   uncapitalize
 } from '@appweaver/common';
+import { runProcess } from '../utils';
 
 type PrismaSchemaField = {
   name: string;
@@ -263,11 +263,16 @@ export async function generateSchema(
     }
 
     const outputPath = path.join(cwd, schemaPath);
+
+    const oldSchema = await fsp.readFile(outputPath, 'utf8');
     await fsp.writeFile(outputPath, schemaContent.join('\n'));
 
-    spawn(`prisma generate`, { stdio: 'inherit', shell: true });
-
-    console.log(`Schema generated to ${outputPath}`);
+    const code = await runProcess('prisma', ['generate']);
+    if (code !== 0) {
+      await fsp.writeFile(outputPath, oldSchema);
+    } else {
+      console.log(`Schema generated to ${outputPath}`);
+    }
   } catch (error) {
     console.error(`Schema generation failed:`, error);
   }

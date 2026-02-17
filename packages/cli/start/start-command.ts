@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { spawn } from 'node:child_process';
+import { runProcess } from '../utils';
 
 export function startCommand(program: Command): void {
   program
@@ -9,12 +9,12 @@ export function startCommand(program: Command): void {
     .option('-w, --watch', 'Run in watch mode.')
     .action(async (_, command: Command) => {
       if (command.getOptionValue('watch')) {
-        spawn(
-          'tsc-watch -p tsconfig.build.json --onSuccess "node ./dist/main.js"',
-          { stdio: 'inherit', shell: true }
-        );
+        await runProcess('tsc-watch', [
+          '-p tsconfig.build.json',
+          '--onSuccess "node ./dist/main.js"'
+        ]);
       } else {
-        spawn('node ./dist/main.js', { stdio: 'inherit', shell: true });
+        await runProcess('node', ['./dist/main.js']);
       }
     });
 }
