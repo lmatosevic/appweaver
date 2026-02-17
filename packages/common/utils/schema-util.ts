@@ -39,10 +39,11 @@ export const AnyJson = (options: Parameters<typeof Type.Unsafe<any>>[0] = {}) =>
 export const Nullable = <T extends TSchema>(schema: T) =>
   Type.Optional(
     Type.Unsafe<Static<T> | null>({
-      ...schema,
-      ...(TypeGuard.IsUnion(schema) || TypeGuard.IsAny(schema)
+      ...(TypeGuard.IsUnion(schema) ||
+      TypeGuard.IsAny(schema) ||
+      TypeGuard.IsRef(schema)
         ? Type.Union([schema, Type.Null()])
-        : { nullable: true })
+        : { ...schema, nullable: true })
     })
   );
 
@@ -56,4 +57,4 @@ export const DateType = <T extends TSchema>(
 ) => Type.Date({ format: 'date-time', ...options });
 
 export const NullType = <T extends TSchema>(schema: T) =>
-  Type.Optional(Type.Union([schema, Type.Null()], { nullable: true }));
+  Type.Optional(Type.Union([schema, Type.Null()]));
