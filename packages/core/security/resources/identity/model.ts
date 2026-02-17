@@ -19,7 +19,8 @@ export default createModel({
     },
     logoutAt: {
       type: 'dateTime',
-      required: false
+      required: false,
+      hidden: true
     }
   },
   relations: {

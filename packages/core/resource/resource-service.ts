@@ -18,6 +18,7 @@ import {
   AggregateValue,
   FileField,
   isArray,
+  isFunction,
   isObject,
   PeriodIncrementFn,
   QueryResponse,
@@ -31,7 +32,12 @@ import { events } from '../events';
 import { context } from '../context';
 import { currentIdentity } from '../security';
 import { HttpError } from '../errors';
-import { countFieldName, extractResourceName } from '../utils';
+import {
+  countFieldName,
+  defaultScalarValue,
+  extractResourceName,
+  extractSchemaProperties
+} from '../utils';
 import { Resource, ResourceModel, ResourceOmit } from '../types';
 
 export abstract class ResourceService<
@@ -81,7 +87,7 @@ export abstract class ResourceService<
 
     events.emitResourceEvent(this._model.name, 'find', { current: resource });
 
-    return this.projectValues(resource);
+    return this.projectResource(resource);
   }
 
   public async query(
@@ -122,7 +128,7 @@ export abstract class ResourceService<
     return {
       resultCount: resources.length,
       totalCount,
-      items: resources.map((resource) => this.projectValues(resource))
+      items: resources.map((resource) => this.projectResource(resource))
     };
   }
 
@@ -240,14 +246,16 @@ export abstract class ResourceService<
       );
     }
 
-    const connectRelations = this.mapRelationActions('create', createData);
+    const sanitizedData = this.sanitizeData(createData);
+
+    const connectRelations = this.mapRelationActions('create', sanitizedData);
     const includeRelations = this.mapRelationInclusions('create');
 
     let resource: ReadOne;
     try {
       resource = await this._model.create({
         data: {
-          ...createData,
+          ...sanitizedData,
           ...connectRelations,
           createdBy
         },
@@ -259,7 +267,7 @@ export abstract class ResourceService<
 
     events.emitResourceEvent(this._model.name, 'create', { current: resource });
 
-    return this.projectValues(resource);
+    return this.projectResource(resource);
   }
 
   public async update(id: number, data: Update): Promise<ReadOne> {
@@ -277,6 +285,8 @@ export abstract class ResourceService<
       ...data,
       ...writeRestrictions
     });
+
+    const sanitizedData = this.sanitizeData(updateData);
 
     const includeRelations = this.mapRelationInclusions('update');
 
@@ -304,14 +314,14 @@ export abstract class ResourceService<
 
         const setRelations = this.mapRelationActions(
           'update',
-          updateData,
+          sanitizedData,
           current
         );
 
         const updated = await txModel.update({
           where: { id },
           include: includeRelations,
-          data: { ...updateData, ...setRelations }
+          data: { ...sanitizedData, ...setRelations }
         });
 
         return [current, updated];
@@ -328,7 +338,7 @@ export abstract class ResourceService<
       current: resource
     });
 
-    return this.projectValues(resource);
+    return this.projectResource(resource);
   }
 
   public async delete(id: number): Promise<ReadOne> {
@@ -370,7 +380,7 @@ export abstract class ResourceService<
 
     events.emitResourceEvent(this._model.name, 'delete', { current: resource });
 
-    return this.projectValues(resource);
+    return this.projectResource(resource);
   }
 
   /**
@@ -572,19 +582,112 @@ export abstract class ResourceService<
     };
   }
 
-  private projectValues<T>(resource: T): T {
-    if (!isObject(resource['_count'])) {
-      return resource;
+  private projectResource<T>(resource: T): T {
+    const projectedResource = this.projectVirtualFields(resource);
+
+    if (!isObject(projectedResource['_count'])) {
+      return projectedResource;
     }
 
     // Create new relations count properties on the resource object.
-    for (const [key, count] of Object.entries(resource['_count'])) {
-      resource[countFieldName(key)] = count;
+    for (const [key, count] of Object.entries(projectedResource['_count'])) {
+      projectedResource[countFieldName(key)] = count;
     }
 
-    delete resource['_count'];
+    delete projectedResource['_count'];
 
-    return resource;
+    return projectedResource;
+  }
+
+  private projectVirtualFields<T>(resource: T, resourceName?: string): T {
+    const projectedVirtual = { ...resource };
+
+    const resourceModel = context.models[resourceName ?? this._model.name];
+    const relationsModel = resourceModel?.relationsModel;
+    const filesModel = resourceModel?.filesModel;
+
+    for (const [fieldName, virtual] of Object.entries(
+      resourceModel.config?.virtual ?? {}
+    )) {
+      const outputValue = virtual.output?.value;
+      if (isFunction(outputValue)) {
+        projectedVirtual[fieldName] = outputValue(projectedVirtual);
+      } else if (outputValue) {
+        projectedVirtual[fieldName] = outputValue;
+      } else if (virtual.required !== false) {
+        projectedVirtual[fieldName] =
+          virtual.default ?? defaultScalarValue(virtual);
+      }
+    }
+
+    // Recursively project virtual fields for nested relational objects.
+    for (const key in projectedVirtual) {
+      const value = projectedVirtual[key];
+
+      const relationSchema = extractSchemaProperties(relationsModel, key);
+      const fileSchema = extractSchemaProperties(filesModel, key);
+
+      if (isObject(value) || (isArray(value) && isObject(value[0]))) {
+        const resourceName = extractResourceName(relationSchema ?? fileSchema);
+        if (resourceName) {
+          projectedVirtual[key] = isArray(value)
+            ? (value.map((item: any) =>
+                this.projectVirtualFields(item, resourceName)
+              ) as any)
+            : this.projectVirtualFields(value, resourceName);
+        }
+      }
+    }
+
+    return projectedVirtual;
+  }
+
+  private sanitizeData<T>(data: T, resourceName?: string): T {
+    const sanitizedData = { ...data };
+
+    const resourceModel = context.models[resourceName ?? this._model.name];
+    const relationsModel = resourceModel?.relationsModel;
+    const filesModel = resourceModel?.filesModel;
+
+    // Delete virtual fields from data object to avoid database errors.
+    for (const fieldName of Object.keys(resourceModel.config?.virtual ?? {})) {
+      delete sanitizedData[fieldName];
+    }
+
+    // Map default values for hidden scalars if a property is required without
+    // a provided default value.
+    for (const [fieldName, scalar] of Object.entries(
+      resourceModel.config?.scalars ?? {}
+    )) {
+      if (
+        scalar.hidden &&
+        scalar.required !== false &&
+        scalar.default === undefined
+      ) {
+        sanitizedData[fieldName] = defaultScalarValue(scalar);
+      }
+    }
+
+    // Recursively sanitize nested objects and arrays of objects.
+    for (const key in sanitizedData) {
+      const value = sanitizedData[key];
+
+      const relationSchema = extractSchemaProperties(relationsModel, key);
+      const fileSchema = extractSchemaProperties(filesModel, key);
+
+      if (isObject(value) || (isArray(value) && isObject(value[0]))) {
+        const resourceName = extractResourceName(relationSchema ?? fileSchema);
+        if (resourceName) {
+          sanitizedData[key] = isArray(value)
+            ? (value.map((item: any) =>
+                this.sanitizeData(item, resourceName)
+              ) as any)
+            : this.sanitizeData(value, resourceName);
+        }
+      }
+    }
+
+    return sanitizedData;
   }
 
   private mapQueryFilter(filter: any, resourceName?: string): any {
@@ -592,15 +695,15 @@ export abstract class ResourceService<
 
     const resourceModel = context.models[resourceName ?? this._model.name];
     const readModel = resourceModel?.readModel;
-    const relationModel = resourceModel?.relationsModel;
-    const fileModel = resourceModel?.filesModel;
+    const relationsModel = resourceModel?.relationsModel;
+    const filesModel = resourceModel?.filesModel;
 
     for (const key in filter) {
       const value = filter[key];
 
-      const readSchema = readModel?.properties[key];
-      const relationSchema = relationModel?.properties[key];
-      const fileSchema = fileModel?.properties[key];
+      const readSchema = extractSchemaProperties(readModel, key);
+      const relationSchema = extractSchemaProperties(relationsModel, key);
+      const fileSchema = extractSchemaProperties(filesModel, key);
 
       const isArrayType =
         readSchema?.type === 'array' ||
@@ -612,9 +715,11 @@ export abstract class ResourceService<
       // Recursively map nested objects and handle arrays of objects.
       if (isObject(value) || (isArrayValue && isObject(value[0]))) {
         const resourceName = extractResourceName(relationSchema ?? fileSchema);
-        queryFilter[key] = isArrayValue
-          ? value.map((item: any) => this.mapQueryFilter(item, resourceName))
-          : this.mapQueryFilter(value, resourceName);
+        if (resourceName) {
+          queryFilter[key] = isArrayValue
+            ? value.map((item: any) => this.mapQueryFilter(item, resourceName))
+            : this.mapQueryFilter(value, resourceName);
+        }
       }
       // Map ID values for both single and array types of relationships.
       else if (relationSchema || fileSchema) {
@@ -662,8 +767,10 @@ export abstract class ResourceService<
     const relationConfig = resourceModel?.config.relations;
     const fileConfig = resourceModel?.config.files;
 
-    const relationModelProps = resourceModel?.relationsModel?.properties ?? {};
-    const fileModelProps = resourceModel?.filesModel?.properties ?? {};
+    const relationModelProps =
+      extractSchemaProperties(resourceModel?.relationsModel) ?? {};
+    const fileModelProps =
+      extractSchemaProperties(resourceModel?.filesModel) ?? {};
 
     // Add relation and file fields to the inclusion map if the include type is
     // satisfied or the requested action is not specified. Also, add the count
@@ -709,17 +816,17 @@ export abstract class ResourceService<
 
     const resourceModel = context.models[this._model.name];
     const readModel = resourceModel?.readModel;
-    const relationModel = resourceModel?.relationsModel;
-    const relationConfig = resourceModel?.config.relations;
+    const relationsModel = resourceModel?.relationsModel;
+    const relationsConfig = resourceModel?.config.relations;
 
     for (const key in data) {
       let value = data[key];
 
-      const relationSchema = relationModel?.properties[key];
+      const relationSchema = extractSchemaProperties(relationsModel, key);
       if (!relationSchema) {
         // Set empty array or undefined value for null array type fields.
         if (value === null) {
-          if (readModel?.properties[key]?.type === 'array') {
+          if (extractSchemaProperties(readModel, key)?.type === 'array') {
             relations[key] = action === 'update' ? [] : undefined;
           } else if (action === 'create') {
             relations[key] = undefined;
@@ -730,7 +837,7 @@ export abstract class ResourceService<
         continue;
       }
 
-      const config: RelationField | undefined = relationConfig?.[key];
+      const config: RelationField | undefined = relationsConfig?.[key];
       const uniqueKey = config?.input?.uniqueKey || 'id';
       const isArrayType = relationSchema.type === 'array';
 

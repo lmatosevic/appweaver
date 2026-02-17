@@ -25,6 +25,8 @@ export const resourceModelProps: Record<
   Multiple: 'readManyModel',
   Create: 'createOneModel',
   Update: 'updateOneModel',
+  Relations: 'relationsModel',
+  Virtual: 'virtualModel',
   Files: 'filesModel',
   FileUpload: 'fileUploadModel',
   FileDelete: 'fileDeleteModel'

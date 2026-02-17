@@ -111,6 +111,9 @@ CREATE TABLE "_PostGalleryImagesFile" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "User_avatarId_key" ON "User"("avatarId");
 
 -- CreateIndex

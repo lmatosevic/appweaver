@@ -160,7 +160,6 @@ export type IdentitySingle = {
   id: number;
   username: string;
   enabled: boolean;
-  logoutAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
@@ -171,7 +170,6 @@ export type IdentityMultiple = {
   id: number;
   username: string;
   enabled: boolean;
-  logoutAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
@@ -181,7 +179,6 @@ export type IdentityMultiple = {
 export type IdentityCreate = {
   username: string;
   enabled: boolean;
-  logoutAt?: Date | null;
   roles:
     | Array<{
         id: number;
@@ -192,7 +189,6 @@ export type IdentityCreate = {
 export type IdentityUpdate = {
   username: string;
   enabled: boolean;
-  logoutAt?: Date | null;
   roles?:
     | Array<{
         id: number;

@@ -15,6 +15,7 @@ import { HttpError } from '../errors';
 import { ResourceService } from '../resource';
 import {
   extractResourceName,
+  extractSchemaProperties,
   generateFileName,
   isCountField,
   toCsv
@@ -99,8 +100,8 @@ export class ExportService {
   ): any {
     const resourceModel = context.models[resourceName];
     const readModel = resourceModel?.readModel;
-    const relationModel = resourceModel?.relationsModel;
-    const fileModel = resourceModel?.filesModel;
+    const relationsModel = resourceModel?.relationsModel;
+    const filesModel = resourceModel?.filesModel;
     const exportConfig = resourceExportConfig ?? resourceModel?.config.export;
 
     const property = {};
@@ -108,9 +109,9 @@ export class ExportService {
     for (const key in item) {
       let value = item[key];
 
-      const modelSchema = readModel?.properties[key];
-      const relationSchema = relationModel?.properties[key];
-      const fileSchema = fileModel?.properties[key];
+      const modelSchema = extractSchemaProperties(readModel, key);
+      const relationSchema = extractSchemaProperties(relationsModel, key);
+      const fileSchema = extractSchemaProperties(filesModel, key);
       if (
         !modelSchema &&
         !relationSchema &&

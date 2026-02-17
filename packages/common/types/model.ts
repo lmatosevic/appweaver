@@ -19,12 +19,13 @@ export type IdGenerator =
   | 'cuid()'
   | 'cuid(2)';
 
+export type PrimitiveType = string | number | boolean | PrimitiveType[];
+
+export type ObjectType = Record<string, any>;
+
 export type FieldDefault =
-  | string
-  | number
-  | boolean
-  | (string | number)[]
-  | Record<string, any>
+  | PrimitiveType
+  | ObjectType
   | 'uuid()'
   | 'cuid()'
   | 'now()'
@@ -78,7 +79,7 @@ export type ScalarField = {
   maximum?: number;
   format?: FieldFormat;
   pattern?: string;
-  examples?: (string | number | boolean)[];
+  examples?: PrimitiveType[];
 };
 
 export type RelationInput = {
@@ -133,12 +134,18 @@ export type OperationConfig = {
 
 export type VirtualInput = {
   type?: InputType;
-  value?: any | ((resource: any) => any);
+  value?:
+    | PrimitiveType
+    | ObjectType
+    | ((resource: any) => PrimitiveType | ObjectType);
 };
 
 export type VirtualOutput = {
   type?: OutputType;
-  value?: any | ((resource: any) => any);
+  value?:
+    | PrimitiveType
+    | ObjectType
+    | ((resource: any) => PrimitiveType | ObjectType);
 };
 
 export type VirtualField = ScalarField & {

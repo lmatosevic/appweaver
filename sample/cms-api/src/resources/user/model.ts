@@ -22,6 +22,7 @@ export default createModel({
     },
     email: {
       type: 'string',
+      unique: true,
       format: 'email',
       maxLength: 255
     },
@@ -52,7 +53,10 @@ export default createModel({
   virtual: {
     active: {
       type: 'boolean',
-      default: true
+      default: true,
+      output: {
+        value: () => Math.random() > 0.5
+      }
     }
   },
   index: ['email']
