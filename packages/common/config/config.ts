@@ -54,12 +54,10 @@ const configSchema = Type.Object({
   CORS_MAX_AGE: Type.Integer({ default: 86400 }),
   CORS_CREDENTIALS: Type.Boolean({ default: true }),
 
-  DATABASE_TYPE: Type.Enum(DatabaseType, {
-    default: DatabaseType.Sqlite
-  }),
+  DATABASE_TYPE: Type.Optional(Type.Enum(DatabaseType)),
   DATABASE_URL: Type.String({ default: '' }),
   DATABASE_CLIENT_OUTPUT_PATH: Type.String({
-    default: './node_modules/.prisma/client'
+    default: './database/client'
   }),
   DATABASE_TRANSACTION_MAX_WAIT: Type.Integer({ default: 2000 }),
   DATABASE_TRANSACTION_TIMEOUT: Type.Integer({ default: 5000 }),

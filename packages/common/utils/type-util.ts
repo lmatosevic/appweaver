@@ -1,3 +1,6 @@
+import { DatabaseType } from '../enums';
+import { config } from '../config';
+
 export type BaseType<T> = T extends Array<infer I> ? I : T;
 
 export type BaseTypeKey<T> = keyof BaseType<T>;
@@ -39,10 +42,21 @@ export function isBoolean(variable: any): variable is boolean {
   return typeof variable === 'boolean';
 }
 
-function isTypeOf(variable: any, type: any): boolean {
-  try {
-    return variable.constructor === type;
-  } catch (e) {
-    return false;
+export function getDatabaseType(): DatabaseType {
+  if (config.DATABASE_TYPE) {
+    return config.DATABASE_TYPE;
   }
+
+  if (config.DATABASE_URL.startsWith('postgresql:')) {
+    return DatabaseType.PostgresSQL;
+  }
+
+  if (
+    config.DATABASE_URL.startsWith('mysql:') ||
+    config.DATABASE_URL.startsWith('mariadb:')
+  ) {
+    return DatabaseType.MySQL;
+  }
+
+  return DatabaseType.Sqlite;
 }

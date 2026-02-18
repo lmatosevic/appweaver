@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../prisma/client/client';
 import { createClient } from './create-client';
 
 /**
@@ -7,17 +7,24 @@ import { createClient } from './create-client';
  * access to the database client instance.
  */
 export class Database {
-  public static client: PrismaClient = createClient();
+  public static client: PrismaClient | undefined;
 
   public async connect(): Promise<void> {
-    await Database.client.$connect();
+    await this.clientInstance().$connect();
   }
 
   public async disconnect(): Promise<void> {
-    await Database.client.$disconnect();
+    await this.clientInstance().$disconnect();
   }
 
   get client(): PrismaClient {
+    return this.clientInstance();
+  }
+
+  private clientInstance(): PrismaClient {
+    if (!Database.client) {
+      Database.client = createClient();
+    }
     return Database.client;
   }
 }

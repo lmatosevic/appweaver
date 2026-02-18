@@ -1,6 +1,6 @@
+import { randomUUID } from 'node:crypto';
 import { DefaultGenerationOptions, generateApiKey } from 'generate-api-key';
 import { getDayOfYear, getISOWeek } from 'date-fns';
-import { v4 as uuidV4 } from 'uuid';
 import { plural as pluralize, singular as singularize } from 'pluralize';
 
 /**
@@ -37,7 +37,7 @@ export function parseArray(
  * @return {string} A randomly generated string based on the provided length and configuration.
  */
 export function randomString(
-  length: number = 16,
+  length: number = 32,
   config: {
     numbers?: boolean;
     lowercase?: boolean;
@@ -99,7 +99,7 @@ export function generateToken(
     | 'base62'
     | 'uuidv4'
     | 'uuidv5' = 'base62',
-  length: number = 16,
+  length: number = 32,
   prefix?: string,
   options: DefaultGenerationOptions = {}
 ): string {
@@ -118,7 +118,7 @@ export function generateToken(
  * separated by hyphens in the format 8-4-4-4-12.
  */
 export function uuid(): string {
-  return uuidV4();
+  return randomUUID();
 }
 
 /**

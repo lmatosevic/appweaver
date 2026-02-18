@@ -52,10 +52,10 @@ export type FileCreate = {
 };
 
 export type FileUpdate = {
-  name?: string;
-  originalName?: string;
-  mimeType?: string;
-  sizeBytes?: number;
+  name: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
   title?: string | null;
   description?: string | null;
 };
@@ -63,7 +63,7 @@ export type FileUpdate = {
 export type Role = {
   id: number;
   name: string;
-  permissions: Array<Permission>;
+  permissions: Array<PermissionMultiple>;
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
@@ -72,15 +72,13 @@ export type Role = {
 export type RoleSingle = {
   id: number;
   name: string;
-  createdById?: number | null;
-  permissions: Array<Permission>;
+  permissions: Array<PermissionMultiple>;
 };
 
 export type RoleMultiple = {
   id: number;
   name: string;
-  createdById?: number | null;
-  permissions: Array<Permission>;
+  permissions: Array<PermissionMultiple>;
 };
 
 export type RoleCreate = {
@@ -93,7 +91,7 @@ export type RoleCreate = {
 };
 
 export type RoleUpdate = {
-  name?: string;
+  name: string;
   permissions?:
     | Array<{
         id: number;
@@ -112,13 +110,11 @@ export type Permission = {
 export type PermissionSingle = {
   id: number;
   name: string;
-  createdById?: number | null;
 };
 
 export type PermissionMultiple = {
   id: number;
   name: string;
-  createdById?: number | null;
 };
 
 export type PermissionCreate = {
@@ -126,7 +122,7 @@ export type PermissionCreate = {
 };
 
 export type PermissionUpdate = {
-  name?: string;
+  name: string;
 };
 
 export type Identity = {
@@ -135,7 +131,7 @@ export type Identity = {
   passwordHash?: string | null;
   enabled: boolean;
   logoutAt?: Date | null;
-  roles: Array<Role>;
+  roles: Array<RoleMultiple>;
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
@@ -145,28 +141,25 @@ export type IdentitySingle = {
   id: number;
   username: string;
   enabled: boolean;
-  logoutAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
-  roles: Array<Role>;
+  roles: Array<RoleMultiple>;
 };
 
 export type IdentityMultiple = {
   id: number;
   username: string;
   enabled: boolean;
-  logoutAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
-  roles: Array<Role>;
+  roles: Array<RoleMultiple>;
 };
 
 export type IdentityCreate = {
   username: string;
   enabled: boolean;
-  logoutAt?: Date | null;
   roles:
     | Array<{
         id: number;
@@ -175,9 +168,8 @@ export type IdentityCreate = {
 };
 
 export type IdentityUpdate = {
-  username?: string;
-  enabled?: boolean;
-  logoutAt?: Date | null;
+  username: string;
+  enabled: boolean;
   roles?:
     | Array<{
         id: number;

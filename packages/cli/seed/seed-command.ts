@@ -6,9 +6,6 @@ export function seedCommand(program: Command): void {
     .command('seed')
     .description('Seed the database')
     .action(async () => {
-      await runProcess('ts-node', [
-        '-r tsconfig-paths/register',
-        './database/seeder/index.ts'
-      ]);
+      await runProcess('ts-node', ['./database/seeder/index.ts']);
     });
 }

@@ -50,7 +50,7 @@
     "database": {
       "type": "postgresql",
       "url": "postgresql://appweaver:appweaver@localhost:5432/appweaver-sample?schema=public",
-      "clientOutputPath": "./node_modules/.prisma/client",
+      "clientOutputPath": "./database/client",
       "transactionMaxWait": 2000,
       "transactionTimeout": 5000
     },

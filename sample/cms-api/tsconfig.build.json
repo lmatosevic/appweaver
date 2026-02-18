@@ -5,7 +5,6 @@
     "test",
     "dist",
     "**/*(spec|test).ts",
-    "prisma.config.ts",
-    "database/seeder"
+    "prisma.config.ts"
   ]
 }

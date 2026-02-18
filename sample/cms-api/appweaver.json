@@ -15,8 +15,7 @@
       "pretty": false
     },
     "database": {
-      "url": "file:./cms-api.db",
-      "clientOutputPath": "../../../node_modules/.prisma/client"
+      "url": "file:./cms-api.db"
     }
   }
 }

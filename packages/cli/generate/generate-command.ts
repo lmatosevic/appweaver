@@ -22,8 +22,12 @@ export function generateCommand(program: Command): void {
     )
     .option(
       '--schemaPath [path]',
-      'Output path for generated schema.',
+      'Output path for generated Prisma schema.',
       './database/schema.prisma'
+    )
+    .option(
+      '--clientPath [path]',
+      'Output path for generated Prisma client (default: from config or env variable).'
     )
     .action(async (_, command: Command) => {
       const generateAll =
@@ -36,7 +40,11 @@ export function generateCommand(program: Command): void {
       }
 
       if (command.getOptionValue('schema') || generateAll) {
-        await generateSchema(models, command.getOptionValue('schemaPath'));
+        await generateSchema(
+          models,
+          command.getOptionValue('schemaPath'),
+          command.getOptionValue('clientPath')
+        );
       }
     });
 }

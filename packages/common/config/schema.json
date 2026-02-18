@@ -215,8 +215,7 @@
           "properties": {
             "type": {
               "type": "string",
-              "enum": ["sqlite", "postgresql", "mysql"],
-              "default": "sqlite"
+              "enum": ["sqlite", "postgresql", "mysql"]
             },
             "url": {
               "type": "string",
@@ -224,7 +223,7 @@
             },
             "clientOutputPath": {
               "type": "string",
-              "default": "./node_modules/.prisma/client"
+              "default": "./database/client"
             },
             "transactionMaxWait": {
               "type": "integer",

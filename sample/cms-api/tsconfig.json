@@ -19,8 +19,6 @@
     "noImplicitAny": false,
     "noUnusedLocals": false,
     "paths": {
-      "@prisma/client": ["../../node_modules/.prisma/client"],
-      "@prisma/client/*": ["../../node_modules/.prisma/client/*"],
       "@appweaver/common": ["../../packages/common"],
       "@appweaver/common/*": ["../../packages/common/*"],
       "@appweaver/core": ["../../packages/core"],
@@ -28,5 +26,10 @@
       "@appweaver/cli": ["../../packages/cli"],
       "@appweaver/cli/*": ["../../packages/cli/*"]
     }
+  },
+  "ts-node": {
+    "require": [
+      "tsconfig-paths/register"
+    ]
   }
 }
