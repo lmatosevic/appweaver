@@ -58,7 +58,7 @@
     "flatted": "3.3.3",
     "generate-api-key": "1.0.2",
     "glob": "13.0.1",
-    "ioredis": "5.9.2",
+    "ioredis": "5.9.1",
     "nodemailer": "7.0.12",
     "pino": "10.2.1",
     "pino-pretty": "13.1.3",
