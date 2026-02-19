@@ -30,7 +30,6 @@
     "glob": "13.0.1",
     "prettier": "3.8.1",
     "prisma": "7.4.0",
-    "tsconfig-paths": "4.2.0",
     "ts-node": "10.9.2"
   },
   "devDependencies": {

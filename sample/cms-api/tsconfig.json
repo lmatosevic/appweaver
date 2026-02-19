@@ -26,10 +26,5 @@
       "@appweaver/cli": ["../../packages/cli"],
       "@appweaver/cli/*": ["../../packages/cli/*"]
     }
-  },
-  "ts-node": {
-    "require": [
-      "tsconfig-paths/register"
-    ]
   }
 }

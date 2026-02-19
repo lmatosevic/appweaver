@@ -37,6 +37,6 @@ export async function identityRolesPermissions(): Promise<void> {
   logger.info(`Seeder finished`);
 }
 
-identityRolesPermissions().catch(() => {
-  logger.error('Error creating identity roles');
+identityRolesPermissions().catch((err) => {
+  logger.error(`Error creating identity roles: ${err.message}`);
 });

@@ -95,10 +95,15 @@ function mysqlClient(): PrismaClient {
  * @return {PrismaClient} A configured PrismaClient instance.
  */
 function createPrismaClient(adapter: SqlDriverAdapterFactory): PrismaClient {
+  const cwd = process.cwd();
   const mainPath = require.main?.filename || process.argv[1];
 
+  const relativeMainPath = mainPath.replace(`${cwd}${path.sep}`, '');
+  const distDirName = relativeMainPath.split(path.sep)[0];
+
   const clientPath = path.join(
-    path.dirname(path.join(mainPath, '..')),
+    cwd,
+    distDirName,
     config.DATABASE_CLIENT_OUTPUT_PATH,
     'client'
   );

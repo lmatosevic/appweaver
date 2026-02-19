@@ -17,7 +17,7 @@
     "lint:fix": "npm run lint -- --fix",
     "db:migrate": "prisma migrate deploy",
     "db:generate": "prisma generate",
-    "db:seed": "ts-node ./database/seeder/index.ts",
+    "db:seed": "node ./dist/database/seeder/index.js",
     "weaver": "node ./../../node_modules/@appweaver/cli/dist/weaver.js"
   },
   "dependencies": {
