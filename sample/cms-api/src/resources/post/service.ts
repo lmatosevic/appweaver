@@ -1,7 +1,7 @@
 import { createService } from '@appweaver/core';
 
 export default createService({
-  name: 'Post',
+  modelName: 'Post',
   beforeFind: (id: number) => {
     console.log('Finding post with ID:', id);
   },

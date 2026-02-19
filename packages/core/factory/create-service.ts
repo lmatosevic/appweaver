@@ -15,7 +15,7 @@ import { Resource, ResourceOmit } from '../types';
 
 export function createService(config: ResourceServiceConfig): ResourceService {
   const name = capitalize(
-    config.name || path.basename(path.dirname(__dirname))
+    config.modelName || path.basename(path.dirname(__dirname))
   );
 
   class Service extends ResourceService {

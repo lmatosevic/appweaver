@@ -152,11 +152,11 @@ export async function loadPolicies(
     }
 
     if (isResourcePolicy(resourcePolicy)) {
-      policies[resourcePolicy.name] = resourcePolicy;
+      policies[resourcePolicy.modelName] = resourcePolicy;
     } else {
       for (const maybePolicy of Object.values(resourcePolicy)) {
         if (isResourcePolicy(maybePolicy)) {
-          policies[maybePolicy.name] = maybePolicy;
+          policies[maybePolicy.modelName] = maybePolicy;
         }
       }
     }
@@ -204,11 +204,11 @@ export async function loadRoutes(
     }
 
     if (isResourceRoute(resourceRoute)) {
-      routes[resourceRoute.config.name] = resourceRoute;
+      routes[resourceRoute.config.modelName] = resourceRoute;
     } else {
       for (const maybeRoute of Object.values(resourceRoute)) {
         if (isResourceRoute(maybeRoute)) {
-          routes[maybeRoute.config.name] = maybeRoute;
+          routes[maybeRoute.config.modelName] = maybeRoute;
         }
       }
     }

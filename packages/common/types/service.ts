@@ -36,7 +36,7 @@ export type PeriodIncrementFn = (date: Date, amount: number) => Date;
 export type HookResponse = void | Promise<void>;
 
 export type ResourceServiceConfig = {
-  name: string;
+  modelName: string;
   beforeFind?: (id: number) => HookResponse;
   beforeQuery?: (
     filter: any,

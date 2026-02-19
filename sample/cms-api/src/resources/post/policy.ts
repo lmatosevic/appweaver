@@ -1,7 +1,7 @@
 import { createPolicy } from '@appweaver/core';
 
 export default createPolicy({
-  name: 'Post',
+  modelName: 'Post',
   checkAccess: (action, resource) => true,
   readRestrictions: (action, resource) => null,
   writeRestrictions: (action, resource) => null,

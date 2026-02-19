@@ -6,7 +6,7 @@ export function createPolicy(
   config: ResourcePolicyConfig
 ): ResourcePolicyConfig {
   const name = capitalize(
-    config.name || path.basename(path.dirname(__dirname))
+    config.modelName || path.basename(path.dirname(__dirname))
   );
 
   context.policies[name] = config;

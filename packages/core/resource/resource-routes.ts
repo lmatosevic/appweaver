@@ -14,7 +14,7 @@ import { RouteHandler, ServerInstance } from '../types';
 
 export function resourceRoutes(
   name: string,
-  routesConfig: Omit<ResourceRoutesConfig, 'name'> = {}
+  routesConfig: Omit<ResourceRoutesConfig, 'modelName'> = {}
 ): RouteHandler {
   return (server: ServerInstance) => {
     const { auth, authenticateJWT } = server;

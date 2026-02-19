@@ -89,17 +89,16 @@ function mysqlClient(): PrismaClient {
 
 /**
  * Creates and returns an instance of PrismaClient configured with the specified SQL driver adapter.
- * The PrismaClient class is loaded from the configured output path relative to the current working directory.
+ * The PrismaClient class is loaded from the configured output path relative to the root directory.
  *
  * @param {SqlDriverAdapterFactory} adapter - The SQL driver adapter factory used to configure the PrismaClient.
  * @return {PrismaClient} A configured PrismaClient instance.
  */
 function createPrismaClient(adapter: SqlDriverAdapterFactory): PrismaClient {
-  const cwd = process.cwd();
+  const mainPath = require.main?.filename || process.argv[1];
 
   const clientPath = path.join(
-    cwd,
-    'dist',
+    path.dirname(path.join(mainPath, '..')),
     config.DATABASE_CLIENT_OUTPUT_PATH,
     'client'
   );

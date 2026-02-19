@@ -9,7 +9,7 @@ export function createRoutes(config: ResourceRoutesConfig): {
   handler: RouteHandler;
 } {
   const name = capitalize(
-    config.name || path.basename(path.dirname(__dirname))
+    config.modelName || path.basename(path.dirname(__dirname))
   );
 
   const routes = resourceRoutes(name, config);

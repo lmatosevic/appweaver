@@ -1,3 +1,3 @@
 import { createPolicy } from '@appweaver/core';
 
-export default createPolicy({ name: 'User' });
+export default createPolicy({ modelName: 'User' });

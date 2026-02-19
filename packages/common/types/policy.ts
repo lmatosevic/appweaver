@@ -25,7 +25,7 @@ export type FilePolicy = {
 };
 
 export type ResourcePolicyConfig = {
-  name: string;
+  modelName: string;
   checkAccess?: (action: ActionType, resource: any) => boolean;
   readRestrictions?: (
     action: Exclude<ActionType, 'create'>,

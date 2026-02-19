@@ -1,3 +1,3 @@
 import { createRoutes } from '@appweaver/core';
 
-export default createRoutes({ name: 'User' });
+export default createRoutes({ modelName: 'User' });

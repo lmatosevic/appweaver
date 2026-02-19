@@ -1,7 +1,7 @@
 import { createRoutes } from '@appweaver/core';
 
 export default createRoutes({
-  name: 'Post',
+  modelName: 'Post',
   path: '/posts',
   find: {
     exclude: false,

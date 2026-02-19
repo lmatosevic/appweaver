@@ -1,3 +1,3 @@
 import { createService } from '@appweaver/core';
 
-export default createService({ name: 'User' });
+export default createService({ modelName: 'User' });

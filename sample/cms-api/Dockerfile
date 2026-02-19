@@ -38,9 +38,10 @@ RUN npm install --production
 # Copy build files
 COPY --from=build /usr/app/dist /usr/app/dist
 
-# Copy Prisma client and database files
-COPY --from=build /usr/app/node_modules/.prisma /usr/app/node_modules/.prisma
-COPY --from=build /usr/app/database /usr/app/database
+# Copy Prisma config, database migrations, and schema file
+COPY --from=build /usr/app/prisma.config.ts /usr/app/prisma.config.ts
+COPY --from=build /usr/app/database/migrations /usr/app/database/migrations
+COPY --from=build /usr/app/database/schema.prisma /usr/app/database/schema.prisma
 
 # Copy config file/s
 COPY --from=build /usr/app/appweaver*.json /usr/app/
