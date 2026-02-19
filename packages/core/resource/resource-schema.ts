@@ -3,6 +3,7 @@ import {
   AnyJson,
   camelToSnakeCase,
   Id,
+  plural,
   ResourceRoutesConfig,
   StringDate
 } from '@appweaver/common';
@@ -41,12 +42,12 @@ export const AggregateResponseData = Type.Optional(
 
 export function createSchema(
   name: string,
-  tag: string,
   publicRoutes: Array<keyof ResourceRoutesConfig> = []
 ): ResourceSchemaConfig {
   const resourceModel = context.models[name];
 
   const resourceName = camelToSnakeCase(name, ' ');
+  const tag = plural(name);
 
   const schemaSecurity = (routeName: keyof ResourceRoutesConfig) =>
     publicRoutes.includes(routeName) ? [] : [{ bearer: [] }];

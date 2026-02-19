@@ -1,11 +1,13 @@
+export type ResourceSchema = Record<string, any>;
+
 export type ResourceSchemaConfig = {
-  findSchema?: Record<string, any>;
-  querySchema?: Record<string, any>;
-  aggregateSchema?: Record<string, any>;
-  createSchema?: Record<string, any>;
-  updateSchema?: Record<string, any>;
-  deleteSchema?: Record<string, any>;
-  exportSchema?: Record<string, any>;
-  fileUploadSchema?: Record<string, any>;
-  fileDeleteSchema?: Record<string, any>;
+  findSchema: ResourceSchema;
+  querySchema: ResourceSchema;
+  aggregateSchema: ResourceSchema;
+  createSchema: ResourceSchema;
+  updateSchema: ResourceSchema;
+  deleteSchema: ResourceSchema;
+  exportSchema: ResourceSchema;
+  fileUploadSchema: ResourceSchema;
+  fileDeleteSchema: ResourceSchema;
 };

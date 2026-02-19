@@ -63,7 +63,7 @@ export type FileUpdate = {
 export type Role = {
   id: number;
   name: string;
-  permissions: Array<PermissionMultiple>;
+  permissions: Array<PermissionSingle>;
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
@@ -72,13 +72,13 @@ export type Role = {
 export type RoleSingle = {
   id: number;
   name: string;
-  permissions: Array<PermissionMultiple>;
+  permissions: Array<PermissionSingle>;
 };
 
 export type RoleMultiple = {
   id: number;
   name: string;
-  permissions: Array<PermissionMultiple>;
+  permissions: Array<PermissionSingle>;
 };
 
 export type RoleCreate = {
@@ -131,7 +131,7 @@ export type Identity = {
   passwordHash?: string | null;
   enabled: boolean;
   logoutAt?: Date | null;
-  roles: Array<RoleMultiple>;
+  roles: Array<RoleSingle>;
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
@@ -144,7 +144,7 @@ export type IdentitySingle = {
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
-  roles: Array<RoleMultiple>;
+  roles: Array<RoleSingle>;
 };
 
 export type IdentityMultiple = {
@@ -154,7 +154,7 @@ export type IdentityMultiple = {
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
-  roles: Array<RoleMultiple>;
+  roles: Array<RoleSingle>;
 };
 
 export type IdentityCreate = {

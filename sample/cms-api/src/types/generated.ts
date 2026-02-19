@@ -8,7 +8,7 @@ export type User = {
   phone: string;
   secret: string;
   active: boolean;
-  posts?: Array<PostMultiple>;
+  posts?: Array<PostSingle>;
   avatar?: FileSingle | null;
   updatedAt: Date;
   createdAt: Date;
@@ -25,7 +25,7 @@ export type UserSingle = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  posts?: Array<PostMultiple>;
+  posts?: Array<PostSingle>;
   avatar?: FileSingle | null;
 };
 
@@ -39,7 +39,7 @@ export type UserMultiple = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  posts?: Array<PostMultiple>;
+  posts?: Array<PostSingle>;
   avatar?: FileSingle | null;
 };
 
@@ -82,7 +82,7 @@ export type Post = {
   randomNumbers: Array<number>;
   author?: UserSingle;
   coverImage?: FileSingle | null;
-  galleryImages: Array<FileMultiple>;
+  galleryImages: Array<FileSingle>;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
@@ -105,7 +105,7 @@ export type PostSingle = {
   author?: UserSingle | null;
   authorCount: number;
   coverImage?: FileSingle | null;
-  galleryImages: Array<FileMultiple>;
+  galleryImages: Array<FileSingle>;
   galleryImagesCount: number;
 };
 
@@ -150,7 +150,7 @@ export type Identity = {
   passwordHash?: string | null;
   enabled: boolean;
   logoutAt?: Date | null;
-  roles: Array<RoleMultiple>;
+  roles: Array<RoleSingle>;
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
@@ -163,7 +163,7 @@ export type IdentitySingle = {
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
-  roles: Array<RoleMultiple>;
+  roles: Array<RoleSingle>;
 };
 
 export type IdentityMultiple = {
@@ -173,7 +173,7 @@ export type IdentityMultiple = {
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
-  roles: Array<RoleMultiple>;
+  roles: Array<RoleSingle>;
 };
 
 export type IdentityCreate = {
@@ -199,7 +199,7 @@ export type IdentityUpdate = {
 export type Role = {
   id: number;
   name: string;
-  permissions: Array<PermissionMultiple>;
+  permissions: Array<PermissionSingle>;
   createdAt: Date;
   updatedAt: Date;
   createdById?: number | null;
@@ -208,13 +208,13 @@ export type Role = {
 export type RoleSingle = {
   id: number;
   name: string;
-  permissions: Array<PermissionMultiple>;
+  permissions: Array<PermissionSingle>;
 };
 
 export type RoleMultiple = {
   id: number;
   name: string;
-  permissions: Array<PermissionMultiple>;
+  permissions: Array<PermissionSingle>;
 };
 
 export type RoleCreate = {

@@ -1,62 +1,51 @@
 import { Static } from '@sinclair/typebox';
-import {
-  Id,
-  plural,
-  ResourceRoutesConfig,
-  RouteConfig
-} from '@appweaver/common';
+import { Id, ResourceRoutesConfig, RouteConfig } from '@appweaver/common';
 import { createSchema } from '../resource';
 import { context } from '../context';
 import { exportService } from '../export';
 import { fileService } from '../storage';
 import { aggregateFiles, maxFileSize } from '../utils';
-import { RouteHandler, ServerInstance } from '../types';
+import { ResourceSchema, RouteHandler, ServerInstance } from '../types';
 
 export function resourceRoutes(
   name: string,
   routesConfig: Omit<ResourceRoutesConfig, 'modelName'> = {}
-): RouteHandler {
-  return (server: ServerInstance) => {
+): { handler: RouteHandler; schema: ResourceSchema } {
+  const routeConfig = (
+    configName: keyof ResourceRoutesConfig
+  ): RouteConfig | undefined => routesConfig[configName];
+
+  const publicRoutes = Object.keys(routesConfig)
+    .map((key) => {
+      const routeName = key as keyof ResourceRoutesConfig;
+      const config = routeConfig(routeName);
+      if (config?.public || config?.auth?.length === 0) {
+        return routeName;
+      } else {
+        return null;
+      }
+    })
+    .filter((v) => v !== null);
+
+  const schema = createSchema(name, publicRoutes);
+
+  const handler = (server: ServerInstance) => {
     const { auth, authenticateJWT } = server;
 
     const service = context.services[name];
     const resourceModel = context.models[name];
 
-    const routeConfig = (
-      configName: keyof ResourceRoutesConfig
-    ): RouteConfig | undefined => routesConfig[configName];
-
     const routeAuth = (config: RouteConfig | undefined) =>
       config?.public ? undefined : auth(config?.auth ?? [authenticateJWT]);
-
-    const publicRoutes = Object.keys(routesConfig)
-      .map((key) => {
-        const routeName = key as keyof ResourceRoutesConfig;
-        const config = routeConfig(routeName);
-        if (config?.public || config?.auth?.length === 0) {
-          return routeName;
-        } else {
-          return null;
-        }
-      })
-      .filter((v) => v !== null);
-
-    const resourceName = service.modelName;
-    const resourceNamePlural = plural(resourceName);
-    const resourceSchema = createSchema(
-      resourceName,
-      resourceNamePlural,
-      publicRoutes
-    );
 
     const hasFiles = Object.keys(resourceModel.config.files ?? {}).length > 0;
 
     const findConfig = routeConfig('find');
-    if (!findConfig?.exclude && resourceSchema.findSchema) {
+    if (!findConfig?.exclude) {
       server.get<{ Params: Static<typeof Id> }>(
         '/:id',
         {
-          schema: resourceSchema.findSchema,
+          schema: schema.findSchema,
           preHandler: routeAuth(findConfig),
           config: findConfig
         },
@@ -69,11 +58,11 @@ export function resourceRoutes(
     }
 
     const queryConfig = routeConfig('query');
-    if (!queryConfig?.exclude && resourceSchema.querySchema) {
+    if (!queryConfig?.exclude) {
       server.post(
         '/query',
         {
-          schema: resourceSchema.querySchema,
+          schema: schema.querySchema,
           preHandler: routeAuth(queryConfig),
           config: queryConfig
         },
@@ -87,11 +76,11 @@ export function resourceRoutes(
     }
 
     const aggregateConfig = routeConfig('aggregate');
-    if (!aggregateConfig?.exclude && resourceSchema.aggregateSchema) {
+    if (!aggregateConfig?.exclude) {
       server.post(
         '/aggregate',
         {
-          schema: resourceSchema.aggregateSchema,
+          schema: schema.aggregateSchema,
           preHandler: routeAuth(aggregateConfig),
           config: aggregateConfig
         },
@@ -114,11 +103,11 @@ export function resourceRoutes(
     }
 
     const createConfig = routeConfig('create');
-    if (!createConfig?.exclude && resourceSchema.createSchema) {
+    if (!createConfig?.exclude) {
       server.post(
         '',
         {
-          schema: resourceSchema.createSchema,
+          schema: schema.createSchema,
           preHandler: routeAuth(createConfig),
           config: createConfig
         },
@@ -131,11 +120,11 @@ export function resourceRoutes(
     }
 
     const updateConfig = routeConfig('update');
-    if (!updateConfig?.exclude && resourceSchema.updateSchema) {
+    if (!updateConfig?.exclude) {
       server.put<{ Params: Static<typeof Id> }>(
         '/:id',
         {
-          schema: resourceSchema.updateSchema,
+          schema: schema.updateSchema,
           preHandler: routeAuth(updateConfig),
           config: updateConfig
         },
@@ -151,11 +140,11 @@ export function resourceRoutes(
     }
 
     const deleteConfig = routeConfig('delete');
-    if (!deleteConfig?.exclude && resourceSchema.deleteSchema) {
+    if (!deleteConfig?.exclude) {
       server.delete<{ Params: Static<typeof Id> }>(
         '/:id',
         {
-          schema: resourceSchema.deleteSchema,
+          schema: schema.deleteSchema,
           preHandler: routeAuth(deleteConfig),
           config: deleteConfig
         },
@@ -168,11 +157,11 @@ export function resourceRoutes(
     }
 
     const exportConfig = routeConfig('export');
-    if (!exportConfig?.exclude && resourceSchema.exportSchema) {
+    if (!exportConfig?.exclude) {
       server.post(
         '/export',
         {
-          schema: resourceSchema.exportSchema,
+          schema: schema.exportSchema,
           preHandler: routeAuth(exportConfig),
           config: exportConfig
         },
@@ -197,19 +186,14 @@ export function resourceRoutes(
     }
 
     const fileUploadConfig = routeConfig('fileUpload');
-    if (
-      hasFiles &&
-      !fileUploadConfig?.exclude &&
-      resourceSchema.fileUploadSchema &&
-      resourceModel.config.files
-    ) {
+    if (hasFiles && !fileUploadConfig?.exclude && resourceModel.config.files) {
       const config = resourceModel.config.files;
       const maxSize = maxFileSize(config);
 
       server.post<{ Params: Static<typeof Id> }>(
         '/:id/files',
         {
-          schema: resourceSchema.fileUploadSchema,
+          schema: schema.fileUploadSchema,
           preHandler: routeAuth(fileUploadConfig),
           config: fileUploadConfig,
           attachValidation: true // Disable validation because of a multipart body.
@@ -231,12 +215,7 @@ export function resourceRoutes(
     }
 
     const fileDeleteConfig = routeConfig('fileDelete');
-    if (
-      hasFiles &&
-      !fileDeleteConfig?.exclude &&
-      resourceSchema.fileDeleteSchema &&
-      resourceModel.config.files
-    ) {
+    if (hasFiles && !fileDeleteConfig?.exclude && resourceModel.config.files) {
       const config = resourceModel.config.files;
 
       server.post<{
@@ -245,7 +224,7 @@ export function resourceRoutes(
       }>(
         '/:id/delete-files',
         {
-          schema: resourceSchema.fileDeleteSchema,
+          schema: schema.fileDeleteSchema,
           preHandler: routeAuth(fileDeleteConfig),
           config: fileDeleteConfig
         },
@@ -263,4 +242,6 @@ export function resourceRoutes(
       );
     }
   };
+
+  return { handler, schema: schema };
 }

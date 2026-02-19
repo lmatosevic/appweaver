@@ -1,5 +1,10 @@
-import { TSchema } from '@sinclair/typebox';
-import { FieldDefault, ScalarField } from '@appweaver/common';
+import { TObject, TSchema } from '@sinclair/typebox';
+import {
+  FieldDefault,
+  resourceModelProps,
+  ScalarField
+} from '@appweaver/common';
+import { context } from '../context';
 import { ResourceNameSymbol } from '../constants';
 
 export function extractResourceName(schema?: TSchema): string | undefined {
@@ -31,6 +36,22 @@ export function extractSchemaProperties(
   }
 
   return key ? properties?.[key] : properties;
+}
+
+export function extractSchemaValue(schemaName: string): TObject | undefined {
+  for (const [name, model] of Object.entries(context.models)) {
+    if (!schemaName.startsWith(name)) {
+      continue;
+    }
+
+    for (const [suffix, property] of Object.entries(resourceModelProps)) {
+      const modelName = `${name}${suffix}`;
+      const modelSchema = model[property].$defs[modelName];
+      if (modelName === schemaName) {
+        return modelSchema;
+      }
+    }
+  }
 }
 
 export function countFieldName(name: string): string {

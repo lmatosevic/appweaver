@@ -246,8 +246,7 @@ function buildFilesSchema(files: Record<string, FileField> = {}): TObject {
 }
 
 function buildFileSchema(file: FileField): TSchema {
-  const fileRefName = file.array ? 'FileMultiple' : 'FileSingle';
-  const fileSchema = Type.Ref(fileRefName);
+  const fileSchema = Type.Ref('FileSingle');
   return file.array ? Type.Array(fileSchema) : Nullable(fileSchema);
 }
 
@@ -265,9 +264,7 @@ function buildRelationsSchema(
 
 function buildRelationSchema(relation: RelationField): TSchema {
   const modelName = capitalize(relation.model);
-  const modelRefName = relation.array
-    ? `${modelName}Multiple`
-    : `${modelName}Single`;
+  const modelRefName = `${modelName}Single`;
   let relationType: TSchema = Type.Ref(modelRefName);
 
   relationType = relation.array

@@ -102,12 +102,6 @@ export type RelationField = {
   array?: boolean;
   owner?: boolean;
   unique?: boolean;
-  includes?: {
-    [key: string]: Omit<
-      RelationField,
-      'model' | 'mappedBy' | 'array' | 'owner' | 'unique'
-    >;
-  };
   input?: RelationInput;
   output?: RelationOutput;
   minItems?: number;

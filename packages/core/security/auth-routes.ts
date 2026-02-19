@@ -6,10 +6,13 @@ import {
   logoutSchema,
   refreshSchema
 } from './auth-schema';
+import { extractSchemaValue } from '../utils';
 import { ServerInstance } from '../types';
 
 export function authRoutes(server: ServerInstance): void {
   const { auth, currentIdentity, authenticateJWT } = server;
+
+  server.addSchema({ ...extractSchemaValue('IdentitySingle') });
 
   server.post(
     '/login',

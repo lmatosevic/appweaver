@@ -14,6 +14,10 @@ export type ApplicationContext = {
   policies: Record<string, ResourcePolicyConfig>;
   routes: Record<
     string,
-    { config: ResourceRoutesConfig; handler: RouteHandler }
+    {
+      config: ResourceRoutesConfig;
+      schema: Record<string, any>;
+      handler: RouteHandler;
+    }
   >;
 };

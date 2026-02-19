@@ -1,3 +1,5 @@
+import { isArray, isObject } from './type-util';
+
 export function setValue(
   obj: Record<string, any>,
   path: string,
@@ -60,4 +62,35 @@ export function removeUndefined<T extends object = any>(obj: T) {
   return Object.fromEntries(
     Object.entries(obj).filter(([_, value]) => value !== undefined)
   );
+}
+
+export function objectHasProperty(
+  data: Record<string, any>,
+  key: string,
+  value: any
+): boolean {
+  if (isArray(data)) {
+    for (const item of data) {
+      if (objectHasProperty(item, key, value)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  if (data && isObject(data)) {
+    for (const [propKey, propValue] of Object.entries(data)) {
+      if (propKey === key && propValue === value) {
+        return true;
+      }
+
+      if (propValue && isObject(propValue)) {
+        if (objectHasProperty(propValue, key, value)) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
 }

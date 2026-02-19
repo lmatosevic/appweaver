@@ -1,7 +1,12 @@
 import fastifyPlugin from 'fastify-plugin';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
-import { config, resourceModelProps } from '@appweaver/common';
+import { TObject } from '@sinclair/typebox';
+import {
+  config,
+  objectHasProperty,
+  resourceModelProps
+} from '@appweaver/common';
 import { context } from '../context';
 import { ServerInstance } from '../types';
 
@@ -46,10 +51,35 @@ export default fastifyPlugin((server: ServerInstance): void => {
 });
 
 function registerModelSchema(server: ServerInstance): void {
+  const usedSchemas = new Set<TObject>();
+
   for (const [name, model] of Object.entries(context.models)) {
+    const routeSchema = context.routes[name]?.schema;
+
     for (const [suffix, property] of Object.entries(resourceModelProps)) {
-      const modelSchema = model[property].$defs[`${name}${suffix}`];
-      server.addSchema({ ...modelSchema });
+      const modelName = `${name}${suffix}`;
+      const modelSchema = model[property].$defs[modelName];
+
+      // Add schema if it's referenced in the route schema
+      if (routeSchema && objectHasProperty(routeSchema, '$ref', modelName)) {
+        usedSchemas.add(modelSchema);
+        continue;
+      }
+
+      // Add schema if it's referenced by any other model variant
+      for (const def of Object.values(model[property].$defs)) {
+        if (objectHasProperty((def as TObject).properties, '$ref', modelName)) {
+          usedSchemas.add(modelSchema);
+          break;
+        }
+      }
+    }
+  }
+
+  // Add used schemas to the server instance
+  for (const schema of usedSchemas.values()) {
+    if (schema.$id && !server.getSchema(schema.$id)) {
+      server.addSchema({ ...schema });
     }
   }
 }

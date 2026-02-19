@@ -9,7 +9,7 @@ import {
   ResourceRoutesConfig
 } from '@appweaver/common';
 import { ResourceService } from './resource-service';
-import { ApplicationContext, RouteHandler } from '../types';
+import { ApplicationContext, ResourceSchema, RouteHandler } from '../types';
 
 export async function loadResources(
   baseDir?: string
@@ -169,24 +169,40 @@ export async function loadRoutes(
   baseDir?: string,
   routePattern: string = './resources/**/*route.js'
 ): Promise<
-  Record<string, { config: ResourceRoutesConfig; handler: RouteHandler }>
+  Record<
+    string,
+    {
+      config: ResourceRoutesConfig;
+      schema: ResourceSchema;
+      handler: RouteHandler;
+    }
+  >
 > {
   const cwd = baseDir ?? process.cwd();
 
   const routes: Record<
     string,
-    { config: ResourceRoutesConfig; handler: RouteHandler }
+    {
+      config: ResourceRoutesConfig;
+      schema: ResourceSchema;
+      handler: RouteHandler;
+    }
   > = {};
 
   const routePaths = globSync(routePattern, { cwd, absolute: true });
 
   const isResourceRoute = (
     route: unknown
-  ): route is { config: ResourceRoutesConfig; handler: RouteHandler } => {
+  ): route is {
+    config: ResourceRoutesConfig;
+    schema: ResourceSchema;
+    handler: RouteHandler;
+  } => {
     return (
       isObject(route) &&
       route !== null &&
       'config' in route &&
+      'schema' in route &&
       'handler' in route &&
       isObject(route.config) &&
       route.config !== null &&
@@ -197,6 +213,7 @@ export async function loadRoutes(
   for (const path of routePaths) {
     const resourceRoute = await importPath<{
       config: ResourceRoutesConfig;
+      schema: ResourceSchema;
       handler: RouteHandler;
     }>(path);
     if (!resourceRoute) {
