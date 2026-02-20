@@ -2,8 +2,8 @@ import { Prisma } from '../prisma/client/client';
 
 export type Resource = {
   id: number;
-  updatedAt: Date;
-  createdAt: Date;
+  updatedAt?: Date;
+  createdAt?: Date;
   createdById?: number;
 };
 

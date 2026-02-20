@@ -36,7 +36,8 @@ import {
   countFieldName,
   defaultScalarValue,
   extractResourceName,
-  extractSchemaProperties
+  extractSchemaProperties,
+  isCountField
 } from '../utils';
 import { Resource, ResourceClient, ResourceOmit } from '../types';
 
@@ -486,6 +487,8 @@ export abstract class ResourceService<
   private mapSortValues(sort: string): any[] {
     const sortMap = {};
 
+    const resourceModel = context.models[this._client.name];
+
     const parts = sort.split(',');
 
     for (const part of parts) {
@@ -493,8 +496,16 @@ export abstract class ResourceService<
       const order = path.startsWith('-') ? 'desc' : 'asc';
       path = path.replace(/[-+]/g, '');
 
+      // Skip the default sort by createdAt field if not configured
+      if (
+        resourceModel.config.audit?.createdAt === false &&
+        path === 'createdAt'
+      ) {
+        continue;
+      }
+
       // Map relations count field sort order.
-      if (path.endsWith('Count')) {
+      if (isCountField(path)) {
         path = path.replace('Count', '._count');
       }
 
