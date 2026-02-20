@@ -17,7 +17,7 @@ import {
   parseRange,
   sizeInBytes
 } from '../utils';
-import { File, Resource, ResourceModel } from '../types';
+import { File, Resource, ResourceClient } from '../types';
 
 export type FileStream = {
   content: ContentStream;
@@ -102,19 +102,19 @@ export class FileService {
   public async saveFile(
     data: MultipartFile,
     resource: Resource,
-    model: ResourceModel
+    client: ResourceClient
   ): Promise<File> {
     const identity = currentIdentity();
 
     if (!(data.fieldname in resource)) {
       throw new HttpError(
-        `File field '${data.fieldname}' does not exist on resource '${model.name}'`,
+        `File field '${data.fieldname}' does not exist on resource '${client.name}'`,
         400
       );
     }
 
-    const config = this.getFileConfig(model.name, data.fieldname);
-    const policy = this.getFilePolicy(model.name, data.fieldname);
+    const config = this.getFileConfig(client.name, data.fieldname);
+    const policy = this.getFilePolicy(client.name, data.fieldname);
 
     if (!isValidMimeType(data.mimetype, config.mimeType)) {
       throw new HttpError(`Unsupported media file type: ${data.mimetype}`, 400);
@@ -123,7 +123,7 @@ export class FileService {
     if (config.array) {
       const fileCount = await this.fileCount(
         data.fieldname,
-        model.name,
+        client.name,
         resource.id
       );
       if (config.maxCount && config.maxCount < fileCount + 1) {
@@ -143,7 +143,7 @@ export class FileService {
 
     let generatedName = generateFileName(data.filename, pattern, {
       resourceField: data.fieldname,
-      resourceName: model.name,
+      resourceName: client.name,
       resourceId: resource.id,
       userId: identity?.id,
       userName: identity?.username
@@ -175,7 +175,7 @@ export class FileService {
       mimeType: data.mimetype,
       sizeBytes: data.file.bytesRead,
       resourceField: data.fieldname,
-      resourceName: model.name,
+      resourceName: client.name,
       resourceId: resource.id,
       createdById: identity?.id
     } as File;
@@ -213,14 +213,14 @@ export class FileService {
       // delete it after successfully creating the new one.
       let existingFile: File | null = null;
       if (!config.array) {
-        const resourceWithFile = await model.findFirst({
+        const resourceWithFile = await client.findFirst({
           where: { id: resource.id },
           include: { [data.fieldname]: true }
         });
         existingFile = resourceWithFile[data.fieldname];
       }
 
-      const result = await model.update({
+      const result = await client.update({
         where: { id: resource.id },
         data: {
           [data.fieldname]: {
@@ -251,13 +251,13 @@ export class FileService {
   public async saveFiles(
     parts: AsyncIterableIterator<Multipart>,
     resource: Resource,
-    model: ResourceModel
+    client: ResourceClient
   ): Promise<File[]> {
     const saveActions: Array<Promise<File>> = [];
 
     for await (const part of parts) {
       if (part.type === 'file') {
-        saveActions.push(this.saveFile(part, resource, model));
+        saveActions.push(this.saveFile(part, resource, client));
       }
     }
 
@@ -287,18 +287,18 @@ export class FileService {
     fileName: string,
     fieldName: string,
     resource: Resource,
-    model: ResourceModel
+    client: ResourceClient
   ): Promise<File> {
     const currentUser = currentIdentity();
 
     const file = await this.findByName(fileName);
     if (
       file.resourceId !== resource.id ||
-      file.resourceName !== model.name ||
+      file.resourceName !== client.name ||
       file.resourceField !== fieldName
     ) {
       throw new HttpError(
-        `File does not belong to a '${model.name}' resource`,
+        `File does not belong to a '${client.name}' resource`,
         403
       );
     }
@@ -329,7 +329,7 @@ export class FileService {
   public async deleteFiles(
     fileNames: Record<string, string | string[]>,
     resource: Resource,
-    model: ResourceModel
+    client: ResourceClient
   ): Promise<File[]> {
     if (Object.keys(fileNames ?? {}).length === 0) {
       throw new HttpError('No files for deletion are provided', 400);
@@ -340,7 +340,7 @@ export class FileService {
     for (const [field, value] of Object.entries(fileNames)) {
       const names = typeof value === 'string' ? [value] : value;
       for (const name of names) {
-        deleteActions.push(this.deleteFile(name, field, resource, model));
+        deleteActions.push(this.deleteFile(name, field, resource, client));
       }
     }
 

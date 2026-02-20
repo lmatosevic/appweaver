@@ -38,7 +38,7 @@ import {
   extractResourceName,
   extractSchemaProperties
 } from '../utils';
-import { Resource, ResourceModel, ResourceOmit } from '../types';
+import { Resource, ResourceClient, ResourceOmit } from '../types';
 
 export abstract class ResourceService<
   ReadOne = Resource,
@@ -47,19 +47,19 @@ export abstract class ResourceService<
   Update = Partial<ResourceOmit<Resource>>,
   Query = any
 > {
-  private readonly _model: ResourceModel;
+  private readonly _client: ResourceClient;
 
   constructor(public readonly modelName: string) {
-    this._model = db.client[uncapitalize(modelName)];
-    if (!this._model) {
+    this._client = db.client[uncapitalize(modelName)];
+    if (!this._client) {
       throw new Error(
-        `ResourceService initialized with invalid model: ${modelName}`
+        `ResourceService initialized with invalid model name: ${modelName}`
       );
     }
   }
 
-  public get model(): ResourceModel {
-    return this._model;
+  public get client(): ResourceClient {
+    return this._client;
   }
 
   public async find(id: number): Promise<ReadOne> {
@@ -68,24 +68,24 @@ export abstract class ResourceService<
 
     let resource: ReadOne;
     try {
-      resource = await this._model.findFirst({
+      resource = await this._client.findFirst({
         where: { id, ...restrictions },
         include: includeRelations
       });
     } catch (e) {
-      throw new HttpError(`${this._model.name} find error`, 500, e);
+      throw new HttpError(`${this._client.name} find error`, 500, e);
     }
 
     if (!resource || (resource as any).id !== id) {
-      throw new HttpError(`${this._model.name} data not found`, 404);
+      throw new HttpError(`${this._client.name} data not found`, 404);
     }
 
     const access = await this.checkAccess('find', resource);
     if (!access) {
-      throw new HttpError(`${this._model.name} data access is forbidden`, 403);
+      throw new HttpError(`${this._client.name} data access is forbidden`, 403);
     }
 
-    events.emitResourceEvent(this._model.name, 'find', { current: resource });
+    events.emitResourceEvent(this._client.name, 'find', { current: resource });
 
     return this.projectResource(resource);
   }
@@ -108,22 +108,24 @@ export abstract class ResourceService<
     let totalCount: number;
     try {
       [resources, totalCount] = await db.client.$transaction([
-        this._model.findMany({
+        this._client.findMany({
           where: { ...query },
           include: includeRelations,
           skip: (page - 1) * size,
           take: size,
           orderBy
         }),
-        this._model.count({
+        this._client.count({
           where: { ...query }
         })
       ]);
     } catch (e) {
-      throw new HttpError(`${this._model.name} query error`, 500, e);
+      throw new HttpError(`${this._client.name} query error`, 500, e);
     }
 
-    events.emitResourceEvent(this._model.name, 'query', { current: resources });
+    events.emitResourceEvent(this._client.name, 'query', {
+      current: resources
+    });
 
     return {
       resultCount: resources.length,
@@ -172,7 +174,7 @@ export abstract class ResourceService<
     let items: Record<string, Record<string, number>>[] = [];
     try {
       [total, items] = await db.client.$transaction(async (tx) => {
-        const txModel = tx[this._model.name];
+        const txModel = tx[this._client.name];
 
         const overall = await txModel.aggregate({
           ...aggregateOperations,
@@ -241,7 +243,7 @@ export abstract class ResourceService<
     const access = await this.checkAccess('create', createData as ReadOne);
     if (!access) {
       throw new HttpError(
-        `${this._model.name} create action is forbidden`,
+        `${this._client.name} create action is forbidden`,
         403
       );
     }
@@ -253,7 +255,7 @@ export abstract class ResourceService<
 
     let resource: ReadOne;
     try {
-      resource = await this._model.create({
+      resource = await this._client.create({
         data: {
           ...sanitizedData,
           ...connectRelations,
@@ -262,10 +264,12 @@ export abstract class ResourceService<
         include: includeRelations
       });
     } catch (e) {
-      throw new HttpError(`${this._model.name} create error`, 500, e);
+      throw new HttpError(`${this._client.name} create error`, 500, e);
     }
 
-    events.emitResourceEvent(this._model.name, 'create', { current: resource });
+    events.emitResourceEvent(this._client.name, 'create', {
+      current: resource
+    });
 
     return this.projectResource(resource);
   }
@@ -294,20 +298,20 @@ export abstract class ResourceService<
     let resource: ReadOne;
     try {
       [updateResource, resource] = await db.client.$transaction(async (tx) => {
-        const txModel = tx[this._model.name];
+        const txModel = tx[this._client.name];
 
         const current = await txModel.findFirst({
           where: { id, ...readRestrictions },
           include: includeRelations
         });
         if (!current || current.id !== id) {
-          throw new HttpError(`${this._model.name} data not found`, 404);
+          throw new HttpError(`${this._client.name} data not found`, 404);
         }
 
         const access = await this.checkAccess('update', current);
         if (!access) {
           throw new HttpError(
-            `${this._model.name} update action is forbidden`,
+            `${this._client.name} update action is forbidden`,
             403
           );
         }
@@ -330,10 +334,10 @@ export abstract class ResourceService<
       if (e instanceof HttpError) {
         throw e;
       }
-      throw new HttpError(`${this._model.name} update error`, 500, e);
+      throw new HttpError(`${this._client.name} update error`, 500, e);
     }
 
-    events.emitResourceEvent(this._model.name, 'update', {
+    events.emitResourceEvent(this._client.name, 'update', {
       previous: updateResource,
       current: resource
     });
@@ -347,19 +351,19 @@ export abstract class ResourceService<
     let resource: ReadOne;
     try {
       resource = await db.client.$transaction(async (tx) => {
-        const txModel = tx[this._model.name];
+        const txModel = tx[this._client.name];
 
         const current = await txModel.findFirst({
           where: { id, ...restrictions }
         });
         if (!current || current.id !== id) {
-          throw new HttpError(`${this._model.name} data not found`, 404);
+          throw new HttpError(`${this._client.name} data not found`, 404);
         }
 
         const access = await this.checkAccess('delete', current);
         if (!access) {
           throw new HttpError(
-            `${this._model.name} delete action is forbidden`,
+            `${this._client.name} delete action is forbidden`,
             403
           );
         }
@@ -375,10 +379,12 @@ export abstract class ResourceService<
       if (e instanceof HttpError) {
         throw e;
       }
-      throw new HttpError(`${this._model.name} delete error`, 500, e);
+      throw new HttpError(`${this._client.name} delete error`, 500, e);
     }
 
-    events.emitResourceEvent(this._model.name, 'delete', { current: resource });
+    events.emitResourceEvent(this._client.name, 'delete', {
+      current: resource
+    });
 
     return this.projectResource(resource);
   }
@@ -602,7 +608,7 @@ export abstract class ResourceService<
   private projectVirtualFields<T>(resource: T, resourceName?: string): T {
     const projectedVirtual = { ...resource };
 
-    const resourceModel = context.models[resourceName ?? this._model.name];
+    const resourceModel = context.models[resourceName ?? this._client.name];
     const relationsModel = resourceModel?.relationsModel;
     const filesModel = resourceModel?.filesModel;
 
@@ -646,7 +652,7 @@ export abstract class ResourceService<
   private sanitizeData<T>(data: T, resourceName?: string): T {
     const sanitizedData = { ...data };
 
-    const resourceModel = context.models[resourceName ?? this._model.name];
+    const resourceModel = context.models[resourceName ?? this._client.name];
     const relationsModel = resourceModel?.relationsModel;
     const filesModel = resourceModel?.filesModel;
 
@@ -694,7 +700,7 @@ export abstract class ResourceService<
   private mapQueryFilter(filter: any, resourceName?: string): any {
     const queryFilter = {};
 
-    const resourceModel = context.models[resourceName ?? this._model.name];
+    const resourceModel = context.models[resourceName ?? this._client.name];
     const readModel = resourceModel?.readModel;
     const relationsModel = resourceModel?.relationsModel;
     const filesModel = resourceModel?.filesModel;
@@ -764,7 +770,7 @@ export abstract class ResourceService<
   private mapRelationInclusions(action?: ActionType): Record<string, boolean> {
     const inclusion: Record<string, any> = {};
 
-    const resourceModel = context.models[this._model.name];
+    const resourceModel = context.models[this._client.name];
     const relationConfig = resourceModel?.config.relations;
     const fileConfig = resourceModel?.config.files;
 
@@ -815,7 +821,7 @@ export abstract class ResourceService<
 
     const createdBy = this.createdByConnect();
 
-    const resourceModel = context.models[this._model.name];
+    const resourceModel = context.models[this._client.name];
     const readModel = resourceModel?.readModel;
     const relationsModel = resourceModel?.relationsModel;
     const relationsConfig = resourceModel?.config.relations;

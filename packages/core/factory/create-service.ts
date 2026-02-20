@@ -12,9 +12,9 @@ import {
 import { context } from '../context';
 import { ResourceService } from '../resource';
 import {
-  ResourceNameSymbol,
-  ResourceTypeService,
-  ResourceTypeSymbol
+  RESOURCE_NAME,
+  RESOURCE_SERVICE_TYPE,
+  RESOURCE_TYPE
 } from '../constants';
 import { Resource, ResourceOmit } from '../types';
 
@@ -174,8 +174,8 @@ export function createService(config: ResourceServiceConfig): ResourceService {
 
   const resourceService = new Service(name);
 
-  config[ResourceNameSymbol] = name;
-  config[ResourceTypeSymbol] = ResourceTypeService;
+  config[RESOURCE_NAME] = name;
+  config[RESOURCE_TYPE] = RESOURCE_SERVICE_TYPE;
 
   context.services[name] = resourceService;
 

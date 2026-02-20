@@ -1,4 +1,4 @@
-import { ResourceModelSchema } from '@appweaver/common';
+import { ResourceModel } from '@appweaver/common';
 import { context } from './context';
 import { ResourceService } from '../resource';
 import { DefinitionValue } from '../types';
@@ -57,12 +57,12 @@ export function inject<T = DefinitionValue>(
  *
  * @param {string} modelName - The name of the model to inject.
  * @param {boolean} [required=true] - Indicates whether the model is required. If true, an error is thrown when the model is not found.
- * @return {ResourceModelSchema} The injected model from the application context.
+ * @return {ResourceModel} The injected model from the application context.
  */
 export function injectModel(
   modelName: string,
   required: boolean = true
-): ResourceModelSchema {
+): ResourceModel {
   const model = context.models[modelName];
 
   if (!model && required) {

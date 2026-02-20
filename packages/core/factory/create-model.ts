@@ -16,8 +16,8 @@ import {
   OutputType,
   pickProperties,
   RelationField,
+  ResourceModel,
   ResourceModelConfig,
-  ResourceModelSchema,
   ScalarField,
   StringDate,
   StringEnum,
@@ -25,13 +25,13 @@ import {
 } from '@appweaver/common';
 import { context } from '../context';
 import {
-  ResourceNameSymbol,
-  ResourceTypeModel,
-  ResourceTypeSymbol
+  RESOURCE_NAME,
+  RESOURCE_MODEL_TYPE,
+  RESOURCE_TYPE
 } from '../constants';
 import { countFieldName } from '../utils';
 
-export function createModel(config: ResourceModelConfig): ResourceModelSchema {
+export function createModel(config: ResourceModelConfig): ResourceModel {
   const name = capitalize(
     config.name || path.basename(path.dirname(__dirname))
   );
@@ -94,7 +94,7 @@ export function createModel(config: ResourceModelConfig): ResourceModelSchema {
   );
   const { fileUploadModel, fileDeleteModel } = buildFileInputModels(config);
 
-  const resourceModel: ResourceModelSchema = {
+  const resourceModel: ResourceModel = {
     name,
     config,
     readModel,
@@ -113,12 +113,12 @@ export function createModel(config: ResourceModelConfig): ResourceModelSchema {
 
   for (const value of Object.values(resourceModel)) {
     if (isObject(value)) {
-      value[ResourceNameSymbol] = name;
+      value[RESOURCE_NAME] = name;
     }
   }
 
-  resourceModel[ResourceNameSymbol] = name;
-  resourceModel[ResourceTypeSymbol] = ResourceTypeModel;
+  resourceModel[RESOURCE_NAME] = name;
+  resourceModel[RESOURCE_TYPE] = RESOURCE_MODEL_TYPE;
 
   context.models[name] = resourceModel;
 

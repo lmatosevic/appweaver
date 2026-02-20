@@ -8,12 +8,12 @@ import {
   EnumType,
   isArray,
   NullType,
-  ResourceModelSchema
+  ResourceModel
 } from '@appweaver/common';
 import { runProcess } from '../utils';
 
 export async function generateTypes(
-  models: Record<string, ResourceModelSchema>,
+  models: Record<string, ResourceModel>,
   typesPath: string
 ): Promise<void> {
   const cwd = process.cwd();

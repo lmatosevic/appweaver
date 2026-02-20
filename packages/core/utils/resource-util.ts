@@ -1,23 +1,34 @@
 import { TObject, TSchema } from '@sinclair/typebox';
 import {
   FieldDefault,
+  isObject,
+  ResourceModel,
   resourceModelProps,
+  ResourcePolicyConfig,
   ScalarField
 } from '@appweaver/common';
 import { context } from '../context';
-import { ResourceNameSymbol } from '../constants';
+import { ResourceService } from '../resource';
+import {
+  RESOURCE_MODEL_TYPE,
+  RESOURCE_NAME,
+  RESOURCE_POLICY_TYPE,
+  RESOURCE_ROUTES_TYPE,
+  RESOURCE_TYPE
+} from '../constants';
+import { ResourceRoutes } from '../types';
 
 export function extractResourceName(schema?: TSchema): string | undefined {
   if (!schema) {
     return undefined;
   }
 
-  if (schema?.type === 'array' && ResourceNameSymbol in schema.items) {
-    return schema.items[ResourceNameSymbol];
+  if (schema?.type === 'array' && RESOURCE_NAME in schema.items) {
+    return schema.items[RESOURCE_NAME];
   }
 
-  if (schema?.type !== 'array' && ResourceNameSymbol in schema) {
-    return schema[ResourceNameSymbol] as string;
+  if (schema?.type !== 'array' && RESOURCE_NAME in schema) {
+    return schema[RESOURCE_NAME] as string;
   }
 
   return undefined;
@@ -60,6 +71,22 @@ export function countFieldName(name: string): string {
 
 export function isCountField(name: string): boolean {
   return name.endsWith('Count');
+}
+
+export function isResourceModel(value: any): value is ResourceModel {
+  return isObject(value) && value[RESOURCE_TYPE] === RESOURCE_MODEL_TYPE;
+}
+
+export function isResourceRoutes(value: any): value is ResourceRoutes {
+  return isObject(value) && value[RESOURCE_TYPE] === RESOURCE_ROUTES_TYPE;
+}
+
+export function isResourcePolicy(value: any): value is ResourcePolicyConfig {
+  return isObject(value) && value[RESOURCE_TYPE] === RESOURCE_POLICY_TYPE;
+}
+
+export function isResourceService(value: any): value is ResourceService {
+  return isObject(value) && value[RESOURCE_TYPE] === RESOURCE_ROUTES_TYPE;
 }
 
 export function defaultScalarValue(scalar: ScalarField): FieldDefault {

@@ -184,7 +184,7 @@ export type ResourceModelConfig = {
   index?: IndexConfig;
 };
 
-export type ResourceModelSchema = {
+export type ResourceModel = {
   /** Model name in singular with the first capital letter (e.g., Model) */
   name: string;
   /** Received model config from default export */

@@ -15,10 +15,10 @@ export type ResourceSchemaConfig = {
   fileDeleteSchema: ResourceSchema;
 };
 
-export type RouteHandler = (server: Server) => void;
+export type RoutesHandler = (server: Server) => void;
 
-export type ResourceRoute = {
+export type ResourceRoutes = {
   config: ResourceRoutesConfig;
   schema: ResourceSchema;
-  handler: RouteHandler;
+  handler: RoutesHandler;
 };

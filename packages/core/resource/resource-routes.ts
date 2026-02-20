@@ -5,12 +5,12 @@ import { context } from '../context';
 import { exportService } from '../export';
 import { fileService } from '../storage';
 import { aggregateFiles, maxFileSize } from '../utils';
-import { ResourceSchema, RouteHandler, Server } from '../types';
+import { ResourceSchema, RoutesHandler, Server } from '../types';
 
 export function resourceRoutes(
   name: string,
   routesConfig: Omit<ResourceRoutesConfig, 'modelName'> = {}
-): { handler: RouteHandler; schema: ResourceSchema } {
+): { handler: RoutesHandler; schema: ResourceSchema } {
   const routeConfig = (
     configName: keyof ResourceRoutesConfig
   ): RouteConfig | undefined => routesConfig[configName];
@@ -206,7 +206,7 @@ export function resourceRoutes(
           const files = await fileService.saveFiles(
             parts,
             resource,
-            service.model
+            service.client
           );
 
           reply.status(200).send(aggregateFiles(files, config));
@@ -234,7 +234,7 @@ export function resourceRoutes(
           const files = await fileService.deleteFiles(
             request.body,
             resource,
-            service.model
+            service.client
           );
 
           reply.status(200).send(aggregateFiles(files, config));

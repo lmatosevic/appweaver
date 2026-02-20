@@ -1,6 +1,6 @@
-import { ResourceModelSchema, ResourcePolicyConfig } from '@appweaver/common';
+import { ResourceModel, ResourcePolicyConfig } from '@appweaver/common';
 import { Server } from './server';
-import { ResourceRoute } from './route';
+import { ResourceRoutes } from './route';
 import { ResourceService } from '../resource';
 
 export type DefinitionValue =
@@ -10,9 +10,9 @@ export type DefinitionValue =
 
 export type ApplicationContext = {
   server: Server | null;
-  models: Record<string, ResourceModelSchema>;
+  models: Record<string, ResourceModel>;
   services: Record<string, ResourceService>;
   policies: Record<string, ResourcePolicyConfig>;
-  routes: Record<string, ResourceRoute>;
+  routes: Record<string, ResourceRoutes>;
   definitions: Record<string, DefinitionValue>;
 };

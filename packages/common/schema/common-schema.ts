@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { Nullable, StringDate } from '../utils';
-import { ResourceModelSchema } from '../types';
+import { ResourceModel } from '../types';
 
 export const Id = Type.Object({
   id: Type.Integer({ minimum: 1 })
@@ -18,7 +18,7 @@ export const AuditData = Type.Object({
 
 export const resourceModelProps: Record<
   string,
-  keyof Partial<Omit<ResourceModelSchema, 'name' | 'config'>>
+  keyof Partial<Omit<ResourceModel, 'name' | 'config'>>
 > = {
   '': 'readModel',
   Single: 'readOneModel',

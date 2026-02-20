@@ -17,7 +17,7 @@ import {
   plural,
   RelationConfig,
   RelationField,
-  ResourceModelSchema,
+  ResourceModel,
   ScalarConfig,
   ScalarField,
   uncapitalize
@@ -41,7 +41,7 @@ type PrismaSchemaModel = {
 };
 
 export async function generateSchema(
-  models: Record<string, ResourceModelSchema>,
+  models: Record<string, ResourceModel>,
   schemaPath: string,
   clientPath?: string
 ): Promise<void> {

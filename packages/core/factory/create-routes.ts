@@ -3,13 +3,13 @@ import { capitalize, ResourceRoutesConfig } from '@appweaver/common';
 import { context } from '../context';
 import { resourceRoutes } from '../resource';
 import {
-  ResourceNameSymbol,
-  ResourceTypeRoutes,
-  ResourceTypeSymbol
+  RESOURCE_NAME,
+  RESOURCE_ROUTES_TYPE,
+  RESOURCE_TYPE
 } from '../constants';
-import { ResourceRoute } from '../types';
+import { ResourceRoutes } from '../types';
 
-export function createRoutes(config: ResourceRoutesConfig): ResourceRoute {
+export function createRoutes(config: ResourceRoutesConfig): ResourceRoutes {
   const name = capitalize(
     config.modelName || path.basename(path.dirname(__dirname))
   );
@@ -18,8 +18,8 @@ export function createRoutes(config: ResourceRoutesConfig): ResourceRoute {
 
   const routeData = { config, schema, handler };
 
-  routeData[ResourceNameSymbol] = name;
-  routeData[ResourceTypeSymbol] = ResourceTypeRoutes;
+  routeData[RESOURCE_NAME] = name;
+  routeData[RESOURCE_TYPE] = RESOURCE_ROUTES_TYPE;
 
   context.routes[name] = routeData;
 

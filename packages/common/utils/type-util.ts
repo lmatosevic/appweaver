@@ -18,28 +18,28 @@ export type IsObject<T> =
             ? true
             : false;
 
-export function isArray<T = any>(variable: any): variable is Array<T> {
-  return Array.isArray(variable);
+export function isArray<T = any>(val: any): val is Array<T> {
+  return Array.isArray(val);
 }
 
-export function isObject(variable: any): variable is object {
-  return typeof variable === 'object';
+export function isObject(value: any): value is object {
+  return typeof value === 'object';
 }
 
-export function isFunction(variable: any): variable is Function {
-  return typeof variable === 'function';
+export function isFunction(value: any): value is Function {
+  return typeof value === 'function';
 }
 
-export function isNumber(variable: any): variable is number {
-  return typeof variable === 'number' && !isNaN(variable);
+export function isNumber(value: any): value is number {
+  return typeof value === 'number' && !isNaN(value);
 }
 
-export function isString(variable: any): variable is string {
-  return typeof variable === 'string';
+export function isString(value: any): value is string {
+  return typeof value === 'string';
 }
 
-export function isBoolean(variable: any): variable is boolean {
-  return typeof variable === 'boolean';
+export function isBoolean(value: any): value is boolean {
+  return typeof value === 'boolean';
 }
 
 export function getDatabaseType(): DatabaseType {

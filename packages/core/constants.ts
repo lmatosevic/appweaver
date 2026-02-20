@@ -1,7 +1,7 @@
-export const ResourceNameSymbol = Symbol('ResourceName');
-export const ResourceTypeSymbol = Symbol('ResourceType');
+export const RESOURCE_NAME = Symbol('ResourceName');
+export const RESOURCE_TYPE = Symbol('ResourceType');
 
-export const ResourceTypeModel = 'Model';
-export const ResourceTypePolicy = 'Policy';
-export const ResourceTypeRoutes = 'Routes';
-export const ResourceTypeService = 'Service';
+export const RESOURCE_MODEL_TYPE = 'Model';
+export const RESOURCE_POLICY_TYPE = 'Policy';
+export const RESOURCE_ROUTES_TYPE = 'Routes';
+export const RESOURCE_SERVICE_TYPE = 'Service';

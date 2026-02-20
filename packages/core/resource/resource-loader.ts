@@ -1,14 +1,19 @@
 import { globSync } from 'glob';
 import { TObject, TSchema, Type } from '@sinclair/typebox';
 import {
-  isObject,
   logger,
+  ResourceModel,
   resourceModelProps,
-  ResourceModelSchema,
   ResourcePolicyConfig
 } from '@appweaver/common';
 import { ResourceService } from './resource-service';
-import { ApplicationContext, ResourceRoute } from '../types';
+import {
+  isResourceModel,
+  isResourcePolicy,
+  isResourceRoutes,
+  isResourceService
+} from '../utils';
+import { ApplicationContext, ResourceRoutes } from '../types';
 
 export async function loadResources(
   baseDir?: string
@@ -30,37 +35,27 @@ export async function loadResources(
 export async function loadModels(
   baseDir?: string,
   modelPattern: string = './resources/**/*model.js'
-): Promise<Record<string, ResourceModelSchema>> {
+): Promise<Record<string, ResourceModel>> {
   const cwd = baseDir ?? process.cwd();
 
-  const models: Record<string, ResourceModelSchema> = {};
+  const models: Record<string, ResourceModel> = {};
 
   const modelPaths = globSync(modelPattern, { cwd, absolute: true });
 
   // Include core module resource models from the @appweaver/core package
   modelPaths.push('@appweaver/core');
 
-  const isModelSchema = (schema: unknown): schema is ResourceModelSchema => {
-    return (
-      isObject(schema) &&
-      schema !== null &&
-      'name' in schema &&
-      'config' in schema &&
-      'readModel' in schema
-    );
-  };
-
   for (const path of modelPaths) {
-    const modelSchema = await importPath<ResourceModelSchema>(path);
+    const modelSchema = await importPath<ResourceModel>(path);
     if (!modelSchema) {
       continue;
     }
 
-    if (isModelSchema(modelSchema)) {
+    if (isResourceModel(modelSchema)) {
       models[modelSchema.name] = modelSchema;
     } else {
       for (const maybeSchema of Object.values(modelSchema)) {
-        if (isModelSchema(maybeSchema)) {
+        if (isResourceModel(maybeSchema)) {
           models[maybeSchema.name] = maybeSchema;
         }
       }
@@ -100,15 +95,6 @@ export async function loadServices(
 
   const servicePaths = globSync(servicePattern, { cwd, absolute: true });
 
-  const isResourceService = (service: unknown): service is ResourceService => {
-    return (
-      isObject(service) &&
-      service !== null &&
-      'modelName' in service &&
-      'model' in service
-    );
-  };
-
   for (const path of servicePaths) {
     const resourceService = await importPath<ResourceService>(path);
     if (!resourceService) {
@@ -139,12 +125,6 @@ export async function loadPolicies(
 
   const policyPaths = globSync(policyPattern, { cwd, absolute: true });
 
-  const isResourcePolicy = (
-    policy: unknown
-  ): policy is ResourcePolicyConfig => {
-    return isObject(policy) && policy !== null && 'name' in policy;
-  };
-
   for (const path of policyPaths) {
     const resourcePolicy = await importPath<ResourcePolicyConfig>(path);
     if (!resourcePolicy) {
@@ -168,37 +148,24 @@ export async function loadPolicies(
 export async function loadRoutes(
   baseDir?: string,
   routePattern: string = './resources/**/*route.js'
-): Promise<Record<string, ResourceRoute>> {
+): Promise<Record<string, ResourceRoutes>> {
   const cwd = baseDir ?? process.cwd();
 
-  const routes: Record<string, ResourceRoute> = {};
+  const routes: Record<string, ResourceRoutes> = {};
 
   const routePaths = globSync(routePattern, { cwd, absolute: true });
 
-  const isResourceRoute = (route: unknown): route is ResourceRoute => {
-    return (
-      isObject(route) &&
-      route !== null &&
-      'config' in route &&
-      'schema' in route &&
-      'handler' in route &&
-      isObject(route.config) &&
-      route.config !== null &&
-      'name' in route.config
-    );
-  };
-
   for (const path of routePaths) {
-    const resourceRoute = await importPath<ResourceRoute>(path);
+    const resourceRoute = await importPath<ResourceRoutes>(path);
     if (!resourceRoute) {
       continue;
     }
 
-    if (isResourceRoute(resourceRoute)) {
+    if (isResourceRoutes(resourceRoute)) {
       routes[resourceRoute.config.modelName] = resourceRoute;
     } else {
       for (const maybeRoute of Object.values(resourceRoute)) {
-        if (isResourceRoute(maybeRoute)) {
+        if (isResourceRoutes(maybeRoute)) {
           routes[maybeRoute.config.modelName] = maybeRoute;
         }
       }
