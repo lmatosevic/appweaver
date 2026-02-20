@@ -24,7 +24,11 @@ import {
   VirtualConfig
 } from '@appweaver/common';
 import { context } from '../context';
-import { ResourceNameSymbol } from '../constants';
+import {
+  ResourceNameSymbol,
+  ResourceTypeModel,
+  ResourceTypeSymbol
+} from '../constants';
 import { countFieldName } from '../utils';
 
 export function createModel(config: ResourceModelConfig): ResourceModelSchema {
@@ -114,6 +118,8 @@ export function createModel(config: ResourceModelConfig): ResourceModelSchema {
   }
 
   resourceModel[ResourceNameSymbol] = name;
+  resourceModel[ResourceTypeSymbol] = ResourceTypeModel;
+
   context.models[name] = resourceModel;
 
   return resourceModel;

@@ -11,6 +11,11 @@ import {
 } from '@appweaver/common';
 import { context } from '../context';
 import { ResourceService } from '../resource';
+import {
+  ResourceNameSymbol,
+  ResourceTypeService,
+  ResourceTypeSymbol
+} from '../constants';
 import { Resource, ResourceOmit } from '../types';
 
 export function createService(config: ResourceServiceConfig): ResourceService {
@@ -168,6 +173,9 @@ export function createService(config: ResourceServiceConfig): ResourceService {
   });
 
   const resourceService = new Service(name);
+
+  config[ResourceNameSymbol] = name;
+  config[ResourceTypeSymbol] = ResourceTypeService;
 
   context.services[name] = resourceService;
 
