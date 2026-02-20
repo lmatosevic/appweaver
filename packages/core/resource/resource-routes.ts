@@ -5,7 +5,7 @@ import { context } from '../context';
 import { exportService } from '../export';
 import { fileService } from '../storage';
 import { aggregateFiles, maxFileSize } from '../utils';
-import { ResourceSchema, RouteHandler, ServerInstance } from '../types';
+import { ResourceSchema, RouteHandler, Server } from '../types';
 
 export function resourceRoutes(
   name: string,
@@ -29,7 +29,7 @@ export function resourceRoutes(
 
   const schema = createSchema(name, publicRoutes);
 
-  const handler = (server: ServerInstance) => {
+  const handler = (server: Server) => {
     const { auth, authenticateJWT } = server;
 
     const service = context.services[name];

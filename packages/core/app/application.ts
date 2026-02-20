@@ -1,20 +1,20 @@
 import { config } from '@appweaver/common';
 import { db } from '../database';
 import { context } from '../context';
-import { ServerInstance } from '../types';
+import { Server } from '../types';
 
 /**
  * Represents an application that manages the lifecycle of a Fastify server instance.
  */
 export class Application {
-  constructor(private readonly _server: ServerInstance) {}
+  constructor(private readonly _server: Server) {}
 
   /**
    * Retrieves the Fastify instance.
    *
-   * @return {ServerInstance} The underlying Fastify server instance.
+   * @return {Server} The underlying Fastify server instance.
    */
-  get server(): ServerInstance {
+  get server(): Server {
     return this._server;
   }
 

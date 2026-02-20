@@ -11,9 +11,9 @@ import { authService } from './auth-service';
 import { authRoutes } from './auth-routes';
 import { currentIdentity, hasPermissions, hasRoles } from './helper';
 import { HttpError } from '../errors';
-import { JwtPayload, ServerInstance } from '../types';
+import { JwtPayload, Server } from '../types';
 
-export default fastifyPlugin((server: ServerInstance): void => {
+export default fastifyPlugin((server: Server): void => {
   server.register(fastifyAuth);
 
   if (!config.SECURITY_JWT_SECRET) {
