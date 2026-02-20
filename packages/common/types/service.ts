@@ -33,17 +33,17 @@ export type AggregateResponse<T> = {
 
 export type PeriodIncrementFn = (date: Date, amount: number) => Date;
 
-export type HookResponse = void | Promise<void>;
+export type ServiceHookResponse = void | Promise<void>;
 
 export type ResourceServiceConfig = {
   modelName: string;
-  beforeFind?: (id: number) => HookResponse;
+  beforeFind?: (id: number) => ServiceHookResponse;
   beforeQuery?: (
     filter: any,
     page: number,
     size: number,
     sort: string
-  ) => HookResponse;
+  ) => ServiceHookResponse;
   beforeAggregate?: (
     filter: any,
     select: AggregateSelect<any>,
@@ -52,15 +52,15 @@ export type ResourceServiceConfig = {
     to?: string,
     step?: number,
     safeIncrement?: boolean
-  ) => HookResponse;
-  beforeCreate?: (data: any) => HookResponse;
-  beforeUpdate?: (id: number, data: any) => HookResponse;
-  beforeDelete?: (id: number) => HookResponse;
-  afterFind?: (resource: any) => HookResponse;
-  afterQuery?: (response: QueryResponse<any>) => HookResponse;
-  afterAggregate?: (response: AggregateResponse<any>) => HookResponse;
-  afterCreate?: (resource: any) => HookResponse;
-  afterUpdate?: (resource: any) => HookResponse;
-  afterDelete?: (resource: any) => HookResponse;
+  ) => ServiceHookResponse;
+  beforeCreate?: (data: any) => ServiceHookResponse;
+  beforeUpdate?: (id: number, data: any) => ServiceHookResponse;
+  beforeDelete?: (id: number) => ServiceHookResponse;
+  afterFind?: (resource: any) => ServiceHookResponse;
+  afterQuery?: (response: QueryResponse<any>) => ServiceHookResponse;
+  afterAggregate?: (response: AggregateResponse<any>) => ServiceHookResponse;
+  afterCreate?: (resource: any) => ServiceHookResponse;
+  afterUpdate?: (resource: any) => ServiceHookResponse;
+  afterDelete?: (resource: any) => ServiceHookResponse;
   textSearch?: any | ((input: string) => any);
 };
