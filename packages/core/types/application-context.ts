@@ -7,6 +7,11 @@ import { ServerInstance } from './server-instance';
 import { RouteHandler } from './route-config';
 import { ResourceService } from '../resource';
 
+export type DefinitionValue =
+  | Object
+  | ((...args: any[]) => any)
+  | Record<string, any>;
+
 export type ApplicationContext = {
   server: ServerInstance | null;
   models: Record<string, ResourceModelSchema>;
@@ -20,4 +25,5 @@ export type ApplicationContext = {
       handler: RouteHandler;
     }
   >;
+  definitions: Record<string, DefinitionValue>;
 };

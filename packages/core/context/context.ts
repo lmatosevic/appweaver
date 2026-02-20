@@ -5,5 +5,6 @@ export const context: ApplicationContext = {
   models: {},
   services: {},
   policies: {},
-  routes: {}
+  routes: {},
+  definitions: {}
 };

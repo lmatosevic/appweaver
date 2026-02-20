@@ -23,7 +23,8 @@ export async function loadResources(
     models,
     services,
     policies,
-    routes
+    routes,
+    definitions: {}
   };
 }
 

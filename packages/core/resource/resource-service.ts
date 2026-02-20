@@ -606,6 +606,7 @@ export abstract class ResourceService<
     const relationsModel = resourceModel?.relationsModel;
     const filesModel = resourceModel?.filesModel;
 
+    // Set output or default value for virtual fields
     for (const [fieldName, virtual] of Object.entries(
       resourceModel.config?.virtual ?? {}
     )) {
