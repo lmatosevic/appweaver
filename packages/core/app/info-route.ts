@@ -1,8 +1,8 @@
 import { config } from '@appweaver/common';
 import { infoSchema } from './info-schema';
-import { ServerInstance } from '../types';
+import { Server } from '../types';
 
-export function info(server: ServerInstance): void {
+export function info(server: Server): void {
   server.get(
     '/',
     {

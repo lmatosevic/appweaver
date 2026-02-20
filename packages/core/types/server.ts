@@ -7,7 +7,7 @@ import {
 } from 'fastify';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
-export type ServerInstance = FastifyInstance<
+export type Server = FastifyInstance<
   RawServerDefault,
   RawRequestDefaultExpression,
   RawReplyDefaultExpression,

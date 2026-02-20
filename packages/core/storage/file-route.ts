@@ -3,9 +3,9 @@ import { Static } from '@sinclair/typebox';
 import { config } from '@appweaver/common';
 import { fileService, FileStream } from './file-service';
 import { createFileAccessSchema, FileName } from './file-schema';
-import { ServerInstance } from '../types';
+import { Server } from '../types';
 
-export function files(server: ServerInstance): void {
+export function files(server: Server): void {
   const { auth, authenticateJWT } = server;
 
   const addHeaders = (
