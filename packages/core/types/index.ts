@@ -3,4 +3,4 @@ export * from './generated';
 export * from './jwt-payload';
 export * from './resource';
 export * from './route';
-export * from './server';
+export * from './serverInstance';

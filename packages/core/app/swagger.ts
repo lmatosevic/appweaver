@@ -8,9 +8,9 @@ import {
   resourceModelProps
 } from '@appweaver/common';
 import { context } from '../context';
-import { Server } from '../types';
+import { ServerInstance } from '../types';
 
-export default fastifyPlugin((server: Server): void => {
+export default fastifyPlugin((server: ServerInstance): void => {
   registerModelSchema(server);
 
   server.register(fastifySwagger, {
@@ -50,7 +50,7 @@ export default fastifyPlugin((server: Server): void => {
   });
 });
 
-function registerModelSchema(server: Server): void {
+function registerModelSchema(server: ServerInstance): void {
   const usedSchemas = new Set<TObject>();
 
   for (const [name, model] of Object.entries(context.models)) {

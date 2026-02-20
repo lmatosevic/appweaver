@@ -7,9 +7,9 @@ import {
   refreshSchema
 } from './auth-schema';
 import { extractSchemaValue } from '../utils';
-import { Server } from '../types';
+import { ServerInstance } from '../types';
 
-export function authRoutes(server: Server): void {
+export function authRoutes(server: ServerInstance): void {
   const { auth, currentIdentity, authenticateJWT } = server;
 
   server.addSchema({ ...extractSchemaValue('IdentitySingle') });

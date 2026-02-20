@@ -1,5 +1,5 @@
 import { ResourceRoutesConfig } from '@appweaver/common';
-import { Server } from './server';
+import { ServerInstance } from './serverInstance';
 
 export type ResourceSchema = Record<string, any>;
 
@@ -15,7 +15,7 @@ export type ResourceSchemaConfig = {
   fileDeleteSchema: ResourceSchema;
 };
 
-export type RouteHandler = (server: Server) => void;
+export type RouteHandler = (server: ServerInstance) => void;
 
 export type ResourceRoute = {
   config: ResourceRoutesConfig;
