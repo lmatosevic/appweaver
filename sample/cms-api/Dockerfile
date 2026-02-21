@@ -11,7 +11,7 @@ WORKDIR /usr/app
 COPY ../.. .
 
 # Install NPM dependencies
-RUN npm install
+RUN npm ci
 
 # Generate Prisma client files
 RUN npm run db:generate
@@ -30,10 +30,10 @@ RUN apk add build-base python3 py3-pip make gcc
 WORKDIR /usr/app
 
 # Copy NPM package
-COPY package*.json /usr/app/
+COPY --from=build /usr/app/package*.json /usr/app/
 
-# Install NPM dependencies
-RUN npm install --production
+# Copy node_modules directory
+COPY --from=build /usr/app/node_modules /usr/app/node_modules
 
 # Copy build files
 COPY --from=build /usr/app/dist /usr/app/dist
