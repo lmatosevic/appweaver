@@ -8,31 +8,35 @@ export type FieldType =
   | 'json'
   | 'enum';
 
-export type IdType = 'string' | 'int' | 'bigInt';
+export type IdGeneratorString = 'uuid()' | 'uuid(7)' | 'cuid()' | 'cuid(2)';
 
-export type IdGenerator =
-  | 'autoincrement()'
-  | 'uuid()'
-  | 'uuid(7)'
-  | 'cuid()'
-  | 'cuid(2)';
+export type IdGeneratorInt = 'autoincrement()';
 
 export type PrimitiveType = string | number | boolean | PrimitiveType[];
 
 export type ObjectType = Record<string, any>;
 
-export type FieldDefault =
-  | PrimitiveType
-  | ObjectType
-  | 'uuid()'
-  | 'cuid()'
-  | 'now()'
-  | 'autoincrement()';
+export type FieldDefaultString = string | IdGeneratorString;
 
-export type FieldFormat =
-  | 'date-time'
-  | 'time'
-  | 'date'
+export type FieldDefaultNumber = number | IdGeneratorInt;
+
+export type FieldDefaultBoolean = boolean;
+
+export type FieldDefaultDateTime = string | Date | 'now()';
+
+export type FieldDefaultJson = ObjectType | PrimitiveType[];
+
+export type FieldDefaultEnum = string;
+
+export type FieldDefault =
+  | FieldDefaultString
+  | FieldDefaultNumber
+  | FieldDefaultBoolean
+  | FieldDefaultDateTime
+  | FieldDefaultJson
+  | FieldDefaultEnum;
+
+export type FieldFormatString =
   | 'email'
   | 'hostname'
   | 'ipv4'
@@ -40,6 +44,8 @@ export type FieldFormat =
   | 'uri'
   | 'uuid'
   | 'regex';
+
+export type FieldFormatDate = 'date-time' | 'time' | 'date';
 
 export type InputType = 'all' | 'create' | 'update' | 'none';
 
@@ -52,10 +58,17 @@ export type ReferentialAction =
   | 'setNull'
   | 'setDefault';
 
-export type IdField = {
-  type?: IdType;
-  generator?: IdGenerator;
+export type IdFieldString = {
+  type: Extract<FieldType, 'string'>;
+  generator?: IdGeneratorString;
 };
+
+export type IdFieldInt = {
+  type?: Extract<FieldType, 'int' | 'bigInt'>;
+  generator?: IdGeneratorInt;
+};
+
+export type IdField = IdFieldString | IdFieldInt;
 
 export type AuditFields = {
   updatedAt?: boolean;
@@ -63,22 +76,54 @@ export type AuditFields = {
   createdById?: boolean;
 };
 
-export type ScalarField = {
-  type: FieldType;
-  default?: FieldDefault;
-  values?: string[];
-  array?: boolean;
+type BaseScalarField<T, IsArray extends boolean = boolean> = {
+  array?: IsArray;
+  default?: IsArray extends true ? T[] : T;
   required?: boolean;
   unique?: boolean;
   hidden?: boolean;
-  minLength?: number;
-  maxLength?: number;
-  minimum?: number;
-  maximum?: number;
-  format?: FieldFormat;
-  pattern?: string;
   examples?: PrimitiveType[];
 };
+
+export type ScalarFieldString = BaseScalarField<FieldDefaultString> & {
+  type: Extract<FieldType, 'string'>;
+  minLength?: number;
+  maxLength?: number;
+  format?: FieldFormatString;
+  pattern?: string;
+};
+
+export type ScalarFieldNumber = BaseScalarField<FieldDefaultNumber> & {
+  type: Extract<FieldType, 'int' | 'bigInt' | 'float'>;
+  minimum?: number;
+  maximum?: number;
+};
+
+export type ScalarFieldBoolean = BaseScalarField<FieldDefaultBoolean> & {
+  type: Extract<FieldType, 'boolean'>;
+};
+
+export type ScalarFieldDateTime = BaseScalarField<FieldDefaultDateTime> & {
+  type: Extract<FieldType, 'dateTime'>;
+  format?: FieldFormatDate;
+};
+
+export type ScalarFieldJson = BaseScalarField<FieldDefaultJson> & {
+  type: Extract<FieldType, 'json'>;
+};
+
+export type ScalarFieldEnum = BaseScalarField<FieldDefaultEnum> & {
+  type: Extract<FieldType, 'enum'>;
+  values: string[];
+};
+
+export type ScalarField =
+  | ScalarFieldString
+  | ScalarFieldNumber
+  | ScalarFieldBoolean
+  | ScalarFieldDateTime
+  | ScalarFieldJson
+  | ScalarFieldEnum;
 
 export type RelationInput = {
   type: InputType;
@@ -155,15 +200,23 @@ export type ExportRelations = {
   [key: string]: ExportField;
 };
 
-export type ScalarConfig = Record<string, ScalarField>;
+type Disallow<K extends PropertyKey> = {
+  [P in K]?: never;
+};
 
-export type RelationConfig = Record<string, RelationField>;
+type FieldConfig<T> = {
+  [key: string]: T;
+} & Disallow<keyof AuditFields | 'id'>;
 
-export type FilesConfig = Record<string, FileField>;
+export type ScalarConfig = FieldConfig<ScalarField>;
 
-export type VirtualConfig = Record<string, VirtualField>;
+export type RelationConfig = FieldConfig<RelationField>;
 
-export type ExportConfig = Record<string, ExportField | ExportRelations>;
+export type FilesConfig = FieldConfig<FileField>;
+
+export type VirtualConfig = FieldConfig<VirtualField>;
+
+export type ExportConfig = FieldConfig<ExportField | ExportRelations>;
 
 export type IndexConfig = string[] | string[][];
 
