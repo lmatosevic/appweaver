@@ -8,8 +8,7 @@
  *
  * 🟢 You can import this file directly.
  */
-export type * from './models/File'
 export type * from './models/Role'
 export type * from './models/Permission'
-export type * from './models/Identity'
+export type * from './models/File'
 export type * from './commonInputTypes'

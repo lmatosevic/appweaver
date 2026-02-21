@@ -1,7 +1,7 @@
 import { Static } from '@sinclair/typebox';
 import { ResourceRoutesConfig, RouteConfig } from '@appweaver/common';
 import { createSchema, Id } from '../resource';
-import { context } from '../context';
+import { injectModel, injectService } from '../context';
 import { exportService } from '../export';
 import { fileService } from '../storage';
 import { aggregateFiles, maxFileSize } from '../utils';
@@ -32,8 +32,8 @@ export function resourceRoutes(
   const handler = (server: Server) => {
     const { auth, authenticateJWT } = server;
 
-    const service = context.services[name];
-    const resourceModel = context.models[name];
+    const service = injectService(name);
+    const resourceModel = injectModel(name);
 
     const routeAuth = (config: RouteConfig | undefined) =>
       config?.public ? undefined : auth(config?.auth ?? [authenticateJWT]);

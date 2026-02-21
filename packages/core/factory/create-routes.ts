@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { capitalize, ResourceRoutesConfig } from '@appweaver/common';
-import { context } from '../context';
+import { define } from '../context';
 import { resourceRoutes } from '../resource';
 import { ResourceRoutes } from '../types';
 import {
@@ -21,7 +21,7 @@ export function createRoutes(config: ResourceRoutesConfig): ResourceRoutes {
   routeData[RESOURCE_NAME] = name;
   routeData[RESOURCE_TYPE] = RESOURCE_ROUTES_TYPE;
 
-  context.routes[name] = routeData;
+  define(name, routeData);
 
   return routeData;
 }

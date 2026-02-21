@@ -75,13 +75,15 @@ export const changePasswordSchema = {
   body: ChangePasswordRequest
 };
 
-export const currentIdentitySchema = {
-  tags: ['Auth'],
-  security: [{ bearer: [] }],
-  summary: 'Return current identity',
-  description: 'Return current identity',
-  response: {
-    200: Type.Ref('IdentitySingle'),
-    ...AllErrorResponses
-  }
-};
+export function createCurrentAuthUserSchema(modelName: string) {
+  return {
+    tags: ['Auth'],
+    security: [{ bearer: [] }],
+    summary: 'Return currently authorized user',
+    description: 'Return currently authorized user',
+    response: {
+      200: Type.Ref(`${modelName}Single`),
+      ...AllErrorResponses
+    }
+  };
+}

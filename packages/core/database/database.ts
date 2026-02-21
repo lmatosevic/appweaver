@@ -17,8 +17,8 @@ export class Database {
     await this.clientInstance().$disconnect();
   }
 
-  get client(): PrismaClient {
-    return this.clientInstance();
+  public getClient<T = PrismaClient>(): T {
+    return this.clientInstance() as T;
   }
 
   private clientInstance(): PrismaClient {

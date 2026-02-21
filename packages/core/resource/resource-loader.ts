@@ -13,7 +13,7 @@ import { ApplicationContext, ResourceModel, ResourceRoutes } from '../types';
 
 export async function loadResources(
   baseDir?: string
-): Promise<Omit<ApplicationContext, 'server'>> {
+): Promise<Omit<ApplicationContext, 'server' | 'definitions'>> {
   const models = await loadModels(baseDir);
   const services = await loadServices(baseDir);
   const policies = await loadPolicies(baseDir);
@@ -23,8 +23,7 @@ export async function loadResources(
     models,
     services,
     policies,
-    routes,
-    definitions: {}
+    routes
   };
 }
 

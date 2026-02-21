@@ -2,12 +2,9 @@ import fastifyPlugin from 'fastify-plugin';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
 import { TObject } from '@sinclair/typebox';
-import {
-  config,
-  objectHasProperty
-} from '@appweaver/common';
+import { config, objectHasProperty } from '@appweaver/common';
 import { resourceModelProps } from '../resource';
-import { context } from '../context';
+import { context, injectRoutes } from '../context';
 import { Server } from '../types';
 
 export default fastifyPlugin((server: Server): void => {
@@ -54,7 +51,7 @@ function registerModelSchema(server: Server): void {
   const usedSchemas = new Set<TObject>();
 
   for (const [name, model] of Object.entries(context.models)) {
-    const routeSchema = context.routes[name]?.schema;
+    const routeSchema = injectRoutes(name, false)?.schema;
 
     for (const [suffix, property] of Object.entries(resourceModelProps)) {
       const modelName = `${name}${suffix}`;

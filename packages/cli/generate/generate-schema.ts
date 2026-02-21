@@ -1,7 +1,7 @@
 import path from 'node:path';
 import fsp from 'node:fs/promises';
 import fs from 'node:fs';
-import { ResourceModel } from '@appweaver/core';
+import { isResourceAuthModel, ResourceModel } from '@appweaver/core';
 import {
   AuditFields,
   capitalize,
@@ -81,6 +81,14 @@ export async function generateSchema(
       ``
     ];
 
+    let authModel: ResourceModel | undefined;
+    for (const model of Object.values(models)) {
+      if (isResourceAuthModel(model)) {
+        authModel = model;
+        break;
+      }
+    }
+
     // Create Prisma models and enums from resource model config
     for (const [name, schema] of Object.entries(models)) {
       prismaModels[name] = {
@@ -88,7 +96,7 @@ export async function generateSchema(
         scalars: createScalarsSchema(name, schema.config.scalars),
         relations: createRelationsSchema(name, schema.config.relations),
         files: createFilesSchema(name, schema.config.files),
-        audit: createAuditSchema(name, schema.config.audit),
+        audit: createAuditSchema(name, authModel, schema.config.audit),
         index: createIndexSchema(schema.config.index)
       };
 
@@ -102,7 +110,7 @@ export async function generateSchema(
     }
 
     // Resolve model relations to match Prisma schema relationship convention
-    const createdByIdentities: PrismaSchemaField[] = [];
+    const createdByAuthUser: PrismaSchemaField[] = [];
     const fileFields: PrismaSchemaField[] = [];
     for (const [name, model] of Object.entries(prismaModels)) {
       const modelSchema = Object.entries(models).find(
@@ -133,7 +141,11 @@ export async function generateSchema(
           const relationParts = relationAttribute.split('"');
           const referenceName = relation.attributes?.[0].split('"')[1];
           relationParts.splice(1, 1, `${referenceName}`);
-          mappedField.attributes[0] = relationParts.join('"');
+          if (relationConfig?.unique) {
+            mappedField.attributes[0] = `@relation("${referenceName}")`;
+          } else {
+            mappedField.attributes[0] = relationParts.join('"');
+          }
         } else {
           // For unmapped relations add a default relation field using the same
           // reference name
@@ -151,7 +163,7 @@ export async function generateSchema(
       for (const auditField of model.audit) {
         if (auditField.name === 'createdBy') {
           const referenceName = auditField.attributes?.[0].split('"')[1];
-          createdByIdentities.push({
+          createdByAuthUser.push({
             name: `created${plural(name)}`,
             type: `${name}[]`,
             attributes: [`@relation("${referenceName}")`]
@@ -171,12 +183,11 @@ export async function generateSchema(
       }
     }
 
-    // Add identity ownership relations
-    const identityModel = prismaModels['Identity'];
-    if (identityModel) {
-      identityModel.extra = {
-        'Ownership models referenced with createdById column':
-          createdByIdentities
+    // Add auth model ownership relations
+    const authUserModel = prismaModels[authModel?.name ?? ''];
+    if (authUserModel) {
+      authUserModel.extra = {
+        'Ownership models referenced with createdById column': createdByAuthUser
       };
     }
 
@@ -527,9 +538,12 @@ function createFileSchema(
 
 function createAuditSchema(
   modelName: string,
+  authModel?: ResourceModel,
   audit: AuditFields = { createdAt: true, updatedAt: true, createdById: true }
 ): PrismaSchemaField[] {
   const fields: PrismaSchemaField[] = [];
+
+  const authModelName = authModel?.name;
 
   if (audit.updatedAt) {
     fields.push({
@@ -547,12 +561,12 @@ function createAuditSchema(
     });
   }
 
-  if (audit.createdById) {
+  if (audit.createdById && authModelName) {
     fields.push({
       name: 'createdBy',
-      type: 'Identity?',
+      type: `${authModelName}?`,
       attributes: [
-        `@relation("${modelName}CreatedByIdentity", fields: [createdById], references: [id])`
+        `@relation("${modelName}CreatedBy${authModelName}", fields: [createdById], references: [id])`
       ]
     });
     fields.push({

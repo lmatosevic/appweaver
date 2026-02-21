@@ -1,105 +1,87 @@
 import { config } from '@appweaver/common';
-import { checkPassword, hashPassword, updatePasswordHash } from './helper';
-import { db } from '../database';
-import { context } from '../context';
+import {
+  authModel,
+  checkPassword,
+  hashPassword,
+  updatePasswordHash
+} from './helper';
+import { context, injectService } from '../context';
 import { HttpError } from '../errors';
-import { Identity, JwtPayload } from '../types';
-
-export type AuthTokens = {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-  refreshExpiresIn: number;
-};
+import { AuthTokens, AuthUser, JwtPayload } from '../types';
+import { ResourceService } from '../resource';
 
 export class AuthService {
-  private readonly include = { roles: { include: { permissions: true } } };
-
-  public async findById(id: number): Promise<Identity | null> {
+  public async findById(id: number): Promise<AuthUser | null> {
     try {
-      return db.client.identity.findFirst({
-        where: { id },
-        include: this.include
-      });
+      return this.authUserService().find(id);
     } catch (e) {
-      throw new HttpError('Identity find error', 500, e);
+      throw new HttpError('Auth user find error', 500, e);
     }
   }
 
-  public async findByUsername(username: string): Promise<Identity | null> {
+  public async findByUsername(username: string): Promise<AuthUser | null> {
     try {
-      return db.client.identity.findFirst({
-        where: { username },
-        include: this.include
-      });
+      const result = await this.authUserService().query({ email: username });
+      return result.items[0];
     } catch (e) {
-      throw new HttpError('Identity find error', 500, e);
+      throw new HttpError('Auth user find error', 500, e);
     }
   }
 
-  public async updateIdentity(
+  public async updateAuthUser(
     id: number,
-    data: Partial<Identity> & { password?: string }
-  ): Promise<Identity> {
+    data: Partial<AuthUser> & { password?: string }
+  ): Promise<AuthUser> {
     try {
       await updatePasswordHash(data, data.password, true);
-      return db.client.identity.update({
-        where: { id },
-        include: this.include,
-        data: {
-          ...data,
-          roles: {
-            connect: data.roles?.map((role) => ({ id: role.id }))
-          }
-        }
-      });
+      return await this.authUserService().update(id, data);
     } catch (e) {
-      throw new HttpError('Identity update error', 500, e);
+      throw new HttpError('Auth user update error', 500, e);
     }
   }
 
   public async changePassword(
-    Identity: Identity,
+    authUser: AuthUser,
     currentPassword: string,
     newPassword: string
   ): Promise<AuthTokens> {
     if (
-      !Identity.passwordHash ||
-      !(await checkPassword(currentPassword, Identity.passwordHash))
+      !authUser.passwordHash ||
+      !(await checkPassword(currentPassword, authUser.passwordHash))
     ) {
-      throw new HttpError('Invalid current password', 403);
+      throw new HttpError('Auth user current password', 403);
     }
 
-    await this.updateIdentity(Identity.id, {
+    await this.updateAuthUser(authUser.id, {
       logoutAt: new Date(),
       passwordHash: await hashPassword(newPassword)
     });
 
-    return this.login(Identity.username, newPassword);
+    return this.login(authUser.email, newPassword);
   }
 
   public async login(username: string, password: string): Promise<AuthTokens> {
-    const Identity = await this.findByUsername(username);
-    if (!Identity || !Identity.enabled || !Identity.passwordHash) {
-      throw new HttpError('Identity does not exist or is disabled', 400);
+    const authUser = await this.findByUsername(username);
+    if (!authUser || !authUser.enabled || !authUser.passwordHash) {
+      throw new HttpError('Auth user does not exist or is disabled', 400);
     }
 
-    if (!(await checkPassword(password, Identity.passwordHash))) {
+    if (!(await checkPassword(password, authUser.passwordHash))) {
       throw new HttpError('Invalid login credentials', 401);
     }
 
-    return this.generateAuthTokens(Identity);
+    return this.generateAuthTokens(authUser);
   }
 
-  public async generateAuthTokens(identity: Identity): Promise<AuthTokens> {
+  public async generateAuthTokens(authUser: AuthUser): Promise<AuthTokens> {
     const server = context.server;
     if (!server) {
       throw new HttpError('Server instance not initialized');
     }
 
     const jwtPayload: JwtPayload = {
-      username: identity.username,
-      sub: identity.id,
+      username: authUser.email,
+      sub: authUser.id,
       iat: new Date().getTime()
     };
 
@@ -116,7 +98,14 @@ export class AuthService {
   }
 
   public async logout(id: number): Promise<boolean> {
-    return !!(await this.updateIdentity(id, { logoutAt: new Date() }));
+    return !!(await this.updateAuthUser(id, { logoutAt: new Date() }));
+  }
+
+  private authUserService(): ResourceService<AuthUser, AuthUser> {
+    return injectService(authModel()?.name!) as ResourceService<
+      AuthUser,
+      AuthUser
+    >;
   }
 }
 

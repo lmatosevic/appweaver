@@ -12,6 +12,30 @@ generator client {
   output   = "./client"
 }
 
+model Role {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  /// Related columns
+  permissions Permission[] @relation("RolePermissionsPermission")
+
+  /// Audit columns
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model Permission {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  /// Related columns
+  roles Role[] @relation("RolePermissionsPermission")
+
+  /// Audit columns
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
 model File {
   id            Int     @id @default(autoincrement())
   name          String  @unique
@@ -25,60 +49,6 @@ model File {
   resourceId    Int?
 
   /// Audit columns
-  updatedAt   DateTime  @updatedAt
-  createdAt   DateTime  @default(now())
-  createdBy   Identity? @relation("FileCreatedByIdentity", fields: [createdById], references: [id])
-  createdById Int?
-}
-
-model Role {
-  id   Int    @id @default(autoincrement())
-  name String @unique
-
-  /// Related columns
-  permissions Permission[] @relation("RolePermissionsPermission")
-  identities  Identity[]   @relation("IdentityRolesRole")
-
-  /// Audit columns
-  updatedAt   DateTime  @updatedAt
-  createdAt   DateTime  @default(now())
-  createdBy   Identity? @relation("RoleCreatedByIdentity", fields: [createdById], references: [id])
-  createdById Int?
-}
-
-model Permission {
-  id   Int    @id @default(autoincrement())
-  name String @unique
-
-  /// Related columns
-  roles Role[] @relation("RolePermissionsPermission")
-
-  /// Audit columns
-  updatedAt   DateTime  @updatedAt
-  createdAt   DateTime  @default(now())
-  createdBy   Identity? @relation("PermissionCreatedByIdentity", fields: [createdById], references: [id])
-  createdById Int?
-}
-
-model Identity {
-  id           Int       @id @default(autoincrement())
-  username     String    @unique
-  passwordHash String?
-  enabled      Boolean   @default(true)
-  logoutAt     DateTime?
-
-  /// Related columns
-  roles Role[] @relation("IdentityRolesRole")
-
-  /// Ownership models referenced with createdById column
-  createdFiles       File[]       @relation("FileCreatedByIdentity")
-  createdRoles       Role[]       @relation("RoleCreatedByIdentity")
-  createdPermissions Permission[] @relation("PermissionCreatedByIdentity")
-  createdIdentities  Identity[]   @relation("IdentityCreatedByIdentity")
-
-  /// Audit columns
-  updatedAt   DateTime  @updatedAt
-  createdAt   DateTime  @default(now())
-  createdBy   Identity? @relation("IdentityCreatedByIdentity", fields: [createdById], references: [id])
-  createdById Int?
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
 }

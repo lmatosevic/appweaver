@@ -1,6 +1,6 @@
-import { createModel } from '@appweaver/core';
+import { createAuthModel } from '@appweaver/core';
 
-export default createModel({
+export default createAuthModel({
   name: 'User',
   id: {
     type: 'int',
@@ -32,6 +32,7 @@ export default createModel({
     },
     secret: {
       type: 'string',
+      required: false,
       hidden: true
     }
   },

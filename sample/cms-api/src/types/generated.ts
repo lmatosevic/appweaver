@@ -6,9 +6,13 @@ export type User = {
   lastName: string;
   email: string;
   phone: string;
-  secret: string;
+  secret?: string | null;
+  passwordHash?: string | null;
+  enabled: boolean;
+  logoutAt?: Date | null;
   active: boolean;
   posts?: Array<PostSingle>;
+  roles: Array<RoleSingle>;
   avatar?: FileSingle | null;
   updatedAt: Date;
   createdAt: Date;
@@ -21,11 +25,13 @@ export type UserSingle = {
   lastName: string;
   email: string;
   phone: string;
+  enabled: boolean;
   active: boolean;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
   posts?: Array<PostSingle>;
+  roles: Array<RoleSingle>;
   avatar?: FileSingle | null;
 };
 
@@ -35,11 +41,13 @@ export type UserMultiple = {
   lastName: string;
   email: string;
   phone: string;
+  enabled: boolean;
   active: boolean;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
   posts?: Array<PostSingle>;
+  roles: Array<RoleSingle>;
   avatar?: FileSingle | null;
 };
 
@@ -48,8 +56,14 @@ export type UserCreate = {
   lastName: string;
   email: string;
   phone: string;
-  active: boolean;
+  enabled?: boolean;
+  active?: boolean;
   posts?:
+    | Array<{
+        id: number;
+      }>
+    | Array<number>;
+  roles:
     | Array<{
         id: number;
       }>
@@ -61,8 +75,14 @@ export type UserUpdate = {
   lastName: string;
   email: string;
   phone: string;
-  active: boolean;
+  enabled?: boolean;
+  active?: boolean;
   posts?:
+    | Array<{
+        id: number;
+      }>
+    | Array<number>;
+  roles?:
     | Array<{
         id: number;
       }>
@@ -130,70 +150,18 @@ export type PostMultiple = {
 };
 
 export type PostCreate = {
-  title: string;
+  title?: string;
   slug: string;
   content?: string | null;
   status?: ('Draft' | 'Published' | 'Archived') | null;
-  tags: string;
+  tags?: string;
   jsonLd?: any | null;
   lastActivity?: Date | null;
 };
 
 export type PostUpdate = {
-  title: string;
+  title?: string;
   content?: string | null;
-};
-
-export type Identity = {
-  id: number;
-  username: string;
-  passwordHash?: string | null;
-  enabled: boolean;
-  logoutAt?: Date | null;
-  roles: Array<RoleSingle>;
-  createdAt: Date;
-  updatedAt: Date;
-  createdById?: number | null;
-};
-
-export type IdentitySingle = {
-  id: number;
-  username: string;
-  enabled: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  createdById?: number | null;
-  roles: Array<RoleSingle>;
-};
-
-export type IdentityMultiple = {
-  id: number;
-  username: string;
-  enabled: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  createdById?: number | null;
-  roles: Array<RoleSingle>;
-};
-
-export type IdentityCreate = {
-  username: string;
-  enabled: boolean;
-  roles:
-    | Array<{
-        id: number;
-      }>
-    | Array<number>;
-};
-
-export type IdentityUpdate = {
-  username: string;
-  enabled: boolean;
-  roles?:
-    | Array<{
-        id: number;
-      }>
-    | Array<number>;
 };
 
 export type Role = {

@@ -2,8 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { globSync } from 'glob';
 import { register } from 'ts-node';
-import { ResourceModel } from '@appweaver/core';
-import { isObject } from '@appweaver/common';
+import { isResourceModel, ResourceModel } from '@appweaver/core';
 
 export function loadPackage(): Record<string, string> {
   let pkgPath = path.join(__dirname, '../../package.json');
@@ -55,21 +54,15 @@ export function loadModels(
       continue;
     }
 
-    const modelSchema: ResourceModel = modelExport.default || modelExport;
+    const modelSchema = modelExport.default || modelExport;
 
     // Add only exports that satisfy the resource model schema requirements
-    if (modelSchema.name && modelSchema.config && modelSchema.readModel) {
+    if (isResourceModel(modelSchema)) {
       models[modelSchema.name] = modelSchema;
     } else {
       for (const maybeSchema of Object.values(modelSchema)) {
-        if (
-          isObject(maybeSchema) &&
-          'name' in maybeSchema &&
-          'config' in maybeSchema &&
-          'readModel' in maybeSchema
-        ) {
-          models[maybeSchema.name] =
-            maybeSchema as unknown as ResourceModel;
+        if (isResourceModel(maybeSchema)) {
+          models[maybeSchema.name] = maybeSchema;
         }
       }
     }

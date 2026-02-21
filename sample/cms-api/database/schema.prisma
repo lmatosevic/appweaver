@@ -13,24 +13,35 @@ generator client {
 }
 
 model User {
-  id        Int    @id @default(autoincrement())
-  firstName String
-  lastName  String
-  email     String @unique
-  phone     String
-  secret    String
+  id           Int       @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  email        String    @unique
+  phone        String
+  secret       String?
+  passwordHash String?
+  enabled      Boolean   @default(true)
+  logoutAt     DateTime?
 
   /// Related columns
   posts Post[] @relation("UserPostsPost")
+  roles Role[] @relation("UserRolesRole")
 
   /// File columns
   avatar   File? @relation("UserAvatarFile", fields: [avatarId], references: [id])
   avatarId Int?  @unique
 
+  /// Ownership models referenced with createdById column
+  createdUsers       User[]       @relation("UserCreatedByUser")
+  createdPosts       Post[]       @relation("PostCreatedByUser")
+  createdRoles       Role[]       @relation("RoleCreatedByUser")
+  createdPermissions Permission[] @relation("PermissionCreatedByUser")
+  createdFiles       File[]       @relation("FileCreatedByUser")
+
   /// Audit columns
-  updatedAt   DateTime  @updatedAt
-  createdAt   DateTime  @default(now())
-  createdBy   Identity? @relation("UserCreatedByIdentity", fields: [createdById], references: [id])
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  createdBy   User?    @relation("UserCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
 }
 
@@ -55,34 +66,9 @@ model Post {
   galleryImages File[] @relation("PostGalleryImagesFile")
 
   /// Audit columns
-  updatedAt   DateTime  @updatedAt
-  createdAt   DateTime  @default(now())
-  createdBy   Identity? @relation("PostCreatedByIdentity", fields: [createdById], references: [id])
-  createdById Int?
-}
-
-model Identity {
-  id           Int       @id @default(autoincrement())
-  username     String    @unique
-  passwordHash String?
-  enabled      Boolean   @default(true)
-  logoutAt     DateTime?
-
-  /// Related columns
-  roles Role[] @relation("IdentityRolesRole")
-
-  /// Ownership models referenced with createdById column
-  createdUsers       User[]       @relation("UserCreatedByIdentity")
-  createdPosts       Post[]       @relation("PostCreatedByIdentity")
-  createdIdentities  Identity[]   @relation("IdentityCreatedByIdentity")
-  createdRoles       Role[]       @relation("RoleCreatedByIdentity")
-  createdPermissions Permission[] @relation("PermissionCreatedByIdentity")
-  createdFiles       File[]       @relation("FileCreatedByIdentity")
-
-  /// Audit columns
-  updatedAt   DateTime  @updatedAt
-  createdAt   DateTime  @default(now())
-  createdBy   Identity? @relation("IdentityCreatedByIdentity", fields: [createdById], references: [id])
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  createdBy   User?    @relation("PostCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
 }
 
@@ -92,12 +78,12 @@ model Role {
 
   /// Related columns
   permissions Permission[] @relation("RolePermissionsPermission")
-  identities  Identity[]   @relation("IdentityRolesRole")
+  users       User[]       @relation("UserRolesRole")
 
   /// Audit columns
-  updatedAt   DateTime  @updatedAt
-  createdAt   DateTime  @default(now())
-  createdBy   Identity? @relation("RoleCreatedByIdentity", fields: [createdById], references: [id])
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  createdBy   User?    @relation("RoleCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
 }
 
@@ -109,9 +95,9 @@ model Permission {
   roles Role[] @relation("RolePermissionsPermission")
 
   /// Audit columns
-  updatedAt   DateTime  @updatedAt
-  createdAt   DateTime  @default(now())
-  createdBy   Identity? @relation("PermissionCreatedByIdentity", fields: [createdById], references: [id])
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  createdBy   User?    @relation("PermissionCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
 }
 
@@ -133,9 +119,9 @@ model File {
   galleryImagesPosts Post[] @relation("PostGalleryImagesFile")
 
   /// Audit columns
-  updatedAt   DateTime  @updatedAt
-  createdAt   DateTime  @default(now())
-  createdBy   Identity? @relation("FileCreatedByIdentity", fields: [createdById], references: [id])
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  createdBy   User?    @relation("FileCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
 }
 

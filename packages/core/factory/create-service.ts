@@ -9,7 +9,7 @@ import {
   QueryResponse,
   ResourceServiceConfig
 } from '@appweaver/common';
-import { context } from '../context';
+import { define, injectPolicy } from '../context';
 import { ResourceService } from '../resource';
 import { Resource, ResourceOmit } from '../types';
 import {
@@ -129,7 +129,7 @@ export function createService(config: ResourceServiceConfig): ResourceService {
       action: Exclude<ActionType, 'create'>,
       data: any
     ): Promise<any> {
-      const policy = context.policies[name];
+      const policy = injectPolicy(name);
 
       if (policy.readRestrictions) {
         return policy.readRestrictions(action, data);
@@ -144,7 +144,7 @@ export function createService(config: ResourceServiceConfig): ResourceService {
     ): Promise<
       Partial<ResourceOmit<Resource> & Partial<ResourceOmit<Resource>>>
     > {
-      const policy = context.policies[name];
+      const policy = injectPolicy(name);
 
       if (policy.writeRestrictions) {
         return policy.writeRestrictions(action, data);
@@ -157,7 +157,7 @@ export function createService(config: ResourceServiceConfig): ResourceService {
       action: ActionType,
       resource: Resource
     ): Promise<boolean> {
-      const policy = context.policies[name];
+      const policy = injectPolicy(name);
 
       if (policy?.checkAccess) {
         return policy.checkAccess(action, resource);
@@ -174,10 +174,10 @@ export function createService(config: ResourceServiceConfig): ResourceService {
 
   const resourceService = new Service(name);
 
-  config[RESOURCE_NAME] = name;
-  config[RESOURCE_TYPE] = RESOURCE_SERVICE_TYPE;
+  resourceService[RESOURCE_NAME] = name;
+  resourceService[RESOURCE_TYPE] = RESOURCE_SERVICE_TYPE;
 
-  context.services[name] = resourceService;
+  define(name, resourceService);
 
   return resourceService;
 }

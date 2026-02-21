@@ -1,5 +1,5 @@
 import { RouteConfig } from '@appweaver/common';
-import { Identity } from './generated';
+import { AuthUser } from './auth';
 
 import '@fastify/request-context';
 import '@fastify/auth';
@@ -11,13 +11,13 @@ declare module 'fastify' {
   // Extend the fastify with jwt decorator type.
   interface FastifyInstance {
     authenticateJWT: any;
-    currentIdentity: () => Identity;
+    currentUser: () => AuthUser;
   }
 }
 
 declare module '@fastify/request-context' {
   // Override request context data type.
   interface RequestContextData {
-    identity: Identity | null;
+    authUser: AuthUser | null;
   }
 }

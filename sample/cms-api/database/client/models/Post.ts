@@ -303,7 +303,7 @@ export type PostWhereInput = {
   author?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   coverImage?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   galleryImages?: Prisma.FileListRelationFilter
-  createdBy?: Prisma.XOR<Prisma.IdentityNullableScalarRelationFilter, Prisma.IdentityWhereInput> | null
+  createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type PostOrderByWithRelationInput = {
@@ -324,7 +324,7 @@ export type PostOrderByWithRelationInput = {
   author?: Prisma.UserOrderByWithRelationInput
   coverImage?: Prisma.FileOrderByWithRelationInput
   galleryImages?: Prisma.FileOrderByRelationAggregateInput
-  createdBy?: Prisma.IdentityOrderByWithRelationInput
+  createdBy?: Prisma.UserOrderByWithRelationInput
 }
 
 export type PostWhereUniqueInput = Prisma.AtLeast<{
@@ -348,7 +348,7 @@ export type PostWhereUniqueInput = Prisma.AtLeast<{
   author?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   coverImage?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   galleryImages?: Prisma.FileListRelationFilter
-  createdBy?: Prisma.XOR<Prisma.IdentityNullableScalarRelationFilter, Prisma.IdentityWhereInput> | null
+  createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id" | "slug" | "coverImageId">
 
 export type PostOrderByWithAggregationInput = {
@@ -407,7 +407,7 @@ export type PostCreateInput = {
   author?: Prisma.UserCreateNestedOneWithoutPostsInput
   coverImage?: Prisma.FileCreateNestedOneWithoutCoverImagePostsInput
   galleryImages?: Prisma.FileCreateNestedManyWithoutGalleryImagesPostsInput
-  createdBy?: Prisma.IdentityCreateNestedOneWithoutCreatedPostsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedPostsInput
 }
 
 export type PostUncheckedCreateInput = {
@@ -442,7 +442,7 @@ export type PostUpdateInput = {
   author?: Prisma.UserUpdateOneWithoutPostsNestedInput
   coverImage?: Prisma.FileUpdateOneWithoutCoverImagePostsNestedInput
   galleryImages?: Prisma.FileUpdateManyWithoutGalleryImagesPostsNestedInput
-  createdBy?: Prisma.IdentityUpdateOneWithoutCreatedPostsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedPostsNestedInput
 }
 
 export type PostUncheckedUpdateInput = {
@@ -592,10 +592,24 @@ export type PostCreateNestedManyWithoutAuthorInput = {
   connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
 }
 
+export type PostCreateNestedManyWithoutCreatedByInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutCreatedByInput, Prisma.PostUncheckedCreateWithoutCreatedByInput> | Prisma.PostCreateWithoutCreatedByInput[] | Prisma.PostUncheckedCreateWithoutCreatedByInput[]
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutCreatedByInput | Prisma.PostCreateOrConnectWithoutCreatedByInput[]
+  createMany?: Prisma.PostCreateManyCreatedByInputEnvelope
+  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+}
+
 export type PostUncheckedCreateNestedManyWithoutAuthorInput = {
   create?: Prisma.XOR<Prisma.PostCreateWithoutAuthorInput, Prisma.PostUncheckedCreateWithoutAuthorInput> | Prisma.PostCreateWithoutAuthorInput[] | Prisma.PostUncheckedCreateWithoutAuthorInput[]
   connectOrCreate?: Prisma.PostCreateOrConnectWithoutAuthorInput | Prisma.PostCreateOrConnectWithoutAuthorInput[]
   createMany?: Prisma.PostCreateManyAuthorInputEnvelope
+  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+}
+
+export type PostUncheckedCreateNestedManyWithoutCreatedByInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutCreatedByInput, Prisma.PostUncheckedCreateWithoutCreatedByInput> | Prisma.PostCreateWithoutCreatedByInput[] | Prisma.PostUncheckedCreateWithoutCreatedByInput[]
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutCreatedByInput | Prisma.PostCreateOrConnectWithoutCreatedByInput[]
+  createMany?: Prisma.PostCreateManyCreatedByInputEnvelope
   connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
 }
 
@@ -613,46 +627,6 @@ export type PostUpdateManyWithoutAuthorNestedInput = {
   deleteMany?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
 }
 
-export type PostUncheckedUpdateManyWithoutAuthorNestedInput = {
-  create?: Prisma.XOR<Prisma.PostCreateWithoutAuthorInput, Prisma.PostUncheckedCreateWithoutAuthorInput> | Prisma.PostCreateWithoutAuthorInput[] | Prisma.PostUncheckedCreateWithoutAuthorInput[]
-  connectOrCreate?: Prisma.PostCreateOrConnectWithoutAuthorInput | Prisma.PostCreateOrConnectWithoutAuthorInput[]
-  upsert?: Prisma.PostUpsertWithWhereUniqueWithoutAuthorInput | Prisma.PostUpsertWithWhereUniqueWithoutAuthorInput[]
-  createMany?: Prisma.PostCreateManyAuthorInputEnvelope
-  set?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  disconnect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  delete?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  update?: Prisma.PostUpdateWithWhereUniqueWithoutAuthorInput | Prisma.PostUpdateWithWhereUniqueWithoutAuthorInput[]
-  updateMany?: Prisma.PostUpdateManyWithWhereWithoutAuthorInput | Prisma.PostUpdateManyWithWhereWithoutAuthorInput[]
-  deleteMany?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
-}
-
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
-export type NullableEnumPostStatusFieldUpdateOperationsInput = {
-  set?: $Enums.PostStatus | null
-}
-
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
-export type PostCreateNestedManyWithoutCreatedByInput = {
-  create?: Prisma.XOR<Prisma.PostCreateWithoutCreatedByInput, Prisma.PostUncheckedCreateWithoutCreatedByInput> | Prisma.PostCreateWithoutCreatedByInput[] | Prisma.PostUncheckedCreateWithoutCreatedByInput[]
-  connectOrCreate?: Prisma.PostCreateOrConnectWithoutCreatedByInput | Prisma.PostCreateOrConnectWithoutCreatedByInput[]
-  createMany?: Prisma.PostCreateManyCreatedByInputEnvelope
-  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-}
-
-export type PostUncheckedCreateNestedManyWithoutCreatedByInput = {
-  create?: Prisma.XOR<Prisma.PostCreateWithoutCreatedByInput, Prisma.PostUncheckedCreateWithoutCreatedByInput> | Prisma.PostCreateWithoutCreatedByInput[] | Prisma.PostUncheckedCreateWithoutCreatedByInput[]
-  connectOrCreate?: Prisma.PostCreateOrConnectWithoutCreatedByInput | Prisma.PostCreateOrConnectWithoutCreatedByInput[]
-  createMany?: Prisma.PostCreateManyCreatedByInputEnvelope
-  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-}
-
 export type PostUpdateManyWithoutCreatedByNestedInput = {
   create?: Prisma.XOR<Prisma.PostCreateWithoutCreatedByInput, Prisma.PostUncheckedCreateWithoutCreatedByInput> | Prisma.PostCreateWithoutCreatedByInput[] | Prisma.PostUncheckedCreateWithoutCreatedByInput[]
   connectOrCreate?: Prisma.PostCreateOrConnectWithoutCreatedByInput | Prisma.PostCreateOrConnectWithoutCreatedByInput[]
@@ -664,6 +638,20 @@ export type PostUpdateManyWithoutCreatedByNestedInput = {
   connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
   update?: Prisma.PostUpdateWithWhereUniqueWithoutCreatedByInput | Prisma.PostUpdateWithWhereUniqueWithoutCreatedByInput[]
   updateMany?: Prisma.PostUpdateManyWithWhereWithoutCreatedByInput | Prisma.PostUpdateManyWithWhereWithoutCreatedByInput[]
+  deleteMany?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
+}
+
+export type PostUncheckedUpdateManyWithoutAuthorNestedInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutAuthorInput, Prisma.PostUncheckedCreateWithoutAuthorInput> | Prisma.PostCreateWithoutAuthorInput[] | Prisma.PostUncheckedCreateWithoutAuthorInput[]
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutAuthorInput | Prisma.PostCreateOrConnectWithoutAuthorInput[]
+  upsert?: Prisma.PostUpsertWithWhereUniqueWithoutAuthorInput | Prisma.PostUpsertWithWhereUniqueWithoutAuthorInput[]
+  createMany?: Prisma.PostCreateManyAuthorInputEnvelope
+  set?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  disconnect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  delete?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  update?: Prisma.PostUpdateWithWhereUniqueWithoutAuthorInput | Prisma.PostUpdateWithWhereUniqueWithoutAuthorInput[]
+  updateMany?: Prisma.PostUpdateManyWithWhereWithoutAuthorInput | Prisma.PostUpdateManyWithWhereWithoutAuthorInput[]
   deleteMany?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
 }
 
@@ -679,6 +667,10 @@ export type PostUncheckedUpdateManyWithoutCreatedByNestedInput = {
   update?: Prisma.PostUpdateWithWhereUniqueWithoutCreatedByInput | Prisma.PostUpdateWithWhereUniqueWithoutCreatedByInput[]
   updateMany?: Prisma.PostUpdateManyWithWhereWithoutCreatedByInput | Prisma.PostUpdateManyWithWhereWithoutCreatedByInput[]
   deleteMany?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
+}
+
+export type NullableEnumPostStatusFieldUpdateOperationsInput = {
+  set?: $Enums.PostStatus | null
 }
 
 export type PostCreateNestedManyWithoutCoverImageInput = {
@@ -774,7 +766,7 @@ export type PostCreateWithoutAuthorInput = {
   createdAt?: Date | string
   coverImage?: Prisma.FileCreateNestedOneWithoutCoverImagePostsInput
   galleryImages?: Prisma.FileCreateNestedManyWithoutGalleryImagesPostsInput
-  createdBy?: Prisma.IdentityCreateNestedOneWithoutCreatedPostsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedPostsInput
 }
 
 export type PostUncheckedCreateWithoutAuthorInput = {
@@ -801,42 +793,6 @@ export type PostCreateOrConnectWithoutAuthorInput = {
 
 export type PostCreateManyAuthorInputEnvelope = {
   data: Prisma.PostCreateManyAuthorInput | Prisma.PostCreateManyAuthorInput[]
-}
-
-export type PostUpsertWithWhereUniqueWithoutAuthorInput = {
-  where: Prisma.PostWhereUniqueInput
-  update: Prisma.XOR<Prisma.PostUpdateWithoutAuthorInput, Prisma.PostUncheckedUpdateWithoutAuthorInput>
-  create: Prisma.XOR<Prisma.PostCreateWithoutAuthorInput, Prisma.PostUncheckedCreateWithoutAuthorInput>
-}
-
-export type PostUpdateWithWhereUniqueWithoutAuthorInput = {
-  where: Prisma.PostWhereUniqueInput
-  data: Prisma.XOR<Prisma.PostUpdateWithoutAuthorInput, Prisma.PostUncheckedUpdateWithoutAuthorInput>
-}
-
-export type PostUpdateManyWithWhereWithoutAuthorInput = {
-  where: Prisma.PostScalarWhereInput
-  data: Prisma.XOR<Prisma.PostUpdateManyMutationInput, Prisma.PostUncheckedUpdateManyWithoutAuthorInput>
-}
-
-export type PostScalarWhereInput = {
-  AND?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
-  OR?: Prisma.PostScalarWhereInput[]
-  NOT?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
-  id?: Prisma.IntFilter<"Post"> | number
-  title?: Prisma.StringFilter<"Post"> | string
-  slug?: Prisma.StringFilter<"Post"> | string
-  content?: Prisma.StringNullableFilter<"Post"> | string | null
-  counter?: Prisma.IntFilter<"Post"> | number
-  status?: Prisma.EnumPostStatusNullableFilter<"Post"> | $Enums.PostStatus | null
-  tags?: Prisma.StringFilter<"Post"> | string
-  jsonLd?: Prisma.JsonNullableFilter<"Post">
-  lastActivity?: Prisma.DateTimeNullableFilter<"Post"> | Date | string | null
-  authorId?: Prisma.IntNullableFilter<"Post"> | number | null
-  coverImageId?: Prisma.IntNullableFilter<"Post"> | number | null
-  updatedAt?: Prisma.DateTimeFilter<"Post"> | Date | string
-  createdAt?: Prisma.DateTimeFilter<"Post"> | Date | string
-  createdById?: Prisma.IntNullableFilter<"Post"> | number | null
 }
 
 export type PostCreateWithoutCreatedByInput = {
@@ -881,6 +837,42 @@ export type PostCreateManyCreatedByInputEnvelope = {
   data: Prisma.PostCreateManyCreatedByInput | Prisma.PostCreateManyCreatedByInput[]
 }
 
+export type PostUpsertWithWhereUniqueWithoutAuthorInput = {
+  where: Prisma.PostWhereUniqueInput
+  update: Prisma.XOR<Prisma.PostUpdateWithoutAuthorInput, Prisma.PostUncheckedUpdateWithoutAuthorInput>
+  create: Prisma.XOR<Prisma.PostCreateWithoutAuthorInput, Prisma.PostUncheckedCreateWithoutAuthorInput>
+}
+
+export type PostUpdateWithWhereUniqueWithoutAuthorInput = {
+  where: Prisma.PostWhereUniqueInput
+  data: Prisma.XOR<Prisma.PostUpdateWithoutAuthorInput, Prisma.PostUncheckedUpdateWithoutAuthorInput>
+}
+
+export type PostUpdateManyWithWhereWithoutAuthorInput = {
+  where: Prisma.PostScalarWhereInput
+  data: Prisma.XOR<Prisma.PostUpdateManyMutationInput, Prisma.PostUncheckedUpdateManyWithoutAuthorInput>
+}
+
+export type PostScalarWhereInput = {
+  AND?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
+  OR?: Prisma.PostScalarWhereInput[]
+  NOT?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
+  id?: Prisma.IntFilter<"Post"> | number
+  title?: Prisma.StringFilter<"Post"> | string
+  slug?: Prisma.StringFilter<"Post"> | string
+  content?: Prisma.StringNullableFilter<"Post"> | string | null
+  counter?: Prisma.IntFilter<"Post"> | number
+  status?: Prisma.EnumPostStatusNullableFilter<"Post"> | $Enums.PostStatus | null
+  tags?: Prisma.StringFilter<"Post"> | string
+  jsonLd?: Prisma.JsonNullableFilter<"Post">
+  lastActivity?: Prisma.DateTimeNullableFilter<"Post"> | Date | string | null
+  authorId?: Prisma.IntNullableFilter<"Post"> | number | null
+  coverImageId?: Prisma.IntNullableFilter<"Post"> | number | null
+  updatedAt?: Prisma.DateTimeFilter<"Post"> | Date | string
+  createdAt?: Prisma.DateTimeFilter<"Post"> | Date | string
+  createdById?: Prisma.IntNullableFilter<"Post"> | number | null
+}
+
 export type PostUpsertWithWhereUniqueWithoutCreatedByInput = {
   where: Prisma.PostWhereUniqueInput
   update: Prisma.XOR<Prisma.PostUpdateWithoutCreatedByInput, Prisma.PostUncheckedUpdateWithoutCreatedByInput>
@@ -910,7 +902,7 @@ export type PostCreateWithoutCoverImageInput = {
   createdAt?: Date | string
   author?: Prisma.UserCreateNestedOneWithoutPostsInput
   galleryImages?: Prisma.FileCreateNestedManyWithoutGalleryImagesPostsInput
-  createdBy?: Prisma.IdentityCreateNestedOneWithoutCreatedPostsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedPostsInput
 }
 
 export type PostUncheckedCreateWithoutCoverImageInput = {
@@ -952,7 +944,7 @@ export type PostCreateWithoutGalleryImagesInput = {
   createdAt?: Date | string
   author?: Prisma.UserCreateNestedOneWithoutPostsInput
   coverImage?: Prisma.FileCreateNestedOneWithoutCoverImagePostsInput
-  createdBy?: Prisma.IdentityCreateNestedOneWithoutCreatedPostsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedPostsInput
 }
 
 export type PostUncheckedCreateWithoutGalleryImagesInput = {
@@ -1025,6 +1017,22 @@ export type PostCreateManyAuthorInput = {
   createdById?: number | null
 }
 
+export type PostCreateManyCreatedByInput = {
+  id?: number
+  title?: string
+  slug: string
+  content?: string | null
+  counter: number
+  status?: $Enums.PostStatus | null
+  tags?: string
+  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastActivity?: Date | string | null
+  authorId?: number | null
+  coverImageId?: number | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+}
+
 export type PostUpdateWithoutAuthorInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1038,7 +1046,7 @@ export type PostUpdateWithoutAuthorInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   coverImage?: Prisma.FileUpdateOneWithoutCoverImagePostsNestedInput
   galleryImages?: Prisma.FileUpdateManyWithoutGalleryImagesPostsNestedInput
-  createdBy?: Prisma.IdentityUpdateOneWithoutCreatedPostsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedPostsNestedInput
 }
 
 export type PostUncheckedUpdateWithoutAuthorInput = {
@@ -1072,22 +1080,6 @@ export type PostUncheckedUpdateManyWithoutAuthorInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-}
-
-export type PostCreateManyCreatedByInput = {
-  id?: number
-  title?: string
-  slug: string
-  content?: string | null
-  counter: number
-  status?: $Enums.PostStatus | null
-  tags?: string
-  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  lastActivity?: Date | string | null
-  authorId?: number | null
-  coverImageId?: number | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
 }
 
 export type PostUpdateWithoutCreatedByInput = {
@@ -1168,7 +1160,7 @@ export type PostUpdateWithoutCoverImageInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   author?: Prisma.UserUpdateOneWithoutPostsNestedInput
   galleryImages?: Prisma.FileUpdateManyWithoutGalleryImagesPostsNestedInput
-  createdBy?: Prisma.IdentityUpdateOneWithoutCreatedPostsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedPostsNestedInput
 }
 
 export type PostUncheckedUpdateWithoutCoverImageInput = {
@@ -1217,7 +1209,7 @@ export type PostUpdateWithoutGalleryImagesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   author?: Prisma.UserUpdateOneWithoutPostsNestedInput
   coverImage?: Prisma.FileUpdateOneWithoutCoverImagePostsNestedInput
-  createdBy?: Prisma.IdentityUpdateOneWithoutCreatedPostsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedPostsNestedInput
 }
 
 export type PostUncheckedUpdateWithoutGalleryImagesInput = {
@@ -1395,7 +1387,7 @@ export type $PostPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
      */
     coverImage: Prisma.$FilePayload<ExtArgs> | null
     galleryImages: Prisma.$FilePayload<ExtArgs>[]
-    createdBy: Prisma.$IdentityPayload<ExtArgs> | null
+    createdBy: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1812,7 +1804,7 @@ export interface Prisma__PostClient<T, Null = never, ExtArgs extends runtime.Typ
   author<T extends Prisma.Post$authorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$authorArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   coverImage<T extends Prisma.Post$coverImageArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$coverImageArgs<ExtArgs>>): Prisma.Prisma__FileClient<runtime.Types.Result.GetResult<Prisma.$FilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   galleryImages<T extends Prisma.Post$galleryImagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$galleryImagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  createdBy<T extends Prisma.Post$createdByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$createdByArgs<ExtArgs>>): Prisma.Prisma__IdentityClient<runtime.Types.Result.GetResult<Prisma.$IdentityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  createdBy<T extends Prisma.Post$createdByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$createdByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2316,18 +2308,18 @@ export type Post$galleryImagesArgs<ExtArgs extends runtime.Types.Extensions.Inte
  */
 export type Post$createdByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Identity
+   * Select specific fields to fetch from the User
    */
-  select?: Prisma.IdentitySelect<ExtArgs> | null
+  select?: Prisma.UserSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Identity
+   * Omit specific fields from the User
    */
-  omit?: Prisma.IdentityOmit<ExtArgs> | null
+  omit?: Prisma.UserOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.IdentityInclude<ExtArgs> | null
-  where?: Prisma.IdentityWhereInput
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
 }
 
 /**

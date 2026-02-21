@@ -10,7 +10,7 @@ import {
   logger,
   plural
 } from '@appweaver/common';
-import { context } from '../context';
+import { injectModel } from '../context';
 import { HttpError } from '../errors';
 import { ResourceService } from '../resource';
 import {
@@ -98,7 +98,7 @@ export class ExportService {
     resourceExportConfig?: ExportConfig,
     parentKey: string = ''
   ): any {
-    const resourceModel = context.models[resourceName];
+    const resourceModel = injectModel(resourceName);
     const readModel = resourceModel?.readModel;
     const relationsModel = resourceModel?.relationsModel;
     const filesModel = resourceModel?.filesModel;

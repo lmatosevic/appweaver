@@ -20,6 +20,7 @@ import {
   isArray,
   isFunction,
   isObject,
+  OutputType,
   PeriodIncrementFn,
   QueryResponse,
   RelationField,
@@ -29,8 +30,8 @@ import {
 } from '@appweaver/common';
 import { db } from '../database';
 import { events } from '../events';
-import { context } from '../context';
-import { currentIdentity } from '../security';
+import { injectModel } from '../context';
+import { currentAuthUser } from '../security';
 import { HttpError } from '../errors';
 import {
   countFieldName,
@@ -51,7 +52,7 @@ export abstract class ResourceService<
   private readonly _client: ResourceClient;
 
   constructor(public readonly modelName: string) {
-    this._client = db.client[uncapitalize(modelName)];
+    this._client = db.getClient()[uncapitalize(modelName)];
     if (!this._client) {
       throw new Error(
         `ResourceService initialized with invalid model name: ${modelName}`
@@ -108,7 +109,7 @@ export abstract class ResourceService<
     let resources: ReadMany[];
     let totalCount: number;
     try {
-      [resources, totalCount] = await db.client.$transaction([
+      [resources, totalCount] = await db.getClient().$transaction([
         this._client.findMany({
           where: { ...query },
           include: includeRelations,
@@ -174,7 +175,7 @@ export abstract class ResourceService<
     let total: Record<string, Record<string, number>> = {};
     let items: Record<string, Record<string, number>>[] = [];
     try {
-      [total, items] = await db.client.$transaction(async (tx) => {
+      [total, items] = await db.getClient().$transaction(async (tx) => {
         const txModel = tx[this._client.name];
 
         const overall = await txModel.aggregate({
@@ -298,39 +299,41 @@ export abstract class ResourceService<
     let updateResource: ReadOne;
     let resource: ReadOne;
     try {
-      [updateResource, resource] = await db.client.$transaction(async (tx) => {
-        const txModel = tx[this._client.name];
+      [updateResource, resource] = await db
+        .getClient()
+        .$transaction(async (tx) => {
+          const txModel = tx[this._client.name];
 
-        const current = await txModel.findFirst({
-          where: { id, ...readRestrictions },
-          include: includeRelations
-        });
-        if (!current || current.id !== id) {
-          throw new HttpError(`${this._client.name} data not found`, 404);
-        }
+          const current = await txModel.findFirst({
+            where: { id, ...readRestrictions },
+            include: includeRelations
+          });
+          if (!current || current.id !== id) {
+            throw new HttpError(`${this._client.name} data not found`, 404);
+          }
 
-        const access = await this.checkAccess('update', current);
-        if (!access) {
-          throw new HttpError(
-            `${this._client.name} update action is forbidden`,
-            403
+          const access = await this.checkAccess('update', current);
+          if (!access) {
+            throw new HttpError(
+              `${this._client.name} update action is forbidden`,
+              403
+            );
+          }
+
+          const setRelations = this.mapRelationActions(
+            'update',
+            sanitizedData,
+            current
           );
-        }
 
-        const setRelations = this.mapRelationActions(
-          'update',
-          sanitizedData,
-          current
-        );
+          const updated = await txModel.update({
+            where: { id },
+            include: includeRelations,
+            data: { ...sanitizedData, ...setRelations }
+          });
 
-        const updated = await txModel.update({
-          where: { id },
-          include: includeRelations,
-          data: { ...sanitizedData, ...setRelations }
+          return [current, updated];
         });
-
-        return [current, updated];
-      });
     } catch (e) {
       if (e instanceof HttpError) {
         throw e;
@@ -351,7 +354,7 @@ export abstract class ResourceService<
 
     let resource: ReadOne;
     try {
-      resource = await db.client.$transaction(async (tx) => {
+      resource = await db.getClient().$transaction(async (tx) => {
         const txModel = tx[this._client.name];
 
         const current = await txModel.findFirst({
@@ -487,7 +490,7 @@ export abstract class ResourceService<
   private mapSortValues(sort: string): any[] {
     const sortMap = {};
 
-    const resourceModel = context.models[this._client.name];
+    const resourceModel = injectModel(this._client.name);
 
     const parts = sort.split(',');
 
@@ -619,7 +622,7 @@ export abstract class ResourceService<
   private projectVirtualFields<T>(resource: T, resourceName?: string): T {
     const projectedVirtual = { ...resource };
 
-    const resourceModel = context.models[resourceName ?? this._client.name];
+    const resourceModel = injectModel(resourceName ?? this._client.name, false);
     const relationsModel = resourceModel?.relationsModel;
     const filesModel = resourceModel?.filesModel;
 
@@ -663,7 +666,7 @@ export abstract class ResourceService<
   private sanitizeData<T>(data: T, resourceName?: string): T {
     const sanitizedData = { ...data };
 
-    const resourceModel = context.models[resourceName ?? this._client.name];
+    const resourceModel = injectModel(resourceName ?? this._client.name, false);
     const relationsModel = resourceModel?.relationsModel;
     const filesModel = resourceModel?.filesModel;
 
@@ -711,7 +714,7 @@ export abstract class ResourceService<
   private mapQueryFilter(filter: any, resourceName?: string): any {
     const queryFilter = {};
 
-    const resourceModel = context.models[resourceName ?? this._client.name];
+    const resourceModel = injectModel(resourceName ?? this._client.name, false);
     const readModel = resourceModel?.readModel;
     const relationsModel = resourceModel?.relationsModel;
     const filesModel = resourceModel?.filesModel;
@@ -778,17 +781,20 @@ export abstract class ResourceService<
     return queryFilter;
   }
 
-  private mapRelationInclusions(action?: ActionType): Record<string, boolean> {
+  private mapRelationInclusions(
+    action?: ActionType,
+    resourceName?: string
+  ): Record<string, any> {
     const inclusion: Record<string, any> = {};
 
-    const resourceModel = context.models[this._client.name];
-    const relationConfig = resourceModel?.config.relations;
-    const fileConfig = resourceModel?.config.files;
+    const resourceModel = injectModel(resourceName ?? this._client.name);
+    const relationConfig = resourceModel.config.relations;
+    const fileConfig = resourceModel.config.files;
 
-    const relationModelProps =
-      extractSchemaProperties(resourceModel?.relationsModel) ?? {};
-    const fileModelProps =
-      extractSchemaProperties(resourceModel?.filesModel) ?? {};
+    const relationModelProps = extractSchemaProperties(
+      resourceModel.relationsModel
+    );
+    const fileModelProps = extractSchemaProperties(resourceModel.filesModel);
 
     // Add relation and file fields to the inclusion map if the include type is
     // satisfied or the requested action is not specified. Also, add the count
@@ -805,19 +811,59 @@ export abstract class ResourceService<
         inclusion._count.select[key] = true;
       }
 
-      if (
-        relationField?.output?.type === 'none' ||
-        (relationField?.output?.type === 'single' && action === 'query') ||
-        (relationField?.output?.type === 'multiple' &&
-          action &&
-          action !== 'query')
-      ) {
-        continue;
+      // Check if the relation should be included based on the output type
+      if (this.shouldIncludeRelation(relationField?.output?.type, action)) {
+        inclusion[key] = this.buildNestedInclusion(
+          relationField as RelationField,
+          action
+        );
       }
-      inclusion[key] = true;
     }
 
     return inclusion;
+  }
+
+  private buildNestedInclusion(
+    relationField: RelationField,
+    action?: ActionType
+  ): boolean | { include: Record<string, any> } {
+    const nestedIncludeConfig = relationField?.output?.include;
+
+    if (!nestedIncludeConfig || Object.keys(nestedIncludeConfig).length === 0) {
+      return true;
+    }
+
+    const nestedInclusion: Record<string, any> = {};
+
+    for (const [nestedKey, nestedOutput] of Object.entries(
+      nestedIncludeConfig
+    )) {
+      // Check if the nested relation should be included
+      if (this.shouldIncludeRelation(nestedOutput?.type, action)) {
+        // Recursively build nested inclusions
+        nestedInclusion[nestedKey] = this.buildNestedInclusion(
+          { output: nestedOutput } as RelationField,
+          action
+        );
+      }
+    }
+
+    return Object.keys(nestedInclusion).length > 0
+      ? { include: nestedInclusion }
+      : true;
+  }
+
+  private shouldIncludeRelation(
+    outputType?: OutputType,
+    action?: ActionType
+  ): boolean {
+    if (outputType === 'none') {
+      return false;
+    }
+    if (outputType === 'single' && action === 'query') {
+      return false;
+    }
+    return !(outputType === 'multiple' && action && action !== 'query');
   }
 
   private mapRelationActions(
@@ -832,10 +878,10 @@ export abstract class ResourceService<
 
     const createdBy = this.createdByConnect();
 
-    const resourceModel = context.models[this._client.name];
-    const readModel = resourceModel?.readModel;
-    const relationsModel = resourceModel?.relationsModel;
-    const relationsConfig = resourceModel?.config.relations;
+    const resourceModel = injectModel(this._client.name);
+    const readModel = resourceModel.readModel;
+    const relationsModel = resourceModel.relationsModel;
+    const relationsConfig = resourceModel.config.relations;
 
     for (const key in data) {
       let value = data[key];
@@ -948,7 +994,7 @@ export abstract class ResourceService<
   }
 
   private createdByConnect(): { connect: { id: number } } | undefined {
-    const currentUser = currentIdentity();
+    const currentUser = currentAuthUser();
     return currentUser
       ? {
           connect: {

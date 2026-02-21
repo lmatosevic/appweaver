@@ -7,7 +7,7 @@ import {
   ResourceRoutesConfig,
   StringDate
 } from '@appweaver/common';
-import { context } from '../context';
+import { injectModel } from '../context';
 import { FileResponse } from '../storage';
 import { AllErrorResponses } from '../errors';
 import { ResourceModel, ResourceSchemaConfig } from '../types';
@@ -74,7 +74,7 @@ export function createSchema(
   name: string,
   publicRoutes: Array<keyof ResourceRoutesConfig> = []
 ): ResourceSchemaConfig {
-  const resourceModel = context.models[name];
+  const resourceModel = injectModel(name);
 
   const resourceName = camelToSnakeCase(name, ' ');
   const tag = plural(name);

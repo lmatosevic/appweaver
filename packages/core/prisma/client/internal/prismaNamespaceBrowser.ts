@@ -51,10 +51,9 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  File: 'File',
   Role: 'Role',
   Permission: 'Permission',
-  Identity: 'Identity'
+  File: 'File'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -70,6 +69,26 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const RoleScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof RoleScalarFieldEnum]
+
+
+export const PermissionScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
+
+
 export const FileScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -82,47 +101,10 @@ export const FileScalarFieldEnum = {
   resourceName: 'resourceName',
   resourceId: 'resourceId',
   updatedAt: 'updatedAt',
-  createdAt: 'createdAt',
-  createdById: 'createdById'
+  createdAt: 'createdAt'
 } as const
 
 export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
-
-
-export const RoleScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  updatedAt: 'updatedAt',
-  createdAt: 'createdAt',
-  createdById: 'createdById'
-} as const
-
-export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof RoleScalarFieldEnum]
-
-
-export const PermissionScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  updatedAt: 'updatedAt',
-  createdAt: 'createdAt',
-  createdById: 'createdById'
-} as const
-
-export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
-
-
-export const IdentityScalarFieldEnum = {
-  id: 'id',
-  username: 'username',
-  passwordHash: 'passwordHash',
-  enabled: 'enabled',
-  logoutAt: 'logoutAt',
-  updatedAt: 'updatedAt',
-  createdAt: 'createdAt',
-  createdById: 'createdById'
-} as const
-
-export type IdentityScalarFieldEnum = (typeof IdentityScalarFieldEnum)[keyof typeof IdentityScalarFieldEnum]
 
 
 export const SortOrder = {

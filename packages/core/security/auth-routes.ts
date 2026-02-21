@@ -1,18 +1,16 @@
 import { authService } from './auth-service';
 import {
   changePasswordSchema,
-  currentIdentitySchema,
+  createCurrentAuthUserSchema,
   loginSchema,
   logoutSchema,
   refreshSchema
 } from './auth-schema';
-import { extractSchemaValue } from '../utils';
+import { authModel } from './helper';
 import { Server } from '../types';
 
 export function authRoutes(server: Server): void {
-  const { auth, currentIdentity, authenticateJWT } = server;
-
-  server.addSchema({ ...extractSchemaValue('IdentitySingle') });
+  const { auth, currentUser, authenticateJWT } = server;
 
   server.post(
     '/login',
@@ -45,9 +43,9 @@ export function authRoutes(server: Server): void {
       }
     },
     async (_, reply) => {
-      const identity = currentIdentity();
+      const authUser = currentUser();
 
-      const authResponse = await authService.generateAuthTokens(identity);
+      const authResponse = await authService.generateAuthTokens(authUser);
 
       reply.status(200).send(authResponse);
     }
@@ -60,9 +58,9 @@ export function authRoutes(server: Server): void {
       onRequest: auth([authenticateJWT])
     },
     async (_, reply) => {
-      const identity = currentIdentity();
+      const authUser = currentUser();
 
-      const success = await authService.logout(identity.id);
+      const success = await authService.logout(authUser.id);
 
       reply.status(200).send({ success });
     }
@@ -80,10 +78,10 @@ export function authRoutes(server: Server): void {
       }
     },
     async (request, reply) => {
-      const identity = currentIdentity();
+      const authUser = currentUser();
 
       const authResponse = await authService.changePassword(
-        identity,
+        authUser,
         request.body.currentPassword,
         request.body.newPassword
       );
@@ -92,16 +90,19 @@ export function authRoutes(server: Server): void {
     }
   );
 
-  server.get(
-    '/identity',
-    {
-      schema: currentIdentitySchema,
-      onRequest: auth([authenticateJWT])
-    },
-    async (_, reply) => {
-      const identity = currentIdentity();
+  const authUserModel = authModel();
+  if (authUserModel) {
+    server.get(
+      '/me',
+      {
+        schema: createCurrentAuthUserSchema(authUserModel.name),
+        onRequest: auth([authenticateJWT])
+      },
+      async (_, reply) => {
+        const authUser = currentUser();
 
-      reply.status(200).send(identity);
-    }
-  );
+        reply.status(200).send(authUser);
+      }
+    );
+  }
 }

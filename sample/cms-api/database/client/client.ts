@@ -48,11 +48,6 @@ export type User = Prisma.UserModel
  */
 export type Post = Prisma.PostModel
 /**
- * Model Identity
- * 
- */
-export type Identity = Prisma.IdentityModel
-/**
  * Model Role
  * 
  */

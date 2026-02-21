@@ -11,6 +11,7 @@ export function startCommand(program: Command): void {
       if (command.getOptionValue('watch')) {
         await runProcess('tsc-watch', [
           '-p tsconfig.build.json',
+          '--onCompilationComplete "tsc-alias -p tsconfig.build.json"',
           '--onSuccess "node ./dist/main.js"'
         ]);
       } else {

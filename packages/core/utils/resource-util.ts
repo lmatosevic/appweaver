@@ -9,10 +9,12 @@ import { context } from '../context';
 import { resourceModelProps, ResourceService } from '../resource';
 import { ResourceModel, ResourceRoutes } from '../types';
 import {
+  RESOURCE_AUTH,
   RESOURCE_MODEL_TYPE,
   RESOURCE_NAME,
   RESOURCE_POLICY_TYPE,
   RESOURCE_ROUTES_TYPE,
+  RESOURCE_SERVICE_TYPE,
   RESOURCE_TYPE
 } from '../constants';
 
@@ -75,16 +77,20 @@ export function isResourceModel(value: any): value is ResourceModel {
   return isObject(value) && value[RESOURCE_TYPE] === RESOURCE_MODEL_TYPE;
 }
 
+export function isResourceAuthModel(value: any): value is ResourceModel {
+  return isResourceModel(value) && value[RESOURCE_AUTH];
+}
+
+export function isResourceService(value: any): value is ResourceService {
+  return isObject(value) && value[RESOURCE_TYPE] === RESOURCE_SERVICE_TYPE;
+}
+
 export function isResourceRoutes(value: any): value is ResourceRoutes {
   return isObject(value) && value[RESOURCE_TYPE] === RESOURCE_ROUTES_TYPE;
 }
 
 export function isResourcePolicy(value: any): value is ResourcePolicyConfig {
   return isObject(value) && value[RESOURCE_TYPE] === RESOURCE_POLICY_TYPE;
-}
-
-export function isResourceService(value: any): value is ResourceService {
-  return isObject(value) && value[RESOURCE_TYPE] === RESOURCE_ROUTES_TYPE;
 }
 
 export function defaultScalarValue(scalar: ScalarField): FieldDefault {

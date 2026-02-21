@@ -7,6 +7,8 @@ export function buildCommand(program: Command): void {
     .alias('b')
     .description('Build the application')
     .action(async () => {
+      await runProcess('rimraf', ['dist']);
       await runProcess('tsc', ['-p tsconfig.build.json']);
+      await runProcess('tsc-alias', ['-p tsconfig.build.json']);
     });
 }

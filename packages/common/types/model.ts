@@ -128,14 +128,15 @@ export type ScalarField =
 export type RelationInput = {
   type: InputType;
   uniqueKey?: string;
-  additionalProps?: Array<{
+  additionalProps?: {
     name: string;
     required?: boolean;
-  }>;
+  }[];
 };
 
 export type RelationOutput = {
   type: OutputType;
+  include?: { [key: string]: Omit<RelationOutput, 'count'> };
   count?: boolean;
 };
 
@@ -161,7 +162,7 @@ export type FileField = {
   array?: boolean;
   maxSize?: number | string;
   maxCount?: number;
-  output?: RelationOutput;
+  output?: Omit<RelationOutput, 'include'>;
 };
 
 export type OperationConfig = {

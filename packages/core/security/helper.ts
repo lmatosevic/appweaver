@@ -1,9 +1,19 @@
 import { requestContext } from '@fastify/request-context';
 import * as bcrypt from 'bcrypt';
-import { Identity } from '../types';
+import { context } from '../context';
+import { AuthUser, ResourceModel } from '../types';
+import { isResourceAuthModel } from '../utils';
 
-export function currentIdentity(): Identity | null | undefined {
-  return requestContext.get('identity');
+export function authModel(): ResourceModel | undefined {
+  for (const model of Object.values(context.models)) {
+    if (isResourceAuthModel(model)) {
+      return model;
+    }
+  }
+}
+
+export function currentAuthUser(): AuthUser | null | undefined {
+  return requestContext.get('authUser');
 }
 
 export async function hashPassword(password: string): Promise<string> {
@@ -19,25 +29,25 @@ export async function checkPassword(
 }
 
 export async function updatePasswordHash(
-  identity: Partial<Identity>,
+  authUser: Partial<AuthUser>,
   password?: string,
   logout: boolean = false
 ): Promise<void> {
   if (password) {
-    identity.passwordHash = await hashPassword(password);
+    authUser.passwordHash = await hashPassword(password);
     if (logout) {
-      identity.logoutAt = new Date();
+      authUser.logoutAt = new Date();
     }
-    delete identity['password'];
+    delete authUser['password'];
   }
 }
 
-export function hasRole(identity: Identity, role: string): boolean {
-  return identity.roles.findIndex((r) => r.name === role) > -1;
+export function hasRole(authUser: AuthUser, role: string): boolean {
+  return authUser.roles.findIndex((r) => r.name === role) > -1;
 }
 
 export function hasRoles(
-  identity: Identity,
+  authUser: AuthUser,
   roles: Array<string> | undefined,
   operator: 'or' | 'and' = 'or'
 ): boolean {
@@ -46,7 +56,7 @@ export function hasRoles(
   }
 
   for (const role of roles) {
-    const allowed = hasRole(identity, role);
+    const allowed = hasRole(authUser, role);
 
     if (allowed && operator === 'or') {
       return true;
@@ -60,13 +70,13 @@ export function hasRoles(
   return operator === 'and' || roles.length === 0;
 }
 
-export function hasPermission(identity: Identity, permission: string): boolean {
-  const permissions = identity.roles.flatMap((r) => r.permissions);
+export function hasPermission(authUser: AuthUser, permission: string): boolean {
+  const permissions = authUser.roles.flatMap((r) => r.permissions);
   return permissions.findIndex((p) => p.name === permission) > -1;
 }
 
 export function hasPermissions(
-  identity: Identity,
+  authUser: AuthUser,
   permissions: string[] | undefined,
   operator: 'or' | 'and' = 'or'
 ): boolean {
@@ -75,7 +85,7 @@ export function hasPermissions(
   }
 
   for (const permission of permissions) {
-    const allowed = hasPermission(identity, permission);
+    const allowed = hasPermission(authUser, permission);
 
     if (allowed && operator === 'or') {
       return true;

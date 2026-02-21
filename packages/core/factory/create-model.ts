@@ -12,18 +12,21 @@ import {
   OperationConfig,
   OutputType,
   pickProperties,
+  RelationConfig,
   RelationField,
   ResourceModelConfig,
+  ScalarConfig,
   ScalarField,
   StringDate,
   StringEnum,
   VirtualConfig
 } from '@appweaver/common';
-import { context } from '../context';
+import { define } from '../context';
 import { AuditData, Id, IdString } from '../resource';
-import { ResourceModel } from '../types';
 import { countFieldName } from '../utils';
+import { ResourceModel } from '../types';
 import {
+  RESOURCE_AUTH,
   RESOURCE_MODEL_TYPE,
   RESOURCE_NAME,
   RESOURCE_TYPE
@@ -69,12 +72,18 @@ export function createModel(config: ResourceModelConfig): ResourceModel {
   );
 
   const createModel = omitOrPickScalars(
-    Type.Composite([scalarsSchema, virtualSchema]),
+    resolveDefaultScalars(
+      Type.Composite([scalarsSchema, virtualSchema]),
+      config
+    ),
     config.create
   );
 
   const updateModel = omitOrPickScalars(
-    Type.Composite([scalarsSchema, virtualSchema]),
+    resolveDefaultScalars(
+      Type.Composite([scalarsSchema, virtualSchema]),
+      config
+    ),
     config.update
   );
 
@@ -94,7 +103,7 @@ export function createModel(config: ResourceModelConfig): ResourceModel {
 
   const resourceModel: ResourceModel = {
     name,
-    config,
+    config: config,
     readModel,
     createModel,
     updateModel,
@@ -118,9 +127,61 @@ export function createModel(config: ResourceModelConfig): ResourceModel {
   resourceModel[RESOURCE_NAME] = name;
   resourceModel[RESOURCE_TYPE] = RESOURCE_MODEL_TYPE;
 
-  context.models[name] = resourceModel;
+  define(name, resourceModel);
 
   return resourceModel;
+}
+
+export function createAuthModel(config: ResourceModelConfig): ResourceModel {
+  const authModelScalars: ScalarConfig = {
+    email: {
+      type: 'string',
+      unique: true,
+      maxLength: 255,
+      format: 'email'
+    },
+    passwordHash: {
+      type: 'string',
+      required: false,
+      hidden: true
+    },
+    enabled: {
+      type: 'boolean',
+      default: true
+    },
+    logoutAt: {
+      type: 'dateTime',
+      required: false,
+      hidden: true
+    }
+  };
+
+  const authModelRelations: RelationConfig = {
+    roles: {
+      model: 'Role',
+      array: true,
+      input: {
+        type: 'all'
+      },
+      output: {
+        type: 'always',
+        include: {
+          permissions: {
+            type: 'always'
+          }
+        }
+      }
+    }
+  };
+
+  config.scalars = { ...config.scalars, ...authModelScalars };
+  config.relations = { ...config.relations, ...authModelRelations };
+
+  const model = createModel(config);
+
+  model[RESOURCE_AUTH] = true;
+
+  return model;
 }
 
 function buildIdSchema(idField: IdField = { type: 'int' }): TObject {
@@ -239,6 +300,22 @@ function omitOrPickScalars(
   return Type.Composite([restrictedType]);
 }
 
+function resolveDefaultScalars(
+  type: TObject,
+  config: ResourceModelConfig
+): TObject {
+  for (const name of Object.keys(type.properties)) {
+    const field = type.properties[name];
+    if (
+      config?.scalars?.[name]?.default !== undefined ||
+      config?.virtual?.[name]?.default
+    ) {
+      type.properties[name] = Type.Optional(field);
+    }
+  }
+  return type;
+}
+
 function buildFilesSchema(files: Record<string, FileField> = {}): TObject {
   const properties: Record<string, TSchema> = {};
 
@@ -346,36 +423,27 @@ function buildInputModels(
     };
   }
 
-  let createOneModel: TObject = Type.Object(
-    {},
-    { $id: `${config.name}Create` }
+  const relationCreateInputs = relationInputProperties(
+    relationsModel,
+    relationsConfig,
+    'create'
   );
-  if (Object.keys(adjustedCreateModel.properties).length > 0) {
-    const relationInputs = relationInputProperties(
-      relationsModel,
-      relationsConfig,
-      'create'
-    );
-    createOneModel = Type.Composite([adjustedCreateModel, relationInputs], {
+  const createOneModel = Type.Composite(
+    [adjustedCreateModel, relationCreateInputs],
+    {
       $id: `${config.name}Create`
-    });
-  }
+    }
+  );
 
-  let updateOneModel: TObject = Type.Object(
-    {},
+  const relationUpdateInputs = relationInputProperties(
+    relationsModel,
+    relationsConfig,
+    'update'
+  );
+  const updateOneModel = Type.Composite(
+    [adjustedUpdateModel, Type.Partial(relationUpdateInputs)],
     { $id: `${config.name}Update` }
   );
-  if (Object.keys(adjustedUpdateModel.properties).length > 0) {
-    const relationInputs = relationInputProperties(
-      relationsModel,
-      relationsConfig,
-      'update'
-    );
-    updateOneModel = Type.Composite(
-      [adjustedUpdateModel, Type.Partial(relationInputs)],
-      { $id: `${config.name}Update` }
-    );
-  }
 
   return { createOneModel, updateOneModel };
 }

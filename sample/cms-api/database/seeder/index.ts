@@ -1,1 +1,1 @@
-export * from './identity-roles-permissions';
+export * from './seed-admin-user';

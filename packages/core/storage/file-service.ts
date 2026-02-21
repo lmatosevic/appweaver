@@ -7,10 +7,10 @@ import {
   isFunction
 } from '@appweaver/common';
 import { HttpError } from '../errors';
-import { context } from '../context';
+import { injectModel, injectPolicy, injectService } from '../context';
 import { ContentStream, storage } from './storage';
 import { db } from '../database';
-import { currentIdentity } from '../security';
+import { currentAuthUser } from '../security';
 import {
   generateFileName,
   isValidMimeType,
@@ -32,7 +32,7 @@ export class FileService {
     let file: File | null;
 
     try {
-      file = (await db.client.file.findFirst({
+      file = (await db.getClient().file.findFirst({
         where: { name: fileName }
       })) as File;
     } catch (e) {
@@ -47,7 +47,7 @@ export class FileService {
   }
 
   public async stream(fileName: string, range?: string): Promise<FileStream> {
-    const identity = currentIdentity();
+    const identity = currentAuthUser();
 
     const file = await this.findByName(fileName);
     if (!file) {
@@ -69,7 +69,7 @@ export class FileService {
       file.resourceName &&
       file.resourceId
     ) {
-      const resourceService = context.services[file.resourceName];
+      const resourceService = injectService(file.resourceName);
       const resource = await resourceService.find(file.resourceId);
 
       if (identity && policy.canAccess?.(identity, resource, file) === false) {
@@ -104,7 +104,7 @@ export class FileService {
     resource: Resource,
     client: ResourceClient
   ): Promise<File> {
-    const identity = currentIdentity();
+    const identity = currentAuthUser();
 
     if (!(data.fieldname in resource)) {
       throw new HttpError(
@@ -146,7 +146,7 @@ export class FileService {
       resourceName: client.name,
       resourceId: resource.id,
       userId: identity?.id,
-      userName: identity?.username
+      userName: identity?.email
     });
 
     let nameRegenCount = 0;
@@ -289,7 +289,7 @@ export class FileService {
     resource: Resource,
     client: ResourceClient
   ): Promise<File> {
-    const currentUser = currentIdentity();
+    const currentUser = currentAuthUser();
 
     const file = await this.findByName(fileName);
     if (
@@ -318,7 +318,7 @@ export class FileService {
     }
 
     try {
-      return (await db.client.file.delete({
+      return (await db.getClient().file.delete({
         where: { name: fileName }
       })) as File;
     } catch (e) {
@@ -375,7 +375,7 @@ export class FileService {
     }
 
     try {
-      await db.client.file.delete({
+      await db.getClient().file.delete({
         where: { name: fileName }
       });
     } catch {
@@ -391,7 +391,7 @@ export class FileService {
     resourceId: number
   ): Promise<number> {
     try {
-      return await db.client.file.count({
+      return await db.getClient().file.count({
         where: { resourceField, resourceName, resourceId }
       });
     } catch (e) {
@@ -408,7 +408,7 @@ export class FileService {
     }
 
     const config =
-      context.models[resourceName].config.files?.[resourceField] ?? {};
+      injectModel(resourceName, false)?.config.files?.[resourceField] ?? {};
 
     return { ...config };
   }
@@ -421,7 +421,8 @@ export class FileService {
       return {};
     }
 
-    const policy = context.policies[resourceName].files?.[resourceField] ?? {};
+    const policy =
+      injectPolicy(resourceName, false)?.files?.[resourceField] ?? {};
 
     return { ...policy };
   }

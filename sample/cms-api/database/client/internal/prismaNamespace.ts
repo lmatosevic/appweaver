@@ -386,7 +386,6 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Post: 'Post',
-  Identity: 'Identity',
   Role: 'Role',
   Permission: 'Permission',
   File: 'File'
@@ -405,7 +404,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "post" | "identity" | "role" | "permission" | "file"
+    modelProps: "user" | "post" | "role" | "permission" | "file"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -554,80 +553,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.PostCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.PostCountAggregateOutputType> | number
-        }
-      }
-    }
-    Identity: {
-      payload: Prisma.$IdentityPayload<ExtArgs>
-      fields: Prisma.IdentityFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.IdentityFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdentityPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.IdentityFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdentityPayload>
-        }
-        findFirst: {
-          args: Prisma.IdentityFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdentityPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.IdentityFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdentityPayload>
-        }
-        findMany: {
-          args: Prisma.IdentityFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdentityPayload>[]
-        }
-        create: {
-          args: Prisma.IdentityCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdentityPayload>
-        }
-        createMany: {
-          args: Prisma.IdentityCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.IdentityCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdentityPayload>[]
-        }
-        delete: {
-          args: Prisma.IdentityDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdentityPayload>
-        }
-        update: {
-          args: Prisma.IdentityUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdentityPayload>
-        }
-        deleteMany: {
-          args: Prisma.IdentityDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.IdentityUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.IdentityUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdentityPayload>[]
-        }
-        upsert: {
-          args: Prisma.IdentityUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdentityPayload>
-        }
-        aggregate: {
-          args: Prisma.IdentityAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateIdentity>
-        }
-        groupBy: {
-          args: Prisma.IdentityGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.IdentityGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.IdentityCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.IdentityCountAggregateOutputType> | number
         }
       }
     }
@@ -896,6 +821,9 @@ export const UserScalarFieldEnum = {
   email: 'email',
   phone: 'phone',
   secret: 'secret',
+  passwordHash: 'passwordHash',
+  enabled: 'enabled',
+  logoutAt: 'logoutAt',
   avatarId: 'avatarId',
   updatedAt: 'updatedAt',
   createdAt: 'createdAt',
@@ -923,20 +851,6 @@ export const PostScalarFieldEnum = {
 } as const
 
 export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum]
-
-
-export const IdentityScalarFieldEnum = {
-  id: 'id',
-  username: 'username',
-  passwordHash: 'passwordHash',
-  enabled: 'enabled',
-  logoutAt: 'logoutAt',
-  updatedAt: 'updatedAt',
-  createdAt: 'createdAt',
-  createdById: 'createdById'
-} as const
-
-export type IdentityScalarFieldEnum = (typeof IdentityScalarFieldEnum)[keyof typeof IdentityScalarFieldEnum]
 
 
 export const RoleScalarFieldEnum = {
@@ -1042,6 +956,13 @@ export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -1066,13 +987,6 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
  * Reference to a field of type 'QueryMode'
  */
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -1179,7 +1093,6 @@ export type PrismaClientOptions = ({
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   post?: Prisma.PostOmit
-  identity?: Prisma.IdentityOmit
   role?: Prisma.RoleOmit
   permission?: Prisma.PermissionOmit
   file?: Prisma.FileOmit

@@ -8,9 +8,11 @@
   "main": "./dist/src/main.js",
   "types": "./dist/src/main.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "clean": "rimraf dist",
+    "prebuild": "npm run clean",
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "node ./dist/src/main.js",
-    "start:dev": "tsc-watch -p tsconfig.build.json --onSuccess \"node ./dist/src/main.js\"",
+    "start:dev": "tsc-watch -p tsconfig.build.json --onCompilationComplete \"tsc-alias -p tsconfig.build.json\" --onSuccess \"node ./dist/src/main.js\"",
     "test": "jest --forceExit --detectOpenHandles --coverage",
     "format": "prettier --write \"./src/**/*.ts\" \"./test/**/*.ts\"",
     "lint": "eslint \"./{src,test}/**/*.ts\"",

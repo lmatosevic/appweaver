@@ -1,7 +1,8 @@
-import { db, hashPassword } from '@appweaver/core';
+import { hashPassword } from '@appweaver/core';
 import { config, logger, randomString } from '@appweaver/common';
+import { db } from '@db/client';
 
-export async function identityRolesPermissions(): Promise<void> {
+export async function seedAdminUser(): Promise<void> {
   let password = config.SYSTEM_ADMIN_INITIAL_PASSWORD;
 
   if (!password) {
@@ -11,10 +12,13 @@ export async function identityRolesPermissions(): Promise<void> {
 
   const passwordHash = await hashPassword(password);
 
-  await db.client.identity.create({
+  const admin = await db.user.create({
     data: {
-      username: config.SYSTEM_ADMIN_INITIAL_EMAIL,
-      passwordHash: passwordHash,
+      firstName: 'Admin',
+      lastName: 'Admin',
+      email: config.SYSTEM_ADMIN_INITIAL_EMAIL,
+      phone: '01234435',
+      passwordHash,
       roles: {
         connectOrCreate: [
           {
@@ -34,9 +38,9 @@ export async function identityRolesPermissions(): Promise<void> {
     }
   });
 
-  logger.info(`Seeder finished`);
+  logger.info(`Admin user created with ID: ${admin.id}`);
 }
 
-identityRolesPermissions().catch((err) => {
-  logger.error(`Error creating identity roles: ${err.message}`);
+seedAdminUser().catch((err) => {
+  logger.error(`Error creating admin user: ${err.message}`);
 });
