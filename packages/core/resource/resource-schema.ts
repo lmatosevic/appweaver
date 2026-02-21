@@ -2,7 +2,7 @@ import { Type } from '@sinclair/typebox';
 import {
   AnyJson,
   camelToSnakeCase,
-  Id,
+  Nullable,
   plural,
   ResourceRoutesConfig,
   StringDate
@@ -10,7 +10,21 @@ import {
 import { context } from '../context';
 import { FileResponse } from '../storage';
 import { AllErrorResponses } from '../errors';
-import { ResourceSchemaConfig } from '../types';
+import { ResourceModel, ResourceSchemaConfig } from '../types';
+
+export const Id = Type.Object({
+  id: Type.Integer({ minimum: 1 })
+});
+
+export const IdString = Type.Object({
+  id: Type.String({ maxLength: 36 })
+});
+
+export const AuditData = Type.Object({
+  updatedAt: StringDate(),
+  createdAt: StringDate(),
+  createdById: Nullable(Type.Integer({ minimum: 1, examples: [1] }))
+});
 
 export const QueryRequestData = Type.Object({
   filter: Type.Optional(AnyJson({ examples: [{ field: 'value' }] })),
@@ -39,6 +53,22 @@ export const AggregateRequestData = Type.Object({
 export const AggregateResponseData = Type.Optional(
   AnyJson({ examples: [{ field: 'value' }] })
 );
+
+export const resourceModelProps: Record<
+  string,
+  keyof Partial<Omit<ResourceModel, 'name' | 'config'>>
+> = {
+  '': 'readModel',
+  Single: 'readOneModel',
+  Multiple: 'readManyModel',
+  Create: 'createOneModel',
+  Update: 'updateOneModel',
+  Relations: 'relationsModel',
+  Virtual: 'virtualModel',
+  Files: 'filesModel',
+  FileUpload: 'fileUploadModel',
+  FileDelete: 'fileDeleteModel'
+};
 
 export function createSchema(
   name: string,

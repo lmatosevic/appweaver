@@ -2,12 +2,12 @@ import path from 'node:path';
 import { capitalize, ResourceRoutesConfig } from '@appweaver/common';
 import { context } from '../context';
 import { resourceRoutes } from '../resource';
+import { ResourceRoutes } from '../types';
 import {
   RESOURCE_NAME,
   RESOURCE_ROUTES_TYPE,
   RESOURCE_TYPE
 } from '../constants';
-import { ResourceRoutes } from '../types';
 
 export function createRoutes(config: ResourceRoutesConfig): ResourceRoutes {
   const name = capitalize(

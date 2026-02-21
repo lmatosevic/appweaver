@@ -1,7 +1,8 @@
-import { ResourceModel, ResourcePolicyConfig } from '@appweaver/common';
+import { ResourcePolicyConfig } from '@appweaver/common';
 import { Server } from './server';
 import { ResourceRoutes } from './route';
 import { ResourceService } from '../resource';
+import { ResourceModel } from '../types';
 
 export type DefinitionValue =
   | Object

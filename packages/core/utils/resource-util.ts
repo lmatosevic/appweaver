@@ -2,13 +2,12 @@ import { TObject, TSchema } from '@sinclair/typebox';
 import {
   FieldDefault,
   isObject,
-  ResourceModel,
-  resourceModelProps,
   ResourcePolicyConfig,
   ScalarField
 } from '@appweaver/common';
 import { context } from '../context';
-import { ResourceService } from '../resource';
+import { resourceModelProps, ResourceService } from '../resource';
+import { ResourceModel, ResourceRoutes } from '../types';
 import {
   RESOURCE_MODEL_TYPE,
   RESOURCE_NAME,
@@ -16,7 +15,6 @@ import {
   RESOURCE_ROUTES_TYPE,
   RESOURCE_TYPE
 } from '../constants';
-import { ResourceRoutes } from '../types';
 
 export function extractResourceName(schema?: TSchema): string | undefined {
   if (!schema) {

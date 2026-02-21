@@ -8,6 +8,7 @@ export * from './resource';
 export * from './scheduler';
 export * from './security';
 export * from './storage';
+export * from './types';
 
 export { default as identity } from './security/resources/identity/model';
 export { default as role } from './security/resources/role/model';

@@ -4,9 +4,9 @@ import fastifySwaggerUI from '@fastify/swagger-ui';
 import { TObject } from '@sinclair/typebox';
 import {
   config,
-  objectHasProperty,
-  resourceModelProps
+  objectHasProperty
 } from '@appweaver/common';
+import { resourceModelProps } from '../resource';
 import { context } from '../context';
 import { Server } from '../types';
 

@@ -33,13 +33,18 @@
     "ts-node": "10.9.2"
   },
   "devDependencies": {
+    "@appweaver/core": "^0.1.0",
     "@appweaver/common": "^0.1.0"
   },
   "peerDependencies": {
+    "@appweaver/core": "^0.1.0",
     "@appweaver/common": "^0.1.0"
   },
   "peerDependenciesMeta": {
     "@appweaver/common": {
+      "optional": false
+    },
+    "@appweaver/core": {
       "optional": false
     }
   }

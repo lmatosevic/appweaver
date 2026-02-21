@@ -2,7 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { globSync } from 'glob';
 import { register } from 'ts-node';
-import { isObject, ResourceModel } from '@appweaver/common';
+import { ResourceModel } from '@appweaver/core';
+import { isObject } from '@appweaver/common';
 
 export function loadPackage(): Record<string, string> {
   let pkgPath = path.join(__dirname, '../../package.json');

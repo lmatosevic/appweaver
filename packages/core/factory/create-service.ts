@@ -11,12 +11,12 @@ import {
 } from '@appweaver/common';
 import { context } from '../context';
 import { ResourceService } from '../resource';
+import { Resource, ResourceOmit } from '../types';
 import {
   RESOURCE_NAME,
   RESOURCE_SERVICE_TYPE,
   RESOURCE_TYPE
 } from '../constants';
-import { Resource, ResourceOmit } from '../types';
 
 export function createService(config: ResourceServiceConfig): ResourceService {
   const name = capitalize(

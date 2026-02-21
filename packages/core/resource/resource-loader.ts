@@ -1,19 +1,15 @@
 import { globSync } from 'glob';
 import { TObject, TSchema, Type } from '@sinclair/typebox';
-import {
-  logger,
-  ResourceModel,
-  resourceModelProps,
-  ResourcePolicyConfig
-} from '@appweaver/common';
+import { logger, ResourcePolicyConfig } from '@appweaver/common';
 import { ResourceService } from './resource-service';
+import { resourceModelProps } from './resource-schema';
 import {
   isResourceModel,
   isResourcePolicy,
   isResourceRoutes,
   isResourceService
 } from '../utils';
-import { ApplicationContext, ResourceRoutes } from '../types';
+import { ApplicationContext, ResourceModel, ResourceRoutes } from '../types';
 
 export async function loadResources(
   baseDir?: string

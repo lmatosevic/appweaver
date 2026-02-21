@@ -1,7 +1,6 @@
-import { ResourceModel } from '@appweaver/common';
 import { context } from './context';
 import { ResourceService } from '../resource';
-import { DefinitionValue } from '../types';
+import { DefinitionValue, ResourceModel } from '../types';
 
 /**
  * Defines a new entry in the application context with the given name and value.
