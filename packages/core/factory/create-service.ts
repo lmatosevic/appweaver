@@ -139,7 +139,7 @@ export function createService(config: ResourceServiceConfig): ResourceService {
     }
 
     protected async writeRestrictions(
-      action: Extract<ActionType, 'create' | 'update'>,
+      action: 'create' | 'update',
       data: any
     ): Promise<
       Partial<ResourceOmit<Resource> & Partial<ResourceOmit<Resource>>>

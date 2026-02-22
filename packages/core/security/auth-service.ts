@@ -1,11 +1,6 @@
 import { config } from '@appweaver/common';
-import {
-  authModel,
-  checkPassword,
-  hashPassword,
-  updatePasswordHash
-} from './helper';
-import { context, injectService } from '../context';
+import { checkPassword, hashPassword, resourceAuthService } from './helper';
+import { context } from '../context';
 import { HttpError } from '../errors';
 import { AuthTokens, AuthUser, JwtPayload } from '../types';
 import { ResourceService } from '../resource';
@@ -33,7 +28,6 @@ export class AuthService {
     data: Partial<AuthUser> & { password?: string }
   ): Promise<AuthUser> {
     try {
-      await updatePasswordHash(data, data.password, true);
       return await this.authUserService().update(id, data);
     } catch (e) {
       throw new HttpError('Auth user update error', 500, e);
@@ -102,10 +96,7 @@ export class AuthService {
   }
 
   private authUserService(): ResourceService<AuthUser, AuthUser> {
-    return injectService(authModel()?.name!) as ResourceService<
-      AuthUser,
-      AuthUser
-    >;
+    return resourceAuthService()!;
   }
 }
 

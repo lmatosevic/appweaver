@@ -11,6 +11,7 @@ export type User = {
   enabled: boolean;
   logoutAt?: Date | null;
   active: boolean;
+  password: string;
   posts?: Array<PostSingle>;
   roles: Array<RoleSingle>;
   avatar?: FileSingle | null;
@@ -58,11 +59,13 @@ export type UserCreate = {
   phone: string;
   enabled?: boolean;
   active?: boolean;
+  password: string;
   posts?:
     | Array<{
         id: number;
       }>
-    | Array<number>;
+    | Array<number>
+    | Array<PostCreate>;
   roles:
     | Array<{
         id: number;
@@ -71,17 +74,19 @@ export type UserCreate = {
 };
 
 export type UserUpdate = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
   enabled?: boolean;
   active?: boolean;
+  password?: string;
   posts?:
     | Array<{
         id: number;
       }>
-    | Array<number>;
+    | Array<number>
+    | Array<PostCreate>;
   roles?:
     | Array<{
         id: number;
@@ -161,7 +166,10 @@ export type PostCreate = {
 
 export type PostUpdate = {
   title?: string;
+  slug?: string;
   content?: string | null;
+  counter?: number;
+  tags?: string;
 };
 
 export type Role = {
@@ -195,7 +203,7 @@ export type RoleCreate = {
 };
 
 export type RoleUpdate = {
-  name: string;
+  name?: string;
   permissions?:
     | Array<{
         id: number;
@@ -226,7 +234,7 @@ export type PermissionCreate = {
 };
 
 export type PermissionUpdate = {
-  name: string;
+  name?: string;
 };
 
 export type File = {
@@ -281,10 +289,10 @@ export type FileCreate = {
 };
 
 export type FileUpdate = {
-  name: string;
-  originalName: string;
-  mimeType: string;
-  sizeBytes: number;
+  name?: string;
+  originalName?: string;
+  mimeType?: string;
+  sizeBytes?: number;
   title?: string | null;
   description?: string | null;
 };

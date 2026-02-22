@@ -128,10 +128,7 @@ export type ScalarField =
 export type RelationInput = {
   type: InputType;
   uniqueKey?: string;
-  additionalProps?: {
-    name: string;
-    required?: boolean;
-  }[];
+  fullModel?: boolean;
 };
 
 export type RelationOutput = {

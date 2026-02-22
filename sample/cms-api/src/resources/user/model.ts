@@ -41,7 +41,11 @@ export default createAuthModel({
       model: 'Post',
       mappedBy: 'author',
       array: true,
-      required: false
+      required: false,
+      input: {
+        type: 'all',
+        fullModel: true
+      }
     }
   },
   files: {

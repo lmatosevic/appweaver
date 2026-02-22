@@ -91,7 +91,7 @@ export default createModel({
     omit: ['counter']
   },
   update: {
-    pick: ['title', 'content']
+    pick: ['title', 'slug', 'content', 'counter', 'tags']
   },
   virtual: {
     randomNumbers: {

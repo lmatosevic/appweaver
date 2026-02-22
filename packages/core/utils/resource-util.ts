@@ -85,6 +85,10 @@ export function isResourceService(value: any): value is ResourceService {
   return isObject(value) && value[RESOURCE_TYPE] === RESOURCE_SERVICE_TYPE;
 }
 
+export function isResourceAuthService(value: any): value is ResourceService {
+  return isResourceService(value) && value[RESOURCE_AUTH];
+}
+
 export function isResourceRoutes(value: any): value is ResourceRoutes {
   return isObject(value) && value[RESOURCE_TYPE] === RESOURCE_ROUTES_TYPE;
 }

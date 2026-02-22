@@ -6,7 +6,7 @@ import {
   logoutSchema,
   refreshSchema
 } from './auth-schema';
-import { authModel } from './helper';
+import { resourceAuthModel } from './helper';
 import { Server } from '../types';
 
 export function authRoutes(server: Server): void {
@@ -90,7 +90,7 @@ export function authRoutes(server: Server): void {
     }
   );
 
-  const authUserModel = authModel();
+  const authUserModel = resourceAuthModel();
   if (authUserModel) {
     server.get(
       '/me',

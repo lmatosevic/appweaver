@@ -439,7 +439,7 @@ export abstract class ResourceService<
    * applied, or an empty object if no restrictions are necessary.
    */
   protected async writeRestrictions(
-    action: Extract<ActionType, 'create' | 'update'>,
+    action: 'create' | 'update',
     data: any
   ): Promise<Partial<Create & Update>> {
     return {};
@@ -867,7 +867,7 @@ export abstract class ResourceService<
   }
 
   private mapRelationActions(
-    action: Extract<ActionType, 'create' | 'update'>,
+    action: 'create' | 'update',
     data: any,
     currentData?: any
   ): Record<

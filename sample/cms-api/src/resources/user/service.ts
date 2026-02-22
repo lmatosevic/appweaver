@@ -1,3 +1,3 @@
-import { createService } from '@appweaver/core';
+import { createAuthService } from '@appweaver/core';
 
-export default createService({ modelName: 'User' });
+export default createAuthService({ modelName: 'User' });

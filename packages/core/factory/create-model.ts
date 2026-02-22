@@ -12,10 +12,8 @@ import {
   OperationConfig,
   OutputType,
   pickProperties,
-  RelationConfig,
   RelationField,
   ResourceModelConfig,
-  ScalarConfig,
   ScalarField,
   StringDate,
   StringEnum,
@@ -26,7 +24,6 @@ import { AuditData, Id, IdString } from '../resource';
 import { countFieldName } from '../utils';
 import { ResourceModel } from '../types';
 import {
-  RESOURCE_AUTH,
   RESOURCE_MODEL_TYPE,
   RESOURCE_NAME,
   RESOURCE_TYPE
@@ -81,7 +78,7 @@ export function createModel(config: ResourceModelConfig): ResourceModel {
 
   const updateModel = omitOrPickScalars(
     resolveDefaultScalars(
-      Type.Composite([scalarsSchema, virtualSchema]),
+      Type.Partial(Type.Composite([scalarsSchema, virtualSchema])),
       config
     ),
     config.update
@@ -130,58 +127,6 @@ export function createModel(config: ResourceModelConfig): ResourceModel {
   define(name, resourceModel);
 
   return resourceModel;
-}
-
-export function createAuthModel(config: ResourceModelConfig): ResourceModel {
-  const authModelScalars: ScalarConfig = {
-    email: {
-      type: 'string',
-      unique: true,
-      maxLength: 255,
-      format: 'email'
-    },
-    passwordHash: {
-      type: 'string',
-      required: false,
-      hidden: true
-    },
-    enabled: {
-      type: 'boolean',
-      default: true
-    },
-    logoutAt: {
-      type: 'dateTime',
-      required: false,
-      hidden: true
-    }
-  };
-
-  const authModelRelations: RelationConfig = {
-    roles: {
-      model: 'Role',
-      array: true,
-      input: {
-        type: 'all'
-      },
-      output: {
-        type: 'always',
-        include: {
-          permissions: {
-            type: 'always'
-          }
-        }
-      }
-    }
-  };
-
-  config.scalars = { ...config.scalars, ...authModelScalars };
-  config.relations = { ...config.relations, ...authModelRelations };
-
-  const model = createModel(config);
-
-  model[RESOURCE_AUTH] = true;
-
-  return model;
 }
 
 function buildIdSchema(idField: IdField = { type: 'int' }): TObject {
@@ -485,68 +430,53 @@ function buildFileInputModels(config: ResourceModelConfig): {
 
 function relationInputProperties<T extends TObject>(
   object: T,
-  relationConfig?: Record<
-    string,
-    Pick<RelationField, 'required' | 'input' | 'output'>
-  >,
+  relationConfig?: Record<string, RelationField>,
   inputType?: InputType
 ): TObject {
   const relationInputType = (key: string) => {
-    const { type, items, ...options } = object.properties[key];
+    const { type, ...options } = object.properties[key];
 
-    let inputObjectType: TSchema = Id;
-    let uniqueKeyType: TSchema = Id.properties.id;
+    let uniqueIdObject = Id;
+    let uniqueIdType = Id.properties.id;
+
+    let fullInputType: TSchema | undefined = undefined;
 
     const config = relationConfig?.[key];
     if (config) {
-      const inputKeys: string[] = [];
-
-      if (
-        config.input?.type === 'none' ||
-        (inputType === 'create' && config.input?.type === 'update') ||
-        (inputType === 'update' && config.input?.type === 'create')
-      ) {
+      if (shouldSkipInputField(config.input?.type, inputType)) {
         return undefined;
       }
 
-      if (config.input?.uniqueKey) {
-        inputKeys.push(config.input.uniqueKey);
-        uniqueKeyType = items.properties[config.input.uniqueKey];
-      }
-
-      if (config.input?.additionalProps) {
-        inputKeys.push(...config.input?.additionalProps.map((p) => p.name));
-      }
-
-      if (inputKeys.length > 0) {
-        inputObjectType = Type.Object({
-          ...inputKeys.reduce((acc, key) => {
-            acc[key] = config.input?.additionalProps
-              ?.filter((p) => p.required === false)
-              .map((p) => p.name)
-              ?.includes(key)
-              ? Type.Optional(items.properties[key])
-              : items.properties[key];
-            return acc;
-          }, {})
-        });
+      if (config.input?.fullModel) {
+        fullInputType = Type.Ref(`${config.model}Create`);
       }
     }
 
     const isArray = type === 'array';
     const isOptional = config?.required === false;
 
-    const inputTypeSchema = isArray
-      ? Type.Array(inputObjectType, options)
-      : inputObjectType;
-    const uniqueKeySchema = isArray
-      ? Type.Array(uniqueKeyType, options)
-      : uniqueKeyType;
+    const idObjectSchema = isArray
+      ? Type.Array(uniqueIdObject, options)
+      : uniqueIdObject;
+    const idTypeSchema = isArray
+      ? Type.Array(uniqueIdType, options)
+      : uniqueIdType;
 
-    const unionSchema = Type.Union([
-      isOptional ? Nullable(inputTypeSchema) : inputTypeSchema,
-      isOptional ? Nullable(uniqueKeySchema) : uniqueKeySchema
-    ]);
+    const inputTypeSchemas: TSchema[] = [
+      isOptional ? Nullable(idObjectSchema) : idObjectSchema,
+      isOptional ? Nullable(idTypeSchema) : idTypeSchema
+    ];
+
+    if (fullInputType) {
+      const fullInputTypeSchema = isArray
+        ? Type.Array(fullInputType, options)
+        : fullInputType;
+      inputTypeSchemas.push(
+        isOptional ? Nullable(fullInputTypeSchema) : fullInputTypeSchema
+      );
+    }
+
+    const unionSchema = Type.Union(inputTypeSchemas);
 
     return isOptional ? Type.Optional(unionSchema) : unionSchema;
   };
@@ -557,6 +487,7 @@ function relationInputProperties<T extends TObject>(
       if (type) {
         acc[key] = type;
       }
+
       return acc;
     }, {})
   });
@@ -575,11 +506,7 @@ function relationOutputProperties<T extends TObject>(
 
     const config = relationConfig?.[key];
     if (config) {
-      if (
-        config.output?.type === 'none' ||
-        (outputType === 'single' && config.output?.type === 'multiple') ||
-        (outputType === 'multiple' && config.output?.type === 'single')
-      ) {
+      if (shouldSkipOutputField(config.output?.type, outputType)) {
         return undefined;
       }
 
@@ -637,11 +564,7 @@ function resolveInputVirtualFields(
   const excludeFields: string[] = [];
 
   for (const [name, virtual] of Object.entries(virtualConfig ?? {})) {
-    if (
-      virtual.input?.type === 'none' ||
-      (inputType === 'create' && virtual.input?.type === 'update') ||
-      (inputType === 'update' && virtual.input?.type === 'create')
-    ) {
+    if (shouldSkipInputField(virtual.input?.type, inputType)) {
       excludeFields.push(name);
     }
   }
@@ -657,14 +580,32 @@ function resolveOutputVirtualFields(
   const excludeFields: string[] = [];
 
   for (const [name, virtual] of Object.entries(virtualConfig ?? {})) {
-    if (
-      virtual.output?.type === 'none' ||
-      (outputType === 'single' && virtual.output?.type === 'multiple') ||
-      (outputType === 'multiple' && virtual.output?.type === 'single')
-    ) {
+    if (shouldSkipOutputField(virtual.output?.type, outputType)) {
       excludeFields.push(name);
     }
   }
 
   return Type.Omit(schema, excludeFields);
+}
+
+function shouldSkipInputField(
+  fieldInputType?: InputType,
+  methodInputType?: InputType
+): boolean {
+  return (
+    fieldInputType === 'none' ||
+    (methodInputType === 'create' && fieldInputType === 'update') ||
+    (methodInputType === 'update' && fieldInputType === 'create')
+  );
+}
+
+function shouldSkipOutputField(
+  fieldOutputType?: OutputType,
+  methodOutputType?: OutputType
+): boolean {
+  return (
+    fieldOutputType === 'none' ||
+    (methodOutputType === 'single' && fieldOutputType === 'multiple') ||
+    (methodOutputType === 'multiple' && fieldOutputType === 'single')
+  );
 }
