@@ -308,7 +308,7 @@ function resolveDefaultScalars(
     const field = type.properties[name];
     if (
       config?.scalars?.[name]?.default !== undefined ||
-      config?.virtual?.[name]?.default
+      config?.virtual?.[name]?.default !== undefined
     ) {
       type.properties[name] = Type.Optional(field);
     }
