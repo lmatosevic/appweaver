@@ -40,13 +40,13 @@ import {
   extractSchemaProperties,
   isCountField
 } from '../utils';
-import { Resource, ResourceClient, ResourceOmit } from '../types';
+import { Resource, ResourceClient, ResourceData } from '../types';
 
 export abstract class ResourceService<
   ReadOne = Resource,
   ReadMany = Resource,
-  Create = ResourceOmit<Resource>,
-  Update = Partial<ResourceOmit<Resource>>,
+  Create = ResourceData<Resource>,
+  Update = Partial<ResourceData<Resource>>,
   Query = any
 > {
   private readonly _client: ResourceClient;

@@ -11,7 +11,7 @@ import {
 } from '@appweaver/common';
 import { define, injectPolicy } from '../context';
 import { ResourceService } from '../resource';
-import { Resource, ResourceOmit } from '../types';
+import { Resource, ResourceData } from '../types';
 import {
   RESOURCE_NAME,
   RESOURCE_SERVICE_TYPE,
@@ -142,7 +142,7 @@ export function createService(config: ResourceServiceConfig): ResourceService {
       action: 'create' | 'update',
       data: any
     ): Promise<
-      Partial<ResourceOmit<Resource> & Partial<ResourceOmit<Resource>>>
+      Partial<ResourceData<Resource> & Partial<ResourceData<Resource>>>
     > {
       const policy = injectPolicy(name);
 
