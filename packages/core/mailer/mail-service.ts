@@ -1,12 +1,13 @@
 import { Job } from 'bullmq';
 import { logger } from '@appweaver/common';
 import { Email, mailer } from './mailer';
-import { queue } from '../queue';
+import { queue, Queue } from '../queue';
 
 export class EmailService {
-  private readonly mailQueue = queue.get<Email, boolean>('email');
+  private readonly mailQueue: Queue;
 
   constructor() {
+    this.mailQueue = queue.get<Email, boolean>('email');
     this.mailQueue.addWorker(this.processEmail.bind(this));
     this.mailQueue.onCompleted(this.onEmailSent.bind(this));
     this.mailQueue.onFailed(this.onEmailError.bind(this));

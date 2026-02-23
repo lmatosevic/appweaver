@@ -1,42 +1,244 @@
-import { HealthCheck, HealthCheckResult } from '../health';
-import { QueueInstance } from './queue-instance';
+import {
+  Job,
+  JobProgress,
+  Queue as BullQueue,
+  Worker,
+  WorkerListener,
+  WorkerOptions
+} from 'bullmq';
+import { JobsOptions } from 'bullmq/dist/esm/types';
+import { Redis as RedisClient } from 'ioredis';
+import { config, logger, uuid } from '@appweaver/common';
+import { redis } from '../redis';
 
-export class Queue implements HealthCheck {
-  private readonly queues: Record<string, QueueInstance> = {};
+type EventName = keyof WorkerListener;
 
-  public get<T = any, R = any>(name: string): QueueInstance<T, R> {
-    if (!this.queues[name]) {
-      this.queues[name] = new QueueInstance(name);
-    }
-    return this.queues[name];
+type OptionalPromise<T = void> = Promise<T> | T;
+
+type ListenerFn = (...args: any[]) => OptionalPromise;
+
+export class Queue<T = any, R = any> {
+  private readonly _connection: RedisClient;
+  private readonly _queue: BullQueue;
+  private readonly _workers: Worker[] = [];
+  private readonly _listeners: Record<
+    string,
+    { event: EventName; listener: ListenerFn }
+  > = {};
+
+  constructor(public readonly name: string) {
+    this._connection = redis.createClient({
+      maxRetriesPerRequest: null
+    });
+    this._queue = new BullQueue(name, {
+      connection: this._connection,
+      skipVersionCheck: true,
+      defaultJobOptions: {
+        removeOnComplete: {
+          count: config.QUEUE_KEEP_COMPLETED_COUNT,
+          age: config.QUEUE_KEEP_COMPLETED_SECONDS
+        },
+        removeOnFail: {
+          count: config.QUEUE_KEEP_FAILED_COUNT,
+          age: config.QUEUE_KEEP_FAILED_SECONDS
+        },
+        attempts: config.QUEUE_RETRY_ATTEMPTS,
+        backoff: {
+          delay: config.QUEUE_RETRY_BACKOFF,
+          type: config.QUEUE_RETRY_BACKOFF_TYPE
+        }
+      }
+    });
   }
 
-  public async close(name: string): Promise<boolean> {
-    if (!this.queues[name]) {
+  public async sendJob(
+    data: T,
+    name?: string,
+    options: JobsOptions = {}
+  ): Promise<Job<T, R>> {
+    return await this._queue.add(name ?? 'defaultJob', data, options);
+  }
+
+  public async sendBulkJobs(
+    jobs: Array<{
+      data: T;
+      name?: string;
+      options?: Omit<JobsOptions, 'repeat'>;
+    }>
+  ): Promise<Array<Job<T, R>>> {
+    return await this._queue.addBulk(
+      jobs.map(({ data, name, options }) => ({
+        data,
+        name: name ?? 'defaultJob',
+        ...(options ?? {})
+      }))
+    );
+  }
+
+  public addWorker(
+    processor: (job: Job<T, R>) => Promise<R>,
+    options: Omit<WorkerOptions, 'connection'> = {}
+  ): Worker<T, R> {
+    const worker = new Worker<T, R>(this.name, processor, {
+      ...options,
+      connection: this._connection,
+      skipVersionCheck: true,
+      name: `${this.name}_${uuid()}`
+    });
+
+    for (const event of [
+      'completed',
+      'failed',
+      'error',
+      'progress',
+      'active',
+      'stalled',
+      'drained',
+      'ready',
+      'paused',
+      'resumed',
+      'closing',
+      'closed'
+    ] as EventName[]) {
+      worker.on(event, async (...args: any[]) => {
+        try {
+          await this.handleEvent(event, ...args);
+        } catch (e) {
+          logger.error(
+            e,
+            `Error occurred while handling event '${event}' for queue '${this.name}'`
+          );
+        }
+      });
+    }
+
+    this._workers.push(worker);
+
+    return worker;
+  }
+
+  public async removeWorker(id: string): Promise<boolean> {
+    const index = this._workers.findIndex((w) => w.id === id);
+    if (index === -1) {
       return false;
     }
-    await this.queues[name].close();
-    delete this.queues[name];
+
+    try {
+      await this._workers[index].close();
+      this._workers.splice(index, 1);
+      return true;
+    } catch (e) {
+      logger.error(
+        e,
+        `Error occurred while removing worker with ID '${id}' from queue '${this.name}'`
+      );
+      return false;
+    }
+  }
+
+  public onCompleted(
+    handler: (job: Job<T, R>, result: R, prev: string) => OptionalPromise
+  ): string {
+    return this.addListener('completed', handler);
+  }
+
+  public onFailed(
+    handler: (
+      job: Job<T, R> | undefined,
+      error: Error,
+      prev: string
+    ) => OptionalPromise
+  ): string {
+    return this.addListener('failed', handler);
+  }
+
+  public onError(handler: (error: Error) => OptionalPromise): string {
+    return this.addListener('error', handler);
+  }
+
+  public onProgress(
+    handler: (job: Job<T, R>, progress: JobProgress) => OptionalPromise
+  ): string {
+    return this.addListener('progress', handler);
+  }
+
+  public onActive(
+    handler: (job: Job<T, R>, prev: string) => OptionalPromise
+  ): string {
+    return this.addListener('active', handler);
+  }
+
+  public onStalled(
+    handler: (jobId: string, prev: string) => OptionalPromise
+  ): string {
+    return this.addListener('stalled', handler);
+  }
+
+  public onDrained(handler: () => OptionalPromise): string {
+    return this.addListener('drained', handler);
+  }
+
+  public onReady(handler: () => OptionalPromise): string {
+    return this.addListener('ready', handler);
+  }
+
+  public onPaused(handler: () => OptionalPromise): string {
+    return this.addListener('paused', handler);
+  }
+
+  public onResumed(handler: () => OptionalPromise): string {
+    return this.addListener('resumed', handler);
+  }
+
+  public onClosing(handler: (msg: string) => OptionalPromise): string {
+    return this.addListener('closing', handler);
+  }
+
+  public onClosed(handler: () => OptionalPromise): string {
+    return this.addListener('closed', handler);
+  }
+
+  public removeListener(id: string): boolean {
+    const listener = this._listeners[id];
+    if (!listener) {
+      return false;
+    }
+
+    delete this._listeners[id];
     return true;
   }
 
-  public async closeAll(): Promise<void> {
-    for (const queueName of Object.keys(this.queues)) {
-      await this.close(queueName);
+  public async close(): Promise<void> {
+    await this._queue.close();
+    for (const worker of this._workers) {
+      await worker.close();
     }
   }
 
-  public async checkHealth(): Promise<HealthCheckResult> {
-    try {
-      const queue = new QueueInstance('health-check');
-      await queue.close();
-      return { success: true };
-    } catch (e) {
-      return { success: false, message: (e as Error).message };
+  get queue() {
+    return this._queue;
+  }
+
+  get workers() {
+    return this._workers;
+  }
+
+  private addListener(event: EventName, listener: ListenerFn): string {
+    const listenerId = uuid();
+    this._listeners[listenerId] = { event, listener };
+    return listenerId;
+  }
+
+  private async handleEvent(event: EventName, ...args: any[]): Promise<void> {
+    const handlerActions: Array<Promise<void>> = [];
+
+    for (const value of Object.values(this._listeners)) {
+      if (value.event !== event) {
+        continue;
+      }
+      handlerActions.push(value.listener(...args) as Promise<void>);
     }
+
+    await Promise.allSettled(handlerActions);
   }
 }
-
-const queue = new Queue();
-
-export { queue };

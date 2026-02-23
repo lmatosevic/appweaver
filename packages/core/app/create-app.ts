@@ -12,6 +12,7 @@ import {
   loggerConfig,
   plural
 } from '@appweaver/common';
+import { redis } from '../redis';
 import { context, loadDefinitions } from '../context';
 import auth from '../security/auth';
 import { loadResources } from '../resource';
@@ -113,14 +114,14 @@ export async function createApp(
     server.register(fastifyRateLimit, {
       max: config.RATE_LIMIT_MAX,
       timeWindow: config.RATE_LIMIT_WINDOW,
-      redis: null
-      // config.RATE_LIMIT_STORE === 'redis'
-      //   ? redis.createClient({
-      //     connectTimeout: 500,
-      //     maxRetriesPerRequest: 1,
-      //     lazyConnect: true
-      //   })
-      //   : null
+      redis:
+        config.RATE_LIMIT_STORE === 'redis'
+          ? redis.createClient({
+              connectTimeout: 500,
+              maxRetriesPerRequest: 1,
+              lazyConnect: true
+            })
+          : null
     });
   }
 
