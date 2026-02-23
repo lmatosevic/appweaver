@@ -1,6 +1,7 @@
 import { createTransport, Transporter } from 'nodemailer';
 import { Attachment } from 'nodemailer/lib/mailer';
 import { config, logger } from '@appweaver/common';
+import { HealthCheck, HealthCheckResult } from '../health';
 
 export type Email = {
   to: string;
@@ -10,7 +11,7 @@ export type Email = {
   attachments?: Attachment[];
 };
 
-export class Mailer {
+export class Mailer implements HealthCheck {
   private transporter: Transporter;
 
   constructor() {
@@ -50,6 +51,15 @@ export class Mailer {
     } catch (e) {
       logger.error(e, `Error sending e-mail`);
       return false;
+    }
+  }
+
+  async checkHealth(): Promise<HealthCheckResult> {
+    try {
+      const success = await this.transporter.verify();
+      return { success };
+    } catch (e) {
+      return { success: false, message: (e as Error).message };
     }
   }
 }

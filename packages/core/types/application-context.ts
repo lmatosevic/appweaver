@@ -9,11 +9,13 @@ export type DefinitionValue =
   | ((...args: any[]) => any)
   | Record<string, any>;
 
+export type DefinitionEntry = { name: string; value: DefinitionValue };
+
 export type ApplicationContext = {
   server: Server | null;
   models: Record<string, ResourceModel>;
   services: Record<string, ResourceService>;
   policies: Record<string, ResourcePolicyConfig>;
   routes: Record<string, ResourceRoutes>;
-  definitions: Record<string, DefinitionValue>;
+  definitions: DefinitionEntry[];
 };

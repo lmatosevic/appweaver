@@ -8,7 +8,6 @@ import {
   StringDate
 } from '@appweaver/common';
 import { injectModel } from '../context';
-import { FileResponse } from '../storage';
 import { AllErrorResponses } from '../errors';
 import { ResourceModel, ResourceSchemaConfig } from '../types';
 
@@ -164,7 +163,7 @@ export function createSchema(
         200: {
           content: {
             'text/csv': {
-              schema: FileResponse
+              schema: Type.String({ format: 'binary' })
             }
           }
         },

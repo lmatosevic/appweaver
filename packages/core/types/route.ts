@@ -1,24 +1,35 @@
 import { ResourceRoutesConfig } from '@appweaver/common';
 import { Server } from './server';
 
-export type ResourceSchema = Record<string, any>;
+export type RouteSchema = {
+  tags?: string[];
+  security?: any[];
+  summary?: string;
+  description?: string;
+  consumes?: string[];
+  body?: unknown;
+  querystring?: unknown;
+  params?: unknown;
+  headers?: unknown;
+  response?: unknown;
+};
 
 export type ResourceSchemaConfig = {
-  findSchema: ResourceSchema;
-  querySchema: ResourceSchema;
-  aggregateSchema: ResourceSchema;
-  createSchema: ResourceSchema;
-  updateSchema: ResourceSchema;
-  deleteSchema: ResourceSchema;
-  exportSchema: ResourceSchema;
-  fileUploadSchema: ResourceSchema;
-  fileDeleteSchema: ResourceSchema;
+  findSchema: RouteSchema;
+  querySchema: RouteSchema;
+  aggregateSchema: RouteSchema;
+  createSchema: RouteSchema;
+  updateSchema: RouteSchema;
+  deleteSchema: RouteSchema;
+  exportSchema: RouteSchema;
+  fileUploadSchema: RouteSchema;
+  fileDeleteSchema: RouteSchema;
 };
 
 export type RoutesHandler = (server: Server) => void;
 
 export type ResourceRoutes = {
   config: ResourceRoutesConfig;
-  schema: ResourceSchema;
+  schema: ResourceSchemaConfig;
   handler: RoutesHandler;
 };

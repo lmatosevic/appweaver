@@ -1,5 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { AllErrorResponses } from '../errors';
+import { RouteSchema } from '../types';
 
 export const LoginRequest = Type.Object({
   username: Type.String({ examples: ['john.doe@example.com'] }),
@@ -75,7 +76,7 @@ export const changePasswordSchema = {
   body: ChangePasswordRequest
 };
 
-export function createCurrentAuthUserSchema(modelName: string) {
+export function createCurrentAuthUserSchema(modelName: string): RouteSchema {
   return {
     tags: ['Auth'],
     security: [{ bearer: [] }],

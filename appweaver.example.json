@@ -39,6 +39,10 @@
       "enabled": true,
       "path": "/swagger"
     },
+    "healthCheck": {
+      "enabled": true,
+      "routePrefix": "/health"
+    },
     "cors": {
       "origin": "*",
       "methods": "*",

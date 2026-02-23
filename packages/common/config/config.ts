@@ -47,6 +47,9 @@ const configSchema = Type.Object({
   SWAGGER_ENABLED: Type.Boolean({ default: true }),
   SWAGGER_PATH: Type.String({ default: '/swagger' }),
 
+  HEALTH_CHECK_ENABLED: Type.Boolean({ default: true }),
+  HEALTH_CHECK_ROUTE_PREFIX: Type.String({ default: '/health' }),
+
   CORS_ORIGIN: Type.String({ default: '*' }),
   CORS_METHODS: Type.Array(Type.String(), { default: ['*'] }),
   CORS_ALLOWED_HEADERS: Type.Array(Type.String(), { default: ['*'] }),

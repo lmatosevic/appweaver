@@ -10,14 +10,12 @@ import {
 export function createPolicy(
   config: ResourcePolicyConfig
 ): ResourcePolicyConfig {
-  const name = capitalize(
+  config[RESOURCE_NAME] = capitalize(
     config.modelName || path.basename(path.dirname(__dirname))
   );
-
-  config[RESOURCE_NAME] = name;
   config[RESOURCE_TYPE] = RESOURCE_POLICY_TYPE;
 
-  define(name, config);
+  define(config);
 
   return config;
 }

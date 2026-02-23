@@ -1,5 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { AllErrorResponses } from '../errors';
+import { RouteSchema } from '../types';
 
 export const FileName = Type.Object({
   '*': Type.String()
@@ -11,7 +12,7 @@ export const FileRangeHeader = Type.Object({
 
 export const FileResponse = Type.String({ format: 'binary' });
 
-export function createFileAccessSchema(isPublic: boolean): Record<string, any> {
+export function createFileAccessSchema(isPublic: boolean): RouteSchema {
   return {
     tags: ['Files'],
     security: isPublic ? [] : [{ bearer: [] }],

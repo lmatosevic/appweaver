@@ -5,12 +5,16 @@ import { injectModel, injectService } from '../context';
 import { exportService } from '../export';
 import { fileService } from '../storage';
 import { aggregateFiles, maxFileSize } from '../utils';
-import { ResourceSchema, RoutesHandler, Server } from '../types';
+import {
+  ResourceSchemaConfig,
+  RoutesHandler,
+  Server
+} from '../types';
 
 export function resourceRoutes(
   name: string,
   routesConfig: Omit<ResourceRoutesConfig, 'modelName'> = {}
-): { handler: RoutesHandler; schema: ResourceSchema } {
+): { handler: RoutesHandler; schema: ResourceSchemaConfig } {
   const routeConfig = (
     configName: keyof ResourceRoutesConfig
   ): RouteConfig | undefined => routesConfig[configName];

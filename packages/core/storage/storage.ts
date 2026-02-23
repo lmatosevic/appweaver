@@ -4,13 +4,14 @@ import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { Readable } from 'node:stream';
 import { logger, config } from '@appweaver/common';
+import { HealthCheck, HealthCheckResult } from '../health';
 
 export type ContentStream = {
   stream: Readable;
   size: number;
 };
 
-export class Storage {
+export class Storage implements HealthCheck {
   protected readonly dirPath: string = config.STORAGE_PATH;
 
   public async init(): Promise<void> {
@@ -77,6 +78,15 @@ export class Storage {
       return true;
     } catch (e) {
       return false;
+    }
+  }
+
+  public async checkHealth(): Promise<HealthCheckResult> {
+    try {
+      await fsp.access(this.dirPath, fs.constants.R_OK | fs.constants.W_OK);
+      return { success: true };
+    } catch (e) {
+      return { success: false, message: (e as Error).message };
     }
   }
 

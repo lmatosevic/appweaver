@@ -124,7 +124,7 @@ export function createModel(config: ResourceModelConfig): ResourceModel {
   resourceModel[RESOURCE_NAME] = name;
   resourceModel[RESOURCE_TYPE] = RESOURCE_MODEL_TYPE;
 
-  define(name, resourceModel);
+  define(resourceModel);
 
   return resourceModel;
 }

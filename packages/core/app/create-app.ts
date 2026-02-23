@@ -12,11 +12,12 @@ import {
   loggerConfig,
   plural
 } from '@appweaver/common';
-import { context } from '../context';
+import { context, loadDefinitions } from '../context';
 import auth from '../security/auth';
+import { loadResources } from '../resource';
 import { errorHandler } from '../errors';
 import { files } from '../storage';
-import { loadResources } from '../resource';
+import { health } from '../health';
 import { info } from './info-route';
 import swagger from './swagger';
 import { Application } from './application';
@@ -43,6 +44,16 @@ export type CreateAppParams = {
 export async function createApp(
   params: CreateAppParams = {}
 ): Promise<Application> {
+  // Load all definitions from this project.
+  loadDefinitions();
+
+  // Autoload resource models, routes, policies and services.
+  if (params.autoLoadResources !== false) {
+    await loadResources(
+      path.dirname(require.main?.filename || process.argv[1])
+    );
+  }
+
   // Create a Fastify server instance.
   const server = Fastify({
     ajv: {
@@ -113,29 +124,27 @@ export async function createApp(
     });
   }
 
-  // Autoload resource models, routes, policies and services.
-  if (params.autoLoadResources !== false) {
-    await loadResources(
-      path.dirname(require.main?.filename || process.argv[1])
-    );
-  }
-
-  // Register swagger documentation and UI. Must be called after loadResources.
-  if (config.SWAGGER_ENABLED) {
-    server.register(swagger);
-  }
-
   // Set global error handler for all routes.
   server.setErrorHandler(errorHandler);
 
   // Register authentication plugin.
   server.register(auth);
 
-  // Register files route.
-  server.register(files, { prefix: config.SERVER_API_PREFIX });
+  // Register swagger documentation and UI. Must be called after loadResources.
+  if (config.SWAGGER_ENABLED) {
+    server.register(swagger);
+  }
+
+  // Register a health route.
+  if (config.HEALTH_CHECK_ENABLED) {
+    server.register(health, { prefix: config.HEALTH_CHECK_ROUTE_PREFIX });
+  }
 
   // Register info route.
   server.register(info, { prefix: config.SERVER_API_PREFIX });
+
+  // Register files route.
+  server.register(files, { prefix: config.SERVER_API_PREFIX });
 
   // Register resource API routes.
   for (const [name, route] of Object.entries(context.routes)) {

@@ -21,7 +21,7 @@ export function createRoutes(config: ResourceRoutesConfig): ResourceRoutes {
   routeData[RESOURCE_NAME] = name;
   routeData[RESOURCE_TYPE] = RESOURCE_ROUTES_TYPE;
 
-  define(name, routeData);
+  define(routeData);
 
   return routeData;
 }

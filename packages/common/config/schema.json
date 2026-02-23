@@ -163,6 +163,19 @@
             }
           }
         },
+        "healthCheck": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "routePrefix": {
+              "type": "string",
+              "default": "/health"
+            }
+          }
+        },
         "cors": {
           "type": "object",
           "properties": {

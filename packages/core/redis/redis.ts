@@ -1,9 +1,10 @@
 import { Redis as RedisClient, RedisOptions } from 'ioredis';
 import { parse, stringify } from 'flatted';
 import { config } from '@appweaver/common';
+import { HealthCheck, HealthCheckResult } from '../health';
 import { RedisLock } from './redis-lock';
 
-export class Redis {
+export class Redis implements HealthCheck {
   private readonly options: RedisOptions;
   private readonly client: RedisClient;
 
@@ -91,6 +92,15 @@ export class Redis {
       lockConfig.retryDelay
     );
     return await redisLock.lock();
+  }
+
+  public async checkHealth(): Promise<HealthCheckResult> {
+    try {
+      const result = await this.client.ping();
+      return { success: result === 'PONG' };
+    } catch (e) {
+      return { success: false, message: (e as Error).message };
+    }
   }
 
   private parseConnectionUrl(url: string): RedisOptions {
