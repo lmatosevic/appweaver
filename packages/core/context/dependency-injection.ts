@@ -1,6 +1,5 @@
 import { isArray, isString, ResourcePolicyConfig } from '@appweaver/common';
 import { context } from './context';
-import { ResourceService } from '../resource';
 import {
   isResourceModel,
   isResourcePolicy,
@@ -11,7 +10,8 @@ import {
   DefinitionEntry,
   DefinitionValue,
   ResourceModel,
-  ResourceRoutes
+  ResourceRoutes,
+  IResourceService
 } from '../types';
 import { RESOURCE_NAME } from '../constants';
 
@@ -65,30 +65,33 @@ export function define(
  *               is not found and `required` is set to `false`.
  */
 export function inject<T = DefinitionValue>(
-  nameOrClass: string | { new (...args: any[]): any } | Function,
+  nameOrClass: string | { new (...args: any[]): T } | Function,
   required: boolean = true
 ): T {
   let definition: DefinitionValue | undefined;
 
+  let name: string;
   if (isString(nameOrClass)) {
-    if (nameOrClass.endsWith('Model')) {
-      definition = context.models[nameOrClass.replace(/Model$/, '')];
-    } else if (nameOrClass.endsWith('Service')) {
-      definition = context.services[nameOrClass.replace(/Service$/, '')];
-    } else if (nameOrClass.endsWith('Routes')) {
-      definition = context.routes[nameOrClass.replace(/Routes$/, '')];
-    } else if (nameOrClass.endsWith('Policy')) {
-      definition = context.policies[nameOrClass.replace(/Policy$/, '')];
+    name = nameOrClass;
+    if (name.endsWith('Model')) {
+      definition = context.models[name.replace(/Model$/, '')];
+    } else if (name.endsWith('Service')) {
+      definition = context.services[name.replace(/Service$/, '')];
+    } else if (name.endsWith('Routes')) {
+      definition = context.routes[name.replace(/Routes$/, '')];
+    } else if (name.endsWith('Policy')) {
+      definition = context.policies[name.replace(/Policy$/, '')];
     } else {
-      definition = findFirstDefinition(nameOrClass);
+      definition = findFirstDefinition(name);
     }
   } else {
-    definition = findFirstDefinition(nameOrClass.name);
+    name = nameOrClass.name;
+    definition = findFirstDefinition(name);
   }
 
   if (!definition && required) {
     throw new Error(
-      `Definition '${nameOrClass}' is not defined in the application context`
+      `Definition '${name}' is not defined in the application context`
     );
   }
 
@@ -103,7 +106,7 @@ export function inject<T = DefinitionValue>(
  * @return {[]} An array of definitions that match the provided name or class.
  */
 export function injectAll<T = DefinitionValue>(
-  nameOrClass: string | { new (...args: any[]): any } | Function
+  nameOrClass: string | { new (...args: any[]): T } | Function
 ): T[] {
   return findAllDefinitions(
     isString(nameOrClass) ? nameOrClass : nameOrClass.name
@@ -151,13 +154,13 @@ export function injectModel(
  *
  * @param {string} modelName - The name of the model whose service needs to be injected.
  * @param {boolean} [required=true] - Indicates if the service is mandatory. If true and the service is not available, an error is thrown.
- * @return {ResourceService} The service instance corresponding to the specified model name.
+ * @return {IResourceService} The service instance corresponding to the specified model name.
  * @throws {Error} If the service cannot be found in the application context and `required` is true.
  */
 export function injectService(
   modelName: string,
   required: boolean = true
-): ResourceService {
+): IResourceService {
   const service = context.services[modelName];
 
   if (!service && required) {

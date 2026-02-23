@@ -1,7 +1,8 @@
 import { createTransport, Transporter } from 'nodemailer';
 import { Attachment } from 'nodemailer/lib/mailer';
 import { config, logger } from '@appweaver/common';
-import { HealthCheck, HealthCheckResult } from '../health';
+import { HealthCheck, HealthCheckResult } from '../types';
+import { HEALTH_CHECK } from '../constants';
 
 export type Email = {
   to: string;
@@ -64,6 +65,4 @@ export class Mailer implements HealthCheck {
   }
 }
 
-const mailer = new Mailer();
-
-export { mailer };
+Mailer[HEALTH_CHECK] = true;

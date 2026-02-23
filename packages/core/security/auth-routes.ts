@@ -1,4 +1,3 @@
-import { authService } from './auth-service';
 import {
   changePasswordSchema,
   createCurrentAuthUserSchema,
@@ -6,11 +5,15 @@ import {
   logoutSchema,
   refreshSchema
 } from './auth-schema';
+import { AuthService } from './auth-service';
 import { resourceAuthModel } from './helper';
+import { inject } from '../context';
 import { Server } from '../types';
 
 export function authRoutes(server: Server): void {
   const { auth, currentUser, authenticateJWT } = server;
+
+  const authService = inject(AuthService);
 
   server.post(
     '/login',

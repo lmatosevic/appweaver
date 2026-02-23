@@ -1,6 +1,5 @@
 import { EventEmitter } from 'node:events';
 import { ActionType, config, logger, uuid } from '@appweaver/common';
-import { ResourceName } from '../types';
 
 export type EventData<T = any> = { previous?: T; current: T };
 
@@ -21,23 +20,23 @@ export class Events extends EventEmitter {
   }
 
   public onResourceEvent<T>(
-    resource: ResourceName,
+    resourceName: string,
     event: ActionType,
     listener: ListenerFn<T>
   ): string {
     const listenerId = uuid();
-    const eventName = this.resourceEventName(resource, event);
+    const eventName = this.resourceEventName(resourceName, event);
     this.eventListeners[listenerId] = { eventName, listener };
     this.on(eventName, listener);
     return listenerId;
   }
 
   public emitResourceEvent<T>(
-    resource: ResourceName,
+    resourceName: string,
     event: ActionType,
     data: EventData<T>
   ): boolean {
-    return this.emit(this.resourceEventName(resource, event), data);
+    return this.emit(this.resourceEventName(resourceName, event), data);
   }
 
   public removeResourceEvent(listenerId: string): boolean {
@@ -50,11 +49,7 @@ export class Events extends EventEmitter {
     return true;
   }
 
-  private resourceEventName(resource: ResourceName, event: ActionType): string {
-    return `${resource}.${event}`;
+  private resourceEventName(resourceName: string, event: ActionType): string {
+    return `${resourceName}.${event}`;
   }
 }
-
-const events = new Events();
-
-export { events };

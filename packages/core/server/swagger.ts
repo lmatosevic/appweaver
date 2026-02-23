@@ -3,8 +3,8 @@ import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
 import { TObject } from '@sinclair/typebox';
 import { config, objectHasProperty } from '@appweaver/common';
-import { resourceModelProps } from '../resource';
 import { context, injectRoutes } from '../context';
+import { resourceModelProps } from '../utils';
 import { Server } from '../types';
 
 export default fastifyPlugin((server: Server): void => {

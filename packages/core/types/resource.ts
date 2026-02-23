@@ -11,10 +11,8 @@ export type Resource = {
 
 export type ResourceData<T> = Omit<T, keyof Resource>;
 
-export type ResourceName = keyof typeof Prisma.ModelName;
-
 export type ResourceClient = Record<Prisma.PrismaAction, any> & {
-  name: ResourceName;
+  name: string;
 };
 
 export type ResourceModel = {

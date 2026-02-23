@@ -7,9 +7,10 @@ import {
   requestContext
 } from '@fastify/request-context';
 import { config } from '@appweaver/common';
-import { authService } from './auth-service';
 import { authRoutes } from './auth-routes';
+import { AuthService } from './auth-service';
 import { currentAuthUser, hasPermissions, hasRoles } from './helper';
+import { inject } from '../context';
 import { HttpError } from '../errors';
 import { JwtPayload, Server } from '../types';
 
@@ -31,6 +32,8 @@ export default fastifyPlugin((server: Server): void => {
   });
 
   server.register(authRoutes, { prefix: config.SECURITY_ROUTE_PREFIX });
+
+  const authService = inject(AuthService);
 
   server.decorate(
     'authenticateJWT',

@@ -1,5 +1,5 @@
 import { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
-import { HttpError } from './index';
+import { HttpError } from './http-error';
 
 export function errorHandler(
   err: FastifyError | HttpError,

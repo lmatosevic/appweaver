@@ -1,12 +1,14 @@
 import { config } from '@appweaver/common';
-import { db } from '../database';
-import { context } from '../context';
+import { context, inject } from '../context';
+import { Database } from '../database';
 import { Server } from '../types';
 
 /**
  * Represents an application that manages the lifecycle of a Fastify server instance.
  */
 export class Application {
+  private readonly _db: Database = inject(Database);
+
   constructor(private readonly _server: Server) {}
 
   /**
@@ -31,7 +33,7 @@ export class Application {
       `Application started in "${config.APP_ENV}" environment`
     );
 
-    await db.connect();
+    await this._db.connect();
 
     Object.freeze(context);
 
@@ -48,7 +50,7 @@ export class Application {
    * @return {Promise<void>} A promise that resolves when the server has been successfully stopped.
    */
   public async stop(): Promise<void> {
-    await db.disconnect();
+    await this._db.disconnect();
     await this._server.close();
   }
 

@@ -28,9 +28,9 @@ import {
   setValue,
   uncapitalize
 } from '@appweaver/common';
-import { db } from '../database';
-import { events } from '../events';
-import { injectModel } from '../context';
+import { Database } from '../database';
+import { Events } from '../events';
+import { inject, injectModel } from '../context';
 import { currentAuthUser } from '../security';
 import { HttpError } from '../errors';
 import {
@@ -40,7 +40,12 @@ import {
   extractSchemaProperties,
   isCountField
 } from '../utils';
-import { Resource, ResourceClient, ResourceData } from '../types';
+import {
+  IResourceService,
+  Resource,
+  ResourceClient,
+  ResourceData
+} from '../types';
 
 export abstract class ResourceService<
   ReadOne = Resource,
@@ -48,11 +53,15 @@ export abstract class ResourceService<
   Create = ResourceData<Resource>,
   Update = Partial<ResourceData<Resource>>,
   Query = any
-> {
+> implements IResourceService<ReadOne, ReadMany, Create, Update, Query> {
+  private readonly _db: Database;
+  private readonly _events: Events;
   private readonly _client: ResourceClient;
 
   constructor(public readonly modelName: string) {
-    this._client = db.getClient()[uncapitalize(modelName)];
+    this._db = inject(Database);
+    this._events = inject(Events);
+    this._client = this._db.getClient()[uncapitalize(modelName)];
     if (!this._client) {
       throw new Error(
         `ResourceService initialized with invalid model name: ${modelName}`
@@ -87,7 +96,9 @@ export abstract class ResourceService<
       throw new HttpError(`${this._client.name} data access is forbidden`, 403);
     }
 
-    events.emitResourceEvent(this._client.name, 'find', { current: resource });
+    this._events.emitResourceEvent(this._client.name, 'find', {
+      current: resource
+    });
 
     return this.projectResource(resource);
   }
@@ -109,7 +120,7 @@ export abstract class ResourceService<
     let resources: ReadMany[];
     let totalCount: number;
     try {
-      [resources, totalCount] = await db.getClient().$transaction([
+      [resources, totalCount] = await this._db.getClient().$transaction([
         this._client.findMany({
           where: { ...query },
           include: includeRelations,
@@ -125,7 +136,7 @@ export abstract class ResourceService<
       throw new HttpError(`${this._client.name} query error`, 500, e);
     }
 
-    events.emitResourceEvent(this._client.name, 'query', {
+    this._events.emitResourceEvent(this._client.name, 'query', {
       current: resources
     });
 
@@ -175,7 +186,7 @@ export abstract class ResourceService<
     let total: Record<string, Record<string, number>> = {};
     let items: Record<string, Record<string, number>>[] = [];
     try {
-      [total, items] = await db.getClient().$transaction(async (tx) => {
+      [total, items] = await this._db.getClient().$transaction(async (tx) => {
         const txModel = tx[this._client.name];
 
         const overall = await txModel.aggregate({
@@ -269,7 +280,7 @@ export abstract class ResourceService<
       throw new HttpError(`${this._client.name} create error`, 500, e);
     }
 
-    events.emitResourceEvent(this._client.name, 'create', {
+    this._events.emitResourceEvent(this._client.name, 'create', {
       current: resource
     });
 
@@ -299,7 +310,7 @@ export abstract class ResourceService<
     let updateResource: ReadOne;
     let resource: ReadOne;
     try {
-      [updateResource, resource] = await db
+      [updateResource, resource] = await this._db
         .getClient()
         .$transaction(async (tx) => {
           const txModel = tx[this._client.name];
@@ -341,7 +352,7 @@ export abstract class ResourceService<
       throw new HttpError(`${this._client.name} update error`, 500, e);
     }
 
-    events.emitResourceEvent(this._client.name, 'update', {
+    this._events.emitResourceEvent(this._client.name, 'update', {
       previous: updateResource,
       current: resource
     });
@@ -354,7 +365,7 @@ export abstract class ResourceService<
 
     let resource: ReadOne;
     try {
-      resource = await db.getClient().$transaction(async (tx) => {
+      resource = await this._db.getClient().$transaction(async (tx) => {
         const txModel = tx[this._client.name];
 
         const current = await txModel.findFirst({
@@ -386,7 +397,7 @@ export abstract class ResourceService<
       throw new HttpError(`${this._client.name} delete error`, 500, e);
     }
 
-    events.emitResourceEvent(this._client.name, 'delete', {
+    this._events.emitResourceEvent(this._client.name, 'delete', {
       current: resource
     });
 

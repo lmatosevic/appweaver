@@ -1,5 +1,5 @@
 import { CronJob, CronJobParams } from 'cron';
-import { logger, config, uuid } from '@appweaver/common';
+import { config, logger, uuid } from '@appweaver/common';
 
 export class Scheduler {
   private readonly jobs: Record<string, CronJob> = {};
@@ -76,7 +76,3 @@ export class Scheduler {
     return true;
   }
 }
-
-const scheduler = new Scheduler();
-
-export { scheduler };

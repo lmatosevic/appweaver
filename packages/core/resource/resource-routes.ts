@@ -1,15 +1,11 @@
 import { Static } from '@sinclair/typebox';
 import { ResourceRoutesConfig, RouteConfig } from '@appweaver/common';
-import { createSchema, Id } from '../resource';
-import { injectModel, injectService } from '../context';
-import { exportService } from '../export';
-import { fileService } from '../storage';
+import { createSchema, Id } from './resource-schema';
+import { inject, injectModel, injectService } from '../context';
+import { ExportService } from '../export';
+import { FileService } from '../storage';
 import { aggregateFiles, maxFileSize } from '../utils';
-import {
-  ResourceSchemaConfig,
-  RoutesHandler,
-  Server
-} from '../types';
+import { ResourceSchemaConfig, RoutesHandler, Server } from '../types';
 
 export function resourceRoutes(
   name: string,
@@ -171,7 +167,7 @@ export function resourceRoutes(
         },
         async (request, reply) => {
           const { sort, ...body } = request.body as any;
-          const response = await exportService.exportCsv(
+          const response = await inject(ExportService).exportCsv(
             service,
             body.filter,
             sort
@@ -207,7 +203,7 @@ export function resourceRoutes(
 
           const parts = request.parts({ limits: { fileSize: maxSize } });
 
-          const files = await fileService.saveFiles(
+          const files = await inject(FileService).saveFiles(
             parts,
             resource,
             service.client
@@ -235,7 +231,7 @@ export function resourceRoutes(
         async (request, reply) => {
           const resource = await service.find(request.params.id);
 
-          const files = await fileService.deleteFiles(
+          const files = await inject(FileService).deleteFiles(
             request.body,
             resource,
             service.client

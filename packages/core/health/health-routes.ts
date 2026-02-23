@@ -1,9 +1,12 @@
 import { HealthCheckStatus } from '@appweaver/common';
-import { healthService } from './health-service';
 import { createHealthCheckSchema, healthReadySchema } from './health-schema';
+import { HealthService } from './health-service';
+import { inject } from '../context';
 import { Server } from '../types';
 
 export function health(server: Server): void {
+  const healthService = inject(HealthService);
+
   const healthCheckSchema = createHealthCheckSchema(
     healthService.healthCheckServices().map((s) => s.name)
   );

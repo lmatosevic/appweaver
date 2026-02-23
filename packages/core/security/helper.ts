@@ -1,9 +1,8 @@
 import { requestContext } from '@fastify/request-context';
 import * as bcrypt from 'bcrypt';
 import { context } from '../context';
-import { ResourceService } from '../resource';
-import { AuthUser, ResourceModel } from '../types';
 import { isResourceAuthModel, isResourceAuthService } from '../utils';
+import { AuthUser, IResourceService, ResourceModel } from '../types';
 
 export function resourceAuthModel(): ResourceModel | undefined {
   for (const model of Object.values(context.models)) {
@@ -13,10 +12,12 @@ export function resourceAuthModel(): ResourceModel | undefined {
   }
 }
 
-export function resourceAuthService(): ResourceService<AuthUser, AuthUser> | undefined {
+export function resourceAuthService():
+  | IResourceService<AuthUser, AuthUser>
+  | undefined {
   for (const service of Object.values(context.services)) {
     if (isResourceAuthService(service)) {
-      return service as ResourceService<AuthUser, AuthUser>;
+      return service as IResourceService<AuthUser, AuthUser>;
     }
   }
 }

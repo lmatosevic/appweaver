@@ -10,6 +10,7 @@ export * from './redis';
 export * from './resource';
 export * from './scheduler';
 export * from './security';
+export * from './security/create-auth-resources';
 export * from './storage';
 export * from './types';
 export * from './utils/resource-util';

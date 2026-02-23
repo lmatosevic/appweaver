@@ -7,8 +7,7 @@ import {
 } from '@appweaver/common';
 import { updatePasswordHash } from './helper';
 import { createModel, createService } from '../factory';
-import { ResourceService } from '../resource';
-import { AuthUser, ResourceModel } from '../types';
+import { AuthUser, IResourceService, ResourceModel } from '../types';
 import { RESOURCE_AUTH } from '../constants';
 
 export function createAuthModel(config: ResourceModelConfig): ResourceModel {
@@ -79,7 +78,7 @@ export function createAuthModel(config: ResourceModelConfig): ResourceModel {
 
 export function createAuthService(
   config: ResourceServiceConfig
-): ResourceService {
+): IResourceService {
   // Capture original functions to invoke after new auth logic
   const beforeCreate = config.beforeCreate;
   const beforeUpdate = config.beforeUpdate;

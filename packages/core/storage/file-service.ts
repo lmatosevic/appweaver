@@ -6,11 +6,11 @@ import {
   isArray,
   isFunction
 } from '@appweaver/common';
+import { inject, injectModel, injectPolicy, injectService } from '../context';
 import { HttpError } from '../errors';
-import { injectModel, injectPolicy, injectService } from '../context';
-import { ContentStream, storage } from './storage';
-import { db } from '../database';
+import { Database } from '../database';
 import { currentAuthUser } from '../security';
+import { ContentStream, Storage } from './storage';
 import {
   generateFileName,
   isValidMimeType,
@@ -28,11 +28,14 @@ export type FileStream = {
 };
 
 export class FileService {
+  private readonly _db = inject(Database);
+  private readonly _storage = inject(Storage);
+
   public async findByName(fileName: string): Promise<File> {
     let file: File | null;
 
     try {
-      file = (await db.getClient().file.findFirst({
+      file = (await this._db.getClient().file.findFirst({
         where: { name: fileName }
       })) as File;
     } catch (e) {
@@ -81,7 +84,7 @@ export class FileService {
     const start = parsedRange.start;
     let end = parsedRange.end;
 
-    const fileStream = await storage.stream(fileName, start, end);
+    const fileStream = await this._storage.stream(fileName, start, end);
     if (!fileStream) {
       throw new HttpError('Error reading file from storage', 500);
     }
@@ -150,7 +153,7 @@ export class FileService {
     });
 
     let nameRegenCount = 0;
-    while (await storage.exists(generatedName)) {
+    while (await this._storage.exists(generatedName)) {
       nameRegenCount++;
 
       if (nameRegenCount === 10) {
@@ -187,7 +190,7 @@ export class FileService {
       throw new HttpError('Creating file is forbidden', 403);
     }
 
-    const fileName = await storage.store(generatedName, data.file);
+    const fileName = await this._storage.store(generatedName, data.file);
     if (!fileName) {
       throw new HttpError('Error saving file to storage', 500);
     }
@@ -201,7 +204,7 @@ export class FileService {
       data.file.truncated ||
       (maxSizeBytes > 0 && data.file.bytesRead > maxSizeBytes)
     ) {
-      await storage.delete(fileName);
+      await this._storage.delete(fileName);
       throw new HttpError(
         `File size exceeded limit of ${maxSizeBytes} bytes`,
         400
@@ -312,13 +315,13 @@ export class FileService {
       throw new HttpError('Deleting file is forbidden', 403);
     }
 
-    const result = await storage.delete(fileName);
+    const result = await this._storage.delete(fileName);
     if (!result) {
       throw new HttpError('Error deleting file from storage', 500);
     }
 
     try {
-      return (await db.getClient().file.delete({
+      return (await this._db.getClient().file.delete({
         where: { name: fileName }
       })) as File;
     } catch (e) {
@@ -366,7 +369,7 @@ export class FileService {
     let success = true;
 
     try {
-      const result = await storage.delete(fileName);
+      const result = await this._storage.delete(fileName);
       if (!result) {
         success = false;
       }
@@ -375,7 +378,7 @@ export class FileService {
     }
 
     try {
-      await db.getClient().file.delete({
+      await this._db.getClient().file.delete({
         where: { name: fileName }
       });
     } catch {
@@ -391,7 +394,7 @@ export class FileService {
     resourceId: number
   ): Promise<number> {
     try {
-      return await db.getClient().file.count({
+      return await this._db.getClient().file.count({
         where: { resourceField, resourceName, resourceId }
       });
     } catch (e) {
@@ -427,7 +430,3 @@ export class FileService {
     return { ...policy };
   }
 }
-
-const fileService = new FileService();
-
-export { fileService };

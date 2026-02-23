@@ -31,7 +31,7 @@ export type RoleCreate = {
 };
 
 export type RoleUpdate = {
-  name: string;
+  name?: string;
   permissions?:
     | Array<{
         id: number;
@@ -62,7 +62,7 @@ export type PermissionCreate = {
 };
 
 export type PermissionUpdate = {
-  name: string;
+  name?: string;
 };
 
 export type File = {
@@ -117,10 +117,10 @@ export type FileCreate = {
 };
 
 export type FileUpdate = {
-  name: string;
-  originalName: string;
-  mimeType: string;
-  sizeBytes: number;
+  name?: string;
+  originalName?: string;
+  mimeType?: string;
+  sizeBytes?: number;
   title?: string | null;
   description?: string | null;
 };

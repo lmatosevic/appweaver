@@ -1,13 +1,14 @@
 import { Job } from 'bullmq';
 import { logger } from '@appweaver/common';
-import { Email, mailer } from './mailer';
-import { queue, Queue } from '../queue';
+import { Email, Mailer } from './mailer';
+import { inject } from '../context';
+import { Queue } from '../queue';
 
 export class EmailService {
-  private readonly mailQueue: Queue;
+  private readonly mailer = inject(Mailer);
+  private readonly mailQueue = inject(Queue).get<Email, boolean>('email');
 
   constructor() {
-    this.mailQueue = queue.get<Email, boolean>('email');
     this.mailQueue.addWorker(this.processEmail.bind(this));
     this.mailQueue.onCompleted(this.onEmailSent.bind(this));
     this.mailQueue.onFailed(this.onEmailError.bind(this));
@@ -18,11 +19,11 @@ export class EmailService {
   }
 
   private async processEmail(job: Job<Email, boolean>): Promise<boolean> {
-    return await mailer.sendEmail(job.data);
+    return await this.mailer.sendEmail(job.data);
   }
 
   private onEmailSent(job: Job<Email, boolean>): void {
-    logger.info(`E-mail '${job.data.subject}' sent successfully`);
+    logger.trace(`E-mail '${job.data.subject}' sent successfully`);
   }
 
   private onEmailError(
@@ -34,7 +35,3 @@ export class EmailService {
     );
   }
 }
-
-const emailService = new EmailService();
-
-export { emailService };

@@ -1,6 +1,7 @@
 import { HealthCheckStatus, isFunction, uncapitalize } from '@appweaver/common';
-import { HealthCheck, HealthCheckResult } from './health-check-interface';
 import { injectAllWhere } from '../context';
+import { HealthCheck, HealthCheckResult } from '../types';
+import { HEALTH_CHECK } from '../constants';
 
 export class HealthService {
   public async checkHealth(): Promise<Record<string, HealthCheckStatus>> {
@@ -29,16 +30,23 @@ export class HealthService {
   }
 
   public healthCheckServices(): { name: string; instance: HealthCheck }[] {
-    const services = injectAllWhere<HealthCheck>((def) =>
-      isFunction((def.value as HealthCheck).checkHealth)
+    const services = injectAllWhere<HealthCheck>(
+      (def) =>
+        def.value.constructor?.[HEALTH_CHECK] &&
+        isFunction((def.value as HealthCheck).checkHealth)
     );
-    return services.map((service) => ({
-      name: uncapitalize(service.constructor.name),
-      instance: service
-    }));
+
+    // Return a unique set of services that correctly implement the health check
+    return Array.from(
+      new Map(
+        services.map((service) => [
+          uncapitalize(service.constructor.name),
+          {
+            name: uncapitalize(service.constructor.name),
+            instance: service
+          }
+        ])
+      ).values()
+    );
   }
 }
-
-const healthService = new HealthService();
-
-export { healthService };

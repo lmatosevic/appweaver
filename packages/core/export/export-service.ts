@@ -12,7 +12,7 @@ import {
 } from '@appweaver/common';
 import { injectModel } from '../context';
 import { HttpError } from '../errors';
-import { ResourceService } from '../resource';
+import { IResourceService } from '../types';
 import {
   extractResourceName,
   extractSchemaProperties,
@@ -29,7 +29,7 @@ export type ExportStream = {
 
 export class ExportService {
   public async exportCsv(
-    service: ResourceService,
+    service: IResourceService,
     filter: any = {},
     sort: string = '-createdAt,id'
   ): Promise<ExportStream> {
@@ -201,7 +201,3 @@ export class ExportService {
     );
   }
 }
-
-const exportService = new ExportService();
-
-export { exportService };

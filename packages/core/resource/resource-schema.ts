@@ -9,7 +9,7 @@ import {
 } from '@appweaver/common';
 import { injectModel } from '../context';
 import { AllErrorResponses } from '../errors';
-import { ResourceModel, ResourceSchemaConfig } from '../types';
+import { ResourceSchemaConfig } from '../types';
 
 export const Id = Type.Object({
   id: Type.Integer({ minimum: 1 })
@@ -52,22 +52,6 @@ export const AggregateRequestData = Type.Object({
 export const AggregateResponseData = Type.Optional(
   AnyJson({ examples: [{ field: 'value' }] })
 );
-
-export const resourceModelProps: Record<
-  string,
-  keyof Partial<Omit<ResourceModel, 'name' | 'config'>>
-> = {
-  '': 'readModel',
-  Single: 'readOneModel',
-  Multiple: 'readManyModel',
-  Create: 'createOneModel',
-  Update: 'updateOneModel',
-  Relations: 'relationsModel',
-  Virtual: 'virtualModel',
-  Files: 'filesModel',
-  FileUpload: 'fileUploadModel',
-  FileDelete: 'fileDeleteModel'
-};
 
 export function createSchema(
   name: string,

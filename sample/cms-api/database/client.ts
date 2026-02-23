@@ -1,6 +1,6 @@
-import { db as database } from '@appweaver/core';
+import { Database } from '@appweaver/core';
 import { PrismaClient } from '@db/client/client';
 
-export const db = database.getClient<PrismaClient>();
+export const db = new Database().getClient<PrismaClient>();
 
 export default db;

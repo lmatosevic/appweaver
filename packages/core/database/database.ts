@@ -1,6 +1,7 @@
 import { createClient } from './create-client';
 import { PrismaClient } from '../prisma/client/client';
-import { HealthCheck, HealthCheckResult } from '../health';
+import { HealthCheck, HealthCheckResult } from '../types';
+import { HEALTH_CHECK } from '../constants';
 
 /**
  * Represents a database utility class that provides methods
@@ -11,11 +12,11 @@ export class Database implements HealthCheck {
   public static client: PrismaClient | undefined;
 
   public async connect(): Promise<void> {
-    await this.clientInstance().$connect();
+    await this.getClient().$connect();
   }
 
   public async disconnect(): Promise<void> {
-    await this.clientInstance().$disconnect();
+    await this.getClient().$disconnect();
   }
 
   public getClient<T = PrismaClient>(): T {
@@ -24,7 +25,7 @@ export class Database implements HealthCheck {
 
   public async checkHealth(): Promise<HealthCheckResult> {
     try {
-      await this.clientInstance().$queryRaw`SELECT 1`;
+      await this.getClient().$queryRaw`SELECT 1`;
       return { success: true };
     } catch (e) {
       return { success: false, message: (e as Error).message };
@@ -39,6 +40,4 @@ export class Database implements HealthCheck {
   }
 }
 
-const db = new Database();
-
-export { db };
+Database[HEALTH_CHECK] = true;

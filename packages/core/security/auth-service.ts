@@ -2,8 +2,7 @@ import { config } from '@appweaver/common';
 import { checkPassword, hashPassword, resourceAuthService } from './helper';
 import { context } from '../context';
 import { HttpError } from '../errors';
-import { AuthTokens, AuthUser, JwtPayload } from '../types';
-import { ResourceService } from '../resource';
+import { AuthTokens, AuthUser, IResourceService, JwtPayload } from '../types';
 
 export class AuthService {
   public async findById(id: number): Promise<AuthUser | null> {
@@ -95,11 +94,7 @@ export class AuthService {
     return !!(await this.updateAuthUser(id, { logoutAt: new Date() }));
   }
 
-  private authUserService(): ResourceService<AuthUser, AuthUser> {
+  private authUserService(): IResourceService<AuthUser, AuthUser> {
     return resourceAuthService()!;
   }
 }
-
-const authService = new AuthService();
-
-export { authService };

@@ -1,13 +1,11 @@
-import { TObject, TSchema } from '@sinclair/typebox';
+import { TSchema } from '@sinclair/typebox';
 import {
   FieldDefault,
   isObject,
   ResourcePolicyConfig,
   ScalarField
 } from '@appweaver/common';
-import { context } from '../context';
-import { resourceModelProps, ResourceService } from '../resource';
-import { ResourceModel, ResourceRoutes } from '../types';
+import { IResourceService, ResourceModel, ResourceRoutes } from '../types';
 import {
   RESOURCE_AUTH,
   RESOURCE_MODEL_TYPE,
@@ -17,6 +15,22 @@ import {
   RESOURCE_SERVICE_TYPE,
   RESOURCE_TYPE
 } from '../constants';
+
+export const resourceModelProps: Record<
+  string,
+  keyof Partial<Omit<ResourceModel, 'name' | 'config'>>
+> = {
+  '': 'readModel',
+  Single: 'readOneModel',
+  Multiple: 'readManyModel',
+  Create: 'createOneModel',
+  Update: 'updateOneModel',
+  Relations: 'relationsModel',
+  Virtual: 'virtualModel',
+  Files: 'filesModel',
+  FileUpload: 'fileUploadModel',
+  FileDelete: 'fileDeleteModel'
+};
 
 export function extractResourceName(schema?: TSchema): string | undefined {
   if (!schema) {
@@ -49,22 +63,6 @@ export function extractSchemaProperties(
   return key ? properties?.[key] : properties;
 }
 
-export function extractSchemaValue(schemaName: string): TObject | undefined {
-  for (const [name, model] of Object.entries(context.models)) {
-    if (!schemaName.startsWith(name)) {
-      continue;
-    }
-
-    for (const [suffix, property] of Object.entries(resourceModelProps)) {
-      const modelName = `${name}${suffix}`;
-      const modelSchema = model[property].$defs[modelName];
-      if (modelName === schemaName) {
-        return modelSchema;
-      }
-    }
-  }
-}
-
 export function countFieldName(name: string): string {
   return `${name}Count`;
 }
@@ -81,11 +79,11 @@ export function isResourceAuthModel(value: any): value is ResourceModel {
   return isResourceModel(value) && value[RESOURCE_AUTH];
 }
 
-export function isResourceService(value: any): value is ResourceService {
+export function isResourceService(value: any): value is IResourceService {
   return isObject(value) && value[RESOURCE_TYPE] === RESOURCE_SERVICE_TYPE;
 }
 
-export function isResourceAuthService(value: any): value is ResourceService {
+export function isResourceAuthService(value: any): value is IResourceService {
   return isResourceService(value) && value[RESOURCE_AUTH];
 }
 

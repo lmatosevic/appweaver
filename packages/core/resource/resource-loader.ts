@@ -1,15 +1,19 @@
 import { globSync } from 'glob';
 import { TObject, TSchema, Type } from '@sinclair/typebox';
 import { logger, ResourcePolicyConfig } from '@appweaver/common';
-import { ResourceService } from './resource-service';
-import { resourceModelProps } from './resource-schema';
 import {
   isResourceModel,
   isResourcePolicy,
   isResourceRoutes,
-  isResourceService
+  isResourceService,
+  resourceModelProps
 } from '../utils';
-import { ApplicationContext, ResourceModel, ResourceRoutes } from '../types';
+import {
+  ApplicationContext,
+  IResourceService,
+  ResourceModel,
+  ResourceRoutes
+} from '../types';
 
 export async function loadResources(
   baseDir?: string
@@ -83,15 +87,15 @@ export async function loadModels(
 export async function loadServices(
   baseDir?: string,
   servicePattern: string = './resources/**/*service.js'
-): Promise<Record<string, ResourceService>> {
+): Promise<Record<string, IResourceService>> {
   const cwd = baseDir ?? process.cwd();
 
-  const services: Record<string, ResourceService> = {};
+  const services: Record<string, IResourceService> = {};
 
   const servicePaths = globSync(servicePattern, { cwd, absolute: true });
 
   for (const path of servicePaths) {
-    const resourceService = await importPath<ResourceService>(path);
+    const resourceService = await importPath<IResourceService>(path);
     if (!resourceService) {
       continue;
     }

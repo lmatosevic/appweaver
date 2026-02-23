@@ -1,12 +1,15 @@
 import { FastifyReply } from 'fastify';
 import { Static } from '@sinclair/typebox';
 import { config } from '@appweaver/common';
-import { fileService, FileStream } from './file-service';
+import { FileService, FileStream } from './file-service';
 import { createFileAccessSchema, FileName } from './file-schema';
+import { inject } from '../context';
 import { Server } from '../types';
 
 export function files(server: Server): void {
   const { auth, authenticateJWT } = server;
+
+  const fileService = inject(FileService);
 
   const addHeaders = (
     reply: FastifyReply,

@@ -1,8 +1,9 @@
 import { Redis as RedisClient, RedisOptions } from 'ioredis';
 import { parse, stringify } from 'flatted';
 import { config } from '@appweaver/common';
-import { HealthCheck, HealthCheckResult } from '../health';
 import { RedisLock } from './redis-lock';
+import { HealthCheck, HealthCheckResult } from '../types';
+import { HEALTH_CHECK } from '../constants';
 
 export class Redis implements HealthCheck {
   private readonly options: RedisOptions;
@@ -122,6 +123,4 @@ export class Redis implements HealthCheck {
   }
 }
 
-const redis = new Redis();
-
-export { redis };
+Redis[HEALTH_CHECK] = true;

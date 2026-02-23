@@ -6,3 +6,5 @@ export const RESOURCE_MODEL_TYPE = 'Model';
 export const RESOURCE_SERVICE_TYPE = 'Service';
 export const RESOURCE_ROUTES_TYPE = 'Routes';
 export const RESOURCE_POLICY_TYPE = 'Policy';
+
+export const HEALTH_CHECK = 'HealthCheck';
