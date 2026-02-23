@@ -42,6 +42,13 @@ export function isBoolean(value: any): value is boolean {
   return typeof value === 'boolean';
 }
 
+/**
+ * Determines the database type based on the configuration.
+ *
+ * @return {DatabaseType} The database type resolved from the configuration. If `DATABASE_TYPE` is explicitly set in the configuration,
+ * it is returned. Otherwise, the type is inferred from the `DATABASE_URL` prefix. Possible database types include PostgresSQL, MySQL,
+ * and Sqlite.
+ */
 export function getDatabaseType(): DatabaseType {
   if (config.DATABASE_TYPE) {
     return config.DATABASE_TYPE;

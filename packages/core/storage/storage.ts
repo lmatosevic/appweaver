@@ -80,15 +80,6 @@ export class Storage {
     }
   }
 
-  public async checkHealth(): Promise<boolean> {
-    try {
-      await fsp.access(this.dirPath, fs.constants.R_OK | fs.constants.W_OK);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
   private async getFilePath(
     fileName: string,
     mkdir: boolean = false

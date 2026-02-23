@@ -1,5 +1,13 @@
 import { isArray, isObject } from './type-util';
 
+/**
+ * Sets a value in a nested object at a specified path. If the path does not exist, it creates the necessary objects along the path.
+ *
+ * @param {Record<string, any>} obj - The object in which the value will be set.
+ * @param {string} path - The string representation of the path to where the value should be set, with keys separated by dots.
+ * @param {any} value - The value to set at the specified path.
+ * @return {Record<string, any>} The updated object with the value set at the specified path.
+ */
 export function setValue(
   obj: Record<string, any>,
   path: string,
@@ -21,6 +29,13 @@ export function setValue(
   return obj;
 }
 
+/**
+ * Updates the properties of an object by setting each property to a specified value.
+ *
+ * @param obj - The object whose properties will be updated.
+ * @param value - The value to assign to each property of the object.
+ * @return T A new object with all properties updated to the specified value.
+ */
 export function setProperties<T extends object = any>(
   obj: T,
   value: keyof T | undefined
@@ -31,6 +46,13 @@ export function setProperties<T extends object = any>(
   }, {} as T);
 }
 
+/**
+ * Picks specified properties from an object and returns a new object containing only those properties.
+ *
+ * @param obj - The source object from which properties will be picked.
+ * @param {[]} props - An array of property keys to pick from the source object.
+ * @return A new object containing only the picked properties from the source object.
+ */
 export function pickProperties<T extends object = any>(
   obj: T,
   props: (keyof T)[]
@@ -43,6 +65,13 @@ export function pickProperties<T extends object = any>(
   }, {} as Partial<T>);
 }
 
+/**
+ * Excludes specified properties from an object and returns a new object without them.
+ *
+ * @param obj - The source object from which properties will be omitted.
+ * @param {[]} props - An array of property keys to omit from the object.
+ * @return A new object excluding the specified properties.
+ */
 export function omitProperties<T extends object = any>(
   obj: T,
   props: (keyof T)[]
@@ -58,12 +87,26 @@ export function omitProperties<T extends object = any>(
   );
 }
 
+/**
+ * Removes all properties with `undefined` values from the given object.
+ *
+ * @param obj - The object from which properties with `undefined` values will be removed.
+ * @return A new object with all `undefined` values removed.
+ */
 export function removeUndefined<T extends object = any>(obj: T) {
   return Object.fromEntries(
     Object.entries(obj).filter(([_, value]) => value !== undefined)
   );
 }
 
+/**
+ * Checks whether a given object or its nested objects/arrays contain a property with the specified key and value.
+ *
+ * @param {Record<string, any>} data - The object or array to search through.
+ * @param {string} key - The property key to look for.
+ * @param {any} value - The property value to match.
+ * @return {boolean} Returns true if the property exists and matches the value; otherwise, returns false.
+ */
 export function objectHasProperty(
   data: Record<string, any>,
   key: string,
