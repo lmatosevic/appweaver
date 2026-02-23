@@ -229,7 +229,8 @@ function checkDefinitionExistence(
   override: boolean = false
 ): void {
   if (
-    ((isArray(store) && findFirstDefinition(name)) || name in store) &&
+    ((isArray(store) && findFirstDefinition(name)) ||
+      (!isArray(store) && name in store)) &&
     !override
   ) {
     throw new Error(
