@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { loadPackage } from './utils';
+import { loadPackageJson } from './utils';
 import { buildCommand } from './build';
 import { generateCommand } from './generate';
 import { migrateCommand } from './migrate';
 import { seedCommand } from './seed';
 import { startCommand } from './start';
 
-const pkg = loadPackage();
+const pkg = loadPackageJson();
 
 const program = new Command();
 

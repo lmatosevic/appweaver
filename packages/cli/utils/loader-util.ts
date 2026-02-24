@@ -4,7 +4,7 @@ import { globSync } from 'glob';
 import { register } from 'ts-node';
 import { isResourceModel, ResourceModel } from '@appweaver/core';
 
-export function loadPackage(): Record<string, string> {
+export function loadPackageJson(): Record<string, string> {
   let pkgPath = path.join(__dirname, '../../package.json');
   if (!fs.existsSync(pkgPath)) {
     pkgPath = path.join(__dirname, '../package.json');
