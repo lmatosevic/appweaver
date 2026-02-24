@@ -1,3 +1,9 @@
+## [1.0.3](https://gitlab.com/app-weaver/appweaver/compare/v1.0.2...v1.0.3) (2026-02-24)
+
+### Bug Fixes
+
+* add missing fastify auth dependency ([7f24997](https://gitlab.com/app-weaver/appweaver/commit/7f24997cc0c8d6e7594bceab108900fde500145d))
+
 ## [1.0.2](https://gitlab.com/app-weaver/appweaver/compare/v1.0.1...v1.0.2) (2026-02-24)
 
 ### Bug Fixes
