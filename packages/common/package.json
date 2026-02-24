@@ -1,6 +1,6 @@
 {
   "name": "@appweaver/common",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Appweaver - simple, fast, and reliable web application builder tool (@common)",
   "author": "Luka Matosevic",
   "license": "UNLICENSED",
@@ -12,8 +12,12 @@
     "directory": "packages/common"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://gitlab.com/api/v4/groups/122380574/-/packages/npm/"
   },
+  "files": [
+    "dist/**"
+  ],
   "engines": {
     "node": ">= 20"
   },

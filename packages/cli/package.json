@@ -1,6 +1,6 @@
 {
   "name": "@appweaver/cli",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Appweaver - simple, fast, and reliable web application builder tool (@cli)",
   "author": "Luka Matosevic",
   "license": "UNLICENSED",
@@ -15,8 +15,12 @@
     "directory": "packages/cli"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://gitlab.com/api/v4/groups/122380574/-/packages/npm/"
   },
+  "files": [
+    "dist/**"
+  ],
   "engines": {
     "node": ">= 20"
   },
@@ -36,20 +40,7 @@
     "tsc-watch": "7.2.0",
     "typescript": "5.9.3"
   },
-  "devDependencies": {
-    "@appweaver/core": "^0.1.0",
-    "@appweaver/common": "^0.1.0"
-  },
-  "peerDependencies": {
-    "@appweaver/core": "^0.1.0",
-    "@appweaver/common": "^0.1.0"
-  },
-  "peerDependenciesMeta": {
-    "@appweaver/common": {
-      "optional": false
-    },
-    "@appweaver/core": {
-      "optional": false
-    }
-  }
+  "devDependencies": {},
+  "peerDependencies": {},
+  "peerDependenciesMeta": {}
 }

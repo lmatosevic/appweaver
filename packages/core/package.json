@@ -1,6 +1,6 @@
 {
   "name": "@appweaver/core",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Appweaver - simple, fast, and reliable web application builder tool (@core)",
   "author": "Luka Matosevic",
   "license": "UNLICENSED",
@@ -12,8 +12,12 @@
     "directory": "packages/core"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://gitlab.com/api/v4/groups/122380574/-/packages/npm/"
   },
+  "files": [
+    "dist/**"
+  ],
   "engines": {
     "node": ">= 20"
   },
@@ -54,15 +58,7 @@
     "nodemailer": "7.0.12",
     "prisma": "7.4.1"
   },
-  "devDependencies": {
-    "@appweaver/common": "^0.1.0"
-  },
-  "peerDependencies": {
-    "@appweaver/common": "^0.1.0"
-  },
-  "peerDependenciesMeta": {
-    "@appweaver/common": {
-      "optional": false
-    }
-  }
+  "devDependencies": {},
+  "peerDependencies": {},
+  "peerDependenciesMeta": {}
 }
