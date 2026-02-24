@@ -1,3 +1,9 @@
+## [1.0.2](https://gitlab.com/app-weaver/appweaver/compare/v1.0.1...v1.0.2) (2026-02-24)
+
+### Bug Fixes
+
+* update packages dependencies to each other, added postrelease script ([86265db](https://gitlab.com/app-weaver/appweaver/commit/86265db488dcb2ed8056112aa52b374de0e0ce51))
+
 ## [1.0.1](https://gitlab.com/app-weaver/appweaver/compare/v1.0.0...v1.0.1) (2026-02-24)
 
 ### Bug Fixes
