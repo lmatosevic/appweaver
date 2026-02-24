@@ -2,6 +2,7 @@ import { globSync } from 'glob';
 import { TObject, TSchema, Type } from '@sinclair/typebox';
 import { logger, ResourcePolicyConfig } from '@appweaver/common';
 import {
+  importModule,
   isResourceModel,
   isResourcePolicy,
   isResourceRoutes,
@@ -15,6 +16,19 @@ import {
   ResourceRoutes
 } from '../types';
 
+/**
+ * Loads application resources including models, services, policies, and routes.
+ *
+ * @param {string} [baseDir] - Optional base directory path from which to load the resources.
+ *                              If not provided, defaults to the application's root directory.
+ * @return {Promise<Omit<ApplicationContext, 'server' | 'definitions'>>} A promise that resolves to an object containing
+ * the loaded resources:
+ *
+ *         - `models`: The application models.
+ *         - `services`: The application services.
+ *         - `policies`: The access policies.
+ *         - `routes`: The application routes.
+ */
 export async function loadResources(
   baseDir?: string
 ): Promise<Omit<ApplicationContext, 'server' | 'definitions'>> {
@@ -31,7 +45,7 @@ export async function loadResources(
   };
 }
 
-export async function loadModels(
+async function loadModels(
   baseDir?: string,
   modelPattern: string = './resources/**/*model.js'
 ): Promise<Record<string, ResourceModel>> {
@@ -84,7 +98,7 @@ export async function loadModels(
   return models;
 }
 
-export async function loadServices(
+async function loadServices(
   baseDir?: string,
   servicePattern: string = './resources/**/*service.js'
 ): Promise<Record<string, IResourceService>> {
@@ -114,7 +128,7 @@ export async function loadServices(
   return services;
 }
 
-export async function loadPolicies(
+async function loadPolicies(
   baseDir?: string,
   policyPattern: string = './resources/**/*policy.js'
 ): Promise<Record<string, ResourcePolicyConfig>> {
@@ -144,7 +158,7 @@ export async function loadPolicies(
   return policies;
 }
 
-export async function loadRoutes(
+async function loadRoutes(
   baseDir?: string,
   routePattern: string = './resources/**/*route.js'
 ): Promise<Record<string, ResourceRoutes>> {
@@ -175,12 +189,10 @@ export async function loadRoutes(
 }
 
 async function importPath<T>(filePath: string): Promise<T | null> {
-  try {
-    const jsPath = filePath.replace(/\.ts$/i, '.js');
-    const exportedValue = await import(jsPath);
-    return exportedValue.default || exportedValue;
-  } catch (e) {
-    logger.error(e);
+  const { value, error } = await importModule<T>(filePath);
+  if (error) {
+    logger.error(error);
     return null;
   }
+  return value;
 }

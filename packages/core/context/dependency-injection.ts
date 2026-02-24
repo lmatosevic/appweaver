@@ -22,7 +22,6 @@ import { RESOURCE_NAME } from '../constants';
  * @param {DefinitionValue} value - The value associated with the definition.
  * @param {string | undefined} name - The name of the definition to be added.
  * @param {boolean} [override=false] - A flag indicating whether to override an existing definition with the same name.
- * @return {void} This function does not return a value.
  * @throws {Error} Throws an error if the definition already exists and the override flag is not enabled.
  */
 export function define(

@@ -4,7 +4,7 @@ import { Database } from '../database';
 import { Server } from '../types';
 
 /**
- * Represents an application that manages the lifecycle of a Fastify server instance.
+ * Represents an application that manages the lifecycle of a server and database.
  */
 export class Application {
   private readonly _db: Database = inject(Database);

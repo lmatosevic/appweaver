@@ -10,6 +10,11 @@ import { Events } from '../events';
 import { HealthService } from '../health';
 import { define } from '../context';
 
+/**
+ * Loads and initializes the service definitions required by the application.
+ * This method registers various service components, such as the database, queue system,
+ * mailer, storage, and authentication services, among others.
+ */
 export function loadDefinitions(): void {
   define(new Database());
   define(new Redis());

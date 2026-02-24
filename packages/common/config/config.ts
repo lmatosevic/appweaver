@@ -117,4 +117,6 @@ const filesConfig = loadConfigFromFiles(configSchema);
 
 const config = Value.Parse(configSchema, { ...filesConfig, ...envConfig });
 
+Object.freeze(config);
+
 export { config };
