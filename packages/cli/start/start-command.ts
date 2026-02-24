@@ -12,10 +12,10 @@ export function startCommand(program: Command): void {
         await runProcess('tsc-watch', [
           '-p tsconfig.build.json',
           '--onCompilationComplete "tsc-alias -p tsconfig.build.json"',
-          '--onSuccess "node ./dist/main.js"'
+          '--onSuccess "node ./dist/src/main.js"'
         ]);
       } else {
-        await runProcess('node', ['./dist/main.js']);
+        await runProcess('node', ['./dist/src/main.js']);
       }
     });
 }
