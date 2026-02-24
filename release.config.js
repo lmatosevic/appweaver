@@ -50,6 +50,7 @@ module.exports = {
         assets: [
           'CHANGELOG.md',
           'package.json',
+          'package-lock.json',
           'packages/core/package.json',
           'packages/common/package.json',
           'packages/cli/package.json'
