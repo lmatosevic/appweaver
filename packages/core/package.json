@@ -31,6 +31,7 @@
     "db:generate": "prisma generate"
   },
   "dependencies": {
+    "@fastify/auth": "5.0.4",
     "@fastify/cors": "11.2.0",
     "@fastify/helmet": "13.0.2",
     "@fastify/jwt": "10.0.0",
