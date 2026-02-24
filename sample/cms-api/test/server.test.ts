@@ -1,3 +1,5 @@
 describe('Test Sample CMS API', () => {
-  expect('abc').toBe('abc');
+  test('Sample test', () => {
+    expect('abc').toBe('abc');
+  });
 });
