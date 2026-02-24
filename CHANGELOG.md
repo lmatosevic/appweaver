@@ -1,3 +1,9 @@
+## [1.0.1](https://gitlab.com/app-weaver/appweaver/compare/v1.0.0...v1.0.1) (2026-02-24)
+
+### Bug Fixes
+
+* update npm project registry and update build tools, added semantic-release tool ([07b0cb7](https://gitlab.com/app-weaver/appweaver/commit/07b0cb7b828d993f2688fcbc7ada72488410532e))
+
 ## 1.0.0 (2026-02-24)
 
 ### Features
