@@ -13,5 +13,8 @@ tsconfig.json
 
 *.tsbuildinfo
 
+# env file
+.env
+
 # usage sample
 sample
