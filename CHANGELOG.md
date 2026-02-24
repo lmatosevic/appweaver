@@ -1,3 +1,9 @@
+## [1.0.4](https://gitlab.com/app-weaver/appweaver/compare/v1.0.3...v1.0.4) (2026-02-24)
+
+### Bug Fixes
+
+* update cli start command to point to correct main.js in dist folder ([f4e410b](https://gitlab.com/app-weaver/appweaver/commit/f4e410bac4b9aefab9946748ca9f30f8e70015f8))
+
 ## [1.0.3](https://gitlab.com/app-weaver/appweaver/compare/v1.0.2...v1.0.3) (2026-02-24)
 
 ### Bug Fixes
