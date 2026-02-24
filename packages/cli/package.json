@@ -40,7 +40,20 @@
     "tsc-watch": "7.2.0",
     "typescript": "5.9.3"
   },
-  "devDependencies": {},
-  "peerDependencies": {},
-  "peerDependenciesMeta": {}
+  "devDependencies": {
+    "@appweaver/core": "^1.0.0",
+    "@appweaver/common": "^1.0.0"
+  },
+  "peerDependencies": {
+    "@appweaver/core": "^1.0.0",
+    "@appweaver/common": "^1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@appweaver/common": {
+      "optional": false
+    },
+    "@appweaver/core": {
+      "optional": false
+    }
+  }
 }

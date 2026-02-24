@@ -58,7 +58,15 @@
     "nodemailer": "7.0.12",
     "prisma": "7.4.1"
   },
-  "devDependencies": {},
-  "peerDependencies": {},
-  "peerDependenciesMeta": {}
+  "devDependencies": {
+    "@appweaver/common": "^1.0.0"
+  },
+  "peerDependencies": {
+    "@appweaver/common": "^1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@appweaver/common": {
+      "optional": false
+    }
+  }
 }

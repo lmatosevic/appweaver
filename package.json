@@ -34,7 +34,8 @@
     "lint": "eslint \"./{packages,sample}/**/*.ts\"",
     "lint:fix": "npm run lint -- --fix",
     "prerelease": "npm run build",
-    "release": "semantic-release --no-ci"
+    "release": "semantic-release --no-ci",
+    "postrelease": "git push --follow-tags origin main"
   },
   "dependencies": {
     "@fastify/auth": "5.0.4",
