@@ -16,6 +16,8 @@ import {
   isArray,
   isString,
   plural,
+  isBoolean,
+  isNumber,
   RelationConfig,
   RelationField,
   ScalarConfig,
@@ -366,7 +368,9 @@ function createScalarSchema(
   const isSqlite = getDatabaseType() === DatabaseType.Sqlite;
 
   const sanitize = (val: FieldDefault) => {
-    if (isString(val)) {
+    if (isNumber(val) || isBoolean(val)) {
+      return val;
+    } else if (isString(val)) {
       return val.replace(/"/g, '\\"');
     } else {
       return JSON.stringify(val).replace(/"/g, '\\"');
@@ -405,7 +409,7 @@ function createScalarSchema(
         .join(', ');
       defaultAttribute = `@default([${mappedValues}])`;
     } else {
-      defaultAttribute = `@default(${scalar.default})`;
+      defaultAttribute = `@default(${sanitize(scalar.default)})`;
     }
 
     if (defaultAttribute) {

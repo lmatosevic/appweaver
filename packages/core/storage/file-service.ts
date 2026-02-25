@@ -35,7 +35,7 @@ export class FileService {
     let file: File | null;
 
     try {
-      file = (await this._db.getClient().file.findFirst({
+      file = (await this._db.client().file.findFirst({
         where: { name: fileName }
       })) as File;
     } catch (e) {
@@ -321,7 +321,7 @@ export class FileService {
     }
 
     try {
-      return (await this._db.getClient().file.delete({
+      return (await this._db.client().file.delete({
         where: { name: fileName }
       })) as File;
     } catch (e) {
@@ -378,7 +378,7 @@ export class FileService {
     }
 
     try {
-      await this._db.getClient().file.delete({
+      await this._db.client().file.delete({
         where: { name: fileName }
       });
     } catch {
@@ -394,7 +394,7 @@ export class FileService {
     resourceId: number
   ): Promise<number> {
     try {
-      return await this._db.getClient().file.count({
+      return await this._db.client().file.count({
         where: { resourceField, resourceName, resourceId }
       });
     } catch (e) {

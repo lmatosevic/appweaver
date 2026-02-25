@@ -61,7 +61,7 @@ export abstract class ResourceService<
   constructor(public readonly modelName: string) {
     this._db = inject(Database);
     this._events = inject(Events);
-    this._client = this._db.getClient()[uncapitalize(modelName)];
+    this._client = this._db.client()[uncapitalize(modelName)];
     if (!this._client) {
       throw new Error(
         `ResourceService initialized with invalid model name: ${modelName}`
@@ -120,7 +120,7 @@ export abstract class ResourceService<
     let resources: ReadMany[];
     let totalCount: number;
     try {
-      [resources, totalCount] = await this._db.getClient().$transaction([
+      [resources, totalCount] = await this._db.client().$transaction([
         this._client.findMany({
           where: { ...query },
           include: includeRelations,
@@ -186,7 +186,7 @@ export abstract class ResourceService<
     let total: Record<string, Record<string, number>> = {};
     let items: Record<string, Record<string, number>>[] = [];
     try {
-      [total, items] = await this._db.getClient().$transaction(async (tx) => {
+      [total, items] = await this._db.client().$transaction(async (tx) => {
         const txModel = tx[this._client.name];
 
         const overall = await txModel.aggregate({
@@ -311,7 +311,7 @@ export abstract class ResourceService<
     let resource: ReadOne;
     try {
       [updateResource, resource] = await this._db
-        .getClient()
+        .client()
         .$transaction(async (tx) => {
           const txModel = tx[this._client.name];
 
@@ -365,7 +365,7 @@ export abstract class ResourceService<
 
     let resource: ReadOne;
     try {
-      resource = await this._db.getClient().$transaction(async (tx) => {
+      resource = await this._db.client().$transaction(async (tx) => {
         const txModel = tx[this._client.name];
 
         const current = await txModel.findFirst({

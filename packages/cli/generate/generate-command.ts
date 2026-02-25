@@ -33,7 +33,7 @@ export function generateCommand(program: Command): void {
       const generateAll =
         !command.getOptionValue('types') && !command.getOptionValue('schema');
 
-      const models = loadModels(command.getOptionValue('modelPattern'));
+      const models = await loadModels(command.getOptionValue('modelPattern'));
 
       if (command.getOptionValue('types') || generateAll) {
         await generateTypes(models, command.getOptionValue('typesPath'));

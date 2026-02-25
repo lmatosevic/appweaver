@@ -13,9 +13,9 @@ export function loadPackageJson(): Record<string, string> {
   return JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
 }
 
-export function loadModels(
+export async function loadModels(
   modelPattern: string
-): Record<string, ResourceModel> {
+): Promise<Record<string, ResourceModel>> {
   const cwd = process.cwd();
 
   register({
@@ -42,7 +42,7 @@ export function loadModels(
     try {
       // Clear cache to ensure fresh model data
       delete require.cache[require.resolve(modelPath)];
-      modelExport = require(modelPath);
+      modelExport = await import(modelPath);
     } catch (error) {
       console.log(
         'Cannot load module:',

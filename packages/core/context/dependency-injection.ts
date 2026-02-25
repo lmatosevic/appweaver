@@ -1,4 +1,9 @@
-import { isArray, isString, ResourcePolicyConfig } from '@appweaver/common';
+import {
+  isArray,
+  isString,
+  FunctionType,
+  ResourcePolicyConfig
+} from '@appweaver/common';
 import { context } from './context';
 import {
   isResourceModel,
@@ -55,7 +60,7 @@ export function define(
  * and attempts to resolve the appropriate definition. Throws an error if the definition is
  * not found, and it is marked as required.
  *
- * @param {string | Object} nameOrClass - The name or class of the definition to retrieve.
+ * @param {string | Object | FunctionType} nameOrClass - The name or class of the definition to retrieve.
  *                                        Naming conventions such as suffixes 'Model', 'Service',
  *                                        'Routes', or 'Policy' are supported.
  * @param {boolean} [required=true] - Indicates whether the definition is required. If true
@@ -64,7 +69,7 @@ export function define(
  *               is not found and `required` is set to `false`.
  */
 export function inject<T = DefinitionValue>(
-  nameOrClass: string | { new (...args: any[]): T } | Function,
+  nameOrClass: string | { new (...args: any[]): T } | FunctionType,
   required: boolean = true
 ): T {
   let definition: DefinitionValue | undefined;
@@ -100,12 +105,12 @@ export function inject<T = DefinitionValue>(
 /**
  * Injects all definitions that match the specified name or class.
  *
- * @param {string | { new (...args: any[]): any } | Function} nameOrClass The name of the definition or the
+ * @param {string | { new (...args: any[]): any } | FunctionType} nameOrClass The name of the definition or the
  *                                                                        class constructor to find matching definitions.
  * @return {[]} An array of definitions that match the provided name or class.
  */
 export function injectAll<T = DefinitionValue>(
-  nameOrClass: string | { new (...args: any[]): T } | Function
+  nameOrClass: string | { new (...args: any[]): T } | FunctionType
 ): T[] {
   return findAllDefinitions(
     isString(nameOrClass) ? nameOrClass : nameOrClass.name

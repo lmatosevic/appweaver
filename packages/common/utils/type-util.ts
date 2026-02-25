@@ -18,6 +18,8 @@ export type IsObject<T> =
             ? true
             : false;
 
+export type FunctionType = (...args: unknown[]) => unknown;
+
 export function isArray<T = any>(val: any): val is Array<T> {
   return Array.isArray(val);
 }
@@ -26,7 +28,7 @@ export function isObject(value: any): value is object {
   return typeof value === 'object';
 }
 
-export function isFunction(value: any): value is Function {
+export function isFunction(value: any): value is FunctionType {
   return typeof value === 'function';
 }
 

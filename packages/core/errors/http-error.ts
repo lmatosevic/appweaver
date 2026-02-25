@@ -23,7 +23,7 @@ export class HttpError extends Error {
     public errorCode?: number
   ) {
     super(
-      config.APP_ENV !== Environment.Production && error
+      (config.APP_ENV as Environment) !== Environment.Production && error
         ? ` ${text} (${errorMessage(error)})`
         : text
     );

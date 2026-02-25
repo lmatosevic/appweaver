@@ -1,9 +1,8 @@
 import {
-  DestinationStream,
-  LevelWithSilent,
-  pino,
   destination,
+  DestinationStream,
   multistream,
+  pino,
   stdTimeFunctions
 } from 'pino';
 import pretty from 'pino-pretty';
@@ -11,7 +10,7 @@ import { createStream } from 'rotating-file-stream';
 import { LogLevel } from '../enums';
 import { config } from '../config';
 
-const logLevel: LevelWithSilent = config.LOG_LEVEL;
+const level = config.LOG_LEVEL;
 
 const logName = config.APP_NAME
   ? config.APP_NAME.toLowerCase().replace(/\s+/g, '_')
@@ -31,7 +30,7 @@ if (config.LOG_PRETTY) {
   streams.push(destination(1));
 }
 
-if (config.LOG_PATH && logLevel !== 'silent') {
+if (config.LOG_PATH && level !== LogLevel.Silent) {
   if (config.LOG_ROTATE) {
     streams.push(
       createStream(`${logName}.log`, {
@@ -48,17 +47,15 @@ if (config.LOG_PATH && logLevel !== 'silent') {
   }
 }
 
-const stream = multistream(
-  streams.map((stream) => ({ level: logLevel, stream }))
-);
+const stream = multistream(streams.map((stream) => ({ level, stream })));
 
 const commonConfig = {
-  level: logLevel,
+  level,
   timestamp: stdTimeFunctions.isoTime
 };
 
 const loggerConfig =
-  logLevel !== LogLevel.Silent ? { ...commonConfig, stream } : false;
+  level !== LogLevel.Silent ? { ...commonConfig, stream } : false;
 
 const logger = pino(commonConfig, stream);
 

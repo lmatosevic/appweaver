@@ -33,8 +33,7 @@ export type FieldDefault =
   | FieldDefaultNumber
   | FieldDefaultBoolean
   | FieldDefaultDateTime
-  | FieldDefaultJson
-  | FieldDefaultEnum;
+  | FieldDefaultJson;
 
 export type FieldFormatString =
   | 'email'

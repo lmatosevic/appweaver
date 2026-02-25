@@ -108,6 +108,7 @@ function createPrismaClient(adapter: SqlDriverAdapterFactory): PrismaClient {
     'client'
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { PrismaClient } = require(clientPath);
 
   return new PrismaClient({ adapter, ...options });

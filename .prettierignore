@@ -1,1 +1,4 @@
 dist/
+
+**/database/client/**
+**/prisma/client/**
