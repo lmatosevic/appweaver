@@ -1,3 +1,10 @@
+## [1.0.5](https://gitlab.com/app-weaver/appweaver/compare/v1.0.4...v1.0.5) (2026-02-25)
+
+### Bug Fixes
+
+* fixed linter errors ([1f06cd8](https://gitlab.com/app-weaver/appweaver/commit/1f06cd8a03bdc35c3270eee2d680c788e40d3c02))
+* updated tsconfig files, excluded prisma generated code from eslint, fixed linter errors, updated sample project npm scripts ([aa2ef18](https://gitlab.com/app-weaver/appweaver/commit/aa2ef18c94a830550cfb7e48879e7d55253a9ed1))
+
 ## [1.0.4](https://gitlab.com/app-weaver/appweaver/compare/v1.0.3...v1.0.4) (2026-02-24)
 
 ### Bug Fixes

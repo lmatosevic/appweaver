@@ -1,6 +1,6 @@
 {
   "name": "@appweaver/cli",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Appweaver - simple, fast, and reliable web application builder tool (@cli)",
   "author": "Luka Matosevic",
   "license": "UNLICENSED",
