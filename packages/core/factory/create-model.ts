@@ -436,8 +436,8 @@ function relationInputProperties<T extends TObject>(
   const relationInputType = (key: string) => {
     const { type, ...options } = object.properties[key];
 
-    let uniqueIdObject = Id;
-    let uniqueIdType = Id.properties.id;
+    const uniqueIdObject = Id;
+    const uniqueIdType = Id.properties.id;
 
     let fullInputType: TSchema | undefined = undefined;
 

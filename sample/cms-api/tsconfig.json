@@ -28,5 +28,6 @@
       "@appweaver/cli": ["../../packages/cli"],
       "@appweaver/cli/*": ["../../packages/cli/*"]
     }
-  }
+  },
+  "exclude": ["node_modules", "dist"]
 }

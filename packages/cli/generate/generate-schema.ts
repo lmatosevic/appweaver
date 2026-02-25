@@ -393,7 +393,7 @@ function createScalarSchema(
     if (['string', 'dateTime', 'json'].includes(scalar.type) && !scalar.array) {
       defaultAttribute = `@default("${sanitize(scalar.default)}")`;
     } else if (scalar.array) {
-      let defaultValues = isArray(scalar.default)
+      const defaultValues = isArray(scalar.default)
         ? scalar.default
         : [scalar.default];
       const mappedValues = defaultValues
@@ -453,7 +453,7 @@ function createRelationSchema(
   if (relation.array) {
     attributes.push(`@relation("${relationName}")`);
   } else {
-    let referentialActions: string[] = [];
+    const referentialActions: string[] = [];
     if (relation.onDelete) {
       referentialActions.push(`onDelete: ${capitalize(relation.onDelete)}`);
     }

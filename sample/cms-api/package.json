@@ -8,25 +8,22 @@
   "main": "./dist/src/main.js",
   "types": "./dist/src/main.d.ts",
   "scripts": {
-    "clean": "rimraf dist",
-    "prebuild": "npm run clean",
-    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
-    "start": "node ./dist/src/main.js",
-    "start:dev": "tsc-watch -p tsconfig.build.json --onCompilationComplete \"tsc-alias -p tsconfig.build.json\" --onSuccess \"node ./dist/src/main.js\"",
+    "build": "npm run weaver -- build",
+    "start": "npm run weaver -- start",
+    "dev": "npm run weaver -- start --watch",
+    "generate": "npm run weaver -- generate",
+    "migrate": "npm run weaver -- migrate",
+    "seed": "npm run weaver -- seed",
     "test": "jest --forceExit --detectOpenHandles --coverage",
     "format": "prettier --write \"./src/**/*.ts\" \"./test/**/*.ts\"",
     "lint": "eslint \"./{src,test}/**/*.ts\"",
-    "lint:fix": "npm run lint -- --fix",
-    "db:migrate": "prisma migrate deploy",
-    "db:generate": "prisma generate",
-    "db:seed": "node ./dist/database/seeder/index.js",
     "weaver": "node ./../../node_modules/@appweaver/cli/dist/weaver.js"
   },
   "dependencies": {
-    "@appweaver/common": "0.1.0",
-    "@appweaver/core": "0.1.0"
+    "@appweaver/common": "^1.0.0",
+    "@appweaver/core": "^1.0.0"
   },
   "devDependencies": {
-    "@appweaver/cli": "0.1.0"
+    "@appweaver/cli": "^1.0.0"
   }
 }

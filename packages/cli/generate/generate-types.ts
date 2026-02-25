@@ -76,7 +76,7 @@ function generateTypeScriptType(
 function transformUnsafeTypes(schema: TObject): TObject {
   const properties: Record<string, TSchema> = {};
 
-  for (let [name, field] of Object.entries(schema.properties)) {
+  for (const [name, field] of Object.entries(schema.properties)) {
     if (field.type === 'string' && isArray(field.enum)) {
       properties[name] = EnumType(field.enum);
     } else if (

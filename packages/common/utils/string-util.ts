@@ -54,7 +54,7 @@ export function randomString(
 
   let pool = '';
   let includeUndefined = true;
-  for (let [category, include] of Object.entries(config)) {
+  for (const [category, include] of Object.entries(config)) {
     if (include) {
       pool += categories[category];
       includeUndefined = false;
@@ -62,7 +62,7 @@ export function randomString(
   }
 
   if (includeUndefined) {
-    for (let [key, value] of Object.entries(categories)) {
+    for (const [key, value] of Object.entries(categories)) {
       if (config[key] === undefined) {
         pool += value;
       }

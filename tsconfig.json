@@ -27,6 +27,6 @@
       "@appweaver/cli/*": ["./packages/cli/*"]
     }
   },
-  "include": ["packages/**/*"],
+  "include": ["packages/**/*", "eslint.config.mjs"],
   "exclude": ["node_modules", "dist", "sample", "**/*(spec|test).ts"]
 }

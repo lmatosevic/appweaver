@@ -5,7 +5,7 @@ import { ResourceModel } from './resource';
 import { IResourceService } from './resource-service';
 
 export type DefinitionValue =
-  | Object
+  | object
   | ((...args: any[]) => any)
   | Record<string, any>;
 
