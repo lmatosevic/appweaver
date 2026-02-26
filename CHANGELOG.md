@@ -1,3 +1,15 @@
+## [1.1.0](https://gitlab.com/app-weaver/appweaver/compare/v1.0.5...v1.1.0) (2026-02-26)
+
+### Features
+
+* add config for specifying additional modules to load models from in core and cli packages ([a96839a](https://gitlab.com/app-weaver/appweaver/commit/a96839a3dc814552c385dd684251f81831fca703))
+* implement custom register route function, update sample Dockerfile, rename context structure to resource ([c0e3e84](https://gitlab.com/app-weaver/appweaver/commit/c0e3e841649f2e4731286ea25194965227b7c983))
+
+### Bug Fixes
+
+* update database client loading from one of configured prisma adapters ([6e4ee8d](https://gitlab.com/app-weaver/appweaver/commit/6e4ee8dc6c1826a57c62bca59c3b478db1c84056))
+* update jest config, add scanPath config, add test for sample project ([e2dac64](https://gitlab.com/app-weaver/appweaver/commit/e2dac64fd887989a7ed5719ccd362c9a5daffeb3))
+
 ## [1.0.5](https://gitlab.com/app-weaver/appweaver/compare/v1.0.4...v1.0.5) (2026-02-25)
 
 ### Bug Fixes
