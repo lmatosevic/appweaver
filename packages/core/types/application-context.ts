@@ -11,11 +11,15 @@ export type DefinitionValue =
 
 export type DefinitionEntry = { name: string; value: DefinitionValue };
 
-export type ApplicationContext = {
-  server: Server | null;
+export type ResourceContext = {
   models: Record<string, ResourceModel>;
   services: Record<string, IResourceService>;
   policies: Record<string, ResourcePolicyConfig>;
   routes: Record<string, ResourceRoutes>;
+};
+
+export type ApplicationContext = {
+  server: Server | null;
+  resource: ResourceContext;
   definitions: DefinitionEntry[];
 };

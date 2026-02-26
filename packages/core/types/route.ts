@@ -1,5 +1,9 @@
 import { ResourceRoutesConfig } from '@appweaver/common';
-import { Server } from './server';
+import { Router, Server } from './server';
+
+export type RoutesHandler = (server: Server) => void;
+
+export type RouterHandler = (router: Router) => void;
 
 export type RouteSchema = {
   tags?: string[];
@@ -25,8 +29,6 @@ export type ResourceSchemaConfig = {
   fileUploadSchema: RouteSchema;
   fileDeleteSchema: RouteSchema;
 };
-
-export type RoutesHandler = (server: Server) => void;
 
 export type ResourceRoutes = {
   config: ResourceRoutesConfig;

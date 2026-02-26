@@ -11,7 +11,7 @@ export default fastifyPlugin((server: Server): void => {
   registerModelSchema(server);
 
   server.register(fastifySwagger, {
-    hideUntagged: true,
+    hideUntagged: config.SWAGGER_HIDE_UNTAGGED,
     openapi: {
       info: {
         title: config.APP_NAME,
@@ -50,7 +50,7 @@ export default fastifyPlugin((server: Server): void => {
 function registerModelSchema(server: Server): void {
   const usedSchemas = new Set<TObject>();
 
-  for (const [name, model] of Object.entries(context.models)) {
+  for (const [name, model] of Object.entries(context.resource.models)) {
     const routeSchema = injectRoutes(name, false)?.schema;
 
     for (const [suffix, property] of Object.entries(resourceModelProps)) {

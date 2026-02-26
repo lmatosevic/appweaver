@@ -32,8 +32,8 @@ WORKDIR /usr/app
 # Copy NPM package
 COPY --from=build /usr/app/package*.json /usr/app/
 
-# Copy node_modules directory
-COPY --from=build /usr/app/node_modules /usr/app/node_modules
+# Install NPM dependencies for production
+RUN npm ci --omit=dev
 
 # Copy build files
 COPY --from=build /usr/app/dist /usr/app/dist

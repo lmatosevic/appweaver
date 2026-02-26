@@ -1,7 +1,7 @@
 import {
+  FunctionType,
   isArray,
   isString,
-  FunctionType,
   ResourcePolicyConfig
 } from '@appweaver/common';
 import { context } from './context';
@@ -14,42 +14,42 @@ import {
 import {
   DefinitionEntry,
   DefinitionValue,
+  IResourceService,
   ResourceModel,
-  ResourceRoutes,
-  IResourceService
+  ResourceRoutes
 } from '../types';
 import { RESOURCE_NAME } from '../constants';
 
 /**
  * Defines a new entry in the application context with the given name and value.
- * If an entry already exists with the same name, it may only be overridden if the `override` flag is set to true.
+ * If an entry already exists with the same name, it may only be overridden if the `append` flag is set to true.
  *
  * @param {DefinitionValue} value - The value associated with the definition.
  * @param {string | undefined} name - The name of the definition to be added.
- * @param {boolean} [override=false] - A flag indicating whether to override an existing definition with the same name.
- * @throws {Error} Throws an error if the definition already exists and the override flag is not enabled.
+ * @param {boolean} [append=false] - A flag indicating whether to append an existing definition with the same name.
+ * @throws {Error} Throws an error if the definition already exists and the append flag is not enabled.
  */
 export function define(
   value: DefinitionValue,
   name?: string,
-  override: boolean = false
+  append: boolean = false
 ): void {
   const definitionName =
     name ?? value[RESOURCE_NAME] ?? value.constructor?.name;
   if (isResourceModel(value)) {
-    checkDefinitionExistence(context.models, definitionName, override);
-    context.models[definitionName] = value;
+    checkDefinitionExistence(context.resource.models, definitionName, append);
+    context.resource.models[definitionName] = value;
   } else if (isResourceService(value)) {
-    checkDefinitionExistence(context.services, definitionName, override);
-    context.services[definitionName] = value;
+    checkDefinitionExistence(context.resource.services, definitionName, append);
+    context.resource.services[definitionName] = value;
   } else if (isResourceRoutes(value)) {
-    checkDefinitionExistence(context.routes, definitionName, override);
-    context.routes[definitionName] = value;
+    checkDefinitionExistence(context.resource.routes, definitionName, append);
+    context.resource.routes[definitionName] = value;
   } else if (isResourcePolicy(value)) {
-    checkDefinitionExistence(context.policies, definitionName, override);
-    context.policies[definitionName] = value;
+    checkDefinitionExistence(context.resource.policies, definitionName, append);
+    context.resource.policies[definitionName] = value;
   } else {
-    checkDefinitionExistence(context.definitions, definitionName, override);
+    checkDefinitionExistence(context.definitions, definitionName, append);
     context.definitions.push({ name: definitionName, value });
   }
 }
@@ -78,13 +78,13 @@ export function inject<T = DefinitionValue>(
   if (isString(nameOrClass)) {
     name = nameOrClass;
     if (name.endsWith('Model')) {
-      definition = context.models[name.replace(/Model$/, '')];
+      definition = context.resource.models[name.replace(/Model$/, '')];
     } else if (name.endsWith('Service')) {
-      definition = context.services[name.replace(/Service$/, '')];
+      definition = context.resource.services[name.replace(/Service$/, '')];
     } else if (name.endsWith('Routes')) {
-      definition = context.routes[name.replace(/Routes$/, '')];
+      definition = context.resource.routes[name.replace(/Routes$/, '')];
     } else if (name.endsWith('Policy')) {
-      definition = context.policies[name.replace(/Policy$/, '')];
+      definition = context.resource.policies[name.replace(/Policy$/, '')];
     } else {
       definition = findFirstDefinition(name);
     }
@@ -142,7 +142,7 @@ export function injectModel(
   name: string,
   required: boolean = true
 ): ResourceModel {
-  const model = context.models[name];
+  const model = context.resource.models[name];
 
   if (!model && required) {
     throw new Error(
@@ -165,7 +165,7 @@ export function injectService(
   modelName: string,
   required: boolean = true
 ): IResourceService {
-  const service = context.services[modelName];
+  const service = context.resource.services[modelName];
 
   if (!service && required) {
     throw new Error(
@@ -188,7 +188,7 @@ export function injectRoutes(
   modelName: string,
   required: boolean = true
 ): ResourceRoutes {
-  const routes = context.routes[modelName];
+  const routes = context.resource.routes[modelName];
 
   if (!routes && required) {
     throw new Error(
@@ -211,7 +211,7 @@ export function injectPolicy(
   modelName: string,
   required: boolean = true
 ): ResourcePolicyConfig {
-  const policy = context.policies[modelName];
+  const policy = context.resource.policies[modelName];
 
   if (!policy && required) {
     throw new Error(
@@ -227,18 +227,18 @@ export function injectPolicy(
  *
  * @param {Record<string, any> | DefinitionEntry[]} store - The storage object or array where definitions are maintained.
  * @param {string} name - The name of the definition to check.
- * @param {boolean} [override=false] - Whether to override the existing definition if it already exists.
- * @return {void} Throws an error if the definition exists and override is false.
+ * @param {boolean} [append=false] - Whether to append the existing definition if it already exists.
+ * @return {void} Throws an error if the definition exists and append is false.
  */
 function checkDefinitionExistence(
   store: Record<string, any> | DefinitionEntry[],
   name: string,
-  override: boolean = false
+  append: boolean = false
 ): void {
   if (
     ((isArray(store) && findFirstDefinition(name)) ||
       (!isArray(store) && name in store)) &&
-    !override
+    !append
   ) {
     throw new Error(
       `Definition '${name}' is already present in the application context`

@@ -37,7 +37,8 @@
     },
     "swagger": {
       "enabled": true,
-      "path": "/swagger"
+      "path": "/swagger",
+      "hideUntagged": false
     },
     "healthCheck": {
       "enabled": true,

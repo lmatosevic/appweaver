@@ -12,13 +12,14 @@ import {
   loggerConfig,
   plural
 } from '@appweaver/common';
-import { context, inject } from '../context';
+import { context, inject, injectAll } from '../context';
 import { Redis } from '../redis';
 import auth from '../security/auth';
 import { errorHandler } from '../errors';
 import { files } from '../storage';
 import { health } from '../health';
-import { Server } from '../types';
+import { RouterHandler, Server } from '../types';
+import { ROUTE } from '../constants';
 import { info } from './info-route';
 import swagger from './swagger';
 
@@ -126,13 +127,19 @@ export function createServer(): Server {
   server.register(files, { prefix: config.SERVER_API_PREFIX });
 
   // Register resource API routes.
-  for (const [name, route] of Object.entries(context.routes)) {
+  for (const [name, route] of Object.entries(context.resource.routes)) {
     const routesPath =
       route.config.path || camelToSnakeCase(plural(name), '-').toLowerCase();
     const prefix = [config.SERVER_API_PREFIX, routesPath]
       .join('/')
       .replaceAll('//', '/');
     server.register(route.handler, { prefix });
+  }
+
+  // Register other defined routes.
+  const routes = injectAll<RouterHandler>(ROUTE);
+  for (const route of routes) {
+    server.register(route, { prefix: config.SERVER_API_PREFIX + '/' });
   }
 
   return server;

@@ -160,6 +160,10 @@
             "path": {
               "type": "string",
               "default": "/swagger"
+            },
+            "hideUntagged": {
+              "type": "boolean",
+              "default": false
             }
           }
         },

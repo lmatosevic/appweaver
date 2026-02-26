@@ -1,1 +1,2 @@
-import './publisher/publish-posts';
+import './publisher/publish-route';
+import './publisher/publish-scheduler';

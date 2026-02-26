@@ -46,6 +46,7 @@ const configSchema = Type.Object({
 
   SWAGGER_ENABLED: Type.Boolean({ default: true }),
   SWAGGER_PATH: Type.String({ default: '/swagger' }),
+  SWAGGER_HIDE_UNTAGGED: Type.Boolean({ default: false }),
 
   HEALTH_CHECK_ENABLED: Type.Boolean({ default: true }),
   HEALTH_CHECK_ROUTE_PREFIX: Type.String({ default: '/health' }),

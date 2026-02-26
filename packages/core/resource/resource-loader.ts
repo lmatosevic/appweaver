@@ -10,8 +10,8 @@ import {
   resourceModelProps
 } from '../utils';
 import {
-  ApplicationContext,
   IResourceService,
+  ResourceContext,
   ResourceModel,
   ResourceRoutes
 } from '../types';
@@ -21,7 +21,7 @@ import {
  *
  * @param {string} [baseDir] - Optional base directory path from which to load the resources.
  *                              If not provided, defaults to the application's root directory.
- * @return {Promise<Omit<ApplicationContext, 'server' | 'definitions'>>} A promise that resolves to an object containing
+ * @return {Promise<ResourceContext>} A promise that resolves to an object containing
  * the loaded resources:
  *
  *         - `models`: The application models.
@@ -31,7 +31,7 @@ import {
  */
 export async function loadResources(
   baseDir?: string
-): Promise<Omit<ApplicationContext, 'server' | 'definitions'>> {
+): Promise<ResourceContext> {
   const models = await loadModels(baseDir);
   const services = await loadServices(baseDir);
   const policies = await loadPolicies(baseDir);

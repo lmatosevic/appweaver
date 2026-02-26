@@ -14,3 +14,8 @@ export type Server = FastifyInstance<
   FastifyBaseLogger,
   TypeBoxTypeProvider
 >;
+
+export type Router = Pick<
+  Server,
+  'route' | 'get' | 'post' | 'patch' | 'put' | 'delete'
+>;
