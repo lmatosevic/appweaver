@@ -1,4 +1,4 @@
-dist/
-
-**/database/client/**
-**/prisma/client/**
+**/dist
+**/node_modules
+**/database/client
+**/prisma/client

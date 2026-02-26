@@ -48,12 +48,5 @@
     "@appweaver/core": "^1.0.0",
     "@appweaver/common": "^1.0.0"
   },
-  "peerDependenciesMeta": {
-    "@appweaver/common": {
-      "optional": false
-    },
-    "@appweaver/core": {
-      "optional": false
-    }
-  }
+  "peerDependenciesMeta": {}
 }

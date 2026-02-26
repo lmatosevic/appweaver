@@ -1,7 +1,4 @@
 import path from 'node:path';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaMariaDb } from '@prisma/adapter-mariadb';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import {
   PrismaClientOptions,
   SqlDriverAdapterFactory
@@ -47,6 +44,9 @@ export function createClient(): PrismaClient {
  * @return {PrismaClient} A configured instance of PrismaClient for interacting with the SQLite database.
  */
 function sqliteClient(): PrismaClient {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
+
   const adapter = new PrismaBetterSqlite3({
     url: config.DATABASE_URL || 'file:./sqlite.db'
   });
@@ -60,6 +60,9 @@ function sqliteClient(): PrismaClient {
  * @return {PrismaClient} An instance of PrismaClient used to interact with a PostgresSQL database.
  */
 function postgresClient(): PrismaClient {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { PrismaPg } = require('@prisma/adapter-pg');
+
   const adapter = new PrismaPg({
     connectionString: config.DATABASE_URL
   });
@@ -74,14 +77,17 @@ function postgresClient(): PrismaClient {
  * @return {PrismaClient} A PrismaClient instance configured for MariaDB.
  */
 function mysqlClient(): PrismaClient {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { PrismaMariaDb } = require('@prisma/adapter-mariadb');
+
   const dbUrl = new URL(process.env.DATABASE_URL!);
+
   const adapter = new PrismaMariaDb({
     host: dbUrl.hostname,
     port: parseInt(dbUrl.port || '3306', 10),
     user: decodeURIComponent(dbUrl.username),
     password: decodeURIComponent(dbUrl.password),
-    database: dbUrl.pathname.slice(1),
-    connectionLimit: 10
+    database: dbUrl.pathname.slice(1)
   });
 
   return createPrismaClient(adapter);

@@ -8,7 +8,7 @@ export default tsEslint.config(
   {
     ignores: [
       'node_modules',
-      '**/node_modules/**',
+      'dist',
       'database/client',
       '**/*.js',
       '**/*.d.ts'

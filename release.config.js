@@ -43,7 +43,7 @@ module.exports = {
       }
     ],
 
-    // 3) Commit updated files back
+    // 3) Commit updated files to the repository
     [
       '@semantic-release/git',
       {

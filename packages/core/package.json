@@ -63,11 +63,22 @@
     "@appweaver/common": "^1.0.0"
   },
   "peerDependencies": {
-    "@appweaver/common": "^1.0.0"
+    "@appweaver/common": "^1.0.0",
+    "@prisma/adapter-better-sqlite3": "^7.3.0",
+    "@prisma/adapter-mariadb": "^7.3.0",
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
+    "prisma": "^7.3.0"
   },
   "peerDependenciesMeta": {
-    "@appweaver/common": {
-      "optional": false
+    "@prisma/adapter-better-sqlite3": {
+      "optional": true
+    },
+    "@prisma/adapter-mariadb": {
+      "optional": true
+    },
+    "@prisma/adapter-pg": {
+      "optional": true
     }
   }
 }
