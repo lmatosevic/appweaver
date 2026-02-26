@@ -5,7 +5,8 @@
     "app": {
       "name": "Appweaver",
       "description": "Appweaver - simple, fast, and reliable web application builder tool",
-      "hostname": "http://localhost:6000"
+      "hostname": "http://localhost:6000",
+      "autoloadModules": []
     },
     "server": {
       "port": 6000,

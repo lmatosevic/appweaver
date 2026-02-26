@@ -15,6 +15,7 @@ const configSchema = Type.Object({
     default: 'unknown',
     mapFrom: 'npm_package_version'
   }),
+  APP_AUTOLOAD_MODULES: Type.Array(Type.String(), { default: [] }),
 
   LOG_LEVEL: Type.Enum(LogLevel, { default: LogLevel.Info }),
   LOG_PATH: Type.Optional(Type.String()),

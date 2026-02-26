@@ -3,6 +3,7 @@ import path from 'node:path';
 import { globSync } from 'glob';
 import { register } from 'ts-node';
 import { isResourceModel, ResourceModel } from '@appweaver/core';
+import { config } from '@appweaver/common';
 
 export function loadPackageJson(): Record<string, string> {
   let pkgPath = path.join(__dirname, '../../package.json');
@@ -31,6 +32,11 @@ export async function loadModels(
 
   // Add exported core module resource models
   modelPaths.push('@appweaver/core');
+
+  // Add additional modules from config
+  for (const module of config.APP_AUTOLOAD_MODULES) {
+    modelPaths.push(module);
+  }
 
   if (modelPaths.length === 0) {
     console.log('No models found matching pattern:', modelPattern);

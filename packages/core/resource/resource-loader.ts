@@ -1,6 +1,6 @@
 import { globSync } from 'glob';
 import { TObject, TSchema, Type } from '@sinclair/typebox';
-import { logger, ResourcePolicyConfig } from '@appweaver/common';
+import { config, logger, ResourcePolicyConfig } from '@appweaver/common';
 import {
   importModule,
   isResourceModel,
@@ -55,8 +55,13 @@ async function loadModels(
 
   const modelPaths = globSync(modelPattern, { cwd, absolute: true });
 
-  // Include core module resource models from the @appweaver/core package
+  // Add exported core module resource models
   modelPaths.push('@appweaver/core');
+
+  // Add additional modules from config
+  for (const module of config.APP_AUTOLOAD_MODULES) {
+    modelPaths.push(module);
+  }
 
   for (const path of modelPaths) {
     const modelSchema = await importPath<ResourceModel>(path);

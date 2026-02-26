@@ -44,6 +44,18 @@
             "version": {
               "type": "string",
               "default": "unknown"
+            },
+            "autoloadModules": {
+              "oneOf": [
+                { "type": "string" },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "default": []
             }
           }
         },
@@ -192,7 +204,9 @@
                 { "type": "string" },
                 {
                   "type": "array",
-                  "items": { "type": "string" }
+                  "items": {
+                    "type": "string"
+                  }
                 }
               ],
               "default": ["*"]
@@ -202,7 +216,9 @@
                 { "type": "string" },
                 {
                   "type": "array",
-                  "items": { "type": "string" }
+                  "items": {
+                    "type": "string"
+                  }
                 }
               ],
               "default": ["*"]
@@ -212,7 +228,9 @@
                 { "type": "string" },
                 {
                   "type": "array",
-                  "items": { "type": "string" }
+                  "items": {
+                    "type": "string"
+                  }
                 }
               ],
               "default": ["*"]
