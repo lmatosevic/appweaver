@@ -1,5 +1,6 @@
 import path from 'node:path';
 import fsp from 'node:fs/promises';
+import { logger } from '@appweaver/common';
 import { importModule } from '../utils';
 
 /**
@@ -16,7 +17,8 @@ export async function loadModules(baseDir: string): Promise<void> {
     if (fileContent.split('\n').length < 3) {
       return;
     }
-  } catch {
+  } catch (err) {
+    logger.error(`Error while loading module: ${err}`);
     return;
   }
 

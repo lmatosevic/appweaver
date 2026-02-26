@@ -45,6 +45,10 @@
               "type": "string",
               "default": "unknown"
             },
+            "scanPath": {
+              "type": ["string", "null"],
+              "default": "./dist/src"
+            },
             "autoloadModules": {
               "oneOf": [
                 { "type": "string" },

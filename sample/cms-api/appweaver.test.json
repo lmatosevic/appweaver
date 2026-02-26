@@ -1,0 +1,20 @@
+{
+  "$schema": "../../node_modules/@appweaver/common/dist/config/schema.json",
+  "version": 1,
+  "config": {
+    "log": {
+      "level": "error",
+      "pretty": true
+    },
+    "database": {
+      "url": "test.db",
+      "clientOutputPath": "../database/client"
+    },
+    "scheduler": {
+      "autoStartJob": false
+    },
+    "mail": {
+      "mockSend": true
+    }
+  }
+}

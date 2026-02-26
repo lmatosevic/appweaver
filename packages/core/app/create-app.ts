@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { config } from '@appweaver/common';
 import { context } from '../context';
 import { createServer } from '../server';
 import { loadResources } from '../resource';
@@ -7,6 +8,10 @@ import { loadModules } from './load-modules';
 import { Application } from './application';
 
 export type CreateAppParams = {
+  /** A relative path where the application will load resources, features, and plugins.
+   * This is usually the directory from which the createApp() function is called.
+   * (default: ./dist/src) */
+  scanPath?: string;
   /** A boolean flag indicating whether the application should automatically
    * start after being created. (default: true) **/
   autoStart?: boolean;
@@ -32,24 +37,29 @@ export type CreateAppParams = {
 export async function createApp(
   params: CreateAppParams = {}
 ): Promise<Application> {
-  const rootPath = path.dirname(require.main?.filename || process.argv[1]);
+  let scanPath = path.dirname(require.main?.filename || process.argv[1]);
+  if (params.scanPath) {
+    scanPath = path.resolve(params.scanPath);
+  } else if (config.APP_SCAN_PATH) {
+    scanPath = path.resolve(config.APP_SCAN_PATH);
+  }
 
   // Load all definitions from this project.
   loadDefinitions();
 
   // Load resource models, routes, policies and services.
   if (params.autoLoadResources !== false) {
-    await loadResources(rootPath);
+    await loadResources(scanPath);
   }
 
   // Load exported plugin files.
   if (params.autoLoadPlugins !== false) {
-    await loadModules(path.join(rootPath, 'plugins'));
+    await loadModules(path.join(scanPath, 'plugins'));
   }
 
   // Load exported feature files.
   if (params.autoLoadFeatures !== false) {
-    await loadModules(path.join(rootPath, 'features'));
+    await loadModules(path.join(scanPath, 'features'));
   }
 
   // Create a Fastify server instance.

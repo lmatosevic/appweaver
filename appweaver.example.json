@@ -6,6 +6,7 @@
       "name": "Appweaver",
       "description": "Appweaver - simple, fast, and reliable web application builder tool",
       "hostname": "http://localhost:6000",
+      "scanPath": "./dist/src",
       "autoloadModules": []
     },
     "server": {
