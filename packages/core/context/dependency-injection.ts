@@ -2,6 +2,7 @@ import {
   FunctionType,
   isArray,
   isString,
+  logger,
   ResourcePolicyConfig
 } from '@appweaver/common';
 import { context } from './context';
@@ -240,8 +241,8 @@ function checkDefinitionExistence(
       (!isArray(store) && name in store)) &&
     !append
   ) {
-    throw new Error(
-      `Definition '${name}' is already present in the application context`
+    logger.warn(
+      `Definition '${name}' is already present in the application context. Use append=true to remove this warning.`
     );
   }
 }

@@ -9,4 +9,5 @@ export const RESOURCE_POLICY_TYPE = 'Policy';
 
 export const HEALTH_CHECK = 'HealthCheck';
 
+export const MODEL = 'Model';
 export const ROUTE = 'Route';

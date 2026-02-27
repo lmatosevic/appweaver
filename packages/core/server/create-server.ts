@@ -21,6 +21,7 @@ import { health } from '../health';
 import { RouterHandler, Server } from '../types';
 import { ROUTE } from '../constants';
 import { info } from './info-route';
+import schemas from './schemas';
 import swagger from './swagger';
 
 /**
@@ -106,6 +107,9 @@ export function createServer(): Server {
 
   // Set global error handler for all routes.
   server.setErrorHandler(errorHandler);
+
+  // Register schema models to enable $ref usage in route validation.
+  server.register(schemas);
 
   // Register authentication plugin.
   server.register(auth);

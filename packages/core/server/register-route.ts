@@ -5,9 +5,9 @@ import {
   objectHasProperty,
   RouteConfig
 } from '@appweaver/common';
-import { context, define } from '../context';
+import { define } from '../context';
 import { AllErrorResponses } from '../errors';
-import { resourceModelProps } from '../utils';
+import { iterateResourceModels } from '../utils';
 import { RouterHandler, Server } from '../types';
 import { ROUTE } from '../constants';
 
@@ -27,37 +27,34 @@ export function registerRoute(
   const routeBuilder = async (server: Server): Promise<void> => {
     const { auth, authenticateJWT } = server;
 
-    // Add all resource model schemas to the temporary server
-    for (const [name, model] of Object.entries(context.resource.models)) {
-      for (const [suffix, property] of Object.entries(resourceModelProps)) {
-        const modelName = `${name}${suffix}`;
-        const modelSchema = model[property].$defs[modelName];
-        if (modelSchema.$id && !tempServer.getSchema(modelSchema.$id)) {
-          tempServer.addSchema({ ...modelSchema });
-        }
+    // Add all currently configured schemas to the temporary server
+    for (const [id, schema] of Object.entries(server.getSchemas())) {
+      if (!tempServer.getSchema(id)) {
+        tempServer.addSchema({ $id: id, ...(schema as any) });
       }
     }
 
-    // Routes array will be filled after this step through the 'onRoute' hook
+    // Add the rest of the resource model schemas to the temporary server
+    iterateResourceModels((_, schema) => {
+      if (schema.$id && !tempServer.getSchema(schema.$id)) {
+        tempServer.addSchema({ ...schema });
+      }
+    });
+
+    // Routes array will be filled via the 'onRoute' hook after this step
     await tempServer.ready();
 
     for (const route of routes) {
-      if (route.schema) {
-        // Add schemas for resource models that are not yet added but used in this route
-        for (const [name, model] of Object.entries(context.resource.models)) {
-          for (const [suffix, property] of Object.entries(resourceModelProps)) {
-            const modelName = `${name}${suffix}`;
-            const modelSchema = model[property].$defs[modelName];
-
-            // Add schema if it's referenced in the route schema
-            if (objectHasProperty(route.schema, '$ref', modelName)) {
-              if (modelSchema.$id && !server.getSchema(modelSchema.$id)) {
-                server.addSchema({ ...modelSchema });
-              }
-            }
+      // Add schemas for resource models that are not yet added but are used in
+      // this route
+      iterateResourceModels((name, schema) => {
+        // Add schema if it's referenced in the route schema
+        if (route.schema && objectHasProperty(route.schema, '$ref', name)) {
+          if (schema.$id && !server.getSchema(schema.$id)) {
+            server.addSchema({ ...schema });
           }
         }
-      }
+      });
 
       // Merge received route schema with default values based on configuration
       const mergedRoute = {

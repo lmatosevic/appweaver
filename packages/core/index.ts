@@ -11,7 +11,7 @@ export * from './resource';
 export * from './scheduler';
 export * from './security';
 export * from './security/create-auth-resources';
-export * from './server/register-route';
+export * from './server';
 export * from './storage';
 export * from './types';
 export * from './utils/resource-util';

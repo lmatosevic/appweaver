@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { registerRoute } from '@appweaver/core';
+import { registerModel, registerRoute } from '@appweaver/core';
 import { Nullable } from '@appweaver/common';
 import { publishPosts } from '@/features/publisher/publish';
 
@@ -14,10 +14,7 @@ registerRoute(
           description: 'Publish all posts',
           body: Type.Object({ now: Type.Boolean() }),
           response: {
-            200: Type.Object({
-              text: Type.String(),
-              post: Nullable(Type.Ref('PostSingle'))
-            })
+            200: Type.Ref('PostPublishResponse')
           }
         }
       },
@@ -35,4 +32,12 @@ registerRoute(
     roles: ['Admin'],
     rateLimit: { max: 5 }
   }
+);
+
+registerModel(
+  'PostPublishResponse',
+  Type.Object({
+    text: Type.String(),
+    post: Nullable(Type.Ref('PostSingle'))
+  })
 );

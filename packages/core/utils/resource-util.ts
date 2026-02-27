@@ -1,10 +1,11 @@
-import { TSchema } from '@sinclair/typebox';
+import { TObject, TSchema } from '@sinclair/typebox';
 import {
   FieldDefault,
   isObject,
   ResourcePolicyConfig,
   ScalarField
 } from '@appweaver/common';
+import { context } from '../context';
 import { IResourceService, ResourceModel, ResourceRoutes } from '../types';
 import {
   RESOURCE_AUTH,
@@ -31,6 +32,18 @@ export const resourceModelProps: Record<
   FileUpload: 'fileUploadModel',
   FileDelete: 'fileDeleteModel'
 };
+
+export function iterateResourceModels(
+  handler: (name: string, schema: TObject) => void
+): void {
+  for (const [name, model] of Object.entries(context.resource.models)) {
+    for (const [suffix, property] of Object.entries(resourceModelProps)) {
+      const modelName = `${name}${suffix}`;
+      const modelSchema = model[property].$defs[modelName];
+      handler(modelName, modelSchema);
+    }
+  }
+}
 
 export function extractResourceName(schema?: TSchema): string | undefined {
   if (!schema) {
