@@ -1,3 +1,9 @@
+## [1.2.0](https://gitlab.com/app-weaver/appweaver/compare/v1.1.0...v1.2.0) (2026-02-27)
+
+### Features
+
+* implement registerModel functionality with separation of schemas and swagger feature, added bullmq test mocks ([8d65d8e](https://gitlab.com/app-weaver/appweaver/commit/8d65d8eb4d6edf59cab75a62a76b8f3904fd0b85))
+
 ## [1.1.0](https://gitlab.com/app-weaver/appweaver/compare/v1.0.5...v1.1.0) (2026-02-26)
 
 ### Features
