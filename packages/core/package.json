@@ -42,9 +42,6 @@
     "@fastify/swagger": "9.6.1",
     "@fastify/swagger-ui": "5.2.4",
     "@fastify/type-provider-typebox": "6.1.0",
-    "@prisma/adapter-better-sqlite3": "7.4.1",
-    "@prisma/adapter-mariadb": "7.4.1",
-    "@prisma/adapter-pg": "7.4.1",
     "@prisma/client": "7.4.1",
     "@sinclair/typebox": "0.34.47",
     "bcrypt": "6.0.0",
@@ -60,12 +57,14 @@
     "prisma": "7.4.1"
   },
   "devDependencies": {
-    "@appweaver/common": "^1.0.0"
+    "@appweaver/common": "^1.0.0",
+    "@prisma/adapter-better-sqlite3": "^7.3.0"
   },
   "peerDependencies": {
     "@appweaver/common": "^1.0.0",
     "@prisma/adapter-better-sqlite3": "^7.3.0",
     "@prisma/adapter-mariadb": "^7.3.0",
+    "@prisma/adapter-mssql": "^7.3.0",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "prisma": "^7.3.0"
@@ -78,6 +77,9 @@
       "optional": true
     },
     "@prisma/adapter-pg": {
+      "optional": true
+    },
+    "@prisma/adapter-mssql": {
       "optional": true
     }
   }

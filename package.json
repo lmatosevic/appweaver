@@ -50,8 +50,6 @@
     "@fastify/swagger-ui": "5.2.4",
     "@fastify/type-provider-typebox": "6.1.0",
     "@prisma/adapter-better-sqlite3": "7.4.1",
-    "@prisma/adapter-mariadb": "7.4.1",
-    "@prisma/adapter-pg": "7.4.1",
     "@prisma/client": "7.4.1",
     "@sinclair/typebox": "0.34.47",
     "bcrypt": "6.0.0",

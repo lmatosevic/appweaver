@@ -30,6 +30,8 @@ export function createClient(): PrismaClient {
       return postgresClient();
     case DatabaseType.MySQL:
       return mysqlClient();
+    case DatabaseType.SQLServer:
+      return sqlServerClient();
     default:
       return sqliteClient();
   }
@@ -80,7 +82,7 @@ function mysqlClient(): PrismaClient {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { PrismaMariaDb } = require('@prisma/adapter-mariadb');
 
-  const dbUrl = new URL(process.env.DATABASE_URL!);
+  const dbUrl = new URL(config.DATABASE_URL);
 
   const adapter = new PrismaMariaDb({
     host: dbUrl.hostname,
@@ -89,6 +91,22 @@ function mysqlClient(): PrismaClient {
     password: decodeURIComponent(dbUrl.password),
     database: dbUrl.pathname.slice(1)
   });
+
+  return createPrismaClient(adapter);
+}
+
+/**
+ * Creates and returns a PrismaClient configured to connect to a SQL Server database.
+ *
+ * This method uses the Prisma MSSQL adapter with the connection string from config.
+ *
+ * @return {PrismaClient} An instance of PrismaClient for interacting with the SQL Server database.
+ */
+function sqlServerClient(): PrismaClient {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { PrismaMssql } = require('@prisma/adapter-mssql');
+
+  const adapter = new PrismaMssql(config.DATABASE_URL);
 
   return createPrismaClient(adapter);
 }

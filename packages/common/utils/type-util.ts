@@ -49,7 +49,7 @@ export function isBoolean(value: any): value is boolean {
  *
  * @return {DatabaseType} The database type resolved from the configuration. If `DATABASE_TYPE` is explicitly set in the configuration,
  * it is returned. Otherwise, the type is inferred from the `DATABASE_URL` prefix. Possible database types include PostgresSQL, MySQL,
- * and Sqlite.
+ * SQLServer, and Sqlite.
  */
 export function getDatabaseType(): DatabaseType {
   if (config.DATABASE_TYPE) {
@@ -65,6 +65,10 @@ export function getDatabaseType(): DatabaseType {
     config.DATABASE_URL.startsWith('mariadb:')
   ) {
     return DatabaseType.MySQL;
+  }
+
+  if (config.DATABASE_URL.startsWith('sqlserver:')) {
+    return DatabaseType.SQLServer;
   }
 
   return DatabaseType.Sqlite;
