@@ -1,14 +1,18 @@
-import { EventEmitter } from 'node:events';
-import { ActionType, config, logger, uuid } from '@appweaver/common';
+import {
+  ActionType,
+  config,
+  EventData,
+  EventListener,
+  Events,
+  logger,
+  uuid
+} from '@appweaver/common';
 
-export type EventData<T = any> = { previous?: T; current: T };
-
-export type ListenerFn<T = any> = (data: EventData<T>) => void;
-
-export class Events extends EventEmitter {
-  private readonly eventListeners: Record<
+export class NodeEvents extends Events {
+  /** @internal */
+  private readonly _eventListeners: Record<
     string,
-    { eventName: string; listener: ListenerFn }
+    { eventName: string; listener: EventListener }
   > = {};
 
   constructor() {
@@ -22,11 +26,11 @@ export class Events extends EventEmitter {
   public onResourceEvent<T>(
     resourceName: string,
     event: ActionType,
-    listener: ListenerFn<T>
+    listener: EventListener<T>
   ): string {
     const listenerId = uuid();
     const eventName = this.resourceEventName(resourceName, event);
-    this.eventListeners[listenerId] = { eventName, listener };
+    this._eventListeners[listenerId] = { eventName, listener };
     this.on(eventName, listener);
     return listenerId;
   }
@@ -40,7 +44,7 @@ export class Events extends EventEmitter {
   }
 
   public removeResourceEvent(listenerId: string): boolean {
-    const listener = this.eventListeners[listenerId];
+    const listener = this._eventListeners[listenerId];
     if (!listener) {
       return false;
     }

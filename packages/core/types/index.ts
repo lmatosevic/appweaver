@@ -1,7 +1,6 @@
 export * from './application-context';
 export * from './auth';
 export * from './generated';
-export * from './health-check';
 export * from './model';
 export * from './resource';
 export * from './resource-service';

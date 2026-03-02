@@ -5,6 +5,7 @@ import { loadPackageJson } from './utils';
 import { buildCommand } from './build';
 import { generateCommand } from './generate';
 import { migrateCommand } from './migrate';
+import { migrationCommand } from './migration';
 import { seedCommand } from './seed';
 import { startCommand } from './start';
 
@@ -24,6 +25,8 @@ buildCommand(program);
 generateCommand(program);
 
 migrateCommand(program);
+
+migrationCommand(program);
 
 seedCommand(program);
 

@@ -1,9 +1,11 @@
 {
-  "$schema": "../../node_modules/@appweaver/common/dist/config/schema.json",
-  "version": 1,
+  "$schema": "../../node_modules/@appweaver/common/config/schema.json",
   "config": {
     "log": {
       "pretty": true
+    },
+    "mail": {
+      "mockSend": true
     }
   }
 }

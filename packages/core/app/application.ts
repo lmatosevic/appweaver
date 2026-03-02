@@ -1,6 +1,12 @@
-import { config } from '@appweaver/common';
+import {
+  config,
+  Database,
+  Queue,
+  Redis,
+  Memory,
+  Scheduler
+} from '@appweaver/common';
 import { context, inject } from '../context';
-import { Database } from '../database';
 import { Server } from '../types';
 
 /**
@@ -8,6 +14,10 @@ import { Server } from '../types';
  */
 export class Application {
   private readonly _db: Database = inject(Database);
+  private readonly _redis?: Redis = inject(Redis, false);
+  private readonly _memory?: Memory = inject(Memory, false);
+  private readonly _queue?: Queue = inject(Queue, false);
+  private readonly _scheduler?: Scheduler = inject(Scheduler, false);
 
   constructor(private readonly _server: Server) {}
 
@@ -51,6 +61,10 @@ export class Application {
    */
   public async stop(): Promise<void> {
     await this._db.disconnect();
+    await this._redis?.disconnect();
+    await this._memory?.disconnect();
+    await this._queue?.closeAll();
+    await this._scheduler?.stopAll();
     await this._server.close();
   }
 

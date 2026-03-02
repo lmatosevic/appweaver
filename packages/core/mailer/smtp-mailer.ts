@@ -1,22 +1,20 @@
 import { createTransport, Transporter } from 'nodemailer';
 import { Attachment } from 'nodemailer/lib/mailer';
-import { config, logger } from '@appweaver/common';
-import { HealthCheck, HealthCheckResult } from '../types';
-import { HEALTH_CHECK } from '../constants';
+import {
+  config,
+  Email,
+  HealthCheckResult,
+  logger,
+  Mailer
+} from '@appweaver/common';
 
-export type Email = {
-  to: string;
-  subject: string;
-  text: string;
-  html?: string;
-  attachments?: Attachment[];
-};
-
-export class Mailer implements HealthCheck {
-  private transporter: Transporter;
+export class SmtpMailer extends Mailer<Attachment> {
+  /** @internal */
+  private readonly _transporter: Transporter;
 
   constructor() {
-    this.transporter = config.MAIL_MOCK_SEND
+    super();
+    this._transporter = config.MAIL_MOCK_SEND
       ? createTransport({
           jsonTransport: true
         })
@@ -35,7 +33,7 @@ export class Mailer implements HealthCheck {
     const { to, subject, text, html, attachments } = data;
 
     try {
-      const msg = await this.transporter.sendMail({
+      const msg = await this._transporter.sendMail({
         from: `"${config.MAIL_SENDER_NAME}" <${config.MAIL_SENDER_ADDRESS}>`,
         to,
         subject,
@@ -57,12 +55,13 @@ export class Mailer implements HealthCheck {
 
   async checkHealth(): Promise<HealthCheckResult> {
     try {
-      const success = await this.transporter.verify();
+      if (config.MAIL_MOCK_SEND) {
+        return { success: true };
+      }
+      const success = await this._transporter.verify();
       return { success };
     } catch (e) {
       return { success: false, message: (e as Error).message };
     }
   }
 }
-
-Mailer[HEALTH_CHECK] = true;

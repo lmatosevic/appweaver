@@ -4,10 +4,10 @@
   "description": "Appweaver - simple, fast, and reliable web application builder tool (@cli)",
   "author": "Luka Matosevic",
   "license": "UNLICENSED",
-  "main": "./dist/weaver.js",
-  "types": "./dist/weaver.d.ts",
+  "main": "./weaver.js",
+  "types": "./weaver.d.ts",
   "bin": {
-    "weaver": "./dist/weaver.js"
+    "weaver": "./weaver.js"
   },
   "repository": {
     "type": "git",

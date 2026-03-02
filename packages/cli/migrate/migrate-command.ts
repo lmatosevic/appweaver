@@ -4,7 +4,7 @@ import { runProcess } from '../utils';
 export function migrateCommand(program: Command): void {
   program
     .command('migrate')
-    .alias('m')
+    .alias('mge')
     .description('Run database migrations')
     .action(async () => {
       await runProcess('prisma', ['migrate', 'deploy']);

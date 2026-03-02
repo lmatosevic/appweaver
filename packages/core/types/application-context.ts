@@ -4,6 +4,12 @@ import { ResourceRoutes } from './route';
 import { ResourceModel } from './resource';
 import { IResourceService } from './resource-service';
 
+export type DefinitionMode = 'ignore' | 'append' | 'override';
+
+export type DefinitionClass<T = void> = abstract new (
+  ...args: any[]
+) => T | { new (...args: any[]): T };
+
 export type DefinitionValue =
   | object
   | ((...args: any[]) => any)

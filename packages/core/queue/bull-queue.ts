@@ -1,35 +1,94 @@
 import {
   Job,
   JobProgress,
-  Queue as BullQueue,
+  Queue,
   Worker,
   WorkerListener,
   WorkerOptions
 } from 'bullmq';
+import { Redis as RedisClient, RedisOptions } from 'ioredis';
 import { JobsOptions } from 'bullmq/dist/esm/types';
-import { config, logger, uuid } from '@appweaver/common';
+import {
+  config,
+  HealthCheckResult,
+  logger,
+  Queue as CommonQueue,
+  QueueHandlerResponse,
+  QueueListener,
+  QueueProcessor,
+  Redis,
+  uuid
+} from '@appweaver/common';
 import { inject } from '../context';
-import { Redis } from '../redis';
 
 type EventName = keyof WorkerListener;
 
-type OptionalPromise<T = void> = Promise<T> | T;
+type IoRedis = Redis<RedisOptions, RedisClient>;
 
-type ListenerFn = (...args: any[]) => OptionalPromise;
+export class BullQueue extends CommonQueue {
+  /** @internal */
+  private readonly _queues: Record<string, BullQueueProcessor> = {};
 
-export class QueueProcessor<T = any, R = any> {
-  private readonly _connection = inject(Redis).createClient({
+  public get<Data = any, Response = any>(
+    name: string
+  ): BullQueueProcessor<Data, Response> {
+    if (!this._queues[name]) {
+      this._queues[name] = new BullQueueProcessor(name);
+    }
+    return this._queues[name];
+  }
+
+  public async close(name: string): Promise<boolean> {
+    if (!this._queues[name]) {
+      return false;
+    }
+    await this._queues[name].close();
+    delete this._queues[name];
+    return true;
+  }
+
+  public async closeAll(): Promise<void> {
+    for (const queueName of Object.keys(this._queues)) {
+      await this.close(queueName);
+    }
+  }
+
+  public async checkHealth(): Promise<HealthCheckResult> {
+    try {
+      const queue = new BullQueueProcessor('health-check');
+      await queue.close();
+      return { success: true };
+    } catch (e) {
+      return { success: false, message: (e as Error).message };
+    }
+  }
+}
+
+class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
+  Data,
+  Response,
+  Job<Data, Response>,
+  JobsOptions,
+  Worker<Data, Response>,
+  WorkerOptions
+> {
+  /** @internal */
+  private readonly _connection = inject<IoRedis>(Redis).createClient({
     maxRetriesPerRequest: null
   });
-  private readonly _queue: BullQueue;
+  /** @internal */
+  private readonly _queue: Queue;
+  /** @internal */
   private readonly _workers: Worker[] = [];
+  /** @internal */
   private readonly _listeners: Record<
     string,
-    { event: EventName; listener: ListenerFn }
+    { event: EventName; listener: QueueListener }
   > = {};
 
   constructor(public readonly name: string) {
-    this._queue = new BullQueue(name, {
+    super();
+    this._queue = new Queue(name, {
       connection: this._connection,
       skipVersionCheck: true,
       defaultJobOptions: {
@@ -51,20 +110,20 @@ export class QueueProcessor<T = any, R = any> {
   }
 
   public async sendJob(
-    data: T,
+    data: Data,
     name?: string,
     options: JobsOptions = {}
-  ): Promise<Job<T, R>> {
+  ): Promise<Job<Data, Response>> {
     return await this._queue.add(name ?? 'defaultJob', data, options);
   }
 
   public async sendBulkJobs(
     jobs: Array<{
-      data: T;
+      data: Data;
       name?: string;
       options?: Omit<JobsOptions, 'repeat'>;
     }>
-  ): Promise<Array<Job<T, R>>> {
+  ): Promise<Array<Job<Data, Response>>> {
     return await this._queue.addBulk(
       jobs.map(({ data, name, options }) => ({
         data,
@@ -75,10 +134,10 @@ export class QueueProcessor<T = any, R = any> {
   }
 
   public addWorker(
-    processor: (job: Job<T, R>) => Promise<R>,
+    processor: (job: Job<Data, Response>) => Promise<Response>,
     options: Omit<WorkerOptions, 'connection'> = {}
-  ): Worker<T, R> {
-    const worker = new Worker<T, R>(this.name, processor, {
+  ): Worker<Data, Response> {
+    const worker = new Worker<Data, Response>(this.name, processor, {
       ...options,
       connection: this._connection,
       skipVersionCheck: true,
@@ -136,64 +195,71 @@ export class QueueProcessor<T = any, R = any> {
   }
 
   public onCompleted(
-    handler: (job: Job<T, R>, result: R, prev: string) => OptionalPromise
+    handler: (
+      job: Job<Data, Response>,
+      result: Response,
+      prev: string
+    ) => QueueHandlerResponse
   ): string {
     return this.addListener('completed', handler);
   }
 
   public onFailed(
     handler: (
-      job: Job<T, R> | undefined,
+      job: Job<Data, Response> | undefined,
       error: Error,
       prev: string
-    ) => OptionalPromise
+    ) => QueueHandlerResponse
   ): string {
     return this.addListener('failed', handler);
   }
 
-  public onError(handler: (error: Error) => OptionalPromise): string {
+  public onError(handler: (error: Error) => QueueHandlerResponse): string {
     return this.addListener('error', handler);
   }
 
   public onProgress(
-    handler: (job: Job<T, R>, progress: JobProgress) => OptionalPromise
+    handler: (
+      job: Job<Data, Response>,
+      progress: JobProgress
+    ) => QueueHandlerResponse
   ): string {
     return this.addListener('progress', handler);
   }
 
   public onActive(
-    handler: (job: Job<T, R>, prev: string) => OptionalPromise
+    handler: (job: Job<Data, Response>, prev: string) => QueueHandlerResponse
   ): string {
     return this.addListener('active', handler);
   }
 
   public onStalled(
-    handler: (jobId: string, prev: string) => OptionalPromise
+    handler: (jobId: string, prev: string) => QueueHandlerResponse
   ): string {
     return this.addListener('stalled', handler);
   }
 
-  public onDrained(handler: () => OptionalPromise): string {
+  public onDrained(handler: () => QueueHandlerResponse): string {
     return this.addListener('drained', handler);
   }
 
-  public onReady(handler: () => OptionalPromise): string {
+  public onReady(handler: () => QueueHandlerResponse): string {
     return this.addListener('ready', handler);
   }
 
-  public onPaused(handler: () => OptionalPromise): string {
+  public onPaused(handler: () => QueueHandlerResponse): string {
     return this.addListener('paused', handler);
   }
 
-  public onResumed(handler: () => OptionalPromise): string {
+  public onResumed(handler: () => QueueHandlerResponse): string {
     return this.addListener('resumed', handler);
   }
 
-  public onClosing(handler: (msg: string) => OptionalPromise): string {
+  public onClosing(handler: (msg: string) => QueueHandlerResponse): string {
     return this.addListener('closing', handler);
   }
 
-  public onClosed(handler: () => OptionalPromise): string {
+  public onClosed(handler: () => QueueHandlerResponse): string {
     return this.addListener('closed', handler);
   }
 
@@ -214,15 +280,7 @@ export class QueueProcessor<T = any, R = any> {
     }
   }
 
-  get queue() {
-    return this._queue;
-  }
-
-  get workers() {
-    return this._workers;
-  }
-
-  private addListener(event: EventName, listener: ListenerFn): string {
+  private addListener(event: EventName, listener: QueueListener): string {
     const listenerId = uuid();
     this._listeners[listenerId] = { event, listener };
     return listenerId;

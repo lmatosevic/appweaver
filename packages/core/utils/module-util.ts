@@ -17,3 +17,30 @@ export async function importModule<T = any>(
     return { value: null, error: e as Error };
   }
 }
+
+/**
+ * Dynamically imports a module from the specified file path and handles any errors during the process.
+ *
+ * @param {string} filePath - The file path of the module to require. If the file has a `.ts` extension, it will be
+ * replaced with `.js`.
+ * @param {boolean} [failOnError=true] - If true, the function will throw an error if the module cannot be loaded.
+ * @return An object containing the imported module value or an error if the module could not be loaded. The `value`
+ * property contains the default export or the complete exported module, and the `error` property contains the caught
+ * error if an exception occurred.
+ */
+export function requireModule<T = any>(
+  filePath: string,
+  failOnError: boolean = true
+): { value: T | null; error: Error | null } {
+  try {
+    const jsPath = filePath.replace(/\.ts$/i, '.js');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const exportedValue = require(jsPath);
+    return { value: exportedValue, error: null };
+  } catch (e) {
+    if (failOnError) {
+      throw e;
+    }
+    return { value: null, error: e as Error };
+  }
+}

@@ -17,7 +17,7 @@
     "test": "jest --forceExit --detectOpenHandles --coverage",
     "format": "prettier --write \"./**/*.ts\"",
     "lint": "eslint \"./**/*.ts\"",
-    "weaver": "node ./../../node_modules/@appweaver/cli/dist/weaver.js"
+    "weaver": "node ./../../node_modules/@appweaver/cli/weaver.js"
   },
   "dependencies": {
     "@appweaver/common": "^1.0.0",

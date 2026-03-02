@@ -1,13 +1,14 @@
 import Fastify, { RouteOptions } from 'fastify';
+import { TObject } from '@sinclair/typebox';
 import {
   CacheConfig,
   isArray,
   objectHasProperty,
   RouteConfig
 } from '@appweaver/common';
-import { define } from '../context';
+import { context, define } from '../context';
 import { AllErrorResponses } from '../errors';
-import { iterateResourceModels } from '../utils';
+import { resourceModelProps } from '../utils';
 import { RouterHandler, Server } from '../types';
 import { ROUTE } from '../constants';
 
@@ -81,5 +82,17 @@ export function registerRoute(
     }
   };
 
-  define(routeBuilder, ROUTE, true);
+  define(routeBuilder, ROUTE, 'append');
+}
+
+function iterateResourceModels(
+  handler: (name: string, schema: TObject) => void
+): void {
+  for (const [name, model] of Object.entries(context.resource.models)) {
+    for (const [suffix, property] of Object.entries(resourceModelProps)) {
+      const modelName = `${name}${suffix}`;
+      const modelSchema = model[property].$defs[modelName];
+      handler(modelName, modelSchema);
+    }
+  }
 }

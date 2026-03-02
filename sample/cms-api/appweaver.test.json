@@ -1,14 +1,24 @@
 {
-  "$schema": "../../node_modules/@appweaver/common/dist/config/schema.json",
-  "version": 1,
+  "$schema": "../../node_modules/@appweaver/common/config/schema.json",
   "config": {
+    "app": {
+      "scanPath": "./dist/src"
+    },
     "log": {
       "level": "error",
       "pretty": true
     },
     "database": {
-      "url": "test.db",
-      "clientOutputPath": "../database/client"
+      "url": "file:./temp/test.db",
+      "schemaPath": "./temp/database/schema.prisma",
+      "migrationsDirPath": "./temp/database/migrations",
+      "clientOutputPath": "./temp/database/client"
+    },
+    "storage": {
+      "path": "./temp/storage"
+    },
+    "queue": {
+      "provider": "@appweaver/core/queue/memory-queue"
     },
     "scheduler": {
       "autoStartJob": false

@@ -10,10 +10,11 @@ import {
   camelToSnakeCase,
   config,
   loggerConfig,
-  plural
+  MemoryType,
+  plural,
+  Redis
 } from '@appweaver/common';
 import { context, inject, injectAll } from '../context';
-import { Redis } from '../redis';
 import auth from '../security/auth';
 import { errorHandler } from '../errors';
 import { files } from '../storage';
@@ -95,7 +96,7 @@ export function createServer(): Server {
       max: config.RATE_LIMIT_MAX,
       timeWindow: config.RATE_LIMIT_WINDOW,
       redis:
-        config.RATE_LIMIT_STORE === 'redis'
+        config.RATE_LIMIT_STORE === MemoryType.Redis
           ? inject(Redis).createClient({
               connectTimeout: 500,
               maxRetriesPerRequest: 1,

@@ -5,6 +5,7 @@ import {
 } from '@prisma/client/runtime/client';
 import { config, DatabaseType, getDatabaseType } from '@appweaver/common';
 import { PrismaClient } from '../prisma/client/client';
+import { requireModule } from '../utils';
 
 const options: Omit<PrismaClientOptions, 'adapter'> = {
   transactionOptions: {
@@ -46,8 +47,9 @@ export function createClient(): PrismaClient {
  * @return {PrismaClient} A configured instance of PrismaClient for interacting with the SQLite database.
  */
 function sqliteClient(): PrismaClient {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
+  const { PrismaBetterSqlite3 } = requireModule(
+    '@prisma/adapter-better-sqlite3'
+  ).value;
 
   const adapter = new PrismaBetterSqlite3({
     url: config.DATABASE_URL || 'file:./sqlite.db'
@@ -62,8 +64,7 @@ function sqliteClient(): PrismaClient {
  * @return {PrismaClient} An instance of PrismaClient used to interact with a PostgresSQL database.
  */
 function postgresClient(): PrismaClient {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { PrismaPg } = require('@prisma/adapter-pg');
+  const { PrismaPg } = requireModule('@prisma/adapter-pg').value;
 
   const adapter = new PrismaPg({
     connectionString: config.DATABASE_URL
@@ -79,8 +80,7 @@ function postgresClient(): PrismaClient {
  * @return {PrismaClient} A PrismaClient instance configured for MariaDB.
  */
 function mysqlClient(): PrismaClient {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { PrismaMariaDb } = require('@prisma/adapter-mariadb');
+  const { PrismaMariaDb } = requireModule('@prisma/adapter-mariadb').value;
 
   const dbUrl = new URL(config.DATABASE_URL);
 
@@ -103,8 +103,7 @@ function mysqlClient(): PrismaClient {
  * @return {PrismaClient} An instance of PrismaClient for interacting with the SQL Server database.
  */
 function sqlServerClient(): PrismaClient {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { PrismaMssql } = require('@prisma/adapter-mssql');
+  const { PrismaMssql } = requireModule('@prisma/adapter-mssql').value;
 
   const adapter = new PrismaMssql(config.DATABASE_URL);
 
@@ -128,12 +127,12 @@ function createPrismaClient(adapter: SqlDriverAdapterFactory): PrismaClient {
   const clientPath = path.join(
     cwd,
     distDirName,
+    config.APP_ENV === 'test' ? '..' : '',
     config.DATABASE_CLIENT_OUTPUT_PATH,
     'client'
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { PrismaClient } = require(clientPath);
+  const { PrismaClient } = requireModule(clientPath).value;
 
   return new PrismaClient({ adapter, ...options });
 }

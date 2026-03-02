@@ -4,7 +4,7 @@ describe('Test Sample CMS API', () => {
   let app: Application;
 
   beforeAll(async () => {
-    app = await createApp({ autoStart: false, scanPath: './dist/src' });
+    app = await createApp({ autoStart: false });
   });
 
   afterAll(async () => {

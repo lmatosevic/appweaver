@@ -1,16 +1,18 @@
 import { Multipart, MultipartFile } from '@fastify/multipart';
 import {
+  ContentStream,
+  Database,
   FileField,
   FilePolicy,
   generateToken,
   isArray,
-  isFunction
+  isFunction,
+  Storage
 } from '@appweaver/common';
 import { inject, injectModel, injectPolicy, injectService } from '../context';
 import { HttpError } from '../errors';
-import { Database } from '../database';
 import { currentAuthUser } from '../security';
-import { ContentStream, Storage } from './storage';
+import { PrismaDatabase } from '../database';
 import {
   generateFileName,
   isValidMimeType,
@@ -28,7 +30,9 @@ export type FileStream = {
 };
 
 export class FileService {
-  private readonly _db = inject(Database);
+  /** @internal */
+  private readonly _db = inject<PrismaDatabase>(Database);
+  /** @internal */
   private readonly _storage = inject(Storage);
 
   public async findByName(fileName: string): Promise<File> {

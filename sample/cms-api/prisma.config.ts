@@ -5,9 +5,9 @@ import { defineConfig } from 'prisma/config';
 import { config } from '@appweaver/common';
 
 export default defineConfig({
-  schema: 'database/schema.prisma',
+  schema: config.DATABASE_SCHEMA_PATH,
   migrations: {
-    path: 'database/migrations'
+    path: config.DATABASE_MIGRATIONS_DIR_PATH
   },
   datasource: {
     url: config.DATABASE_URL

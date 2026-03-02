@@ -1,14 +1,14 @@
+import { Database, HealthCheckResult } from '@appweaver/common';
 import { createClient } from './create-client';
 import { PrismaClient } from '../prisma/client/client';
-import { HealthCheck, HealthCheckResult } from '../types';
-import { HEALTH_CHECK } from '../constants';
 
 /**
  * Represents a database utility class that provides methods
  * to connect to and disconnect from the database, as well as
  * access to the database client instance.
  */
-export class Database implements HealthCheck {
+export class PrismaDatabase extends Database {
+  /** @internal */
   private static _client: PrismaClient | undefined;
 
   public async connect(): Promise<void> {
@@ -20,7 +20,7 @@ export class Database implements HealthCheck {
   }
 
   public client<T = PrismaClient>(): T {
-    return this.clientInstance() as T;
+    return PrismaDatabase.clientInstance() as T;
   }
 
   public async checkHealth(): Promise<HealthCheckResult> {
@@ -32,12 +32,10 @@ export class Database implements HealthCheck {
     }
   }
 
-  private clientInstance(): PrismaClient {
-    if (!Database._client) {
-      Database._client = createClient();
+  private static clientInstance(): PrismaClient {
+    if (!PrismaDatabase._client) {
+      PrismaDatabase._client = createClient();
     }
-    return Database._client;
+    return PrismaDatabase._client;
   }
 }
-
-Database[HEALTH_CHECK] = true;

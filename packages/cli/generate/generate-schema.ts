@@ -5,7 +5,6 @@ import { isResourceAuthModel, ResourceModel } from '@appweaver/core';
 import {
   AuditFields,
   capitalize,
-  config,
   DatabaseType,
   FieldDefault,
   FileField,
@@ -45,7 +44,7 @@ type PrismaSchemaModel = {
 export async function generateSchema(
   models: Record<string, ResourceModel>,
   schemaPath: string,
-  clientPath?: string
+  clientPath: string
 ): Promise<void> {
   const cwd = process.cwd();
   const schemaDir = path.join(cwd, path.dirname(schemaPath));
@@ -61,10 +60,7 @@ export async function generateSchema(
     const prismaEnums: Record<string, string[]> = {};
 
     const dbType = getDatabaseType();
-    const relativeOutputPath = relativePathFrom(
-      schemaPath,
-      clientPath ?? config.DATABASE_CLIENT_OUTPUT_PATH
-    );
+    const relativeOutputPath = relativePathFrom(schemaPath, clientPath);
 
     const schemaContent = [
       `// This is your Prisma schema file,`,

@@ -20,14 +20,8 @@
     "noUnusedLocals": false,
     "paths": {
       "@/*": ["./src/*"],
-      "@db/*": ["./database/*"],
-      "@appweaver/common": ["../../packages/common"],
-      "@appweaver/common/*": ["../../packages/common/*"],
-      "@appweaver/core": ["../../packages/core"],
-      "@appweaver/core/*": ["../../packages/core/*"],
-      "@appweaver/cli": ["../../packages/cli"],
-      "@appweaver/cli/*": ["../../packages/cli/*"]
+      "@db/*": ["./database/*"]
     }
   },
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "temp"]
 }

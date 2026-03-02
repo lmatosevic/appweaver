@@ -4,8 +4,8 @@
   "description": "Appweaver - simple, fast, and reliable web application builder tool (@common)",
   "author": "Luka Matosevic",
   "license": "UNLICENSED",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./index.js",
+  "types": "./index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://gitlab.com/app-weaver/appweaver.git",

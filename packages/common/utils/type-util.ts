@@ -1,5 +1,7 @@
 import { DatabaseType } from '../enums';
+import { IHealthCheck } from '../infrastructure';
 import { config } from '../config';
+import { HEALTH_CHECK } from '../constants';
 
 export type BaseType<T> = T extends Array<infer I> ? I : T;
 
@@ -42,6 +44,19 @@ export function isString(value: any): value is string {
 
 export function isBoolean(value: any): value is boolean {
   return typeof value === 'boolean';
+}
+
+/**
+ * Determines if the given value is an instance that implements `IHealthCheck` interface.
+ *
+ * @param {any} value - The value to check.
+ * @return {boolean} Returns true if the value implements `IHealthCheck` interface, otherwise false.
+ */
+export function isHealthCheck(value: any): value is IHealthCheck {
+  return (
+    (value.constructor?.[HEALTH_CHECK] || value[HEALTH_CHECK]) &&
+    isFunction((value as IHealthCheck).checkHealth)
+  );
 }
 
 /**

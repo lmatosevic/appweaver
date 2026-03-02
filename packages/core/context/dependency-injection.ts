@@ -13,7 +13,9 @@ import {
   isResourceService
 } from '../utils';
 import {
+  DefinitionClass,
   DefinitionEntry,
+  DefinitionMode,
   DefinitionValue,
   IResourceService,
   ResourceModel,
@@ -22,36 +24,62 @@ import {
 import { RESOURCE_NAME } from '../constants';
 
 /**
- * Defines a new entry in the application context with the given name and value.
- * If an entry already exists with the same name, it may only be overridden if the `append` flag is set to true.
+ * Defines a resource or a definition value within the application context.
  *
- * @param {DefinitionValue} value - The value associated with the definition.
- * @param {string | undefined} name - The name of the definition to be added.
- * @param {boolean} [append=false] - A flag indicating whether to append an existing definition with the same name.
- * @throws {Error} Throws an error if the definition already exists and the append flag is not enabled.
+ * This method supports various resource models, services, routes, and policies,
+ * determining whether to add or override the definition in the application context
+ * based on the provided mode.
+ *
+ * @param {DefinitionValue} value The resource or definition value to be registered.
+ * @param {string | DefinitionClass | undefined} nameOrClass Optional name or class reference for the definition.
+ * If not provided, the name is inferred from the resource or its constructor.
+ * @param mode Determines how the definition should be treated:
+ *             'ignore' - Adds only if the definition doesn’t already exist.
+ *             'override' - Replaces an existing definition if it matches the name.
+ *             Defaults to 'ignore'.
+ * @return void
  */
-export function define(
+export function define<T = DefinitionValue, S extends T = T>(
   value: DefinitionValue,
-  name?: string,
-  append: boolean = false
+  nameOrClass?: string | DefinitionClass<S>,
+  mode: DefinitionMode = 'ignore'
 ): void {
-  const definitionName =
-    name ?? value[RESOURCE_NAME] ?? value.constructor?.name;
+  const definitionName = isString(nameOrClass)
+    ? nameOrClass
+    : (nameOrClass?.name ?? value[RESOURCE_NAME] ?? value.constructor?.name);
   if (isResourceModel(value)) {
-    checkDefinitionExistence(context.resource.models, definitionName, append);
-    context.resource.models[definitionName] = value;
+    if (shouldAddDefinition(context.resource.models, definitionName, mode)) {
+      context.resource.models[definitionName] = value;
+    }
   } else if (isResourceService(value)) {
-    checkDefinitionExistence(context.resource.services, definitionName, append);
-    context.resource.services[definitionName] = value;
+    if (shouldAddDefinition(context.resource.services, definitionName, mode)) {
+      context.resource.services[definitionName] = value;
+    }
   } else if (isResourceRoutes(value)) {
-    checkDefinitionExistence(context.resource.routes, definitionName, append);
-    context.resource.routes[definitionName] = value;
+    if (shouldAddDefinition(context.resource.routes, definitionName, mode)) {
+      context.resource.routes[definitionName] = value;
+    }
   } else if (isResourcePolicy(value)) {
-    checkDefinitionExistence(context.resource.policies, definitionName, append);
-    context.resource.policies[definitionName] = value;
+    if (shouldAddDefinition(context.resource.policies, definitionName, mode)) {
+      context.resource.policies[definitionName] = value;
+    }
   } else {
-    checkDefinitionExistence(context.definitions, definitionName, append);
-    context.definitions.push({ name: definitionName, value });
+    const shouldAdd = shouldAddDefinition(
+      context.definitions,
+      definitionName,
+      mode
+    );
+    if (shouldAdd) {
+      const index =
+        mode === 'override'
+          ? context.definitions.findIndex((def) => def.name === definitionName)
+          : -1;
+      if (index > -1) {
+        context.definitions.splice(index, 1, { name: definitionName, value });
+      } else {
+        context.definitions.push({ name: definitionName, value });
+      }
+    }
   }
 }
 
@@ -61,16 +89,16 @@ export function define(
  * and attempts to resolve the appropriate definition. Throws an error if the definition is
  * not found, and it is marked as required.
  *
- * @param {string | Object | FunctionType} nameOrClass - The name or class of the definition to retrieve.
- *                                        Naming conventions such as suffixes 'Model', 'Service',
- *                                        'Routes', or 'Policy' are supported.
+ * @param {string | DefinitionClass | FunctionType} nameOrClass - The name or class of the definition to retrieve.
+ *                                        Naming conventions such as suffixes 'Model', 'Service', 'Routes', or 'Policy'
+ *                                        are supported.
  * @param {boolean} [required=true] - Indicates whether the definition is required. If true
  *                                     and the definition is not found, an error is thrown.
  * @return T - The resolved definition, typed as `T`. Will be `undefined` if the definition
  *               is not found and `required` is set to `false`.
  */
 export function inject<T = DefinitionValue>(
-  nameOrClass: string | { new (...args: any[]): T } | FunctionType,
+  nameOrClass: string | DefinitionClass<T> | FunctionType,
   required: boolean = true
 ): T {
   let definition: DefinitionValue | undefined;
@@ -224,27 +252,30 @@ export function injectPolicy(
 }
 
 /**
- * Checks if a definition exists in the given store and optionally overrides it.
+ * Checks the existence of a definition in the context store and returns if it should be added or ignored.
  *
  * @param {Record<string, any> | DefinitionEntry[]} store - The storage object or array where definitions are maintained.
  * @param {string} name - The name of the definition to check.
- * @param {boolean} [append=false] - Whether to append the existing definition if it already exists.
- * @return {void} Throws an error if the definition exists and append is false.
+ * @param {boolean} mode - How to resolve already defined definitions in context.
+ * @return {boolean} Returns true if definition exists, false otherwise.
  */
-function checkDefinitionExistence(
+function shouldAddDefinition(
   store: Record<string, any> | DefinitionEntry[],
   name: string,
-  append: boolean = false
-): void {
+  mode: DefinitionMode
+): boolean {
   if (
     ((isArray(store) && findFirstDefinition(name)) ||
       (!isArray(store) && name in store)) &&
-    !append
+    mode === 'ignore'
   ) {
     logger.warn(
-      `Definition '${name}' is already present in the application context. Use append=true to remove this warning.`
+      `Definition '${name}' is already present in the application context. Use 'append' or 'override' mode to remove this warning.`
     );
+    return false;
   }
+
+  return true;
 }
 
 /**

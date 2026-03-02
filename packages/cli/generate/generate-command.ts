@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+import { config } from '@appweaver/common';
 import { generateTypes } from './generate-types';
 import { generateSchema } from './generate-schema';
 import { loadModels } from '../utils';
@@ -17,17 +18,15 @@ export function generateCommand(program: Command): void {
     )
     .option(
       '--typesPath [path]',
-      'Output path for generated types.',
-      './src/types/generated.ts'
+      'Output path for generated types. (default: from config or env).'
     )
     .option(
       '--schemaPath [path]',
-      'Output path for generated Prisma schema.',
-      './database/schema.prisma'
+      'Output path for generated Prisma schema. (default: from config or env).'
     )
     .option(
       '--clientPath [path]',
-      'Output path for generated Prisma client (default: from config or env variable).'
+      'Output path for generated Prisma client (default: from config or env).'
     )
     .action(async (_, command: Command) => {
       const generateAll =
@@ -36,14 +35,19 @@ export function generateCommand(program: Command): void {
       const models = await loadModels(command.getOptionValue('modelPattern'));
 
       if (command.getOptionValue('types') || generateAll) {
-        await generateTypes(models, command.getOptionValue('typesPath'));
+        await generateTypes(
+          models,
+          command.getOptionValue('typesPath') ??
+            config.DATABASE_GENERATED_TYPES_PATH
+        );
       }
 
       if (command.getOptionValue('schema') || generateAll) {
         await generateSchema(
           models,
-          command.getOptionValue('schemaPath'),
-          command.getOptionValue('clientPath')
+          command.getOptionValue('schemaPath') ?? config.DATABASE_SCHEMA_PATH,
+          command.getOptionValue('clientPath') ??
+            config.DATABASE_CLIENT_OUTPUT_PATH
         );
       }
     });

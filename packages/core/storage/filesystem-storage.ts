@@ -3,16 +3,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { Readable } from 'node:stream';
-import { logger, config } from '@appweaver/common';
-import { HealthCheck, HealthCheckResult } from '../types';
-import { HEALTH_CHECK } from '../constants';
+import {
+  config,
+  ContentStream,
+  HealthCheckResult,
+  logger,
+  Storage
+} from '@appweaver/common';
 
-export type ContentStream = {
-  stream: Readable;
-  size: number;
-};
-
-export class Storage implements HealthCheck {
+export class FilesystemStorage extends Storage {
   protected readonly dirPath: string = config.STORAGE_PATH;
 
   public async init(): Promise<void> {
@@ -145,5 +144,3 @@ export class Storage implements HealthCheck {
     }
   }
 }
-
-Storage[HEALTH_CHECK] = true;

@@ -1,6 +1,5 @@
 {
-  "$schema": "./node_modules/@appweaver/common/dist/config/schema.json",
-  "version": 1,
+  "$schema": "./node_modules/@appweaver/common/config/schema.json",
   "config": {
     "app": {
       "name": "Appweaver",
@@ -57,6 +56,8 @@
     "database": {
       "type": "postgresql",
       "url": "postgresql://appweaver:appweaver@localhost:5432/appweaver-sample?schema=public",
+      "schemaPath": "./database/schema.prisma",
+      "migrationsDirPath": "./database/migrations",
       "clientOutputPath": "./database/client",
       "transactionMaxWait": 2000,
       "transactionTimeout": 5000

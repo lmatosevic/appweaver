@@ -16,6 +16,8 @@ import {
   AggregateResponse,
   AggregateSelect,
   AggregateValue,
+  Database,
+  Events,
   FileField,
   isArray,
   isFunction,
@@ -28,10 +30,9 @@ import {
   setValue,
   uncapitalize
 } from '@appweaver/common';
-import { Database } from '../database';
-import { Events } from '../events';
 import { inject, injectModel } from '../context';
 import { currentAuthUser } from '../security';
+import { PrismaDatabase } from '../database';
 import { HttpError } from '../errors';
 import {
   countFieldName,
@@ -54,13 +55,14 @@ export abstract class ResourceService<
   Update = Partial<ResourceData<Resource>>,
   Query = any
 > implements IResourceService<ReadOne, ReadMany, Create, Update, Query> {
-  private readonly _db: Database;
-  private readonly _events: Events;
+  /** @internal */
+  private readonly _db = inject<PrismaDatabase>(Database);
+  /** @internal */
+  private readonly _events = inject(Events);
+  /** @internal */
   private readonly _client: ResourceClient;
 
   constructor(public readonly modelName: string) {
-    this._db = inject(Database);
-    this._events = inject(Events);
     this._client = this._db.client()[uncapitalize(modelName)];
     if (!this._client) {
       throw new Error(

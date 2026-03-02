@@ -1,8 +1,8 @@
 import { Static } from '@sinclair/typebox';
 import { ResourceRoutesConfig, RouteConfig } from '@appweaver/common';
 import { createSchema, Id } from './resource-schema';
+import { ExportService } from '../export/export-service';
 import { inject, injectModel, injectService } from '../context';
-import { ExportService } from '../export';
 import { FileService } from '../storage';
 import { aggregateFiles, maxFileSize } from '../utils';
 import { ResourceSchemaConfig, RoutesHandler, Server } from '../types';

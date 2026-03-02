@@ -1,11 +1,12 @@
 import { CronJob, CronJobParams } from 'cron';
-import { config, logger, uuid } from '@appweaver/common';
+import { config, logger, Scheduler, uuid } from '@appweaver/common';
 
-export class Scheduler {
-  private readonly jobs: Record<string, CronJob> = {};
+export class CronScheduler extends Scheduler<CronJob, CronJobParams> {
+  /** @internal */
+  private readonly _jobs: Record<string, CronJob> = {};
 
   public startAll(): void {
-    for (const job of Object.values(this.jobs)) {
+    for (const job of Object.values(this._jobs)) {
       if (!job.isActive) {
         job.start();
       }
@@ -15,7 +16,7 @@ export class Scheduler {
   public async stopAll(): Promise<void> {
     const stopActions: Array<Promise<void>> = [];
 
-    for (const job of Object.values(this.jobs)) {
+    for (const job of Object.values(this._jobs)) {
       if (!job.isActive) {
         return;
       }
@@ -30,7 +31,7 @@ export class Scheduler {
 
   public addJob(jobParams: CronJobParams): string {
     const jobId = uuid();
-    this.jobs[jobId] = CronJob.from({
+    this._jobs[jobId] = CronJob.from({
       start: config.SCHEDULER_AUTO_START_JOB,
       waitForCompletion: true,
       errorHandler: (e) => {
@@ -42,11 +43,11 @@ export class Scheduler {
   }
 
   public getJob(jobId: string): CronJob | undefined {
-    return this.jobs[jobId];
+    return this._jobs[jobId];
   }
 
   public startJob(jobId: string): boolean {
-    const job = this.jobs[jobId];
+    const job = this._jobs[jobId];
     if (!job) {
       return false;
     }
@@ -56,7 +57,7 @@ export class Scheduler {
   }
 
   public async stopJob(jobId: string): Promise<boolean> {
-    const job = this.jobs[jobId];
+    const job = this._jobs[jobId];
     if (!job) {
       return false;
     }
@@ -66,13 +67,13 @@ export class Scheduler {
   }
 
   public async removeJob(jobId: string): Promise<boolean> {
-    const job = this.jobs[jobId];
+    const job = this._jobs[jobId];
     if (!job) {
       return false;
     }
 
     await job.stop();
-    delete this.jobs[jobId];
+    delete this._jobs[jobId];
     return true;
   }
 }

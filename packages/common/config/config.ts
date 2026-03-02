@@ -1,7 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import { Value } from '@sinclair/typebox/value';
 import { loadConfigFromEnv, loadConfigFromFiles } from './config-loader';
-import { DatabaseType, Environment, LogLevel } from '../enums';
+import { DatabaseType, Environment, LogLevel, MemoryType } from '../enums';
 
 const configSchema = Type.Object({
   APP_ENV: Type.Union([Type.Enum(Environment), Type.String()], {
@@ -41,10 +41,7 @@ const configSchema = Type.Object({
   RATE_LIMIT_ENABLED: Type.Boolean({ default: true }),
   RATE_LIMIT_MAX: Type.Integer({ default: 1000 }),
   RATE_LIMIT_WINDOW: Type.Integer({ default: 60000 }),
-  RATE_LIMIT_STORE: Type.Enum(
-    { redis: 'redis', memory: 'memory' },
-    { default: 'redis' }
-  ),
+  RATE_LIMIT_STORE: Type.Enum(MemoryType, { default: MemoryType.Redis }),
 
   SWAGGER_ENABLED: Type.Boolean({ default: true }),
   SWAGGER_PATH: Type.String({ default: '/swagger' }),
@@ -62,17 +59,36 @@ const configSchema = Type.Object({
 
   DATABASE_TYPE: Type.Optional(Type.Enum(DatabaseType)),
   DATABASE_URL: Type.String({ default: '' }),
+  DATABASE_SCHEMA_PATH: Type.String({
+    default: './database/schema.prisma'
+  }),
+  DATABASE_MIGRATIONS_DIR_PATH: Type.String({
+    default: './database/migrations'
+  }),
   DATABASE_CLIENT_OUTPUT_PATH: Type.String({
     default: './database/client'
   }),
+  DATABASE_GENERATED_TYPES_PATH: Type.String({
+    default: './src/types/generated.ts'
+  }),
   DATABASE_TRANSACTION_MAX_WAIT: Type.Integer({ default: 2000 }),
   DATABASE_TRANSACTION_TIMEOUT: Type.Integer({ default: 5000 }),
+  DATABASE_PROVIDER: Type.String({
+    default: '@appweaver/core/database/prisma-database'
+  }),
 
   REDIS_URL: Type.String({ default: 'redis://localhost:6379/0' }),
+  REDIS_PROVIDER: Type.String({ default: '@appweaver/core/redis/redis' }),
+
+  MEMORY_EXPIRATION_INTERVAL: Type.Integer({ default: 60000 }),
+  MEMORY_PROVIDER: Type.String({ default: '@appweaver/core/memory/in-memory' }),
 
   STORAGE_PATH: Type.String({ default: './storage' }),
   STORAGE_NAME_PATTERN: Type.String({ default: '{name}-{hash}.{extension}' }),
   STORAGE_CACHE_DURATION: Type.Integer({ default: 86400 }),
+  STORAGE_PROVIDER: Type.String({
+    default: '@appweaver/core/storage/filesystem-storage'
+  }),
 
   SECURITY_ROUTE_PREFIX: Type.String({ default: '/auth' }),
   SECURITY_JWT_SECRET: Type.String({ default: 'abcdefghijklmnopqrst12345' }),
@@ -91,10 +107,17 @@ const configSchema = Type.Object({
       default: 'fixed'
     }
   ),
+  QUEUE_PROVIDER: Type.String({ default: '@appweaver/core/queue/bull-queue' }),
 
   SCHEDULER_AUTO_START_JOB: Type.Boolean({ default: true }),
+  SCHEDULER_PROVIDER: Type.String({
+    default: '@appweaver/core/scheduler/cron-scheduler'
+  }),
 
   EVENTS_MAX_LISTENERS: Type.Integer({ default: 10 }),
+  EVENTS_PROVIDER: Type.String({
+    default: '@appweaver/core/events/node-events'
+  }),
 
   EXPORT_BATCH_SIZE: Type.Integer({ default: 1000 }),
   EXPORT_CSV_DELIMITER: Type.String({ default: ';' }),
@@ -110,6 +133,7 @@ const configSchema = Type.Object({
   MAIL_SENDER_NAME: Type.Optional(Type.String()),
   MAIL_SENDER_ADDRESS: Type.Optional(Type.String()),
   MAIL_MOCK_SEND: Type.Optional(Type.Boolean({ default: false })),
+  MAIL_PROVIDER: Type.String({ default: '@appweaver/core/mailer/smtp-mailer' }),
 
   SYSTEM_ADMIN_INITIAL_EMAIL: Type.String({ default: 'admin@appweaver.co' }),
   SYSTEM_ADMIN_INITIAL_PASSWORD: Type.Optional(Type.String())
