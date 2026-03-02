@@ -55,10 +55,10 @@
   "devDependencies": {
     "@appweaver/common": "^1.0.0",
     "@prisma/adapter-better-sqlite3": "^7.3.0",
-    "bullmq": "5.66.6",
-    "cron": "4.4.0",
-    "ioredis": "5.9.1",
-    "nodemailer": "7.0.12",
+    "bullmq": "^5.70.1",
+    "cron": "^4.4.0",
+    "ioredis": "^5.10.0",
+    "nodemailer": "^8.0.1",
     "prisma": "^7.3.0"
   },
   "peerDependencies": {
@@ -68,10 +68,10 @@
     "@prisma/adapter-mssql": "^7.3.0",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
-    "bullmq": "5.66.6",
-    "cron": "4.4.0",
-    "ioredis": "5.9.1",
-    "nodemailer": "7.0.12",
+    "bullmq": "^5.66.6",
+    "cron": "^4.4.0",
+    "ioredis": "^5.9.1",
+    "nodemailer": "^7.0.12",
     "prisma": "^7.3.0"
   },
   "peerDependenciesMeta": {
