@@ -1,3 +1,13 @@
+## [1.3.0](https://gitlab.com/app-weaver/appweaver/compare/v1.2.0...v1.3.0) (2026-03-02)
+
+### Features
+
+* implement full dependency injection using common types for database, queue, redis, memory, storage, scheduler, events. Add in-memory queue implementation. Add jest global setup and teardown scripts, and fixed test client path resolving ([9a846ea](https://gitlab.com/app-weaver/appweaver/commit/9a846eaa127c789e4180c805101c1b5983f807a9))
+
+### Bug Fixes
+
+* add new database client support for mssql adapter ([68a0a74](https://gitlab.com/app-weaver/appweaver/commit/68a0a7408c249fbe2df901c95f8d5884e45e8e9e))
+
 ## [1.2.0](https://gitlab.com/app-weaver/appweaver/compare/v1.1.0...v1.2.0) (2026-02-27)
 
 ### Features
