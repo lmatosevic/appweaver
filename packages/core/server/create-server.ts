@@ -1,5 +1,5 @@
 import path from 'node:path';
-import Fastify from 'fastify';
+import Fastify, { FastifyPluginCallback } from 'fastify';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import fastifyCors from '@fastify/cors';
 import fastifyHelmet from '@fastify/helmet';
@@ -20,7 +20,7 @@ import { errorHandler } from '../errors';
 import { files } from '../storage';
 import { health } from '../health';
 import { RouterHandler, Server } from '../types';
-import { ROUTE } from '../constants';
+import { PLUGIN, ROUTE } from '../constants';
 import { info } from './info-route';
 import schemas from './schemas';
 import swagger from './swagger';
@@ -33,7 +33,15 @@ import swagger from './swagger';
  * static file serving, authentication, and Swagger documentation (if enabled).
  * It also sets a global error handler for all routes.
  *
- * @return {Server} A promise that resolves with the configured server instance.
+ * Additionally, this function:
+ * - Loads and registers all user-defined plugins
+ * - Registers schema models for route validation with $ref support
+ * - Sets up a global error handler for all routes
+ * - Registers built-in routes (health check, info, files)
+ * - Loads and registers resource API routes generated from the resource context
+ * - Loads and registers user-defined custom routes
+ *
+ * @return {Server} A configured Fastify server instance with TypeBox type provider.
  */
 export function createServer(): Server {
   // Create a Fastify server instance.
@@ -104,6 +112,12 @@ export function createServer(): Server {
             })
           : null
     });
+  }
+
+  // Register all defined plugins.
+  const plugins = injectAll<FastifyPluginCallback>(PLUGIN);
+  for (const plugin of plugins) {
+    server.register(plugin);
   }
 
   // Set global error handler for all routes.

@@ -9,3 +9,4 @@ export const RESOURCE_POLICY_TYPE = 'Policy';
 
 export const MODEL = 'Model';
 export const ROUTE = 'Route';
+export const PLUGIN = 'Plugin';
