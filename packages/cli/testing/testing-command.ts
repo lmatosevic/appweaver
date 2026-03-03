@@ -77,6 +77,8 @@ export function testingCommand(program: Command): void {
 
       await fsp.mkdir(storagePath, { recursive: true });
 
+      console.log('Storage initialized');
+
       const models = await loadModels(
         command.getOptionValue('modelPattern') ?? config.RESOURCE_MODEL_PATTERN
       );
@@ -157,6 +159,6 @@ export function testingCommand(program: Command): void {
 
       await runProcess('rimraf', [tempDir], quiet);
 
-      console.log('Temporary directory removed');
+      console.log(`Removed temporary directory ${tempDir}`);
     });
 }

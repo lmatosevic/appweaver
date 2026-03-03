@@ -16,7 +16,7 @@
       }
     ]
   ],
-  "setupFilesAfterEnv": ["<rootDir>/test/e2e/each.ts"],
-  "globalSetup": "<rootDir>/test/e2e/setup.ts",
-  "globalTeardown": "<rootDir>/test/e2e/teardown.ts"
+  "setupFilesAfterEnv": ["<rootDir>/test/e2e/support/each.ts"],
+  "globalSetup": "<rootDir>/test/e2e/support/setup.ts",
+  "globalTeardown": "<rootDir>/test/e2e/support/teardown.ts"
 }

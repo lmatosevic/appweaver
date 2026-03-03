@@ -18,25 +18,13 @@ export function runProcess(
   return new Promise((resolve, reject) => {
     const command = args.length > 0 ? `${cmd} ${args.join(' ')}` : cmd;
     const child = spawn(command, {
-      stdio: quiet
-        ? ['ignore', 'ignore', 'pipe']
-        : ['inherit', 'inherit', 'inherit'],
+      stdio: quiet ? 'ignore' : 'inherit',
       shell: true
     });
 
     child.on('error', reject);
 
-    const stdErr: string[] = [];
-    if (quiet && child.stderr) {
-      child.stderr.on('data', (data) => {
-        stdErr.push(data.toString('utf8'));
-      });
-    }
-
     child.on('close', (code) => {
-      if (quiet && code !== 0) {
-        reject(new Error(stdErr.join('\n')));
-      }
       resolve(code);
     });
   });
