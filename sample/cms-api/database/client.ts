@@ -1,7 +1,6 @@
-import { inject } from '@appweaver/core';
-import { Database } from '@appweaver/common';
+import { PrismaDatabase } from '@appweaver/core';
 import { PrismaClient } from '@db/client/client';
 
-export const db = inject(Database).client<PrismaClient>();
+export const db = new PrismaDatabase().client<PrismaClient>();
 
 export default db;
