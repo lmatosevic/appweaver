@@ -1,3 +1,9 @@
+## [1.4.3](https://gitlab.com/app-weaver/appweaver/compare/v1.4.2...v1.4.3) (2026-03-03)
+
+### Bug Fixes
+
+* update testing cli with true quite mode when running process ([706ad1f](https://gitlab.com/app-weaver/appweaver/commit/706ad1f8ff7f23b01d32f4df394fbd45f90db1b7))
+
 ## [1.4.2](https://gitlab.com/app-weaver/appweaver/compare/v1.4.1...v1.4.2) (2026-03-03)
 
 ### Bug Fixes
