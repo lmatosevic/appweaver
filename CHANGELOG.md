@@ -1,3 +1,15 @@
+## [1.4.0](https://gitlab.com/app-weaver/appweaver/compare/v1.3.0...v1.4.0) (2026-03-03)
+
+### Features
+
+* add testing command and e2e support, update dependencies and configs ([5a10316](https://gitlab.com/app-weaver/appweaver/commit/5a10316ae2771dddbe8f3f3f1d06797be40d4934))
+
+### Bug Fixes
+
+* add support for verbose and quiet mode, update CLI and testing commands ([2f10bd3](https://gitlab.com/app-weaver/appweaver/commit/2f10bd3ef0878f874d5835a9ab564c07e2040b9e))
+* revert ioredis to bullmq compatible version ([e694df0](https://gitlab.com/app-weaver/appweaver/commit/e694df02510e6e8a51947c22e459df2f00b6611f))
+* update core package version for ioredis, nodemailer, and bullmq ([b6eb316](https://gitlab.com/app-weaver/appweaver/commit/b6eb31627e09194578846ca74a06cf87aa7e3fa0))
+
 ## [1.3.0](https://gitlab.com/app-weaver/appweaver/compare/v1.2.0...v1.3.0) (2026-03-02)
 
 ### Features
