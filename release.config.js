@@ -1,5 +1,7 @@
 require('dotenv/config');
 
+const packages = ['core', 'common', 'cli'];
+
 module.exports = {
   branches: ['main'],
   repositoryUrl: 'https://gitlab.com/app-weaver/appweaver.git',
@@ -24,27 +26,13 @@ module.exports = {
         npmPublish: false
       }
     ],
-    [
+    ...packages.map((pkg) => [
       '@semantic-release/npm',
       {
-        pkgRoot: 'packages/core',
+        pkgRoot: `packages/${pkg}`,
         npmPublish: false
       }
-    ],
-    [
-      '@semantic-release/npm',
-      {
-        pkgRoot: 'packages/common',
-        npmPublish: false
-      }
-    ],
-    [
-      '@semantic-release/npm',
-      {
-        pkgRoot: 'packages/cli',
-        npmPublish: false
-      }
-    ],
+    ]),
 
     // 3) Copy packages with updated versions
     [
@@ -55,24 +43,12 @@ module.exports = {
     ],
 
     // 4) Publish all packages
-    [
+    ...packages.map((pkg) => [
       '@semantic-release/exec',
       {
-        publishCmd: 'cd packages/core/dist && npm publish'
+        publishCmd: `cd packages/${pkg}/dist && npm publish`
       }
-    ],
-    [
-      '@semantic-release/exec',
-      {
-        publishCmd: 'cd packages/common/dist && npm publish'
-      }
-    ],
-    [
-      '@semantic-release/exec',
-      {
-        publishCmd: 'cd packages/cli/dist && npm publish'
-      }
-    ],
+    ]),
 
     // 5) Commit updated files to the repository
     [
@@ -82,9 +58,7 @@ module.exports = {
           'CHANGELOG.md',
           'package.json',
           'package-lock.json',
-          'packages/core/package.json',
-          'packages/common/package.json',
-          'packages/cli/package.json'
+          ...packages.map((pkg) => `packages/${pkg}/package.json`)
         ],
         message:
           'chore(release): version ${nextRelease.version}\n\n${nextRelease.notes}'
