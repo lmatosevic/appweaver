@@ -1,3 +1,9 @@
+## [1.4.1](https://gitlab.com/app-weaver/appweaver/compare/v1.4.0...v1.4.1) (2026-03-03)
+
+### Bug Fixes
+
+* update release process ([43f9ffd](https://gitlab.com/app-weaver/appweaver/commit/43f9ffd493512addd5883c383b2b89c8e0ce3898))
+
 ## [1.4.0](https://gitlab.com/app-weaver/appweaver/compare/v1.3.0...v1.4.0) (2026-03-03)
 
 ### Features
