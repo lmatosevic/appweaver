@@ -1,3 +1,10 @@
+## [1.4.2](https://gitlab.com/app-weaver/appweaver/compare/v1.4.1...v1.4.2) (2026-03-03)
+
+### Bug Fixes
+
+* update core dev dependencies ([447f5b7](https://gitlab.com/app-weaver/appweaver/commit/447f5b78195eec4f211084ba7bd79ff2f479628e))
+* update core peer dependencies for ioredis, nodemailer, and bullmq ([10daef6](https://gitlab.com/app-weaver/appweaver/commit/10daef6ae0563137d6a519a3087bad1ba73697e8))
+
 ## [1.4.1](https://gitlab.com/app-weaver/appweaver/compare/v1.4.0...v1.4.1) (2026-03-03)
 
 ### Bug Fixes
