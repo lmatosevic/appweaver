@@ -18,9 +18,6 @@
     "access": "public",
     "registry": "https://gitlab.com/api/v4/projects/77748589/packages/npm/"
   },
-  "files": [
-    "dist/**"
-  ],
   "engines": {
     "node": ">= 20"
   },

@@ -16,9 +16,6 @@
       "web": "https://lukamatosevic.com"
     }
   ],
-  "workspaces": [
-    "packages/*"
-  ],
   "engines": {
     "node": ">= 20"
   },

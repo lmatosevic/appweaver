@@ -16,7 +16,7 @@ module.exports = {
       }
     ],
 
-    // 2) Update versions & (optionally) publish for each package
+    // 2) Update versions without publishing
     [
       '@semantic-release/npm',
       {
@@ -27,23 +27,54 @@ module.exports = {
     [
       '@semantic-release/npm',
       {
-        pkgRoot: 'packages/core'
+        pkgRoot: 'packages/core',
+        npmPublish: false
       }
     ],
     [
       '@semantic-release/npm',
       {
-        pkgRoot: 'packages/common'
+        pkgRoot: 'packages/common',
+        npmPublish: false
       }
     ],
     [
       '@semantic-release/npm',
       {
-        pkgRoot: 'packages/cli'
+        pkgRoot: 'packages/cli',
+        npmPublish: false
       }
     ],
 
-    // 3) Commit updated files to the repository
+    // 3) Copy packages with updated versions
+    [
+      '@semantic-release/exec',
+      {
+        prepareCmd: 'node ./tools/copy-packages.js'
+      }
+    ],
+
+    // 4) Publish all packages
+    [
+      '@semantic-release/exec',
+      {
+        publishCmd: 'cd packages/core/dist && npm publish'
+      }
+    ],
+    [
+      '@semantic-release/exec',
+      {
+        publishCmd: 'cd packages/common/dist && npm publish'
+      }
+    ],
+    [
+      '@semantic-release/exec',
+      {
+        publishCmd: 'cd packages/cli/dist && npm publish'
+      }
+    ],
+
+    // 5) Commit updated files to the repository
     [
       '@semantic-release/git',
       {
