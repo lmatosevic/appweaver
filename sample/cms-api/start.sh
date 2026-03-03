@@ -14,11 +14,11 @@ if [ "$role" = "app" ]; then
 
 elif [ "$role" = "migrations" ]; then
   echo "Executing migrations..."
-  npm run db:migrate
+  npm run migrate
 
 elif [ "$role" = "seed" ]; then
   echo "Seeding database..."
-  npm run db:seed
+  npm run seed
 
 else
   echo "Could not match the container role \"$role\""

@@ -13,9 +13,6 @@ COPY ../.. .
 # Install NPM dependencies
 RUN npm ci
 
-# Generate Prisma client files
-RUN npm run db:generate
-
 # Build project
 RUN npm run build
 
