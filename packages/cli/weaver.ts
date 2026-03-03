@@ -8,6 +8,7 @@ import { migrateCommand } from './migrate';
 import { migrationCommand } from './migration';
 import { seedCommand } from './seed';
 import { startCommand } from './start';
+import { testingCommand } from './testing';
 
 const pkg = loadPackageJson();
 
@@ -31,5 +32,7 @@ migrationCommand(program);
 seedCommand(program);
 
 startCommand(program);
+
+testingCommand(program);
 
 program.parse();

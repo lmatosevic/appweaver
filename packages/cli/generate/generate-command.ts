@@ -13,8 +13,7 @@ export function generateCommand(program: Command): void {
     .option('-s, --schema', 'Generate Prisma schema.', false)
     .option(
       '--modelPattern [pattern]',
-      'Glob pattern for finding model files.',
-      './src/resources/*/model.ts'
+      'Glob pattern for finding model files. (default: from config or env).'
     )
     .option(
       '--typesPath [path]',
@@ -32,13 +31,15 @@ export function generateCommand(program: Command): void {
       const generateAll =
         !command.getOptionValue('types') && !command.getOptionValue('schema');
 
-      const models = await loadModels(command.getOptionValue('modelPattern'));
+      const models = await loadModels(
+        command.getOptionValue('modelPattern') ?? config.RESOURCE_MODEL_PATTERN
+      );
 
       if (command.getOptionValue('types') || generateAll) {
         await generateTypes(
           models,
           command.getOptionValue('typesPath') ??
-            config.DATABASE_GENERATED_TYPES_PATH
+            config.RESOURCE_GENERATED_TYPES_PATH
         );
       }
 

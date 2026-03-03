@@ -3,23 +3,9 @@
   "rootDir": ".",
   "testEnvironment": "node",
   "testMatch": ["**/?(*.)+(spec|test).ts"],
+  "testPathIgnorePatterns": ["/test/e2e/"],
   "transform": {
-    "^.+\\.(t|j)s$": [
-      "@swc/jest",
-      {
-        "jsc": {
-          "parser": {
-            "syntax": "typescript",
-            "dynamicImport": true
-          },
-          "target": "ES2024"
-        },
-        "module": {
-          "type": "commonjs"
-        },
-        "sourceMaps": "inline"
-      }
-    ]
+    "^.+\\.(t|j)s$": ["@swc/jest"]
   },
   "reporters": [
     "default",
@@ -33,8 +19,5 @@
   ],
   "coverageReporters": ["cobertura", "text"],
   "collectCoverageFrom": ["./src/**/*.(t|j)s"],
-  "coverageDirectory": "./reports",
-  "setupFilesAfterEnv": ["<rootDir>/test/jest/after.ts"],
-  "globalSetup": "<rootDir>/test/jest/setup.ts",
-  "globalTeardown": "<rootDir>/test/jest/teardown.ts"
+  "coverageDirectory": "./reports"
 }

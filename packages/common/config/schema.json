@@ -244,6 +244,19 @@
             }
           }
         },
+        "resource": {
+          "type": "object",
+          "properties": {
+            "modelPattern": {
+              "type": "string",
+              "default": "./src/resources/*/model.ts"
+            },
+            "generatedTypesPath": {
+              "type": "string",
+              "default": "./src/types/generated.ts"
+            }
+          }
+        },
         "database": {
           "type": "object",
           "properties": {
@@ -266,10 +279,6 @@
             "clientOutputPath": {
               "type": "string",
               "default": "./database/client"
-            },
-            "generatedTypesPath": {
-              "type": "string",
-              "default": "./src/types/generated.ts"
             },
             "transactionMaxWait": {
               "type": "integer",

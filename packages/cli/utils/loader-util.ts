@@ -5,6 +5,14 @@ import { register } from 'ts-node';
 import { isResourceModel, ResourceModel } from '@appweaver/core';
 import { config } from '@appweaver/common';
 
+/**
+ * Loads and parses the `package.json` file located at a specified path.
+ * The function attempts to locate the `package.json` file in one of two
+ * predefined directories relative to the current module's directory.
+ * If the file is found, its contents are read and parsed into a JavaScript object.
+ *
+ * @return {Record<string, string>} The parsed contents of the `package.json` file as a key-value object.
+ */
 export function loadPackageJson(): Record<string, string> {
   let pkgPath = path.join(__dirname, '../../package.json');
   if (!fs.existsSync(pkgPath)) {
@@ -14,6 +22,17 @@ export function loadPackageJson(): Record<string, string> {
   return JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
 }
 
+/**
+ * Loads and registers resource models from the specified file pattern.
+ *
+ * This method scans for model files that match the given pattern,
+ * imports them, and checks if they conform to the resource model schema.
+ * Valid models are added to the returned collection.
+ *
+ * @param {string} modelPattern - The glob pattern used to locate model files.
+ * @return {Promise<Record<string, ResourceModel>>} A promise resolving to an object containing the loaded resource models,
+ * where the keys are the model names and the values are the associated ResourceModel objects.
+ */
 export async function loadModels(
   modelPattern: string
 ): Promise<Record<string, ResourceModel>> {

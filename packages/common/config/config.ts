@@ -57,6 +57,13 @@ const configSchema = Type.Object({
   CORS_MAX_AGE: Type.Integer({ default: 86400 }),
   CORS_CREDENTIALS: Type.Boolean({ default: true }),
 
+  RESOURCE_MODEL_PATTERN: Type.String({
+    default: './src/resources/*/model.ts'
+  }),
+  RESOURCE_GENERATED_TYPES_PATH: Type.String({
+    default: './src/types/generated.ts'
+  }),
+
   DATABASE_TYPE: Type.Optional(Type.Enum(DatabaseType)),
   DATABASE_URL: Type.String({ default: '' }),
   DATABASE_SCHEMA_PATH: Type.String({
@@ -67,9 +74,6 @@ const configSchema = Type.Object({
   }),
   DATABASE_CLIENT_OUTPUT_PATH: Type.String({
     default: './database/client'
-  }),
-  DATABASE_GENERATED_TYPES_PATH: Type.String({
-    default: './src/types/generated.ts'
   }),
   DATABASE_TRANSACTION_MAX_WAIT: Type.Integer({ default: 2000 }),
   DATABASE_TRANSACTION_TIMEOUT: Type.Integer({ default: 5000 }),

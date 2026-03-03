@@ -53,6 +53,10 @@
       "maxAge": 86400,
       "credentials": true
     },
+    "resource": {
+      "modelPattern": "./src/resources/*/model.ts",
+      "generatedTypesPath": "./src/types/generated.ts"
+    },
     "database": {
       "type": "postgresql",
       "url": "postgresql://appweaver:appweaver@localhost:5432/appweaver-sample?schema=public",
