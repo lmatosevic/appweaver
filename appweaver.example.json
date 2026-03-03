@@ -17,7 +17,8 @@
       "staticDirPath": "./public",
       "staticRoutePrefix": "/public",
       "staticMaxAge": "30d",
-      "staticAllowedHost": null
+      "staticAllowedHost": null,
+      "requestLoggingEnabled": false
     },
     "log": {
       "level": "info",

@@ -57,7 +57,8 @@ export function createServer(): Server {
     },
     trustProxy: true,
     bodyLimit: config.SERVER_BODY_LIMIT_BYTES,
-    logger: loggerConfig
+    logger: loggerConfig,
+    disableRequestLogging: !config.SERVER_REQUEST_LOGGING_ENABLED
   }).withTypeProvider<TypeBoxTypeProvider>();
 
   // Register CORS rules.

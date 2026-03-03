@@ -136,6 +136,10 @@
             },
             "staticAllowedHost": {
               "type": ["string", "null"]
+            },
+            "requestLoggingEnabled": {
+              "type": "boolean",
+              "default": false
             }
           }
         },

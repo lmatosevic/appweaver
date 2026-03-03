@@ -37,6 +37,7 @@ const configSchema = Type.Object({
   SERVER_STATIC_ROUTE_PREFIX: Type.String({ default: '/public' }),
   SERVER_STATIC_MAX_AGE: Type.String({ default: '30d' }),
   SERVER_STATIC_ALLOWED_HOST: Type.Optional(Type.String()),
+  SERVER_REQUEST_LOGGING_ENABLED: Type.Boolean({ default: false }),
 
   RATE_LIMIT_ENABLED: Type.Boolean({ default: true }),
   RATE_LIMIT_MAX: Type.Integer({ default: 1000 }),
