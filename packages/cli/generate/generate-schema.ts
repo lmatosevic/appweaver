@@ -44,7 +44,8 @@ type PrismaSchemaModel = {
 export async function generateSchema(
   models: Record<string, ResourceModel>,
   schemaPath: string,
-  clientPath: string
+  clientPath: string,
+  quiet: boolean = false
 ): Promise<void> {
   const cwd = process.cwd();
   const schemaDir = path.join(cwd, path.dirname(schemaPath));
@@ -290,7 +291,7 @@ export async function generateSchema(
 
     await fsp.writeFile(outputPath, schemaContent.join('\n'));
 
-    const code = await runProcess('prisma', ['generate']);
+    const code = await runProcess('prisma', ['generate'], quiet);
     if (code !== 0 && oldSchema) {
       await fsp.writeFile(outputPath, oldSchema);
     } else {

@@ -6,20 +6,37 @@ import { config } from '@appweaver/common';
  *
  * @param {string} cmd - The command to execute.
  * @param {string[]} [args=[]] - An optional array of arguments to pass to the command.
+ * @param {boolean} quiet - An flag indication if this process stdout and stderr should be hidden.
  * @return {Promise<number | null>} A promise that resolves with the exit code of the process or rejects
  * if an error occurs.
  */
 export function runProcess(
   cmd: string,
-  args: string[] = []
+  args: string[] = [],
+  quiet: boolean = false
 ): Promise<number | null> {
   return new Promise((resolve, reject) => {
     const command = args.length > 0 ? `${cmd} ${args.join(' ')}` : cmd;
-    const child = spawn(command, { stdio: 'inherit', shell: true });
+    const child = spawn(command, {
+      stdio: quiet
+        ? ['ignore', 'ignore', 'pipe']
+        : ['inherit', 'inherit', 'inherit'],
+      shell: true
+    });
 
     child.on('error', reject);
 
+    const stdErr: string[] = [];
+    if (quiet && child.stderr) {
+      child.stderr.on('data', (data) => {
+        stdErr.push(data.toString('utf8'));
+      });
+    }
+
     child.on('close', (code) => {
+      if (quiet && code !== 0) {
+        reject(new Error(stdErr.join('\n')));
+      }
       resolve(code);
     });
   });

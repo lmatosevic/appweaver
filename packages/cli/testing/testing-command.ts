@@ -35,11 +35,14 @@ export function testingCommand(program: Command): void {
       'Name for the new migration.',
       'init_test'
     )
+    .option('-v, --verbose', 'Print verbose output.')
     .action(async (_, command: Command) => {
       assertEnv(
         'test',
         '"weaver test setup" must be started in "test" environment (NODE_ENV=test).'
       );
+
+      const quiet = !command.getOptionValue('verbose');
 
       const tempDir = command.getOptionValue('dir');
 
@@ -70,7 +73,7 @@ export function testingCommand(program: Command): void {
         `Client output path must be inside temp directory: ${tempDir}`
       );
 
-      await runProcess('rimraf', [tempDir]);
+      await runProcess('rimraf', [tempDir], quiet);
 
       await fsp.mkdir(storagePath, { recursive: true });
 
@@ -78,14 +81,15 @@ export function testingCommand(program: Command): void {
         command.getOptionValue('modelPattern') ?? config.RESOURCE_MODEL_PATTERN
       );
 
-      await generateSchema(models, schemaPath, clientPath);
+      await generateSchema(models, schemaPath, clientPath, quiet);
 
-      await runProcess('prisma', [
-        'migrate',
-        'dev',
-        '--name',
-        command.getOptionValue('migrationName')
-      ]);
+      await runProcess(
+        'prisma',
+        ['migrate', 'dev', '--name', command.getOptionValue('migrationName')],
+        quiet
+      );
+
+      console.log('Database initialized');
     });
 
   testCommand
@@ -98,11 +102,14 @@ export function testingCommand(program: Command): void {
     )
     .option('--database', 'Reset database content.')
     .option('--storage', 'Reset storage files.')
+    .option('-v, --verbose', 'Print verbose output.')
     .action(async (_, command: Command) => {
       assertEnv(
         'test',
         '"weaver test reset" must be started in "test" environment (NODE_ENV=test).'
       );
+
+      const quiet = !command.getOptionValue('verbose');
 
       const tempDir = command.getOptionValue('dir');
 
@@ -119,11 +126,13 @@ export function testingCommand(program: Command): void {
         !command.getOptionValue('storage');
 
       if (command.getOptionValue('database') || resetAll) {
-        await runProcess('prisma', ['migrate', 'reset', '-f']);
+        await runProcess('prisma', ['migrate', 'reset', '-f'], quiet);
+        console.log('Database reset');
       }
 
       if (command.getOptionValue('storage') || resetAll) {
-        await runProcess('rimraf', [storagePath]);
+        await runProcess('rimraf', [storagePath], quiet);
+        console.log('Storage cleared');
       }
     });
 
@@ -135,14 +144,19 @@ export function testingCommand(program: Command): void {
       'Directory used by tests to store temporary data.',
       './temp'
     )
+    .option('-v, --verbose', 'Print verbose output.')
     .action(async (_, command: Command) => {
       assertEnv(
         'test',
         '"weaver test teardown" must be started in "test" environment (NODE_ENV=test).'
       );
 
+      const quiet = !command.getOptionValue('verbose');
+
       const tempDir = command.getOptionValue('dir');
 
-      await runProcess('rimraf', [tempDir]);
+      await runProcess('rimraf', [tempDir], quiet);
+
+      console.log('Temporary directory removed');
     });
 }

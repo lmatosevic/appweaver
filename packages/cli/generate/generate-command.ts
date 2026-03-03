@@ -27,7 +27,10 @@ export function generateCommand(program: Command): void {
       '--clientPath [path]',
       'Output path for generated Prisma client (default: from config or env).'
     )
+    .option('-v, --verbose', 'Print verbose output.')
     .action(async (_, command: Command) => {
+      const quiet = !command.getOptionValue('verbose');
+
       const generateAll =
         !command.getOptionValue('types') && !command.getOptionValue('schema');
 
@@ -39,7 +42,8 @@ export function generateCommand(program: Command): void {
         await generateTypes(
           models,
           command.getOptionValue('typesPath') ??
-            config.RESOURCE_GENERATED_TYPES_PATH
+            config.RESOURCE_GENERATED_TYPES_PATH,
+          quiet
         );
       }
 
@@ -48,7 +52,8 @@ export function generateCommand(program: Command): void {
           models,
           command.getOptionValue('schemaPath') ?? config.DATABASE_SCHEMA_PATH,
           command.getOptionValue('clientPath') ??
-            config.DATABASE_CLIENT_OUTPUT_PATH
+            config.DATABASE_CLIENT_OUTPUT_PATH,
+          quiet
         );
       }
     });

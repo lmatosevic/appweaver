@@ -9,7 +9,8 @@ import { runProcess } from '../utils';
 
 export async function generateTypes(
   models: Record<string, ResourceModel>,
-  typesPath: string
+  typesPath: string,
+  quiet: boolean = false
 ): Promise<void> {
   const cwd = process.cwd();
   const typesDir = path.join(cwd, path.dirname(typesPath));
@@ -54,7 +55,7 @@ export async function generateTypes(
     await fsp.writeFile(outputPath, typesContent.join('\n'));
 
     await runProcess('prettier', [
-      '--log-level silent',
+      quiet ? '--log-level silent' : '',
       `--write ${outputPath}`
     ]);
 
