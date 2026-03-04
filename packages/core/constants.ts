@@ -7,6 +7,6 @@ export const RESOURCE_SERVICE_TYPE = 'Service';
 export const RESOURCE_ROUTES_TYPE = 'Routes';
 export const RESOURCE_POLICY_TYPE = 'Policy';
 
-export const MODEL = 'Model';
-export const ROUTE = 'Route';
-export const PLUGIN = 'Plugin';
+export const MODEL = Symbol('Model');
+export const ROUTE = Symbol('Route');
+export const PLUGIN = Symbol('Plugin');

@@ -42,6 +42,10 @@ export function isString(value: any): value is string {
   return typeof value === 'string';
 }
 
+export function isSymbol(value: any): value is symbol {
+  return typeof value === 'symbol';
+}
+
 export function isBoolean(value: any): value is boolean {
   return typeof value === 'boolean';
 }

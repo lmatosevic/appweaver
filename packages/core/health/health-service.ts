@@ -1,14 +1,19 @@
 import {
-  IHealthCheck,
   HealthCheckResult,
   HealthCheckStatus,
+  IHealthCheck,
   isHealthCheck,
   uncapitalize
 } from '@appweaver/common';
 import { injectAllWhere } from '../context';
 
+export type HealthCheckResponse = {
+  status: HealthCheckStatus;
+  message?: string;
+};
+
 export class HealthService {
-  public async checkHealth(): Promise<Record<string, HealthCheckStatus>> {
+  public async checkHealth(): Promise<Record<string, HealthCheckResponse>> {
     const services = this.healthCheckServices();
 
     const healthChecks: Record<string, Promise<HealthCheckResult>> = {};

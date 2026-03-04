@@ -2,6 +2,7 @@ import {
   FunctionType,
   isArray,
   isString,
+  isSymbol,
   logger,
   ResourcePolicyConfig
 } from '@appweaver/common';
@@ -13,6 +14,7 @@ import {
   isResourceService
 } from '../utils';
 import {
+  Ctor,
   DefinitionClass,
   DefinitionEntry,
   DefinitionMode,
@@ -41,27 +43,28 @@ import { RESOURCE_NAME } from '../constants';
  */
 export function define<T = DefinitionValue, S extends T = T>(
   value: DefinitionValue,
-  nameOrClass?: string | DefinitionClass<S>,
+  nameOrClass?: string | symbol | DefinitionClass<S>,
   mode: DefinitionMode = 'ignore'
 ): void {
-  const definitionName = isString(nameOrClass)
-    ? nameOrClass
-    : (nameOrClass?.name ?? value[RESOURCE_NAME] ?? value.constructor?.name);
+  const definitionName =
+    isString(nameOrClass) || isSymbol(nameOrClass)
+      ? nameOrClass
+      : (nameOrClass?.name ?? value[RESOURCE_NAME] ?? value.constructor?.name);
   if (isResourceModel(value)) {
     if (shouldAddDefinition(context.resource.models, definitionName, mode)) {
-      context.resource.models[definitionName] = value;
+      context.resource.models.set(definitionName, value);
     }
   } else if (isResourceService(value)) {
     if (shouldAddDefinition(context.resource.services, definitionName, mode)) {
-      context.resource.services[definitionName] = value;
+      context.resource.services.set(definitionName, value);
     }
   } else if (isResourceRoutes(value)) {
     if (shouldAddDefinition(context.resource.routes, definitionName, mode)) {
-      context.resource.routes[definitionName] = value;
+      context.resource.routes.set(definitionName, value);
     }
   } else if (isResourcePolicy(value)) {
     if (shouldAddDefinition(context.resource.policies, definitionName, mode)) {
-      context.resource.policies[definitionName] = value;
+      context.resource.policies.set(definitionName, value);
     }
   } else {
     const shouldAdd = shouldAddDefinition(
@@ -107,13 +110,13 @@ export function inject<T = DefinitionValue>(
   if (isString(nameOrClass)) {
     name = nameOrClass;
     if (name.endsWith('Model')) {
-      definition = context.resource.models[name.replace(/Model$/, '')];
+      definition = context.resource.models.get(name.replace(/Model$/, ''));
     } else if (name.endsWith('Service')) {
-      definition = context.resource.services[name.replace(/Service$/, '')];
+      definition = context.resource.services.get(name.replace(/Service$/, ''));
     } else if (name.endsWith('Routes')) {
-      definition = context.resource.routes[name.replace(/Routes$/, '')];
+      definition = context.resource.routes.get(name.replace(/Routes$/, ''));
     } else if (name.endsWith('Policy')) {
-      definition = context.resource.policies[name.replace(/Policy$/, '')];
+      definition = context.resource.policies.get(name.replace(/Policy$/, ''));
     } else {
       definition = findFirstDefinition(name);
     }
@@ -134,15 +137,17 @@ export function inject<T = DefinitionValue>(
 /**
  * Injects all definitions that match the specified name or class.
  *
- * @param {string | { new (...args: any[]): any } | FunctionType} nameOrClass The name of the definition or the
- *                                                                        class constructor to find matching definitions.
+ * @param {string | symbol | Ctor | FunctionType} nameOrClass The name of the definition or the
+ *                                                            class constructor to find matching definitions.
  * @return {[]} An array of definitions that match the provided name or class.
  */
 export function injectAll<T = DefinitionValue>(
-  nameOrClass: string | { new (...args: any[]): T } | FunctionType
+  nameOrClass: string | symbol | Ctor<T> | FunctionType
 ): T[] {
   return findAllDefinitions(
-    isString(nameOrClass) ? nameOrClass : nameOrClass.name
+    isString(nameOrClass) || isSymbol(nameOrClass)
+      ? nameOrClass
+      : nameOrClass.name
   ) as T[];
 }
 
@@ -171,7 +176,7 @@ export function injectModel(
   name: string,
   required: boolean = true
 ): ResourceModel {
-  const model = context.resource.models[name];
+  const model = context.resource.models.get(name);
 
   if (!model && required) {
     throw new Error(
@@ -179,7 +184,7 @@ export function injectModel(
     );
   }
 
-  return model;
+  return model as ResourceModel;
 }
 
 /**
@@ -194,7 +199,7 @@ export function injectService(
   modelName: string,
   required: boolean = true
 ): IResourceService {
-  const service = context.resource.services[modelName];
+  const service = context.resource.services.get(modelName);
 
   if (!service && required) {
     throw new Error(
@@ -202,7 +207,7 @@ export function injectService(
     );
   }
 
-  return service;
+  return service as IResourceService;
 }
 
 /**
@@ -217,7 +222,7 @@ export function injectRoutes(
   modelName: string,
   required: boolean = true
 ): ResourceRoutes {
-  const routes = context.resource.routes[modelName];
+  const routes = context.resource.routes.get(modelName);
 
   if (!routes && required) {
     throw new Error(
@@ -225,7 +230,7 @@ export function injectRoutes(
     );
   }
 
-  return routes;
+  return routes as ResourceRoutes;
 }
 
 /**
@@ -240,7 +245,7 @@ export function injectPolicy(
   modelName: string,
   required: boolean = true
 ): ResourcePolicyConfig {
-  const policy = context.resource.policies[modelName];
+  const policy = context.resource.policies.get(modelName);
 
   if (!policy && required) {
     throw new Error(
@@ -248,29 +253,29 @@ export function injectPolicy(
     );
   }
 
-  return policy;
+  return policy as ResourcePolicyConfig;
 }
 
 /**
  * Checks the existence of a definition in the context store and returns if it should be added or ignored.
  *
- * @param {Record<string, any> | DefinitionEntry[]} store - The storage object or array where definitions are maintained.
- * @param {string} name - The name of the definition to check.
+ * @param {Map<string | symbol, any> | DefinitionEntry[]} store - The storage object or array where definitions are maintained.
+ * @param {string | symbol} name - The name of the definition to check.
  * @param {boolean} mode - How to resolve already defined definitions in context.
  * @return {boolean} Returns true if definition exists, false otherwise.
  */
 function shouldAddDefinition(
-  store: Record<string, any> | DefinitionEntry[],
-  name: string,
+  store: Map<string | symbol, any> | DefinitionEntry[],
+  name: string | symbol,
   mode: DefinitionMode
 ): boolean {
   if (
     ((isArray(store) && findFirstDefinition(name)) ||
-      (!isArray(store) && name in store)) &&
+      (!isArray(store) && store.has(name))) &&
     mode === 'ignore'
   ) {
     logger.warn(
-      `Definition '${name}' is already present in the application context. Use 'append' or 'override' mode to remove this warning.`
+      `Definition '${String(name)}' is already present in the application context. Use 'append' or 'override' mode to remove this warning.`
     );
     return false;
   }
@@ -281,20 +286,22 @@ function shouldAddDefinition(
 /**
  * Finds the first definition object that matches the given name.
  *
- * @param {string} name - The name of the definition to search for.
+ * @param {string | symbol} name - The name of the definition to search for.
  * @return {DefinitionValue|undefined} The first matching definition if found, otherwise undefined.
  */
-function findFirstDefinition(name: string): DefinitionValue | undefined {
+function findFirstDefinition(
+  name: string | symbol
+): DefinitionValue | undefined {
   return context.definitions.find((def) => def.name === name)?.value;
 }
 
 /**
  * Finds all definitions that match the given name.
  *
- * @param name The name of the definitions to search for.
- * @return An array of DefinitionValue objects that match the given name.
+ * @param {string | symbol} name - The name of the definitions to search for.
+ * @return {DefinitionValue[]} An array of DefinitionValue objects that match the given name.
  */
-function findAllDefinitions(name: string): DefinitionValue[] {
+function findAllDefinitions(name: string | symbol): DefinitionValue[] {
   return context.definitions
     .filter((def) => def.name === name)
     .map((def) => def.value);

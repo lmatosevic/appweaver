@@ -4,24 +4,26 @@ import { ResourceRoutes } from './route';
 import { ResourceModel } from './resource';
 import { IResourceService } from './resource-service';
 
+export type Ctor<T = any> = { new (...args: any[]): T };
+
 export type DefinitionMode = 'ignore' | 'append' | 'override';
 
-export type DefinitionClass<T = void> = abstract new (
+export type DefinitionClass<T = any> = abstract new (
   ...args: any[]
-) => T | { new (...args: any[]): T };
+) => T | Ctor;
 
 export type DefinitionValue =
   | object
   | ((...args: any[]) => any)
   | Record<string, any>;
 
-export type DefinitionEntry = { name: string; value: DefinitionValue };
+export type DefinitionEntry = { name: string | symbol; value: DefinitionValue };
 
 export type ResourceContext = {
-  models: Record<string, ResourceModel>;
-  services: Record<string, IResourceService>;
-  policies: Record<string, ResourcePolicyConfig>;
-  routes: Record<string, ResourceRoutes>;
+  models: Map<string | symbol, ResourceModel>;
+  services: Map<string | symbol, IResourceService>;
+  policies: Map<string | symbol, ResourcePolicyConfig>;
+  routes: Map<string | symbol, ResourceRoutes>;
 };
 
 export type ApplicationContext = {

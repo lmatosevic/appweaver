@@ -5,7 +5,7 @@ import { isResourceAuthModel, isResourceAuthService } from '../utils';
 import { AuthUser, IResourceService, ResourceModel } from '../types';
 
 export function resourceAuthModel(): ResourceModel | undefined {
-  for (const model of Object.values(context.resource.models)) {
+  for (const model of context.resource.models.values()) {
     if (isResourceAuthModel(model)) {
       return model;
     }
@@ -15,7 +15,7 @@ export function resourceAuthModel(): ResourceModel | undefined {
 export function resourceAuthService():
   | IResourceService<AuthUser, AuthUser>
   | undefined {
-  for (const service of Object.values(context.resource.services)) {
+  for (const service of context.resource.services.values()) {
     if (isResourceAuthService(service)) {
       return service as IResourceService<AuthUser, AuthUser>;
     }

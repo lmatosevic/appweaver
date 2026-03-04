@@ -25,7 +25,7 @@ export function health(server: Server): void {
       const healthCheck = await healthService.checkHealth();
 
       const statusCode = Object.values(healthCheck).every(
-        (v) => v === HealthCheckStatus.Up
+        (check) => check.status === HealthCheckStatus.Up
       )
         ? 200
         : 503;

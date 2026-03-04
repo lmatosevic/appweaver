@@ -88,9 +88,9 @@ export function registerRoute(
 function iterateResourceModels(
   handler: (name: string, schema: TObject) => void
 ): void {
-  for (const [name, model] of Object.entries(context.resource.models)) {
+  for (const model of context.resource.models.values()) {
     for (const [suffix, property] of Object.entries(resourceModelProps)) {
-      const modelName = `${name}${suffix}`;
+      const modelName = `${model.name}${suffix}`;
       const modelSchema = model[property].$defs[modelName];
       handler(modelName, modelSchema);
     }

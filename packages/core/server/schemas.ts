@@ -9,11 +9,11 @@ import { MODEL } from '../constants';
 export default fastifyPlugin((server: Server): void => {
   const usedSchemas = new Set<TObject>();
 
-  for (const [name, model] of Object.entries(context.resource.models)) {
-    const routeSchema = injectRoutes(name, false)?.schema;
+  for (const model of context.resource.models.values()) {
+    const routeSchema = injectRoutes(model.name, false)?.schema;
 
     for (const [suffix, property] of Object.entries(resourceModelProps)) {
-      const modelName = `${name}${suffix}`;
+      const modelName = `${model.name}${suffix}`;
       const modelSchema = model[property].$defs[modelName];
 
       // Add schema if it's referenced in the route schema

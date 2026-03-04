@@ -63,7 +63,15 @@
           "properties": {
             "level": {
               "type": "string",
-              "enum": ["trace", "debug", "info", "warn", "error", "fatal"],
+              "enum": [
+                "silent",
+                "trace",
+                "debug",
+                "info",
+                "warn",
+                "error",
+                "fatal"
+              ],
               "default": "info"
             },
             "path": {

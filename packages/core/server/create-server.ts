@@ -106,7 +106,7 @@ export function createServer(): Server {
       timeWindow: config.RATE_LIMIT_WINDOW,
       redis:
         config.RATE_LIMIT_STORE === MemoryType.Redis
-          ? inject(Redis).createClient({
+          ? inject<Redis>(Redis).createClient({
               connectTimeout: 500,
               maxRetriesPerRequest: 1,
               lazyConnect: true
@@ -146,10 +146,11 @@ export function createServer(): Server {
   // Register files route.
   server.register(files, { prefix: config.SERVER_API_PREFIX });
 
-  // Register resource API routes.
-  for (const [name, route] of Object.entries(context.resource.routes)) {
+  // Register resource routes.
+  for (const route of context.resource.routes.values()) {
     const routesPath =
-      route.config.path || camelToSnakeCase(plural(name), '-').toLowerCase();
+      route.config.path ||
+      camelToSnakeCase(plural(route.config.modelName), '-').toLowerCase();
     const prefix = [config.SERVER_API_PREFIX, routesPath]
       .join('/')
       .replaceAll('//', '/');

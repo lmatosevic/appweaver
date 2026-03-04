@@ -38,10 +38,10 @@ export async function loadResources(
   const routes = await loadRoutes(baseDir);
 
   return {
-    models,
-    services,
-    policies,
-    routes
+    models: new Map(Object.entries(models)),
+    services: new Map(Object.entries(services)),
+    policies: new Map(Object.entries(policies)),
+    routes: new Map(Object.entries(routes))
   };
 }
 

@@ -37,7 +37,7 @@ describe('Feature Verification', () => {
 
 - **Code Style**:
     - **Formatting**: The project uses **Prettier**. Run `npm run format` to format the codebase.
-    - **Linting**: The project uses **ESLint**. Run `npm run lint` to check for issues and `npm run lint:fix` to
+    - **Linting**: The project uses **ESLint**. Run `npm run lint` to check for issues and `npm run lint -- --fix` to
       automatically fix what's possible.
 - **Architecture**:
     - `packages/common`: Shared utilities and base types.
