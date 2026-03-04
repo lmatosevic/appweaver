@@ -1,5 +1,9 @@
 import { Readable } from 'node:stream';
-import { HealthCheckResult, IHealthCheck } from './health-check';
+import {
+  HealthCheckConfig,
+  HealthCheckResult,
+  IHealthCheck
+} from './health-check';
 import { HEALTH_CHECK } from '../constants';
 
 export type ContentStream = {
@@ -8,9 +12,7 @@ export type ContentStream = {
 };
 
 export abstract class Storage implements IHealthCheck {
-  constructor() {
-    this[HEALTH_CHECK] = true;
-  }
+  static [HEALTH_CHECK] = true;
 
   abstract init(): Promise<void>;
 
@@ -28,5 +30,7 @@ export abstract class Storage implements IHealthCheck {
 
   abstract checkHealth(): Promise<HealthCheckResult>;
 
-  abstract checkHealth(): Promise<HealthCheckResult>;
+  public checkHealthConfig(): HealthCheckConfig {
+    return { name: 'storage' };
+  }
 }

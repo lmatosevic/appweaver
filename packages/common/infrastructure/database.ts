@@ -1,10 +1,12 @@
-import { IHealthCheck, HealthCheckResult } from './health-check';
+import {
+  IHealthCheck,
+  HealthCheckResult,
+  HealthCheckConfig
+} from './health-check';
 import { HEALTH_CHECK } from '../constants';
 
 export abstract class Database implements IHealthCheck {
-  constructor() {
-    this[HEALTH_CHECK] = true;
-  }
+  static [HEALTH_CHECK] = true;
 
   abstract connect(): Promise<void>;
 
@@ -13,4 +15,8 @@ export abstract class Database implements IHealthCheck {
   abstract client<T>(): T;
 
   abstract checkHealth(): Promise<HealthCheckResult>;
+
+  public checkHealthConfig(): HealthCheckConfig {
+    return { name: 'database' };
+  }
 }

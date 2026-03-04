@@ -41,8 +41,7 @@
               "default": "unknown"
             },
             "scanPath": {
-              "type": ["string", "null"],
-              "default": "./dist/src"
+              "type": ["string", "null"]
             },
             "autoloadModules": {
               "oneOf": [
@@ -269,6 +268,62 @@
             }
           }
         },
+        "export": {
+          "type": "object",
+          "properties": {
+            "batchSize": {
+              "type": "integer",
+              "default": 1000
+            },
+            "csv": {
+              "type": "object",
+              "properties": {
+                "delimiter": {
+                  "type": "string",
+                  "default": ";"
+                },
+                "joinDelimiter": {
+                  "type": "string",
+                  "default": ","
+                },
+                "addHeaders": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "addSepRow": {
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            }
+          }
+        },
+        "security": {
+          "type": "object",
+          "properties": {
+            "routePrefix": {
+              "type": "string",
+              "default": "/auth"
+            },
+            "jwt": {
+              "type": "object",
+              "properties": {
+                "secret": {
+                  "type": "string",
+                  "default": "abcdefghijklmnopqrst12345"
+                },
+                "expiresIn": {
+                  "type": "integer",
+                  "default": 2592000
+                },
+                "refreshExpiresIn": {
+                  "type": "integer",
+                  "default": 5184000
+                }
+              }
+            }
+          }
+        },
         "database": {
           "type": "object",
           "properties": {
@@ -306,32 +361,6 @@
             }
           }
         },
-        "redis": {
-          "type": "object",
-          "properties": {
-            "url": {
-              "type": "string",
-              "default": "redis://localhost:6379/0"
-            },
-            "provider": {
-              "type": "string",
-              "default": "@appweaver/core/redis/redis"
-            }
-          }
-        },
-        "memory": {
-          "type": "object",
-          "properties": {
-            "expirationInterval": {
-              "type": "integer",
-              "default": 60000
-            },
-            "provider": {
-              "type": "string",
-              "default": "@appweaver/core/memory/in-memory"
-            }
-          }
-        },
         "storage": {
           "type": "object",
           "properties": {
@@ -353,29 +382,54 @@
             }
           }
         },
-        "security": {
+        "redis": {
           "type": "object",
           "properties": {
-            "routePrefix": {
+            "url": {
               "type": "string",
-              "default": "/auth"
+              "default": "redis://localhost:6379/0"
             },
-            "jwt": {
-              "type": "object",
-              "properties": {
-                "secret": {
-                  "type": "string",
-                  "default": "abcdefghijklmnopqrst12345"
-                },
-                "expiresIn": {
-                  "type": "integer",
-                  "default": 2592000
-                },
-                "refreshExpiresIn": {
-                  "type": "integer",
-                  "default": 5184000
-                }
-              }
+            "provider": {
+              "type": "string",
+              "default": "@appweaver/core/memory/redis"
+            }
+          }
+        },
+        "memory": {
+          "type": "object",
+          "properties": {
+            "maxSizeBytes": {
+              "type": ["integer", "null"]
+            },
+            "provider": {
+              "type": "string",
+              "default": "@appweaver/core/memory/in-memory"
+            }
+          }
+        },
+        "cache": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "keyPrefix": {
+              "type": "string",
+              "default": "cache:"
+            },
+            "defaultTtl": {
+              "type": "integer",
+              "default": 5
+            },
+            "evictionStrategy": {
+              "type": "string",
+              "enum": ["LRU", "LFU", "FIFO"],
+              "default": "LRU"
+            },
+            "provider": {
+              "type": "string",
+              "default": "@appweaver/core/cache/redis-cache"
             }
           }
         },
@@ -441,36 +495,6 @@
             }
           }
         },
-        "export": {
-          "type": "object",
-          "properties": {
-            "batchSize": {
-              "type": "integer",
-              "default": 1000
-            },
-            "csv": {
-              "type": "object",
-              "properties": {
-                "delimiter": {
-                  "type": "string",
-                  "default": ";"
-                },
-                "joinDelimiter": {
-                  "type": "string",
-                  "default": ","
-                },
-                "addHeaders": {
-                  "type": "boolean",
-                  "default": true
-                },
-                "addSepRow": {
-                  "type": "boolean",
-                  "default": false
-                }
-              }
-            }
-          }
-        },
         "mail": {
           "type": "object",
           "properties": {
@@ -502,10 +526,6 @@
             },
             "senderAddress": {
               "type": ["string", "null"]
-            },
-            "mockSend": {
-              "type": "boolean",
-              "default": false
             },
             "provider": {
               "type": "string",

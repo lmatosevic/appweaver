@@ -1,4 +1,8 @@
-import { HealthCheckResult, IHealthCheck } from './health-check';
+import {
+  HealthCheckConfig,
+  HealthCheckResult,
+  IHealthCheck
+} from './health-check';
 import { HEALTH_CHECK } from '../constants';
 
 export type QueueHandlerResponse<T = void> = Promise<T> | T;
@@ -15,9 +19,7 @@ export type QueueJob<T = any, R = any> = {
 };
 
 export abstract class Queue implements IHealthCheck {
-  constructor() {
-    this[HEALTH_CHECK] = true;
-  }
+  static [HEALTH_CHECK] = true;
 
   abstract get<Data = any, Response = any>(
     name: string
@@ -28,6 +30,10 @@ export abstract class Queue implements IHealthCheck {
   abstract closeAll(): Promise<void>;
 
   abstract checkHealth(): Promise<HealthCheckResult>;
+
+  public checkHealthConfig(): HealthCheckConfig {
+    return { name: 'queue' };
+  }
 }
 
 export abstract class QueueProcessor<

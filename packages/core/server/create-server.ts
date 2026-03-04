@@ -44,7 +44,7 @@ import swagger from './swagger';
  * @return {Server} A configured Fastify server instance with TypeBox type provider.
  */
 export function createServer(): Server {
-  // Create a Fastify server instance.
+  // Create a Fastify server instance
   const server = Fastify({
     ajv: {
       customOptions: {
@@ -61,7 +61,7 @@ export function createServer(): Server {
     disableRequestLogging: !config.SERVER_REQUEST_LOGGING_ENABLED
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  // Register CORS rules.
+  // Register CORS rules
   server.register(fastifyCors, {
     origin: config.CORS_ORIGIN,
     methods: config.CORS_METHODS,
@@ -71,7 +71,7 @@ export function createServer(): Server {
     credentials: config.CORS_CREDENTIALS
   });
 
-  // Register security rules.
+  // Register security rules
   server.register(fastifyHelmet, {
     contentSecurityPolicy: {
       directives: {
@@ -81,7 +81,7 @@ export function createServer(): Server {
     }
   });
 
-  // Register static public file serving.
+  // Register static public file serving
   if (config.SERVER_STATIC_ENABLED) {
     server.register(fastifyStatic, {
       root: path.isAbsolute(config.SERVER_STATIC_DIR_PATH)
@@ -96,10 +96,10 @@ export function createServer(): Server {
     });
   }
 
-  // Register multipart file upload plugin.
+  // Register multipart file upload plugin
   server.register(fastifyMultipart, { throwFileSizeLimit: false });
 
-  // Register global request rate limiter.
+  // Register global request rate limiter
   if (config.RATE_LIMIT_ENABLED) {
     server.register(fastifyRateLimit, {
       max: config.RATE_LIMIT_MAX,
@@ -115,38 +115,38 @@ export function createServer(): Server {
     });
   }
 
-  // Register all defined plugins.
+  // Register all defined plugins
   const plugins = injectAll<FastifyPluginCallback>(PLUGIN);
   for (const plugin of plugins) {
     server.register(plugin);
   }
 
-  // Set global error handler for all routes.
+  // Set global error handler for all routes
   server.setErrorHandler(errorHandler);
 
-  // Register schema models to enable $ref usage in route validation.
+  // Register schema models to enable $ref usage in route validation
   server.register(schemas);
 
-  // Register authentication plugin.
+  // Register authentication plugin
   server.register(auth);
 
-  // Register swagger documentation and UI. Must be called after loadResources.
+  // Register swagger documentation and UI. Must be called after loadResources
   if (config.SWAGGER_ENABLED) {
     server.register(swagger);
   }
 
-  // Register a health route.
+  // Register a health route
   if (config.HEALTH_CHECK_ENABLED) {
     server.register(health, { prefix: config.HEALTH_CHECK_ROUTE_PREFIX });
   }
 
-  // Register info route.
+  // Register info route
   server.register(info, { prefix: config.SERVER_API_PREFIX });
 
-  // Register files route.
+  // Register files route
   server.register(files, { prefix: config.SERVER_API_PREFIX });
 
-  // Register resource routes.
+  // Register resource routes
   for (const route of context.resource.routes.values()) {
     const routesPath =
       route.config.path ||
@@ -157,7 +157,7 @@ export function createServer(): Server {
     server.register(route.handler, { prefix });
   }
 
-  // Register other defined routes.
+  // Register other defined routes
   const routes = injectAll<RouterHandler>(ROUTE);
   for (const route of routes) {
     server.register(route, { prefix: config.SERVER_API_PREFIX + '/' });

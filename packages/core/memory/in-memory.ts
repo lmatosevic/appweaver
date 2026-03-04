@@ -1,6 +1,11 @@
 import { setTimeout } from 'node:timers/promises';
 import { parse, stringify } from 'flatted';
-import { config, HealthCheckResult, Memory, uuid } from '@appweaver/common';
+import {
+  config,
+  HealthCheckResult,
+  Memory,
+  uuid
+} from '@appweaver/common';
 
 type StorageEntry = {
   value: string;
@@ -18,19 +23,14 @@ export class InMemory extends Memory {
   /** @internal */
   private readonly _locks: Record<string, LockEntry> = {};
   /** @internal */
-  private _expirationInterval?: NodeJS.Timeout;
+  private _approximatedSize: number = 0;
 
   public async connect(): Promise<void> {
-    this._expirationInterval = setInterval(() => {
-      this.cleanupExpired();
-    }, config.MEMORY_EXPIRATION_INTERVAL);
+    // no-op
   }
 
   public async disconnect(): Promise<void> {
-    if (this._expirationInterval) {
-      clearInterval(this._expirationInterval);
-      this._expirationInterval = undefined;
-    }
+    // no-op
   }
 
   public async getValue<T = any>(key: string): Promise<T | null> {
@@ -42,7 +42,7 @@ export class InMemory extends Memory {
 
     // Check if expired
     if (entry.expiresAt && Date.now() > entry.expiresAt) {
-      delete this._storage[key];
+      await this.cleanupExpired();
       return null;
     }
 
@@ -54,6 +54,8 @@ export class InMemory extends Memory {
     value: any,
     expireMs?: number
   ): Promise<boolean> {
+    await this.cleanupExpired();
+
     const jsonValue = stringify(value);
     const expiresAt = expireMs ? Date.now() + expireMs : undefined;
 
@@ -62,13 +64,33 @@ export class InMemory extends Memory {
       expiresAt
     };
 
+    this._approximatedSize += Buffer.byteLength(jsonValue, 'utf8');
+
+    // If memory max size is reached, remove entries from start until the size is
+    // below the configured value
+    if (config.MEMORY_MAX_SIZE_BYTES) {
+      while (this._approximatedSize > config.MEMORY_MAX_SIZE_BYTES) {
+        await this.removeValue(Object.keys(this._storage)[0]);
+      }
+    }
+
     return true;
   }
 
   public async removeValue(key: string): Promise<boolean> {
-    const existed = key in this._storage;
+    const jsonValue = await this.getValue(key);
+    if (!jsonValue) {
+      return false;
+    }
+
     delete this._storage[key];
-    return existed;
+
+    this._approximatedSize -= Buffer.byteLength(jsonValue, 'utf8');
+    if (this._approximatedSize < 0) {
+      this._approximatedSize = 0;
+    }
+
+    return true;
   }
 
   public async removeEntries(query: string): Promise<number> {
@@ -167,14 +189,14 @@ export class InMemory extends Memory {
     return { success: true };
   }
 
-  private cleanupExpired(): void {
+  private async cleanupExpired(): Promise<void> {
     const now = Date.now();
 
     // Cleanup expired storage entries
     for (const key in this._storage) {
       const entry = this._storage[key];
       if (entry.expiresAt && now > entry.expiresAt) {
-        delete this._storage[key];
+        await this.removeValue(key);
       }
     }
 

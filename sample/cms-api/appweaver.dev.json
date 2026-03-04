@@ -6,7 +6,7 @@
       "pretty": true
     },
     "mail": {
-      "mockSend": true
+      "provider": "@appweaver/core/mailer/json-mailer"
     }
   }
 }

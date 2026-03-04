@@ -20,6 +20,14 @@ export type IsObject<T> =
             ? true
             : false;
 
+export type ConditionalOptional<T extends boolean, R> = T extends false
+  ? R | undefined
+  : R;
+
+export type Ctor<T = any> = { new (...args: any[]): T };
+
+export type AbstractCtor<T = any> = abstract new (...args: any[]) => T;
+
 export type FunctionType = (...args: unknown[]) => unknown;
 
 export function isArray<T = any>(val: any): val is Array<T> {
@@ -51,15 +59,32 @@ export function isBoolean(value: any): value is boolean {
 }
 
 /**
+ * Determines if the given value is a constructor function.
+ *
+ * @param value The value to be checked.
+ * @return A boolean indicating whether the value is a constructor function.
+ */
+export function isConstructor(value: any): value is Ctor {
+  return (
+    isFunction(value) &&
+    !!value.prototype &&
+    value.prototype.constructor === value
+  );
+}
+
+/**
  * Determines if the given value is an instance that implements `IHealthCheck` interface.
+ * The tested value must also have a `HEALTH_CHECK` symbol with truthy value added.
  *
  * @param {any} value - The value to check.
  * @return {boolean} Returns true if the value implements `IHealthCheck` interface, otherwise false.
  */
 export function isHealthCheck(value: any): value is IHealthCheck {
   return (
-    (value.constructor?.[HEALTH_CHECK] || value[HEALTH_CHECK]) &&
-    isFunction((value as IHealthCheck).checkHealth)
+    ((value.constructor?.[HEALTH_CHECK] || value[HEALTH_CHECK]) &&
+      isFunction((value as IHealthCheck).checkHealth)) ||
+    (value.prototype?.constructor?.[HEALTH_CHECK] &&
+      isFunction((value.prototype as IHealthCheck).checkHealth))
   );
 }
 

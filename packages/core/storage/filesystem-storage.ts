@@ -12,13 +12,14 @@ import {
 } from '@appweaver/common';
 
 export class FilesystemStorage extends Storage {
-  protected readonly dirPath: string = config.STORAGE_PATH;
+  /** @internal */
+  private readonly _dirPath: string = config.STORAGE_PATH;
 
   public async init(): Promise<void> {
     const directoryExists = await this.exists('');
     if (!directoryExists) {
-      await fsp.mkdir(this.dirPath, { recursive: true });
-      logger.info(`Storage directory initialized: ${this.dirPath}`);
+      await fsp.mkdir(this._dirPath, { recursive: true });
+      logger.info(`Storage directory initialized: ${this._dirPath}`);
     }
   }
 
@@ -27,7 +28,7 @@ export class FilesystemStorage extends Storage {
     start: number = 0,
     end?: number
   ): Promise<ContentStream | null> {
-    const filePath = `${this.dirPath}/${fileName}`;
+    const filePath = `${this._dirPath}/${fileName}`;
     try {
       const { size } = await fsp.stat(filePath);
 
@@ -83,7 +84,7 @@ export class FilesystemStorage extends Storage {
 
   public async checkHealth(): Promise<HealthCheckResult> {
     try {
-      await fsp.access(this.dirPath, fs.constants.R_OK | fs.constants.W_OK);
+      await fsp.access(this._dirPath, fs.constants.R_OK | fs.constants.W_OK);
       return { success: true };
     } catch (e) {
       return { success: false, message: (e as Error).message };
@@ -94,7 +95,7 @@ export class FilesystemStorage extends Storage {
     fileName: string,
     mkdir: boolean = false
   ): Promise<string> {
-    const filePath = `${this.dirPath}/${fileName}`;
+    const filePath = `${this._dirPath}/${fileName}`;
     if (mkdir) {
       await this.ensureDirectoryExists(filePath);
     }
@@ -105,7 +106,7 @@ export class FilesystemStorage extends Storage {
     const normalizedDirPath = path.normalize(filePath);
     if (
       !normalizedDirPath ||
-      normalizedDirPath === path.normalize(this.dirPath)
+      normalizedDirPath === path.normalize(this._dirPath)
     ) {
       return;
     }

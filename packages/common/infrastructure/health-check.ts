@@ -1,5 +1,10 @@
 import { HealthCheckStatus } from '../enums';
 
+export type HealthCheckConfig = {
+  name?: string;
+  showMessage?: boolean;
+};
+
 export type HealthCheckResult = {
   success: boolean;
   message?: string;
@@ -7,6 +12,7 @@ export type HealthCheckResult = {
 
 export interface IHealthCheck {
   checkHealth(): Promise<HealthCheckResult>;
+  checkHealthConfig?(): HealthCheckConfig;
 }
 
 export abstract class HealthCheck {

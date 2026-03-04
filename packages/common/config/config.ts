@@ -1,7 +1,13 @@
 import { Type } from '@sinclair/typebox';
 import { Value } from '@sinclair/typebox/value';
 import { loadConfigFromEnv, loadConfigFromFiles } from './config-loader';
-import { DatabaseType, Environment, LogLevel, MemoryType } from '../enums';
+import {
+  CacheEvictionStrategy,
+  DatabaseType,
+  Environment,
+  LogLevel,
+  MemoryType
+} from '../enums';
 
 const configSchema = Type.Object({
   APP_ENV: Type.Union([Type.Enum(Environment), Type.String()], {
@@ -15,7 +21,7 @@ const configSchema = Type.Object({
     default: 'unknown',
     mapFrom: 'npm_package_version'
   }),
-  APP_SCAN_PATH: Type.Optional(Type.String({ default: './dist/src' })),
+  APP_SCAN_PATH: Type.Optional(Type.String()),
   APP_AUTOLOAD_MODULES: Type.Array(Type.String(), { default: [] }),
 
   LOG_LEVEL: Type.Enum(LogLevel, { default: LogLevel.Info }),
@@ -65,6 +71,17 @@ const configSchema = Type.Object({
     default: './src/types/generated.ts'
   }),
 
+  EXPORT_BATCH_SIZE: Type.Integer({ default: 1000 }),
+  EXPORT_CSV_DELIMITER: Type.String({ default: ';' }),
+  EXPORT_CSV_JOIN_DELIMITER: Type.String({ default: ',' }),
+  EXPORT_CSV_ADD_HEADERS: Type.Boolean({ default: true }),
+  EXPORT_CSV_ADD_SEP_ROW: Type.Boolean({ default: false }),
+
+  SECURITY_ROUTE_PREFIX: Type.String({ default: '/auth' }),
+  SECURITY_JWT_SECRET: Type.String({ default: 'abcdefghijklmnopqrst12345' }),
+  SECURITY_JWT_EXPIRES_IN: Type.Integer({ default: 2592000 }),
+  SECURITY_JWT_REFRESH_EXPIRES_IN: Type.Integer({ default: 5184000 }),
+
   DATABASE_TYPE: Type.Optional(Type.Enum(DatabaseType)),
   DATABASE_URL: Type.String({ default: '' }),
   DATABASE_SCHEMA_PATH: Type.String({
@@ -82,12 +99,6 @@ const configSchema = Type.Object({
     default: '@appweaver/core/database/prisma-database'
   }),
 
-  REDIS_URL: Type.String({ default: 'redis://localhost:6379/0' }),
-  REDIS_PROVIDER: Type.String({ default: '@appweaver/core/redis/redis' }),
-
-  MEMORY_EXPIRATION_INTERVAL: Type.Integer({ default: 60000 }),
-  MEMORY_PROVIDER: Type.String({ default: '@appweaver/core/memory/in-memory' }),
-
   STORAGE_PATH: Type.String({ default: './storage' }),
   STORAGE_NAME_PATTERN: Type.String({ default: '{name}-{hash}.{extension}' }),
   STORAGE_CACHE_DURATION: Type.Integer({ default: 86400 }),
@@ -95,10 +106,19 @@ const configSchema = Type.Object({
     default: '@appweaver/core/storage/filesystem-storage'
   }),
 
-  SECURITY_ROUTE_PREFIX: Type.String({ default: '/auth' }),
-  SECURITY_JWT_SECRET: Type.String({ default: 'abcdefghijklmnopqrst12345' }),
-  SECURITY_JWT_EXPIRES_IN: Type.Integer({ default: 2592000 }),
-  SECURITY_JWT_REFRESH_EXPIRES_IN: Type.Integer({ default: 5184000 }),
+  REDIS_URL: Type.String({ default: 'redis://localhost:6379/0' }),
+  REDIS_PROVIDER: Type.String({ default: '@appweaver/core/memory/redis' }),
+
+  MEMORY_MAX_SIZE_BYTES: Type.Optional(Type.Integer()),
+  MEMORY_PROVIDER: Type.String({ default: '@appweaver/core/memory/in-memory' }),
+
+  CACHE_ENABLED: Type.Boolean({ default: true }),
+  CACHE_KEY_PREFIX: Type.String({ default: 'cache:' }),
+  CACHE_DEFAULT_TTL: Type.Integer({ default: 5 }),
+  CACHE_EVICTION_STRATEGY: Type.Enum(CacheEvictionStrategy, {
+    default: CacheEvictionStrategy.LRU
+  }),
+  CACHE_PROVIDER: Type.String({ default: '@appweaver/core/cache/redis-cache' }),
 
   QUEUE_KEEP_COMPLETED_COUNT: Type.Integer({ default: 0 }),
   QUEUE_KEEP_COMPLETED_SECONDS: Type.Optional(Type.Integer()),
@@ -124,12 +144,6 @@ const configSchema = Type.Object({
     default: '@appweaver/core/events/node-events'
   }),
 
-  EXPORT_BATCH_SIZE: Type.Integer({ default: 1000 }),
-  EXPORT_CSV_DELIMITER: Type.String({ default: ';' }),
-  EXPORT_CSV_JOIN_DELIMITER: Type.String({ default: ',' }),
-  EXPORT_CSV_ADD_HEADERS: Type.Boolean({ default: true }),
-  EXPORT_CSV_ADD_SEP_ROW: Type.Boolean({ default: false }),
-
   MAIL_SMTP_HOST: Type.String({ default: '127.0.0.1' }),
   MAIL_SMTP_PORT: Type.Integer({ default: 587 }),
   MAIL_SMTP_SECURE: Type.Boolean({ default: false }),
@@ -137,7 +151,6 @@ const configSchema = Type.Object({
   MAIL_SMTP_PASSWORD: Type.Optional(Type.String()),
   MAIL_SENDER_NAME: Type.Optional(Type.String()),
   MAIL_SENDER_ADDRESS: Type.Optional(Type.String()),
-  MAIL_MOCK_SEND: Type.Optional(Type.Boolean({ default: false })),
   MAIL_PROVIDER: Type.String({ default: '@appweaver/core/mailer/smtp-mailer' }),
 
   SYSTEM_ADMIN_INITIAL_EMAIL: Type.String({ default: 'admin@appweaver.co' }),

@@ -1,6 +1,8 @@
 import {
+  ConditionalOptional,
   FunctionType,
   isArray,
+  isConstructor,
   isString,
   isSymbol,
   logger,
@@ -14,7 +16,6 @@ import {
   isResourceService
 } from '../utils';
 import {
-  Ctor,
   DefinitionClass,
   DefinitionEntry,
   DefinitionMode,
@@ -33,8 +34,8 @@ import { RESOURCE_NAME } from '../constants';
  * based on the provided mode.
  *
  * @param {DefinitionValue} value The resource or definition value to be registered.
- * @param {string | DefinitionClass | undefined} nameOrClass Optional name or class reference for the definition.
- * If not provided, the name is inferred from the resource or its constructor.
+ * @param {string | symbol | DefinitionClass | FunctionType | undefined} nameOrClass Optional name or class reference
+ * for the definition. If not provided, the name is inferred from the resource or its constructor.
  * @param mode Determines how the definition should be treated:
  *             'ignore' - Adds only if the definition doesn’t already exist.
  *             'override' - Replaces an existing definition if it matches the name.
@@ -43,13 +44,17 @@ import { RESOURCE_NAME } from '../constants';
  */
 export function define<T = DefinitionValue, S extends T = T>(
   value: DefinitionValue,
-  nameOrClass?: string | symbol | DefinitionClass<S>,
+  nameOrClass?: string | symbol | DefinitionClass<S> | FunctionType,
   mode: DefinitionMode = 'ignore'
 ): void {
   const definitionName =
     isString(nameOrClass) || isSymbol(nameOrClass)
       ? nameOrClass
-      : (nameOrClass?.name ?? value[RESOURCE_NAME] ?? value.constructor?.name);
+      : (nameOrClass?.name ??
+        value[RESOURCE_NAME] ??
+        (value as any).name ??
+        value.constructor?.name);
+
   if (isResourceModel(value)) {
     if (shouldAddDefinition(context.resource.models, definitionName, mode)) {
       context.resource.models.set(definitionName, value);
@@ -92,7 +97,7 @@ export function define<T = DefinitionValue, S extends T = T>(
  * and attempts to resolve the appropriate definition. Throws an error if the definition is
  * not found, and it is marked as required.
  *
- * @param {string | DefinitionClass | FunctionType} nameOrClass - The name or class of the definition to retrieve.
+ * @param {string | symbol | DefinitionClass | FunctionType} nameOrClass - The name or class of the definition to retrieve.
  *                                        Naming conventions such as suffixes 'Model', 'Service', 'Routes', or 'Policy'
  *                                        are supported.
  * @param {boolean} [required=true] - Indicates whether the definition is required. If true
@@ -100,13 +105,13 @@ export function define<T = DefinitionValue, S extends T = T>(
  * @return T - The resolved definition, typed as `T`. Will be `undefined` if the definition
  *               is not found and `required` is set to `false`.
  */
-export function inject<T = DefinitionValue>(
-  nameOrClass: string | DefinitionClass<T> | FunctionType,
-  required: boolean = true
-): T {
-  let definition: DefinitionValue | undefined;
+export function inject<T = DefinitionValue, R extends boolean = true>(
+  nameOrClass: string | symbol | DefinitionClass<T> | FunctionType,
+  required: R = true as R
+): ConditionalOptional<R, T> {
+  let definition: DefinitionValue | DefinitionClass | undefined;
+  let name: string | symbol;
 
-  let name: string;
   if (isString(nameOrClass)) {
     name = nameOrClass;
     if (name.endsWith('Model')) {
@@ -121,34 +126,35 @@ export function inject<T = DefinitionValue>(
       definition = findFirstDefinition(name);
     }
   } else {
-    name = nameOrClass.name;
+    name = isSymbol(nameOrClass) ? nameOrClass : nameOrClass.name;
     definition = findFirstDefinition(name);
   }
 
   if (!definition && required) {
     throw new Error(
-      `Definition '${name}' is not defined in the application context`
+      `Definition '${String(name)}' is not defined in the application context`
     );
   }
 
-  return definition as T;
+  return checkClassAndInit(nameOrClass, definition) as T;
 }
 
 /**
  * Injects all definitions that match the specified name or class.
  *
- * @param {string | symbol | Ctor | FunctionType} nameOrClass The name of the definition or the
+ * @param {string | symbol | DefinitionClass | FunctionType} nameOrClass The name of the definition or the
  *                                                            class constructor to find matching definitions.
  * @return {[]} An array of definitions that match the provided name or class.
  */
 export function injectAll<T = DefinitionValue>(
-  nameOrClass: string | symbol | Ctor<T> | FunctionType
+  nameOrClass: string | symbol | DefinitionClass<T> | FunctionType
 ): T[] {
-  return findAllDefinitions(
+  const name =
     isString(nameOrClass) || isSymbol(nameOrClass)
       ? nameOrClass
-      : nameOrClass.name
-  ) as T[];
+      : nameOrClass.name;
+  const defs = context.definitions.filter((def) => def.name === name);
+  return defs.map((def) => checkClassAndInit(def.name, def.value)) as T[];
 }
 
 /**
@@ -161,7 +167,8 @@ export function injectAll<T = DefinitionValue>(
 export function injectAllWhere<T = DefinitionValue>(
   searchFunction: (definition: DefinitionEntry) => boolean
 ): T[] {
-  return findAllDefinitionsWhere(searchFunction) as T[];
+  const defs = context.definitions.filter(searchFunction);
+  return defs.map((def) => checkClassAndInit(def.name, def.value)) as T[];
 }
 
 /**
@@ -172,10 +179,10 @@ export function injectAllWhere<T = DefinitionValue>(
  * @param {boolean} [required=true] - Indicates whether the model is required. If true, an error is thrown when the model is not found.
  * @return {ResourceModel} The injected model from the application context.
  */
-export function injectModel(
+export function injectModel<R extends boolean = true>(
   name: string,
   required: boolean = true
-): ResourceModel {
+): ConditionalOptional<R, ResourceModel> {
   const model = context.resource.models.get(name);
 
   if (!model && required) {
@@ -195,10 +202,10 @@ export function injectModel(
  * @return {IResourceService} The service instance corresponding to the specified model name.
  * @throws {Error} If the service cannot be found in the application context and `required` is true.
  */
-export function injectService(
+export function injectService<R extends boolean = true>(
   modelName: string,
   required: boolean = true
-): IResourceService {
+): ConditionalOptional<R, IResourceService> {
   const service = context.resource.services.get(modelName);
 
   if (!service && required) {
@@ -218,10 +225,10 @@ export function injectService(
  * @return {ResourceRoutes} The retrieved route configuration.
  * @throws {Error} If the route with the specified name is not found, and the `required` parameter is set to true.
  */
-export function injectRoutes(
+export function injectRoutes<R extends boolean = true>(
   modelName: string,
   required: boolean = true
-): ResourceRoutes {
+): ConditionalOptional<R, ResourceRoutes> {
   const routes = context.resource.routes.get(modelName);
 
   if (!routes && required) {
@@ -241,10 +248,10 @@ export function injectRoutes(
  * @return {ResourcePolicyConfig} The policy configuration object associated with the provided name.
  * @throws {Error} If the policy is required and not found in the application context.
  */
-export function injectPolicy(
+export function injectPolicy<R extends boolean = true>(
   modelName: string,
   required: boolean = true
-): ResourcePolicyConfig {
+): ConditionalOptional<R, ResourcePolicyConfig> {
   const policy = context.resource.policies.get(modelName);
 
   if (!policy && required) {
@@ -296,26 +303,22 @@ function findFirstDefinition(
 }
 
 /**
- * Finds all definitions that match the given name.
+ * Checks the provided class or definition and initializes it if necessary.
  *
- * @param {string | symbol} name - The name of the definitions to search for.
- * @return {DefinitionValue[]} An array of DefinitionValue objects that match the given name.
+ * @param {string | symbol | DefinitionClass | FunctionType} nameOrClass - The name or class to evaluate and potentially initialize.
+ * @param {DefinitionValue} [value] - The value to check and initialize if it is a constructor.
+ * @return {DefinitionValue | undefined} The initialized value or undefined if no initialization was performed.
  */
-function findAllDefinitions(name: string | symbol): DefinitionValue[] {
-  return context.definitions
-    .filter((def) => def.name === name)
-    .map((def) => def.value);
-}
-
-/**
- * Filters and retrieves all definitions from the context that match the specified search criteria.
- *
- * @param {function(DefinitionEntry): boolean} search - A callback function used to test each definition.
- *        Should return true for definitions that meet the desired condition.
- * @return {DefinitionValue[]} An array of definitions that match the search criteria.
- */
-function findAllDefinitionsWhere(
-  search: (def: DefinitionEntry) => boolean
-): DefinitionValue[] {
-  return context.definitions.filter(search).map((def) => def.value);
+function checkClassAndInit(
+  nameOrClass: string | symbol | DefinitionClass | FunctionType,
+  value?: DefinitionValue
+): DefinitionValue | undefined {
+  if (value && isConstructor(value)) {
+    const instance = new value();
+    if (instance) {
+      define(instance, nameOrClass, 'override');
+      return instance;
+    }
+  }
+  return value;
 }

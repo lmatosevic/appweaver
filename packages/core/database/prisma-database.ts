@@ -1,4 +1,7 @@
-import { Database, HealthCheckResult } from '@appweaver/common';
+import {
+  Database,
+  HealthCheckResult
+} from '@appweaver/common';
 import { createClient } from './create-client';
 import { PrismaClient } from '../prisma/client/client';
 

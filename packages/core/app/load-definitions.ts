@@ -1,6 +1,8 @@
 import path from 'node:path';
 import {
+  Cache,
   config,
+  Ctor,
   Database,
   Events,
   logger,
@@ -13,49 +15,67 @@ import {
 } from '@appweaver/common';
 import { define } from '../context';
 import { requireModule } from '../utils';
-import { Ctor, DefinitionClass } from '../types';
+import { DefinitionClass } from '../types';
 
 /**
  * Loads and registers the core and infrastructure service definitions.
  * This method initializes and sets up various service components, such as the
  * database, queue system, mailer, storage, and authentication services, among others.
+ *
+ * @param {string} baseDir - The base directory containing the module files.
  */
-export function loadDefinitions(): void {
+export function loadDefinitions(baseDir: string): void {
   // Common infrastructure services
-  loadModule(config.DATABASE_PROVIDER, Database);
-  loadModule(config.STORAGE_PROVIDER, Storage);
-  loadModule(config.MEMORY_PROVIDER, Memory);
-  loadModule(config.EVENTS_PROVIDER, Events);
-  loadModule(config.REDIS_PROVIDER, Redis, false);
-  loadModule(config.QUEUE_PROVIDER, Queue, false);
-  loadModule(config.MAIL_PROVIDER, Mailer, false);
-  loadModule(config.SCHEDULER_PROVIDER, Scheduler, false);
+  loadModule(baseDir, config.DATABASE_PROVIDER, Database);
+  loadModule(baseDir, config.STORAGE_PROVIDER, Storage);
+  loadModule(baseDir, config.MEMORY_PROVIDER, Memory);
+  loadModule(baseDir, config.QUEUE_PROVIDER, Cache);
+  loadModule(baseDir, config.EVENTS_PROVIDER, Events);
+  loadModule(baseDir, config.REDIS_PROVIDER, Redis, false);
+  loadModule(baseDir, config.QUEUE_PROVIDER, Queue, false);
+  loadModule(baseDir, config.MAIL_PROVIDER, Mailer, false);
+  loadModule(baseDir, config.SCHEDULER_PROVIDER, Scheduler, false);
 
   // Core feature services
-  loadModule('../mailer/mail-service', undefined, false);
-  loadModule('../storage/file-service');
-  loadModule('../security/auth-service');
-  loadModule('../export/export-service');
-  loadModule('../health/health-service');
+  loadModule(baseDir, '../mailer/email-service', undefined, false);
+  loadModule(baseDir, '../storage/file-service');
+  loadModule(baseDir, '../security/auth-service');
+  loadModule(baseDir, '../export/export-service');
+  loadModule(baseDir, '../health/health-service');
 }
 
 /**
- * Loads a class from the specified class path if all specified dependencies are present.
- * If the class fails to load or any required dependency is missing, the operation is aborted.
+ * Loads a module from the specified class path, resolves its constructor, and defines it with the provided definition.
  *
- * @param {string} classPath - The path to the module containing the class to be loaded. Can be a relative path or a module identifier.
- * @param {DefinitionClass<any>} [definition] - An optional definition class instance used to define the loaded class.
- * @param {boolean} [required=true] - A flag indication if the module is required and should fail if not found.
- * @return This method does not return a value.
+ * @param {string} baseDir - The base directory used to resolve relative class paths.
+ * @param {string} classPath - The path to the module to be loaded. Can be an absolute path, project source path, or
+ *                             node_modules package.
+ * @param {DefinitionClass} [definition] - An optional definition object used to define the loaded module.
+ * @param {boolean} [required=true] - Indicates whether the module is required. If true, an error is thrown on failure;
+ *                                    otherwise, a warning is logged.
+ * @return This function does not return a value. It loads a module and defines it if successful.
  */
 function loadModule(
+  baseDir: string,
   classPath: string,
   definition?: DefinitionClass,
   required: boolean = true
 ): void {
+  let modulePath: string;
+  if (classPath.startsWith('@/')) {
+    // Load module from the calling project source directory
+    modulePath = path.join(baseDir, classPath.replace('@/', ''));
+  } else if (classPath.startsWith('.')) {
+    // Load from the core project directory
+    modulePath = path.join(__dirname, classPath);
+  } else {
+    // Load from the node_modules directory
+    modulePath = classPath;
+  }
+
   // Try to import module from the class path
   const { value, error } = requireModule<Record<string, Ctor>>(
-    classPath.startsWith('.') ? path.join(__dirname, classPath) : classPath,
+    modulePath,
     false
   );
 
@@ -73,5 +93,5 @@ function loadModule(
   // Extract class constructor from the exported value
   const ctor = Object.values(value)[0];
 
-  define(new ctor(), definition);
+  define(ctor, definition);
 }

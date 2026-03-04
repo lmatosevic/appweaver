@@ -206,7 +206,7 @@ export abstract class ResourceService<
           }
         });
 
-        // Skip executing the same query if only one range value is generated.
+        // Skip executing the same query if only one range value is generated
         if (dateRanges.length === 1) {
           return [overall, [overall]];
         }
@@ -569,27 +569,27 @@ export abstract class ResourceService<
 
       stepAmount = 1;
 
-      // 1 second step if the difference is less than or equal to 1 minute.
+      // 1-second step if the difference is less than or equal to 1 minute
       if (diffInSeconds <= 60) {
         incrementFn = addSeconds;
       }
-      // 1-minute step if the difference is less than or equal to 1 hour.
+      // 1-minute step if the difference is less than or equal to 1 hour
       else if (diffInSeconds <= 3600) {
         incrementFn = addMinutes;
       }
-      // 1-hour step if the difference is less than or equal to 1 day.
+      // 1-hour step if the difference is less than or equal to 1 day
       else if (diffInSeconds <= 86400) {
         incrementFn = addHours;
       }
-      // 1-day step if the difference is less than or equal to 1 month.
+      // 1-day step if the difference is less than or equal to 1 month
       else if (diffInMonths <= 1) {
         incrementFn = addDays;
       }
-      // 1-month step if the difference is less than or equal to 1 year.
+      // 1-month step if the difference is less than or equal to 1 year
       else if (diffInYears <= 1) {
         incrementFn = addMonths;
       }
-      // 1-year step if the difference is equal to 1 year or more.
+      // 1-year step if the difference is equal to 1 year or more
       else {
         incrementFn = addYears;
       }
@@ -622,7 +622,7 @@ export abstract class ResourceService<
       return projectedResource;
     }
 
-    // Create new relations count properties on the resource object.
+    // Create new relations count properties on the resource object
     for (const [key, count] of Object.entries(projectedResource['_count'])) {
       projectedResource[countFieldName(key)] = count;
     }
@@ -654,7 +654,7 @@ export abstract class ResourceService<
       }
     }
 
-    // Recursively project virtual fields for nested relational objects.
+    // Recursively project virtual fields for nested relational objects
     for (const key in projectedVirtual) {
       const value = projectedVirtual[key];
 
@@ -683,13 +683,13 @@ export abstract class ResourceService<
     const relationsModel = resourceModel?.relationsModel;
     const filesModel = resourceModel?.filesModel;
 
-    // Delete virtual fields from data object to avoid database errors.
+    // Delete virtual fields from data object to avoid database errors
     for (const fieldName of Object.keys(resourceModel.config?.virtual ?? {})) {
       delete sanitizedData[fieldName];
     }
 
     // Map default values for hidden scalars if a property is required without
-    // a provided default value.
+    // a provided default value
     for (const [fieldName, scalar] of Object.entries(
       resourceModel.config?.scalars ?? {}
     )) {
@@ -702,7 +702,7 @@ export abstract class ResourceService<
       }
     }
 
-    // Recursively sanitize nested objects and arrays of objects.
+    // Recursively sanitize nested objects and arrays of objects
     for (const key in sanitizedData) {
       const value = sanitizedData[key];
 
@@ -746,7 +746,7 @@ export abstract class ResourceService<
 
       const isArrayValue = isArray(value);
 
-      // Recursively map nested objects and handle arrays of objects.
+      // Recursively map nested objects and handle arrays of objects
       if (isObject(value) || (isArrayValue && isObject(value[0]))) {
         const resourceName = extractResourceName(relationSchema ?? fileSchema);
         if (resourceName) {
@@ -755,18 +755,18 @@ export abstract class ResourceService<
             : this.mapQueryFilter(value, resourceName);
         }
       }
-      // Map ID values for both single and array types of relationships.
+      // Map ID values for both single and array types of relationships
       else if (relationSchema || fileSchema) {
         const queryId = { id: isArrayValue ? { in: value } : value };
         queryFilter[key] = isArrayType ? { some: queryId } : queryId;
       }
-      // Map fields without relationships, supporting array types.
+      // Map fields without relationships, supporting array types
       else if (readSchema) {
         if (isArrayType) {
           queryFilter[key] = isArrayValue ? { hasSome: value } : { has: value };
         } else if (isArrayValue) {
           // For date and numeric types, apply range filtering with inclusive
-          // intervals.
+          // intervals
           if (
             value.length > 0 &&
             value.length <= 2 &&
@@ -778,14 +778,14 @@ export abstract class ResourceService<
               lte: value[1]
             };
           }
-          // Map array values for inclusion checks.
+          // Map array values for inclusion checks
           else {
             queryFilter[key] = { in: value };
           }
         }
       }
 
-      // If no query filter was defined, assign the original value.
+      // If no query filter was defined, assign the original value
       if (queryFilter[key] === undefined) {
         queryFilter[key] = value;
       }
@@ -901,7 +901,7 @@ export abstract class ResourceService<
 
       const relationSchema = extractSchemaProperties(relationsModel, key);
       if (!relationSchema) {
-        // Set empty array or undefined value for null array type fields.
+        // Set empty array or undefined value for null array type fields
         if (value === null) {
           if (extractSchemaProperties(readModel, key)?.type === 'array') {
             relations[key] = action === 'update' ? [] : undefined;
@@ -910,7 +910,7 @@ export abstract class ResourceService<
           }
         }
 
-        // Skip mapping for non-relation fields.
+        // Skip mapping for non-relation fields
         continue;
       }
 
@@ -918,7 +918,7 @@ export abstract class ResourceService<
       const uniqueKey = config?.input?.uniqueKey || 'id';
       const isArrayType = relationSchema.type === 'array';
 
-      // Normalize array values to single values if a value type is not an array.
+      // Normalize array values to single values if a value type is not an array
       if (!isArrayType && isArray(value)) {
         value = value[0];
       }
@@ -930,7 +930,7 @@ export abstract class ResourceService<
         continue;
       }
 
-      // Normalize plain unique key values or arrays to object values.
+      // Normalize plain unique key values or arrays to object values
       if (isArrayType) {
         if (isArray(value) && !isObject([0])) {
           value = value.map((v: any) => ({
@@ -943,7 +943,7 @@ export abstract class ResourceService<
         }
       }
 
-      // Map relation connections with an option to create a non-existing entity.
+      // Map relation connections with an option to create a non-existing entity
       if (config?.createIfNotExists && value) {
         if (isArrayType) {
           relations[key] = {

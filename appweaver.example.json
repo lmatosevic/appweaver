@@ -58,22 +58,14 @@
       "modelPattern": "./src/resources/*/model.ts",
       "generatedTypesPath": "./src/types/generated.ts"
     },
-    "database": {
-      "type": "postgresql",
-      "url": "postgresql://appweaver:appweaver@localhost:5432/appweaver-sample?schema=public",
-      "schemaPath": "./database/schema.prisma",
-      "migrationsDirPath": "./database/migrations",
-      "clientOutputPath": "./database/client",
-      "transactionMaxWait": 2000,
-      "transactionTimeout": 5000
-    },
-    "redis": {
-      "url": "redis://localhost:6379/0"
-    },
-    "storage": {
-      "path": "./storage",
-      "namePattern": "{name}-{hash}.{extension}",
-      "cacheDuration": 86400
+    "export": {
+      "csv": {
+        "delimiter": ";",
+        "joinDelimiter": ",",
+        "addHeaders": true,
+        "addSepRow": false
+      },
+      "batchSize": 1000
     },
     "security": {
       "routePrefix": "/auth",
@@ -83,6 +75,37 @@
         "refreshExpiresIn": 5184000
       }
     },
+    "database": {
+      "type": "postgresql",
+      "url": "postgresql://appweaver:appweaver@localhost:5432/appweaver-sample?schema=public",
+      "schemaPath": "./database/schema.prisma",
+      "migrationsDirPath": "./database/migrations",
+      "clientOutputPath": "./database/client",
+      "transactionMaxWait": 2000,
+      "transactionTimeout": 5000,
+      "provider": "@appweaver/core/database/prisma-database"
+    },
+    "storage": {
+      "path": "./storage",
+      "namePattern": "{name}-{hash}.{extension}",
+      "cacheDuration": 86400,
+      "provider": "@appweaver/core/storage/filesystem-storage"
+    },
+    "redis": {
+      "url": "redis://localhost:6379/0",
+      "provider": "@appweaver/core/memory/redis"
+    },
+    "memory": {
+      "maxSizeBytes": 104857600,
+      "provider": "@appweaver/core/memory/memory"
+    },
+    "cache": {
+      "enabled": true,
+      "keyPrefix": "cache:",
+      "defaultTtl": 5,
+      "evictionStrategy": "LRU",
+      "provider": "@appweaver/core/cache/redis-cache"
+    },
     "queue": {
       "keepCompletedCount": 0,
       "keepCompletedSeconds": null,
@@ -90,22 +113,16 @@
       "keepFailedSeconds": null,
       "retryAttempts": 3,
       "retryBackoff": 3000,
-      "retryBackoffType": "fixed"
+      "retryBackoffType": "fixed",
+      "provider": "@appweaver/core/queue/bull-queue"
     },
     "scheduler": {
-      "autoStartJob": true
+      "autoStartJob": true,
+      "provider": "@appweaver/core/scheduler/cron-scheduler"
     },
     "events": {
-      "maxListeners": 10
-    },
-    "export": {
-      "csv": {
-        "delimiter": ";",
-        "joinDelimiter": ",",
-        "addHeaders": true,
-        "addSepRow": false
-      },
-      "batchSize": 1000
+      "maxListeners": 10,
+      "provider": "@appweaver/core/events/node-events"
     },
     "mail": {
       "smtp": {
@@ -117,7 +134,7 @@
       },
       "senderName": "John Doe",
       "senderAddress": "no-reply@appweaver.com",
-      "mockSend": false
+      "provider": "@appweaver/core/mailer/smtp-mailer"
     },
     "system": {
       "adminInitialEmail": "admin@appweaver.com",

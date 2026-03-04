@@ -44,25 +44,25 @@ export async function createApp(
     scanPath = path.resolve(config.APP_SCAN_PATH);
   }
 
-  // Load all definitions from this project.
-  loadDefinitions();
+  // Load all definitions from this project
+  loadDefinitions(scanPath);
 
-  // Load resource models, routes, policies and services.
+  // Load resource models, routes, policies and services
   if (params.autoLoadResources !== false) {
     await loadResources(scanPath);
   }
 
-  // Load exported plugin files.
+  // Load exported plugin files
   if (params.autoLoadPlugins !== false) {
     await loadModules(path.join(scanPath, 'plugins'));
   }
 
-  // Load exported feature files.
+  // Load exported feature files
   if (params.autoLoadFeatures !== false) {
     await loadModules(path.join(scanPath, 'features'));
   }
 
-  // Create a Fastify server instance.
+  // Create a Fastify server instance
   const server = createServer();
 
   context.server = server;

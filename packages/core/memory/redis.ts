@@ -20,10 +20,10 @@ export class Redis extends CommonRedis<RedisOptions, RedisClient> {
     this._client = this.createClient({ lazyConnect: true });
   }
 
-  public createClient(extraOptions: RedisOptions = {}): RedisClient {
+  public createClient(options: RedisOptions = {}): RedisClient {
     return new RedisClient({
       ...this._options,
-      ...extraOptions
+      ...options
     });
   }
 

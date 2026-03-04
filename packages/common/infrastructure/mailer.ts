@@ -1,4 +1,8 @@
-import { IHealthCheck, HealthCheckResult } from './health-check';
+import {
+  IHealthCheck,
+  HealthCheckResult,
+  HealthCheckConfig
+} from './health-check';
 import { HEALTH_CHECK } from '../constants';
 
 export type Email<Attachment = any> = {
@@ -10,11 +14,13 @@ export type Email<Attachment = any> = {
 };
 
 export abstract class Mailer<Attachment = any> implements IHealthCheck {
-  constructor() {
-    this[HEALTH_CHECK] = true;
-  }
+  static [HEALTH_CHECK] = true;
 
   abstract sendEmail(data: Email<Attachment>): Promise<boolean>;
 
   abstract checkHealth(): Promise<HealthCheckResult>;
+
+  public checkHealthConfig(): HealthCheckConfig {
+    return { name: 'mailer' };
+  }
 }

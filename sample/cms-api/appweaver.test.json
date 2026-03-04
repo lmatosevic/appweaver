@@ -24,7 +24,7 @@
       "autoStartJob": false
     },
     "mail": {
-      "mockSend": true
+      "provider": "@appweaver/core/mailer/json-mailer"
     }
   }
 }

@@ -3,7 +3,7 @@ export * from './context/dependency-injection';
 export * from './errors';
 export * from './export/export-service';
 export * from './factory';
-export * from './mailer/mail-service';
+export * from './mailer/email-service';
 export * from './database';
 export * from './resource';
 export * from './security';
