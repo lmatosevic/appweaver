@@ -420,7 +420,7 @@
             },
             "defaultTtl": {
               "type": "integer",
-              "default": 5
+              "default": 5000
             },
             "evictionStrategy": {
               "type": "string",

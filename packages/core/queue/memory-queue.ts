@@ -321,7 +321,7 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
 
   /** @internal */
   private async emitEvent(event: EventName, ...args: any[]): Promise<void> {
-    const handlerActions: Array<Promise<void>> = [];
+    const handlerActions: Promise<void>[] = [];
 
     for (const value of Object.values(this._listeners)) {
       if (value.event !== event) {

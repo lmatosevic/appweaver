@@ -287,7 +287,7 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
   }
 
   private async handleEvent(event: EventName, ...args: any[]): Promise<void> {
-    const handlerActions: Array<Promise<void>> = [];
+    const handlerActions: Promise<void>[] = [];
 
     for (const value of Object.values(this._listeners)) {
       if (value.event !== event) {

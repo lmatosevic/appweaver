@@ -260,7 +260,7 @@ export class FileService {
     resource: Resource,
     client: ResourceClient
   ): Promise<File[]> {
-    const saveActions: Array<Promise<File>> = [];
+    const saveActions: Promise<File>[] = [];
 
     for await (const part of parts) {
       if (part.type === 'file') {
@@ -342,7 +342,7 @@ export class FileService {
       throw new HttpError('No files for deletion are provided', 400);
     }
 
-    const deleteActions: Array<Promise<File>> = [];
+    const deleteActions: Promise<File>[] = [];
 
     for (const [field, value] of Object.entries(fileNames)) {
       const names = typeof value === 'string' ? [value] : value;

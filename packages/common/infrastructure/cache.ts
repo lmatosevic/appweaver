@@ -11,11 +11,11 @@ export abstract class Cache {
 
   abstract has(key: string): Promise<boolean>;
 
-  abstract set(key: string, value: any, ttl?: number): Promise<void>;
+  abstract set(key: string, value: any, ttl?: number): Promise<boolean>;
 
-  abstract evict(key: string): Promise<void>;
+  abstract evict(key: string): Promise<boolean>;
 
-  abstract expire(pattern?: string): Promise<void>;
+  abstract expire(pattern?: string): Promise<number>;
 
-  abstract entries(pattern?: string): Promise<CacheEntryMeta[]>;
+  abstract keys(pattern?: string): Promise<string[]>;
 }

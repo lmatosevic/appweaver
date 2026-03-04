@@ -114,7 +114,7 @@ const configSchema = Type.Object({
 
   CACHE_ENABLED: Type.Boolean({ default: true }),
   CACHE_KEY_PREFIX: Type.String({ default: 'cache:' }),
-  CACHE_DEFAULT_TTL: Type.Integer({ default: 5 }),
+  CACHE_DEFAULT_TTL: Type.Integer({ default: 5000 }),
   CACHE_EVICTION_STRATEGY: Type.Enum(CacheEvictionStrategy, {
     default: CacheEvictionStrategy.LRU
   }),

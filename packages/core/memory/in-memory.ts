@@ -1,11 +1,6 @@
 import { setTimeout } from 'node:timers/promises';
 import { parse, stringify } from 'flatted';
-import {
-  config,
-  HealthCheckResult,
-  Memory,
-  uuid
-} from '@appweaver/common';
+import { config, HealthCheckResult, Memory, uuid } from '@appweaver/common';
 
 type StorageEntry = {
   value: string;

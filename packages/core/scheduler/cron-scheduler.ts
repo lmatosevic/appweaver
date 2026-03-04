@@ -14,7 +14,7 @@ export class CronScheduler extends Scheduler<CronJob, CronJobParams> {
   }
 
   public async stopAll(): Promise<void> {
-    const stopActions: Array<Promise<void>> = [];
+    const stopActions: Promise<void>[] = [];
 
     for (const job of Object.values(this._jobs)) {
       if (!job.isActive) {

@@ -102,7 +102,7 @@
     "cache": {
       "enabled": true,
       "keyPrefix": "cache:",
-      "defaultTtl": 5,
+      "defaultTtl": 5000,
       "evictionStrategy": "LRU",
       "provider": "@appweaver/core/cache/redis-cache"
     },
