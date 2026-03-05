@@ -414,6 +414,10 @@
               "type": "boolean",
               "default": true
             },
+            "cleanStart": {
+              "type": "boolean",
+              "default": false
+            },
             "keyPrefix": {
               "type": "string",
               "default": "cache:"
@@ -421,6 +425,10 @@
             "defaultTtl": {
               "type": "integer",
               "default": 5000
+            },
+            "evictionTimeout": {
+              "type": "integer",
+              "default": 10000
             },
             "evictionStrategy": {
               "type": "string",

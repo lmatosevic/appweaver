@@ -3,7 +3,7 @@ import {
   HealthCheckConfig,
   HealthCheckResult,
   IHealthCheck
-} from './health-check';
+} from '../interfaces';
 import { HEALTH_CHECK } from '../constants';
 
 export type ContentStream = {

@@ -16,6 +16,7 @@ import {
   AggregateResponse,
   AggregateSelect,
   AggregateValue,
+  Cache,
   Database,
   Events,
   FileField,
@@ -56,9 +57,11 @@ export abstract class ResourceService<
   Query = any
 > implements IResourceService<ReadOne, ReadMany, Create, Update, Query> {
   /** @internal */
-  private readonly _db = inject<PrismaDatabase>(Database);
+  private readonly _db = inject<PrismaDatabase>(Database as any);
   /** @internal */
   private readonly _events = inject(Events);
+  /** @internal */
+  private readonly _cache = inject(Cache);
   /** @internal */
   private readonly _client: ResourceClient;
 
@@ -282,6 +285,8 @@ export abstract class ResourceService<
       throw new HttpError(`${this._client.name} create error`, 500, e);
     }
 
+    await this._cache.expire(`*!${this._client.name}!*`);
+
     this._events.emitResourceEvent(this._client.name, 'create', {
       current: resource
     });
@@ -354,6 +359,8 @@ export abstract class ResourceService<
       throw new HttpError(`${this._client.name} update error`, 500, e);
     }
 
+    await this._cache.expire(`*!${this._client.name}!*`);
+
     this._events.emitResourceEvent(this._client.name, 'update', {
       previous: updateResource,
       current: resource
@@ -398,6 +405,8 @@ export abstract class ResourceService<
       }
       throw new HttpError(`${this._client.name} delete error`, 500, e);
     }
+
+    await this._cache.expire(`*!${this._client.name}!*`);
 
     this._events.emitResourceEvent(this._client.name, 'delete', {
       current: resource
@@ -641,7 +650,7 @@ export abstract class ResourceService<
 
     // Set output or default value for virtual fields
     for (const [fieldName, virtual] of Object.entries(
-      resourceModel.config?.virtual ?? {}
+      resourceModel?.config?.virtual ?? {}
     )) {
       const outputValue = virtual.output?.value;
       if (isFunction(outputValue)) {
@@ -684,14 +693,14 @@ export abstract class ResourceService<
     const filesModel = resourceModel?.filesModel;
 
     // Delete virtual fields from data object to avoid database errors
-    for (const fieldName of Object.keys(resourceModel.config?.virtual ?? {})) {
+    for (const fieldName of Object.keys(resourceModel?.config?.virtual ?? {})) {
       delete sanitizedData[fieldName];
     }
 
     // Map default values for hidden scalars if a property is required without
     // a provided default value
     for (const [fieldName, scalar] of Object.entries(
-      resourceModel.config?.scalars ?? {}
+      resourceModel?.config?.scalars ?? {}
     )) {
       if (
         scalar.hidden &&

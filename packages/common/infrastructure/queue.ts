@@ -1,8 +1,8 @@
 import {
-  HealthCheckConfig,
+  IHealthCheck,
   HealthCheckResult,
-  IHealthCheck
-} from './health-check';
+  HealthCheckConfig
+} from '../interfaces';
 import { HEALTH_CHECK } from '../constants';
 
 export type QueueHandlerResponse<T = void> = Promise<T> | T;

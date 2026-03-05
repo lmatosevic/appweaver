@@ -36,7 +36,7 @@ export class InMemory extends Memory {
     }
 
     // Check if expired
-    if (entry.expiresAt && Date.now() > entry.expiresAt) {
+    if (entry.expiresAt && entry.expiresAt < Date.now()) {
       await this.cleanupExpired();
       return null;
     }
@@ -70,6 +70,10 @@ export class InMemory extends Memory {
     }
 
     return true;
+  }
+
+  public async hasKey(key: string): Promise<boolean> {
+    return key in this._storage;
   }
 
   public async removeValue(key: string): Promise<boolean> {
@@ -115,7 +119,7 @@ export class InMemory extends Memory {
 
     for (const key of keys) {
       const entry = this._storage[key];
-      if (entry.expiresAt && Date.now() > entry.expiresAt) {
+      if (entry.expiresAt && entry.expiresAt < Date.now()) {
         delete this._storage[key];
         continue;
       }
@@ -149,7 +153,7 @@ export class InMemory extends Memory {
       const existingLock = this._locks[resourceKey];
 
       // Check if the existing lock is expired
-      if (existingLock && Date.now() > existingLock.expiresAt) {
+      if (existingLock && existingLock.expiresAt < Date.now()) {
         delete this._locks[resourceKey];
       }
 
@@ -190,7 +194,7 @@ export class InMemory extends Memory {
     // Cleanup expired storage entries
     for (const key in this._storage) {
       const entry = this._storage[key];
-      if (entry.expiresAt && now > entry.expiresAt) {
+      if (entry.expiresAt && entry.expiresAt < now) {
         await this.removeValue(key);
       }
     }
@@ -198,7 +202,7 @@ export class InMemory extends Memory {
     // Clean up expired locks
     for (const key in this._locks) {
       const lock = this._locks[key];
-      if (now > lock.expiresAt) {
+      if (lock.expiresAt < now) {
         delete this._locks[key];
       }
     }

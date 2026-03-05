@@ -113,8 +113,11 @@ const configSchema = Type.Object({
   MEMORY_PROVIDER: Type.String({ default: '@appweaver/core/memory/in-memory' }),
 
   CACHE_ENABLED: Type.Boolean({ default: true }),
+  CACHE_CLEAN_START: Type.Boolean({ default: false }),
   CACHE_KEY_PREFIX: Type.String({ default: 'cache:' }),
+  CACHE_MAX_ITEMS: Type.Integer({ default: 1000 }),
   CACHE_DEFAULT_TTL: Type.Integer({ default: 5000 }),
+  CACHE_EVICTION_TIMEOUT: Type.Integer({ default: 10000 }),
   CACHE_EVICTION_STRATEGY: Type.Enum(CacheEvictionStrategy, {
     default: CacheEvictionStrategy.LRU
   }),

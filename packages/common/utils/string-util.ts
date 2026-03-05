@@ -1,7 +1,8 @@
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
 import { DefaultGenerationOptions, generateApiKey } from 'generate-api-key';
 import { getDayOfYear, getISOWeek } from 'date-fns';
 import { plural as pluralize, singular as singularize } from 'pluralize';
+import { isArray, isFunction, isObject } from './type-util';
 
 /**
  * Parses a string into an array of strings, splitting it by a specified delimiter.
@@ -159,6 +160,29 @@ export function capitalize(text: string): string {
  */
 export function uncapitalize(text: string): string {
   return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
+/**
+ * Generates a hash string from the given text using the specified algorithm and encoding.
+ *
+ * @param {string} text - The input text to be hashed.
+ * @param {'sha256'|'sha512'|'sha3-256'|'sha3-512'|'blake2s256'|'blake2s512'|'md5'} [algorithm='sha256'] - The hash algorithm to use.
+ * @param {'base64'|'base64url'|'hex'|'binary'} [encoding='hex'] - The encoding format for the resulting hash.
+ * @return {string} The resulting hash string in the specified encoding format.
+ */
+export function makeHash(
+  text: string,
+  algorithm:
+    | 'sha256'
+    | 'sha512'
+    | 'sha3-256'
+    | 'sha3-512'
+    | 'blake2s256'
+    | 'blake2s512'
+    | 'md5' = 'sha256',
+  encoding: 'base64' | 'base64url' | 'hex' | 'binary' = 'hex'
+): string {
+  return createHash(algorithm).update(text).digest(encoding);
 }
 
 /**

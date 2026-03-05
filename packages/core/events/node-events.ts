@@ -53,6 +53,7 @@ export class NodeEvents extends Events {
     return true;
   }
 
+  /** @internal */
   private resourceEventName(resourceName: string, event: ActionType): string {
     return `${resourceName}.${event}`;
   }

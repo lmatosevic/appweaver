@@ -1,19 +1,5 @@
 import { HealthCheckStatus } from '../enums';
-
-export type HealthCheckConfig = {
-  name?: string;
-  showMessage?: boolean;
-};
-
-export type HealthCheckResult = {
-  success: boolean;
-  message?: string;
-};
-
-export interface IHealthCheck {
-  checkHealth(): Promise<HealthCheckResult>;
-  checkHealthConfig?(): HealthCheckConfig;
-}
+import { IHealthCheck } from '../interfaces';
 
 export abstract class HealthCheck {
   abstract checkHealth(): Promise<Record<string, HealthCheckStatus>>;

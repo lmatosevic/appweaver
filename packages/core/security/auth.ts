@@ -18,7 +18,7 @@ export default fastifyPlugin((server: Server): void => {
   server.register(fastifyAuth);
 
   if (!config.SECURITY_JWT_SECRET) {
-    throw new Error('JWT_SECRET variable is not set in production environment');
+    throw new Error('JWT_SECRET variable is not configured');
   }
 
   server.register(fastifyJwt, {
@@ -42,7 +42,7 @@ export default fastifyPlugin((server: Server): void => {
         const payload: JwtPayload = await request.jwtVerify();
         const authUser = await authService.findById(payload.sub);
 
-        const refreshPath = '/auth/refresh';
+        const refreshPath = `/${config.SECURITY_ROUTE_PREFIX}/refresh`;
 
         if (
           !authUser ||

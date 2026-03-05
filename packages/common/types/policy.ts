@@ -8,7 +8,7 @@ export type ActionType =
 
 export type FileAccessType = 'protected' | 'private' | 'public';
 
-export type FileAccessFn = (identity: any, resource: any, file: any) => boolean;
+export type FileAccessFn = (user: any, resource: any, file: any) => boolean;
 
 export type FilePolicy = {
   /**

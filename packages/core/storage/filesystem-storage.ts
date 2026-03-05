@@ -91,6 +91,7 @@ export class FilesystemStorage extends Storage {
     }
   }
 
+  /** @internal */
   private async getFilePath(
     fileName: string,
     mkdir: boolean = false
@@ -102,6 +103,7 @@ export class FilesystemStorage extends Storage {
     return filePath;
   }
 
+  /** @internal */
   private async removeEmptyDirectories(filePath: string): Promise<void> {
     const normalizedDirPath = path.normalize(filePath);
     if (
@@ -136,6 +138,7 @@ export class FilesystemStorage extends Storage {
     }
   }
 
+  /** @internal */
   private async ensureDirectoryExists(filePath: string): Promise<void> {
     const dirname = path.dirname(filePath);
     try {

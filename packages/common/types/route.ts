@@ -7,18 +7,23 @@ export type RouteConfig = {
   rateLimit?: false | { max: number; timeWindow?: number | string };
 };
 
-export type CacheConfig = {
-  cacheDisabled?: boolean;
-  cacheKey?: string;
+export type RouteCacheConfig = {
+  cache?: boolean;
+  cacheKey?: string | ((req: any, user: any) => string);
   cacheTTL?: number;
+  cacheModelName?: string;
+  cacheRelations?: string[];
 };
 
 export type ResourceRoutesConfig = {
   modelName: string;
   path?: string;
-  find?: RouteConfig & CacheConfig;
-  query?: RouteConfig & CacheConfig;
-  aggregate?: RouteConfig & CacheConfig;
+  find?: RouteConfig &
+    Omit<RouteCacheConfig, 'cacheKey' | 'cacheModelName' | 'cacheRelations'>;
+  query?: RouteConfig &
+    Omit<RouteCacheConfig, 'cacheKey' | 'cacheModelName' | 'cacheRelations'>;
+  aggregate?: RouteConfig &
+    Omit<RouteCacheConfig, 'cacheKey' | 'cacheModelName' | 'cacheRelations'>;
   create?: RouteConfig;
   update?: RouteConfig;
   delete?: RouteConfig;

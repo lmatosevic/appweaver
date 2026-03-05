@@ -1,5 +1,9 @@
 import { Static } from '@sinclair/typebox';
-import { ResourceRoutesConfig, RouteConfig } from '@appweaver/common';
+import {
+  ResourceRoutesConfig,
+  RouteCacheConfig,
+  RouteConfig
+} from '@appweaver/common';
 import { createSchema, Id } from './resource-schema';
 import { ExportService } from '../export/export-service';
 import { inject, injectModel, injectService } from '../context';
@@ -7,13 +11,22 @@ import { FileService } from '../storage';
 import { aggregateFiles, maxFileSize } from '../utils';
 import { ResourceSchemaConfig, RoutesHandler, Server } from '../types';
 
+type FullRouteConfig = RouteConfig & RouteCacheConfig;
+
 export function resourceRoutes(
   name: string,
   routesConfig: Omit<ResourceRoutesConfig, 'modelName'> = {}
 ): { handler: RoutesHandler; schema: ResourceSchemaConfig } {
   const routeConfig = (
     configName: keyof ResourceRoutesConfig
-  ): RouteConfig | undefined => routesConfig[configName];
+  ): FullRouteConfig | undefined => {
+    return {
+      ...(routesConfig[configName] ?? {}),
+      cacheModelName: ['find', 'query', 'aggregate'].includes(configName)
+        ? name
+        : undefined
+    };
+  };
 
   const publicRoutes = Object.keys(routesConfig)
     .map((key) => {
@@ -30,13 +43,17 @@ export function resourceRoutes(
   const schema = createSchema(name, publicRoutes);
 
   const handler = (server: Server) => {
-    const { auth, authenticateJWT } = server;
+    const { auth, caching, authenticateJWT } = server;
 
     const service = injectService(name);
     const resourceModel = injectModel(name);
 
-    const routeAuth = (config: RouteConfig | undefined) =>
-      config?.public ? undefined : auth(config?.auth ?? [authenticateJWT]);
+    const routeHandlers = (cfg: FullRouteConfig | undefined) => {
+      return [
+        cfg?.public ? undefined : auth(cfg?.auth ?? [authenticateJWT]),
+        cfg?.cacheModelName ? caching : undefined
+      ].filter((v) => v !== undefined);
+    };
 
     const hasFiles = Object.keys(resourceModel.config.files ?? {}).length > 0;
 
@@ -46,13 +63,13 @@ export function resourceRoutes(
         '/:id',
         {
           schema: schema.findSchema,
-          preHandler: routeAuth(findConfig),
+          preHandler: routeHandlers(findConfig),
           config: findConfig
         },
         async (request, reply) => {
           const response = await service.find(request.params.id);
 
-          reply.status(200).send(response);
+          return reply.status(200).send(response);
         }
       );
     }
@@ -63,14 +80,14 @@ export function resourceRoutes(
         '/query',
         {
           schema: schema.querySchema,
-          preHandler: routeAuth(queryConfig),
+          preHandler: routeHandlers(queryConfig),
           config: queryConfig
         },
         async (request, reply) => {
           const { page, size, sort, ...body } = request.body as any;
           const response = await service.query(body.filter, page, size, sort);
 
-          reply.status(200).send(response);
+          return reply.status(200).send(response);
         }
       );
     }
@@ -81,7 +98,7 @@ export function resourceRoutes(
         '/aggregate',
         {
           schema: schema.aggregateSchema,
-          preHandler: routeAuth(aggregateConfig),
+          preHandler: routeHandlers(aggregateConfig),
           config: aggregateConfig
         },
         async (request, reply) => {
@@ -97,7 +114,7 @@ export function resourceRoutes(
             safeIncrement
           );
 
-          reply.status(200).send(response);
+          return reply.status(200).send(response);
         }
       );
     }
@@ -108,13 +125,13 @@ export function resourceRoutes(
         '',
         {
           schema: schema.createSchema,
-          preHandler: routeAuth(createConfig),
+          preHandler: routeHandlers(createConfig),
           config: createConfig
         },
         async (request, reply) => {
           const response = await service.create(request.body as any);
 
-          reply.status(201).send(response);
+          return reply.status(201).send(response);
         }
       );
     }
@@ -125,7 +142,7 @@ export function resourceRoutes(
         '/:id',
         {
           schema: schema.updateSchema,
-          preHandler: routeAuth(updateConfig),
+          preHandler: routeHandlers(updateConfig),
           config: updateConfig
         },
         async (request, reply) => {
@@ -134,7 +151,7 @@ export function resourceRoutes(
             request.body as any
           );
 
-          reply.status(200).send(response);
+          return reply.status(200).send(response);
         }
       );
     }
@@ -145,13 +162,13 @@ export function resourceRoutes(
         '/:id',
         {
           schema: schema.deleteSchema,
-          preHandler: routeAuth(deleteConfig),
+          preHandler: routeHandlers(deleteConfig),
           config: deleteConfig
         },
         async (request, reply) => {
           const response = await service.delete(request.params.id);
 
-          reply.status(200).send(response);
+          return reply.status(200).send(response);
         }
       );
     }
@@ -162,7 +179,7 @@ export function resourceRoutes(
         '/export',
         {
           schema: schema.exportSchema,
-          preHandler: routeAuth(exportConfig),
+          preHandler: routeHandlers(exportConfig),
           config: exportConfig
         },
         async (request, reply) => {
@@ -194,7 +211,7 @@ export function resourceRoutes(
         '/:id/files',
         {
           schema: schema.fileUploadSchema,
-          preHandler: routeAuth(fileUploadConfig),
+          preHandler: routeHandlers(fileUploadConfig),
           config: fileUploadConfig,
           attachValidation: true // Disable validation because of a multipart body.
         },
@@ -209,7 +226,7 @@ export function resourceRoutes(
             service.client
           );
 
-          reply.status(200).send(aggregateFiles(files, config));
+          return reply.status(200).send(aggregateFiles(files, config));
         }
       );
     }
@@ -225,7 +242,7 @@ export function resourceRoutes(
         '/:id/delete-files',
         {
           schema: schema.fileDeleteSchema,
-          preHandler: routeAuth(fileDeleteConfig),
+          preHandler: routeHandlers(fileDeleteConfig),
           config: fileDeleteConfig
         },
         async (request, reply) => {
@@ -237,7 +254,7 @@ export function resourceRoutes(
             service.client
           );
 
-          reply.status(200).send(aggregateFiles(files, config));
+          return reply.status(200).send(aggregateFiles(files, config));
         }
       );
     }

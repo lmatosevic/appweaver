@@ -2,7 +2,7 @@ import {
   IHealthCheck,
   HealthCheckResult,
   HealthCheckConfig
-} from './health-check';
+} from '../interfaces';
 import { HEALTH_CHECK } from '../constants';
 
 export abstract class Database implements IHealthCheck {

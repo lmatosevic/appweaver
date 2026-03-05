@@ -181,7 +181,7 @@ export function injectAllWhere<T = DefinitionValue>(
  */
 export function injectModel<R extends boolean = true>(
   name: string,
-  required: boolean = true
+  required: R = true as R
 ): ConditionalOptional<R, ResourceModel> {
   const model = context.resource.models.get(name);
 
@@ -204,7 +204,7 @@ export function injectModel<R extends boolean = true>(
  */
 export function injectService<R extends boolean = true>(
   modelName: string,
-  required: boolean = true
+  required: R = true as R
 ): ConditionalOptional<R, IResourceService> {
   const service = context.resource.services.get(modelName);
 
@@ -227,7 +227,7 @@ export function injectService<R extends boolean = true>(
  */
 export function injectRoutes<R extends boolean = true>(
   modelName: string,
-  required: boolean = true
+  required: R = true as R
 ): ConditionalOptional<R, ResourceRoutes> {
   const routes = context.resource.routes.get(modelName);
 
@@ -250,7 +250,7 @@ export function injectRoutes<R extends boolean = true>(
  */
 export function injectPolicy<R extends boolean = true>(
   modelName: string,
-  required: boolean = true
+  required: R = true as R
 ): ConditionalOptional<R, ResourcePolicyConfig> {
   const policy = context.resource.policies.get(modelName);
 

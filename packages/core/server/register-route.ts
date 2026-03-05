@@ -1,9 +1,9 @@
 import Fastify, { RouteOptions } from 'fastify';
 import { TObject } from '@sinclair/typebox';
 import {
-  CacheConfig,
   isArray,
   objectHasProperty,
+  RouteCacheConfig,
   RouteConfig
 } from '@appweaver/common';
 import { context, define } from '../context';
@@ -14,7 +14,7 @@ import { ROUTE } from '../constants';
 
 export function registerRoute(
   handler: RouterHandler,
-  config?: RouteConfig & CacheConfig
+  config?: RouteConfig & RouteCacheConfig
 ): void {
   const routes: RouteOptions[] = [];
   const tempServer = Fastify({ logger: false });
@@ -26,7 +26,7 @@ export function registerRoute(
   tempServer.register(handler);
 
   const routeBuilder = async (server: Server): Promise<void> => {
-    const { auth, authenticateJWT } = server;
+    const { auth, caching, authenticateJWT } = server;
 
     // Add all currently configured schemas to the temporary server
     for (const [id, schema] of Object.entries(server.getSchemas())) {
@@ -70,6 +70,7 @@ export function registerRoute(
         },
         preHandler: [
           config?.public ? undefined : auth(config?.auth ?? [authenticateJWT]),
+          caching,
           ...(isArray(route.preHandler) ? route.preHandler : [route.preHandler])
         ].filter((h) => h !== undefined),
         config: {

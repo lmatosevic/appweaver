@@ -24,6 +24,7 @@ import { PLUGIN, ROUTE } from '../constants';
 import { info } from './info-route';
 import schemas from './schemas';
 import swagger from './swagger';
+import caching from './caching';
 
 /**
  * Creates and configures a new server instance.
@@ -133,6 +134,11 @@ export function createServer(): Server {
   // Register swagger documentation and UI. Must be called after loadResources
   if (config.SWAGGER_ENABLED) {
     server.register(swagger);
+  }
+
+  // Register caching plugin
+  if (config.CACHE_ENABLED) {
+    server.register(caching);
   }
 
   // Register a health route

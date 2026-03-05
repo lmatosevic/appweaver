@@ -52,6 +52,11 @@ export class Redis extends CommonRedis<RedisOptions, RedisClient> {
     return result === 'OK';
   }
 
+  public async hasKey(key: string): Promise<boolean> {
+    const result = await this._client.exists(key);
+    return result === 1;
+  }
+
   public async removeValue(key: string): Promise<boolean> {
     const result = await this._client.del(key);
     return result > 0;

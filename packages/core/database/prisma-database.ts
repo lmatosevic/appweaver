@@ -5,11 +5,11 @@ import { PrismaClient } from '../prisma/client/client';
 /**
  * Represents a database utility class that provides methods
  * to connect to and disconnect from the database, as well as
- * access to the database client instance.
+ * access to the database Prisma client instance.
  */
 export class PrismaDatabase extends Database {
   /** @internal */
-  private static _client: PrismaClient | undefined;
+  private _client: PrismaClient | undefined;
 
   public async connect(): Promise<void> {
     await this.client().$connect();
@@ -20,7 +20,7 @@ export class PrismaDatabase extends Database {
   }
 
   public client<T = PrismaClient>(): T {
-    return PrismaDatabase.clientInstance() as T;
+    return this.clientInstance() as T;
   }
 
   public async checkHealth(): Promise<HealthCheckResult> {
@@ -32,10 +32,11 @@ export class PrismaDatabase extends Database {
     }
   }
 
-  private static clientInstance(): PrismaClient {
-    if (!PrismaDatabase._client) {
-      PrismaDatabase._client = createClient();
+  /** @internal */
+  private clientInstance(): PrismaClient {
+    if (!this._client) {
+      this._client = createClient();
     }
-    return PrismaDatabase._client;
+    return this._client;
   }
 }

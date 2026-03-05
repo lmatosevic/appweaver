@@ -1,5 +1,5 @@
 import { DatabaseType } from '../enums';
-import { IHealthCheck } from '../infrastructure';
+import { IHealthCheck } from '../interfaces';
 import { config } from '../config';
 import { HEALTH_CHECK } from '../constants';
 

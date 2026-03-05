@@ -280,12 +280,14 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     }
   }
 
+  /** @internal */
   private addListener(event: EventName, listener: QueueListener): string {
     const listenerId = uuid();
     this._listeners[listenerId] = { event, listener };
     return listenerId;
   }
 
+  /** @internal */
   private async handleEvent(event: EventName, ...args: any[]): Promise<void> {
     const handlerActions: Promise<void>[] = [];
 

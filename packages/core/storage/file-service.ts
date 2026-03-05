@@ -31,7 +31,7 @@ export type FileStream = {
 
 export class FileService {
   /** @internal */
-  private readonly _db = inject<PrismaDatabase>(Database);
+  private readonly _db = inject<PrismaDatabase>(Database as any);
   /** @internal */
   private readonly _storage = inject(Storage);
 

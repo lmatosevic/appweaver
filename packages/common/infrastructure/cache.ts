@@ -7,6 +7,8 @@ export type CacheEntryMeta = {
 };
 
 export abstract class Cache {
+  abstract init(): Promise<void>;
+
   abstract get<T>(key: string): Promise<T | null>;
 
   abstract has(key: string): Promise<boolean>;

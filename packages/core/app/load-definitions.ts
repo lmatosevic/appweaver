@@ -29,7 +29,7 @@ export function loadDefinitions(baseDir: string): void {
   loadModule(baseDir, config.DATABASE_PROVIDER, Database);
   loadModule(baseDir, config.STORAGE_PROVIDER, Storage);
   loadModule(baseDir, config.MEMORY_PROVIDER, Memory);
-  loadModule(baseDir, config.QUEUE_PROVIDER, Cache);
+  loadModule(baseDir, config.CACHE_PROVIDER, Cache);
   loadModule(baseDir, config.EVENTS_PROVIDER, Events);
   loadModule(baseDir, config.REDIS_PROVIDER, Redis, false);
   loadModule(baseDir, config.QUEUE_PROVIDER, Queue, false);

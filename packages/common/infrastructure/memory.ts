@@ -1,8 +1,8 @@
 import {
-  IHealthCheck,
+  HealthCheckConfig,
   HealthCheckResult,
-  HealthCheckConfig
-} from './health-check';
+  IHealthCheck
+} from '../interfaces';
 import { HEALTH_CHECK } from '../constants';
 
 export abstract class Memory implements IHealthCheck {
@@ -19,6 +19,8 @@ export abstract class Memory implements IHealthCheck {
     value: any,
     expireMs?: number
   ): Promise<boolean>;
+
+  abstract hasKey(key: string): Promise<boolean>;
 
   abstract removeValue(key: string): Promise<boolean>;
 

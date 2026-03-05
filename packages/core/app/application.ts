@@ -1,10 +1,12 @@
 import {
+  Cache,
   config,
   Database,
+  Memory,
   Queue,
   Redis,
-  Memory,
-  Scheduler
+  Scheduler,
+  Storage
 } from '@appweaver/common';
 import { context, inject } from '../context';
 import { Server } from '../types';
@@ -14,8 +16,10 @@ import { Server } from '../types';
  */
 export class Application {
   private readonly _db: Database = inject(Database);
-  private readonly _redis?: Redis = inject(Redis, false);
+  private readonly _storage: Storage = inject(Storage);
+  private readonly _cache: Cache = inject(Cache);
   private readonly _memory?: Memory = inject(Memory, false);
+  private readonly _redis?: Redis = inject(Redis, false);
   private readonly _queue?: Queue = inject(Queue, false);
   private readonly _scheduler?: Scheduler = inject(Scheduler, false);
 
@@ -33,8 +37,9 @@ export class Application {
   /**
    * Starts the application by initializing the server and connecting to the database.
    * This process includes logging the environment in which the application is running,
-   * establishing a database connection, freezing the application context to prevent
-   * further changes, and starting a server to listen for incoming requests.
+   * establishing a database connection, initializing storage and cache, freezing the
+   * application context to prevent further changes, and starting a server to listen for
+   * incoming requests.
    *
    * @return {Promise<string>} A promise that resolves to a string denoting the server URL on a successful start.
    */
@@ -44,6 +49,10 @@ export class Application {
     );
 
     await this._db.connect();
+    await this._storage.init();
+    await this._cache.init();
+    await this._memory?.connect();
+    await this._redis?.connect();
 
     Object.freeze(context);
 

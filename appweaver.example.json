@@ -101,8 +101,10 @@
     },
     "cache": {
       "enabled": true,
+      "cleanStart": false,
       "keyPrefix": "cache:",
       "defaultTtl": 5000,
+      "evictionTimeout": 10000,
       "evictionStrategy": "LRU",
       "provider": "@appweaver/core/cache/redis-cache"
     },
