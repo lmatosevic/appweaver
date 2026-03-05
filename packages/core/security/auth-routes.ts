@@ -30,7 +30,7 @@ export function authRoutes(server: Server): void {
 
       const authResponse = await authService.login(username, password);
 
-      reply.status(200).send(authResponse);
+      return reply.status(200).send(authResponse);
     }
   );
 
@@ -50,7 +50,7 @@ export function authRoutes(server: Server): void {
 
       const authResponse = await authService.generateAuthTokens(authUser);
 
-      reply.status(200).send(authResponse);
+      return reply.status(200).send(authResponse);
     }
   );
 
@@ -65,7 +65,7 @@ export function authRoutes(server: Server): void {
 
       const success = await authService.logout(authUser.id);
 
-      reply.status(200).send({ success });
+      return reply.status(200).send({ success });
     }
   );
 
@@ -89,7 +89,7 @@ export function authRoutes(server: Server): void {
         request.body.newPassword
       );
 
-      reply.status(200).send(authResponse);
+      return reply.status(200).send(authResponse);
     }
   );
 
@@ -104,7 +104,7 @@ export function authRoutes(server: Server): void {
       async (_, reply) => {
         const authUser = currentUser();
 
-        reply.status(200).send(authUser);
+        return reply.status(200).send(authUser);
       }
     );
   }

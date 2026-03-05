@@ -132,7 +132,9 @@ export function createServer(): Server {
   server.register(auth);
 
   // Register caching plugin
-  server.register(caching);
+  if (config.CACHE_ENABLED) {
+    server.register(caching);
+  }
 
   // Register swagger documentation and UI. Must be called after loadResources
   if (config.SWAGGER_ENABLED) {

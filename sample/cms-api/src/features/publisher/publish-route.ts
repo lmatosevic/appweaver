@@ -20,7 +20,7 @@ registerRoute(
       },
       async (req, reply) => {
         const count = await publishPosts();
-        reply.send({
+        return reply.send({
           text: `Posts published: ${count}, now: ${req.body.now}`,
           post: null
         });

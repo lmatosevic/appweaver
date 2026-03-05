@@ -26,7 +26,7 @@ export function registerRoute(
   tempServer.register(handler);
 
   const routeBuilder = async (server: Server): Promise<void> => {
-    const { auth, caching, authenticateJWT } = server;
+    const { auth, authenticateJWT } = server;
 
     // Add all currently configured schemas to the temporary server
     for (const [id, schema] of Object.entries(server.getSchemas())) {
@@ -70,7 +70,6 @@ export function registerRoute(
         },
         preHandler: [
           config?.public ? undefined : auth(config?.auth ?? [authenticateJWT]),
-          caching,
           ...(isArray(route.preHandler) ? route.preHandler : [route.preHandler])
         ].filter((h) => h !== undefined),
         config: {

@@ -1,9 +1,8 @@
-import { FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import { stringify } from 'flatted';
 import {
   Cache,
-  config as cfg,
   isFunction,
   makeHash,
   RelationOutput,
@@ -24,29 +23,26 @@ export default fastifyPlugin((server: Server): void => {
 
   const cache = inject(Cache);
 
-  server.decorate(
-    'caching',
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      const config = getRouteConfig(request);
-      if (!shouldUseCache(request, config)) {
-        return;
-      }
+  server.addHook('preHandler', async (request, reply) => {
+    const config = getRouteConfig(request);
+    if (!shouldUseCache(request, config)) {
+      return;
+    }
 
-      const user = config.public ? undefined : currentUser();
-      const key = buildCacheKey(request, config, user);
+    const user = config.public ? undefined : currentUser();
+    const key = buildCacheKey(request, config, user);
 
-      const exists = await cache.has(key);
-      if (exists) {
-        const entry = await cache.get<CacheEntry>(key);
-        if (entry) {
-          return reply
-            .code(entry.statusCode)
-            .headers(entry.headers)
-            .send(entry.payload);
-        }
+    const exists = await cache.has(key);
+    if (exists) {
+      const entry = await cache.get<CacheEntry>(key);
+      if (entry) {
+        return reply
+          .code(entry.statusCode)
+          .headers(entry.headers)
+          .send(entry.payload);
       }
     }
-  );
+  });
 
   server.addHook('onSend', async (request, reply, payload) => {
     const config = getRouteConfig(request);
@@ -84,7 +80,6 @@ function shouldUseCache(
   config?: RouteCacheConfig
 ): boolean {
   return !!(
-    cfg.CACHE_ENABLED &&
     (req.method === 'GET' || req.method === 'POST') &&
     (config?.cacheTTL || config?.cacheKey || config?.cache) &&
     config?.cache !== false

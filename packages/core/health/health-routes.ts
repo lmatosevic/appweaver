@@ -30,7 +30,7 @@ export function health(server: Server): void {
         ? 200
         : 503;
 
-      reply.status(statusCode).send(healthCheck);
+      return reply.status(statusCode).send(healthCheck);
     }
   );
 
@@ -42,7 +42,7 @@ export function health(server: Server): void {
     async (_, reply) => {
       const ready = await healthService.checkReadiness();
 
-      reply.status(200).send({ ready });
+      return reply.status(200).send({ ready });
     }
   );
 }

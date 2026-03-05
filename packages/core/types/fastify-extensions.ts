@@ -11,7 +11,6 @@ declare module 'fastify' {
   // Extend the fastify with jwt decorator type.
   interface FastifyInstance {
     authenticateJWT: any;
-    caching: any;
     currentUser: () => AuthUser;
   }
 }
