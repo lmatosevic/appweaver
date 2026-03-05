@@ -1,6 +1,7 @@
 import Fastify, { RouteOptions } from 'fastify';
 import { TObject } from '@sinclair/typebox';
 import {
+  config as cfg,
   isArray,
   objectHasProperty,
   RouteCacheConfig,
@@ -70,7 +71,7 @@ export function registerRoute(
         },
         preHandler: [
           config?.public ? undefined : auth(config?.auth ?? [authenticateJWT]),
-          caching,
+          cfg.CACHE_ENABLED ? caching : undefined,
           ...(isArray(route.preHandler) ? route.preHandler : [route.preHandler])
         ].filter((h) => h !== undefined),
         config: {

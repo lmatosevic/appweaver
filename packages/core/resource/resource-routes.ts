@@ -2,7 +2,8 @@ import { Static } from '@sinclair/typebox';
 import {
   ResourceRoutesConfig,
   RouteCacheConfig,
-  RouteConfig
+  RouteConfig,
+  config
 } from '@appweaver/common';
 import { createSchema, Id } from './resource-schema';
 import { ExportService } from '../export/export-service';
@@ -51,7 +52,7 @@ export function resourceRoutes(
     const routeHandlers = (cfg: FullRouteConfig | undefined) => {
       return [
         cfg?.public ? undefined : auth(cfg?.auth ?? [authenticateJWT]),
-        cfg?.cacheModelName ? caching : undefined
+        config.CACHE_ENABLED && cfg?.cacheModelName ? caching : undefined
       ].filter((v) => v !== undefined);
     };
 

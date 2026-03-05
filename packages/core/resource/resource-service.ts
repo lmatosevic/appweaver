@@ -29,7 +29,8 @@ import {
   RelationField,
   removeUndefined,
   setValue,
-  uncapitalize
+  uncapitalize,
+  config
 } from '@appweaver/common';
 import { inject, injectModel } from '../context';
 import { currentAuthUser } from '../security';
@@ -285,7 +286,9 @@ export abstract class ResourceService<
       throw new HttpError(`${this._client.name} create error`, 500, e);
     }
 
-    await this._cache.expire(`*!${this._client.name}!*`);
+    if (config.CACHE_ENABLED) {
+      await this._cache.expire(`*!${this._client.name}!*`);
+    }
 
     this._events.emitResourceEvent(this._client.name, 'create', {
       current: resource
@@ -359,7 +362,9 @@ export abstract class ResourceService<
       throw new HttpError(`${this._client.name} update error`, 500, e);
     }
 
-    await this._cache.expire(`*!${this._client.name}!*`);
+    if (config.CACHE_ENABLED) {
+      await this._cache.expire(`*!${this._client.name}!*`);
+    }
 
     this._events.emitResourceEvent(this._client.name, 'update', {
       previous: updateResource,
@@ -406,7 +411,9 @@ export abstract class ResourceService<
       throw new HttpError(`${this._client.name} delete error`, 500, e);
     }
 
-    await this._cache.expire(`*!${this._client.name}!*`);
+    if (config.CACHE_ENABLED) {
+      await this._cache.expire(`*!${this._client.name}!*`);
+    }
 
     this._events.emitResourceEvent(this._client.name, 'delete', {
       current: resource
