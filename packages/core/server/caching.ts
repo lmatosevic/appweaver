@@ -27,7 +27,7 @@ export default fastifyPlugin((server: Server): void => {
     'caching',
     async (request: FastifyRequest, reply: FastifyReply) => {
       const config = getRouteConfig(request);
-      if (!isCacheEnabled(request, config)) {
+      if (!shouldUseCache(request, config)) {
         return;
       }
 
@@ -49,7 +49,7 @@ export default fastifyPlugin((server: Server): void => {
 
   server.addHook('onSend', async (request, reply, payload) => {
     const config = getRouteConfig(request);
-    if (!isCacheEnabled(request, config)) {
+    if (!shouldUseCache(request, config)) {
       return payload;
     }
 
@@ -78,7 +78,7 @@ function getRouteConfig(req: FastifyRequest): RouteConfig & RouteCacheConfig {
   return req.routeOptions.config as RouteConfig & RouteCacheConfig;
 }
 
-function isCacheEnabled(
+function shouldUseCache(
   req: FastifyRequest,
   config?: RouteCacheConfig
 ): boolean {
