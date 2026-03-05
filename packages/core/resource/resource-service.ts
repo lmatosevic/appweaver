@@ -17,6 +17,7 @@ import {
   AggregateSelect,
   AggregateValue,
   Cache,
+  config,
   Database,
   Events,
   FileField,
@@ -29,8 +30,7 @@ import {
   RelationField,
   removeUndefined,
   setValue,
-  uncapitalize,
-  config
+  uncapitalize
 } from '@appweaver/common';
 import { inject, injectModel } from '../context';
 import { currentAuthUser } from '../security';
@@ -286,9 +286,7 @@ export abstract class ResourceService<
       throw new HttpError(`${this._client.name} create error`, 500, e);
     }
 
-    if (config.CACHE_ENABLED) {
-      await this._cache.expire(`*!${this._client.name}!*`);
-    }
+    await this.expireResourceCache();
 
     this._events.emitResourceEvent(this._client.name, 'create', {
       current: resource
@@ -362,9 +360,7 @@ export abstract class ResourceService<
       throw new HttpError(`${this._client.name} update error`, 500, e);
     }
 
-    if (config.CACHE_ENABLED) {
-      await this._cache.expire(`*!${this._client.name}!*`);
-    }
+    await this.expireResourceCache();
 
     this._events.emitResourceEvent(this._client.name, 'update', {
       previous: updateResource,
@@ -411,9 +407,7 @@ export abstract class ResourceService<
       throw new HttpError(`${this._client.name} delete error`, 500, e);
     }
 
-    if (config.CACHE_ENABLED) {
-      await this._cache.expire(`*!${this._client.name}!*`);
-    }
+    await this.expireResourceCache();
 
     this._events.emitResourceEvent(this._client.name, 'delete', {
       current: resource
@@ -505,6 +499,12 @@ export abstract class ResourceService<
    */
   protected textSearchQuery(searchText: string): Query {
     return {} as Query;
+  }
+
+  private async expireResourceCache(): Promise<void> {
+    if (config.CACHE_ENABLED) {
+      await this._cache.expire(`*!${this._client.name}!*`);
+    }
   }
 
   private extractTextSearchQuery(filter: any): Query {

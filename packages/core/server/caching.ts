@@ -3,6 +3,7 @@ import fastifyPlugin from 'fastify-plugin';
 import { stringify } from 'flatted';
 import {
   Cache,
+  config as cfg,
   isFunction,
   makeHash,
   RelationOutput,
@@ -83,6 +84,7 @@ function shouldUseCache(
   config?: RouteCacheConfig
 ): boolean {
   return !!(
+    cfg.CACHE_ENABLED &&
     (req.method === 'GET' || req.method === 'POST') &&
     (config?.cacheTTL || config?.cacheKey || config?.cache) &&
     config?.cache !== false
