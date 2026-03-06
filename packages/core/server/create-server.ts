@@ -6,6 +6,7 @@ import fastifyHelmet from '@fastify/helmet';
 import fastifyStatic from '@fastify/static';
 import fastifyRateLimit from '@fastify/rate-limit';
 import fastifyMultipart from '@fastify/multipart';
+import { fastifyRequestContext } from '@fastify/request-context';
 import {
   camelToSnakeCase,
   config,
@@ -15,16 +16,16 @@ import {
   Redis
 } from '@appweaver/common';
 import { context, inject, injectAll } from '../context';
-import auth from '../security/auth';
 import { errorHandler } from '../errors';
 import { files } from '../storage';
 import { health } from '../health';
+import auth from '../security/auth';
+import caching from '../cache/caching';
 import { RouterHandler, Server } from '../types';
 import { PLUGIN, ROUTE } from '../constants';
 import { info } from './info-route';
 import schemas from './schemas';
 import swagger from './swagger';
-import caching from './caching';
 
 /**
  * Creates and configures a new server instance.
@@ -115,6 +116,13 @@ export function createServer(): Server {
           : null
     });
   }
+
+  // Register request context plugin with default values
+  server.register(fastifyRequestContext, {
+    defaultStoreValues: {
+      authUser: null
+    }
+  });
 
   // Register all defined plugins
   const plugins = injectAll<FastifyPluginCallback>(PLUGIN);

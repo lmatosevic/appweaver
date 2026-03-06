@@ -38,6 +38,7 @@ export function loadDefinitions(baseDir: string): void {
 
   // Core feature services
   loadModule(baseDir, '../mailer/email-service', undefined, false);
+  loadModule(baseDir, '../cache/cache-service');
   loadModule(baseDir, '../storage/file-service');
   loadModule(baseDir, '../security/auth-service');
   loadModule(baseDir, '../export/export-service');

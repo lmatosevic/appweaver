@@ -3,6 +3,7 @@ import { Value } from '@sinclair/typebox/value';
 import { loadConfigFromEnv, loadConfigFromFiles } from './config-loader';
 import {
   CacheEvictionStrategy,
+  CacheInvalidationStrategy,
   DatabaseType,
   Environment,
   LogLevel,
@@ -117,10 +118,15 @@ const configSchema = Type.Object({
   CACHE_KEY_PREFIX: Type.String({ default: 'cache:' }),
   CACHE_MAX_ITEMS: Type.Integer({ default: 1000 }),
   CACHE_DEFAULT_TTL: Type.Integer({ default: 5000 }),
-  CACHE_EVICTION_TIMEOUT: Type.Integer({ default: 10000 }),
+  CACHE_EVICTION_GRACE_PERIOD: Type.Integer({ default: 10000 }),
   CACHE_EVICTION_STRATEGY: Type.Enum(CacheEvictionStrategy, {
     default: CacheEvictionStrategy.LRU
   }),
+  CACHE_EVICTION_DEFERRED: Type.Boolean({ default: false }),
+  CACHE_INVALIDATION_STRATEGY: Type.Enum(CacheInvalidationStrategy, {
+    default: CacheInvalidationStrategy.ExpireRelated
+  }),
+  CACHE_INVALIDATION_DEFERRED: Type.Boolean({ default: false }),
   CACHE_PROVIDER: Type.String({ default: '@appweaver/core/cache/redis-cache' }),
 
   QUEUE_KEEP_COMPLETED_COUNT: Type.Integer({ default: 0 }),

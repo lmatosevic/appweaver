@@ -104,8 +104,11 @@
       "cleanStart": false,
       "keyPrefix": "cache:",
       "defaultTtl": 5000,
-      "evictionTimeout": 10000,
+      "evictionGracePeriod": 10000,
       "evictionStrategy": "LRU",
+      "evictionDeferred": false,
+      "invalidationStrategy": "expire-related",
+      "invalidationDeferred": false,
       "provider": "@appweaver/core/cache/redis-cache"
     },
     "queue": {

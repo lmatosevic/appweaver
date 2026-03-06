@@ -5,9 +5,9 @@ import {
   RouteConfig
 } from '@appweaver/common';
 import { createSchema, Id } from './resource-schema';
-import { ExportService } from '../export/export-service';
 import { inject, injectModel, injectService } from '../context';
 import { FileService } from '../storage';
+import { ExportService } from '../export';
 import { aggregateFiles, maxFileSize } from '../utils';
 import { ResourceSchemaConfig, RoutesHandler, Server } from '../types';
 
@@ -22,6 +22,7 @@ export function resourceRoutes(
   ): FullRouteConfig | undefined => {
     return {
       ...(routesConfig[configName] ?? {}),
+      resourceRouteName: configName,
       cacheModelName: ['find', 'query', 'aggregate'].includes(configName)
         ? name
         : undefined

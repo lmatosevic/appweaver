@@ -1,4 +1,4 @@
-export * from './cache-eviction-strategy';
+export * from './cache-strategy';
 export * from './database-type';
 export * from './environment';
 export * from './health-check-status';

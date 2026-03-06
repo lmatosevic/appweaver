@@ -426,7 +426,7 @@
               "type": "integer",
               "default": 5000
             },
-            "evictionTimeout": {
+            "evictionGracePeriod": {
               "type": "integer",
               "default": 10000
             },
@@ -434,6 +434,19 @@
               "type": "string",
               "enum": ["LRU", "LFU", "FIFO"],
               "default": "LRU"
+            },
+            "evictionDeferred": {
+              "type": "boolean",
+              "default": false
+            },
+            "invalidationStrategy": {
+              "type": "string",
+              "enum": ["expire-related", "expire-all", "none"],
+              "default": "expire-related"
+            },
+            "invalidationDeferred": {
+              "type": "boolean",
+              "default": false
             },
             "provider": {
               "type": "string",

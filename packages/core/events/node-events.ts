@@ -48,8 +48,8 @@ export class NodeEvents extends Events {
     if (!listener) {
       return false;
     }
-    this.removeListener(listener.eventName, listener.listener);
-    delete this.listeners[listenerId];
+    this.off(listener.eventName, listener.listener);
+    delete this._eventListeners[listenerId];
     return true;
   }
 

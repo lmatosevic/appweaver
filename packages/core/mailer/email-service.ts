@@ -29,8 +29,6 @@ export class EmailService {
     job: QueueJob<Email, boolean> | undefined,
     error: Error
   ): void {
-    logger.error(
-      `E-mail '${job?.data.subject}' sending failed: ${error.message}`
-    );
+    logger.error(error, `E-mail '${job?.data.subject}' sending failed`);
   }
 }

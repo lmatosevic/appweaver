@@ -196,7 +196,7 @@ async function loadRoutes(
 async function importPath<T>(filePath: string): Promise<T | null> {
   const { value, error } = await importModule<T>(filePath);
   if (error) {
-    logger.error(error);
+    logger.error(error, 'Resource path import error');
     return null;
   }
   return value;

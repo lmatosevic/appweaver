@@ -161,9 +161,9 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       worker.on(event, async (...args: any[]) => {
         try {
           await this.handleEvent(event, ...args);
-        } catch (e) {
+        } catch (error) {
           logger.error(
-            e,
+            error,
             `Error occurred while handling event '${event}' for queue '${this.name}'`
           );
         }
@@ -185,9 +185,9 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       await this._workers[index].close();
       this._workers.splice(index, 1);
       return true;
-    } catch (e) {
+    } catch (error) {
       logger.error(
-        e,
+        error,
         `Error occurred while removing worker with ID '${id}' from queue '${this.name}'`
       );
       return false;

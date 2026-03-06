@@ -17,8 +17,8 @@ export async function loadModules(baseDir: string): Promise<void> {
     if (fileContent.split('\n').length < 3) {
       return;
     }
-  } catch (err) {
-    logger.error(`Error while loading module: ${err}`);
+  } catch (error) {
+    logger.error(error, `Error while loading module`);
     return;
   }
 

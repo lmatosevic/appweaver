@@ -2,10 +2,7 @@ import { FastifyReply, FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import fastifyAuth from '@fastify/auth';
 import fastifyJwt from '@fastify/jwt';
-import {
-  fastifyRequestContext,
-  requestContext
-} from '@fastify/request-context';
+import { requestContext } from '@fastify/request-context';
 import { config } from '@appweaver/common';
 import { authRoutes } from './auth-routes';
 import { AuthService } from './auth-service';
@@ -23,12 +20,6 @@ export default fastifyPlugin((server: Server): void => {
 
   server.register(fastifyJwt, {
     secret: config.SECURITY_JWT_SECRET
-  });
-
-  server.register(fastifyRequestContext, {
-    defaultStoreValues: {
-      authUser: null
-    }
   });
 
   server.register(authRoutes, { prefix: config.SECURITY_ROUTE_PREFIX });

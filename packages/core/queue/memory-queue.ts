@@ -113,8 +113,8 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
 
   constructor(public readonly name: string) {
     super();
-    this.emitEvent('ready').catch((err) => {
-      logger.error(`Memory queue processing error: ${err}`);
+    this.emitEvent('ready').catch((error) => {
+      logger.error(error, `Memory queue processing error`);
     });
   }
 
@@ -329,9 +329,9 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       }
       try {
         handlerActions.push(value.listener(...args) as Promise<void>);
-      } catch (e) {
+      } catch (error) {
         logger.error(
-          e,
+          error,
           `Error occurred while handling event '${event}' for queue '${this.name}'`
         );
       }

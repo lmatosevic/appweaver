@@ -39,8 +39,8 @@ export class SmtpMailer extends Mailer<Attachment> {
       });
 
       return true;
-    } catch (e) {
-      logger.error(e, `Error sending e-mail`);
+    } catch (error) {
+      logger.error(error, `Error sending e-mail`);
       return false;
     }
   }

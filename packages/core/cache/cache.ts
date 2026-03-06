@@ -3,6 +3,7 @@ import {
   CacheEntryMeta,
   CacheEvictionStrategy,
   config,
+  logger,
   Memory
 } from '@appweaver/common';
 
@@ -14,13 +15,13 @@ export abstract class Cache extends CommonCache {
     super();
   }
 
-  async init(): Promise<void> {
+  public async init(): Promise<void> {
     if (config.CACHE_ENABLED && config.CACHE_CLEAN_START) {
       await this.expire();
     }
   }
 
-  async get<T>(key: string): Promise<T | null> {
+  public async get<T>(key: string): Promise<T | null> {
     const prefixedKey = this.addPrefix(key);
 
     const data = await this.memory.getValue<T>(prefixedKey);
@@ -41,7 +42,7 @@ export abstract class Cache extends CommonCache {
     return data;
   }
 
-  async set(key: string, value: any, ttl?: number): Promise<boolean> {
+  public async set(key: string, value: any, ttl?: number): Promise<boolean> {
     const prefixedKey = this.addPrefix(key);
     const expireMs = ttl === 0 ? undefined : (ttl ?? config.CACHE_DEFAULT_TTL);
 
@@ -61,11 +62,11 @@ export abstract class Cache extends CommonCache {
     return result;
   }
 
-  async has(key: string): Promise<boolean> {
+  public async has(key: string): Promise<boolean> {
     return this.memory.hasKey(this.addPrefix(key));
   }
 
-  async evict(key: string): Promise<boolean> {
+  public async evict(key: string): Promise<boolean> {
     const prefixedKey = this.addPrefix(key);
 
     const result = await this.memory.removeValue(prefixedKey);
@@ -74,7 +75,7 @@ export abstract class Cache extends CommonCache {
     return result;
   }
 
-  async expire(pattern: string = '*'): Promise<number> {
+  public async expire(pattern: string = '*'): Promise<number> {
     const prefixedPattern = this.addPrefix(pattern);
     const prefixedKeys = await this.memory.findKeys(prefixedPattern);
 
@@ -87,7 +88,7 @@ export abstract class Cache extends CommonCache {
     return prefixedKeys.size;
   }
 
-  async keys(pattern: string = '*'): Promise<string[]> {
+  public async keys(pattern: string = '*'): Promise<string[]> {
     const prefixedPattern = this.addPrefix(pattern);
     const prefixedKeys = await this.memory.findKeys(prefixedPattern);
     return Array.from(prefixedKeys);
@@ -156,13 +157,19 @@ export abstract class Cache extends CommonCache {
         [CacheEvictionStrategy.LRU, CacheEvictionStrategy.LFU].includes(
           strategy
         ) &&
-        entry.createdAt + config.CACHE_EVICTION_TIMEOUT < now
+        entry.createdAt + config.CACHE_EVICTION_GRACE_PERIOD < now
       ) {
         evictActions.push(this.evict(entry.key));
       }
     }
 
-    await Promise.all(evictActions);
+    if (config.CACHE_EVICTION_DEFERRED) {
+      Promise.all(evictActions).catch((error) => {
+        logger.error(error, 'Cache eviction error');
+      });
+    } else {
+      await Promise.all(evictActions);
+    }
   }
 
   /** @internal */

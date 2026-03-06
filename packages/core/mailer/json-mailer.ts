@@ -35,8 +35,8 @@ export class JsonMailer extends Mailer<Attachment> {
       logger.info(JSON.parse(msg.message), `Mock E-mail`);
 
       return true;
-    } catch (e) {
-      logger.error(e, `Error sending e-mail`);
+    } catch (error) {
+      logger.error(error, `Error sending e-mail`);
       return false;
     }
   }

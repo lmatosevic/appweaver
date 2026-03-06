@@ -12,7 +12,9 @@ import {
 import { context, inject, injectModel } from '../context';
 import { AuthUser, ResourceModel, Server } from '../types';
 
-type CacheEntry = {
+type FullRouteConfig = RouteConfig & RouteCacheConfig;
+
+export type CacheEntry = {
   statusCode: number;
   headers: Record<string, string | string[]>;
   payload: string;
@@ -71,27 +73,27 @@ export default fastifyPlugin((server: Server): void => {
   });
 });
 
-function getRouteConfig(req: FastifyRequest): RouteConfig & RouteCacheConfig {
-  return req.routeOptions.config as RouteConfig & RouteCacheConfig;
+function getRouteConfig(req: FastifyRequest): FullRouteConfig {
+  return req.routeOptions.config as FullRouteConfig;
 }
 
 function shouldUseCache(
   req: FastifyRequest,
-  config?: RouteCacheConfig
+  config: RouteCacheConfig
 ): boolean {
   return !!(
     (req.method === 'GET' || req.method === 'POST') &&
-    (config?.cacheTTL || config?.cacheKey || config?.cache) &&
-    config?.cache !== false
+    (config.cacheTTL || config.cacheKey || config.cache) &&
+    config.cache !== false
   );
 }
 
 function buildCacheKey(
   req: FastifyRequest,
-  config?: RouteCacheConfig,
+  config: RouteCacheConfig,
   user?: AuthUser
 ): string {
-  const cacheKey = config?.cacheKey;
+  const cacheKey = config.cacheKey;
   return isFunction(cacheKey)
     ? cacheKey(req, user)
     : cacheKey || resourceBasedCacheKey(req, config, user);
@@ -99,7 +101,7 @@ function buildCacheKey(
 
 function resourceBasedCacheKey(
   req: FastifyRequest,
-  config?: RouteCacheConfig,
+  config: RouteCacheConfig,
   user?: AuthUser
 ): string {
   const userPrefix = user ? user.id : '';
@@ -108,8 +110,8 @@ function resourceBasedCacheKey(
   // Extract model relations based on route cache config so they can be used to
   // evict cache entries when related data changes
   const allRelations: string[] = [];
-  if (config?.cacheRelations?.[0] === '*' || config?.cacheModelName) {
-    if (config?.cacheModelName) {
+  if (config.cacheRelations?.[0] === '*' || config.cacheModelName) {
+    if (config.cacheModelName) {
       // Add all relations from a specified model
       const model = injectModel(config.cacheModelName, false);
       if (model) {
@@ -123,7 +125,7 @@ function resourceBasedCacheKey(
         }
       }
     }
-  } else if (config?.cacheRelations && config.cacheRelations.length > 1) {
+  } else if (config.cacheRelations && config.cacheRelations.length > 1) {
     allRelations.push(...config.cacheRelations);
   }
 
