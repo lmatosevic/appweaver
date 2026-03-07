@@ -33,10 +33,6 @@ export type LoadResourcePaths = {
  * @param {string} [baseDir] - Optional base directory path from which to load the resources.
  *                              If not provided, defaults to the application's root directory.
  * @param {LoadResourcePaths} [paths={}] Path patterns for loading resources: models, services, policies, and routes.
- * @param {string} [paths.modelPattern] - Optional path pattern used for finding files that export resource models.
- * @param {string} [paths.servicePattern] - Optional path pattern used for finding files that export resource services.
- * @param {string} [paths.policyPattern] - Optional path pattern used for finding files that export resource policies.
- * @param {string} [paths.routePattern] - Optional path pattern used for finding files that export resource routes.
  * @return {Promise<ResourceContext>} A promise that resolves to an object containing
  * the loaded resources:
  *

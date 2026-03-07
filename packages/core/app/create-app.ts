@@ -32,10 +32,6 @@ export type CreateAppParams = {
  * Creates and initializes an application instance with the provided parameters.
  *
  * @param {CreateAppParams} [params={}] Configuration parameters for creating the application.
- * @param {boolean} [params.autoStart=true] Whether to automatically start the application server after creation.
- * @param {boolean} [params.autoLoadResources=true] Whether to automatically load resource models, routes, policies, and services.
- * @param {boolean} [params.autoLoadPlugins=true] Whether to automatically load application plugins.
- * @param {boolean} [params.autoLoadFeatures=true] Whether to automatically load application features.
  * @return {Promise<Application>} A promise that resolves to the initialized application instance.
  */
 export async function createApp(
