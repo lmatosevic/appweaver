@@ -56,6 +56,9 @@
     },
     "resource": {
       "modelPattern": "./src/resources/*/model.ts",
+      "servicePattern": "./src/resources/*/service.ts",
+      "policyPattern": "./src/resources/*/policy.ts",
+      "routePattern": "./src/resources/*/route.ts",
       "generatedTypesPath": "./src/types/generated.ts"
     },
     "export": {

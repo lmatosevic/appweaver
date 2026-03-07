@@ -68,6 +68,15 @@ const configSchema = Type.Object({
   RESOURCE_MODEL_PATTERN: Type.String({
     default: './src/resources/*/model.ts'
   }),
+  RESOURCE_SERVICE_PATTERN: Type.String({
+    default: './src/resources/*/service.ts'
+  }),
+  RESOURCE_POLICY_PATTERN: Type.String({
+    default: './src/resources/*/policy.ts'
+  }),
+  RESOURCE_ROUTE_PATTERN: Type.String({
+    default: './src/resources/*/route.ts'
+  }),
   RESOURCE_GENERATED_TYPES_PATH: Type.String({
     default: './src/types/generated.ts'
   }),

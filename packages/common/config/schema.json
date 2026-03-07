@@ -262,6 +262,18 @@
               "type": "string",
               "default": "./src/resources/*/model.ts"
             },
+            "servicePattern": {
+              "type": "string",
+              "default": "./src/resources/*/service.ts"
+            },
+            "policyPattern": {
+              "type": "string",
+              "default": "./src/resources/*/policy.ts"
+            },
+            "routePattern": {
+              "type": "string",
+              "default": "./src/resources/*/route.ts"
+            },
             "generatedTypesPath": {
               "type": "string",
               "default": "./src/types/generated.ts"

@@ -17,13 +17,13 @@ import {
 } from '../types';
 
 export type LoadResourcePaths = {
-  /** Path pattern used for finding files that export resource models (default: ./resources/**\\/*model.ts) */
+  /** Path pattern used for finding files that export resource models (default: ./src/resources/**\\/*model.ts) */
   modelPattern?: string;
-  /** Path pattern used for finding files that export resource models (default: ./resources/**\\/*service.ts) */
+  /** Path pattern used for finding files that export resource models (default: ./src/resources/**\\/*service.ts) */
   servicePattern?: string;
-  /** Path pattern used for finding files that export resource models (default: ./resources/**\\/*policy.ts) */
+  /** Path pattern used for finding files that export resource models (default: ./src/resources/**\\/*policy.ts) */
   policyPattern?: string;
-  /** Path pattern used for finding files that export resource models (default: ./resources/**\\/*route.ts) */
+  /** Path pattern used for finding files that export resource models (default: ./src/resources/**\\/*route.ts) */
   routePattern?: string;
 };
 
@@ -60,13 +60,14 @@ export async function loadResources(
 
 async function loadModels(
   baseDir?: string,
-  modelPattern: string = './resources/**/*model.ts'
+  modelPattern?: string
 ): Promise<Record<string, ResourceModel>> {
   const cwd = baseDir ?? process.cwd();
+  const pathPattern = modelPattern || config.RESOURCE_MODEL_PATTERN;
 
   const models: Record<string, ResourceModel> = {};
 
-  const modelPaths = await findAllFiles(modelPattern, cwd);
+  const modelPaths = await findAllFiles(pathPattern, cwd);
 
   // Add exported core module resource models
   modelPaths.push('@appweaver/core');
@@ -118,13 +119,14 @@ async function loadModels(
 
 async function loadServices(
   baseDir?: string,
-  servicePattern: string = './resources/**/*service.ts'
+  servicePattern?: string
 ): Promise<Record<string, IResourceService>> {
   const cwd = baseDir ?? process.cwd();
+  const pathPattern = servicePattern || config.RESOURCE_SERVICE_PATTERN;
 
   const services: Record<string, IResourceService> = {};
 
-  const servicePaths = await findAllFiles(servicePattern, cwd);
+  const servicePaths = await findAllFiles(pathPattern, cwd);
 
   for (const path of servicePaths) {
     const resourceService = await importPath<IResourceService>(path);
@@ -148,13 +150,14 @@ async function loadServices(
 
 async function loadPolicies(
   baseDir?: string,
-  policyPattern: string = './resources/**/*policy.ts'
+  policyPattern?: string
 ): Promise<Record<string, ResourcePolicyConfig>> {
   const cwd = baseDir ?? process.cwd();
+  const pathPattern = policyPattern || config.RESOURCE_POLICY_PATTERN;
 
   const policies: Record<string, ResourcePolicyConfig> = {};
 
-  const policyPaths = await findAllFiles(policyPattern, cwd);
+  const policyPaths = await findAllFiles(pathPattern, cwd);
 
   for (const path of policyPaths) {
     const resourcePolicy = await importPath<ResourcePolicyConfig>(path);
@@ -178,13 +181,14 @@ async function loadPolicies(
 
 async function loadRoutes(
   baseDir?: string,
-  routePattern: string = './resources/**/*route.ts'
+  routePattern?: string
 ): Promise<Record<string, ResourceRoutes>> {
   const cwd = baseDir ?? process.cwd();
+  const pathPattern = routePattern || config.RESOURCE_ROUTE_PATTERN;
 
   const routes: Record<string, ResourceRoutes> = {};
 
-  const routePaths = await findAllFiles(routePattern, cwd);
+  const routePaths = await findAllFiles(pathPattern, cwd);
 
   for (const path of routePaths) {
     const resourceRoute = await importPath<ResourceRoutes>(path);
@@ -208,7 +212,30 @@ async function loadRoutes(
 
 async function findAllFiles(pattern: string, cwd: string): Promise<string[]> {
   const jsPaths = pattern.replace(/\.ts$/i, '.js');
-  return glob(jsPaths, { cwd, absolute: true });
+  const strippedPattern = stripOverlappingPath(jsPaths, cwd);
+  return glob(strippedPattern, { cwd, absolute: true });
+}
+
+function stripOverlappingPath(pattern: string, cwd: string): string {
+  const normalize = (p: string): string => {
+    return p.replace(/\\/g, '/').replace(/^\.\//, '');
+  };
+
+  const patSeg = normalize(pattern).split('/').filter(Boolean);
+  const cwdSeg = normalize(cwd).split('/').filter(Boolean);
+
+  // find longest k where last k segments of cwd == first k segments of a pattern
+  let k = Math.min(cwdSeg.length, patSeg.length);
+  for (; k > 0; k--) {
+    const cwdTail = cwdSeg.slice(-k).join('/');
+    const patHead = patSeg.slice(0, k).join('/');
+    if (cwdTail === patHead) {
+      break;
+    }
+  }
+
+  const remaining = patSeg.slice(k).join('/');
+  return remaining ? `./${remaining}` : './';
 }
 
 async function importPath<T>(filePath: string): Promise<T | null> {
