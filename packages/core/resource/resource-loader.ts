@@ -1,4 +1,4 @@
-import { globSync } from 'glob';
+import { glob } from 'glob';
 import { TObject, TSchema, Type } from '@sinclair/typebox';
 import { config, logger, ResourcePolicyConfig } from '@appweaver/common';
 import {
@@ -16,11 +16,27 @@ import {
   ResourceRoutes
 } from '../types';
 
+export type LoadResourcePaths = {
+  /** Path pattern used for finding files that export resource models (default: ./resources/**\\/*model.ts) */
+  modelPattern?: string;
+  /** Path pattern used for finding files that export resource models (default: ./resources/**\\/*service.ts) */
+  servicePattern?: string;
+  /** Path pattern used for finding files that export resource models (default: ./resources/**\\/*policy.ts) */
+  policyPattern?: string;
+  /** Path pattern used for finding files that export resource models (default: ./resources/**\\/*route.ts) */
+  routePattern?: string;
+};
+
 /**
  * Loads application resources including models, services, policies, and routes.
  *
  * @param {string} [baseDir] - Optional base directory path from which to load the resources.
  *                              If not provided, defaults to the application's root directory.
+ * @param {LoadResourcePaths} [paths={}] Path patterns for loading resources: models, services, policies, and routes.
+ * @param {string} [paths.modelPattern] - Optional path pattern used for finding files that export resource models.
+ * @param {string} [paths.servicePattern] - Optional path pattern used for finding files that export resource services.
+ * @param {string} [paths.policyPattern] - Optional path pattern used for finding files that export resource policies.
+ * @param {string} [paths.routePattern] - Optional path pattern used for finding files that export resource routes.
  * @return {Promise<ResourceContext>} A promise that resolves to an object containing
  * the loaded resources:
  *
@@ -30,12 +46,13 @@ import {
  *         - `routes`: The application routes.
  */
 export async function loadResources(
-  baseDir?: string
+  baseDir?: string,
+  paths: LoadResourcePaths = {}
 ): Promise<ResourceContext> {
-  const models = await loadModels(baseDir);
-  const services = await loadServices(baseDir);
-  const policies = await loadPolicies(baseDir);
-  const routes = await loadRoutes(baseDir);
+  const models = await loadModels(baseDir, paths.modelPattern);
+  const services = await loadServices(baseDir, paths.servicePattern);
+  const policies = await loadPolicies(baseDir, paths.policyPattern);
+  const routes = await loadRoutes(baseDir, paths.routePattern);
 
   return {
     models: new Map(Object.entries(models)),
@@ -47,13 +64,13 @@ export async function loadResources(
 
 async function loadModels(
   baseDir?: string,
-  modelPattern: string = './resources/**/*model.js'
+  modelPattern: string = './resources/**/*model.ts'
 ): Promise<Record<string, ResourceModel>> {
   const cwd = baseDir ?? process.cwd();
 
   const models: Record<string, ResourceModel> = {};
 
-  const modelPaths = globSync(modelPattern, { cwd, absolute: true });
+  const modelPaths = await findAllFiles(modelPattern, cwd);
 
   // Add exported core module resource models
   modelPaths.push('@appweaver/core');
@@ -105,13 +122,13 @@ async function loadModels(
 
 async function loadServices(
   baseDir?: string,
-  servicePattern: string = './resources/**/*service.js'
+  servicePattern: string = './resources/**/*service.ts'
 ): Promise<Record<string, IResourceService>> {
   const cwd = baseDir ?? process.cwd();
 
   const services: Record<string, IResourceService> = {};
 
-  const servicePaths = globSync(servicePattern, { cwd, absolute: true });
+  const servicePaths = await findAllFiles(servicePattern, cwd);
 
   for (const path of servicePaths) {
     const resourceService = await importPath<IResourceService>(path);
@@ -135,13 +152,13 @@ async function loadServices(
 
 async function loadPolicies(
   baseDir?: string,
-  policyPattern: string = './resources/**/*policy.js'
+  policyPattern: string = './resources/**/*policy.ts'
 ): Promise<Record<string, ResourcePolicyConfig>> {
   const cwd = baseDir ?? process.cwd();
 
   const policies: Record<string, ResourcePolicyConfig> = {};
 
-  const policyPaths = globSync(policyPattern, { cwd, absolute: true });
+  const policyPaths = await findAllFiles(policyPattern, cwd);
 
   for (const path of policyPaths) {
     const resourcePolicy = await importPath<ResourcePolicyConfig>(path);
@@ -165,13 +182,13 @@ async function loadPolicies(
 
 async function loadRoutes(
   baseDir?: string,
-  routePattern: string = './resources/**/*route.js'
+  routePattern: string = './resources/**/*route.ts'
 ): Promise<Record<string, ResourceRoutes>> {
   const cwd = baseDir ?? process.cwd();
 
   const routes: Record<string, ResourceRoutes> = {};
 
-  const routePaths = globSync(routePattern, { cwd, absolute: true });
+  const routePaths = await findAllFiles(routePattern, cwd);
 
   for (const path of routePaths) {
     const resourceRoute = await importPath<ResourceRoutes>(path);
@@ -191,6 +208,11 @@ async function loadRoutes(
   }
 
   return routes;
+}
+
+async function findAllFiles(pattern: string, cwd: string): Promise<string[]> {
+  const jsPaths = pattern.replace(/\.ts$/i, '.js');
+  return glob(jsPaths, { cwd, absolute: true });
 }
 
 async function importPath<T>(filePath: string): Promise<T | null> {

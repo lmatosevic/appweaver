@@ -2,7 +2,7 @@ import path from 'node:path';
 import { config } from '@appweaver/common';
 import { context } from '../context';
 import { createServer } from '../server';
-import { loadResources } from '../resource';
+import { loadResources, LoadResourcePaths } from '../resource';
 import { loadDefinitions } from './load-definitions';
 import { loadModules } from './load-modules';
 import { Application } from './application';
@@ -15,6 +15,8 @@ export type CreateAppParams = {
   /** A boolean flag indicating whether the application should automatically
    * start after being created. (default: true) **/
   autoStart?: boolean;
+  /** An object containing the path patterns for loading resources from. */
+  resourcePaths?: LoadResourcePaths;
   /** A boolean flag indicating whether the application should automatically load
    * resources configured and exported using factory functions. (default: true) */
   autoLoadResources?: boolean;
@@ -30,8 +32,10 @@ export type CreateAppParams = {
  * Creates and initializes an application instance with the provided parameters.
  *
  * @param {CreateAppParams} [params={}] Configuration parameters for creating the application.
- * @param {boolean} [params.autoLoadResources=true] Whether to automatically load resource models, routes, policies, and services.
  * @param {boolean} [params.autoStart=true] Whether to automatically start the application server after creation.
+ * @param {boolean} [params.autoLoadResources=true] Whether to automatically load resource models, routes, policies, and services.
+ * @param {boolean} [params.autoLoadPlugins=true] Whether to automatically load application plugins.
+ * @param {boolean} [params.autoLoadFeatures=true] Whether to automatically load application features.
  * @return {Promise<Application>} A promise that resolves to the initialized application instance.
  */
 export async function createApp(
@@ -49,7 +53,7 @@ export async function createApp(
 
   // Load resource models, routes, policies and services
   if (params.autoLoadResources !== false) {
-    await loadResources(scanPath);
+    await loadResources(scanPath, params.resourcePaths);
   }
 
   // Load exported plugin files

@@ -2,7 +2,6 @@ import { randomUUID, createHash } from 'node:crypto';
 import { DefaultGenerationOptions, generateApiKey } from 'generate-api-key';
 import { getDayOfYear, getISOWeek } from 'date-fns';
 import { plural as pluralize, singular as singularize } from 'pluralize';
-import { isArray, isFunction, isObject } from './type-util';
 
 /**
  * Parses a string into an array of strings, splitting it by a specified delimiter.
