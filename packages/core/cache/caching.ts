@@ -4,6 +4,7 @@ import { isFunction, RouteCacheConfig, RouteConfig } from '@appweaver/common';
 import { CacheService } from './cache-service';
 import { inject } from '../context';
 import { AuthUser, Server } from '../types';
+import { requestContext } from '@fastify/request-context';
 
 type FullRouteConfig = RouteConfig & RouteCacheConfig;
 
@@ -27,15 +28,13 @@ export default fastifyPlugin((server: Server): void => {
     const user = config.public ? undefined : currentUser();
     const key = buildCacheKey(request, config, cacheService, user);
 
-    const exists = await cacheService.cache.has(key);
-    if (exists) {
-      const entry = await cacheService.cache.get<CacheEntry>(key);
-      if (entry) {
-        return reply
-          .code(entry.statusCode)
-          .headers(entry.headers)
-          .send(entry.payload);
-      }
+    const entry = await cacheService.getCachedValue<CacheEntry>(key);
+    if (entry) {
+      requestContext.set('cached', true);
+      return reply
+        .code(entry.statusCode)
+        .headers(entry.headers)
+        .send(entry.payload);
     }
   });
 
@@ -45,21 +44,22 @@ export default fastifyPlugin((server: Server): void => {
       return payload;
     }
 
-    if (reply.statusCode >= 200 && reply.statusCode < 300) {
+    if (
+      reply.statusCode >= 200 &&
+      reply.statusCode < 300 &&
+      !requestContext.get('cached')
+    ) {
       const user = config.public ? undefined : currentUser();
       const key = buildCacheKey(request, config, cacheService, user);
-      const exists = await cacheService.cache.has(key);
-      if (!exists) {
-        await cacheService.cache.set(
-          key,
-          {
-            statusCode: reply.statusCode,
-            headers: reply.getHeaders(),
-            payload
-          },
-          config.cacheTTL
-        );
-      }
+      await cacheService.addToCache(
+        key,
+        {
+          statusCode: reply.statusCode,
+          headers: reply.getHeaders(),
+          payload
+        },
+        config.cacheTTL
+      );
     }
 
     return payload;

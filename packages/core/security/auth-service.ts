@@ -28,14 +28,14 @@ export class AuthService {
         modelName: this._authUserService.modelName
       });
 
-      const exists = await this._cacheService.cache.has(cacheKey);
-      if (exists) {
-        return this._cacheService.cache.get(cacheKey);
+      const value = await this._cacheService.getCachedValue<AuthUser>(cacheKey);
+      if (value) {
+        return value;
       }
 
       const authUser = await findAuthAction;
 
-      await this._cacheService.cache.set(
+      await this._cacheService.addToCache(
         cacheKey,
         authUser,
         config.SECURITY_CACHE_TTL

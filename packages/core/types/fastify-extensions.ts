@@ -19,5 +19,6 @@ declare module '@fastify/request-context' {
   // Override request context data type.
   interface RequestContextData {
     authUser: AuthUser | null;
+    cached?: boolean;
   }
 }

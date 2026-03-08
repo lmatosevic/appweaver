@@ -121,7 +121,8 @@ export function createServer(): Server {
   // Register request context plugin with default values
   server.register(fastifyRequestContext, {
     defaultStoreValues: {
-      authUser: null
+      authUser: null,
+      cached: undefined
     }
   });
 

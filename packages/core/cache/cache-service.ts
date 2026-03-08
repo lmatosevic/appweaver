@@ -19,35 +19,100 @@ export class CacheService {
     return this._cache;
   }
 
+  /**
+   * Retrieves a cached value associated with the specified key.
+   *
+   * @param {string} key - The key used to look up the cached value.
+   * @return A promise that resolves to the cached value if the key exists, or null if the key is not found.
+   */
+  public async getCachedValue<T>(key: string): Promise<T | null> {
+    const exists = await this._cache.has(key);
+    if (exists) {
+      return this._cache.get<T>(key);
+    }
+    return null;
+  }
+
+  /**
+   * Adds a key-value pair to the cache if the key does not already exist.
+   * Optionally allows specifying a time-to-live (TTL) for the cached item.
+   *
+   * @param {string} key - The unique key to identify the value in the cache.
+   * @param {any} value - The value to store in the cache.
+   * @param {number} [ttl] - Optional time-to-live for the cache entry in seconds.
+   * @param {boolean} [replace=false] - Optional flag which indicates if the existing cache entry should be replaced
+   * with the new value and ttl.
+   * @return {Promise<boolean>} A promise that resolves to true if the key-value pair was added, or false if the key
+   * already exists.
+   */
+  public async addToCache(
+    key: string,
+    value: any,
+    ttl?: number,
+    replace: boolean = false
+  ): Promise<boolean> {
+    const exists = await this._cache.has(key);
+    if (exists && !replace) {
+      return false;
+    }
+    return this._cache.set(key, value, ttl);
+  }
+
+  /**
+   * Invalidates the cache for the specified model and action type based on the configured cache invalidation strategy.
+   *
+   * @param {string} modelName - The name of the model whose cache needs to be invalidated.
+   * @param {Extract<ActionType, 'create' | 'update' | 'delete'>} action - The action type that triggered the cache
+   * invalidation (e.g., 'create', 'update', or 'delete').
+   * @return {Promise<void>} Resolves when the cache invalidation process is completed.
+   */
   public async invalidateCache(
     modelName: string,
     action: Extract<ActionType, 'create' | 'update' | 'delete'>
   ): Promise<void> {
-    if (config.CACHE_ENABLED) {
-      logger.debug(`Expiring ${modelName} resource cache on ${action} action`);
+    if (!config.CACHE_ENABLED) {
+      return;
+    }
 
-      let invalidation: Promise<number> | undefined;
-      switch (config.CACHE_INVALIDATION_STRATEGY) {
-        case CacheInvalidationStrategy.ExpireRelated:
-          invalidation = this._cache.expire(`*!${modelName}!*:inv`);
-          break;
-        case CacheInvalidationStrategy.ExpireAll:
-          invalidation = this._cache.expire(`*:inv`);
-          break;
-      }
+    logger.debug(`Expiring ${modelName} resource cache on ${action} action`);
 
-      if (invalidation) {
-        if (config.CACHE_INVALIDATION_DEFERRED) {
-          void invalidation.catch((error) => {
-            logger.error(error, 'Cache invalidation error');
-          });
-        } else {
-          await invalidation;
-        }
+    let invalidation: Promise<number> | undefined;
+    switch (config.CACHE_INVALIDATION_STRATEGY) {
+      case CacheInvalidationStrategy.ExpireRelated:
+        invalidation = this._cache.expire(`*!${modelName}!*:inv`);
+        break;
+      case CacheInvalidationStrategy.ExpireAll:
+        invalidation = this._cache.expire(`*:inv`);
+        break;
+    }
+
+    if (invalidation) {
+      if (config.CACHE_INVALIDATION_DEFERRED) {
+        void invalidation.catch((error) => {
+          logger.error(error, 'Cache invalidation error');
+        });
+      } else {
+        await invalidation;
       }
     }
   }
 
+  /**
+   * Builds a unique cache key based on the provided input parameters. The key is constructed
+   * using properties such as the base key, HTTP method, URL, request body, model name, and any
+   * associated relations. It also includes optional user-specific data and cache invalidation settings.
+   *
+   * @param {Object} data Input data for constructing the cache key.
+   * @param {string} data.baseKey The base key that serves as the starting point of the cache key.
+   * @param {string} [data.method] The HTTP method (e.g., GET, POST) associated with the key.
+   * @param {string} [data.url] The URL associated with the request.
+   * @param {string} [data.body] The stringified request body, which will be hashed if present.
+   * @param {string} [data.modelName] The name of the model to associate with the cache key.
+   * @param {string[]} [data.relations] A list of related model names to associate with the cache key.
+   * @param {boolean} [data.skipInvalidation] Whether to skip invalidation logic for this cache key.
+   * @param {AuthUser} [data.authUser] The authenticated user information, if applicable, to create user-specific keys.
+   * @return {string} The generated cache key string.
+   */
   public buildCacheKey(data: {
     baseKey: string;
     method?: string;
