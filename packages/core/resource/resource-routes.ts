@@ -182,7 +182,7 @@ export function resourceRoutes(
         async (request, reply) => {
           const { sort, ...body } = request.body as any;
           const response = await inject(ExportService).exportCsv(
-            service,
+            name,
             body.filter,
             sort
           );

@@ -2,19 +2,21 @@ import { Readable } from 'node:stream';
 import {
   HealthCheckConfig,
   HealthCheckResult,
-  IHealthCheck
+  IHealthCheck,
+  OnInit
 } from '../interfaces';
-import { HEALTH_CHECK } from '../constants';
+import { HEALTH_CHECK, LIFECYCLE } from '../constants';
 
 export type ContentStream = {
   stream: Readable;
   size: number;
 };
 
-export abstract class Storage implements IHealthCheck {
+export abstract class Storage implements IHealthCheck, OnInit {
+  static [LIFECYCLE]: true;
   static [HEALTH_CHECK] = true;
 
-  abstract init(): Promise<void>;
+  abstract onInit(): Promise<void>;
 
   abstract stream(
     fileName: string,

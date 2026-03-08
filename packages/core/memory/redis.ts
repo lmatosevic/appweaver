@@ -20,6 +20,14 @@ export class Redis extends CommonRedis<RedisOptions, RedisClient> {
     this._client = this.createClient({ lazyConnect: true });
   }
 
+  public async onInit(): Promise<void> {
+    await this.connect();
+  }
+
+  public async onDestroy(): Promise<void> {
+    await this.disconnect();
+  }
+
   public createClient(options: RedisOptions = {}): RedisClient {
     return new RedisClient({
       ...this._options,

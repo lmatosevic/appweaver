@@ -2,6 +2,7 @@ import Fastify, { RouteOptions } from 'fastify';
 import { TObject } from '@sinclair/typebox';
 import {
   isArray,
+  logger,
   objectHasProperty,
   RouteCacheConfig,
   RouteConfig
@@ -68,15 +69,22 @@ export function registerRoute(
             ...AllErrorResponses
           }
         },
-        preHandler: [
+        onRequest: [
           config?.public ? undefined : auth(config?.auth ?? [authenticateJWT]),
-          ...(isArray(route.preHandler) ? route.preHandler : [route.preHandler])
+          ...(isArray(route.onRequest) ? route.onRequest : [route.onRequest])
         ].filter((h) => h !== undefined),
         config: {
           ...config,
           ...route.config
         }
       };
+
+      for (const route of routes) {
+        logger.debug(
+          { method: route.method, url: route.url },
+          'Registered route'
+        );
+      }
 
       server.route(mergedRoute);
     }

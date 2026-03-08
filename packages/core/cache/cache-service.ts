@@ -15,6 +15,11 @@ export class CacheService {
   /** @internal */
   private readonly _cache = inject(Cache);
 
+  /**
+   * Retrieves the cache instance associated with this service.
+   *
+   * @return {Cache} The current cache instance.
+   */
   get cache(): Cache {
     return this._cache;
   }
@@ -28,6 +33,7 @@ export class CacheService {
   public async getCachedValue<T>(key: string): Promise<T | null> {
     const exists = await this._cache.has(key);
     if (exists) {
+      logger.debug({ key }, 'Retrieved cached value');
       return this._cache.get<T>(key);
     }
     return null;
@@ -55,6 +61,7 @@ export class CacheService {
     if (exists && !replace) {
       return false;
     }
+    logger.debug({ key, ttl, replace }, 'Added value to cache');
     return this._cache.set(key, value, ttl);
   }
 
@@ -74,10 +81,15 @@ export class CacheService {
       return;
     }
 
-    logger.debug(`Expiring ${modelName} resource cache on ${action} action`);
+    const strategy = config.CACHE_INVALIDATION_STRATEGY;
+
+    logger.debug(
+      { modelName, action, strategy },
+      `Invalidating resource cache`
+    );
 
     let invalidation: Promise<number> | undefined;
-    switch (config.CACHE_INVALIDATION_STRATEGY) {
+    switch (strategy) {
       case CacheInvalidationStrategy.ExpireRelated:
         invalidation = this._cache.expire(`*!${modelName}!*:inv`);
         break;

@@ -1,4 +1,5 @@
 import fastifyPlugin from 'fastify-plugin';
+import { logger } from '@appweaver/common';
 import { define } from '../context';
 import { PLUGIN } from '../constants';
 import { Server } from '../types';
@@ -8,5 +9,7 @@ export function registerPlugin(
   plugin: (server: Server) => void,
   dependencies: string[] = []
 ): void {
+  logger.debug({ plugin: name, dependencies }, 'Registered plugin');
+
   define(fastifyPlugin(plugin, { name, dependencies }), PLUGIN, 'append');
 }

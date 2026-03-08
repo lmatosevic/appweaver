@@ -7,6 +7,7 @@ import {
   generateToken,
   isArray,
   isFunction,
+  logger,
   Storage
 } from '@appweaver/common';
 import { inject, injectModel, injectPolicy, injectService } from '../context';
@@ -35,6 +36,13 @@ export class FileService {
   /** @internal */
   private readonly _storage = inject(Storage);
 
+  /**
+   * Searches for a file by its name from a database.
+   *
+   * @param {string} fileName - The name of the file to search for.
+   * @return {Promise<File>} A promise that resolves to the file object if found.
+   * @throws {HttpError} Throws an error if a database error occurs or if the file is not found.
+   */
   public async findByName(fileName: string): Promise<File> {
     let file: File | null;
 
@@ -53,6 +61,17 @@ export class FileService {
     return file;
   }
 
+  /**
+   * Streams a file from storage, handling authorization and range-based requests.
+   *
+   * @param {string} fileName - The name of the file to stream.
+   * @param {string} [range] - An optional range header specifying the byte range to stream.
+   * @return {Promise<FileStream>} A promise that resolves to a file stream object containing the content, metadata, and
+   * range details.
+   * @throws {HttpError} Throws a 404 error if the file does not exist.
+   * @throws {HttpError} Throws a 403 error if user access to the file is forbidden.
+   * @throws {HttpError} Throws a 500 error if an error occurs while reading the file from storage.
+   */
   public async stream(fileName: string, range?: string): Promise<FileStream> {
     const identity = currentAuthUser();
 
@@ -106,6 +125,16 @@ export class FileService {
     };
   }
 
+  /**
+   * Saves a file to storage, validates its properties, and associates it with a specific resource and client.
+   *
+   * @param {MultipartFile} data The multipart file object containing the file data, field name, filename, and metadata.
+   * @param {Resource} resource The resource object with which the file is being associated.
+   * @param {ResourceClient} client The database client responsible for handling the resource.
+   * @return {Promise<File>} A promise that resolves to the saved file object or rejects with an error if the operation
+   * fails.
+   * @throws {HttpError} Throws an error if file validation, storage, or resource association fails.
+   */
   public async saveFile(
     data: MultipartFile,
     resource: Resource,
@@ -248,6 +277,8 @@ export class FileService {
         );
       }
 
+      logger.debug({ file }, 'File saved');
+
       return file;
     } catch (e) {
       await this.deleteSafe(fileName);
@@ -255,6 +286,18 @@ export class FileService {
     }
   }
 
+  /**
+   * Saves files received as an asynchronous iterable of multipart data.
+   *
+   * @param {AsyncIterableIterator<Multipart>} parts - The asynchronous iterable providing multipart data where each
+   * part is expected to represent a file or other data.
+   * @param {Resource} resource - The resource associated with the files being saved, providing additional contextual
+   * information.
+   * @param {ResourceClient} client - The database client responsible for handling resource-related operations, such as
+   * database interaction.
+   * @return {Promise<File[]>} A promise that resolves to an array of successfully saved files. Rejects with an error
+   * if one or more files fail to save.
+   */
   public async saveFiles(
     parts: AsyncIterableIterator<Multipart>,
     resource: Resource,
@@ -290,6 +333,19 @@ export class FileService {
     return savedFiles;
   }
 
+  /**
+   * Deletes a file from the storage and database if it meets the specified conditions.
+   *
+   * @param {string} fileName - The name of the file to be deleted.
+   * @param {string} fieldName - The field associated with the resource to which the file belongs.
+   * @param {Resource} resource - The resource that the file is associated with.
+   * @param {ResourceClient} client - The client instance representing the resource's type.
+   * @return {Promise<File>} A promise that resolves with the deleted file information upon successful deletion.
+   * @throws {HttpError} If the file is not associated with the provided resource or client,
+   *                     if the current user does not have permission to delete the file,
+   *                     if there is an error removing the file from storage,
+   *                     or if there is an error deleting the file from the database.
+   */
   public async deleteFile(
     fileName: string,
     fieldName: string,
@@ -325,14 +381,28 @@ export class FileService {
     }
 
     try {
-      return (await this._db.client().file.delete({
+      const deletedFile = (await this._db.client().file.delete({
         where: { name: fileName }
       })) as File;
+
+      logger.debug({ deletedFile }, 'File deleted');
+
+      return deletedFile;
     } catch (e) {
       throw new HttpError(`File delete error`, 500, e);
     }
   }
 
+  /**
+   * Deletes a list of files associated with a given resource using the provided resource client.
+   *
+   * @param {Record<string, string | string[]>} fileNames - An object where the keys correspond to file fields and the
+   * values are either a string (single file name) or an array of file names to be deleted.
+   * @param {Resource} resource - The resource instance associated with the files to be deleted.
+   * @param {ResourceClient} client - The resource client used to handle deletion operations.
+   * @return {Promise<File[]>} A promise that resolves to an array of files that were successfully deleted. Rejects with
+   * an error if no files could be deleted.
+   */
   public async deleteFiles(
     fileNames: Record<string, string | string[]>,
     resource: Resource,

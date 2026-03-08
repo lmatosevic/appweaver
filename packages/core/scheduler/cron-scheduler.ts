@@ -5,6 +5,10 @@ export class CronScheduler extends Scheduler<CronJob, CronJobParams> {
   /** @internal */
   private readonly _jobs: Record<string, CronJob> = {};
 
+  public async onDestroy(): Promise<void> {
+    await this.stopAll();
+  }
+
   public startAll(): void {
     for (const job of Object.values(this._jobs)) {
       if (!job.isActive) {

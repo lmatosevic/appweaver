@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { capitalize, ResourceRoutesConfig } from '@appweaver/common';
+import { capitalize, logger, ResourceRoutesConfig } from '@appweaver/common';
 import { define } from '../context';
 import { resourceRoutes } from '../resource';
 import { ResourceRoutes } from '../types';
@@ -20,6 +20,8 @@ export function createRoutes(config: ResourceRoutesConfig): ResourceRoutes {
 
   routeData[RESOURCE_NAME] = name;
   routeData[RESOURCE_TYPE] = RESOURCE_ROUTES_TYPE;
+
+  logger.debug({ modelName: config.modelName }, 'Created resource routes');
 
   define(routeData);
 

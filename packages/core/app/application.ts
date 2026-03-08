@@ -1,27 +1,23 @@
 import {
-  Cache,
   config,
-  Database,
-  Memory,
-  Queue,
-  Redis,
-  Scheduler,
-  Storage
+  isLifecycleDestroy,
+  isLifecycleInit,
+  OnDestroy,
+  OnInit
 } from '@appweaver/common';
-import { context, inject } from '../context';
+import { context, injectAllWhere } from '../context';
 import { Server } from '../types';
 
 /**
  * Represents an application that manages the lifecycle of a server and database.
  */
 export class Application {
-  private readonly _db: Database = inject(Database);
-  private readonly _storage: Storage = inject(Storage);
-  private readonly _cache: Cache = inject(Cache);
-  private readonly _memory?: Memory = inject(Memory, false);
-  private readonly _redis?: Redis = inject(Redis, false);
-  private readonly _queue?: Queue = inject(Queue, false);
-  private readonly _scheduler?: Scheduler = inject(Scheduler, false);
+  private readonly _onInitServices = injectAllWhere<OnInit>((def) =>
+    isLifecycleInit(def.value)
+  );
+  private readonly _onDestroyServices = injectAllWhere<OnDestroy>((def) =>
+    isLifecycleDestroy(def.value)
+  );
 
   constructor(private readonly _server: Server) {}
 
@@ -35,11 +31,10 @@ export class Application {
   }
 
   /**
-   * Starts the application by initializing the server and connecting to the database.
-   * This process includes logging the environment in which the application is running,
-   * establishing a database connection, initializing storage and cache, freezing the
-   * application context to prevent further changes, and starting a server to listen for
-   * incoming requests.
+   * Starts the application by initializing the server and calls onInit lifecycle methods for
+   * services that implement the `OnInit` interface. This process also includes logging the environment
+   * in which the application is running, freezing the application context to prevent further changes,
+   * and starting a server to listen for incoming requests.
    *
    * @return {Promise<string>} A promise that resolves to a string denoting the server URL on a successful start.
    */
@@ -48,11 +43,9 @@ export class Application {
       `Application started in "${config.APP_ENV}" environment`
     );
 
-    await this._db.connect();
-    await this._storage.init();
-    await this._cache.init();
-    await this._memory?.connect();
-    await this._redis?.connect();
+    await Promise.all([
+      ...this._onInitServices.map((service) => service.onInit())
+    ]);
 
     Object.freeze(context);
 
@@ -63,17 +56,16 @@ export class Application {
   }
 
   /**
-   * Stops the server by closing all active connections and releasing resources.
+   * Stops the server by closing all active connections and releasing resources by calling onDestroy lifecycle
+   * methods for services that implement the `OnDestroy` interface.
    * This method should be called to gracefully shut down the server.
    *
    * @return {Promise<void>} A promise that resolves when the server has been successfully stopped.
    */
   public async stop(): Promise<void> {
-    await this._db.disconnect();
-    await this._redis?.disconnect();
-    await this._memory?.disconnect();
-    await this._queue?.closeAll();
-    await this._scheduler?.stopAll();
+    await Promise.all([
+      ...this._onDestroyServices.map((service) => service.onDestroy())
+    ]);
     await this._server.close();
   }
 

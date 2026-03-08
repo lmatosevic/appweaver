@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { capitalize, ResourcePolicyConfig } from '@appweaver/common';
+import { capitalize, logger, ResourcePolicyConfig } from '@appweaver/common';
 import { define } from '../context';
 import {
   RESOURCE_NAME,
@@ -14,6 +14,8 @@ export function createPolicy(
     config.modelName || path.basename(path.dirname(__dirname))
   );
   config[RESOURCE_TYPE] = RESOURCE_POLICY_TYPE;
+
+  logger.debug({ modelName: config.modelName }, 'Created resource policy');
 
   define(config);
 

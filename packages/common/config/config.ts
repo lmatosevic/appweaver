@@ -176,11 +176,14 @@ const configSchema = Type.Object({
   SYSTEM_ADMIN_INITIAL_PASSWORD: Type.Optional(Type.String())
 });
 
-const envConfig = loadConfigFromEnv(configSchema);
-const filesConfig = loadConfigFromFiles(configSchema);
+const { config: envConfig, files: envFiles } = loadConfigFromEnv(configSchema);
+const { config: jsonConfig, files: jsonFiles } =
+  loadConfigFromFiles(configSchema);
 
-const config = Value.Parse(configSchema, { ...filesConfig, ...envConfig });
+const config = Value.Parse(configSchema, { ...jsonConfig, ...envConfig });
+
+const files = envFiles.concat(jsonFiles);
 
 Object.freeze(config);
 
-export { config };
+export { config, files };

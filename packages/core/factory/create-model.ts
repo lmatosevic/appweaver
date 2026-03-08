@@ -8,6 +8,7 @@ import {
   IdField,
   InputType,
   isObject,
+  logger,
   Nullable,
   OperationConfig,
   OutputType,
@@ -123,6 +124,8 @@ export function createModel(config: ResourceModelConfig): ResourceModel {
 
   resourceModel[RESOURCE_NAME] = name;
   resourceModel[RESOURCE_TYPE] = RESOURCE_MODEL_TYPE;
+
+  logger.debug({ modelName: name }, 'Created resource model');
 
   define(resourceModel);
 

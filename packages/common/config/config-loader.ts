@@ -5,30 +5,41 @@ import { TObject } from '@sinclair/typebox';
 import { camelToSnakeCase, isObject, parseArray } from '../utils';
 import { CONFIG_NAME } from '../constants';
 
+export type ConfigLoad = {
+  config: Record<string, string | string[]>;
+  files: string[];
+};
+
 /**
  * Loads configuration values from the environment variables based on the provided schema object.
  * Supports parsing environment variables into scalar or array values as defined in the schema.
  * Automatically handles loading of `.env` files (default and environment-specific).
  *
- * @param {TObject} schema The schema object that defines the expected structure and mapping of configuration properties.
- *                         Each property in the schema should include `type`, `mapFrom`, and optionally `default` definitions.
- * @return {Record<string, string | string[]>} An object containing the configuration values mapped according to the schema.
- *                                             Values can be strings or arrays based on the schema specifications.
+ * @param {TObject} schema The schema object that defines the expected structure and mapping of configuration
+ * properties. Each property in the schema should include `type`, `mapFrom`, and optionally `default` definitions.
+ * @return {ConfigLoad} An object containing the configuration values mapped according to the schema and list of files
+ * from which environment variables are loaded. Values can be strings or arrays based on the schema specifications.
  */
-export function loadConfigFromEnv(
-  schema: TObject
-): Record<string, string | string[]> {
+export function loadConfigFromEnv(schema: TObject): ConfigLoad {
   const config = {};
+  const files: string[] = [];
 
   // Load variables from the default .env file.
-  dotenvConfig({ quiet: true });
+  if (!dotenvConfig({ quiet: true }).error) {
+    files.push('.env');
+  }
 
   // Load and override variables from the environment-specific .env.* file.
-  dotenvConfig({
-    path: `.env.${process.env.NODE_ENV}`,
-    override: true,
-    quiet: true
-  });
+  const envFilePath = `.env.${process.env.NODE_ENV}`;
+  if (
+    !dotenvConfig({
+      path: envFilePath,
+      override: true,
+      quiet: true
+    })
+  ) {
+    files.push(envFilePath);
+  }
 
   const variables = Object.entries({ ...process.env });
 
@@ -57,25 +68,38 @@ export function loadConfigFromEnv(
     }
   }
 
-  return config;
+  return { config, files };
 }
 
 /**
  * Loads configuration from multiple JSON files based on the provided schema.
  *
  * @param {TObject} schema - The schema used to validate and parse the configuration files.
- * @return {Record<string, string | string[]>} An object containing the merged configuration data
- *                                             from the global and environment-specific files.
+ * @return {ConfigLoad} An object containing the merged configuration data from the global
+ * and environment-specific JSON configuration files. Also, the list of files from which
+ * configuration was loaded.
  */
-export function loadConfigFromFiles(
-  schema: TObject
-): Record<string, string | string[]> {
-  const globalConfig = loadConfigFromFile(schema, `./${CONFIG_NAME}.json`);
-  const envConfig = loadConfigFromFile(
-    schema,
-    `./${CONFIG_NAME}.${process.env.NODE_ENV}.json`
-  );
-  return { ...globalConfig, ...envConfig };
+export function loadConfigFromFiles(schema: TObject): ConfigLoad {
+  const files: string[] = [];
+
+  // Load config from the global JSON file
+  const globalConfigPath = `./${CONFIG_NAME}.json`;
+  const globalConfig = loadConfigFromFile(schema, globalConfigPath);
+  if (globalConfig) {
+    files.push(globalConfigPath);
+  }
+
+  // Load config from the environment-specific JSON file
+  const envConfigPath = `./${CONFIG_NAME}.${process.env.NODE_ENV}.json`;
+  const envConfig = loadConfigFromFile(schema, envConfigPath);
+  if (envConfig) {
+    files.push(envConfigPath);
+  }
+
+  // Merge both configs to a single object
+  const config = { ...(globalConfig ?? {}), ...(envConfig ?? {}) };
+
+  return { config, files };
 }
 
 /**
@@ -83,18 +107,19 @@ export function loadConfigFromFiles(
  *
  * @param {TObject} schema - The schema to validate the configuration data against.
  * @param {string} filePath - The path to the configuration file.
- * @return {Record<string, string | string[]>} A record containing the validated configuration data.
- * Invalid or unspecified properties are omitted from the result.
+ * @return {Record<string, string | string[]> | null} A record containing the validated configuration data.
+ * Invalid or unspecified properties are omitted from the result. If the file path does not exist,
+ * then the `null` value is returned.
  */
 export function loadConfigFromFile(
   schema: TObject,
   filePath: string
-): Record<string, string | string[]> {
+): Record<string, string | string[]> | null {
   const config = {};
 
   const absoluteFilePath = path.resolve(filePath);
   if (!fs.existsSync(absoluteFilePath)) {
-    return config;
+    return null;
   }
 
   const rawData = fs.readFileSync(absoluteFilePath, 'utf8');

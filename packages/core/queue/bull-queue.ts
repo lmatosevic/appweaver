@@ -29,6 +29,10 @@ export class BullQueue extends CommonQueue {
   /** @internal */
   private readonly _queues: Record<string, BullQueueProcessor> = {};
 
+  public async onDestroy(): Promise<void> {
+    await this.closeAll();
+  }
+
   public get<Data = any, Response = any>(
     name: string
   ): BullQueueProcessor<Data, Response> {

@@ -6,6 +6,7 @@ import {
   capitalize,
   isFunction,
   isObject,
+  logger,
   QueryResponse,
   ResourceServiceConfig
 } from '@appweaver/common';
@@ -176,6 +177,8 @@ export function createService(config: ResourceServiceConfig): ResourceService {
 
   resourceService[RESOURCE_NAME] = name;
   resourceService[RESOURCE_TYPE] = RESOURCE_SERVICE_TYPE;
+
+  logger.debug({ modelName: config.modelName }, 'Created resource service');
 
   define(resourceService);
 

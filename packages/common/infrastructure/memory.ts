@@ -1,12 +1,19 @@
 import {
   HealthCheckConfig,
   HealthCheckResult,
-  IHealthCheck
+  IHealthCheck,
+  OnDestroy,
+  OnInit
 } from '../interfaces';
-import { HEALTH_CHECK } from '../constants';
+import { HEALTH_CHECK, LIFECYCLE } from '../constants';
 
-export abstract class Memory implements IHealthCheck {
+export abstract class Memory implements IHealthCheck, OnInit, OnDestroy {
+  static [LIFECYCLE]: true;
   static [HEALTH_CHECK] = true;
+
+  abstract onInit(): Promise<void>;
+
+  abstract onDestroy(): Promise<void>;
 
   abstract connect(): Promise<void>;
 

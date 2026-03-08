@@ -10,9 +10,8 @@ import {
   logger,
   plural
 } from '@appweaver/common';
-import { injectModel } from '../context';
+import { injectModel, injectService } from '../context';
 import { HttpError } from '../errors';
-import { IResourceService } from '../types';
 import {
   extractResourceName,
   extractSchemaProperties,
@@ -28,11 +27,23 @@ export type ExportStream = {
 };
 
 export class ExportService {
+  /**
+   * Exports data as a CSV stream based on the provided filter and sort parameters.
+   * The method retrieves the data in batches and streams it in CSV format.
+   *
+   * @param {string} modelName - The resource name for which to export data.
+   * @param {any} [filter={}] - The filter conditions to apply when retrieving the data. Default is an empty object.
+   * @param {string} [sort='-createdAt,id'] - The sorting criteria for the data. Default is `-createdAt, id`.
+   * @return {Promise<ExportStream>} A promise resolving to the export stream object, which includes the readable
+   * stream, MIME type, and file name for the CSV.
+   */
   public async exportCsv(
-    service: IResourceService,
+    modelName: string,
     filter: any = {},
     sort: string = '-createdAt,id'
   ): Promise<ExportStream> {
+    const service = injectService(modelName);
+
     let exportStream: Readable;
     try {
       // Initial query is also useful to expose any errors before stream start.
@@ -42,8 +53,7 @@ export class ExportService {
       const batchSize = config.EXPORT_BATCH_SIZE;
       let page = 0;
 
-      const mapValues = (items: any[]) =>
-        this.mapProperties(service.modelName, items);
+      const mapValues = (items: any[]) => this.mapProperties(modelName, items);
 
       exportStream = new Readable({
         async read() {
@@ -58,7 +68,7 @@ export class ExportService {
               );
             }
           } catch (e) {
-            logger.error(e, `${service.modelName} export error`);
+            logger.error(e, `${modelName} export error`);
             this.push(null);
             return;
           }
@@ -73,10 +83,12 @@ export class ExportService {
         exportStream.push(`SEP=${config.EXPORT_CSV_DELIMITER}\n`);
       }
     } catch (e) {
-      throw new HttpError(`${service.modelName} export error`, 500, e);
+      throw new HttpError(`${modelName} export error`, 500, e);
     }
 
-    const fileName = this.generateExportFileName(service.modelName, 'csv');
+    const fileName = this.generateExportFileName(modelName, 'csv');
+
+    logger.debug({ modelName, filter, fileName }, 'CSV File export');
 
     return { stream: exportStream, mimeType: 'text/csv', fileName };
   }
@@ -99,10 +111,10 @@ export class ExportService {
     parentKey: string = ''
   ): any {
     const resourceModel = injectModel(resourceName);
-    const readModel = resourceModel?.readModel;
-    const relationsModel = resourceModel?.relationsModel;
-    const filesModel = resourceModel?.filesModel;
-    const exportConfig = resourceExportConfig ?? resourceModel?.config.export;
+    const readModel = resourceModel.readModel;
+    const relationsModel = resourceModel.relationsModel;
+    const filesModel = resourceModel.filesModel;
+    const exportConfig = resourceExportConfig ?? resourceModel.config.export;
 
     const property = {};
 

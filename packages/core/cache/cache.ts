@@ -15,7 +15,7 @@ export abstract class Cache extends CommonCache {
     super();
   }
 
-  public async init(): Promise<void> {
+  public async onInit(): Promise<void> {
     if (config.CACHE_ENABLED && config.CACHE_CLEAN_START) {
       await this.expire();
     }

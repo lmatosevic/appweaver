@@ -8,7 +8,7 @@ import {
 import pretty from 'pino-pretty';
 import { createStream } from 'rotating-file-stream';
 import { LogLevel } from '../enums';
-import { config } from '../config';
+import { config, files } from '../config';
 
 const level = config.LOG_LEVEL;
 
@@ -58,5 +58,7 @@ const loggerConfig =
   level !== LogLevel.Silent ? { ...commonConfig, stream } : false;
 
 const logger = pino(commonConfig, stream);
+
+logger.debug({ files }, 'Configuration loaded');
 
 export { loggerConfig, logger };

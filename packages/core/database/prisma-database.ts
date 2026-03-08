@@ -11,6 +11,14 @@ export class PrismaDatabase extends Database {
   /** @internal */
   private _client: PrismaClient | undefined;
 
+  public async onInit(): Promise<void> {
+    await this.connect();
+  }
+
+  public async onDestroy(): Promise<void> {
+    await this.disconnect();
+  }
+
   public async connect(): Promise<void> {
     await this.client().$connect();
   }

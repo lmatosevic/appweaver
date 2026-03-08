@@ -15,7 +15,7 @@ export class FilesystemStorage extends Storage {
   /** @internal */
   private readonly _dirPath: string = config.STORAGE_PATH;
 
-  public async init(): Promise<void> {
+  public async onInit(): Promise<void> {
     const directoryExists = await this.exists('');
     if (!directoryExists) {
       await fsp.mkdir(this._dirPath, { recursive: true });

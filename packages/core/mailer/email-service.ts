@@ -13,7 +13,13 @@ export class EmailService {
     this._mailQueue.onFailed(this.onEmailError.bind(this));
   }
 
-  public async sendEmail(email: Email) {
+  /**
+   * Sends an email by adding it to the mail queue for processing.
+   *
+   * @param {Email} email - The email object containing the details of the email to be sent.
+   * @return A promise that resolves when the email is successfully added to the queue.
+   */
+  public async sendEmail(email: Email): Promise<void> {
     await this._mailQueue.sendJob(email);
   }
 

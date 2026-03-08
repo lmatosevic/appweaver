@@ -20,7 +20,7 @@ import { DefinitionClass } from '../types';
 /**
  * Loads and registers the core and infrastructure service definitions.
  * This method initializes and sets up various service components, such as the
- * database, queue system, mailer, storage, and authentication services, among others.
+ * database, cache, queue system, mailer, storage, and authentication services, among others.
  *
  * @param {string} baseDir - The base directory containing the module files.
  */

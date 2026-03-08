@@ -49,6 +49,10 @@ export class MemoryQueue extends CommonQueue {
   /** @internal */
   private readonly _queues: Record<string, MemoryQueueProcessor> = {};
 
+  public async onDestroy(): Promise<void> {
+    await this.closeAll();
+  }
+
   public get<Data = any, Response = any>(
     name: string
   ): MemoryQueueProcessor<Data, Response> {

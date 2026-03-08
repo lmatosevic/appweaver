@@ -1,9 +1,11 @@
 import {
-  IHealthCheck,
+  HealthCheckConfig,
   HealthCheckResult,
-  HealthCheckConfig
+  IHealthCheck,
+  OnDestroy,
+  OnInit
 } from '../interfaces';
-import { HEALTH_CHECK } from '../constants';
+import { HEALTH_CHECK, LIFECYCLE } from '../constants';
 
 export type QueueHandlerResponse<T = void> = Promise<T> | T;
 
@@ -18,8 +20,11 @@ export type QueueJob<T = any, R = any> = {
   returnvalue: R;
 };
 
-export abstract class Queue implements IHealthCheck {
+export abstract class Queue implements IHealthCheck, OnDestroy {
+  static [LIFECYCLE]: true;
   static [HEALTH_CHECK] = true;
+
+  abstract onDestroy(): Promise<void>;
 
   abstract get<Data = any, Response = any>(
     name: string

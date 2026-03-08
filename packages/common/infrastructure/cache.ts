@@ -1,3 +1,6 @@
+import { OnInit } from '../interfaces';
+import { LIFECYCLE } from '../constants';
+
 export type CacheEntryMeta = {
   key: string;
   usedCount: number;
@@ -6,8 +9,10 @@ export type CacheEntryMeta = {
   expiresAt?: number;
 };
 
-export abstract class Cache {
-  abstract init(): Promise<void>;
+export abstract class Cache implements OnInit {
+  static [LIFECYCLE]: true;
+
+  abstract onInit(): Promise<void>;
 
   abstract get<T>(key: string): Promise<T | null>;
 

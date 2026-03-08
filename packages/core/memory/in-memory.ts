@@ -20,6 +20,14 @@ export class InMemory extends Memory {
   /** @internal */
   private _approximatedSize: number = 0;
 
+  public async onInit(): Promise<void> {
+    await this.connect();
+  }
+
+  public async onDestroy(): Promise<void> {
+    await this.disconnect();
+  }
+
   public async connect(): Promise<void> {
     // no-op
   }
