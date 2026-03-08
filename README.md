@@ -11,8 +11,11 @@ Project requirements:
 
 Optional:
 
-* SQLite >= 3
-* PostgreSQL >= 15
+* SQL database:
+    * SQLite >= 3
+    * PostgreSQL >= 15
+    * MariaDB >= 10
+    * SQL Server >= 2022
 * Redis >= 5
 
 ## License
