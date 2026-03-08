@@ -1,16 +1,9 @@
 import { FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import { stringify } from 'flatted';
-import {
-  Cache,
-  isFunction,
-  makeHash,
-  RelationOutput,
-  RouteCacheConfig,
-  RouteConfig
-} from '@appweaver/common';
-import { context, inject, injectModel } from '../context';
-import { AuthUser, ResourceModel, Server } from '../types';
+import { isFunction, RouteCacheConfig, RouteConfig } from '@appweaver/common';
+import { CacheService } from './cache-service';
+import { inject } from '../context';
+import { AuthUser, Server } from '../types';
 
 type FullRouteConfig = RouteConfig & RouteCacheConfig;
 
@@ -23,7 +16,7 @@ export type CacheEntry = {
 export default fastifyPlugin((server: Server): void => {
   const { currentUser } = server;
 
-  const cache = inject(Cache);
+  const cacheService = inject(CacheService);
 
   server.addHook('preHandler', async (request, reply) => {
     const config = getRouteConfig(request);
@@ -32,11 +25,11 @@ export default fastifyPlugin((server: Server): void => {
     }
 
     const user = config.public ? undefined : currentUser();
-    const key = buildCacheKey(request, config, user);
+    const key = buildCacheKey(request, config, cacheService, user);
 
-    const exists = await cache.has(key);
+    const exists = await cacheService.cache.has(key);
     if (exists) {
-      const entry = await cache.get<CacheEntry>(key);
+      const entry = await cacheService.cache.get<CacheEntry>(key);
       if (entry) {
         return reply
           .code(entry.statusCode)
@@ -54,10 +47,10 @@ export default fastifyPlugin((server: Server): void => {
 
     if (reply.statusCode >= 200 && reply.statusCode < 300) {
       const user = config.public ? undefined : currentUser();
-      const key = buildCacheKey(request, config, user);
-      const exists = await cache.has(key);
+      const key = buildCacheKey(request, config, cacheService, user);
+      const exists = await cacheService.cache.has(key);
       if (!exists) {
-        await cache.set(
+        await cacheService.cache.set(
           key,
           {
             statusCode: reply.statusCode,
@@ -91,102 +84,20 @@ function shouldUseCache(
 function buildCacheKey(
   req: FastifyRequest,
   config: RouteCacheConfig,
+  cacheService: CacheService,
   user?: AuthUser
 ): string {
-  const cacheKey = config.cacheKey;
-  return isFunction(cacheKey)
-    ? cacheKey(req, user)
-    : cacheKey || resourceBasedCacheKey(req, config, user);
-}
-
-function resourceBasedCacheKey(
-  req: FastifyRequest,
-  config: RouteCacheConfig,
-  user?: AuthUser
-): string {
-  const userPrefix = user ? user.id : '';
-  const bodyHash = req.body ? makeHash(stringify(req.body)) : '';
-
-  // Extract model relations based on route cache config so they can be used to
-  // evict cache entries when related data changes
-  const allRelations: string[] = [];
-  if (config.cacheRelations?.[0] === '*' || config.cacheModelName) {
-    if (config.cacheModelName) {
-      // Add all relations from a specified model
-      const model = injectModel(config.cacheModelName, false);
-      if (model) {
-        allRelations.push(...collectAllRelations(model));
-      }
-    } else {
-      // Add all defined models as relations
-      for (const model of context.resource.models.values()) {
-        for (const relation of Object.values(model.config.relations ?? {})) {
-          allRelations.push(relation.model);
-        }
-      }
-    }
-  } else if (config.cacheRelations && config.cacheRelations.length > 1) {
-    allRelations.push(...config.cacheRelations);
-  }
-
-  // Create a list of unique relation names
-  const relations = [...new Set(allRelations)];
-  const relationList = relations.length > 0 ? `!${relations.join('!')}!` : '';
-
-  return [userPrefix, req.method, req.raw.url, bodyHash, relationList]
-    .filter((v) => v !== '')
-    .join(':');
-}
-
-function collectAllRelations(model: ResourceModel): string[] {
-  const relations: string[] = [];
-
-  // Add the model itself as a relation
-  relations.push(model.name);
-
-  // Traverse top-level relations (using their own output config)
-  for (const relation of Object.values(model.config.relations ?? {})) {
-    const outputType = relation.output?.type;
-
-    if (outputType === 'none') {
-      continue;
-    }
-
-    relations.push(relation.model);
-
-    // Traverse nested includes (if any)
-    if (relation.output?.include) {
-      traverseInclude(relation.output.include, model, relations);
-    }
-  }
-
-  return relations;
-}
-
-function traverseInclude(
-  include: Record<string, RelationOutput>,
-  model: ResourceModel,
-  acc: string[]
-): void {
-  const relations = model.config.relations ?? {};
-
-  for (const [relKey, includeConfig] of Object.entries(include)) {
-    const type = includeConfig.type;
-
-    if (type === 'none') {
-      continue;
-    }
-
-    const relationDef = relations[relKey];
-    if (!relationDef) {
-      continue;
-    }
-
-    acc.push(relationDef.model);
-
-    // If this include has nested includes, recurse
-    if (includeConfig.include) {
-      traverseInclude(includeConfig.include, model, acc);
-    }
-  }
+  return isFunction(config.cacheKey)
+    ? config.cacheKey(req, user)
+    : config.cacheKey ||
+        cacheService.buildCacheKey({
+          baseKey: 'req',
+          method: req.method,
+          url: req.raw.url,
+          body: req.body as string,
+          modelName: config.cacheModelName,
+          relations: config.cacheRelations,
+          skipInvalidation: config.cacheSkipInvalidation,
+          authUser: user
+        });
 }

@@ -317,6 +317,10 @@
               "type": "string",
               "default": "/auth"
             },
+            "cacheTtl": {
+              "type": "integer",
+              "default": 300000
+            },
             "jwt": {
               "type": "object",
               "properties": {
@@ -384,9 +388,9 @@
               "type": "string",
               "default": "{name}-{hash}.{extension}"
             },
-            "cacheDuration": {
+            "cacheTtl": {
               "type": "integer",
-              "default": 86400
+              "default": 86400000
             },
             "provider": {
               "type": "string",

@@ -11,6 +11,7 @@ export type RouteCacheConfig = {
   cache?: boolean;
   cacheKey?: string | ((req: any, user: any) => string);
   cacheTTL?: number;
+  cacheSkipInvalidation?: boolean;
   cacheModelName?: string;
   cacheRelations?: string[];
 };

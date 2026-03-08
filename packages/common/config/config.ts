@@ -88,6 +88,7 @@ const configSchema = Type.Object({
   EXPORT_CSV_ADD_SEP_ROW: Type.Boolean({ default: false }),
 
   SECURITY_ROUTE_PREFIX: Type.String({ default: '/auth' }),
+  SECURITY_CACHE_TTL: Type.Integer({ default: 300000 }),
   SECURITY_JWT_SECRET: Type.String({ default: 'abcdefghijklmnopqrst12345' }),
   SECURITY_JWT_EXPIRES_IN: Type.Integer({ default: 2592000 }),
   SECURITY_JWT_REFRESH_EXPIRES_IN: Type.Integer({ default: 5184000 }),
@@ -111,7 +112,7 @@ const configSchema = Type.Object({
 
   STORAGE_PATH: Type.String({ default: './storage' }),
   STORAGE_NAME_PATTERN: Type.String({ default: '{name}-{hash}.{extension}' }),
-  STORAGE_CACHE_DURATION: Type.Integer({ default: 86400 }),
+  STORAGE_CACHE_TTL: Type.Integer({ default: 86400000 }),
   STORAGE_PROVIDER: Type.String({
     default: '@appweaver/core/storage/filesystem-storage'
   }),

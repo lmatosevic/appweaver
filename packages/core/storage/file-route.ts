@@ -37,11 +37,11 @@ export function files(server: Server): void {
     reply.header('Pragma', 'public');
     reply.header(
       'Cache-Control',
-      `public, max-age=${config.STORAGE_CACHE_DURATION}`
+      `public, max-age=${Math.floor(config.STORAGE_CACHE_TTL / 1000)}`
     );
     reply.header(
       'Expires',
-      new Date(Date.now() + config.STORAGE_CACHE_DURATION).toUTCString()
+      new Date(Date.now() + config.STORAGE_CACHE_TTL).toUTCString()
     );
 
     return hasRange ? 206 : 200;

@@ -72,6 +72,7 @@
     },
     "security": {
       "routePrefix": "/auth",
+      "cacheTtl": 300000,
       "jwt": {
         "secret": "GdvCFezoPIZdOAN3IQZR3JhaAZH6S6AJ",
         "expiresIn": 2592000,
@@ -91,7 +92,7 @@
     "storage": {
       "path": "./storage",
       "namePattern": "{name}-{hash}.{extension}",
-      "cacheDuration": 86400,
+      "cacheTtl": 86400000,
       "provider": "@appweaver/core/storage/filesystem-storage"
     },
     "redis": {

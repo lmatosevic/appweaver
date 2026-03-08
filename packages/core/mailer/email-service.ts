@@ -22,7 +22,7 @@ export class EmailService {
   }
 
   private onEmailSent(job: QueueJob<Email, boolean>): void {
-    logger.trace(`E-mail '${job.data.subject}' sent successfully`);
+    logger.debug(`E-mail '${job.data.subject}' sent successfully`);
   }
 
   private onEmailError(

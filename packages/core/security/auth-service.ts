@@ -1,13 +1,47 @@
 import { config } from '@appweaver/common';
 import { checkPassword, hashPassword, resourceAuthService } from './helper';
-import { context } from '../context';
+import { context, inject } from '../context';
+import { CacheService } from '../cache';
 import { HttpError } from '../errors';
 import { AuthTokens, AuthUser, IResourceService, JwtPayload } from '../types';
 
 export class AuthService {
+  /** @internal */
+  private readonly _cacheService = inject(CacheService);
+  /** @internal */
+  private readonly _authUserService: IResourceService<AuthUser, AuthUser>;
+
+  constructor() {
+    this._authUserService = resourceAuthService()!;
+  }
+
   public async findById(id: number): Promise<AuthUser | null> {
     try {
-      return this.authUserService().find(id);
+      const findAuthAction = this._authUserService.find(id);
+
+      if (!config.CACHE_ENABLED || config.SECURITY_CACHE_TTL < 0) {
+        return findAuthAction;
+      }
+
+      const cacheKey = this._cacheService.buildCacheKey({
+        baseKey: `auth:${id}`,
+        modelName: this._authUserService.modelName
+      });
+
+      const exists = await this._cacheService.cache.has(cacheKey);
+      if (exists) {
+        return this._cacheService.cache.get(cacheKey);
+      }
+
+      const authUser = await findAuthAction;
+
+      await this._cacheService.cache.set(
+        cacheKey,
+        authUser,
+        config.SECURITY_CACHE_TTL
+      );
+
+      return authUser;
     } catch (e) {
       throw new HttpError('Auth user find error', 500, e);
     }
@@ -15,7 +49,7 @@ export class AuthService {
 
   public async findByUsername(username: string): Promise<AuthUser | null> {
     try {
-      const result = await this.authUserService().query({ email: username });
+      const result = await this._authUserService.query({ email: username });
       return result.items[0];
     } catch (e) {
       throw new HttpError('Auth user find error', 500, e);
@@ -27,7 +61,7 @@ export class AuthService {
     data: Partial<AuthUser> & { password?: string }
   ): Promise<AuthUser> {
     try {
-      return await this.authUserService().update(id, data);
+      return await this._authUserService.update(id, data);
     } catch (e) {
       throw new HttpError('Auth user update error', 500, e);
     }
@@ -92,9 +126,5 @@ export class AuthService {
 
   public async logout(id: number): Promise<boolean> {
     return !!(await this.updateAuthUser(id, { logoutAt: new Date() }));
-  }
-
-  private authUserService(): IResourceService<AuthUser, AuthUser> {
-    return resourceAuthService()!;
   }
 }

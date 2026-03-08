@@ -106,6 +106,7 @@ export function createServer(): Server {
     server.register(fastifyRateLimit, {
       max: config.RATE_LIMIT_MAX,
       timeWindow: config.RATE_LIMIT_WINDOW,
+      nameSpace: 'rate-limit:',
       redis:
         config.RATE_LIMIT_STORE === MemoryType.Redis
           ? inject<Redis>(Redis).createClient({
