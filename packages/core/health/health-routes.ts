@@ -1,10 +1,12 @@
-import { HealthCheckStatus } from '@appweaver/common';
+import { config, HealthCheckStatus } from '@appweaver/common';
 import { createHealthCheckSchema, healthReadySchema } from './health-schema';
 import { HealthService } from './health-service';
 import { inject } from '../context';
 import { Server } from '../types';
 
 export function health(server: Server): void {
+  const { auth, authenticateJWT } = server;
+
   const healthService = inject(HealthService);
 
   const healthCheckSchema = createHealthCheckSchema(
@@ -15,6 +17,7 @@ export function health(server: Server): void {
     '/check',
     {
       schema: healthCheckSchema,
+      onRequest: config.HEALTH_CHECK_AUTH ? auth([authenticateJWT]) : undefined,
       config: {
         rateLimit: {
           max: 12
@@ -24,13 +27,15 @@ export function health(server: Server): void {
     async (_, reply) => {
       const healthCheck = await healthService.checkHealth();
 
-      const statusCode = Object.values(healthCheck).every(
+      const allUp = Object.values(healthCheck).every(
         (check) => check.status === HealthCheckStatus.Up
-      )
-        ? 200
-        : 503;
+      );
 
-      return reply.status(statusCode).send(healthCheck);
+      return reply.status(allUp ? 200 : 503).send({
+        status: allUp ? HealthCheckStatus.Up : HealthCheckStatus.Down,
+        timestamp: new Date(),
+        checks: healthCheck
+      });
     }
   );
 

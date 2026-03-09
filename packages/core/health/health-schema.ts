@@ -1,11 +1,21 @@
 import { TObject, Type } from '@sinclair/typebox';
-import { StringEnum, HealthCheckStatus } from '@appweaver/common';
+import {
+  config,
+  HealthCheckStatus,
+  StringDate,
+  StringEnum
+} from '@appweaver/common';
 import { AllErrorResponses } from '../errors';
 import { RouteSchema } from '../types';
 
 export const HealthStatus = Type.Object({
   status: StringEnum(HealthCheckStatus),
   message: Type.Optional(Type.String())
+});
+
+export const HealthCheckCommonData = Type.Object({
+  status: StringEnum(HealthCheckStatus),
+  timestamp: StringDate()
 });
 
 export const ReadyResponse = Type.Object({
@@ -29,10 +39,14 @@ export function createHealthCheckSchema(serviceNames: string[]): RouteSchema {
     healthServices[service] = HealthStatus;
   }
 
-  const healthResponse = Type.Object(healthServices);
+  const healthResponse = Type.Composite([
+    HealthCheckCommonData,
+    Type.Object({ checks: Type.Object(healthServices) })
+  ]);
 
   return {
     tags: ['Health'],
+    security: config.HEALTH_CHECK_AUTH ? [{ bearer: [] }] : [],
     summary: 'Health check status',
     description: 'Health check status',
     response: {

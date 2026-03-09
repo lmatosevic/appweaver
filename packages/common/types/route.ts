@@ -4,7 +4,9 @@ export type RouteConfig = {
   roles?: string[];
   permissions?: string[];
   auth?: any[];
-  rateLimit?: false | { max: number; timeWindow?: number | string };
+  rateLimit?:
+    | false
+    | { max: number; timeWindow?: number | string; allowList?: string[] };
 };
 
 export type RouteCacheConfig = {

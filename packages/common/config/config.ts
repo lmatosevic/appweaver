@@ -49,6 +49,7 @@ const configSchema = Type.Object({
   RATE_LIMIT_ENABLED: Type.Boolean({ default: true }),
   RATE_LIMIT_MAX: Type.Integer({ default: 1000 }),
   RATE_LIMIT_WINDOW: Type.Integer({ default: 60000 }),
+  RATE_LIMIT_ALLOW_LIST: Type.Optional(Type.Array(Type.String())),
   RATE_LIMIT_STORE: Type.Enum(MemoryType, { default: MemoryType.Redis }),
 
   SWAGGER_ENABLED: Type.Boolean({ default: true }),
@@ -56,6 +57,7 @@ const configSchema = Type.Object({
   SWAGGER_HIDE_UNTAGGED: Type.Boolean({ default: false }),
 
   HEALTH_CHECK_ENABLED: Type.Boolean({ default: true }),
+  HEALTH_CHECK_AUTH: Type.Boolean({ default: true }),
   HEALTH_CHECK_ROUTE_PREFIX: Type.String({ default: '/health' }),
 
   CORS_ORIGIN: Type.String({ default: '*' }),
