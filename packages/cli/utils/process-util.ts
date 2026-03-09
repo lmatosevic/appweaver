@@ -16,12 +16,11 @@ export function runProcess(
   quiet: boolean = false
 ): Promise<number | null> {
   return new Promise((resolve, reject) => {
-    const { WEAVER_CLI, ...env } = process.env;
     const command = args.length > 0 ? `${cmd} ${args.join(' ')}` : cmd;
     const child = spawn(command, {
       stdio: quiet ? 'ignore' : 'inherit',
       shell: true,
-      env
+      env: { ...process.env, WEAVER_CLI: undefined }
     });
 
     child.on('error', reject);

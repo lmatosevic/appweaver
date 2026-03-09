@@ -10,8 +10,7 @@ import { createStream } from 'rotating-file-stream';
 import { LogLevel } from '../enums';
 import { config, files } from '../config';
 
-const level =
-  process.env.WEAVER_CLI === 'true' ? LogLevel.Silent : config.LOG_LEVEL;
+const level = process.env.WEAVER_CLI ? LogLevel.Silent : config.LOG_LEVEL;
 
 const logName = config.APP_NAME
   ? config.APP_NAME.toLowerCase().replace(/\s+/g, '_')
