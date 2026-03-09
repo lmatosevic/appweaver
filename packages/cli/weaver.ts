@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+process.env.WEAVER_CLI = 'true';
+
 import { Command } from 'commander';
 import { loadPackageJson } from './utils';
 import { buildCommand } from './build';

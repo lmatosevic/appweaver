@@ -13,6 +13,7 @@ import { Server } from '../types';
  * Represents an application that manages the lifecycle of a server and database.
  */
 export class Application {
+  private _started = false;
   private readonly _onInitServices = injectAllWhere<OnInit>((def) =>
     isLifecycleInit(def.value)
   );
@@ -41,6 +42,12 @@ export class Application {
    * empty string if server was not started.
    */
   public async start(startServer: boolean = true): Promise<string> {
+    if (this._started) {
+      throw new Error('Calling start() on already started application.');
+    }
+
+    this._started = true;
+
     logger.info(`Application started in "${config.APP_ENV}" environment`);
 
     await Promise.all([
@@ -60,9 +67,9 @@ export class Application {
         port: config.SERVER_PORT,
         host: config.SERVER_HOST
       });
-    } else {
-      return '';
     }
+
+    return '';
   }
 
   /**
@@ -73,6 +80,14 @@ export class Application {
    * @return {Promise<void>} A promise that resolves when the server has been successfully stopped.
    */
   public async stop(): Promise<void> {
+    if (!this._started) {
+      throw new Error(
+        'Calling stop() on already stopped or not started application.'
+      );
+    }
+
+    this._started = false;
+
     await Promise.all([
       ...this._onDestroyServices.map((service) => service.onDestroy())
     ]);
