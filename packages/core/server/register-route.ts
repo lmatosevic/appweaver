@@ -79,12 +79,10 @@ export function registerRoute(
         }
       };
 
-      for (const route of routes) {
-        logger.debug(
-          { method: route.method, url: route.url },
-          'Registered route'
-        );
-      }
+      logger.debug(
+        { method: mergedRoute.method, url: mergedRoute.url },
+        'Registered route'
+      );
 
       server.route(mergedRoute);
     }

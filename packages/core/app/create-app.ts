@@ -15,6 +15,9 @@ export type CreateAppParams = {
   /** A boolean flag indicating whether the application should automatically
    * start after being created. (default: true) **/
   autoStart?: boolean;
+  /** A boolean flag indicating whether the web server should automatically
+   * start after being created. (default: true) **/
+  autoStartServer?: boolean;
   /** An object containing the path patterns for loading resources from. */
   resourcePaths?: LoadResourcePaths;
   /** A boolean flag indicating whether the application should automatically load
@@ -70,7 +73,7 @@ export async function createApp(
   const app = new Application(server);
 
   if (params.autoStart !== false) {
-    await app.start();
+    await app.start(params.autoStartServer);
   }
 
   return app;

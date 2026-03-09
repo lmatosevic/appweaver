@@ -2,6 +2,7 @@ import {
   config,
   isLifecycleDestroy,
   isLifecycleInit,
+  logger,
   OnDestroy,
   OnInit
 } from '@appweaver/common';
@@ -36,12 +37,11 @@ export class Application {
    * in which the application is running, freezing the application context to prevent further changes,
    * and starting a server to listen for incoming requests.
    *
-   * @return {Promise<string>} A promise that resolves to a string denoting the server URL on a successful start.
+   * @return {Promise<string>} A promise that resolves to a string denoting the server URL on a successful start or
+   * empty string if server was not started.
    */
-  public async start(): Promise<string> {
-    this._server.log.info(
-      `Application started in "${config.APP_ENV}" environment`
-    );
+  public async start(startServer: boolean = true): Promise<string> {
+    logger.info(`Application started in "${config.APP_ENV}" environment`);
 
     await Promise.all([
       ...this._onInitServices.map((service) => service.onInit())
@@ -49,10 +49,20 @@ export class Application {
 
     Object.freeze(context);
 
-    return this._server.listen({
-      port: config.SERVER_PORT,
-      host: config.SERVER_HOST
+    // Add a termination handler for gracefully stopping the application
+    process.on('SIGINT', async () => {
+      await this.stop();
+      process.exit(0);
     });
+
+    if (startServer) {
+      return this._server.listen({
+        port: config.SERVER_PORT,
+        host: config.SERVER_HOST
+      });
+    } else {
+      return '';
+    }
   }
 
   /**
@@ -66,7 +76,10 @@ export class Application {
     await Promise.all([
       ...this._onDestroyServices.map((service) => service.onDestroy())
     ]);
+
     await this._server.close();
+
+    logger.info('Application stopped');
   }
 
   /**
