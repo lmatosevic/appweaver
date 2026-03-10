@@ -30,6 +30,8 @@ export function seedCommand(program: Command): void {
         await runProcess('tsc-alias', ['-p tsconfig.build.json']);
       }
 
-      await createSeeder({ seedersPath, continueOnError });
+      const seeder = await createSeeder({ seedersPath, continueOnError });
+
+      await seeder.close();
     });
 }

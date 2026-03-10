@@ -74,6 +74,10 @@ export class Seeder {
     }
   }
 
+  public async close(): Promise<void> {
+    await this._db.disconnect();
+  }
+
   private async loadSeederFiles(): Promise<string[]> {
     const entries = await fsp.readdir(this._dirPath, { withFileTypes: true });
     return entries
