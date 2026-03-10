@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { globSync } from 'glob';
+import { glob } from 'glob';
 import { register } from 'ts-node';
 import { isResourceModel, ResourceModel } from '@appweaver/core';
 import { config } from '@appweaver/common';
@@ -47,10 +47,10 @@ export async function loadModels(
 
   const models: Record<string, ResourceModel> = {};
 
-  const modelPaths = globSync(modelPattern, { cwd, absolute: true });
+  const modelPaths = await glob(modelPattern, { cwd, absolute: true });
 
   // Add exported core module resource models
-  modelPaths.push('@appweaver/core');
+  modelPaths.push('@appweaver/core/models');
 
   // Add additional modules from config
   for (const module of config.APP_AUTOLOAD_MODULES) {

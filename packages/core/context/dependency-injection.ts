@@ -1,11 +1,13 @@
 import {
   ConditionalOptional,
+  Ctor,
   FunctionType,
   isArray,
   isConstructor,
   isString,
   isSymbol,
   logger,
+  RESOURCE_NAME,
   ResourcePolicyConfig
 } from '@appweaver/common';
 import { context } from './context';
@@ -13,7 +15,8 @@ import {
   isResourceModel,
   isResourcePolicy,
   isResourceRoutes,
-  isResourceService
+  isResourceService,
+  loadModule
 } from '../utils';
 import {
   DefinitionClass,
@@ -24,7 +27,6 @@ import {
   ResourceModel,
   ResourceRoutes
 } from '../types';
-import { RESOURCE_NAME } from '../constants';
 
 /**
  * Defines a resource or a definition value within the application context.
@@ -89,6 +91,41 @@ export function define<T = DefinitionValue, S extends T = T>(
       }
     }
   }
+}
+
+/**
+ * Loads a class from the specified path, resolves its constructor, and defines it with the provided definition.
+ *
+ * @param {string} baseDir - The base directory used to resolve relative class paths.
+ * @param {string} classPath - The path to the module to be loaded. Can be an absolute path, project source path, or
+ *                             node_modules package.
+ * @param {DefinitionClass} [definition] - An optional definition object used to define the loaded module.
+ * @param {boolean} [required=true] - Indicates whether the module is required. If true, an error is thrown on failure;
+ *                                    otherwise, a warning is logged.
+ * @return This function does not return a value. It loads a module and defines it if successful.
+ */
+export function loadProvider(
+  baseDir: string,
+  classPath: string,
+  definition?: DefinitionClass,
+  required: boolean = true
+): void {
+  const { value, error } = loadModule<Record<string, Ctor>>(baseDir, classPath);
+
+  // Handle errors or missing values for both required and optional modules
+  if (!value || error) {
+    const msg = `Loading '${classPath}' module failed`;
+    if (required) {
+      logger.error(error, msg);
+      throw error ?? new Error(msg);
+    }
+    logger.warn(error, msg);
+    return;
+  }
+
+  // Extract class constructor from the exported value and add it to definitions
+  const ctor = Object.values(value)[0];
+  define(ctor, definition);
 }
 
 /**
@@ -279,11 +316,13 @@ function shouldAddDefinition(
   if (
     ((isArray(store) && findFirstDefinition(name)) ||
       (!isArray(store) && store.has(name))) &&
-    mode === 'ignore'
+    !['append', 'override'].includes(mode)
   ) {
-    logger.warn(
-      `Definition '${String(name)}' is already present in the application context. Use 'append' or 'override' mode to remove this warning.`
-    );
+    const msg = `Definition '${String(name)}' is already present in the application context.`;
+    if (mode === 'fail') {
+      throw new Error(msg);
+    }
+    logger.warn(`${msg} Use 'append' or 'override' to remove this warning.`);
     return false;
   }
 

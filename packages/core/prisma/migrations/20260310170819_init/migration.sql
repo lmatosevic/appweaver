@@ -1,20 +1,4 @@
 -- CreateTable
-CREATE TABLE "Role" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "name" TEXT NOT NULL,
-    "updatedAt" DATETIME NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- CreateTable
-CREATE TABLE "Permission" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "name" TEXT NOT NULL,
-    "updatedAt" DATETIME NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- CreateTable
 CREATE TABLE "File" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "name" TEXT NOT NULL,
@@ -31,6 +15,42 @@ CREATE TABLE "File" (
 );
 
 -- CreateTable
+CREATE TABLE "_seeders" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "checksum" TEXT NOT NULL,
+    "seederName" TEXT NOT NULL,
+    "startedAt" DATETIME NOT NULL,
+    "finishedAt" DATETIME NOT NULL,
+    "logs" TEXT
+);
+
+-- CreateTable
+CREATE TABLE "Role" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "updatedAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "Permission" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "updatedAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "_seeds" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "checksum" TEXT NOT NULL,
+    "seederName" TEXT NOT NULL,
+    "startedAt" DATETIME NOT NULL,
+    "finishedAt" DATETIME NOT NULL,
+    "logs" TEXT
+);
+
+-- CreateTable
 CREATE TABLE "_RolePermissionsPermission" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL,
@@ -39,13 +59,19 @@ CREATE TABLE "_RolePermissionsPermission" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "File_name_key" ON "File"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "_seeders_seederName_key" ON "_seeders"("seederName");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Permission_name_key" ON "Permission"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "File_name_key" ON "File"("name");
+CREATE UNIQUE INDEX "_seeds_seederName_key" ON "_seeds"("seederName");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_RolePermissionsPermission_AB_unique" ON "_RolePermissionsPermission"("A", "B");

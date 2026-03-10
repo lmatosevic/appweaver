@@ -1,5 +1,9 @@
 import path from 'node:path';
 import { Kind, TObject, TSchema, Type } from '@sinclair/typebox';
+import { define } from '../context';
+import { AuditData, Id, IdString } from '../resource';
+import { countFieldName } from '../utils';
+import { ResourceModel } from '../types';
 import {
   AnyJson,
   AuditFields,
@@ -14,21 +18,15 @@ import {
   OutputType,
   pickProperties,
   RelationField,
+  RESOURCE_MODEL_TYPE,
+  RESOURCE_NAME,
+  RESOURCE_TYPE,
   ResourceModelConfig,
   ScalarField,
   StringDate,
   StringEnum,
   VirtualConfig
 } from '@appweaver/common';
-import { define } from '../context';
-import { AuditData, Id, IdString } from '../resource';
-import { countFieldName } from '../utils';
-import { ResourceModel } from '../types';
-import {
-  RESOURCE_MODEL_TYPE,
-  RESOURCE_NAME,
-  RESOURCE_TYPE
-} from '../constants';
 
 export function createModel(config: ResourceModelConfig): ResourceModel {
   const name = capitalize(

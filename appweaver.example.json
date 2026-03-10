@@ -86,7 +86,8 @@
       "url": "postgresql://appweaver:appweaver@localhost:5432/appweaver-sample?schema=public",
       "schemaPath": "./database/schema.prisma",
       "migrationsDirPath": "./database/migrations",
-      "clientOutputPath": "./database/client",
+      "seedersDirPath": "./database/seeders",
+      "clientOutputDirPath": "./database/client",
       "transactionMaxWait": 2000,
       "transactionTimeout": 5000,
       "provider": "@appweaver/core/database/prisma-database"

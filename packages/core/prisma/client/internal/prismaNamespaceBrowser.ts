@@ -51,9 +51,11 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  File: 'File',
+  Seeder: 'Seeder',
   Role: 'Role',
   Permission: 'Permission',
-  File: 'File'
+  Seed: 'Seed'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -67,6 +69,36 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 } as const)
 
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
+
+
+export const FileScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  originalName: 'originalName',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  title: 'title',
+  description: 'description',
+  resourceField: 'resourceField',
+  resourceName: 'resourceName',
+  resourceId: 'resourceId',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
+
+
+export const SeederScalarFieldEnum = {
+  id: 'id',
+  checksum: 'checksum',
+  seederName: 'seederName',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  logs: 'logs'
+} as const
+
+export type SeederScalarFieldEnum = (typeof SeederScalarFieldEnum)[keyof typeof SeederScalarFieldEnum]
 
 
 export const RoleScalarFieldEnum = {
@@ -89,22 +121,16 @@ export const PermissionScalarFieldEnum = {
 export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
 
 
-export const FileScalarFieldEnum = {
+export const SeedScalarFieldEnum = {
   id: 'id',
-  name: 'name',
-  originalName: 'originalName',
-  mimeType: 'mimeType',
-  sizeBytes: 'sizeBytes',
-  title: 'title',
-  description: 'description',
-  resourceField: 'resourceField',
-  resourceName: 'resourceName',
-  resourceId: 'resourceId',
-  updatedAt: 'updatedAt',
-  createdAt: 'createdAt'
+  checksum: 'checksum',
+  seederName: 'seederName',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  logs: 'logs'
 } as const
 
-export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
+export type SeedScalarFieldEnum = (typeof SeedScalarFieldEnum)[keyof typeof SeedScalarFieldEnum]
 
 
 export const SortOrder = {

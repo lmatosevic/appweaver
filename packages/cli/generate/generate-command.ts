@@ -52,7 +52,7 @@ export function generateCommand(program: Command): void {
           models,
           command.getOptionValue('schemaPath') ?? config.DATABASE_SCHEMA_PATH,
           command.getOptionValue('clientPath') ??
-            config.DATABASE_CLIENT_OUTPUT_PATH,
+            config.DATABASE_CLIENT_OUTPUT_DIR_PATH,
           quiet
         );
       }

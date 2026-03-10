@@ -2,23 +2,23 @@ import { spawn } from 'node:child_process';
 import { config } from '@appweaver/common';
 
 /**
- * Executes a command-line process with the given command and arguments.
+ * Executes a shell command with optional arguments and configuration parameters.
  *
  * @param {string} cmd - The command to execute.
- * @param {string[]} [args=[]] - An optional array of arguments to pass to the command.
- * @param {boolean} quiet - An flag indication if this process stdout and stderr should be hidden.
- * @return {Promise<number | null>} A promise that resolves with the exit code of the process or rejects
- * if an error occurs.
+ * @param {string[]} [args=[]] - An array of arguments to pass to the command.
+ * @param {Object} [params={ quiet: false }] - Configurations for how the process should run.
+ * @param {boolean} [params.quiet=false] - If true, suppresses the process output.
+ * @return {Promise<number | null>} A promise that resolves with the exit code of the process or null on error.
  */
 export function runProcess(
   cmd: string,
   args: string[] = [],
-  quiet: boolean = false
+  params: { quiet?: boolean } = { quiet: false }
 ): Promise<number | null> {
   return new Promise((resolve, reject) => {
     const command = args.length > 0 ? `${cmd} ${args.join(' ')}` : cmd;
     const child = spawn(command, {
-      stdio: quiet ? 'ignore' : 'inherit',
+      stdio: params.quiet ? 'ignore' : 'inherit',
       shell: true,
       env: { ...process.env, WEAVER_CLI: undefined }
     });

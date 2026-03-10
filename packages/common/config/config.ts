@@ -103,7 +103,10 @@ const configSchema = Type.Object({
   DATABASE_MIGRATIONS_DIR_PATH: Type.String({
     default: './database/migrations'
   }),
-  DATABASE_CLIENT_OUTPUT_PATH: Type.String({
+  DATABASE_SEEDERS_DIR_PATH: Type.String({
+    default: './database/seeders'
+  }),
+  DATABASE_CLIENT_OUTPUT_DIR_PATH: Type.String({
     default: './database/client'
   }),
   DATABASE_TRANSACTION_MAX_WAIT: Type.Integer({ default: 2000 }),
@@ -184,8 +187,8 @@ const { config: jsonConfig, files: jsonFiles } =
 
 const config = Value.Parse(configSchema, { ...jsonConfig, ...envConfig });
 
-const files = envFiles.concat(jsonFiles);
+const configFiles = envFiles.concat(jsonFiles);
 
 Object.freeze(config);
 
-export { config, files };
+export { config, configFiles };

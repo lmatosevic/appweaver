@@ -4,7 +4,7 @@ import { ResourceRoutes } from './route';
 import { ResourceModel } from './resource';
 import { IResourceService } from './resource-service';
 
-export type DefinitionMode = 'ignore' | 'append' | 'override';
+export type DefinitionMode = 'ignore' | 'append' | 'override' | 'fail';
 
 export type DefinitionClass<T = any> = AbstractCtor<T> | Ctor<T>;
 

@@ -101,6 +101,17 @@ model Permission {
   createdById Int?
 }
 
+model Seeder {
+  id         String   @id @default(uuid())
+  checksum   String
+  seederName String   @unique
+  startedAt  DateTime
+  finishedAt DateTime
+  logs       String?
+
+  @@map("_seeders")
+}
+
 model File {
   id            Int     @id @default(autoincrement())
   name          String  @unique

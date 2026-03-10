@@ -1,9 +1,9 @@
 import path from 'node:path';
-import { config } from '@appweaver/common';
+import { config, logger, configFiles } from '@appweaver/common';
 import { context } from '../context';
 import { createServer } from '../server';
-import { loadResources, LoadResourcePaths } from '../resource';
-import { loadDefinitions } from './load-definitions';
+import { LoadResourcePaths, loadResources } from '../resource';
+import { loadProviders } from './load-providers';
 import { loadModules } from './load-modules';
 import { Application } from './application';
 
@@ -40,6 +40,8 @@ export type CreateAppParams = {
 export async function createApp(
   params: CreateAppParams = {}
 ): Promise<Application> {
+  logger.debug({ configFiles }, 'Configuration loaded');
+
   let scanPath = path.dirname(require.main?.filename || process.argv[1]);
   if (params.scanPath) {
     scanPath = path.resolve(params.scanPath);
@@ -47,8 +49,8 @@ export async function createApp(
     scanPath = path.resolve(config.APP_SCAN_PATH);
   }
 
-  // Load all definitions from this project
-  loadDefinitions(scanPath);
+  // Load all defined providers from this project
+  loadProviders(scanPath);
 
   // Load resource models, routes, policies and services
   if (params.autoLoadResources !== false) {

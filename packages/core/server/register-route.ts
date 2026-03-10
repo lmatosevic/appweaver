@@ -4,6 +4,7 @@ import {
   isArray,
   logger,
   objectHasProperty,
+  ROUTE,
   RouteCacheConfig,
   RouteConfig
 } from '@appweaver/common';
@@ -11,7 +12,6 @@ import { context, define } from '../context';
 import { AllErrorResponses } from '../errors';
 import { resourceModelProps } from '../utils';
 import { RouterHandler, Server } from '../types';
-import { ROUTE } from '../constants';
 
 export function registerRoute(
   handler: RouterHandler,

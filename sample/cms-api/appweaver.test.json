@@ -12,7 +12,7 @@
       "url": "file:./temp/test.db",
       "schemaPath": "./temp/database/schema.prisma",
       "migrationsDirPath": "./temp/database/migrations",
-      "clientOutputPath": "./temp/database/client"
+      "clientOutputDirPath": "./temp/database/client"
     },
     "storage": {
       "path": "./temp/storage"

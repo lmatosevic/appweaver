@@ -55,6 +55,7 @@ export const ModelName = {
   Post: 'Post',
   Role: 'Role',
   Permission: 'Permission',
+  Seeder: 'Seeder',
   File: 'File'
 } as const
 
@@ -130,6 +131,18 @@ export const PermissionScalarFieldEnum = {
 } as const
 
 export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
+
+
+export const SeederScalarFieldEnum = {
+  id: 'id',
+  checksum: 'checksum',
+  seederName: 'seederName',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  logs: 'logs'
+} as const
+
+export type SeederScalarFieldEnum = (typeof SeederScalarFieldEnum)[keyof typeof SeederScalarFieldEnum]
 
 
 export const FileScalarFieldEnum = {

@@ -58,12 +58,12 @@ export type ReferentialAction =
   | 'setDefault';
 
 export type IdFieldString = {
-  type: Extract<FieldType, 'string'>;
+  type: 'string';
   generator?: IdGeneratorString;
 };
 
 export type IdFieldInt = {
-  type?: Extract<FieldType, 'int' | 'bigInt'>;
+  type?: 'int' | 'bigInt';
   generator?: IdGeneratorInt;
 };
 
@@ -85,7 +85,7 @@ type BaseScalarField<T, IsArray extends boolean = boolean> = {
 };
 
 export type ScalarFieldString = BaseScalarField<FieldDefaultString> & {
-  type: Extract<FieldType, 'string'>;
+  type: 'string';
   minLength?: number;
   maxLength?: number;
   format?: FieldFormatString;
@@ -93,26 +93,26 @@ export type ScalarFieldString = BaseScalarField<FieldDefaultString> & {
 };
 
 export type ScalarFieldNumber = BaseScalarField<FieldDefaultNumber> & {
-  type: Extract<FieldType, 'int' | 'bigInt' | 'float'>;
+  type: 'int' | 'bigInt' | 'float';
   minimum?: number;
   maximum?: number;
 };
 
 export type ScalarFieldBoolean = BaseScalarField<FieldDefaultBoolean> & {
-  type: Extract<FieldType, 'boolean'>;
+  type: 'boolean';
 };
 
 export type ScalarFieldDateTime = BaseScalarField<FieldDefaultDateTime> & {
-  type: Extract<FieldType, 'dateTime'>;
+  type: 'dateTime';
   format?: FieldFormatDate;
 };
 
 export type ScalarFieldJson = BaseScalarField<FieldDefaultJson> & {
-  type: Extract<FieldType, 'json'>;
+  type: 'json';
 };
 
 export type ScalarFieldEnum = BaseScalarField<FieldDefaultEnum> & {
-  type: Extract<FieldType, 'enum'>;
+  type: 'enum';
   values: string[];
 };
 
@@ -219,6 +219,9 @@ export type IndexConfig = string[] | string[][];
 
 export type ResourceModelConfig = {
   name: string;
+  tableName?: string;
+  generateTypes?: boolean;
+  generateSchema?: boolean;
   id?: IdField;
   audit?: AuditFields;
   scalars?: ScalarConfig;

@@ -12,8 +12,10 @@ import {
   config,
   loggerConfig,
   MemoryType,
+  PLUGIN,
   plural,
-  Redis
+  Redis,
+  ROUTE
 } from '@appweaver/common';
 import { context, inject, injectAll } from '../context';
 import { errorHandler } from '../errors';
@@ -22,7 +24,6 @@ import { health } from '../health';
 import auth from '../security/auth';
 import caching from '../cache/caching';
 import { RouterHandler, Server } from '../types';
-import { PLUGIN, ROUTE } from '../constants';
 import { info } from './info-route';
 import schemas from './schemas';
 import swagger from './swagger';

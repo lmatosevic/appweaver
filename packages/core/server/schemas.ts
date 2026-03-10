@@ -1,10 +1,9 @@
 import fastifyPlugin from 'fastify-plugin';
 import { TObject } from '@sinclair/typebox';
-import { objectHasProperty } from '@appweaver/common';
+import { MODEL, objectHasProperty } from '@appweaver/common';
 import { context, injectAll, injectRoutes } from '../context';
 import { resourceModelProps } from '../utils';
 import { Model, Server } from '../types';
-import { MODEL } from '../constants';
 
 export default fastifyPlugin((server: Server): void => {
   const usedSchemas = new Set<TObject>();

@@ -38,6 +38,7 @@ type PrismaSchemaModel = {
   files: PrismaSchemaField[];
   audit: PrismaSchemaField[];
   index: string[];
+  tableName?: string;
   extra?: Record<string, PrismaSchemaField[]>;
 };
 
@@ -90,13 +91,18 @@ export async function generateSchema(
 
     // Create Prisma models and enums from resource model config
     for (const [name, schema] of Object.entries(models)) {
+      if (schema.config.generateSchema === false) {
+        continue;
+      }
+
       prismaModels[name] = {
         id: createIdSchema(schema.config.id),
         scalars: createScalarsSchema(name, schema.config.scalars),
         relations: createRelationsSchema(name, schema.config.relations),
         files: createFilesSchema(name, schema.config.files),
         audit: createAuditSchema(name, authModel, schema.config.audit),
-        index: createIndexSchema(schema.config.index)
+        index: createIndexSchema(schema.config.index),
+        tableName: schema.config.tableName
       };
 
       for (const [fieldName, scalar] of Object.entries(
@@ -266,6 +272,11 @@ export async function generateSchema(
         schemaContent.push(index);
       }
 
+      if (model.tableName) {
+        schemaContent.push(``);
+        schemaContent.push(`  @@map("${model.tableName}")`);
+      }
+
       schemaContent.push(`}`, ``);
     }
 
@@ -291,7 +302,7 @@ export async function generateSchema(
 
     await fsp.writeFile(outputPath, schemaContent.join('\n'));
 
-    const code = await runProcess('prisma', ['generate'], quiet);
+    const code = await runProcess('prisma', ['generate'], { quiet });
     if (code !== 0 && oldSchema) {
       await fsp.writeFile(outputPath, oldSchema);
     } else {

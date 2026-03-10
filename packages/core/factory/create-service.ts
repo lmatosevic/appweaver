@@ -8,16 +8,14 @@ import {
   isObject,
   logger,
   QueryResponse,
+  RESOURCE_NAME,
+  RESOURCE_SERVICE_TYPE,
+  RESOURCE_TYPE,
   ResourceServiceConfig
 } from '@appweaver/common';
 import { define, injectPolicy } from '../context';
 import { ResourceService } from '../resource';
 import { Resource, ResourceData } from '../types';
-import {
-  RESOURCE_NAME,
-  RESOURCE_SERVICE_TYPE,
-  RESOURCE_TYPE
-} from '../constants';
 
 export function createService(config: ResourceServiceConfig): ResourceService {
   const name = capitalize(

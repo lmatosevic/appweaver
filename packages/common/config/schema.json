@@ -364,7 +364,11 @@
               "type": "string",
               "default": "./database/migrations"
             },
-            "clientOutputPath": {
+            "seedersDirPath": {
+              "type": "string",
+              "default": "./database/seeders"
+            },
+            "clientOutputDirPath": {
               "type": "string",
               "default": "./database/client"
             },

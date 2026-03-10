@@ -1,5 +1,6 @@
 import {
   RelationConfig,
+  RESOURCE_AUTH,
   ResourceModelConfig,
   ResourceServiceConfig,
   ScalarConfig,
@@ -8,7 +9,6 @@ import {
 import { updatePasswordHash } from './helper';
 import { createModel, createService } from '../factory';
 import { AuthUser, IResourceService, ResourceModel } from '../types';
-import { RESOURCE_AUTH } from '../constants';
 
 export function createAuthModel(config: ResourceModelConfig): ResourceModel {
   const authModelScalars: ScalarConfig = {

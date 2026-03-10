@@ -41,7 +41,7 @@ export function isArray<T = any>(val: any): val is Array<T> {
 }
 
 /**
- * Checks if the given value is of type object.
+ * Checks if the given value is of a type object.
  *
  * @param value - The value to be checked.
  * @return A boolean indicating whether the value is an object.

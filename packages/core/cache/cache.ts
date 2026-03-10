@@ -9,9 +9,9 @@ import {
 
 export abstract class Cache extends CommonCache {
   /** @internal */
-  private readonly _entryMeta: Record<string, CacheEntryMeta> = {};
+  private readonly _entryMeta: Map<string, CacheEntryMeta> = new Map();
 
-  protected constructor(private readonly memory: Memory) {
+  protected constructor(private readonly _memory: Memory) {
     super();
   }
 
@@ -24,19 +24,19 @@ export abstract class Cache extends CommonCache {
   public async get<T>(key: string): Promise<T | null> {
     const prefixedKey = this.addPrefix(key);
 
-    const data = await this.memory.getValue<T>(prefixedKey);
+    const data = await this._memory.getValue<T>(prefixedKey);
 
     if (data) {
-      const keyMeta = this._entryMeta[prefixedKey];
+      const keyMeta = this._entryMeta.get(prefixedKey);
       const now = Date.now();
       const count = keyMeta?.usedCount ?? 0;
-      this._entryMeta[prefixedKey] = {
+      this._entryMeta.set(prefixedKey, {
         ...(keyMeta || { key, createdAt: now }),
         usedCount: count + 1,
         lastUsedAt: now
-      };
+      });
     } else if (prefixedKey in this._entryMeta) {
-      delete this._entryMeta[prefixedKey];
+      this._entryMeta.delete(prefixedKey);
     }
 
     return data;
@@ -46,43 +46,43 @@ export abstract class Cache extends CommonCache {
     const prefixedKey = this.addPrefix(key);
     const expireMs = ttl === 0 ? undefined : (ttl ?? config.CACHE_DEFAULT_TTL);
 
-    const result = await this.memory.putValue(prefixedKey, value, expireMs);
+    await this.evictExcessEntries();
+
+    const result = await this._memory.putValue(prefixedKey, value, expireMs);
 
     const now = Date.now();
-    this._entryMeta[prefixedKey] = {
+    this._entryMeta.set(prefixedKey, {
       key,
       usedCount: 1,
       createdAt: now,
       lastUsedAt: now,
       expiresAt: expireMs ? now + expireMs : undefined
-    };
-
-    await this.evictExcessEntries();
+    });
 
     return result;
   }
 
   public async has(key: string): Promise<boolean> {
-    return this.memory.hasKey(this.addPrefix(key));
+    return this._memory.hasKey(this.addPrefix(key));
   }
 
   public async evict(key: string): Promise<boolean> {
     const prefixedKey = this.addPrefix(key);
 
-    const result = await this.memory.removeValue(prefixedKey);
-    delete this._entryMeta[prefixedKey];
+    const result = await this._memory.removeValue(prefixedKey);
+    this._entryMeta.delete(prefixedKey);
 
     return result;
   }
 
   public async expire(pattern: string = '*'): Promise<number> {
     const prefixedPattern = this.addPrefix(pattern);
-    const prefixedKeys = await this.memory.findKeys(prefixedPattern);
+    const prefixedKeys = await this._memory.findKeys(prefixedPattern);
 
-    await this.memory.removeEntries(prefixedPattern);
+    await this._memory.removeEntries(prefixedPattern);
 
     for (const prefixedKey of prefixedKeys) {
-      delete this._entryMeta[prefixedKey];
+      this._entryMeta.delete(prefixedKey);
     }
 
     return prefixedKeys.size;
@@ -90,7 +90,7 @@ export abstract class Cache extends CommonCache {
 
   public async keys(pattern: string = '*'): Promise<string[]> {
     const prefixedPattern = this.addPrefix(pattern);
-    const prefixedKeys = await this.memory.findKeys(prefixedPattern);
+    const prefixedKeys = await this._memory.findKeys(prefixedPattern);
     return Array.from(prefixedKeys);
   }
 
@@ -100,7 +100,7 @@ export abstract class Cache extends CommonCache {
     const now = Date.now();
     const strategy = config.CACHE_EVICTION_STRATEGY;
 
-    for (const [prefixedKey, meta] of Object.entries(this._entryMeta)) {
+    for (const [prefixedKey, meta] of this._entryMeta.entries()) {
       if (meta.expiresAt && meta.expiresAt < now) {
         expiredKeys.push(prefixedKey);
       }
@@ -109,12 +109,11 @@ export abstract class Cache extends CommonCache {
     // Delete expired entries metadata first, underlying memory implementation
     // should have already removed cached values
     for (const expiredKey of expiredKeys) {
-      delete this._entryMeta[expiredKey];
+      this._entryMeta.delete(expiredKey);
     }
 
     // Calculate the number of entries that should be evicted
-    const excessCount =
-      Object.keys(this._entryMeta).length - config.CACHE_MAX_ITEMS;
+    const excessCount = this._entryMeta.size - config.CACHE_MAX_ITEMS + 1;
     if (excessCount <= 0) {
       return;
     }
@@ -123,20 +122,20 @@ export abstract class Cache extends CommonCache {
     let sortedEntries: CacheEntryMeta[] = [];
     switch (strategy) {
       case CacheEvictionStrategy.LRU:
-        sortedEntries = Object.values(this._entryMeta).sort(
+        sortedEntries = [...this._entryMeta.values()].sort(
           (first: CacheEntryMeta, second: CacheEntryMeta) =>
             (first.lastUsedAt ?? 0) - (second.lastUsedAt ?? 0)
         );
         break;
       case CacheEvictionStrategy.LFU:
-        sortedEntries = Object.values(this._entryMeta).sort(
+        sortedEntries = [...this._entryMeta.values()].sort(
           (first: CacheEntryMeta, second: CacheEntryMeta) =>
             first.usedCount / (now - first.createdAt) -
             second.usedCount / (now - second.createdAt)
         );
         break;
       case CacheEvictionStrategy.FIFO:
-        sortedEntries = Object.values(this._entryMeta).sort(
+        sortedEntries = [...this._entryMeta.values()].sort(
           (first: CacheEntryMeta, second: CacheEntryMeta) =>
             first.createdAt - second.createdAt
         );

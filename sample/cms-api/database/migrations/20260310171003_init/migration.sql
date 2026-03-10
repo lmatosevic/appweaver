@@ -59,6 +59,16 @@ CREATE TABLE "Permission" (
 );
 
 -- CreateTable
+CREATE TABLE "_seeders" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "checksum" TEXT NOT NULL,
+    "seederName" TEXT NOT NULL,
+    "startedAt" DATETIME NOT NULL,
+    "finishedAt" DATETIME NOT NULL,
+    "logs" TEXT
+);
+
+-- CreateTable
 CREATE TABLE "File" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "name" TEXT NOT NULL,
@@ -117,6 +127,9 @@ CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Permission_name_key" ON "Permission"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "_seeders_seederName_key" ON "_seeders"("seederName");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "File_name_key" ON "File"("name");

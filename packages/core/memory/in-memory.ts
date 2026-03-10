@@ -14,9 +14,9 @@ type LockEntry = {
 
 export class InMemory extends Memory {
   /** @internal */
-  private readonly _storage: Record<string, StorageEntry> = {};
+  private readonly _storage: Map<string, StorageEntry> = new Map();
   /** @internal */
-  private readonly _locks: Record<string, LockEntry> = {};
+  private readonly _locks: Map<string, LockEntry> = new Map();
   /** @internal */
   private _approximatedSize: number = 0;
 
@@ -37,7 +37,7 @@ export class InMemory extends Memory {
   }
 
   public async getValue<T = any>(key: string): Promise<T | null> {
-    const entry = this._storage[key];
+    const entry = this._storage.get(key);
 
     if (!entry) {
       return null;
@@ -62,10 +62,10 @@ export class InMemory extends Memory {
     const jsonValue = stringify(value);
     const expiresAt = expireMs ? Date.now() + expireMs : undefined;
 
-    this._storage[key] = {
+    this._storage.set(key, {
       value: jsonValue,
       expiresAt
-    };
+    });
 
     this._approximatedSize += Buffer.byteLength(jsonValue, 'utf8');
 
@@ -73,7 +73,7 @@ export class InMemory extends Memory {
     // below the configured value
     if (config.MEMORY_MAX_SIZE_BYTES) {
       while (this._approximatedSize > config.MEMORY_MAX_SIZE_BYTES) {
-        await this.removeValue(Object.keys(this._storage)[0]);
+        await this.removeValue(this._storage.keys()[0]);
       }
     }
 
@@ -81,7 +81,7 @@ export class InMemory extends Memory {
   }
 
   public async hasKey(key: string): Promise<boolean> {
-    return key in this._storage;
+    return this._storage.has(key);
   }
 
   public async removeValue(key: string): Promise<boolean> {
@@ -90,14 +90,14 @@ export class InMemory extends Memory {
       return false;
     }
 
-    delete this._storage[key];
+    const deleted = this._storage.delete(key);
 
     this._approximatedSize -= Buffer.byteLength(jsonValue, 'utf8');
     if (this._approximatedSize < 0) {
       this._approximatedSize = 0;
     }
 
-    return true;
+    return deleted;
   }
 
   public async removeEntries(query: string): Promise<number> {
@@ -114,7 +114,6 @@ export class InMemory extends Memory {
   }
 
   public async findKeys(pattern: string = '*'): Promise<Set<string>> {
-    const keys = Object.keys(this._storage);
     const matchingKeys = new Set<string>();
 
     // Convert glob pattern to regex
@@ -125,10 +124,10 @@ export class InMemory extends Memory {
 
     const regex = new RegExp(`^${regexPattern}$`);
 
-    for (const key of keys) {
-      const entry = this._storage[key];
-      if (entry.expiresAt && entry.expiresAt < Date.now()) {
-        delete this._storage[key];
+    for (const key of this._storage.keys()) {
+      const entry = this._storage.get(key);
+      if (entry && entry.expiresAt && entry.expiresAt < Date.now()) {
+        this._storage.delete(key);
         continue;
       }
 
@@ -158,26 +157,26 @@ export class InMemory extends Memory {
 
     do {
       // Try to acquire lock (NX semantics - only set if not exists)
-      const existingLock = this._locks[resourceKey];
+      const existingLock = this._locks.get(resourceKey);
 
       // Check if the existing lock is expired
       if (existingLock && existingLock.expiresAt < Date.now()) {
-        delete this._locks[resourceKey];
+        this._locks.delete(resourceKey);
       }
 
       // Try to acquire
-      if (!this._locks[resourceKey]) {
-        this._locks[resourceKey] = {
+      if (!this._locks.has(resourceKey)) {
+        this._locks.set(resourceKey, {
           value: lockValue,
           expiresAt: Date.now() + expireMs
-        };
+        });
 
         return {
           release: async () => {
             // Only release if the lock value matches
-            const currentLock = this._locks[resourceKey];
+            const currentLock = this._locks.get(resourceKey);
             if (currentLock && currentLock.value === lockValue) {
-              delete this._locks[resourceKey];
+              this._locks.delete(resourceKey);
               return true;
             }
             return false;
@@ -200,18 +199,18 @@ export class InMemory extends Memory {
     const now = Date.now();
 
     // Cleanup expired storage entries
-    for (const key in this._storage) {
-      const entry = this._storage[key];
-      if (entry.expiresAt && entry.expiresAt < now) {
+    for (const key in this._storage.keys()) {
+      const entry = this._storage.get(key);
+      if (entry && entry.expiresAt && entry.expiresAt < now) {
         await this.removeValue(key);
       }
     }
 
     // Clean up expired locks
-    for (const key in this._locks) {
-      const lock = this._locks[key];
-      if (lock.expiresAt < now) {
-        delete this._locks[key];
+    for (const key in this._locks.keys()) {
+      const lock = this._locks.get(key);
+      if (lock && lock.expiresAt < now) {
+        this._locks.delete(key);
       }
     }
   }

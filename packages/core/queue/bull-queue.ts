@@ -27,7 +27,7 @@ type IoRedis = Redis<RedisOptions, RedisClient>;
 
 export class BullQueue extends CommonQueue {
   /** @internal */
-  private readonly _queues: Record<string, BullQueueProcessor> = {};
+  private readonly _queues: Map<string, BullQueueProcessor> = new Map();
 
   public async onDestroy(): Promise<void> {
     await this.closeAll();
@@ -36,23 +36,26 @@ export class BullQueue extends CommonQueue {
   public get<Data = any, Response = any>(
     name: string
   ): BullQueueProcessor<Data, Response> {
-    if (!this._queues[name]) {
-      this._queues[name] = new BullQueueProcessor(name);
+    let processor = this._queues.get(name);
+    if (!processor) {
+      processor = new BullQueueProcessor(name);
+      this._queues.set(name, processor);
     }
-    return this._queues[name];
+    return processor;
   }
 
   public async close(name: string): Promise<boolean> {
-    if (!this._queues[name]) {
+    const processor = this._queues.get(name);
+    if (!processor) {
       return false;
     }
-    await this._queues[name].close();
-    delete this._queues[name];
+    await processor.close();
+    this._queues.delete(name);
     return true;
   }
 
   public async closeAll(): Promise<void> {
-    for (const queueName of Object.keys(this._queues)) {
+    for (const queueName of this._queues.keys()) {
       await this.close(queueName);
     }
   }

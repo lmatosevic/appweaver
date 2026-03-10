@@ -8,7 +8,7 @@ import {
 import pretty from 'pino-pretty';
 import { createStream } from 'rotating-file-stream';
 import { LogLevel } from '../enums';
-import { config, files } from '../config';
+import { config } from '../config';
 
 const level = process.env.WEAVER_CLI ? LogLevel.Silent : config.LOG_LEVEL;
 
@@ -59,6 +59,4 @@ const loggerConfig =
 
 const logger = pino(commonConfig, stream);
 
-logger.debug({ files }, 'Configuration loaded');
-
-export { loggerConfig, logger };
+export { logger, loggerConfig };

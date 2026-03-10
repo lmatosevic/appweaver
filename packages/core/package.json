@@ -20,8 +20,7 @@
   },
   "scripts": {
     "weaver": "node ./../../node_modules/@appweaver/cli/weaver.js",
-    "generate-types": "npm run weaver -- generate --types --modelPattern ./**/model.ts --typesPath ./types/generated.ts",
-    "generate-schema": "npm run weaver -- generate --schema --modelPattern ./**/model.ts --schemaPath ./prisma/schema.prisma --clientPath ./prisma/client",
+    "generate": "npm run weaver -- generate --modelPattern ./**/model.ts --typesPath ./types/generated.ts --schemaPath ./prisma/schema.prisma --clientPath ./prisma/client",
     "db:remove": "rimraf dev.db && rimraf prisma/migrations --glob \"*_init\"",
     "db:recreate": "npm run db:remove && prisma migrate dev --name init && npm run db:generate",
     "db:migrate": "prisma migrate deploy",
@@ -44,7 +43,7 @@
     "bcrypt": "6.0.0",
     "csv-stringify": "6.6.0",
     "date-fns": "4.1.0",
-    "fastify": "5.7.3",
+    "fastify": "5.8.1",
     "flatted": "3.3.3",
     "glob": "13.0.1"
   },

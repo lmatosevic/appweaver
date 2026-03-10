@@ -53,7 +53,7 @@ export function testingCommand(program: Command): void {
 
       const clientPath =
         command.getOptionValue('clientPath') ??
-        config.DATABASE_CLIENT_OUTPUT_PATH;
+        config.DATABASE_CLIENT_OUTPUT_DIR_PATH;
 
       assertPathInside(
         tempDir,
@@ -73,7 +73,7 @@ export function testingCommand(program: Command): void {
         `Client output path must be inside temp directory: ${tempDir}`
       );
 
-      await runProcess('rimraf', [tempDir], quiet);
+      await runProcess('rimraf', [tempDir], { quiet });
 
       await fsp.mkdir(storagePath, { recursive: true });
 
@@ -88,7 +88,7 @@ export function testingCommand(program: Command): void {
       await runProcess(
         'prisma',
         ['migrate', 'dev', '--name', command.getOptionValue('migrationName')],
-        quiet
+        { quiet }
       );
 
       console.log('Database initialized');
@@ -128,12 +128,12 @@ export function testingCommand(program: Command): void {
         !command.getOptionValue('storage');
 
       if (command.getOptionValue('database') || resetAll) {
-        await runProcess('prisma', ['migrate', 'reset', '-f'], quiet);
+        await runProcess('prisma', ['migrate', 'reset', '-f'], { quiet });
         console.log('Database reset');
       }
 
       if (command.getOptionValue('storage') || resetAll) {
-        await runProcess('rimraf', [storagePath], quiet);
+        await runProcess('rimraf', [storagePath], { quiet });
         console.log('Storage cleared');
       }
     });
@@ -157,7 +157,7 @@ export function testingCommand(program: Command): void {
 
       const tempDir = command.getOptionValue('dir');
 
-      await runProcess('rimraf', [tempDir], quiet);
+      await runProcess('rimraf', [tempDir], { quiet });
 
       console.log(`Removed temporary directory ${tempDir}`);
     });

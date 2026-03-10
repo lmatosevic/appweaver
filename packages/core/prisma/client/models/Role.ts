@@ -341,22 +341,6 @@ export type RoleOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type StringFieldUpdateOperationsInput = {
-  set?: string
-}
-
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
-}
-
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type RoleCreateNestedManyWithoutPermissionsInput = {
   create?: Prisma.XOR<Prisma.RoleCreateWithoutPermissionsInput, Prisma.RoleUncheckedCreateWithoutPermissionsInput> | Prisma.RoleCreateWithoutPermissionsInput[] | Prisma.RoleUncheckedCreateWithoutPermissionsInput[]
   connectOrCreate?: Prisma.RoleCreateOrConnectWithoutPermissionsInput | Prisma.RoleCreateOrConnectWithoutPermissionsInput[]

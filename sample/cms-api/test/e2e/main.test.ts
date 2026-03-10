@@ -7,10 +7,6 @@ describe('Test Sample CMS API', () => {
     app = await createApp({ autoStart: false });
   });
 
-  afterAll(async () => {
-    await app.stop();
-  });
-
   test('Info endpoint /api', async () => {
     const resp = await app.server.inject({
       method: 'GET',

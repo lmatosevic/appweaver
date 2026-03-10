@@ -2,19 +2,17 @@ import { TSchema } from '@sinclair/typebox';
 import {
   FieldDefault,
   isObject,
-  ResourcePolicyConfig,
-  ScalarField
-} from '@appweaver/common';
-import { IResourceService, ResourceModel, ResourceRoutes } from '../types';
-import {
   RESOURCE_AUTH,
   RESOURCE_MODEL_TYPE,
   RESOURCE_NAME,
   RESOURCE_POLICY_TYPE,
   RESOURCE_ROUTES_TYPE,
   RESOURCE_SERVICE_TYPE,
-  RESOURCE_TYPE
-} from '../constants';
+  RESOURCE_TYPE,
+  ResourcePolicyConfig,
+  ScalarField
+} from '@appweaver/common';
+import { IResourceService, ResourceModel, ResourceRoutes } from '../types';
 
 export const resourceModelProps: Record<
   string,

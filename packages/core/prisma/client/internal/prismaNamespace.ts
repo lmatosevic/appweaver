@@ -80,12 +80,12 @@ export type PrismaVersion = {
 }
 
 /**
- * Prisma Client JS version: 7.4.1
- * Query Engine version: 55ae170b1ced7fc6ed07a15f110549408c501bb3
+ * Prisma Client JS version: 7.4.2
+ * Query Engine version: 94a226be1cf2967af2541cca5529f0f7ba866919
  */
 export const prismaVersion: PrismaVersion = {
-  client: "7.4.1",
-  engine: "55ae170b1ced7fc6ed07a15f110549408c501bb3"
+  client: "7.4.2",
+  engine: "94a226be1cf2967af2541cca5529f0f7ba866919"
 }
 
 /**
@@ -384,9 +384,11 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 
 export const ModelName = {
+  File: 'File',
+  Seeder: 'Seeder',
   Role: 'Role',
   Permission: 'Permission',
-  File: 'File'
+  Seed: 'Seed'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -402,10 +404,158 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "role" | "permission" | "file"
+    modelProps: "file" | "seeder" | "role" | "permission" | "seed"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
+    File: {
+      payload: Prisma.$FilePayload<ExtArgs>
+      fields: Prisma.FileFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FileFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FileFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>
+        }
+        findFirst: {
+          args: Prisma.FileFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FileFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>
+        }
+        findMany: {
+          args: Prisma.FileFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>[]
+        }
+        create: {
+          args: Prisma.FileCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>
+        }
+        createMany: {
+          args: Prisma.FileCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FileCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>[]
+        }
+        delete: {
+          args: Prisma.FileDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>
+        }
+        update: {
+          args: Prisma.FileUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>
+        }
+        deleteMany: {
+          args: Prisma.FileDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FileUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FileUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>[]
+        }
+        upsert: {
+          args: Prisma.FileUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>
+        }
+        aggregate: {
+          args: Prisma.FileAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFile>
+        }
+        groupBy: {
+          args: Prisma.FileGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FileGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FileCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FileCountAggregateOutputType> | number
+        }
+      }
+    }
+    Seeder: {
+      payload: Prisma.$SeederPayload<ExtArgs>
+      fields: Prisma.SeederFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SeederFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SeederFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        findFirst: {
+          args: Prisma.SeederFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SeederFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        findMany: {
+          args: Prisma.SeederFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>[]
+        }
+        create: {
+          args: Prisma.SeederCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        createMany: {
+          args: Prisma.SeederCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SeederCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>[]
+        }
+        delete: {
+          args: Prisma.SeederDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        update: {
+          args: Prisma.SeederUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        deleteMany: {
+          args: Prisma.SeederDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SeederUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SeederUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>[]
+        }
+        upsert: {
+          args: Prisma.SeederUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        aggregate: {
+          args: Prisma.SeederAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSeeder>
+        }
+        groupBy: {
+          args: Prisma.SeederGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SeederGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SeederCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SeederCountAggregateOutputType> | number
+        }
+      }
+    }
     Role: {
       payload: Prisma.$RolePayload<ExtArgs>
       fields: Prisma.RoleFieldRefs
@@ -554,77 +704,77 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    File: {
-      payload: Prisma.$FilePayload<ExtArgs>
-      fields: Prisma.FileFieldRefs
+    Seed: {
+      payload: Prisma.$SeedPayload<ExtArgs>
+      fields: Prisma.SeedFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.FileFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload> | null
+          args: Prisma.SeedFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.FileFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>
+          args: Prisma.SeedFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>
         }
         findFirst: {
-          args: Prisma.FileFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload> | null
+          args: Prisma.SeedFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.FileFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>
+          args: Prisma.SeedFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>
         }
         findMany: {
-          args: Prisma.FileFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>[]
+          args: Prisma.SeedFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>[]
         }
         create: {
-          args: Prisma.FileCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>
+          args: Prisma.SeedCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>
         }
         createMany: {
-          args: Prisma.FileCreateManyArgs<ExtArgs>
+          args: Prisma.SeedCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.FileCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>[]
+          args: Prisma.SeedCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>[]
         }
         delete: {
-          args: Prisma.FileDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>
+          args: Prisma.SeedDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>
         }
         update: {
-          args: Prisma.FileUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>
+          args: Prisma.SeedUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>
         }
         deleteMany: {
-          args: Prisma.FileDeleteManyArgs<ExtArgs>
+          args: Prisma.SeedDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.FileUpdateManyArgs<ExtArgs>
+          args: Prisma.SeedUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.FileUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>[]
+          args: Prisma.SeedUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>[]
         }
         upsert: {
-          args: Prisma.FileUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FilePayload>
+          args: Prisma.SeedUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>
         }
         aggregate: {
-          args: Prisma.FileAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateFile>
+          args: Prisma.SeedAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSeed>
         }
         groupBy: {
-          args: Prisma.FileGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.FileGroupByOutputType>[]
+          args: Prisma.SeedGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SeedGroupByOutputType>[]
         }
         count: {
-          args: Prisma.FileCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.FileCountAggregateOutputType> | number
+          args: Prisma.SeedCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SeedCountAggregateOutputType> | number
         }
       }
     }
@@ -664,6 +814,36 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const FileScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  originalName: 'originalName',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  title: 'title',
+  description: 'description',
+  resourceField: 'resourceField',
+  resourceName: 'resourceName',
+  resourceId: 'resourceId',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
+
+
+export const SeederScalarFieldEnum = {
+  id: 'id',
+  checksum: 'checksum',
+  seederName: 'seederName',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  logs: 'logs'
+} as const
+
+export type SeederScalarFieldEnum = (typeof SeederScalarFieldEnum)[keyof typeof SeederScalarFieldEnum]
+
+
 export const RoleScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -684,22 +864,16 @@ export const PermissionScalarFieldEnum = {
 export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
 
 
-export const FileScalarFieldEnum = {
+export const SeedScalarFieldEnum = {
   id: 'id',
-  name: 'name',
-  originalName: 'originalName',
-  mimeType: 'mimeType',
-  sizeBytes: 'sizeBytes',
-  title: 'title',
-  description: 'description',
-  resourceField: 'resourceField',
-  resourceName: 'resourceName',
-  resourceId: 'resourceId',
-  updatedAt: 'updatedAt',
-  createdAt: 'createdAt'
+  checksum: 'checksum',
+  seederName: 'seederName',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  logs: 'logs'
 } as const
 
-export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
+export type SeedScalarFieldEnum = (typeof SeedScalarFieldEnum)[keyof typeof SeedScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -846,9 +1020,11 @@ export type PrismaClientOptions = ({
   comments?: runtime.SqlCommenterPlugin[]
 }
 export type GlobalOmitConfig = {
+  file?: Prisma.FileOmit
+  seeder?: Prisma.SeederOmit
   role?: Prisma.RoleOmit
   permission?: Prisma.PermissionOmit
-  file?: Prisma.FileOmit
+  seed?: Prisma.SeedOmit
 }
 
 /* Types for Logging */

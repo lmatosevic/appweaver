@@ -48,7 +48,8 @@ export function createClient(): PrismaClient {
  */
 function sqliteClient(): PrismaClient {
   const { PrismaBetterSqlite3 } = requireModule(
-    '@prisma/adapter-better-sqlite3'
+    '@prisma/adapter-better-sqlite3',
+    true
   ).value;
 
   const adapter = new PrismaBetterSqlite3({
@@ -64,7 +65,7 @@ function sqliteClient(): PrismaClient {
  * @return {PrismaClient} An instance of PrismaClient used to interact with a PostgresSQL database.
  */
 function postgresClient(): PrismaClient {
-  const { PrismaPg } = requireModule('@prisma/adapter-pg').value;
+  const { PrismaPg } = requireModule('@prisma/adapter-pg', true).value;
 
   const adapter = new PrismaPg({
     connectionString: config.DATABASE_URL
@@ -80,7 +81,10 @@ function postgresClient(): PrismaClient {
  * @return {PrismaClient} A PrismaClient instance configured for MariaDB.
  */
 function mysqlClient(): PrismaClient {
-  const { PrismaMariaDb } = requireModule('@prisma/adapter-mariadb').value;
+  const { PrismaMariaDb } = requireModule(
+    '@prisma/adapter-mariadb',
+    true
+  ).value;
 
   const dbUrl = new URL(config.DATABASE_URL);
 
@@ -103,7 +107,7 @@ function mysqlClient(): PrismaClient {
  * @return {PrismaClient} An instance of PrismaClient for interacting with the SQL Server database.
  */
 function sqlServerClient(): PrismaClient {
-  const { PrismaMssql } = requireModule('@prisma/adapter-mssql').value;
+  const { PrismaMssql } = requireModule('@prisma/adapter-mssql', true).value;
 
   const adapter = new PrismaMssql(config.DATABASE_URL);
 
@@ -122,17 +126,19 @@ function createPrismaClient(adapter: SqlDriverAdapterFactory): PrismaClient {
   const mainPath = require.main?.filename || process.argv[1];
 
   const relativeMainPath = mainPath.replace(`${cwd}${path.sep}`, '');
-  const distDirName = relativeMainPath.split(path.sep)[0];
+  const distDirName = relativeMainPath.includes('node_modules')
+    ? 'dist'
+    : relativeMainPath.split(path.sep)[0];
 
   const clientPath = path.join(
     cwd,
     distDirName,
     config.APP_ENV === 'test' ? '..' : '',
-    config.DATABASE_CLIENT_OUTPUT_PATH,
+    config.DATABASE_CLIENT_OUTPUT_DIR_PATH,
     'client'
   );
 
-  const { PrismaClient } = requireModule(clientPath).value;
+  const { PrismaClient } = requireModule(clientPath, true).value;
 
   return new PrismaClient({ adapter, ...options });
 }

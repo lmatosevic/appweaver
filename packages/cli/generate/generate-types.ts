@@ -25,6 +25,10 @@ export async function generateTypes(
     const resourceModels: Record<string, TSchema> = {};
 
     for (const [name, schema] of Object.entries(models)) {
+      if (schema.config.generateTypes === false) {
+        continue;
+      }
+
       resourceModels[name] = transformUnsafeTypes(schema.readModel);
       resourceModels[`${name}Single`] = transformUnsafeTypes(
         schema.readOneModel

@@ -388,6 +388,7 @@ export const ModelName = {
   Post: 'Post',
   Role: 'Role',
   Permission: 'Permission',
+  Seeder: 'Seeder',
   File: 'File'
 } as const
 
@@ -404,7 +405,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "post" | "role" | "permission" | "file"
+    modelProps: "user" | "post" | "role" | "permission" | "seeder" | "file"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -704,6 +705,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Seeder: {
+      payload: Prisma.$SeederPayload<ExtArgs>
+      fields: Prisma.SeederFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SeederFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SeederFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        findFirst: {
+          args: Prisma.SeederFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SeederFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        findMany: {
+          args: Prisma.SeederFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>[]
+        }
+        create: {
+          args: Prisma.SeederCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        createMany: {
+          args: Prisma.SeederCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SeederCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>[]
+        }
+        delete: {
+          args: Prisma.SeederDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        update: {
+          args: Prisma.SeederUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        deleteMany: {
+          args: Prisma.SeederDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SeederUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SeederUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>[]
+        }
+        upsert: {
+          args: Prisma.SeederUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        aggregate: {
+          args: Prisma.SeederAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSeeder>
+        }
+        groupBy: {
+          args: Prisma.SeederGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SeederGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SeederCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SeederCountAggregateOutputType> | number
+        }
+      }
+    }
     File: {
       payload: Prisma.$FilePayload<ExtArgs>
       fields: Prisma.FileFieldRefs
@@ -873,6 +948,18 @@ export const PermissionScalarFieldEnum = {
 } as const
 
 export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
+
+
+export const SeederScalarFieldEnum = {
+  id: 'id',
+  checksum: 'checksum',
+  seederName: 'seederName',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  logs: 'logs'
+} as const
+
+export type SeederScalarFieldEnum = (typeof SeederScalarFieldEnum)[keyof typeof SeederScalarFieldEnum]
 
 
 export const FileScalarFieldEnum = {
@@ -1095,6 +1182,7 @@ export type GlobalOmitConfig = {
   post?: Prisma.PostOmit
   role?: Prisma.RoleOmit
   permission?: Prisma.PermissionOmit
+  seeder?: Prisma.SeederOmit
   file?: Prisma.FileOmit
 }
 

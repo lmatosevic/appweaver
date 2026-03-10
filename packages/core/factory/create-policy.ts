@@ -1,11 +1,13 @@
 import path from 'node:path';
-import { capitalize, logger, ResourcePolicyConfig } from '@appweaver/common';
-import { define } from '../context';
 import {
+  capitalize,
+  logger,
   RESOURCE_NAME,
   RESOURCE_POLICY_TYPE,
-  RESOURCE_TYPE
-} from '../constants';
+  RESOURCE_TYPE,
+  ResourcePolicyConfig
+} from '@appweaver/common';
+import { define } from '../context';
 
 export function createPolicy(
   config: ResourcePolicyConfig

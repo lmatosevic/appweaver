@@ -1,7 +1,6 @@
 import fastifyPlugin from 'fastify-plugin';
-import { logger } from '@appweaver/common';
+import { logger, PLUGIN } from '@appweaver/common';
 import { define } from '../context';
-import { PLUGIN } from '../constants';
 import { Server } from '../types';
 
 export function registerPlugin(

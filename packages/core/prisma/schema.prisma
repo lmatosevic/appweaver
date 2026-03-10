@@ -12,6 +12,34 @@ generator client {
   output   = "./client"
 }
 
+model File {
+  id            Int     @id @default(autoincrement())
+  name          String  @unique
+  originalName  String
+  mimeType      String
+  sizeBytes     Int
+  title         String?
+  description   String?
+  resourceField String?
+  resourceName  String?
+  resourceId    Int?
+
+  /// Audit columns
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model Seeder {
+  id         String   @id @default(uuid())
+  checksum   String
+  seederName String   @unique
+  startedAt  DateTime
+  finishedAt DateTime
+  logs       String?
+
+  @@map("_seeders")
+}
+
 model Role {
   id   Int    @id @default(autoincrement())
   name String @unique
@@ -36,19 +64,13 @@ model Permission {
   createdAt DateTime @default(now())
 }
 
-model File {
-  id            Int     @id @default(autoincrement())
-  name          String  @unique
-  originalName  String
-  mimeType      String
-  sizeBytes     Int
-  title         String?
-  description   String?
-  resourceField String?
-  resourceName  String?
-  resourceId    Int?
+model Seed {
+  id         String   @id @default(uuid())
+  checksum   String
+  seederName String   @unique
+  startedAt  DateTime
+  finishedAt DateTime
+  logs       String?
 
-  /// Audit columns
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
+  @@map("_seeds")
 }
