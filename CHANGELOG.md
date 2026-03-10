@@ -1,3 +1,30 @@
+## [1.5.0](https://gitlab.com/app-weaver/appweaver/compare/v1.4.3...v1.5.0) (2026-03-10)
+
+### Features
+
+* add auth user caching, move cache key generation to cache service ([ceb44d8](https://gitlab.com/app-weaver/appweaver/commit/ceb44d8357a021d045de1d2080a208685f2a3ae2))
+* add cache services and config, refactor dependency injection to dynamically create class instances on demand, separate smtp-mailer to json-mailer implementation, update utility types ([983cbab](https://gitlab.com/app-weaver/appweaver/commit/983cbabec8a8c360bf5b4fda05df7cbb828ce8df))
+* add debug logging for all major functionalities ([2b91370](https://gitlab.com/app-weaver/appweaver/commit/2b91370985ee7b245f6bbe259409b83f0a114414))
+* add health check common data and default authorization flag, add rate-limit config for allowedList of IPs ([4839471](https://gitlab.com/app-weaver/appweaver/commit/48394719666c65c142b68c6ae54b36baa4cdd5a1))
+* implement caching service and invalidation strategy using deferred or blocking mode, change error logging ([45c9680](https://gitlab.com/app-weaver/appweaver/commit/45c96809a39cf9961b4fc2bc184b5b8d66c276a7))
+* implement registerPlugin function for extending base application functions, intercepting requests and other Fastify supported hooks and actions ([59b69b1](https://gitlab.com/app-weaver/appweaver/commit/59b69b12d9ae907d9b31e8ebc6605a9186606709))
+* implement seeder functionality using new updated seed cli command and database persistence of performed seed actions ([7a35a61](https://gitlab.com/app-weaver/appweaver/commit/7a35a617f8ae58f19e73c970b36c1db720b34a81))
+* implemented cache methods with in-memory cache entry metadata ([3304967](https://gitlab.com/app-weaver/appweaver/commit/330496743d586c310b0efbd44018336fc01a4ac4))
+* implemented caching hooks and decorator to enable caching of responses for any route based on config ([f122294](https://gitlab.com/app-weaver/appweaver/commit/f12229485381ff24c29be4bcf9c1390673a49e2c))
+
+### Bug Fixes
+
+* add config for enabling or disabling server request logging ([82e6fef](https://gitlab.com/app-weaver/appweaver/commit/82e6fef19fa00b1db3d9464cec8e1de01c057f71))
+* add new autoStartServer createApp flag for disabling seb server autoStart ([1e7dee2](https://gitlab.com/app-weaver/appweaver/commit/1e7dee2af0df0c1bc199cf629a3df553a5db0b74))
+* add resource path patterns resolving based on the baseDir, add new resource pattern configs for service, policy and route ([8769745](https://gitlab.com/app-weaver/appweaver/commit/87697459fa61388ae871c7b3f39b347de25ea077))
+* disabled logging during CLI command execution ([91062e9](https://gitlab.com/app-weaver/appweaver/commit/91062e9d54bb5099e2d9e45eeed5e544074681a8))
+* do not register caching plugin if CACHE_ENABLED is false ([bdbdaab](https://gitlab.com/app-weaver/appweaver/commit/bdbdaaba03d05599453b82c671e27b512e068d1e))
+* extract path patters for loading resources from to createApp param ([080c43c](https://gitlab.com/app-weaver/appweaver/commit/080c43cb5a2f6c6be9d1b4aeb400cd10a66bc271))
+* move cache get and set logic to CacheService, add request context flag for cached response ([150fd95](https://gitlab.com/app-weaver/appweaver/commit/150fd950cb0ef44ea1a07f877b529da1f0fe5046))
+* switch to caching preHandler hook instead of decorator, add return statement for all async route handlers ([6e565e1](https://gitlab.com/app-weaver/appweaver/commit/6e565e1958532b57ad7d9e2278c55798c4627bfa))
+* update application module loading with optional and required options, removed module dependency checks ([9172781](https://gitlab.com/app-weaver/appweaver/commit/91727815427d10b6123229576a84d1ba2290775f))
+* update caching register logic ([f91c2ff](https://gitlab.com/app-weaver/appweaver/commit/f91c2ff23e1eb51b70acfe420bb2c2b10954f96a))
+
 ## [1.4.3](https://gitlab.com/app-weaver/appweaver/compare/v1.4.2...v1.4.3) (2026-03-03)
 
 ### Bug Fixes
