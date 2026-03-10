@@ -1,3 +1,9 @@
+## [1.5.2](https://gitlab.com/app-weaver/appweaver/compare/v1.5.1...v1.5.2) (2026-03-10)
+
+### Bug Fixes
+
+* add seeder db disconnect when cli command ends ([a838778](https://gitlab.com/app-weaver/appweaver/commit/a83877873dd03276cd44eebe2a90c66864a7d877))
+
 ## [1.5.1](https://gitlab.com/app-weaver/appweaver/compare/v1.5.0...v1.5.1) (2026-03-10)
 
 ### Bug Fixes
