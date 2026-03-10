@@ -306,7 +306,7 @@ export async function generateSchema(
     if (code !== 0 && oldSchema) {
       await fsp.writeFile(outputPath, oldSchema);
     } else {
-      console.log(`Schema generated to ${outputPath}`);
+      console.log(`Schema generated to ${schemaPath}`);
     }
   } catch (error) {
     console.error(`Schema generation failed:`, error);
@@ -551,13 +551,20 @@ function createFileSchema(
 function createAuditSchema(
   modelName: string,
   authModel?: ResourceModel,
-  audit: AuditFields = { createdAt: true, updatedAt: true, createdById: true }
+  audit: AuditFields = {}
 ): PrismaSchemaField[] {
+  const defaultAudit: AuditFields = {
+    updatedAt: true,
+    createdAt: true,
+    createdById: true
+  };
+  const mergedAudit = { ...defaultAudit, ...audit };
+
   const fields: PrismaSchemaField[] = [];
 
   const authModelName = authModel?.name;
 
-  if (audit.updatedAt) {
+  if (mergedAudit.updatedAt) {
     fields.push({
       name: 'updatedAt',
       type: 'DateTime',
@@ -565,7 +572,7 @@ function createAuditSchema(
     });
   }
 
-  if (audit.createdAt) {
+  if (mergedAudit.createdAt) {
     fields.push({
       name: 'createdAt',
       type: 'DateTime',
@@ -573,7 +580,7 @@ function createAuditSchema(
     });
   }
 
-  if (audit.createdById && authModelName) {
+  if (mergedAudit.createdById && authModelName) {
     fields.push({
       name: 'createdBy',
       type: `${authModelName}?`,

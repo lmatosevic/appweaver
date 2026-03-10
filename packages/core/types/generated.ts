@@ -11,8 +11,8 @@ export type File = {
   resourceField?: string | null;
   resourceName?: string | null;
   resourceId?: number | null;
-  createdAt: Date;
   updatedAt: Date;
+  createdAt: Date;
   createdById?: number | null;
 };
 
@@ -24,8 +24,8 @@ export type FileSingle = {
   sizeBytes: number;
   title?: string | null;
   description?: string | null;
-  createdAt: Date;
   updatedAt: Date;
+  createdAt: Date;
   createdById?: number | null;
 };
 
@@ -37,8 +37,8 @@ export type FileMultiple = {
   sizeBytes: number;
   title?: string | null;
   description?: string | null;
-  createdAt: Date;
   updatedAt: Date;
+  createdAt: Date;
   createdById?: number | null;
 };
 
@@ -64,8 +64,8 @@ export type Role = {
   id: number;
   name: string;
   permissions: Array<PermissionSingle>;
-  createdAt: Date;
   updatedAt: Date;
+  createdAt: Date;
   createdById?: number | null;
 };
 
@@ -102,8 +102,8 @@ export type RoleUpdate = {
 export type Permission = {
   id: number;
   name: string;
-  createdAt: Date;
   updatedAt: Date;
+  createdAt: Date;
   createdById?: number | null;
 };
 

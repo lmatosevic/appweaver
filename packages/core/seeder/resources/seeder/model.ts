@@ -9,6 +9,8 @@ export default createModel({
     generator: 'uuid()'
   },
   audit: {
+    updatedAt: false,
+    createdAt: false,
     createdById: false
   },
   scalars: {

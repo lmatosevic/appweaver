@@ -63,14 +63,3 @@ model Permission {
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 }
-
-model Seed {
-  id         String   @id @default(uuid())
-  checksum   String
-  seederName String   @unique
-  startedAt  DateTime
-  finishedAt DateTime
-  logs       String?
-
-  @@map("_seeds")
-}

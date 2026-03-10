@@ -146,16 +146,17 @@ function buildIdSchema(idField: IdField = { type: 'int' }): TObject {
   return idType;
 }
 
-function buildAuditSchema(
-  auditFields: AuditFields = {
-    createdAt: true,
+function buildAuditSchema(audit: AuditFields = {}): TObject {
+  const defaultAudit: AuditFields = {
     updatedAt: true,
+    createdAt: true,
     createdById: true
-  }
-): TObject {
+  };
+  const mergedAudit = { ...defaultAudit, ...audit };
+
   const fields: string[] = [];
 
-  for (const [name, included] of Object.entries(auditFields)) {
+  for (const [name, included] of Object.entries(mergedAudit)) {
     if (included) {
       fields.push(name);
     }

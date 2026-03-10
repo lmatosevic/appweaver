@@ -387,8 +387,7 @@ export const ModelName = {
   File: 'File',
   Seeder: 'Seeder',
   Role: 'Role',
-  Permission: 'Permission',
-  Seed: 'Seed'
+  Permission: 'Permission'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -404,7 +403,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "file" | "seeder" | "role" | "permission" | "seed"
+    modelProps: "file" | "seeder" | "role" | "permission"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -704,80 +703,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    Seed: {
-      payload: Prisma.$SeedPayload<ExtArgs>
-      fields: Prisma.SeedFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.SeedFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.SeedFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>
-        }
-        findFirst: {
-          args: Prisma.SeedFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.SeedFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>
-        }
-        findMany: {
-          args: Prisma.SeedFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>[]
-        }
-        create: {
-          args: Prisma.SeedCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>
-        }
-        createMany: {
-          args: Prisma.SeedCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.SeedCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>[]
-        }
-        delete: {
-          args: Prisma.SeedDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>
-        }
-        update: {
-          args: Prisma.SeedUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>
-        }
-        deleteMany: {
-          args: Prisma.SeedDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.SeedUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.SeedUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>[]
-        }
-        upsert: {
-          args: Prisma.SeedUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeedPayload>
-        }
-        aggregate: {
-          args: Prisma.SeedAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateSeed>
-        }
-        groupBy: {
-          args: Prisma.SeedGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.SeedGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.SeedCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.SeedCountAggregateOutputType> | number
-        }
-      }
-    }
   }
 } & {
   other: {
@@ -862,18 +787,6 @@ export const PermissionScalarFieldEnum = {
 } as const
 
 export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
-
-
-export const SeedScalarFieldEnum = {
-  id: 'id',
-  checksum: 'checksum',
-  seederName: 'seederName',
-  startedAt: 'startedAt',
-  finishedAt: 'finishedAt',
-  logs: 'logs'
-} as const
-
-export type SeedScalarFieldEnum = (typeof SeedScalarFieldEnum)[keyof typeof SeedScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1024,7 +937,6 @@ export type GlobalOmitConfig = {
   seeder?: Prisma.SeederOmit
   role?: Prisma.RoleOmit
   permission?: Prisma.PermissionOmit
-  seed?: Prisma.SeedOmit
 }
 
 /* Types for Logging */

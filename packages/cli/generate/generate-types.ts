@@ -63,7 +63,7 @@ export async function generateTypes(
       `--write ${outputPath}`
     ]);
 
-    console.log(`Types generated to ${outputPath}`);
+    console.log(`Types generated to ${typesPath}`);
   } catch (error) {
     console.error(`Types generation failed:`, error);
   }

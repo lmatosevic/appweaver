@@ -1,6 +1,7 @@
 import path from 'node:path';
 import fsp from 'node:fs/promises';
 import { Database, isFunction, makeHash } from '@appweaver/common';
+import { Seeder as SeederRecord } from '../prisma/client/client';
 import { PrismaDatabase } from '../database';
 import { inject } from '../context';
 import { importModule } from '../utils';
@@ -15,29 +16,42 @@ export class Seeder {
   ) {}
 
   /**
-   * Executes the seeding process by loading, checking, and running seeder files.
-   * The method ensures that only unprocessed seeder files are executed.
+   * Executes the seeders by discovering, validating, and running seeder files.
+   * Logs the seeding process, including warnings for checksum mismatches
+   * and files that do not exist but are present in database table.
    *
-   * @return A promise that resolves when the seeding process is complete.
+   * @return Resolves when all seeders have been processed. Logs relevant
+   * information during execution.
    */
   public async seed(): Promise<void> {
     const seederFiles = await this.loadSeederFiles();
 
     let calledSeedersCount: number = 0;
 
+    const relativePath = this._dirPath
+      .replace(process.cwd(), '.')
+      .replace(/\\/g, '/');
     console.log(
-      `${seederFiles.length} seeder${seederFiles.length === 1 ? '' : 's'} found in ${this._dirPath}`
+      `${seederFiles.length} seeder${seederFiles.length === 1 ? '' : 's'} found in ${relativePath}`
     );
     console.log('');
 
     // For each seeder file, skip if it has already been seeded, otherwise
     // execute all of it's exported functions and write results to a database
     for (const seederFile of seederFiles) {
-      if (await this.isSeeded(seederFile)) {
+      const seederName = this.seederName(seederFile);
+
+      const seeder = await this.getSeeder(seederFile);
+      if (seeder) {
+        const checksum = await this.seederHash(seederFile);
+        if (checksum !== seeder.checksum) {
+          console.warn(
+            `Warning: seeder ${seederName} has different checksum: ${checksum}, expected checksum: ${seeder.checksum}`
+          );
+          console.log('');
+        }
         continue;
       }
-
-      const seederName = this.seederName(seederFile);
 
       console.log(`Seeding ${seederName}...`);
       await this.executeSeeder(seederFile);
@@ -47,8 +61,16 @@ export class Seeder {
       calledSeedersCount++;
     }
 
+    const seedersWithoutFiles = await this.findSeedersWithoutFiles(seederFiles);
+    for (const seeder of seedersWithoutFiles) {
+      console.warn(
+        `Warning: seeder ${seeder.seederName} does not exist but is present in database table.`
+      );
+      console.log('');
+    }
+
     if (calledSeedersCount === 0) {
-      console.log(`No pending seeders to call.`);
+      console.log(`No pending seeders to execute.`);
     }
   }
 
@@ -63,14 +85,6 @@ export class Seeder {
       .map((name) => path.join(this._dirPath, name));
   }
 
-  private async isSeeded(seederFile: string): Promise<boolean> {
-    const existingSeeder = await this._db
-      .client()
-      .seeder.findFirst({ where: { seederName: this.seederName(seederFile) } });
-
-    return !!existingSeeder;
-  }
-
   private async executeSeeder(seederFile: string): Promise<void> {
     const start = new Date();
 
@@ -82,8 +96,6 @@ export class Seeder {
       }
       throw error;
     }
-
-    const seederContent = await fsp.readFile(seederFile, 'utf8');
 
     const logs: string[] = [];
 
@@ -103,16 +115,39 @@ export class Seeder {
       }
     }
 
+    const seederHash = await this.seederHash(seederFile);
+
     // Insert seeder result into the database
     await this._db.client().seeder.create({
       data: {
-        checksum: makeHash(seederContent),
+        checksum: seederHash,
         seederName: this.seederName(seederFile),
         startedAt: start,
         finishedAt: new Date(),
-        logs: logs.join('\n')
+        logs: logs.length > 0 ? logs.join('\n') : null
       }
     });
+  }
+
+  private async findSeedersWithoutFiles(
+    seederFiles: string[]
+  ): Promise<SeederRecord[]> {
+    const seederNames = seederFiles.map((file) => this.seederName(file));
+    return this._db.client().seeder.findMany({
+      where: {
+        seederName: { notIn: seederNames }
+      }
+    });
+  }
+
+  private async getSeeder(seederFile: string): Promise<SeederRecord | null> {
+    const seederName = this.seederName(seederFile);
+    return this._db.client().seeder.findFirst({ where: { seederName } });
+  }
+
+  private async seederHash(seederFile: string): Promise<string> {
+    const seederContent = await fsp.readFile(seederFile, 'utf8');
+    return makeHash(seederContent);
   }
 
   private seederName(seederFile: string): string {

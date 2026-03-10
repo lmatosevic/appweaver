@@ -1,7 +1,7 @@
 import path from 'node:path';
 
 /**
- * Computes the relative path from the directory of the first path to the second path.
+ * Computes the relative path from the directory of the first path to the other path.
  *
  * @param {string} firstPath - The base path used to calculate the relative path.
  * @param {string} otherPath - The target path for which the relative path will be calculated.
