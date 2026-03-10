@@ -1,3 +1,9 @@
+## [1.5.1](https://gitlab.com/app-weaver/appweaver/compare/v1.5.0...v1.5.1) (2026-03-10)
+
+### Bug Fixes
+
+* add seeder warning messages, update cli log messages ([368135a](https://gitlab.com/app-weaver/appweaver/commit/368135a8add3e8f6650297998164678246e33b2f))
+
 ## [1.5.0](https://gitlab.com/app-weaver/appweaver/compare/v1.4.3...v1.5.0) (2026-03-10)
 
 ### Features
