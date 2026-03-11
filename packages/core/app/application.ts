@@ -1,27 +1,18 @@
-import {
-  config,
-  isLifecycleDestroy,
-  isLifecycleInit,
-  logger,
-  OnDestroy,
-  OnInit
-} from '@appweaver/common';
-import { context, injectAllWhere } from '../context';
+import { config, logger } from '@appweaver/common';
+import { context } from '../context';
 import { Server } from '../types';
+import { LifecycleManager } from './lifecycle-manager';
 
 /**
- * Represents an application that manages the lifecycle of a server and database.
+ * Represents an application that manages the lifecycle of a server and all
+ * defined services.
  */
-export class Application {
+export class Application extends LifecycleManager {
   private _started = false;
-  private readonly _onInitServices = injectAllWhere<OnInit>((def) =>
-    isLifecycleInit(def.value)
-  );
-  private readonly _onDestroyServices = injectAllWhere<OnDestroy>((def) =>
-    isLifecycleDestroy(def.value)
-  );
 
-  constructor(private readonly _server: Server) {}
+  constructor(private readonly _server: Server) {
+    super();
+  }
 
   /**
    * Retrieves the Fastify instance.
@@ -50,9 +41,7 @@ export class Application {
 
     logger.info(`Application started in "${config.APP_ENV}" environment`);
 
-    await Promise.all([
-      ...this._onInitServices.map((service) => service.onInit())
-    ]);
+    await this.init();
 
     Object.freeze(context);
 
@@ -88,9 +77,7 @@ export class Application {
 
     this._started = false;
 
-    await Promise.all([
-      ...this._onDestroyServices.map((service) => service.onDestroy())
-    ]);
+    await this.destroy();
 
     await this._server.close();
 

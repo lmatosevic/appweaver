@@ -10,11 +10,7 @@ export function seedCommand(program: Command): void {
       '--seedersPath [path]',
       'Seeders directory path. (default: from config or env).'
     )
-    .option(
-      '-s, --skipBuild',
-      'Skip building the project before seeding.',
-      false
-    )
+    .option('-b, --buildProject', 'Build the project before seeding.', false)
     .option(
       '-c, --continueOnError',
       'Continue seeder execution if error is thrown.',
@@ -24,7 +20,7 @@ export function seedCommand(program: Command): void {
       const seedersPath = command.getOptionValue('seedersPath');
       const continueOnError = command.getOptionValue('continueOnError');
 
-      if (!command.getOptionValue('skipBuild')) {
+      if (command.getOptionValue('buildProject')) {
         await runProcess('rimraf', ['dist']);
         await runProcess('tsc', ['-p tsconfig.build.json']);
         await runProcess('tsc-alias', ['-p tsconfig.build.json']);

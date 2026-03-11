@@ -8,7 +8,7 @@ import {
 import { HEALTH_CHECK, LIFECYCLE } from '../constants';
 
 export abstract class Memory implements IHealthCheck, OnInit, OnDestroy {
-  static [LIFECYCLE]: true;
+  static [LIFECYCLE] = true;
   static [HEALTH_CHECK] = true;
 
   abstract onInit(): Promise<void>;

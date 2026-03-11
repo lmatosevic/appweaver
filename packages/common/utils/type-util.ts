@@ -1,6 +1,5 @@
 import { DatabaseType } from '../enums';
 import { IHealthCheck, OnDestroy, OnInit } from '../interfaces';
-import { config } from '../config';
 import { HEALTH_CHECK, LIFECYCLE } from '../constants';
 
 export type BaseType<T> = T extends Array<infer I> ? I : T;
@@ -148,29 +147,31 @@ export function isLifecycleDestroy(value: any): value is OnDestroy {
 }
 
 /**
- * Determines the database type based on the configuration.
+ * Resolves the database type based on the given type or the database URL. If a database type is explicitly set,
+ * it is returned. Otherwise, the type is inferred from the url argument prefix. Possible database types include
+ * PostgresSQL, MySQL, SQLServer, and Sqlite.
  *
- * @return {DatabaseType} The database type resolved from the configuration. If `DATABASE_TYPE` is explicitly set in the configuration,
- * it is returned. Otherwise, the type is inferred from the `DATABASE_URL` prefix. Possible database types include PostgresSQL, MySQL,
- * SQLServer, and Sqlite.
+ * @param {DatabaseType} [type] - The explicit database type provided.
+ * @param {string} [url] - The database connection URL used to infer the type if not explicitly set.
+ * @return {DatabaseType} The resolved database type, either from the provided type or inferred from the URL.
  */
-export function getDatabaseType(): DatabaseType {
-  if (config.DATABASE_TYPE) {
-    return config.DATABASE_TYPE;
+export function resolveDatabaseType(
+  type?: DatabaseType,
+  url?: string
+): DatabaseType {
+  if (type) {
+    return type;
   }
 
-  if (config.DATABASE_URL.startsWith('postgresql:')) {
+  if (url?.startsWith('postgresql:')) {
     return DatabaseType.PostgresSQL;
   }
 
-  if (
-    config.DATABASE_URL.startsWith('mysql:') ||
-    config.DATABASE_URL.startsWith('mariadb:')
-  ) {
+  if (url?.startsWith('mysql:') || url?.startsWith('mariadb:')) {
     return DatabaseType.MySQL;
   }
 
-  if (config.DATABASE_URL.startsWith('sqlserver:')) {
+  if (url?.startsWith('sqlserver:')) {
     return DatabaseType.SQLServer;
   }
 

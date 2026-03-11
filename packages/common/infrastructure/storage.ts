@@ -13,7 +13,7 @@ export type ContentStream = {
 };
 
 export abstract class Storage implements IHealthCheck, OnInit {
-  static [LIFECYCLE]: true;
+  static [LIFECYCLE] = true;
   static [HEALTH_CHECK] = true;
 
   abstract onInit(): Promise<void>;

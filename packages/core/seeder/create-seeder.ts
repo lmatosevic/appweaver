@@ -1,6 +1,6 @@
 import path from 'node:path';
-import { config, Database } from '@appweaver/common';
-import { loadProvider } from '../context';
+import { config } from '@appweaver/common';
+import { loadProviders } from '../app/load-providers';
 import { Seeder } from './seeder';
 
 export type CreateSeederParams = {
@@ -36,7 +36,8 @@ export async function createSeeder(
     scanPath = path.resolve(config.APP_SCAN_PATH);
   }
 
-  loadProvider(scanPath, config.DATABASE_PROVIDER, Database);
+  // Load all defined providers from this project
+  loadProviders(scanPath);
 
   const seeder = new Seeder(seedersPath, params.continueOnError);
 

@@ -33,7 +33,7 @@ export class CacheService {
   public async getCachedValue<T>(key: string): Promise<T | null> {
     const exists = await this._cache.has(key);
     if (exists) {
-      logger.debug({ key }, 'Retrieved cached value');
+      logger.debug({ key }, 'Retrieved value from cache');
       return this._cache.get<T>(key);
     }
     return null;

@@ -5,7 +5,7 @@ export abstract class Scheduler<
   Job = any,
   JobParams = any
 > implements OnDestroy {
-  static [LIFECYCLE]: true;
+  static [LIFECYCLE] = true;
 
   abstract onDestroy(): Promise<void>;
 

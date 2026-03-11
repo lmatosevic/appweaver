@@ -5,20 +5,21 @@ import { isResourceAuthModel, ResourceModel } from '@appweaver/core';
 import {
   AuditFields,
   capitalize,
+  config,
   DatabaseType,
   FieldDefault,
   FileField,
   FilesConfig,
-  getDatabaseType,
   IdField,
   IndexConfig,
   isArray,
-  isString,
-  plural,
   isBoolean,
   isNumber,
+  isString,
+  plural,
   RelationConfig,
   RelationField,
+  resolveDatabaseType,
   ScalarConfig,
   ScalarField,
   uncapitalize
@@ -61,7 +62,7 @@ export async function generateSchema(
     const prismaModels: Record<string, PrismaSchemaModel> = {};
     const prismaEnums: Record<string, string[]> = {};
 
-    const dbType = getDatabaseType();
+    const dbType = databaseType();
     const relativeOutputPath = relativePathFrom(schemaPath, clientPath);
 
     const schemaContent = [
@@ -373,7 +374,7 @@ function createScalarSchema(
 ): PrismaSchemaField {
   const attributes: string[] = [];
 
-  const isSqlite = getDatabaseType() === DatabaseType.Sqlite;
+  const isSqlite = databaseType() === DatabaseType.Sqlite;
 
   const sanitize = (val: FieldDefault) => {
     if (isNumber(val) || isBoolean(val)) {
@@ -615,4 +616,8 @@ function createIndexSchema(index?: IndexConfig): string[] {
   }
 
   return indexes;
+}
+
+function databaseType(): DatabaseType {
+  return resolveDatabaseType(config.DATABASE_TYPE, config.DATABASE_URL);
 }

@@ -3,7 +3,7 @@ import {
   PrismaClientOptions,
   SqlDriverAdapterFactory
 } from '@prisma/client/runtime/client';
-import { config, DatabaseType, getDatabaseType } from '@appweaver/common';
+import { config, DatabaseType, resolveDatabaseType } from '@appweaver/common';
 import { PrismaClient } from '../prisma/client/client';
 import { requireModule } from '../utils';
 
@@ -24,7 +24,8 @@ const options: Omit<PrismaClientOptions, 'adapter'> = {
  * @return {PrismaClient} A PrismaClient instance configured for the selected database type.
  */
 export function createClient(): PrismaClient {
-  switch (getDatabaseType()) {
+  const dbType = resolveDatabaseType(config.DATABASE_TYPE, config.DATABASE_URL);
+  switch (dbType) {
     case DatabaseType.Sqlite:
       return sqliteClient();
     case DatabaseType.PostgresSQL:

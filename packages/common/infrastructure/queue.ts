@@ -2,8 +2,7 @@ import {
   HealthCheckConfig,
   HealthCheckResult,
   IHealthCheck,
-  OnDestroy,
-  OnInit
+  OnDestroy
 } from '../interfaces';
 import { HEALTH_CHECK, LIFECYCLE } from '../constants';
 
@@ -21,7 +20,7 @@ export type QueueJob<T = any, R = any> = {
 };
 
 export abstract class Queue implements IHealthCheck, OnDestroy {
-  static [LIFECYCLE]: true;
+  static [LIFECYCLE] = true;
   static [HEALTH_CHECK] = true;
 
   abstract onDestroy(): Promise<void>;

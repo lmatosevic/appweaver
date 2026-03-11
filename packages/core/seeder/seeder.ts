@@ -2,18 +2,24 @@ import path from 'node:path';
 import fsp from 'node:fs/promises';
 import { Database, isFunction, makeHash } from '@appweaver/common';
 import { Seeder as SeederRecord } from '../prisma/client/client';
+import { LifecycleManager } from '../app/lifecycle-manager';
 import { PrismaDatabase } from '../database';
 import { inject } from '../context';
 import { importModule } from '../utils';
 
-export class Seeder {
+/**
+ * Represents a seeder class that manages the application seeders lifecycle.
+ */
+export class Seeder extends LifecycleManager {
   /** @internal */
   private readonly _db = inject<PrismaDatabase>(Database as any);
 
   constructor(
     private readonly _dirPath: string,
     private readonly _continueOnError: boolean = false
-  ) {}
+  ) {
+    super();
+  }
 
   /**
    * Executes the seeders by discovering, validating, and running seeder files.
@@ -24,6 +30,8 @@ export class Seeder {
    * information during execution.
    */
   public async seed(): Promise<void> {
+    await this.init();
+
     const seederFiles = await this.loadSeederFiles();
 
     let calledSeedersCount: number = 0;
@@ -75,7 +83,7 @@ export class Seeder {
   }
 
   public async close(): Promise<void> {
-    await this._db.disconnect();
+    await this.destroy();
   }
 
   private async loadSeederFiles(): Promise<string[]> {
@@ -113,6 +121,9 @@ export class Seeder {
             logs.push(JSON.stringify(result));
           }
         } catch (e) {
+          if (!this._continueOnError) {
+            throw e;
+          }
           console.error(e);
           logs.push(`Error: ${(e as Error).message}`);
         }

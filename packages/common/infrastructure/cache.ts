@@ -10,7 +10,7 @@ export type CacheEntryMeta = {
 };
 
 export abstract class Cache implements OnInit {
-  static [LIFECYCLE]: true;
+  static [LIFECYCLE] = true;
 
   abstract onInit(): Promise<void>;
 
