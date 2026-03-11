@@ -63,6 +63,10 @@ export function loadConfigFromEnv(schema: TObject): ConfigLoad {
 
     if (schemaProp.type === 'array') {
       config[name] = parseArray(value, schemaProp.default);
+    } else if (schemaProp.type === 'boolean') {
+      config[name] = ['true', 'on', 'yes', '1'].includes(
+        value.toLowerCase().trim()
+      );
     } else {
       config[name] = value;
     }

@@ -91,7 +91,14 @@ const configSchema = Type.Object({
 
   SECURITY_ROUTE_PREFIX: Type.String({ default: '/auth' }),
   SECURITY_CACHE_TTL: Type.Integer({ default: 300000 }),
-  SECURITY_JWT_SECRET: Type.String({ default: 'abcdefghijklmnopqrst12345' }),
+  SECURITY_JWT_SECRET: Type.Optional(Type.String()),
+  SECURITY_JWT_PUBLIC_KEY_PATH: Type.String({
+    default: './storage/keys/public.key'
+  }),
+  SECURITY_JWT_PRIVATE_KEY_PATH: Type.String({
+    default: './storage/keys/private.key'
+  }),
+  SECURITY_JWT_AUTO_GENERATE_KEYS: Type.Boolean({ default: true }),
   SECURITY_JWT_EXPIRES_IN: Type.Integer({ default: 2592000 }),
   SECURITY_JWT_REFRESH_EXPIRES_IN: Type.Integer({ default: 5184000 }),
 

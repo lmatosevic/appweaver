@@ -3,24 +3,51 @@ import fastifyPlugin from 'fastify-plugin';
 import fastifyAuth from '@fastify/auth';
 import fastifyJwt from '@fastify/jwt';
 import { requestContext } from '@fastify/request-context';
-import { config } from '@appweaver/common';
+import { config, logger } from '@appweaver/common';
 import { authRoutes } from './auth-routes';
 import { AuthService } from './auth-service';
-import { currentAuthUser, hasPermissions, hasRoles } from './helper';
+import {
+  currentAuthUser,
+  hasPermissions,
+  hasRoles,
+  loadSecurityKeys
+} from './helper';
 import { inject } from '../context';
 import { HttpError } from '../errors';
 import { JwtPayload, Server } from '../types';
 
-export default fastifyPlugin((server: Server): void => {
+export default fastifyPlugin(async (server: Server): Promise<void> => {
   server.register(fastifyAuth);
 
-  if (!config.SECURITY_JWT_SECRET) {
-    throw new Error('JWT_SECRET variable is not configured');
-  }
+  if (config.SECURITY_JWT_SECRET) {
+    server.register(fastifyJwt, {
+      secret: config.SECURITY_JWT_SECRET
+    });
+  } else {
+    const { keysExisted, publicKey, privateKey } = await loadSecurityKeys(
+      config.SECURITY_JWT_PUBLIC_KEY_PATH,
+      config.SECURITY_JWT_PRIVATE_KEY_PATH,
+      config.SECURITY_JWT_AUTO_GENERATE_KEYS
+    );
 
-  server.register(fastifyJwt, {
-    secret: config.SECURITY_JWT_SECRET
-  });
+    if (!keysExisted) {
+      logger.info(
+        {
+          publicKeyPath: config.SECURITY_JWT_PUBLIC_KEY_PATH,
+          privateKeyPath: config.SECURITY_JWT_PRIVATE_KEY_PATH
+        },
+        'Security keys generated'
+      );
+    }
+
+    server.register(fastifyJwt, {
+      secret: {
+        public: publicKey,
+        private: privateKey
+      },
+      sign: { algorithm: 'RS256' }
+    });
+  }
 
   server.register(authRoutes, { prefix: config.SECURITY_ROUTE_PREFIX });
 

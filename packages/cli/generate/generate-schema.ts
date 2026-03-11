@@ -1,6 +1,5 @@
 import path from 'node:path';
 import fsp from 'node:fs/promises';
-import fs from 'node:fs';
 import { isResourceAuthModel, ResourceModel } from '@appweaver/core';
 import {
   AuditFields,
@@ -53,7 +52,7 @@ export async function generateSchema(
   const schemaDir = path.join(cwd, path.dirname(schemaPath));
 
   try {
-    await fsp.access(schemaDir, fs.constants.F_OK);
+    await fsp.access(schemaDir, fsp.constants.F_OK);
   } catch (e) {
     await fsp.mkdir(schemaDir, { recursive: true });
   }

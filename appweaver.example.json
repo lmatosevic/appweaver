@@ -77,6 +77,9 @@
       "cacheTtl": 300000,
       "jwt": {
         "secret": "GdvCFezoPIZdOAN3IQZR3JhaAZH6S6AJ",
+        "publicKeyPath": "./storage/keys/public.key",
+        "privateKeyPath": "./storage/keys/private.key",
+        "autoGenerateKeys": true,
         "expiresIn": 2592000,
         "refreshExpiresIn": 5184000
       }

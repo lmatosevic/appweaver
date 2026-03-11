@@ -1,6 +1,5 @@
 import path from 'node:path';
 import fsp from 'node:fs/promises';
-import fs from 'node:fs';
 import { TModule, TObject, TSchema, Type } from '@sinclair/typebox';
 import { ModelToTypeScript } from '@sinclair/typebox-codegen';
 import { ResourceModel } from '@appweaver/core';
@@ -16,7 +15,7 @@ export async function generateTypes(
   const typesDir = path.join(cwd, path.dirname(typesPath));
 
   try {
-    await fsp.access(typesDir, fs.constants.F_OK);
+    await fsp.access(typesDir, fsp.constants.F_OK);
   } catch (e) {
     await fsp.mkdir(typesDir, { recursive: true });
   }

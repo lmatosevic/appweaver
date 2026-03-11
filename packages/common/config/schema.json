@@ -330,8 +330,19 @@
               "type": "object",
               "properties": {
                 "secret": {
+                  "type": "string"
+                },
+                "publicKeyPath": {
                   "type": "string",
-                  "default": "abcdefghijklmnopqrst12345"
+                  "default": "./storage/keys/public.key"
+                },
+                "privateKeyPath": {
+                  "type": "string",
+                  "default": "./storage/keys/private.key"
+                },
+                "autoGenerateKeys": {
+                  "type": "boolean",
+                  "default": true
                 },
                 "expiresIn": {
                   "type": "integer",
