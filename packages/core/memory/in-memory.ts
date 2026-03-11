@@ -36,6 +36,10 @@ export class InMemory extends Memory {
     // no-op
   }
 
+  public createClient(): undefined {
+    // no-op
+  }
+
   public async getValue<T = any>(key: string): Promise<T | null> {
     const entry = this._storage.get(key);
 

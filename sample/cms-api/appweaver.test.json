@@ -17,6 +17,9 @@
     "storage": {
       "path": "./temp/storage"
     },
+    "redis": {
+      "provider": "@appweaver/core/memory/in-memory"
+    },
     "queue": {
       "provider": "@appweaver/core/queue/memory-queue"
     },

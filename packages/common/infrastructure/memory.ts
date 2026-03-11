@@ -19,6 +19,8 @@ export abstract class Memory implements IHealthCheck, OnInit, OnDestroy {
 
   abstract disconnect(): Promise<void>;
 
+  abstract createClient(options?: any): any;
+
   abstract getValue<T = any>(key: string): Promise<T | null>;
 
   abstract putValue(
