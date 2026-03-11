@@ -23,11 +23,11 @@
     "queue": {
       "provider": "@appweaver/core/queue/memory-queue"
     },
-    "scheduler": {
-      "autoStartJob": false
-    },
     "mail": {
       "provider": "@appweaver/core/mailer/json-mailer"
+    },
+    "scheduler": {
+      "autoStartJob": false
     }
   }
 }

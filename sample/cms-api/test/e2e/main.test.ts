@@ -4,7 +4,11 @@ describe('Test Sample CMS API', () => {
   let app: Application;
 
   beforeAll(async () => {
-    app = await createApp({ autoStart: false });
+    app = await createApp({ autoStartServer: false });
+  });
+
+  afterAll(async () => {
+    await app.stop();
   });
 
   test('Info endpoint /api', async () => {
