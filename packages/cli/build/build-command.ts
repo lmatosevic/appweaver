@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { runProcess } from '../utils';
+import { buildProject } from './build-project';
 
 export function buildCommand(program: Command): void {
   program
@@ -7,8 +7,6 @@ export function buildCommand(program: Command): void {
     .alias('b')
     .description('Build the application')
     .action(async () => {
-      await runProcess('rimraf', ['dist']);
-      await runProcess('tsc', ['-p tsconfig.build.json']);
-      await runProcess('tsc-alias', ['-p tsconfig.build.json']);
+      await buildProject();
     });
 }

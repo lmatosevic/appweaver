@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { createSeeder } from '@appweaver/core';
-import { runProcess } from '../utils';
+import { buildProject } from '../build';
 
 export function seedCommand(program: Command): void {
   program
@@ -21,9 +21,7 @@ export function seedCommand(program: Command): void {
       const continueOnError = command.getOptionValue('continueOnError');
 
       if (command.getOptionValue('buildProject')) {
-        await runProcess('rimraf', ['dist']);
-        await runProcess('tsc', ['-p tsconfig.build.json']);
-        await runProcess('tsc-alias', ['-p tsconfig.build.json']);
+        await buildProject();
       }
 
       const seeder = await createSeeder({ seedersPath, continueOnError });

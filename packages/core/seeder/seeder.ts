@@ -8,7 +8,7 @@ import { inject } from '../context';
 import { importModule } from '../utils';
 
 /**
- * Represents a seeder class that manages the application seeders lifecycle.
+ * Represents a seeder class that manages the application seeders processes.
  */
 export class Seeder extends LifecycleManager {
   /** @internal */
