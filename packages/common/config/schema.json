@@ -366,6 +366,36 @@
             "oauth2": {
               "type": "object",
               "properties": {
+                "google": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "facebook": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    }
+                  }
+                },
                 "allowedHosts": {
                   "oneOf": [
                     { "type": "string" },
@@ -385,36 +415,6 @@
                 "ottTtl": {
                   "type": "integer",
                   "default": 120000
-                }
-              }
-            },
-            "google": {
-              "type": "object",
-              "properties": {
-                "enabled": {
-                  "type": "boolean",
-                  "default": false
-                },
-                "clientId": {
-                  "type": "string"
-                },
-                "clientSecret": {
-                  "type": "string"
-                }
-              }
-            },
-            "facebook": {
-              "type": "object",
-              "properties": {
-                "enabled": {
-                  "type": "boolean",
-                  "default": false
-                },
-                "clientId": {
-                  "type": "string"
-                },
-                "clientSecret": {
-                  "type": "string"
                 }
               }
             }

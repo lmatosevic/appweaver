@@ -110,7 +110,12 @@ export function createOAuth2RedirectSchema(providerName: string): RouteSchema {
     summary: `Redirect to ${providerName} authentication page`,
     description: `Redirect to ${providerName} authentication page`,
     querystring: Type.Object({
-      returnToUrl: Type.String({ format: 'uri' })
+      returnToUrl: Type.String({
+        format: 'uri',
+        description:
+          'A URL to redirect to with one-time-token after successful authentication. ' +
+          'The client then needs to exchange this token for an access token.'
+      })
     }),
     response: {
       301: {
@@ -126,7 +131,9 @@ export function createOAuth2CallbackSchema(providerName: string): RouteSchema {
     summary: `Authenticate identity from ${providerName} callback`,
     description: `Authenticate identity from ${providerName} callback`,
     response: {
-      200: AuthResponse,
+      200: {
+        description: `OK`
+      },
       ...AllErrorResponses
     }
   };

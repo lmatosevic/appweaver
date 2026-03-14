@@ -86,19 +86,19 @@
         "refreshExpiresIn": 5184000
       },
       "oauth2": {
+        "google": {
+          "enabled": true,
+          "clientId": "3255464567435-tzr346jsgh63462vdp234sodhpsfjzop.apps.googleusercontent.com",
+          "clientSecret": "Hjksuzrnm32nb5kdsnu274nfS"
+        },
+        "facebook": {
+          "enabled": true,
+          "clientId": "152682898154865",
+          "clientSecret": "89a8956f566c5655c6a56565a56c"
+        },
         "allowedHosts": "*",
         "stateTtl": 600000,
         "ottTtl": 120000
-      },
-      "google": {
-        "enabled": true,
-        "clientId": "3255464567435-tzr346jsgh63462vdp234sodhpsfjzop.apps.googleusercontent.com",
-        "clientSecret": "Hjksuzrnm32nb5kdsnu274nfS"
-      },
-      "facebook": {
-        "enabled": true,
-        "clientId": "152682898154865",
-        "clientSecret": "89a8956f566c5655c6a56565a56c"
       }
     },
     "database": {

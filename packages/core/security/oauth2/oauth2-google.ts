@@ -12,13 +12,13 @@ import { Server } from '../../types';
 
 export const oauth2Google = fastifyPlugin(
   async (server: Server): Promise<void> => {
-    if (!config.SECURITY_GOOGLE_ENABLED) {
+    if (!config.SECURITY_OAUTH2_GOOGLE_ENABLED) {
       return;
     }
 
     if (
-      !config.SECURITY_GOOGLE_CLIENT_ID ||
-      !config.SECURITY_GOOGLE_CLIENT_SECRET
+      !config.SECURITY_OAUTH2_GOOGLE_CLIENT_ID ||
+      !config.SECURITY_OAUTH2_GOOGLE_CLIENT_SECRET
     ) {
       throw Error('Google OAuth2 configuration is missing');
     }
@@ -31,8 +31,8 @@ export const oauth2Google = fastifyPlugin(
       name: 'googleOAuth2',
       credentials: {
         client: {
-          id: config.SECURITY_GOOGLE_CLIENT_ID,
-          secret: config.SECURITY_GOOGLE_CLIENT_SECRET
+          id: config.SECURITY_OAUTH2_GOOGLE_CLIENT_ID,
+          secret: config.SECURITY_OAUTH2_GOOGLE_CLIENT_SECRET
         },
         auth: oauthPlugin.GOOGLE_CONFIGURATION
       },

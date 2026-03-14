@@ -12,13 +12,13 @@ import { Server } from '../../types';
 
 export const oauth2Facebook = fastifyPlugin(
   async (server: Server): Promise<void> => {
-    if (!config.SECURITY_FACEBOOK_ENABLED) {
+    if (!config.SECURITY_OAUTH2_FACEBOOK_ENABLED) {
       return;
     }
 
     if (
-      !config.SECURITY_FACEBOOK_CLIENT_ID ||
-      !config.SECURITY_FACEBOOK_CLIENT_SECRET
+      !config.SECURITY_OAUTH2_FACEBOOK_CLIENT_ID ||
+      !config.SECURITY_OAUTH2_FACEBOOK_CLIENT_SECRET
     ) {
       throw Error('Facebook OAuth2 configuration is missing');
     }
@@ -31,8 +31,8 @@ export const oauth2Facebook = fastifyPlugin(
       name: 'facebookOAuth2',
       credentials: {
         client: {
-          id: config.SECURITY_FACEBOOK_CLIENT_ID,
-          secret: config.SECURITY_FACEBOOK_CLIENT_SECRET
+          id: config.SECURITY_OAUTH2_FACEBOOK_CLIENT_ID,
+          secret: config.SECURITY_OAUTH2_FACEBOOK_CLIENT_SECRET
         },
         auth: oauthPlugin.FACEBOOK_CONFIGURATION
       },
