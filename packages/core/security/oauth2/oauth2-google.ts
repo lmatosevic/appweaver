@@ -2,7 +2,7 @@ import { AuthType, config } from '@appweaver/common';
 import { HttpError } from '../../errors';
 import { createOAuth2Plugin, UserInfo } from './create-oauth2-plugin';
 
-export const oauth2Google = createOAuth2Plugin(AuthType.Oauth2Google, {
+export const oauth2Google = createOAuth2Plugin(AuthType.OAuth2Google, {
   enabled: config.SECURITY_OAUTH2_GOOGLE_ENABLED,
   clientId: config.SECURITY_OAUTH2_GOOGLE_CLIENT_ID,
   clientSecret: config.SECURITY_OAUTH2_GOOGLE_CLIENT_SECRET,

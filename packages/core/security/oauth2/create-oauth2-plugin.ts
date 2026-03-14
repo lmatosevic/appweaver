@@ -21,6 +21,7 @@ export type OAuth2Config = {
   enabled: boolean;
   clientId?: string;
   clientSecret?: string;
+  issuer?: string;
   scope: string[];
   extractUserInfo: (accessToken: string) => Promise<UserInfo>;
 };
@@ -32,7 +33,6 @@ export function createOAuth2Plugin(
   const name = authType.replace('oauth2', '');
   const upperName = name.toUpperCase();
   const lowerName = name.toLowerCase();
-  const pluginName = `${lowerName}OAuth2`;
 
   return fastifyPlugin(async (server: Server): Promise<void> => {
     if (!oAuth2Config.enabled) {
@@ -44,7 +44,7 @@ export function createOAuth2Plugin(
     }
 
     const authConfig = oauthPlugin[`${upperName}_CONFIGURATION`];
-    if (!authConfig) {
+    if (!authConfig && !oAuth2Config.issuer) {
       throw Error(`${name} OAuth2 provider is not supported`);
     }
 
@@ -53,7 +53,7 @@ export function createOAuth2Plugin(
     const prefix = config.SECURITY_ROUTE_PREFIX.replace(/\/$/, '');
 
     server.register(oauthPlugin, {
-      name: pluginName,
+      name: authType,
       credentials: {
         client: {
           id: oAuth2Config.clientId,
@@ -61,6 +61,9 @@ export function createOAuth2Plugin(
         },
         auth: authConfig
       },
+      ...(oAuth2Config.issuer
+        ? { discovery: { issuer: oAuth2Config.issuer } }
+        : {}),
       scope: oAuth2Config.scope,
       schema: createOAuth2RedirectSchema(name),
       startRedirectPath: `${prefix}/login/${lowerName}`,
@@ -88,7 +91,7 @@ export function createOAuth2Plugin(
       },
       async function (request, reply) {
         const { token } =
-          await server[pluginName].getAccessTokenFromAuthorizationCodeFlow(
+          await server[authType].getAccessTokenFromAuthorizationCodeFlow(
             request
           );
 

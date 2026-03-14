@@ -96,6 +96,12 @@
           "clientId": "152682898154865",
           "clientSecret": "89a8956f566c5655c6a56565a56c"
         },
+        "custom": {
+          "enabled": true,
+          "clientId": "123345456723423",
+          "clientSecret": "32432af767af8c7946d456a54ca5",
+          "issuer": "https://keycloak.example.com/realms/my-realm"
+        },
         "allowedHosts": "*",
         "stateTtl": 600000,
         "ottTtl": 120000

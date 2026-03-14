@@ -2,7 +2,7 @@ import { AuthType, config } from '@appweaver/common';
 import { HttpError } from '../../errors';
 import { createOAuth2Plugin, UserInfo } from './create-oauth2-plugin';
 
-export const oauth2Facebook = createOAuth2Plugin(AuthType.Oauth2Facebook, {
+export const oauth2Facebook = createOAuth2Plugin(AuthType.OAuth2Facebook, {
   enabled: config.SECURITY_OAUTH2_FACEBOOK_ENABLED,
   clientId: config.SECURITY_OAUTH2_FACEBOOK_CLIENT_ID,
   clientSecret: config.SECURITY_OAUTH2_FACEBOOK_CLIENT_SECRET,

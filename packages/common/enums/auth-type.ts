@@ -1,5 +1,6 @@
 export enum AuthType {
   Password = 'password',
-  Oauth2Google = 'oauth2Google',
-  Oauth2Facebook = 'oauth2Facebook'
+  OAuth2Custom = 'oauth2Custom',
+  OAuth2Google = 'oauth2Google',
+  OAuth2Facebook = 'oauth2Facebook'
 }

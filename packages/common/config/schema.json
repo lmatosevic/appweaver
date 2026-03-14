@@ -396,6 +396,24 @@
                     }
                   }
                 },
+                "custom": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "issuer": {
+                      "type": "string"
+                    }
+                  }
+                },
                 "allowedHosts": {
                   "oneOf": [
                     { "type": "string" },
