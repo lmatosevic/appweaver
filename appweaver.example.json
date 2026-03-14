@@ -5,7 +5,8 @@
       "name": "Appweaver",
       "description": "Appweaver - simple, fast, and reliable web application builder tool",
       "hostname": "http://localhost:6000",
-      "scanPath": "./dist/src",
+      "buildPath": "./dist",
+      "scanPath": "./src",
       "autoloadModules": ["aws-storage", "service-bus"]
     },
     "server": {
@@ -18,6 +19,7 @@
       "staticRoutePrefix": "/public",
       "staticMaxAge": "30d",
       "staticAllowedHost": null,
+      "trustProxy": true,
       "requestLoggingEnabled": false
     },
     "log": {
@@ -82,6 +84,16 @@
         "autoGenerateKeys": true,
         "expiresIn": 2592000,
         "refreshExpiresIn": 5184000
+      },
+      "oauth2": {
+        "allowedHosts": "*",
+        "stateTtl": 600000,
+        "ottTtl": 120000
+      },
+      "facebook": {
+        "enabled": true,
+        "appId": "152682898154865",
+        "appSecret": "89a8956f566c5655c6a56565a56c"
       }
     },
     "database": {

@@ -31,6 +31,10 @@ export const LogoutResponse = Type.Object({
   success: Type.Boolean({ examples: [true] })
 });
 
+export const ExchangeRequest = Type.Object({
+  token: Type.String({ examples: ['abcdefg1234567'] })
+});
+
 export const loginSchema = {
   tags: ['Auth'],
   summary: 'Login identity',
@@ -76,6 +80,17 @@ export const changePasswordSchema = {
   body: ChangePasswordRequest
 };
 
+export const exchangeTokenSchema = {
+  tags: ['Auth'],
+  summary: 'Exchange one time token for access token',
+  description: 'Exchange one time token for access token',
+  response: {
+    200: AuthResponse,
+    ...AllErrorResponses
+  },
+  body: ExchangeRequest
+};
+
 export function createCurrentAuthUserSchema(modelName: string): RouteSchema {
   return {
     tags: ['Auth'],
@@ -84,6 +99,34 @@ export function createCurrentAuthUserSchema(modelName: string): RouteSchema {
     description: 'Return currently authorized user',
     response: {
       200: Type.Ref(`${modelName}Single`),
+      ...AllErrorResponses
+    }
+  };
+}
+
+export function createOAuth2RedirectSchema(providerName: string): RouteSchema {
+  return {
+    tags: ['Auth'],
+    summary: `Redirect to ${providerName} authentication page`,
+    description: `Redirect to ${providerName} authentication page`,
+    querystring: Type.Object({
+      returnToUrl: Type.String({ format: 'uri' })
+    }),
+    response: {
+      301: {
+        description: `Redirect to ${providerName} authentication page`
+      }
+    }
+  };
+}
+
+export function createOAuth2CallbackSchema(providerName: string): RouteSchema {
+  return {
+    tags: ['Auth'],
+    summary: `Authenticate user from ${providerName} callback`,
+    description: `Authenticate user from ${providerName} callback`,
+    response: {
+      200: AuthResponse,
       ...AllErrorResponses
     }
   };

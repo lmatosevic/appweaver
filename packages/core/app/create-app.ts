@@ -42,11 +42,14 @@ export async function createApp(
 ): Promise<Application> {
   logger.debug({ configFiles }, 'Configuration loaded');
 
-  let scanPath = path.dirname(require.main?.filename || process.argv[1]);
+  // Determine the base directory to scan for application resources
+  let scanPath = path.join(process.cwd(), './dist/src');
   if (params.scanPath) {
     scanPath = path.resolve(params.scanPath);
-  } else if (config.APP_SCAN_PATH) {
-    scanPath = path.resolve(config.APP_SCAN_PATH);
+  } else if (config.APP_BUILD_PATH && config.APP_SCAN_PATH) {
+    scanPath = path.resolve(
+      path.join(config.APP_BUILD_PATH, config.APP_SCAN_PATH)
+    );
   }
 
   // Load all defined providers from this project

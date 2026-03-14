@@ -13,15 +13,16 @@ generator client {
 }
 
 model User {
-  id           Int       @id @default(autoincrement())
-  firstName    String
-  lastName     String
-  email        String    @unique
-  phone        String
-  secret       String?
-  passwordHash String?
-  enabled      Boolean   @default(true)
-  logoutAt     DateTime?
+  id            Int       @id @default(autoincrement())
+  firstName     String
+  lastName      String
+  email         String    @unique
+  phone         String
+  secret        String?
+  passwordHash  String?
+  verifiedEmail Boolean   @default(false)
+  enabled       Boolean   @default(true)
+  logoutAt      DateTime?
 
   /// Related columns
   posts Post[] @relation("UserPostsPost")

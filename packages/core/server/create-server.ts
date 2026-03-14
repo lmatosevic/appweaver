@@ -58,10 +58,10 @@ export function createServer(): Server {
       maxParamLength: 512,
       caseSensitive: false
     },
-    trustProxy: true,
+    trustProxy: config.SERVER_TRUST_PROXY,
     bodyLimit: config.SERVER_BODY_LIMIT_BYTES,
-    logger: loggerConfig,
-    disableRequestLogging: !config.SERVER_REQUEST_LOGGING_ENABLED
+    disableRequestLogging: !config.SERVER_REQUEST_LOGGING_ENABLED,
+    logger: loggerConfig
   }).withTypeProvider<TypeBoxTypeProvider>();
 
   // Register CORS rules
@@ -137,6 +137,12 @@ export function createServer(): Server {
   // Set global error handler for all routes
   server.setErrorHandler(errorHandler);
 
+  // Register swagger documentation and UI. Must be registered after
+  // loadResources and before any route registration
+  if (config.SWAGGER_ENABLED) {
+    server.register(swagger);
+  }
+
   // Register schema models to enable $ref usage in route validation
   server.register(schemas);
 
@@ -146,11 +152,6 @@ export function createServer(): Server {
   // Register caching plugin
   if (config.CACHE_ENABLED) {
     server.register(caching);
-  }
-
-  // Register swagger documentation and UI. Must be called after loadResources
-  if (config.SWAGGER_ENABLED) {
-    server.register(swagger);
   }
 
   // Register a health route

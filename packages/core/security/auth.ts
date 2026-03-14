@@ -1,96 +1,23 @@
-import { FastifyReply, FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import fastifyAuth from '@fastify/auth';
-import fastifyJwt from '@fastify/jwt';
-import { requestContext } from '@fastify/request-context';
-import { config, logger } from '@appweaver/common';
-import { authRoutes } from './auth-routes';
-import { AuthService } from './auth-service';
-import {
-  currentAuthUser,
-  hasPermissions,
-  hasRoles,
-  loadSecurityKeys
-} from './helper';
-import { inject } from '../context';
+import { config } from '@appweaver/common';
 import { HttpError } from '../errors';
-import { JwtPayload, Server } from '../types';
+import { Server } from '../types';
+import { currentAuthUser } from './helper';
+import { authRoutes } from './auth-routes';
+import { jwtAuth } from './jwt';
+import * as oauth2Plugins from './oauth2';
 
-export default fastifyPlugin(async (server: Server): Promise<void> => {
+export default fastifyPlugin((server: Server): void => {
   server.register(fastifyAuth);
 
-  if (config.SECURITY_JWT_SECRET) {
-    server.register(fastifyJwt, {
-      secret: config.SECURITY_JWT_SECRET
-    });
-  } else {
-    const { keysExisted, publicKey, privateKey } = await loadSecurityKeys(
-      config.SECURITY_JWT_PUBLIC_KEY_PATH,
-      config.SECURITY_JWT_PRIVATE_KEY_PATH,
-      config.SECURITY_JWT_AUTO_GENERATE_KEYS
-    );
+  server.register(jwtAuth);
 
-    if (!keysExisted) {
-      logger.info(
-        {
-          publicKeyPath: config.SECURITY_JWT_PUBLIC_KEY_PATH,
-          privateKeyPath: config.SECURITY_JWT_PRIVATE_KEY_PATH
-        },
-        'Security keys generated'
-      );
-    }
-
-    server.register(fastifyJwt, {
-      secret: {
-        public: publicKey,
-        private: privateKey
-      },
-      sign: { algorithm: 'RS256' }
-    });
+  for (const oauth2Plugin of Object.values(oauth2Plugins)) {
+    server.register(oauth2Plugin);
   }
 
   server.register(authRoutes, { prefix: config.SECURITY_ROUTE_PREFIX });
-
-  const authService = inject(AuthService);
-
-  server.decorate(
-    'authenticateJWT',
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      try {
-        const payload: JwtPayload = await request.jwtVerify();
-        const authUser = await authService.findById(payload.sub);
-
-        const refreshPath = `/${config.SECURITY_ROUTE_PREFIX}/refresh`;
-
-        if (
-          !authUser ||
-          !authUser.enabled ||
-          (authUser.logoutAt &&
-            new Date(authUser.logoutAt).getTime() > payload.iat) ||
-          (payload.refresh && request.url !== refreshPath) ||
-          (!payload.refresh && request.url === refreshPath)
-        ) {
-          reply
-            .code(401)
-            .send({ message: 'Unauthorized access', errorCode: 401 });
-          return;
-        }
-
-        const { roles, permissions } = request.routeOptions.config;
-        if (
-          !hasRoles(authUser, roles) ||
-          !hasPermissions(authUser, permissions)
-        ) {
-          reply.code(403).send({ message: 'Forbidden access', errorCode: 403 });
-          return;
-        }
-
-        requestContext.set('authUser', authUser);
-      } catch (e) {
-        throw new HttpError('Authentication error', 401, e);
-      }
-    }
-  );
 
   server.decorate('currentUser', () => {
     const authUser = currentAuthUser();

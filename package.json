@@ -40,6 +40,7 @@
     "@fastify/helmet": "13.0.2",
     "@fastify/jwt": "10.0.0",
     "@fastify/multipart": "9.4.0",
+    "@fastify/oauth2": "8.2.0",
     "@fastify/rate-limit": "10.3.0",
     "@fastify/request-context": "6.2.1",
     "@fastify/static": "9.0.0",

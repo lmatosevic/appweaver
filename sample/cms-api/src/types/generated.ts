@@ -8,6 +8,7 @@ export type User = {
   phone: string;
   secret?: string | null;
   passwordHash?: string | null;
+  verifiedEmail: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
   active: boolean;
@@ -26,6 +27,7 @@ export type UserSingle = {
   lastName: string;
   email: string;
   phone: string;
+  verifiedEmail: boolean;
   enabled: boolean;
   active: boolean;
   updatedAt: Date;
@@ -42,6 +44,7 @@ export type UserMultiple = {
   lastName: string;
   email: string;
   phone: string;
+  verifiedEmail: boolean;
   enabled: boolean;
   active: boolean;
   updatedAt: Date;
@@ -57,6 +60,7 @@ export type UserCreate = {
   lastName: string;
   email: string;
   phone: string;
+  verifiedEmail?: boolean;
   enabled?: boolean;
   active?: boolean;
   password: string;
@@ -78,6 +82,7 @@ export type UserUpdate = {
   lastName?: string;
   email?: string;
   phone?: string;
+  verifiedEmail?: boolean;
   enabled?: boolean;
   active?: boolean;
   password?: string;

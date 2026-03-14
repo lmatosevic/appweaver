@@ -12,6 +12,7 @@ export const RESOURCE_POLICY_TYPE = 'Policy';
 export const MODEL = Symbol('Model');
 export const ROUTE = Symbol('Route');
 export const PLUGIN = Symbol('Plugin');
+export const CONFIG = Symbol('Config');
 
 export const HEALTH_CHECK = Symbol('HealthCheck');
 

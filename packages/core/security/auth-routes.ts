@@ -1,6 +1,7 @@
 import {
   changePasswordSchema,
   createCurrentAuthUserSchema,
+  exchangeTokenSchema,
   loginSchema,
   logoutSchema,
   refreshSchema
@@ -88,6 +89,25 @@ export function authRoutes(server: Server): void {
         request.body.currentPassword,
         request.body.newPassword
       );
+
+      return reply.status(200).send(authResponse);
+    }
+  );
+
+  server.post(
+    '/exchange-token',
+    {
+      schema: exchangeTokenSchema,
+      config: {
+        rateLimit: {
+          max: 12
+        }
+      }
+    },
+    async (request, reply) => {
+      const { token } = request.body;
+
+      const authResponse = await authService.exchangeToken(token);
 
       return reply.status(200).send(authResponse);
     }

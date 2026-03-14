@@ -7,6 +7,7 @@ CREATE TABLE "User" (
     "phone" TEXT NOT NULL,
     "secret" TEXT,
     "passwordHash" TEXT,
+    "verifiedEmail" BOOLEAN NOT NULL DEFAULT false,
     "enabled" BOOLEAN NOT NULL DEFAULT true,
     "logoutAt" DATETIME,
     "avatarId" INTEGER,

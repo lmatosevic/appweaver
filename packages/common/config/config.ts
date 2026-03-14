@@ -17,12 +17,15 @@ const configSchema = Type.Object({
   }),
   APP_NAME: Type.String({ default: 'Appweaver' }),
   APP_DESCRIPTION: Type.Optional(Type.String()),
-  APP_HOSTNAME: Type.String({ default: 'http://localhost:6000' }),
+  APP_HOSTNAME: Type.String({
+    default: `http://localhost:${process.env.SERVER_PORT || 6000}`
+  }),
   APP_VERSION: Type.String({
     default: 'unknown',
     mapFrom: 'npm_package_version'
   }),
-  APP_SCAN_PATH: Type.Optional(Type.String()),
+  APP_BUILD_PATH: Type.String({ default: './dist' }),
+  APP_SCAN_PATH: Type.String({ default: './src' }),
   APP_AUTOLOAD_MODULES: Type.Array(Type.String(), { default: [] }),
 
   LOG_LEVEL: Type.Enum(LogLevel, { default: LogLevel.Info }),
@@ -44,6 +47,7 @@ const configSchema = Type.Object({
   SERVER_STATIC_ROUTE_PREFIX: Type.String({ default: '/public' }),
   SERVER_STATIC_MAX_AGE: Type.String({ default: '30d' }),
   SERVER_STATIC_ALLOWED_HOST: Type.Optional(Type.String()),
+  SERVER_TRUST_PROXY: Type.Boolean({ default: true }),
   SERVER_REQUEST_LOGGING_ENABLED: Type.Boolean({ default: false }),
 
   RATE_LIMIT_ENABLED: Type.Boolean({ default: true }),
@@ -101,6 +105,12 @@ const configSchema = Type.Object({
   SECURITY_JWT_AUTO_GENERATE_KEYS: Type.Boolean({ default: true }),
   SECURITY_JWT_EXPIRES_IN: Type.Integer({ default: 2592000 }),
   SECURITY_JWT_REFRESH_EXPIRES_IN: Type.Integer({ default: 5184000 }),
+  SECURITY_OAUTH2_ALLOWED_HOSTS: Type.Array(Type.String(), { default: ['*'] }),
+  SECURITY_OAUTH2_STATE_TTL: Type.Integer({ default: 600000 }),
+  SECURITY_OAUTH2_OTT_TTL: Type.Integer({ default: 120000 }),
+  SECURITY_FACEBOOK_ENABLED: Type.Boolean({ default: false }),
+  SECURITY_FACEBOOK_APP_ID: Type.Optional(Type.String()),
+  SECURITY_FACEBOOK_APP_SECRET: Type.Optional(Type.String()),
 
   DATABASE_TYPE: Type.Optional(Type.Enum(DatabaseType)),
   DATABASE_URL: Type.String({ default: '' }),

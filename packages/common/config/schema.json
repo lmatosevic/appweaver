@@ -40,8 +40,13 @@
               "type": "string",
               "default": "unknown"
             },
+            "buildPath": {
+              "type": ["string", "null"],
+              "default": "./dist"
+            },
             "scanPath": {
-              "type": ["string", "null"]
+              "type": ["string", "null"],
+              "default": "./src"
             },
             "autoloadModules": {
               "type": "array",
@@ -138,6 +143,10 @@
             },
             "staticAllowedHost": {
               "type": ["string", "null"]
+            },
+            "trustProxy": {
+              "type": "boolean",
+              "default": true
             },
             "requestLoggingEnabled": {
               "type": "boolean",
@@ -351,6 +360,46 @@
                 "refreshExpiresIn": {
                   "type": "integer",
                   "default": 5184000
+                }
+              }
+            },
+            "oauth2": {
+              "type": "object",
+              "properties": {
+                "allowedHosts": {
+                  "oneOf": [
+                    { "type": "string" },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ],
+                  "default": ["*"]
+                },
+                "stateTtl": {
+                  "type": "integer",
+                  "default": 600000
+                },
+                "ottTtl": {
+                  "type": "integer",
+                  "default": 120000
+                }
+              }
+            },
+            "facebook": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "appId": {
+                  "type": "string"
+                },
+                "appSecret": {
+                  "type": "string"
                 }
               }
             }

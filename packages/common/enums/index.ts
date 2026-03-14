@@ -1,3 +1,4 @@
+export * from './auth-type';
 export * from './cache-strategy';
 export * from './database-type';
 export * from './environment';

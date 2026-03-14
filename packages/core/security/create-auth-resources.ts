@@ -8,7 +8,12 @@ import {
 } from '@appweaver/common';
 import { updatePasswordHash } from './helper';
 import { createModel, createService } from '../factory';
-import { AuthUser, IResourceService, ResourceModel } from '../types';
+import {
+  AuthUser,
+  IResourceService,
+  RegistrationDataFn,
+  ResourceModel
+} from '../types';
 
 export function createAuthModel(config: ResourceModelConfig): ResourceModel {
   const authModelScalars: ScalarConfig = {
@@ -22,6 +27,10 @@ export function createAuthModel(config: ResourceModelConfig): ResourceModel {
       type: 'string',
       required: false,
       hidden: true
+    },
+    verifiedEmail: {
+      type: 'boolean',
+      default: false
     },
     enabled: {
       type: 'boolean',
@@ -76,8 +85,10 @@ export function createAuthModel(config: ResourceModelConfig): ResourceModel {
   return model;
 }
 
-export function createAuthService(
-  config: ResourceServiceConfig
+export function createAuthService<T = any>(
+  config: ResourceServiceConfig & {
+    registrationData?: RegistrationDataFn<T>;
+  }
 ): IResourceService {
   // Capture original functions to invoke after new auth logic
   const beforeCreate = config.beforeCreate;
@@ -97,6 +108,15 @@ export function createAuthService(
     await updatePasswordHash(data, data.password, true);
     await beforeUpdate?.(id, data);
   };
+
+  if (!config.registrationData) {
+    config.registrationData = (_, email, password) => {
+      return {
+        email,
+        password
+      } as T;
+    };
+  }
 
   const service = createService(config);
 

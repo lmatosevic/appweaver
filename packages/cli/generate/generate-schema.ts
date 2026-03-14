@@ -399,7 +399,7 @@ function createScalarSchema(
     attributes.push(`@unique`);
   }
 
-  if (scalar.default) {
+  if (scalar.default !== undefined) {
     let defaultAttribute: string;
 
     if (['string', 'dateTime', 'json'].includes(scalar.type) && !scalar.array) {

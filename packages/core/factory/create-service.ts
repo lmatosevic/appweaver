@@ -4,6 +4,7 @@ import {
   AggregateResponse,
   AggregateSelect,
   capitalize,
+  CONFIG,
   isFunction,
   isObject,
   logger,
@@ -173,6 +174,7 @@ export function createService(config: ResourceServiceConfig): ResourceService {
 
   const resourceService = new Service(name);
 
+  resourceService[CONFIG] = config;
   resourceService[RESOURCE_NAME] = name;
   resourceService[RESOURCE_TYPE] = RESOURCE_SERVICE_TYPE;
 

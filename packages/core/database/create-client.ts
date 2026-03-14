@@ -133,7 +133,7 @@ function createPrismaClient(adapter: SqlDriverAdapterFactory): PrismaClient {
 
   const clientPath = path.join(
     cwd,
-    distDirName,
+    config.APP_BUILD_PATH || distDirName,
     config.APP_ENV === 'test' ? '..' : '',
     config.DATABASE_CLIENT_OUTPUT_DIR_PATH,
     'client'

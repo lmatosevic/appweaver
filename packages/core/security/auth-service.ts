@@ -1,13 +1,37 @@
-import { config, logger } from '@appweaver/common';
+import {
+  AuthType,
+  CONFIG,
+  config,
+  generateToken,
+  logger,
+  Redis,
+  uuid
+} from '@appweaver/common';
 import { checkPassword, hashPassword, resourceAuthService } from './helper';
 import { context, inject } from '../context';
 import { CacheService } from '../cache';
 import { HttpError } from '../errors';
-import { AuthTokens, AuthUser, IResourceService, JwtPayload } from '../types';
+import {
+  AuthTokens,
+  AuthUser,
+  IResourceService,
+  JwtPayload,
+  RegistrationDataFn,
+  UserAdditionalData
+} from '../types';
+
+type StateData = {
+  returnToUrl: string;
+};
+
+const OAUTH2_STATE_KEY = 'oauth2:state';
+const OAUTH2_OTT_KEY = 'oauth2:ott';
 
 export class AuthService {
   /** @internal */
   private readonly _cacheService = inject(CacheService);
+  /** @internal */
+  private readonly _redis = inject(Redis);
   /** @internal */
   private readonly _authUserService: IResourceService<AuthUser, AuthUser>;
 
@@ -89,6 +113,42 @@ export class AuthService {
   }
 
   /**
+   * Registers a new authenticated user based on the provided authentication type, email, and optional password and
+   * additional data.
+   *
+   * @param {AuthType} authType - The authentication type to register the user, e.g., email, social login, etc.
+   * @param {string} email - The email address of the user to be registered.
+   * @param {string} [password] - The optional password for the user, used when the authentication type requires it.
+   * @param {Partial<UserAdditionalData>} [data] - Optional additional data related to the user to be stored during
+   * registration.
+   * @return {Promise<AuthUser>} A promise resolving to the registered authentication user object.
+   * @throws {HttpError} Throws an error if the registration process fails.
+   */
+  public async registerAuthUser(
+    authType: AuthType,
+    email: string,
+    password?: string,
+    data?: Partial<UserAdditionalData>
+  ): Promise<AuthUser> {
+    try {
+      const serviceConfig: { registrationData: RegistrationDataFn } =
+        this._authUserService[CONFIG];
+      const registrationData = serviceConfig.registrationData(
+        authType,
+        email,
+        password,
+        data
+      );
+      return await this._authUserService.create({
+        ...registrationData,
+        verifiedEmail: authType !== AuthType.Password
+      });
+    } catch (e) {
+      throw new HttpError('Auth user registration error', 500, e);
+    }
+  }
+
+  /**
    * Changes the password for the authenticated user.
    *
    * @param {AuthUser} authUser - The authenticated user object containing user details.
@@ -145,6 +205,111 @@ export class AuthService {
   }
 
   /**
+   * Exchanges an existing token for new authentication tokens.
+   *
+   * @param {string} token - The token to be exchanged for new authentication tokens.
+   * @return {Promise<AuthTokens>} A promise that resolves to a set of new authentication tokens.
+   * @throws {HttpError} If the token is invalid, expired, or associated with a non-existent or disabled user.
+   */
+  public async exchangeToken(token: string): Promise<AuthTokens> {
+    const authUserId = await this._redis.getValue<number>(
+      `${OAUTH2_OTT_KEY}:${token}`
+    );
+    if (!authUserId) {
+      throw new HttpError('Invalid or expired token provided', 401);
+    }
+
+    const authUser = await this.findById(authUserId);
+    if (!authUser || !authUser.enabled) {
+      throw new HttpError('Auth user does not exist or is disabled', 400);
+    }
+
+    await this._redis.removeValue(`${OAUTH2_OTT_KEY}:${token}`);
+
+    logger.debug({ id: authUser.id, token }, 'User token exchanged');
+
+    return this.generateAuthTokens(authUser);
+  }
+
+  /**
+   * Validates the provided OAuth2 state, ensuring it has not expired or is invalid.
+   * If the state is valid, it retrieves and removes it from the storage.
+   *
+   * @param {string} state The OAuth2 state value to be validated and checked.
+   * @return A promise resolving to the retrieved state data.
+   * @throws HttpError if the state is invalid or expired.
+   */
+  public async checkOAuth2State(state: string): Promise<StateData> {
+    const data = await this._redis.getValue(`${OAUTH2_STATE_KEY}:${state}`);
+    if (!data) {
+      throw new HttpError('Invalid or expired state received', 401);
+    }
+
+    await this._redis.removeValue(`${OAUTH2_STATE_KEY}:${state}`);
+
+    return data;
+  }
+
+  /**
+   * Generates an OAuth2 state string to be used in the authorization process.
+   * The state string is stored in Redis with an associated TTL (time-to-live).
+   * Ensures that the `returnToUrl` provided in the `StateData` conforms to security policies.
+   *
+   * @param {StateData} data - Object containing the state data and the `returnToUrl`.
+   * @return {Promise<string>} A promise that resolves to the generated OAuth2 state string.
+   * @throws {HttpError} Throws an error if the `returnToUrl` is invalid or if the hostname is not allowed.
+   */
+  public async generateOAuth2State(data: StateData): Promise<string> {
+    let url: URL;
+    try {
+      url = new URL(data.returnToUrl);
+    } catch (e) {
+      throw new HttpError(
+        `Invalid format of returnToUrl: ${data.returnToUrl}`,
+        400
+      );
+    }
+
+    if (
+      !config.SECURITY_OAUTH2_ALLOWED_HOSTS.includes('*') &&
+      !config.SECURITY_OAUTH2_ALLOWED_HOSTS.includes(url.hostname)
+    ) {
+      throw new HttpError(
+        `The ${url.hostname} host is not allowed as a return URL`,
+        400
+      );
+    }
+
+    const state = uuid();
+
+    await this._redis.putValue(
+      `${OAUTH2_STATE_KEY}:${state}`,
+      data,
+      config.SECURITY_OAUTH2_STATE_TTL
+    );
+
+    return state;
+  }
+
+  /**
+   * Generates a one-time-use token for the provided authenticated user.
+   *
+   * @param {AuthUser} authUser - The authenticated user for whom the token is generated.
+   * @return {Promise<string>} A promise that resolves to the generated one-time token.
+   */
+  public async generateOneTimeToken(authUser: AuthUser): Promise<string> {
+    const token = generateToken('base62', 256);
+
+    await this._redis.putValue(
+      `${OAUTH2_OTT_KEY}:${token}`,
+      authUser.id,
+      config.SECURITY_OAUTH2_OTT_TTL
+    );
+
+    return token;
+  }
+
+  /**
    * Generates authentication tokens (access and refresh tokens) for a given authenticated user.
    *
    * @param {AuthUser} authUser - The authenticated user for whom the tokens are to be generated.
@@ -186,7 +351,8 @@ export class AuthService {
    * Logs out a user by updating their authentication information with a logout timestamp.
    *
    * @param {number} id - The unique identifier of the user to be logged out.
-   * @return {Promise<boolean>} A promise that resolves to a boolean indicating whether the logout operation was successful.
+   * @return {Promise<boolean>} A promise that resolves to a boolean indicating whether the logout operation was
+   * successful.
    */
   public async logout(id: number): Promise<boolean> {
     logger.debug({ id }, 'User logout');
