@@ -95,8 +95,8 @@ export function createCurrentAuthUserSchema(modelName: string): RouteSchema {
   return {
     tags: ['Auth'],
     security: [{ bearer: [] }],
-    summary: 'Return currently authorized user',
-    description: 'Return currently authorized user',
+    summary: 'Return currently authorized identity',
+    description: 'Return currently authorized identity',
     response: {
       200: Type.Ref(`${modelName}Single`),
       ...AllErrorResponses
@@ -123,8 +123,8 @@ export function createOAuth2RedirectSchema(providerName: string): RouteSchema {
 export function createOAuth2CallbackSchema(providerName: string): RouteSchema {
   return {
     tags: ['Auth'],
-    summary: `Authenticate user from ${providerName} callback`,
-    description: `Authenticate user from ${providerName} callback`,
+    summary: `Authenticate identity from ${providerName} callback`,
+    description: `Authenticate identity from ${providerName} callback`,
     response: {
       200: AuthResponse,
       ...AllErrorResponses

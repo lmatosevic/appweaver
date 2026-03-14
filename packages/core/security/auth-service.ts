@@ -298,7 +298,7 @@ export class AuthService {
    * @return {Promise<string>} A promise that resolves to the generated one-time token.
    */
   public async generateOneTimeToken(authUser: AuthUser): Promise<string> {
-    const token = generateToken('base62', 256);
+    const token = generateToken('bytes', 128);
 
     await this._redis.putValue(
       `${OAUTH2_OTT_KEY}:${token}`,

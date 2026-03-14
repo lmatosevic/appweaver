@@ -11,6 +11,7 @@ declare module 'fastify' {
   // Extend the fastify with jwt decorator type.
   interface FastifyInstance {
     authenticateJWT: any;
+    googleOAuth2: OAuth2Namespace;
     facebookOAuth2: OAuth2Namespace;
     currentUser: () => AuthUser;
   }

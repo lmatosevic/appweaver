@@ -90,10 +90,15 @@
         "stateTtl": 600000,
         "ottTtl": 120000
       },
+      "google": {
+        "enabled": true,
+        "clientId": "3255464567435-tzr346jsgh63462vdp234sodhpsfjzop.apps.googleusercontent.com",
+        "clientSecret": "Hjksuzrnm32nb5kdsnu274nfS"
+      },
       "facebook": {
         "enabled": true,
-        "appId": "152682898154865",
-        "appSecret": "89a8956f566c5655c6a56565a56c"
+        "clientId": "152682898154865",
+        "clientSecret": "89a8956f566c5655c6a56565a56c"
       }
     },
     "database": {

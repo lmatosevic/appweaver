@@ -388,6 +388,21 @@
                 }
               }
             },
+            "google": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "clientId": {
+                  "type": "string"
+                },
+                "clientSecret": {
+                  "type": "string"
+                }
+              }
+            },
             "facebook": {
               "type": "object",
               "properties": {
@@ -395,10 +410,10 @@
                   "type": "boolean",
                   "default": false
                 },
-                "appId": {
+                "clientId": {
                   "type": "string"
                 },
-                "appSecret": {
+                "clientSecret": {
                   "type": "string"
                 }
               }
