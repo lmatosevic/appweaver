@@ -28,7 +28,10 @@ import {
   VirtualConfig
 } from '@appweaver/common';
 
-export function createModel(config: ResourceModelConfig): ResourceModel {
+export function createModel(
+  config: ResourceModelConfig,
+  override: boolean = false
+): ResourceModel {
   const name = capitalize(
     config.name || path.basename(path.dirname(__dirname))
   );
@@ -125,7 +128,7 @@ export function createModel(config: ResourceModelConfig): ResourceModel {
 
   logger.debug({ modelName: name }, 'Created resource model');
 
-  define(resourceModel);
+  define(resourceModel, undefined, override ? 'override' : undefined);
 
   return resourceModel;
 }

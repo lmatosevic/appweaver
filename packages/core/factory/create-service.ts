@@ -20,7 +20,8 @@ import { ResourceService } from '../resource';
 import { Resource, ResourceData } from '../types';
 
 export function createService(
-  config: ResourceServiceConfig
+  config: ResourceServiceConfig,
+  override: boolean = false
 ): Ctor<ResourceService> {
   const name = capitalize(
     config.modelName || path.basename(path.dirname(__dirname))
@@ -189,7 +190,7 @@ export function createService(
 
   logger.debug({ modelName: config.modelName }, 'Created resource service');
 
-  define(Service);
+  define(Service, undefined, override ? 'override' : undefined);
 
   return Service;
 }

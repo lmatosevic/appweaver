@@ -10,7 +10,8 @@ import {
 import { define } from '../context';
 
 export function createPolicy(
-  config: ResourcePolicyConfig
+  config: ResourcePolicyConfig,
+  override: boolean = false
 ): ResourcePolicyConfig {
   config[RESOURCE_NAME] = capitalize(
     config.modelName || path.basename(path.dirname(__dirname))
@@ -19,7 +20,7 @@ export function createPolicy(
 
   logger.debug({ modelName: config.modelName }, 'Created resource policy');
 
-  define(config);
+  define(config, undefined, override ? 'override' : undefined);
 
   return config;
 }

@@ -11,7 +11,10 @@ import { define } from '../context';
 import { resourceRoutes } from '../resource';
 import { ResourceRoutes } from '../types';
 
-export function createRoutes(config: ResourceRoutesConfig): ResourceRoutes {
+export function createRoutes(
+  config: ResourceRoutesConfig,
+  override: boolean = false
+): ResourceRoutes {
   const name = capitalize(
     config.modelName || path.basename(path.dirname(__dirname))
   );
@@ -25,7 +28,7 @@ export function createRoutes(config: ResourceRoutesConfig): ResourceRoutes {
 
   logger.debug({ modelName: config.modelName }, 'Created resource routes');
 
-  define(routeData);
+  define(routeData, undefined, override ? 'override' : undefined);
 
   return routeData;
 }
