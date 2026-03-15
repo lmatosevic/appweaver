@@ -1,19 +1,19 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import { config, makeHash } from '@appweaver/common';
 import { requestContext } from '@fastify/request-context';
-import { inject, injectService } from '../../context';
+import { config, Database, makeHash } from '@appweaver/common';
+import { inject } from '../../context';
 import { CacheService } from '../../cache';
+import { PrismaDatabase } from '../../database';
 import { AuthService } from '../auth-service';
 import { HttpError } from '../../errors';
-import { ApiKey, IResourceService, Server } from '../../types';
+import { ApiKey, Server } from '../../types';
 
 export const apiKeyAuth = fastifyPlugin(
   async (server: Server): Promise<void> => {
     const authService = inject(AuthService);
     const cacheService = inject(CacheService);
-    const apiKeyService =
-      injectService<IResourceService<ApiKey, ApiKey>>('ApiKey');
+    const db = inject<PrismaDatabase>(Database as any);
 
     server.decorate(
       'authenticateApiKey',
@@ -36,8 +36,7 @@ export const apiKeyAuth = fastifyPlugin(
 
           let apiKey = await cacheService.getCachedValue<ApiKey>(cacheKey);
           if (!apiKey) {
-            const keyResult = await apiKeyService.query({ keyHash });
-            apiKey = keyResult.items[0];
+            apiKey = await db.client().apiKey.findFirst({ where: { keyHash } });
 
             if (!apiKey || !apiKey.enabled) {
               return reply.code(401).send({
