@@ -72,6 +72,9 @@ export class Redis extends CommonRedis<RedisOptions, RedisClient> {
 
   public async removeEntries(query: string): Promise<number> {
     const keys = await this.findKeys(query);
+    if (keys.size === 0) {
+      return 0;
+    }
     return this._client.del(...keys);
   }
 

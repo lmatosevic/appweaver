@@ -112,12 +112,12 @@ export function createOAuth2RedirectSchema(providerName: string): RouteSchema {
     summary: `Redirect to ${providerName} authentication page`,
     description: `Redirect to ${providerName} authentication page`,
     querystring: Type.Object({
-      returnToUrl: Type.String({
+      redirectToUrl: Type.String({
         format: 'uri',
         description:
           'A URL to redirect to with set cookies or with one-time-token after ' +
           'successful authentication. The client then needs to exchange this ' +
-          'token for an access token.'
+          'token for an JWT access token.'
       }),
       useCookies: Type.Optional(
         Type.Boolean({

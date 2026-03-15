@@ -16,7 +16,7 @@ export type AuthTokens = {
 };
 
 export type OAuth2State = {
-  returnToUrl: string;
+  redirectToUrl: string;
   useCookies?: boolean;
 };
 

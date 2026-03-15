@@ -173,7 +173,7 @@ export class AuthService {
         data
       );
 
-      return await this._authUserService.create({
+      return this._authUserService.create({
         ...registrationData,
         verifiedEmail: source !== AuthSource.Password
       });
@@ -346,19 +346,19 @@ export class AuthService {
   /**
    * Generates an OAuth2 state string to be used in the authorization process.
    * The state string is stored in Redis with an associated TTL (time-to-live).
-   * Ensures that the `returnToUrl` provided in the `StateData` conforms to security policies.
+   * Ensures that the `redirectToUrl` provided in the `StateData` conforms to security policies.
    *
-   * @param {OAuth2State} data - Object containing the state data and the `returnToUrl`.
+   * @param {OAuth2State} data - Object containing the state data and the `redirectToUrl`.
    * @return {Promise<string>} A promise that resolves to the generated OAuth2 state string.
-   * @throws {HttpError} Throws an error if the `returnToUrl` is invalid or if the hostname is not allowed.
+   * @throws {HttpError} Throws an error if the `redirectToUrl` is invalid or if the hostname is not allowed.
    */
   public async generateOAuth2State(data: OAuth2State): Promise<string> {
     let url: URL;
     try {
-      url = new URL(data.returnToUrl);
+      url = new URL(data.redirectToUrl);
     } catch (e) {
       throw new HttpError(
-        `Invalid format of returnToUrl: ${data.returnToUrl}`,
+        `Invalid format of redirectToUrl: ${data.redirectToUrl}`,
         400
       );
     }

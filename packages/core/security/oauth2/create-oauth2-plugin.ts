@@ -70,7 +70,7 @@ export function createOAuth2Plugin(
       callbackUri: `${config.APP_HOSTNAME}${prefix}/login/${lowerName}/callback`,
       generateStateFunction: async function (request: any) {
         return authService.generateOAuth2State({
-          returnToUrl: request.query.returnToUrl,
+          redirectToUrl: request.query.redirectToUrl,
           useCookies: request.query.useCookies
         });
       },
@@ -113,7 +113,7 @@ export function createOAuth2Plugin(
         if (stateData.useCookies) {
           const authResponse = await authService.generateAuthTokens(authUser);
 
-          const sameSite: CookieSameSite = stateData.returnToUrl.startsWith(
+          const sameSite: CookieSameSite = stateData.redirectToUrl.startsWith(
             config.APP_HOSTNAME
           )
             ? 'lax'
@@ -135,15 +135,15 @@ export function createOAuth2Plugin(
               ...cookiesBase,
               maxAge: authResponse.refreshExpiresIn
             })
-            .redirect(stateData.returnToUrl);
+            .redirect(stateData.redirectToUrl);
         }
 
         const ott = await authService.generateOneTimeToken(authUser);
 
-        const separator = stateData.returnToUrl.includes('?') ? '&' : '?';
+        const separator = stateData.redirectToUrl.includes('?') ? '&' : '?';
 
         return reply.redirect(
-          `${stateData.returnToUrl}${separator}token=${ott}`
+          `${stateData.redirectToUrl}${separator}token=${ott}`
         );
       }
     );

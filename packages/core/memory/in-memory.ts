@@ -106,15 +106,11 @@ export class InMemory extends Memory {
 
   public async removeEntries(query: string): Promise<number> {
     const keys = await this.findKeys(query);
-    let count = 0;
 
-    for (const key of keys) {
-      if (await this.removeValue(key)) {
-        count++;
-      }
-    }
+    const removeActions = Array.from(keys).map((key) => this.removeValue(key));
+    const results = await Promise.allSettled(removeActions);
 
-    return count;
+    return results.filter((r) => r.status === 'fulfilled' && r.value).length;
   }
 
   public async findKeys(pattern: string = '*'): Promise<Set<string>> {
