@@ -47,7 +47,7 @@ export async function loadModels(
 
   const models: Record<string, ResourceModel> = {};
 
-  const modelPaths = await glob(modelPattern, { cwd, absolute: true });
+  const modelPaths: string[] = [];
 
   // Add exported core module resources
   modelPaths.push('@appweaver/core/resources');
@@ -57,10 +57,9 @@ export async function loadModels(
     modelPaths.push(module);
   }
 
-  if (modelPaths.length === 0) {
-    console.log('No models found matching pattern:', modelPattern);
-    return models;
-  }
+  // Add project files using a pattern
+  const projectModelPaths = await glob(modelPattern, { cwd, absolute: true });
+  modelPaths.push(...projectModelPaths);
 
   for (const modelPath of modelPaths) {
     let modelExport: any;

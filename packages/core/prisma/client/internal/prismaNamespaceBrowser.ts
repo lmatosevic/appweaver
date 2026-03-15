@@ -51,11 +51,11 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  File: 'File',
-  Seeder: 'Seeder',
+  ApiKey: 'ApiKey',
   Role: 'Role',
   Permission: 'Permission',
-  ApiKey: 'ApiKey'
+  Seeder: 'Seeder',
+  File: 'File'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -71,34 +71,20 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
-export const FileScalarFieldEnum = {
+export const ApiKeyScalarFieldEnum = {
   id: 'id',
+  key: 'key',
+  keyHash: 'keyHash',
+  authId: 'authId',
   name: 'name',
-  originalName: 'originalName',
-  mimeType: 'mimeType',
-  sizeBytes: 'sizeBytes',
-  title: 'title',
   description: 'description',
-  resourceField: 'resourceField',
-  resourceName: 'resourceName',
-  resourceId: 'resourceId',
+  enabled: 'enabled',
+  expiresAt: 'expiresAt',
   updatedAt: 'updatedAt',
   createdAt: 'createdAt'
 } as const
 
-export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
-
-
-export const SeederScalarFieldEnum = {
-  id: 'id',
-  checksum: 'checksum',
-  seederName: 'seederName',
-  startedAt: 'startedAt',
-  finishedAt: 'finishedAt',
-  logs: 'logs'
-} as const
-
-export type SeederScalarFieldEnum = (typeof SeederScalarFieldEnum)[keyof typeof SeederScalarFieldEnum]
+export type ApiKeyScalarFieldEnum = (typeof ApiKeyScalarFieldEnum)[keyof typeof ApiKeyScalarFieldEnum]
 
 
 export const RoleScalarFieldEnum = {
@@ -121,20 +107,34 @@ export const PermissionScalarFieldEnum = {
 export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
 
 
-export const ApiKeyScalarFieldEnum = {
+export const SeederScalarFieldEnum = {
   id: 'id',
-  key: 'key',
-  keyHash: 'keyHash',
-  authId: 'authId',
+  checksum: 'checksum',
+  seederName: 'seederName',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  logs: 'logs'
+} as const
+
+export type SeederScalarFieldEnum = (typeof SeederScalarFieldEnum)[keyof typeof SeederScalarFieldEnum]
+
+
+export const FileScalarFieldEnum = {
+  id: 'id',
   name: 'name',
+  originalName: 'originalName',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  title: 'title',
   description: 'description',
-  enabled: 'enabled',
-  expiresAt: 'expiresAt',
+  resourceField: 'resourceField',
+  resourceName: 'resourceName',
+  resourceId: 'resourceId',
   updatedAt: 'updatedAt',
   createdAt: 'createdAt'
 } as const
 
-export type ApiKeyScalarFieldEnum = (typeof ApiKeyScalarFieldEnum)[keyof typeof ApiKeyScalarFieldEnum]
+export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
 
 
 export const SortOrder = {

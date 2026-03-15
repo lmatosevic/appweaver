@@ -12,73 +12,6 @@ generator client {
   output   = "./client"
 }
 
-model User {
-  id            Int       @id @default(autoincrement())
-  firstName     String
-  lastName      String
-  email         String    @unique
-  phone         String
-  secret        String?
-  passwordHash  String?
-  verifiedEmail Boolean   @default(false)
-  enabled       Boolean   @default(true)
-  logoutAt      DateTime?
-
-  /// Related columns
-  posts   Post[]   @relation("UserPostsPost")
-  roles   Role[]   @relation("UserRolesRole")
-  apiKeys ApiKey[] @relation("UserApiKeysApiKey")
-
-  /// File columns
-  avatar   File? @relation("UserAvatarFile", fields: [avatarId], references: [id])
-  avatarId Int?  @unique
-
-  /// Ownership models referenced with createdById column
-  createdUsers       User[]       @relation("UserCreatedByUser")
-  createdPosts       Post[]       @relation("PostCreatedByUser")
-  createdApiKeys     ApiKey[]     @relation("ApiKeyCreatedByUser")
-  createdRoles       Role[]       @relation("RoleCreatedByUser")
-  createdPermissions Permission[] @relation("PermissionCreatedByUser")
-  createdFiles       File[]       @relation("FileCreatedByUser")
-
-  /// Audit columns
-  updatedAt   DateTime @updatedAt
-  createdAt   DateTime @default(now())
-  createdBy   User?    @relation("UserCreatedByUser", fields: [createdById], references: [id])
-  createdById Int?
-
-  @@index(email)
-}
-
-model Post {
-  id           Int         @id @default(autoincrement())
-  title        String      @default("something...")
-  slug         String      @unique
-  content      String?
-  counter      Int
-  status       PostStatus? @default(Draft)
-  tags         String      @default("Nature,Animals")
-  jsonLd       Json?
-  lastActivity DateTime?
-
-  /// Related columns
-  author   User? @relation("UserPostsPost", fields: [authorId], references: [id], onDelete: SetNull)
-  authorId Int?
-
-  /// File columns
-  coverImage    File?  @relation("PostCoverImageFile", fields: [coverImageId], references: [id])
-  coverImageId  Int?   @unique
-  galleryImages File[] @relation("PostGalleryImagesFile")
-
-  /// Audit columns
-  updatedAt   DateTime @updatedAt
-  createdAt   DateTime @default(now())
-  createdBy   User?    @relation("PostCreatedByUser", fields: [createdById], references: [id])
-  createdById Int?
-
-  @@index(slug)
-}
-
 model ApiKey {
   id          Int       @id @default(autoincrement())
   key         String
@@ -90,8 +23,7 @@ model ApiKey {
   expiresAt   DateTime?
 
   /// Related columns
-  user   User @relation("UserApiKeysApiKey", fields: [userId], references: [id])
-  userId Int
+  users User[] @relation("UserApiKeysApiKey")
 
   /// Audit columns
   updatedAt   DateTime @updatedAt
@@ -164,6 +96,73 @@ model File {
   createdById Int?
 
   @@index([resourceField, resourceName, resourceId])
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  firstName     String
+  lastName      String
+  email         String    @unique
+  phone         String
+  secret        String?
+  passwordHash  String?
+  verifiedEmail Boolean   @default(false)
+  enabled       Boolean   @default(true)
+  logoutAt      DateTime?
+
+  /// Related columns
+  posts   Post[]   @relation("UserPostsPost")
+  roles   Role[]   @relation("UserRolesRole")
+  apiKeys ApiKey[] @relation("UserApiKeysApiKey")
+
+  /// File columns
+  avatar   File? @relation("UserAvatarFile", fields: [avatarId], references: [id])
+  avatarId Int?  @unique
+
+  /// Ownership models referenced with createdById column
+  createdApiKeys     ApiKey[]     @relation("ApiKeyCreatedByUser")
+  createdRoles       Role[]       @relation("RoleCreatedByUser")
+  createdPermissions Permission[] @relation("PermissionCreatedByUser")
+  createdFiles       File[]       @relation("FileCreatedByUser")
+  createdUsers       User[]       @relation("UserCreatedByUser")
+  createdPosts       Post[]       @relation("PostCreatedByUser")
+
+  /// Audit columns
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  createdBy   User?    @relation("UserCreatedByUser", fields: [createdById], references: [id])
+  createdById Int?
+
+  @@index(email)
+}
+
+model Post {
+  id           Int         @id @default(autoincrement())
+  title        String      @default("something...")
+  slug         String      @unique
+  content      String?
+  counter      Int
+  status       PostStatus? @default(Draft)
+  tags         String      @default("Nature,Animals")
+  jsonLd       Json?
+  lastActivity DateTime?
+
+  /// Related columns
+  author   User? @relation("UserPostsPost", fields: [authorId], references: [id], onDelete: SetNull)
+  authorId Int?
+
+  /// File columns
+  coverImage    File?  @relation("PostCoverImageFile", fields: [coverImageId], references: [id])
+  coverImageId  Int?   @unique
+  galleryImages File[] @relation("PostGalleryImagesFile")
+
+  /// Audit columns
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  createdBy   User?    @relation("PostCreatedByUser", fields: [createdById], references: [id])
+  createdById Int?
+
+  @@index(slug)
 }
 
 enum PostStatus {

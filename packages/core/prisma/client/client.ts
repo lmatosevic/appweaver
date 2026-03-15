@@ -29,8 +29,8 @@ export * from "./enums"
  * const prisma = new PrismaClient({
  *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
  * })
- * // Fetch zero or more Files
- * const files = await prisma.file.findMany()
+ * // Fetch zero or more ApiKeys
+ * const apiKeys = await prisma.apiKey.findMany()
  * ```
  * 
  * Read more in our [docs](https://pris.ly/d/client).
@@ -40,15 +40,10 @@ export type PrismaClient<LogOpts extends Prisma.LogLevel = never, OmitOpts exten
 export { Prisma }
 
 /**
- * Model File
+ * Model ApiKey
  * 
  */
-export type File = Prisma.FileModel
-/**
- * Model Seeder
- * 
- */
-export type Seeder = Prisma.SeederModel
+export type ApiKey = Prisma.ApiKeyModel
 /**
  * Model Role
  * 
@@ -60,7 +55,12 @@ export type Role = Prisma.RoleModel
  */
 export type Permission = Prisma.PermissionModel
 /**
- * Model ApiKey
+ * Model Seeder
  * 
  */
-export type ApiKey = Prisma.ApiKeyModel
+export type Seeder = Prisma.SeederModel
+/**
+ * Model File
+ * 
+ */
+export type File = Prisma.FileModel

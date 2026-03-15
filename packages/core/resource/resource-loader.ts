@@ -203,9 +203,7 @@ async function loadRoutes(
 }
 
 async function findAllFiles(pattern: string, cwd: string): Promise<string[]> {
-  const jsPaths = pattern.replace(/\.ts$/i, '.js');
-  const strippedPattern = stripOverlappingPath(jsPaths, cwd);
-  const files = await glob(strippedPattern, { cwd, absolute: true });
+  const files: string[] = [];
 
   // Add exported core module resources
   files.push('@appweaver/core/resources');
@@ -214,6 +212,13 @@ async function findAllFiles(pattern: string, cwd: string): Promise<string[]> {
   for (const module of config.APP_AUTOLOAD_MODULES) {
     files.push(module);
   }
+
+  const jsPaths = pattern.replace(/\.ts$/i, '.js');
+  const strippedPattern = stripOverlappingPath(jsPaths, cwd);
+
+  // Add project files using a pattern
+  const projectFiles = await glob(strippedPattern, { cwd, absolute: true });
+  files.push(...projectFiles);
 
   return files;
 }
