@@ -1,4 +1,5 @@
 import {
+  config as cfg,
   Ctor,
   RelationConfig,
   RESOURCE_AUTH,
@@ -74,17 +75,21 @@ export function createAuthModel(config: ResourceModelConfig): ResourceModel {
         }
       }
     },
-    apiKeys: {
-      model: 'ApiKey',
-      mappedBy: uncapitalize(config.name),
-      array: true,
-      input: {
-        type: 'none'
-      },
-      output: {
-        type: 'none'
-      }
-    }
+    ...(cfg.SECURITY_API_KEY_ENABLED
+      ? {
+          apiKeys: {
+            model: 'ApiKey',
+            mappedBy: uncapitalize(config.name),
+            array: true,
+            input: {
+              type: 'none'
+            },
+            output: {
+              type: 'none'
+            }
+          }
+        }
+      : {})
   };
 
   config.scalars = { ...config.scalars, ...authModelScalars };

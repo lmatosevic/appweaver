@@ -12,25 +12,6 @@ generator client {
   output   = "./client"
 }
 
-model File {
-  id            Int     @id @default(autoincrement())
-  name          String  @unique
-  originalName  String
-  mimeType      String
-  sizeBytes     Int
-  title         String?
-  description   String?
-  resourceField String?
-  resourceName  String?
-  resourceId    Int?
-
-  /// Audit columns
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-
-  @@index([resourceField, resourceName, resourceId])
-}
-
 model Seeder {
   id         String   @id @default(uuid())
   checksum   String
@@ -66,17 +47,21 @@ model Permission {
   createdAt DateTime @default(now())
 }
 
-model ApiKey {
-  id          Int       @id @default(autoincrement())
-  key         String
-  keyHash     String    @unique
-  authId      Int
-  name        String?
-  description String?
-  enabled     Boolean   @default(true)
-  expiresAt   DateTime?
+model File {
+  id            Int     @id @default(autoincrement())
+  name          String  @unique
+  originalName  String
+  mimeType      String
+  sizeBytes     Int
+  title         String?
+  description   String?
+  resourceField String?
+  resourceName  String?
+  resourceId    Int?
 
   /// Audit columns
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
+
+  @@index([resourceField, resourceName, resourceId])
 }

@@ -20,6 +20,20 @@ export type OAuth2State = {
   useCookies?: boolean;
 };
 
+export type ApiKey = {
+  id: number;
+  key: string;
+  keyHash: string;
+  authId: number;
+  name?: string;
+  description?: string;
+  enabled?: boolean;
+  expiresAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+  createdById?: number | null;
+};
+
 export type AuthUser = {
   id: number;
   email: string;
