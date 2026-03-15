@@ -1,6 +1,6 @@
 import fastifyPlugin from 'fastify-plugin';
 import oauthPlugin from '@fastify/oauth2';
-import { AuthType, config, pickProperties } from '@appweaver/common';
+import { AuthSource, config, pickProperties } from '@appweaver/common';
 import { inject } from '../../context';
 import { HttpError } from '../../errors';
 import { AuthService } from '../auth-service';
@@ -8,7 +8,7 @@ import {
   createOAuth2CallbackSchema,
   createOAuth2RedirectSchema
 } from '../auth-schema';
-import { Server } from '../../types';
+import { OAuth2State, Server } from '../../types';
 
 export type UserInfo = {
   id: string;
@@ -27,10 +27,10 @@ export type OAuth2Config = {
 };
 
 export function createOAuth2Plugin(
-  authType: AuthType,
+  authSource: AuthSource,
   oAuth2Config: OAuth2Config
 ) {
-  const name = authType.replace('oauth2', '');
+  const name = authSource.replace('oauth2', '');
   const upperName = name.toUpperCase();
   const lowerName = name.toLowerCase();
 
@@ -53,7 +53,7 @@ export function createOAuth2Plugin(
     const prefix = config.SECURITY_ROUTE_PREFIX.replace(/\/$/, '');
 
     server.register(oauthPlugin, {
-      name: authType,
+      name: authSource,
       credentials: {
         client: {
           id: oAuth2Config.clientId,
@@ -69,16 +69,15 @@ export function createOAuth2Plugin(
       startRedirectPath: `${prefix}/login/${lowerName}`,
       callbackUri: `${config.APP_HOSTNAME}${prefix}/login/${lowerName}/callback`,
       generateStateFunction: async function (request: any) {
-        const returnToUrl = request.query.returnToUrl;
-
-        return authService.generateOAuth2State({ returnToUrl });
+        return authService.generateOAuth2State({
+          returnToUrl: request.query.returnToUrl,
+          useCookies: request.query.useCookies
+        });
       },
       checkStateFunction: async function (request: any) {
-        const stateData = await authService.checkOAuth2State(
+        request.oauth2State = await authService.checkOAuth2State(
           request.query.state
         );
-
-        request.returnToUrl = stateData.returnToUrl;
 
         return true;
       }
@@ -91,7 +90,7 @@ export function createOAuth2Plugin(
       },
       async function (request, reply) {
         const { token } =
-          await server[authType].getAccessTokenFromAuthorizationCodeFlow(
+          await server[authSource].getAccessTokenFromAuthorizationCodeFlow(
             request
           );
 
@@ -100,7 +99,7 @@ export function createOAuth2Plugin(
         let authUser = await authService.findByUsername(userInfo.email);
         if (!authUser) {
           authUser = await authService.registerAuthUser(
-            authType,
+            authSource,
             userInfo.email,
             undefined,
             pickProperties(userInfo, ['firstName', 'lastName'])
@@ -109,9 +108,43 @@ export function createOAuth2Plugin(
           throw new HttpError('Auth user email address is not verified', 403);
         }
 
+        const stateData: OAuth2State = (request as any).oauth2State;
+
+        if (stateData.useCookies) {
+          const authResponse = await authService.generateAuthTokens(authUser);
+
+          const sameSite: CookieSameSite = stateData.returnToUrl.startsWith(
+            config.APP_HOSTNAME
+          )
+            ? 'lax'
+            : 'none';
+
+          const cookiesBase = {
+            httpOnly: false,
+            secure: config.SECURITY_OAUTH2_SECURE_COOKIES,
+            path: '/',
+            sameSite
+          };
+
+          return reply
+            .setCookie('access_token', authResponse.accessToken, {
+              ...cookiesBase,
+              maxAge: authResponse.expiresIn
+            })
+            .setCookie('refresh_token', authResponse.refreshToken, {
+              ...cookiesBase,
+              maxAge: authResponse.refreshExpiresIn
+            })
+            .redirect(stateData.returnToUrl);
+        }
+
         const ott = await authService.generateOneTimeToken(authUser);
 
-        return reply.redirect(`${(request as any).returnToUrl}?token=${ott}`);
+        const separator = stateData.returnToUrl.includes('?') ? '&' : '?';
+
+        return reply.redirect(
+          `${stateData.returnToUrl}${separator}token=${ott}`
+        );
       }
     );
   });

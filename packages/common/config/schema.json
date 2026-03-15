@@ -335,6 +335,22 @@
               "type": "integer",
               "default": 300000
             },
+            "basic": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "realm": {
+                  "type": ["string", "null"]
+                },
+                "proxyMode": {
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            },
             "jwt": {
               "type": "object",
               "properties": {
@@ -425,6 +441,10 @@
                     }
                   ],
                   "default": ["*"]
+                },
+                "secureCookies": {
+                  "type": "boolean",
+                  "default": true
                 },
                 "stateTtl": {
                   "type": "integer",

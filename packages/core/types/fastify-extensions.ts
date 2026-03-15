@@ -1,4 +1,4 @@
-import { RouteConfig } from '@appweaver/common';
+import { AuthType, RouteConfig } from '@appweaver/common';
 import { AuthUser } from './auth';
 import '@fastify/request-context';
 import '@fastify/auth';
@@ -9,7 +9,8 @@ declare module 'fastify' {
 
   // Extend the fastify with jwt decorator type.
   interface FastifyInstance {
-    authenticateJWT: any;
+    authenticateJWT: (request: FastifyRequest, reply: FastifyReply) => any;
+    authenticate: (...authTypes: AuthType[]) => any;
     currentUser: () => AuthUser;
   }
 }

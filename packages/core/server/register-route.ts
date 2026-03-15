@@ -1,6 +1,7 @@
 import Fastify, { RouteOptions } from 'fastify';
 import { TObject } from '@sinclair/typebox';
 import {
+  AuthType,
   isArray,
   logger,
   objectHasProperty,
@@ -27,7 +28,7 @@ export function registerRoute(
   tempServer.register(handler);
 
   const routeBuilder = async (server: Server): Promise<void> => {
-    const { auth, authenticateJWT } = server;
+    const { authenticate } = server;
 
     // Add all currently configured schemas to the temporary server
     for (const [id, schema] of Object.entries(server.getSchemas())) {
@@ -70,7 +71,14 @@ export function registerRoute(
           }
         },
         onRequest: [
-          config?.public ? undefined : auth(config?.auth ?? [authenticateJWT]),
+          config?.public
+            ? undefined
+            : authenticate(
+                ...((config?.auth as AuthType[]) ?? [
+                  AuthType.JWT,
+                  AuthType.Basic
+                ])
+              ),
           ...(isArray(route.onRequest) ? route.onRequest : [route.onRequest])
         ].filter((h) => h !== undefined),
         config: {

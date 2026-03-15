@@ -77,6 +77,11 @@
     "security": {
       "routePrefix": "/auth",
       "cacheTtl": 300000,
+      "basic": {
+        "enabled": false,
+        "realm": "example",
+        "proxyMode": false
+      },
       "jwt": {
         "secret": "GdvCFezoPIZdOAN3IQZR3JhaAZH6S6AJ",
         "publicKeyPath": "./storage/keys/public.key",
@@ -103,6 +108,7 @@
           "issuer": "https://keycloak.example.com/realms/my-realm"
         },
         "allowedHosts": "*",
+        "secureCookies": true,
         "stateTtl": 600000,
         "ottTtl": 120000
       }

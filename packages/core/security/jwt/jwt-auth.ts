@@ -4,7 +4,6 @@ import fastifyJwt from '@fastify/jwt';
 import { requestContext } from '@fastify/request-context';
 import { config, logger } from '@appweaver/common';
 import { AuthService } from '../auth-service';
-import { hasPermissions, hasRoles } from '../helper';
 import { inject } from '../../context';
 import { HttpError } from '../../errors';
 import { JwtPayload, Server } from '../../types';
@@ -50,29 +49,16 @@ export const jwtAuth = fastifyPlugin(async (server: Server): Promise<void> => {
         const payload: JwtPayload = await request.jwtVerify();
         const authUser = await authService.findById(payload.sub);
 
-        const refreshPath = `/${config.SECURITY_ROUTE_PREFIX}/refresh`;
-
-        if (
-          !authUser ||
-          !authUser.enabled ||
-          (authUser.logoutAt &&
-            new Date(authUser.logoutAt).getTime() > payload.iat) ||
-          (payload.refresh && request.url !== refreshPath) ||
-          (!payload.refresh && request.url === refreshPath)
-        ) {
-          reply
-            .code(401)
-            .send({ message: 'Unauthorized access', errorCode: 401 });
-          return;
-        }
-
-        const { roles, permissions } = request.routeOptions.config;
-        if (
-          !hasRoles(authUser, roles) ||
-          !hasPermissions(authUser, permissions)
-        ) {
-          reply.code(403).send({ message: 'Forbidden access', errorCode: 403 });
-          return;
+        const result = authService.authorize(
+          authUser,
+          request.url,
+          request.routeOptions.config,
+          payload
+        );
+        if (!result.success) {
+          return reply
+            .code(result.errorCode)
+            .send({ message: result.message, errorCode: result.errorCode });
         }
 
         requestContext.set('authUser', authUser);

@@ -1,4 +1,4 @@
-import { AuthType } from '@appweaver/common';
+import { AuthSource } from '@appweaver/common';
 import { Role } from './generated';
 
 export type JwtPayload = {
@@ -13,6 +13,11 @@ export type AuthTokens = {
   refreshToken: string;
   expiresIn: number;
   refreshExpiresIn: number;
+};
+
+export type OAuth2State = {
+  returnToUrl: string;
+  useCookies?: boolean;
 };
 
 export type AuthUser = {
@@ -34,7 +39,7 @@ export type UserAdditionalData = {
 };
 
 export type RegistrationDataFn<T = any> = (
-  authType: AuthType,
+  source: AuthSource,
   email: string,
   password?: string,
   additionalData?: Partial<UserAdditionalData>

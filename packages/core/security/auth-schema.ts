@@ -1,4 +1,6 @@
 import { Type } from '@sinclair/typebox';
+import { AuthType } from '@appweaver/common';
+import { authSchema } from './helper';
 import { AllErrorResponses } from '../errors';
 import { RouteSchema } from '../types';
 
@@ -70,7 +72,7 @@ export const logoutSchema = {
 
 export const changePasswordSchema = {
   tags: ['Auth'],
-  security: [{ bearer: [] }],
+  security: authSchema([AuthType.JWT, AuthType.Basic]),
   summary: 'Change identity password',
   description: 'Change identity password',
   response: {
@@ -94,7 +96,7 @@ export const exchangeTokenSchema = {
 export function createCurrentAuthUserSchema(modelName: string): RouteSchema {
   return {
     tags: ['Auth'],
-    security: [{ bearer: [] }],
+    security: authSchema([AuthType.JWT, AuthType.Basic]),
     summary: 'Return currently authorized identity',
     description: 'Return currently authorized identity',
     response: {
@@ -113,9 +115,17 @@ export function createOAuth2RedirectSchema(providerName: string): RouteSchema {
       returnToUrl: Type.String({
         format: 'uri',
         description:
-          'A URL to redirect to with one-time-token after successful authentication. ' +
-          'The client then needs to exchange this token for an access token.'
-      })
+          'A URL to redirect to with set cookies or with one-time-token after ' +
+          'successful authentication. The client then needs to exchange this ' +
+          'token for an access token.'
+      }),
+      useCookies: Type.Optional(
+        Type.Boolean({
+          description:
+            'Set "access_token" and "refresh_token" cookies when redirecting ' +
+            'to the provided URL on successful authentication.'
+        })
+      )
     }),
     response: {
       301: {

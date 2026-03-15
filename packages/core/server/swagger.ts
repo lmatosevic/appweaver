@@ -29,7 +29,15 @@ export default fastifyPlugin((server: Server): void => {
             scheme: 'bearer',
             bearerFormat: 'token',
             type: 'http'
-          }
+          },
+          ...(config.SECURITY_BASIC_ENABLED
+            ? {
+                basicAuth: {
+                  type: 'http',
+                  scheme: 'basic'
+                }
+              }
+            : {})
         }
       }
     }

@@ -1,5 +1,6 @@
 import { Static } from '@sinclair/typebox';
 import {
+  AuthType,
   ResourceRoutesConfig,
   RouteCacheConfig,
   RouteConfig
@@ -44,13 +45,17 @@ export function resourceRoutes(
   const schema = createSchema(name, publicRoutes);
 
   const handler = (server: Server) => {
-    const { auth, authenticateJWT } = server;
+    const { authenticate } = server;
 
     const service = injectService(name);
     const resourceModel = injectModel(name);
 
     const routeAuth = (config: RouteConfig | undefined) =>
-      config?.public ? undefined : auth(config?.auth ?? [authenticateJWT]);
+      config?.public
+        ? undefined
+        : authenticate(
+            ...((config?.auth as AuthType[]) ?? [AuthType.JWT, AuthType.Basic])
+          );
 
     const hasFiles = Object.keys(resourceModel.config.files ?? {}).length > 0;
 

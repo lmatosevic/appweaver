@@ -95,6 +95,9 @@ const configSchema = Type.Object({
 
   SECURITY_ROUTE_PREFIX: Type.String({ default: '/auth' }),
   SECURITY_CACHE_TTL: Type.Integer({ default: 300000 }),
+  SECURITY_BASIC_ENABLED: Type.Boolean({ default: false }),
+  SECURITY_BASIC_REALM: Type.Optional(Type.String()),
+  SECURITY_BASIC_PROXY_MODE: Type.Boolean({ default: false }),
   SECURITY_JWT_SECRET: Type.Optional(Type.String()),
   SECURITY_JWT_PUBLIC_KEY_PATH: Type.String({
     default: './storage/keys/public.key'
@@ -116,6 +119,7 @@ const configSchema = Type.Object({
   SECURITY_OAUTH2_CUSTOM_CLIENT_SECRET: Type.Optional(Type.String()),
   SECURITY_OAUTH2_CUSTOM_ISSUER: Type.Optional(Type.String()),
   SECURITY_OAUTH2_ALLOWED_HOSTS: Type.Array(Type.String(), { default: ['*'] }),
+  SECURITY_OAUTH2_SECURE_COOKIES: Type.Boolean({ default: true }),
   SECURITY_OAUTH2_STATE_TTL: Type.Integer({ default: 600000 }),
   SECURITY_OAUTH2_OTT_TTL: Type.Integer({ default: 120000 }),
 

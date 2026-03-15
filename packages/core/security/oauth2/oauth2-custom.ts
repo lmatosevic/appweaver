@@ -1,9 +1,9 @@
-import { AuthType, config } from '@appweaver/common';
+import { AuthSource, config } from '@appweaver/common';
 import { context } from '../../context';
 import { HttpError } from '../../errors';
 import { createOAuth2Plugin, UserInfo } from './create-oauth2-plugin';
 
-export const oauth2Custom = createOAuth2Plugin(AuthType.OAuth2Custom, {
+export const oauth2Custom = createOAuth2Plugin(AuthSource.OAuth2Custom, {
   enabled: config.SECURITY_OAUTH2_CUSTOM_ENABLED,
   clientId: config.SECURITY_OAUTH2_CUSTOM_CLIENT_ID,
   clientSecret: config.SECURITY_OAUTH2_CUSTOM_CLIENT_SECRET,
@@ -18,7 +18,7 @@ async function fetchCustomUser(accessToken: string): Promise<UserInfo> {
     throw new HttpError('Server is not available', 500);
   }
 
-  const customOauth2 = server[AuthType.OAuth2Custom];
+  const customOauth2 = server[AuthSource.OAuth2Custom];
 
   let data: any;
   if (typeof customOauth2?.userinfo === 'function') {

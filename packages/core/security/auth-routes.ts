@@ -6,13 +6,14 @@ import {
   logoutSchema,
   refreshSchema
 } from './auth-schema';
+import { AuthType } from '@appweaver/common';
 import { AuthService } from './auth-service';
 import { resourceAuthModel } from './helper';
 import { inject } from '../context';
 import { Server } from '../types';
 
 export function authRoutes(server: Server): void {
-  const { auth, currentUser, authenticateJWT } = server;
+  const { authenticate, currentUser } = server;
 
   const authService = inject(AuthService);
 
@@ -39,7 +40,7 @@ export function authRoutes(server: Server): void {
     '/refresh',
     {
       schema: refreshSchema,
-      onRequest: auth([authenticateJWT]),
+      onRequest: authenticate(AuthType.JWT),
       config: {
         rateLimit: {
           max: 12
@@ -59,7 +60,7 @@ export function authRoutes(server: Server): void {
     '/logout',
     {
       schema: logoutSchema,
-      onRequest: auth([authenticateJWT])
+      onRequest: authenticate(AuthType.JWT)
     },
     async (_, reply) => {
       const authUser = currentUser();
@@ -74,7 +75,7 @@ export function authRoutes(server: Server): void {
     '/change-password',
     {
       schema: changePasswordSchema,
-      onRequest: auth([authenticateJWT]),
+      onRequest: authenticate(AuthType.JWT, AuthType.Basic),
       config: {
         rateLimit: {
           max: 12
@@ -119,7 +120,7 @@ export function authRoutes(server: Server): void {
       '/me',
       {
         schema: createCurrentAuthUserSchema(authUserModel.name),
-        onRequest: auth([authenticateJWT])
+        onRequest: authenticate(AuthType.JWT, AuthType.Basic)
       },
       async (_, reply) => {
         const authUser = currentUser();

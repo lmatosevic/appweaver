@@ -1,13 +1,20 @@
 import {
-  AuthType,
+  AuthSource,
   CONFIG,
   config,
   generateToken,
   logger,
   Redis,
+  RouteConfig,
   uuid
 } from '@appweaver/common';
-import { checkPassword, hashPassword, resourceAuthService } from './helper';
+import {
+  checkPassword,
+  hashPassword,
+  hasPermissions,
+  hasRoles,
+  resourceAuthService
+} from './helper';
 import { context, inject } from '../context';
 import { CacheService } from '../cache';
 import { HttpError } from '../errors';
@@ -16,14 +23,12 @@ import {
   AuthUser,
   IResourceService,
   JwtPayload,
+  OAuth2State,
   RegistrationDataFn,
   UserAdditionalData
 } from '../types';
 
-type StateData = {
-  returnToUrl: string;
-};
-
+const OAUTH_KEY = 'auth';
 const OAUTH2_STATE_KEY = 'oauth2:state';
 const OAUTH2_OTT_KEY = 'oauth2:ott';
 
@@ -55,7 +60,7 @@ export class AuthService {
       }
 
       const cacheKey = this._cacheService.buildCacheKey({
-        baseKey: `auth:${id}`,
+        baseKey: `${OAUTH_KEY}:${id}`,
         modelName: this._authUserService.modelName
       });
 
@@ -86,8 +91,35 @@ export class AuthService {
    */
   public async findByUsername(username: string): Promise<AuthUser | null> {
     try {
-      const result = await this._authUserService.query({ email: username });
-      return result.items[0];
+      const findAuthAction = this._authUserService.query({ email: username });
+
+      if (!config.CACHE_ENABLED || config.SECURITY_CACHE_TTL < 0) {
+        const result = await findAuthAction;
+        return result.items[0] ?? null;
+      }
+
+      const cacheKey = this._cacheService.buildCacheKey({
+        baseKey: `${OAUTH_KEY}:${username}`,
+        modelName: this._authUserService.modelName
+      });
+
+      const value = await this._cacheService.getCachedValue<AuthUser>(cacheKey);
+      if (value) {
+        return value;
+      }
+
+      const result = await findAuthAction;
+      const authUser = result.items[0] ?? null;
+
+      if (authUser) {
+        await this._cacheService.addToCache(
+          cacheKey,
+          authUser,
+          config.SECURITY_CACHE_TTL
+        );
+      }
+
+      return authUser;
     } catch (e) {
       throw new HttpError('Auth user find error', 500, e);
     }
@@ -113,10 +145,10 @@ export class AuthService {
   }
 
   /**
-   * Registers a new authenticated user based on the provided authentication type, email, and optional password and
+   * Registers a new authenticated user based on the provided authentication source, email, and optional password and
    * additional data.
    *
-   * @param {AuthType} authType - The authentication type to register the user, e.g., email, social login, etc.
+   * @param {AuthSource} source - The authentication source to register the user, e.g., password, google, custom.
    * @param {string} email - The email address of the user to be registered.
    * @param {string} [password] - The optional password for the user, used when the authentication type requires it.
    * @param {Partial<UserAdditionalData>} [data] - Optional additional data related to the user to be stored during
@@ -125,7 +157,7 @@ export class AuthService {
    * @throws {HttpError} Throws an error if the registration process fails.
    */
   public async registerAuthUser(
-    authType: AuthType,
+    source: AuthSource,
     email: string,
     password?: string,
     data?: Partial<UserAdditionalData>
@@ -134,14 +166,14 @@ export class AuthService {
       const serviceConfig: { registrationData: RegistrationDataFn } =
         this._authUserService[CONFIG];
       const registrationData = serviceConfig.registrationData(
-        authType,
+        source,
         email,
         password,
         data
       );
       return await this._authUserService.create({
         ...registrationData,
-        verifiedEmail: authType !== AuthType.Password
+        verifiedEmail: source !== AuthSource.Password
       });
     } catch (e) {
       throw new HttpError('Auth user registration error', 500, e);
@@ -181,7 +213,75 @@ export class AuthService {
   }
 
   /**
-   * Authenticates a user based on the provided username and password.
+   * Authenticates a user by verifying their username and password.
+   *
+   * @param {string} username - The username of the user attempting to authenticate.
+   * @param {string} password - The password of the user attempting to authenticate.
+   * @return {Promise<AuthUser>} A promise that resolves to an authenticated user object if the credentials are valid.
+   * @throws {HttpError} If the user does not exist, is disabled, or if the provided credentials are invalid.
+   */
+  public async authenticate(
+    username: string,
+    password: string
+  ): Promise<AuthUser> {
+    const authUser = await this.findByUsername(username);
+    if (!authUser || !authUser.enabled || !authUser.passwordHash) {
+      throw new HttpError('Auth user does not exist or is disabled', 400);
+    }
+
+    if (!(await checkPassword(password, authUser.passwordHash))) {
+      throw new HttpError('Invalid user credentials', 401);
+    }
+
+    logger.debug({ id: authUser.id }, 'User authenticated');
+
+    return authUser;
+  }
+
+  /**
+   * Authorizes a user based on provided authentication details, route configuration, and JWT payload
+   * (if JWT auth type is used).
+   *
+   * @param {AuthUser | null} authUser - The authenticated user object. Can be null if no user is authenticated.
+   * @param {string} url - The URL of the resource being accessed.
+   * @param {RouteConfig} [routeConfig={}] - The route configuration object specifying required roles and permissions.
+   * @param {JwtPayload} [jwtPayload] - The JWT payload containing additional authentication information.
+   * @return {{ success: true } | { success: false; errorCode: number; message: string }}
+   *         Returns an object indicating success or failure of the authorization,
+   *         with an appropriate error code and message in case of failure.
+   */
+  public authorize(
+    authUser: AuthUser | null,
+    url: string,
+    routeConfig: RouteConfig = {},
+    jwtPayload?: JwtPayload
+  ):
+    | { success: true }
+    | { success: false; errorCode: number; message: string } {
+    const refreshPath = `/${config.SECURITY_ROUTE_PREFIX}/refresh`;
+
+    if (
+      !authUser ||
+      !authUser.enabled ||
+      (authUser.logoutAt &&
+        jwtPayload &&
+        new Date(authUser.logoutAt).getTime() > jwtPayload?.iat) ||
+      (jwtPayload?.refresh && url !== refreshPath) ||
+      (!jwtPayload?.refresh && url === refreshPath)
+    ) {
+      return { success: false, message: 'Unauthorized access', errorCode: 401 };
+    }
+
+    const { roles, permissions } = routeConfig;
+    if (!hasRoles(authUser, roles) || !hasPermissions(authUser, permissions)) {
+      return { success: false, message: 'Forbidden access', errorCode: 403 };
+    }
+
+    return { success: true };
+  }
+
+  /**
+   * Authenticates a user based on the provided username and password and generate access tokens.
    *
    * @param {string} username - The username of the user attempting to log in.
    * @param {string} password - The password of the user attempting to log in.
@@ -190,16 +290,7 @@ export class AuthService {
    * @throws {HttpError} If the user does not exist, is disabled, or provides invalid credentials.
    */
   public async login(username: string, password: string): Promise<AuthTokens> {
-    const authUser = await this.findByUsername(username);
-    if (!authUser || !authUser.enabled || !authUser.passwordHash) {
-      throw new HttpError('Auth user does not exist or is disabled', 400);
-    }
-
-    if (!(await checkPassword(password, authUser.passwordHash))) {
-      throw new HttpError('Invalid login credentials', 401);
-    }
-
-    logger.debug({ id: authUser.id }, 'User login');
+    const authUser = await this.authenticate(username, password);
 
     return this.generateAuthTokens(authUser);
   }
@@ -239,7 +330,7 @@ export class AuthService {
    * @return A promise resolving to the retrieved state data.
    * @throws HttpError if the state is invalid or expired.
    */
-  public async checkOAuth2State(state: string): Promise<StateData> {
+  public async checkOAuth2State(state: string): Promise<OAuth2State> {
     const data = await this._redis.getValue(`${OAUTH2_STATE_KEY}:${state}`);
     if (!data) {
       throw new HttpError('Invalid or expired state received', 401);
@@ -255,11 +346,11 @@ export class AuthService {
    * The state string is stored in Redis with an associated TTL (time-to-live).
    * Ensures that the `returnToUrl` provided in the `StateData` conforms to security policies.
    *
-   * @param {StateData} data - Object containing the state data and the `returnToUrl`.
+   * @param {OAuth2State} data - Object containing the state data and the `returnToUrl`.
    * @return {Promise<string>} A promise that resolves to the generated OAuth2 state string.
    * @throws {HttpError} Throws an error if the `returnToUrl` is invalid or if the hostname is not allowed.
    */
-  public async generateOAuth2State(data: StateData): Promise<string> {
+  public async generateOAuth2State(data: OAuth2State): Promise<string> {
     let url: URL;
     try {
       url = new URL(data.returnToUrl);
@@ -355,7 +446,10 @@ export class AuthService {
    * successful.
    */
   public async logout(id: number): Promise<boolean> {
+    await this._cacheService.removeCachedValue(`${OAUTH_KEY}:${id}`);
+
     logger.debug({ id }, 'User logout');
+
     return !!(await this.updateAuthUser(id, { logoutAt: new Date() }));
   }
 }

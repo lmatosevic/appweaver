@@ -1,11 +1,11 @@
-import { config, HealthCheckStatus } from '@appweaver/common';
+import { AuthType, config, HealthCheckStatus } from '@appweaver/common';
 import { createHealthCheckSchema, healthReadySchema } from './health-schema';
 import { HealthService } from './health-service';
 import { inject } from '../context';
 import { Server } from '../types';
 
 export function health(server: Server): void {
-  const { auth, authenticateJWT } = server;
+  const { authenticate } = server;
 
   const healthService = inject(HealthService);
 
@@ -17,7 +17,9 @@ export function health(server: Server): void {
     '/check',
     {
       schema: healthCheckSchema,
-      onRequest: config.HEALTH_CHECK_AUTH ? auth([authenticateJWT]) : undefined,
+      onRequest: config.HEALTH_CHECK_AUTH
+        ? authenticate(AuthType.JWT, AuthType.Basic)
+        : undefined,
       config: {
         rateLimit: {
           max: 12

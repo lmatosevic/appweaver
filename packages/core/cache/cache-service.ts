@@ -66,6 +66,21 @@ export class CacheService {
   }
 
   /**
+   * Removes a cached value associated with the specified key from the cache store.
+   *
+   * @param {string} key - The key associated with the cached value to be removed.
+   * @return {Promise<boolean>} A promise that resolves to `true` if the value was successfully removed, or
+   * `false` otherwise.
+   */
+  public async removeCachedValue(key: string): Promise<boolean> {
+    const removed = await this._cache.evict(key);
+    if (removed) {
+      logger.debug({ key }, 'Removed value from cache');
+    }
+    return removed;
+  }
+
+  /**
    * Invalidates the cache for the specified model and action type based on the configured cache invalidation strategy.
    *
    * @param {string} modelName - The name of the model whose cache needs to be invalidated.

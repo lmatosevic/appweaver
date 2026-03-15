@@ -1,5 +1,9 @@
 import path from 'node:path';
 
+type ValueOrError<T> =
+  | { value: T; error: null }
+  | { value: null; error: Error };
+
 /**
  * Dynamically imports a module from a given file path and catches any errors.
  *
@@ -12,7 +16,7 @@ import path from 'node:path';
 export async function importModule<T = any>(
   filePath: string,
   failOnError: boolean = false
-): Promise<{ value: T | null; error: Error | null }> {
+): Promise<ValueOrError<T>> {
   try {
     const jsPath = filePath.replace(/\.ts$/i, '.js');
     const exportedValue = await import(jsPath);
@@ -38,7 +42,7 @@ export async function importModule<T = any>(
 export function requireModule<T = any>(
   filePath: string,
   failOnError: boolean = false
-): { value: T | null; error: Error | null } {
+): ValueOrError<T> {
   try {
     const jsPath = filePath.replace(/\.ts$/i, '.js');
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -65,7 +69,7 @@ export function loadModule<T = any>(
   baseDir: string,
   classPath: string,
   failOnError: boolean = false
-): { value: T | null; error: Error | null } {
+): ValueOrError<T> {
   let modulePath: string;
   if (classPath.startsWith('@/')) {
     // Load module from the calling project source directory
@@ -84,10 +88,11 @@ export function loadModule<T = any>(
   // Handle errors or missing values for both required and optional modules
   if (!value || error) {
     const msg = `Loading '${classPath}' module failed: ${error}`;
+    const err = error ?? new Error(msg);
     if (failOnError) {
-      throw error ?? new Error(msg);
+      throw err;
     }
-    return { value: null, error };
+    return { value: null, error: err };
   }
 
   return { value: value, error: null };

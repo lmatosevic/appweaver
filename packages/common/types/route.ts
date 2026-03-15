@@ -1,12 +1,27 @@
+import { AuthType } from '../enums';
+
 export type RouteConfig = {
   exclude?: boolean;
   public?: boolean;
   roles?: string[];
   permissions?: string[];
-  auth?: any[];
+  auth?: (string | AuthType)[];
   rateLimit?:
     | false
-    | { max: number; timeWindow?: number | string; allowList?: string[] };
+    | {
+        max?:
+          | number
+          | ((req: any, key: string) => number)
+          | ((req: any, key: string) => Promise<number>);
+        timeWindow?:
+          | number
+          | string
+          | ((req: any, key: string) => number)
+          | ((req: any, key: string) => Promise<number>);
+        allowList?:
+          | string[]
+          | ((req: any, key: string) => boolean | Promise<boolean>);
+      };
 };
 
 export type RouteCacheConfig = {
