@@ -16,7 +16,7 @@ type FullRouteConfig = RouteConfig & RouteCacheConfig;
 
 export function resourceRoutes(
   name: string,
-  routesConfig: Omit<ResourceRoutesConfig, 'modelName'> = {}
+  routesConfig: Omit<ResourceRoutesConfig, 'modelName' | 'path'> = {}
 ): { handler: RoutesHandler; schema: ResourceSchemaConfig } {
   const routeConfig = (
     configName: keyof ResourceRoutesConfig
@@ -30,11 +30,23 @@ export function resourceRoutes(
     };
   };
 
-  const defaultAuthTypes = [AuthType.Jwt, AuthType.Basic];
+  const routeNames: (keyof ResourceRoutesConfig)[] = [
+    'find',
+    'query',
+    'aggregate',
+    'create',
+    'update',
+    'delete',
+    'export',
+    'fileUpload',
+    'fileDelete'
+  ];
 
-  const routeAuthTypes = (
-    Object.keys(routesConfig) as (keyof ResourceRoutesConfig)[]
-  ).reduce<Record<keyof ResourceRoutesConfig, AuthType[]>>((acc, routeName) => {
+  const defaultAuthTypes = [AuthType.Jwt, AuthType.ApiKey, AuthType.Basic];
+
+  const routeAuthTypes = routeNames.reduce<
+    Record<keyof ResourceRoutesConfig, AuthType[]>
+  >((acc, routeName) => {
     const config = routeConfig(routeName);
     if (config?.public || config?.auth?.length === 0) {
       acc[routeName] = [];

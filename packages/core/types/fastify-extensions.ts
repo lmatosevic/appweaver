@@ -9,7 +9,8 @@ declare module 'fastify' {
 
   // Extend the fastify with jwt decorator type.
   interface FastifyInstance {
-    authenticateJWT: (request: FastifyRequest, reply: FastifyReply) => any;
+    authenticateJWT: (request: FastifyRequest, reply: FastifyReply) => void;
+    authenticateApiKey: (request: FastifyRequest, reply: FastifyReply) => void;
     authenticate: (...authTypes: AuthType[]) => any;
     currentUser: () => AuthUser;
   }

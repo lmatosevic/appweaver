@@ -76,6 +76,7 @@ export function registerRoute(
             : authenticate(
                 ...((config?.auth as AuthType[]) ?? [
                   AuthType.Jwt,
+                  AuthType.ApiKey,
                   AuthType.Basic
                 ])
               ),

@@ -124,3 +124,54 @@ export type PermissionCreate = {
 export type PermissionUpdate = {
   name?: string;
 };
+
+export type ApiKey = {
+  id: number;
+  key: string;
+  keyHash: string;
+  authId: number;
+  name?: string | null;
+  description?: string | null;
+  enabled: boolean;
+  expiresAt?: Date | null;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type ApiKeySingle = {
+  id: number;
+  key: string;
+  name?: string | null;
+  description?: string | null;
+  enabled: boolean;
+  expiresAt?: Date | null;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type ApiKeyMultiple = {
+  id: number;
+  key: string;
+  name?: string | null;
+  description?: string | null;
+  enabled: boolean;
+  expiresAt?: Date | null;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type ApiKeyCreate = {
+  name?: string | null;
+  description?: string | null;
+  enabled?: boolean;
+  expiresAt?: Date | null;
+};
+
+export type ApiKeyUpdate = {
+  name?: string | null;
+  description?: string | null;
+  enabled?: boolean;
+};

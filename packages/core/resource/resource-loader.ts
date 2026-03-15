@@ -69,14 +69,6 @@ async function loadModels(
 
   const modelPaths = await findAllFiles(pathPattern, cwd);
 
-  // Add exported core module resource models
-  modelPaths.push('@appweaver/core/models');
-
-  // Add additional modules from config
-  for (const module of config.APP_AUTOLOAD_MODULES) {
-    modelPaths.push(module);
-  }
-
   for (const path of modelPaths) {
     const modelSchema = await importPath<ResourceModel>(path);
     if (!modelSchema) {
@@ -213,7 +205,17 @@ async function loadRoutes(
 async function findAllFiles(pattern: string, cwd: string): Promise<string[]> {
   const jsPaths = pattern.replace(/\.ts$/i, '.js');
   const strippedPattern = stripOverlappingPath(jsPaths, cwd);
-  return glob(strippedPattern, { cwd, absolute: true });
+  const files = await glob(strippedPattern, { cwd, absolute: true });
+
+  // Add exported core module resources
+  files.push('@appweaver/core/resources');
+
+  // Add additional modules from config
+  for (const module of config.APP_AUTOLOAD_MODULES) {
+    files.push(module);
+  }
+
+  return files;
 }
 
 function stripOverlappingPath(pattern: string, cwd: string): string {

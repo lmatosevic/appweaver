@@ -216,10 +216,10 @@ export function injectAllWhere<T = DefinitionValue>(
  * @param {boolean} [required=true] - Indicates whether the model is required. If true, an error is thrown when the model is not found.
  * @return {ResourceModel} The injected model from the application context.
  */
-export function injectModel<R extends boolean = true>(
+export function injectModel<T = ResourceModel, R extends boolean = true>(
   name: string,
   required: R = true as R
-): ConditionalOptional<R, ResourceModel> {
+): ConditionalOptional<R, T> {
   const model = context.resource.models.get(name);
 
   if (!model && required) {
@@ -228,7 +228,7 @@ export function injectModel<R extends boolean = true>(
     );
   }
 
-  return model as ResourceModel;
+  return model as T;
 }
 
 /**
@@ -239,10 +239,10 @@ export function injectModel<R extends boolean = true>(
  * @return {IResourceService} The service instance corresponding to the specified model name.
  * @throws {Error} If the service cannot be found in the application context and `required` is true.
  */
-export function injectService<R extends boolean = true>(
+export function injectService<T = IResourceService, R extends boolean = true>(
   modelName: string,
   required: R = true as R
-): ConditionalOptional<R, IResourceService> {
+): ConditionalOptional<R, T> {
   const service = context.resource.services.get(modelName);
 
   if (!service && required) {
@@ -251,7 +251,7 @@ export function injectService<R extends boolean = true>(
     );
   }
 
-  return service as IResourceService;
+  return checkClassAndInit(modelName, service) as T;
 }
 
 /**

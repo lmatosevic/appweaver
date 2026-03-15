@@ -351,6 +351,22 @@
                 }
               }
             },
+            "apiKey": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "headerName": {
+                  "type": "string",
+                  "default": "x-api-key"
+                },
+                "maxDuration": {
+                  "type": ["integer", "null"]
+                }
+              }
+            },
             "jwt": {
               "type": "object",
               "properties": {

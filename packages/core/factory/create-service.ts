@@ -5,6 +5,7 @@ import {
   AggregateSelect,
   capitalize,
   CONFIG,
+  Ctor,
   isFunction,
   isObject,
   logger,
@@ -18,12 +19,22 @@ import { define, injectPolicy } from '../context';
 import { ResourceService } from '../resource';
 import { Resource, ResourceData } from '../types';
 
-export function createService(config: ResourceServiceConfig): ResourceService {
+export function createService(
+  config: ResourceServiceConfig
+): Ctor<ResourceService> {
   const name = capitalize(
     config.modelName || path.basename(path.dirname(__dirname))
   );
 
   class Service extends ResourceService {
+    [CONFIG] = config;
+    [RESOURCE_NAME] = name;
+    [RESOURCE_TYPE] = RESOURCE_SERVICE_TYPE;
+
+    constructor() {
+      super(name);
+    }
+
     async find(id: number): Promise<any> {
       await config.beforeFind?.(id);
 
@@ -172,15 +183,13 @@ export function createService(config: ResourceServiceConfig): ResourceService {
     configurable: true
   });
 
-  const resourceService = new Service(name);
-
-  resourceService[CONFIG] = config;
-  resourceService[RESOURCE_NAME] = name;
-  resourceService[RESOURCE_TYPE] = RESOURCE_SERVICE_TYPE;
+  Service[CONFIG] = config;
+  Service[RESOURCE_NAME] = name;
+  Service[RESOURCE_TYPE] = RESOURCE_SERVICE_TYPE;
 
   logger.debug({ modelName: config.modelName }, 'Created resource service');
 
-  define(resourceService);
+  define(Service);
 
-  return resourceService;
+  return Service;
 }

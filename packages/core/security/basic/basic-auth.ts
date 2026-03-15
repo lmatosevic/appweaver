@@ -8,10 +8,6 @@ import { Server } from '../../types';
 
 export const basicAuth = fastifyPlugin(
   async (server: Server): Promise<void> => {
-    if (!config.SECURITY_BASIC_ENABLED) {
-      return;
-    }
-
     const authService = inject(AuthService);
 
     server.register(fastifyBasicAuth, {
@@ -27,6 +23,7 @@ export const basicAuth = fastifyPlugin(
           request.url,
           request.routeOptions.config
         );
+
         if (!result.success) {
           return reply
             .code(result.errorCode)

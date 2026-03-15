@@ -165,12 +165,14 @@ export class AuthService {
     try {
       const serviceConfig: { registrationData: RegistrationDataFn } =
         this._authUserService[CONFIG];
+
       const registrationData = serviceConfig.registrationData(
         source,
         email,
         password,
         data
       );
+
       return await this._authUserService.create({
         ...registrationData,
         verifiedEmail: source !== AuthSource.Password

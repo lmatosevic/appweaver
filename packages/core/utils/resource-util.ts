@@ -1,6 +1,7 @@
 import { TSchema } from '@sinclair/typebox';
 import {
   FieldDefault,
+  isConstructor,
   isObject,
   RESOURCE_AUTH,
   RESOURCE_MODEL_TYPE,
@@ -78,7 +79,10 @@ export function isResourceAuthModel(value: any): value is ResourceModel {
 }
 
 export function isResourceService(value: any): value is IResourceService {
-  return isObject(value) && value[RESOURCE_TYPE] === RESOURCE_SERVICE_TYPE;
+  return (
+    (isObject(value) || isConstructor(value)) &&
+    value[RESOURCE_TYPE] === RESOURCE_SERVICE_TYPE
+  );
 }
 
 export function isResourceAuthService(value: any): value is IResourceService {

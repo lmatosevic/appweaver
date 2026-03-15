@@ -72,7 +72,7 @@ export const logoutSchema = {
 
 export const changePasswordSchema = {
   tags: ['Auth'],
-  security: authSchema([AuthType.Jwt, AuthType.Basic]),
+  security: authSchema([AuthType.Jwt, AuthType.ApiKey, AuthType.Basic]),
   summary: 'Change identity password',
   description: 'Change identity password',
   response: {
@@ -96,7 +96,7 @@ export const exchangeTokenSchema = {
 export function createCurrentAuthUserSchema(modelName: string): RouteSchema {
   return {
     tags: ['Auth'],
-    security: authSchema([AuthType.Jwt, AuthType.Basic]),
+    security: authSchema([AuthType.Jwt, AuthType.ApiKey, AuthType.Basic]),
     summary: 'Return currently authorized identity',
     description: 'Return currently authorized identity',
     response: {

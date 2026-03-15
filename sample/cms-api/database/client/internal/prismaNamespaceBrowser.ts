@@ -53,6 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Post: 'Post',
+  ApiKey: 'ApiKey',
   Role: 'Role',
   Permission: 'Permission',
   Seeder: 'Seeder',
@@ -110,6 +111,24 @@ export const PostScalarFieldEnum = {
 } as const
 
 export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum]
+
+
+export const ApiKeyScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  keyHash: 'keyHash',
+  authId: 'authId',
+  name: 'name',
+  description: 'description',
+  enabled: 'enabled',
+  expiresAt: 'expiresAt',
+  userId: 'userId',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt',
+  createdById: 'createdById'
+} as const
+
+export type ApiKeyScalarFieldEnum = (typeof ApiKeyScalarFieldEnum)[keyof typeof ApiKeyScalarFieldEnum]
 
 
 export const RoleScalarFieldEnum = {

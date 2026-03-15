@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcrypt';
 import { requestContext } from '@fastify/request-context';
-import { AuthType, config } from '@appweaver/common';
-import { context } from '../context';
+import { AuthType, config, RESOURCE_NAME } from '@appweaver/common';
+import { context, injectService } from '../context';
 import { isResourceAuthModel, isResourceAuthService } from '../utils';
 import { AuthUser, IResourceService, ResourceModel } from '../types';
 
@@ -18,7 +18,7 @@ export function resourceAuthService():
   | undefined {
   for (const service of context.resource.services.values()) {
     if (isResourceAuthService(service)) {
-      return service as IResourceService<AuthUser, AuthUser>;
+      return injectService(service[RESOURCE_NAME]);
     }
   }
 }
@@ -35,6 +35,11 @@ export function authSchema(authTypes: AuthType[]): any[] {
       case AuthType.Basic:
         if (config.SECURITY_BASIC_ENABLED) {
           authSchemas.push({ basicAuth: [] });
+        }
+        break;
+      case AuthType.ApiKey:
+        if (config.SECURITY_API_KEY_ENABLED) {
+          authSchemas.push({ apiKeyAuth: [] });
         }
         break;
       case AuthType.Jwt:
@@ -73,7 +78,7 @@ export async function updatePasswordHash(
 }
 
 export function hasRole(authUser: AuthUser, role: string): boolean {
-  return authUser.roles.findIndex((r) => r.name === role) > -1;
+  return authUser.roles.some((r) => r.name === role);
 }
 
 export function hasRoles(
@@ -85,24 +90,15 @@ export function hasRoles(
     return true;
   }
 
-  for (const role of roles) {
-    const allowed = hasRole(authUser, role);
+  const predicate = (role: string) => hasRole(authUser, role);
 
-    if (allowed && operator === 'or') {
-      return true;
-    }
-
-    if (!allowed && operator === 'and') {
-      return false;
-    }
-  }
-
-  return operator === 'and' || roles.length === 0;
+  return operator === 'and' ? roles.every(predicate) : roles.some(predicate);
 }
 
 export function hasPermission(authUser: AuthUser, permission: string): boolean {
-  const permissions = authUser.roles.flatMap((r) => r.permissions);
-  return permissions.findIndex((p) => p.name === permission) > -1;
+  return authUser.roles
+    .flatMap((r) => r.permissions)
+    .some((p) => p.name === permission);
 }
 
 export function hasPermissions(
@@ -114,17 +110,9 @@ export function hasPermissions(
     return true;
   }
 
-  for (const permission of permissions) {
-    const allowed = hasPermission(authUser, permission);
+  const predicate = (perm: string) => hasPermission(authUser, perm);
 
-    if (allowed && operator === 'or') {
-      return true;
-    }
-
-    if (!allowed && operator === 'and') {
-      return false;
-    }
-  }
-
-  return operator === 'and' || permissions.length === 0;
+  return operator === 'and'
+    ? permissions.every(predicate)
+    : permissions.some(predicate);
 }

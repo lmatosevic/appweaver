@@ -6,13 +6,20 @@ import { Server } from '../types';
 import { currentAuthUser } from './helper';
 import { authRoutes } from './auth-routes';
 import { basicAuth } from './basic';
+import { apiKeyAuth } from './api-key';
 import { jwtAuth } from './jwt';
 import * as oauth2Plugins from './oauth2';
 
 export default fastifyPlugin((server: Server): void => {
   server.register(fastifyAuth);
 
-  server.register(basicAuth);
+  if (config.SECURITY_BASIC_ENABLED) {
+    server.register(basicAuth);
+  }
+
+  if (config.SECURITY_API_KEY_ENABLED) {
+    server.register(apiKeyAuth);
+  }
 
   server.register(jwtAuth);
 
@@ -23,22 +30,24 @@ export default fastifyPlugin((server: Server): void => {
   server.register(authRoutes, { prefix: config.SECURITY_ROUTE_PREFIX });
 
   server.decorate('authenticate', (...authTypes: AuthType[]) => {
-    const { auth, authenticateJWT, basicAuth } = server;
+    const { auth, authenticateJWT, authenticateApiKey, basicAuth } = server;
 
     const auths: any[] = [];
 
     for (const authType of authTypes) {
       switch (authType) {
-        case AuthType.Basic:
-          if (config.SECURITY_BASIC_ENABLED) {
-            auths.push(basicAuth);
-          }
-          break;
         case AuthType.Jwt:
           auths.push(authenticateJWT);
           break;
         case AuthType.ApiKey:
-          // No direct support
+          if (config.SECURITY_API_KEY_ENABLED) {
+            auths.push(authenticateApiKey);
+          }
+          break;
+        case AuthType.Basic:
+          if (config.SECURITY_BASIC_ENABLED) {
+            auths.push(basicAuth);
+          }
           break;
       }
     }

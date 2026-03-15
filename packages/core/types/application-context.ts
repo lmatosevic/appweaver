@@ -17,7 +17,7 @@ export type DefinitionEntry = { name: string | symbol; value: DefinitionValue };
 
 export type ResourceContext = {
   models: Map<string | symbol, ResourceModel>;
-  services: Map<string | symbol, IResourceService>;
+  services: Map<string | symbol, IResourceService | Ctor<IResourceService>>;
   policies: Map<string | symbol, ResourcePolicyConfig>;
   routes: Map<string | symbol, ResourceRoutes>;
 };

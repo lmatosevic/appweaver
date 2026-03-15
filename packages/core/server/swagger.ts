@@ -30,6 +30,15 @@ export default fastifyPlugin((server: Server): void => {
             bearerFormat: 'token',
             type: 'http'
           },
+          ...(config.SECURITY_API_KEY_ENABLED
+            ? {
+                apiKeyAuth: {
+                  type: 'apiKey',
+                  in: 'header',
+                  name: config.SECURITY_API_KEY_HEADER_NAME
+                }
+              }
+            : {}),
           ...(config.SECURITY_BASIC_ENABLED
             ? {
                 basicAuth: {

@@ -82,6 +82,11 @@
         "realm": "example",
         "proxyMode": false
       },
+      "apiKey": {
+        "enabled": false,
+        "headerName": "x-api-key",
+        "maxDuration": null
+      },
       "jwt": {
         "secret": "GdvCFezoPIZdOAN3IQZR3JhaAZH6S6AJ",
         "publicKeyPath": "./storage/keys/public.key",

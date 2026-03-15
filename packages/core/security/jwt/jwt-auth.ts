@@ -55,6 +55,7 @@ export const jwtAuth = fastifyPlugin(async (server: Server): Promise<void> => {
           request.routeOptions.config,
           payload
         );
+
         if (!result.success) {
           return reply
             .code(result.errorCode)

@@ -25,8 +25,9 @@ model User {
   logoutAt      DateTime?
 
   /// Related columns
-  posts Post[] @relation("UserPostsPost")
-  roles Role[] @relation("UserRolesRole")
+  posts   Post[]   @relation("UserPostsPost")
+  roles   Role[]   @relation("UserRolesRole")
+  apiKeys ApiKey[] @relation("UserApiKeysApiKey")
 
   /// File columns
   avatar   File? @relation("UserAvatarFile", fields: [avatarId], references: [id])
@@ -35,6 +36,7 @@ model User {
   /// Ownership models referenced with createdById column
   createdUsers       User[]       @relation("UserCreatedByUser")
   createdPosts       Post[]       @relation("PostCreatedByUser")
+  createdApiKeys     ApiKey[]     @relation("ApiKeyCreatedByUser")
   createdRoles       Role[]       @relation("RoleCreatedByUser")
   createdPermissions Permission[] @relation("PermissionCreatedByUser")
   createdFiles       File[]       @relation("FileCreatedByUser")
@@ -44,6 +46,8 @@ model User {
   createdAt   DateTime @default(now())
   createdBy   User?    @relation("UserCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
+
+  @@index(email)
 }
 
 model Post {
@@ -70,6 +74,29 @@ model Post {
   updatedAt   DateTime @updatedAt
   createdAt   DateTime @default(now())
   createdBy   User?    @relation("PostCreatedByUser", fields: [createdById], references: [id])
+  createdById Int?
+
+  @@index(slug)
+}
+
+model ApiKey {
+  id          Int       @id @default(autoincrement())
+  key         String
+  keyHash     String    @unique
+  authId      Int
+  name        String?
+  description String?
+  enabled     Boolean   @default(true)
+  expiresAt   DateTime?
+
+  /// Related columns
+  user   User @relation("UserApiKeysApiKey", fields: [userId], references: [id])
+  userId Int
+
+  /// Audit columns
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  createdBy   User?    @relation("ApiKeyCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
 }
 
@@ -135,6 +162,8 @@ model File {
   createdAt   DateTime @default(now())
   createdBy   User?    @relation("FileCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
+
+  @@index([resourceField, resourceName, resourceId])
 }
 
 enum PostStatus {

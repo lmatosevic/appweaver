@@ -49,8 +49,8 @@ export async function loadModels(
 
   const modelPaths = await glob(modelPattern, { cwd, absolute: true });
 
-  // Add exported core module resource models
-  modelPaths.push('@appweaver/core/models');
+  // Add exported core module resources
+  modelPaths.push('@appweaver/core/resources');
 
   // Add additional modules from config
   for (const module of config.APP_AUTOLOAD_MODULES) {

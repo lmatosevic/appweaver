@@ -68,7 +68,7 @@ export function files(server: Server): void {
     '/protected/*',
     {
       schema: createFileAccessSchema(false),
-      onRequest: authenticate(AuthType.Jwt, AuthType.Basic)
+      onRequest: authenticate(AuthType.Jwt, AuthType.ApiKey, AuthType.Basic)
     },
     async (request, reply) => {
       const data = await fileService.stream(

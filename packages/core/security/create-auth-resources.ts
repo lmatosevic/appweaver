@@ -1,9 +1,11 @@
 import {
+  Ctor,
   RelationConfig,
   RESOURCE_AUTH,
   ResourceModelConfig,
   ResourceServiceConfig,
   ScalarConfig,
+  uncapitalize,
   VirtualConfig
 } from '@appweaver/common';
 import { updatePasswordHash } from './helper';
@@ -71,6 +73,17 @@ export function createAuthModel(config: ResourceModelConfig): ResourceModel {
           }
         }
       }
+    },
+    apiKeys: {
+      model: 'ApiKey',
+      mappedBy: uncapitalize(config.name),
+      array: true,
+      input: {
+        type: 'none'
+      },
+      output: {
+        type: 'none'
+      }
     }
   };
 
@@ -89,7 +102,7 @@ export function createAuthService<T = any>(
   config: ResourceServiceConfig & {
     registrationData?: RegistrationDataFn<T>;
   }
-): IResourceService {
+): Ctor<IResourceService> {
   // Capture original functions to invoke after new auth logic
   const beforeCreate = config.beforeCreate;
   const beforeUpdate = config.beforeUpdate;

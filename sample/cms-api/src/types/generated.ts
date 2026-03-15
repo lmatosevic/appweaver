@@ -15,6 +15,7 @@ export type User = {
   password: string;
   posts?: Array<PostSingle>;
   roles: Array<RoleSingle>;
+  apiKeys: Array<ApiKeySingle>;
   avatar?: FileSingle | null;
   updatedAt: Date;
   createdAt: Date;
@@ -175,6 +176,58 @@ export type PostUpdate = {
   content?: string | null;
   counter?: number;
   tags?: string;
+};
+
+export type ApiKey = {
+  id: number;
+  key: string;
+  keyHash: string;
+  authId: number;
+  name?: string | null;
+  description?: string | null;
+  enabled: boolean;
+  expiresAt?: Date | null;
+  user: UserSingle;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type ApiKeySingle = {
+  id: number;
+  key: string;
+  name?: string | null;
+  description?: string | null;
+  enabled: boolean;
+  expiresAt?: Date | null;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type ApiKeyMultiple = {
+  id: number;
+  key: string;
+  name?: string | null;
+  description?: string | null;
+  enabled: boolean;
+  expiresAt?: Date | null;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type ApiKeyCreate = {
+  name?: string | null;
+  description?: string | null;
+  enabled?: boolean;
+  expiresAt?: Date | null;
+};
+
+export type ApiKeyUpdate = {
+  name?: string | null;
+  description?: string | null;
+  enabled?: boolean;
 };
 
 export type Role = {

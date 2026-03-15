@@ -28,6 +28,11 @@ export type User = Prisma.UserModel
  */
 export type Post = Prisma.PostModel
 /**
+ * Model ApiKey
+ * 
+ */
+export type ApiKey = Prisma.ApiKeyModel
+/**
  * Model Role
  * 
  */

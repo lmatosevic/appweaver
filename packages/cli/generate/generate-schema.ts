@@ -269,7 +269,7 @@ export async function generateSchema(
       }
 
       for (const index of model.index) {
-        schemaContent.push(index);
+        schemaContent.push(`  ${index}`);
       }
 
       if (model.tableName) {
@@ -305,6 +305,9 @@ export async function generateSchema(
     const code = await runProcess('prisma', ['generate'], { quiet });
     if (code !== 0 && oldSchema) {
       await fsp.writeFile(outputPath, oldSchema);
+      console.error(
+        'Schema generation failed. Start with --verbose flag to see more errors.'
+      );
     } else {
       console.log(`Schema generated to ${schemaPath}`);
     }
@@ -600,7 +603,7 @@ function createAuditSchema(
 function createIndexSchema(index?: IndexConfig): string[] {
   const indexes: string[] = [];
 
-  if (!index || indexes.length === 0) {
+  if (!index || index.length === 0) {
     return indexes;
   }
 

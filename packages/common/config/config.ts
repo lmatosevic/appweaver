@@ -98,6 +98,9 @@ const configSchema = Type.Object({
   SECURITY_BASIC_ENABLED: Type.Boolean({ default: false }),
   SECURITY_BASIC_REALM: Type.Optional(Type.String()),
   SECURITY_BASIC_PROXY_MODE: Type.Boolean({ default: false }),
+  SECURITY_API_KEY_ENABLED: Type.Boolean({ default: false }),
+  SECURITY_API_KEY_HEADER_NAME: Type.String({ default: 'x-api-key' }),
+  SECURITY_API_KEY_MAX_DURATION: Type.Optional(Type.Integer()),
   SECURITY_JWT_SECRET: Type.Optional(Type.String()),
   SECURITY_JWT_PUBLIC_KEY_PATH: Type.String({
     default: './storage/keys/public.key'

@@ -54,7 +54,8 @@ export const ModelName = {
   File: 'File',
   Seeder: 'Seeder',
   Role: 'Role',
-  Permission: 'Permission'
+  Permission: 'Permission',
+  ApiKey: 'ApiKey'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -118,6 +119,22 @@ export const PermissionScalarFieldEnum = {
 } as const
 
 export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
+
+
+export const ApiKeyScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  keyHash: 'keyHash',
+  authId: 'authId',
+  name: 'name',
+  description: 'description',
+  enabled: 'enabled',
+  expiresAt: 'expiresAt',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type ApiKeyScalarFieldEnum = (typeof ApiKeyScalarFieldEnum)[keyof typeof ApiKeyScalarFieldEnum]
 
 
 export const SortOrder = {

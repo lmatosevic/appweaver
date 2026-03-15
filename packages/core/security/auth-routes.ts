@@ -75,7 +75,7 @@ export function authRoutes(server: Server): void {
     '/change-password',
     {
       schema: changePasswordSchema,
-      onRequest: authenticate(AuthType.Jwt, AuthType.Basic),
+      onRequest: authenticate(AuthType.Jwt, AuthType.ApiKey, AuthType.Basic),
       config: {
         rateLimit: {
           max: 12
@@ -120,7 +120,7 @@ export function authRoutes(server: Server): void {
       '/me',
       {
         schema: createCurrentAuthUserSchema(authUserModel.name),
-        onRequest: authenticate(AuthType.Jwt, AuthType.Basic)
+        onRequest: authenticate(AuthType.Jwt, AuthType.ApiKey, AuthType.Basic)
       },
       async (_, reply) => {
         const authUser = currentUser();

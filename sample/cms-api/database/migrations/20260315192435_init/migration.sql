@@ -40,6 +40,24 @@ CREATE TABLE "Post" (
 );
 
 -- CreateTable
+CREATE TABLE "ApiKey" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "key" TEXT NOT NULL,
+    "keyHash" TEXT NOT NULL,
+    "authId" INTEGER NOT NULL,
+    "name" TEXT,
+    "description" TEXT,
+    "enabled" BOOLEAN NOT NULL DEFAULT true,
+    "expiresAt" DATETIME,
+    "userId" INTEGER NOT NULL,
+    "updatedAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdById" INTEGER,
+    CONSTRAINT "ApiKey_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "ApiKey_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateTable
 CREATE TABLE "Role" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "name" TEXT NOT NULL,
@@ -118,10 +136,19 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX "User_avatarId_key" ON "User"("avatarId");
 
 -- CreateIndex
+CREATE INDEX "User_email_idx" ON "User"("email");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Post_slug_key" ON "Post"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Post_coverImageId_key" ON "Post"("coverImageId");
+
+-- CreateIndex
+CREATE INDEX "Post_slug_idx" ON "Post"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ApiKey_keyHash_key" ON "ApiKey"("keyHash");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
@@ -134,6 +161,9 @@ CREATE UNIQUE INDEX "_seeders_seederName_key" ON "_seeders"("seederName");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "File_name_key" ON "File"("name");
+
+-- CreateIndex
+CREATE INDEX "File_resourceField_resourceName_resourceId_idx" ON "File"("resourceField", "resourceName", "resourceId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_UserRolesRole_AB_unique" ON "_UserRolesRole"("A", "B");
