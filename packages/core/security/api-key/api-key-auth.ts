@@ -3,10 +3,10 @@ import fastifyPlugin from 'fastify-plugin';
 import { config, makeHash } from '@appweaver/common';
 import { requestContext } from '@fastify/request-context';
 import { inject, injectService } from '../../context';
+import { CacheService } from '../../cache';
 import { AuthService } from '../auth-service';
 import { HttpError } from '../../errors';
 import { ApiKey, IResourceService, Server } from '../../types';
-import { CacheService } from '../../cache';
 
 export const apiKeyAuth = fastifyPlugin(
   async (server: Server): Promise<void> => {

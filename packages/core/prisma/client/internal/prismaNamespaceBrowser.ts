@@ -51,10 +51,11 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  File: 'File',
   Seeder: 'Seeder',
   Role: 'Role',
   Permission: 'Permission',
-  File: 'File'
+  ApiKey: 'ApiKey'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -68,6 +69,24 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 } as const)
 
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
+
+
+export const FileScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  originalName: 'originalName',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  title: 'title',
+  description: 'description',
+  resourceField: 'resourceField',
+  resourceName: 'resourceName',
+  resourceId: 'resourceId',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
 
 
 export const SeederScalarFieldEnum = {
@@ -102,22 +121,20 @@ export const PermissionScalarFieldEnum = {
 export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
 
 
-export const FileScalarFieldEnum = {
+export const ApiKeyScalarFieldEnum = {
   id: 'id',
+  key: 'key',
+  keyHash: 'keyHash',
+  authId: 'authId',
   name: 'name',
-  originalName: 'originalName',
-  mimeType: 'mimeType',
-  sizeBytes: 'sizeBytes',
-  title: 'title',
   description: 'description',
-  resourceField: 'resourceField',
-  resourceName: 'resourceName',
-  resourceId: 'resourceId',
+  enabled: 'enabled',
+  expiresAt: 'expiresAt',
   updatedAt: 'updatedAt',
   createdAt: 'createdAt'
 } as const
 
-export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
+export type ApiKeyScalarFieldEnum = (typeof ApiKeyScalarFieldEnum)[keyof typeof ApiKeyScalarFieldEnum]
 
 
 export const SortOrder = {
