@@ -34,8 +34,11 @@ export default fastifyPlugin((server: Server): void => {
             auths.push(basicAuth);
           }
           break;
-        case AuthType.JWT:
+        case AuthType.Jwt:
           auths.push(authenticateJWT);
+          break;
+        case AuthType.ApiKey:
+          // No direct support
           break;
       }
     }

@@ -37,7 +37,7 @@ export function authSchema(authTypes: AuthType[]): any[] {
           authSchemas.push({ basicAuth: [] });
         }
         break;
-      case AuthType.JWT:
+      case AuthType.Jwt:
         authSchemas.push({ bearer: [] });
         break;
     }

@@ -40,7 +40,7 @@ export function authRoutes(server: Server): void {
     '/refresh',
     {
       schema: refreshSchema,
-      onRequest: authenticate(AuthType.JWT),
+      onRequest: authenticate(AuthType.Jwt),
       config: {
         rateLimit: {
           max: 12
@@ -60,7 +60,7 @@ export function authRoutes(server: Server): void {
     '/logout',
     {
       schema: logoutSchema,
-      onRequest: authenticate(AuthType.JWT)
+      onRequest: authenticate(AuthType.Jwt)
     },
     async (_, reply) => {
       const authUser = currentUser();
@@ -75,7 +75,7 @@ export function authRoutes(server: Server): void {
     '/change-password',
     {
       schema: changePasswordSchema,
-      onRequest: authenticate(AuthType.JWT, AuthType.Basic),
+      onRequest: authenticate(AuthType.Jwt, AuthType.Basic),
       config: {
         rateLimit: {
           max: 12
@@ -120,7 +120,7 @@ export function authRoutes(server: Server): void {
       '/me',
       {
         schema: createCurrentAuthUserSchema(authUserModel.name),
-        onRequest: authenticate(AuthType.JWT, AuthType.Basic)
+        onRequest: authenticate(AuthType.Jwt, AuthType.Basic)
       },
       async (_, reply) => {
         const authUser = currentUser();

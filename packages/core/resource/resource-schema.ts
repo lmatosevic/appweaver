@@ -1,6 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import {
   AnyJson,
+  AuthType,
   camelToSnakeCase,
   Nullable,
   plural,
@@ -8,6 +9,7 @@ import {
   StringDate
 } from '@appweaver/common';
 import { injectModel } from '../context';
+import { authSchema } from '../security';
 import { AllErrorResponses } from '../errors';
 import { ResourceSchemaConfig } from '../types';
 
@@ -55,20 +57,17 @@ export const AggregateResponseData = Type.Optional(
 
 export function createSchema(
   name: string,
-  publicRoutes: Array<keyof ResourceRoutesConfig> = []
+  routeAuthTypes: Record<keyof ResourceRoutesConfig, AuthType[]>
 ): ResourceSchemaConfig {
   const resourceModel = injectModel(name);
 
   const resourceName = camelToSnakeCase(name, ' ');
   const tag = plural(name);
 
-  const schemaSecurity = (routeName: keyof ResourceRoutesConfig) =>
-    publicRoutes.includes(routeName) ? [] : [{ bearer: [] }];
-
   return {
     findSchema: {
       tags: [tag],
-      security: schemaSecurity('find'),
+      security: authSchema(routeAuthTypes['find']),
       summary: `Find ${resourceName} data`,
       description: `Find ${resourceName} data`,
       response: {
@@ -79,7 +78,7 @@ export function createSchema(
     },
     querySchema: {
       tags: [tag],
-      security: schemaSecurity('query'),
+      security: authSchema(routeAuthTypes['query']),
       summary: `Query ${resourceName} data`,
       description: `Query ${resourceName} data`,
       response: {
@@ -95,7 +94,7 @@ export function createSchema(
     },
     aggregateSchema: {
       tags: [tag],
-      security: schemaSecurity('aggregate'),
+      security: authSchema(routeAuthTypes['aggregate']),
       summary: `Aggregate ${resourceName} data`,
       description: `Aggregate ${resourceName} data`,
       response: {
@@ -106,7 +105,7 @@ export function createSchema(
     },
     createSchema: {
       tags: [tag],
-      security: schemaSecurity('create'),
+      security: authSchema(routeAuthTypes['create']),
       summary: `Create ${resourceName} data`,
       description: `Create ${resourceName} data`,
       response: {
@@ -117,7 +116,7 @@ export function createSchema(
     },
     updateSchema: {
       tags: [tag],
-      security: schemaSecurity('update'),
+      security: authSchema(routeAuthTypes['update']),
       summary: `Update ${resourceName} data`,
       description: `Update ${resourceName} data`,
       response: {
@@ -129,7 +128,7 @@ export function createSchema(
     },
     deleteSchema: {
       tags: [tag],
-      security: schemaSecurity('delete'),
+      security: authSchema(routeAuthTypes['delete']),
       summary: `Delete ${resourceName} data`,
       description: `Delete ${resourceName} data`,
       response: {
@@ -140,7 +139,7 @@ export function createSchema(
     },
     exportSchema: {
       tags: [tag],
-      security: schemaSecurity('export'),
+      security: authSchema(routeAuthTypes['export']),
       summary: `Export ${resourceName} data`,
       description: `Export ${resourceName} data`,
       response: {
@@ -157,7 +156,7 @@ export function createSchema(
     },
     fileUploadSchema: {
       tags: [tag],
-      security: schemaSecurity('fileUpload'),
+      security: authSchema(routeAuthTypes['fileUpload']),
       summary: `Upload ${resourceName} files`,
       description: `Upload ${resourceName} files`,
       consumes: ['multipart/form-data'],
@@ -170,7 +169,7 @@ export function createSchema(
     },
     fileDeleteSchema: {
       tags: [tag],
-      security: schemaSecurity('fileDelete'),
+      security: authSchema(routeAuthTypes['fileDelete']),
       summary: `Delete ${resourceName} files`,
       description: `Delete ${resourceName} files`,
       response: {

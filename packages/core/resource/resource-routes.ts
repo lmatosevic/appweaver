@@ -30,19 +30,23 @@ export function resourceRoutes(
     };
   };
 
-  const publicRoutes = Object.keys(routesConfig)
-    .map((key) => {
-      const routeName = key as keyof ResourceRoutesConfig;
-      const config = routeConfig(routeName);
-      if (config?.public || config?.auth?.length === 0) {
-        return routeName;
-      } else {
-        return null;
-      }
-    })
-    .filter((v) => v !== null);
+  const defaultAuthTypes = [AuthType.Jwt, AuthType.Basic];
 
-  const schema = createSchema(name, publicRoutes);
+  const routeAuthTypes = (
+    Object.keys(routesConfig) as (keyof ResourceRoutesConfig)[]
+  ).reduce<Record<keyof ResourceRoutesConfig, AuthType[]>>((acc, routeName) => {
+    const config = routeConfig(routeName);
+    if (config?.public || config?.auth?.length === 0) {
+      acc[routeName] = [];
+    } else if (config?.auth && config.auth.length > 0) {
+      acc[routeName] = config.auth as AuthType[];
+    } else {
+      acc[routeName] = defaultAuthTypes;
+    }
+    return acc;
+  }, {} as any);
+
+  const schema = createSchema(name, routeAuthTypes);
 
   const handler = (server: Server) => {
     const { authenticate } = server;
@@ -53,9 +57,7 @@ export function resourceRoutes(
     const routeAuth = (config: RouteConfig | undefined) =>
       config?.public
         ? undefined
-        : authenticate(
-            ...((config?.auth as AuthType[]) ?? [AuthType.JWT, AuthType.Basic])
-          );
+        : authenticate(...((config?.auth as AuthType[]) ?? defaultAuthTypes));
 
     const hasFiles = Object.keys(resourceModel.config.files ?? {}).length > 0;
 

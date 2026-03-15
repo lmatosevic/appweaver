@@ -18,7 +18,7 @@ export function health(server: Server): void {
     {
       schema: healthCheckSchema,
       onRequest: config.HEALTH_CHECK_AUTH
-        ? authenticate(AuthType.JWT, AuthType.Basic)
+        ? authenticate(AuthType.Jwt, AuthType.Basic)
         : undefined,
       config: {
         rateLimit: {

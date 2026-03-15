@@ -1,5 +1,9 @@
 import { AuthType } from '../enums';
 
+export type RouteRateLimitFn =
+  | ((req: any, key: string) => Promise<number>)
+  | ((req: any, key: string) => number);
+
 export type RouteConfig = {
   exclude?: boolean;
   public?: boolean;
@@ -9,15 +13,8 @@ export type RouteConfig = {
   rateLimit?:
     | false
     | {
-        max?:
-          | number
-          | ((req: any, key: string) => number)
-          | ((req: any, key: string) => Promise<number>);
-        timeWindow?:
-          | number
-          | string
-          | ((req: any, key: string) => number)
-          | ((req: any, key: string) => Promise<number>);
+        max?: number | RouteRateLimitFn;
+        timeWindow?: number | string | RouteRateLimitFn;
         allowList?:
           | string[]
           | ((req: any, key: string) => boolean | Promise<boolean>);
