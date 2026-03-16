@@ -5,6 +5,7 @@ import { HttpError } from '../errors';
 import { Server } from '../types';
 import { currentAuthUser } from './helper';
 import { authRoutes } from './auth-routes';
+import { recaptcha } from './recaptcha';
 import { basicAuth } from './basic';
 import { apiKeyAuth } from './api-key';
 import { jwtAuth } from './jwt';
@@ -12,6 +13,10 @@ import * as oauth2Plugins from './oauth2';
 
 export default fastifyPlugin((server: Server): void => {
   server.register(fastifyAuth);
+
+  if (config.SECURITY_RECAPTCHA_ENABLED) {
+    server.register(recaptcha);
+  }
 
   if (config.SECURITY_BASIC_ENABLED) {
     server.register(basicAuth);

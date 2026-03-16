@@ -4,23 +4,30 @@ export type RouteRateLimitFn =
   | ((req: any, key: string) => Promise<number>)
   | ((req: any, key: string) => number);
 
+export type RateLimitConfig =
+  | false
+  | {
+      max?: number | RouteRateLimitFn;
+      timeWindow?: number | string | RouteRateLimitFn;
+      allowList?:
+        | string[]
+        | ((req: any, key: string) => boolean | Promise<boolean>);
+      keyGenerator?: (req: any) => string | number | Promise<string | number>;
+    };
+
+export type RecaptchaConfig = {
+  recaptcha?: boolean;
+  recaptchaAction?: string;
+};
+
 export type RouteConfig = {
   exclude?: boolean;
   public?: boolean;
   roles?: string[];
   permissions?: string[];
   auth?: (string | AuthType)[];
-  rateLimit?:
-    | false
-    | {
-        max?: number | RouteRateLimitFn;
-        timeWindow?: number | string | RouteRateLimitFn;
-        allowList?:
-          | string[]
-          | ((req: any, key: string) => boolean | Promise<boolean>);
-        keyGenerator?: (req: any) => string | number | Promise<string | number>;
-      };
-};
+  rateLimit?: RateLimitConfig;
+} & RecaptchaConfig;
 
 export type RouteCacheConfig = {
   cache?: boolean;

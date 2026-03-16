@@ -95,6 +95,13 @@ const configSchema = Type.Object({
 
   SECURITY_ROUTE_PREFIX: Type.String({ default: '/auth' }),
   SECURITY_CACHE_TTL: Type.Integer({ default: 300000 }),
+  SECURITY_RECAPTCHA_ENABLED: Type.Boolean({ default: false }),
+  SECURITY_RECAPTCHA_SECRET: Type.Optional(Type.String()),
+  SECURITY_RECAPTCHA_HEADER_NAME: Type.String({ default: 'x-recaptcha-token' }),
+  SECURITY_RECAPTCHA_MIN_SCORE: Type.Number({ default: 0.4 }),
+  SECURITY_RECAPTCHA_VERIFY_URL: Type.String({
+    default: 'https://www.google.com/recaptcha/api/siteverify'
+  }),
   SECURITY_BASIC_ENABLED: Type.Boolean({ default: false }),
   SECURITY_BASIC_REALM: Type.Optional(Type.String()),
   SECURITY_BASIC_PROXY_MODE: Type.Boolean({ default: false }),
@@ -114,9 +121,15 @@ const configSchema = Type.Object({
   SECURITY_OAUTH2_GOOGLE_ENABLED: Type.Boolean({ default: false }),
   SECURITY_OAUTH2_GOOGLE_CLIENT_ID: Type.Optional(Type.String()),
   SECURITY_OAUTH2_GOOGLE_CLIENT_SECRET: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_GOOGLE_USER_INFO_URL: Type.String({
+    default: 'https://www.googleapis.com/oauth2/v2/userinfo'
+  }),
   SECURITY_OAUTH2_FACEBOOK_ENABLED: Type.Boolean({ default: false }),
   SECURITY_OAUTH2_FACEBOOK_CLIENT_ID: Type.Optional(Type.String()),
   SECURITY_OAUTH2_FACEBOOK_CLIENT_SECRET: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_FACEBOOK_USER_INFO_URL: Type.String({
+    default: 'https://graph.facebook.com/me'
+  }),
   SECURITY_OAUTH2_CUSTOM_ENABLED: Type.Boolean({ default: false }),
   SECURITY_OAUTH2_CUSTOM_CLIENT_ID: Type.Optional(Type.String()),
   SECURITY_OAUTH2_CUSTOM_CLIENT_SECRET: Type.Optional(Type.String()),

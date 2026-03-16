@@ -77,6 +77,13 @@
     "security": {
       "routePrefix": "/auth",
       "cacheTtl": 300000,
+      "recaptcha": {
+        "enabled": false,
+        "secret": "8LcDc8AUBBBBNKcefrwaDdfDSFdsfaewf",
+        "headerName": "x-recaptcha-token",
+        "minScore": 0.4,
+        "verifyUrl": "https://www.google.com/recaptcha/api/siteverify"
+      },
       "basic": {
         "enabled": false,
         "realm": "example",
@@ -99,12 +106,14 @@
         "google": {
           "enabled": true,
           "clientId": "3255464567435-tzr346jsgh63462vdp234sodhpsfjzop.apps.googleusercontent.com",
-          "clientSecret": "Hjksuzrnm32nb5kdsnu274nfS"
+          "clientSecret": "Hjksuzrnm32nb5kdsnu274nfS",
+          "userInfoUrl": "https://www.googleapis.com/oauth2/v2/userinfo"
         },
         "facebook": {
           "enabled": true,
           "clientId": "152682898154865",
-          "clientSecret": "89a8956f566c5655c6a56565a56c"
+          "clientSecret": "89a8956f566c5655c6a56565a56c",
+          "userInfoUrl": "https://graph.facebook.com/me"
         },
         "custom": {
           "enabled": true,

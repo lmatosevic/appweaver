@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import { requestContext } from '@fastify/request-context';
-import { AuthType, config, RESOURCE_NAME } from '@appweaver/common';
+import { RESOURCE_NAME } from '@appweaver/common';
 import { context, injectService } from '../context';
 import { isResourceAuthModel, isResourceAuthService } from '../utils';
 import { AuthUser, IResourceService, ResourceModel } from '../types';
@@ -25,30 +25,6 @@ export function resourceAuthService():
 
 export function currentAuthUser(): AuthUser | null | undefined {
   return requestContext.get('authUser');
-}
-
-export function authSchema(authTypes: AuthType[]): any[] {
-  const authSchemas: any[] = [];
-
-  for (const authType of authTypes) {
-    switch (authType) {
-      case AuthType.Basic:
-        if (config.SECURITY_BASIC_ENABLED) {
-          authSchemas.push({ basicAuth: [] });
-        }
-        break;
-      case AuthType.ApiKey:
-        if (config.SECURITY_API_KEY_ENABLED) {
-          authSchemas.push({ apiKeyAuth: [] });
-        }
-        break;
-      case AuthType.Jwt:
-        authSchemas.push({ bearer: [] });
-        break;
-    }
-  }
-
-  return authSchemas;
 }
 
 export async function hashPassword(password: string): Promise<string> {

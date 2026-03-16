@@ -11,11 +11,14 @@ export const oauth2Facebook = createOAuth2Plugin(AuthSource.OAuth2Facebook, {
 });
 
 async function fetchFacebookUser(accessToken: string): Promise<UserInfo> {
-  const fields = encodeURIComponent('id,name,email');
-  const token = encodeURIComponent(accessToken);
-  const graphUrl = `https://graph.facebook.com/me?fields=${fields}&access_token=${token}`;
+  const params = new URLSearchParams();
+  params.append('fields', 'id,name,email');
+  params.append('access_token', accessToken);
 
-  const resp = await fetch(graphUrl, { method: 'GET' });
+  const resp = await fetch(
+    `${config.SECURITY_OAUTH2_FACEBOOK_USER_INFO_URL}?${params}`,
+    { method: 'GET' }
+  );
   if (!resp.ok) {
     throw new HttpError(
       `Facebook Graph API error: ${resp.status} ${resp.statusText}`,

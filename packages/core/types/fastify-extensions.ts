@@ -11,6 +11,7 @@ declare module 'fastify' {
 
   // Extend the fastify with jwt decorator type.
   interface FastifyInstance {
+    recaptcha: (request: FastifyRequest, reply: FastifyReply) => void;
     authenticateJWT: (request: FastifyRequest, reply: FastifyReply) => void;
     authenticateApiKey: (request: FastifyRequest, reply: FastifyReply) => void;
     authenticate: (...authTypes: AuthType[]) => any;

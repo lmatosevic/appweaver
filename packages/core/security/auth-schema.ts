@@ -1,6 +1,5 @@
-import { Type } from '@sinclair/typebox';
-import { AuthType } from '@appweaver/common';
-import { authSchema } from './helper';
+import { TObject, Type } from '@sinclair/typebox';
+import { AuthType, config, RecaptchaConfig } from '@appweaver/common';
 import { AllErrorResponses } from '../errors';
 import { RouteSchema } from '../types';
 
@@ -92,6 +91,47 @@ export const exchangeTokenSchema = {
   },
   body: ExchangeRequest
 };
+
+export function authSchema(authTypes: AuthType[]): any[] {
+  const authSchemas: any[] = [];
+
+  for (const authType of authTypes) {
+    switch (authType) {
+      case AuthType.Basic:
+        if (config.SECURITY_BASIC_ENABLED) {
+          authSchemas.push({ basicAuth: [] });
+        }
+        break;
+      case AuthType.ApiKey:
+        if (config.SECURITY_API_KEY_ENABLED) {
+          authSchemas.push({ apiKeyAuth: [] });
+        }
+        break;
+      case AuthType.Jwt:
+        authSchemas.push({ bearer: [] });
+        break;
+    }
+  }
+
+  return authSchemas;
+}
+
+export function recaptchaHeaderSchema(
+  recaptchaConfig: RecaptchaConfig
+): TObject {
+  return Type.Object(
+    config.SECURITY_RECAPTCHA_ENABLED &&
+      (recaptchaConfig.recaptcha || recaptchaConfig.recaptchaAction)
+      ? {
+          [config.SECURITY_RECAPTCHA_HEADER_NAME.toLowerCase()]: Type.String({
+            minLength: 1,
+            description: `reCAPTCHA token for ${recaptchaConfig.recaptchaAction ?? 'any'} action`
+          })
+        }
+      : {},
+    { additionalProperties: true }
+  );
+}
 
 export function createCurrentAuthUserSchema(modelName: string): RouteSchema {
   return {

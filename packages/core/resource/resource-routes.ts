@@ -1,6 +1,7 @@
 import { Static } from '@sinclair/typebox';
 import {
   AuthType,
+  RecaptchaConfig,
   ResourceRoutesConfig,
   RouteCacheConfig,
   RouteConfig
@@ -58,18 +59,32 @@ export function resourceRoutes(
     return acc;
   }, {} as any);
 
-  const schema = createSchema(name, routeAuthTypes);
+  const routeRecaptcha = routeNames.reduce<
+    Record<keyof ResourceRoutesConfig, RecaptchaConfig>
+  >((acc, routeName) => {
+    const config = routeConfig(routeName);
+    acc[routeName] = {
+      recaptcha: config?.recaptcha,
+      recaptchaAction: config?.recaptchaAction
+    };
+    return acc;
+  }, {} as any);
+
+  const schema = createSchema(name, routeAuthTypes, routeRecaptcha);
 
   const handler = (server: Server) => {
-    const { authenticate } = server;
+    const { authenticate, recaptcha } = server;
 
     const service = injectService(name);
     const resourceModel = injectModel(name);
 
     const routeAuth = (config: RouteConfig | undefined) =>
-      config?.public
-        ? undefined
-        : authenticate(...((config?.auth as AuthType[]) ?? defaultAuthTypes));
+      [
+        config?.public
+          ? undefined
+          : authenticate(...((config?.auth as AuthType[]) ?? defaultAuthTypes)),
+        config?.recaptcha || config?.recaptchaAction ? recaptcha : undefined
+      ].filter((v) => v !== undefined);
 
     const hasFiles = Object.keys(resourceModel.config.files ?? {}).length > 0;
 

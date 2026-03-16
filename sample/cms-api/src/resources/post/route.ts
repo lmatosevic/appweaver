@@ -18,7 +18,9 @@ export default createRoutes({
     exclude: true
   },
   export: {
-    public: true
+    public: true,
+    recaptcha: true,
+    recaptchaAction: 'post-export'
   },
   fileUpload: {},
   fileDelete: {}

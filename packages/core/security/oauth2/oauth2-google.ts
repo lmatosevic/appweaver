@@ -11,10 +11,13 @@ export const oauth2Google = createOAuth2Plugin(AuthSource.OAuth2Google, {
 });
 
 async function fetchGoogleUser(accessToken: string): Promise<UserInfo> {
-  const token = encodeURIComponent(accessToken);
-  const googleUrl = `https://www.googleapis.com/oauth2/v2/userinfo?access_token=${token}`;
+  const params = new URLSearchParams();
+  params.append('access_token', accessToken);
 
-  const resp = await fetch(googleUrl, { method: 'GET' });
+  const resp = await fetch(
+    `${config.SECURITY_OAUTH2_GOOGLE_USER_INFO_URL}?${params}`,
+    { method: 'GET' }
+  );
   if (!resp.ok) {
     throw new HttpError(
       `Google API error: ${resp.status} ${resp.statusText}`,

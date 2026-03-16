@@ -12,6 +12,7 @@ registerRoute(
           tags: ['Posts'],
           summary: 'Publish all posts',
           description: 'Publish all posts',
+          headers: Type.Object({ 'x-my-custom-header': Type.String() }),
           body: Type.Object({ now: Type.Boolean() }),
           response: {
             200: Type.Ref('PostPublishResponse')
@@ -29,6 +30,7 @@ registerRoute(
   },
   {
     public: false,
+    recaptcha: true,
     roles: ['Admin'],
     rateLimit: { max: 5 }
   }

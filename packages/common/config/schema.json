@@ -335,6 +335,30 @@
               "type": "integer",
               "default": 300000
             },
+            "recaptcha": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "secret": {
+                  "type": ["string", "null"]
+                },
+                "headerName": {
+                  "type": "string",
+                  "default": "x-recaptcha-token"
+                },
+                "minScore": {
+                  "type": "number",
+                  "default": 0.4
+                },
+                "verifyUrl": {
+                  "type": "string",
+                  "default": "https://www.google.com/recaptcha/api/siteverify"
+                }
+              }
+            },
             "basic": {
               "type": "object",
               "properties": {
@@ -410,6 +434,10 @@
                     },
                     "clientSecret": {
                       "type": "string"
+                    },
+                    "userInfoUrl": {
+                      "type": "string",
+                      "default": "https://www.googleapis.com/oauth2/v2/userinfo"
                     }
                   }
                 },
@@ -425,6 +453,10 @@
                     },
                     "clientSecret": {
                       "type": "string"
+                    },
+                    "userInfoUrl": {
+                      "type": "string",
+                      "default": "https://graph.facebook.com/me"
                     }
                   }
                 },

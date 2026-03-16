@@ -1,5 +1,5 @@
 import Fastify, { RouteOptions } from 'fastify';
-import { TObject } from '@sinclair/typebox';
+import { TObject, Type } from '@sinclair/typebox';
 import {
   AuthType,
   isArray,
@@ -10,6 +10,7 @@ import {
   RouteConfig
 } from '@appweaver/common';
 import { context, define } from '../context';
+import { authSchema, recaptchaHeaderSchema } from '../security';
 import { AllErrorResponses } from '../errors';
 import { resourceModelProps } from '../utils';
 import { RouterHandler, Server } from '../types';
@@ -28,7 +29,7 @@ export function registerRoute(
   tempServer.register(handler);
 
   const routeBuilder = async (server: Server): Promise<void> => {
-    const { authenticate } = server;
+    const { authenticate, recaptcha } = server;
 
     // Add all currently configured schemas to the temporary server
     for (const [id, schema] of Object.entries(server.getSchemas())) {
@@ -59,12 +60,27 @@ export function registerRoute(
         }
       });
 
+      const defaultAuthTypes = [AuthType.Jwt, AuthType.ApiKey, AuthType.Basic];
+
+      const recaptchaHeader = recaptchaHeaderSchema({
+        recaptcha: config?.recaptcha,
+        recaptchaAction: config?.recaptchaAction
+      });
+
       // Merge received route schema with default values based on configuration
       const mergedRoute = {
         ...route,
         schema: {
-          security: config?.public ? [] : [{ bearer: [] }],
           ...route.schema,
+          security: config?.public
+            ? []
+            : authSchema((config?.auth as AuthType[]) ?? defaultAuthTypes),
+          headers: route.schema?.headers
+            ? Type.Composite([
+                recaptchaHeader,
+                Type.Composite([route.schema.headers as any])
+              ])
+            : recaptchaHeader,
           response: {
             ...(route.schema?.response ?? {}),
             ...AllErrorResponses
@@ -74,12 +90,9 @@ export function registerRoute(
           config?.public
             ? undefined
             : authenticate(
-                ...((config?.auth as AuthType[]) ?? [
-                  AuthType.Jwt,
-                  AuthType.ApiKey,
-                  AuthType.Basic
-                ])
+                ...((config?.auth as AuthType[]) ?? defaultAuthTypes)
               ),
+          config?.recaptcha || config?.recaptchaAction ? recaptcha : undefined,
           ...(isArray(route.onRequest) ? route.onRequest : [route.onRequest])
         ].filter((h) => h !== undefined),
         config: {
