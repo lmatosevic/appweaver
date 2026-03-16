@@ -119,7 +119,11 @@ export class CacheService {
           logger.error(error, 'Cache invalidation error');
         });
       } else {
-        await invalidation;
+        try {
+          await invalidation;
+        } catch (error) {
+          logger.error(error, 'Cache invalidation error');
+        }
       }
     }
   }

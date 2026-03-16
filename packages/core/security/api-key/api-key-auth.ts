@@ -1,12 +1,13 @@
-import { FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import { requestContext } from '@fastify/request-context';
-import { config, Database, makeHash } from '@appweaver/common';
+import { config, Database, makeHash, uncapitalize } from '@appweaver/common';
 import { inject } from '../../context';
-import { CacheService } from '../../cache';
-import { PrismaDatabase } from '../../database';
+import { resourceAuthModel } from '../helper';
 import { AuthService } from '../auth-service';
 import { HttpError } from '../../errors';
+import { CacheService } from '../../cache';
+import { PrismaDatabase } from '../../database';
 import { ApiKey, Server } from '../../types';
 
 export const apiKeyAuth = fastifyPlugin(
@@ -15,71 +16,61 @@ export const apiKeyAuth = fastifyPlugin(
     const cacheService = inject(CacheService);
     const db = inject<PrismaDatabase>(Database as any);
 
-    server.decorate(
-      'authenticateApiKey',
-      async (request: FastifyRequest, reply: FastifyReply) => {
-        try {
-          const key =
-            request.headers[config.SECURITY_API_KEY_HEADER_NAME.toLowerCase()];
-          if (!key) {
-            return reply.code(401).send({
-              message: `Missing API key header: ${config.SECURITY_API_KEY_HEADER_NAME}`,
-              errorCode: 401
-            });
-          }
-
-          const keyHash = makeHash(String(key).trim());
-          const cacheKey = cacheService.buildCacheKey({
-            baseKey: `apikey:${keyHash}`,
-            modelName: 'ApiKey'
-          });
-
-          let apiKey = await cacheService.getCachedValue<ApiKey>(cacheKey);
-          if (!apiKey) {
-            apiKey = await db.client().apiKey.findFirst({ where: { keyHash } });
-
-            if (!apiKey || !apiKey.enabled) {
-              return reply.code(401).send({
-                message: `Invalid API key`,
-                errorCode: 401
-              });
-            }
-
-            await cacheService.addToCache(
-              cacheKey,
-              apiKey,
-              config.SECURITY_CACHE_TTL
-            );
-          }
-
-          if (
-            apiKey.expiresAt &&
-            new Date(apiKey.expiresAt).getTime() < Date.now()
-          ) {
-            return reply.code(401).send({
-              message: `API key has expired`,
-              errorCode: 403
-            });
-          }
-
-          const authUser = await authService.findById(apiKey.authId);
-
-          const result = authService.authorize(
-            authUser,
-            request.url,
-            request.routeOptions.config
-          );
-          if (!result.success) {
-            return reply
-              .code(result.errorCode)
-              .send({ message: result.message, errorCode: result.errorCode });
-          }
-
-          requestContext.set('authUser', authUser);
-        } catch (e) {
-          throw new HttpError('Authentication error', 401, e);
-        }
+    server.decorate('authenticateApiKey', async (request: FastifyRequest) => {
+      const key =
+        request.headers[config.SECURITY_API_KEY_HEADER_NAME.toLowerCase()];
+      if (!key) {
+        throw new HttpError(
+          `Missing API key header: ${config.SECURITY_API_KEY_HEADER_NAME}`,
+          401
+        );
       }
-    );
+
+      const keyHash = makeHash(String(key).trim());
+      const cacheKey = cacheService.buildCacheKey({
+        baseKey: `apikey:${keyHash}`,
+        modelName: 'ApiKey'
+      });
+
+      let apiKey = await cacheService.getCachedValue<ApiKey>(cacheKey);
+      if (!apiKey) {
+        apiKey = await db.client().apiKey.findFirst({ where: { keyHash } });
+
+        if (!apiKey || !apiKey.enabled) {
+          throw new HttpError(`Invalid API key`, 401);
+        }
+
+        await cacheService.addToCache(
+          cacheKey,
+          apiKey,
+          config.SECURITY_CACHE_TTL
+        );
+      }
+
+      if (
+        apiKey.expiresAt &&
+        new Date(apiKey.expiresAt).getTime() < Date.now()
+      ) {
+        throw new HttpError(`API key has expired`, 403);
+      }
+
+      const authModelField = uncapitalize(resourceAuthModel()!.name);
+      const authUser = await authService.findById(
+        apiKey[`${authModelField}Id`]
+      );
+
+      const result = authService.authorize(
+        authUser,
+        request.url,
+        request.routeOptions.config
+      );
+
+      if (!result.success) {
+        throw new HttpError(result.message, result.errorCode);
+      }
+
+      requestContext.set('apiKey', apiKey);
+      requestContext.set('authUser', authUser);
+    });
   }
 );

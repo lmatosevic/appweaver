@@ -1,12 +1,12 @@
-import { FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import fastifyJwt from '@fastify/jwt';
 import { requestContext } from '@fastify/request-context';
 import { config, logger } from '@appweaver/common';
-import { AuthService } from '../auth-service';
 import { inject } from '../../context';
+import { AuthService } from '../auth-service';
 import { HttpError } from '../../errors';
-import { JwtPayload, Server } from '../../types';
+import { AuthUser, JwtPayload, Server } from '../../types';
 import { loadSecurityKeys } from './jwt-keys';
 
 export const jwtAuth = fastifyPlugin(async (server: Server): Promise<void> => {
@@ -42,30 +42,28 @@ export const jwtAuth = fastifyPlugin(async (server: Server): Promise<void> => {
     });
   }
 
-  server.decorate(
-    'authenticateJWT',
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      try {
-        const payload: JwtPayload = await request.jwtVerify();
-        const authUser = await authService.findById(payload.sub);
+  server.decorate('authenticateJWT', async (request: FastifyRequest) => {
+    let payload: JwtPayload;
+    let authUser: AuthUser | null;
 
-        const result = authService.authorize(
-          authUser,
-          request.url,
-          request.routeOptions.config,
-          payload
-        );
-
-        if (!result.success) {
-          return reply
-            .code(result.errorCode)
-            .send({ message: result.message, errorCode: result.errorCode });
-        }
-
-        requestContext.set('authUser', authUser);
-      } catch (e) {
-        throw new HttpError('Authentication error', 401, e);
-      }
+    try {
+      payload = await request.jwtVerify();
+      authUser = await authService.findById(payload.sub);
+    } catch (e) {
+      throw new HttpError('Authentication error', 401, e);
     }
-  );
+
+    const result = authService.authorize(
+      authUser,
+      request.url,
+      request.routeOptions.config,
+      payload
+    );
+
+    if (!result.success) {
+      throw new HttpError(result.message, result.errorCode);
+    }
+
+    requestContext.set('authUser', authUser);
+  });
 });

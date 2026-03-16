@@ -51,13 +51,13 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  User: 'User',
+  Post: 'Post',
   ApiKey: 'ApiKey',
   Role: 'Role',
   Permission: 'Permission',
   Seeder: 'Seeder',
-  File: 'File',
-  User: 'User',
-  Post: 'Post'
+  File: 'File'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -73,15 +73,55 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const UserScalarFieldEnum = {
+  id: 'id',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  email: 'email',
+  phone: 'phone',
+  secret: 'secret',
+  passwordHash: 'passwordHash',
+  verifiedEmail: 'verifiedEmail',
+  enabled: 'enabled',
+  logoutAt: 'logoutAt',
+  avatarId: 'avatarId',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt',
+  createdById: 'createdById'
+} as const
+
+export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const PostScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  slug: 'slug',
+  content: 'content',
+  counter: 'counter',
+  status: 'status',
+  tags: 'tags',
+  jsonLd: 'jsonLd',
+  lastActivity: 'lastActivity',
+  authorId: 'authorId',
+  coverImageId: 'coverImageId',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt',
+  createdById: 'createdById'
+} as const
+
+export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum]
+
+
 export const ApiKeyScalarFieldEnum = {
   id: 'id',
   key: 'key',
   keyHash: 'keyHash',
-  authId: 'authId',
   name: 'name',
   description: 'description',
   enabled: 'enabled',
   expiresAt: 'expiresAt',
+  userId: 'userId',
   updatedAt: 'updatedAt',
   createdAt: 'createdAt',
   createdById: 'createdById'
@@ -141,46 +181,6 @@ export const FileScalarFieldEnum = {
 } as const
 
 export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
-
-
-export const UserScalarFieldEnum = {
-  id: 'id',
-  firstName: 'firstName',
-  lastName: 'lastName',
-  email: 'email',
-  phone: 'phone',
-  secret: 'secret',
-  passwordHash: 'passwordHash',
-  verifiedEmail: 'verifiedEmail',
-  enabled: 'enabled',
-  logoutAt: 'logoutAt',
-  avatarId: 'avatarId',
-  updatedAt: 'updatedAt',
-  createdAt: 'createdAt',
-  createdById: 'createdById'
-} as const
-
-export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
-
-
-export const PostScalarFieldEnum = {
-  id: 'id',
-  title: 'title',
-  slug: 'slug',
-  content: 'content',
-  counter: 'counter',
-  status: 'status',
-  tags: 'tags',
-  jsonLd: 'jsonLd',
-  lastActivity: 'lastActivity',
-  authorId: 'authorId',
-  coverImageId: 'coverImageId',
-  updatedAt: 'updatedAt',
-  createdAt: 'createdAt',
-  createdById: 'createdById'
-} as const
-
-export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum]
 
 
 export const SortOrder = {

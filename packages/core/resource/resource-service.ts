@@ -266,7 +266,7 @@ export abstract class ResourceService<
       );
     }
 
-    const sanitizedData = this.sanitizeData(createData);
+    const sanitizedData = this.sanitizeData('create', createData);
 
     const connectRelations = this.mapRelationActions('create', sanitizedData);
     const includeRelations = this.mapRelationInclusions('create');
@@ -310,7 +310,7 @@ export abstract class ResourceService<
       ...writeRestrictions
     });
 
-    const sanitizedData = this.sanitizeData(updateData);
+    const sanitizedData = this.sanitizeData('update', updateData);
 
     const includeRelations = this.mapRelationInclusions('update');
 
@@ -685,7 +685,11 @@ export abstract class ResourceService<
     return projectedVirtual;
   }
 
-  private sanitizeData<T>(data: T, resourceName?: string): T {
+  private sanitizeData<T>(
+    action: 'create' | 'update',
+    data: T,
+    resourceName?: string
+  ): T {
     const sanitizedData = { ...data };
 
     const resourceModel = injectModel(resourceName ?? this._client.name, false);
@@ -698,14 +702,17 @@ export abstract class ResourceService<
     }
 
     // Map default values for hidden scalars if a property is required without
-    // a provided default value
+    // a provided default value, and scalar values are not set yet, this is only
+    // required for create actions
     for (const [fieldName, scalar] of Object.entries(
       resourceModel?.config?.scalars ?? {}
     )) {
       if (
+        action === 'create' &&
         scalar.hidden &&
         scalar.required !== false &&
-        scalar.default === undefined
+        scalar.default === undefined &&
+        sanitizedData[fieldName] === undefined
       ) {
         sanitizedData[fieldName] = defaultScalarValue(scalar);
       }
@@ -725,7 +732,7 @@ export abstract class ResourceService<
             ? (value.map((item: any) =>
                 this.sanitizeData(item, resourceName)
               ) as any)
-            : this.sanitizeData(value, resourceName);
+            : this.sanitizeData(action, value, resourceName);
         }
       }
     }

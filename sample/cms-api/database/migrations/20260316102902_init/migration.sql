@@ -1,16 +1,58 @@
 -- CreateTable
+CREATE TABLE "User" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "firstName" TEXT NOT NULL,
+    "lastName" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
+    "secret" TEXT,
+    "passwordHash" TEXT,
+    "verifiedEmail" BOOLEAN NOT NULL DEFAULT false,
+    "enabled" BOOLEAN NOT NULL DEFAULT true,
+    "logoutAt" DATETIME,
+    "avatarId" INTEGER,
+    "updatedAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdById" INTEGER,
+    CONSTRAINT "User_avatarId_fkey" FOREIGN KEY ("avatarId") REFERENCES "File" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT "User_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Post" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "title" TEXT NOT NULL DEFAULT 'something...',
+    "slug" TEXT NOT NULL,
+    "content" TEXT,
+    "counter" INTEGER NOT NULL,
+    "status" TEXT DEFAULT 'Draft',
+    "tags" TEXT NOT NULL DEFAULT 'Nature,Animals',
+    "jsonLd" JSONB,
+    "lastActivity" DATETIME,
+    "authorId" INTEGER,
+    "coverImageId" INTEGER,
+    "updatedAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdById" INTEGER,
+    CONSTRAINT "Post_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT "Post_coverImageId_fkey" FOREIGN KEY ("coverImageId") REFERENCES "File" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT "Post_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateTable
 CREATE TABLE "ApiKey" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "key" TEXT NOT NULL,
     "keyHash" TEXT NOT NULL,
-    "authId" INTEGER NOT NULL,
     "name" TEXT,
     "description" TEXT,
     "enabled" BOOLEAN NOT NULL DEFAULT true,
     "expiresAt" DATETIME,
+    "userId" INTEGER NOT NULL,
     "updatedAt" DATETIME NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdById" INTEGER,
+    CONSTRAINT "ApiKey_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "ApiKey_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
@@ -63,55 +105,6 @@ CREATE TABLE "File" (
 );
 
 -- CreateTable
-CREATE TABLE "User" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "firstName" TEXT NOT NULL,
-    "lastName" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "phone" TEXT NOT NULL,
-    "secret" TEXT,
-    "passwordHash" TEXT,
-    "verifiedEmail" BOOLEAN NOT NULL DEFAULT false,
-    "enabled" BOOLEAN NOT NULL DEFAULT true,
-    "logoutAt" DATETIME,
-    "avatarId" INTEGER,
-    "updatedAt" DATETIME NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "createdById" INTEGER,
-    CONSTRAINT "User_avatarId_fkey" FOREIGN KEY ("avatarId") REFERENCES "File" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "User_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
-);
-
--- CreateTable
-CREATE TABLE "Post" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "title" TEXT NOT NULL DEFAULT 'something...',
-    "slug" TEXT NOT NULL,
-    "content" TEXT,
-    "counter" INTEGER NOT NULL,
-    "status" TEXT DEFAULT 'Draft',
-    "tags" TEXT NOT NULL DEFAULT 'Nature,Animals',
-    "jsonLd" JSONB,
-    "lastActivity" DATETIME,
-    "authorId" INTEGER,
-    "coverImageId" INTEGER,
-    "updatedAt" DATETIME NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "createdById" INTEGER,
-    CONSTRAINT "Post_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "Post_coverImageId_fkey" FOREIGN KEY ("coverImageId") REFERENCES "File" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "Post_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
-);
-
--- CreateTable
-CREATE TABLE "_UserApiKeysApiKey" (
-    "A" INTEGER NOT NULL,
-    "B" INTEGER NOT NULL,
-    CONSTRAINT "_UserApiKeysApiKey_A_fkey" FOREIGN KEY ("A") REFERENCES "ApiKey" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "_UserApiKeysApiKey_B_fkey" FOREIGN KEY ("B") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
-
--- CreateTable
 CREATE TABLE "_UserRolesRole" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL,
@@ -136,24 +129,6 @@ CREATE TABLE "_PostGalleryImagesFile" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ApiKey_keyHash_key" ON "ApiKey"("keyHash");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Permission_name_key" ON "Permission"("name");
-
--- CreateIndex
-CREATE UNIQUE INDEX "_seeders_seederName_key" ON "_seeders"("seederName");
-
--- CreateIndex
-CREATE UNIQUE INDEX "File_name_key" ON "File"("name");
-
--- CreateIndex
-CREATE INDEX "File_resourceField_resourceName_resourceId_idx" ON "File"("resourceField", "resourceName", "resourceId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
@@ -172,10 +147,22 @@ CREATE UNIQUE INDEX "Post_coverImageId_key" ON "Post"("coverImageId");
 CREATE INDEX "Post_slug_idx" ON "Post"("slug");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "_UserApiKeysApiKey_AB_unique" ON "_UserApiKeysApiKey"("A", "B");
+CREATE UNIQUE INDEX "ApiKey_keyHash_key" ON "ApiKey"("keyHash");
 
 -- CreateIndex
-CREATE INDEX "_UserApiKeysApiKey_B_index" ON "_UserApiKeysApiKey"("B");
+CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Permission_name_key" ON "Permission"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "_seeders_seederName_key" ON "_seeders"("seederName");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "File_name_key" ON "File"("name");
+
+-- CreateIndex
+CREATE INDEX "File_resourceField_resourceName_resourceId_idx" ON "File"("resourceField", "resourceName", "resourceId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_UserRolesRole_AB_unique" ON "_UserRolesRole"("A", "B");

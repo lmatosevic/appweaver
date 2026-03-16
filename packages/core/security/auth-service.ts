@@ -53,10 +53,8 @@ export class AuthService {
    */
   public async findById(id: number): Promise<AuthUser | null> {
     try {
-      const findAuthAction = this._authUserService.find(id);
-
       if (!config.CACHE_ENABLED || config.SECURITY_CACHE_TTL < 0) {
-        return findAuthAction;
+        return this._authUserService.find(id);
       }
 
       const cacheKey = this._cacheService.buildCacheKey({
@@ -69,7 +67,7 @@ export class AuthService {
         return value;
       }
 
-      const authUser = await findAuthAction;
+      const authUser = await this._authUserService.find(id);
 
       await this._cacheService.addToCache(
         cacheKey,
@@ -91,10 +89,8 @@ export class AuthService {
    */
   public async findByUsername(username: string): Promise<AuthUser | null> {
     try {
-      const findAuthAction = this._authUserService.query({ email: username });
-
       if (!config.CACHE_ENABLED || config.SECURITY_CACHE_TTL < 0) {
-        const result = await findAuthAction;
+        const result = await this._authUserService.query({ email: username });
         return result.items[0] ?? null;
       }
 
@@ -108,7 +104,7 @@ export class AuthService {
         return value;
       }
 
-      const result = await findAuthAction;
+      const result = await this._authUserService.query({ email: username });
       const authUser = result.items[0] ?? null;
 
       if (authUser) {

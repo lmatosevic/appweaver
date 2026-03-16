@@ -300,12 +300,12 @@ export type UserWhereInput = {
   roles?: Prisma.RoleListRelationFilter
   apiKeys?: Prisma.ApiKeyListRelationFilter
   avatar?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
+  createdUsers?: Prisma.UserListRelationFilter
+  createdPosts?: Prisma.PostListRelationFilter
   createdApiKeys?: Prisma.ApiKeyListRelationFilter
   createdRoles?: Prisma.RoleListRelationFilter
   createdPermissions?: Prisma.PermissionListRelationFilter
   createdFiles?: Prisma.FileListRelationFilter
-  createdUsers?: Prisma.UserListRelationFilter
-  createdPosts?: Prisma.PostListRelationFilter
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
@@ -328,12 +328,12 @@ export type UserOrderByWithRelationInput = {
   roles?: Prisma.RoleOrderByRelationAggregateInput
   apiKeys?: Prisma.ApiKeyOrderByRelationAggregateInput
   avatar?: Prisma.FileOrderByWithRelationInput
+  createdUsers?: Prisma.UserOrderByRelationAggregateInput
+  createdPosts?: Prisma.PostOrderByRelationAggregateInput
   createdApiKeys?: Prisma.ApiKeyOrderByRelationAggregateInput
   createdRoles?: Prisma.RoleOrderByRelationAggregateInput
   createdPermissions?: Prisma.PermissionOrderByRelationAggregateInput
   createdFiles?: Prisma.FileOrderByRelationAggregateInput
-  createdUsers?: Prisma.UserOrderByRelationAggregateInput
-  createdPosts?: Prisma.PostOrderByRelationAggregateInput
   createdBy?: Prisma.UserOrderByWithRelationInput
 }
 
@@ -359,12 +359,12 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   roles?: Prisma.RoleListRelationFilter
   apiKeys?: Prisma.ApiKeyListRelationFilter
   avatar?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
+  createdUsers?: Prisma.UserListRelationFilter
+  createdPosts?: Prisma.PostListRelationFilter
   createdApiKeys?: Prisma.ApiKeyListRelationFilter
   createdRoles?: Prisma.RoleListRelationFilter
   createdPermissions?: Prisma.PermissionListRelationFilter
   createdFiles?: Prisma.FileListRelationFilter
-  createdUsers?: Prisma.UserListRelationFilter
-  createdPosts?: Prisma.PostListRelationFilter
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id" | "email" | "avatarId">
 
@@ -424,14 +424,14 @@ export type UserCreateInput = {
   createdAt?: Date | string
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
   createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -452,13 +452,13 @@ export type UserUncheckedCreateInput = {
   createdById?: number | null
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
   createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUpdateInput = {
@@ -475,14 +475,14 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
   createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -503,13 +503,13 @@ export type UserUncheckedUpdateInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
   createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -638,10 +638,141 @@ export type UserSumOrderByAggregateInput = {
   createdById?: Prisma.SortOrder
 }
 
-export type UserCreateNestedManyWithoutApiKeysInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutApiKeysInput, Prisma.UserUncheckedCreateWithoutApiKeysInput> | Prisma.UserCreateWithoutApiKeysInput[] | Prisma.UserUncheckedCreateWithoutApiKeysInput[]
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutApiKeysInput | Prisma.UserCreateOrConnectWithoutApiKeysInput[]
+export type UserScalarRelationFilter = {
+  is?: Prisma.UserWhereInput
+  isNot?: Prisma.UserWhereInput
+}
+
+export type UserCreateNestedManyWithoutCreatedByInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedByInput, Prisma.UserUncheckedCreateWithoutCreatedByInput> | Prisma.UserCreateWithoutCreatedByInput[] | Prisma.UserUncheckedCreateWithoutCreatedByInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedByInput | Prisma.UserCreateOrConnectWithoutCreatedByInput[]
+  createMany?: Prisma.UserCreateManyCreatedByInputEnvelope
   connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+}
+
+export type UserCreateNestedOneWithoutCreatedUsersInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedUsersInput, Prisma.UserUncheckedCreateWithoutCreatedUsersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedUsersInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUncheckedCreateNestedManyWithoutCreatedByInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedByInput, Prisma.UserUncheckedCreateWithoutCreatedByInput> | Prisma.UserCreateWithoutCreatedByInput[] | Prisma.UserUncheckedCreateWithoutCreatedByInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedByInput | Prisma.UserCreateOrConnectWithoutCreatedByInput[]
+  createMany?: Prisma.UserCreateManyCreatedByInputEnvelope
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+}
+
+export type StringFieldUpdateOperationsInput = {
+  set?: string
+}
+
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
+}
+
+export type DateTimeFieldUpdateOperationsInput = {
+  set?: Date | string
+}
+
+export type UserUpdateManyWithoutCreatedByNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedByInput, Prisma.UserUncheckedCreateWithoutCreatedByInput> | Prisma.UserCreateWithoutCreatedByInput[] | Prisma.UserUncheckedCreateWithoutCreatedByInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedByInput | Prisma.UserCreateOrConnectWithoutCreatedByInput[]
+  upsert?: Prisma.UserUpsertWithWhereUniqueWithoutCreatedByInput | Prisma.UserUpsertWithWhereUniqueWithoutCreatedByInput[]
+  createMany?: Prisma.UserCreateManyCreatedByInputEnvelope
+  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  update?: Prisma.UserUpdateWithWhereUniqueWithoutCreatedByInput | Prisma.UserUpdateWithWhereUniqueWithoutCreatedByInput[]
+  updateMany?: Prisma.UserUpdateManyWithWhereWithoutCreatedByInput | Prisma.UserUpdateManyWithWhereWithoutCreatedByInput[]
+  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+}
+
+export type UserUpdateOneWithoutCreatedUsersNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedUsersInput, Prisma.UserUncheckedCreateWithoutCreatedUsersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedUsersInput
+  upsert?: Prisma.UserUpsertWithoutCreatedUsersInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreatedUsersInput, Prisma.UserUpdateWithoutCreatedUsersInput>, Prisma.UserUncheckedUpdateWithoutCreatedUsersInput>
+}
+
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type UserUncheckedUpdateManyWithoutCreatedByNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedByInput, Prisma.UserUncheckedCreateWithoutCreatedByInput> | Prisma.UserCreateWithoutCreatedByInput[] | Prisma.UserUncheckedCreateWithoutCreatedByInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedByInput | Prisma.UserCreateOrConnectWithoutCreatedByInput[]
+  upsert?: Prisma.UserUpsertWithWhereUniqueWithoutCreatedByInput | Prisma.UserUpsertWithWhereUniqueWithoutCreatedByInput[]
+  createMany?: Prisma.UserCreateManyCreatedByInputEnvelope
+  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  update?: Prisma.UserUpdateWithWhereUniqueWithoutCreatedByInput | Prisma.UserUpdateWithWhereUniqueWithoutCreatedByInput[]
+  updateMany?: Prisma.UserUpdateManyWithWhereWithoutCreatedByInput | Prisma.UserUpdateManyWithWhereWithoutCreatedByInput[]
+  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+}
+
+export type UserCreateNestedOneWithoutPostsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPostsInput, Prisma.UserUncheckedCreateWithoutPostsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPostsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutCreatedPostsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedPostsInput, Prisma.UserUncheckedCreateWithoutCreatedPostsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedPostsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutPostsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPostsInput, Prisma.UserUncheckedCreateWithoutPostsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPostsInput
+  upsert?: Prisma.UserUpsertWithoutPostsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPostsInput, Prisma.UserUpdateWithoutPostsInput>, Prisma.UserUncheckedUpdateWithoutPostsInput>
+}
+
+export type UserUpdateOneWithoutCreatedPostsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedPostsInput, Prisma.UserUncheckedCreateWithoutCreatedPostsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedPostsInput
+  upsert?: Prisma.UserUpsertWithoutCreatedPostsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreatedPostsInput, Prisma.UserUpdateWithoutCreatedPostsInput>, Prisma.UserUncheckedUpdateWithoutCreatedPostsInput>
+}
+
+export type UserCreateNestedOneWithoutApiKeysInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutApiKeysInput, Prisma.UserUncheckedCreateWithoutApiKeysInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutApiKeysInput
+  connect?: Prisma.UserWhereUniqueInput
 }
 
 export type UserCreateNestedOneWithoutCreatedApiKeysInput = {
@@ -650,23 +781,12 @@ export type UserCreateNestedOneWithoutCreatedApiKeysInput = {
   connect?: Prisma.UserWhereUniqueInput
 }
 
-export type UserUncheckedCreateNestedManyWithoutApiKeysInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutApiKeysInput, Prisma.UserUncheckedCreateWithoutApiKeysInput> | Prisma.UserCreateWithoutApiKeysInput[] | Prisma.UserUncheckedCreateWithoutApiKeysInput[]
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutApiKeysInput | Prisma.UserCreateOrConnectWithoutApiKeysInput[]
-  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-}
-
-export type UserUpdateManyWithoutApiKeysNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutApiKeysInput, Prisma.UserUncheckedCreateWithoutApiKeysInput> | Prisma.UserCreateWithoutApiKeysInput[] | Prisma.UserUncheckedCreateWithoutApiKeysInput[]
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutApiKeysInput | Prisma.UserCreateOrConnectWithoutApiKeysInput[]
-  upsert?: Prisma.UserUpsertWithWhereUniqueWithoutApiKeysInput | Prisma.UserUpsertWithWhereUniqueWithoutApiKeysInput[]
-  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  update?: Prisma.UserUpdateWithWhereUniqueWithoutApiKeysInput | Prisma.UserUpdateWithWhereUniqueWithoutApiKeysInput[]
-  updateMany?: Prisma.UserUpdateManyWithWhereWithoutApiKeysInput | Prisma.UserUpdateManyWithWhereWithoutApiKeysInput[]
-  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+export type UserUpdateOneRequiredWithoutApiKeysNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutApiKeysInput, Prisma.UserUncheckedCreateWithoutApiKeysInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutApiKeysInput
+  upsert?: Prisma.UserUpsertWithoutApiKeysInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutApiKeysInput, Prisma.UserUpdateWithoutApiKeysInput>, Prisma.UserUncheckedUpdateWithoutApiKeysInput>
 }
 
 export type UserUpdateOneWithoutCreatedApiKeysNestedInput = {
@@ -677,19 +797,6 @@ export type UserUpdateOneWithoutCreatedApiKeysNestedInput = {
   delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreatedApiKeysInput, Prisma.UserUpdateWithoutCreatedApiKeysInput>, Prisma.UserUncheckedUpdateWithoutCreatedApiKeysInput>
-}
-
-export type UserUncheckedUpdateManyWithoutApiKeysNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutApiKeysInput, Prisma.UserUncheckedCreateWithoutApiKeysInput> | Prisma.UserCreateWithoutApiKeysInput[] | Prisma.UserUncheckedCreateWithoutApiKeysInput[]
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutApiKeysInput | Prisma.UserCreateOrConnectWithoutApiKeysInput[]
-  upsert?: Prisma.UserUpsertWithWhereUniqueWithoutApiKeysInput | Prisma.UserUpsertWithWhereUniqueWithoutApiKeysInput[]
-  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  update?: Prisma.UserUpdateWithWhereUniqueWithoutApiKeysInput | Prisma.UserUpdateWithWhereUniqueWithoutApiKeysInput[]
-  updateMany?: Prisma.UserUpdateManyWithWhereWithoutApiKeysInput | Prisma.UserUpdateManyWithWhereWithoutApiKeysInput[]
-  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
 }
 
 export type UserCreateNestedManyWithoutRolesInput = {
@@ -820,94 +927,440 @@ export type UserUncheckedUpdateManyWithoutAvatarNestedInput = {
   deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
 }
 
-export type UserCreateNestedManyWithoutCreatedByInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedByInput, Prisma.UserUncheckedCreateWithoutCreatedByInput> | Prisma.UserCreateWithoutCreatedByInput[] | Prisma.UserUncheckedCreateWithoutCreatedByInput[]
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedByInput | Prisma.UserCreateOrConnectWithoutCreatedByInput[]
-  createMany?: Prisma.UserCreateManyCreatedByInputEnvelope
-  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+export type UserCreateWithoutCreatedByInput = {
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  secret?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
 }
 
-export type UserCreateNestedOneWithoutCreatedUsersInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedUsersInput, Prisma.UserUncheckedCreateWithoutCreatedUsersInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedUsersInput
-  connect?: Prisma.UserWhereUniqueInput
+export type UserUncheckedCreateWithoutCreatedByInput = {
+  id?: number
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  secret?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  avatarId?: number | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
-export type UserUncheckedCreateNestedManyWithoutCreatedByInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedByInput, Prisma.UserUncheckedCreateWithoutCreatedByInput> | Prisma.UserCreateWithoutCreatedByInput[] | Prisma.UserUncheckedCreateWithoutCreatedByInput[]
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedByInput | Prisma.UserCreateOrConnectWithoutCreatedByInput[]
-  createMany?: Prisma.UserCreateManyCreatedByInputEnvelope
-  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+export type UserCreateOrConnectWithoutCreatedByInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedByInput, Prisma.UserUncheckedCreateWithoutCreatedByInput>
 }
 
-export type UserUpdateManyWithoutCreatedByNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedByInput, Prisma.UserUncheckedCreateWithoutCreatedByInput> | Prisma.UserCreateWithoutCreatedByInput[] | Prisma.UserUncheckedCreateWithoutCreatedByInput[]
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedByInput | Prisma.UserCreateOrConnectWithoutCreatedByInput[]
-  upsert?: Prisma.UserUpsertWithWhereUniqueWithoutCreatedByInput | Prisma.UserUpsertWithWhereUniqueWithoutCreatedByInput[]
-  createMany?: Prisma.UserCreateManyCreatedByInputEnvelope
-  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  update?: Prisma.UserUpdateWithWhereUniqueWithoutCreatedByInput | Prisma.UserUpdateWithWhereUniqueWithoutCreatedByInput[]
-  updateMany?: Prisma.UserUpdateManyWithWhereWithoutCreatedByInput | Prisma.UserUpdateManyWithWhereWithoutCreatedByInput[]
-  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+export type UserCreateManyCreatedByInputEnvelope = {
+  data: Prisma.UserCreateManyCreatedByInput | Prisma.UserCreateManyCreatedByInput[]
 }
 
-export type UserUpdateOneWithoutCreatedUsersNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedUsersInput, Prisma.UserUncheckedCreateWithoutCreatedUsersInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedUsersInput
-  upsert?: Prisma.UserUpsertWithoutCreatedUsersInput
-  disconnect?: Prisma.UserWhereInput | boolean
-  delete?: Prisma.UserWhereInput | boolean
-  connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreatedUsersInput, Prisma.UserUpdateWithoutCreatedUsersInput>, Prisma.UserUncheckedUpdateWithoutCreatedUsersInput>
+export type UserCreateWithoutCreatedUsersInput = {
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  secret?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
-export type UserUncheckedUpdateManyWithoutCreatedByNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedByInput, Prisma.UserUncheckedCreateWithoutCreatedByInput> | Prisma.UserCreateWithoutCreatedByInput[] | Prisma.UserUncheckedCreateWithoutCreatedByInput[]
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedByInput | Prisma.UserCreateOrConnectWithoutCreatedByInput[]
-  upsert?: Prisma.UserUpsertWithWhereUniqueWithoutCreatedByInput | Prisma.UserUpsertWithWhereUniqueWithoutCreatedByInput[]
-  createMany?: Prisma.UserCreateManyCreatedByInputEnvelope
-  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  update?: Prisma.UserUpdateWithWhereUniqueWithoutCreatedByInput | Prisma.UserUpdateWithWhereUniqueWithoutCreatedByInput[]
-  updateMany?: Prisma.UserUpdateManyWithWhereWithoutCreatedByInput | Prisma.UserUpdateManyWithWhereWithoutCreatedByInput[]
-  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+export type UserUncheckedCreateWithoutCreatedUsersInput = {
+  id?: number
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  secret?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  avatarId?: number | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
-export type UserCreateNestedOneWithoutPostsInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutPostsInput, Prisma.UserUncheckedCreateWithoutPostsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPostsInput
-  connect?: Prisma.UserWhereUniqueInput
+export type UserCreateOrConnectWithoutCreatedUsersInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedUsersInput, Prisma.UserUncheckedCreateWithoutCreatedUsersInput>
 }
 
-export type UserCreateNestedOneWithoutCreatedPostsInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedPostsInput, Prisma.UserUncheckedCreateWithoutCreatedPostsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedPostsInput
-  connect?: Prisma.UserWhereUniqueInput
+export type UserUpsertWithWhereUniqueWithoutCreatedByInput = {
+  where: Prisma.UserWhereUniqueInput
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCreatedByInput, Prisma.UserUncheckedUpdateWithoutCreatedByInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedByInput, Prisma.UserUncheckedCreateWithoutCreatedByInput>
 }
 
-export type UserUpdateOneWithoutPostsNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutPostsInput, Prisma.UserUncheckedCreateWithoutPostsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPostsInput
-  upsert?: Prisma.UserUpsertWithoutPostsInput
-  disconnect?: Prisma.UserWhereInput | boolean
-  delete?: Prisma.UserWhereInput | boolean
-  connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPostsInput, Prisma.UserUpdateWithoutPostsInput>, Prisma.UserUncheckedUpdateWithoutPostsInput>
+export type UserUpdateWithWhereUniqueWithoutCreatedByInput = {
+  where: Prisma.UserWhereUniqueInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCreatedByInput, Prisma.UserUncheckedUpdateWithoutCreatedByInput>
 }
 
-export type UserUpdateOneWithoutCreatedPostsNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedPostsInput, Prisma.UserUncheckedCreateWithoutCreatedPostsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedPostsInput
-  upsert?: Prisma.UserUpsertWithoutCreatedPostsInput
-  disconnect?: Prisma.UserWhereInput | boolean
-  delete?: Prisma.UserWhereInput | boolean
-  connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreatedPostsInput, Prisma.UserUpdateWithoutCreatedPostsInput>, Prisma.UserUncheckedUpdateWithoutCreatedPostsInput>
+export type UserUpdateManyWithWhereWithoutCreatedByInput = {
+  where: Prisma.UserScalarWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateManyMutationInput, Prisma.UserUncheckedUpdateManyWithoutCreatedByInput>
+}
+
+export type UserScalarWhereInput = {
+  AND?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+  OR?: Prisma.UserScalarWhereInput[]
+  NOT?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+  id?: Prisma.IntFilter<"User"> | number
+  firstName?: Prisma.StringFilter<"User"> | string
+  lastName?: Prisma.StringFilter<"User"> | string
+  email?: Prisma.StringFilter<"User"> | string
+  phone?: Prisma.StringFilter<"User"> | string
+  secret?: Prisma.StringNullableFilter<"User"> | string | null
+  passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
+  verifiedEmail?: Prisma.BoolFilter<"User"> | boolean
+  enabled?: Prisma.BoolFilter<"User"> | boolean
+  logoutAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  avatarId?: Prisma.IntNullableFilter<"User"> | number | null
+  updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  createdById?: Prisma.IntNullableFilter<"User"> | number | null
+}
+
+export type UserUpsertWithoutCreatedUsersInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCreatedUsersInput, Prisma.UserUncheckedUpdateWithoutCreatedUsersInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedUsersInput, Prisma.UserUncheckedCreateWithoutCreatedUsersInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutCreatedUsersInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCreatedUsersInput, Prisma.UserUncheckedUpdateWithoutCreatedUsersInput>
+}
+
+export type UserUpdateWithoutCreatedUsersInput = {
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutCreatedUsersInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+}
+
+export type UserCreateWithoutPostsInput = {
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  secret?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
+}
+
+export type UserUncheckedCreateWithoutPostsInput = {
+  id?: number
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  secret?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  avatarId?: number | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserCreateOrConnectWithoutPostsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPostsInput, Prisma.UserUncheckedCreateWithoutPostsInput>
+}
+
+export type UserCreateWithoutCreatedPostsInput = {
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  secret?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
+}
+
+export type UserUncheckedCreateWithoutCreatedPostsInput = {
+  id?: number
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  secret?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  avatarId?: number | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserCreateOrConnectWithoutCreatedPostsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedPostsInput, Prisma.UserUncheckedCreateWithoutCreatedPostsInput>
+}
+
+export type UserUpsertWithoutPostsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPostsInput, Prisma.UserUncheckedUpdateWithoutPostsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPostsInput, Prisma.UserUncheckedCreateWithoutPostsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPostsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPostsInput, Prisma.UserUncheckedUpdateWithoutPostsInput>
+}
+
+export type UserUpdateWithoutPostsInput = {
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPostsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+}
+
+export type UserUpsertWithoutCreatedPostsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCreatedPostsInput, Prisma.UserUncheckedUpdateWithoutCreatedPostsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedPostsInput, Prisma.UserUncheckedCreateWithoutCreatedPostsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutCreatedPostsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCreatedPostsInput, Prisma.UserUncheckedUpdateWithoutCreatedPostsInput>
+}
+
+export type UserUpdateWithoutCreatedPostsInput = {
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutCreatedPostsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutApiKeysInput = {
@@ -925,12 +1378,12 @@ export type UserCreateWithoutApiKeysInput = {
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
   createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -951,12 +1404,12 @@ export type UserUncheckedCreateWithoutApiKeysInput = {
   createdById?: number | null
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
   createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutApiKeysInput = {
@@ -978,13 +1431,13 @@ export type UserCreateWithoutCreatedApiKeysInput = {
   createdAt?: Date | string
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -1005,12 +1458,12 @@ export type UserUncheckedCreateWithoutCreatedApiKeysInput = {
   createdById?: number | null
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedApiKeysInput = {
@@ -1018,40 +1471,64 @@ export type UserCreateOrConnectWithoutCreatedApiKeysInput = {
   create: Prisma.XOR<Prisma.UserCreateWithoutCreatedApiKeysInput, Prisma.UserUncheckedCreateWithoutCreatedApiKeysInput>
 }
 
-export type UserUpsertWithWhereUniqueWithoutApiKeysInput = {
-  where: Prisma.UserWhereUniqueInput
+export type UserUpsertWithoutApiKeysInput = {
   update: Prisma.XOR<Prisma.UserUpdateWithoutApiKeysInput, Prisma.UserUncheckedUpdateWithoutApiKeysInput>
   create: Prisma.XOR<Prisma.UserCreateWithoutApiKeysInput, Prisma.UserUncheckedCreateWithoutApiKeysInput>
+  where?: Prisma.UserWhereInput
 }
 
-export type UserUpdateWithWhereUniqueWithoutApiKeysInput = {
-  where: Prisma.UserWhereUniqueInput
+export type UserUpdateToOneWithWhereWithoutApiKeysInput = {
+  where?: Prisma.UserWhereInput
   data: Prisma.XOR<Prisma.UserUpdateWithoutApiKeysInput, Prisma.UserUncheckedUpdateWithoutApiKeysInput>
 }
 
-export type UserUpdateManyWithWhereWithoutApiKeysInput = {
-  where: Prisma.UserScalarWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateManyMutationInput, Prisma.UserUncheckedUpdateManyWithoutApiKeysInput>
+export type UserUpdateWithoutApiKeysInput = {
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
-export type UserScalarWhereInput = {
-  AND?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
-  OR?: Prisma.UserScalarWhereInput[]
-  NOT?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
-  id?: Prisma.IntFilter<"User"> | number
-  firstName?: Prisma.StringFilter<"User"> | string
-  lastName?: Prisma.StringFilter<"User"> | string
-  email?: Prisma.StringFilter<"User"> | string
-  phone?: Prisma.StringFilter<"User"> | string
-  secret?: Prisma.StringNullableFilter<"User"> | string | null
-  passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
-  verifiedEmail?: Prisma.BoolFilter<"User"> | boolean
-  enabled?: Prisma.BoolFilter<"User"> | boolean
-  logoutAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
-  avatarId?: Prisma.IntNullableFilter<"User"> | number | null
-  updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
-  createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
-  createdById?: Prisma.IntNullableFilter<"User"> | number | null
+export type UserUncheckedUpdateWithoutApiKeysInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUpsertWithoutCreatedApiKeysInput = {
@@ -1079,13 +1556,13 @@ export type UserUpdateWithoutCreatedApiKeysInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -1106,12 +1583,12 @@ export type UserUncheckedUpdateWithoutCreatedApiKeysInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutRolesInput = {
@@ -1127,14 +1604,14 @@ export type UserCreateWithoutRolesInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
-  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
   createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -1154,13 +1631,13 @@ export type UserUncheckedCreateWithoutRolesInput = {
   createdAt?: Date | string
   createdById?: number | null
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
-  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
   createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutRolesInput = {
@@ -1182,13 +1659,13 @@ export type UserCreateWithoutCreatedRolesInput = {
   createdAt?: Date | string
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
   createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -1209,12 +1686,12 @@ export type UserUncheckedCreateWithoutCreatedRolesInput = {
   createdById?: number | null
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
   createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedRolesInput = {
@@ -1263,13 +1740,13 @@ export type UserUpdateWithoutCreatedRolesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
   createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -1290,12 +1767,12 @@ export type UserUncheckedUpdateWithoutCreatedRolesInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
   createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutCreatedPermissionsInput = {
@@ -1312,13 +1789,13 @@ export type UserCreateWithoutCreatedPermissionsInput = {
   createdAt?: Date | string
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
   createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -1339,12 +1816,12 @@ export type UserUncheckedCreateWithoutCreatedPermissionsInput = {
   createdById?: number | null
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
   createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedPermissionsInput = {
@@ -1377,13 +1854,13 @@ export type UserUpdateWithoutCreatedPermissionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
   createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -1404,12 +1881,12 @@ export type UserUncheckedUpdateWithoutCreatedPermissionsInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
   createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutAvatarInput = {
@@ -1426,13 +1903,13 @@ export type UserCreateWithoutAvatarInput = {
   createdAt?: Date | string
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
   createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -1452,13 +1929,13 @@ export type UserUncheckedCreateWithoutAvatarInput = {
   createdById?: number | null
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
   createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutAvatarInput = {
@@ -1484,13 +1961,13 @@ export type UserCreateWithoutCreatedFilesInput = {
   createdAt?: Date | string
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
   createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -1511,12 +1988,12 @@ export type UserUncheckedCreateWithoutCreatedFilesInput = {
   createdById?: number | null
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
   createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedFilesInput = {
@@ -1565,13 +2042,13 @@ export type UserUpdateWithoutCreatedFilesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
   createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -1592,39 +2069,15 @@ export type UserUncheckedUpdateWithoutCreatedFilesInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
   createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
-export type UserCreateWithoutCreatedByInput = {
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  secret?: string | null
-  passwordHash?: string | null
-  verifiedEmail?: boolean
-  enabled?: boolean
-  logoutAt?: Date | string | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
-  roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUsersInput
-  avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
-  createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
-  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
-  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
-  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
-}
-
-export type UserUncheckedCreateWithoutCreatedByInput = {
+export type UserCreateManyCreatedByInput = {
   id?: number
   firstName: string
   lastName: string
@@ -1638,108 +2091,9 @@ export type UserUncheckedCreateWithoutCreatedByInput = {
   avatarId?: number | null
   updatedAt?: Date | string
   createdAt?: Date | string
-  posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
-  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUsersInput
-  createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
-  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
-  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
-export type UserCreateOrConnectWithoutCreatedByInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedByInput, Prisma.UserUncheckedCreateWithoutCreatedByInput>
-}
-
-export type UserCreateManyCreatedByInputEnvelope = {
-  data: Prisma.UserCreateManyCreatedByInput | Prisma.UserCreateManyCreatedByInput[]
-}
-
-export type UserCreateWithoutCreatedUsersInput = {
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  secret?: string | null
-  passwordHash?: string | null
-  verifiedEmail?: boolean
-  enabled?: boolean
-  logoutAt?: Date | string | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
-  roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUsersInput
-  avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
-  createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
-  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
-  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
-  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
-  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
-}
-
-export type UserUncheckedCreateWithoutCreatedUsersInput = {
-  id?: number
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  secret?: string | null
-  passwordHash?: string | null
-  verifiedEmail?: boolean
-  enabled?: boolean
-  logoutAt?: Date | string | null
-  avatarId?: number | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  createdById?: number | null
-  posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
-  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUsersInput
-  createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
-  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
-  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
-}
-
-export type UserCreateOrConnectWithoutCreatedUsersInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedUsersInput, Prisma.UserUncheckedCreateWithoutCreatedUsersInput>
-}
-
-export type UserUpsertWithWhereUniqueWithoutCreatedByInput = {
-  where: Prisma.UserWhereUniqueInput
-  update: Prisma.XOR<Prisma.UserUpdateWithoutCreatedByInput, Prisma.UserUncheckedUpdateWithoutCreatedByInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedByInput, Prisma.UserUncheckedCreateWithoutCreatedByInput>
-}
-
-export type UserUpdateWithWhereUniqueWithoutCreatedByInput = {
-  where: Prisma.UserWhereUniqueInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutCreatedByInput, Prisma.UserUncheckedUpdateWithoutCreatedByInput>
-}
-
-export type UserUpdateManyWithWhereWithoutCreatedByInput = {
-  where: Prisma.UserScalarWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateManyMutationInput, Prisma.UserUncheckedUpdateManyWithoutCreatedByInput>
-}
-
-export type UserUpsertWithoutCreatedUsersInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutCreatedUsersInput, Prisma.UserUncheckedUpdateWithoutCreatedUsersInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedUsersInput, Prisma.UserUncheckedCreateWithoutCreatedUsersInput>
-  where?: Prisma.UserWhereInput
-}
-
-export type UserUpdateToOneWithWhereWithoutCreatedUsersInput = {
-  where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutCreatedUsersInput, Prisma.UserUncheckedUpdateWithoutCreatedUsersInput>
-}
-
-export type UserUpdateWithoutCreatedUsersInput = {
+export type UserUpdateWithoutCreatedByInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1753,245 +2107,17 @@ export type UserUpdateWithoutCreatedUsersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
-  createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
-  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
-  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
-  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
-  createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
-}
-
-export type UserUncheckedUpdateWithoutCreatedUsersInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.StringFieldUpdateOperationsInput | string
-  secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
-  roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUsersNestedInput
-  createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
-}
-
-export type UserCreateWithoutPostsInput = {
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  secret?: string | null
-  passwordHash?: string | null
-  verifiedEmail?: boolean
-  enabled?: boolean
-  logoutAt?: Date | string | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUsersInput
-  avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
-  createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
-  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
-  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
-  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
-  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
-}
-
-export type UserUncheckedCreateWithoutPostsInput = {
-  id?: number
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  secret?: string | null
-  passwordHash?: string | null
-  verifiedEmail?: boolean
-  enabled?: boolean
-  logoutAt?: Date | string | null
-  avatarId?: number | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  createdById?: number | null
-  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUsersInput
-  createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
-  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
-  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
-}
-
-export type UserCreateOrConnectWithoutPostsInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutPostsInput, Prisma.UserUncheckedCreateWithoutPostsInput>
-}
-
-export type UserCreateWithoutCreatedPostsInput = {
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  secret?: string | null
-  passwordHash?: string | null
-  verifiedEmail?: boolean
-  enabled?: boolean
-  logoutAt?: Date | string | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
-  roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUsersInput
-  avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
-  createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
-  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
-  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
-  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
-  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
-}
-
-export type UserUncheckedCreateWithoutCreatedPostsInput = {
-  id?: number
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  secret?: string | null
-  passwordHash?: string | null
-  verifiedEmail?: boolean
-  enabled?: boolean
-  logoutAt?: Date | string | null
-  avatarId?: number | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  createdById?: number | null
-  posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
-  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
-  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUsersInput
-  createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
-  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
-  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
-  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
-}
-
-export type UserCreateOrConnectWithoutCreatedPostsInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedPostsInput, Prisma.UserUncheckedCreateWithoutCreatedPostsInput>
-}
-
-export type UserUpsertWithoutPostsInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutPostsInput, Prisma.UserUncheckedUpdateWithoutPostsInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutPostsInput, Prisma.UserUncheckedCreateWithoutPostsInput>
-  where?: Prisma.UserWhereInput
-}
-
-export type UserUpdateToOneWithWhereWithoutPostsInput = {
-  where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutPostsInput, Prisma.UserUncheckedUpdateWithoutPostsInput>
-}
-
-export type UserUpdateWithoutPostsInput = {
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.StringFieldUpdateOperationsInput | string
-  secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUsersNestedInput
-  avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
-  createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
-  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
-  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
-  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
   createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
-  createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
-}
-
-export type UserUncheckedUpdateWithoutPostsInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.StringFieldUpdateOperationsInput | string
-  secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUsersNestedInput
-  createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
-}
-
-export type UserUpsertWithoutCreatedPostsInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutCreatedPostsInput, Prisma.UserUncheckedUpdateWithoutCreatedPostsInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedPostsInput, Prisma.UserUncheckedCreateWithoutCreatedPostsInput>
-  where?: Prisma.UserWhereInput
-}
-
-export type UserUpdateToOneWithWhereWithoutCreatedPostsInput = {
-  where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutCreatedPostsInput, Prisma.UserUncheckedUpdateWithoutCreatedPostsInput>
-}
-
-export type UserUpdateWithoutCreatedPostsInput = {
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.StringFieldUpdateOperationsInput | string
-  secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
-  roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUsersNestedInput
-  avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
-  createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
-export type UserUncheckedUpdateWithoutCreatedPostsInput = {
+export type UserUncheckedUpdateWithoutCreatedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2005,67 +2131,18 @@ export type UserUncheckedUpdateWithoutCreatedPostsInput = {
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUsersNestedInput
-  createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
-}
-
-export type UserUpdateWithoutApiKeysInput = {
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.StringFieldUpdateOperationsInput | string
-  secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
-  roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
-  avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
-  createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
-  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
-  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
-  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
-  createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
-}
-
-export type UserUncheckedUpdateWithoutApiKeysInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.StringFieldUpdateOperationsInput | string
-  secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
-  roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
-  createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
-export type UserUncheckedUpdateManyWithoutApiKeysInput = {
+export type UserUncheckedUpdateManyWithoutCreatedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2079,7 +2156,6 @@ export type UserUncheckedUpdateManyWithoutApiKeysInput = {
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type UserUpdateWithoutRolesInput = {
@@ -2095,14 +2171,14 @@ export type UserUpdateWithoutRolesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
-  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
   createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -2122,13 +2198,13 @@ export type UserUncheckedUpdateWithoutRolesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
-  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
   createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutRolesInput = {
@@ -2178,13 +2254,13 @@ export type UserUpdateWithoutAvatarInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
   createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -2204,13 +2280,13 @@ export type UserUncheckedUpdateWithoutAvatarInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
   createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutAvatarInput = {
@@ -2229,87 +2305,6 @@ export type UserUncheckedUpdateManyWithoutAvatarInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
-export type UserCreateManyCreatedByInput = {
-  id?: number
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  secret?: string | null
-  passwordHash?: string | null
-  verifiedEmail?: boolean
-  enabled?: boolean
-  logoutAt?: Date | string | null
-  avatarId?: number | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-}
-
-export type UserUpdateWithoutCreatedByInput = {
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.StringFieldUpdateOperationsInput | string
-  secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
-  roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUsersNestedInput
-  avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
-  createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
-  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
-  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
-  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
-}
-
-export type UserUncheckedUpdateWithoutCreatedByInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.StringFieldUpdateOperationsInput | string
-  secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
-  roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
-  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUsersNestedInput
-  createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
-}
-
-export type UserUncheckedUpdateManyWithoutCreatedByInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.StringFieldUpdateOperationsInput | string
-  secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
 
 /**
  * Count Type UserCountOutputType
@@ -2319,24 +2314,24 @@ export type UserCountOutputType = {
   posts: number
   roles: number
   apiKeys: number
+  createdUsers: number
+  createdPosts: number
   createdApiKeys: number
   createdRoles: number
   createdPermissions: number
   createdFiles: number
-  createdUsers: number
-  createdPosts: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   posts?: boolean | UserCountOutputTypeCountPostsArgs
   roles?: boolean | UserCountOutputTypeCountRolesArgs
   apiKeys?: boolean | UserCountOutputTypeCountApiKeysArgs
+  createdUsers?: boolean | UserCountOutputTypeCountCreatedUsersArgs
+  createdPosts?: boolean | UserCountOutputTypeCountCreatedPostsArgs
   createdApiKeys?: boolean | UserCountOutputTypeCountCreatedApiKeysArgs
   createdRoles?: boolean | UserCountOutputTypeCountCreatedRolesArgs
   createdPermissions?: boolean | UserCountOutputTypeCountCreatedPermissionsArgs
   createdFiles?: boolean | UserCountOutputTypeCountCreatedFilesArgs
-  createdUsers?: boolean | UserCountOutputTypeCountCreatedUsersArgs
-  createdPosts?: boolean | UserCountOutputTypeCountCreatedPostsArgs
 }
 
 /**
@@ -2373,6 +2368,20 @@ export type UserCountOutputTypeCountApiKeysArgs<ExtArgs extends runtime.Types.Ex
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountCreatedUsersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountCreatedPostsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PostWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountCreatedApiKeysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ApiKeyWhereInput
 }
@@ -2398,20 +2407,6 @@ export type UserCountOutputTypeCountCreatedFilesArgs<ExtArgs extends runtime.Typ
   where?: Prisma.FileWhereInput
 }
 
-/**
- * UserCountOutputType without action
- */
-export type UserCountOutputTypeCountCreatedUsersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.UserWhereInput
-}
-
-/**
- * UserCountOutputType without action
- */
-export type UserCountOutputTypeCountCreatedPostsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.PostWhereInput
-}
-
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2432,12 +2427,12 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   roles?: boolean | Prisma.User$rolesArgs<ExtArgs>
   apiKeys?: boolean | Prisma.User$apiKeysArgs<ExtArgs>
   avatar?: boolean | Prisma.User$avatarArgs<ExtArgs>
+  createdUsers?: boolean | Prisma.User$createdUsersArgs<ExtArgs>
+  createdPosts?: boolean | Prisma.User$createdPostsArgs<ExtArgs>
   createdApiKeys?: boolean | Prisma.User$createdApiKeysArgs<ExtArgs>
   createdRoles?: boolean | Prisma.User$createdRolesArgs<ExtArgs>
   createdPermissions?: boolean | Prisma.User$createdPermissionsArgs<ExtArgs>
   createdFiles?: boolean | Prisma.User$createdFilesArgs<ExtArgs>
-  createdUsers?: boolean | Prisma.User$createdUsersArgs<ExtArgs>
-  createdPosts?: boolean | Prisma.User$createdPostsArgs<ExtArgs>
   createdBy?: boolean | Prisma.User$createdByArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -2503,12 +2498,12 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   roles?: boolean | Prisma.User$rolesArgs<ExtArgs>
   apiKeys?: boolean | Prisma.User$apiKeysArgs<ExtArgs>
   avatar?: boolean | Prisma.User$avatarArgs<ExtArgs>
+  createdUsers?: boolean | Prisma.User$createdUsersArgs<ExtArgs>
+  createdPosts?: boolean | Prisma.User$createdPostsArgs<ExtArgs>
   createdApiKeys?: boolean | Prisma.User$createdApiKeysArgs<ExtArgs>
   createdRoles?: boolean | Prisma.User$createdRolesArgs<ExtArgs>
   createdPermissions?: boolean | Prisma.User$createdPermissionsArgs<ExtArgs>
   createdFiles?: boolean | Prisma.User$createdFilesArgs<ExtArgs>
-  createdUsers?: boolean | Prisma.User$createdUsersArgs<ExtArgs>
-  createdPosts?: boolean | Prisma.User$createdPostsArgs<ExtArgs>
   createdBy?: boolean | Prisma.User$createdByArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -2537,12 +2532,12 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     /**
      * Ownership models referenced with createdById column
      */
+    createdUsers: Prisma.$UserPayload<ExtArgs>[]
+    createdPosts: Prisma.$PostPayload<ExtArgs>[]
     createdApiKeys: Prisma.$ApiKeyPayload<ExtArgs>[]
     createdRoles: Prisma.$RolePayload<ExtArgs>[]
     createdPermissions: Prisma.$PermissionPayload<ExtArgs>[]
     createdFiles: Prisma.$FilePayload<ExtArgs>[]
-    createdUsers: Prisma.$UserPayload<ExtArgs>[]
-    createdPosts: Prisma.$PostPayload<ExtArgs>[]
     createdBy: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -2961,12 +2956,12 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   roles<T extends Prisma.User$rolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$rolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   apiKeys<T extends Prisma.User$apiKeysArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$apiKeysArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   avatar<T extends Prisma.User$avatarArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$avatarArgs<ExtArgs>>): Prisma.Prisma__FileClient<runtime.Types.Result.GetResult<Prisma.$FilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  createdUsers<T extends Prisma.User$createdUsersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdUsersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  createdPosts<T extends Prisma.User$createdPostsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdPostsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdApiKeys<T extends Prisma.User$createdApiKeysArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdApiKeysArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdRoles<T extends Prisma.User$createdRolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdRolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdPermissions<T extends Prisma.User$createdPermissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdPermissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdFiles<T extends Prisma.User$createdFilesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdFilesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  createdUsers<T extends Prisma.User$createdUsersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdUsersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  createdPosts<T extends Prisma.User$createdPostsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdPostsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdBy<T extends Prisma.User$createdByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -3496,6 +3491,54 @@ export type User$avatarArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 }
 
 /**
+ * User.createdUsers
+ */
+export type User$createdUsersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
+  orderBy?: Prisma.UserOrderByWithRelationInput | Prisma.UserOrderByWithRelationInput[]
+  cursor?: Prisma.UserWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserScalarFieldEnum | Prisma.UserScalarFieldEnum[]
+}
+
+/**
+ * User.createdPosts
+ */
+export type User$createdPostsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Post
+   */
+  select?: Prisma.PostSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Post
+   */
+  omit?: Prisma.PostOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PostInclude<ExtArgs> | null
+  where?: Prisma.PostWhereInput
+  orderBy?: Prisma.PostOrderByWithRelationInput | Prisma.PostOrderByWithRelationInput[]
+  cursor?: Prisma.PostWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PostScalarFieldEnum | Prisma.PostScalarFieldEnum[]
+}
+
+/**
  * User.createdApiKeys
  */
 export type User$createdApiKeysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3589,54 +3632,6 @@ export type User$createdFilesArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.FileScalarFieldEnum | Prisma.FileScalarFieldEnum[]
-}
-
-/**
- * User.createdUsers
- */
-export type User$createdUsersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the User
-   */
-  select?: Prisma.UserSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the User
-   */
-  omit?: Prisma.UserOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.UserInclude<ExtArgs> | null
-  where?: Prisma.UserWhereInput
-  orderBy?: Prisma.UserOrderByWithRelationInput | Prisma.UserOrderByWithRelationInput[]
-  cursor?: Prisma.UserWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.UserScalarFieldEnum | Prisma.UserScalarFieldEnum[]
-}
-
-/**
- * User.createdPosts
- */
-export type User$createdPostsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Post
-   */
-  select?: Prisma.PostSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Post
-   */
-  omit?: Prisma.PostOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.PostInclude<ExtArgs> | null
-  where?: Prisma.PostWhereInput
-  orderBy?: Prisma.PostOrderByWithRelationInput | Prisma.PostOrderByWithRelationInput[]
-  cursor?: Prisma.PostWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.PostScalarFieldEnum | Prisma.PostScalarFieldEnum[]
 }
 
 /**

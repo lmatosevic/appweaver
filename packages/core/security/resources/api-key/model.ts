@@ -16,9 +16,6 @@ export default config.SECURITY_API_KEY_ENABLED
           unique: true,
           hidden: true
         },
-        authId: {
-          type: 'int'
-        },
         name: {
           type: 'string',
           required: false,
@@ -54,14 +51,11 @@ export default config.SECURITY_API_KEY_ENABLED
             }
           }
         : {}),
-      read: {
-        omit: ['authId']
-      },
       create: {
-        omit: ['authId', 'key']
+        omit: ['key']
       },
       update: {
-        omit: ['authId', 'key', 'expiresAt']
+        omit: ['key', 'expiresAt']
       }
     })
   : undefined;

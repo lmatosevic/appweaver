@@ -585,86 +585,6 @@ export type PostSumOrderByAggregateInput = {
   createdById?: Prisma.SortOrder
 }
 
-export type PostCreateNestedManyWithoutCoverImageInput = {
-  create?: Prisma.XOR<Prisma.PostCreateWithoutCoverImageInput, Prisma.PostUncheckedCreateWithoutCoverImageInput> | Prisma.PostCreateWithoutCoverImageInput[] | Prisma.PostUncheckedCreateWithoutCoverImageInput[]
-  connectOrCreate?: Prisma.PostCreateOrConnectWithoutCoverImageInput | Prisma.PostCreateOrConnectWithoutCoverImageInput[]
-  createMany?: Prisma.PostCreateManyCoverImageInputEnvelope
-  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-}
-
-export type PostCreateNestedManyWithoutGalleryImagesInput = {
-  create?: Prisma.XOR<Prisma.PostCreateWithoutGalleryImagesInput, Prisma.PostUncheckedCreateWithoutGalleryImagesInput> | Prisma.PostCreateWithoutGalleryImagesInput[] | Prisma.PostUncheckedCreateWithoutGalleryImagesInput[]
-  connectOrCreate?: Prisma.PostCreateOrConnectWithoutGalleryImagesInput | Prisma.PostCreateOrConnectWithoutGalleryImagesInput[]
-  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-}
-
-export type PostUncheckedCreateNestedManyWithoutCoverImageInput = {
-  create?: Prisma.XOR<Prisma.PostCreateWithoutCoverImageInput, Prisma.PostUncheckedCreateWithoutCoverImageInput> | Prisma.PostCreateWithoutCoverImageInput[] | Prisma.PostUncheckedCreateWithoutCoverImageInput[]
-  connectOrCreate?: Prisma.PostCreateOrConnectWithoutCoverImageInput | Prisma.PostCreateOrConnectWithoutCoverImageInput[]
-  createMany?: Prisma.PostCreateManyCoverImageInputEnvelope
-  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-}
-
-export type PostUncheckedCreateNestedManyWithoutGalleryImagesInput = {
-  create?: Prisma.XOR<Prisma.PostCreateWithoutGalleryImagesInput, Prisma.PostUncheckedCreateWithoutGalleryImagesInput> | Prisma.PostCreateWithoutGalleryImagesInput[] | Prisma.PostUncheckedCreateWithoutGalleryImagesInput[]
-  connectOrCreate?: Prisma.PostCreateOrConnectWithoutGalleryImagesInput | Prisma.PostCreateOrConnectWithoutGalleryImagesInput[]
-  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-}
-
-export type PostUpdateManyWithoutCoverImageNestedInput = {
-  create?: Prisma.XOR<Prisma.PostCreateWithoutCoverImageInput, Prisma.PostUncheckedCreateWithoutCoverImageInput> | Prisma.PostCreateWithoutCoverImageInput[] | Prisma.PostUncheckedCreateWithoutCoverImageInput[]
-  connectOrCreate?: Prisma.PostCreateOrConnectWithoutCoverImageInput | Prisma.PostCreateOrConnectWithoutCoverImageInput[]
-  upsert?: Prisma.PostUpsertWithWhereUniqueWithoutCoverImageInput | Prisma.PostUpsertWithWhereUniqueWithoutCoverImageInput[]
-  createMany?: Prisma.PostCreateManyCoverImageInputEnvelope
-  set?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  disconnect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  delete?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  update?: Prisma.PostUpdateWithWhereUniqueWithoutCoverImageInput | Prisma.PostUpdateWithWhereUniqueWithoutCoverImageInput[]
-  updateMany?: Prisma.PostUpdateManyWithWhereWithoutCoverImageInput | Prisma.PostUpdateManyWithWhereWithoutCoverImageInput[]
-  deleteMany?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
-}
-
-export type PostUpdateManyWithoutGalleryImagesNestedInput = {
-  create?: Prisma.XOR<Prisma.PostCreateWithoutGalleryImagesInput, Prisma.PostUncheckedCreateWithoutGalleryImagesInput> | Prisma.PostCreateWithoutGalleryImagesInput[] | Prisma.PostUncheckedCreateWithoutGalleryImagesInput[]
-  connectOrCreate?: Prisma.PostCreateOrConnectWithoutGalleryImagesInput | Prisma.PostCreateOrConnectWithoutGalleryImagesInput[]
-  upsert?: Prisma.PostUpsertWithWhereUniqueWithoutGalleryImagesInput | Prisma.PostUpsertWithWhereUniqueWithoutGalleryImagesInput[]
-  set?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  disconnect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  delete?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  update?: Prisma.PostUpdateWithWhereUniqueWithoutGalleryImagesInput | Prisma.PostUpdateWithWhereUniqueWithoutGalleryImagesInput[]
-  updateMany?: Prisma.PostUpdateManyWithWhereWithoutGalleryImagesInput | Prisma.PostUpdateManyWithWhereWithoutGalleryImagesInput[]
-  deleteMany?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
-}
-
-export type PostUncheckedUpdateManyWithoutCoverImageNestedInput = {
-  create?: Prisma.XOR<Prisma.PostCreateWithoutCoverImageInput, Prisma.PostUncheckedCreateWithoutCoverImageInput> | Prisma.PostCreateWithoutCoverImageInput[] | Prisma.PostUncheckedCreateWithoutCoverImageInput[]
-  connectOrCreate?: Prisma.PostCreateOrConnectWithoutCoverImageInput | Prisma.PostCreateOrConnectWithoutCoverImageInput[]
-  upsert?: Prisma.PostUpsertWithWhereUniqueWithoutCoverImageInput | Prisma.PostUpsertWithWhereUniqueWithoutCoverImageInput[]
-  createMany?: Prisma.PostCreateManyCoverImageInputEnvelope
-  set?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  disconnect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  delete?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  update?: Prisma.PostUpdateWithWhereUniqueWithoutCoverImageInput | Prisma.PostUpdateWithWhereUniqueWithoutCoverImageInput[]
-  updateMany?: Prisma.PostUpdateManyWithWhereWithoutCoverImageInput | Prisma.PostUpdateManyWithWhereWithoutCoverImageInput[]
-  deleteMany?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
-}
-
-export type PostUncheckedUpdateManyWithoutGalleryImagesNestedInput = {
-  create?: Prisma.XOR<Prisma.PostCreateWithoutGalleryImagesInput, Prisma.PostUncheckedCreateWithoutGalleryImagesInput> | Prisma.PostCreateWithoutGalleryImagesInput[] | Prisma.PostUncheckedCreateWithoutGalleryImagesInput[]
-  connectOrCreate?: Prisma.PostCreateOrConnectWithoutGalleryImagesInput | Prisma.PostCreateOrConnectWithoutGalleryImagesInput[]
-  upsert?: Prisma.PostUpsertWithWhereUniqueWithoutGalleryImagesInput | Prisma.PostUpsertWithWhereUniqueWithoutGalleryImagesInput[]
-  set?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  disconnect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  delete?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
-  update?: Prisma.PostUpdateWithWhereUniqueWithoutGalleryImagesInput | Prisma.PostUpdateWithWhereUniqueWithoutGalleryImagesInput[]
-  updateMany?: Prisma.PostUpdateManyWithWhereWithoutGalleryImagesInput | Prisma.PostUpdateManyWithWhereWithoutGalleryImagesInput[]
-  deleteMany?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
-}
-
 export type PostCreateNestedManyWithoutAuthorInput = {
   create?: Prisma.XOR<Prisma.PostCreateWithoutAuthorInput, Prisma.PostUncheckedCreateWithoutAuthorInput> | Prisma.PostCreateWithoutAuthorInput[] | Prisma.PostUncheckedCreateWithoutAuthorInput[]
   connectOrCreate?: Prisma.PostCreateOrConnectWithoutAuthorInput | Prisma.PostCreateOrConnectWithoutAuthorInput[]
@@ -753,136 +673,84 @@ export type NullableEnumPostStatusFieldUpdateOperationsInput = {
   set?: $Enums.PostStatus | null
 }
 
-export type PostCreateWithoutCoverImageInput = {
-  title?: string
-  slug: string
-  content?: string | null
-  counter: number
-  status?: $Enums.PostStatus | null
-  tags?: string
-  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  lastActivity?: Date | string | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  author?: Prisma.UserCreateNestedOneWithoutPostsInput
-  galleryImages?: Prisma.FileCreateNestedManyWithoutGalleryImagesPostsInput
-  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedPostsInput
+export type PostCreateNestedManyWithoutCoverImageInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutCoverImageInput, Prisma.PostUncheckedCreateWithoutCoverImageInput> | Prisma.PostCreateWithoutCoverImageInput[] | Prisma.PostUncheckedCreateWithoutCoverImageInput[]
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutCoverImageInput | Prisma.PostCreateOrConnectWithoutCoverImageInput[]
+  createMany?: Prisma.PostCreateManyCoverImageInputEnvelope
+  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
 }
 
-export type PostUncheckedCreateWithoutCoverImageInput = {
-  id?: number
-  title?: string
-  slug: string
-  content?: string | null
-  counter: number
-  status?: $Enums.PostStatus | null
-  tags?: string
-  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  lastActivity?: Date | string | null
-  authorId?: number | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  createdById?: number | null
-  galleryImages?: Prisma.FileUncheckedCreateNestedManyWithoutGalleryImagesPostsInput
+export type PostCreateNestedManyWithoutGalleryImagesInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutGalleryImagesInput, Prisma.PostUncheckedCreateWithoutGalleryImagesInput> | Prisma.PostCreateWithoutGalleryImagesInput[] | Prisma.PostUncheckedCreateWithoutGalleryImagesInput[]
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutGalleryImagesInput | Prisma.PostCreateOrConnectWithoutGalleryImagesInput[]
+  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
 }
 
-export type PostCreateOrConnectWithoutCoverImageInput = {
-  where: Prisma.PostWhereUniqueInput
-  create: Prisma.XOR<Prisma.PostCreateWithoutCoverImageInput, Prisma.PostUncheckedCreateWithoutCoverImageInput>
+export type PostUncheckedCreateNestedManyWithoutCoverImageInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutCoverImageInput, Prisma.PostUncheckedCreateWithoutCoverImageInput> | Prisma.PostCreateWithoutCoverImageInput[] | Prisma.PostUncheckedCreateWithoutCoverImageInput[]
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutCoverImageInput | Prisma.PostCreateOrConnectWithoutCoverImageInput[]
+  createMany?: Prisma.PostCreateManyCoverImageInputEnvelope
+  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
 }
 
-export type PostCreateManyCoverImageInputEnvelope = {
-  data: Prisma.PostCreateManyCoverImageInput | Prisma.PostCreateManyCoverImageInput[]
+export type PostUncheckedCreateNestedManyWithoutGalleryImagesInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutGalleryImagesInput, Prisma.PostUncheckedCreateWithoutGalleryImagesInput> | Prisma.PostCreateWithoutGalleryImagesInput[] | Prisma.PostUncheckedCreateWithoutGalleryImagesInput[]
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutGalleryImagesInput | Prisma.PostCreateOrConnectWithoutGalleryImagesInput[]
+  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
 }
 
-export type PostCreateWithoutGalleryImagesInput = {
-  title?: string
-  slug: string
-  content?: string | null
-  counter: number
-  status?: $Enums.PostStatus | null
-  tags?: string
-  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  lastActivity?: Date | string | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  author?: Prisma.UserCreateNestedOneWithoutPostsInput
-  coverImage?: Prisma.FileCreateNestedOneWithoutCoverImagePostsInput
-  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedPostsInput
+export type PostUpdateManyWithoutCoverImageNestedInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutCoverImageInput, Prisma.PostUncheckedCreateWithoutCoverImageInput> | Prisma.PostCreateWithoutCoverImageInput[] | Prisma.PostUncheckedCreateWithoutCoverImageInput[]
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutCoverImageInput | Prisma.PostCreateOrConnectWithoutCoverImageInput[]
+  upsert?: Prisma.PostUpsertWithWhereUniqueWithoutCoverImageInput | Prisma.PostUpsertWithWhereUniqueWithoutCoverImageInput[]
+  createMany?: Prisma.PostCreateManyCoverImageInputEnvelope
+  set?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  disconnect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  delete?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  update?: Prisma.PostUpdateWithWhereUniqueWithoutCoverImageInput | Prisma.PostUpdateWithWhereUniqueWithoutCoverImageInput[]
+  updateMany?: Prisma.PostUpdateManyWithWhereWithoutCoverImageInput | Prisma.PostUpdateManyWithWhereWithoutCoverImageInput[]
+  deleteMany?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
 }
 
-export type PostUncheckedCreateWithoutGalleryImagesInput = {
-  id?: number
-  title?: string
-  slug: string
-  content?: string | null
-  counter: number
-  status?: $Enums.PostStatus | null
-  tags?: string
-  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  lastActivity?: Date | string | null
-  authorId?: number | null
-  coverImageId?: number | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  createdById?: number | null
+export type PostUpdateManyWithoutGalleryImagesNestedInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutGalleryImagesInput, Prisma.PostUncheckedCreateWithoutGalleryImagesInput> | Prisma.PostCreateWithoutGalleryImagesInput[] | Prisma.PostUncheckedCreateWithoutGalleryImagesInput[]
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutGalleryImagesInput | Prisma.PostCreateOrConnectWithoutGalleryImagesInput[]
+  upsert?: Prisma.PostUpsertWithWhereUniqueWithoutGalleryImagesInput | Prisma.PostUpsertWithWhereUniqueWithoutGalleryImagesInput[]
+  set?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  disconnect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  delete?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  update?: Prisma.PostUpdateWithWhereUniqueWithoutGalleryImagesInput | Prisma.PostUpdateWithWhereUniqueWithoutGalleryImagesInput[]
+  updateMany?: Prisma.PostUpdateManyWithWhereWithoutGalleryImagesInput | Prisma.PostUpdateManyWithWhereWithoutGalleryImagesInput[]
+  deleteMany?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
 }
 
-export type PostCreateOrConnectWithoutGalleryImagesInput = {
-  where: Prisma.PostWhereUniqueInput
-  create: Prisma.XOR<Prisma.PostCreateWithoutGalleryImagesInput, Prisma.PostUncheckedCreateWithoutGalleryImagesInput>
+export type PostUncheckedUpdateManyWithoutCoverImageNestedInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutCoverImageInput, Prisma.PostUncheckedCreateWithoutCoverImageInput> | Prisma.PostCreateWithoutCoverImageInput[] | Prisma.PostUncheckedCreateWithoutCoverImageInput[]
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutCoverImageInput | Prisma.PostCreateOrConnectWithoutCoverImageInput[]
+  upsert?: Prisma.PostUpsertWithWhereUniqueWithoutCoverImageInput | Prisma.PostUpsertWithWhereUniqueWithoutCoverImageInput[]
+  createMany?: Prisma.PostCreateManyCoverImageInputEnvelope
+  set?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  disconnect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  delete?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  update?: Prisma.PostUpdateWithWhereUniqueWithoutCoverImageInput | Prisma.PostUpdateWithWhereUniqueWithoutCoverImageInput[]
+  updateMany?: Prisma.PostUpdateManyWithWhereWithoutCoverImageInput | Prisma.PostUpdateManyWithWhereWithoutCoverImageInput[]
+  deleteMany?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
 }
 
-export type PostUpsertWithWhereUniqueWithoutCoverImageInput = {
-  where: Prisma.PostWhereUniqueInput
-  update: Prisma.XOR<Prisma.PostUpdateWithoutCoverImageInput, Prisma.PostUncheckedUpdateWithoutCoverImageInput>
-  create: Prisma.XOR<Prisma.PostCreateWithoutCoverImageInput, Prisma.PostUncheckedCreateWithoutCoverImageInput>
-}
-
-export type PostUpdateWithWhereUniqueWithoutCoverImageInput = {
-  where: Prisma.PostWhereUniqueInput
-  data: Prisma.XOR<Prisma.PostUpdateWithoutCoverImageInput, Prisma.PostUncheckedUpdateWithoutCoverImageInput>
-}
-
-export type PostUpdateManyWithWhereWithoutCoverImageInput = {
-  where: Prisma.PostScalarWhereInput
-  data: Prisma.XOR<Prisma.PostUpdateManyMutationInput, Prisma.PostUncheckedUpdateManyWithoutCoverImageInput>
-}
-
-export type PostScalarWhereInput = {
-  AND?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
-  OR?: Prisma.PostScalarWhereInput[]
-  NOT?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
-  id?: Prisma.IntFilter<"Post"> | number
-  title?: Prisma.StringFilter<"Post"> | string
-  slug?: Prisma.StringFilter<"Post"> | string
-  content?: Prisma.StringNullableFilter<"Post"> | string | null
-  counter?: Prisma.IntFilter<"Post"> | number
-  status?: Prisma.EnumPostStatusNullableFilter<"Post"> | $Enums.PostStatus | null
-  tags?: Prisma.StringFilter<"Post"> | string
-  jsonLd?: Prisma.JsonNullableFilter<"Post">
-  lastActivity?: Prisma.DateTimeNullableFilter<"Post"> | Date | string | null
-  authorId?: Prisma.IntNullableFilter<"Post"> | number | null
-  coverImageId?: Prisma.IntNullableFilter<"Post"> | number | null
-  updatedAt?: Prisma.DateTimeFilter<"Post"> | Date | string
-  createdAt?: Prisma.DateTimeFilter<"Post"> | Date | string
-  createdById?: Prisma.IntNullableFilter<"Post"> | number | null
-}
-
-export type PostUpsertWithWhereUniqueWithoutGalleryImagesInput = {
-  where: Prisma.PostWhereUniqueInput
-  update: Prisma.XOR<Prisma.PostUpdateWithoutGalleryImagesInput, Prisma.PostUncheckedUpdateWithoutGalleryImagesInput>
-  create: Prisma.XOR<Prisma.PostCreateWithoutGalleryImagesInput, Prisma.PostUncheckedCreateWithoutGalleryImagesInput>
-}
-
-export type PostUpdateWithWhereUniqueWithoutGalleryImagesInput = {
-  where: Prisma.PostWhereUniqueInput
-  data: Prisma.XOR<Prisma.PostUpdateWithoutGalleryImagesInput, Prisma.PostUncheckedUpdateWithoutGalleryImagesInput>
-}
-
-export type PostUpdateManyWithWhereWithoutGalleryImagesInput = {
-  where: Prisma.PostScalarWhereInput
-  data: Prisma.XOR<Prisma.PostUpdateManyMutationInput, Prisma.PostUncheckedUpdateManyWithoutGalleryImagesInput>
+export type PostUncheckedUpdateManyWithoutGalleryImagesNestedInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutGalleryImagesInput, Prisma.PostUncheckedCreateWithoutGalleryImagesInput> | Prisma.PostCreateWithoutGalleryImagesInput[] | Prisma.PostUncheckedCreateWithoutGalleryImagesInput[]
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutGalleryImagesInput | Prisma.PostCreateOrConnectWithoutGalleryImagesInput[]
+  upsert?: Prisma.PostUpsertWithWhereUniqueWithoutGalleryImagesInput | Prisma.PostUpsertWithWhereUniqueWithoutGalleryImagesInput[]
+  set?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  disconnect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  delete?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
+  update?: Prisma.PostUpdateWithWhereUniqueWithoutGalleryImagesInput | Prisma.PostUpdateWithWhereUniqueWithoutGalleryImagesInput[]
+  updateMany?: Prisma.PostUpdateManyWithWhereWithoutGalleryImagesInput | Prisma.PostUpdateManyWithWhereWithoutGalleryImagesInput[]
+  deleteMany?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
 }
 
 export type PostCreateWithoutAuthorInput = {
@@ -985,6 +853,26 @@ export type PostUpdateManyWithWhereWithoutAuthorInput = {
   data: Prisma.XOR<Prisma.PostUpdateManyMutationInput, Prisma.PostUncheckedUpdateManyWithoutAuthorInput>
 }
 
+export type PostScalarWhereInput = {
+  AND?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
+  OR?: Prisma.PostScalarWhereInput[]
+  NOT?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
+  id?: Prisma.IntFilter<"Post"> | number
+  title?: Prisma.StringFilter<"Post"> | string
+  slug?: Prisma.StringFilter<"Post"> | string
+  content?: Prisma.StringNullableFilter<"Post"> | string | null
+  counter?: Prisma.IntFilter<"Post"> | number
+  status?: Prisma.EnumPostStatusNullableFilter<"Post"> | $Enums.PostStatus | null
+  tags?: Prisma.StringFilter<"Post"> | string
+  jsonLd?: Prisma.JsonNullableFilter<"Post">
+  lastActivity?: Prisma.DateTimeNullableFilter<"Post"> | Date | string | null
+  authorId?: Prisma.IntNullableFilter<"Post"> | number | null
+  coverImageId?: Prisma.IntNullableFilter<"Post"> | number | null
+  updatedAt?: Prisma.DateTimeFilter<"Post"> | Date | string
+  createdAt?: Prisma.DateTimeFilter<"Post"> | Date | string
+  createdById?: Prisma.IntNullableFilter<"Post"> | number | null
+}
+
 export type PostUpsertWithWhereUniqueWithoutCreatedByInput = {
   where: Prisma.PostWhereUniqueInput
   update: Prisma.XOR<Prisma.PostUpdateWithoutCreatedByInput, Prisma.PostUncheckedUpdateWithoutCreatedByInput>
@@ -1001,7 +889,23 @@ export type PostUpdateManyWithWhereWithoutCreatedByInput = {
   data: Prisma.XOR<Prisma.PostUpdateManyMutationInput, Prisma.PostUncheckedUpdateManyWithoutCreatedByInput>
 }
 
-export type PostCreateManyCoverImageInput = {
+export type PostCreateWithoutCoverImageInput = {
+  title?: string
+  slug: string
+  content?: string | null
+  counter: number
+  status?: $Enums.PostStatus | null
+  tags?: string
+  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastActivity?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  author?: Prisma.UserCreateNestedOneWithoutPostsInput
+  galleryImages?: Prisma.FileCreateNestedManyWithoutGalleryImagesPostsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedPostsInput
+}
+
+export type PostUncheckedCreateWithoutCoverImageInput = {
   id?: number
   title?: string
   slug: string
@@ -1015,105 +919,86 @@ export type PostCreateManyCoverImageInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
+  galleryImages?: Prisma.FileUncheckedCreateNestedManyWithoutGalleryImagesPostsInput
 }
 
-export type PostUpdateWithoutCoverImageInput = {
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  counter?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.NullableEnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus | null
-  tags?: Prisma.StringFieldUpdateOperationsInput | string
-  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  author?: Prisma.UserUpdateOneWithoutPostsNestedInput
-  galleryImages?: Prisma.FileUpdateManyWithoutGalleryImagesPostsNestedInput
-  createdBy?: Prisma.UserUpdateOneWithoutCreatedPostsNestedInput
+export type PostCreateOrConnectWithoutCoverImageInput = {
+  where: Prisma.PostWhereUniqueInput
+  create: Prisma.XOR<Prisma.PostCreateWithoutCoverImageInput, Prisma.PostUncheckedCreateWithoutCoverImageInput>
 }
 
-export type PostUncheckedUpdateWithoutCoverImageInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  counter?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.NullableEnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus | null
-  tags?: Prisma.StringFieldUpdateOperationsInput | string
-  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  galleryImages?: Prisma.FileUncheckedUpdateManyWithoutGalleryImagesPostsNestedInput
+export type PostCreateManyCoverImageInputEnvelope = {
+  data: Prisma.PostCreateManyCoverImageInput | Prisma.PostCreateManyCoverImageInput[]
 }
 
-export type PostUncheckedUpdateManyWithoutCoverImageInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  counter?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.NullableEnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus | null
-  tags?: Prisma.StringFieldUpdateOperationsInput | string
+export type PostCreateWithoutGalleryImagesInput = {
+  title?: string
+  slug: string
+  content?: string | null
+  counter: number
+  status?: $Enums.PostStatus | null
+  tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  lastActivity?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  author?: Prisma.UserCreateNestedOneWithoutPostsInput
+  coverImage?: Prisma.FileCreateNestedOneWithoutCoverImagePostsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedPostsInput
 }
 
-export type PostUpdateWithoutGalleryImagesInput = {
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  counter?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.NullableEnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus | null
-  tags?: Prisma.StringFieldUpdateOperationsInput | string
+export type PostUncheckedCreateWithoutGalleryImagesInput = {
+  id?: number
+  title?: string
+  slug: string
+  content?: string | null
+  counter: number
+  status?: $Enums.PostStatus | null
+  tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  author?: Prisma.UserUpdateOneWithoutPostsNestedInput
-  coverImage?: Prisma.FileUpdateOneWithoutCoverImagePostsNestedInput
-  createdBy?: Prisma.UserUpdateOneWithoutCreatedPostsNestedInput
+  lastActivity?: Date | string | null
+  authorId?: number | null
+  coverImageId?: number | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
 }
 
-export type PostUncheckedUpdateWithoutGalleryImagesInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  counter?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.NullableEnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus | null
-  tags?: Prisma.StringFieldUpdateOperationsInput | string
-  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  coverImageId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+export type PostCreateOrConnectWithoutGalleryImagesInput = {
+  where: Prisma.PostWhereUniqueInput
+  create: Prisma.XOR<Prisma.PostCreateWithoutGalleryImagesInput, Prisma.PostUncheckedCreateWithoutGalleryImagesInput>
 }
 
-export type PostUncheckedUpdateManyWithoutGalleryImagesInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  counter?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.NullableEnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus | null
-  tags?: Prisma.StringFieldUpdateOperationsInput | string
-  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  coverImageId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+export type PostUpsertWithWhereUniqueWithoutCoverImageInput = {
+  where: Prisma.PostWhereUniqueInput
+  update: Prisma.XOR<Prisma.PostUpdateWithoutCoverImageInput, Prisma.PostUncheckedUpdateWithoutCoverImageInput>
+  create: Prisma.XOR<Prisma.PostCreateWithoutCoverImageInput, Prisma.PostUncheckedCreateWithoutCoverImageInput>
+}
+
+export type PostUpdateWithWhereUniqueWithoutCoverImageInput = {
+  where: Prisma.PostWhereUniqueInput
+  data: Prisma.XOR<Prisma.PostUpdateWithoutCoverImageInput, Prisma.PostUncheckedUpdateWithoutCoverImageInput>
+}
+
+export type PostUpdateManyWithWhereWithoutCoverImageInput = {
+  where: Prisma.PostScalarWhereInput
+  data: Prisma.XOR<Prisma.PostUpdateManyMutationInput, Prisma.PostUncheckedUpdateManyWithoutCoverImageInput>
+}
+
+export type PostUpsertWithWhereUniqueWithoutGalleryImagesInput = {
+  where: Prisma.PostWhereUniqueInput
+  update: Prisma.XOR<Prisma.PostUpdateWithoutGalleryImagesInput, Prisma.PostUncheckedUpdateWithoutGalleryImagesInput>
+  create: Prisma.XOR<Prisma.PostCreateWithoutGalleryImagesInput, Prisma.PostUncheckedCreateWithoutGalleryImagesInput>
+}
+
+export type PostUpdateWithWhereUniqueWithoutGalleryImagesInput = {
+  where: Prisma.PostWhereUniqueInput
+  data: Prisma.XOR<Prisma.PostUpdateWithoutGalleryImagesInput, Prisma.PostUncheckedUpdateWithoutGalleryImagesInput>
+}
+
+export type PostUpdateManyWithWhereWithoutGalleryImagesInput = {
+  where: Prisma.PostScalarWhereInput
+  data: Prisma.XOR<Prisma.PostUpdateManyMutationInput, Prisma.PostUncheckedUpdateManyWithoutGalleryImagesInput>
 }
 
 export type PostCreateManyAuthorInput = {
@@ -1244,6 +1129,121 @@ export type PostUncheckedUpdateManyWithoutCreatedByInput = {
   coverImageId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type PostCreateManyCoverImageInput = {
+  id?: number
+  title?: string
+  slug: string
+  content?: string | null
+  counter: number
+  status?: $Enums.PostStatus | null
+  tags?: string
+  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastActivity?: Date | string | null
+  authorId?: number | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+}
+
+export type PostUpdateWithoutCoverImageInput = {
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  counter?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.NullableEnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus | null
+  tags?: Prisma.StringFieldUpdateOperationsInput | string
+  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  author?: Prisma.UserUpdateOneWithoutPostsNestedInput
+  galleryImages?: Prisma.FileUpdateManyWithoutGalleryImagesPostsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedPostsNestedInput
+}
+
+export type PostUncheckedUpdateWithoutCoverImageInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  counter?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.NullableEnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus | null
+  tags?: Prisma.StringFieldUpdateOperationsInput | string
+  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  galleryImages?: Prisma.FileUncheckedUpdateManyWithoutGalleryImagesPostsNestedInput
+}
+
+export type PostUncheckedUpdateManyWithoutCoverImageInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  counter?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.NullableEnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus | null
+  tags?: Prisma.StringFieldUpdateOperationsInput | string
+  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type PostUpdateWithoutGalleryImagesInput = {
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  counter?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.NullableEnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus | null
+  tags?: Prisma.StringFieldUpdateOperationsInput | string
+  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  author?: Prisma.UserUpdateOneWithoutPostsNestedInput
+  coverImage?: Prisma.FileUpdateOneWithoutCoverImagePostsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedPostsNestedInput
+}
+
+export type PostUncheckedUpdateWithoutGalleryImagesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  counter?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.NullableEnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus | null
+  tags?: Prisma.StringFieldUpdateOperationsInput | string
+  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  coverImageId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type PostUncheckedUpdateManyWithoutGalleryImagesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  counter?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.NullableEnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus | null
+  tags?: Prisma.StringFieldUpdateOperationsInput | string
+  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  coverImageId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 

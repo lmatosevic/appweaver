@@ -28,19 +28,16 @@ export type AggregateApiKey = {
 
 export type ApiKeyAvgAggregateOutputType = {
   id: number | null
-  authId: number | null
 }
 
 export type ApiKeySumAggregateOutputType = {
   id: number | null
-  authId: number | null
 }
 
 export type ApiKeyMinAggregateOutputType = {
   id: number | null
   key: string | null
   keyHash: string | null
-  authId: number | null
   name: string | null
   description: string | null
   enabled: boolean | null
@@ -53,7 +50,6 @@ export type ApiKeyMaxAggregateOutputType = {
   id: number | null
   key: string | null
   keyHash: string | null
-  authId: number | null
   name: string | null
   description: string | null
   enabled: boolean | null
@@ -66,7 +62,6 @@ export type ApiKeyCountAggregateOutputType = {
   id: number
   key: number
   keyHash: number
-  authId: number
   name: number
   description: number
   enabled: number
@@ -79,19 +74,16 @@ export type ApiKeyCountAggregateOutputType = {
 
 export type ApiKeyAvgAggregateInputType = {
   id?: true
-  authId?: true
 }
 
 export type ApiKeySumAggregateInputType = {
   id?: true
-  authId?: true
 }
 
 export type ApiKeyMinAggregateInputType = {
   id?: true
   key?: true
   keyHash?: true
-  authId?: true
   name?: true
   description?: true
   enabled?: true
@@ -104,7 +96,6 @@ export type ApiKeyMaxAggregateInputType = {
   id?: true
   key?: true
   keyHash?: true
-  authId?: true
   name?: true
   description?: true
   enabled?: true
@@ -117,7 +108,6 @@ export type ApiKeyCountAggregateInputType = {
   id?: true
   key?: true
   keyHash?: true
-  authId?: true
   name?: true
   description?: true
   enabled?: true
@@ -217,7 +207,6 @@ export type ApiKeyGroupByOutputType = {
   id: number
   key: string
   keyHash: string
-  authId: number
   name: string | null
   description: string | null
   enabled: boolean
@@ -253,7 +242,6 @@ export type ApiKeyWhereInput = {
   id?: Prisma.IntFilter<"ApiKey"> | number
   key?: Prisma.StringFilter<"ApiKey"> | string
   keyHash?: Prisma.StringFilter<"ApiKey"> | string
-  authId?: Prisma.IntFilter<"ApiKey"> | number
   name?: Prisma.StringNullableFilter<"ApiKey"> | string | null
   description?: Prisma.StringNullableFilter<"ApiKey"> | string | null
   enabled?: Prisma.BoolFilter<"ApiKey"> | boolean
@@ -266,7 +254,6 @@ export type ApiKeyOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   key?: Prisma.SortOrder
   keyHash?: Prisma.SortOrder
-  authId?: Prisma.SortOrder
   name?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   enabled?: Prisma.SortOrder
@@ -282,7 +269,6 @@ export type ApiKeyWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.ApiKeyWhereInput[]
   NOT?: Prisma.ApiKeyWhereInput | Prisma.ApiKeyWhereInput[]
   key?: Prisma.StringFilter<"ApiKey"> | string
-  authId?: Prisma.IntFilter<"ApiKey"> | number
   name?: Prisma.StringNullableFilter<"ApiKey"> | string | null
   description?: Prisma.StringNullableFilter<"ApiKey"> | string | null
   enabled?: Prisma.BoolFilter<"ApiKey"> | boolean
@@ -295,7 +281,6 @@ export type ApiKeyOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   key?: Prisma.SortOrder
   keyHash?: Prisma.SortOrder
-  authId?: Prisma.SortOrder
   name?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   enabled?: Prisma.SortOrder
@@ -316,7 +301,6 @@ export type ApiKeyScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"ApiKey"> | number
   key?: Prisma.StringWithAggregatesFilter<"ApiKey"> | string
   keyHash?: Prisma.StringWithAggregatesFilter<"ApiKey"> | string
-  authId?: Prisma.IntWithAggregatesFilter<"ApiKey"> | number
   name?: Prisma.StringNullableWithAggregatesFilter<"ApiKey"> | string | null
   description?: Prisma.StringNullableWithAggregatesFilter<"ApiKey"> | string | null
   enabled?: Prisma.BoolWithAggregatesFilter<"ApiKey"> | boolean
@@ -328,7 +312,6 @@ export type ApiKeyScalarWhereWithAggregatesInput = {
 export type ApiKeyCreateInput = {
   key: string
   keyHash: string
-  authId: number
   name?: string | null
   description?: string | null
   enabled?: boolean
@@ -341,7 +324,6 @@ export type ApiKeyUncheckedCreateInput = {
   id?: number
   key: string
   keyHash: string
-  authId: number
   name?: string | null
   description?: string | null
   enabled?: boolean
@@ -353,7 +335,6 @@ export type ApiKeyUncheckedCreateInput = {
 export type ApiKeyUpdateInput = {
   key?: Prisma.StringFieldUpdateOperationsInput | string
   keyHash?: Prisma.StringFieldUpdateOperationsInput | string
-  authId?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -366,7 +347,6 @@ export type ApiKeyUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   key?: Prisma.StringFieldUpdateOperationsInput | string
   keyHash?: Prisma.StringFieldUpdateOperationsInput | string
-  authId?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -379,7 +359,6 @@ export type ApiKeyCreateManyInput = {
   id?: number
   key: string
   keyHash: string
-  authId: number
   name?: string | null
   description?: string | null
   enabled?: boolean
@@ -391,7 +370,6 @@ export type ApiKeyCreateManyInput = {
 export type ApiKeyUpdateManyMutationInput = {
   key?: Prisma.StringFieldUpdateOperationsInput | string
   keyHash?: Prisma.StringFieldUpdateOperationsInput | string
-  authId?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -404,7 +382,6 @@ export type ApiKeyUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   key?: Prisma.StringFieldUpdateOperationsInput | string
   keyHash?: Prisma.StringFieldUpdateOperationsInput | string
-  authId?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -417,7 +394,6 @@ export type ApiKeyCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   key?: Prisma.SortOrder
   keyHash?: Prisma.SortOrder
-  authId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
@@ -428,14 +404,12 @@ export type ApiKeyCountOrderByAggregateInput = {
 
 export type ApiKeyAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  authId?: Prisma.SortOrder
 }
 
 export type ApiKeyMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   key?: Prisma.SortOrder
   keyHash?: Prisma.SortOrder
-  authId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
@@ -448,7 +422,6 @@ export type ApiKeyMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   key?: Prisma.SortOrder
   keyHash?: Prisma.SortOrder
-  authId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
@@ -459,23 +432,6 @@ export type ApiKeyMinOrderByAggregateInput = {
 
 export type ApiKeySumOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  authId?: Prisma.SortOrder
-}
-
-export type StringFieldUpdateOperationsInput = {
-  set?: string
-}
-
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
 }
 
 export type BoolFieldUpdateOperationsInput = {
@@ -486,17 +442,12 @@ export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
 }
 
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
-}
-
 
 
 export type ApiKeySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   key?: boolean
   keyHash?: boolean
-  authId?: boolean
   name?: boolean
   description?: boolean
   enabled?: boolean
@@ -509,7 +460,6 @@ export type ApiKeySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   id?: boolean
   key?: boolean
   keyHash?: boolean
-  authId?: boolean
   name?: boolean
   description?: boolean
   enabled?: boolean
@@ -522,7 +472,6 @@ export type ApiKeySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   id?: boolean
   key?: boolean
   keyHash?: boolean
-  authId?: boolean
   name?: boolean
   description?: boolean
   enabled?: boolean
@@ -535,7 +484,6 @@ export type ApiKeySelectScalar = {
   id?: boolean
   key?: boolean
   keyHash?: boolean
-  authId?: boolean
   name?: boolean
   description?: boolean
   enabled?: boolean
@@ -544,7 +492,7 @@ export type ApiKeySelectScalar = {
   createdAt?: boolean
 }
 
-export type ApiKeyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "key" | "keyHash" | "authId" | "name" | "description" | "enabled" | "expiresAt" | "updatedAt" | "createdAt", ExtArgs["result"]["apiKey"]>
+export type ApiKeyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "key" | "keyHash" | "name" | "description" | "enabled" | "expiresAt" | "updatedAt" | "createdAt", ExtArgs["result"]["apiKey"]>
 
 export type $ApiKeyPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ApiKey"
@@ -553,7 +501,6 @@ export type $ApiKeyPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     id: number
     key: string
     keyHash: string
-    authId: number
     name: string | null
     description: string | null
     enabled: boolean
@@ -989,7 +936,6 @@ export interface ApiKeyFieldRefs {
   readonly id: Prisma.FieldRef<"ApiKey", 'Int'>
   readonly key: Prisma.FieldRef<"ApiKey", 'String'>
   readonly keyHash: Prisma.FieldRef<"ApiKey", 'String'>
-  readonly authId: Prisma.FieldRef<"ApiKey", 'Int'>
   readonly name: Prisma.FieldRef<"ApiKey", 'String'>
   readonly description: Prisma.FieldRef<"ApiKey", 'String'>
   readonly enabled: Prisma.FieldRef<"ApiKey", 'Boolean'>

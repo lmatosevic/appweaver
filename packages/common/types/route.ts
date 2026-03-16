@@ -18,6 +18,7 @@ export type RouteConfig = {
         allowList?:
           | string[]
           | ((req: any, key: string) => boolean | Promise<boolean>);
+        keyGenerator?: (req: any) => string | number | Promise<string | number>;
       };
 };
 

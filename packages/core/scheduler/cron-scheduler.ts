@@ -57,6 +57,7 @@ export class CronScheduler extends Scheduler<CronJob, CronJobParams> {
     }
 
     job.start();
+
     return true;
   }
 
@@ -67,6 +68,7 @@ export class CronScheduler extends Scheduler<CronJob, CronJobParams> {
     }
 
     await job.stop();
+
     return true;
   }
 
@@ -77,7 +79,9 @@ export class CronScheduler extends Scheduler<CronJob, CronJobParams> {
     }
 
     await job.stop();
+
     delete this._jobs[jobId];
+
     return true;
   }
 }

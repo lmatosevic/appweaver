@@ -51,6 +51,20 @@ export class Application extends LifecycleManager {
       process.exit(0);
     });
 
+    // Add unhandled rejection handler
+    process.on('unhandledRejection', async (err) => {
+      logger.fatal(err, 'Unhandled rejection');
+      await this.stop();
+      process.exit(1);
+    });
+
+    // Add uncaught exception handler
+    process.on('uncaughtException', async (err) => {
+      logger.fatal(err, 'Uncaught exception');
+      await this.stop();
+      process.exit(2);
+    });
+
     if (startServer) {
       return this._server.listen({
         port: config.SERVER_PORT,

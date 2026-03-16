@@ -49,6 +49,10 @@ export async function loadModels(
 
   const modelPaths: string[] = [];
 
+  // Add project files using a pattern
+  const projectModelPaths = await glob(modelPattern, { cwd, absolute: true });
+  modelPaths.push(...projectModelPaths);
+
   // Add exported core module resources
   modelPaths.push('@appweaver/core/resources');
 
@@ -56,10 +60,6 @@ export async function loadModels(
   for (const module of config.APP_AUTOLOAD_MODULES) {
     modelPaths.push(module);
   }
-
-  // Add project files using a pattern
-  const projectModelPaths = await glob(modelPattern, { cwd, absolute: true });
-  modelPaths.push(...projectModelPaths);
 
   for (const modelPath of modelPaths) {
     let modelExport: any;
