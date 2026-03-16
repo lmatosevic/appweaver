@@ -905,8 +905,6 @@ export abstract class ResourceService<
   > {
     const relations = {};
 
-    const createdBy = this.createdByConnect();
-
     const resourceModel = injectModel(this._client.name);
     const readModel = resourceModel.readModel;
     const relationsModel = resourceModel.relationsModel;
@@ -961,6 +959,7 @@ export abstract class ResourceService<
 
       // Map relation connections with an option to create a non-existing entity
       if (config?.createIfNotExists && value) {
+        const createdBy = this.createdByConnect(config.model);
         if (isArrayType) {
           relations[key] = {
             connectOrCreate: value.map((v: any) => ({
@@ -1022,7 +1021,14 @@ export abstract class ResourceService<
     return relations;
   }
 
-  private createdByConnect(): { connect: { id: number } } | undefined {
+  private createdByConnect(
+    resourceName?: string
+  ): { connect: { id: number } } | undefined {
+    const resourceModel = injectModel(resourceName ?? this._client.name, false);
+    if (resourceModel?.config.audit?.createdById === false) {
+      return undefined;
+    }
+
     const currentUser = currentAuthUser();
     return currentUser
       ? {
