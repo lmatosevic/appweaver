@@ -1,6 +1,5 @@
 import { Type } from '@sinclair/typebox';
 import { Value } from '@sinclair/typebox/value';
-import { loadConfigFromEnv, loadConfigFromFiles } from './config-loader';
 import {
   CacheEvictionStrategy,
   CacheInvalidationStrategy,
@@ -9,6 +8,8 @@ import {
   LogLevel,
   MemoryType
 } from '../enums';
+import { loadConfigFromEnv, loadConfigFromFiles } from './config-loader';
+import { addHelpers } from './config-helper';
 
 const configSchema = Type.Object({
   APP_ENV: Type.Union([Type.Enum(Environment), Type.String()], {
@@ -229,9 +230,11 @@ const { config: envConfig, files: envFiles } = loadConfigFromEnv(configSchema);
 const { config: jsonConfig, files: jsonFiles } =
   loadConfigFromFiles(configSchema);
 
-const config = Value.Parse(configSchema, { ...jsonConfig, ...envConfig });
-
 const configFiles = envFiles.concat(jsonFiles);
+
+const parsedConfig = Value.Parse(configSchema, { ...jsonConfig, ...envConfig });
+
+const config = addHelpers(parsedConfig);
 
 Object.freeze(config);
 
