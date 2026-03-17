@@ -1,3 +1,5 @@
+import { CONFIG_NAME } from '../constants';
+
 export type ConfigHelper = {
   env<T = string>(key: string): T | undefined;
   env<T = string>(key: string, defaultValue: T): T;
@@ -16,18 +18,28 @@ export type ConfigHelper = {
 export function addHelpers<T extends object>(
   parsedConfig: T
 ): T & ConfigHelper {
+  function extractConfigValue(key: string): any {
+    if (key in parsedConfig) {
+      return parsedConfig[key];
+    }
+    const additionalConfigKey = `_${CONFIG_NAME}_${key}`;
+    if (additionalConfigKey in parsedConfig) {
+      return parsedConfig[additionalConfigKey];
+    }
+  }
+
   /**
    * Helper function to get a value from config or process.env as a string
    */
   function env<T = string>(key: string): T | undefined;
   function env<T = string>(key: string, defaultValue: T): T;
   function env<T = string>(key: string, defaultValue?: T): T | undefined {
-    if (key in parsedConfig) {
-      const value = parsedConfig[key];
-      return Array.isArray(value) ? (value.join(',') as T) : value;
+    const value = extractConfigValue(key);
+    if (value !== undefined) {
+      return Array.isArray(value) ? (value?.join(',') as T) : value;
     }
 
-    return (process.env[key] as T) ?? defaultValue;
+    return defaultValue;
   }
 
   /**
@@ -99,7 +111,7 @@ export function addHelpers<T extends object>(
       return Array.isArray(value) ? value : [value];
     }
 
-    const envValue = process.env[key];
+    const envValue = extractConfigValue(key);
     if (envValue === undefined) {
       return defaultValue;
     }

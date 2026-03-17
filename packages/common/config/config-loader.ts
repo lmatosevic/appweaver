@@ -57,7 +57,11 @@ export function loadConfigFromEnv(schema: TObject): ConfigLoad {
     }
 
     const schemaProp = schema.properties[name];
-    if (!schemaProp || !value) {
+    if (!schemaProp) {
+      config[`_${CONFIG_NAME}_${name}`] = value;
+      continue;
+    }
+    if (!value) {
       continue;
     }
 
@@ -133,7 +137,11 @@ export function loadConfigFromFile(
 
   for (const [name, value] of Object.entries(variables)) {
     const schemaProp = schema.properties[name];
-    if (!schemaProp || value === null || value === undefined || value === '') {
+    if (!schemaProp) {
+      config[`_${CONFIG_NAME}_${name}`] = value;
+      continue;
+    }
+    if (value === null || value === undefined || value === '') {
       continue;
     }
 
