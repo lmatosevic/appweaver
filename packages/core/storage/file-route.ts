@@ -1,6 +1,6 @@
 import { FastifyReply } from 'fastify';
 import { Static } from '@sinclair/typebox';
-import { AuthType, config } from '@appweaver/common';
+import { config } from '@appweaver/common';
 import { FileService, FileStream } from './file-service';
 import { createFileAccessSchema, FileName } from './file-schema';
 import { inject } from '../context';
@@ -68,7 +68,7 @@ export function files(server: Server): void {
     '/protected/*',
     {
       schema: createFileAccessSchema(false),
-      onRequest: authenticate(AuthType.Jwt, AuthType.ApiKey, AuthType.Basic)
+      onRequest: authenticate()
     },
     async (request, reply) => {
       const data = await fileService.stream(

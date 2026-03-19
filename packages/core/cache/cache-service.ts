@@ -198,6 +198,7 @@ export class CacheService {
       .join(':');
   }
 
+  /** @internal */
   private collectAllRelations(model: ResourceModel): string[] {
     const relations: string[] = [];
 
@@ -223,6 +224,7 @@ export class CacheService {
     return relations;
   }
 
+  /** @internal */
   private traverseInclude(
     include: Record<string, RelationOutput>,
     model: ResourceModel,

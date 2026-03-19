@@ -2,10 +2,10 @@ import { AuthSource } from '@appweaver/common';
 import { Role } from './generated';
 
 export type JwtPayload = {
+  scope: string;
   username: string;
   sub: number;
   iat: number;
-  refresh?: boolean;
 };
 
 export type AuthTokens = {
@@ -15,9 +15,14 @@ export type AuthTokens = {
   refreshExpiresIn: number;
 };
 
+export type TwoFactorAuthData = {
+  authUserId: number;
+  codeHash: string;
+  purpose: string;
+};
+
 export type OAuth2State = {
   redirectToUrl: string;
-  useCookies?: boolean;
 };
 
 export type AuthUser = {
@@ -25,6 +30,7 @@ export type AuthUser = {
   email: string;
   passwordHash?: string | null;
   verifiedEmail?: boolean;
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   roles: Role[];
   logoutAt?: Date | null;
@@ -44,3 +50,8 @@ export type RegistrationDataFn<T = any> = (
   password?: string,
   additionalData?: Partial<UserAdditionalData>
 ) => T | Promise<T>;
+
+export type ValidationResult = {
+  valid: boolean;
+  message: string;
+};

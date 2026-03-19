@@ -3,12 +3,12 @@ import oauthPlugin from '@fastify/oauth2';
 import { AuthSource, config, pickProperties } from '@appweaver/common';
 import { inject } from '../../context';
 import { HttpError } from '../../errors';
-import { AuthService } from '../auth-service';
+import { AuthOTTPurpose, AuthService } from '../auth-service';
+import { OAuth2State, Server } from '../../types';
 import {
   createOAuth2CallbackSchema,
   createOAuth2RedirectSchema
-} from '../auth-schema';
-import { OAuth2State, Server } from '../../types';
+} from './oauth2-schema';
 
 export type UserInfo = {
   id: string;
@@ -43,6 +43,10 @@ export function createOAuth2Plugin(
       throw Error(`${name} OAuth2 configuration is missing`);
     }
 
+    if (server[authSource] !== undefined) {
+      throw Error(`${name} OAuth2 provider is already registered`);
+    }
+
     const authConfig = oauthPlugin[`${upperName}_CONFIGURATION`];
     if (!authConfig && !oAuth2Config.issuer) {
       throw Error(`${name} OAuth2 provider is not supported`);
@@ -70,15 +74,13 @@ export function createOAuth2Plugin(
       callbackUri: `${config.APP_HOSTNAME}${prefix}/login/${lowerName}/callback`,
       generateStateFunction: async function (request: any) {
         return authService.generateOAuth2State({
-          redirectToUrl: request.query.redirectToUrl,
-          useCookies: request.query.useCookies
+          redirectToUrl: request.query.redirectToUrl
         });
       },
       checkStateFunction: async function (request: any) {
         request.oauth2State = await authService.checkOAuth2State(
           request.query.state
         );
-
         return true;
       }
     });
@@ -110,35 +112,16 @@ export function createOAuth2Plugin(
 
         const stateData: OAuth2State = (request as any).oauth2State;
 
-        if (stateData.useCookies) {
+        if ((request.query as any).returnAuthTokens) {
           const authResponse = await authService.generateAuthTokens(authUser);
-
-          const sameSite: CookieSameSite = stateData.redirectToUrl.startsWith(
-            config.APP_HOSTNAME
-          )
-            ? 'lax'
-            : 'none';
-
-          const cookiesBase = {
-            httpOnly: false,
-            secure: config.SECURITY_OAUTH2_SECURE_COOKIES,
-            path: '/',
-            sameSite
-          };
-
-          return reply
-            .setCookie('access_token', authResponse.accessToken, {
-              ...cookiesBase,
-              maxAge: authResponse.expiresIn
-            })
-            .setCookie('refresh_token', authResponse.refreshToken, {
-              ...cookiesBase,
-              maxAge: authResponse.refreshExpiresIn
-            })
-            .redirect(stateData.redirectToUrl);
+          return reply.send(authResponse);
         }
 
-        const ott = await authService.generateOneTimeToken(authUser);
+        const ott = await authService.generateOneTimeToken(
+          AuthOTTPurpose.Authentication,
+          authUser.id,
+          config.SECURITY_AUTH_OTT_TTL
+        );
 
         const separator = stateData.redirectToUrl.includes('?') ? '&' : '?';
 

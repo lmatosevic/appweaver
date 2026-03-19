@@ -3,6 +3,13 @@ import { context } from '../../context';
 import { HttpError } from '../../errors';
 import { createOAuth2Plugin, UserInfo } from './create-oauth2-plugin';
 
+export type OAuth2UserInfo = {
+  sub: string;
+  email: string;
+  given_name: string;
+  family_name: string;
+};
+
 export const oauth2Custom = createOAuth2Plugin(AuthSource.OAuth2Custom, {
   enabled: config.SECURITY_OAUTH2_CUSTOM_ENABLED,
   clientId: config.SECURITY_OAUTH2_CUSTOM_CLIENT_ID,
@@ -20,9 +27,9 @@ async function fetchCustomUser(accessToken: string): Promise<UserInfo> {
 
   const customOauth2 = server[AuthSource.OAuth2Custom];
 
-  let data: any;
+  let data: OAuth2UserInfo;
   if (typeof customOauth2?.userinfo === 'function') {
-    data = await customOauth2.userinfo(accessToken);
+    data = (await customOauth2.userinfo(accessToken)) as OAuth2UserInfo;
   } else {
     // Fallback to direct API call if the plugin is not initialized
     const resp = await fetch(

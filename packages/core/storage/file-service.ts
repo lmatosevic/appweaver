@@ -439,6 +439,7 @@ export class FileService {
     return deletedFiles;
   }
 
+  /** @internal */
   private async deleteSafe(fileName: string): Promise<boolean> {
     let success = true;
 
@@ -462,6 +463,7 @@ export class FileService {
     return success;
   }
 
+  /** @internal */
   private async fileCount(
     resourceField: string,
     resourceName: string,
@@ -476,6 +478,7 @@ export class FileService {
     }
   }
 
+  /** @internal */
   private getFileConfig(
     resourceName?: string | null,
     resourceField?: string | null
@@ -490,6 +493,7 @@ export class FileService {
     return { ...config };
   }
 
+  /** @internal */
   private getFilePolicy(
     resourceName?: string | null,
     resourceField?: string | null

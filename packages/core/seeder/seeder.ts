@@ -86,6 +86,7 @@ export class Seeder extends LifecycleManager {
     await this.destroy();
   }
 
+  /** @internal */
   private async loadSeederFiles(): Promise<string[]> {
     const entries = await fsp.readdir(this._dirPath, { withFileTypes: true });
     return entries
@@ -97,6 +98,7 @@ export class Seeder extends LifecycleManager {
       .map((name) => path.join(this._dirPath, name));
   }
 
+  /** @internal */
   private async executeSeeder(seederFile: string): Promise<void> {
     const start = new Date();
 
@@ -144,6 +146,7 @@ export class Seeder extends LifecycleManager {
     });
   }
 
+  /** @internal */
   private async findSeedersWithoutFiles(
     seederFiles: string[]
   ): Promise<SeederRecord[]> {
@@ -155,16 +158,19 @@ export class Seeder extends LifecycleManager {
     });
   }
 
+  /** @internal */
   private async getSeeder(seederFile: string): Promise<SeederRecord | null> {
     const seederName = this.seederName(seederFile);
     return this._db.client().seeder.findFirst({ where: { seederName } });
   }
 
+  /** @internal */
   private async seederHash(seederFile: string): Promise<string> {
     const seederContent = await fsp.readFile(seederFile, 'utf8');
     return makeHash(seederContent);
   }
 
+  /** @internal */
   private seederName(seederFile: string): string {
     return path.basename(seederFile, '.js');
   }

@@ -13,15 +13,16 @@ generator client {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
+  id            Int               @id @default(autoincrement())
   firstName     String
   lastName      String
-  email         String    @unique
+  email         String            @unique
   phone         String
   secret        String?
   passwordHash  String?
-  verifiedEmail Boolean   @default(false)
-  enabled       Boolean   @default(true)
+  verifiedEmail Boolean           @default(false)
+  twoFactorAuth UserTwoFactorAuth @default(None)
+  enabled       Boolean           @default(true)
   logoutAt      DateTime?
 
   /// Related columns
@@ -163,6 +164,11 @@ model File {
   createdById Int?
 
   @@index([resourceField, resourceName, resourceId])
+}
+
+enum UserTwoFactorAuth {
+  None
+  Email
 }
 
 enum PostStatus {

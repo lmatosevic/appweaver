@@ -77,6 +77,33 @@
     "security": {
       "routePrefix": "/auth",
       "cacheTtl": 300000,
+      "authOttTtl": 120000,
+      "allowedRedirectHosts": "*",
+      "password": {
+        "enabled": true,
+        "minLength": 8,
+        "maxLength": 100,
+        "uppercase": true,
+        "lowercase": true,
+        "numeric": true,
+        "special": true
+      },
+      "account": {
+        "routePrefix": "/auth/account",
+        "verifyEmail": {
+          "enabled": true,
+          "ottTtl": 7200000
+        },
+        "resetPassword": {
+          "enabled": true,
+          "ottTtl": 1800000
+        },
+        "2fa": {
+          "enabled": true,
+          "forced": false,
+          "ottTtl": 300000
+        }
+      },
       "recaptcha": {
         "enabled": false,
         "secret": "8LcDc8AUBBBBNKcefrwaDdfDSFdsfaewf",
@@ -92,7 +119,8 @@
       "apiKey": {
         "enabled": false,
         "headerName": "x-api-key",
-        "maxDuration": null
+        "maxDuration": null,
+        "delimiter": "AK"
       },
       "jwt": {
         "secret": "GdvCFezoPIZdOAN3IQZR3JhaAZH6S6AJ",
@@ -103,6 +131,7 @@
         "refreshExpiresIn": 5184000
       },
       "oauth2": {
+        "stateTtl": 600000,
         "google": {
           "enabled": true,
           "clientId": "3255464567435-tzr346jsgh63462vdp234sodhpsfjzop.apps.googleusercontent.com",
@@ -120,11 +149,7 @@
           "clientId": "123345456723423",
           "clientSecret": "32432af767af8c7946d456a54ca5",
           "issuer": "https://keycloak.example.com/realms/my-realm"
-        },
-        "allowedHosts": "*",
-        "secureCookies": true,
-        "stateTtl": 600000,
-        "ottTtl": 120000
+        }
       }
     },
     "database": {
@@ -183,16 +208,16 @@
       "provider": "@appweaver/core/events/node-events"
     },
     "mail": {
+      "senderName": "John Doe",
+      "senderAddress": "no-reply@appweaver.com",
+      "provider": "@appweaver/core/mailer/smtp-mailer",
       "smtp": {
         "host": "mail.appweaver.com",
         "port": 587,
         "secure": false,
         "user": "no-reply@appweaver.com",
         "password": ""
-      },
-      "senderName": "John Doe",
-      "senderAddress": "no-reply@appweaver.com",
-      "provider": "@appweaver/core/mailer/smtp-mailer"
+      }
     },
     "system": {
       "adminInitialEmail": "admin@appweaver.com",

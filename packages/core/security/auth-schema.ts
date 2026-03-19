@@ -8,12 +8,12 @@ export const LoginRequest = Type.Object({
   password: Type.String({ examples: ['yourPassword123!'] })
 });
 
-export const AuthResponse = Type.Object({
+export const AuthTokensResponse = Type.Object({
   accessToken: Type.String({
-    example: ['eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJuYk92']
+    examples: ['eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJuYk92']
   }),
   refreshToken: Type.String({
-    example: ['eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJkNTBl']
+    examples: ['eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJkNTBl']
   }),
   expiresIn: Type.Number({ examples: [2592000] }),
   refreshExpiresIn: Type.Number({ examples: [5184000] })
@@ -22,8 +22,6 @@ export const AuthResponse = Type.Object({
 export const ChangePasswordRequest = Type.Object({
   currentPassword: Type.String({ examples: ['yourPassword123!'] }),
   newPassword: Type.String({
-    minLength: 8,
-    maxLength: 255,
     examples: ['yourNewPassword123!']
   })
 });
@@ -33,7 +31,7 @@ export const LogoutResponse = Type.Object({
 });
 
 export const ExchangeRequest = Type.Object({
-  token: Type.String({ examples: ['abcdefg1234567'] })
+  token: Type.String({ examples: ['aBcDeFgHijkLMnO123456789'] })
 });
 
 export const loginSchema = {
@@ -41,7 +39,7 @@ export const loginSchema = {
   summary: 'Login identity',
   description: 'Login identity',
   response: {
-    200: AuthResponse,
+    200: AuthTokensResponse,
     ...AllErrorResponses
   },
   body: LoginRequest
@@ -53,7 +51,7 @@ export const refreshSchema = {
   summary: 'Refresh identity token',
   description: 'Refresh identity token',
   response: {
-    200: AuthResponse,
+    200: AuthTokensResponse,
     ...AllErrorResponses
   }
 };
@@ -71,11 +69,11 @@ export const logoutSchema = {
 
 export const changePasswordSchema = {
   tags: ['Auth'],
-  security: authSchema([AuthType.Jwt, AuthType.ApiKey, AuthType.Basic]),
+  security: authSchema(),
   summary: 'Change identity password',
   description: 'Change identity password',
   response: {
-    200: AuthResponse,
+    200: AuthTokensResponse,
     ...AllErrorResponses
   },
   body: ChangePasswordRequest
@@ -86,16 +84,16 @@ export const exchangeTokenSchema = {
   summary: 'Exchange one time token for access token',
   description: 'Exchange one time token for access token',
   response: {
-    200: AuthResponse,
+    200: AuthTokensResponse,
     ...AllErrorResponses
   },
   body: ExchangeRequest
 };
 
-export function authSchema(authTypes: AuthType[]): any[] {
+export function authSchema(authTypes?: AuthType[]): any[] {
   const authSchemas: any[] = [];
 
-  for (const authType of authTypes) {
+  for (const authType of authTypes ?? Object.values(AuthType)) {
     switch (authType) {
       case AuthType.Basic:
         if (config.SECURITY_BASIC_ENABLED) {
@@ -136,54 +134,11 @@ export function recaptchaHeaderSchema(
 export function createCurrentAuthUserSchema(modelName: string): RouteSchema {
   return {
     tags: ['Auth'],
-    security: authSchema([AuthType.Jwt, AuthType.ApiKey, AuthType.Basic]),
+    security: authSchema(),
     summary: 'Return currently authorized identity',
     description: 'Return currently authorized identity',
     response: {
       200: Type.Ref(`${modelName}Single`),
-      ...AllErrorResponses
-    }
-  };
-}
-
-export function createOAuth2RedirectSchema(providerName: string): RouteSchema {
-  return {
-    tags: ['Auth'],
-    summary: `Redirect to ${providerName} authentication page`,
-    description: `Redirect to ${providerName} authentication page`,
-    querystring: Type.Object({
-      redirectToUrl: Type.String({
-        format: 'uri',
-        description:
-          'A URL to redirect to with set cookies or with one-time-token after ' +
-          'successful authentication. The client then needs to exchange this ' +
-          'token for an JWT access token.'
-      }),
-      useCookies: Type.Optional(
-        Type.Boolean({
-          description:
-            'Set "access_token" and "refresh_token" cookies when redirecting ' +
-            'to the provided URL on successful authentication.'
-        })
-      )
-    }),
-    response: {
-      301: {
-        description: `Redirect to ${providerName} authentication page`
-      }
-    }
-  };
-}
-
-export function createOAuth2CallbackSchema(providerName: string): RouteSchema {
-  return {
-    tags: ['Auth'],
-    summary: `Authenticate identity from ${providerName} callback`,
-    description: `Authenticate identity from ${providerName} callback`,
-    response: {
-      200: {
-        description: `OK`
-      },
       ...AllErrorResponses
     }
   };

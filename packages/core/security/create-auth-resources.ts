@@ -35,14 +35,18 @@ export function createAuthModel(config: ResourceModelConfig): ResourceModel {
       type: 'boolean',
       default: false
     },
+    twoFactorAuth: {
+      type: 'enum',
+      values: ['None', 'Email'],
+      default: 'None'
+    },
     enabled: {
       type: 'boolean',
       default: true
     },
     logoutAt: {
       type: 'dateTime',
-      required: false,
-      hidden: true
+      required: false
     }
   };
 
@@ -92,9 +96,21 @@ export function createAuthModel(config: ResourceModelConfig): ResourceModel {
       : {})
   };
 
+  const authModelInputOmit = ['verifiedEmail', 'logoutAt'];
+
   config.scalars = { ...config.scalars, ...authModelScalars };
   config.virtual = { ...config.virtual, ...authModelVirtual };
   config.relations = { ...config.relations, ...authModelRelations };
+
+  config.create = {
+    ...(config.create ?? {}),
+    omit: [...(config.create?.omit ?? []), ...authModelInputOmit]
+  };
+
+  config.update = {
+    ...(config.update ?? {}),
+    omit: [...(config.update?.omit ?? []), ...authModelInputOmit]
+  };
 
   const model = createModel(config);
 

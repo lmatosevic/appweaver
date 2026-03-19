@@ -1,7 +1,7 @@
 import {
   AuthSource,
-  CONFIG,
   config,
+  CONFIG,
   generateToken,
   logger,
   Redis,
@@ -13,7 +13,9 @@ import {
   hashPassword,
   hasPermissions,
   hasRoles,
-  resourceAuthService
+  resourceAuthService,
+  validatePasswordComplexity,
+  validateRedirectUrl
 } from './helper';
 import { context, inject } from '../context';
 import { CacheService } from '../cache';
@@ -21,28 +23,37 @@ import { HttpError } from '../errors';
 import {
   AuthTokens,
   AuthUser,
-  IResourceService,
   JwtPayload,
   OAuth2State,
   RegistrationDataFn,
-  UserAdditionalData
+  UserAdditionalData,
+  ValidationResult
 } from '../types';
 
-const OAUTH_KEY = 'auth';
+const AUTH_KEY = 'auth';
+const AUTH_OTT_KEY = `${AUTH_KEY}:ott`;
 const OAUTH2_STATE_KEY = 'oauth2:state';
-const OAUTH2_OTT_KEY = 'oauth2:ott';
+
+export enum AuthOTTPurpose {
+  Authentication = 'authentication',
+  TwoFAVerification = '2fa-verification',
+  EmailVerification = 'email-verification',
+  PasswordReset = 'password-reset'
+}
+
+export enum JWTScope {
+  Auth = 'auth',
+  TwoFA = '2fa',
+  Refresh = 'refresh'
+}
 
 export class AuthService {
   /** @internal */
-  private readonly _cacheService = inject(CacheService);
-  /** @internal */
   private readonly _redis = inject(Redis);
   /** @internal */
-  private readonly _authUserService: IResourceService<AuthUser, AuthUser>;
-
-  constructor() {
-    this._authUserService = resourceAuthService()!;
-  }
+  private readonly _cacheService = inject(CacheService);
+  /** @internal */
+  private readonly _authUserService = resourceAuthService()!;
 
   /**
    * Finds an authenticated user by their unique identifier.
@@ -58,7 +69,7 @@ export class AuthService {
       }
 
       const cacheKey = this._cacheService.buildCacheKey({
-        baseKey: `${OAUTH_KEY}:${id}`,
+        baseKey: `${AUTH_KEY}:${id}`,
         modelName: this._authUserService.modelName
       });
 
@@ -95,7 +106,7 @@ export class AuthService {
       }
 
       const cacheKey = this._cacheService.buildCacheKey({
-        baseKey: `${OAUTH_KEY}:${username}`,
+        baseKey: `${AUTH_KEY}:${username}`,
         modelName: this._authUserService.modelName
       });
 
@@ -193,11 +204,20 @@ export class AuthService {
     currentPassword: string,
     newPassword: string
   ): Promise<AuthTokens> {
+    if (!config.SECURITY_PASSWORD_ENABLED) {
+      throw new HttpError('Password update is not supported', 403);
+    }
+
     if (
       !authUser.passwordHash ||
       !(await checkPassword(currentPassword, authUser.passwordHash))
     ) {
-      throw new HttpError('Auth user current password', 403);
+      throw new HttpError('Auth user current password invalid', 403);
+    }
+
+    const result = validatePasswordComplexity(newPassword);
+    if (!result.valid) {
+      throw new HttpError(result.message, 400);
     }
 
     await this.updateAuthUser(authUser.id, {
@@ -244,42 +264,44 @@ export class AuthService {
    * @param {string} url - The URL of the resource being accessed.
    * @param {RouteConfig} [routeConfig={}] - The route configuration object specifying required roles and permissions.
    * @param {JwtPayload} [jwtPayload] - The JWT payload containing additional authentication information.
-   * @return {{ success: true } | { success: false; errorCode: number; message: string }}
-   *         Returns an object indicating success or failure of the authorization,
-   *         with an appropriate error code and message in case of failure.
+   * @throws {HttpError} If the user is not authorized to access url based on route config and JWT payload.
    */
   public authorize(
     authUser: AuthUser | null,
     url: string,
     routeConfig: RouteConfig = {},
     jwtPayload?: JwtPayload
-  ):
-    | { success: true }
-    | { success: false; errorCode: number; message: string } {
-    const refreshPath = `/${config.SECURITY_ROUTE_PREFIX}/refresh`;
-
+  ): void {
     if (
       !authUser ||
       !authUser.enabled ||
       (authUser.logoutAt &&
         jwtPayload &&
-        new Date(authUser.logoutAt).getTime() > jwtPayload?.iat) ||
-      (jwtPayload?.refresh && url !== refreshPath) ||
-      (!jwtPayload?.refresh && url === refreshPath)
+        new Date(authUser.logoutAt).getTime() > jwtPayload?.iat)
     ) {
-      return { success: false, message: 'Unauthorized access', errorCode: 401 };
+      throw new HttpError('Unauthorized access', 401);
+    }
+
+    if (
+      jwtPayload &&
+      !this.checkScopeAccess(url, jwtPayload.scope as JWTScope)
+    ) {
+      throw new HttpError(
+        `JWT token is not authorized to access this url`,
+        403
+      );
     }
 
     const { roles, permissions } = routeConfig;
     if (!hasRoles(authUser, roles) || !hasPermissions(authUser, permissions)) {
-      return { success: false, message: 'Forbidden access', errorCode: 403 };
+      throw new HttpError('Forbidden access', 403);
     }
-
-    return { success: true };
   }
 
   /**
    * Authenticates a user based on the provided username and password and generate access tokens.
+   * If 2FA is forced at configuration level or auth user has enabled 2FA, then generate JWT with 2FA scope,
+   * otherwise return regular JWT with authentication scope.
    *
    * @param {string} username - The username of the user attempting to log in.
    * @param {string} password - The password of the user attempting to log in.
@@ -289,6 +311,13 @@ export class AuthService {
    */
   public async login(username: string, password: string): Promise<AuthTokens> {
     const authUser = await this.authenticate(username, password);
+
+    if (
+      config.SECURITY_ACCOUNT_2FA_ENABLED &&
+      (config.SECURITY_ACCOUNT_2FA_FORCED || authUser.twoFactorAuth !== 'None')
+    ) {
+      return this.generateAuthTokens(authUser, JWTScope.TwoFA);
+    }
 
     return this.generateAuthTokens(authUser);
   }
@@ -301,19 +330,15 @@ export class AuthService {
    * @throws {HttpError} If the token is invalid, expired, or associated with a non-existent or disabled user.
    */
   public async exchangeToken(token: string): Promise<AuthTokens> {
-    const authUserId = await this._redis.getValue<number>(
-      `${OAUTH2_OTT_KEY}:${token}`
+    const authUserId = await this.useOneTimeToken<number>(
+      token,
+      AuthOTTPurpose.Authentication
     );
-    if (!authUserId) {
-      throw new HttpError('Invalid or expired token provided', 401);
-    }
 
     const authUser = await this.findById(authUserId);
     if (!authUser || !authUser.enabled) {
       throw new HttpError('Auth user does not exist or is disabled', 400);
     }
-
-    await this._redis.removeValue(`${OAUTH2_OTT_KEY}:${token}`);
 
     logger.debug({ id: authUser.id, token }, 'User token exchanged');
 
@@ -349,24 +374,9 @@ export class AuthService {
    * @throws {HttpError} Throws an error if the `redirectToUrl` is invalid or if the hostname is not allowed.
    */
   public async generateOAuth2State(data: OAuth2State): Promise<string> {
-    let url: URL;
-    try {
-      url = new URL(data.redirectToUrl);
-    } catch (e) {
-      throw new HttpError(
-        `Invalid format of redirectToUrl: ${data.redirectToUrl}`,
-        400
-      );
-    }
-
-    if (
-      !config.SECURITY_OAUTH2_ALLOWED_HOSTS.includes('*') &&
-      !config.SECURITY_OAUTH2_ALLOWED_HOSTS.includes(url.hostname)
-    ) {
-      throw new HttpError(
-        `The ${url.hostname} host is not allowed as a return URL`,
-        400
-      );
+    const result = validateRedirectUrl(data.redirectToUrl);
+    if (!result.valid) {
+      throw new HttpError(result.message, 400);
     }
 
     const state = uuid();
@@ -383,19 +393,60 @@ export class AuthService {
   /**
    * Generates a one-time-use token for the provided authenticated user.
    *
-   * @param {AuthUser} authUser - The authenticated user for whom the token is generated.
+   * @param {string} purpose - The purpose for which the token is generated.
+   * @param {AuthUser} data - The data to store for generated token. (Will be retrieved on token usage)
+   * @param {number} ttl - The time-to-live for the token in milliseconds.
    * @return {Promise<string>} A promise that resolves to the generated one-time token.
    */
-  public async generateOneTimeToken(authUser: AuthUser): Promise<string> {
-    const token = generateToken('bytes', 128);
+  public async generateOneTimeToken(
+    purpose: string,
+    data: any,
+    ttl: number
+  ): Promise<string> {
+    const token = generateToken('bytes', 64);
 
     await this._redis.putValue(
-      `${OAUTH2_OTT_KEY}:${token}`,
-      authUser.id,
-      config.SECURITY_OAUTH2_OTT_TTL
+      `${AUTH_OTT_KEY}:${purpose}:${token}`,
+      data,
+      ttl
     );
 
     return token;
+  }
+
+  /**
+   * Consumes a one-time token for a specific purpose. Retrieves the associated
+   * value from the token if it is valid and then invalidates the token by removing it.
+   *
+   * @param {string} token - The one-time token to be consumed.
+   * @param {string} purpose - The intended purpose of the one-time token.
+   * @param {(value: any) => boolean} [validateContent] - The optional function used to check if token content is valid.
+   * @return A promise resolving to the value associated with the token. The resolved type defaults to `any` but can
+   * be specified using generics.
+   * @throws {HttpError} - Throws an error if the token is invalid or expired.
+   */
+  public async useOneTimeToken<T = any>(
+    token: string,
+    purpose: string,
+    validateContent?: (value: T) => ValidationResult
+  ): Promise<T> {
+    const tokenKey = `${AUTH_OTT_KEY}:${purpose}:${token}`;
+    const value = await this._redis.getValue<T>(tokenKey);
+
+    if (value === null) {
+      throw new HttpError('Invalid or expired token provided', 401);
+    }
+
+    if (validateContent) {
+      const result = validateContent(value);
+      if (!result.valid) {
+        throw new HttpError(result.message, 400);
+      }
+    }
+
+    await this._redis.removeValue(tokenKey);
+
+    return value;
   }
 
   /**
@@ -403,6 +454,7 @@ export class AuthService {
    *
    * @param {AuthUser} authUser - The authenticated user for whom the tokens are to be generated.
    *                              Contains user identification and authentication details.
+   * @param {JWTScope} [scope=JWTPurpose.Auth] - The scope for which the tokens are generated.
    * @return {Promise<AuthTokens>} A promise that resolves to an object containing the generated authentication tokens:
    *                                - `accessToken` (string): The access token for API access.
    *                                - `refreshToken` (string): The refresh token for acquiring new access tokens.
@@ -410,13 +462,17 @@ export class AuthService {
    *                                - `refreshExpiresIn` (number): The expiration time (in seconds) of the refresh token.
    * @throws {HttpError} If the server instance is not initialized.
    */
-  public async generateAuthTokens(authUser: AuthUser): Promise<AuthTokens> {
+  public async generateAuthTokens(
+    authUser: AuthUser,
+    scope: JWTScope = JWTScope.Auth
+  ): Promise<AuthTokens> {
     const server = context.server;
     if (!server) {
       throw new HttpError('Server instance not initialized');
     }
 
     const jwtPayload: JwtPayload = {
+      scope,
       username: authUser.email,
       sub: authUser.id,
       iat: new Date().getTime()
@@ -427,7 +483,7 @@ export class AuthService {
 
     const accessToken = server.jwt.sign(jwtPayload, { expiresIn });
     const refreshToken = server.jwt.sign(
-      { ...jwtPayload, refresh: true },
+      { ...jwtPayload, scope: JWTScope.Refresh },
       { expiresIn: refreshExpiresIn }
     );
 
@@ -444,10 +500,59 @@ export class AuthService {
    * successful.
    */
   public async logout(id: number): Promise<boolean> {
-    await this._cacheService.removeCachedValue(`${OAUTH_KEY}:${id}`);
+    await this._cacheService.removeCachedValue(`${AUTH_KEY}:${id}`);
 
     logger.debug({ id }, 'User logout');
 
     return !!(await this.updateAuthUser(id, { logoutAt: new Date() }));
+  }
+
+  /**
+   * Checks whether the provided URL is accessible based on the user's JWT payload `scope` property.
+   *
+   * @param {string} url - The URL path being accessed.
+   * @param {JWTScope} jwtScope - The `scope` property from the decoded JWT payload.
+   * @return {boolean} Returns true if the URL is accessible based on the scope; false otherwise.
+   */
+  public checkScopeAccess(url: string, jwtScope: JWTScope): boolean {
+    const securityPrefix = config.SECURITY_ROUTE_PREFIX.replace(/\/$/, '');
+    const accountPrefix = config.SECURITY_ACCOUNT_ROUTE_PREFIX.replace(
+      /\/$/,
+      ''
+    );
+
+    const refreshPath = `${securityPrefix}/refresh`;
+    const twoFASendPath = `${accountPrefix}/2fa-send-code`;
+    const twoFAVerifyPath = `${accountPrefix}/verify-2fa-code`;
+
+    const scopeConfigs = [
+      {
+        scope: JWTScope.Auth,
+        allowedPaths: ['*'],
+        disallowedPaths: [refreshPath, twoFASendPath, twoFAVerifyPath]
+      },
+      {
+        scope: JWTScope.Refresh,
+        allowedPaths: [refreshPath],
+        disallowedPaths: ['*']
+      },
+      {
+        scope: JWTScope.TwoFA,
+        allowedPaths: [twoFASendPath, twoFAVerifyPath],
+        disallowedPaths: ['*']
+      }
+    ];
+
+    const scopeConfig = scopeConfigs.find(({ scope }) => scope === jwtScope);
+    if (!scopeConfig) {
+      return false;
+    }
+
+    const { allowedPaths, disallowedPaths } = scopeConfig;
+
+    const isPathIncluded = (paths: string[]) =>
+      paths.includes(url) || paths.includes('*');
+
+    return !(!isPathIncluded(allowedPaths) || isPathIncluded(disallowedPaths));
   }
 }

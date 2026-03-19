@@ -43,10 +43,8 @@ export function resourceRoutes(
     'fileDelete'
   ];
 
-  const defaultAuthTypes = [AuthType.Jwt, AuthType.ApiKey, AuthType.Basic];
-
   const routeAuthTypes = routeNames.reduce<
-    Record<keyof ResourceRoutesConfig, AuthType[]>
+    Record<keyof ResourceRoutesConfig, AuthType[] | undefined>
   >((acc, routeName) => {
     const config = routeConfig(routeName);
     if (config?.public || config?.auth?.length === 0) {
@@ -54,7 +52,7 @@ export function resourceRoutes(
     } else if (config?.auth && config.auth.length > 0) {
       acc[routeName] = config.auth as AuthType[];
     } else {
-      acc[routeName] = defaultAuthTypes;
+      acc[routeName] = undefined;
     }
     return acc;
   }, {} as any);
@@ -80,9 +78,7 @@ export function resourceRoutes(
 
     const routeAuth = (config: RouteConfig | undefined) =>
       [
-        config?.public
-          ? undefined
-          : authenticate(...((config?.auth as AuthType[]) ?? defaultAuthTypes)),
+        config?.public ? undefined : authenticate(config?.auth as AuthType[]),
         config?.recaptcha || config?.recaptchaAction ? recaptcha : undefined
       ].filter((v) => v !== undefined);
 
@@ -100,7 +96,7 @@ export function resourceRoutes(
         async (request, reply) => {
           const response = await service.find(request.params.id);
 
-          return reply.status(200).send(response);
+          return reply.send(response);
         }
       );
     }
@@ -118,7 +114,7 @@ export function resourceRoutes(
           const { page, size, sort, ...body } = request.body as any;
           const response = await service.query(body.filter, page, size, sort);
 
-          return reply.status(200).send(response);
+          return reply.send(response);
         }
       );
     }
@@ -145,7 +141,7 @@ export function resourceRoutes(
             safeIncrement
           );
 
-          return reply.status(200).send(response);
+          return reply.send(response);
         }
       );
     }
@@ -182,7 +178,7 @@ export function resourceRoutes(
             request.body as any
           );
 
-          return reply.status(200).send(response);
+          return reply.send(response);
         }
       );
     }
@@ -199,7 +195,7 @@ export function resourceRoutes(
         async (request, reply) => {
           const response = await service.delete(request.params.id);
 
-          return reply.status(200).send(response);
+          return reply.send(response);
         }
       );
     }
@@ -222,7 +218,6 @@ export function resourceRoutes(
           );
 
           return reply
-            .status(200)
             .type(response.mimeType)
             .header(
               'Content-Disposition',
@@ -257,7 +252,7 @@ export function resourceRoutes(
             service.client
           );
 
-          return reply.status(200).send(aggregateFiles(files, config));
+          return reply.send(aggregateFiles(files, config));
         }
       );
     }
@@ -285,7 +280,7 @@ export function resourceRoutes(
             service.client
           );
 
-          return reply.status(200).send(aggregateFiles(files, config));
+          return reply.send(aggregateFiles(files, config));
         }
       );
     }

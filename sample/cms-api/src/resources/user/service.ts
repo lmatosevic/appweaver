@@ -9,6 +9,7 @@ export default createAuthService<UserCreate>({
       password: password ?? '',
       firstName: data?.firstName ?? '',
       lastName: data?.lastName ?? '',
+      twoFactorAuth: 'None',
       phone: '',
       roles: [{ id: 1 }]
     };

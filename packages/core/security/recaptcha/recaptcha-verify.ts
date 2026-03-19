@@ -1,4 +1,5 @@
 import { config, logger } from '@appweaver/common';
+import { HttpError } from '../../errors';
 
 type ReCaptchaResponse = {
   success: boolean;
@@ -6,26 +7,13 @@ type ReCaptchaResponse = {
   action: string;
 };
 
-export type ReCaptchaResult =
-  | { success: true }
-  | { success: false; message: string; code: number };
-
 export async function recaptchaVerify(
   token: string,
   remoteIp?: string,
   action?: string
-): Promise<ReCaptchaResult> {
+): Promise<void> {
   const params = new URLSearchParams();
-
-  if (!config.SECURITY_RECAPTCHA_SECRET) {
-    return {
-      success: false,
-      message: 'reCAPTCHA secret is not set',
-      code: 500
-    };
-  }
-
-  params.set('secret', config.SECURITY_RECAPTCHA_SECRET);
+  params.set('secret', config.SECURITY_RECAPTCHA_SECRET!);
   params.set('response', token);
   if (remoteIp) {
     params.set('remoteip', remoteIp);
@@ -39,7 +27,7 @@ export async function recaptchaVerify(
 
   if (!resp.ok) {
     logger.error(`reCAPTCHA request failed: ${resp.statusText}`);
-    return { success: false, message: 'reCAPTCHA request failed', code: 500 };
+    throw new HttpError('reCAPTCHA request failed', 500);
   }
 
   const data: ReCaptchaResponse = await resp.json();
@@ -47,20 +35,14 @@ export async function recaptchaVerify(
   logger.debug(data, 'reCAPTCHA verified');
 
   if (!data.success) {
-    return {
-      success: false,
-      message: 'reCAPTCHA invalid token',
-      code: 400
-    };
+    throw new HttpError('reCAPTCHA invalid token', 400);
   }
 
   if (action && data.action !== action) {
-    return { success: false, message: 'reCAPTCHA action mismatch', code: 403 };
+    throw new HttpError('reCAPTCHA action mismatch', 403);
   }
 
   if (data.score < config.SECURITY_RECAPTCHA_MIN_SCORE) {
-    return { success: false, message: 'reCAPTCHA low score', code: 403 };
+    throw new HttpError('reCAPTCHA low score', 403);
   }
-
-  return { success: true };
 }

@@ -124,8 +124,12 @@ export function loadProvider(
   }
 
   // Extract class constructor from the exported value and add it to definitions
-  const ctor = Object.values(value)[0];
-  define(ctor, definition);
+  const ctor = Object.values(value).find((exportedValue) =>
+    isConstructor(exportedValue)
+  );
+  // Define the first found class constructor, if no constructor found then
+  // define anything that was first exported from this file
+  define(ctor ?? Object.values(value)[0], definition);
 }
 
 /**

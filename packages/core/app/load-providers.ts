@@ -36,6 +36,7 @@ export function loadProviders(baseDir: string): void {
   loadProvider(baseDir, '../cache/cache-service');
   loadProvider(baseDir, '../storage/file-service');
   loadProvider(baseDir, '../security/auth-service');
+  loadProvider(baseDir, '../security/account/account-service');
   loadProvider(baseDir, '../export/export-service');
   loadProvider(baseDir, '../health/health-service');
 }

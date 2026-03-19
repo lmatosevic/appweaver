@@ -1,7 +1,7 @@
 import { Type } from '@sinclair/typebox';
 
 export const ErrorResponse = Type.Object({
-  errorCode: Type.Integer({ examples: [404] }),
+  errorCode: Type.Integer({ examples: [400] }),
   message: Type.String({ examples: ['Error description'] })
 });
 

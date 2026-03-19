@@ -26,17 +26,32 @@ export const apiKeyAuth = fastifyPlugin(
         );
       }
 
-      const keyHash = makeHash(String(key).trim());
+      const sanitizedApiKey = String(key).trim();
+
+      // Use configured delimiter to split an API key and separate ID from the
+      // rest of the key value
+      const apiKeyParts = sanitizedApiKey.split(
+        config.SECURITY_API_KEY_DELIMITER
+      );
+      const apiKeyId = parseInt(apiKeyParts.shift() ?? '', 10);
+      const apiKeyValue = apiKeyParts.join(config.SECURITY_API_KEY_DELIMITER);
+
       const cacheKey = cacheService.buildCacheKey({
-        baseKey: `apikey:${keyHash}`,
+        baseKey: `apikey:${apiKeyId}`,
         modelName: 'ApiKey'
       });
 
       let apiKey = await cacheService.getCachedValue<ApiKey>(cacheKey);
       if (!apiKey) {
-        apiKey = await db.client().apiKey.findFirst({ where: { keyHash } });
+        apiKey = await db
+          .client()
+          .apiKey.findFirst({ where: { id: apiKeyId } });
 
-        if (!apiKey || !apiKey.enabled) {
+        if (
+          !apiKey ||
+          !apiKey.enabled ||
+          apiKey.keyHash !== makeHash(apiKeyValue)
+        ) {
           throw new HttpError(`Invalid API key`, 401);
         }
 
@@ -59,15 +74,7 @@ export const apiKeyAuth = fastifyPlugin(
         apiKey[`${authModelField}Id`]
       );
 
-      const result = authService.authorize(
-        authUser,
-        request.url,
-        request.routeOptions.config
-      );
-
-      if (!result.success) {
-        throw new HttpError(result.message, result.errorCode);
-      }
+      authService.authorize(authUser, request.url, request.routeOptions.config);
 
       requestContext.set('apiKey', apiKey);
       requestContext.set('authUser', authUser);

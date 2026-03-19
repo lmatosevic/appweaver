@@ -5,6 +5,7 @@ import { HttpError } from '../errors';
 import { Server } from '../types';
 import { currentAuthUser } from './helper';
 import { authRoutes } from './auth-routes';
+import { accountRoutes } from './account';
 import { recaptcha } from './recaptcha';
 import { basicAuth } from './basic';
 import { apiKeyAuth } from './api-key';
@@ -28,36 +29,42 @@ export default fastifyPlugin((server: Server): void => {
 
   server.register(jwtAuth);
 
+  // Load and register all plugins exported from oauth2 dir, plugin enabled
+  // status and required config values are checked at plugin initialization
   for (const oauth2Plugin of Object.values(oauth2Plugins)) {
     server.register(oauth2Plugin);
   }
 
   server.register(authRoutes, { prefix: config.SECURITY_ROUTE_PREFIX });
 
-  server.decorate('authenticate', (...authTypes: AuthType[]) => {
+  server.register(accountRoutes, {
+    prefix: config.SECURITY_ACCOUNT_ROUTE_PREFIX
+  });
+
+  server.decorate('authenticate', (authTypes?: AuthType[]) => {
     const { auth, authenticateJWT, authenticateApiKey, basicAuth } = server;
 
-    const auths: any[] = [];
+    const authHandlers: any[] = [];
 
-    for (const authType of authTypes) {
+    for (const authType of authTypes ?? Object.values(AuthType)) {
       switch (authType) {
         case AuthType.Jwt:
-          auths.push(authenticateJWT);
+          authHandlers.push(authenticateJWT);
           break;
         case AuthType.ApiKey:
           if (config.SECURITY_API_KEY_ENABLED) {
-            auths.push(authenticateApiKey);
+            authHandlers.push(authenticateApiKey);
           }
           break;
         case AuthType.Basic:
           if (config.SECURITY_BASIC_ENABLED) {
-            auths.push(basicAuth);
+            authHandlers.push(basicAuth);
           }
           break;
       }
     }
 
-    return auth(auths, { relation: 'or' });
+    return auth(authHandlers, { relation: 'or' });
   });
 
   server.decorate('currentUser', () => {

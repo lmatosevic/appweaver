@@ -23,14 +23,17 @@ export class EmailService {
     await this._mailQueue.sendJob(email);
   }
 
+  /** @internal */
   private async processEmail(job: QueueJob<Email, boolean>): Promise<boolean> {
     return await this._mailer.sendEmail(job.data);
   }
 
+  /** @internal */
   private onEmailSent(job: QueueJob<Email, boolean>): void {
     logger.debug(`E-mail '${job.data.subject}' sent successfully`);
   }
 
+  /** @internal */
   private onEmailError(
     job: QueueJob<Email, boolean> | undefined,
     error: Error

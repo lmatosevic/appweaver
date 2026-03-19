@@ -14,7 +14,7 @@ declare module 'fastify' {
     recaptcha: (request: FastifyRequest, reply: FastifyReply) => void;
     authenticateJWT: (request: FastifyRequest, reply: FastifyReply) => void;
     authenticateApiKey: (request: FastifyRequest, reply: FastifyReply) => void;
-    authenticate: (...authTypes: AuthType[]) => any;
+    authenticate: (authTypes?: AuthType[]) => any;
     currentUser: () => AuthUser;
   }
 }

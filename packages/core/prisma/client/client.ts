@@ -45,6 +45,11 @@ export { Prisma }
  */
 export type File = Prisma.FileModel
 /**
+ * Model Seeder
+ * 
+ */
+export type Seeder = Prisma.SeederModel
+/**
  * Model Role
  * 
  */
@@ -59,8 +64,3 @@ export type Permission = Prisma.PermissionModel
  * 
  */
 export type ApiKey = Prisma.ApiKeyModel
-/**
- * Model Seeder
- * 
- */
-export type Seeder = Prisma.SeederModel

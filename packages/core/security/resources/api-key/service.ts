@@ -36,6 +36,7 @@ export default config.SECURITY_API_KEY_ENABLED
       afterCreate: async (data: ApiKey) => {
         const service = injectService('ApiKey');
         await service.update(data.id, { key: `...${data.key.slice(-6)}` });
+        data.key = `${data.id}${config.SECURITY_API_KEY_DELIMITER}${data.key}`;
       }
     })
   : undefined;

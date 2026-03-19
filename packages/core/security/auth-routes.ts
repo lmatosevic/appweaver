@@ -32,7 +32,7 @@ export function authRoutes(server: Server): void {
 
       const authResponse = await authService.login(username, password);
 
-      return reply.status(200).send(authResponse);
+      return reply.send(authResponse);
     }
   );
 
@@ -40,7 +40,7 @@ export function authRoutes(server: Server): void {
     '/refresh',
     {
       schema: refreshSchema,
-      onRequest: authenticate(AuthType.Jwt),
+      onRequest: authenticate([AuthType.Jwt]),
       config: {
         rateLimit: {
           max: 12
@@ -52,7 +52,7 @@ export function authRoutes(server: Server): void {
 
       const authResponse = await authService.generateAuthTokens(authUser);
 
-      return reply.status(200).send(authResponse);
+      return reply.send(authResponse);
     }
   );
 
@@ -60,14 +60,14 @@ export function authRoutes(server: Server): void {
     '/logout',
     {
       schema: logoutSchema,
-      onRequest: authenticate(AuthType.Jwt)
+      onRequest: authenticate([AuthType.Jwt])
     },
     async (_, reply) => {
       const authUser = currentUser();
 
       const success = await authService.logout(authUser.id);
 
-      return reply.status(200).send({ success });
+      return reply.send({ success });
     }
   );
 
@@ -75,7 +75,7 @@ export function authRoutes(server: Server): void {
     '/change-password',
     {
       schema: changePasswordSchema,
-      onRequest: authenticate(AuthType.Jwt, AuthType.ApiKey, AuthType.Basic),
+      onRequest: authenticate(),
       config: {
         rateLimit: {
           max: 12
@@ -91,7 +91,7 @@ export function authRoutes(server: Server): void {
         request.body.newPassword
       );
 
-      return reply.status(200).send(authResponse);
+      return reply.send(authResponse);
     }
   );
 
@@ -110,7 +110,7 @@ export function authRoutes(server: Server): void {
 
       const authResponse = await authService.exchangeToken(token);
 
-      return reply.status(200).send(authResponse);
+      return reply.send(authResponse);
     }
   );
 
@@ -120,12 +120,12 @@ export function authRoutes(server: Server): void {
       '/me',
       {
         schema: createCurrentAuthUserSchema(authUserModel.name),
-        onRequest: authenticate(AuthType.Jwt, AuthType.ApiKey, AuthType.Basic)
+        onRequest: authenticate()
       },
       async (_, reply) => {
         const authUser = currentUser();
 
-        return reply.status(200).send(authUser);
+        return reply.send(authUser);
       }
     );
   }

@@ -53,16 +53,12 @@ export const jwtAuth = fastifyPlugin(async (server: Server): Promise<void> => {
       throw new HttpError('Authentication error', 401, e);
     }
 
-    const result = authService.authorize(
+    authService.authorize(
       authUser,
       request.url,
       request.routeOptions.config,
       payload
     );
-
-    if (!result.success) {
-      throw new HttpError(result.message, result.errorCode);
-    }
 
     requestContext.set('authUser', authUser);
   });

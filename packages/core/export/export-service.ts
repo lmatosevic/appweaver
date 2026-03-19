@@ -93,6 +93,7 @@ export class ExportService {
     return { stream: exportStream, mimeType: 'text/csv', fileName };
   }
 
+  /** @internal */
   private mapProperties(resourceName: string, items: any[]): any[] {
     const properties: any[] = [];
 
@@ -104,6 +105,7 @@ export class ExportService {
     return properties;
   }
 
+  /** @internal */
   private mapProperty(
     resourceName: string,
     item: any,
@@ -206,6 +208,7 @@ export class ExportService {
     return property;
   }
 
+  /** @internal */
   private generateExportFileName(modelName: string, extension: string): string {
     return generateFileName(
       `${plural(modelName)}.${extension}`,

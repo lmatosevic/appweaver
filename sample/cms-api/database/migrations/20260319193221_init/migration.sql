@@ -8,6 +8,7 @@ CREATE TABLE "User" (
     "secret" TEXT,
     "passwordHash" TEXT,
     "verifiedEmail" BOOLEAN NOT NULL DEFAULT false,
+    "twoFactorAuth" TEXT NOT NULL DEFAULT 'None',
     "enabled" BOOLEAN NOT NULL DEFAULT true,
     "logoutAt" DATETIME,
     "avatarId" INTEGER,

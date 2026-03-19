@@ -7,6 +7,10 @@ import { recaptchaVerify } from './recaptcha-verify';
 
 export const recaptcha = fastifyPlugin(
   async (server: Server): Promise<void> => {
+    if (!config.SECURITY_RECAPTCHA_SECRET) {
+      throw Error('reCAPTCHA secret is not set');
+    }
+
     server.decorate('recaptcha', async (request: FastifyRequest) => {
       const token =
         request.headers[config.SECURITY_RECAPTCHA_HEADER_NAME.toLowerCase()];
@@ -17,15 +21,11 @@ export const recaptcha = fastifyPlugin(
         );
       }
 
-      const result = await recaptchaVerify(
+      await recaptchaVerify(
         String(token).trim(),
         request.ip,
         request.routeOptions.config.recaptchaAction
       );
-
-      if (!result.success) {
-        throw new HttpError(result.message, result.code);
-      }
     });
   }
 );

@@ -4,7 +4,6 @@ import { requestContext } from '@fastify/request-context';
 import { config } from '@appweaver/common';
 import { inject } from '../../context';
 import { AuthService } from '../auth-service';
-import { HttpError } from '../../errors';
 import { Server } from '../../types';
 
 export const basicAuth = fastifyPlugin(
@@ -19,15 +18,11 @@ export const basicAuth = fastifyPlugin(
       validate: async (username, password, request) => {
         const authUser = await authService.authenticate(username, password);
 
-        const result = authService.authorize(
+        authService.authorize(
           authUser,
           request.url,
           request.routeOptions.config
         );
-
-        if (!result.success) {
-          throw new HttpError(result.message, result.errorCode);
-        }
 
         requestContext.set('authUser', authUser);
       }

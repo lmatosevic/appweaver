@@ -9,6 +9,7 @@ export type User = {
   secret?: string | null;
   passwordHash?: string | null;
   verifiedEmail: boolean;
+  twoFactorAuth: 'None' | 'Email';
   enabled: boolean;
   logoutAt?: Date | null;
   active: boolean;
@@ -29,7 +30,9 @@ export type UserSingle = {
   email: string;
   phone: string;
   verifiedEmail: boolean;
+  twoFactorAuth: 'None' | 'Email';
   enabled: boolean;
+  logoutAt?: Date | null;
   active: boolean;
   updatedAt: Date;
   createdAt: Date;
@@ -46,7 +49,9 @@ export type UserMultiple = {
   email: string;
   phone: string;
   verifiedEmail: boolean;
+  twoFactorAuth: 'None' | 'Email';
   enabled: boolean;
+  logoutAt?: Date | null;
   active: boolean;
   updatedAt: Date;
   createdAt: Date;
@@ -61,7 +66,7 @@ export type UserCreate = {
   lastName: string;
   email: string;
   phone: string;
-  verifiedEmail?: boolean;
+  twoFactorAuth: 'None' | 'Email';
   enabled?: boolean;
   active?: boolean;
   password: string;
@@ -83,7 +88,7 @@ export type UserUpdate = {
   lastName?: string;
   email?: string;
   phone?: string;
-  verifiedEmail?: boolean;
+  twoFactorAuth: 'None' | 'Email';
   enabled?: boolean;
   active?: boolean;
   password?: string;

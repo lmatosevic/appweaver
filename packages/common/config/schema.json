@@ -336,6 +336,107 @@
               "type": "integer",
               "default": 300000
             },
+            "authOttTtl": {
+              "type": "integer",
+              "default": 120000
+            },
+            "allowedRedirectHosts": {
+              "oneOf": [
+                { "type": "string" },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "default": ["*"]
+            },
+            "password": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "minLength": {
+                  "type": "integer",
+                  "default": 8
+                },
+                "maxLength": {
+                  "type": "integer",
+                  "default": 100
+                },
+                "uppercase": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "lowercase": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "numeric": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "special": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            },
+            "account": {
+              "type": "object",
+              "properties": {
+                "routePrefix": {
+                  "type": "string",
+                  "default": "/auth/account"
+                },
+                "verifyEmail": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "ottTtl": {
+                      "type": "integer",
+                      "default": 7200000
+                    }
+                  }
+                },
+                "resetPassword": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "ottTtl": {
+                      "type": "integer",
+                      "default": 1800000
+                    }
+                  }
+                },
+                "2fa": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "forced": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "ottTtl": {
+                      "type": "integer",
+                      "default": 300000
+                    }
+                  }
+                }
+              }
+            },
             "recaptcha": {
               "type": "object",
               "properties": {
@@ -389,6 +490,10 @@
                 },
                 "maxDuration": {
                   "type": ["integer", "null"]
+                },
+                "delimiter": {
+                  "type": "string",
+                  "default": "AK"
                 }
               }
             },
@@ -423,6 +528,10 @@
             "oauth2": {
               "type": "object",
               "properties": {
+                "stateTtl": {
+                  "type": "integer",
+                  "default": 600000
+                },
                 "google": {
                   "type": "object",
                   "properties": {
@@ -478,30 +587,6 @@
                       "type": "string"
                     }
                   }
-                },
-                "allowedHosts": {
-                  "oneOf": [
-                    { "type": "string" },
-                    {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  ],
-                  "default": ["*"]
-                },
-                "secureCookies": {
-                  "type": "boolean",
-                  "default": true
-                },
-                "stateTtl": {
-                  "type": "integer",
-                  "default": 600000
-                },
-                "ottTtl": {
-                  "type": "integer",
-                  "default": 120000
                 }
               }
             }
@@ -706,6 +791,16 @@
         "mail": {
           "type": "object",
           "properties": {
+            "senderName": {
+              "type": ["string", "null"]
+            },
+            "senderAddress": {
+              "type": ["string", "null"]
+            },
+            "provider": {
+              "type": "string",
+              "default": "@appweaver/core/mailer/smtp-mailer"
+            },
             "smtp": {
               "type": "object",
               "properties": {
@@ -728,16 +823,6 @@
                   "type": ["string", "null"]
                 }
               }
-            },
-            "senderName": {
-              "type": ["string", "null"]
-            },
-            "senderAddress": {
-              "type": ["string", "null"]
-            },
-            "provider": {
-              "type": "string",
-              "default": "@appweaver/core/mailer/smtp-mailer"
             }
           }
         },

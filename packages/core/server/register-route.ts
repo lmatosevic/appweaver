@@ -60,8 +60,6 @@ export function registerRoute(
         }
       });
 
-      const defaultAuthTypes = [AuthType.Jwt, AuthType.ApiKey, AuthType.Basic];
-
       const recaptchaHeader = recaptchaHeaderSchema({
         recaptcha: config?.recaptcha,
         recaptchaAction: config?.recaptchaAction
@@ -74,7 +72,7 @@ export function registerRoute(
           ...route.schema,
           security: config?.public
             ? []
-            : authSchema((config?.auth as AuthType[]) ?? defaultAuthTypes),
+            : authSchema(config?.auth as AuthType[]),
           headers: route.schema?.headers
             ? Type.Composite([
                 recaptchaHeader,
@@ -87,11 +85,7 @@ export function registerRoute(
           }
         },
         onRequest: [
-          config?.public
-            ? undefined
-            : authenticate(
-                ...((config?.auth as AuthType[]) ?? defaultAuthTypes)
-              ),
+          config?.public ? undefined : authenticate(config?.auth as AuthType[]),
           config?.recaptcha || config?.recaptchaAction ? recaptcha : undefined,
           ...(isArray(route.onRequest) ? route.onRequest : [route.onRequest])
         ].filter((h) => h !== undefined),

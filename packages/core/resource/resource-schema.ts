@@ -58,7 +58,7 @@ export const AggregateResponseData = Type.Optional(
 
 export function createSchema(
   name: string,
-  routeAuthTypes: Record<keyof ResourceRoutesConfig, AuthType[]>,
+  routeAuthTypes: Record<keyof ResourceRoutesConfig, AuthType[] | undefined>,
   routeRecaptcha: Record<keyof ResourceRoutesConfig, RecaptchaConfig>
 ): ResourceSchemaConfig {
   const resourceModel = injectModel(name);

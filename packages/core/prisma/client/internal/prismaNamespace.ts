@@ -80,12 +80,12 @@ export type PrismaVersion = {
 }
 
 /**
- * Prisma Client JS version: 7.4.2
- * Query Engine version: 94a226be1cf2967af2541cca5529f0f7ba866919
+ * Prisma Client JS version: 7.5.0
+ * Query Engine version: 280c870be64f457428992c43c1f6d557fab6e29e
  */
 export const prismaVersion: PrismaVersion = {
-  client: "7.4.2",
-  engine: "94a226be1cf2967af2541cca5529f0f7ba866919"
+  client: "7.5.0",
+  engine: "280c870be64f457428992c43c1f6d557fab6e29e"
 }
 
 /**
@@ -385,10 +385,10 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   File: 'File',
+  Seeder: 'Seeder',
   Role: 'Role',
   Permission: 'Permission',
-  ApiKey: 'ApiKey',
-  Seeder: 'Seeder'
+  ApiKey: 'ApiKey'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -404,7 +404,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "file" | "role" | "permission" | "apiKey" | "seeder"
+    modelProps: "file" | "seeder" | "role" | "permission" | "apiKey"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -479,6 +479,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.FileCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.FileCountAggregateOutputType> | number
+        }
+      }
+    }
+    Seeder: {
+      payload: Prisma.$SeederPayload<ExtArgs>
+      fields: Prisma.SeederFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SeederFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SeederFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        findFirst: {
+          args: Prisma.SeederFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SeederFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        findMany: {
+          args: Prisma.SeederFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>[]
+        }
+        create: {
+          args: Prisma.SeederCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        createMany: {
+          args: Prisma.SeederCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SeederCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>[]
+        }
+        delete: {
+          args: Prisma.SeederDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        update: {
+          args: Prisma.SeederUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        deleteMany: {
+          args: Prisma.SeederDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SeederUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SeederUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>[]
+        }
+        upsert: {
+          args: Prisma.SeederUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
+        }
+        aggregate: {
+          args: Prisma.SeederAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSeeder>
+        }
+        groupBy: {
+          args: Prisma.SeederGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SeederGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SeederCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SeederCountAggregateOutputType> | number
         }
       }
     }
@@ -704,80 +778,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    Seeder: {
-      payload: Prisma.$SeederPayload<ExtArgs>
-      fields: Prisma.SeederFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.SeederFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.SeederFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
-        }
-        findFirst: {
-          args: Prisma.SeederFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.SeederFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
-        }
-        findMany: {
-          args: Prisma.SeederFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>[]
-        }
-        create: {
-          args: Prisma.SeederCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
-        }
-        createMany: {
-          args: Prisma.SeederCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.SeederCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>[]
-        }
-        delete: {
-          args: Prisma.SeederDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
-        }
-        update: {
-          args: Prisma.SeederUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
-        }
-        deleteMany: {
-          args: Prisma.SeederDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.SeederUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.SeederUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>[]
-        }
-        upsert: {
-          args: Prisma.SeederUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeederPayload>
-        }
-        aggregate: {
-          args: Prisma.SeederAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateSeeder>
-        }
-        groupBy: {
-          args: Prisma.SeederGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.SeederGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.SeederCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.SeederCountAggregateOutputType> | number
-        }
-      }
-    }
   }
 } & {
   other: {
@@ -832,6 +832,18 @@ export const FileScalarFieldEnum = {
 export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
 
 
+export const SeederScalarFieldEnum = {
+  id: 'id',
+  checksum: 'checksum',
+  seederName: 'seederName',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  logs: 'logs'
+} as const
+
+export type SeederScalarFieldEnum = (typeof SeederScalarFieldEnum)[keyof typeof SeederScalarFieldEnum]
+
+
 export const RoleScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -865,18 +877,6 @@ export const ApiKeyScalarFieldEnum = {
 } as const
 
 export type ApiKeyScalarFieldEnum = (typeof ApiKeyScalarFieldEnum)[keyof typeof ApiKeyScalarFieldEnum]
-
-
-export const SeederScalarFieldEnum = {
-  id: 'id',
-  checksum: 'checksum',
-  seederName: 'seederName',
-  startedAt: 'startedAt',
-  finishedAt: 'finishedAt',
-  logs: 'logs'
-} as const
-
-export type SeederScalarFieldEnum = (typeof SeederScalarFieldEnum)[keyof typeof SeederScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1031,10 +1031,10 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   file?: Prisma.FileOmit
+  seeder?: Prisma.SeederOmit
   role?: Prisma.RoleOmit
   permission?: Prisma.PermissionOmit
   apiKey?: Prisma.ApiKeyOmit
-  seeder?: Prisma.SeederOmit
 }
 
 /* Types for Logging */

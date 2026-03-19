@@ -96,6 +96,25 @@ const configSchema = Type.Object({
 
   SECURITY_ROUTE_PREFIX: Type.String({ default: '/auth' }),
   SECURITY_CACHE_TTL: Type.Integer({ default: 300000 }),
+  SECURITY_AUTH_OTT_TTL: Type.Integer({ default: 120000 }),
+  SECURITY_ALLOWED_REDIRECT_HOSTS: Type.Array(Type.String(), {
+    default: ['*']
+  }),
+  SECURITY_PASSWORD_ENABLED: Type.Boolean({ default: true }),
+  SECURITY_PASSWORD_MIN_LENGTH: Type.Integer({ default: 8 }),
+  SECURITY_PASSWORD_MAX_LENGTH: Type.Integer({ default: 100 }),
+  SECURITY_PASSWORD_UPPERCASE: Type.Boolean({ default: true }),
+  SECURITY_PASSWORD_LOWERCASE: Type.Boolean({ default: true }),
+  SECURITY_PASSWORD_NUMERIC: Type.Boolean({ default: true }),
+  SECURITY_PASSWORD_SPECIAL: Type.Boolean({ default: true }),
+  SECURITY_ACCOUNT_ROUTE_PREFIX: Type.String({ default: '/auth/account' }),
+  SECURITY_ACCOUNT_VERIFY_EMAIL_ENABLED: Type.Boolean({ default: true }),
+  SECURITY_ACCOUNT_VERIFY_EMAIL_OTT_TTL: Type.Integer({ default: 7200000 }),
+  SECURITY_ACCOUNT_RESET_PASSWORD_ENABLED: Type.Boolean({ default: true }),
+  SECURITY_ACCOUNT_RESET_PASSWORD_OTT_TTL: Type.Integer({ default: 1800000 }),
+  SECURITY_ACCOUNT_2FA_ENABLED: Type.Boolean({ default: true }),
+  SECURITY_ACCOUNT_2FA_FORCED: Type.Boolean({ default: false }),
+  SECURITY_ACCOUNT_2FA_OTT_TTL: Type.Integer({ default: 300000 }),
   SECURITY_RECAPTCHA_ENABLED: Type.Boolean({ default: false }),
   SECURITY_RECAPTCHA_SECRET: Type.Optional(Type.String()),
   SECURITY_RECAPTCHA_HEADER_NAME: Type.String({ default: 'x-recaptcha-token' }),
@@ -109,6 +128,7 @@ const configSchema = Type.Object({
   SECURITY_API_KEY_ENABLED: Type.Boolean({ default: false }),
   SECURITY_API_KEY_HEADER_NAME: Type.String({ default: 'x-api-key' }),
   SECURITY_API_KEY_MAX_DURATION: Type.Optional(Type.Integer()),
+  SECURITY_API_KEY_DELIMITER: Type.String({ default: 'AK' }),
   SECURITY_JWT_SECRET: Type.Optional(Type.String()),
   SECURITY_JWT_PUBLIC_KEY_PATH: Type.String({
     default: './storage/keys/public.key'
@@ -119,6 +139,7 @@ const configSchema = Type.Object({
   SECURITY_JWT_AUTO_GENERATE_KEYS: Type.Boolean({ default: true }),
   SECURITY_JWT_EXPIRES_IN: Type.Integer({ default: 2592000 }),
   SECURITY_JWT_REFRESH_EXPIRES_IN: Type.Integer({ default: 5184000 }),
+  SECURITY_OAUTH2_STATE_TTL: Type.Integer({ default: 600000 }),
   SECURITY_OAUTH2_GOOGLE_ENABLED: Type.Boolean({ default: false }),
   SECURITY_OAUTH2_GOOGLE_CLIENT_ID: Type.Optional(Type.String()),
   SECURITY_OAUTH2_GOOGLE_CLIENT_SECRET: Type.Optional(Type.String()),
@@ -135,10 +156,6 @@ const configSchema = Type.Object({
   SECURITY_OAUTH2_CUSTOM_CLIENT_ID: Type.Optional(Type.String()),
   SECURITY_OAUTH2_CUSTOM_CLIENT_SECRET: Type.Optional(Type.String()),
   SECURITY_OAUTH2_CUSTOM_ISSUER: Type.Optional(Type.String()),
-  SECURITY_OAUTH2_ALLOWED_HOSTS: Type.Array(Type.String(), { default: ['*'] }),
-  SECURITY_OAUTH2_SECURE_COOKIES: Type.Boolean({ default: true }),
-  SECURITY_OAUTH2_STATE_TTL: Type.Integer({ default: 600000 }),
-  SECURITY_OAUTH2_OTT_TTL: Type.Integer({ default: 120000 }),
 
   DATABASE_TYPE: Type.Optional(Type.Enum(DatabaseType)),
   DATABASE_URL: Type.String({ default: '' }),
@@ -213,14 +230,14 @@ const configSchema = Type.Object({
     default: '@appweaver/core/events/node-events'
   }),
 
+  MAIL_SENDER_NAME: Type.Optional(Type.String()),
+  MAIL_SENDER_ADDRESS: Type.Optional(Type.String()),
+  MAIL_PROVIDER: Type.String({ default: '@appweaver/core/mailer/smtp-mailer' }),
   MAIL_SMTP_HOST: Type.String({ default: '127.0.0.1' }),
   MAIL_SMTP_PORT: Type.Integer({ default: 587 }),
   MAIL_SMTP_SECURE: Type.Boolean({ default: false }),
   MAIL_SMTP_USER: Type.Optional(Type.String()),
   MAIL_SMTP_PASSWORD: Type.Optional(Type.String()),
-  MAIL_SENDER_NAME: Type.Optional(Type.String()),
-  MAIL_SENDER_ADDRESS: Type.Optional(Type.String()),
-  MAIL_PROVIDER: Type.String({ default: '@appweaver/core/mailer/smtp-mailer' }),
 
   SYSTEM_ADMIN_INITIAL_EMAIL: Type.String({ default: 'admin@appweaver.co' }),
   SYSTEM_ADMIN_INITIAL_PASSWORD: Type.Optional(Type.String())
