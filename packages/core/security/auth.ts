@@ -58,6 +58,10 @@ export default fastifyPlugin((server: Server) => {
         }
       };
 
+    // Register enabled authentication handlers. Each handler executes only when
+    // the request contains credentials matching its authentication flow; otherwise,
+    // it is skipped. At least one handler must succeed for the request to be
+    // authenticated; if all handlers are skipped, a 401 error is returned
     for (const authType of authTypes ?? Object.values(AuthType)) {
       switch (authType) {
         case AuthType.Jwt:
