@@ -5,7 +5,7 @@ import { context, injectAll, injectRoutes } from '../context';
 import { resourceModelProps } from '../utils';
 import { Model, Server } from '../types';
 
-export default fastifyPlugin((server: Server): void => {
+export default fastifyPlugin((server: Server) => {
   const usedSchemas = new Set<TObject>();
 
   for (const model of context.resource.models.values()) {

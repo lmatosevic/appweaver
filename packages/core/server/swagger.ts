@@ -4,7 +4,7 @@ import fastifySwaggerUI from '@fastify/swagger-ui';
 import { config } from '@appweaver/common';
 import { Server } from '../types';
 
-export default fastifyPlugin((server: Server): void => {
+export default fastifyPlugin((server: Server) => {
   server.register(fastifySwagger, {
     hideUntagged: config.SWAGGER_HIDE_UNTAGGED,
     openapi: {

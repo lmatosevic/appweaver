@@ -1,3 +1,4 @@
+import { FastifyReply, FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import fastifyAuth from '@fastify/auth';
 import { AuthType, config } from '@appweaver/common';
@@ -7,12 +8,12 @@ import { currentAuthUser } from './helper';
 import { authRoutes } from './auth-routes';
 import { accountRoutes } from './account';
 import { recaptcha } from './recaptcha';
-import { basicAuth } from './basic';
-import { apiKeyAuth } from './api-key';
-import { jwtAuth } from './jwt';
+import { basicAuth, hasBasicAuth } from './basic';
+import { apiKeyAuth, hasApiKey } from './api-key';
+import { hasBearerAuth, jwtAuth } from './jwt';
 import * as oauth2Plugins from './oauth2';
 
-export default fastifyPlugin((server: Server): void => {
+export default fastifyPlugin((server: Server) => {
   server.register(fastifyAuth);
 
   if (config.SECURITY_RECAPTCHA_ENABLED) {
@@ -46,25 +47,46 @@ export default fastifyPlugin((server: Server): void => {
 
     const authHandlers: any[] = [];
 
+    const optionalHandler =
+      (
+        hasAuthCredentials: (req: FastifyRequest) => boolean,
+        handler: (req: FastifyRequest, reply: FastifyReply) => Promise<void>
+      ) =>
+      async (req: FastifyRequest, reply: FastifyReply) => {
+        if (hasAuthCredentials(req)) {
+          await handler(req, reply);
+        }
+      };
+
     for (const authType of authTypes ?? Object.values(AuthType)) {
       switch (authType) {
         case AuthType.Jwt:
-          authHandlers.push(authenticateJWT);
+          authHandlers.push(optionalHandler(hasBearerAuth, authenticateJWT));
           break;
         case AuthType.ApiKey:
           if (config.SECURITY_API_KEY_ENABLED) {
-            authHandlers.push(authenticateApiKey);
+            authHandlers.push(optionalHandler(hasApiKey, authenticateApiKey));
           }
           break;
         case AuthType.Basic:
           if (config.SECURITY_BASIC_ENABLED) {
-            authHandlers.push(basicAuth);
+            authHandlers.push([
+              async (req: FastifyRequest) => {
+                if (hasBasicAuth(req)) {
+                  throw new HttpError(
+                    'Missing or bad formatted authorization header',
+                    401
+                  );
+                }
+              },
+              basicAuth
+            ]);
           }
           break;
       }
     }
 
-    return auth(authHandlers, { relation: 'or' });
+    return auth(authHandlers, { relation: 'and' });
   });
 
   server.decorate('currentUser', () => {

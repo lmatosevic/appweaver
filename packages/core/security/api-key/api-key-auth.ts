@@ -10,74 +10,75 @@ import { CacheService } from '../../cache';
 import { PrismaDatabase } from '../../database';
 import { ApiKey, Server } from '../../types';
 
-export const apiKeyAuth = fastifyPlugin(
-  async (server: Server): Promise<void> => {
-    const authService = inject(AuthService);
-    const cacheService = inject(CacheService);
-    const db = inject<PrismaDatabase>(Database as any);
+export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
+  const authService = inject(AuthService);
+  const cacheService = inject(CacheService);
+  const db = inject<PrismaDatabase>(Database as any);
 
-    server.decorate('authenticateApiKey', async (request: FastifyRequest) => {
-      const key =
-        request.headers[config.SECURITY_API_KEY_HEADER_NAME.toLowerCase()];
-      if (!key) {
-        throw new HttpError(
-          `Missing API key header: ${config.SECURITY_API_KEY_HEADER_NAME}`,
-          401
-        );
-      }
-
-      const sanitizedApiKey = String(key).trim();
-
-      // Use configured delimiter to split an API key and separate ID from the
-      // rest of the key value
-      const apiKeyParts = sanitizedApiKey.split(
-        config.SECURITY_API_KEY_DELIMITER
+  server.decorate('authenticateApiKey', async (request: FastifyRequest) => {
+    const key =
+      request.headers[config.SECURITY_API_KEY_HEADER_NAME.toLowerCase()];
+    if (!key) {
+      throw new HttpError(
+        `Missing API key header: ${config.SECURITY_API_KEY_HEADER_NAME}`,
+        401
       );
-      const apiKeyId = parseInt(apiKeyParts.shift() ?? '', 10);
-      const apiKeyValue = apiKeyParts.join(config.SECURITY_API_KEY_DELIMITER);
+    }
 
-      const cacheKey = cacheService.buildCacheKey({
-        baseKey: `apikey:${apiKeyId}`,
-        modelName: 'ApiKey'
-      });
+    const sanitizedApiKey = String(key).trim();
 
-      let apiKey = await cacheService.getCachedValue<ApiKey>(cacheKey);
-      if (!apiKey) {
+    // Use configured delimiter to split an API key and separate ID from the
+    // rest of the key value
+    const apiKeyParts = sanitizedApiKey.split(
+      config.SECURITY_API_KEY_DELIMITER
+    );
+    const apiKeyId = parseInt(apiKeyParts.shift() ?? '', 10);
+    const apiKeyValue = apiKeyParts.join(config.SECURITY_API_KEY_DELIMITER);
+
+    const cacheKey = cacheService.buildCacheKey({
+      baseKey: `apikey:${apiKeyId}`,
+      modelName: 'ApiKey'
+    });
+
+    let apiKey = await cacheService.getCachedValue<ApiKey>(cacheKey);
+    if (!apiKey) {
+      try {
         apiKey = await db
           .client()
           .apiKey.findFirst({ where: { id: apiKeyId } });
-
-        if (
-          !apiKey ||
-          !apiKey.enabled ||
-          apiKey.keyHash !== makeHash(apiKeyValue)
-        ) {
-          throw new HttpError(`Invalid API key`, 401);
-        }
-
-        await cacheService.addToCache(
-          cacheKey,
-          apiKey,
-          config.SECURITY_CACHE_TTL
-        );
+      } catch (e) {
+        throw new HttpError(`Invalid API key format`, 401);
       }
 
       if (
-        apiKey.expiresAt &&
-        new Date(apiKey.expiresAt).getTime() < Date.now()
+        !apiKey ||
+        !apiKey.enabled ||
+        apiKey.keyHash !== makeHash(apiKeyValue)
       ) {
-        throw new HttpError(`API key has expired`, 403);
+        throw new HttpError(`Invalid API key`, 401);
       }
 
-      const authModelField = uncapitalize(resourceAuthModel()!.name);
-      const authUser = await authService.findById(
-        apiKey[`${authModelField}Id`]
+      await cacheService.addToCache(
+        cacheKey,
+        apiKey,
+        config.SECURITY_CACHE_TTL
       );
+    }
 
-      authService.authorize(authUser, request.url, request.routeOptions.config);
+    if (apiKey.expiresAt && new Date(apiKey.expiresAt).getTime() < Date.now()) {
+      throw new HttpError(`API key has expired`, 403);
+    }
 
-      requestContext.set('apiKey', apiKey);
-      requestContext.set('authUser', authUser);
-    });
-  }
-);
+    const authModelField = uncapitalize(resourceAuthModel()!.name);
+    const authUser = await authService.findById(apiKey[`${authModelField}Id`]);
+
+    authService.authorize(authUser, request.url, request.routeOptions.config);
+
+    requestContext.set('apiKey', apiKey);
+    requestContext.set('authUser', authUser);
+  });
+});
+
+export function hasApiKey(request: FastifyRequest): boolean {
+  return !!request.headers[config.SECURITY_API_KEY_HEADER_NAME.toLowerCase()];
+}

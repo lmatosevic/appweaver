@@ -14,7 +14,7 @@ export type CacheEntry = {
   payload: string;
 };
 
-export default fastifyPlugin((server: Server): void => {
+export default fastifyPlugin((server: Server) => {
   const { currentUser } = server;
 
   const cacheService = inject(CacheService);

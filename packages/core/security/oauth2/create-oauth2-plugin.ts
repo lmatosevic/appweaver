@@ -34,7 +34,7 @@ export function createOAuth2Plugin(
   const upperName = name.toUpperCase();
   const lowerName = name.toLowerCase();
 
-  return fastifyPlugin(async (server: Server): Promise<void> => {
+  return fastifyPlugin(async (server: Server) => {
     if (!oAuth2Config.enabled) {
       return;
     }

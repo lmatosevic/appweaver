@@ -9,7 +9,7 @@ import { HttpError } from '../../errors';
 import { AuthUser, JwtPayload, Server } from '../../types';
 import { loadSecurityKeys } from './jwt-keys';
 
-export const jwtAuth = fastifyPlugin(async (server: Server): Promise<void> => {
+export const jwtAuth = fastifyPlugin(async (server: Server) => {
   const authService = inject(AuthService);
 
   if (config.SECURITY_JWT_SECRET) {
@@ -63,3 +63,9 @@ export const jwtAuth = fastifyPlugin(async (server: Server): Promise<void> => {
     requestContext.set('authUser', authUser);
   });
 });
+
+export function hasBearerAuth(request: FastifyRequest): boolean {
+  return (
+    request.headers.authorization?.toLowerCase().startsWith('bearer') === true
+  );
+}
