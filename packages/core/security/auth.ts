@@ -75,6 +75,9 @@ export default fastifyPlugin((server: Server) => {
         case AuthType.Basic:
           if (config.SECURITY_BASIC_ENABLED) {
             authHandlers.push([
+              // Use OR condition since Basic auth plugin throws an error before
+              // the validation function is called. Also, the Basic auth plugin
+              // is using a callback-based handler
               async (req: FastifyRequest) => {
                 if (hasBasicAuth(req)) {
                   throw new HttpError('Invalid authorization header', 401);
@@ -86,6 +89,14 @@ export default fastifyPlugin((server: Server) => {
           break;
       }
     }
+
+    // If a user has not been authenticated using any of the provided methods,
+    // then throw 401 error
+    authHandlers.push(async () => {
+      if (!currentAuthUser()) {
+        throw new HttpError('Unauthorized', 401);
+      }
+    });
 
     return auth(authHandlers, { relation: 'and' });
   });
