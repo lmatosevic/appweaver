@@ -77,10 +77,7 @@ export default fastifyPlugin((server: Server) => {
             authHandlers.push([
               async (req: FastifyRequest) => {
                 if (hasBasicAuth(req)) {
-                  throw new HttpError(
-                    'Missing or bad formatted authorization header',
-                    401
-                  );
+                  throw new HttpError('Invalid authorization header', 401);
                 }
               },
               basicAuth
