@@ -1,6 +1,5 @@
 import { Type } from '@sinclair/typebox';
 import { AllErrorResponses } from '../../errors';
-import { AuthTokensResponse } from '../auth-schema';
 import { RouteSchema } from '../../types';
 
 export const OAuth2RedirectQuery = Type.Object({
@@ -22,15 +21,7 @@ export const OAuth2CallbackQuery = Type.Object({
   state: Type.String({
     description: 'Authorization state returned from OAuth2 provider',
     examples: ['89bbb34d76801fcf8251193a02a1d62c7c87a']
-  }),
-  returnAuthTokens: Type.Optional(
-    Type.Boolean({
-      description:
-        'A flag indicating if this endpoint should return authentication tokens' +
-        ' directly, instead of redirecting request to the provided endpoint',
-      examples: [true]
-    })
-  )
+  })
 });
 
 export function createOAuth2RedirectSchema(providerName: string): RouteSchema {
@@ -54,7 +45,6 @@ export function createOAuth2CallbackSchema(providerName: string): RouteSchema {
     description: `Authenticate identity from ${providerName} callback`,
     querystring: OAuth2CallbackQuery,
     response: {
-      200: AuthTokensResponse,
       302: {
         description: `Redirect to 'redirectToUrl' provided when initiating OAuth2 authentication`
       },

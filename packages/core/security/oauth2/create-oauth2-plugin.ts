@@ -2,7 +2,6 @@ import fastifyPlugin from 'fastify-plugin';
 import oauthPlugin from '@fastify/oauth2';
 import {
   AuthOTTPurpose,
-  AuthScope,
   AuthSource,
   config,
   pickProperties,
@@ -134,15 +133,6 @@ export function createOAuth2Plugin(
         }
 
         const stateData: OAuth2StateData = (request as any).oauth2State;
-
-        if ((request.query as any).returnAuthTokens) {
-          const authResponse = await authService.generateAuthTokens(
-            authUser,
-            AuthScope.Auth,
-            authSource
-          );
-          return reply.send(authResponse);
-        }
 
         const ott = await securityStore.generateOneTimeToken<AuthOTTData>(
           AuthOTTPurpose.Authentication,
