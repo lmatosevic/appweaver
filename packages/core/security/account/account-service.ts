@@ -1,5 +1,10 @@
-import { config, makeHash, randomString } from '@appweaver/common';
-import { AuthOTTPurpose, AuthService } from '../auth-service';
+import {
+  AuthOTTPurpose,
+  config,
+  makeHash,
+  randomString
+} from '@appweaver/common';
+import { AuthService } from '../auth-service';
 import {
   hashPassword,
   validatePasswordComplexity,
@@ -80,7 +85,7 @@ export class AccountService {
   }
 
   /**
-   * Verifies the email address associated with a given token.
+   * Verifies the email address associated with a given token and returns a success message.
    *
    * @param {string} token The one-time token used for email verification.
    * @return {Promise<string>} A confirmation message indicating the email address has been verified.

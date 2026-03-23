@@ -1,9 +1,14 @@
 import fastifyPlugin from 'fastify-plugin';
 import oauthPlugin from '@fastify/oauth2';
-import { AuthSource, config, pickProperties } from '@appweaver/common';
+import {
+  AuthOTTPurpose,
+  AuthSource,
+  config,
+  pickProperties
+} from '@appweaver/common';
 import { inject } from '../../context';
 import { HttpError } from '../../errors';
-import { AuthOTTPurpose, AuthService } from '../auth-service';
+import { AuthService } from '../auth-service';
 import { OAuth2State, Server } from '../../types';
 import {
   createOAuth2CallbackSchema,

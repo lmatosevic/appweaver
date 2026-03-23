@@ -4,9 +4,6 @@
     "log": {
       "level": "debug",
       "pretty": true
-    },
-    "mail": {
-      "provider": "@appweaver/core/mailer/json-mailer"
     }
   }
 }

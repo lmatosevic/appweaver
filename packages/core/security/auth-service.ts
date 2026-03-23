@@ -1,4 +1,6 @@
 import {
+  AuthOTTPurpose,
+  AuthScope,
   AuthSource,
   config,
   CONFIG,
@@ -33,19 +35,6 @@ import {
 const AUTH_KEY = 'auth';
 const AUTH_OTT_KEY = `${AUTH_KEY}:ott`;
 const OAUTH2_STATE_KEY = 'oauth2:state';
-
-export enum AuthOTTPurpose {
-  Authentication = 'authentication',
-  TwoFAVerification = '2fa-verification',
-  EmailVerification = 'email-verification',
-  PasswordReset = 'password-reset'
-}
-
-export enum JWTScope {
-  Auth = 'auth',
-  TwoFA = '2fa',
-  Refresh = 'refresh'
-}
 
 export class AuthService {
   /** @internal */
@@ -284,7 +273,7 @@ export class AuthService {
 
     if (
       jwtPayload &&
-      !this.checkScopeAccess(url, jwtPayload.scope as JWTScope)
+      !this.checkScopeAccess(url, jwtPayload.scope as AuthScope)
     ) {
       throw new HttpError(
         `JWT token is not authorized to access this url`,
@@ -316,7 +305,7 @@ export class AuthService {
       config.SECURITY_ACCOUNT_2FA_ENABLED &&
       (config.SECURITY_ACCOUNT_2FA_FORCED || authUser.twoFactorAuth !== 'None')
     ) {
-      return this.generateAuthTokens(authUser, JWTScope.TwoFA);
+      return this.generateAuthTokens(authUser, AuthScope.TwoFA);
     }
 
     return this.generateAuthTokens(authUser);
@@ -454,7 +443,7 @@ export class AuthService {
    *
    * @param {AuthUser} authUser - The authenticated user for whom the tokens are to be generated.
    *                              Contains user identification and authentication details.
-   * @param {JWTScope} [scope=JWTPurpose.Auth] - The scope for which the tokens are generated.
+   * @param {AuthScope} [scope=AuthScope.Auth] - The scope for which the tokens are generated.
    * @return {Promise<AuthTokens>} A promise that resolves to an object containing the generated authentication tokens:
    *                                - `accessToken` (string): The access token for API access.
    *                                - `refreshToken` (string): The refresh token for acquiring new access tokens.
@@ -464,7 +453,7 @@ export class AuthService {
    */
   public async generateAuthTokens(
     authUser: AuthUser,
-    scope: JWTScope = JWTScope.Auth
+    scope: AuthScope = AuthScope.Auth
   ): Promise<AuthTokens> {
     const server = context.server;
     if (!server) {
@@ -483,7 +472,7 @@ export class AuthService {
 
     const accessToken = server.jwt.sign(jwtPayload, { expiresIn });
     const refreshToken = server.jwt.sign(
-      { ...jwtPayload, scope: JWTScope.Refresh },
+      { ...jwtPayload, scope: AuthScope.Refresh },
       { expiresIn: refreshExpiresIn }
     );
 
@@ -511,10 +500,10 @@ export class AuthService {
    * Checks whether the provided URL is accessible based on the user's JWT payload `scope` property.
    *
    * @param {string} url - The URL path being accessed.
-   * @param {JWTScope} jwtScope - The `scope` property from the decoded JWT payload.
+   * @param {AuthScope} authScope - The `scope` property from the decoded JWT payload.
    * @return {boolean} Returns true if the URL is accessible based on the scope; false otherwise.
    */
-  public checkScopeAccess(url: string, jwtScope: JWTScope): boolean {
+  public checkScopeAccess(url: string, authScope: AuthScope): boolean {
     const securityPrefix = config.SECURITY_ROUTE_PREFIX.replace(/\/$/, '');
     const accountPrefix = config.SECURITY_ACCOUNT_ROUTE_PREFIX.replace(
       /\/$/,
@@ -527,23 +516,23 @@ export class AuthService {
 
     const scopeConfigs = [
       {
-        scope: JWTScope.Auth,
+        scope: AuthScope.Auth,
         allowedPaths: ['*'],
         disallowedPaths: [refreshPath, twoFASendPath, twoFAVerifyPath]
       },
       {
-        scope: JWTScope.Refresh,
+        scope: AuthScope.Refresh,
         allowedPaths: [refreshPath],
         disallowedPaths: ['*']
       },
       {
-        scope: JWTScope.TwoFA,
+        scope: AuthScope.TwoFA,
         allowedPaths: [twoFASendPath, twoFAVerifyPath],
         disallowedPaths: ['*']
       }
     ];
 
-    const scopeConfig = scopeConfigs.find(({ scope }) => scope === jwtScope);
+    const scopeConfig = scopeConfigs.find(({ scope }) => scope === authScope);
     if (!scopeConfig) {
       return false;
     }
