@@ -352,6 +352,16 @@
               ],
               "default": ["*"]
             },
+            "store": {
+              "provider": {
+                "type": "string",
+                "default": "@appweaver/core/security/store/redis-security-store"
+              },
+              "keepDatabaseTable": {
+                "type": "boolean",
+                "default": false
+              }
+            },
             "password": {
               "type": "object",
               "properties": {

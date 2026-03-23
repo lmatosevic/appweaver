@@ -79,6 +79,10 @@
       "cacheTtl": 300000,
       "authOttTtl": 120000,
       "allowedRedirectHosts": "*",
+      "store": {
+        "provider": "@appweaver/core/security/store/redis-security-store",
+        "keepDatabaseTable": false
+      },
       "password": {
         "enabled": true,
         "minLength": 8,

@@ -1,4 +1,5 @@
 export { default as apiKey } from './security/resources/api-key/model';
+export { default as oneTimeToken } from './security/resources/one-time-token/model';
 export { default as role } from './security/resources/role/model';
 export { default as permission } from './security/resources/permission/model';
 export { default as seeder } from './seeder/resources/seeder/model';

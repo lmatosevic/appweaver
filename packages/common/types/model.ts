@@ -78,6 +78,7 @@ export type AuditFields = {
 type BaseScalarField<T, IsArray extends boolean = boolean> = {
   array?: IsArray;
   default?: IsArray extends true ? T[] : T;
+  defaultGenerated?: boolean;
   required?: boolean;
   unique?: boolean;
   hidden?: boolean;

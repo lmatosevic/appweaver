@@ -424,6 +424,10 @@ function createScalarSchema(
     }
 
     if (defaultAttribute) {
+      if (scalar.defaultGenerated) {
+        defaultAttribute =
+          defaultAttribute.replace('@default(', '@default(dbgenerated(') + ')';
+      }
       attributes.push(defaultAttribute);
     }
   }

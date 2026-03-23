@@ -103,6 +103,7 @@ const configSchema = Type.Object({
   SECURITY_STORE_PROVIDER: Type.String({
     default: '@appweaver/core/security/store/redis-security-store'
   }),
+  SECURITY_STORE_KEEP_DATABASE_TABLE: Type.Boolean({ default: false }),
   SECURITY_PASSWORD_ENABLED: Type.Boolean({ default: true }),
   SECURITY_PASSWORD_MIN_LENGTH: Type.Integer({ default: 8 }),
   SECURITY_PASSWORD_MAX_LENGTH: Type.Integer({ default: 100 }),

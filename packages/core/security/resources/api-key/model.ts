@@ -4,8 +4,11 @@ import { resourceAuthModel } from '../../helper';
 
 const authModel = resourceAuthModel();
 
-export default config.SECURITY_API_KEY_ENABLED ||
-config.SECURITY_API_KEY_KEEP_DATABASE_TABLE
+const shouldCreateModel =
+  config.SECURITY_API_KEY_ENABLED ||
+  config.SECURITY_API_KEY_KEEP_DATABASE_TABLE;
+
+export default shouldCreateModel
   ? createModel({
       name: 'ApiKey',
       scalars: {
