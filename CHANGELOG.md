@@ -1,3 +1,45 @@
+## [1.6.0](https://gitlab.com/app-weaver/appweaver/compare/v1.5.2...v1.6.0) (2026-03-23)
+
+### Features
+
+* add basic auth plugin, implement common authentication decorator, add cookie support for OAuth2 authentication flow ([21ac24e](https://gitlab.com/app-weaver/appweaver/commit/21ac24ec96aa83712b1aadc0d521e467ad4be8f4))
+* add configuration helper functions to enhance access to config values, update schema to support additional properties ([7671ffa](https://gitlab.com/app-weaver/appweaver/commit/7671ffa2266ddc78c5355b4a155db51b518b88b6))
+* add custom OAuth2 plugin for Keycloak integration ([26ba57b](https://gitlab.com/app-weaver/appweaver/commit/26ba57bb238053977347c7e6a7e9c1dc7a0289f2))
+* add database security storage implementation using OneTimeToken model, and support for default-generated scalars in Prisma schema ([22cda33](https://gitlab.com/app-weaver/appweaver/commit/22cda3354b3d80d2d059b6cdf8055ae321adfd17))
+* add SecurityStore abstraction and Redis implementation for handling security one-time-tokens ([3b8538c](https://gitlab.com/app-weaver/appweaver/commit/3b8538c90d55f8b351026637d42b92ffdd1946de))
+* create universal createOauth2Plugin function for building oauth2 integrations ([56bdf1f](https://gitlab.com/app-weaver/appweaver/commit/56bdf1f48b9a1c1cb196917bd6cd28830378099d))
+* implement account service and routes for email verification, password reset and 2FA authentication flows, refactored API key generation logic, updated auth schema ([1f8ea83](https://gitlab.com/app-weaver/appweaver/commit/1f8ea83ac27ff4c2721e91da022a76d1c7705228))
+* implement api key authentication flow, updated migrations in core and sample projects ([a7b714a](https://gitlab.com/app-weaver/appweaver/commit/a7b714a3b6f8c77dc515b3bab3a58e5dd9b3a912))
+* implement authentication methods chaining if provided headers are available, then auth method must pass ([6f0b9db](https://gitlab.com/app-weaver/appweaver/commit/6f0b9dbafd0f1f31c4af72967706bb58b14d3a68))
+* implement OAuth2 authentication flow for Facebook, refactored JWT functions, updated app config default values ([9a6d391](https://gitlab.com/app-weaver/appweaver/commit/9a6d3915344bbcaedb8ead6748d4a1c4b4d20be1))
+* implement OAuth2 Google authentication flow ([6bd1671](https://gitlab.com/app-weaver/appweaver/commit/6bd1671041f5cb16ef642b8ca063b083d7cc697b))
+* implement reCAPTCHA decorator and verification logic, add headers and onRequest hooks to attach reCAPTCHA verification on resource and custom routes ([1c2a17c](https://gitlab.com/app-weaver/appweaver/commit/1c2a17c9bd919835b7326928ff1dbb76d565d5db))
+* unify and extend authentication context with authSource, authType, and scoped access logic ([87bf76b](https://gitlab.com/app-weaver/appweaver/commit/87bf76bf4d3dff1a7a8ab50336873e770e37c5ac))
+
+### Bug Fixes
+
+* add apiKey types and schema back to core package, recreate migrations and schema, add .env.example file with apiKey enabled ([49449fe](https://gitlab.com/app-weaver/appweaver/commit/49449fec577dd1433eb62a7f0288b563e3056039))
+* add check if user has been authenticated with at least one method for specific route ([f6a93c9](https://gitlab.com/app-weaver/appweaver/commit/f6a93c9da32ff8c887754176b8085311cb2bb754))
+* add conditional createBy relation setting on resource create or update ([20fc6e3](https://gitlab.com/app-weaver/appweaver/commit/20fc6e3f3f2f0f4173cabed0ae3c4a9e69c996cc))
+* add conditional export for ApiKey resources, remove ApiKey model and types from core module ([f06f0e3](https://gitlab.com/app-weaver/appweaver/commit/f06f0e3a9ef17c1e7d1549f3598f82066c6072ed))
+* add in-memory redis implementation for e2e test env ([f8b1b04](https://gitlab.com/app-weaver/appweaver/commit/f8b1b04f2107a1e07a5dfa019b76bd324dd5bd4b))
+* add override option for factory functions ([f9b7f66](https://gitlab.com/app-weaver/appweaver/commit/f9b7f668ea17064a394461c8ef94ec245e553067))
+* add support for JWT private and public RSA256 keys for token encryption ([37529bc](https://gitlab.com/app-weaver/appweaver/commit/37529bc72be02fbbf4f7b2454a5167fa3a093fd1))
+* add support for using extra variables defined in config files ([cf753f1](https://gitlab.com/app-weaver/appweaver/commit/cf753f10e702143ad1c0ed01723f829bfca31d6f))
+* change resources module import order ([03c7039](https://gitlab.com/app-weaver/appweaver/commit/03c7039a4ea76318c6d07395695096065a7aa4d2))
+* fix lifecycle tag mapping for infrastructure services, separate lifecycle init and destroy service invocation to LifecycleManager abstract class, fix error handling during seeder execution, add loading of all providers before seeder starts ([a2dc568](https://gitlab.com/app-weaver/appweaver/commit/a2dc568472f9b16202393aa47345489b4fe2d0b8))
+* fixed security JWT scope access check function ([0bf35b6](https://gitlab.com/app-weaver/appweaver/commit/0bf35b6d173eefb7ebc6a7d7ea14ca87c8ac4eff))
+* improve error handling in authentication decorators, add global fatal error handlers, restructure API key model, service and policy functions ([85fab1c](https://gitlab.com/app-weaver/appweaver/commit/85fab1c5682cba65320a312e753801f5be35b5e9))
+* move auth enums to common package ([667276f](https://gitlab.com/app-weaver/appweaver/commit/667276f28214ac5be7ebaa45fddd7ae9bb024f86))
+* rename OAuth2 redirectToUrl query param, fix error when removing empty key list from cache ([f640fcf](https://gitlab.com/app-weaver/appweaver/commit/f640fcfa569fca7e69c6723eec0422f0fb522b4a))
+* restructure auth schema and configs ([55fa5f3](https://gitlab.com/app-weaver/appweaver/commit/55fa5f34c8c932a44a66d65c7ef7eb1e030448e0))
+* separate build project command to a new function ([02b7cdb](https://gitlab.com/app-weaver/appweaver/commit/02b7cdb5af1e1de4f123f8936efd575ce5837060))
+* shorten error message for basic auth ([1054fa6](https://gitlab.com/app-weaver/appweaver/commit/1054fa676de5eaee13220e55863d7e936f23c795))
+* simplify OAuth2 handler and schema ([a17bae1](https://gitlab.com/app-weaver/appweaver/commit/a17bae1357a4eb9b163d1818c9a1de6f24f0888d))
+* standardize AuthType enum and update schemas to use consistent auth type mapping per route ([bcdd748](https://gitlab.com/app-weaver/appweaver/commit/bcdd748e92bdece18c4b5c82eb240e08bf5eecff))
+* update test configs ([1321908](https://gitlab.com/app-weaver/appweaver/commit/1321908a31a61af726cfca9cd21d352a3b1b7acf))
+* use direct database access for reading apiKey instead of resourceService ([8fb8681](https://gitlab.com/app-weaver/appweaver/commit/8fb8681e50d35a4fe5af7d6702f2f1f1909fb9d3))
+
 ## [1.5.2](https://gitlab.com/app-weaver/appweaver/compare/v1.5.1...v1.5.2) (2026-03-10)
 
 ### Bug Fixes
