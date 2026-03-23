@@ -3,7 +3,8 @@ import {
   AuthSource,
   config,
   makeHash,
-  randomString
+  randomString,
+  SecurityStore
 } from '@appweaver/common';
 import { AuthService } from '../auth-service';
 import {
@@ -29,6 +30,8 @@ export enum VerificationType {
 export class AccountService {
   /** @internal */
   private readonly _authService = inject(AuthService);
+  /** @internal */
+  private readonly _securityStore = inject(SecurityStore);
   /** @internal */
   private readonly _emailService = inject(EmailService, false);
 
@@ -62,11 +65,12 @@ export class AccountService {
       throw new HttpError(result.message, 400);
     }
 
-    const token = await this._authService.generateOneTimeToken<VerifyEmailData>(
-      AuthOTTPurpose.EmailVerification,
-      { authUserId: authUser.id, redirectToUrl },
-      config.SECURITY_ACCOUNT_VERIFY_EMAIL_OTT_TTL
-    );
+    const token =
+      await this._securityStore.generateOneTimeToken<VerifyEmailData>(
+        AuthOTTPurpose.EmailVerification,
+        { authUserId: authUser.id, redirectToUrl },
+        config.SECURITY_ACCOUNT_VERIFY_EMAIL_OTT_TTL
+      );
 
     const accountPath = config.SECURITY_ACCOUNT_ROUTE_PREFIX.replace(/\/$/, '');
 
@@ -94,7 +98,7 @@ export class AccountService {
    */
   public async verifyEmailAddress(token: string): Promise<string> {
     const { authUserId } =
-      await this._authService.useOneTimeToken<VerifyEmailData>(
+      await this._securityStore.useOneTimeToken<VerifyEmailData>(
         token,
         AuthOTTPurpose.EmailVerification
       );
@@ -124,7 +128,7 @@ export class AccountService {
     token: string
   ): Promise<{ status: 'ok' | 'error'; message: string; redirectUrl: string }> {
     const { authUserId, redirectToUrl } =
-      await this._authService.useOneTimeToken<VerifyEmailData>(
+      await this._securityStore.useOneTimeToken<VerifyEmailData>(
         token,
         AuthOTTPurpose.EmailVerification
       );
@@ -185,7 +189,7 @@ export class AccountService {
       throw new HttpError(result.message, 400);
     }
 
-    const token = await this._authService.generateOneTimeToken<AuthOTTData>(
+    const token = await this._securityStore.generateOneTimeToken<AuthOTTData>(
       AuthOTTPurpose.PasswordReset,
       { authUserId: authUser.id, authSource: AuthSource.Password },
       config.SECURITY_ACCOUNT_RESET_PASSWORD_OTT_TTL
@@ -219,10 +223,11 @@ export class AccountService {
       throw new HttpError(result.message, 400);
     }
 
-    const { authUserId } = await this._authService.useOneTimeToken<AuthOTTData>(
-      token,
-      AuthOTTPurpose.PasswordReset
-    );
+    const { authUserId } =
+      await this._securityStore.useOneTimeToken<AuthOTTData>(
+        token,
+        AuthOTTPurpose.PasswordReset
+      );
 
     const authUser = await this._authService.findById(authUserId);
     if (!authUser || !authUser.enabled) {
@@ -260,7 +265,7 @@ export class AccountService {
 
     const code = randomString(6, { numbers: true });
     const challengeId =
-      await this._authService.generateOneTimeToken<TwoFactorAuthData>(
+      await this._securityStore.generateOneTimeToken<TwoFactorAuthData>(
         AuthOTTPurpose.TwoFAVerification,
         { authUserId: authUser.id, codeHash: makeHash(code), purpose },
         config.SECURITY_ACCOUNT_2FA_OTT_TTL
@@ -287,7 +292,7 @@ export class AccountService {
     challengeId: string,
     code: string
   ): Promise<string> {
-    const data = await this._authService.useOneTimeToken<TwoFactorAuthData>(
+    const data = await this._securityStore.useOneTimeToken<TwoFactorAuthData>(
       challengeId,
       AuthOTTPurpose.TwoFAVerification,
       (value) => {
@@ -303,7 +308,7 @@ export class AccountService {
       throw new HttpError('Auth user does not exist or is disabled', 400);
     }
 
-    return this._authService.generateOneTimeToken<AuthOTTData>(
+    return this._securityStore.generateOneTimeToken<AuthOTTData>(
       data.purpose,
       { authUserId: authUser.id, authSource: AuthSource.Password },
       config.SECURITY_AUTH_OTT_TTL

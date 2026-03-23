@@ -5,12 +5,14 @@ import {
   AuthScope,
   AuthSource,
   config,
-  pickProperties
+  pickProperties,
+  SecurityStore
 } from '@appweaver/common';
 import { inject } from '../../context';
 import { HttpError } from '../../errors';
 import { AuthService } from '../auth-service';
-import { AuthOTTData, OAuth2State, Server } from '../../types';
+import { validateRedirectUrl } from '../helper';
+import { AuthOTTData, OAuth2StateData, Server } from '../../types';
 import {
   createOAuth2CallbackSchema,
   createOAuth2RedirectSchema
@@ -59,6 +61,7 @@ export function createOAuth2Plugin(
     }
 
     const authService = inject(AuthService);
+    const securityStore = inject(SecurityStore);
 
     const prefix = config.SECURITY_ROUTE_PREFIX.replace(/\/$/, '');
 
@@ -78,15 +81,29 @@ export function createOAuth2Plugin(
       schema: createOAuth2RedirectSchema(name),
       startRedirectPath: `${prefix}/login/${lowerName}`,
       callbackUri: `${config.APP_HOSTNAME}${prefix}/login/${lowerName}/callback`,
-      generateStateFunction: async function (request: any) {
-        return authService.generateOAuth2State({
-          redirectToUrl: request.query.redirectToUrl
-        });
-      },
-      checkStateFunction: async function (request: any) {
-        request.oauth2State = await authService.checkOAuth2State(
-          request.query.state
+      generateStateFunction: async (request: any) => {
+        const redirectToUrl = request.query.redirectToUrl as string;
+        const result = validateRedirectUrl(redirectToUrl);
+
+        if (!result.valid) {
+          throw new HttpError(result.message, 400);
+        }
+
+        return securityStore.generateOneTimeToken<OAuth2StateData>(
+          AuthOTTPurpose.OAuth2State,
+          { redirectToUrl },
+          config.SECURITY_OAUTH2_STATE_TTL
         );
+      },
+      checkStateFunction: async (request: any) => {
+        const state = request.query.state as string;
+
+        request.oauth2State =
+          await securityStore.useOneTimeToken<OAuth2StateData>(
+            state,
+            AuthOTTPurpose.OAuth2State
+          );
+
         return true;
       }
     });
@@ -116,7 +133,7 @@ export function createOAuth2Plugin(
           throw new HttpError('Auth user email address is not verified', 403);
         }
 
-        const stateData: OAuth2State = (request as any).oauth2State;
+        const stateData: OAuth2StateData = (request as any).oauth2State;
 
         if ((request.query as any).returnAuthTokens) {
           const authResponse = await authService.generateAuthTokens(
@@ -127,7 +144,7 @@ export function createOAuth2Plugin(
           return reply.send(authResponse);
         }
 
-        const ott = await authService.generateOneTimeToken<AuthOTTData>(
+        const ott = await securityStore.generateOneTimeToken<AuthOTTData>(
           AuthOTTPurpose.Authentication,
           { authUserId: authUser.id, authSource },
           config.SECURITY_AUTH_OTT_TTL

@@ -8,6 +8,7 @@ import {
   Queue,
   Redis,
   Scheduler,
+  SecurityStore,
   Storage
 } from '@appweaver/common';
 import { loadProvider } from '../context';
@@ -26,9 +27,10 @@ export function loadProviders(baseDir: string): void {
   loadProvider(baseDir, config.MEMORY_PROVIDER, Memory);
   loadProvider(baseDir, config.CACHE_PROVIDER, Cache);
   loadProvider(baseDir, config.EVENTS_PROVIDER, Events);
+  loadProvider(baseDir, config.SECURITY_STORE_PROVIDER, SecurityStore);
   loadProvider(baseDir, config.REDIS_PROVIDER, Redis, false);
   loadProvider(baseDir, config.QUEUE_PROVIDER, Queue, false);
-  loadProvider(baseDir, config.MAIL_PROVIDER, Mailer, false);
+  loadProvider(baseDir, config.MAILER_PROVIDER, Mailer, false);
   loadProvider(baseDir, config.SCHEDULER_PROVIDER, Scheduler, false);
 
   // Core feature services

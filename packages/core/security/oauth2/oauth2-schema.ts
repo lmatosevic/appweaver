@@ -14,19 +14,24 @@ export const OAuth2RedirectQuery = Type.Object({
   })
 });
 
-export const OAuth2CallbackQuery = Type.Object(
-  {
-    returnAuthTokens: Type.Optional(
-      Type.Boolean({
-        description:
-          'A flag indicating if this endpoint should return authentication tokens' +
-          ' directly, instead of redirecting request to the provided endpoint',
-        examples: [true]
-      })
-    )
-  },
-  { additionalProperties: true }
-);
+export const OAuth2CallbackQuery = Type.Object({
+  code: Type.String({
+    description: 'Authorization code from OAuth2 provider',
+    examples: ['3b7bdc9982feac0e20cf4ddc9be52a1a027142e25b4d14c1b5a280595bc20']
+  }),
+  state: Type.String({
+    description: 'Authorization state returned from OAuth2 provider',
+    examples: ['89bbb34d76801fcf8251193a02a1d62c7c87a']
+  }),
+  returnAuthTokens: Type.Optional(
+    Type.Boolean({
+      description:
+        'A flag indicating if this endpoint should return authentication tokens' +
+        ' directly, instead of redirecting request to the provided endpoint',
+      examples: [true]
+    })
+  )
+});
 
 export function createOAuth2RedirectSchema(providerName: string): RouteSchema {
   return {

@@ -4,12 +4,9 @@ import {
   AuthSource,
   config,
   CONFIG,
-  generateToken,
   logger,
-  makeHash,
-  Redis,
   RouteConfig,
-  uuid
+  SecurityStore
 } from '@appweaver/common';
 import {
   checkPassword,
@@ -18,8 +15,7 @@ import {
   hasPermissions,
   hasRoles,
   resourceAuthService,
-  validatePasswordComplexity,
-  validateRedirectUrl
+  validatePasswordComplexity
 } from './helper';
 import { context, inject } from '../context';
 import { CacheService } from '../cache';
@@ -29,19 +25,15 @@ import {
   AuthTokens,
   AuthUser,
   JwtPayload,
-  OAuth2State,
   RegistrationDataFn,
-  UserAdditionalData,
-  ValidationResult
+  UserAdditionalData
 } from '../types';
 
 const AUTH_KEY = 'auth';
-const AUTH_OTT_KEY = `${AUTH_KEY}:ott`;
-const OAUTH2_STATE_KEY = 'oauth2:state';
 
 export class AuthService {
   /** @internal */
-  private readonly _redis = inject(Redis);
+  private readonly _securityStore = inject(SecurityStore);
   /** @internal */
   private readonly _cacheService = inject(CacheService);
   /** @internal */
@@ -319,10 +311,11 @@ export class AuthService {
    * @throws {HttpError} If the token is invalid, expired, or associated with a non-existent or disabled user.
    */
   public async exchangeToken(token: string): Promise<AuthTokens> {
-    const { authUserId, authSource } = await this.useOneTimeToken<AuthOTTData>(
-      token,
-      AuthOTTPurpose.Authentication
-    );
+    const { authUserId, authSource } =
+      await this._securityStore.useOneTimeToken<AuthOTTData>(
+        token,
+        AuthOTTPurpose.Authentication
+      );
 
     const authUser = await this.findById(authUserId);
     if (!authUser || !authUser.enabled) {
@@ -332,110 +325,6 @@ export class AuthService {
     logger.debug({ id: authUser.id, token }, 'User token exchanged');
 
     return this.generateAuthTokens(authUser, AuthScope.Auth, authSource);
-  }
-
-  /**
-   * Validates the provided OAuth2 state, ensuring it has not expired or is invalid.
-   * If the state is valid, it retrieves and removes it from the storage.
-   *
-   * @param {string} state The OAuth2 state value to be validated and checked.
-   * @return A promise resolving to the retrieved state data.
-   * @throws HttpError if the state is invalid or expired.
-   */
-  public async checkOAuth2State(state: string): Promise<OAuth2State> {
-    const data = await this._redis.getValue(`${OAUTH2_STATE_KEY}:${state}`);
-    if (!data) {
-      throw new HttpError('Invalid or expired state received', 401);
-    }
-
-    await this._redis.removeValue(`${OAUTH2_STATE_KEY}:${state}`);
-
-    return data;
-  }
-
-  /**
-   * Generates an OAuth2 state string to be used in the authorization process.
-   * The state string is stored in Redis with an associated TTL (time-to-live).
-   * Ensures that the `redirectToUrl` provided in the `StateData` conforms to security policies.
-   *
-   * @param {OAuth2State} data - Object containing the state data and the `redirectToUrl`.
-   * @return {Promise<string>} A promise that resolves to the generated OAuth2 state string.
-   * @throws {HttpError} Throws an error if the `redirectToUrl` is invalid or if the hostname is not allowed.
-   */
-  public async generateOAuth2State(data: OAuth2State): Promise<string> {
-    const result = validateRedirectUrl(data.redirectToUrl);
-    if (!result.valid) {
-      throw new HttpError(result.message, 400);
-    }
-
-    const state = uuid();
-
-    await this._redis.putValue(
-      `${OAUTH2_STATE_KEY}:${state}`,
-      data,
-      config.SECURITY_OAUTH2_STATE_TTL
-    );
-
-    return state;
-  }
-
-  /**
-   * Generates a one-time-use token for the provided authenticated user.
-   *
-   * @param {string} purpose - The purpose for which the token is generated.
-   * @param {AuthUser} data - The data to store for generated token. (Will be retrieved on token usage)
-   * @param {number} ttl - The time-to-live for the token in milliseconds.
-   * @return {Promise<string>} A promise that resolves to the generated one-time token.
-   */
-  public async generateOneTimeToken<T = any>(
-    purpose: string,
-    data: T,
-    ttl: number
-  ): Promise<string> {
-    const token = generateToken('bytes', 64);
-
-    await this._redis.putValue(
-      `${AUTH_OTT_KEY}:${purpose}:${makeHash(token)}`,
-      data,
-      ttl
-    );
-
-    return token;
-  }
-
-  /**
-   * Consumes a one-time token for a specific purpose. Retrieves the associated
-   * value from the token if it is valid and then invalidates the token by removing it.
-   *
-   * @param {string} token - The one-time token to be consumed.
-   * @param {string} purpose - The intended purpose of the one-time token.
-   * @param {(value: any) => boolean} [validateContent] - The optional function used to check if token content is valid.
-   * @return A promise resolving to the value associated with the token. The resolved type defaults to `any` but can
-   * be specified using generics.
-   * @throws {HttpError} - Throws an error if the token is invalid or expired.
-   */
-  public async useOneTimeToken<T = any>(
-    token: string,
-    purpose: string,
-    validateContent?: (value: T) => ValidationResult
-  ): Promise<T> {
-    const tokenKey = `${AUTH_OTT_KEY}:${purpose}:${makeHash(token)}`;
-    const value = await this._redis.getValue<T>(tokenKey);
-
-    if (value === null) {
-      throw new HttpError('Invalid or expired token provided', 401);
-    }
-
-    if (validateContent) {
-      const result = validateContent(value);
-      if (!result.valid) {
-        throw new HttpError(result.message, 400);
-      }
-    }
-
-    await this._redis.removeValue(tokenKey);
-
-    return value;
   }
 
   /**

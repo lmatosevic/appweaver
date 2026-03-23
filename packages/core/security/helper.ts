@@ -5,17 +5,13 @@ import {
   AuthSource,
   AuthType,
   config,
-  RESOURCE_NAME
+  RESOURCE_NAME,
+  ValidationResult
 } from '@appweaver/common';
 import { context, injectService } from '../context';
 import { isResourceAuthModel, isResourceAuthService } from '../utils';
 import { HttpError } from '../errors';
-import {
-  AuthUser,
-  IResourceService,
-  ResourceModel,
-  ValidationResult
-} from '../types';
+import { AuthUser, IResourceService, ResourceModel } from '../types';
 
 /**
  * Evaluates and retrieves the resource authentication model from the available resource models.

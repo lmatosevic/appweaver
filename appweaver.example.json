@@ -208,7 +208,7 @@
       "maxListeners": 10,
       "provider": "@appweaver/core/events/node-events"
     },
-    "mail": {
+    "mailer": {
       "senderName": "John Doe",
       "senderAddress": "no-reply@appweaver.com",
       "provider": "@appweaver/core/mailer/smtp-mailer",

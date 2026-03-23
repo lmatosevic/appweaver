@@ -792,7 +792,7 @@
             }
           }
         },
-        "mail": {
+        "mailer": {
           "type": "object",
           "properties": {
             "senderName": {

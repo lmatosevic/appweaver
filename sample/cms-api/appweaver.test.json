@@ -20,7 +20,7 @@
     "queue": {
       "provider": "@appweaver/core/queue/memory-queue"
     },
-    "mail": {
+    "mailer": {
       "provider": "@appweaver/core/mailer/json-mailer"
     },
     "scheduler": {

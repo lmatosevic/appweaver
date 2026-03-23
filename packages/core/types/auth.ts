@@ -27,7 +27,7 @@ export type TwoFactorAuthData = {
   purpose: string;
 };
 
-export type OAuth2State = {
+export type OAuth2StateData = {
   redirectToUrl: string;
 };
 
@@ -56,8 +56,3 @@ export type RegistrationDataFn<T = any> = (
   password?: string,
   additionalData?: Partial<UserAdditionalData>
 ) => T | Promise<T>;
-
-export type ValidationResult = {
-  valid: boolean;
-  message: string;
-};

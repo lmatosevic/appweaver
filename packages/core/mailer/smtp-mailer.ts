@@ -15,12 +15,12 @@ export class SmtpMailer extends Mailer<Attachment> {
   constructor() {
     super();
     this._transporter = createTransport({
-      host: config.MAIL_SMTP_HOST,
-      port: config.MAIL_SMTP_PORT,
-      secure: config.MAIL_SMTP_SECURE,
+      host: config.MAILER_SMTP_HOST,
+      port: config.MAILER_SMTP_PORT,
+      secure: config.MAILER_SMTP_SECURE,
       auth: {
-        user: config.MAIL_SMTP_USER,
-        pass: config.MAIL_SMTP_PASSWORD
+        user: config.MAILER_SMTP_USER,
+        pass: config.MAILER_SMTP_PASSWORD
       }
     });
   }
@@ -30,7 +30,7 @@ export class SmtpMailer extends Mailer<Attachment> {
 
     try {
       await this._transporter.sendMail({
-        from: `"${config.MAIL_SENDER_NAME}" <${config.MAIL_SENDER_ADDRESS}>`,
+        from: `"${config.MAILER_SENDER_NAME}" <${config.MAILER_SENDER_ADDRESS}>`,
         to,
         subject,
         text,

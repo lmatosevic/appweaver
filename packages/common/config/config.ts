@@ -100,6 +100,9 @@ const configSchema = Type.Object({
   SECURITY_ALLOWED_REDIRECT_HOSTS: Type.Array(Type.String(), {
     default: ['*']
   }),
+  SECURITY_STORE_PROVIDER: Type.String({
+    default: '@appweaver/core/security/store/redis-security-store'
+  }),
   SECURITY_PASSWORD_ENABLED: Type.Boolean({ default: true }),
   SECURITY_PASSWORD_MIN_LENGTH: Type.Integer({ default: 8 }),
   SECURITY_PASSWORD_MAX_LENGTH: Type.Integer({ default: 100 }),
@@ -231,14 +234,16 @@ const configSchema = Type.Object({
     default: '@appweaver/core/events/node-events'
   }),
 
-  MAIL_SENDER_NAME: Type.Optional(Type.String()),
-  MAIL_SENDER_ADDRESS: Type.Optional(Type.String()),
-  MAIL_PROVIDER: Type.String({ default: '@appweaver/core/mailer/smtp-mailer' }),
-  MAIL_SMTP_HOST: Type.String({ default: '127.0.0.1' }),
-  MAIL_SMTP_PORT: Type.Integer({ default: 587 }),
-  MAIL_SMTP_SECURE: Type.Boolean({ default: false }),
-  MAIL_SMTP_USER: Type.Optional(Type.String()),
-  MAIL_SMTP_PASSWORD: Type.Optional(Type.String()),
+  MAILER_SENDER_NAME: Type.Optional(Type.String()),
+  MAILER_SENDER_ADDRESS: Type.Optional(Type.String()),
+  MAILER_PROVIDER: Type.String({
+    default: '@appweaver/core/mailer/smtp-mailer'
+  }),
+  MAILER_SMTP_HOST: Type.String({ default: '127.0.0.1' }),
+  MAILER_SMTP_PORT: Type.Integer({ default: 587 }),
+  MAILER_SMTP_SECURE: Type.Boolean({ default: false }),
+  MAILER_SMTP_USER: Type.Optional(Type.String()),
+  MAILER_SMTP_PASSWORD: Type.Optional(Type.String()),
 
   SYSTEM_ADMIN_INITIAL_EMAIL: Type.String({ default: 'admin@appweaver.co' }),
   SYSTEM_ADMIN_INITIAL_PASSWORD: Type.Optional(Type.String())

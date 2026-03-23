@@ -14,6 +14,7 @@ export enum AuthSource {
 
 export enum AuthOTTPurpose {
   Authentication = 'authentication',
+  OAuth2State = 'oauth2State',
   TwoFAVerification = '2fa-verification',
   EmailVerification = 'email-verification',
   PasswordReset = 'password-reset'

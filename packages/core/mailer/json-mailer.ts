@@ -24,7 +24,7 @@ export class JsonMailer extends Mailer<Attachment> {
 
     try {
       const msg = await this._transporter.sendMail({
-        from: `"${config.MAIL_SENDER_NAME}" <${config.MAIL_SENDER_ADDRESS}>`,
+        from: `"${config.MAILER_SENDER_NAME}" <${config.MAILER_SENDER_ADDRESS}>`,
         to,
         subject,
         text,
