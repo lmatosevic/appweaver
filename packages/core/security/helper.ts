@@ -1,6 +1,12 @@
 import * as bcrypt from 'bcrypt';
 import { requestContext } from '@fastify/request-context';
-import { config, RESOURCE_NAME } from '@appweaver/common';
+import {
+  AuthScope,
+  AuthSource,
+  AuthType,
+  config,
+  RESOURCE_NAME
+} from '@appweaver/common';
 import { context, injectService } from '../context';
 import { isResourceAuthModel, isResourceAuthService } from '../utils';
 import { HttpError } from '../errors';
@@ -53,6 +59,25 @@ export function resourceAuthService():
  */
 export function currentAuthUser(): AuthUser | null | undefined {
   return requestContext.get('authUser');
+}
+
+/**
+ * Retrieves the current authentication type from the request context.
+ *
+ * @return {AuthType | null | undefined} The authentication type if available; otherwise, returns null or undefined.
+ */
+export function currentAuthType(): AuthType | null | undefined {
+  return requestContext.get('authType');
+}
+
+/**
+ * Retrieves the current authentication source from the request context.
+ *
+ * @return {AuthSource | null | undefined} The authentication source if available; otherwise, null or undefined
+ * if it is not set.
+ */
+export function currentAuthSource(): AuthSource | null | undefined {
+  return requestContext.get('authSource');
 }
 
 /**
@@ -201,6 +226,52 @@ export function validateRedirectUrl(url: string): ValidationResult {
     valid: true,
     message: 'URL is valid and allowed'
   };
+}
+
+/**
+ * Checks whether the provided URL is accessible based on the user's JWT payload `scope` property.
+ *
+ * @param {string} url - The URL path being accessed.
+ * @param {AuthScope} authScope - The `scope` property from the decoded JWT payload.
+ * @return {boolean} Returns true if the URL is accessible based on the scope; false otherwise.
+ */
+export function checkScopeAccess(url: string, authScope: AuthScope): boolean {
+  const securityPrefix = config.SECURITY_ROUTE_PREFIX.replace(/\/$/, '');
+  const accountPrefix = config.SECURITY_ACCOUNT_ROUTE_PREFIX.replace(/\/$/, '');
+
+  const refreshPath = `${securityPrefix}/refresh`;
+  const twoFASendPath = `${accountPrefix}/2fa-send-code`;
+  const twoFAVerifyPath = `${accountPrefix}/verify-2fa-code`;
+
+  const scopeConfigs = [
+    {
+      scope: AuthScope.Auth,
+      allowedPaths: ['*'],
+      disallowedPaths: [refreshPath, twoFASendPath, twoFAVerifyPath]
+    },
+    {
+      scope: AuthScope.Refresh,
+      allowedPaths: [refreshPath],
+      disallowedPaths: ['*']
+    },
+    {
+      scope: AuthScope.TwoFA,
+      allowedPaths: [twoFASendPath, twoFAVerifyPath],
+      disallowedPaths: ['*']
+    }
+  ];
+
+  const scopeConfig = scopeConfigs.find(({ scope }) => scope === authScope);
+  if (!scopeConfig) {
+    return false;
+  }
+
+  const { allowedPaths, disallowedPaths } = scopeConfig;
+
+  const isPathIncluded = (paths: string[]) =>
+    paths.includes(url) || paths.includes('*');
+
+  return !(!isPathIncluded(allowedPaths) || isPathIncluded(disallowedPaths));
 }
 
 /**

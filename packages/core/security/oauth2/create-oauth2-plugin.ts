@@ -2,6 +2,7 @@ import fastifyPlugin from 'fastify-plugin';
 import oauthPlugin from '@fastify/oauth2';
 import {
   AuthOTTPurpose,
+  AuthScope,
   AuthSource,
   config,
   pickProperties
@@ -9,7 +10,7 @@ import {
 import { inject } from '../../context';
 import { HttpError } from '../../errors';
 import { AuthService } from '../auth-service';
-import { OAuth2State, Server } from '../../types';
+import { AuthOTTData, OAuth2State, Server } from '../../types';
 import {
   createOAuth2CallbackSchema,
   createOAuth2RedirectSchema
@@ -118,13 +119,17 @@ export function createOAuth2Plugin(
         const stateData: OAuth2State = (request as any).oauth2State;
 
         if ((request.query as any).returnAuthTokens) {
-          const authResponse = await authService.generateAuthTokens(authUser);
+          const authResponse = await authService.generateAuthTokens(
+            authUser,
+            AuthScope.Auth,
+            authSource
+          );
           return reply.send(authResponse);
         }
 
-        const ott = await authService.generateOneTimeToken(
+        const ott = await authService.generateOneTimeToken<AuthOTTData>(
           AuthOTTPurpose.Authentication,
-          authUser.id,
+          { authUserId: authUser.id, authSource },
           config.SECURITY_AUTH_OTT_TTL
         );
 

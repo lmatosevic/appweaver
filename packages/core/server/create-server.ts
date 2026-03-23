@@ -124,6 +124,8 @@ export function createServer(): Server {
   server.register(fastifyRequestContext, {
     defaultStoreValues: {
       authUser: null,
+      authType: null,
+      authSource: null,
       apiKey: null,
       cached: undefined
     }

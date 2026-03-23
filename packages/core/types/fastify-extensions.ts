@@ -1,4 +1,4 @@
-import { AuthType, RouteConfig } from '@appweaver/common';
+import { AuthSource, AuthType, RouteConfig } from '@appweaver/common';
 import { AuthUser } from './auth';
 import { ApiKey } from './generated';
 
@@ -29,6 +29,8 @@ declare module '@fastify/request-context' {
   // Override request context data type.
   interface RequestContextData {
     authUser: AuthUser | null;
+    authType: AuthType | null;
+    authSource: AuthSource | null;
     apiKey: ApiKey | null;
     cached?: boolean;
   }

@@ -1,5 +1,6 @@
 import {
   AuthOTTPurpose,
+  AuthSource,
   config,
   makeHash,
   randomString
@@ -13,7 +14,7 @@ import {
 import { inject } from '../../context';
 import { EmailService } from '../../mailer';
 import { HttpError } from '../../errors';
-import { AuthUser, TwoFactorAuthData } from '../../types';
+import { AuthOTTData, AuthUser, TwoFactorAuthData } from '../../types';
 
 type VerifyEmailData = {
   authUserId: number;
@@ -61,7 +62,7 @@ export class AccountService {
       throw new HttpError(result.message, 400);
     }
 
-    const token = await this._authService.generateOneTimeToken(
+    const token = await this._authService.generateOneTimeToken<VerifyEmailData>(
       AuthOTTPurpose.EmailVerification,
       { authUserId: authUser.id, redirectToUrl },
       config.SECURITY_ACCOUNT_VERIFY_EMAIL_OTT_TTL
@@ -184,9 +185,9 @@ export class AccountService {
       throw new HttpError(result.message, 400);
     }
 
-    const token = await this._authService.generateOneTimeToken(
+    const token = await this._authService.generateOneTimeToken<AuthOTTData>(
       AuthOTTPurpose.PasswordReset,
-      authUser.id,
+      { authUserId: authUser.id, authSource: AuthSource.Password },
       config.SECURITY_ACCOUNT_RESET_PASSWORD_OTT_TTL
     );
 
@@ -218,7 +219,7 @@ export class AccountService {
       throw new HttpError(result.message, 400);
     }
 
-    const authUserId = await this._authService.useOneTimeToken<number>(
+    const { authUserId } = await this._authService.useOneTimeToken<AuthOTTData>(
       token,
       AuthOTTPurpose.PasswordReset
     );
@@ -258,11 +259,12 @@ export class AccountService {
     }
 
     const code = randomString(6, { numbers: true });
-    const challengeId = await this._authService.generateOneTimeToken(
-      AuthOTTPurpose.TwoFAVerification,
-      { authUserId: authUser.id, codeHash: makeHash(code), purpose },
-      config.SECURITY_ACCOUNT_2FA_OTT_TTL
-    );
+    const challengeId =
+      await this._authService.generateOneTimeToken<TwoFactorAuthData>(
+        AuthOTTPurpose.TwoFAVerification,
+        { authUserId: authUser.id, codeHash: makeHash(code), purpose },
+        config.SECURITY_ACCOUNT_2FA_OTT_TTL
+      );
 
     await this._emailService.sendEmail({
       to: authUser.email,
@@ -301,9 +303,9 @@ export class AccountService {
       throw new HttpError('Auth user does not exist or is disabled', 400);
     }
 
-    return this._authService.generateOneTimeToken(
+    return this._authService.generateOneTimeToken<AuthOTTData>(
       data.purpose,
-      authUser.id,
+      { authUserId: authUser.id, authSource: AuthSource.Password },
       config.SECURITY_AUTH_OTT_TTL
     );
   }

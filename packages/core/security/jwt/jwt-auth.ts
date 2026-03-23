@@ -2,7 +2,7 @@ import { FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import fastifyJwt from '@fastify/jwt';
 import { requestContext } from '@fastify/request-context';
-import { config, logger } from '@appweaver/common';
+import { AuthType, config, logger } from '@appweaver/common';
 import { inject } from '../../context';
 import { AuthService } from '../auth-service';
 import { HttpError } from '../../errors';
@@ -61,6 +61,8 @@ export const jwtAuth = fastifyPlugin(async (server: Server) => {
     );
 
     requestContext.set('authUser', authUser);
+    requestContext.set('authType', AuthType.Jwt);
+    requestContext.set('authSource', payload.source);
   });
 });
 

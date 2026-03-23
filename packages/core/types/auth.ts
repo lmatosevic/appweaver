@@ -1,8 +1,9 @@
-import { AuthSource } from '@appweaver/common';
+import { AuthSource, AuthScope } from '@appweaver/common';
 import { Role } from './generated';
 
 export type JwtPayload = {
-  scope: string;
+  scope: AuthScope;
+  source: AuthSource;
   username: string;
   sub: number;
   iat: number;
@@ -13,6 +14,11 @@ export type AuthTokens = {
   refreshToken: string;
   expiresIn: number;
   refreshExpiresIn: number;
+};
+
+export type AuthOTTData = {
+  authUserId: number;
+  authSource: AuthSource;
 };
 
 export type TwoFactorAuthData = {

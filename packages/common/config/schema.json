@@ -484,6 +484,10 @@
                   "type": "boolean",
                   "default": false
                 },
+                "keepDatabaseTable": {
+                  "type": "boolean",
+                  "default": false
+                },
                 "headerName": {
                   "type": "string",
                   "default": "x-api-key"

@@ -6,9 +6,9 @@ import {
   logoutSchema,
   refreshSchema
 } from './auth-schema';
-import { AuthType } from '@appweaver/common';
+import { AuthScope, AuthSource, AuthType } from '@appweaver/common';
 import { AuthService } from './auth-service';
-import { resourceAuthModel } from './helper';
+import { currentAuthSource, resourceAuthModel } from './helper';
 import { inject } from '../context';
 import { Server } from '../types';
 
@@ -50,7 +50,11 @@ export function authRoutes(server: Server): void {
     async (_, reply) => {
       const authUser = currentUser();
 
-      const authResponse = await authService.generateAuthTokens(authUser);
+      const authResponse = await authService.generateAuthTokens(
+        authUser,
+        AuthScope.Auth,
+        currentAuthSource() ?? AuthSource.Password
+      );
 
       return reply.send(authResponse);
     }

@@ -1,7 +1,14 @@
 import { FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import { requestContext } from '@fastify/request-context';
-import { config, Database, makeHash, uncapitalize } from '@appweaver/common';
+import {
+  AuthSource,
+  AuthType,
+  config,
+  Database,
+  makeHash,
+  uncapitalize
+} from '@appweaver/common';
 import { inject } from '../../context';
 import { resourceAuthModel } from '../helper';
 import { AuthService } from '../auth-service';
@@ -76,6 +83,8 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
 
     requestContext.set('apiKey', apiKey);
     requestContext.set('authUser', authUser);
+    requestContext.set('authType', AuthType.ApiKey);
+    requestContext.set('authSource', AuthSource.ApiKey);
   });
 });
 

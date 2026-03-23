@@ -126,6 +126,7 @@ const configSchema = Type.Object({
   SECURITY_BASIC_REALM: Type.Optional(Type.String()),
   SECURITY_BASIC_PROXY_MODE: Type.Boolean({ default: false }),
   SECURITY_API_KEY_ENABLED: Type.Boolean({ default: false }),
+  SECURITY_API_KEY_KEEP_DATABASE_TABLE: Type.Boolean({ default: false }),
   SECURITY_API_KEY_HEADER_NAME: Type.String({ default: 'x-api-key' }),
   SECURITY_API_KEY_MAX_DURATION: Type.Optional(Type.Integer()),
   SECURITY_API_KEY_DELIMITER: Type.String({ default: 'AK' }),

@@ -118,6 +118,7 @@
       },
       "apiKey": {
         "enabled": false,
+        "keepDatabaseTable": false,
         "headerName": "x-api-key",
         "maxDuration": null,
         "delimiter": "AK"
