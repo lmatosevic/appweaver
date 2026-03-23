@@ -243,21 +243,22 @@ export function checkScopeAccess(url: string, authScope: AuthScope): boolean {
   const twoFASendPath = `${accountPrefix}/2fa-send-code`;
   const twoFAVerifyPath = `${accountPrefix}/verify-2fa-code`;
 
-  const scopeConfigs = [
+  const scopeConfigs: {
+    scope: AuthScope;
+    allowedPaths?: string[];
+    disallowedPaths?: string[];
+  }[] = [
     {
       scope: AuthScope.Auth,
-      allowedPaths: ['*'],
       disallowedPaths: [refreshPath, twoFASendPath, twoFAVerifyPath]
     },
     {
       scope: AuthScope.Refresh,
-      allowedPaths: [refreshPath],
-      disallowedPaths: ['*']
+      allowedPaths: [refreshPath]
     },
     {
       scope: AuthScope.TwoFA,
-      allowedPaths: [twoFASendPath, twoFAVerifyPath],
-      disallowedPaths: ['*']
+      allowedPaths: [twoFASendPath, twoFAVerifyPath]
     }
   ];
 
@@ -268,10 +269,10 @@ export function checkScopeAccess(url: string, authScope: AuthScope): boolean {
 
   const { allowedPaths, disallowedPaths } = scopeConfig;
 
-  const isPathIncluded = (paths: string[]) =>
-    paths.includes(url) || paths.includes('*');
-
-  return !(!isPathIncluded(allowedPaths) || isPathIncluded(disallowedPaths));
+  return (
+    (allowedPaths !== undefined && allowedPaths.includes(url)) ||
+    (disallowedPaths !== undefined && !disallowedPaths.includes(url))
+  );
 }
 
 /**
