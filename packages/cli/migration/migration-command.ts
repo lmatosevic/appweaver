@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { runProcess } from '../utils';
+import { assertEnvs, runProcess } from '../utils';
 
 export function migrationCommand(program: Command): void {
   const migration = program
@@ -17,12 +17,30 @@ export function migrationCommand(program: Command): void {
   migration
     .command('reset')
     .description('Reset the database')
+    .option(
+      '-f, --force',
+      'Force reset for non-development environments',
+      false
+    )
     .option('-y, --yes', 'Skip confirmation prompt', false)
     .action(async (_, command: Command) => {
+      const force = command.getOptionValue('force');
+      const yes = command.getOptionValue('yes');
+
+      if (!force) {
+        assertEnvs(
+          ['dev', 'test'],
+          '"weaver migration reset" can be called only in "dev" or "test" ' +
+            'environments (NODE_ENV=dev). Use --force flag to reset anyway.'
+        );
+      }
+
       const args = ['migrate', 'reset'];
-      if (command.getOptionValue('yes')) {
+
+      if (yes || force) {
         args.push('--force');
       }
+
       await runProcess('prisma', args);
     });
 }

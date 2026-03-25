@@ -189,9 +189,10 @@ Reset the database (drops all data and re-applies migrations).
 weaver migration reset [options]
 ```
 
-| Option      | Description              | Default |
-|-------------|--------------------------|---------|
-| `-y, --yes` | Skip confirmation prompt | false   |
+| Option        | Description                                  | Default |
+|---------------|----------------------------------------------|---------|
+| `-f, --force` | Force reset for non-development environments | false   |
+| `-y, --yes`   | Skip confirmation prompt                     | false   |
 
 Executes `prisma migrate reset` (with `--force` when `-y` is passed).
 

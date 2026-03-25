@@ -44,3 +44,17 @@ export function assertEnv(env: string, message: string): void {
     process.exit(1);
   }
 }
+
+/**
+ * Verifies that the application's runtime environment matches one of the specified environments.
+ * Terminates the process with an error message if the environment does not match any of the provided options.
+ *
+ * @param {string[]} envs - An array of expected environments (e.g., ['prod', 'dev', 'test']).
+ * @param {string} message - The error message to display if the environment does not match any of the provided options.
+ */
+export function assertEnvs(envs: string[], message: string): void {
+  if (!envs.includes(config.APP_ENV)) {
+    console.error(message);
+    process.exit(1);
+  }
+}
