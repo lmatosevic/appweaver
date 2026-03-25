@@ -29,5 +29,15 @@
 !.vscode/launch.json
 !.vscode/extensions.json
 
+# Agents
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/memory/
+.claude/commands/
+.cursor/
+.cursorrules
+.aider*
+.agent*
+
 # Env file
 .env
