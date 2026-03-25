@@ -271,7 +271,106 @@ weaver test teardown [options]
 
 ---
 
-#### 6. Releasing New Versions
+#### 6. Sample Applications
+
+##### `sample/cms-api`
+
+A reference CMS (Content Management System) API that demonstrates how to build a complete application with Appweaver.
+It includes user authentication, posts with file uploads, role-based authorization, scheduled jobs, custom routes, and
+plugins.
+
+###### Model definitions and code generation
+
+Resource models live in `src/resources/<name>/model.ts`. Each model defines its fields (scalars), relations, file
+uploads, virtual fields, and input restrictions using factory functions (`createModel`, `createAuthModel`).
+
+After **any change** to a model file, you must regenerate the TypeScript types and Prisma schema:
+
+```bash
+# Generate types (src/types/generated.ts) and Prisma schema (database/schema.prisma)
+npx weaver generate          # or: npm run generate
+
+# Create a migration for the schema change
+npx weaver migration -n <name_of_change>   # e.g. -n add_category_to_post
+```
+
+The two-step workflow is:
+
+1. **`weaver generate`** — reads all `model.ts` files, emits `src/types/generated.ts` and `database/schema.prisma`,
+   then runs `prisma generate` to produce the Prisma client in `database/client/`.
+2. **`weaver migration -n <name>`** — creates a new SQL migration in `database/migrations/` and applies it to the dev
+   database.
+
+To apply pending migrations in production or CI (without creating new ones), use:
+
+```bash
+npx weaver migrate            # or: npm run migrate
+```
+
+###### Starting the application
+
+```bash
+# Production mode (requires a prior build)
+npx weaver build              # or: npm run build
+npx weaver start              # or: npm run start
+
+# Development mode (watches for changes, recompiles and restarts automatically)
+npx weaver start --watch      # or: npm run dev
+```
+
+- **`weaver start`** runs `node ./dist/src/main.js`.
+- **`weaver start --watch`** uses `tsc-watch` to recompile on file changes, resolves path aliases with `tsc-alias`,
+  and restarts the server on each successful build.
+
+###### Environment-based configuration
+
+Configuration is loaded from `appweaver.json` files in the project root. The framework loads a **base** config and then
+deep-merges an **environment-specific** overlay based on the `NODE_ENV` environment variable:
+
+| File                  | Loaded when                     |
+|-----------------------|---------------------------------|
+| `appweaver.json`      | Always (base configuration)     |
+| `appweaver.dev.json`  | `NODE_ENV=dev` or `development` |
+| `appweaver.test.json` | `NODE_ENV=test`                 |
+
+For example, the base `appweaver.json` sets the server port, database URL, and app metadata. The dev overlay enables
+debug logging with pretty-printing, while the test overlay redirects the database to a temporary path, swaps Redis and
+queue providers for in-memory implementations, and disables the scheduler auto-start.
+
+###### Seeding the database
+
+Seeders live in `database/seeders/` and are executed in filename order:
+
+```bash
+npx weaver seed               # or: npm run seed
+```
+
+###### Testing
+
+```bash
+# Unit tests
+npm test
+
+# End-to-end tests
+npm run e2e
+```
+
+E2E tests use `weaver test setup` / `weaver test reset` / `weaver test teardown` to manage a temporary test database
+and storage directory.
+
+###### Docker
+
+The included `Dockerfile` and `start.sh` support multiple entry points:
+
+```bash
+start.sh app          # Start the application server
+start.sh migrations   # Apply database migrations
+start.sh seed         # Seed the database
+```
+
+---
+
+#### 7. Releasing New Versions
 
 The project uses **semantic-release** with conventional commits to automate versioning, changelog generation, and npm
 publishing.
