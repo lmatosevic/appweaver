@@ -60,12 +60,12 @@ export type Role = Prisma.RoleModel
  */
 export type Permission = Prisma.PermissionModel
 /**
- * Model OneTimeToken
- * 
- */
-export type OneTimeToken = Prisma.OneTimeTokenModel
-/**
  * Model ApiKey
  * 
  */
 export type ApiKey = Prisma.ApiKeyModel
+/**
+ * Model OneTimeToken
+ * 
+ */
+export type OneTimeToken = Prisma.OneTimeTokenModel

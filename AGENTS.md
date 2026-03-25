@@ -169,17 +169,31 @@ Executes `prisma migrate deploy`.
 
 ##### `weaver migration` (alias: `mgn`)
 
-Create a new database migration during development.
+Database migration commands for development.
+
+###### `weaver migration new <name>`
+
+Create a new database migration.
 
 ```
-weaver migration -n <NAME>
+weaver migration new <name>
 ```
 
-| Option              | Description            | Required |
-|---------------------|------------------------|----------|
-| `-n, --name <NAME>` | Name for the migration | Yes      |
+Executes `prisma migrate dev --name <name>`.
 
-Executes `prisma migrate dev --name <NAME>`.
+###### `weaver migration reset`
+
+Reset the database (drops all data and re-applies migrations).
+
+```
+weaver migration reset [options]
+```
+
+| Option      | Description              | Default |
+|-------------|--------------------------|---------|
+| `-y, --yes` | Skip confirmation prompt | false   |
+
+Executes `prisma migrate reset` (with `--force` when `-y` is passed).
 
 ---
 
@@ -291,14 +305,14 @@ After **any change** to a model file, you must regenerate the TypeScript types a
 npx weaver generate          # or: npm run generate
 
 # Create a migration for the schema change
-npx weaver migration -n <name_of_change>   # e.g. -n add_category_to_post
+npx weaver migration new <name_of_change>   # e.g. new add_category_to_post
 ```
 
 The two-step workflow is:
 
 1. **`weaver generate`** — reads all `model.ts` files, emits `src/types/generated.ts` and `database/schema.prisma`,
    then runs `prisma generate` to produce the Prisma client in `database/client/`.
-2. **`weaver migration -n <name>`** — creates a new SQL migration in `database/migrations/` and applies it to the dev
+2. **`weaver migration new <name>`** — creates a new SQL migration in `database/migrations/` and applies it to the dev
    database.
 
 To apply pending migrations in production or CI (without creating new ones), use:

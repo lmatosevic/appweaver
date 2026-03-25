@@ -8,17 +8,16 @@
   "main": "./dist/src/main.js",
   "types": "./dist/src/main.d.ts",
   "scripts": {
-    "build": "npm run weaver -- build",
-    "start": "npm run weaver -- start",
-    "dev": "npm run weaver -- start --watch",
-    "generate": "npm run weaver -- generate",
-    "migrate": "npm run weaver -- migrate",
-    "seed": "npm run weaver -- seed --buildProject",
+    "build": "weaver build",
+    "start": "weaver start",
+    "dev": "weaver start --watch",
+    "generate": "weaver generate",
+    "migrate": "weaver migrate",
+    "seed": "weaver seed --buildProject",
     "test": "jest --forceExit --detectOpenHandles --coverage",
     "e2e": "jest --forceExit --detectOpenHandles --config ./test/e2e/jest.e2e-config.json",
     "format": "prettier --write \"./**/*.ts\"",
-    "lint": "eslint \"./**/*.ts\"",
-    "weaver": "node ./../../node_modules/@appweaver/cli/weaver.js"
+    "lint": "eslint \"./**/*.ts\""
   },
   "dependencies": {
     "@appweaver/common": "^1.0.0",

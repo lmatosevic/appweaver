@@ -55,8 +55,8 @@ export const ModelName = {
   Seeder: 'Seeder',
   Role: 'Role',
   Permission: 'Permission',
-  OneTimeToken: 'OneTimeToken',
-  ApiKey: 'ApiKey'
+  ApiKey: 'ApiKey',
+  OneTimeToken: 'OneTimeToken'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -122,19 +122,6 @@ export const PermissionScalarFieldEnum = {
 export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
 
 
-export const OneTimeTokenScalarFieldEnum = {
-  id: 'id',
-  tokenHash: 'tokenHash',
-  purpose: 'purpose',
-  expiresAt: 'expiresAt',
-  data: 'data',
-  updatedAt: 'updatedAt',
-  createdAt: 'createdAt'
-} as const
-
-export type OneTimeTokenScalarFieldEnum = (typeof OneTimeTokenScalarFieldEnum)[keyof typeof OneTimeTokenScalarFieldEnum]
-
-
 export const ApiKeyScalarFieldEnum = {
   id: 'id',
   key: 'key',
@@ -148,6 +135,19 @@ export const ApiKeyScalarFieldEnum = {
 } as const
 
 export type ApiKeyScalarFieldEnum = (typeof ApiKeyScalarFieldEnum)[keyof typeof ApiKeyScalarFieldEnum]
+
+
+export const OneTimeTokenScalarFieldEnum = {
+  id: 'id',
+  tokenHash: 'tokenHash',
+  purpose: 'purpose',
+  expiresAt: 'expiresAt',
+  data: 'data',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type OneTimeTokenScalarFieldEnum = (typeof OneTimeTokenScalarFieldEnum)[keyof typeof OneTimeTokenScalarFieldEnum]
 
 
 export const SortOrder = {

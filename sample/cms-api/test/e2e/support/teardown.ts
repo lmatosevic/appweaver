@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process';
 
 export default async function teardown() {
-  const { error } = spawnSync('npm run weaver -- test teardown', {
+  const { error } = spawnSync('weaver test teardown', {
     stdio: 'inherit',
     shell: true
   });

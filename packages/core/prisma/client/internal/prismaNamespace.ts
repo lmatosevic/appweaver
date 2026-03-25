@@ -388,8 +388,8 @@ export const ModelName = {
   Seeder: 'Seeder',
   Role: 'Role',
   Permission: 'Permission',
-  OneTimeToken: 'OneTimeToken',
-  ApiKey: 'ApiKey'
+  ApiKey: 'ApiKey',
+  OneTimeToken: 'OneTimeToken'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -405,7 +405,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "file" | "seeder" | "role" | "permission" | "oneTimeToken" | "apiKey"
+    modelProps: "file" | "seeder" | "role" | "permission" | "apiKey" | "oneTimeToken"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -705,80 +705,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    OneTimeToken: {
-      payload: Prisma.$OneTimeTokenPayload<ExtArgs>
-      fields: Prisma.OneTimeTokenFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.OneTimeTokenFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.OneTimeTokenFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
-        }
-        findFirst: {
-          args: Prisma.OneTimeTokenFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.OneTimeTokenFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
-        }
-        findMany: {
-          args: Prisma.OneTimeTokenFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>[]
-        }
-        create: {
-          args: Prisma.OneTimeTokenCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
-        }
-        createMany: {
-          args: Prisma.OneTimeTokenCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.OneTimeTokenCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>[]
-        }
-        delete: {
-          args: Prisma.OneTimeTokenDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
-        }
-        update: {
-          args: Prisma.OneTimeTokenUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
-        }
-        deleteMany: {
-          args: Prisma.OneTimeTokenDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.OneTimeTokenUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.OneTimeTokenUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>[]
-        }
-        upsert: {
-          args: Prisma.OneTimeTokenUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
-        }
-        aggregate: {
-          args: Prisma.OneTimeTokenAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateOneTimeToken>
-        }
-        groupBy: {
-          args: Prisma.OneTimeTokenGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.OneTimeTokenGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.OneTimeTokenCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.OneTimeTokenCountAggregateOutputType> | number
-        }
-      }
-    }
     ApiKey: {
       payload: Prisma.$ApiKeyPayload<ExtArgs>
       fields: Prisma.ApiKeyFieldRefs
@@ -850,6 +776,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ApiKeyCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ApiKeyCountAggregateOutputType> | number
+        }
+      }
+    }
+    OneTimeToken: {
+      payload: Prisma.$OneTimeTokenPayload<ExtArgs>
+      fields: Prisma.OneTimeTokenFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OneTimeTokenFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OneTimeTokenFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
+        }
+        findFirst: {
+          args: Prisma.OneTimeTokenFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OneTimeTokenFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
+        }
+        findMany: {
+          args: Prisma.OneTimeTokenFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>[]
+        }
+        create: {
+          args: Prisma.OneTimeTokenCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
+        }
+        createMany: {
+          args: Prisma.OneTimeTokenCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OneTimeTokenCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>[]
+        }
+        delete: {
+          args: Prisma.OneTimeTokenDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
+        }
+        update: {
+          args: Prisma.OneTimeTokenUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
+        }
+        deleteMany: {
+          args: Prisma.OneTimeTokenDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OneTimeTokenUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OneTimeTokenUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>[]
+        }
+        upsert: {
+          args: Prisma.OneTimeTokenUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
+        }
+        aggregate: {
+          args: Prisma.OneTimeTokenAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOneTimeToken>
+        }
+        groupBy: {
+          args: Prisma.OneTimeTokenGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OneTimeTokenGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OneTimeTokenCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OneTimeTokenCountAggregateOutputType> | number
         }
       }
     }
@@ -939,19 +939,6 @@ export const PermissionScalarFieldEnum = {
 export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
 
 
-export const OneTimeTokenScalarFieldEnum = {
-  id: 'id',
-  tokenHash: 'tokenHash',
-  purpose: 'purpose',
-  expiresAt: 'expiresAt',
-  data: 'data',
-  updatedAt: 'updatedAt',
-  createdAt: 'createdAt'
-} as const
-
-export type OneTimeTokenScalarFieldEnum = (typeof OneTimeTokenScalarFieldEnum)[keyof typeof OneTimeTokenScalarFieldEnum]
-
-
 export const ApiKeyScalarFieldEnum = {
   id: 'id',
   key: 'key',
@@ -965,6 +952,19 @@ export const ApiKeyScalarFieldEnum = {
 } as const
 
 export type ApiKeyScalarFieldEnum = (typeof ApiKeyScalarFieldEnum)[keyof typeof ApiKeyScalarFieldEnum]
+
+
+export const OneTimeTokenScalarFieldEnum = {
+  id: 'id',
+  tokenHash: 'tokenHash',
+  purpose: 'purpose',
+  expiresAt: 'expiresAt',
+  data: 'data',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type OneTimeTokenScalarFieldEnum = (typeof OneTimeTokenScalarFieldEnum)[keyof typeof OneTimeTokenScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1035,6 +1035,13 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'Json'
  */
 export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -1045,13 +1052,6 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
  * Reference to a field of type 'QueryMode'
  */
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -1160,8 +1160,8 @@ export type GlobalOmitConfig = {
   seeder?: Prisma.SeederOmit
   role?: Prisma.RoleOmit
   permission?: Prisma.PermissionOmit
-  oneTimeToken?: Prisma.OneTimeTokenOmit
   apiKey?: Prisma.ApiKeyOmit
+  oneTimeToken?: Prisma.OneTimeTokenOmit
 }
 
 /* Types for Logging */

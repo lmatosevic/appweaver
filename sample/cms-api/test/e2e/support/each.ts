@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process';
 
 afterEach(() => {
-  const { error } = spawnSync('npm run weaver -- test reset', {
+  const { error } = spawnSync('weaver test reset', {
     stdio: 'inherit',
     shell: true
   });

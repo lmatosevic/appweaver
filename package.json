@@ -57,7 +57,7 @@
     "csv-stringify": "6.6.0",
     "date-fns": "4.1.0",
     "dotenv": "17.2.3",
-    "fastify": "5.8.1",
+    "fastify": "5.8.4",
     "flatted": "3.4.2",
     "generate-api-key": "1.0.2",
     "glob": "13.0.1",

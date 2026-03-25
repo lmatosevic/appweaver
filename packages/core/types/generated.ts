@@ -125,50 +125,6 @@ export type PermissionUpdate = {
   name?: string;
 };
 
-export type OneTimeToken = {
-  id: number;
-  tokenHash: string;
-  purpose: string;
-  expiresAt: Date;
-  data: any;
-  updatedAt: Date;
-  createdAt: Date;
-};
-
-export type OneTimeTokenSingle = {
-  id: number;
-  tokenHash: string;
-  purpose: string;
-  expiresAt: Date;
-  data: any;
-  updatedAt: Date;
-  createdAt: Date;
-};
-
-export type OneTimeTokenMultiple = {
-  id: number;
-  tokenHash: string;
-  purpose: string;
-  expiresAt: Date;
-  data: any;
-  updatedAt: Date;
-  createdAt: Date;
-};
-
-export type OneTimeTokenCreate = {
-  tokenHash: string;
-  purpose: string;
-  expiresAt: Date;
-  data: any;
-};
-
-export type OneTimeTokenUpdate = {
-  tokenHash?: string;
-  purpose?: string;
-  expiresAt?: Date;
-  data?: any;
-};
-
 export type ApiKey = {
   id: number;
   key: string;
@@ -217,4 +173,48 @@ export type ApiKeyUpdate = {
   name?: string | null;
   description?: string | null;
   enabled?: boolean;
+};
+
+export type OneTimeToken = {
+  id: number;
+  tokenHash: string;
+  purpose: string;
+  expiresAt: Date;
+  data: any;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type OneTimeTokenSingle = {
+  id: number;
+  tokenHash: string;
+  purpose: string;
+  expiresAt: Date;
+  data: any;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type OneTimeTokenMultiple = {
+  id: number;
+  tokenHash: string;
+  purpose: string;
+  expiresAt: Date;
+  data: any;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type OneTimeTokenCreate = {
+  tokenHash: string;
+  purpose: string;
+  expiresAt: Date;
+  data: any;
+};
+
+export type OneTimeTokenUpdate = {
+  tokenHash?: string;
+  purpose?: string;
+  expiresAt?: Date;
+  data?: any;
 };
