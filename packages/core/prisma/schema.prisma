@@ -31,6 +31,18 @@ model File {
   @@index([resourceField, resourceName, resourceId])
 }
 
+model Permission {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  /// Related columns
+  roles Role[] @relation("RolePermissionsPermission")
+
+  /// Audit columns
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
 model Seeder {
   id         String   @id @default(uuid())
   checksum   String
@@ -54,16 +66,18 @@ model Role {
   createdAt DateTime @default(now())
 }
 
-model Permission {
-  id   Int    @id @default(autoincrement())
-  name String @unique
-
-  /// Related columns
-  roles Role[] @relation("RolePermissionsPermission")
+model OneTimeToken {
+  id        Int      @id @default(autoincrement())
+  tokenHash String
+  purpose   String
+  expiresAt DateTime
+  data      Json
 
   /// Audit columns
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
+
+  @@index([tokenHash, purpose])
 }
 
 model ApiKey {
@@ -78,18 +92,4 @@ model ApiKey {
   /// Audit columns
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
-}
-
-model OneTimeToken {
-  id        Int      @id @default(autoincrement())
-  tokenHash String
-  purpose   String
-  expiresAt DateTime
-  data      Json
-
-  /// Audit columns
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-
-  @@index([tokenHash, purpose])
 }

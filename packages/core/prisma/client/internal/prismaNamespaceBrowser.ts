@@ -52,11 +52,11 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   File: 'File',
+  Permission: 'Permission',
   Seeder: 'Seeder',
   Role: 'Role',
-  Permission: 'Permission',
-  ApiKey: 'ApiKey',
-  OneTimeToken: 'OneTimeToken'
+  OneTimeToken: 'OneTimeToken',
+  ApiKey: 'ApiKey'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -90,6 +90,16 @@ export const FileScalarFieldEnum = {
 export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
 
 
+export const PermissionScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
+
+
 export const SeederScalarFieldEnum = {
   id: 'id',
   checksum: 'checksum',
@@ -112,14 +122,17 @@ export const RoleScalarFieldEnum = {
 export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof RoleScalarFieldEnum]
 
 
-export const PermissionScalarFieldEnum = {
+export const OneTimeTokenScalarFieldEnum = {
   id: 'id',
-  name: 'name',
+  tokenHash: 'tokenHash',
+  purpose: 'purpose',
+  expiresAt: 'expiresAt',
+  data: 'data',
   updatedAt: 'updatedAt',
   createdAt: 'createdAt'
 } as const
 
-export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
+export type OneTimeTokenScalarFieldEnum = (typeof OneTimeTokenScalarFieldEnum)[keyof typeof OneTimeTokenScalarFieldEnum]
 
 
 export const ApiKeyScalarFieldEnum = {
@@ -135,19 +148,6 @@ export const ApiKeyScalarFieldEnum = {
 } as const
 
 export type ApiKeyScalarFieldEnum = (typeof ApiKeyScalarFieldEnum)[keyof typeof ApiKeyScalarFieldEnum]
-
-
-export const OneTimeTokenScalarFieldEnum = {
-  id: 'id',
-  tokenHash: 'tokenHash',
-  purpose: 'purpose',
-  expiresAt: 'expiresAt',
-  data: 'data',
-  updatedAt: 'updatedAt',
-  createdAt: 'createdAt'
-} as const
-
-export type OneTimeTokenScalarFieldEnum = (typeof OneTimeTokenScalarFieldEnum)[keyof typeof OneTimeTokenScalarFieldEnum]
 
 
 export const SortOrder = {

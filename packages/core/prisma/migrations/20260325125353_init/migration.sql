@@ -15,6 +15,14 @@ CREATE TABLE "File" (
 );
 
 -- CreateTable
+CREATE TABLE "Permission" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "updatedAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
 CREATE TABLE "_seeders" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "checksum" TEXT NOT NULL,
@@ -26,14 +34,6 @@ CREATE TABLE "_seeders" (
 
 -- CreateTable
 CREATE TABLE "Role" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "name" TEXT NOT NULL,
-    "updatedAt" DATETIME NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- CreateTable
-CREATE TABLE "Permission" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "name" TEXT NOT NULL,
     "updatedAt" DATETIME NOT NULL,
@@ -79,13 +79,13 @@ CREATE UNIQUE INDEX "File_name_key" ON "File"("name");
 CREATE INDEX "File_resourceField_resourceName_resourceId_idx" ON "File"("resourceField", "resourceName", "resourceId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Permission_name_key" ON "Permission"("name");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "_seeders_seederName_key" ON "_seeders"("seederName");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Permission_name_key" ON "Permission"("name");
 
 -- CreateIndex
 CREATE INDEX "OneTimeToken_tokenHash_purpose_idx" ON "OneTimeToken"("tokenHash", "purpose");

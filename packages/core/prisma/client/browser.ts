@@ -23,6 +23,11 @@ export * from './enums';
  */
 export type File = Prisma.FileModel
 /**
+ * Model Permission
+ * 
+ */
+export type Permission = Prisma.PermissionModel
+/**
  * Model Seeder
  * 
  */
@@ -33,17 +38,12 @@ export type Seeder = Prisma.SeederModel
  */
 export type Role = Prisma.RoleModel
 /**
- * Model Permission
+ * Model OneTimeToken
  * 
  */
-export type Permission = Prisma.PermissionModel
+export type OneTimeToken = Prisma.OneTimeTokenModel
 /**
  * Model ApiKey
  * 
  */
 export type ApiKey = Prisma.ApiKeyModel
-/**
- * Model OneTimeToken
- * 
- */
-export type OneTimeToken = Prisma.OneTimeTokenModel

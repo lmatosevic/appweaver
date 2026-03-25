@@ -20,10 +20,7 @@
   },
   "scripts": {
     "generate": "weaver generate --modelPattern ./**/model.ts --typesPath ./types/generated.ts --schemaPath ./prisma/schema.prisma --clientPath ./prisma/client",
-    "db:remove": "rimraf dev.db && rimraf prisma/migrations --glob \"*_init\"",
-    "db:recreate": "npm run db:remove && prisma migrate dev --name init && npm run db:generate",
-    "db:migrate": "prisma migrate deploy",
-    "db:generate": "prisma generate"
+    "db:recreate": "rimraf dev.db && rimraf prisma/migrations --glob \"*_init\" && weaver migration new init"
   },
   "dependencies": {
     "@fastify/auth": "5.0.4",

@@ -92,18 +92,8 @@ npm run db:recreate
 # Full chain:
 #   1. rimraf dev.db  (delete SQLite file)
 #   2. rimraf prisma/migrations/*_init  (remove init migration)
-#   3. prisma migrate dev --name init  (create fresh migration)
-#   4. prisma generate  (regenerate Prisma client)
+#   3. weaver migration new init  (create fresh migration)
 # Use whenever the schema has changed substantially and you want a clean slate.
-
-# Apply pending migrations without creating new ones (CI / production)
-npm run db:migrate   # prisma migrate deploy
-
-# Regenerate the Prisma client after manual schema edits
-npm run db:generate  # prisma generate
-
-# Delete dev.db and the init migration only (no recreation)
-npm run db:remove
 ```
 
 ##### `packages/cli`
