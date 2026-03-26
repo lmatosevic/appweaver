@@ -1,4 +1,4 @@
 export * from './model';
 export * from './policy';
-export * from './route';
+export * from './routes';
 export * from './service';

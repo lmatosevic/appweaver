@@ -17,14 +17,14 @@ The project is a TypeScript monorepo using `tsc -b` for builds.
 Tests are located in `packages/*/test` and use **Jest** with **SWC** for fast execution.
 
 - **Running all tests**: `npm test`
-- **Running specific tests**: `npx jest path/to/test.spec.ts`
+- **Running specific tests**: `jest path/to/test.spec.ts`
 - **Adding new tests**:
     - Create a file with `.spec.ts` or `.test.ts` extension in the `test` directory of the relevant package.
     - Follow the standard `describe`/`test`/`expect` pattern.
 
 **Example Test Case**:
 
-```typescript
+```ts
 describe('Feature Verification', () => {
   test('should perform expected action', () => {
     const result = someFunction();
@@ -56,19 +56,19 @@ Core application logic. Organized into the following modules:
 | Module       | Purpose                                                                                                                                                   |
 |--------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `app/`       | Application lifecycle: bootstrapping, loading modules and providers, startup/shutdown hooks                                                               |
-| `database/`  | Database client factory and Prisma setup (`create-client.ts`, `prisma-database.ts`)                                                                       |
+| `database/`  | Database client factory and Prisma setup                                                                                                                  |
 | `server/`    | Fastify HTTP server creation, route registration, model mounting, Swagger/OpenAPI integration                                                             |
 | `security/`  | Authentication and authorization — sub-modules for JWT, OAuth2, API key, basic auth, reCAPTCHA, account management, and security token storage (`store/`) |
 | `resource/`  | CRUD resource lifecycle: loading, routing, schema validation, and service layer                                                                           |
 | `factory/`   | Factory helpers for creating models, policies, routes, and services                                                                                       |
 | `storage/`   | File upload and management — filesystem storage and file service/routes                                                                                   |
 | `queue/`     | Background job queues — Bull (Redis-backed) and in-memory implementations                                                                                 |
-| `scheduler/` | Cron job scheduling (`cron-scheduler.ts`)                                                                                                                 |
-| `seeder/`    | Database seeding utilities (`create-seeder.ts`, `seeder.ts`)                                                                                              |
+| `scheduler/` | Cron job scheduling service                                                                                                                               |
+| `seeder/`    | Database seeding utilities                                                                                                                                |
 | `mailer/`    | Email service — SMTP and JSON (dev/test) mailer implementations                                                                                           |
 | `cache/`     | Caching layer abstractions and implementations                                                                                                            |
-| `context/`   | Dependency injection container                                                                                                                            |
-| `health/`    | Health check endpoint registration                                                                                                                        |
+| `context/`   | Dependency injection container and utility functions                                                                                                      |
+| `health/`    | Health check endpoint and service registration                                                                                                            |
 | `export/`    | Data export service (CSV and other formats)                                                                                                               |
 | `events/`    | Node.js event emitter integration                                                                                                                         |
 | `errors/`    | Custom application error classes                                                                                                                          |
@@ -104,7 +104,7 @@ See **Section 5** for the full command reference.
 
 #### 5. CLI Command Reference (`weaver`)
 
-All commands are available via `npx weaver <command>` or the local `npm run weaver --` alias inside `packages/core`.
+All commands are available via `weaver <command>`.
 
 ---
 
@@ -293,10 +293,10 @@ After **any change** to a model file, you must regenerate the TypeScript types a
 
 ```bash
 # Generate types (src/types/generated.ts) and Prisma schema (database/schema.prisma)
-npx weaver generate          # or: npm run generate
+weaver generate          # or: npm run generate
 
 # Create a migration for the schema change
-npx weaver migration new <name_of_change>   # e.g. new add_category_to_post
+weaver migration new <name_of_change>   # e.g. new add_category_to_post
 ```
 
 The two-step workflow is:
@@ -309,18 +309,18 @@ The two-step workflow is:
 To apply pending migrations in production or CI (without creating new ones), use:
 
 ```bash
-npx weaver migrate            # or: npm run migrate
+weaver migrate            # or: npm run migrate
 ```
 
 ###### Starting the application
 
 ```bash
 # Production mode (requires a prior build)
-npx weaver build              # or: npm run build
-npx weaver start              # or: npm run start
+weaver build              # or: npm run build
+weaver start              # or: npm run start
 
 # Development mode (watches for changes, recompiles and restarts automatically)
-npx weaver start --watch      # or: npm run dev
+weaver start --watch      # or: npm run dev
 ```
 
 - **`weaver start`** runs `node ./dist/src/main.js`.
@@ -347,14 +347,14 @@ queue providers for in-memory implementations, and disables the scheduler auto-s
 Seeders live in `database/seeders/` and are executed in filename order:
 
 ```bash
-npx weaver seed               # or: npm run seed
+weaver seed               # or: npm run seed
 ```
 
 ###### Testing
 
 ```bash
 # Unit tests
-npm test
+npm run test
 
 # End-to-end tests
 npm run e2e

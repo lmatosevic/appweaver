@@ -1,0 +1,37 @@
+{
+  "name": "@appweaver/create-weaver-app",
+  "version": "1.6.0",
+  "description": "Appweaver - simple, fast, and reliable web application builder tool (@create-weaver-app)",
+  "author": "Luka Matosevic",
+  "license": "UNLICENSED",
+  "main": "./create-weaver-app.js",
+  "types": "./create-weaver-app.d.ts",
+  "bin": {
+    "create-weaver-app": "./create-weaver-app.js"
+  },
+  "files": [
+    "templates"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/app-weaver/appweaver.git",
+    "directory": "packages/create-weaver-app"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://gitlab.com/api/v4/projects/77748589/packages/npm/"
+  },
+  "engines": {
+    "node": ">= 20"
+  },
+  "scripts": {
+    "create-weaver-app": "node ./dist/create-weaver-app.js"
+  },
+  "dependencies": {
+    "commander": "14.0.3",
+    "glob": "13.0.1"
+  },
+  "devDependencies": {},
+  "peerDependencies": {},
+  "peerDependenciesMeta": {}
+}

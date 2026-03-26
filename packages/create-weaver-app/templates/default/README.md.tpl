@@ -1,0 +1,7 @@
+# {{NAME}}
+
+> {{DESCRIPTION}}
+
+## License
+
+UNLICENSED

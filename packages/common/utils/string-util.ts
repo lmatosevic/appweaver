@@ -212,8 +212,8 @@ export function makeUrlSlug(...values: string[]): string {
  */
 export function camelToSnakeCase(text: string, divider: string = '_'): string {
   return text
-    ?.split(/(?=[A-Z])/g)
-    .join(divider)
+    ?.replace(/([a-z0-9])([A-Z])/g, `$1${divider}$2`)
+    .replace(/([A-Z])([A-Z][a-z])/g, `$1${divider}$2`)
     .toLowerCase();
 }
 

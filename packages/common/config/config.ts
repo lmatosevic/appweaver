@@ -82,7 +82,7 @@ const configSchema = Type.Object({
     default: './src/resources/*/policy.ts'
   }),
   RESOURCE_ROUTE_PATTERN: Type.String({
-    default: './src/resources/*/route.ts'
+    default: './src/resources/*/routes.ts'
   }),
   RESOURCE_GENERATED_TYPES_PATH: Type.String({
     default: './src/types/generated.ts'
