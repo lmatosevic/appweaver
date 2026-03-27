@@ -38,15 +38,15 @@ export type RouteCacheConfig = {
   cacheRelations?: string[];
 };
 
+export type ReadRouteConfig = RouteConfig &
+  Omit<RouteCacheConfig, 'cacheKey' | 'cacheModelName' | 'cacheRelations'>;
+
 export type ResourceRoutesConfig = {
   modelName: string;
   path?: string;
-  find?: RouteConfig &
-    Omit<RouteCacheConfig, 'cacheKey' | 'cacheModelName' | 'cacheRelations'>;
-  query?: RouteConfig &
-    Omit<RouteCacheConfig, 'cacheKey' | 'cacheModelName' | 'cacheRelations'>;
-  aggregate?: RouteConfig &
-    Omit<RouteCacheConfig, 'cacheKey' | 'cacheModelName' | 'cacheRelations'>;
+  find?: ReadRouteConfig;
+  query?: ReadRouteConfig;
+  aggregate?: ReadRouteConfig;
   create?: RouteConfig;
   update?: RouteConfig;
   delete?: RouteConfig;

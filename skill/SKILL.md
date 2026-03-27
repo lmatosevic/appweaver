@@ -23,7 +23,7 @@ running seeders, testing, and more.
 
 ## Project structure
 
-The basic project structure is the following:
+The basic file structure of the Appweaver project:
 
 - `database/` - database migrations, seeders, generated prisma client, and client used by the application
 - `dist/` - the output directory for transpiled JavaScript files
@@ -43,13 +43,80 @@ The basic project structure is the following:
 
 ## Core patterns
 
-### Creating application
+### Scaffolding a new application
 
-```ts
-createApp().catch((err) => console.error(err));
+Use `create-weaver-app` to scaffold a new project. It copies a default template, installs dependencies, and generates
+initial Prisma schema and models.
+
+```sh
+npx create-weaver-app <name> [description] [options]
 ```
 
-### Creating a resource model
+**Options:**
+
+| Flag              | Description                                                 | Default      |
+|-------------------|-------------------------------------------------------------|--------------|
+| `-o, --outputDir` | Output directory (use ./ for current working directory)     | project name |
+| `-d, --database`  | Database type: `sqlite`, `postgresql`, `mysql`, `sqlserver` | `sqlite`     |
+| `--noRedis`       | Skip ioredis                                                | false        |
+| `--noQueue`       | Skip bullmq                                                 | false        |
+| `--noMailer`      | Skip nodemailer                                             | false        |
+| `--noCron`        | Skip cron                                                   | false        |
+
+**Example — PostgreSQL project without queue:**
+
+```sh
+npx create-weaver-app MyBlogAPI "My own CMS for blogging" --database postgresql --noQueue
+```
+
+This creates a `./my-blog-api` directory, installs all dependencies, and runs the initial schema and type generation.
+
+### Creating application
+
+The main entrypoint to the application. This function creates an application object and initializes all resources and
+services.
+
+Default application bootstrap:
+
+```ts
+// src/main.ts
+import { createApp } from '@appweaver/core';
+import { logger } from '@appweaver/common';
+
+createApp().catch((err) => logger.error(err));
+```
+
+Manually starting an application:
+
+```ts
+// src/main.ts
+import { createApp } from '@appweaver/core';
+import { logger } from '@appweaver/common';
+
+const app = createApp({ autoStart: false, scanPath: './dist/my/app/path' });
+
+// custom init logic...
+
+app.start().then(address => {
+  logger.info(address);
+});
+```
+
+### Creating resources
+
+Resources are the core building blocks for a web application. There are four resource types: **model**, **service**,
+**routes**, and **policy**. Created and exported resources are loaded automatically on application start. Except for a
+resource model, other resource types are optional and do not need to be created. If a service is created, then a model
+must be also created. If routes are created, then service must be created. Only policy is not required for other
+resources.
+
+Dependency chain: **model** → **service** → **routes** → **policy**
+
+#### Creating a resource model
+
+Resource model defines all aspects of the domain model: database table fields, relations, files, virtual fields, CRUD
+data transfer objects. The exported model is used to construct Prisma schema, generate TypeScript types for all model
+variations, define schema for CRUD routes, and input/output arguments to resource service methods.
 
 ```ts
 // src/resources/product/model.ts
@@ -113,7 +180,11 @@ export default createModel({
 });
 ```
 
-### Creating a resource service
+#### Creating a resource service
+
+Resource service defines the business logic layer for a resource: lifecycle hooks (before/after create, update, delete),
+custom data access behavior, and text search configuration. The exported service is automatically invoked by the CRUD
+route handlers to perform database operations for a bound model and trigger side effects.
 
 ```ts
 // src/resources/product/service.ts
@@ -130,7 +201,12 @@ export default createService({
 });
 ```
 
-### Creating the resource routes
+#### Creating the resource routes
+
+Resource routes define which CRUD endpoints are exposed for a resource and how they behave: the base URL path,
+per-operation role and permission requirements, caching settings, rate-limiting, and which operations to include or
+exclude. The exported routes are registered automatically on application start and derive their request/response schemas
+from the resource model.
 
 ```ts
 // src/resources/product/routes.ts
@@ -139,14 +215,19 @@ import { createRoutes } from '@appweaver/core';
 export default createRoutes({
   modelName: 'Product',
   path: '/products',
-  find: { roles: ['Admin', 'User'] },
-  query: { cache: true, cacheTTL: 300 },
+  find: { roles: ['Admin', 'User'], rateLimit: { max: 100 } },
+  query: { cache: true, cacheTTL: 5000 },
   create: { permissions: ['product:create'] },
   delete: { exclude: true }
 });
 ```
 
-### Creating a resource policy
+#### Creating a resource policy
+
+Resource policy defines row-level security for a resource: dynamic access checks against individual resource instances,
+read restrictions that filter which records are visible to the requester, and file access control. The service layer
+evaluates the exported policy on every CRUD operation to enforce fine-grained authorization beyond a static role or
+permission checks.
 
 ```ts
 // src/resources/product/policy.ts
@@ -235,6 +316,35 @@ registerPlugin(
 
 ### Dependency injection
 
+Use `define` to register a value or class in the app context, and `inject` to retrieve it. Class constructors are
+lazily instantiated as singletons on the first injection. For the full dependency injection API see
+[references/dependency-injection.md](references/dependency-injection.md).
+
+```ts
+import { Cache } from '@appweaver/common';
+import { define, inject } from '@appweaver/core';
+
+define(RedisCacheService, Cache);          // register class under abstract token
+define('https://api.example.com', 'ApiBaseUrl'); // register plain value
+
+const cache = inject(Cache);              // resolves singleton instance
+const url = inject<string>('ApiBaseUrl'); // resolves by string token
+```
+
+Use `loadProvider` to dynamically load a class from a file path or npm package and register it under an abstract token.
+This is the standard pattern for wiring infrastructure providers in `main.ts`.
+
+```ts
+import { loadProvider } from '@appweaver/core';
+import { Database, Cache } from '@appweaver/common';
+
+loadProvider(__dirname, config.DATABASE_PROVIDER, Database);       // required provider
+loadProvider(__dirname, config.CACHE_PROVIDER, Cache);
+loadProvider(__dirname, config.MAILER_PROVIDER, Mailer, false);    // optional (no error if provider cannot be loaded)
+
+const cache: Mailer | undefined = inject(Mailer, false); // optional injection
+```
+
 ## Common tasks
 
 ### Build application
@@ -255,7 +365,7 @@ weaver start --watch  # development (watch mode)
 ```sh
 weaver generate --types             # TypeScript types only
 weaver generate --schema            # Prisma schema only
-weaver generate --types --schema    # both
+weaver generate --types --schema    # both (same as with no option flags)
 ```
 
 ### Run database migrations
@@ -298,5 +408,6 @@ npm run lint    # eslint "./**/*.ts"
 
 - Application configuration: [references/configuration.md](references/configuration.md)
 - Application resources: [references/resources.md](references/resources.md)
+- Dependency injection: [references/dependency-injection.md](references/dependency-injection.md)
 - Security details: [references/security.md](references/security.md)
 - Examples: [references/examples.md](references/examples.md)
