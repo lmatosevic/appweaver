@@ -71,7 +71,7 @@ npx create-weaver-app MyBlogAPI "My own CMS for blogging" --database postgresql 
 
 This creates a `./my-blog-api` directory, installs all dependencies, and runs the initial schema and type generation.
 
-### Creating application
+### Creating and starting the application server
 
 The main entrypoint to the application. This function creates an application object and initializes all resources and
 services.
@@ -245,6 +245,41 @@ export default createPolicy({
 });
 ```
 
+#### Creating an authentication model and service
+
+Use `createAuthModel` and `createAuthService` instead of `createModel`/`createService` when the resource represents an
+authenticatable user. They cannot be used independently! If an auth model is created, then also auth service must exist.
+
+`createAuthModel` extends the config with: `email`, `passwordHash`, `verifiedEmail`, `twoFactorAuth`, `enabled`,
+`logoutAt` scalars; a virtual `password` field (write-only); a `roles` relation; and an optional `apiKeys` relation (
+when `SECURITY_API_KEY_ENABLED` is set).
+
+`createAuthService` extends the config with automatic password hashing on create/update and an optional
+`registrationData` callback to customize registration payload.
+
+```ts
+// src/resources/user/model.ts
+import { createAuthModel } from '@appweaver/core';
+
+export default createAuthModel({
+  name: 'User',
+  id: { type: 'int', generator: 'autoincrement()' },
+  scalars: {
+    name: { type: 'string', maxLength: 100 }
+  }
+});
+```
+
+```ts
+// src/resources/user/service.ts
+import { createAuthService } from '@appweaver/core';
+
+export default createAuthService({
+  modelName: 'User',
+  registrationData: (_, email, password) => ({ email, password, roles: [1, 2] })
+});
+```
+
 ### Registering a custom route
 
 Use `registerRoute` to register a custom [Fastify route](https://fastify.dev/docs/latest/Reference/Routes/) handler. The
@@ -317,8 +352,7 @@ registerPlugin(
 ### Dependency injection
 
 Use `define` to register a value or class in the app context, and `inject` to retrieve it. Class constructors are
-lazily instantiated as singletons on the first injection. For the full dependency injection API see
-[references/dependency-injection.md](references/dependency-injection.md).
+lazily instantiated as singletons on the first injection.
 
 ```ts
 import { Cache } from '@appweaver/common';
@@ -338,11 +372,48 @@ This is the standard pattern for wiring infrastructure providers in `main.ts`.
 import { loadProvider } from '@appweaver/core';
 import { Database, Cache } from '@appweaver/common';
 
-loadProvider(__dirname, config.DATABASE_PROVIDER, Database);       // required provider
+loadProvider(__dirname, config.DATABASE_PROVIDER, Database);    // required provider
 loadProvider(__dirname, config.CACHE_PROVIDER, Cache);
-loadProvider(__dirname, config.MAILER_PROVIDER, Mailer, false);    // optional (no error if provider cannot be loaded)
+loadProvider(__dirname, config.MAILER_PROVIDER, Mailer, false); // optional (no error if provider cannot be loaded)
 
-const cache: Mailer | undefined = inject(Mailer, false); // optional injection
+const cache: Mailer | undefined = inject(Mailer, false);        // optional injection
+```
+
+### Writing a seeder
+
+A seeder is a TypeScript file that must export at least one asynchronous function responsible for executing database
+seeding logic. Seeder files follow the same conventions as migration files: they can only be executed once, and their
+execution status is recorded in the database table `_seeders`. Seeders are executed in alphabetical order; therefore,
+the recommended naming convention is to prefix the filename with an ordinal number (e.g., `001-create-admin-user.ts`).
+
+During execution of seeder functions, the full application context is available, which means it is possible to inject
+any service or model previously defined in the main application logic or exported from other NPM packages.
+
+```ts
+// database/seeders/001-create-admin-user.ts
+
+import { hashPassword } from '@appweaver/core';
+import { config, randomString } from '@appweaver/common';
+import { db } from '@db/client';
+
+export async function createAdminUser(): Promise<void> {
+  await db.user.create({
+    data: {
+      firstName: 'Admin',
+      lastName: 'Admin',
+      email: 'admin@appweaver.com',
+      phone: '01234435',
+      roles: {
+        connectOrCreate: [
+          {
+            where: { name: 'Admin' },
+            create: { name: 'Admin' }
+          }
+        ]
+      }
+    }
+  });
+}
 ```
 
 ## Common tasks
@@ -410,4 +481,10 @@ npm run lint    # eslint "./**/*.ts"
 - Application resources: [references/resources.md](references/resources.md)
 - Dependency injection: [references/dependency-injection.md](references/dependency-injection.md)
 - Security details: [references/security.md](references/security.md)
-- Examples: [references/examples.md](references/examples.md)
+- Storage & File management: [references/storage.md](references/storage.md)
+- Database & Migrations: [references/database.md](references/database.md)
+- Events & Hooks: [references/events.md](references/events.md)
+- Cache management: [references/cache.md](references/cache.md)
+- Queue jobs: [references/queue.md](references/queue.md)
+- Scheduling jobs: [references/scheduler.md](references/scheduler.md)
+- Sending emails: [references/mailer.md](references/mailer.md)

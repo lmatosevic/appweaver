@@ -42,6 +42,9 @@ describe('Feature Verification', () => {
 - **Dependency Management**: Packages are linked locally in `node_modules/@appweaver` after the build. Ensure you run
   `npm run build` after making changes to shared packages if they are used by other packages or the sample application.
 
+IMPORTANT: after a new feature is added or change is done in how the library is used, always update
+./skill/SKILL.md file and any of the referenced files in ./skill/references/*.md.
+
 #### 4. Architecture — Package Modules
 
 ##### `packages/common`

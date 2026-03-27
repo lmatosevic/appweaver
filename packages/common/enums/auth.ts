@@ -14,10 +14,10 @@ export enum AuthSource {
 
 export enum AuthOTTPurpose {
   Authentication = 'authentication',
-  OAuth2State = 'oauth2State',
-  TwoFAVerification = '2fa-verification',
-  EmailVerification = 'email-verification',
-  PasswordReset = 'password-reset'
+  OAuth2State = 'oauth2state',
+  TwoFAVerification = '2faVerification',
+  EmailVerification = 'emailVerification',
+  PasswordReset = 'passwordReset'
 }
 
 export enum AuthScope {
