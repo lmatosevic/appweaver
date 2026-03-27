@@ -47,11 +47,18 @@ program
       .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
       .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
       .toLowerCase();
+
     const projectDir = directory ?? sanitizedName;
     const destDir = path.join(process.cwd(), projectDir);
-    await fsp.mkdir(destDir, { recursive: true });
 
-    console.log(`Created new directory: ${projectDir}\n`);
+    // Initialize new project directory
+    try {
+      await fsp.access(destDir, fs.constants.F_OK);
+      console.log(`Using existing directory: ${path.dirname(destDir)}`);
+    } catch (e) {
+      await fsp.mkdir(destDir, { recursive: true });
+      console.log(`Created new directory: ${projectDir}\n`);
+    }
 
     // Copy template contents into a new directory
     const templateDir = path.join(__dirname, './templates/default');
