@@ -1,3 +1,9 @@
+## [1.7.1](https://gitlab.com/app-weaver/appweaver/compare/v1.7.0...v1.7.1) (2026-03-28)
+
+### Bug Fixes
+
+* add runtime support for Bun, update create-weaver-app runtime-specific files, fix security schema missing AuthUser reference ([a76a646](https://gitlab.com/app-weaver/appweaver/commit/a76a6466ae22ca279e380b5c16983386b4064227))
+
 ## [1.7.0](https://gitlab.com/app-weaver/appweaver/compare/v1.6.0...v1.7.0) (2026-03-28)
 
 ### Features
