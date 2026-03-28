@@ -1,3 +1,17 @@
+## [1.7.0](https://gitlab.com/app-weaver/appweaver/compare/v1.6.0...v1.7.0) (2026-03-28)
+
+### Features
+
+* add `assertEnvs` utility for environment validation, enhance migration reset with `--force` flag in non-dev environments, and update AGENTS.md documentation ([d4c99e1](https://gitlab.com/app-weaver/appweaver/commit/d4c99e10ca0272a9fb87f74a8f3b2c32edb2d416))
+* implement create-weaver-app package, add agents SKILL.md file with boilerplate code and references ([996f1e7](https://gitlab.com/app-weaver/appweaver/commit/996f1e773a015602f66b6eba10db36607d04960d))
+
+### Bug Fixes
+
+* add new migration reset command, add creating binary shims post-packages build ([71ff5ea](https://gitlab.com/app-weaver/appweaver/commit/71ff5ea03ae3ab33467e1e33bc5b0eb8e6ff852c))
+* handle existing directory during project initialization in create-weaver-app ([1b9950b](https://gitlab.com/app-weaver/appweaver/commit/1b9950b6fcc5a86899f5ffb5c46dc445fbb25373))
+* refactor route type definitions and enhance SKILL.md documentation with scaffolding, DI, and resource creation examples ([813fb98](https://gitlab.com/app-weaver/appweaver/commit/813fb98c0184d3d9e1c18e77a099eccc36102b2a))
+* remove unnecessary core package peerDependencies, add seeder and user resource to default template, update SKILL.md file ([d07aed8](https://gitlab.com/app-weaver/appweaver/commit/d07aed8655adc58126488ccc9568ca2307750cc3))
+
 ## [1.6.0](https://gitlab.com/app-weaver/appweaver/compare/v1.5.2...v1.6.0) (2026-03-23)
 
 ### Features
