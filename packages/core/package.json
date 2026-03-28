@@ -36,7 +36,7 @@
     "@fastify/swagger": "9.6.1",
     "@fastify/swagger-ui": "5.2.4",
     "@fastify/type-provider-typebox": "6.1.0",
-    "@prisma/client": "7.5.0",
+    "@prisma/client": "7.6.0",
     "@sinclair/typebox": "0.34.47",
     "bcrypt": "6.0.0",
     "csv-stringify": "6.6.0",
@@ -55,42 +55,6 @@
     "prisma": "^7.3.0"
   },
   "peerDependencies": {
-    "@appweaver/common": "^1.0.0",
-    "@prisma/adapter-better-sqlite3": "^7.3.0",
-    "@prisma/adapter-mariadb": "^7.3.0",
-    "@prisma/adapter-mssql": "^7.3.0",
-    "@prisma/adapter-pg": "^7.3.0",
-    "@prisma/client": "^7.3.0",
-    "bullmq": "^5.70.0",
-    "cron": "^4.4.0",
-    "ioredis": "^5.9.0",
-    "nodemailer": "^8.0.0",
-    "prisma": "^7.3.0"
-  },
-  "peerDependenciesMeta": {
-    "@prisma/adapter-better-sqlite3": {
-      "optional": true
-    },
-    "@prisma/adapter-mariadb": {
-      "optional": true
-    },
-    "@prisma/adapter-mssql": {
-      "optional": true
-    },
-    "@prisma/adapter-pg": {
-      "optional": true
-    },
-    "bullmq": {
-      "optional": true
-    },
-    "cron": {
-      "optional": true
-    },
-    "ioredis": {
-      "optional": true
-    },
-    "nodemailer": {
-      "optional": true
-    }
+    "@appweaver/common": "^1.0.0"
   }
 }

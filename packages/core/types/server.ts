@@ -17,5 +17,5 @@ export type Server = FastifyInstance<
 
 export type Router = Pick<
   Server,
-  'route' | 'get' | 'post' | 'patch' | 'put' | 'delete'
+  'route' | 'get' | 'post' | 'patch' | 'put' | 'delete' | 'options' | 'head'
 >;

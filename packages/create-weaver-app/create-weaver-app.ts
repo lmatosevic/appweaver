@@ -117,11 +117,12 @@ program
 function getNodeDependencies(command: Command): string[] {
   const dependencies: string[] = [];
 
+  const prismaVersion = '7.6.0';
   const adapters = {
-    sqlite: '"@prisma/adapter-better-sqlite3": "7.5.0"',
-    postgresql: '"@prisma/adapter-pg": "7.5.0"',
-    mysql: '"@prisma/adapter-mariadb": "7.5.0"',
-    sqlserver: '"@prisma/adapter-mssql": "7.5.0"'
+    sqlite: `"@prisma/adapter-better-sqlite3": "${prismaVersion}"`,
+    postgresql: `"@prisma/adapter-pg": "${prismaVersion}"`,
+    mysql: `"@prisma/adapter-mariadb": "${prismaVersion}"`,
+    sqlserver: `"@prisma/adapter-mssql": "${prismaVersion}"`
   };
 
   const database = command.getOptionValue('database');

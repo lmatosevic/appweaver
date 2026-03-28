@@ -27,7 +27,9 @@ export async function createSeeder(
   if (params.scanPath) {
     scanPath = path.resolve(params.scanPath);
   } else if (config.APP_BUILD_PATH && config.APP_SCAN_PATH) {
-    scanPath = path.resolve(`${config.APP_BUILD_PATH}/${config.APP_SCAN_PATH}`);
+    scanPath = path.resolve(
+      path.join(config.APP_BUILD_PATH, config.APP_SCAN_PATH)
+    );
   }
 
   // Determine the base directory to scan for seeder files

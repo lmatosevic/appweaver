@@ -52,7 +52,7 @@ export default createAuthModel({
     avatar: {
       mimeType: 'image/*',
       namePattern: 'avatars/{name}-{hash}.{extension}',
-      maxSize: '2 MB'
+      maxSize: '3 MB'
     }
   },
   virtual: {

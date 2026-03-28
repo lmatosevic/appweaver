@@ -407,7 +407,15 @@ export async function createAdminUser(): Promise<void> {
         connectOrCreate: [
           {
             where: { name: 'Admin' },
-            create: { name: 'Admin' }
+            create: {
+              name: 'Admin',
+              permissions: {
+                connectOrCreate: [
+                  { where: { name: '*.read' }, create: { name: '*.read' } },
+                  { where: { name: '*.write' }, create: { name: '*.write' } }
+                ]
+              }
+            }
           }
         ]
       }

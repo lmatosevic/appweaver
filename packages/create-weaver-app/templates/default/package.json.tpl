@@ -19,9 +19,7 @@
   "dependencies": {
     "@appweaver/common": "{{VERSION}}",
     "@appweaver/core": "{{VERSION}}",
-    "@prisma/client": "7.5.0",
 {{DEPENDENCIES}},
-    "prisma": "7.5.0"
   },
   "devDependencies": {
     "@appweaver/cli": "{{VERSION}}",
