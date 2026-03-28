@@ -10,11 +10,10 @@ export function seedCommand(program: Command): void {
       '--seedersPath [path]',
       'Seeders directory path. (default: from config or env).'
     )
-    .option('-b, --buildProject', 'Build the project before seeding.', false)
+    .option('-b, --buildProject', 'Build the project before seeding.')
     .option(
       '-c, --continueOnError',
-      'Continue seeder execution if error is thrown.',
-      false
+      'Continue seeder execution if error is thrown.'
     )
     .action(async (_, command: Command) => {
       const seedersPath = command.getOptionValue('seedersPath');

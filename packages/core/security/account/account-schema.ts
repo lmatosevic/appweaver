@@ -119,9 +119,9 @@ export const verifyEmailSchema = {
 export const verifyEmailRedirectSchema = {
   tags: ['Account'],
   summary:
-    'Verify email token and redirect to a provided URL with status and message',
+    'Verify email token and redirect to a provided URL with status message',
   description:
-    'Verify email token and redirect to a provided URL with status and message',
+    'Verify email token and redirect to a provided URL with status message',
   querystring: AccountEmailVerificationRequest,
   response: {
     302: {

@@ -1,14 +1,28 @@
 import path from 'node:path';
+import { config, Runtime } from '@appweaver/common';
 
 type ValueOrError<T> =
   | { value: T; error: null }
   | { value: null; error: Error };
 
 /**
+ * Sanitizes a file path by replacing the file extension from `.ts` to `.js`
+ * if the runtime environment is not Bun.
+ *
+ * @param {string} filePath - The file path to sanitize.
+ * @return {string} The sanitized file path.
+ */
+export function sanitizePath(filePath: string): string {
+  if (config.APP_RUNTIME === Runtime.Bun) {
+    return filePath;
+  }
+  return filePath.replace(/\.ts$/i, '.js');
+}
+
+/**
  * Dynamically imports a module from a given file path and catches any errors.
  *
- * @param {string} filePath - The file path of the module to import. The path should point to a TypeScript file,
- * and it will automatically resolve to the corresponding JavaScript file.
+ * @param {string} filePath - The file path of the module to import. The path is adjusted for the current runtime.
  * @param {boolean} [failOnError=false] - If true, the function will throw an error if the module cannot be loaded.
  * @return A promise that resolves to an object containing the imported module's default or named export (under `value`)
  * or an error (under `error`).
@@ -18,8 +32,7 @@ export async function importModule<T = any>(
   failOnError: boolean = false
 ): Promise<ValueOrError<T>> {
   try {
-    const jsPath = filePath.replace(/\.ts$/i, '.js');
-    const exportedValue = await import(jsPath);
+    const exportedValue = await import(sanitizePath(filePath));
     return { value: exportedValue.default || exportedValue, error: null };
   } catch (e) {
     if (failOnError) {
@@ -32,8 +45,7 @@ export async function importModule<T = any>(
 /**
  * Dynamically imports a module from the specified file path and handles any errors during the process.
  *
- * @param {string} filePath - The file path of the module to require. If the file has a `.ts` extension, it will be
- * replaced with `.js`.
+ * @param {string} filePath - The file path of the module to require. The path is adjusted for the current runtime.
  * @param {boolean} [failOnError=false] - If true, the function will throw an error if the module cannot be loaded.
  * @return An object containing the imported module value or an error if the module could not be loaded. The `value`
  * property contains the default export or the complete exported module, and the `error` property contains the caught
@@ -44,9 +56,8 @@ export function requireModule<T = any>(
   failOnError: boolean = false
 ): ValueOrError<T> {
   try {
-    const jsPath = filePath.replace(/\.ts$/i, '.js');
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const exportedValue = require(jsPath);
+    const exportedValue = require(sanitizePath(filePath));
     return { value: exportedValue, error: null };
   } catch (e) {
     if (failOnError) {

@@ -1,7 +1,8 @@
 import path from 'node:path';
-import { config, logger, configFiles } from '@appweaver/common';
+import { configFiles, logger } from '@appweaver/common';
 import { context } from '../context';
 import { createServer } from '../server';
+import { resolveScanPath } from '../utils';
 import { LoadResourcePaths, loadResources } from '../resource';
 import { loadProviders } from './load-providers';
 import { loadModules } from './load-modules';
@@ -42,15 +43,7 @@ export async function createApp(
 ): Promise<Application> {
   logger.debug({ configFiles }, 'Configuration loaded');
 
-  // Determine the base directory to scan for application resources
-  let scanPath = path.join(process.cwd(), './dist/src');
-  if (params.scanPath) {
-    scanPath = path.resolve(params.scanPath);
-  } else if (config.APP_BUILD_PATH && config.APP_SCAN_PATH) {
-    scanPath = path.resolve(
-      path.join(config.APP_BUILD_PATH, config.APP_SCAN_PATH)
-    );
-  }
+  const scanPath = resolveScanPath(params.scanPath);
 
   // Load all defined providers from this project
   loadProviders(scanPath);

@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { runProcess } from '../utils';
+import { startProject } from './start-project';
 
 export function startCommand(program: Command): void {
   program
@@ -8,14 +8,6 @@ export function startCommand(program: Command): void {
     .description('Start the application')
     .option('-w, --watch', 'Run in watch mode.')
     .action(async (_, command: Command) => {
-      if (command.getOptionValue('watch')) {
-        await runProcess('tsc-watch', [
-          '-p tsconfig.build.json',
-          '--onCompilationComplete "tsc-alias -p tsconfig.build.json"',
-          '--onSuccess "node ./dist/src/main.js"'
-        ]);
-      } else {
-        await runProcess('node', ['./dist/src/main.js']);
-      }
+      await startProject(command.getOptionValue('watch'));
     });
 }

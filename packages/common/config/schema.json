@@ -30,6 +30,10 @@
               "type": "string",
               "default": "Appweaver"
             },
+            "version": {
+              "type": "string",
+              "default": "unknown"
+            },
             "description": {
               "type": ["string", "null"]
             },
@@ -37,9 +41,10 @@
               "type": "string",
               "default": "http://localhost:6000"
             },
-            "version": {
+            "runtime": {
               "type": "string",
-              "default": "unknown"
+              "enum": ["node", "bun"],
+              "default": "node"
             },
             "buildPath": {
               "type": ["string", "null"],

@@ -90,7 +90,10 @@ export class Seeder extends LifecycleManager {
   private async loadSeederFiles(): Promise<string[]> {
     const entries = await fsp.readdir(this._dirPath, { withFileTypes: true });
     return entries
-      .filter((e) => e.isFile() && e.name.endsWith('.js'))
+      .filter(
+        (e) =>
+          e.isFile() && /\.(js|ts)$/.test(e.name) && !e.name.endsWith('.d.ts')
+      )
       .map((e) => e.name)
       .sort((a, b) =>
         a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })

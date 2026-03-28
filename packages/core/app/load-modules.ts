@@ -1,7 +1,7 @@
 import path from 'node:path';
 import fsp from 'node:fs/promises';
 import { logger } from '@appweaver/common';
-import { importModule } from '../utils';
+import { importModule, sanitizePath } from '../utils';
 
 /**
  * Loads and initializes modules from the specified directory using barrel exports.
@@ -11,9 +11,12 @@ import { importModule } from '../utils';
  * or rejects if an error occurs during the process.
  */
 export async function loadModules(baseDir: string): Promise<void> {
-  const moduleIndexPath = path.join(baseDir, 'index.js');
+  const moduleIndexPath = path.join(baseDir, 'index.ts');
   try {
-    const fileContent = await fsp.readFile(moduleIndexPath, 'utf8');
+    const fileContent = await fsp.readFile(
+      sanitizePath(moduleIndexPath),
+      'utf8'
+    );
     if (fileContent.split('\n').length < 3) {
       return;
     }

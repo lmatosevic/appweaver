@@ -6,7 +6,8 @@ import {
   DatabaseType,
   Environment,
   LogLevel,
-  MemoryType
+  MemoryType,
+  Runtime
 } from '../enums';
 import { loadConfigFromEnv, loadConfigFromFiles } from './config-loader';
 import { addHelpers } from './config-helper';
@@ -17,16 +18,18 @@ const configSchema = Type.Object({
     mapFrom: 'NODE_ENV'
   }),
   APP_NAME: Type.String({ default: 'Appweaver' }),
-  APP_DESCRIPTION: Type.Optional(Type.String()),
-  APP_HOSTNAME: Type.String({
-    default: `http://localhost:${process.env.SERVER_PORT || 6000}`
-  }),
   APP_VERSION: Type.String({
     default: 'unknown',
     mapFrom: 'npm_package_version'
   }),
+  APP_DESCRIPTION: Type.Optional(Type.String()),
+  APP_HOSTNAME: Type.String({
+    default: `http://localhost:${process.env.SERVER_PORT || 6000}`
+  }),
+  APP_RUNTIME: Type.Enum(Runtime, { default: Runtime.Node }),
   APP_BUILD_PATH: Type.String({ default: './dist' }),
   APP_SCAN_PATH: Type.String({ default: './src' }),
+  APP_MAIN_FILE_PATH: Type.String({ default: './src/main.ts' }),
   APP_AUTOLOAD_MODULES: Type.Array(Type.String(), { default: [] }),
 
   LOG_LEVEL: Type.Enum(LogLevel, { default: LogLevel.Info }),

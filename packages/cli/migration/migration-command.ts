@@ -17,12 +17,8 @@ export function migrationCommand(program: Command): void {
   migration
     .command('reset')
     .description('Reset the database')
-    .option(
-      '-f, --force',
-      'Force reset for non-development environments',
-      false
-    )
-    .option('-y, --yes', 'Skip confirmation prompt', false)
+    .option('-f, --force', 'Force reset for non-development environments')
+    .option('-y, --yes', 'Skip confirmation prompt')
     .action(async (_, command: Command) => {
       const force = command.getOptionValue('force');
       const yes = command.getOptionValue('yes');

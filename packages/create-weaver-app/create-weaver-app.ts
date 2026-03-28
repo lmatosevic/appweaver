@@ -34,12 +34,15 @@ program
     'Type of SQL database (options: sqlite, postgresql, mysql, sqlserver).',
     'sqlite'
   )
+  .option('--bun', 'Use Bun as application runtime.', false)
   .option('--noRedis', 'Skip IoRedis package installation.', false)
   .option('--noQueue', 'Skip BullQueue package installation.', false)
   .option('--noMailer', 'Skip Nodemailer package installation.', false)
   .option('--noCron', 'Skip Cron package installation.', false)
   .action(async (name: string, description: string, _, command: Command) => {
     const directory = command.getOptionValue('outputDir');
+    const runtime = command.getOptionValue('bun') ? 'bun' : 'node';
+    const packageManager = runtime === 'bun' ? 'bun' : 'npm';
 
     // Sanitize and create a new directory
     const sanitizedName = name
@@ -70,7 +73,7 @@ program
       NAME: name.charAt(0).toUpperCase() + name.slice(1),
       LOWER_NAME: sanitizedName,
       DESCRIPTION: description,
-      DEPENDENCIES: getNodeDependencies(command).join(',\n'),
+      DEPENDENCIES: getNodeDependencies(command, runtime).join(',\n'),
       DATABASE_URL: getDatabaseUrl(command, sanitizedName),
       VERSION: pkg.version
     };
@@ -96,17 +99,37 @@ program
       await fsp.unlink(templateFile);
     }
 
+    // Find all runtime-specific files and keep only those for current runtime
+    const runtimeFiles = await glob(`**/*.{node,bun}`, {
+      cwd: destDir,
+      absolute: true,
+      dot: true
+    });
+
+    for (const runtimeFile of runtimeFiles) {
+      if (runtimeFile.endsWith(`.${runtime}`)) {
+        const outputFile = runtimeFile.replace(`.${runtime}`, '');
+        await fsp.cp(runtimeFile, outputFile, { force: true });
+      } else {
+        await fsp.unlink(runtimeFile);
+      }
+    }
+
     console.log(`Done\n`);
 
     console.log(`Installing dependencies...`);
 
-    await runProcess('npm', ['install'], destDir);
+    await runProcess(packageManager, ['install'], destDir);
+
+    if (runtime === 'bun') {
+      await runProcess('bun', ['add', '-d', '@types/bun'], destDir);
+    }
 
     console.log(`Done\n`);
 
     console.log(`Configuring application...`);
 
-    await runProcess('npm', ['run', 'generate'], destDir);
+    await runProcess(packageManager, ['run', 'generate'], destDir);
 
     console.log(`Done\n`);
 
@@ -114,12 +137,15 @@ program
   })
   .parse();
 
-function getNodeDependencies(command: Command): string[] {
+function getNodeDependencies(command: Command, runtime: string): string[] {
   const dependencies: string[] = [];
 
   const prismaVersion = '7.6.0';
   const adapters = {
-    sqlite: `"@prisma/adapter-better-sqlite3": "${prismaVersion}"`,
+    sqlite:
+      runtime === 'bun'
+        ? `"@prisma/adapter-libsql": "${prismaVersion}"`
+        : `"@prisma/adapter-better-sqlite3": "${prismaVersion}"`,
     postgresql: `"@prisma/adapter-pg": "${prismaVersion}"`,
     mysql: `"@prisma/adapter-mariadb": "${prismaVersion}"`,
     sqlserver: `"@prisma/adapter-mssql": "${prismaVersion}"`

@@ -19,6 +19,7 @@ import {
   RelationConfig,
   RelationField,
   resolveDatabaseType,
+  Runtime,
   ScalarConfig,
   ScalarField,
   uncapitalize
@@ -77,9 +78,10 @@ export async function generateSchema(
       `generator client {`,
       `  provider = "prisma-client"`,
       `  output   = "${relativeOutputPath}"`,
+      config.APP_RUNTIME === Runtime.Bun ? '  runtime  = "bun"' : undefined,
       `}`,
       ``
-    ];
+    ].filter((l) => l !== undefined);
 
     let authModel: ResourceModel | undefined;
     for (const model of Object.values(models)) {

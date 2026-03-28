@@ -1,6 +1,5 @@
-import path from 'node:path';
-import { config } from '@appweaver/common';
 import { loadProviders } from '../app/load-providers';
+import { resolveScanPath, resolveSeedersPath } from '../utils';
 import { Seeder } from './seeder';
 
 export type CreateSeederParams = {
@@ -22,25 +21,8 @@ export type CreateSeederParams = {
 export async function createSeeder(
   params: CreateSeederParams = {}
 ): Promise<Seeder> {
-  // Determine the base directory to scan for application resources
-  let scanPath = path.join(process.cwd(), './dist/src');
-  if (params.scanPath) {
-    scanPath = path.resolve(params.scanPath);
-  } else if (config.APP_BUILD_PATH && config.APP_SCAN_PATH) {
-    scanPath = path.resolve(
-      path.join(config.APP_BUILD_PATH, config.APP_SCAN_PATH)
-    );
-  }
-
-  // Determine the base directory to scan for seeder files
-  let seedersPath = path.join(process.cwd(), './dist/database/seeders');
-  if (params.seedersPath) {
-    seedersPath = path.resolve(params.seedersPath);
-  } else if (config.APP_BUILD_PATH && config.DATABASE_SEEDERS_DIR_PATH) {
-    seedersPath = path.resolve(
-      path.join(config.APP_BUILD_PATH, config.DATABASE_SEEDERS_DIR_PATH)
-    );
-  }
+  const scanPath = resolveScanPath(params.scanPath);
+  const seedersPath = resolveSeedersPath(params.seedersPath);
 
   // Load all defined providers from this project
   loadProviders(scanPath);

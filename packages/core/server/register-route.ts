@@ -45,7 +45,7 @@ export function registerRoute(
       }
     });
 
-    // Routes array will be filled via the 'onRoute' hook after this step
+    // Route array will be filled via the 'onRoute' hook after this step
     await tempServer.ready();
 
     for (const route of routes) {

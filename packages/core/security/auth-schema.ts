@@ -131,14 +131,14 @@ export function recaptchaHeaderSchema(
   );
 }
 
-export function createCurrentAuthUserSchema(modelName: string): RouteSchema {
+export function createCurrentAuthUserSchema(modelRef: string): RouteSchema {
   return {
     tags: ['Auth'],
     security: authSchema(),
     summary: 'Return currently authorized identity',
     description: 'Return currently authorized identity',
     response: {
-      200: Type.Ref(`${modelName}Single`),
+      200: Type.Ref(modelRef),
       ...AllErrorResponses
     }
   };

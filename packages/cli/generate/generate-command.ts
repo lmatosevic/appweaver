@@ -9,8 +9,8 @@ export function generateCommand(program: Command): void {
     .command('generate')
     .alias('g')
     .description('Generate types and/or schemas')
-    .option('-t, --types', 'Generate TypeScript types.', false)
-    .option('-s, --schema', 'Generate Prisma schema.', false)
+    .option('-t, --types', 'Generate TypeScript types.')
+    .option('-s, --schema', 'Generate Prisma schema.')
     .option(
       '--modelPattern [pattern]',
       'Glob pattern for finding model files. (default: from config or env).'

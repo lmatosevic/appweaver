@@ -7,7 +7,8 @@ import {
   isResourcePolicy,
   isResourceRoutes,
   isResourceService,
-  resourceModelProps
+  resourceModelProps,
+  sanitizePath
 } from '../utils';
 import {
   IResourceService,
@@ -206,7 +207,7 @@ async function findAllFiles(pattern: string, cwd: string): Promise<string[]> {
   const files: string[] = [];
 
   // Add project files using a pattern
-  const jsPaths = pattern.replace(/\.ts$/i, '.js');
+  const jsPaths = sanitizePath(pattern);
   const strippedPattern = stripOverlappingPath(jsPaths, cwd);
   const projectFiles = await glob(strippedPattern, { cwd, absolute: true });
   files.push(...projectFiles);

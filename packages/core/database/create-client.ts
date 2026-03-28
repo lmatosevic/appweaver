@@ -3,7 +3,13 @@ import {
   PrismaClientOptions,
   SqlDriverAdapterFactory
 } from '@prisma/client/runtime/client';
-import { config, DatabaseType, resolveDatabaseType } from '@appweaver/common';
+import {
+  config,
+  Ctor,
+  DatabaseType,
+  resolveDatabaseType,
+  Runtime
+} from '@appweaver/common';
 import { PrismaClient } from '../prisma/client/client';
 import { requireModule } from '../utils';
 
@@ -48,12 +54,23 @@ export function createClient(): PrismaClient {
  * @return {PrismaClient} A configured instance of PrismaClient for interacting with the SQLite database.
  */
 function sqliteClient(): PrismaClient {
-  const { PrismaBetterSqlite3 } = requireModule(
-    '@prisma/adapter-better-sqlite3',
-    true
-  ).value;
+  let sqliteAdapter: Ctor;
 
-  const adapter = new PrismaBetterSqlite3({
+  if (config.APP_RUNTIME === Runtime.Bun) {
+    const { PrismaLibSQL } = requireModule(
+      '@prisma/adapter-libsql',
+      true
+    ).value;
+    sqliteAdapter = PrismaLibSQL;
+  } else {
+    const { PrismaBetterSqlite3 } = requireModule(
+      '@prisma/adapter-better-sqlite3',
+      true
+    ).value;
+    sqliteAdapter = PrismaBetterSqlite3;
+  }
+
+  const adapter = new sqliteAdapter({
     url: config.DATABASE_URL || 'file:./sqlite.db'
   });
 
@@ -131,9 +148,14 @@ function createPrismaClient(adapter: SqlDriverAdapterFactory): PrismaClient {
     ? 'dist'
     : relativeMainPath.split(path.sep)[0];
 
+  const buildDirPath =
+    config.APP_RUNTIME === Runtime.Bun
+      ? ''
+      : config.APP_BUILD_PATH || distDirName;
+
   const clientPath = path.join(
     cwd,
-    config.APP_BUILD_PATH || distDirName,
+    buildDirPath,
     config.APP_ENV === 'test' ? '..' : '',
     config.DATABASE_CLIENT_OUTPUT_DIR_PATH,
     'client'
