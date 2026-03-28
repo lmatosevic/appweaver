@@ -1,3 +1,10 @@
+## [1.7.4](https://gitlab.com/app-weaver/appweaver/compare/v1.7.3...v1.7.4) (2026-03-28)
+
+### Bug Fixes
+
+* add create-weaer-app default .env and dev config ([4cf4bd6](https://gitlab.com/app-weaver/appweaver/commit/4cf4bd62e1ec70d0998d70b2b1f88f6071b72051))
+* change default port to 5000 and fix infinite error on application stop ([0b9389d](https://gitlab.com/app-weaver/appweaver/commit/0b9389d5bb8d3aa7c28fea8fe5bd09054cfc511f))
+
 ## [1.7.3](https://gitlab.com/app-weaver/appweaver/compare/v1.7.2...v1.7.3) (2026-03-28)
 
 ### Bug Fixes
