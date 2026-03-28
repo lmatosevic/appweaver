@@ -57,11 +57,11 @@ function sqliteClient(): PrismaClient {
   let sqliteAdapter: Ctor;
 
   if (config.APP_RUNTIME === Runtime.Bun) {
-    const { PrismaLibSQL } = requireModule(
+    const { PrismaLibSql } = requireModule(
       '@prisma/adapter-libsql',
       true
     ).value;
-    sqliteAdapter = PrismaLibSQL;
+    sqliteAdapter = PrismaLibSql;
   } else {
     const { PrismaBetterSqlite3 } = requireModule(
       '@prisma/adapter-better-sqlite3',
