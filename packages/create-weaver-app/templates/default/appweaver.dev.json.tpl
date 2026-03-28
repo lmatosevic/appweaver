@@ -1,0 +1,9 @@
+{
+  "$schema": "./node_modules/@appweaver/common/config/schema.json",
+  "config": {
+    "log": {
+      "level": "debug",
+      "pretty": true
+    }
+  }
+}
