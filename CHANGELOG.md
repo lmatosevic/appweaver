@@ -1,3 +1,9 @@
+## [1.7.2](https://gitlab.com/app-weaver/appweaver/compare/v1.7.1...v1.7.2) (2026-03-28)
+
+### Bug Fixes
+
+* fix create-weaver-app templates ([baf52dc](https://gitlab.com/app-weaver/appweaver/commit/baf52dce833f9193ec86a3fd9118c0b725e71fdf))
+
 ## [1.7.1](https://gitlab.com/app-weaver/appweaver/compare/v1.7.0...v1.7.1) (2026-03-28)
 
 ### Bug Fixes
