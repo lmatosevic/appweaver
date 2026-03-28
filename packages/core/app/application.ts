@@ -34,7 +34,8 @@ export class Application extends LifecycleManager {
    */
   public async start(startServer: boolean = true): Promise<string> {
     if (this._started) {
-      throw new Error('Calling start() on already started application.');
+      logger.warn('Trying to start already started application.');
+      return this._server.addresses()[0]?.address ?? '';
     }
 
     this._started = true;
@@ -54,14 +55,22 @@ export class Application extends LifecycleManager {
     // Add unhandled rejection handler
     process.on('unhandledRejection', async (err) => {
       logger.fatal(err, 'Unhandled rejection');
-      await this.stop();
+      try {
+        await this.stop();
+      } catch (e) {
+        logger.error(e, `Error while trying to stop application`);
+      }
       process.exit(1);
     });
 
     // Add uncaught exception handler
     process.on('uncaughtException', async (err) => {
       logger.fatal(err, 'Uncaught exception');
-      await this.stop();
+      try {
+        await this.stop();
+      } catch (e) {
+        logger.error(e, `Error while trying to stop application`);
+      }
       process.exit(2);
     });
 
@@ -84,9 +93,8 @@ export class Application extends LifecycleManager {
    */
   public async stop(): Promise<void> {
     if (!this._started) {
-      throw new Error(
-        'Calling stop() on already stopped or not started application.'
-      );
+      logger.warn('Trying to stop already stopped or not started application.');
+      return;
     }
 
     this._started = false;

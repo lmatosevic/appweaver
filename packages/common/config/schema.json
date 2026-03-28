@@ -39,7 +39,7 @@
             },
             "hostname": {
               "type": "string",
-              "default": "http://localhost:6000"
+              "default": "http://localhost:5000"
             },
             "runtime": {
               "type": "string",
@@ -117,7 +117,7 @@
           "properties": {
             "port": {
               "type": "integer",
-              "default": 6000
+              "default": 5000
             },
             "host": {
               "type": "string",

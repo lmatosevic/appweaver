@@ -24,7 +24,7 @@ const configSchema = Type.Object({
   }),
   APP_DESCRIPTION: Type.Optional(Type.String()),
   APP_HOSTNAME: Type.String({
-    default: `http://localhost:${process.env.SERVER_PORT || 6000}`
+    default: `http://localhost:${process.env.SERVER_PORT || 5000}`
   }),
   APP_RUNTIME: Type.Enum(Runtime, { default: Runtime.Node }),
   APP_BUILD_PATH: Type.String({ default: './dist' }),
@@ -42,7 +42,7 @@ const configSchema = Type.Object({
   LOG_ROTATE_COMPRESS: Type.Boolean({ default: true }),
   LOG_PRETTY: Type.Boolean({ default: false }),
 
-  SERVER_PORT: Type.Integer({ default: 6000 }),
+  SERVER_PORT: Type.Integer({ default: 5000 }),
   SERVER_HOST: Type.String({ default: '0.0.0.0' }),
   SERVER_API_PREFIX: Type.String({ default: '/api' }),
   SERVER_BODY_LIMIT_BYTES: Type.Integer({ default: 104857600 }),

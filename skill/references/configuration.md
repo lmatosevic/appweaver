@@ -54,7 +54,7 @@ import { config } from '@appweaver/common';
 
 config.env('APP_ENV', 'prod');       // string
 config.str('APP_NAME', 'MyApp');     // string
-config.int('SERVER_PORT', 6000);     // number (integer)
+config.int('SERVER_PORT', 5000);     // number (integer)
 config.float('SOME_RATIO', 0.5);    // number (float)
 config.bool('CACHE_ENABLED', true);  // boolean
 config.arr('CORS_METHODS', ['*']);   // string[]
@@ -97,7 +97,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 | Property                         | Type    | Default      | Description                                          |
 |----------------------------------|---------|--------------|------------------------------------------------------|
-| `SERVER_PORT`                    | integer | `6000`       | HTTP server listening port.                          |
+| `SERVER_PORT`                    | integer | `5000`       | HTTP server listening port.                          |
 | `SERVER_HOST`                    | string  | `'0.0.0.0'`  | HTTP server listening host/IP.                       |
 | `SERVER_API_PREFIX`              | string  | `'/api'`     | Base path prefix for all API routes.                 |
 | `SERVER_BODY_LIMIT_BYTES`        | integer | `104857600`  | Maximum request body size in bytes (default 100 MB). |

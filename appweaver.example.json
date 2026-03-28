@@ -4,14 +4,14 @@
     "app": {
       "name": "Appweaver",
       "description": "Appweaver - simple, fast, and reliable web application builder tool",
-      "hostname": "http://localhost:6000",
+      "hostname": "http://localhost:5000",
       "runtime": "node",
       "buildPath": "./dist",
       "scanPath": "./src",
       "autoloadModules": ["aws-storage", "service-bus"]
     },
     "server": {
-      "port": 6000,
+      "port": 5000,
       "host": "0.0.0.0",
       "apiPrefix": "/api",
       "bodyLimitBytes": 104857600,
