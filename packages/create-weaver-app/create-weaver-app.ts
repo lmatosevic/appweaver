@@ -34,11 +34,12 @@ program
     'Type of SQL database (options: sqlite, postgresql, mysql, sqlserver).',
     'sqlite'
   )
-  .option('--bun', 'Use Bun as application runtime.', false)
-  .option('--noRedis', 'Skip IoRedis package installation.', false)
-  .option('--noQueue', 'Skip BullQueue package installation.', false)
-  .option('--noMailer', 'Skip Nodemailer package installation.', false)
-  .option('--noCron', 'Skip Cron package installation.', false)
+  .option('--bun', 'Use Bun as application runtime.')
+  .option('--skipInstall', 'Skip installing dependencies.')
+  .option('--noRedis', 'Skip IoRedis package installation.')
+  .option('--noQueue', 'Skip BullQueue package installation.')
+  .option('--noMailer', 'Skip Nodemailer package installation.')
+  .option('--noCron', 'Skip Cron package installation.')
   .action(async (name: string, description: string, _, command: Command) => {
     const directory = command.getOptionValue('outputDir');
     const runtime = command.getOptionValue('bun') ? 'bun' : 'node';
@@ -115,6 +116,11 @@ program
     }
 
     console.log(`Done\n`);
+
+    if (command.getOptionValue('skipInstall')) {
+      console.log(`${sanitizedName} created successfully!`);
+      return;
+    }
 
     console.log(`Installing dependencies...`);
 
