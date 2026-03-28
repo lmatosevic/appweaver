@@ -19,7 +19,7 @@
   "dependencies": {
     "@appweaver/common": "{{VERSION}}",
     "@appweaver/core": "{{VERSION}}",
-{{DEPENDENCIES}},
+{{DEPENDENCIES}}
   },
   "devDependencies": {
     "@appweaver/cli": "{{VERSION}}",

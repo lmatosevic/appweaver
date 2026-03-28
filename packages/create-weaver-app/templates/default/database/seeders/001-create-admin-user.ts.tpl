@@ -17,7 +17,6 @@ export async function createAdminUser(): Promise<void> {
       firstName: 'Admin',
       lastName: 'Admin',
       email: config.SYSTEM_ADMIN_INITIAL_EMAIL,
-      phone: '01234435',
       passwordHash,
       roles: {
         connectOrCreate: [

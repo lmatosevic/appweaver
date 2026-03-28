@@ -110,9 +110,8 @@ program
       if (runtimeFile.endsWith(`.${runtime}`)) {
         const outputFile = runtimeFile.replace(`.${runtime}`, '');
         await fsp.cp(runtimeFile, outputFile, { force: true });
-      } else {
-        await fsp.unlink(runtimeFile);
       }
+      await fsp.unlink(runtimeFile);
     }
 
     console.log(`Done\n`);
