@@ -35,7 +35,7 @@ program
     'sqlite'
   )
   .option('--bun', 'Use Bun as application runtime.')
-  .option('--skipInstall', 'Skip installing dependencies.')
+  .option('--skipInstall', 'Skip all dependencies installation.')
   .option('--noRedis', 'Skip IoRedis package installation.')
   .option('--noQueue', 'Skip BullQueue package installation.')
   .option('--noMailer', 'Skip Nodemailer package installation.')
