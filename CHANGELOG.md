@@ -1,3 +1,9 @@
+## [1.7.3](https://gitlab.com/app-weaver/appweaver/compare/v1.7.2...v1.7.3) (2026-03-28)
+
+### Bug Fixes
+
+* fix prisma libsql client loading ([3063454](https://gitlab.com/app-weaver/appweaver/commit/3063454311a534026f4b29335782b47fcac1f330))
+
 ## [1.7.2](https://gitlab.com/app-weaver/appweaver/compare/v1.7.1...v1.7.2) (2026-03-28)
 
 ### Bug Fixes
