@@ -1,3 +1,11 @@
+## [1.7.5](https://gitlab.com/app-weaver/appweaver/compare/v1.7.4...v1.7.5) (2026-03-29)
+
+### Bug Fixes
+
+* add skipInstall flag in create-weaver-app command ([48b5d9d](https://gitlab.com/app-weaver/appweaver/commit/48b5d9d3c9b11c2ec942735dff201ee19d80ac49))
+* enhance Bun runtime support, extend CLI and templates, and update SKILL.md ([cabe9b8](https://gitlab.com/app-weaver/appweaver/commit/cabe9b84de4abb3f6736ec7c9515016acaafedc5))
+* update skipInstall description ([070b874](https://gitlab.com/app-weaver/appweaver/commit/070b87456c4c1264c7e01b307f187f16a8d38d3f))
+
 ## [1.7.4](https://gitlab.com/app-weaver/appweaver/compare/v1.7.3...v1.7.4) (2026-03-28)
 
 ### Bug Fixes
