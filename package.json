@@ -79,6 +79,7 @@
     "@swc/core": "1.15.10",
     "@swc/jest": "0.2.39",
     "@types/bcrypt": "6.0.0",
+    "@types/bun": "1.3.11",
     "@types/jest": "30.0.0",
     "@types/node": "25.0.10",
     "@types/nodemailer": "7.0.5",

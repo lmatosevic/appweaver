@@ -49,7 +49,7 @@ Use `create-weaver-app` to scaffold a new project. It copies a default template,
 initial Prisma schema and models.
 
 ```sh
-npx create-weaver-app <name> [description] [options]
+create-weaver-app <name> [description] [options]
 ```
 
 **Options:**
@@ -58,6 +58,8 @@ npx create-weaver-app <name> [description] [options]
 |-------------------|-------------------------------------------------------------|--------------|
 | `-o, --outputDir` | Output directory (use ./ for current working directory)     | project name |
 | `-d, --database`  | Database type: `sqlite`, `postgresql`, `mysql`, `sqlserver` | `sqlite`     |
+| `--bun`           | Use Bun as application runtime. (default is node and npm)   | false        |
+| `--skipInstall`   | Skip all dependencies installation.                         | false        |
 | `--noRedis`       | Skip ioredis                                                | false        |
 | `--noQueue`       | Skip bullmq                                                 | false        |
 | `--noMailer`      | Skip nodemailer                                             | false        |
@@ -66,7 +68,7 @@ npx create-weaver-app <name> [description] [options]
 **Example — PostgreSQL project without queue:**
 
 ```sh
-npx create-weaver-app MyBlogAPI "My own CMS for blogging" --database postgresql --noQueue
+create-weaver-app MyBlogAPI "My own CMS for blogging" --database postgresql --noQueue
 ```
 
 This creates a `./my-blog-api` directory, installs all dependencies, and runs the initial schema and type generation.

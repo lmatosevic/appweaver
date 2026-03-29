@@ -26,7 +26,10 @@ const configSchema = Type.Object({
   APP_HOSTNAME: Type.String({
     default: `http://localhost:${process.env.SERVER_PORT || 5000}`
   }),
-  APP_RUNTIME: Type.Enum(Runtime, { default: Runtime.Node }),
+  APP_RUNTIME: Type.Enum(Runtime, {
+    default:
+      typeof globalThis['Bun'] !== 'undefined' ? Runtime.Bun : Runtime.Node
+  }),
   APP_BUILD_PATH: Type.String({ default: './dist' }),
   APP_SCAN_PATH: Type.String({ default: './src' }),
   APP_MAIN_FILE_PATH: Type.String({ default: './src/main.ts' }),

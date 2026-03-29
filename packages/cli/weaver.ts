@@ -1,5 +1,19 @@
 #!/usr/bin/env node
 
+import { spawnSync } from 'child_process';
+import { config, Runtime } from '@appweaver/common';
+
+if (typeof Bun === 'undefined' && config.APP_RUNTIME === Runtime.Bun) {
+  const check = spawnSync('bun --version', { stdio: 'ignore' });
+  if (check.status === 0) {
+    const result = spawnSync('bun', process.argv.slice(1), {
+      stdio: 'inherit'
+    });
+    process.exit(result.status ?? 1);
+  }
+  // Bun isn't found — fall through to Node execution
+}
+
 process.env.WEAVER_CLI = 'true';
 
 import { Command } from 'commander';

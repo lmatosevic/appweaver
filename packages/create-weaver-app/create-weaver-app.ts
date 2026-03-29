@@ -45,6 +45,15 @@ program
     const runtime = command.getOptionValue('bun') ? 'bun' : 'node';
     const packageManager = runtime === 'bun' ? 'bun' : 'npm';
 
+    // Check if bun runtime is installed on this machine
+    if (runtime === 'bun') {
+      const status = await runProcess('bun', ['bun', '--version']);
+      if (status !== 0) {
+        console.error('Bun runtime is not installed on this machine.');
+        process.exit(1);
+      }
+    }
+
     // Sanitize and create a new directory
     const sanitizedName = name
       .replace(/\s+/g, '-')

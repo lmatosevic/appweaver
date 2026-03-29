@@ -32,6 +32,9 @@ COPY --from=build /usr/app/package*.json /usr/app/
 # Install NPM dependencies for production
 RUN bun install --frozen-lockfile --production
 
+# Copy build files
+COPY --from=build /usr/app/dist /usr/app/dist
+
 # Copy Prisma config, database migrations, and schema file
 COPY --from=build /usr/app/prisma.config.ts /usr/app/prisma.config.ts
 COPY --from=build /usr/app/database/migrations /usr/app/database/migrations

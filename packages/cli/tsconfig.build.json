@@ -3,6 +3,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "./dist",
+    "types": ["node", "bun"],
     "paths": {
       "@appweaver/core": ["../core"],
       "@appweaver/core/*": ["../core/*"],
