@@ -1,3 +1,9 @@
+## [1.7.6](https://gitlab.com/app-weaver/appweaver/compare/v1.7.5...v1.7.6) (2026-03-29)
+
+### Bug Fixes
+
+* fix bun check command ([ceffed2](https://gitlab.com/app-weaver/appweaver/commit/ceffed2ae5a02ce61d2bbf4ec33f4f020e736be6))
+
 ## [1.7.5](https://gitlab.com/app-weaver/appweaver/compare/v1.7.4...v1.7.5) (2026-03-29)
 
 ### Bug Fixes
