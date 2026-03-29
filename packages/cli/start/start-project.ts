@@ -1,10 +1,10 @@
 import path from 'node:path';
 import { watch } from 'node:fs/promises';
 import { config, Runtime } from '@appweaver/common';
-import { runProcess } from '../utils';
+import { isBunProcess, runProcess } from '../utils';
 
 export async function startProject(watch: boolean) {
-  if (config.APP_RUNTIME === Runtime.Bun) {
+  if (isBunProcess() && config.APP_RUNTIME === Runtime.Bun) {
     await startBunProject(watch);
   } else {
     await startNodeProject(watch);

@@ -58,3 +58,15 @@ export function assertEnvs(envs: string[], message: string): void {
     process.exit(1);
   }
 }
+
+/**
+ * Checks if the current environment is a Bun.js process.
+ *
+ * This method determines whether the global `Bun` object is defined,
+ * which indicates the code is running in a Bun.js runtime environment.
+ *
+ * @return {boolean} Returns `true` if the `Bun` object is defined, otherwise `false`.
+ */
+export function isBunProcess(): boolean {
+  return typeof Bun !== 'undefined';
+}

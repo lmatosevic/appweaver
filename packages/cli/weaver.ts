@@ -1,10 +1,16 @@
 #!/usr/bin/env node
 
-import { spawnSync } from 'child_process';
-import { config, Runtime } from '@appweaver/common';
+process.env.WEAVER_CLI = 'true';
 
-if (typeof Bun === 'undefined' && config.APP_RUNTIME === Runtime.Bun) {
-  const check = spawnSync('bun --version', { stdio: 'ignore' });
+import { spawnSync } from 'node:child_process';
+import { config, Runtime } from '@appweaver/common';
+import { loadPackageJson, isBunProcess } from './utils';
+
+if (!isBunProcess() && config.APP_RUNTIME === Runtime.Bun) {
+  const check = spawnSync('bun --version', {
+    stdio: 'ignore',
+    shell: true
+  });
   if (check.status === 0) {
     const result = spawnSync(`bun ${process.argv.slice(1).join(' ')}`, {
       stdio: 'inherit',
@@ -15,10 +21,7 @@ if (typeof Bun === 'undefined' && config.APP_RUNTIME === Runtime.Bun) {
   // Bun isn't found — fall through to Node execution
 }
 
-process.env.WEAVER_CLI = 'true';
-
 import { Command } from 'commander';
-import { loadPackageJson } from './utils';
 import { buildCommand } from './build';
 import { generateCommand } from './generate';
 import { migrateCommand } from './migrate';
