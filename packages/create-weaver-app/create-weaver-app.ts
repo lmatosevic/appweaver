@@ -47,7 +47,7 @@ program
 
     // Check if bun runtime is installed on this machine
     if (runtime === 'bun') {
-      const status = await runProcess('bun', ['bun', '--version']);
+      const status = await runProcess('bun', ['--version']);
       if (status !== 0) {
         console.error('Bun runtime is not installed on this machine.');
         process.exit(1);

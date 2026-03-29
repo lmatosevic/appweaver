@@ -18,6 +18,7 @@
     "strictNullChecks": true,
     "noImplicitAny": false,
     "noUnusedLocals": false,
+    "types": ["bun"],
     "paths": {
       "@/*": ["./src/*"],
       "@db/*": ["./database/*"]

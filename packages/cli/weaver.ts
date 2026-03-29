@@ -6,8 +6,9 @@ import { config, Runtime } from '@appweaver/common';
 if (typeof Bun === 'undefined' && config.APP_RUNTIME === Runtime.Bun) {
   const check = spawnSync('bun --version', { stdio: 'ignore' });
   if (check.status === 0) {
-    const result = spawnSync('bun', process.argv.slice(1), {
-      stdio: 'inherit'
+    const result = spawnSync(`bun ${process.argv.slice(1).join(' ')}`, {
+      stdio: 'inherit',
+      shell: true
     });
     process.exit(result.status ?? 1);
   }
