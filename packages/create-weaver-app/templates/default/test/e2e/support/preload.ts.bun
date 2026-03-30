@@ -1,0 +1,7 @@
+import setup from './setup';
+import teardown from './teardown';
+import './each';
+
+beforeAll(async () => setup(), 10_000);
+
+afterAll(async () => teardown(), 10_000);

@@ -10,4 +10,4 @@ afterEach(() => {
     console.error(error);
     process.exit(1);
   }
-});
+}, 10_000);

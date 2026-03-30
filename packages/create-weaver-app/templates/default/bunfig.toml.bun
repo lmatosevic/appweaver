@@ -1,3 +1,9 @@
 [install]
 # This is required linker method since "isolated" breaks the dynamic imports from node_modules
 linker = "hoisted"
+
+[test]
+root = "test"
+coverageReporter = ["text", "lcov"]
+coverageSkipTestFiles = true
+coverageDir = "./reports"

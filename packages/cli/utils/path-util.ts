@@ -1,4 +1,4 @@
-import fsp from 'node:fs/promises';
+import { rimraf } from 'rimraf';
 import path from 'node:path';
 
 /**
@@ -60,11 +60,10 @@ export function isPathInside(basePath: string, childPath: string): boolean {
 }
 
 /**
- * Deletes the specified path and all of its contents recursively.
- * If the path does not exist or deletion fails, error messages can be suppressed using the `quiet` parameter.
+ * Recursively removes a specified file or directory path.
  *
  * @param {string} path - The file or directory path to be removed.
- * @param {boolean} [quiet=false] - Whether to suppress error and success messages. Default is `false`.
+ * @param {boolean} [quiet=false] - If true, suppresses error logging when an error occurs.
  * @return {Promise<void>} A promise that resolves when the operation is complete.
  */
 export async function rimrafPath(
@@ -72,20 +71,10 @@ export async function rimrafPath(
   quiet: boolean = false
 ): Promise<void> {
   try {
-    await fsp.access(path, fsp.constants.F_OK);
-  } catch {
+    await rimraf(path);
+  } catch (error) {
     if (!quiet) {
-      console.error(`Path not found: ${path}`);
-    }
-  }
-  try {
-    await fsp.rm(path, { recursive: true, force: true });
-    if (!quiet) {
-      console.log(`Deleted path: ${path}`);
-    }
-  } catch (err) {
-    if (!quiet) {
-      console.error(`Failed to delete ${path}:`, err);
+      console.error(`Error removing path: ${path}`, error);
     }
   }
 }
