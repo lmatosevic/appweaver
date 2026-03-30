@@ -97,13 +97,13 @@ export class Application extends LifecycleManager {
       return;
     }
 
+    logger.info('Application stopped');
+
     this._started = false;
 
     await this.destroy();
 
     await this._server.close();
-
-    logger.info('Application stopped');
   }
 
   /**
