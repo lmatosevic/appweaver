@@ -17,28 +17,28 @@ export async function startProject(watch: boolean) {
 }
 
 async function startNodeProject(
-  mainPath: string,
+  mainFilePath: string,
   watch: boolean
 ): Promise<void> {
   if (watch) {
     await runProcess('tsc-watch', [
       '-p tsconfig.build.json',
       '--onCompilationComplete "tsc-alias -p tsconfig.build.json"',
-      `--onSuccess "node ${mainPath}"`
+      `--onSuccess "node ${mainFilePath}"`
     ]);
   } else {
-    await runProcess('node', [mainPath]);
+    await runProcess('node', [mainFilePath]);
   }
 }
 
 async function startBunProject(
-  mainPath: string,
+  mainFilePath: string,
   watch: boolean
 ): Promise<void> {
   if (watch) {
-    await runProcess('bun', [mainPath]);
-  } else {
     await watchBunProcess();
+  } else {
+    await runProcess('bun', [mainFilePath]);
   }
 }
 
@@ -50,23 +50,40 @@ async function startBunProject(
  * @return A promise that resolves when the watching process is stopped or completed.
  */
 async function watchBunProcess(): Promise<void> {
-  let proc: Bun.Subprocess | null = null;
-  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let abortController: AbortController | undefined;
+  let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
-  function start() {
-    proc?.kill();
-    proc = Bun.spawn(['bun', config.APP_MAIN_FILE_PATH], {
-      stdout: 'inherit',
-      stderr: 'inherit'
+  // Starts a new process and aborts the previous one
+  async function start() {
+    if (abortController) {
+      abortController.abort();
+    }
+    abortController = new AbortController();
+
+    await runProcess('bun', [config.APP_MAIN_FILE_PATH], {
+      signal: abortController.signal
     });
   }
 
-  start();
+  // Initially start the application process
+  start().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
 
-  for await (const _ of watch(config.APP_SCAN_PATH, { recursive: true })) {
+  // Watch for file changes and start new process using debounce timer
+  for await (const info of watch(config.APP_SCAN_PATH, { recursive: true })) {
+    if (info.filename === null) {
+      // Skip non-file change events
+      continue;
+    }
+
     if (debounceTimer) {
       clearTimeout(debounceTimer);
     }
-    debounceTimer = setTimeout(start, 200);
+
+    debounceTimer = setTimeout(async () => {
+      await start();
+    }, 100);
   }
 }

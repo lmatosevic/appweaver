@@ -5,6 +5,6 @@
     "test",
     "dist",
     "**/*(spec|test).ts",
-    "prisma.config.ts.tpl"
+    "prisma.config.ts"
   ]
 }

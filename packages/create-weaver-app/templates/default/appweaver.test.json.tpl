@@ -1,0 +1,30 @@
+{
+  "$schema": "./node_modules/@appweaver/common/config/schema.json",
+  "config": {
+    "log": {
+      "level": "error",
+      "pretty": true
+    },
+    "database": {
+      "url": "file:./temp/test.db",
+      "schemaPath": "./temp/database/schema.prisma",
+      "migrationsDirPath": "./temp/database/migrations",
+      "clientOutputDirPath": "./temp/database/client"
+    },
+    "storage": {
+      "path": "./temp/storage"
+    },
+    "redis": {
+      "provider": "@appweaver/core/memory/in-memory"
+    },
+    "queue": {
+      "provider": "@appweaver/core/queue/memory-queue"
+    },
+    "mailer": {
+      "provider": "@appweaver/core/mailer/json-mailer"
+    },
+    "scheduler": {
+      "autoStartJob": false
+    }
+  }
+}

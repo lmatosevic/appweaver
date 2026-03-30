@@ -11,7 +11,7 @@ import {
   Runtime
 } from '@appweaver/common';
 import { PrismaClient } from '../prisma/client/client';
-import { isTypeScriptEntrypoint, requireModule } from '../utils';
+import { isTypeScriptRuntime, requireModule } from '../utils';
 
 const options: Omit<PrismaClientOptions, 'adapter'> = {
   transactionOptions: {
@@ -148,14 +148,17 @@ function createPrismaClient(adapter: SqlDriverAdapterFactory): PrismaClient {
     ? 'dist'
     : relativeMainPath.split(path.sep)[0];
 
-  const buildDirPath = isTypeScriptEntrypoint()
+  const buildDirPath = isTypeScriptRuntime()
     ? ''
     : config.APP_BUILD_PATH || distDirName;
+
+  const testDirPath =
+    !isTypeScriptRuntime() && config.APP_ENV === 'test' ? '..' : '';
 
   const clientPath = path.join(
     cwd,
     buildDirPath,
-    config.APP_ENV === 'test' ? '..' : '',
+    testDirPath,
     config.DATABASE_CLIENT_OUTPUT_DIR_PATH,
     'client'
   );

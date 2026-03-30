@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { isTypeScriptEntrypoint } from './path-util';
+import { isTypeScriptRuntime } from './path-util';
 
 type ValueOrError<T> =
   | { value: T; error: null }
@@ -13,7 +13,7 @@ type ValueOrError<T> =
  * @return {string} The sanitized file path.
  */
 export function sanitizePath(filePath: string): string {
-  if (isTypeScriptEntrypoint()) {
+  if (isTypeScriptRuntime()) {
     return filePath;
   }
   return filePath.replace(/\.ts$/i, '.js');

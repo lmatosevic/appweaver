@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import treeKill from 'tree-kill';
 import { config } from '@appweaver/common';
 
 /**
@@ -8,20 +9,38 @@ import { config } from '@appweaver/common';
  * @param {string[]} [args=[]] - An array of arguments to pass to the command.
  * @param {Object} [params={ quiet: false }] - Configurations for how the process should run.
  * @param {boolean} [params.quiet=false] - If true, suppresses the process output.
+ * @param {AbortSignal} [params.signal] - Optional AbortSignal to terminate the running process.
  * @return {Promise<number | null>} A promise that resolves with the exit code of the process or null on error.
  */
 export function runProcess(
   cmd: string,
   args: string[] = [],
-  params: { quiet?: boolean } = { quiet: false }
+  params: { quiet?: boolean; signal?: AbortSignal } = {}
 ): Promise<number | null> {
+  const { quiet = false, signal } = params;
   return new Promise((resolve, reject) => {
     const command = args.length > 0 ? `${cmd} ${args.join(' ')}` : cmd;
     const child = spawn(command, {
-      stdio: params.quiet ? 'ignore' : 'inherit',
+      stdio: quiet ? 'ignore' : 'inherit',
       shell: true,
       env: { ...process.env, WEAVER_CLI: undefined }
     });
+
+    if (signal) {
+      const abortHandler = () => {
+        if (child.pid) {
+          treeKill(child.pid, (err) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(0);
+            }
+          });
+        }
+      };
+
+      signal.addEventListener('abort', abortHandler, { once: true });
+    }
 
     child.on('error', reject);
 

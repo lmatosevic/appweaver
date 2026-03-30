@@ -40,7 +40,11 @@ export class Redis extends CommonRedis<RedisOptions, RedisClient> {
   }
 
   public async disconnect(): Promise<void> {
-    await this._client.quit();
+    try {
+      await this._client.quit();
+    } catch {
+      // Ignore already closed connection error
+    }
   }
 
   public async getValue<T = any>(key: string): Promise<T | null> {
