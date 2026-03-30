@@ -47,7 +47,7 @@ program
 
     // Check if bun runtime is installed on this machine
     if (runtime === 'bun') {
-      const status = await runProcess('bun', ['--version']);
+      const status = await runProcess('bun', ['--version'], { quiet: true });
       if (status !== 0) {
         console.error('Bun runtime is not installed on this machine.');
         process.exit(1);
@@ -133,17 +133,24 @@ program
 
     console.log(`Installing dependencies...`);
 
-    await runProcess(packageManager, ['install'], destDir);
+    await runProcess(
+      packageManager,
+      ['install', '--no-audit', '--no-fund', '--loglevel=error'],
+      { destDir }
+    );
 
     if (runtime === 'bun') {
-      await runProcess('bun', ['add', '-d', '@types/bun'], destDir);
+      await runProcess('bun', ['add', '-d', '@types/bun'], {
+        destDir,
+        quiet: true
+      });
     }
 
     console.log(`Done\n`);
 
     console.log(`Configuring application...`);
 
-    await runProcess(packageManager, ['run', 'generate'], destDir);
+    await runProcess(packageManager, ['run', 'generate'], { destDir });
 
     console.log(`Done\n`);
 
@@ -214,11 +221,16 @@ function getDatabaseUrl(command: Command, name: string): string {
 function runProcess(
   cmd: string,
   args: string[] = [],
-  cwd?: string
+  params: { destDir?: string; quiet?: boolean } = {}
 ): Promise<number | null> {
   return new Promise((resolve, reject) => {
+    const { destDir, quiet } = params;
     const command = args.length > 0 ? `${cmd} ${args.join(' ')}` : cmd;
-    const child = spawn(command, { stdio: 'ignore', shell: true, cwd });
+    const child = spawn(command, {
+      stdio: quiet ? 'ignore' : 'inherit',
+      shell: true,
+      cwd: destDir
+    });
 
     child.on('error', reject);
 

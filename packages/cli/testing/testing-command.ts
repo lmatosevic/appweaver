@@ -2,7 +2,13 @@ import fsp from 'node:fs/promises';
 import { Command } from 'commander';
 import { config } from '@appweaver/common';
 import { generateSchema } from '../generate';
-import { assertEnv, assertPathInside, loadModels, runProcess } from '../utils';
+import {
+  assertEnv,
+  assertPathInside,
+  loadModels,
+  rimrafPath,
+  runProcess
+} from '../utils';
 
 export function testingCommand(program: Command): void {
   const testCommand = program
@@ -73,7 +79,7 @@ export function testingCommand(program: Command): void {
         `Client output path must be inside temp directory: ${tempDir}`
       );
 
-      await runProcess('rimraf', [tempDir], { quiet });
+      await rimrafPath(tempDir, quiet);
 
       await fsp.mkdir(storagePath, { recursive: true });
 
@@ -133,7 +139,7 @@ export function testingCommand(program: Command): void {
       }
 
       if (command.getOptionValue('storage') || resetAll) {
-        await runProcess('rimraf', [storagePath], { quiet });
+        await rimrafPath(storagePath, quiet);
         console.log('Storage cleared');
       }
     });
@@ -157,7 +163,7 @@ export function testingCommand(program: Command): void {
 
       const tempDir = command.getOptionValue('dir');
 
-      await runProcess('rimraf', [tempDir], { quiet });
+      await rimrafPath(tempDir, quiet);
 
       console.log(`Removed temporary directory ${tempDir}`);
     });

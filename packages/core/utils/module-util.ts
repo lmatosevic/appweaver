@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { config, Runtime } from '@appweaver/common';
+import { isTypeScriptEntrypoint } from './path-util';
 
 type ValueOrError<T> =
   | { value: T; error: null }
@@ -13,7 +13,7 @@ type ValueOrError<T> =
  * @return {string} The sanitized file path.
  */
 export function sanitizePath(filePath: string): string {
-  if (config.APP_RUNTIME === Runtime.Bun) {
+  if (isTypeScriptEntrypoint()) {
     return filePath;
   }
   return filePath.replace(/\.ts$/i, '.js');

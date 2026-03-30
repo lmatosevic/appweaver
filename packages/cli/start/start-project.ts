@@ -4,32 +4,39 @@ import { config, Runtime } from '@appweaver/common';
 import { isBunProcess, runProcess } from '../utils';
 
 export async function startProject(watch: boolean) {
-  if (isBunProcess() && config.APP_RUNTIME === Runtime.Bun) {
-    await startBunProject(watch);
-  } else {
-    await startNodeProject(watch);
-  }
-}
-
-async function startNodeProject(watch: boolean): Promise<void> {
   const mainFilePath = path.join(
     config.APP_BUILD_PATH,
     config.APP_MAIN_FILE_PATH.replace(/\.ts$/i, '.js')
   );
+
+  if (isBunProcess() && config.APP_RUNTIME === Runtime.Bun) {
+    await startBunProject(mainFilePath, watch);
+  } else {
+    await startNodeProject(mainFilePath, watch);
+  }
+}
+
+async function startNodeProject(
+  mainPath: string,
+  watch: boolean
+): Promise<void> {
   if (watch) {
     await runProcess('tsc-watch', [
       '-p tsconfig.build.json',
       '--onCompilationComplete "tsc-alias -p tsconfig.build.json"',
-      `--onSuccess "node ${mainFilePath}"`
+      `--onSuccess "node ${mainPath}"`
     ]);
   } else {
-    await runProcess('node', [mainFilePath]);
+    await runProcess('node', [mainPath]);
   }
 }
 
-async function startBunProject(watch: boolean): Promise<void> {
+async function startBunProject(
+  mainPath: string,
+  watch: boolean
+): Promise<void> {
   if (watch) {
-    await runProcess('bun', [config.APP_MAIN_FILE_PATH]);
+    await runProcess('bun', [mainPath]);
   } else {
     await watchBunProcess();
   }

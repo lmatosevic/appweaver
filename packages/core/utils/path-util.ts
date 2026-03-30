@@ -1,12 +1,17 @@
 import path from 'node:path';
-import { config, Runtime } from '@appweaver/common';
+import { config } from '@appweaver/common';
+
+export function isTypeScriptEntrypoint(): boolean {
+  const mainPath = require.main?.filename || process.argv[1];
+  return path.extname(mainPath) === '.ts';
+}
 
 export function resolveScanPath(overridePath?: string): string {
   if (overridePath) {
     return path.resolve(overridePath);
   }
 
-  if (config.APP_RUNTIME === Runtime.Bun && config.APP_SCAN_PATH) {
+  if (isTypeScriptEntrypoint() && config.APP_SCAN_PATH) {
     return path.resolve(config.APP_SCAN_PATH);
   }
 
@@ -22,7 +27,7 @@ export function resolveSeedersPath(overridePath?: string): string {
     return path.resolve(overridePath);
   }
 
-  if (config.APP_RUNTIME === Runtime.Bun && config.APP_SCAN_PATH) {
+  if (isTypeScriptEntrypoint() && config.APP_SCAN_PATH) {
     return path.resolve(config.DATABASE_SEEDERS_DIR_PATH);
   }
 
