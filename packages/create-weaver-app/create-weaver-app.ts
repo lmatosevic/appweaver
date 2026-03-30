@@ -125,6 +125,9 @@ program
       await fsp.unlink(runtimeFile);
     }
 
+    // Create test reports directory
+    await fsp.mkdir(path.join(destDir, 'reports'));
+
     console.log(`Done\n`);
 
     if (command.getOptionValue('skipInstall')) {

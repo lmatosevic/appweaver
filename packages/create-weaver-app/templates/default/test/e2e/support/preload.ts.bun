@@ -2,6 +2,12 @@ import setup from './setup';
 import teardown from './teardown';
 import './each';
 
-beforeAll(async () => setup(), 10_000);
+beforeAll(async () => {
+  await setup();
+}, 10_000);
 
-afterAll(async () => teardown(), 10_000);
+afterAll(async () => {
+  // Wait for database connection to close before calling teardown
+  await Bun.sleep(100);
+  await teardown();
+}, 10_000);
