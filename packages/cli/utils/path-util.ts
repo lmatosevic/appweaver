@@ -64,17 +64,22 @@ export function isPathInside(basePath: string, childPath: string): boolean {
  *
  * @param {string} path - The file or directory path to be removed.
  * @param {boolean} [quiet=false] - If true, suppresses error logging when an error occurs.
- * @return {Promise<void>} A promise that resolves when the operation is complete.
+ * @return {Promise<boolean>} A promise that resolves to `true` if a path is removed, `false` otherwise.
  */
 export async function rimrafPath(
   path: string,
   quiet: boolean = false
-): Promise<void> {
+): Promise<boolean> {
   try {
-    await rimraf(path);
+    const result = await rimraf(path, { maxRetries: 10, retryDelay: 100 });
+    if (!result && !quiet) {
+      console.error(`Unable to remove path: ${path}`);
+    }
+    return result;
   } catch (error) {
     if (!quiet) {
       console.error(`Error removing path: ${path}`, error);
     }
+    return false;
   }
 }

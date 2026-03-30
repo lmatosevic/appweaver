@@ -139,8 +139,10 @@ export function testingCommand(program: Command): void {
       }
 
       if (command.getOptionValue('storage') || resetAll) {
-        await rimrafPath(storagePath, quiet);
-        console.log('Storage cleared');
+        const result = await rimrafPath(storagePath, quiet);
+        if (result) {
+          console.log('Storage cleared');
+        }
       }
     });
 
@@ -163,8 +165,9 @@ export function testingCommand(program: Command): void {
 
       const tempDir = command.getOptionValue('dir');
 
-      await rimrafPath(tempDir, quiet);
-
-      console.log(`Removed temporary directory ${tempDir}`);
+      const result = await rimrafPath(tempDir, quiet);
+      if (result) {
+        console.log(`Removed temporary directory ${tempDir}`);
+      }
     });
 }
