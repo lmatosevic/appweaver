@@ -17,12 +17,12 @@
     "lint": "eslint \"./**/*.ts\""
   },
   "dependencies": {
+    "@appweaver/cli": "{{VERSION}}",
     "@appweaver/common": "{{VERSION}}",
     "@appweaver/core": "{{VERSION}}",
 {{DEPENDENCIES}}
   },
   "devDependencies": {
-    "@appweaver/cli": "{{VERSION}}",
     "@eslint/js": "9.39.2",
     "@types/bun": "1.3.11",
     "@types/node": "25.0.10",

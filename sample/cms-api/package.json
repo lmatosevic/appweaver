@@ -18,10 +18,9 @@
     "lint": "eslint \"./**/*.ts\""
   },
   "dependencies": {
+    "@appweaver/cli": "^1.0.0",
     "@appweaver/common": "^1.0.0",
     "@appweaver/core": "^1.0.0"
   },
-  "devDependencies": {
-    "@appweaver/cli": "^1.0.0"
-  }
+  "devDependencies": {}
 }

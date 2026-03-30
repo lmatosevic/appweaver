@@ -17,12 +17,12 @@
     "lint": "eslint \"./**/*.ts\""
   },
   "dependencies": {
+    "@appweaver/cli": "{{VERSION}}",
     "@appweaver/common": "{{VERSION}}",
     "@appweaver/core": "{{VERSION}}",
 {{DEPENDENCIES}}
   },
   "devDependencies": {
-    "@appweaver/cli": "{{VERSION}}",
     "@eslint/js": "9.39.2",
     "@swc/core": "1.15.10",
     "@swc/jest": "0.2.39",
