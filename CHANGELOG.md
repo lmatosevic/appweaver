@@ -1,3 +1,10 @@
+## [1.7.7](https://gitlab.com/app-weaver/appweaver/compare/v1.7.6...v1.7.7) (2026-03-30)
+
+### Bug Fixes
+
+* refactor Bun runtime detection and cleanup unused build functionality ([ba399ae](https://gitlab.com/app-weaver/appweaver/commit/ba399aee74e08c23a01b021a45ba24e1c55eedfc))
+* replace rimraf dependency with internal rimrafPath utility, refactor TypeScript entrypoint checks, and update project build/start configurations ([6021bd8](https://gitlab.com/app-weaver/appweaver/commit/6021bd8b1971200a11693e1322052796c6d7e99a))
+
 ## [1.7.6](https://gitlab.com/app-weaver/appweaver/compare/v1.7.5...v1.7.6) (2026-03-29)
 
 ### Bug Fixes
