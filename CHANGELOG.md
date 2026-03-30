@@ -1,3 +1,9 @@
+## [1.7.8](https://gitlab.com/app-weaver/appweaver/compare/v1.7.7...v1.7.8) (2026-03-30)
+
+### Bug Fixes
+
+* improve process handling with tree-kill command, TypeScript runtime detection for Bun only, add test config to default create-weaver-app template ([fc77647](https://gitlab.com/app-weaver/appweaver/commit/fc776478943d892e419d3e622bf25de9c691863d))
+
 ## [1.7.7](https://gitlab.com/app-weaver/appweaver/compare/v1.7.6...v1.7.7) (2026-03-30)
 
 ### Bug Fixes
