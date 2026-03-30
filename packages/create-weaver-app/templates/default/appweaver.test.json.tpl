@@ -6,7 +6,7 @@
       "pretty": true
     },
     "database": {
-      "url": "file:./temp/test.db",
+      "url": "{{DATABASE_TEST_URL}}",
       "schemaPath": "./temp/database/schema.prisma",
       "migrationsDirPath": "./temp/database/migrations",
       "clientOutputDirPath": "./temp/database/client"

@@ -85,6 +85,7 @@ program
       DESCRIPTION: description,
       DEPENDENCIES: getNodeDependencies(command, runtime).join(',\n'),
       DATABASE_URL: getDatabaseUrl(command, sanitizedName),
+      DATABASE_TEST_URL: getDatabaseUrl(command, sanitizedName, 'test'),
       VERSION: pkg.version
     };
 
@@ -193,12 +194,17 @@ function getNodeDependencies(command: Command, runtime: string): string[] {
   return dependencies.map((d) => `    ${d}`);
 }
 
-function getDatabaseUrl(command: Command, name: string): string {
+function getDatabaseUrl(
+  command: Command,
+  name: string,
+  suffix: string = ''
+): string {
+  const dbName = `${name}${suffix ? '-' + suffix : ''}`;
   const urls = {
-    sqlite: `file:./${name}.db`,
-    postgresql: `postgresql://${name}:${name}@localhost:5432/${name}?schema=public`,
-    mysql: `mysql://${name}:${name}@localhost:3306/${name}`,
-    sqlserver: `sqlserver://localhost:1433;database=${name};user=${name};password=${name};trustServerCertificate=true`
+    sqlite: `file:./${dbName}.db`,
+    postgresql: `postgresql://${name}:${name}@localhost:5432/${dbName}?schema=public`,
+    mysql: `mysql://${name}:${name}@localhost:3306/${dbName}`,
+    sqlserver: `sqlserver://localhost:1433;database=${dbName};user=${name};password=${name};trustServerCertificate=true`
   };
 
   const database = command.getOptionValue('database');
