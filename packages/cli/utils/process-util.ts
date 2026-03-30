@@ -19,6 +19,10 @@ export function runProcess(
 ): Promise<number | null> {
   const { quiet = false, signal } = params;
   return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      return resolve(0);
+    }
+
     const command = args.length > 0 ? `${cmd} ${args.join(' ')}` : cmd;
     const child = spawn(command, {
       stdio: quiet ? 'ignore' : 'inherit',
