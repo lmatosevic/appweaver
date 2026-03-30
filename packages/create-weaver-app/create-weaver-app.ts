@@ -139,13 +139,6 @@ program
       { destDir }
     );
 
-    if (runtime === 'bun') {
-      await runProcess('bun', ['add', '-d', '@types/bun'], {
-        destDir,
-        quiet: true
-      });
-    }
-
     console.log(`Done\n`);
 
     console.log(`Configuring application...`);
