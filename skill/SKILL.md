@@ -14,12 +14,12 @@ description: >
 
 ## Purpose
 
-Appweaver is a library for building web applications with TypeScript and Node.js. It provides a set of tools and
-conventions to simplify the development process, including file-based routing, reusable UI components, and centralized
-configuration. It is based mainly on Fastify for web server and Prisma for database ORM. The library provides a series
-of factory methods used for creating resource models, services, policies, and routes with predefined defaults. It
-provides a CLI tool for building the application, starting a server, generating schema and types, executing migrations,
-running seeders, testing, and more.
+Appweaver is a library for building web applications with TypeScript and Node.js (or Bun). It provides a set of tools
+and conventions to simplify the development process, including file-based routing, reusable UI components, and
+centralized configuration. It is based mainly on Fastify for web server and Prisma for database ORM. The library
+provides a series of factory methods used for creating resource models, services, policies, and routes with predefined
+defaults. It provides a CLI tool for building the application, starting a server, generating schema and types, executing
+migrations, running seeders, testing, and more.
 
 ## Project structure
 
@@ -72,6 +72,30 @@ create-weaver-app MyBlogAPI "My own CMS for blogging" --database postgresql --no
 ```
 
 This creates a `./my-blog-api` directory, installs all dependencies, and runs the initial schema and type generation.
+Default test runner is `jest` with `swc` transpiler.
+
+**Example — Bun project with Sqlite:**
+
+```sh
+create-weaver-app BunApp "Bun application with simple API" --bun --database sqlite
+```
+
+This creates a `./bun-app` directory, installs all dependencies using bun package manager, and runs the initial
+schema and type generation. Default test runner is `bun`.
+
+After the application is scaffolded, the following commands need to be run to finish the application setup:
+
+```sh
+npx --no-install weaver migration new init
+npm run seed
+```
+
+Or, for bun runtime:
+
+```sh
+bun weaver migration new init
+bun run seed
+```
 
 ### Creating and starting the application server
 
