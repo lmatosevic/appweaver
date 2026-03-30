@@ -1,3 +1,10 @@
+## [1.7.11](https://gitlab.com/app-weaver/appweaver/compare/v1.7.10...v1.7.11) (2026-03-30)
+
+### Bug Fixes
+
+* add test database variable in default template ([b395eb1](https://gitlab.com/app-weaver/appweaver/commit/b395eb1b495b173dbd7d2bada457f9337e8f9b72))
+* separate dev and test database URL building in create-weaver-app ([193daa1](https://gitlab.com/app-weaver/appweaver/commit/193daa1aec740404d5a6f06517c8840320471902))
+
 ## [1.7.10](https://gitlab.com/app-weaver/appweaver/compare/v1.7.9...v1.7.10) (2026-03-30)
 
 ### Bug Fixes
