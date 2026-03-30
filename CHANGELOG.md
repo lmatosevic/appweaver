@@ -1,3 +1,13 @@
+## [1.7.9](https://gitlab.com/app-weaver/appweaver/compare/v1.7.8...v1.7.9) (2026-03-30)
+
+### Bug Fixes
+
+* add coverage support, refactor rimraf usage, and enhance default Bun template configurations ([20135ad](https://gitlab.com/app-weaver/appweaver/commit/20135ad97c4c4f29cadd5a498c69c30113b7bc34))
+* add fix for some terminals line breaking on bun watch process ([dcaf0b5](https://gitlab.com/app-weaver/appweaver/commit/dcaf0b5afd39e2aa57f4a8097396f9ab29280225))
+* fix application stopped message order ([5eab432](https://gitlab.com/app-weaver/appweaver/commit/5eab432dc9e7abae9dd55d6434d489d957594614))
+* fix default template formatting rules ([00ed8e3](https://gitlab.com/app-weaver/appweaver/commit/00ed8e373efdb33671829ee449ef9a5f153e1f86))
+* fix process already aborted case ([9706be7](https://gitlab.com/app-weaver/appweaver/commit/9706be73009e23e28e14d67d0c5f1d5a082509b3))
+
 ## [1.7.8](https://gitlab.com/app-weaver/appweaver/compare/v1.7.7...v1.7.8) (2026-03-30)
 
 ### Bug Fixes
