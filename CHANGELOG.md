@@ -1,3 +1,10 @@
+## [1.7.10](https://gitlab.com/app-weaver/appweaver/compare/v1.7.9...v1.7.10) (2026-03-30)
+
+### Bug Fixes
+
+* add Bun specific ESLint configuration template ([6f1ec46](https://gitlab.com/app-weaver/appweaver/commit/6f1ec460f7cbd310b395a95b473abf9c8f4532a5))
+* remove separate bun types installation ([701a16e](https://gitlab.com/app-weaver/appweaver/commit/701a16e39773349f286f406b1f59909e872734c6))
+
 ## [1.7.9](https://gitlab.com/app-weaver/appweaver/compare/v1.7.8...v1.7.9) (2026-03-30)
 
 ### Bug Fixes
