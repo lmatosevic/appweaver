@@ -84,7 +84,7 @@ program
       LOWER_NAME: sanitizedName,
       DESCRIPTION: description,
       DEPENDENCIES: getNodeDependencies(command, runtime).join(',\n'),
-      DATABASE_URL: getDatabaseUrl(command, sanitizedName),
+      DATABASE_URL: getDatabaseUrl(command, sanitizedName, 'dev'),
       DATABASE_TEST_URL: getDatabaseUrl(command, sanitizedName, 'test'),
       VERSION: pkg.version
     };
@@ -197,11 +197,11 @@ function getNodeDependencies(command: Command, runtime: string): string[] {
 function getDatabaseUrl(
   command: Command,
   name: string,
-  suffix: string = ''
+  mode: 'dev' | 'test'
 ): string {
-  const dbName = `${name}${suffix ? '-' + suffix : ''}`;
+  const dbName = mode === 'test' ? `${name}-test` : name;
   const urls = {
-    sqlite: `file:./${dbName}.db`,
+    sqlite: `file:./${mode === 'test' ? 'temp/' : ''}${dbName}.db`,
     postgresql: `postgresql://${name}:${name}@localhost:5432/${dbName}?schema=public`,
     mysql: `mysql://${name}:${name}@localhost:3306/${dbName}`,
     sqlserver: `sqlserver://localhost:1433;database=${dbName};user=${name};password=${name};trustServerCertificate=true`
