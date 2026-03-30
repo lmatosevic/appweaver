@@ -65,6 +65,9 @@ async function watchBunProcess(): Promise<void> {
     });
   }
 
+  // Fix for some terminals to avoid breaking lines on exit
+  console.log('');
+
   // Initially start the application process
   start().catch((err) => {
     console.error(err);
