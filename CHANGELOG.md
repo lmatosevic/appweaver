@@ -1,3 +1,10 @@
+## [1.7.13](https://gitlab.com/app-weaver/appweaver/compare/v1.7.12...v1.7.13) (2026-03-30)
+
+### Bug Fixes
+
+* improve e2e setup/teardown handling and add test reports directory creation ([7d8e59a](https://gitlab.com/app-weaver/appweaver/commit/7d8e59aa17207586ea6bbce42487022261ac003b))
+* update rimraf util function with retry logic ([134cfbb](https://gitlab.com/app-weaver/appweaver/commit/134cfbbdc504ab750de2c2d492de4348d3bf77b3))
+
 ## [1.7.12](https://gitlab.com/app-weaver/appweaver/compare/v1.7.11...v1.7.12) (2026-03-30)
 
 ### Bug Fixes
