@@ -1,3 +1,9 @@
+## [1.7.12](https://gitlab.com/app-weaver/appweaver/compare/v1.7.11...v1.7.12) (2026-03-30)
+
+### Bug Fixes
+
+* move @appweaver/cli to production dependencies ([9038b5f](https://gitlab.com/app-weaver/appweaver/commit/9038b5fa6c976e7ae94fc006ca361c8180e5021c))
+
 ## [1.7.11](https://gitlab.com/app-weaver/appweaver/compare/v1.7.10...v1.7.11) (2026-03-30)
 
 ### Bug Fixes
