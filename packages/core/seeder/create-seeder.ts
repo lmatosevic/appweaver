@@ -16,6 +16,10 @@ export type CreateSeederParams = {
   /** A boolean flag indicating whether the seeder should automatically
    * start seeding after being created. (default: true) **/
   autoSeed?: boolean;
+  /** A boolean flag indicating whether to automatically fix all warnings
+   * related to the seeders like wrong checksum or deleted seeder files.
+   * (default: false) **/
+  fixWarnings?: boolean;
 };
 
 export async function createSeeder(
@@ -27,7 +31,11 @@ export async function createSeeder(
   // Load all defined providers from this project
   loadProviders(scanPath);
 
-  const seeder = new Seeder(seedersPath, params.continueOnError);
+  const seeder = new Seeder(
+    seedersPath,
+    params.continueOnError,
+    params.fixWarnings
+  );
 
   if (params.autoSeed !== false) {
     await seeder.seed();

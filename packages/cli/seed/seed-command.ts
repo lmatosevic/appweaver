@@ -15,15 +15,24 @@ export function seedCommand(program: Command): void {
       '-c, --continueOnError',
       'Continue seeder execution if error is thrown.'
     )
+    .option(
+      '-f, --fixWarnings',
+      'Fix all seeder warnings like wrong checksum or deleted seeder files.'
+    )
     .action(async (_, command: Command) => {
       const seedersPath = command.getOptionValue('seedersPath');
       const continueOnError = command.getOptionValue('continueOnError');
+      const fixWarnings = command.getOptionValue('fixWarnings');
 
       if (command.getOptionValue('buildProject')) {
         await buildProject();
       }
 
-      const seeder = await createSeeder({ seedersPath, continueOnError });
+      const seeder = await createSeeder({
+        seedersPath,
+        continueOnError,
+        fixWarnings
+      });
 
       await seeder.close();
 

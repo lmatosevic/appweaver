@@ -488,8 +488,9 @@ weaver migration reset --force --yes  # force reset, skip confirmation
 
 ```sh
 weaver seed                         # run seeders
-weaver seed --buildProject          # build project first, then seed
-weaver seed --continueOnError       # continue if a seeder throws
+weaver seed --buildProject          # build project first, then run seeders
+weaver seed --continueOnError       # continue if a seeder throws error
+weaver seed --fixWarnings           # fix all warnings like invalid checksum or missing seeder
 ```
 
 ### Run tests

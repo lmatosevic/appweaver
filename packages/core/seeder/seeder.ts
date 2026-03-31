@@ -16,7 +16,8 @@ export class Seeder extends LifecycleManager {
 
   constructor(
     private readonly _dirPath: string,
-    private readonly _continueOnError: boolean = false
+    private readonly _continueOnError: boolean = false,
+    private readonly _fixWarnings: boolean = false
   ) {
     super();
   }
@@ -32,7 +33,14 @@ export class Seeder extends LifecycleManager {
   public async seed(): Promise<void> {
     await this.init();
 
-    const seederFiles = await this.loadSeederFiles();
+    let seederFiles: string[] = [];
+
+    try {
+      seederFiles = await this.loadSeederFiles();
+    } catch (error) {
+      console.warn(`Seeders directory ${this._dirPath} is not accessible`);
+      return;
+    }
 
     let calledSeedersCount: number = 0;
 
@@ -57,6 +65,15 @@ export class Seeder extends LifecycleManager {
           console.warn(
             `Warning: seeder ${seederName} has different checksum: ${checksum}, expected checksum: ${seeder.checksum}`
           );
+
+          if (this._fixWarnings) {
+            await this._db.client().seeder.update({
+              where: { id: seeder.id },
+              data: { checksum }
+            });
+            console.log('Fix: seeder checksum updated');
+          }
+
           console.log('');
         }
         continue;
@@ -66,7 +83,7 @@ export class Seeder extends LifecycleManager {
 
       await this.executeSeeder(seederFile);
 
-      console.log(`${seederName} seeded.`);
+      console.log(`${seederName} seeded`);
       console.log('');
 
       calledSeedersCount++;
@@ -75,16 +92,22 @@ export class Seeder extends LifecycleManager {
     const seedersWithoutFiles = await this.findSeedersWithoutFiles(seederFiles);
     for (const seeder of seedersWithoutFiles) {
       console.warn(
-        `Warning: seeder ${seeder.seederName} does not exist but is present in database table.`
+        `Warning: seeder ${seeder.seederName} does not exist but is present in database table`
       );
+
+      if (this._fixWarnings) {
+        await this._db.client().seeder.delete({ where: { id: seeder.id } });
+        console.log('Fix: removed seeder from database');
+      }
+
       console.log('');
     }
 
     if (calledSeedersCount === 0) {
-      console.log(`No pending seeders to execute.`);
+      console.log(`No pending seeders to execute`);
     } else {
       console.log(
-        `Executed ${calledSeedersCount} seeder${calledSeedersCount === 1 ? '' : 's'}.`
+        `Executed ${calledSeedersCount} seeder${calledSeedersCount === 1 ? '' : 's'}`
       );
     }
   }
