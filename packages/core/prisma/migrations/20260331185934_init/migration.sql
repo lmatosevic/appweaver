@@ -1,21 +1,37 @@
 -- CreateTable
-CREATE TABLE "File" (
+CREATE TABLE "ApiKey" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "name" TEXT NOT NULL,
-    "originalName" TEXT NOT NULL,
-    "mimeType" TEXT NOT NULL,
-    "sizeBytes" INTEGER NOT NULL,
-    "title" TEXT,
+    "key" TEXT NOT NULL,
+    "keyHash" TEXT NOT NULL,
+    "name" TEXT,
     "description" TEXT,
-    "resourceField" TEXT,
-    "resourceName" TEXT,
-    "resourceId" INTEGER,
+    "enabled" BOOLEAN NOT NULL DEFAULT true,
+    "expiresAt" DATETIME,
+    "updatedAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "OneTimeToken" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "tokenHash" TEXT NOT NULL,
+    "purpose" TEXT NOT NULL,
+    "expiresAt" DATETIME NOT NULL,
+    "data" JSONB NOT NULL,
     "updatedAt" DATETIME NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateTable
 CREATE TABLE "Permission" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "updatedAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "Role" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "name" TEXT NOT NULL,
     "updatedAt" DATETIME NOT NULL,
@@ -33,33 +49,17 @@ CREATE TABLE "_seeders" (
 );
 
 -- CreateTable
-CREATE TABLE "Role" (
+CREATE TABLE "File" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "name" TEXT NOT NULL,
-    "updatedAt" DATETIME NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- CreateTable
-CREATE TABLE "OneTimeToken" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "tokenHash" TEXT NOT NULL,
-    "purpose" TEXT NOT NULL,
-    "expiresAt" DATETIME NOT NULL,
-    "data" JSONB NOT NULL,
-    "updatedAt" DATETIME NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- CreateTable
-CREATE TABLE "ApiKey" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "key" TEXT NOT NULL,
-    "keyHash" TEXT NOT NULL,
-    "name" TEXT,
+    "originalName" TEXT NOT NULL,
+    "mimeType" TEXT NOT NULL,
+    "sizeBytes" INTEGER NOT NULL,
+    "title" TEXT,
     "description" TEXT,
-    "enabled" BOOLEAN NOT NULL DEFAULT true,
-    "expiresAt" DATETIME,
+    "resourceField" TEXT,
+    "resourceName" TEXT,
+    "resourceId" INTEGER,
     "updatedAt" DATETIME NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -73,25 +73,25 @@ CREATE TABLE "_RolePermissionsPermission" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "File_name_key" ON "File"("name");
-
--- CreateIndex
-CREATE INDEX "File_resourceField_resourceName_resourceId_idx" ON "File"("resourceField", "resourceName", "resourceId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Permission_name_key" ON "Permission"("name");
-
--- CreateIndex
-CREATE UNIQUE INDEX "_seeders_seederName_key" ON "_seeders"("seederName");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
+CREATE UNIQUE INDEX "ApiKey_keyHash_key" ON "ApiKey"("keyHash");
 
 -- CreateIndex
 CREATE INDEX "OneTimeToken_tokenHash_purpose_idx" ON "OneTimeToken"("tokenHash", "purpose");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ApiKey_keyHash_key" ON "ApiKey"("keyHash");
+CREATE UNIQUE INDEX "Permission_name_key" ON "Permission"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "_seeders_seederName_key" ON "_seeders"("seederName");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "File_name_key" ON "File"("name");
+
+-- CreateIndex
+CREATE INDEX "File_resourceField_resourceName_resourceId_idx" ON "File"("resourceField", "resourceName", "resourceId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_RolePermissionsPermission_AB_unique" ON "_RolePermissionsPermission"("A", "B");

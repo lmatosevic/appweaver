@@ -165,7 +165,7 @@ export type SeederGroupByOutputType = {
   _max: SeederMaxAggregateOutputType | null
 }
 
-type GetSeederGroupByPayload<T extends SeederGroupByArgs> = Prisma.PrismaPromise<
+export type GetSeederGroupByPayload<T extends SeederGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<SeederGroupByOutputType, T['by']> &
       {

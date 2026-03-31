@@ -510,16 +510,6 @@ export type PostUncheckedUpdateManyInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
-export type PostListRelationFilter = {
-  every?: Prisma.PostWhereInput
-  some?: Prisma.PostWhereInput
-  none?: Prisma.PostWhereInput
-}
-
-export type PostOrderByRelationAggregateInput = {
-  _count?: Prisma.SortOrder
-}
-
 export type PostCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
@@ -583,6 +573,52 @@ export type PostSumOrderByAggregateInput = {
   authorId?: Prisma.SortOrder
   coverImageId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+}
+
+export type PostListRelationFilter = {
+  every?: Prisma.PostWhereInput
+  some?: Prisma.PostWhereInput
+  none?: Prisma.PostWhereInput
+}
+
+export type PostOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
+export type StringFieldUpdateOperationsInput = {
+  set?: string
+}
+
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
+}
+
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type NullableEnumPostStatusFieldUpdateOperationsInput = {
+  set?: $Enums.PostStatus | null
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
+}
+
+export type DateTimeFieldUpdateOperationsInput = {
+  set?: Date | string
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type PostCreateNestedManyWithoutAuthorInput = {
@@ -667,10 +703,6 @@ export type PostUncheckedUpdateManyWithoutCreatedByNestedInput = {
   update?: Prisma.PostUpdateWithWhereUniqueWithoutCreatedByInput | Prisma.PostUpdateWithWhereUniqueWithoutCreatedByInput[]
   updateMany?: Prisma.PostUpdateManyWithWhereWithoutCreatedByInput | Prisma.PostUpdateManyWithWhereWithoutCreatedByInput[]
   deleteMany?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
-}
-
-export type NullableEnumPostStatusFieldUpdateOperationsInput = {
-  set?: $Enums.PostStatus | null
 }
 
 export type PostCreateNestedManyWithoutCoverImageInput = {

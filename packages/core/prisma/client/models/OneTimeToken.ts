@@ -202,7 +202,7 @@ export type OneTimeTokenGroupByOutputType = {
   _max: OneTimeTokenMaxAggregateOutputType | null
 }
 
-type GetOneTimeTokenGroupByPayload<T extends OneTimeTokenGroupByArgs> = Prisma.PrismaPromise<
+export type GetOneTimeTokenGroupByPayload<T extends OneTimeTokenGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<OneTimeTokenGroupByOutputType, T['by']> &
       {

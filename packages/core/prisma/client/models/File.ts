@@ -249,7 +249,7 @@ export type FileGroupByOutputType = {
   _max: FileMaxAggregateOutputType | null
 }
 
-type GetFileGroupByPayload<T extends FileGroupByArgs> = Prisma.PrismaPromise<
+export type GetFileGroupByPayload<T extends FileGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<FileGroupByOutputType, T['by']> &
       {
@@ -512,32 +512,12 @@ export type FileSumOrderByAggregateInput = {
   resourceId?: Prisma.SortOrder
 }
 
-export type StringFieldUpdateOperationsInput = {
-  set?: string
-}
-
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type NullableIntFieldUpdateOperationsInput = {
   set?: number | null
   increment?: number
   decrement?: number
   multiply?: number
   divide?: number
-}
-
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
 }
 
 

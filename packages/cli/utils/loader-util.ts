@@ -51,6 +51,9 @@ export async function loadModels(
 
   // Add project files using a pattern
   const projectModelPaths = await glob(modelPattern, { cwd, absolute: true });
+
+  // Sort is needed since glob returns files in non-deterministic order
+  projectModelPaths.sort();
   modelPaths.push(...projectModelPaths);
 
   // Add exported core module resources

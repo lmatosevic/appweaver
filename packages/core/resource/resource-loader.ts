@@ -210,6 +210,9 @@ async function findAllFiles(pattern: string, cwd: string): Promise<string[]> {
   const jsPaths = sanitizePath(pattern);
   const strippedPattern = stripOverlappingPath(jsPaths, cwd);
   const projectFiles = await glob(strippedPattern, { cwd, absolute: true });
+
+  // Sort is needed since glob returns files in non-deterministic order
+  projectFiles.sort();
   files.push(...projectFiles);
 
   // Add exported core module resources

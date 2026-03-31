@@ -82,6 +82,10 @@ export class Seeder extends LifecycleManager {
 
     if (calledSeedersCount === 0) {
       console.log(`No pending seeders to execute.`);
+    } else {
+      console.log(
+        `Executed ${calledSeedersCount} seeder${calledSeedersCount === 1 ? '' : 's'}.`
+      );
     }
   }
 
