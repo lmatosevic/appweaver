@@ -1,3 +1,9 @@
+## [1.7.16](https://gitlab.com/app-weaver/appweaver/compare/v1.7.15...v1.7.16) (2026-03-31)
+
+### Bug Fixes
+
+* add `--fixWarnings` option to seeder, improve warning handling and checksum fixes ([08c6200](https://gitlab.com/app-weaver/appweaver/commit/08c620098f7219e17d6cdc5d2e16061f0622f796))
+
 ## [1.7.15](https://gitlab.com/app-weaver/appweaver/compare/v1.7.14...v1.7.15) (2026-03-31)
 
 ### Bug Fixes
