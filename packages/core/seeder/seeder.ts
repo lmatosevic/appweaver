@@ -175,6 +175,9 @@ export class Seeder extends LifecycleManager {
 
   /** @internal */
   private seederName(seederFile: string): string {
+    if (seederFile.endsWith('.ts')) {
+      return path.basename(seederFile, '.ts');
+    }
     return path.basename(seederFile, '.js');
   }
 }

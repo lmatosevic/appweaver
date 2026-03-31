@@ -10,7 +10,12 @@ import { config, Runtime } from '@appweaver/common';
  */
 export function isTypeScriptRuntime(): boolean {
   const mainPath = require.main?.filename || process.argv[1];
-  return path.extname(mainPath) === '.ts' && config.APP_RUNTIME === Runtime.Bun;
+  const relativeMainPath = mainPath.replace(`${process.cwd()}${path.sep}`, '');
+  return (
+    (path.extname(mainPath) === '.ts' ||
+      relativeMainPath.includes('node_modules')) &&
+    config.APP_RUNTIME === Runtime.Bun
+  );
 }
 
 /**

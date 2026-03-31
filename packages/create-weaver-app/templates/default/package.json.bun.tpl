@@ -10,7 +10,7 @@
     "dev": "weaver start --watch",
     "generate": "weaver generate",
     "migrate": "weaver migrate",
-    "seed": "weaver seed --buildProject",
+    "seed": "weaver seed",
     "test": "bun test ./test/unit --coverage ./src/**/*.ts --reporter=junit --reporter-outfile=./reports/junit.xml",
     "e2e": "bun test ./test/e2e --reporter=junit --reporter-outfile=./reports/e2e.xml --preload ./test/e2e/support/preload.ts",
     "format": "prettier --write \"./**/*.ts\"",
