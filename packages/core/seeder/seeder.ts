@@ -39,6 +39,7 @@ export class Seeder extends LifecycleManager {
     const relativePath = this._dirPath
       .replace(process.cwd(), '.')
       .replace(/\\/g, '/');
+
     console.log(
       `${seederFiles.length} seeder${seederFiles.length === 1 ? '' : 's'} found in ${relativePath}`
     );
@@ -62,7 +63,9 @@ export class Seeder extends LifecycleManager {
       }
 
       console.log(`Seeding ${seederName}...`);
+
       await this.executeSeeder(seederFile);
+
       console.log(`${seederName} seeded.`);
       console.log('');
 

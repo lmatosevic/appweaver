@@ -167,6 +167,7 @@
       "clientOutputDirPath": "./database/client",
       "transactionMaxWait": 2000,
       "transactionTimeout": 5000,
+      "logEvents": ["query", "info", "warn", "error"],
       "provider": "@appweaver/core/database/prisma-database"
     },
     "storage": {

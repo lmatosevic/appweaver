@@ -6,18 +6,21 @@ import {
 import {
   config,
   Ctor,
+  DatabaseEvent,
   DatabaseType,
+  logger,
   resolveDatabaseType,
   Runtime
 } from '@appweaver/common';
-import { PrismaClient } from '../prisma/client/client';
+import { Prisma, PrismaClient } from '../prisma/client/client';
 import { isTypeScriptRuntime, requireModule } from '../utils';
 
 const options: Omit<PrismaClientOptions, 'adapter'> = {
   transactionOptions: {
     maxWait: config.DATABASE_TRANSACTION_MAX_WAIT,
     timeout: config.DATABASE_TRANSACTION_TIMEOUT
-  }
+  },
+  log: config.DATABASE_LOG_EVENTS.map((e) => ({ emit: 'event', level: e }))
 };
 
 /**
@@ -155,6 +158,8 @@ function createPrismaClient(adapter: SqlDriverAdapterFactory): PrismaClient {
   const testDirPath =
     !isTypeScriptRuntime() && config.APP_ENV === 'test' ? '..' : '';
 
+  // Construct the Prisma client path supporting multiple different ways of running
+  // application (JavaScript runtime, TypeScript runtime, tests, from CLI, ...)
   const clientPath = path.join(
     cwd,
     buildDirPath,
@@ -165,5 +170,20 @@ function createPrismaClient(adapter: SqlDriverAdapterFactory): PrismaClient {
 
   const { PrismaClient } = requireModule(clientPath, true).value;
 
-  return new PrismaClient({ adapter, ...options });
+  const client = new PrismaClient({ adapter, ...options });
+
+  // Add configured Prisma event logging
+  for (const event of config.DATABASE_LOG_EVENTS) {
+    if (event === DatabaseEvent.Query) {
+      client.$on(event, (e: Prisma.QueryEvent) => {
+        logger.debug(e, 'Prisma query');
+      });
+    } else {
+      client.$on(event, (e: Prisma.LogEvent) => {
+        logger[event](e, `Prisma ${event} log`);
+      });
+    }
+  }
+
+  return client;
 }

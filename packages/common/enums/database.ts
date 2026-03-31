@@ -4,3 +4,10 @@ export enum DatabaseType {
   MySQL = 'mysql',
   SQLServer = 'sqlserver'
 }
+
+export enum DatabaseEvent {
+  Query = 'query',
+  Info = 'info',
+  Warn = 'warn',
+  Error = 'error'
+}

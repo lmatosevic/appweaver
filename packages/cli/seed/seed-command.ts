@@ -26,5 +26,8 @@ export function seedCommand(program: Command): void {
       const seeder = await createSeeder({ seedersPath, continueOnError });
 
       await seeder.close();
+
+      // Exit process in case there are any open handlers left
+      process.exit(0);
     });
 }

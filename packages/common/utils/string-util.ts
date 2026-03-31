@@ -33,7 +33,8 @@ export function parseArray(
  * @param {boolean} [config.numbers] - Whether to include numeric characters (0-9).
  * @param {boolean} [config.lowercase] - Whether to include lowercase alphabetic characters (a-z).
  * @param {boolean} [config.uppercase] - Whether to include uppercase alphabetic characters (A-Z).
- * @param {boolean} [config.special] - Whether to include special characters (!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~).
+ * @param {boolean} [config.special] - Whether to include special characters (!#$%&()*+,-./:;<=>?@[]^_{|}~).
+ * @param {boolean} [config.extra] - Whether to include extra special characters (\"'`).
  * @return {string} A randomly generated string based on the provided length and configuration.
  */
 export function randomString(
@@ -43,13 +44,15 @@ export function randomString(
     lowercase?: boolean;
     uppercase?: boolean;
     special?: boolean;
+    extra?: boolean;
   } = {}
 ): string {
   const categories = {
     numbers: '0123456789',
     lowercase: 'abcdefghijklmnopqrstuvwxyz',
     uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    special: '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
+    special: '!#$%&()*+,-./:;<=>?@[]^_{|}~',
+    extra: '\\"\'`'
   };
 
   let pool = '';

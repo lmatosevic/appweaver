@@ -6,7 +6,7 @@ export async function createAdminUser(): Promise<void> {
   let password = config.SYSTEM_ADMIN_INITIAL_PASSWORD;
 
   if (!password) {
-    password = randomString();
+    password = randomString(16, { extra: false });
     console.log(`Generated admin password: ${password}`);
   }
 

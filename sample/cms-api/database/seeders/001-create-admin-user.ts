@@ -1,12 +1,12 @@
 import { hashPassword } from '@appweaver/core';
 import { config, randomString } from '@appweaver/common';
-import db from '@db/client';
+import { db } from '@db/client';
 
 export async function createAdminUser(): Promise<void> {
   let password = config.SYSTEM_ADMIN_INITIAL_PASSWORD;
 
   if (!password) {
-    password = randomString();
+    password = randomString(16, { extra: false });
     console.log(`Generated admin password: ${password}`);
   }
 

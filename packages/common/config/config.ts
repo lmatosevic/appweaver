@@ -3,6 +3,7 @@ import { Value } from '@sinclair/typebox/value';
 import {
   CacheEvictionStrategy,
   CacheInvalidationStrategy,
+  DatabaseEvent,
   DatabaseType,
   Environment,
   LogLevel,
@@ -300,6 +301,10 @@ const configSchema = Type.Object({
   DATABASE_TRANSACTION_MAX_WAIT: Type.Integer({ default: 2000 }),
   /** Transaction timeout in milliseconds. Default: `5000` (5 sec). */
   DATABASE_TRANSACTION_TIMEOUT: Type.Integer({ default: 5000 }),
+  /** Array of database events to log. Values: `query`, `info`, `warn`, `error`. Default: `[]`. */
+  DATABASE_LOG_EVENTS: Type.Array(Type.Enum(DatabaseEvent), {
+    default: []
+  }),
   /** Database provider implementation path. Default: `'@appweaver/core/database/prisma-database'`. */
   DATABASE_PROVIDER: Type.String({
     default: '@appweaver/core/database/prisma-database'

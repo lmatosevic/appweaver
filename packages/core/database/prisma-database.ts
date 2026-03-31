@@ -20,11 +20,18 @@ export class PrismaDatabase extends Database {
   }
 
   public async connect(): Promise<void> {
+    if (this._client) {
+      return;
+    }
     await this.client().$connect();
   }
 
   public async disconnect(): Promise<void> {
+    if (!this._client) {
+      return;
+    }
     await this.client().$disconnect();
+    this._client = undefined;
   }
 
   public client<T = PrismaClient>(): T {

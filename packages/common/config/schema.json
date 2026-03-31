@@ -646,6 +646,22 @@
               "type": "integer",
               "default": 5000
             },
+            "logEvents": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "enum": ["query", "info", "warn", "error"]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": ["query", "info", "warn", "error"]
+                  }
+                }
+              ],
+              "default": []
+            },
             "provider": {
               "type": "string",
               "default": "@appweaver/core/database/prisma-database"
