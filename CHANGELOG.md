@@ -1,3 +1,11 @@
+## [1.7.15](https://gitlab.com/app-weaver/appweaver/compare/v1.7.14...v1.7.15) (2026-03-31)
+
+### Bug Fixes
+
+* enhance TypeScript runtime detection, add Seeders TypeScript support, and add config schema comments ([e810012](https://gitlab.com/app-weaver/appweaver/commit/e81001215dba2b80d00a6c51326d3f2d41752c46))
+* fix hanging seeder process, add database events logging config, improve randomString function, update default cwa seeder template ([eb4261e](https://gitlab.com/app-weaver/appweaver/commit/eb4261e479dd120466fe37ebdebc2cd1827a4c1d))
+* fix resource and model loader non-deterministic model ordering, regenerated schemas and types ([7f7947f](https://gitlab.com/app-weaver/appweaver/commit/7f7947f57b04936c8eeda877764d1a1e1370fff7))
+
 ## [1.7.14](https://gitlab.com/app-weaver/appweaver/compare/v1.7.13...v1.7.14) (2026-03-31)
 
 ### Bug Fixes
