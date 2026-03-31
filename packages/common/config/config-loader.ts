@@ -5,7 +5,7 @@ import { TObject } from '@sinclair/typebox';
 import { camelToSnakeCase, isObject, parseArray } from '../utils';
 import { CONFIG_NAME } from '../constants';
 
-export type ConfigLoad = {
+export type ConfigEntry = {
   config: Record<string, string | string[]>;
   files: string[];
 };
@@ -17,10 +17,10 @@ export type ConfigLoad = {
  *
  * @param {TObject} schema The schema object that defines the expected structure and mapping of configuration
  * properties. Each property in the schema should include `type`, `mapFrom`, and optionally `default` definitions.
- * @return {ConfigLoad} An object containing the configuration values mapped according to the schema and list of files
+ * @return {ConfigEntry} An object containing the configuration values mapped according to the schema and list of files
  * from which environment variables are loaded. Values can be strings or arrays based on the schema specifications.
  */
-export function loadConfigFromEnv(schema: TObject): ConfigLoad {
+export function loadConfigFromEnv(schema: TObject): ConfigEntry {
   const config = {};
   const files: string[] = [];
 
@@ -83,11 +83,11 @@ export function loadConfigFromEnv(schema: TObject): ConfigLoad {
  * Loads configuration from multiple JSON files based on the provided schema.
  *
  * @param {TObject} schema - The schema used to validate and parse the configuration files.
- * @return {ConfigLoad} An object containing the merged configuration data from the global
+ * @return {ConfigEntry} An object containing the merged configuration data from the global
  * and environment-specific JSON configuration files. Also, the list of files from which
  * configuration was loaded.
  */
-export function loadConfigFromFiles(schema: TObject): ConfigLoad {
+export function loadConfigFromFiles(schema: TObject): ConfigEntry {
   const files: string[] = [];
 
   // Load config from the global JSON file

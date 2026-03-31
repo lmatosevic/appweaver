@@ -54,16 +54,18 @@ create-weaver-app <name> [description] [options]
 
 **Options:**
 
-| Flag              | Description                                                 | Default      |
-|-------------------|-------------------------------------------------------------|--------------|
-| `-o, --outputDir` | Output directory (use ./ for current working directory)     | project name |
-| `-d, --database`  | Database type: `sqlite`, `postgresql`, `mysql`, `sqlserver` | `sqlite`     |
-| `--bun`           | Use Bun as application runtime. (default is node and npm)   | false        |
-| `--skipInstall`   | Skip all dependencies installation.                         | false        |
-| `--noRedis`       | Skip ioredis                                                | false        |
-| `--noQueue`       | Skip bullmq                                                 | false        |
-| `--noMailer`      | Skip nodemailer                                             | false        |
-| `--noCron`        | Skip cron                                                   | false        |
+| Flag              | Description                                                    | Default      |
+|-------------------|----------------------------------------------------------------|--------------|
+| `-o, --outputDir` | Output directory (use ./ for current working directory)        | project name |
+| `-d, --database`  | Database type: `sqlite`, `postgresql`, `mysql`, `sqlserver`    | `sqlite`     |
+| `--host`          | Hostname or IP address where the application server will bind. | 0.0.0.0      |
+| `--port`          | Port number where the application server will listen.          | 5000         |
+| `--bun`           | Use Bun as application runtime. (default is node and npm)      | false        |
+| `--skipInstall`   | Skip all dependencies installation.                            | false        |
+| `--noRedis`       | Skip ioredis                                                   | false        |
+| `--noQueue`       | Skip bullmq                                                    | false        |
+| `--noMailer`      | Skip nodemailer                                                | false        |
+| `--noCron`        | Skip cron                                                      | false        |
 
 **Example — PostgreSQL project without queue:**
 

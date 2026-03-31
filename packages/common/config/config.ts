@@ -23,9 +23,7 @@ const configSchema = Type.Object({
     mapFrom: 'npm_package_version'
   }),
   APP_DESCRIPTION: Type.Optional(Type.String()),
-  APP_HOSTNAME: Type.String({
-    default: `http://localhost:${process.env.SERVER_PORT || 5000}`
-  }),
+  APP_HOSTNAME: Type.String({ default: '' }),
   APP_RUNTIME: Type.Enum(Runtime, {
     default:
       typeof globalThis['Bun'] !== 'undefined' ? Runtime.Bun : Runtime.Node
@@ -263,6 +261,15 @@ const { config: jsonConfig, files: jsonFiles } =
 const configFiles = envFiles.concat(jsonFiles);
 
 const parsedConfig = Value.Parse(configSchema, { ...jsonConfig, ...envConfig });
+
+// Construct application hostname if not already configured
+if (!parsedConfig.APP_HOSTNAME) {
+  const host =
+    parsedConfig.SERVER_HOST === '0.0.0.0'
+      ? 'localhost'
+      : parsedConfig.SERVER_HOST;
+  parsedConfig.APP_HOSTNAME = `http://${host}:${parsedConfig.SERVER_PORT}`;
+}
 
 const config = addHelpers(parsedConfig);
 

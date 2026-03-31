@@ -6,6 +6,10 @@
       "description": "{{DESCRIPTION}}",
       "runtime": "bun"
     },
+    "server": {
+      "host": "{{HOST}}",
+      "port": {{PORT}}
+    },
     "database": {
       "url": "{{DATABASE_URL}}"
     }

@@ -5,7 +5,7 @@ import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { glob } from 'glob';
-import { Command } from 'commander';
+import { Command, InvalidOptionArgumentError } from 'commander';
 
 const pkg = JSON.parse(
   fs.readFileSync(path.join(__dirname, './package.json'), 'utf8')
@@ -33,6 +33,17 @@ program
     '-d, --database [database]',
     'Type of SQL database (options: sqlite, postgresql, mysql, sqlserver).',
     'sqlite'
+  )
+  .option(
+    '-p, --port [port]',
+    'Port number where the application server will listen.',
+    parsePortNumber,
+    5000
+  )
+  .option(
+    '-h, --host [host]',
+    'Hostname or IP address where the application server will bind.',
+    '0.0.0.0.'
   )
   .option('--bun', 'Use Bun as application runtime.')
   .option('--skipInstall', 'Skip all dependencies installation.')
@@ -83,6 +94,8 @@ program
       NAME: name.charAt(0).toUpperCase() + name.slice(1),
       LOWER_NAME: sanitizedName,
       DESCRIPTION: description,
+      HOST: command.getOptionValue('host'),
+      PORT: command.getOptionValue('port'),
       DEPENDENCIES: getNodeDependencies(command, runtime).join(',\n'),
       DATABASE_URL: getDatabaseUrl(command, sanitizedName, 'dev'),
       DATABASE_TEST_URL: getDatabaseUrl(command, sanitizedName, 'test'),
@@ -240,4 +253,15 @@ function runProcess(
       resolve(code);
     });
   });
+}
+
+function parsePortNumber(value: string): number {
+  const int = parseInt(value, 10);
+  if (isNaN(int) || int < 0 || int > 65535) {
+    throw new InvalidOptionArgumentError(
+      'Invalid port number. Must be integer between 0 and 65535.'
+    );
+  }
+
+  return int;
 }

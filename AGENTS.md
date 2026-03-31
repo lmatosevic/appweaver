@@ -49,8 +49,8 @@ IMPORTANT: after a new feature is added or change is done in how the library is 
 
 ##### `packages/common`
 
-Shared utilities and base types used by all other packages. Contains foundational TypeScript interfaces, type
-definitions, and helper utilities consumed by `packages/core` and `packages/cli`.
+Shared utilities, logger, configuration, and base types used by all other packages. Contains foundational TypeScript
+interfaces, type definitions, and helper utilities consumed by `packages/core` and `packages/cli`.
 
 ##### `packages/core`
 
@@ -82,21 +82,13 @@ Core application logic. Organized into the following modules:
 
 ```bash
 # Generate TypeScript types and Prisma schema from resource model files
-npm run generate
-# Full command: weaver generate --modelPattern ./**/model.ts \
-#   --typesPath ./types/generated.ts \
-#   --schemaPath ./prisma/schema.prisma \
-#   --clientPath ./prisma/client
 # Scans all model.ts files, emits typed interfaces + a Prisma schema, and
 # places the generated Prisma client at ./prisma/client.
+npm run generate
 
 # Completely reset and recreate the development database
-npm run db:recreate
-# Full chain:
-#   1. rimraf dev.db  (delete SQLite file)
-#   2. rimraf prisma/migrations/*_init  (remove init migration)
-#   3. weaver migration new init  (create fresh migration)
 # Use whenever the schema has changed substantially and you want a clean slate.
+npm run db:recreate
 ```
 
 ##### `packages/cli`
@@ -104,6 +96,22 @@ npm run db:recreate
 The `weaver` CLI tool. Entry point: `weaver.ts` → compiled to `dist/weaver.js`.
 
 See **Section 5** for the full command reference.
+
+##### `packages/create-weaver-app`
+
+The `create-weaver-app` module is a project scaffolding tool that generates new Appweaver applications. It exposes the
+**`create-weaver-app`** CLI binary, which can be invoked via `npx create-weaver-app`.
+
+The module uses a template-based generation system where each file can have runtime-specific variants:
+
+- **`.tpl`** extension: Template files that are processed and copied to the new project (e.g., `index.ts.tpl` →
+  `index.ts`).
+- **`.node`** extension: Node.js-specific files that are only included when generating a project for the Node runtime.
+- **`.bun`** extension: Bun-specific files that are only included when generating a project for the Bun runtime.
+
+During project generation, the CLI accepts arguments for name, description, runtime (Node or Bun), and what modules to
+skip installing. Then replaces the templates with defined variables, and copies only the relevant files based on the
+chosen runtime, stripping the `.tpl`, `.node`, or `.bun` extensions from the final output.
 
 #### 5. CLI Command Reference (`weaver`)
 
@@ -402,6 +410,7 @@ This runs the following steps automatically:
     - `packages/core/package.json`
     - `packages/common/package.json`
     - `packages/cli/package.json`
+    - `packages/create-weaver-app/package.json`
 6. **Package copy** (`@semantic-release/exec`) — runs `node ./tools/copy-packages.js` to sync built packages into
    `node_modules/@appweaver`.
 7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the GitLab npm registry:

@@ -5,6 +5,10 @@
       "name": "{{NAME}}",
       "description": "{{DESCRIPTION}}"
     },
+    "server": {
+      "host": "{{HOST}}",
+      "port": {{PORT}}
+    },
     "database": {
       "url": "{{DATABASE_URL}}"
     }
