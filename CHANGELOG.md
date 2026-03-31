@@ -1,3 +1,9 @@
+## [1.7.14](https://gitlab.com/app-weaver/appweaver/compare/v1.7.13...v1.7.14) (2026-03-31)
+
+### Bug Fixes
+
+* add host and port configuration options to create-weaver-app and update templates to support server binding, dynamically define APP_HOSTNAME if not already configured ([f5e0945](https://gitlab.com/app-weaver/appweaver/commit/f5e0945ebc189548ab344516329e6f42471f2903))
+
 ## [1.7.13](https://gitlab.com/app-weaver/appweaver/compare/v1.7.12...v1.7.13) (2026-03-30)
 
 ### Bug Fixes
