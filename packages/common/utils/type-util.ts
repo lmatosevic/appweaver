@@ -117,7 +117,7 @@ export function isConstructor(value: any): value is Ctor {
  * Determines if the given value is an instance that implements `IHealthCheck` interface.
  * The tested value must also have a `HEALTH_CHECK` symbol with truthy value added.
  *
- * @param {any} value - The value to check.
+ * @param {Object} value - The value to check.
  * @return {boolean} Returns true if the value implements `IHealthCheck` interface, otherwise false.
  */
 export function isHealthCheck(value: any): value is IHealthCheck {
@@ -128,7 +128,7 @@ export function isHealthCheck(value: any): value is IHealthCheck {
  * Determines if the given value is an instance that implements `OnInit` interface.
  * The tested value must also have a `LIFECYCLE` symbol with truthy value added.
  *
- * @param {any} value - The value to check.
+ * @param {Object} value - The value to check.
  * @return {boolean} Returns true if the value implements `OnInit` interface, otherwise false.
  */
 export function isLifecycleInit(value: any): value is OnInit {
@@ -139,7 +139,7 @@ export function isLifecycleInit(value: any): value is OnInit {
  * Determines if the given value is an instance that implements the `OnDestroy` interface.
  * The tested value must also have a `LIFECYCLE` symbol with truthy value added.
  *
- * @param {any} value - The value to check.
+ * @param {Object} value - The value to check.
  * @return {boolean} Returns true if the value implements `OnDestroy` interface, otherwise false.
  */
 export function isLifecycleDestroy(value: any): value is OnDestroy {

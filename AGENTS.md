@@ -52,6 +52,13 @@ IMPORTANT: after a new feature is added or change is done in how the library is 
 Shared utilities, logger, configuration, and base types used by all other packages. Contains foundational TypeScript
 interfaces, type definitions, and helper utilities consumed by `packages/core` and `packages/cli`.
 
+When changing the config schema in `packages/common/config/config.ts`, make sure to also update all the following files:
+
+- **packages/common/config/config-type.ts**: types and comments
+- **packages/common/config/schema.json**: JSON schema definitions
+- **appweaver.example.json**: example defaults as JSON properties
+- **.env.example**: example defaults as env variables
+
 ##### `packages/core`
 
 Core application logic. Organized into the following modules:

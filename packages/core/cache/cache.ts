@@ -123,7 +123,8 @@ export abstract class Cache extends CommonCache {
       }
     }
 
-    // Calculate the number of entries that should be evicted
+    // Calculate the number of entries that should be evicted, plus one is added
+    // because this method is called before adding new cache entry
     const excessCount = this._entryMeta.size - config.CACHE_MAX_ITEMS + 1;
     if (excessCount <= 0) {
       return;

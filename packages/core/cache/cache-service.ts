@@ -44,9 +44,9 @@ export class CacheService {
    * Optionally allows specifying a time-to-live (TTL) for the cached item.
    *
    * @param {string} key - The unique key to identify the value in the cache.
-   * @param {any} value - The value to store in the cache.
+   * @param {Object} value - The value to store in the cache.
    * @param {number} [ttl] - Optional time-to-live for the cache entry in seconds.
-   * @param {boolean} [replace=false] - Optional flag which indicates if the existing cache entry should be replaced
+   * @param {boolean} [replace=false] - Optional flag that indicates if the existing cache entry should be replaced
    * with the new value and ttl.
    * @return {Promise<boolean>} A promise that resolves to true if the key-value pair was added, or false if the key
    * already exists.

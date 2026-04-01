@@ -22,23 +22,18 @@ export class JsonMailer extends Mailer<Attachment> {
   public async sendEmail(data: Email): Promise<boolean> {
     const { to, subject, text, html, attachments } = data;
 
-    try {
-      const msg = await this._transporter.sendMail({
-        from: `"${config.MAILER_SENDER_NAME}" <${config.MAILER_SENDER_ADDRESS}>`,
-        to,
-        subject,
-        text,
-        html: html ?? `<p style="white-space: pre;">${text}</p>`,
-        attachments
-      });
+    const msg = await this._transporter.sendMail({
+      from: `"${config.MAILER_SENDER_NAME}" <${config.MAILER_SENDER_ADDRESS}>`,
+      to,
+      subject,
+      text,
+      html: html ?? `<p style="white-space: pre;">${text}</p>`,
+      attachments
+    });
 
-      logger.info(JSON.parse(msg.message), `Mock E-mail`);
+    logger.info(JSON.parse(msg.message), `Mock E-mail`);
 
-      return true;
-    } catch (error) {
-      logger.error(error, `Error sending e-mail`);
-      return false;
-    }
+    return true;
   }
 
   async checkHealth(): Promise<HealthCheckResult> {

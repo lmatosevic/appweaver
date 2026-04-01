@@ -1,12 +1,6 @@
 import { createTransport, Transporter } from 'nodemailer';
 import { Attachment } from 'nodemailer/lib/mailer';
-import {
-  config,
-  Email,
-  HealthCheckResult,
-  logger,
-  Mailer
-} from '@appweaver/common';
+import { config, Email, HealthCheckResult, Mailer } from '@appweaver/common';
 
 export class SmtpMailer extends Mailer<Attachment> {
   /** @internal */
@@ -28,21 +22,16 @@ export class SmtpMailer extends Mailer<Attachment> {
   public async sendEmail(data: Email): Promise<boolean> {
     const { to, subject, text, html, attachments } = data;
 
-    try {
-      await this._transporter.sendMail({
-        from: `"${config.MAILER_SENDER_NAME}" <${config.MAILER_SENDER_ADDRESS}>`,
-        to,
-        subject,
-        text,
-        html: html ?? `<p style="white-space: pre;">${text}</p>`,
-        attachments
-      });
+    await this._transporter.sendMail({
+      from: `"${config.MAILER_SENDER_NAME}" <${config.MAILER_SENDER_ADDRESS}>`,
+      to,
+      subject,
+      text,
+      html: html ?? `<p style="white-space: pre;">${text}</p>`,
+      attachments
+    });
 
-      return true;
-    } catch (error) {
-      logger.error(error, `Error sending e-mail`);
-      return false;
-    }
+    return true;
   }
 
   async checkHealth(): Promise<HealthCheckResult> {

@@ -15,10 +15,17 @@ export abstract class Database implements IHealthCheck, OnInit, OnDestroy {
 
   abstract onDestroy(): Promise<void>;
 
+  /** Establishes the database connection. */
   abstract connect(): Promise<void>;
 
+  /** Closes the database connection. */
   abstract disconnect(): Promise<void>;
 
+  /**
+   * Returns the underlying database client.
+   *
+   * @returns The typed client instance.
+   */
   abstract client<T>(): T;
 
   abstract checkHealth(): Promise<HealthCheckResult>;

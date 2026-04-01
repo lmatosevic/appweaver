@@ -5,7 +5,7 @@ import { isArray, isObject } from './type-util';
  *
  * @param {Record<string, any>} obj - The object in which the value will be set.
  * @param {string} path - The string representation of the path to where the value should be set, with keys separated by dots.
- * @param {any} value - The value to set at the specified path.
+ * @param {Object} value - The value to set at the specified path.
  * @return {Record<string, any>} The updated object with the value set at the specified path.
  */
 export function setValue(
@@ -104,7 +104,7 @@ export function removeUndefined<T extends object = any>(obj: T) {
  *
  * @param {Record<string, any>} data - The object or array to search through.
  * @param {string} key - The property key to look for.
- * @param {any} value - The property value to match.
+ * @param {Object} value - The property value to match.
  * @return {boolean} Returns true if the property exists and matches the value; otherwise, returns false.
  */
 export function objectHasProperty(

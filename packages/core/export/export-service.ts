@@ -32,7 +32,7 @@ export class ExportService {
    * The method retrieves the data in batches and streams it in CSV format.
    *
    * @param {string} modelName - The resource name for which to export data.
-   * @param {any} [filter={}] - The filter conditions to apply when retrieving the data. Default is an empty object.
+   * @param {Object} [filter={}] - The filter conditions to apply when retrieving the data. Default is an empty object.
    * @param {string} [sort='-createdAt,id'] - The sorting criteria for the data. Default is `-createdAt, id`.
    * @return {Promise<ExportStream>} A promise resolving to the export stream object, which includes the readable
    * stream, MIME type, and file name for the CSV.
