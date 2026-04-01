@@ -190,7 +190,7 @@
       "keyPrefix": "cache:",
       "maxItems": 1000,
       "defaultTtl": 5000,
-      "evictionGracePeriod": 2500,
+      "evictionGracePeriod": 3000,
       "evictionStrategy": "LRU",
       "evictionDeferred": false,
       "invalidationStrategy": "expire-related",

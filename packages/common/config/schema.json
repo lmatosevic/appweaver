@@ -739,7 +739,7 @@
             },
             "evictionGracePeriod": {
               "type": "integer",
-              "default": 2500
+              "default": 3000
             },
             "evictionStrategy": {
               "type": "string",
