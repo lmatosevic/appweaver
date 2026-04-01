@@ -1,3 +1,12 @@
+## [1.7.17](https://gitlab.com/app-weaver/appweaver/compare/v1.7.16...v1.7.17) (2026-04-01)
+
+### Bug Fixes
+
+* adjust cache settings, add `maxItems`, and lower `evictionGracePeriod` default ([95888cd](https://gitlab.com/app-weaver/appweaver/commit/95888cd02f41f93e1ec228732a96df2bed07ee32))
+* increase cache `evictionGracePeriod` default to 3000 ms and update related configs ([d674298](https://gitlab.com/app-weaver/appweaver/commit/d674298fef379882a29d1b0bc19f068640ea428c))
+* optimized cache eviction strategies (LRU, LFU, FIFO) and integrate with core cache module ([b1c3739](https://gitlab.com/app-weaver/appweaver/commit/b1c3739c52a260e86dd36ae52dd1e6379a0262ca))
+* upgrade emailService with bulk and wait methods, add TSDocs for most of common interfaces and classes, separate config types ([8e56bf4](https://gitlab.com/app-weaver/appweaver/commit/8e56bf4da87d290e458600b9dce2c55ae00e849c))
+
 ## [1.7.16](https://gitlab.com/app-weaver/appweaver/compare/v1.7.15...v1.7.16) (2026-03-31)
 
 ### Bug Fixes
