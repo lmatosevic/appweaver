@@ -341,8 +341,8 @@ const configSchema = Type.Object({
   CACHE_MAX_ITEMS: Type.Integer({ default: 1000 }),
   /** Default time-to-live for cache entries in milliseconds. Default: `5000` (5 sec). */
   CACHE_DEFAULT_TTL: Type.Integer({ default: 5000 }),
-  /** Grace period before evicting expired items in milliseconds. Default: `10000` (10 sec). */
-  CACHE_EVICTION_GRACE_PERIOD: Type.Integer({ default: 10000 }),
+  /** Grace period before evicting expired items in milliseconds. Default: `2500` (2.5 sec). */
+  CACHE_EVICTION_GRACE_PERIOD: Type.Integer({ default: 2500 }),
   /** Eviction strategy. Values: `LRU`, `LFU`, `FIFO`. Default: `'LRU'`. */
   CACHE_EVICTION_STRATEGY: Type.Enum(CacheEvictionStrategy, {
     default: CacheEvictionStrategy.LRU

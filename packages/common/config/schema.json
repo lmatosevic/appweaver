@@ -729,13 +729,17 @@
               "type": "string",
               "default": "cache:"
             },
+            "maxItems": {
+              "type": "integer",
+              "default": 1000
+            },
             "defaultTtl": {
               "type": "integer",
               "default": 5000
             },
             "evictionGracePeriod": {
               "type": "integer",
-              "default": 10000
+              "default": 2500
             },
             "evictionStrategy": {
               "type": "string",
