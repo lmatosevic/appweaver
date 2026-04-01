@@ -6,10 +6,18 @@ import {
   logger,
   Memory
 } from '@appweaver/common';
+import {
+  EvictionIndex,
+  FifoEvictionIndex,
+  LfuEvictionIndex,
+  LruEvictionIndex
+} from './eviction';
 
 export abstract class Cache extends CommonCache {
   /** @internal */
   private readonly _entryMeta: Map<string, CacheEntryMeta> = new Map();
+  /** @internal */
+  private readonly _evictionIndex: EvictionIndex = this.createEvictionIndex();
 
   protected constructor(private readonly _memory: Memory) {
     super();
@@ -30,13 +38,16 @@ export abstract class Cache extends CommonCache {
       const keyMeta = this._entryMeta.get(prefixedKey);
       const now = Date.now();
       const count = keyMeta?.usedCount ?? 0;
-      this._entryMeta.set(prefixedKey, {
+      const updatedMeta: CacheEntryMeta = {
         ...(keyMeta || { key, createdAt: now }),
         usedCount: count + 1,
         lastUsedAt: now
-      });
+      };
+      this._entryMeta.set(prefixedKey, updatedMeta);
+      this._evictionIndex.touch(prefixedKey, updatedMeta);
     } else if (prefixedKey in this._entryMeta) {
       this._entryMeta.delete(prefixedKey);
+      this._evictionIndex.remove(prefixedKey);
     }
 
     return data;
@@ -51,13 +62,16 @@ export abstract class Cache extends CommonCache {
     const result = await this._memory.putValue(prefixedKey, value, expireMs);
 
     const now = Date.now();
-    this._entryMeta.set(prefixedKey, {
+    const meta: CacheEntryMeta = {
       key,
       usedCount: 1,
       createdAt: now,
       lastUsedAt: now,
       expiresAt: expireMs ? now + expireMs : undefined
-    });
+    };
+
+    this._entryMeta.set(prefixedKey, meta);
+    this._evictionIndex.add(prefixedKey, meta);
 
     return result;
   }
@@ -71,6 +85,7 @@ export abstract class Cache extends CommonCache {
 
     const result = await this._memory.removeValue(prefixedKey);
     this._entryMeta.delete(prefixedKey);
+    this._evictionIndex.remove(prefixedKey);
 
     return result;
   }
@@ -83,6 +98,7 @@ export abstract class Cache extends CommonCache {
 
     for (const prefixedKey of prefixedKeys) {
       this._entryMeta.delete(prefixedKey);
+      this._evictionIndex.remove(prefixedKey);
     }
 
     return prefixedKeys.size;
@@ -96,20 +112,15 @@ export abstract class Cache extends CommonCache {
 
   /** @internal */
   private async evictExcessEntries(): Promise<void> {
-    const expiredKeys: string[] = [];
     const now = Date.now();
-    const strategy = config.CACHE_EVICTION_STRATEGY;
-
-    for (const [prefixedKey, meta] of this._entryMeta.entries()) {
-      if (meta.expiresAt && meta.expiresAt < now) {
-        expiredKeys.push(prefixedKey);
-      }
-    }
 
     // Delete expired entries metadata first, underlying memory implementation
     // should have already removed cached values
-    for (const expiredKey of expiredKeys) {
-      this._entryMeta.delete(expiredKey);
+    for (const [prefixedKey, meta] of this._entryMeta.entries()) {
+      if (meta.expiresAt && meta.expiresAt < now) {
+        this._entryMeta.delete(prefixedKey);
+        this._evictionIndex.remove(prefixedKey);
+      }
     }
 
     // Calculate the number of entries that should be evicted
@@ -118,49 +129,13 @@ export abstract class Cache extends CommonCache {
       return;
     }
 
-    // Sort entries based on eviction strategy
-    let sortedEntries: CacheEntryMeta[] = [];
-    switch (strategy) {
-      case CacheEvictionStrategy.LRU:
-        sortedEntries = [...this._entryMeta.values()].sort(
-          (first: CacheEntryMeta, second: CacheEntryMeta) =>
-            (first.lastUsedAt ?? 0) - (second.lastUsedAt ?? 0)
-        );
-        break;
-      case CacheEvictionStrategy.LFU:
-        sortedEntries = [...this._entryMeta.values()].sort(
-          (first: CacheEntryMeta, second: CacheEntryMeta) =>
-            first.usedCount / (now - first.createdAt) -
-            second.usedCount / (now - second.createdAt)
-        );
-        break;
-      case CacheEvictionStrategy.FIFO:
-        sortedEntries = [...this._entryMeta.values()].sort(
-          (first: CacheEntryMeta, second: CacheEntryMeta) =>
-            first.createdAt - second.createdAt
-        );
-        break;
-    }
+    const candidates = this._evictionIndex.evictCandidates(
+      excessCount,
+      now,
+      config.CACHE_EVICTION_GRACE_PERIOD
+    );
 
-    // Evict entries based on the sorted order, do not evict entries that are
-    // created recently (eviction timeout)
-    const evictActions: Promise<boolean>[] = [];
-    for (let i = 0; i < sortedEntries.length; i++) {
-      if (evictActions.length === excessCount) {
-        break;
-      }
-
-      const entry = sortedEntries[i];
-      if (
-        entry &&
-        [CacheEvictionStrategy.LRU, CacheEvictionStrategy.LFU].includes(
-          strategy
-        ) &&
-        entry.createdAt + config.CACHE_EVICTION_GRACE_PERIOD < now
-      ) {
-        evictActions.push(this.evict(entry.key));
-      }
-    }
+    const evictActions = candidates.map((key) => this.evict(key));
 
     if (config.CACHE_EVICTION_DEFERRED) {
       Promise.all(evictActions).catch((error) => {
@@ -178,5 +153,17 @@ export abstract class Cache extends CommonCache {
       return key;
     }
     return `${prefix}${key}`;
+  }
+
+  /** @internal */
+  private createEvictionIndex(): EvictionIndex {
+    switch (config.CACHE_EVICTION_STRATEGY) {
+      case CacheEvictionStrategy.LRU:
+        return new LruEvictionIndex();
+      case CacheEvictionStrategy.LFU:
+        return new LfuEvictionIndex();
+      case CacheEvictionStrategy.FIFO:
+        return new FifoEvictionIndex();
+    }
   }
 }
