@@ -119,27 +119,22 @@ export function createAuthModel(config: ResourceModelConfig): ResourceModel {
   return model;
 }
 
-export function createAuthService<T = any>(
-  config: ResourceServiceConfig & {
+export function createAuthService<T = any, C = any, U = any>(
+  config: ResourceServiceConfig<T, C, U> & {
     registrationData?: RegistrationDataFn<T>;
   }
-): Ctor<IResourceService> {
+): Ctor<IResourceService<T, T, C, U>> {
   // Capture original functions to invoke after new auth logic
   const beforeCreate = config.beforeCreate;
   const beforeUpdate = config.beforeUpdate;
 
-  config.beforeCreate = async (
-    data: AuthUser & { password: string }
-  ): Promise<void> => {
-    await updatePasswordHash(data, data.password);
+  config.beforeCreate = async (data: C): Promise<void> => {
+    await updatePasswordHash(data as AuthUser, data['password']);
     await beforeCreate?.(data);
   };
 
-  config.beforeUpdate = async (
-    id: number,
-    data: AuthUser & { password?: string }
-  ): Promise<void> => {
-    await updatePasswordHash(data, data.password, true);
+  config.beforeUpdate = async (id: number, data: U): Promise<void> => {
+    await updatePasswordHash(data as AuthUser, data['password'], true);
     await beforeUpdate?.(id, data);
   };
 
@@ -152,7 +147,7 @@ export function createAuthService<T = any>(
     };
   }
 
-  const service = createService(config);
+  const service = createService<T, C, U>(config);
 
   service[RESOURCE_AUTH] = true;
 

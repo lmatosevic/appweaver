@@ -9,10 +9,10 @@ import {
 } from '@appweaver/common';
 import { define } from '../context';
 
-export function createPolicy(
-  config: ResourcePolicyConfig,
+export function createPolicy<T = any>(
+  config: ResourcePolicyConfig<T>,
   override: boolean = false
-): ResourcePolicyConfig {
+): ResourcePolicyConfig<T> {
   config[RESOURCE_NAME] = capitalize(
     config.modelName || path.basename(path.dirname(__dirname))
   );

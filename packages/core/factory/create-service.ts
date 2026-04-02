@@ -19,15 +19,15 @@ import { define, injectPolicy } from '../context';
 import { ResourceService } from '../resource';
 import { Resource, ResourceData } from '../types';
 
-export function createService(
-  config: ResourceServiceConfig,
+export function createService<T = any, C = any, U = any>(
+  config: ResourceServiceConfig<T, C, U>,
   override: boolean = false
-): Ctor<ResourceService> {
+): Ctor<ResourceService<T, T, C, U>> {
   const name = capitalize(
     config.modelName || path.basename(path.dirname(__dirname))
   );
 
-  class Service extends ResourceService {
+  class Service extends ResourceService<T, T, C, U> {
     [CONFIG] = config;
     [RESOURCE_NAME] = name;
     [RESOURCE_TYPE] = RESOURCE_SERVICE_TYPE;
@@ -167,7 +167,7 @@ export function createService(
 
     protected async checkAccess(
       action: ActionType,
-      resource: Resource
+      resource: T
     ): Promise<boolean> {
       const policy = injectPolicy(name);
 

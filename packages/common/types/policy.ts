@@ -8,9 +8,13 @@ export type ActionType =
 
 export type FileAccessType = 'protected' | 'private' | 'public';
 
-export type FileAccessFn = (user: any, resource: any, file: any) => boolean;
+export type FileAccessFn<T = any> = (
+  user: any,
+  resource: T,
+  file: any
+) => boolean;
 
-export type FilePolicy = {
+export type FilePolicy<T = any> = {
   /**
    * **protected** - Accessible by any authenticated identities. (default option)
    *
@@ -19,21 +23,29 @@ export type FilePolicy = {
    * **public** - Accessible by anyone without authentication.
    */
   accessType?: FileAccessType;
-  canAccess?: FileAccessFn;
-  canCreate?: FileAccessFn;
-  canDelete?: FileAccessFn;
+  /** Custom access check for reading a file */
+  canAccess?: FileAccessFn<T>;
+  /** Custom access check for uploading a file */
+  canCreate?: FileAccessFn<T>;
+  /** Custom access check for deleting a file */
+  canDelete?: FileAccessFn<T>;
 };
 
-export type ResourcePolicyConfig = {
+export type ResourcePolicyConfig<T = any> = {
+  /** Resource model name */
   modelName: string;
-  checkAccess?: (action: ActionType, resource: any) => boolean;
+  /** Return false to deny the action for the given resource */
+  checkAccess?: (action: ActionType, resource: T) => boolean;
+  /** Returns additional filter constraints for read operations */
   readRestrictions?: (
     action: Exclude<ActionType, 'create'>,
-    resource: any
+    resource: T
   ) => any;
+  /** Returns field restrictions applied during write operations */
   writeRestrictions?: (
     action: Extract<ActionType, 'create' | 'update'>,
-    resource: any
+    resource: T
   ) => any;
-  files?: Record<string, FilePolicy>;
+  /** Per-field file policies keyed by field name */
+  files?: Record<string, FilePolicy<T>>;
 };

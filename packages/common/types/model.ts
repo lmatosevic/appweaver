@@ -58,62 +58,90 @@ export type ReferentialAction =
   | 'setDefault';
 
 export type IdFieldString = {
+  /** Field type for string IDs */
   type: 'string';
+  /** ID generation strategy */
   generator?: IdGeneratorString;
 };
 
 export type IdFieldInt = {
+  /** Field type for integer IDs */
   type?: 'int' | 'bigInt';
+  /** ID generation strategy */
   generator?: IdGeneratorInt;
 };
 
 export type IdField = IdFieldString | IdFieldInt;
 
 export type AuditFields = {
+  /** Auto-set timestamp on update */
   updatedAt?: boolean;
+  /** Auto-set timestamp on creation */
   createdAt?: boolean;
+  /** Stores the ID of the user who created the record */
   createdById?: boolean;
 };
 
 type BaseScalarField<T, IsArray extends boolean = boolean> = {
+  /** Whether the field holds an array of values */
   array?: IsArray;
+  /** Static default value */
   default?: IsArray extends true ? T[] : T;
+  /** Default is computed/generated at the DB level */
   defaultGenerated?: boolean;
+  /** Field must be provided on creation */
   required?: boolean;
+  /** Value must be unique across records */
   unique?: boolean;
+  /** Exclude field from API output */
   hidden?: boolean;
+  /** Example values used in generated schema/docs */
   examples?: PrimitiveType[];
 };
 
 export type ScalarFieldString = BaseScalarField<FieldDefaultString> & {
+  /** Field type */
   type: 'string';
+  /** Minimum string length */
   minLength?: number;
+  /** Maximum string length */
   maxLength?: number;
+  /** Validation format */
   format?: FieldFormatString;
+  /** Regex validation pattern */
   pattern?: string;
 };
 
 export type ScalarFieldNumber = BaseScalarField<FieldDefaultNumber> & {
+  /** Field type */
   type: 'int' | 'bigInt' | 'float';
+  /** Minimum allowed value */
   minimum?: number;
+  /** Maximum allowed value */
   maximum?: number;
 };
 
 export type ScalarFieldBoolean = BaseScalarField<FieldDefaultBoolean> & {
+  /** Field type */
   type: 'boolean';
 };
 
 export type ScalarFieldDateTime = BaseScalarField<FieldDefaultDateTime> & {
+  /** Field type */
   type: 'dateTime';
+  /** Date/time serialization format */
   format?: FieldFormatDate;
 };
 
 export type ScalarFieldJson = BaseScalarField<FieldDefaultJson> & {
+  /** Field type */
   type: 'json';
 };
 
 export type ScalarFieldEnum = BaseScalarField<FieldDefaultEnum> & {
+  /** Field type */
   type: 'enum';
+  /** Allowed enum values */
   values: string[];
 };
 
@@ -126,49 +154,78 @@ export type ScalarField =
   | ScalarFieldEnum;
 
 export type RelationInput = {
+  /** Which operations accept this relation as input */
   type: InputType;
+  /** Field used to match existing related records */
   uniqueKey?: string;
+  /** Accept the full related model as input instead of just the key */
   fullModel?: boolean;
 };
 
 export type RelationOutput = {
+  /** Which operations include this relation in output */
   type: OutputType;
+  /** Nested relations to include */
   include?: { [key: string]: Omit<RelationOutput, 'count'> };
+  /** Include count of related records */
   count?: boolean;
 };
 
 export type RelationField = {
+  /** Related resource model name */
   model: string;
+  /** Foreign key field on the related model */
   mappedBy?: string;
+  /** Whether this is a one-to-many relation */
   array?: boolean;
+  /** Whether this side owns the foreign key */
   owner?: boolean;
+  /** Enforce uniqueness on the relation */
   unique?: boolean;
+  /** Input configuration for this relation */
   input?: RelationInput;
+  /** Output configuration for this relation */
   output?: RelationOutput;
+  /** Minimum number of related items required */
   minItems?: number;
+  /** Relation must be provided on creation */
   required?: boolean;
+  /** Create the related record if it doesn't exist */
   createIfNotExists?: boolean;
+  /** Delete orphaned related records on update */
   orphanRemoval?: boolean;
+  /** Referential action on delete */
   onDelete?: ReferentialAction;
+  /** Referential action on update */
   onUpdate?: ReferentialAction;
 };
 
 export type FileField = {
+  /** Allowed MIME type(s) */
   mimeType?: string | RegExp;
+  /** Storage path pattern or factory */
   namePattern?: string | ((file: any, resource: any) => string);
+  /** Allow multiple file uploads */
   array?: boolean;
+  /** Maximum file size (bytes or human-readable string) */
   maxSize?: number | string;
+  /** Maximum number of files */
   maxCount?: number;
+  /** Output configuration for the file relation */
   output?: Omit<RelationOutput, 'include'>;
 };
 
 export type OperationConfig = {
+  /** Fields to exclude from the operation */
   omit?: string[];
+  /** Fields to include exclusively */
   pick?: string[];
 };
 
 export type VirtualInput = {
+  /** Which operations accept this virtual field */
   type?: InputType;
+  /** Static value or factory function */
   value?:
     | PrimitiveType
     | ObjectType
@@ -176,7 +233,9 @@ export type VirtualInput = {
 };
 
 export type VirtualOutput = {
+  /** Which operations expose this virtual field */
   type?: OutputType;
+  /** Static value or factory function */
   value?:
     | PrimitiveType
     | ObjectType
@@ -184,13 +243,18 @@ export type VirtualOutput = {
 };
 
 export type VirtualField = ScalarField & {
+  /** Input behavior for this virtual field */
   input?: VirtualInput;
+  /** Output behavior for this virtual field */
   output?: VirtualOutput;
 };
 
 export type ExportField = {
+  /** Column header in the exported file */
   headerName?: string;
+  /** Exclude this field from exports */
   exclude?: boolean;
+  /** Transform the value for export output */
   mapValue?: string | ((value: any) => string);
 };
 
@@ -219,19 +283,35 @@ export type ExportConfig = FieldConfig<ExportField | ExportRelations>;
 export type IndexConfig = string[] | string[][];
 
 export type ResourceModelConfig = {
+  /** Resource model name used for code generation, routing, and security policy
+   * rules. Should be in PascalCase (e.g., MyModel) */
   name: string;
+  /** Override the database table name */
   tableName?: string;
+  /** Emit generated TypeScript types for this model */
   generateTypes?: boolean;
+  /** Emit generated Prisma schema for this model */
   generateSchema?: boolean;
+  /** Primary key configuration */
   id?: IdField;
+  /** Audit timestamp/author fields to enable */
   audit?: AuditFields;
+  /** Scalar field definitions */
   scalars?: ScalarConfig;
+  /** Relation field definitions */
   relations?: RelationConfig;
+  /** File field definitions */
   files?: FilesConfig;
+  /** Field restrictions for read operations */
   read?: OperationConfig;
+  /** Field restrictions for create operations */
   create?: OperationConfig;
+  /** Field restrictions for update operations */
   update?: OperationConfig;
+  /** Virtual (computed) field definitions */
   virtual?: VirtualConfig;
+  /** Export field definitions */
   export?: ExportConfig;
+  /** Database index definitions */
   index?: IndexConfig;
 };
