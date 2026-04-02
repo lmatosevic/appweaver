@@ -1,3 +1,10 @@
+## [1.0.2](https://gitlab.com/app-weaver/appweaver/compare/v1.0.1...v1.0.2) (2026-04-02)
+
+### Bug Fixes
+
+* add hostname validation for create-weaver-app ([a51b779](https://gitlab.com/app-weaver/appweaver/commit/a51b779d1dda6423b6fa3b9b9466d69b5bfca574))
+* fix create-weaver-app default host IP error ([a0aa5f2](https://gitlab.com/app-weaver/appweaver/commit/a0aa5f29949cd79f7580bd13aac0d09c5fa6a674))
+
 ## [1.0.1](https://gitlab.com/app-weaver/appweaver/compare/v1.0.0...v1.0.1) (2026-04-02)
 
 ### Bug Fixes
