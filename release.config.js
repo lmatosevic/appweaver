@@ -61,7 +61,7 @@ module.exports = {
           ...packages.map((pkg) => `packages/${pkg}/package.json`)
         ],
         message:
-          'chore(release): version ${nextRelease.version}\n\nInitial 1.0.0 release.'
+          'chore(release): version ${nextRelease.version}\n\n${nextRelease.notes}'
       }
     ]
   ]
