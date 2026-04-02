@@ -30,7 +30,7 @@
     "format": "prettier --write \"./packages/**/*.ts\" \"./sample/**/*.ts\"",
     "lint": "eslint \"./{packages,sample}/**/*.ts\"",
     "lint:fix": "npm run lint -- --fix",
-    "prerelease": "npm run build:release -- --sourceMap false",
+    "prerelease": "npm run build -- --sourceMap false",
     "release": "semantic-release --no-ci",
     "postrelease": "git push --follow-tags"
   },
