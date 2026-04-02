@@ -17,8 +17,8 @@ program
   .name('create-weaver-app')
   .description('Create Weaver App - Bootstrap new Appweaver project')
   .version(pkg.version, '-v, --version', 'Output the current version.')
-  .usage('<command> [options]')
   .helpOption('-h, --help', 'Output usage information.')
+  .usage('<name> [description] [options]')
   .argument('<name>', 'Name of the new project')
   .argument(
     '[description]',

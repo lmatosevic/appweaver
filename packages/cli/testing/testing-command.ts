@@ -41,7 +41,7 @@ export function testingCommand(program: Command): void {
       'Name for the new migration.',
       'init_test'
     )
-    .option('-v, --verbose', 'Print verbose output.')
+    .option('--verbose', 'Print verbose output.')
     .action(async (_, command: Command) => {
       assertEnv(
         'test',
@@ -110,7 +110,7 @@ export function testingCommand(program: Command): void {
     )
     .option('--database', 'Reset database content.')
     .option('--storage', 'Reset storage files.')
-    .option('-v, --verbose', 'Print verbose output.')
+    .option('--verbose', 'Print verbose output.')
     .action(async (_, command: Command) => {
       assertEnv(
         'test',
@@ -154,7 +154,7 @@ export function testingCommand(program: Command): void {
       'Directory used by tests to store temporary data.',
       './temp'
     )
-    .option('-v, --verbose', 'Print verbose output.')
+    .option('--verbose', 'Print verbose output.')
     .action(async (_, command: Command) => {
       assertEnv(
         'test',

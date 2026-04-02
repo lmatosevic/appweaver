@@ -27,7 +27,7 @@ export function generateCommand(program: Command): void {
       '--clientPath [path]',
       'Output path for generated Prisma client (default: from config or env).'
     )
-    .option('-v, --verbose', 'Print verbose output.')
+    .option('--verbose', 'Print verbose output.')
     .action(async (_, command: Command) => {
       const quiet = !command.getOptionValue('verbose');
 

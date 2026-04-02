@@ -38,8 +38,8 @@ program
   .name('weaver')
   .description('Appweaver CLI - Build and manage your application')
   .version(pkg.version, '-v, --version', 'Output the current version.')
-  .usage('<command> [options]')
-  .helpOption('-h, --help', 'Output usage information.');
+  .helpOption('-h, --help', 'Output usage information.')
+  .usage('<command> [options]');
 
 buildCommand(program);
 
