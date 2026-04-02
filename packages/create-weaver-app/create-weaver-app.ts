@@ -43,7 +43,7 @@ program
   .option(
     '--host [host]',
     'Hostname or IP address where the application server will bind.',
-    '0.0.0.0.'
+    '0.0.0.0'
   )
   .option('--bun', 'Use Bun as application runtime.')
   .option('--skipInstall', 'Skip all dependencies installation.')
