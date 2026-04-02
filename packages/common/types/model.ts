@@ -201,9 +201,9 @@ export type RelationField = {
 };
 
 export type FileField = {
-  /** Allowed MIME type(s) */
+  /** Allowed MIME type(s) or regex pattern */
   mimeType?: string | RegExp;
-  /** Storage path pattern or factory */
+  /** Storage path pattern or factory function */
   namePattern?: string | ((file: any, resource: any) => string);
   /** Allow multiple file uploads */
   array?: boolean;
