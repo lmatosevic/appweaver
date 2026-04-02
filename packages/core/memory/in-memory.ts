@@ -73,8 +73,8 @@ export class InMemory extends Memory {
 
     this._approximatedSize += Buffer.byteLength(jsonValue, 'utf8');
 
-    // If memory max size is reached, remove entries from start until the size is
-    // below the configured value
+    // If memory max size is reached, remove entries from start until the size
+    // is below the configured value
     if (config.MEMORY_MAX_SIZE_BYTES) {
       while (this._approximatedSize > config.MEMORY_MAX_SIZE_BYTES) {
         await this.removeValue(this._storage.keys()[0]);

@@ -288,9 +288,11 @@ export type Config = {
   CACHE_KEY_PREFIX: string;
   /** Maximum number of items in the cache. Default: `1000`. */
   CACHE_MAX_ITEMS: number;
+  /** Maximum used size by the cache in bytes. */
+  CACHE_MAX_SIZE_BYTES?: number;
   /** Default time-to-live for cache entries in milliseconds. Default: `5000` (5 sec). */
   CACHE_DEFAULT_TTL: number;
-  /** Grace period before evicting expired items in milliseconds. Default: `3000` (3 sec). */
+  /** Grace period before evicting expired items in milliseconds. Default: `1000` (1 sec). */
   CACHE_EVICTION_GRACE_PERIOD: number;
   /** Eviction strategy. Values: `LRU`, `LFU`, `FIFO`. Default: `'LRU'`. */
   CACHE_EVICTION_STRATEGY: CacheEvictionStrategy;

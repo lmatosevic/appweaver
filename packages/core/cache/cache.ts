@@ -80,6 +80,8 @@ export abstract class Cache extends CommonCache {
     this._entryMeta.set(prefixedKey, meta);
     this._evictionIndex.add(prefixedKey, meta);
 
+    await this.ensureMemoryLimit();
+
     return result;
   }
 
@@ -132,13 +134,13 @@ export abstract class Cache extends CommonCache {
 
     // Calculate the number of entries that should be evicted, plus one is added
     // because this method is called before adding new cache entry
-    const excessCount = this._entryMeta.size - config.CACHE_MAX_ITEMS + 1;
-    if (excessCount <= 0) {
+    const excessItemsCount = this._entryMeta.size - config.CACHE_MAX_ITEMS + 1;
+    if (excessItemsCount <= 0) {
       return;
     }
 
     const candidateKeys = this._evictionIndex.evictionCandidates(
-      excessCount,
+      excessItemsCount,
       now,
       config.CACHE_EVICTION_GRACE_PERIOD
     );
@@ -150,6 +152,64 @@ export abstract class Cache extends CommonCache {
         logger.error(error, 'Cache eviction error');
       });
     } else {
+      await Promise.all(evictActions);
+    }
+  }
+
+  /** @internal */
+  private async ensureMemoryLimit(): Promise<void> {
+    if (!config.CACHE_MAX_SIZE_BYTES) {
+      return;
+    }
+
+    if (config.CACHE_EVICTION_DEFERRED) {
+      this.runEnsureMemoryLimit().catch((error) => {
+        logger.error(error, 'Cache memory limit eviction error');
+      });
+      return;
+    }
+
+    await this.runEnsureMemoryLimit();
+  }
+
+  /** @internal */
+  private async runEnsureMemoryLimit(): Promise<void> {
+    if (!config.CACHE_MAX_SIZE_BYTES) {
+      return;
+    }
+
+    const now = Date.now();
+
+    let currentSizeBytes = [...this._entryMeta.values()]
+      .map((e) => e.sizeBytes ?? 0)
+      .reduce((a, b) => a + b, 0);
+
+    // Evict candidates incrementally until memory usage falls within the limit
+    while (currentSizeBytes > config.CACHE_MAX_SIZE_BYTES) {
+      const candidateKeys = this._evictionIndex.evictionCandidates(
+        10,
+        now,
+        config.CACHE_EVICTION_GRACE_PERIOD
+      );
+
+      if (candidateKeys.length === 0) {
+        break;
+      }
+
+      const keysToEvict: string[] = [];
+
+      for (const candidateKey of candidateKeys) {
+        keysToEvict.push(candidateKey);
+        currentSizeBytes -= this._entryMeta.get(candidateKey)?.sizeBytes ?? 0;
+
+        // Skip eviction of the rest of candidates when memory usage falls
+        // within the configured limit
+        if (currentSizeBytes <= config.CACHE_MAX_SIZE_BYTES) {
+          break;
+        }
+      }
+
+      const evictActions = keysToEvict.map((key) => this.evict(key));
       await Promise.all(evictActions);
     }
   }

@@ -208,8 +208,9 @@ const configSchema = Type.Object({
   CACHE_CLEAN_START: Type.Boolean({ default: false }),
   CACHE_KEY_PREFIX: Type.String({ default: 'cache:' }),
   CACHE_MAX_ITEMS: Type.Integer({ default: 1000 }),
+  CACHE_MAX_SIZE_BYTES: Type.Optional(Type.Integer()),
   CACHE_DEFAULT_TTL: Type.Integer({ default: 5000 }),
-  CACHE_EVICTION_GRACE_PERIOD: Type.Integer({ default: 3000 }),
+  CACHE_EVICTION_GRACE_PERIOD: Type.Integer({ default: 1000 }),
   CACHE_EVICTION_STRATEGY: Type.Enum(CacheEvictionStrategy, {
     default: CacheEvictionStrategy.LRU
   }),

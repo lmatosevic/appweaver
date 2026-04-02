@@ -733,13 +733,16 @@
               "type": "integer",
               "default": 1000
             },
+            "maxSizeBytes": {
+              "type": ["integer", "null"]
+            },
             "defaultTtl": {
               "type": "integer",
               "default": 5000
             },
             "evictionGracePeriod": {
               "type": "integer",
-              "default": 3000
+              "default": 1000
             },
             "evictionStrategy": {
               "type": "string",

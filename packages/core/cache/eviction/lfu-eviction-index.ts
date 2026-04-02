@@ -33,7 +33,9 @@ export class LfuEvictionIndex implements EvictionIndex {
     const heap: HeapEntry[] = [];
 
     for (const [key, meta] of this._entries) {
-      if (meta.createdAt + gracePeriod >= now) continue;
+      if (meta.createdAt + gracePeriod >= now) {
+        continue;
+      }
 
       const entry: HeapEntry = { key, meta };
 
@@ -55,7 +57,7 @@ export class LfuEvictionIndex implements EvictionIndex {
   /** @internal */
   private score(meta: CacheEntryMeta, now: number): number {
     const age = now - meta.createdAt;
-    return age > 0 ? meta.usedCount / age : Infinity;
+    return age > 0 ? (meta.usedCount + 1) / age : Infinity;
   }
 
   // Max-heap by score: the root has the highest score among selected candidates.
