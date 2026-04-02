@@ -139,6 +139,11 @@ export class InMemory extends Memory {
     return matchingKeys;
   }
 
+  public async valueSizeBytes(key: string): Promise<number | null> {
+    const entry = this._storage.get(key);
+    return entry ? Buffer.byteLength(entry.value, 'utf8') : null;
+  }
+
   public async lock(
     resource: string,
     lockConfig: {
@@ -198,7 +203,7 @@ export class InMemory extends Memory {
   private async cleanupExpired(): Promise<void> {
     const now = Date.now();
 
-    // Cleanup expired storage entries
+    // Clean up expired storage entries
     for (const key in this._storage.keys()) {
       const entry = this._storage.get(key);
       if (entry && entry.expiresAt && entry.expiresAt < now) {

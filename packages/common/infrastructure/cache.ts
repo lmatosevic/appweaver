@@ -3,6 +3,7 @@ import { LIFECYCLE } from '../constants';
 
 export type CacheEntryMeta = {
   key: string;
+  sizeBytes: number | null;
   usedCount: number;
   createdAt: number;
   lastUsedAt: number;

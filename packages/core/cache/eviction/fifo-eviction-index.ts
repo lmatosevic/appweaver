@@ -18,7 +18,7 @@ export class FifoEvictionIndex implements EvictionIndex {
   }
 
   /** @internal */
-  public evictCandidates(count: number): string[] {
+  public evictionCandidates(count: number): string[] {
     const candidates: string[] = [];
 
     for (const [key] of this._keys) {

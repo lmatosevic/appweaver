@@ -103,6 +103,10 @@ export class Redis extends CommonRedis<RedisOptions, RedisClient> {
     });
   }
 
+  public async valueSizeBytes(key: string): Promise<number | null> {
+    return this._client.memory('USAGE', key);
+  }
+
   public async lock(
     resource: string,
     lockConfig: {

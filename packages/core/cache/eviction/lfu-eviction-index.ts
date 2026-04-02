@@ -22,7 +22,7 @@ export class LfuEvictionIndex implements EvictionIndex {
     this._entries.set(key, meta);
   }
 
-  public evictCandidates(
+  public evictionCandidates(
     count: number,
     now: number,
     gracePeriod: number

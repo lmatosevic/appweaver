@@ -52,7 +52,7 @@ export class LruEvictionIndex implements EvictionIndex {
     this.appendToTail(node);
   }
 
-  public evictCandidates(
+  public evictionCandidates(
     count: number,
     now: number,
     gracePeriod: number

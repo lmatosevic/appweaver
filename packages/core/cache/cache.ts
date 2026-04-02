@@ -39,13 +39,18 @@ export abstract class Cache extends CommonCache {
       const now = Date.now();
       const count = keyMeta?.usedCount ?? 0;
       const updatedMeta: CacheEntryMeta = {
-        ...(keyMeta || { key, createdAt: now }),
+        ...(keyMeta || {
+          key,
+          createdAt: now,
+          sizeBytes: await this._memory.valueSizeBytes(prefixedKey)
+        }),
         usedCount: count + 1,
         lastUsedAt: now
       };
       this._entryMeta.set(prefixedKey, updatedMeta);
       this._evictionIndex.touch(prefixedKey, updatedMeta);
     } else if (prefixedKey in this._entryMeta) {
+      // Remove key from meta and index storage if it does not exist memory
       this._entryMeta.delete(prefixedKey);
       this._evictionIndex.remove(prefixedKey);
     }
@@ -60,11 +65,13 @@ export abstract class Cache extends CommonCache {
     await this.evictExcessEntries();
 
     const result = await this._memory.putValue(prefixedKey, value, expireMs);
+    const sizeBytes = await this._memory.valueSizeBytes(prefixedKey);
 
     const now = Date.now();
     const meta: CacheEntryMeta = {
       key,
-      usedCount: 1,
+      sizeBytes,
+      usedCount: 0,
       createdAt: now,
       lastUsedAt: now,
       expiresAt: expireMs ? now + expireMs : undefined
@@ -130,13 +137,13 @@ export abstract class Cache extends CommonCache {
       return;
     }
 
-    const candidates = this._evictionIndex.evictCandidates(
+    const candidateKeys = this._evictionIndex.evictionCandidates(
       excessCount,
       now,
       config.CACHE_EVICTION_GRACE_PERIOD
     );
 
-    const evictActions = candidates.map((key) => this.evict(key));
+    const evictActions = candidateKeys.map((key) => this.evict(key));
 
     if (config.CACHE_EVICTION_DEFERRED) {
       Promise.all(evictActions).catch((error) => {

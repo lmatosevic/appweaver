@@ -81,6 +81,14 @@ export abstract class Memory implements IHealthCheck, OnInit, OnDestroy {
   abstract findKeys(pattern?: string): Promise<Set<string>>;
 
   /**
+   * Calculates the size of a value associated with the provided key in bytes.
+   *
+   * @param {string} key - The key whose corresponding value's size in bytes needs to be determined.
+   * @return {Promise<number>} A promise that resolves to the size of the value in bytes.
+   */
+  abstract valueSizeBytes(key: string): Promise<number | null>;
+
+  /**
    * Acquires a lock on a specified resource with optional configuration for expiration and retries.
    *
    * @param {string} resource - The name or identifier of the resource to be locked.
