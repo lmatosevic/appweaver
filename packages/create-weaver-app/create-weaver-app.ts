@@ -43,6 +43,7 @@ program
   .option(
     '--host [host]',
     'Hostname or IP address where the application server will bind.',
+    parseHostname,
     '0.0.0.0'
   )
   .option('--bun', 'Use Bun as application runtime.')
@@ -264,4 +265,16 @@ function parsePortNumber(value: string): number {
   }
 
   return int;
+}
+
+function parseHostname(value: string): string {
+  try {
+    new URL(`http://${value}`);
+  } catch {
+    throw new InvalidOptionArgumentError(
+      'Invalid hostname. Must be a valid hostname or IP address.'
+    );
+  }
+
+  return value;
 }
