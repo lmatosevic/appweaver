@@ -1,23 +1,9 @@
 import path from 'node:path';
-import { isTypeScriptRuntime } from './path-util';
+import { sanitizePath } from './path-util';
 
 type ValueOrError<T> =
   | { value: T; error: null }
   | { value: null; error: Error };
-
-/**
- * Sanitizes a file path by replacing the file extension from `.ts` to `.js`
- * if the runtime environment is not Bun.
- *
- * @param {string} filePath - The file path to sanitize.
- * @return {string} The sanitized file path.
- */
-export function sanitizePath(filePath: string): string {
-  if (isTypeScriptRuntime()) {
-    return filePath;
-  }
-  return filePath.replace(/\.ts$/i, '.js');
-}
 
 /**
  * Dynamically imports a module from a given file path and catches any errors.

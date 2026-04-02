@@ -31,7 +31,8 @@ const configSchema = Type.Object({
       typeof globalThis['Bun'] !== 'undefined' ? Runtime.Bun : Runtime.Node
   }),
   APP_BUILD_PATH: Type.String({ default: './dist' }),
-  APP_SCAN_PATH: Type.String({ default: './src' }),
+  APP_SOURCE_PATH: Type.String({ default: './src' }),
+  APP_SCAN_FILES_PATTERN: Type.String({ default: './*/index.ts' }),
   APP_MAIN_FILE_PATH: Type.String({ default: './src/main.ts' }),
   APP_AUTOLOAD_MODULES: Type.Array(Type.String(), { default: [] }),
 
@@ -81,19 +82,19 @@ const configSchema = Type.Object({
   CORS_CREDENTIALS: Type.Boolean({ default: true }),
 
   RESOURCE_MODEL_PATTERN: Type.String({
-    default: './src/resources/*/model.ts'
+    default: './resources/*/model.ts'
   }),
   RESOURCE_SERVICE_PATTERN: Type.String({
-    default: './src/resources/*/service.ts'
+    default: './resources/*/service.ts'
   }),
   RESOURCE_POLICY_PATTERN: Type.String({
-    default: './src/resources/*/policy.ts'
+    default: './resources/*/policy.ts'
   }),
   RESOURCE_ROUTE_PATTERN: Type.String({
-    default: './src/resources/*/routes.ts'
+    default: './resources/*/routes.ts'
   }),
   RESOURCE_GENERATED_TYPES_PATH: Type.String({
-    default: './src/types/generated.ts'
+    default: './types/generated.ts'
   }),
 
   EXPORT_BATCH_SIZE: Type.Integer({ default: 1000 }),

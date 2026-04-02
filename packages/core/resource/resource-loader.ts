@@ -1,14 +1,13 @@
-import { glob } from 'glob';
 import { TObject, TSchema, Type } from '@sinclair/typebox';
 import { config, logger, ResourcePolicyConfig } from '@appweaver/common';
 import {
+  findFilesByPattern,
   importModule,
   isResourceModel,
   isResourcePolicy,
   isResourceRoutes,
   isResourceService,
-  resourceModelProps,
-  sanitizePath
+  resourceModelProps
 } from '../utils';
 import {
   IResourceService,
@@ -18,13 +17,13 @@ import {
 } from '../types';
 
 export type LoadResourcePaths = {
-  /** Path pattern used for finding files that export resource models (default: ./src/resources/**\\/*model.ts) */
+  /** Path pattern used for finding files that export resource models (default: `./resources/"**"/*model.ts`) */
   modelPattern?: string;
-  /** Path pattern used for finding files that export resource models (default: ./src/resources/**\\/*service.ts) */
+  /** Path pattern used for finding files that export resource models (default: `./resources/"**"/*service.ts`) */
   servicePattern?: string;
-  /** Path pattern used for finding files that export resource models (default: ./src/resources/**\\/*policy.ts) */
+  /** Path pattern used for finding files that export resource models (default: `./resources/"**"/*policy.ts`) */
   policyPattern?: string;
-  /** Path pattern used for finding files that export resource models (default: ./src/resources/**\\/*route.ts) */
+  /** Path pattern used for finding files that export resource models (default: `./resources/"**"/*route.ts)` */
   routePattern?: string;
 };
 
@@ -206,13 +205,8 @@ async function loadRoutes(
 async function findAllFiles(pattern: string, cwd: string): Promise<string[]> {
   const files: string[] = [];
 
-  // Add project files using a pattern
-  const jsPaths = sanitizePath(pattern);
-  const strippedPattern = stripOverlappingPath(jsPaths, cwd);
-  const projectFiles = await glob(strippedPattern, { cwd, absolute: true });
-
-  // Sort is needed since glob returns files in non-deterministic order
-  projectFiles.sort();
+  // Find all project files matching provided glob pattern
+  const projectFiles = await findFilesByPattern(pattern, cwd);
   files.push(...projectFiles);
 
   // Add exported core module resources
@@ -224,28 +218,6 @@ async function findAllFiles(pattern: string, cwd: string): Promise<string[]> {
   }
 
   return files;
-}
-
-function stripOverlappingPath(pattern: string, cwd: string): string {
-  const normalize = (p: string): string => {
-    return p.replace(/\\/g, '/').replace(/^\.\//, '');
-  };
-
-  const patSeg = normalize(pattern).split('/').filter(Boolean);
-  const cwdSeg = normalize(cwd).split('/').filter(Boolean);
-
-  // find longest k where last k segments of cwd == first k segments of a pattern
-  let k = Math.min(cwdSeg.length, patSeg.length);
-  for (; k > 0; k--) {
-    const cwdTail = cwdSeg.slice(-k).join('/');
-    const patHead = patSeg.slice(0, k).join('/');
-    if (cwdTail === patHead) {
-      break;
-    }
-  }
-
-  const remaining = patSeg.slice(k).join('/');
-  return remaining ? `./${remaining}` : './';
 }
 
 async function importPath<T>(filePath: string): Promise<T | null> {

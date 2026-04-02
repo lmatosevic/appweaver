@@ -72,7 +72,7 @@ async function watchBunProcess(): Promise<void> {
   });
 
   // Watch for file changes and start new process using debounce timer
-  for await (const info of watch(config.APP_SCAN_PATH, { recursive: true })) {
+  for await (const info of watch(config.APP_SOURCE_PATH, { recursive: true })) {
     if (info.filename === null) {
       // Skip non-file change events
       continue;

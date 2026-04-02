@@ -24,8 +24,10 @@ export type Config = {
   APP_RUNTIME: Runtime;
   /** Path to compiled build artifacts. Default: `'./dist'`. */
   APP_BUILD_PATH: string;
-  /** Path to source code for auto-scanning. Default: `'./src'`. */
-  APP_SCAN_PATH: string;
+  /** Path to the application source code for auto-scanning. Default: `'./src'`. */
+  APP_SOURCE_PATH: string;
+  /** Glob pattern for scanning files within `APP_SOURCE_PATH`. Default: `'./"*"/index.ts'`. */
+  APP_SCAN_FILES_PATTERN: string;
   /** Path to the application entry point file. Default: `'./src/main.ts'`. */
   APP_MAIN_FILE_PATH: string;
   /** Module paths to autoload on startup. Default: `[]`. */
@@ -115,15 +117,15 @@ export type Config = {
   /** Allow credentials (cookies, auth headers). Default: `true`. */
   CORS_CREDENTIALS: boolean;
 
-  /** Glob pattern for resource model files. Default: `'./src/resources/"*"/model.ts'`. */
+  /** Glob pattern for resource model files. Default: `'./resources/"*"/model.ts'`. */
   RESOURCE_MODEL_PATTERN: string;
-  /** Glob pattern for resource service files. Default: `'./src/resources/"*"/service.ts'`. */
+  /** Glob pattern for resource service files. Default: `'./resources/"*"/service.ts'`. */
   RESOURCE_SERVICE_PATTERN: string;
-  /** Glob pattern for resource policy files. Default: `'./src/resources/"*"/policy.ts'`. */
+  /** Glob pattern for resource policy files. Default: `'./resources/"*"/policy.ts'`. */
   RESOURCE_POLICY_PATTERN: string;
-  /** Glob pattern for resource route files. Default: `'./src/resources/"*"/routes.ts'`. */
+  /** Glob pattern for resource route files. Default: `'./resources/"*"/routes.ts'`. */
   RESOURCE_ROUTE_PATTERN: string;
-  /** Output path for generated TypeScript types. Default: `'./src/types/generated.ts'`. */
+  /** Output path for generated TypeScript types. Default: `'./types/generated.ts'`. */
   RESOURCE_GENERATED_TYPES_PATH: string;
 
   /** Number of records per batch during export. Default: `1000`. */

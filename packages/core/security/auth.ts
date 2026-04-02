@@ -30,7 +30,7 @@ export default fastifyPlugin((server: Server) => {
 
   server.register(jwtAuth);
 
-  // Load and register all plugins exported from oauth2 dir, plugin enabled
+  // Load and register all plugins exported from oauth2 dir, plugin-enabled
   // status and required config values are checked at plugin initialization
   for (const oauth2Plugin of Object.values(oauth2Plugins)) {
     server.register(oauth2Plugin);

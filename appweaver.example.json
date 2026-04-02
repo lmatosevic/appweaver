@@ -7,7 +7,8 @@
       "hostname": "http://localhost:5000",
       "runtime": "node",
       "buildPath": "./dist",
-      "scanPath": "./src",
+      "sourcePath": "./src",
+      "scanFilesPattern": "./*/index.ts",
       "autoloadModules": ["aws-storage", "service-bus"]
     },
     "server": {
@@ -62,11 +63,11 @@
       "credentials": true
     },
     "resource": {
-      "modelPattern": "./src/resources/*/model.ts",
-      "servicePattern": "./src/resources/*/service.ts",
-      "policyPattern": "./src/resources/*/policy.ts",
-      "routePattern": "./src/resources/*/route.ts",
-      "generatedTypesPath": "./src/types/generated.ts"
+      "modelPattern": "./resources/*/model.ts",
+      "servicePattern": "./resources/*/service.ts",
+      "policyPattern": "./resources/*/policy.ts",
+      "routePattern": "./resources/*/route.ts",
+      "generatedTypesPath": "./types/generated.ts"
     },
     "export": {
       "csv": {

@@ -57,7 +57,7 @@ When changing the config schema in `packages/common/config/config.ts`, make sure
 
 - **packages/common/config/config-type.ts**: types and comments
 - **packages/common/config/schema.json**: JSON schema definitions
-- **skill/references/configuration.md**: Skill for configuration usage by agents
+- **skill/references/configuration.md**: Skill for configuration usage by AI agents
 - **appweaver.example.json**: example defaults as JSON properties
 - **.env.example**: example defaults as env variables
 

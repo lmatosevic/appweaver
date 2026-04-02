@@ -1,4 +1,3 @@
-import path from 'node:path';
 import { configFiles, logger } from '@appweaver/common';
 import { context } from '../context';
 import { createServer } from '../server';
@@ -9,7 +8,7 @@ import { loadModules } from './load-modules';
 import { Application } from './application';
 
 export type CreateAppParams = {
-  /** A relative path where the application will load resources, features, and plugins.
+  /** A relative path where the application will load resources and other features.
    * This is usually the directory from which the createApp() function is called.
    * (default: ./dist/src) */
   scanPath?: string;
@@ -21,15 +20,15 @@ export type CreateAppParams = {
   autoStartServer?: boolean;
   /** An object containing the path patterns for loading resources from. */
   resourcePaths?: LoadResourcePaths;
+  /** Path pattern used for finding modules that export application logic
+   * (default: `./"*"/index.ts`) */
+  modulePaths?: string;
   /** A boolean flag indicating whether the application should automatically load
    * resources configured and exported using factory functions. (default: true) */
   autoLoadResources?: boolean;
   /** A boolean flag indicating whether the application should automatically load
-   * plugins exported from the configured plugin directory. (default: true) */
-  autoLoadPlugins?: boolean;
-  /** A boolean flag indicating whether the application should automatically load
-   * features exported from the configured plugin directory. (default: true) */
-  autoLoadFeatures?: boolean;
+   * export modules from the project source directory. (default: true) */
+  autoLoadModules?: boolean;
 };
 
 /**
@@ -53,14 +52,9 @@ export async function createApp(
     await loadResources(scanPath, params.resourcePaths);
   }
 
-  // Load exported plugin files
-  if (params.autoLoadPlugins !== false) {
-    await loadModules(path.join(scanPath, 'plugins'));
-  }
-
-  // Load exported feature files
-  if (params.autoLoadFeatures !== false) {
-    await loadModules(path.join(scanPath, 'features'));
+  // Load exported application files
+  if (params.autoLoadModules !== false) {
+    await loadModules(scanPath, params.modulePaths);
   }
 
   // Create a Fastify server instance

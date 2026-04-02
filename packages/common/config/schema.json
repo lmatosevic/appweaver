@@ -50,9 +50,13 @@
               "type": ["string", "null"],
               "default": "./dist"
             },
-            "scanPath": {
+            "sourcePath": {
               "type": ["string", "null"],
               "default": "./src"
+            },
+            "scanFilesPattern": {
+              "type": "string",
+              "default": "./*/index.ts"
             },
             "autoloadModules": {
               "type": "array",
@@ -306,23 +310,23 @@
           "properties": {
             "modelPattern": {
               "type": "string",
-              "default": "./src/resources/*/model.ts"
+              "default": "./resources/*/model.ts"
             },
             "servicePattern": {
               "type": "string",
-              "default": "./src/resources/*/service.ts"
+              "default": "./resources/*/service.ts"
             },
             "policyPattern": {
               "type": "string",
-              "default": "./src/resources/*/policy.ts"
+              "default": "./resources/*/policy.ts"
             },
             "routePattern": {
               "type": "string",
-              "default": "./src/resources/*/routes.ts"
+              "default": "./resources/*/routes.ts"
             },
             "generatedTypesPath": {
               "type": "string",
-              "default": "./src/types/generated.ts"
+              "default": "./types/generated.ts"
             }
           }
         },

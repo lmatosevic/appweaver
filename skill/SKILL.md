@@ -29,7 +29,6 @@ The basic file structure of the Appweaver project:
 - `dist/` - the output directory for transpiled JavaScript files
 - `public/` - publicly exposed files if static file serving is enabled
 - `src/features/` - main application logic structured using vertical slice architecture (VSA)
-- `src/plugins/` - application plugins that extend or modify the library behavior
 - `src/resources/` - application resources (models, services, policies, and routes)
 - `src/types/` - application types (generated and manually created)
 - `src/main.ts` - the main application entrypoint

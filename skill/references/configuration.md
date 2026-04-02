@@ -68,18 +68,19 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 ### Application (APP_*)
 
-| Property               | Type     | Default                            | Description                                                                                               |
-|------------------------|----------|------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| `APP_ENV`              | enum     | `'prod'`                           | Application environment. Values: `test`, `local`, `dev`, `staging`, `qa`, `prod`. Mapped from `NODE_ENV`. |
-| `APP_NAME`             | string   | `'Appweaver'`                      | Application name.                                                                                         |
-| `APP_DESCRIPTION`      | string?  | -                                  | Application description.                                                                                  |
-| `APP_HOSTNAME`         | string   | `'http://localhost:{SERVER_PORT}'` | Application hostname URL.                                                                                 |
-| `APP_RUNTIME`          | string   | `'node'`                           | Application runtime. Autodetects Bun global module. Values: `node`, `bun`                                 |
-| `APP_VERSION`          | string   | `'unknown'`                        | Application version. Mapped from `npm_package_version`.                                                   |
-| `APP_BUILD_PATH`       | string   | `'./dist'`                         | Path to compiled build artifacts.                                                                         |
-| `APP_SCAN_PATH`        | string   | `'./src'`                          | Path to source code for auto-scanning.                                                                    |
-| `APP_MAIN_FILE_PATH`   | string   | `'./src/main.ts'`                  | Path to main application entrypoint file.                                                                 |
-| `APP_AUTOLOAD_MODULES` | string[] | `[]`                               | Module paths to auto-load on startup.                                                                     |
+| Property                 | Type     | Default                            | Description                                                                                               |
+|--------------------------|----------|------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| `APP_ENV`                | enum     | `'prod'`                           | Application environment. Values: `test`, `local`, `dev`, `staging`, `qa`, `prod`. Mapped from `NODE_ENV`. |
+| `APP_NAME`               | string   | `'Appweaver'`                      | Application name.                                                                                         |
+| `APP_DESCRIPTION`        | string?  | -                                  | Application description.                                                                                  |
+| `APP_HOSTNAME`           | string   | `'http://localhost:{SERVER_PORT}'` | Application hostname URL.                                                                                 |
+| `APP_RUNTIME`            | string   | `'node'`                           | Application runtime. Autodetects Bun global module. Values: `node`, `bun`                                 |
+| `APP_VERSION`            | string   | `'unknown'`                        | Application version. Mapped from `npm_package_version`.                                                   |
+| `APP_BUILD_PATH`         | string   | `'./dist'`                         | Path to compiled build artifacts.                                                                         |
+| `APP_SOURCE_PATH`        | string   | `'./src'`                          | Path to source code for auto-scanning.                                                                    |
+| `APP_SCAN_FILES_PATTERN` | string   | `'./*/index.ts'`                   | Glob pattern for scanning files within `APP_SOURCE_PATH`.                                                 |
+| `APP_MAIN_FILE_PATH`     | string   | `'./src/main.ts'`                  | Path to main application entrypoint file.                                                                 |
+| `APP_AUTOLOAD_MODULES`   | string[] | `[]`                               | Module paths to auto-load on startup.                                                                     |
 
 ### Logging (LOG_*)
 
