@@ -49,7 +49,9 @@
     "healthCheck": {
       "enabled": true,
       "auth": true,
-      "routePrefix": "/health"
+      "routePrefix": "/health",
+      "pickInstances": ["database", "redis", "storage"],
+      "omitInstances": null
     },
     "cors": {
       "origin": "*",

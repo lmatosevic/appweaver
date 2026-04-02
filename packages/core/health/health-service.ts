@@ -1,4 +1,5 @@
 import {
+  config,
   HealthCheckConfig,
   HealthCheckResult,
   HealthCheckStatus,
@@ -73,6 +74,7 @@ export class HealthService {
   /**
    * Retrieves a list of instances that implement the health check functionality, ensuring they are unique
    * and properly configured. Each instance is returned with its name, instance, and optional configuration.
+   * Some instances can be removed from the list based on the configured pick and omit properties.
    *
    * @return {HealthCheckInstance[]} An array of objects, where each object contains:
    *         - `name`: The unique name assigned to the instance.
@@ -85,21 +87,34 @@ export class HealthService {
     );
 
     // Return a unique set of instances that correctly implement the health check
-    return Array.from(
+    let all = Array.from(
       new Map(
         instances.map((value) => {
-          const config = value.checkHealthConfig?.();
-          const name = config?.name || uncapitalize(value.constructor.name);
+          const instanceConfig = value.checkHealthConfig?.();
+          const name =
+            instanceConfig?.name || uncapitalize(value.constructor.name);
           return [
             name,
             {
               name,
               value,
-              config
+              config: instanceConfig
             }
           ];
         })
       ).values()
     );
+
+    const pick = config.HEALTH_CHECK_PICK_INSTANCES;
+    if (pick) {
+      all = all.filter((instance) => pick.includes(instance.name));
+    }
+
+    const omit = config.HEALTH_CHECK_OMIT_INSTANCES;
+    if (omit) {
+      all = all.filter((instance) => !omit.includes(instance.name));
+    }
+
+    return all;
   }
 }

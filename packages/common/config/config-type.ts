@@ -97,6 +97,10 @@ export type Config = {
   HEALTH_CHECK_AUTH: boolean;
   /** URL prefix for health check routes. Default: `'/health'`. */
   HEALTH_CHECK_ROUTE_PREFIX: string;
+  /** List of health check instance names to include in response. */
+  HEALTH_CHECK_PICK_INSTANCES?: string[];
+  /** List of health check instance names to exclude from response. */
+  HEALTH_CHECK_OMIT_INSTANCES?: string[];
 
   /** Allowed origin(s) for CORS requests. Default: `'*'`. */
   CORS_ORIGIN: string;

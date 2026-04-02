@@ -131,11 +131,13 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 ### Health check (HEALTH_CHECK_*)
 
-| Property                    | Type    | Default     | Description                              |
-|-----------------------------|---------|-------------|------------------------------------------|
-| `HEALTH_CHECK_ENABLED`      | boolean | `true`      | Enable the health check endpoint.        |
-| `HEALTH_CHECK_AUTH`         | boolean | `true`      | Require authentication for health check. |
-| `HEALTH_CHECK_ROUTE_PREFIX` | string  | `'/health'` | URL prefix for health check routes.      |
+| Property                      | Type      | Default     | Description                                                   |
+|-------------------------------|-----------|-------------|---------------------------------------------------------------|
+| `HEALTH_CHECK_ENABLED`        | boolean   | `true`      | Enable the health check endpoint.                             |
+| `HEALTH_CHECK_AUTH`           | boolean   | `true`      | Require authentication for health check.                      |
+| `HEALTH_CHECK_ROUTE_PREFIX`   | string    | `'/health'` | URL prefix for health check routes.                           |
+| `HEALTH_CHECK_PICK_INSTANCES` | string[]? | -           | List of health check instance names to include in response.   |
+| `HEALTH_CHECK_OMIT_INSTANCES` | string[]? | -           | List of health check instance names to exclude from response. |
 
 ### CORS (CORS_*)
 

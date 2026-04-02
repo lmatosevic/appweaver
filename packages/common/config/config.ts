@@ -70,6 +70,8 @@ const configSchema = Type.Object({
   HEALTH_CHECK_ENABLED: Type.Boolean({ default: true }),
   HEALTH_CHECK_AUTH: Type.Boolean({ default: true }),
   HEALTH_CHECK_ROUTE_PREFIX: Type.String({ default: '/health' }),
+  HEALTH_CHECK_PICK_INSTANCES: Type.Optional(Type.Array(Type.String())),
+  HEALTH_CHECK_OMIT_INSTANCES: Type.Optional(Type.Array(Type.String())),
 
   CORS_ORIGIN: Type.String({ default: '*' }),
   CORS_METHODS: Type.Array(Type.String(), { default: ['*'] }),

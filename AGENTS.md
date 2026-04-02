@@ -36,7 +36,8 @@ describe('Feature Verification', () => {
 #### 3. Development Information
 
 - **Code Style**:
-    - **Formatting**: The project uses **Prettier**. Run `npm run format` to format the codebase.
+    - **Formatting**: The project uses **Prettier**. Run `npm run format` to format the codebase after every task that
+      involves code changes.
     - **Linting**: The project uses **ESLint**. Run `npm run lint` to check for issues and `npm run lint -- --fix` to
       automatically fix what's possible.
 - **Dependency Management**: Packages are linked locally in `node_modules/@appweaver` after the build. Ensure you run

@@ -116,3 +116,120 @@ export class AuthService {
   }
 }
 ```
+
+---
+
+## EmailService
+
+`EmailService` is a higher-level wrapper around `Mailer` that routes all emails through the `Queue` infrastructure. This
+decouples the caller from the SMTP transport, provides retry semantics, and avoids blocking the request thread on email
+delivery.
+
+Inject it like any other service — no `required: false` needed since it is always registered when the mailer module is
+loaded.
+
+```ts
+import { EmailService, inject } from '@appweaver/core';
+```
+
+---
+
+#### `emailService.sendEmail(email)`
+
+Fire-and-forget. Adds the email to the queue and returns immediately — delivery happens asynchronously.
+
+```ts
+await emailService.sendEmail({
+  to: 'alice@example.com',
+  subject: 'Welcome!',
+  text: 'Thanks for signing up.',
+  html: '<p>Thanks for <strong>signing up</strong>.</p>'
+});
+```
+
+---
+
+#### `emailService.sendEmailAndWait(email)`
+
+Queues the email and resolves only once delivery succeeds, or rejects if it fails. Use this when you need a delivery
+confirmation before proceeding (e.g., before returning a 200 to the client).
+
+Returns `true` on success.
+
+```ts
+const sent = await emailService.sendEmailAndWait({
+  to: 'bob@example.com',
+  subject: 'Your invoice',
+  text: 'Please find your invoice attached.',
+  attachments: [{ filename: 'invoice.pdf', path: '/tmp/invoice.pdf' }]
+});
+```
+
+---
+
+#### `emailService.sendEmailBulk(emails)`
+
+Queues all emails at once without waiting for any to finish. Prefer this when sending a large batch and delivery
+confirmation is not required.
+
+```ts
+await emailService.sendEmailBulk(
+  users.map((u) => ({
+    to: u.email,
+    subject: 'New feature announcement',
+    text: `Hi ${u.name}, we just shipped something new...`
+  }))
+);
+```
+
+---
+
+#### `emailService.sendEmailBulkAndWait(emails)`
+
+Queues all emails and waits for every delivery attempt to settle. Returns an array of
+`{ success: boolean; error?: Error }` in the same order as the input — failed deliveries do not reject the whole call.
+
+```ts
+const results = await emailService.sendEmailBulkAndWait(emails);
+
+for (const [i, result] of results.entries()) {
+  if (!result.success) {
+    logger.error(result.error, `Failed to deliver email to ${emails[i].to}`);
+  }
+}
+```
+
+---
+
+### Real-world example — post-registration flow
+
+```ts
+import { EmailService, inject } from '@appweaver/core';
+
+export class RegistrationService {
+  private readonly _emailService = inject(EmailService);
+
+  async register(user: { email: string; name: string }): Promise<void> {
+    // ... persist user to DB ...
+
+    // Send welcome email and wait for confirmation before returning
+    await this._emailService.sendEmailAndWait({
+      to: user.email,
+      subject: 'Welcome to MyApp!',
+      text: `Hi ${user.name}, your account is ready.`,
+      html: `<p>Hi <strong>${user.name}</strong>, your account is ready.</p>`
+    });
+  }
+
+  async notifyAdmins(admins: { email: string }[], message: string): Promise<void> {
+    // Blast all admin notifications without blocking
+    await this._emailService.sendEmailBulk(
+      admins.map((a) => ({
+        to: a.email,
+        subject: 'Admin notification',
+        text: message
+      }))
+    );
+  }
+}
+```

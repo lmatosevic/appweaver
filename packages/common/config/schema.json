@@ -219,6 +219,32 @@
             "routePrefix": {
               "type": "string",
               "default": "/health"
+            },
+            "pickInstances": {
+              "oneOf": [
+                { "type": "null" },
+                { "type": "string" },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "default": null
+            },
+            "omitInstances": {
+              "oneOf": [
+                { "type": "null" },
+                { "type": "string" },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "default": null
             }
           }
         },
