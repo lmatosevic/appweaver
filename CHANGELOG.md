@@ -1,3 +1,10 @@
+## [1.0.1](https://gitlab.com/app-weaver/appweaver/compare/v1.0.0...v1.0.1) (2026-04-02)
+
+### Bug Fixes
+
+* fix weaver cli command collisions and naming convention ([ff146db](https://gitlab.com/app-weaver/appweaver/commit/ff146db411ce95dc2fa12715ea2795ac83f68246))
+* remove short flag options for create-weaver-app port, host and database to avoid collisions ([8a3923b](https://gitlab.com/app-weaver/appweaver/commit/8a3923b3003fe0a91effd34211d4e076a76f2494))
+
 ## 1.0.0 (2026-04-02)
 
 ### Features
