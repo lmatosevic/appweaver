@@ -213,7 +213,7 @@
       "provider": "@appweaver/core/scheduler/cron-scheduler"
     },
     "events": {
-      "maxListeners": 10,
+      "maxListeners": 20,
       "provider": "@appweaver/core/events/node-events"
     },
     "mailer": {

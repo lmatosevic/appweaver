@@ -240,7 +240,7 @@ const configSchema = Type.Object({
     default: '@appweaver/core/scheduler/cron-scheduler'
   }),
 
-  EVENTS_MAX_LISTENERS: Type.Integer({ default: 10 }),
+  EVENTS_MAX_LISTENERS: Type.Integer({ default: 20 }),
   EVENTS_PROVIDER: Type.String({
     default: '@appweaver/core/events/node-events'
   }),

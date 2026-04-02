@@ -74,9 +74,11 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `APP_NAME`             | string   | `'Appweaver'`                      | Application name.                                                                                         |
 | `APP_DESCRIPTION`      | string?  | -                                  | Application description.                                                                                  |
 | `APP_HOSTNAME`         | string   | `'http://localhost:{SERVER_PORT}'` | Application hostname URL.                                                                                 |
+| `APP_RUNTIME`          | string   | `'node'`                           | Application runtime. Autodetects Bun global module. Values: `node`, `bun`                                 |
 | `APP_VERSION`          | string   | `'unknown'`                        | Application version. Mapped from `npm_package_version`.                                                   |
 | `APP_BUILD_PATH`       | string   | `'./dist'`                         | Path to compiled build artifacts.                                                                         |
 | `APP_SCAN_PATH`        | string   | `'./src'`                          | Path to source code for auto-scanning.                                                                    |
+| `APP_MAIN_FILE_PATH`   | string   | `'./src/main.ts'`                  | Path to main application entrypoint file.                                                                 |
 | `APP_AUTOLOAD_MODULES` | string[] | `[]`                               | Module paths to auto-load on startup.                                                                     |
 
 ### Logging (LOG_*)
@@ -278,17 +280,18 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 ### Database (DATABASE_*)
 
-| Property                          | Type    | Default                                      | Description                                                          |
-|-----------------------------------|---------|----------------------------------------------|----------------------------------------------------------------------|
-| `DATABASE_TYPE`                   | enum?   | -                                            | Database type. Values: `sqlite`, `postgresql`, `mysql`, `sqlserver`. |
-| `DATABASE_URL`                    | string  | `''`                                         | Database connection URL/DSN.                                         |
-| `DATABASE_SCHEMA_PATH`            | string  | `'./database/schema.prisma'`                 | Path to Prisma schema file.                                          |
-| `DATABASE_MIGRATIONS_DIR_PATH`    | string  | `'./database/migrations'`                    | Path to database migrations directory.                               |
-| `DATABASE_SEEDERS_DIR_PATH`       | string  | `'./database/seeders'`                       | Path to database seeders directory.                                  |
-| `DATABASE_CLIENT_OUTPUT_DIR_PATH` | string  | `'./database/client'`                        | Path for generated Prisma client output.                             |
-| `DATABASE_TRANSACTION_MAX_WAIT`   | integer | `2000`                                       | Max wait time for acquiring a transaction lock (ms).                 |
-| `DATABASE_TRANSACTION_TIMEOUT`    | integer | `5000`                                       | Transaction timeout in milliseconds.                                 |
-| `DATABASE_PROVIDER`               | string  | `'@appweaver/core/database/prisma-database'` | Database provider implementation path.                               |
+| Property                          | Type     | Default                                      | Description                                                              |
+|-----------------------------------|----------|----------------------------------------------|--------------------------------------------------------------------------|
+| `DATABASE_TYPE`                   | enum?    | -                                            | Database type. Values: `sqlite`, `postgresql`, `mysql`, `sqlserver`.     |
+| `DATABASE_URL`                    | string   | `''`                                         | Database connection URL/DSN.                                             |
+| `DATABASE_SCHEMA_PATH`            | string   | `'./database/schema.prisma'`                 | Path to Prisma schema file.                                              |
+| `DATABASE_MIGRATIONS_DIR_PATH`    | string   | `'./database/migrations'`                    | Path to database migrations directory.                                   |
+| `DATABASE_SEEDERS_DIR_PATH`       | string   | `'./database/seeders'`                       | Path to database seeders directory.                                      |
+| `DATABASE_CLIENT_OUTPUT_DIR_PATH` | string   | `'./database/client'`                        | Path for generated Prisma client output.                                 |
+| `DATABASE_TRANSACTION_MAX_WAIT`   | integer  | `2000`                                       | Max wait time for acquiring a transaction lock (ms).                     |
+| `DATABASE_TRANSACTION_TIMEOUT`    | integer  | `5000`                                       | Transaction timeout in milliseconds.                                     |
+| `DATABASE_LOG_EVENTS`             | string[] | `[]`                                         | List of database events to log. Values: `query`, `info`, `warn`, `error` |
+| `DATABASE_PROVIDER`               | string   | `'@appweaver/core/database/prisma-database'` | Database provider implementation path.                                   |
 
 ### File storage (STORAGE_*)
 
@@ -321,8 +324,9 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `CACHE_CLEAN_START`           | boolean | `false`                               | Clear all cache entries on application startup.                        |
 | `CACHE_KEY_PREFIX`            | string  | `'cache:'`                            | Prefix prepended to all cache keys.                                    |
 | `CACHE_MAX_ITEMS`             | integer | `1000`                                | Maximum number of items in the cache.                                  |
+| `CACHE_CACHE_MAX_SIZE_BYTES`  | integer | -                                     | Maximum size used by the cache in bytes.                               |
 | `CACHE_DEFAULT_TTL`           | integer | `5000`                                | Default time-to-live for cache entries in milliseconds.                |
-| `CACHE_EVICTION_GRACE_PERIOD` | integer | `10000`                               | Grace period before evicting expired items (ms).                       |
+| `CACHE_EVICTION_GRACE_PERIOD` | integer | `1000`                                | Grace period before evicting expired items (ms).                       |
 | `CACHE_EVICTION_STRATEGY`     | enum    | `'LRU'`                               | Eviction strategy. Values: `LRU`, `LFU`, `FIFO`.                       |
 | `CACHE_EVICTION_DEFERRED`     | boolean | `false`                               | Defer eviction to a background process.                                |
 | `CACHE_INVALIDATION_STRATEGY` | enum    | `'expire-related'`                    | Invalidation strategy. Values: `expire-related`, `expire-all`, `none`. |
@@ -353,7 +357,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 | Property               | Type    | Default                                | Description                                 |
 |------------------------|---------|----------------------------------------|---------------------------------------------|
-| `EVENTS_MAX_LISTENERS` | integer | `10`                                   | Maximum event listeners per event type.     |
+| `EVENTS_MAX_LISTENERS` | integer | `20`                                   | Maximum event listeners per event type.     |
 | `EVENTS_PROVIDER`      | string  | `'@appweaver/core/events/node-events'` | Event emitter provider implementation path. |
 
 ### Mailer (MAILER_*)

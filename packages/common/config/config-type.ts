@@ -288,7 +288,7 @@ export type Config = {
   CACHE_KEY_PREFIX: string;
   /** Maximum number of items in the cache. Default: `1000`. */
   CACHE_MAX_ITEMS: number;
-  /** Maximum used size by the cache in bytes. */
+  /** Maximum size used by the cache in bytes. */
   CACHE_MAX_SIZE_BYTES?: number;
   /** Default time-to-live for cache entries in milliseconds. Default: `5000` (5 sec). */
   CACHE_DEFAULT_TTL: number;
@@ -327,7 +327,7 @@ export type Config = {
   /** Scheduler provider implementation path. Default: `'@appweaver/core/scheduler/cron-scheduler'`. */
   SCHEDULER_PROVIDER: string;
 
-  /** Maximum event listeners per event type. Default: `10`. */
+  /** Maximum event listeners per event type. Default: `20`. */
   EVENTS_MAX_LISTENERS: number;
   /** Event emitter provider implementation path. Default: `'@appweaver/core/events/node-events'`. */
   EVENTS_PROVIDER: string;
