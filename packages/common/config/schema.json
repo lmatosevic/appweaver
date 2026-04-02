@@ -310,19 +310,19 @@
           "properties": {
             "modelPattern": {
               "type": "string",
-              "default": "./resources/*/model.ts"
+              "default": "./resources/*/*model.ts"
             },
             "servicePattern": {
               "type": "string",
-              "default": "./resources/*/service.ts"
+              "default": "./resources/*/*service.ts"
             },
             "policyPattern": {
               "type": "string",
-              "default": "./resources/*/policy.ts"
+              "default": "./resources/*/*policy.ts"
             },
             "routePattern": {
               "type": "string",
-              "default": "./resources/*/routes.ts"
+              "default": "./resources/*/*routes.ts"
             },
             "generatedTypesPath": {
               "type": "string",

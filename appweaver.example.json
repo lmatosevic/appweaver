@@ -63,10 +63,10 @@
       "credentials": true
     },
     "resource": {
-      "modelPattern": "./resources/*/model.ts",
-      "servicePattern": "./resources/*/service.ts",
-      "policyPattern": "./resources/*/policy.ts",
-      "routePattern": "./resources/*/route.ts",
+      "modelPattern": "./resources/*/*model.ts",
+      "servicePattern": "./resources/*/*service.ts",
+      "policyPattern": "./resources/*/*policy.ts",
+      "routePattern": "./resources/*/*route.ts",
       "generatedTypesPath": "./types/generated.ts"
     },
     "export": {

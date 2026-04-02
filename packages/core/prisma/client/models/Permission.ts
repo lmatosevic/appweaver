@@ -302,6 +302,16 @@ export type PermissionUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+export type PermissionListRelationFilter = {
+  every?: Prisma.PermissionWhereInput
+  some?: Prisma.PermissionWhereInput
+  none?: Prisma.PermissionWhereInput
+}
+
+export type PermissionOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
 export type PermissionCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
@@ -329,16 +339,6 @@ export type PermissionMinOrderByAggregateInput = {
 
 export type PermissionSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
-}
-
-export type PermissionListRelationFilter = {
-  every?: Prisma.PermissionWhereInput
-  some?: Prisma.PermissionWhereInput
-  none?: Prisma.PermissionWhereInput
-}
-
-export type PermissionOrderByRelationAggregateInput = {
-  _count?: Prisma.SortOrder
 }
 
 export type PermissionCreateNestedManyWithoutRolesInput = {

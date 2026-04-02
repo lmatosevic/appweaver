@@ -17,13 +17,13 @@ import {
 } from '../types';
 
 export type LoadResourcePaths = {
-  /** Path pattern used for finding files that export resource models (default: `./resources/"**"/*model.ts`) */
+  /** Path pattern used for finding files that export resource models (default: `./resources/"*"/*model.ts`) */
   modelPattern?: string;
-  /** Path pattern used for finding files that export resource models (default: `./resources/"**"/*service.ts`) */
+  /** Path pattern used for finding files that export resource models (default: `./resources/"*"/*service.ts`) */
   servicePattern?: string;
-  /** Path pattern used for finding files that export resource models (default: `./resources/"**"/*policy.ts`) */
+  /** Path pattern used for finding files that export resource models (default: `./resources/"*"/*policy.ts`) */
   policyPattern?: string;
-  /** Path pattern used for finding files that export resource models (default: `./resources/"**"/*route.ts)` */
+  /** Path pattern used for finding files that export resource models (default: `./resources/"*"/*route.ts)` */
   routePattern?: string;
 };
 

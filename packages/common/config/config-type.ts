@@ -117,13 +117,13 @@ export type Config = {
   /** Allow credentials (cookies, auth headers). Default: `true`. */
   CORS_CREDENTIALS: boolean;
 
-  /** Glob pattern for resource model files. Default: `'./resources/"*"/model.ts'`. */
+  /** Glob pattern for resource model files. Default: `'./resources/"*"/*model.ts'`. */
   RESOURCE_MODEL_PATTERN: string;
-  /** Glob pattern for resource service files. Default: `'./resources/"*"/service.ts'`. */
+  /** Glob pattern for resource service files. Default: `'./resources/"*"/*service.ts'`. */
   RESOURCE_SERVICE_PATTERN: string;
-  /** Glob pattern for resource policy files. Default: `'./resources/"*"/policy.ts'`. */
+  /** Glob pattern for resource policy files. Default: `'./resources/"*"/*policy.ts'`. */
   RESOURCE_POLICY_PATTERN: string;
-  /** Glob pattern for resource route files. Default: `'./resources/"*"/routes.ts'`. */
+  /** Glob pattern for resource route files. Default: `'./resources/"*"/*routes.ts'`. */
   RESOURCE_ROUTE_PATTERN: string;
   /** Output path for generated TypeScript types. Default: `'./types/generated.ts'`. */
   RESOURCE_GENERATED_TYPES_PATH: string;

@@ -311,7 +311,7 @@ export async function generateSchema(
         'Schema generation failed. Start with --verbose flag to see more errors.'
       );
     } else {
-      console.log(`Schema generated to ${schemaPath}`);
+      console.log(`Schema generated to ${path.relative(cwd, schemaPath)}`);
     }
   } catch (error) {
     console.error(`Schema generation failed:`, error);

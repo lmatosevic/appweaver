@@ -29,14 +29,14 @@ export function loadPackageJson(): Record<string, string> {
  * imports them, and checks if they conform to the resource model schema.
  * Valid models are added to the returned collection.
  *
- * @param {string} modelPattern - The glob pattern used to locate model files.
+ * @param {string} [modelPattern] - The glob pattern used to locate model files. The default value is used from config.
  * @return {Promise<Record<string, ResourceModel>>} A promise resolving to an object containing the loaded resource models,
  * where the keys are the model names and the values are the associated ResourceModel objects.
  */
 export async function loadModels(
   modelPattern: string
 ): Promise<Record<string, ResourceModel>> {
-  const cwd = process.cwd();
+  const cwd = path.join(process.cwd(), config.APP_SOURCE_PATH);
 
   register({
     transpileOnly: true,

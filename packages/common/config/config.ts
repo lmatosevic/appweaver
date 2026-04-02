@@ -82,16 +82,16 @@ const configSchema = Type.Object({
   CORS_CREDENTIALS: Type.Boolean({ default: true }),
 
   RESOURCE_MODEL_PATTERN: Type.String({
-    default: './resources/*/model.ts'
+    default: './resources/*/*model.ts'
   }),
   RESOURCE_SERVICE_PATTERN: Type.String({
-    default: './resources/*/service.ts'
+    default: './resources/*/*service.ts'
   }),
   RESOURCE_POLICY_PATTERN: Type.String({
-    default: './resources/*/policy.ts'
+    default: './resources/*/*policy.ts'
   }),
   RESOURCE_ROUTE_PATTERN: Type.String({
-    default: './resources/*/routes.ts'
+    default: './resources/*/*routes.ts'
   }),
   RESOURCE_GENERATED_TYPES_PATH: Type.String({
     default: './types/generated.ts'
