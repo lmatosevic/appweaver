@@ -30,18 +30,18 @@ program
     'Directory where to generate new project. (default: name of project)'
   )
   .option(
-    '-d, --database [database]',
+    '--database [database]',
     'Type of SQL database (options: sqlite, postgresql, mysql, sqlserver).',
     'sqlite'
   )
   .option(
-    '-p, --port [port]',
+    '--port [port]',
     'Port number where the application server will listen.',
     parsePortNumber,
     5000
   )
   .option(
-    '-h, --host [host]',
+    '--host [host]',
     'Hostname or IP address where the application server will bind.',
     '0.0.0.0.'
   )
