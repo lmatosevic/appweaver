@@ -45,7 +45,8 @@ for (const pkgName of fs.readdirSync(packagesDir)) {
       for (const file of pkgJson.files) {
         const sourcePath = path.join(fullPath, file);
         if (fs.existsSync(sourcePath)) {
-          fs.cpSync(sourcePath, path.join(fullPath, distDir, file), {
+          const destFile = file.replace(/\.\.\//g, '')
+          fs.cpSync(sourcePath, path.join(fullPath, distDir, destFile), {
             recursive: true,
             force: true
           });

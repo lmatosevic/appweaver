@@ -87,7 +87,7 @@ schema and type generation. Default test runner is `bun`.
 After the application is scaffolded, the following commands need to be run to finish the application setup:
 
 ```sh
-npx --no-install weaver migration new init
+npx weaver migration new init  # use --no-install flag if npx tries to install package
 npm run seed
 ```
 
@@ -469,17 +469,17 @@ weaver start --watch  # development (watch mode)
 ### Generate types and schema
 
 ```sh
-weaver generate --types             # TypeScript types only
-weaver generate --schema            # Prisma schema only
-weaver generate --types --schema    # both (same as with no option flags)
+weaver generate --types           # TypeScript types only
+weaver generate --schema          # Prisma schema only
+weaver generate --types --schema  # both (same as with no option flags)
 ```
 
 ### Run database migrations
 
 ```sh
-weaver migrate                      # run pending migrations
-weaver migration new <name>         # create a new migration
-weaver migration reset              # reset database (prompts confirmation)
+weaver migrate                        # run pending migrations
+weaver migration new <name>           # create a new migration
+weaver migration reset                # reset database (prompts confirmation)
 weaver migration reset --force --yes  # force reset, skip confirmation
 ```
 
@@ -495,8 +495,8 @@ weaver seed --fixWarnings           # fix all warnings like invalid checksum or 
 ### Run tests
 
 ```sh
-npm run test        # unit tests with coverage
-npm run e2e         # e2e tests
+npm run test  # unit tests with coverage
+npm run e2e   # e2e tests
 ```
 
 ### Format code
@@ -508,7 +508,7 @@ npm run format  # prettier --write "./**/*.ts"
 ### Lint code
 
 ```sh
-npm run lint    # eslint "./**/*.ts"
+npm run lint  # eslint "./**/*.ts"
 ```
 
 ## References

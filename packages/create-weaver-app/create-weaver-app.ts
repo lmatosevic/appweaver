@@ -11,6 +11,8 @@ const pkg = JSON.parse(
   fs.readFileSync(path.join(__dirname, './package.json'), 'utf8')
 );
 
+const dbTypes = ['sqlite', 'postgresql', 'mysql', 'sqlserver'];
+
 const program = new Command();
 
 program
@@ -31,7 +33,8 @@ program
   )
   .option(
     '--database [database]',
-    'Type of SQL database (options: sqlite, postgresql, mysql, sqlserver).',
+    `Type of SQL database (${dbTypes.join(', ')}).`,
+    parseDatabaseType,
     'sqlite'
   )
   .option(
@@ -79,18 +82,19 @@ program
     // Initialize new project directory
     try {
       await fsp.access(destDir, fs.constants.F_OK);
-      console.log(`Using existing directory: ${path.dirname(destDir)}`);
+      console.log(`Using existing directory: ${path.dirname(destDir)}\n`);
     } catch (e) {
       await fsp.mkdir(destDir, { recursive: true });
       console.log(`Created new directory: ${projectDir}\n`);
     }
 
+    console.log('Generating application files...');
+
     // Copy template contents into a new directory
     const templateDir = path.join(__dirname, './templates/default');
     await fsp.cp(templateDir, destDir, { recursive: true });
 
-    console.log('Generating application files...');
-
+    // Define all variables used in template files with .tpl extension
     const variables: Record<string, string> = {
       NAME: name.charAt(0).toUpperCase() + name.slice(1),
       LOWER_NAME: sanitizedName,
@@ -254,6 +258,17 @@ function runProcess(
       resolve(code);
     });
   });
+}
+
+function parseDatabaseType(value: string): string {
+  const lowerDbType = value.toLowerCase();
+  if (!dbTypes.includes(lowerDbType)) {
+    throw new InvalidOptionArgumentError(
+      `Invalid database type. Must be one of following: ${dbTypes.join(', ')}.`
+    );
+  }
+
+  return lowerDbType;
 }
 
 function parsePortNumber(value: string): number {
