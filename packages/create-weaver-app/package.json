@@ -10,7 +10,8 @@
     "create-weaver-app": "./create-weaver-app.js"
   },
   "files": [
-    "templates"
+    "templates",
+    "../../skill"
   ],
   "repository": {
     "type": "git",

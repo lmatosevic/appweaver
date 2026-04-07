@@ -12,6 +12,15 @@ const pkg = JSON.parse(
 );
 
 const dbTypes = ['sqlite', 'postgresql', 'mysql', 'sqlserver'];
+const agentTypes = [
+  'claude',
+  'codex',
+  'junie',
+  'cursor',
+  'copilot',
+  'opencode',
+  'none'
+];
 
 const program = new Command();
 
@@ -48,6 +57,12 @@ program
     'Hostname or IP address where the application server will bind.',
     parseHostname,
     '0.0.0.0'
+  )
+  .option(
+    '--agent [agent]',
+    `The AI Agent provider (${agentTypes.join(', ')}).`,
+    parseAgentType,
+    'claude'
   )
   .option('--bun', 'Use Bun as application runtime.')
   .option('--skipInstall', 'Skip all dependencies installation.')
@@ -145,6 +160,45 @@ program
 
     // Create test reports directory
     await fsp.mkdir(path.join(destDir, 'reports'));
+
+    // Add instructions for AI Agents and skill files
+    const agent = command.getOptionValue('agent');
+    if (agent !== 'none') {
+      let agentsDir: string;
+      if (['claude', 'junie', 'opencode'].includes(agent)) {
+        agentsDir = `.${agent}`;
+      } else if (agent === 'copilot') {
+        agentsDir = '.github';
+      } else {
+        agentsDir = '.agents';
+      }
+
+      const guidelinesFileName = agent === 'claude' ? 'CLAUDE.md' : 'AGENTS.md';
+
+      // Copy skill and referenced files
+      const skillDir = path.join(__dirname, 'skill');
+      const skillPath = path.join(agentsDir, 'skills', 'appweaver');
+      await fsp.cp(skillDir, path.join(destDir, skillPath), {
+        recursive: true
+      });
+
+      // Read skill file, remove yml header, and replace reference paths
+      const skillFilePath = path.join(skillDir, 'SKILL.md');
+      const skillFileContents = await fsp.readFile(skillFilePath, 'utf8');
+      const referencesPath = path
+        .join(skillPath, 'references')
+        .replace(/\\/g, '/');
+      const guidelinesFileContent = skillFileContents
+        .replace(/references\//g, `${referencesPath}/`)
+        .replace(/^---[\s\S]+\n---\n\n/g, '')
+        .replace('# Appweaver skill', '# Appweaver project guidelines');
+
+      // Copy project guidelines file
+      const guidelinesPath = path.join(destDir, guidelinesFileName);
+      await fsp.writeFile(guidelinesPath, guidelinesFileContent, {
+        encoding: 'utf8'
+      });
+    }
 
     console.log(`Done\n`);
 
@@ -264,7 +318,7 @@ function parseDatabaseType(value: string): string {
   const lowerDbType = value.toLowerCase();
   if (!dbTypes.includes(lowerDbType)) {
     throw new InvalidOptionArgumentError(
-      `Invalid database type. Must be one of following: ${dbTypes.join(', ')}.`
+      `Must be one of following: ${dbTypes.join(', ')}.`
     );
   }
 
@@ -275,7 +329,7 @@ function parsePortNumber(value: string): number {
   const int = parseInt(value, 10);
   if (isNaN(int) || int < 0 || int > 65535) {
     throw new InvalidOptionArgumentError(
-      'Invalid port number. Must be integer between 0 and 65535.'
+      'Must be an integer between 0 and 65535.'
     );
   }
 
@@ -287,9 +341,20 @@ function parseHostname(value: string): string {
     new URL(`http://${value}`);
   } catch {
     throw new InvalidOptionArgumentError(
-      'Invalid hostname. Must be a valid hostname or IP address.'
+      'Must be a valid hostname or IP address.'
     );
   }
 
   return value;
+}
+
+function parseAgentType(value: string): string {
+  const lowerAgentType = value.toLowerCase();
+  if (!agentTypes.includes(lowerAgentType)) {
+    throw new InvalidOptionArgumentError(
+      `Must be one of following: ${agentTypes.join(', ')}.`
+    );
+  }
+
+  return lowerAgentType;
 }

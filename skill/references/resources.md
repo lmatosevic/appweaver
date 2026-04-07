@@ -33,51 +33,55 @@ function createModel(config: ResourceModelConfig, override ?: Partial<ResourceMo
 }
 ```
 
-| Property         | Type                           | Required | Description                                                         |
-|------------------|--------------------------------|----------|---------------------------------------------------------------------|
-| `name`           | string                         | yes      | Model name (PascalCase). Used as database table name and type name. |
-| `tableName`      | string                         | no       | Custom database table name override.                                |
-| `generateTypes`  | boolean                        | no       | Generate TypeScript types for this model.                           |
-| `generateSchema` | boolean                        | no       | Generate Prisma schema for this model.                              |
-| `id`             | IdField                        | no       | ID field configuration.                                             |
-| `audit`          | AuditFields                    | no       | Audit timestamp and creator tracking fields.                        |
-| `scalars`        | Record\<string, ScalarField>   | no       | Scalar fields (database columns).                                   |
-| `relations`      | Record\<string, RelationField> | no       | Relations to other models.                                          |
-| `files`          | Record\<string, FileField>     | no       | File upload fields.                                                 |
-| `virtual`        | Record\<string, VirtualField>  | no       | Computed/virtual fields not stored in database.                     |
-| `read`           | OperationConfig                | no       | Pick/omit fields for the read DTO.                                  |
-| `create`         | OperationConfig                | no       | Pick/omit fields for the create DTO.                                |
-| `update`         | OperationConfig                | no       | Pick/omit fields for the update DTO.                                |
-| `export`         | Record\<string, ExportField>   | no       | CSV export field configuration.                                     |
-| `index`          | string[] \| string[][]         | no       | Database index definitions.                                         |
+| Property         | Type                           | Required | Default               | Description                                                         |
+|------------------|--------------------------------|----------|-----------------------|---------------------------------------------------------------------|
+| `name`           | string                         | yes      | -                     | Model name (PascalCase). Used as database table name and type name. |
+| `tableName`      | string                         | no       | (model name)          | Custom database table name override.                                |
+| `generateTypes`  | boolean                        | no       | `true`                | Generate TypeScript types for this model.                           |
+| `generateSchema` | boolean                        | no       | `true`                | Generate Prisma schema for this model.                              |
+| `id`             | IdField                        | no       | Autoincrement integer | ID field configuration.                                             |
+| `audit`          | AuditFields                    | no       | All included          | Audit timestamps and creator tracking fields.                       |
+| `scalars`        | Record\<string, ScalarField>   | no       | -                     | Scalar fields (database columns).                                   |
+| `relations`      | Record\<string, RelationField> | no       | -                     | Relations to other models.                                          |
+| `files`          | Record\<string, FileField>     | no       | -                     | File upload fields.                                                 |
+| `virtual`        | Record\<string, VirtualField>  | no       | -                     | Computed/virtual fields not stored in database.                     |
+| `read`           | OperationConfig                | no       | -                     | Pick/omit fields for the read DTO.                                  |
+| `create`         | OperationConfig                | no       | -                     | Pick/omit fields for the create DTO.                                |
+| `update`         | OperationConfig                | no       | -                     | Pick/omit fields for the update DTO.                                |
+| `export`         | Record\<string, ExportField>   | no       | -                     | CSV export field configuration.                                     |
+| `index`          | string[] \| string[][]         | no       | -                     | Database index definitions.                                         |
 
 ### ID field
 
 ```ts
 const config = {
+  // Integer ID with autoincrement (default)
+  id: {
+    type: 'int',
+    generator: 'autoincrement()'
+  },
+
   // String ID with generator
   id: {
     type: 'string',
     generator: 'uuid()'
-  },
-
-  // Integer ID with autoincrement
-  id: {
-    type: 'int',
-    generator: 'autoincrement()'
   }
 };
 ```
 
-| Property    | Type                                                                          | Description                                                                   |
-|-------------|-------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| `type`      | `'string'` \| `'int'` \| `'bigInt'`                                           | ID field data type.                                                           |
-| `generator` | `'uuid()'` \| `'uuid(7)'` \| `'cuid()'` \| `'cuid(2)'` \| `'autoincrement()'` | Value generator. String types use UUID/CUID, integer types use autoincrement. |
+| Property    | Type                                                                          | Default             | Description                                                                   |
+|-------------|-------------------------------------------------------------------------------|---------------------|-------------------------------------------------------------------------------|
+| `type`      | `'string'` \| `'int'` \| `'bigInt'`                                           | `'int'`             | ID field data type.                                                           |
+| `generator` | `'uuid()'` \| `'uuid(7)'` \| `'cuid()'` \| `'cuid(2)'` \| `'autoincrement()'` | `'autoincrement()'` | Value generator. String types use UUID/CUID, integer types use autoincrement. |
 
 ### Audit fields
 
+It is recommended to always use all audit fields for all resource models, unless specified otherwise. In the usual
+scenario audit should be left out (including all fields by default).
+
 ```ts
 const config = {
+  // By default all audit fields are included
   audit: {
     createdAt: true,
     updatedAt: true,
