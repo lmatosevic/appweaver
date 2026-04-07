@@ -1,3 +1,10 @@
+## [1.0.3](https://gitlab.com/app-weaver/appweaver/compare/v1.0.2...v1.0.3) (2026-04-07)
+
+### Bug Fixes
+
+* add AI agent support and adjust skill file handling in create-weaver-app ([5e8a46a](https://gitlab.com/app-weaver/appweaver/commit/5e8a46ae67020ecbc703d92022fb0968a182719a))
+* add create-weaver-app database validation parameter ([883924b](https://gitlab.com/app-weaver/appweaver/commit/883924b64a74ef5415f0c7958d6c1241dda20e55))
+
 ## [1.0.2](https://gitlab.com/app-weaver/appweaver/compare/v1.0.1...v1.0.2) (2026-04-02)
 
 ### Bug Fixes
