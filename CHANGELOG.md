@@ -1,3 +1,9 @@
+## [1.0.4](https://gitlab.com/app-weaver/appweaver/compare/v1.0.3...v1.0.4) (2026-04-07)
+
+### Bug Fixes
+
+* update Prisma versions, add <srcPath> variable placeholder for path variables, fix generate types and load models cli functions, rename resource route to routeS variable, update skill files ([08563ad](https://gitlab.com/app-weaver/appweaver/commit/08563ad4bfae381d6245a38d7a7afa83f31e2925))
+
 ## [1.0.3](https://gitlab.com/app-weaver/appweaver/compare/v1.0.2...v1.0.3) (2026-04-07)
 
 ### Bug Fixes
