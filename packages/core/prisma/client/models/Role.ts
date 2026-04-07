@@ -302,6 +302,16 @@ export type RoleUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+export type RoleListRelationFilter = {
+  every?: Prisma.RoleWhereInput
+  some?: Prisma.RoleWhereInput
+  none?: Prisma.RoleWhereInput
+}
+
+export type RoleOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
 export type RoleCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
@@ -329,16 +339,6 @@ export type RoleMinOrderByAggregateInput = {
 
 export type RoleSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
-}
-
-export type RoleListRelationFilter = {
-  every?: Prisma.RoleWhereInput
-  some?: Prisma.RoleWhereInput
-  none?: Prisma.RoleWhereInput
-}
-
-export type RoleOrderByRelationAggregateInput = {
-  _count?: Prisma.SortOrder
 }
 
 export type RoleCreateNestedManyWithoutPermissionsInput = {

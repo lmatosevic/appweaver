@@ -36,7 +36,7 @@ export function loadPackageJson(): Record<string, string> {
 export async function loadModels(
   modelPattern: string
 ): Promise<Record<string, ResourceModel>> {
-  const cwd = path.join(process.cwd(), config.APP_SOURCE_PATH);
+  const cwd = process.cwd();
 
   register({
     transpileOnly: true,

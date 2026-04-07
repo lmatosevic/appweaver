@@ -273,6 +273,7 @@ export function replacePatternVariables(
     seconds: now.getUTCSeconds(),
     milliseconds: now.getUTCMilliseconds(),
     timestamp: now.getTime(),
+    date: now.toISOString().replace(/[:.]/g, '-'),
     uuid: uuid(),
     hash: generateToken('bytes', 32)
   };

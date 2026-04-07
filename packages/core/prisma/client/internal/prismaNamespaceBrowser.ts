@@ -53,8 +53,8 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   ApiKey: 'ApiKey',
   OneTimeToken: 'OneTimeToken',
-  Role: 'Role',
   Permission: 'Permission',
+  Role: 'Role',
   Seeder: 'Seeder',
   File: 'File'
 } as const
@@ -100,16 +100,6 @@ export const OneTimeTokenScalarFieldEnum = {
 export type OneTimeTokenScalarFieldEnum = (typeof OneTimeTokenScalarFieldEnum)[keyof typeof OneTimeTokenScalarFieldEnum]
 
 
-export const RoleScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  updatedAt: 'updatedAt',
-  createdAt: 'createdAt'
-} as const
-
-export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof RoleScalarFieldEnum]
-
-
 export const PermissionScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -118,6 +108,16 @@ export const PermissionScalarFieldEnum = {
 } as const
 
 export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
+
+
+export const RoleScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof RoleScalarFieldEnum]
 
 
 export const SeederScalarFieldEnum = {

@@ -32,8 +32,8 @@ const configSchema = Type.Object({
   }),
   APP_BUILD_PATH: Type.String({ default: './dist' }),
   APP_SOURCE_PATH: Type.String({ default: './src' }),
-  APP_SCAN_FILES_PATTERN: Type.String({ default: './*/index.ts' }),
-  APP_MAIN_FILE_PATH: Type.String({ default: './src/main.ts' }),
+  APP_SCAN_FILES_PATTERN: Type.String({ default: '<srcPath>/*/index.ts' }),
+  APP_MAIN_FILE_PATH: Type.String({ default: '<srcPath>/main.ts' }),
   APP_AUTOLOAD_MODULES: Type.Array(Type.String(), { default: [] }),
 
   LOG_LEVEL: Type.Enum(LogLevel, { default: LogLevel.Info }),
@@ -82,19 +82,19 @@ const configSchema = Type.Object({
   CORS_CREDENTIALS: Type.Boolean({ default: true }),
 
   RESOURCE_MODEL_PATTERN: Type.String({
-    default: './resources/*/*model.ts'
+    default: '<srcPath>/resources/*/*model.ts'
   }),
   RESOURCE_SERVICE_PATTERN: Type.String({
-    default: './resources/*/*service.ts'
+    default: '<srcPath>/resources/*/*service.ts'
   }),
   RESOURCE_POLICY_PATTERN: Type.String({
-    default: './resources/*/*policy.ts'
+    default: '<srcPath>/resources/*/*policy.ts'
   }),
-  RESOURCE_ROUTE_PATTERN: Type.String({
-    default: './resources/*/*routes.ts'
+  RESOURCE_ROUTES_PATTERN: Type.String({
+    default: '<srcPath>/resources/*/*routes.ts'
   }),
   RESOURCE_GENERATED_TYPES_PATH: Type.String({
-    default: './types/generated.ts'
+    default: '<srcPath>/types/generated.ts'
   }),
 
   EXPORT_BATCH_SIZE: Type.Integer({ default: 1000 }),
@@ -278,6 +278,22 @@ if (!parsedConfig.APP_HOSTNAME) {
       ? 'localhost'
       : parsedConfig.SERVER_HOST;
   parsedConfig.APP_HOSTNAME = `http://${host}:${parsedConfig.SERVER_PORT}`;
+}
+
+// Replace <srcPath> placeholder with APP_SOURCE_PATH in path variables
+for (const property of [
+  'APP_SCAN_FILES_PATTERN',
+  'APP_MAIN_FILE_PATH',
+  'RESOURCE_MODEL_PATTERN',
+  'RESOURCE_SERVICE_PATTERN',
+  'RESOURCE_POLICY_PATTERN',
+  'RESOURCE_ROUTES_PATTERN',
+  'RESOURCE_GENERATED_TYPES_PATH'
+]) {
+  parsedConfig[property] = parsedConfig[property]?.replace(
+    '<srcPath>',
+    parsedConfig.APP_SOURCE_PATH
+  );
 }
 
 const config = addHelpers<Config>(parsedConfig);

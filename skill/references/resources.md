@@ -299,6 +299,7 @@ const config = {
   files: {
     photo: {
       mimeType: 'image/*',
+      namePattern: 'photos/{userId}-{name}-{hash}.{extension}',
       maxSize: '2 MB'
     },
     documents: {
@@ -310,14 +311,42 @@ const config = {
 };
 ```
 
-| Property      | Type               | Description                                                                                 |
-|---------------|--------------------|---------------------------------------------------------------------------------------------|
-| `mimeType`    | string \| RegExp   | Allowed MIME types (glob patterns like `'image/*'` supported).                              |
-| `namePattern` | string \| function | File naming pattern or function. Available placeholders: `{name}`, `{hash}`, `{extension}`. |
-| `array`       | boolean            | Allow multiple files.                                                                       |
-| `maxSize`     | number \| string   | Maximum file size (e.g. `'2 MB'`, `5242880`).                                               |
-| `maxCount`    | number             | Maximum number of files (for array fields).                                                 |
-| `output`      | RelationOutput     | When to include file info in output.                                                        |
+| Property      | Type               | Description                                                             |
+|---------------|--------------------|-------------------------------------------------------------------------|
+| `mimeType`    | string \| RegExp   | Allowed MIME types (glob patterns like `'image/*'` supported).          |
+| `namePattern` | string \| function | File naming pattern or function (available variables are listed below). |
+| `array`       | boolean            | Allow multiple files.                                                   |
+| `maxSize`     | number \| string   | Maximum file size (e.g. `'2 MB'`, `5242880`).                           |
+| `maxCount`    | number             | Maximum number of files (for array fields).                             |
+| `output`      | RelationOutput     | When to include file info in output.                                    |
+
+#### Available namePattern variables
+
+Default pattern is: `{name}-{hash}.{extension}`.
+
+| Variable        | Type   | Description                                 |
+|-----------------|--------|---------------------------------------------|
+| `name`          | string | Original filename without extension.        |
+| `extension`     | string | Original file extension.                    |
+| `resourceField` | string | Field name the file is assigned to.         |
+| `resourceName`  | string | Resource model name.                        |
+| `resourceId`    | string | Resource ID.                                |
+| `userId`        | string | Authenticated user ID.                      |
+| `userEmail`     | string | Authenticated user email.                   |
+| `year`          | number | Current UTC year.                           |
+| `month`         | number | Current UTC month (1-12).                   |
+| `day`           | number | Current UTC day of month.                   |
+| `weekDay`       | number | Current UTC day of week (0-6, Sunday is 0). |
+| `yearWeek`      | number | ISO week number.                            |
+| `yearDay`       | number | Day of year (1-366).                        |
+| `hours`         | number | Current UTC hours.                          |
+| `minutes`       | number | Current UTC minutes.                        |
+| `seconds`       | number | Current UTC seconds.                        |
+| `milliseconds`  | number | Current UTC milliseconds.                   |
+| `timestamp`     | number | Unix timestamp in milliseconds.             |
+| `date`          | string | Current date in ISO 8601 format.            |
+| `uuid`          | string | Generated random UUID.                      |
+| `hash`          | string | Generated random hash (32 bytes).           |
 
 ### Virtual fields
 

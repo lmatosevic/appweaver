@@ -17,13 +17,13 @@ import {
 } from '../types';
 
 export type LoadResourcePaths = {
-  /** Path pattern used for finding files that export resource models (default: `./resources/"*"/*model.ts`) */
+  /** Path pattern used for finding files that export resource models (default: `./src/resources/"*"/*model.ts`) */
   modelPattern?: string;
-  /** Path pattern used for finding files that export resource models (default: `./resources/"*"/*service.ts`) */
+  /** Path pattern used for finding files that export resource models (default: `./src/resources/"*"/*service.ts`) */
   servicePattern?: string;
-  /** Path pattern used for finding files that export resource models (default: `./resources/"*"/*policy.ts`) */
+  /** Path pattern used for finding files that export resource models (default: `./src/resources/"*"/*policy.ts`) */
   policyPattern?: string;
-  /** Path pattern used for finding files that export resource models (default: `./resources/"*"/*route.ts)` */
+  /** Path pattern used for finding files that export resource models (default: `./src/resources/"*"/*route.ts)` */
   routePattern?: string;
 };
 
@@ -176,7 +176,7 @@ async function loadRoutes(
   routePattern?: string
 ): Promise<Record<string, ResourceRoutes>> {
   const cwd = baseDir ?? process.cwd();
-  const pathPattern = routePattern || config.RESOURCE_ROUTE_PATTERN;
+  const pathPattern = routePattern || config.RESOURCE_ROUTES_PATTERN;
 
   const routes: Record<string, ResourceRoutes> = {};
 

@@ -8,7 +8,8 @@
       "runtime": "node",
       "buildPath": "./dist",
       "sourcePath": "./src",
-      "scanFilesPattern": "./*/index.ts",
+      "scanFilesPattern": "<srcPath>/*/index.ts",
+      "mainFilePath": "<srcPath>/main.ts",
       "autoloadModules": ["aws-storage", "service-bus"]
     },
     "server": {
@@ -63,11 +64,11 @@
       "credentials": true
     },
     "resource": {
-      "modelPattern": "./resources/*/*model.ts",
-      "servicePattern": "./resources/*/*service.ts",
-      "policyPattern": "./resources/*/*policy.ts",
-      "routePattern": "./resources/*/*route.ts",
-      "generatedTypesPath": "./types/generated.ts"
+      "modelPattern": "<srcPath>/resources/*/*model.ts",
+      "servicePattern": "<srcPath>/resources/*/*service.ts",
+      "policyPattern": "<srcPath>/resources/*/*policy.ts",
+      "routesPattern": "<srcPath>/resources/*/*route.ts",
+      "generatedTypesPath": "<srcPath>/types/generated.ts"
     },
     "export": {
       "csv": {

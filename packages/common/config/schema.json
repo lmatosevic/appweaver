@@ -47,16 +47,20 @@
               "default": "node"
             },
             "buildPath": {
-              "type": ["string", "null"],
+              "type": "string",
               "default": "./dist"
             },
             "sourcePath": {
-              "type": ["string", "null"],
+              "type": "string",
               "default": "./src"
             },
             "scanFilesPattern": {
               "type": "string",
-              "default": "./*/index.ts"
+              "default": "<srcPath>/*/index.ts"
+            },
+            "mainFilePath": {
+              "type": "string",
+              "default": "<srcPath>/main.ts"
             },
             "autoloadModules": {
               "type": "array",
@@ -310,23 +314,23 @@
           "properties": {
             "modelPattern": {
               "type": "string",
-              "default": "./resources/*/*model.ts"
+              "default": "<srcPath>/resources/*/*model.ts"
             },
             "servicePattern": {
               "type": "string",
-              "default": "./resources/*/*service.ts"
+              "default": "<srcPath>/resources/*/*service.ts"
             },
             "policyPattern": {
               "type": "string",
-              "default": "./resources/*/*policy.ts"
+              "default": "<srcPath>/resources/*/*policy.ts"
             },
-            "routePattern": {
+            "routesPattern": {
               "type": "string",
-              "default": "./resources/*/*routes.ts"
+              "default": "<srcPath>/resources/*/*routes.ts"
             },
             "generatedTypesPath": {
               "type": "string",
-              "default": "./types/generated.ts"
+              "default": "<srcPath>/types/generated.ts"
             }
           }
         },

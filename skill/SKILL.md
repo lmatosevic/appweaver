@@ -151,15 +151,6 @@ import { createModel } from '@appweaver/core';
 
 export default createModel({
   name: 'Product',
-  id: {
-    type: 'int',
-    generator: 'autoincrement()'
-  },
-  audit: {
-    createdAt: true,
-    updatedAt: true,
-    createdById: true
-  },
   scalars: {
     title: {
       type: 'string',
@@ -290,9 +281,17 @@ import { createAuthModel } from '@appweaver/core';
 
 export default createAuthModel({
   name: 'User',
-  id: { type: 'int', generator: 'autoincrement()' },
   scalars: {
-    name: { type: 'string', maxLength: 100 }
+    name: {
+      type: 'string',
+      maxLength: 100
+    }
+  },
+  files: {
+    avatar: {
+      mimeType: 'image/(png|jpeg|gif)',
+      maxSize: '2 MB'
+    }
   }
 });
 ```

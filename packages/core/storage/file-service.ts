@@ -182,7 +182,7 @@ export class FileService {
       resourceName: client.name,
       resourceId: resource.id,
       userId: identity?.id,
-      userName: identity?.email
+      userEmail: identity?.email
     });
 
     let nameRegenCount = 0;

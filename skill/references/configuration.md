@@ -77,9 +77,9 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `APP_RUNTIME`            | string   | `'node'`                           | Application runtime. Autodetects Bun global module. Values: `node`, `bun`                                 |
 | `APP_VERSION`            | string   | `'unknown'`                        | Application version. Mapped from `npm_package_version`.                                                   |
 | `APP_BUILD_PATH`         | string   | `'./dist'`                         | Path to compiled build artifacts.                                                                         |
-| `APP_SOURCE_PATH`        | string   | `'./src'`                          | Path to source code for auto-scanning.                                                                    |
-| `APP_SCAN_FILES_PATTERN` | string   | `'./*/index.ts'`                   | Glob pattern for scanning files within `APP_SOURCE_PATH`.                                                 |
-| `APP_MAIN_FILE_PATH`     | string   | `'./src/main.ts'`                  | Path to main application entrypoint file.                                                                 |
+| `APP_SOURCE_PATH`        | string   | `'./src'`                          | Path to the application source code. Used in other path variables with <srcPath> placeholder.             |
+| `APP_SCAN_FILES_PATTERN` | string   | `'<srcPath>/*/index.ts'`           | Glob pattern for scanning application files.                                                              |
+| `APP_MAIN_FILE_PATH`     | string   | `'<srcPath>/main.ts'`              | Path to main application entrypoint file.                                                                 |
 | `APP_AUTOLOAD_MODULES`   | string[] | `[]`                               | Module paths to auto-load on startup.                                                                     |
 
 ### Logging (LOG_*)
@@ -153,13 +153,13 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 ### Resources (RESOURCE_*)
 
-| Property                        | Type   | Default                          | Description                                 |
-|---------------------------------|--------|----------------------------------|---------------------------------------------|
-| `RESOURCE_MODEL_PATTERN`        | string | `'./src/resources/*/model.ts'`   | Glob pattern for resource model files.      |
-| `RESOURCE_SERVICE_PATTERN`      | string | `'./src/resources/*/service.ts'` | Glob pattern for resource service files.    |
-| `RESOURCE_POLICY_PATTERN`       | string | `'./src/resources/*/policy.ts'`  | Glob pattern for resource policy files.     |
-| `RESOURCE_ROUTE_PATTERN`        | string | `'./src/resources/*/routes.ts'`  | Glob pattern for resource route files.      |
-| `RESOURCE_GENERATED_TYPES_PATH` | string | `'./src/types/generated.ts'`     | Output path for generated TypeScript types. |
+| Property                        | Type   | Default                              | Description                                 |
+|---------------------------------|--------|--------------------------------------|---------------------------------------------|
+| `RESOURCE_MODEL_PATTERN`        | string | `'<srcPath>/resources/*/model.ts'`   | Glob pattern for resource model files.      |
+| `RESOURCE_SERVICE_PATTERN`      | string | `'<srcPath>/resources/*/service.ts'` | Glob pattern for resource service files.    |
+| `RESOURCE_POLICY_PATTERN`       | string | `'<srcPath>/resources/*/policy.ts'`  | Glob pattern for resource policy files.     |
+| `RESOURCE_ROUTES_PATTERN`       | string | `'<srcPath>/resources/*/routes.ts'`  | Glob pattern for resource routes files.     |
+| `RESOURCE_GENERATED_TYPES_PATH` | string | `'<srcPath>/types/generated.ts'`     | Output path for generated TypeScript types. |
 
 ### Data export (EXPORT_*)
 

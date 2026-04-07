@@ -24,11 +24,11 @@ export type Config = {
   APP_RUNTIME: Runtime;
   /** Path to compiled build artifacts. Default: `'./dist'`. */
   APP_BUILD_PATH: string;
-  /** Path to the application source code for auto-scanning. Default: `'./src'`. */
+  /** Path to the application source code. Default: `'./src'`. */
   APP_SOURCE_PATH: string;
-  /** Glob pattern for scanning files within `APP_SOURCE_PATH`. Default: `'./"*"/index.ts'`. */
+  /** Glob pattern for scanning application files. Default: `'<srcPath>/"*"/index.ts'`. */
   APP_SCAN_FILES_PATTERN: string;
-  /** Path to the application entry point file. Default: `'./src/main.ts'`. */
+  /** Path to the application entry point file. Default: `'<srcPath>/main.ts'`. */
   APP_MAIN_FILE_PATH: string;
   /** Module paths to autoload on startup. Default: `[]`. */
   APP_AUTOLOAD_MODULES: string[];
@@ -117,15 +117,15 @@ export type Config = {
   /** Allow credentials (cookies, auth headers). Default: `true`. */
   CORS_CREDENTIALS: boolean;
 
-  /** Glob pattern for resource model files. Default: `'./resources/"*"/*model.ts'`. */
+  /** Glob pattern for resource model files. Default: `'<srcPath>/resources/"*"/*model.ts'`. */
   RESOURCE_MODEL_PATTERN: string;
-  /** Glob pattern for resource service files. Default: `'./resources/"*"/*service.ts'`. */
+  /** Glob pattern for resource service files. Default: `'<srcPath>/resources/"*"/*service.ts'`. */
   RESOURCE_SERVICE_PATTERN: string;
-  /** Glob pattern for resource policy files. Default: `'./resources/"*"/*policy.ts'`. */
+  /** Glob pattern for resource policy files. Default: `'<srcPath>/resources/"*"/*policy.ts'`. */
   RESOURCE_POLICY_PATTERN: string;
-  /** Glob pattern for resource route files. Default: `'./resources/"*"/*routes.ts'`. */
-  RESOURCE_ROUTE_PATTERN: string;
-  /** Output path for generated TypeScript types. Default: `'./types/generated.ts'`. */
+  /** Glob pattern for resource routes files. Default: `'<srcPath>/resources/"*"/*routes.ts'`. */
+  RESOURCE_ROUTES_PATTERN: string;
+  /** Output path for generated TypeScript types. Default: `'<srcPath>/types/generated.ts'`. */
   RESOURCE_GENERATED_TYPES_PATH: string;
 
   /** Number of records per batch during export. Default: `1000`. */

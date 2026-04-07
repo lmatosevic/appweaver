@@ -28,15 +28,15 @@ export type ApiKey = Prisma.ApiKeyModel
  */
 export type OneTimeToken = Prisma.OneTimeTokenModel
 /**
- * Model Role
- * 
- */
-export type Role = Prisma.RoleModel
-/**
  * Model Permission
  * 
  */
 export type Permission = Prisma.PermissionModel
+/**
+ * Model Role
+ * 
+ */
+export type Role = Prisma.RoleModel
 /**
  * Model Seeder
  * 

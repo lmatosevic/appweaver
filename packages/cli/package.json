@@ -30,7 +30,7 @@
     "commander": "14.0.3",
     "glob": "13.0.1",
     "prettier": "3.8.1",
-    "prisma": "7.6.0",
+    "prisma": "7.7.0",
     "rimraf": "6.1.2",
     "tree-kill": "1.2.2",
     "ts-node": "10.9.2",

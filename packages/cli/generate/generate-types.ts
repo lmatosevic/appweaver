@@ -3,13 +3,7 @@ import fsp from 'node:fs/promises';
 import { TModule, TObject, TSchema, Type } from '@sinclair/typebox';
 import { ModelToTypeScript } from '@sinclair/typebox-codegen';
 import { ResourceModel } from '@appweaver/core';
-import {
-  config,
-  DateType,
-  EnumType,
-  isArray,
-  NullType
-} from '@appweaver/common';
+import { DateType, EnumType, isArray, NullType } from '@appweaver/common';
 import { runProcess } from '../utils';
 
 export async function generateTypes(
@@ -18,8 +12,7 @@ export async function generateTypes(
   quiet: boolean = false
 ): Promise<void> {
   const cwd = process.cwd();
-  const typesSourcePath = path.join(config.APP_SOURCE_PATH, typesPath);
-  const typesDir = path.join(cwd, path.dirname(typesSourcePath));
+  const typesDir = path.join(cwd, path.dirname(typesPath));
 
   try {
     await fsp.access(typesDir, fsp.constants.F_OK);
@@ -61,7 +54,7 @@ export async function generateTypes(
       typesContent.push(generateTypeScriptType(module, name), ``);
     }
 
-    const outputPath = path.join(cwd, typesSourcePath);
+    const outputPath = path.join(cwd, typesPath);
     await fsp.writeFile(outputPath, typesContent.join('\n'));
 
     await runProcess('prettier', [

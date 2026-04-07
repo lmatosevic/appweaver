@@ -21,7 +21,7 @@ export type CreateAppParams = {
   /** An object containing the path patterns for loading resources from. */
   resourcePaths?: LoadResourcePaths;
   /** Path pattern used for finding modules that export application logic
-   * (default: `./"*"/index.ts`) */
+   * (default: `./src/"*"/index.ts`) */
   modulePaths?: string;
   /** A boolean flag indicating whether the application should automatically load
    * resources configured and exported using factory functions. (default: true) */
