@@ -203,7 +203,7 @@ program
     console.log(`Done\n`);
 
     if (command.getOptionValue('skipInstall')) {
-      console.log(`${sanitizedName} created successfully!`);
+      console.log(`${name} created successfully!`);
       return;
     }
 
@@ -223,7 +223,7 @@ program
 
     console.log(`Done\n`);
 
-    console.log(`${sanitizedName} created successfully!`);
+    console.log(`${name} created successfully!`);
   })
   .parse();
 
