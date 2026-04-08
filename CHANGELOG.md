@@ -1,3 +1,9 @@
+## [1.0.5](https://gitlab.com/app-weaver/appweaver/compare/v1.0.4...v1.0.5) (2026-04-08)
+
+### Bug Fixes
+
+* restructure packages dependencies, change bun template linker to isolated, update default template package.json templates, update skill documents ([cb73983](https://gitlab.com/app-weaver/appweaver/commit/cb73983396f1b3352ed9e4512cb340d902e20c9c))
+
 ## [1.0.4](https://gitlab.com/app-weaver/appweaver/compare/v1.0.3...v1.0.4) (2026-04-07)
 
 ### Bug Fixes
