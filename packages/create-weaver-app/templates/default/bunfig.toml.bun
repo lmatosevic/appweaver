@@ -1,6 +1,5 @@
 [install]
-# This is required linker method since "isolated" breaks the dynamic imports from node_modules
-linker = "hoisted"
+linker = "isolated"
 
 [test]
 root = "test"

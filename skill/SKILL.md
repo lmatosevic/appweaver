@@ -178,6 +178,7 @@ export default createModel({
   relations: {
     category: {
       model: 'Category',
+      mappedBy: 'products',
       owner: true,
       output: { type: 'always' }
     }

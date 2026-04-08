@@ -34,10 +34,12 @@
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-jest": "29.12.1",
     "eslint-plugin-prettier": "5.5.5",
-    "globals": "17.0.0",
+    "globals": "17.4.0",
     "jest": "30.2.0",
     "jest-junit": "16.0.0",
     "prettier": "3.8.1",
+    "tsc-alias": "1.8.16",
+    "tsc-watch": "7.2.0",
     "typescript": "5.9.3",
     "typescript-eslint": "8.53.1"
   }

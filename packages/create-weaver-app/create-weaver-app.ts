@@ -4,8 +4,8 @@ import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
-import { glob } from 'glob';
 import { Command, InvalidOptionArgumentError } from 'commander';
+import { glob } from 'glob';
 
 const pkg = JSON.parse(
   fs.readFileSync(path.join(__dirname, './package.json'), 'utf8')
@@ -230,7 +230,7 @@ program
 function getNodeDependencies(command: Command, runtime: string): string[] {
   const dependencies: string[] = [];
 
-  const prismaVersion = '7.6.0';
+  const prismaVersion = '7.7.0';
   const adapters = {
     sqlite:
       runtime === 'bun'
@@ -250,6 +250,9 @@ function getNodeDependencies(command: Command, runtime: string): string[] {
 
   dependencies.push(databaseDependency);
 
+  dependencies.push(`"@prisma/client": "${prismaVersion}"`);
+  dependencies.push(`"prisma": "${prismaVersion}"`);
+
   if (!command.getOptionValue('noQueue')) {
     dependencies.push('"bullmq": "5.70.1"');
   }
@@ -266,7 +269,7 @@ function getNodeDependencies(command: Command, runtime: string): string[] {
     dependencies.push('"nodemailer": "8.0.1"');
   }
 
-  return dependencies.map((d) => `    ${d}`);
+  return dependencies.sort().map((d) => `    ${d}`);
 }
 
 function getDatabaseUrl(

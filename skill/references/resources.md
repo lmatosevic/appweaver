@@ -2,7 +2,8 @@
 
 Resources are the core building blocks of an Appweaver application. There are four resource types that form a
 dependency chain: **model** → **service** → **routes** → **policy**. Each resource type is created using a
-corresponding factory function and autoloaded from `src/resources/*/` on application start.
+corresponding factory function and autoloaded from `src/resources/*/` on application start. Source directory and
+resources pattern could be changed with `APP_SOURCE_PATH` and `RESOURCE_{MODEL,SERVICE,...}_PATTERN` config variables.
 
 - A **model** is always required.
 - A **service** requires a model.

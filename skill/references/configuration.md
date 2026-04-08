@@ -15,7 +15,8 @@ Configuration is loaded and merged in the following order (later sources overrid
 
 ## JSON configuration format
 
-Configuration in JSON files is nested under the `config` key using camelCase property names. These are automatically
+Configuration in JSON files is nested under the `config` key using camelCase property names. This is the preferred way
+for application configuration (except for passwords and secrets, then use the.env file instead). These are automatically
 mapped to their `SCREAMING_SNAKE_CASE` equivalents:
 
 ```json
