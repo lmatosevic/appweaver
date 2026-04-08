@@ -14,6 +14,13 @@
     "url": "https://gitlab.com/app-weaver/appweaver.git",
     "directory": "packages/cli"
   },
+  "maintainers": [
+    {
+      "name": "Luka Matosevic",
+      "email": "lukamatosevic5@gmail.com",
+      "web": "https://lukamatosevic.com"
+    }
+  ],
   "publishConfig": {
     "access": "public",
     "registry": "https://gitlab.com/api/v4/projects/77748589/packages/npm/"
