@@ -1,3 +1,13 @@
+## [1.0.6](https://gitlab.com/app-weaver/appweaver/compare/v1.0.5...v1.0.6) (2026-04-09)
+
+### Bug Fixes
+
+* add maintainers section to all packages ([f0cf20e](https://gitlab.com/app-weaver/appweaver/commit/f0cf20efda06c35c8e56229b0115a66e016f1c45))
+* add textToBytes utility function and used for all maxSize config values ([10bd83c](https://gitlab.com/app-weaver/appweaver/commit/10bd83c9b02f06e5877a33aae8ae9a5b43207a38))
+* restructured types and utility functions from Core to Common module ([601ac99](https://gitlab.com/app-weaver/appweaver/commit/601ac99ef79b7d325044582d3fb9bf3ce0e613ba))
+* update AI guidelines and skill files for resource relations usage ([d245a2f](https://gitlab.com/app-weaver/appweaver/commit/d245a2fd017e62c9d42e5a6579ab84f17a8481e6))
+* update create-weaver-app log messages with real app name ([6643c39](https://gitlab.com/app-weaver/appweaver/commit/6643c391b964a7acd5bd2ae2e33180fa6dc0f6aa))
+
 ## [1.0.5](https://gitlab.com/app-weaver/appweaver/compare/v1.0.4...v1.0.5) (2026-04-08)
 
 ### Bug Fixes
