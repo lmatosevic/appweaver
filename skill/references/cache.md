@@ -156,17 +156,17 @@ const key = cacheService.buildCacheKey({
 
 ## Configuration
 
-| Key                           | Type      | Default                               | Description                                        |
-|-------------------------------|-----------|---------------------------------------|----------------------------------------------------|
-| `CACHE_ENABLED`               | `bool`    | `true`                                | Enables or disables the cache globally             |
-| `CACHE_PROVIDER`              | `string`  | `'@appweaver/core/cache/redis-cache'` | Path to the Cache implementation                   |
-| `CACHE_KEY_PREFIX`            | `string`  | `'cache:'`                            | Prefix prepended to every key                      |
-| `CACHE_MAX_ITEMS`             | `int`     | `1000`                                | Maximum number of entries before eviction kicks in |
-| `CACHE_CACHE_MAX_SIZE_BYTES`  | `integer` | -                                     | Maximum size used by the cache in bytes.           |
-| `CACHE_DEFAULT_TTL`           | `int`     | `5000`                                | Default TTL in milliseconds                        |
-| `CACHE_EVICTION_STRATEGY`     | `enum`    | `'lru'`                               | `lru`, `lfu`, or `fifo`                            |
-| `CACHE_INVALIDATION_STRATEGY` | `enum`    | `'expire-related'`                    | `expire-related`, `expire-all`, or `none`          |
-| `CACHE_INVALIDATION_DEFERRED` | `bool`    | `false`                               | Fire invalidation in the background (non-blocking) |
+| Key                           | Type     | Default                               | Description                                        |
+|-------------------------------|----------|---------------------------------------|----------------------------------------------------|
+| `CACHE_ENABLED`               | `bool`   | `true`                                | Enables or disables the cache globally             |
+| `CACHE_PROVIDER`              | `string` | `'@appweaver/core/cache/redis-cache'` | Path to the Cache implementation                   |
+| `CACHE_KEY_PREFIX`            | `string` | `'cache:'`                            | Prefix prepended to every key                      |
+| `CACHE_MAX_ITEMS`             | `int`    | `1000`                                | Maximum number of entries before eviction kicks in |
+| `CACHE_CACHE_MAX_SIZE`        | `string` | -                                     | Maximum size used by the cache.                    |
+| `CACHE_DEFAULT_TTL`           | `int`    | `5000`                                | Default TTL in milliseconds                        |
+| `CACHE_EVICTION_STRATEGY`     | `enum`   | `'lru'`                               | `lru`, `lfu`, or `fifo`                            |
+| `CACHE_INVALIDATION_STRATEGY` | `enum`   | `'expire-related'`                    | `expire-related`, `expire-all`, or `none`          |
+| `CACHE_INVALIDATION_DEFERRED` | `bool`   | `false`                               | Fire invalidation in the background (non-blocking) |
 
 Switch to the in-memory implementation for local development or tests:
 

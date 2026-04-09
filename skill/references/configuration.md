@@ -99,19 +99,19 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 ### Server (SERVER_*)
 
-| Property                         | Type    | Default      | Description                                          |
-|----------------------------------|---------|--------------|------------------------------------------------------|
-| `SERVER_PORT`                    | integer | `5000`       | HTTP server listening port.                          |
-| `SERVER_HOST`                    | string  | `'0.0.0.0'`  | HTTP server listening host/IP.                       |
-| `SERVER_API_PREFIX`              | string  | `'/api'`     | Base path prefix for all API routes.                 |
-| `SERVER_BODY_LIMIT_BYTES`        | integer | `104857600`  | Maximum request body size in bytes (default 100 MB). |
-| `SERVER_STATIC_ENABLED`          | boolean | `true`       | Enable serving static files from disk.               |
-| `SERVER_STATIC_DIR_PATH`         | string  | `'./public'` | Directory containing static files.                   |
-| `SERVER_STATIC_ROUTE_PREFIX`     | string  | `'/public'`  | URL prefix for static file routes.                   |
-| `SERVER_STATIC_MAX_AGE`          | string  | `'30d'`      | Cache-Control max-age for static files.              |
-| `SERVER_STATIC_ALLOWED_HOST`     | string? | -            | Host allowed to access static files (CORS).          |
-| `SERVER_TRUST_PROXY`             | boolean | `true`       | Trust `X-Forwarded-*` headers from reverse proxies.  |
-| `SERVER_REQUEST_LOGGING_ENABLED` | boolean | `false`      | Enable HTTP request/response logging.                |
+| Property                         | Type    | Default      | Description                                         |
+|----------------------------------|---------|--------------|-----------------------------------------------------|
+| `SERVER_PORT`                    | integer | `5000`       | HTTP server listening port.                         |
+| `SERVER_HOST`                    | string  | `'0.0.0.0'`  | HTTP server listening host/IP.                      |
+| `SERVER_API_PREFIX`              | string  | `'/api'`     | Base path prefix for all API routes.                |
+| `SERVER_BODY_MAX_SIZE`           | string  | `100M`       | Maximum request body size.                          |
+| `SERVER_STATIC_ENABLED`          | boolean | `true`       | Enable serving static files from disk.              |
+| `SERVER_STATIC_DIR_PATH`         | string  | `'./public'` | Directory containing static files.                  |
+| `SERVER_STATIC_ROUTE_PREFIX`     | string  | `'/public'`  | URL prefix for static file routes.                  |
+| `SERVER_STATIC_MAX_AGE`          | string  | `'30d'`      | Cache-Control max-age for static files.             |
+| `SERVER_STATIC_ALLOWED_HOST`     | string? | -            | Host allowed to access static files (CORS).         |
+| `SERVER_TRUST_PROXY`             | boolean | `true`       | Trust `X-Forwarded-*` headers from reverse proxies. |
+| `SERVER_REQUEST_LOGGING_ENABLED` | boolean | `false`      | Enable HTTP request/response logging.               |
 
 ### Rate limiting (RATE_LIMIT_*)
 
@@ -315,10 +315,10 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 ### In-memory store (MEMORY_*)
 
-| Property                | Type     | Default                              | Description                                   |
-|-------------------------|----------|--------------------------------------|-----------------------------------------------|
-| `MEMORY_MAX_SIZE_BYTES` | integer? | -                                    | Maximum size of the in-memory store in bytes. |
-| `MEMORY_PROVIDER`       | string   | `'@appweaver/core/memory/in-memory'` | In-memory provider implementation path.       |
+| Property          | Type    | Default                              | Description                             |
+|-------------------|---------|--------------------------------------|-----------------------------------------|
+| `MEMORY_MAX_SIZE` | string? | -                                    | Maximum size of the in-memory store.    |
+| `MEMORY_PROVIDER` | string  | `'@appweaver/core/memory/in-memory'` | In-memory provider implementation path. |
 
 ### Cache (CACHE_*)
 
@@ -328,7 +328,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `CACHE_CLEAN_START`           | boolean | `false`                               | Clear all cache entries on application startup.                        |
 | `CACHE_KEY_PREFIX`            | string  | `'cache:'`                            | Prefix prepended to all cache keys.                                    |
 | `CACHE_MAX_ITEMS`             | integer | `1000`                                | Maximum number of items in the cache.                                  |
-| `CACHE_CACHE_MAX_SIZE_BYTES`  | integer | -                                     | Maximum size used by the cache in bytes.                               |
+| `CACHE_CACHE_MAX_SIZE`        | string? | -                                     | Maximum size used by the cache.                                        |
 | `CACHE_DEFAULT_TTL`           | integer | `5000`                                | Default time-to-live for cache entries in milliseconds.                |
 | `CACHE_EVICTION_GRACE_PERIOD` | integer | `1000`                                | Grace period before evicting expired items (ms).                       |
 | `CACHE_EVICTION_STRATEGY`     | enum    | `'LRU'`                               | Eviction strategy. Values: `LRU`, `LFU`, `FIFO`.                       |

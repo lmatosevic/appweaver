@@ -3,7 +3,7 @@ import {
   FilesConfig,
   isString,
   replacePatternVariables,
-  sizeTextToBytes
+  textToBytes
 } from '@appweaver/common';
 import { File } from '../types';
 
@@ -24,14 +24,14 @@ export function maxFileSize(fileConfig: FilesConfig): number {
     .filter((v) => v > 0);
 
   if (!sizes.length) {
-    return config.SERVER_BODY_LIMIT_BYTES;
+    return textToBytes(config.SERVER_BODY_MAX_SIZE);
   }
 
   return Math.max(...sizes);
 }
 
 export function sizeInBytes(size?: string | number): number {
-  return isString(size) ? sizeTextToBytes(size) : 0;
+  return isString(size) ? textToBytes(size) : 0;
 }
 
 export function isValidMimeType(

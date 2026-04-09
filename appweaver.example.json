@@ -16,7 +16,7 @@
       "port": 5000,
       "host": "0.0.0.0",
       "apiPrefix": "/api",
-      "bodyLimitBytes": 104857600,
+      "bodyMaxSize": "100M",
       "staticEnabled": true,
       "staticDirPath": "./public",
       "staticRoutePrefix": "/public",
@@ -185,7 +185,7 @@
       "provider": "@appweaver/core/memory/redis"
     },
     "memory": {
-      "maxSizeBytes": 104857600,
+      "maxSize": "100M",
       "provider": "@appweaver/core/memory/memory"
     },
     "cache": {
@@ -193,7 +193,7 @@
       "cleanStart": false,
       "keyPrefix": "cache:",
       "maxItems": 1000,
-      "maxSizeBytes": 104857600,
+      "maxSize": "100M",
       "defaultTtl": 5000,
       "evictionGracePeriod": 1000,
       "evictionStrategy": "LRU",

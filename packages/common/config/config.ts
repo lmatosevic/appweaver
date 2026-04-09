@@ -49,7 +49,7 @@ const configSchema = Type.Object({
   SERVER_PORT: Type.Integer({ default: 5000 }),
   SERVER_HOST: Type.String({ default: '0.0.0.0' }),
   SERVER_API_PREFIX: Type.String({ default: '/api' }),
-  SERVER_BODY_LIMIT_BYTES: Type.Integer({ default: 104857600 }),
+  SERVER_BODY_MAX_SIZE: Type.String({ default: '100M' }),
   SERVER_STATIC_ENABLED: Type.Boolean({ default: true }),
   SERVER_STATIC_DIR_PATH: Type.String({ default: './public' }),
   SERVER_STATIC_ROUTE_PREFIX: Type.String({ default: '/public' }),
@@ -204,14 +204,14 @@ const configSchema = Type.Object({
   REDIS_URL: Type.String({ default: 'redis://localhost:6379/0' }),
   REDIS_PROVIDER: Type.String({ default: '@appweaver/core/memory/redis' }),
 
-  MEMORY_MAX_SIZE_BYTES: Type.Optional(Type.Integer()),
+  MEMORY_MAX_SIZE: Type.Optional(Type.String()),
   MEMORY_PROVIDER: Type.String({ default: '@appweaver/core/memory/in-memory' }),
 
   CACHE_ENABLED: Type.Boolean({ default: true }),
   CACHE_CLEAN_START: Type.Boolean({ default: false }),
   CACHE_KEY_PREFIX: Type.String({ default: 'cache:' }),
   CACHE_MAX_ITEMS: Type.Integer({ default: 1000 }),
-  CACHE_MAX_SIZE_BYTES: Type.Optional(Type.Integer()),
+  CACHE_MAX_SIZE: Type.Optional(Type.String()),
   CACHE_DEFAULT_TTL: Type.Integer({ default: 5000 }),
   CACHE_EVICTION_GRACE_PERIOD: Type.Integer({ default: 1000 }),
   CACHE_EVICTION_STRATEGY: Type.Enum(CacheEvictionStrategy, {

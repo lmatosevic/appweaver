@@ -1,6 +1,12 @@
 import { setTimeout } from 'node:timers/promises';
 import { parse, stringify } from 'flatted';
-import { config, HealthCheckResult, Memory, uuid } from '@appweaver/common';
+import {
+  config,
+  HealthCheckResult,
+  Memory,
+  textToBytes,
+  uuid
+} from '@appweaver/common';
 
 type StorageEntry = {
   value: string;
@@ -17,6 +23,8 @@ export class InMemory extends Memory {
   private readonly _storage: Map<string, StorageEntry> = new Map();
   /** @internal */
   private readonly _locks: Map<string, LockEntry> = new Map();
+  /** @internal */
+  private readonly _maxSizeBytes: number = textToBytes(config.MEMORY_MAX_SIZE);
   /** @internal */
   private _approximatedSize: number = 0;
 
@@ -75,8 +83,8 @@ export class InMemory extends Memory {
 
     // If memory max size is reached, remove entries from start until the size
     // is below the configured value
-    if (config.MEMORY_MAX_SIZE_BYTES) {
-      while (this._approximatedSize > config.MEMORY_MAX_SIZE_BYTES) {
+    if (this._maxSizeBytes) {
+      while (this._approximatedSize > this._maxSizeBytes) {
         await this.removeValue(this._storage.keys()[0]);
       }
     }

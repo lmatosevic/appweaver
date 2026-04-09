@@ -1,4 +1,4 @@
-import { randomUUID, createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { DefaultGenerationOptions, generateApiKey } from 'generate-api-key';
 import { getDayOfYear, getISOWeek } from 'date-fns';
 import { plural as pluralize, singular as singularize } from 'pluralize';
@@ -249,14 +249,19 @@ export function errorMessage(error: unknown): string {
 }
 
 /**
- * Converts a human-readable size string (e.g., "1.5 MB", "2GB") into its equivalent size in bytes.
+ * Converts a human-readable size string (e.g., "1.5 MB", "2GB", "5k") into its equivalent size in bytes.
  *
  * @param {string} sizeText - A string representing the size with an optional unit (e.g., "KB", "MB", "GB", "TB").
  *                            If no unit is specified, it defaults to bytes.
- * @return {number} The size in bytes as a rounded integer. Returns 0 if the input string is empty or invalid.
+ * @param {number} [defaultSize=0] - The default value for byte size in case `sizeText` is not in valid format.
+ * @return {number} The size in bytes as a rounded integer. Returns 0 or `defaultSize` if the input string is empty or
+ * invalid.
  */
-export function sizeTextToBytes(sizeText: string): number {
-  let sizeInBytes = 0;
+export function textToBytes(
+  sizeText?: string,
+  defaultSize: number = 0
+): number {
+  let sizeInBytes = defaultSize;
   const units = ['k', 'm', 'g', 't'];
 
   if (!sizeText) {
@@ -267,14 +272,15 @@ export function sizeTextToBytes(sizeText: string): number {
   const match = matches.next();
 
   if (match && match.value && match.value.length > 0) {
-    let multiplier = 1;
     const value = match.value[1];
     const unit = match.value[2];
 
+    let multiplier = 1;
     if (unit) {
-      const index = units.indexOf(unit.toLowerCase().replace('b', ''));
+      const unitSymbol = unit.toLowerCase().replace(/i?b$/, '');
+      const index = units.indexOf(unitSymbol);
       if (index !== -1) {
-        multiplier = Math.pow(1000, index + 1);
+        multiplier = Math.pow(1024, index + 1);
       }
     }
 
@@ -284,8 +290,9 @@ export function sizeTextToBytes(sizeText: string): number {
       if (!isNaN(number)) {
         numericalValue = number;
       }
-      sizeInBytes = numericalValue * multiplier;
     }
+
+    sizeInBytes = numericalValue * multiplier;
   }
 
   return Math.round(sizeInBytes);

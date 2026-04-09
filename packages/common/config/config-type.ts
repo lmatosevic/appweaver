@@ -58,8 +58,8 @@ export type Config = {
   SERVER_HOST: string;
   /** Base path prefix for all API routes. Default: `'/api'`. */
   SERVER_API_PREFIX: string;
-  /** Maximum request body size in bytes. Default: `104857600` (100 MB). */
-  SERVER_BODY_LIMIT_BYTES: number;
+  /** Maximum request body size. Default: `100M`. */
+  SERVER_BODY_MAX_SIZE: string;
   /** Enable serving static files from the disk. Default: `true`. */
   SERVER_STATIC_ENABLED: boolean;
   /** Directory containing static files. Default: `'./public'`. */
@@ -281,8 +281,8 @@ export type Config = {
   /** Redis provider implementation path. Default: `'@appweaver/core/memory/redis'`. */
   REDIS_PROVIDER: string;
 
-  /** Maximum size of the in-memory store in bytes. */
-  MEMORY_MAX_SIZE_BYTES?: number;
+  /** Maximum size of the in-memory store. */
+  MEMORY_MAX_SIZE?: string;
   /** In-memory provider implementation path. Default: `'@appweaver/core/memory/in-memory'`. */
   MEMORY_PROVIDER: string;
 
@@ -294,8 +294,8 @@ export type Config = {
   CACHE_KEY_PREFIX: string;
   /** Maximum number of items in the cache. Default: `1000`. */
   CACHE_MAX_ITEMS: number;
-  /** Maximum size used by the cache in bytes. */
-  CACHE_MAX_SIZE_BYTES?: number;
+  /** Maximum size used by the cache. */
+  CACHE_MAX_SIZE?: string;
   /** Default time-to-live for cache entries in milliseconds. Default: `5000` (5 sec). */
   CACHE_DEFAULT_TTL: number;
   /** Grace period before evicting expired items in milliseconds. Default: `1000` (1 sec). */

@@ -15,7 +15,8 @@ import {
   PLUGIN,
   plural,
   Redis,
-  ROUTE
+  ROUTE,
+  textToBytes
 } from '@appweaver/common';
 import { context, inject, injectAll } from '../context';
 import { errorHandler } from '../errors';
@@ -59,7 +60,7 @@ export function createServer(): Server {
       caseSensitive: false
     },
     trustProxy: config.SERVER_TRUST_PROXY,
-    bodyLimit: config.SERVER_BODY_LIMIT_BYTES,
+    bodyLimit: textToBytes(config.SERVER_BODY_MAX_SIZE),
     disableRequestLogging: !config.SERVER_REQUEST_LOGGING_ENABLED,
     logger: loggerConfig
   }).withTypeProvider<TypeBoxTypeProvider>();

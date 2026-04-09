@@ -4,7 +4,8 @@ import {
   CacheEvictionStrategy,
   config,
   logger,
-  Memory
+  Memory,
+  textToBytes
 } from '@appweaver/common';
 import {
   EvictionIndex,
@@ -18,6 +19,8 @@ export abstract class Cache extends CommonCache {
   private readonly _entryMeta: Map<string, CacheEntryMeta> = new Map();
   /** @internal */
   private readonly _evictionIndex: EvictionIndex = this.createEvictionIndex();
+  /** @internal */
+  private readonly _maxSizeBytes: number = textToBytes(config.CACHE_MAX_SIZE);
 
   protected constructor(private readonly _memory: Memory) {
     super();
@@ -158,7 +161,7 @@ export abstract class Cache extends CommonCache {
 
   /** @internal */
   private async ensureMemoryLimit(): Promise<void> {
-    if (!config.CACHE_MAX_SIZE_BYTES) {
+    if (!this._maxSizeBytes) {
       return;
     }
 
@@ -174,7 +177,7 @@ export abstract class Cache extends CommonCache {
 
   /** @internal */
   private async runEnsureMemoryLimit(): Promise<void> {
-    if (!config.CACHE_MAX_SIZE_BYTES) {
+    if (!this._maxSizeBytes) {
       return;
     }
 
@@ -185,7 +188,7 @@ export abstract class Cache extends CommonCache {
       .reduce((a, b) => a + b, 0);
 
     // Evict candidates incrementally until memory usage falls within the limit
-    while (currentSizeBytes > config.CACHE_MAX_SIZE_BYTES) {
+    while (currentSizeBytes > this._maxSizeBytes) {
       const candidateKeys = this._evictionIndex.evictionCandidates(
         10,
         now,
@@ -204,7 +207,7 @@ export abstract class Cache extends CommonCache {
 
         // Skip eviction of the rest of candidates when memory usage falls
         // within the configured limit
-        if (currentSizeBytes <= config.CACHE_MAX_SIZE_BYTES) {
+        if (currentSizeBytes <= this._maxSizeBytes) {
           break;
         }
       }

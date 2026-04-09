@@ -139,9 +139,9 @@
               "type": "boolean",
               "default": true
             },
-            "bodyLimitBytes": {
-              "type": "integer",
-              "default": 104857600
+            "bodyMaxSize": {
+              "type": "string",
+              "default": "100M"
             },
             "staticDirPath": {
               "type": "string",
@@ -739,8 +739,8 @@
         "memory": {
           "type": "object",
           "properties": {
-            "maxSizeBytes": {
-              "type": ["integer", "null"]
+            "maxSize": {
+              "type": ["string", "null"]
             },
             "provider": {
               "type": "string",
@@ -767,8 +767,8 @@
               "type": "integer",
               "default": 1000
             },
-            "maxSizeBytes": {
-              "type": ["integer", "null"]
+            "maxSize": {
+              "type": ["string", "null"]
             },
             "defaultTtl": {
               "type": "integer",
