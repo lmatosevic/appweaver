@@ -49,6 +49,7 @@ export default createModel({
     },
     lastActivity: {
       type: 'dateTime',
+      defaultGenerator: 'now()',
       required: false
     }
   },
@@ -61,8 +62,7 @@ export default createModel({
         type: 'none'
       },
       output: {
-        type: 'always',
-        count: true
+        type: 'always'
       },
       minItems: 1,
       required: false,

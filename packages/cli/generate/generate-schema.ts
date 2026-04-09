@@ -309,7 +309,7 @@ export async function generateSchema(
     if (code !== 0 && oldSchema) {
       await fsp.writeFile(outputPath, oldSchema);
       console.error(
-        'Schema generation failed. Start with --verbose flag to see more errors.'
+        `Schema generation failed. ${quiet ? 'Start with --verbose flag to see error details.' : ''}`
       );
     } else {
       console.log(`Schema generated to ${path.relative(cwd, schemaPath)}`);
@@ -405,9 +405,9 @@ function createScalarSchema(
     attributes.push(`@unique`);
   }
 
-  if (scalar.default !== undefined) {
-    let defaultAttribute: string;
+  let defaultAttribute: string | undefined;
 
+  if (scalar.default !== undefined) {
     if (['string', 'dateTime', 'json'].includes(scalar.type) && !scalar.array) {
       defaultAttribute = `@default("${sanitize(scalar.default)}")`;
     } else if (scalar.array) {
@@ -425,14 +425,14 @@ function createScalarSchema(
     } else {
       defaultAttribute = `@default(${sanitize(scalar.default)})`;
     }
+  } else if (scalar.defaultGenerator !== undefined) {
+    defaultAttribute = `@default(${scalar.defaultGenerator})`;
+  } else if (scalar.defaultExpression?.length) {
+    defaultAttribute = `@default(dbgenerated("${scalar.defaultExpression}"))`;
+  }
 
-    if (defaultAttribute) {
-      if (scalar.defaultGenerated) {
-        defaultAttribute =
-          defaultAttribute.replace('@default(', '@default(dbgenerated(') + ')';
-      }
-      attributes.push(defaultAttribute);
-    }
+  if (defaultAttribute) {
+    attributes.push(defaultAttribute);
   }
 
   if (scalar.type === 'string' && scalar.maxLength && !isSqlite) {
@@ -614,13 +614,11 @@ function createIndexSchema(index?: IndexConfig): string[] {
     return indexes;
   }
 
-  if (isString(index[0])) {
-    for (const idx of index) {
-      indexes.push(`@@index(${idx})`);
-    }
-  } else if (isArray(index[0])) {
-    for (const indexGroups of index as string[][]) {
-      indexes.push(`@@index([${indexGroups.join(', ')}])`);
+  for (const idx of index) {
+    const indexValue = isArray(idx) ? `[${idx.join(', ')}]` : idx;
+    const indexExpression = `@@index(${indexValue})`;
+    if (!indexes.includes(indexExpression)) {
+      indexes.push(indexExpression);
     }
   }
 

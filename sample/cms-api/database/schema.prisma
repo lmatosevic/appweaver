@@ -21,7 +21,7 @@ model Post {
   status       PostStatus? @default(Draft)
   tags         String      @default("Nature,Animals")
   jsonLd       Json?
-  lastActivity DateTime?
+  lastActivity DateTime?   @default(now())
 
   /// Related columns
   author   User? @relation("PostAuthorUser", fields: [authorId], references: [id], onDelete: SetNull)

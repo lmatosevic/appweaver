@@ -11,6 +11,8 @@ const pkg = JSON.parse(
   fs.readFileSync(path.join(__dirname, './package.json'), 'utf8')
 );
 
+const prismaVersion = '7.7.0';
+
 const dbTypes = ['sqlite', 'postgresql', 'mysql', 'sqlserver'];
 const agentTypes = [
   'claude',
@@ -230,7 +232,6 @@ program
 function getNodeDependencies(command: Command, runtime: string): string[] {
   const dependencies: string[] = [];
 
-  const prismaVersion = '7.7.0';
   const adapters = {
     sqlite:
       runtime === 'bun'

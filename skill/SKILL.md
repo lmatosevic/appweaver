@@ -170,6 +170,10 @@ export default createModel({
       type: 'string',
       required: false
     },
+    lastViewedAt: {
+      type: 'dateTime',
+      defaultGenerator: 'now()'
+    },
     enabled: {
       type: 'boolean',
       default: true
@@ -238,7 +242,6 @@ import { createRoutes } from '@appweaver/core';
 
 export default createRoutes({
   modelName: 'Product',
-  path: '/products',
   find: {
     cache: true,
     roles: ['Admin', 'User'],

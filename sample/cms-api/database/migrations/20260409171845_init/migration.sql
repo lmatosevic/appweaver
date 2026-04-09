@@ -8,7 +8,7 @@ CREATE TABLE "Post" (
     "status" TEXT DEFAULT 'Draft',
     "tags" TEXT NOT NULL DEFAULT 'Nature,Animals',
     "jsonLd" JSONB,
-    "lastActivity" DATETIME,
+    "lastActivity" DATETIME DEFAULT CURRENT_TIMESTAMP,
     "authorId" INTEGER,
     "coverImageId" INTEGER,
     "updatedAt" DATETIME NOT NULL,

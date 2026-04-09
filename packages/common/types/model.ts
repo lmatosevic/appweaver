@@ -11,25 +11,30 @@ export type FieldType =
   | 'json'
   | 'enum';
 
-export type IdGeneratorString = 'uuid()' | 'uuid(7)' | 'cuid()' | 'cuid(2)';
+export type GeneratorString =
+  | 'uuid()'
+  | 'uuid(7)'
+  | 'cuid()'
+  | 'cuid(2)'
+  | 'nanoid()';
 
-export type IdGeneratorInt = 'autoincrement()';
+export type GeneratorInt = 'autoincrement()';
+
+export type GeneratorDateTime = 'now()';
 
 export type PrimitiveType = string | number | boolean | PrimitiveType[];
 
 export type ObjectType = Record<string, any>;
 
-export type FieldDefaultString = string | IdGeneratorString;
+export type FieldDefaultString = string;
 
-export type FieldDefaultNumber = number | IdGeneratorInt;
+export type FieldDefaultNumber = number;
 
 export type FieldDefaultBoolean = boolean;
 
-export type FieldDefaultDateTime = string | Date | 'now()';
+export type FieldDefaultDateTime = string | Date;
 
 export type FieldDefaultJson = ObjectType | PrimitiveType[];
-
-export type FieldDefaultEnum = string;
 
 export type FieldDefault =
   | FieldDefaultString
@@ -64,14 +69,14 @@ export type IdFieldString = {
   /** Field type for string IDs */
   type: 'string';
   /** ID generation strategy */
-  generator?: IdGeneratorString;
+  generator?: GeneratorString;
 };
 
 export type IdFieldInt = {
   /** Field type for integer IDs */
   type?: 'int' | 'bigInt';
   /** ID generation strategy */
-  generator?: IdGeneratorInt;
+  generator?: GeneratorInt;
 };
 
 export type IdField = IdFieldString | IdFieldInt;
@@ -85,13 +90,16 @@ export type AuditFields = {
   createdById?: boolean;
 };
 
-type BaseScalarField<T, IsArray extends boolean = boolean> = {
+type BaseScalarField<T, G = never, IsArray extends boolean = boolean> = {
   /** Whether the field holds an array of values */
   array?: IsArray;
   /** Static default value */
   default?: IsArray extends true ? T[] : T;
-  /** Default is computed/generated at the DB level */
-  defaultGenerated?: boolean;
+  /** Default is computed by the provided generator function */
+  defaultGenerator?: G;
+  /** Default is computed/generated at the DB level using the expression in
+   * supported database syntax. (e.g., (concat('token_', gen_random_uuid()))::TEXT) */
+  defaultExpression?: string;
   /** Field must be provided on creation */
   required?: boolean;
   /** Value must be unique across records */
@@ -102,7 +110,10 @@ type BaseScalarField<T, IsArray extends boolean = boolean> = {
   examples?: PrimitiveType[];
 };
 
-export type ScalarFieldString = BaseScalarField<FieldDefaultString> & {
+export type ScalarFieldString = BaseScalarField<
+  FieldDefaultString,
+  GeneratorString
+> & {
   /** Field type */
   type: 'string';
   /** Minimum string length */
@@ -115,7 +126,10 @@ export type ScalarFieldString = BaseScalarField<FieldDefaultString> & {
   pattern?: string;
 };
 
-export type ScalarFieldNumber = BaseScalarField<FieldDefaultNumber> & {
+export type ScalarFieldNumber = BaseScalarField<
+  FieldDefaultNumber,
+  GeneratorInt
+> & {
   /** Field type */
   type: 'int' | 'bigInt' | 'float';
   /** Minimum allowed value */
@@ -129,7 +143,10 @@ export type ScalarFieldBoolean = BaseScalarField<FieldDefaultBoolean> & {
   type: 'boolean';
 };
 
-export type ScalarFieldDateTime = BaseScalarField<FieldDefaultDateTime> & {
+export type ScalarFieldDateTime = BaseScalarField<
+  FieldDefaultDateTime,
+  GeneratorDateTime
+> & {
   /** Field type */
   type: 'dateTime';
   /** Date/time serialization format */
@@ -141,7 +158,7 @@ export type ScalarFieldJson = BaseScalarField<FieldDefaultJson> & {
   type: 'json';
 };
 
-export type ScalarFieldEnum = BaseScalarField<FieldDefaultEnum> & {
+export type ScalarFieldEnum = BaseScalarField<FieldDefaultString> & {
   /** Field type */
   type: 'enum';
   /** Allowed enum values */
@@ -286,7 +303,7 @@ export type VirtualConfig = FieldConfig<VirtualField>;
 
 export type ExportConfig = FieldConfig<ExportField | ExportRelations>;
 
-export type IndexConfig = string[] | string[][];
+export type IndexConfig = (string | string[])[];
 
 export type Model = {
   /** Custom model name */

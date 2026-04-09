@@ -34,7 +34,6 @@ export type PostSingle = {
   createdAt: Date;
   createdById?: number | null;
   author?: UserSingle | null;
-  authorCount: number;
   coverImage?: FileSingle | null;
   galleryImages: Array<FileSingle>;
   galleryImagesCount: number;
@@ -55,7 +54,6 @@ export type PostMultiple = {
   createdAt: Date;
   createdById?: number | null;
   author?: UserSingle | null;
-  authorCount: number;
   coverImage?: FileSingle | null;
   galleryImagesCount: number;
 };
