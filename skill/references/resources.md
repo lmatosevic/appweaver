@@ -237,10 +237,12 @@ const config = {
 ### Relations
 
 ```ts
+// src/resources/product/model.ts
 const config = {
   relations: {
     category: {
       model: 'Category',
+      mappedBy: 'products',
       owner: true,
       output: {
         type: 'always'
@@ -248,8 +250,8 @@ const config = {
     },
     reviews: {
       model: 'Review',
-      array: true,
       mappedBy: 'product',
+      array: true,
       output: {
         type: 'single',
         count: true
@@ -259,23 +261,148 @@ const config = {
 };
 ```
 
-| Property            | Type              | Default      | Description                                       |
-|---------------------|-------------------|--------------|---------------------------------------------------|
-| `model`             | string            | **required** | Target model name.                                |
-| `owner`             | boolean           | `false`      | This side owns the foreign key.                   |
-| `mappedBy`          | string            | -            | Name of the inverse relation on the target model. |
-| `array`             | boolean           | `false`      | One-to-many or many-to-many relation.             |
-| `unique`            | boolean           | `false`      | One-to-one relation (unique foreign key).         |
-| `required`          | boolean           | `true`       | Whether the relation is required.                 |
-| `minItems`          | number            | -            | Minimum items for array relations.                |
-| `createIfNotExists` | boolean           | `false`      | Auto-create related record if it doesn't exist.   |
-| `orphanRemoval`     | boolean           | `false`      | Delete orphaned records when parent is deleted.   |
-| `onDelete`          | ReferentialAction | -            | Foreign key action on delete.                     |
-| `onUpdate`          | ReferentialAction | -            | Foreign key action on update.                     |
-| `input`             | RelationInput     | -            | Input DTO configuration.                          |
-| `output`            | RelationOutput    | -            | Output DTO configuration.                         |
+```ts
+// src/resources/category/model.ts
+const config = {
+  relations: {
+    products: {
+      model: 'Product',
+      mappedBy: 'category',
+      array: true,
+      output: {
+        type: 'single'
+      }
+    }
+  }
+};
+```
+
+```ts
+// src/resources/review/model.ts
+const config = {
+  relations: {
+    product: {
+      model: 'Product',
+      mappedBy: 'reviews',
+      owner: true,
+      input: {
+        type: 'none'
+      }
+    }
+  }
+};
+```
+
+| Property            | Type              | Default      | Description                                                              |
+|---------------------|-------------------|--------------|--------------------------------------------------------------------------|
+| `model`             | string            | **required** | Target model name.                                                       |
+| `owner`             | boolean           | `false`      | This side owns the foreign key (only one side should be owner).          |
+| `mappedBy`          | string            | -            | Name of the inverse relation on the target model.                        |
+| `array`             | boolean           | `false`      | One-to-many value or many-to-many relation.                              |
+| `unique`            | boolean           | `false`      | One-to-one relation (unique foreign key).                                |
+| `required`          | boolean           | `true`       | Whether the relation is required (nullable foreign key if not required). |
+| `minItems`          | number            | -            | Minimum items for array relations.                                       |
+| `createIfNotExists` | boolean           | `false`      | Auto-create related record if it doesn't exist.                          |
+| `orphanRemoval`     | boolean           | `false`      | Delete orphaned records when parent is deleted.                          |
+| `onDelete`          | ReferentialAction | -            | Foreign key action on delete.                                            |
+| `onUpdate`          | ReferentialAction | -            | Foreign key action on update.                                            |
+| `input`             | RelationInput     | -            | Input DTO configuration.                                                 |
+| `output`            | RelationOutput    | -            | Output DTO configuration.                                                |
 
 **ReferentialAction values**: `'cascade'`, `'restrict'`, `'noAction'`, `'setNull'`, `'setDefault'`
+
+#### Relationship types
+
+The combination of `owner`, `array`, and `unique` properties determines the relationship type:
+
+**One-to-One**: One side has `owner: true` and `unique: true`, the other side has `owner: false` (default) and
+`unique: false` (default).
+
+```ts
+// User model
+const config = {
+  relations: {
+    profile: {
+      model: 'Profile',
+      mappedBy: 'user',
+      owner: true,
+      unique: true,
+      required: false // otherwise the Profile DTO must be sent when creating the user resource
+    }
+  }
+};
+```
+
+```ts
+// Profile model
+const config = {
+  relations: {
+    user: {
+      model: 'User',
+      mappedBy: 'profile'
+    }
+  }
+};
+```
+
+**One-to-Many**: The "one" side has `owner: false` (default) and `array: true`, the "many" side has `owner: true` and
+`array: false` (default).
+
+```ts
+// Category model (one)
+const config = {
+  relations: {
+    products: {
+      model: 'Product',
+      mappedBy: 'category',
+      array: true
+    }
+  }
+};
+```
+
+```ts
+// Product model (many)
+const config = {
+  relations: {
+    category: {
+      model: 'Category',
+      mappedBy: 'products',
+      owner: true
+    }
+  }
+};
+```
+
+**Many-to-Many**: Both sides have `array: true`. Only one side should have `owner: true` (determines which creates the
+join table).
+
+```ts
+// Post model
+const config = {
+  relations: {
+    tags: {
+      model: 'Tag',
+      mappedBy: 'posts',
+      owner: true,
+      array: true
+    }
+  }
+};
+```
+
+```ts
+// Tag model
+const config = {
+  relations: {
+    posts: {
+      model: 'Post',
+      mappedBy: 'tags',
+      array: true
+    }
+  }
+};
+```
 
 #### Relation input
 

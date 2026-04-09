@@ -180,7 +180,9 @@ export default createModel({
       model: 'Category',
       mappedBy: 'products',
       owner: true,
-      output: { type: 'always' }
+      output: {
+        type: 'always'
+      }
     }
   },
   files: {
@@ -215,7 +217,10 @@ export default createService({
     console.log('Product created:', resource.id);
   },
   textSearch: {
-    title: { contains: '{input}', mode: 'insensitive' }
+    title: {
+      contains: '{input}',
+      mode: 'insensitive'
+    }
   }
 });
 ```
@@ -234,10 +239,22 @@ import { createRoutes } from '@appweaver/core';
 export default createRoutes({
   modelName: 'Product',
   path: '/products',
-  find: { roles: ['Admin', 'User'], rateLimit: { max: 100 } },
-  query: { cache: true, cacheTTL: 5000 },
-  create: { permissions: ['product:create'] },
-  delete: { exclude: true }
+  find: {
+    cache: true,
+    roles: ['Admin', 'User'],
+    rateLimit: {
+      max: 100
+    }
+  },
+  query: {
+    cacheTTL: 5000
+  },
+  create: {
+    permissions: ['product:create']
+  },
+  delete: {
+    exclude: true
+  }
 });
 ```
 
@@ -259,7 +276,9 @@ export default createPolicy({
     enabled: true;
   },
   files: {
-    photo: { accessType: 'public' }
+    photo: {
+      accessType: 'public'
+    }
   }
 });
 ```

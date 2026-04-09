@@ -1,6 +1,6 @@
-### Project Guidelines
+# Project Guidelines
 
-#### 1. Build & Configuration
+## 1. Build & Configuration
 
 The project is a TypeScript monorepo using `tsc -b` for builds.
 
@@ -12,7 +12,7 @@ The project is a TypeScript monorepo using `tsc -b` for builds.
       allow packages to reference each other during development.
 - **Development Mode**: Run `npm run build:dev` to watch for changes and rebuild automatically.
 
-#### 2. Testing
+## 2. Testing
 
 Tests are located in `packages/*/test` and use **Jest** with **SWC** for fast execution.
 
@@ -33,7 +33,7 @@ describe('Feature Verification', () => {
 });
 ```
 
-#### 3. Development Information
+## 3. Development Information
 
 - **Code Style**:
     - **Formatting**: The project uses **Prettier**. Run `npm run format` to format the codebase after every task that
@@ -43,12 +43,12 @@ describe('Feature Verification', () => {
 - **Dependency Management**: Packages are linked locally in `node_modules/@appweaver` after the build. Ensure you run
   `npm run build` after making changes to shared packages if they are used by other packages or the sample application.
 
-IMPORTANT: after a new feature is added or change is done in how the library is used, always update
-./skill/SKILL.md file and any of the referenced files in ./skill/references/*.md.
+**IMPORTANT**: after a new feature is added or change is done in how the library is used, always update the
+[SKILL.md](./skill/SKILL.md) file and any of the referenced files in ./skill/references/*.md.
 
-#### 4. Architecture — Package Modules
+## 4. Architecture — Package Modules
 
-##### `packages/common`
+### `packages/common`
 
 Shared utilities, logger, configuration, and base types used by all other packages. Contains foundational TypeScript
 interfaces, type definitions, and helper utilities consumed by `packages/core` and `packages/cli`.
@@ -61,7 +61,7 @@ When changing the config schema in `packages/common/config/config.ts`, make sure
 - **appweaver.example.json**: example defaults as JSON properties
 - **.env.example**: example defaults as env variables
 
-##### `packages/core`
+### `packages/core`
 
 Core application logic. Organized into the following modules:
 
@@ -100,13 +100,13 @@ npm run generate
 npm run db:recreate
 ```
 
-##### `packages/cli`
+### `packages/cli`
 
 The `weaver` CLI tool. Entry point: `weaver.ts` → compiled to `dist/weaver.js`.
 
 See **Section 5** for the full command reference.
 
-##### `packages/create-weaver-app`
+### `packages/create-weaver-app`
 
 The `create-weaver-app` module is a project scaffolding tool that generates new Appweaver applications. It exposes the
 **`create-weaver-app`** CLI binary, which can be invoked via `npx create-weaver-app`.
@@ -122,13 +122,13 @@ During project generation, the CLI accepts arguments for name, description, runt
 skip installing. Then replaces the templates with defined variables, and copies only the relevant files based on the
 chosen runtime, stripping the `.tpl`, `.node`, or `.bun` extensions from the final output.
 
-#### 5. CLI Command Reference (`weaver`)
+## 5. CLI Command Reference (`weaver`)
 
 All commands are available via `weaver <command>`.
 
 ---
 
-##### `weaver build` (alias: `b`)
+### `weaver build` (alias: `b`)
 
 Build the application in the current project.
 
@@ -142,7 +142,7 @@ weaver build
 
 ---
 
-##### `weaver generate` (alias: `g`)
+### `weaver generate` (alias: `g`)
 
 Generate TypeScript types and/or a Prisma schema from resource model files.
 
@@ -165,7 +165,7 @@ Running with no flags generates **both** types and schema.
 
 ---
 
-##### `weaver migrate` (alias: `mge`)
+### `weaver migrate` (alias: `mge`)
 
 Apply pending database migrations (production / CI).
 
@@ -177,11 +177,11 @@ Executes `prisma migrate deploy`.
 
 ---
 
-##### `weaver migration` (alias: `mgn`)
+### `weaver migration` (alias: `mgn`)
 
 Database migration commands for development.
 
-###### `weaver migration new <name>`
+#### `weaver migration new <name>`
 
 Create a new database migration.
 
@@ -191,7 +191,7 @@ weaver migration new <name>
 
 Executes `prisma migrate dev --name <name>`.
 
-###### `weaver migration reset`
+#### `weaver migration reset`
 
 Reset the database (drops all data and re-applies migrations).
 
@@ -208,7 +208,7 @@ Executes `prisma migrate reset` (with `--force` when `-y` is passed).
 
 ---
 
-##### `weaver seed`
+### `weaver seed`
 
 Seed the database with initial data.
 
@@ -224,7 +224,7 @@ weaver seed [options]
 
 ---
 
-##### `weaver start` (alias: `s`)
+### `weaver start` (alias: `s`)
 
 Start the application.
 
@@ -241,7 +241,7 @@ weaver start [options]
 
 ---
 
-##### `weaver test setup`
+### `weaver test setup`
 
 Set up a temporary test database and storage directory. Must be run with `NODE_ENV=test`.
 
@@ -262,7 +262,7 @@ Steps: removes temp dir → creates storage dir → generates schema → runs in
 
 ---
 
-##### `weaver test reset`
+### `weaver test reset`
 
 Reset test database contents and/or file storage without tearing down the directory.
 
@@ -281,7 +281,7 @@ With no flags, resets **both** database and storage.
 
 ---
 
-##### `weaver test teardown`
+### `weaver test teardown`
 
 Remove the temporary test directory entirely.
 
@@ -296,15 +296,15 @@ weaver test teardown [options]
 
 ---
 
-#### 6. Sample Applications
+## 6. Sample Applications
 
-##### `sample/cms-api`
+### `sample/cms-api`
 
 A reference CMS (Content Management System) API that demonstrates how to build a complete application with Appweaver.
 It includes user authentication, posts with file uploads, role-based authorization, scheduled jobs, custom routes, and
 plugins.
 
-###### Model definitions and code generation
+#### Model definitions and code generation
 
 Resource models live in `src/resources/<name>/model.ts`. Each model defines its fields (scalars), relations, file
 uploads, virtual fields, and input restrictions using factory functions (`createModel`, `createAuthModel`).
@@ -332,7 +332,7 @@ To apply pending migrations in production or CI (without creating new ones), use
 weaver migrate            # or: npm run migrate
 ```
 
-###### Starting the application
+#### Starting the application
 
 ```bash
 # Production mode (requires a prior build)
@@ -347,7 +347,7 @@ weaver start --watch      # or: npm run dev
 - **`weaver start --watch`** uses `tsc-watch` to recompile on file changes, resolves path aliases with `tsc-alias`,
   and restarts the server on each successful build.
 
-###### Environment-based configuration
+#### Environment-based configuration
 
 Configuration is loaded from `appweaver.json` files in the project root. The framework loads a **base** config and then
 deep-merges an **environment-specific** overlay based on the `NODE_ENV` environment variable:
@@ -362,7 +362,7 @@ For example, the base `appweaver.json` sets the server port, database URL, and a
 debug logging with pretty-printing, while the test overlay redirects the database to a temporary path, swaps Redis and
 queue providers for in-memory implementations, and disables the scheduler auto-start.
 
-###### Seeding the database
+#### Seeding the database
 
 Seeders live in `database/seeders/` and are executed in filename order:
 
@@ -370,7 +370,7 @@ Seeders live in `database/seeders/` and are executed in filename order:
 weaver seed               # or: npm run seed
 ```
 
-###### Testing
+#### Testing
 
 ```bash
 # Unit tests
@@ -383,7 +383,7 @@ npm run e2e
 E2E tests use `weaver test setup` / `weaver test reset` / `weaver test teardown` to manage a temporary test database
 and storage directory.
 
-###### Docker
+#### Docker
 
 The included `Dockerfile` and `start.sh` support multiple entry points:
 
@@ -395,12 +395,12 @@ start.sh seed         # Seed the database
 
 ---
 
-#### 7. Releasing New Versions
+## 7. Releasing New Versions
 
 The project uses **semantic-release** with conventional commits to automate versioning, changelog generation, and npm
 publishing.
 
-##### Release workflow
+### Release workflow
 
 ```bash
 # From the repository root:
@@ -432,7 +432,7 @@ This runs the following steps automatically:
    commit, then tags the release.
 9. **`postrelease`** — runs `git push --follow-tags` to push the commit and tag to the remote.
 
-##### Registry
+### Registry
 
 All packages are published to the GitLab npm registry:
 
@@ -443,7 +443,7 @@ https://gitlab.com/api/v4/projects/77748589/packages/npm/
 Ensure your environment has a valid `NPM_TOKEN` (or `CI_JOB_TOKEN` in CI) with write access to this registry before
 running a release.
 
-##### Commit message conventions
+### Commit message conventions
 
 `semantic-release` derives the version bump from commit prefixes:
 
@@ -453,3 +453,21 @@ running a release.
 | `feat:`                                           | minor        |
 | `feat!:` / `BREAKING CHANGE` footer               | major        |
 | `chore:`, `docs:`, `style:`, `refactor:`, `test:` | no release   |
+
+## 8. Agents Skill File
+
+The [SKILL.md](./skill/SKILL.md) file provides a comprehensive guide for AI agents (such as Claude Code, Codex, Cursor,
+or other coding assistants) working with Appweaver projects. It contains detailed documentation on the library's
+architecture, conventions, APIs, and best practices to enable agentic development workflows.
+
+### For new projects created with `create-weaver-app`
+
+New projects scaffolded via `npx create-weaver-app` include a `AGENTS.md` file at the project root. This file is
+automatically generated to guide AI agents through the project's specific setup, structure, and usage patterns. It
+serves as a project-level reference that complements the library-level [SKILL.md](./skill/SKILL.md).
+
+### Updating skill files
+
+Whenever major changes occur in the `./packages/**` packages of this library, such as new features, API modifications,
+or breaking changes—both the library-level [SKILL.md](./skill/SKILL.md). This ensures that AI agents have accurate,
+up-to-date information when working with new or existing Appweaver projects.
