@@ -1,3 +1,6 @@
+import { AuthUser } from './auth';
+import { File } from './file';
+
 export type ActionType =
   | 'find'
   | 'query'
@@ -8,10 +11,10 @@ export type ActionType =
 
 export type FileAccessType = 'protected' | 'private' | 'public';
 
-export type FileAccessFn<T = any> = (
-  user: any,
+export type FileAccessFn<T = any, U = AuthUser> = (
+  user: U,
   resource: T,
-  file: any
+  file: File
 ) => boolean;
 
 export type FilePolicy<T = any> = {

@@ -1,3 +1,6 @@
+import { TObject } from '@sinclair/typebox';
+import { MultipartFile } from './file';
+
 export type FieldType =
   | 'string'
   | 'int'
@@ -203,8 +206,11 @@ export type RelationField = {
 export type FileField = {
   /** Allowed MIME type(s) or regex pattern */
   mimeType?: string | RegExp;
-  /** Storage path pattern or factory function */
-  namePattern?: string | ((file: any, resource: any) => string);
+  /** Storage path pattern or factory function which accepts MultipartFile data
+   * and related resource arguments */
+  namePattern?:
+    | string
+    | (<T = any>(file: MultipartFile, resource: T) => string);
   /** Allow multiple file uploads */
   array?: boolean;
   /** Maximum file size (bytes or human-readable string) */
@@ -229,7 +235,7 @@ export type VirtualInput = {
   value?:
     | PrimitiveType
     | ObjectType
-    | ((resource: any) => PrimitiveType | ObjectType);
+    | (<T = any>(resource: T) => PrimitiveType | ObjectType);
 };
 
 export type VirtualOutput = {
@@ -239,7 +245,7 @@ export type VirtualOutput = {
   value?:
     | PrimitiveType
     | ObjectType
-    | ((resource: any) => PrimitiveType | ObjectType);
+    | (<T = any>(resource: T) => PrimitiveType | ObjectType);
 };
 
 export type VirtualField = ScalarField & {
@@ -255,7 +261,7 @@ export type ExportField = {
   /** Exclude this field from exports */
   exclude?: boolean;
   /** Transform the value for export output */
-  mapValue?: string | ((value: any) => string);
+  mapValue?: string | (<T = any>(value: T) => string);
 };
 
 export type ExportRelations = {
@@ -281,6 +287,13 @@ export type VirtualConfig = FieldConfig<VirtualField>;
 export type ExportConfig = FieldConfig<ExportField | ExportRelations>;
 
 export type IndexConfig = string[] | string[][];
+
+export type Model = {
+  /** Custom model name */
+  name: string;
+  /** custom model schema */
+  schema: TObject;
+};
 
 export type ResourceModelConfig = {
   /** Resource model name used for code generation, routing, and security policy

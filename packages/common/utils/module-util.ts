@@ -56,9 +56,9 @@ export function requireModule<T = any>(
 /**
  * Loads a module from the specified class path, local project path, or from the node_modules directory.
  *
- * @param {string} baseDir - The base directory used to resolve relative class paths.
- * @param {string} classPath - The path to the module to be loaded. Can be an absolute path, project source path, or
- *                             node_modules package.
+ * @param {string} baseDir - The base directory used to resolve relative and local class paths.
+ * @param {string} classPath - The path to the module to be loaded. Can be a relative path (`../services/example`),
+ * project source path (`@/features/services/example`), or node_modules package (`@appweaver/core/service/example`).
  * @param {boolean} [failOnError=false] - If true, the function will throw an error if the module cannot be loaded.
  * @return This function does not return a value. It loads a module and defines it if successful.
  */
@@ -73,7 +73,7 @@ export function loadModule<T = any>(
     modulePath = path.join(baseDir, classPath.replace('@/', ''));
   } else if (classPath.startsWith('.')) {
     // Load from the core project directory
-    modulePath = path.join(__dirname, classPath);
+    modulePath = path.join(baseDir, classPath);
   } else {
     // Load from the node_modules directory
     modulePath = classPath;

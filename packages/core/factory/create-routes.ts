@@ -5,11 +5,11 @@ import {
   RESOURCE_NAME,
   RESOURCE_ROUTES_TYPE,
   RESOURCE_TYPE,
+  ResourceRoutes,
   ResourceRoutesConfig
 } from '@appweaver/common';
 import { define } from '../context';
 import { resourceRoutes } from '../resource';
-import { ResourceRoutes } from '../types';
 
 export function createRoutes(
   config: ResourceRoutesConfig,

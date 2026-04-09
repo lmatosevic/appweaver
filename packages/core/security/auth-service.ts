@@ -2,8 +2,9 @@ import {
   AuthOTTPurpose,
   AuthScope,
   AuthSource,
-  config,
+  AuthUser,
   CONFIG,
+  config,
   logger,
   RouteConfig,
   SecurityStore
@@ -23,7 +24,6 @@ import { HttpError } from '../errors';
 import {
   AuthOTTData,
   AuthTokens,
-  AuthUser,
   JwtPayload,
   RegistrationDataFn,
   UserAdditionalData

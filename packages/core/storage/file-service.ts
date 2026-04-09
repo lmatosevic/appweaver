@@ -8,6 +8,8 @@ import {
   isArray,
   isFunction,
   logger,
+  Resource,
+  ResourceClient,
   Storage
 } from '@appweaver/common';
 import { inject, injectModel, injectPolicy, injectService } from '../context';
@@ -20,7 +22,7 @@ import {
   parseRange,
   sizeInBytes
 } from '../utils';
-import { File, Resource, ResourceClient } from '../types';
+import { File } from '../types';
 
 export type FileStream = {
   content: ContentStream;
@@ -172,7 +174,17 @@ export class FileService {
 
     let pattern: string | undefined;
     if (isFunction(config.namePattern)) {
-      pattern = config.namePattern(data, resource);
+      pattern = config.namePattern(
+        {
+          fieldName: data.fieldname,
+          fileName: data.filename,
+          encoding: data.encoding,
+          mimeType: data.mimetype,
+          bytesRead: data.file.bytesRead,
+          truncated: data.file.truncated
+        },
+        resource
+      );
     } else {
       pattern = config.namePattern;
     }

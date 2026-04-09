@@ -2,8 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { glob } from 'glob';
 import { register } from 'ts-node';
-import { isResourceModel, ResourceModel } from '@appweaver/core';
-import { config } from '@appweaver/common';
+import { config, isResourceModel, ResourceModel } from '@appweaver/common';
 
 /**
  * Loads and parses the `package.json` file located at a specified path.

@@ -2,11 +2,11 @@ import { FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import fastifyJwt from '@fastify/jwt';
 import { requestContext } from '@fastify/request-context';
-import { AuthType, config, logger } from '@appweaver/common';
+import { AuthType, AuthUser, config, logger } from '@appweaver/common';
 import { inject } from '../../context';
 import { AuthService } from '../auth-service';
 import { HttpError } from '../../errors';
-import { AuthUser, JwtPayload, Server } from '../../types';
+import { JwtPayload, Server } from '../../types';
 import { loadSecurityKeys } from './jwt-keys';
 
 export const jwtAuth = fastifyPlugin(async (server: Server) => {

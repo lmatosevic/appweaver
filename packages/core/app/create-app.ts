@@ -1,7 +1,11 @@
-import { configFiles, logger } from '@appweaver/common';
+import {
+  config,
+  configFiles,
+  logger,
+  resolveSourcePath
+} from '@appweaver/common';
 import { context } from '../context';
 import { createServer } from '../server';
-import { resolveScanPath } from '../utils';
 import { LoadResourcePaths, loadResources } from '../resource';
 import { loadProviders } from './load-providers';
 import { loadModules } from './load-modules';
@@ -42,7 +46,12 @@ export async function createApp(
 ): Promise<Application> {
   logger.debug({ configFiles }, 'Configuration loaded');
 
-  const scanPath = resolveScanPath(params.scanPath);
+  const scanPath = resolveSourcePath(
+    config.APP_BUILD_PATH,
+    config.APP_SOURCE_PATH,
+    params.scanPath,
+    './dist/src'
+  );
 
   // Load all defined providers from this project
   loadProviders(scanPath);

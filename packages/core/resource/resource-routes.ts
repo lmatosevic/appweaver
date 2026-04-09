@@ -2,6 +2,7 @@ import { Static } from '@sinclair/typebox';
 import {
   AuthType,
   RecaptchaConfig,
+  ResourceRoutes,
   ResourceRoutesConfig,
   RouteCacheConfig,
   RouteConfig
@@ -11,14 +12,14 @@ import { inject, injectModel, injectService } from '../context';
 import { FileService } from '../storage';
 import { ExportService } from '../export';
 import { aggregateFiles, maxFileSize } from '../utils';
-import { ResourceSchemaConfig, RoutesHandler, Server } from '../types';
+import { Server } from '../types';
 
 type FullRouteConfig = RouteConfig & RouteCacheConfig;
 
 export function resourceRoutes(
   name: string,
   routesConfig: Omit<ResourceRoutesConfig, 'modelName' | 'path'> = {}
-): { handler: RoutesHandler; schema: ResourceSchemaConfig } {
+): Omit<ResourceRoutes, 'config'> {
   const routeConfig = (
     configName: keyof ResourceRoutesConfig
   ): FullRouteConfig | undefined => {
@@ -286,5 +287,5 @@ export function resourceRoutes(
     }
   };
 
-  return { handler, schema: schema };
+  return { handler, schema };
 }

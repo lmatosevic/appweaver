@@ -2,30 +2,28 @@ import {
   ConditionalOptional,
   Ctor,
   FunctionType,
+  IResourceService,
   isArray,
   isConstructor,
-  isString,
-  isSymbol,
-  logger,
-  RESOURCE_NAME,
-  ResourcePolicyConfig
-} from '@appweaver/common';
-import { context } from './context';
-import {
   isResourceModel,
   isResourcePolicy,
   isResourceRoutes,
   isResourceService,
-  loadModule
-} from '../utils';
+  isString,
+  isSymbol,
+  loadModule,
+  logger,
+  RESOURCE_NAME,
+  ResourceModel,
+  ResourcePolicyConfig,
+  ResourceRoutes
+} from '@appweaver/common';
+import { context } from './context';
 import {
   DefinitionClass,
   DefinitionEntry,
   DefinitionMode,
-  DefinitionValue,
-  IResourceService,
-  ResourceModel,
-  ResourceRoutes
+  DefinitionValue
 } from '../types';
 
 /**
@@ -96,9 +94,9 @@ export function define<T = DefinitionValue, S extends T = T>(
 /**
  * Loads a class from the specified path, resolves its constructor, and defines it with the provided definition.
  *
- * @param {string} baseDir - The base directory used to resolve relative class paths.
- * @param {string} classPath - The path to the module to be loaded. Can be an absolute path, project source path, or
- *                             node_modules package.
+ * @param {string} baseDir - The base directory used to resolve relative and local class paths.
+ * @param {string} classPath - The path to the module to be loaded. Can be a relative path (`../services/example`),
+ * project source path (`@/features/services/example`), or node_modules package (`@appweaver/core/service/example`).
  * @param {DefinitionClass} [definition] - An optional definition object used to define the loaded module.
  * @param {boolean} [required=true] - Indicates whether the module is required. If true, an error is thrown on failure;
  *                                    otherwise, a warning is logged.

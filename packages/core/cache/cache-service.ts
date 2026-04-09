@@ -1,15 +1,16 @@
 import {
   ActionType,
+  AuthUser,
   Cache,
   CacheInvalidationStrategy,
   config,
   logger,
   makeHash,
-  RelationOutput
+  RelationOutput,
+  ResourceModel
 } from '@appweaver/common';
 import { stringify } from 'flatted';
 import { context, inject, injectModel } from '../context';
-import { AuthUser, ResourceModel } from '../types';
 
 export class CacheService {
   /** @internal */

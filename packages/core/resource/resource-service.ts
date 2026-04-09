@@ -16,10 +16,16 @@ import {
   AggregateResponse,
   AggregateSelect,
   AggregateValue,
+  countFieldName,
   Database,
+  defaultScalarValue,
   Events,
+  extractResourceName,
+  extractSchemaProperties,
   FileField,
+  IResourceService,
   isArray,
+  isCountField,
   isFunction,
   isObject,
   OutputType,
@@ -27,6 +33,9 @@ import {
   QueryResponse,
   RelationField,
   removeUndefined,
+  Resource,
+  ResourceClient,
+  ResourceData,
   setValue,
   uncapitalize
 } from '@appweaver/common';
@@ -35,19 +44,6 @@ import { currentAuthUser } from '../security';
 import { PrismaDatabase } from '../database';
 import { CacheService } from '../cache';
 import { HttpError } from '../errors';
-import {
-  countFieldName,
-  defaultScalarValue,
-  extractResourceName,
-  extractSchemaProperties,
-  isCountField
-} from '../utils';
-import {
-  IResourceService,
-  Resource,
-  ResourceClient,
-  ResourceData
-} from '../types';
 
 export abstract class ResourceService<
   ReadOne = Resource,

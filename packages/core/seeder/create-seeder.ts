@@ -1,5 +1,5 @@
+import { config, resolveSourcePath } from '@appweaver/common';
 import { loadProviders } from '../app/load-providers';
-import { resolveScanPath, resolveSeedersPath } from '../utils';
 import { Seeder } from './seeder';
 
 export type CreateSeederParams = {
@@ -25,8 +25,18 @@ export type CreateSeederParams = {
 export async function createSeeder(
   params: CreateSeederParams = {}
 ): Promise<Seeder> {
-  const scanPath = resolveScanPath(params.scanPath);
-  const seedersPath = resolveSeedersPath(params.seedersPath);
+  const scanPath = resolveSourcePath(
+    config.APP_BUILD_PATH,
+    config.APP_SOURCE_PATH,
+    params.scanPath,
+    './dist/src'
+  );
+  const seedersPath = resolveSourcePath(
+    config.APP_BUILD_PATH,
+    config.DATABASE_SEEDERS_DIR_PATH,
+    params.seedersPath,
+    './dist/database/seeders'
+  );
 
   // Load all defined providers from this project
   loadProviders(scanPath);

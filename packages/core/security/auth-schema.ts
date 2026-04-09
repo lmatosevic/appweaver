@@ -1,7 +1,11 @@
 import { TObject, Type } from '@sinclair/typebox';
-import { AuthType, config, RecaptchaConfig } from '@appweaver/common';
+import {
+  AuthType,
+  config,
+  RecaptchaConfig,
+  RouteSchema
+} from '@appweaver/common';
 import { AllErrorResponses } from '../errors';
-import { RouteSchema } from '../types';
 
 export const LoginRequest = Type.Object({
   username: Type.String({ examples: ['john.doe@example.com'] }),

@@ -1,5 +1,4 @@
-import { AuthSource, AuthScope } from '@appweaver/common';
-import { Role } from './generated';
+import { AuthScope, AuthSource } from '@appweaver/common';
 
 export type JwtPayload = {
   scope: AuthScope;
@@ -29,20 +28,6 @@ export type TwoFactorAuthData = {
 
 export type OAuth2StateData = {
   redirectToUrl: string;
-};
-
-export type AuthUser = {
-  id: number;
-  email: string;
-  passwordHash?: string | null;
-  verifiedEmail?: boolean;
-  twoFactorAuth?: 'None' | 'Email';
-  enabled?: boolean;
-  roles: Role[];
-  logoutAt?: Date | null;
-  createdAt?: Date;
-  updatedAt?: Date;
-  createdById?: number | null;
 };
 
 export type UserAdditionalData = {

@@ -34,11 +34,11 @@ export function loadProviders(baseDir: string): void {
   loadProvider(baseDir, config.SCHEDULER_PROVIDER, Scheduler, false);
 
   // Core feature services
-  loadProvider(baseDir, '../mailer/email-service', undefined, false);
-  loadProvider(baseDir, '../cache/cache-service');
-  loadProvider(baseDir, '../storage/file-service');
-  loadProvider(baseDir, '../security/auth-service');
-  loadProvider(baseDir, '../security/account/account-service');
-  loadProvider(baseDir, '../export/export-service');
-  loadProvider(baseDir, '../health/health-service');
+  loadProvider(__dirname, '../mailer/email-service', undefined, false);
+  loadProvider(__dirname, '../cache/cache-service');
+  loadProvider(__dirname, '../storage/file-service');
+  loadProvider(__dirname, '../security/auth-service');
+  loadProvider(__dirname, '../security/account/account-service');
+  loadProvider(__dirname, '../export/export-service');
+  loadProvider(__dirname, '../health/health-service');
 }

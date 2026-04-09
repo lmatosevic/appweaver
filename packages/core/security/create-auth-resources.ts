@@ -1,8 +1,11 @@
 import {
+  AuthUser,
   config as cfg,
   Ctor,
+  IResourceService,
   RelationConfig,
   RESOURCE_AUTH,
+  ResourceModel,
   ResourceModelConfig,
   ResourceServiceConfig,
   ScalarConfig,
@@ -11,12 +14,7 @@ import {
 } from '@appweaver/common';
 import { updatePasswordHash } from './helper';
 import { createModel, createService } from '../factory';
-import {
-  AuthUser,
-  IResourceService,
-  RegistrationDataFn,
-  ResourceModel
-} from '../types';
+import { RegistrationDataFn } from '../types';
 
 export function createAuthModel(config: ResourceModelConfig): ResourceModel {
   const authModelScalars: ScalarConfig = {

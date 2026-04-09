@@ -10,14 +10,15 @@ import {
   isObject,
   logger,
   QueryResponse,
+  Resource,
   RESOURCE_NAME,
   RESOURCE_SERVICE_TYPE,
   RESOURCE_TYPE,
+  ResourceData,
   ResourceServiceConfig
 } from '@appweaver/common';
 import { define, injectPolicy } from '../context';
 import { ResourceService } from '../resource';
-import { Resource, ResourceData } from '../types';
 
 export function createService<T = any, C = any, U = any>(
   config: ResourceServiceConfig<T, C, U>,

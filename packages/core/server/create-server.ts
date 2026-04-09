@@ -23,7 +23,7 @@ import { files } from '../storage';
 import { health } from '../health';
 import auth from '../security/auth';
 import caching from '../cache/caching';
-import { RouterHandler, Server } from '../types';
+import { Router, Server } from '../types';
 import { info } from './info-route';
 import schemas from './schemas';
 import swagger from './swagger';
@@ -180,7 +180,7 @@ export function createServer(): Server {
   }
 
   // Register other defined routes
-  const routes = injectAll<RouterHandler>(ROUTE);
+  const routes = injectAll<(router: Router) => void>(ROUTE);
   for (const route of routes) {
     server.register(route, { prefix: config.SERVER_API_PREFIX + '/' });
   }

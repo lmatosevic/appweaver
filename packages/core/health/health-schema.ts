@@ -2,11 +2,11 @@ import { TObject, Type } from '@sinclair/typebox';
 import {
   config,
   HealthCheckStatus,
+  RouteSchema,
   StringDate,
   StringEnum
 } from '@appweaver/common';
 import { AllErrorResponses } from '../errors';
-import { RouteSchema } from '../types';
 
 export const HealthStatus = Type.Object({
   status: StringEnum(HealthCheckStatus),

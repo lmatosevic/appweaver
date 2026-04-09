@@ -1,54 +1,35 @@
 import path from 'node:path';
 import { glob } from 'glob';
-import { config, Runtime } from '@appweaver/common';
 
 /**
- * Resolves the scan path for the application based on the provided override path
- * or default configuration values.
+ * Resolves the application source path based on provided build, target, and fallback paths with an optional override
+ * path. The resolved path will point to the directory or file which can be accessed by the current runtime.
  *
- * @param {string} [overridePath] - An optional path that overrides other configuration-based paths.
- * @return {string} The resolved absolute scan path.
+ * @param {string} buildPath - The base directory for the build output.
+ * @param {string} targetPath - The target directory path relative to the build output.
+ * @param {string} [overridePath] - An optional override path to be used as the resolved path if provided.
+ * @param {string} [fallbackPath='.'] - The fallback path to use if no other resolution is appropriate.
+ * @return {string} The resolved absolute path based on the provided parameters and runtime environment.
  */
-export function resolveScanPath(overridePath?: string): string {
+export function resolveSourcePath(
+  buildPath: string,
+  targetPath: string,
+  overridePath?: string,
+  fallbackPath: string = '.'
+): string {
   if (overridePath) {
     return path.resolve(overridePath);
   }
 
-  if (isTypeScriptRuntime() && config.APP_SOURCE_PATH) {
-    return path.resolve(config.APP_SOURCE_PATH);
+  if (isTypeScriptRuntime() && targetPath) {
+    return path.resolve(targetPath);
   }
 
-  if (config.APP_BUILD_PATH && config.APP_SOURCE_PATH) {
-    return path.resolve(
-      path.join(config.APP_BUILD_PATH, config.APP_SOURCE_PATH)
-    );
+  if (buildPath && targetPath) {
+    return path.resolve(path.join(buildPath, targetPath));
   }
 
-  return path.join(process.cwd(), './dist/src');
-}
-
-/**
- * Resolves and returns the absolute path to the seeders directory based on the provided configuration.
- *
- * @param {string} [overridePath] - An optional path to override the default seeder path resolution.
- * @return {string} The resolved absolute path to the seeders' directory.
- */
-export function resolveSeedersPath(overridePath?: string): string {
-  if (overridePath) {
-    return path.resolve(overridePath);
-  }
-
-  if (isTypeScriptRuntime() && config.APP_SOURCE_PATH) {
-    return path.resolve(config.DATABASE_SEEDERS_DIR_PATH);
-  }
-
-  if (config.APP_BUILD_PATH && config.DATABASE_SEEDERS_DIR_PATH) {
-    return path.resolve(
-      path.join(config.APP_BUILD_PATH, config.DATABASE_SEEDERS_DIR_PATH)
-    );
-  }
-
-  return path.join(process.cwd(), './dist/database/seeders');
+  return path.join(process.cwd(), fallbackPath);
 }
 
 /**
@@ -78,7 +59,7 @@ export function isTypeScriptRuntime(): boolean {
   return (
     (path.extname(mainPath) === '.ts' ||
       relativeMainPath.includes('node_modules')) &&
-    config.APP_RUNTIME === Runtime.Bun
+    typeof globalThis['Bun'] !== 'undefined'
   );
 }
 

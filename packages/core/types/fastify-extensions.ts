@@ -1,5 +1,4 @@
-import { AuthSource, AuthType, RouteConfig } from '@appweaver/common';
-import { AuthUser } from './auth';
+import { AuthSource, AuthType, AuthUser, RouteConfig } from '@appweaver/common';
 import { ApiKey } from './generated';
 
 import '@fastify/request-context';

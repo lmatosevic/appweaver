@@ -8,12 +8,13 @@ import {
   Ctor,
   DatabaseEvent,
   DatabaseType,
+  isTypeScriptRuntime,
   logger,
+  requireModule,
   resolveDatabaseType,
   Runtime
 } from '@appweaver/common';
 import { Prisma, PrismaClient } from '../prisma/client/client';
-import { isTypeScriptRuntime, requireModule } from '../utils';
 
 const options: Omit<PrismaClientOptions, 'adapter'> = {
   transactionOptions: {

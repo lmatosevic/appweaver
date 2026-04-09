@@ -2,8 +2,13 @@ import path from 'node:path';
 import fsp from 'node:fs/promises';
 import { TModule, TObject, TSchema, Type } from '@sinclair/typebox';
 import { ModelToTypeScript } from '@sinclair/typebox-codegen';
-import { ResourceModel } from '@appweaver/core';
-import { DateType, EnumType, isArray, NullType } from '@appweaver/common';
+import {
+  DateType,
+  EnumType,
+  isArray,
+  NullType,
+  ResourceModel
+} from '@appweaver/common';
 import { runProcess } from '../utils';
 
 export async function generateTypes(

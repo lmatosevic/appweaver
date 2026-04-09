@@ -1,8 +1,12 @@
-import { AbstractCtor, Ctor, ResourcePolicyConfig } from '@appweaver/common';
+import {
+  AbstractCtor,
+  Ctor,
+  IResourceService,
+  ResourceModel,
+  ResourcePolicyConfig,
+  ResourceRoutes
+} from '@appweaver/common';
 import { Server } from './server';
-import { ResourceRoutes } from './route';
-import { ResourceModel } from './resource';
-import { IResourceService } from './resource-service';
 
 export type DefinitionMode = 'ignore' | 'append' | 'override' | 'fail';
 

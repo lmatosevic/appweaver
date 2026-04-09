@@ -5,6 +5,7 @@ import {
   isArray,
   logger,
   objectHasProperty,
+  resourceModelProps,
   ROUTE,
   RouteCacheConfig,
   RouteConfig
@@ -12,11 +13,10 @@ import {
 import { context, define } from '../context';
 import { authSchema, recaptchaHeaderSchema } from '../security';
 import { AllErrorResponses } from '../errors';
-import { resourceModelProps } from '../utils';
-import { RouterHandler, Server } from '../types';
+import { Router, Server } from '../types';
 
 export function registerRoute(
-  handler: RouterHandler,
+  handler: (router: Router) => void,
   config?: RouteConfig & RouteCacheConfig
 ): void {
   const routes: RouteOptions[] = [];

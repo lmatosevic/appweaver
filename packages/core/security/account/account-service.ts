@@ -1,6 +1,7 @@
 import {
   AuthOTTPurpose,
   AuthSource,
+  AuthUser,
   config,
   makeHash,
   randomString,
@@ -15,7 +16,7 @@ import {
 import { inject } from '../../context';
 import { EmailService } from '../../mailer';
 import { HttpError } from '../../errors';
-import { AuthOTTData, AuthUser, TwoFactorAuthData } from '../../types';
+import { AuthOTTData, TwoFactorAuthData } from '../../types';
 
 type VerifyEmailData = {
   authUserId: number;

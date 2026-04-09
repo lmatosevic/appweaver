@@ -1,11 +1,15 @@
 import path from 'node:path';
 import fsp from 'node:fs/promises';
-import { Database, isFunction, makeHash } from '@appweaver/common';
+import {
+  Database,
+  importModule,
+  isFunction,
+  makeHash
+} from '@appweaver/common';
 import { Seeder as SeederRecord } from '../prisma/client/client';
 import { LifecycleManager } from '../app/lifecycle-manager';
 import { PrismaDatabase } from '../database';
 import { inject } from '../context';
-import { importModule } from '../utils';
 
 /**
  * Represents a seeder class that manages the application seeders processes.

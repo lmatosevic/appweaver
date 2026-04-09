@@ -1,6 +1,10 @@
 import fsp from 'node:fs/promises';
-import { config, logger } from '@appweaver/common';
-import { findFilesByPattern, importModule } from '../utils';
+import {
+  config,
+  findFilesByPattern,
+  importModule,
+  logger
+} from '@appweaver/common';
 
 /**
  * Loads and initializes modules exported from the application using the provided base directory and file pattern.

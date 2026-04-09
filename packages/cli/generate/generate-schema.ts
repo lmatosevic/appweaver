@@ -1,6 +1,5 @@
 import path from 'node:path';
 import fsp from 'node:fs/promises';
-import { isResourceAuthModel, ResourceModel } from '@appweaver/core';
 import {
   AuditFields,
   capitalize,
@@ -14,11 +13,13 @@ import {
   isArray,
   isBoolean,
   isNumber,
+  isResourceAuthModel,
   isString,
   plural,
   RelationConfig,
   RelationField,
   resolveDatabaseType,
+  ResourceModel,
   Runtime,
   ScalarConfig,
   ScalarField,

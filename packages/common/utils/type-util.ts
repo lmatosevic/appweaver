@@ -27,12 +27,12 @@ export type Ctor<T = any> = { new (...args: any[]): T };
 
 export type AbstractCtor<T = any> = abstract new (...args: any[]) => T;
 
-export type FunctionType = (...args: unknown[]) => unknown;
+export type FunctionType<T = any> = (...args: T[]) => T;
 
 /**
  * Checks if the given value is an array.
  *
- * @param val - The value to check.
+ * @param {Object} val - The value to check.
  * @return Returns true if the value is an array, otherwise false.
  */
 export function isArray<T = any>(val: any): val is Array<T> {
@@ -42,7 +42,7 @@ export function isArray<T = any>(val: any): val is Array<T> {
 /**
  * Checks if the given value is of a type object.
  *
- * @param value - The value to be checked.
+ * @param {Object} value - The value to be checked.
  * @return A boolean indicating whether the value is an object.
  */
 export function isObject(value: any): value is object {
@@ -52,17 +52,17 @@ export function isObject(value: any): value is object {
 /**
  * Checks if the given value is a function.
  *
- * @param value The value to be checked.
+ * @param {Object} value The value to be checked.
  * @return Returns true if the value is a function; otherwise, returns false.
  */
-export function isFunction(value: any): value is FunctionType {
+export function isFunction<T = any>(value: any): value is FunctionType<T> {
   return typeof value === 'function';
 }
 
 /**
  * Checks if the given value is a valid number.
  *
- * @param value - The value to be checked.
+ * @param {Object} value - The value to be checked.
  * @return True if the value is a valid number, otherwise false.
  */
 export function isNumber(value: any): value is number {
@@ -72,7 +72,7 @@ export function isNumber(value: any): value is number {
 /**
  * Checks if the given value is of type string.
  *
- * @param value - The value to check.
+ * @param {Object} value - The value to check.
  * @return A boolean indicating whether the value is a string.
  */
 export function isString(value: any): value is string {
@@ -82,7 +82,7 @@ export function isString(value: any): value is string {
 /**
  * Determines whether the given value is of type symbol.
  *
- * @param value The value to check.
+ * @param {Object} value The value to check.
  * @return A boolean indicating whether the value is a symbol.
  */
 export function isSymbol(value: any): value is symbol {
@@ -92,7 +92,7 @@ export function isSymbol(value: any): value is symbol {
 /**
  * Determines if the provided value is of a boolean type.
  *
- * @param value - The value to be checked.
+ * @param {Object} value - The value to be checked.
  * @return Returns `true` if the value is a boolean, otherwise `false`.
  */
 export function isBoolean(value: any): value is boolean {
@@ -102,7 +102,7 @@ export function isBoolean(value: any): value is boolean {
 /**
  * Determines if the given value is a constructor function.
  *
- * @param value The value to be checked.
+ * @param {Object} value The value to be checked.
  * @return A boolean indicating whether the value is a constructor function.
  */
 export function isConstructor(value: any): value is Ctor {

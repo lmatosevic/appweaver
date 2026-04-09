@@ -1,9 +1,14 @@
 import { FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import { isFunction, RouteCacheConfig, RouteConfig } from '@appweaver/common';
+import {
+  AuthUser,
+  isFunction,
+  RouteCacheConfig,
+  RouteConfig
+} from '@appweaver/common';
 import { CacheService } from './cache-service';
 import { inject } from '../context';
-import { AuthUser, Server } from '../types';
+import { Server } from '../types';
 import { requestContext } from '@fastify/request-context';
 
 type FullRouteConfig = RouteConfig & RouteCacheConfig;

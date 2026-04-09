@@ -7,12 +7,12 @@ import {
   plural,
   RecaptchaConfig,
   ResourceRoutesConfig,
+  ResourceSchemaConfig,
   StringDate
 } from '@appweaver/common';
 import { injectModel } from '../context';
 import { authSchema, recaptchaHeaderSchema } from '../security';
 import { AllErrorResponses } from '../errors';
-import { ResourceSchemaConfig } from '../types';
 
 export const Id = Type.Object({
   id: Type.Integer({ minimum: 1 })

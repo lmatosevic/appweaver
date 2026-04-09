@@ -1,5 +1,18 @@
 import { AuthType } from '../enums';
 
+export type RouteSchema = {
+  tags?: string[];
+  security?: any[];
+  summary?: string;
+  description?: string;
+  consumes?: string[];
+  body?: unknown;
+  querystring?: unknown;
+  params?: unknown;
+  headers?: unknown;
+  response?: unknown;
+};
+
 export type RouteRateLimitFn =
   | ((req: any, key: string) => Promise<number>)
   | ((req: any, key: string) => number);

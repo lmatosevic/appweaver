@@ -249,6 +249,49 @@ export function errorMessage(error: unknown): string {
 }
 
 /**
+ * Converts a human-readable size string (e.g., "1.5 MB", "2GB") into its equivalent size in bytes.
+ *
+ * @param {string} sizeText - A string representing the size with an optional unit (e.g., "KB", "MB", "GB", "TB").
+ *                            If no unit is specified, it defaults to bytes.
+ * @return {number} The size in bytes as a rounded integer. Returns 0 if the input string is empty or invalid.
+ */
+export function sizeTextToBytes(sizeText: string): number {
+  let sizeInBytes = 0;
+  const units = ['k', 'm', 'g', 't'];
+
+  if (!sizeText) {
+    return sizeInBytes;
+  }
+
+  const matches = sizeText.matchAll(/([\d.]*)\s*([a-zA-Z]*)/g); // e.g. 1.52 MB
+  const match = matches.next();
+
+  if (match && match.value && match.value.length > 0) {
+    let multiplier = 1;
+    const value = match.value[1];
+    const unit = match.value[2];
+
+    if (unit) {
+      const index = units.indexOf(unit.toLowerCase().replace('b', ''));
+      if (index !== -1) {
+        multiplier = Math.pow(1000, index + 1);
+      }
+    }
+
+    let numericalValue = 1;
+    if (value) {
+      const number = parseFloat(value);
+      if (!isNaN(number)) {
+        numericalValue = number;
+      }
+      sizeInBytes = numericalValue * multiplier;
+    }
+  }
+
+  return Math.round(sizeInBytes);
+}
+
+/**
  * Replaces pattern variables in a given string with their corresponding values.
  *
  * @param {string} pattern The string containing variables in the format `{variableName}` to be replaced.

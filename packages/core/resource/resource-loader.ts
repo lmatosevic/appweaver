@@ -1,20 +1,20 @@
 import { TObject, TSchema, Type } from '@sinclair/typebox';
-import { config, logger, ResourcePolicyConfig } from '@appweaver/common';
 import {
+  config,
   findFilesByPattern,
   importModule,
+  IResourceService,
   isResourceModel,
   isResourcePolicy,
   isResourceRoutes,
   isResourceService,
-  resourceModelProps
-} from '../utils';
-import {
-  IResourceService,
-  ResourceContext,
+  logger,
   ResourceModel,
+  resourceModelProps,
+  ResourcePolicyConfig,
   ResourceRoutes
-} from '../types';
+} from '@appweaver/common';
+import { ResourceContext } from '../types';
 
 export type LoadResourcePaths = {
   /** Path pattern used for finding files that export resource models (default: `./src/resources/"*"/*model.ts`) */
