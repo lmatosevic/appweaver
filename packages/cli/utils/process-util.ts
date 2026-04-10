@@ -49,7 +49,7 @@ export function runProcess(
     child.on('error', reject);
 
     child.on('close', (code) => {
-      resolve(code ?? 1);
+      resolve(code ?? 99);
     });
   });
 }
