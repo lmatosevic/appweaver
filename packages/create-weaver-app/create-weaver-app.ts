@@ -21,6 +21,8 @@ const agentTypes = [
   'cursor',
   'copilot',
   'opencode',
+  'kiro',
+  'pi',
   'none'
 ];
 
@@ -167,7 +169,7 @@ program
     const agent = command.getOptionValue('agent');
     if (agent !== 'none') {
       let agentsDir: string;
-      if (['claude', 'junie', 'opencode'].includes(agent)) {
+      if (['claude', 'junie', 'kiro', 'pi', 'opencode'].includes(agent)) {
         agentsDir = `.${agent}`;
       } else if (agent === 'copilot') {
         agentsDir = '.github';

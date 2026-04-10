@@ -10,6 +10,8 @@ type AgentDirEntry = {
 const agentDirMapping: AgentDirEntry[] = [
   { dir: '.claude', guidelinesFile: 'CLAUDE.md' },
   { dir: '.junie', guidelinesFile: 'AGENTS.md' },
+  { dir: '.kiro', guidelinesFile: 'AGENTS.md' },
+  { dir: '.pi', guidelinesFile: 'AGENTS.md' },
   { dir: '.opencode', guidelinesFile: 'AGENTS.md' },
   { dir: '.github', guidelinesFile: 'AGENTS.md' },
   { dir: '.agents', guidelinesFile: 'AGENTS.md' }

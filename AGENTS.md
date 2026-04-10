@@ -232,9 +232,9 @@ Start the application.
 weaver start [options]
 ```
 
-| Option        | Description                                          |
-|---------------|------------------------------------------------------|
-| `-w, --watch` | Watch mode — recompiles and restarts on file changes |
+| Option        | Description                                          | Default |
+|---------------|------------------------------------------------------|---------|
+| `-w, --watch` | Watch mode — recompiles and restarts on file changes | false   |
 
 - **Normal mode**: `node ./dist/src/main.js`
 - **Watch mode**: `tsc-watch` with alias resolution and server restart on each successful build.
@@ -293,6 +293,29 @@ weaver test teardown [options]
 |-----------------------|---------------------|----------|
 | `-d, --dir <tempDir>` | Temporary directory | `./temp` |
 | `-v, --verbose`       | Verbose output      | false    |
+
+---
+
+### `weaver update` (alias: `u`)
+
+Update Appweaver packages in the current project.
+
+```
+weaver update [packages...] [options]
+```
+
+| Argument      | Description                                                                                                            | Default                               |
+|---------------|------------------------------------------------------------------------------------------------------------------------|---------------------------------------|
+| `[packages…]` | One or more package names to update (e.g. `@appweaver/core @appweaver/cli`). Only `@appweaver/*` packages are updated. | All installed `@appweaver/*` packages |
+
+| Option                      | Description                                                | Default  |
+|-----------------------------|------------------------------------------------------------|----------|
+| `--targetVersion [version]` | The version to update the packages to.                     | `latest` |
+| `--noSkill`                 | Skip updating AI agent skill files in the current project. | false    |
+| `-f, --force`               | Force update despite `peerDependency` version mismatches.  | false    |
+| `--verbose`                 | Print verbose output.                                      | false    |
+
+After a successful package update, skill files are automatically refreshed unless `--noSkill` is passed.
 
 ---
 
@@ -462,9 +485,9 @@ architecture, conventions, APIs, and best practices to enable agentic developmen
 
 ### For new projects created with `create-weaver-app`
 
-New projects scaffolded via `npx create-weaver-app` include a `AGENTS.md` file at the project root. This file is
-automatically generated to guide AI agents through the project's specific setup, structure, and usage patterns. It
-serves as a project-level reference that complements the library-level [SKILL.md](./skill/SKILL.md).
+New projects scaffolded via `npx create-weaver-app` include a `AGENTS.md` or `CLAUDE.md` file at the project root. This
+file is automatically generated to guide AI agents through the project's specific setup, structure, and usage patterns.
+It serves as a project-level guideline using the [SKILL.md](./skill/SKILL.md).
 
 ### Updating skill files
 

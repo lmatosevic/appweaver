@@ -59,9 +59,10 @@ create-weaver-app <name> [description] [options]
 | Flag              | Description                                                    | Default      |
 |-------------------|----------------------------------------------------------------|--------------|
 | `-o, --outputDir` | Output directory (use ./ for current working directory)        | project name |
-| `-d, --database`  | Database type: `sqlite`, `postgresql`, `mysql`, `sqlserver`    | `sqlite`     |
+| `--database`      | Database type: `sqlite`, `postgresql`, `mysql`, `sqlserver`    | `sqlite`     |
 | `--host`          | Hostname or IP address where the application server will bind. | 0.0.0.0      |
 | `--port`          | Port number where the application server will listen.          | 5000         |
+| `--agent`         | The AI agent for which to configure guidelines and skill files | `claude`     |
 | `--bun`           | Use Bun as application runtime. (default is node and npm)      | false        |
 | `--skipInstall`   | Skip all dependencies installation.                            | false        |
 | `--noRedis`       | Skip ioredis                                                   | false        |
@@ -540,6 +541,16 @@ npm run test  # unit tests with coverage
 npm run e2e   # e2e tests
 ```
 
+### Update Appweaver packages
+
+```sh
+weaver update                                        # update all @appweaver/* packages to latest
+weaver update @appweaver/core @appweaver/cli         # update specific packages
+weaver update --targetVersion 1.2.3                  # update to a specific version
+weaver update --noSkill                              # skip updating AI agent skill files
+weaver update --force                                # force update despite peerDependency mismatches
+```
+
 ### Format code
 
 ```sh
@@ -554,6 +565,7 @@ npm run lint  # eslint "./**/*.ts"
 
 ## References
 
+- Application CLI (weaver): [cli.md](references/cli.md)
 - Application configuration: [configuration.md](references/configuration.md)
 - Application resources: [resources.md](references/resources.md)
 - Dependency injection: [dependency-injection.md](references/dependency-injection.md)
