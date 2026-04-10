@@ -1,3 +1,11 @@
+## [1.0.7](https://gitlab.com/app-weaver/appweaver/compare/v1.0.6...v1.0.7) (2026-04-10)
+
+### Bug Fixes
+
+* add default generator and DB expression support for scalar fields, update types, and fix schema generation bugs ([0ebcb1c](https://gitlab.com/app-weaver/appweaver/commit/0ebcb1c811675e8c1dc79fa4c8a303eeec12d1fa))
+* add weaver update command, add stricter guidelines in skill file, add process exit codes in all cli commands ([cc66f93](https://gitlab.com/app-weaver/appweaver/commit/cc66f936bca3356809d0eefdb9dec4c377edd49c))
+* change default error code in runProcess on system error to from 1 to 99 ([0165ba2](https://gitlab.com/app-weaver/appweaver/commit/0165ba291ae77a256d8ae7a078d9908ac3b05254))
+
 ## [1.0.6](https://gitlab.com/app-weaver/appweaver/compare/v1.0.5...v1.0.6) (2026-04-09)
 
 ### Bug Fixes
