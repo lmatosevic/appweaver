@@ -1,3 +1,9 @@
+## [1.0.8](https://gitlab.com/app-weaver/appweaver/compare/v1.0.7...v1.0.8) (2026-04-10)
+
+### Bug Fixes
+
+* remove files property from package.js before publishing ([0ef07a0](https://gitlab.com/app-weaver/appweaver/commit/0ef07a0e4847274d9f2496b61d8b4233b8ddfa55))
+
 ## [1.0.7](https://gitlab.com/app-weaver/appweaver/compare/v1.0.6...v1.0.7) (2026-04-10)
 
 ### Bug Fixes
