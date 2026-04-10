@@ -7,6 +7,6 @@ export function buildCommand(program: Command): void {
     .alias('b')
     .description('Build the application')
     .action(async () => {
-      await buildProject();
+      process.exit(await buildProject());
     });
 }

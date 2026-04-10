@@ -1,5 +1,4 @@
 import { TObject } from '@sinclair/typebox';
-import { Operation } from '@prisma/client/runtime/client';
 import { ResourceModelConfig } from './model';
 import { ResourceRoutesConfig, RouteSchema } from './routes';
 
@@ -12,7 +11,33 @@ export type Resource = {
 
 export type ResourceData<T> = Omit<T, keyof Resource>;
 
-export type ResourceClient = Record<Operation, any> & {
+export type ClientOperation =
+  | 'findFirst'
+  | 'findFirstOrThrow'
+  | 'findUnique'
+  | 'findUniqueOrThrow'
+  | 'findMany'
+  | 'create'
+  | 'createMany'
+  | 'createManyAndReturn'
+  | 'update'
+  | 'updateMany'
+  | 'updateManyAndReturn'
+  | 'upsert'
+  | 'delete'
+  | 'deleteMany'
+  | 'aggregate'
+  | 'count'
+  | 'groupBy'
+  | '$queryRaw'
+  | '$executeRaw'
+  | '$queryRawUnsafe'
+  | '$executeRawUnsafe'
+  | 'findRaw'
+  | 'aggregateRaw'
+  | '$runCommandRaw';
+
+export type ResourceClient = Record<ClientOperation, any> & {
   name: string;
 };
 

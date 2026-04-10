@@ -89,13 +89,26 @@ export function testingCommand(program: Command): void {
         command.getOptionValue('modelPattern') ?? config.RESOURCE_MODEL_PATTERN
       );
 
-      await generateSchema(models, schemaPath, clientPath, quiet);
+      const generateStatus = await generateSchema(
+        models,
+        schemaPath,
+        clientPath,
+        quiet
+      );
+      if (generateStatus !== 0) {
+        console.error('Failed to generate Prisma schema');
+        process.exit(generateStatus);
+      }
 
-      await runProcess(
+      const migrateStatus = await runProcess(
         'prisma',
         ['migrate', 'dev', '--name', command.getOptionValue('migrationName')],
         { quiet }
       );
+      if (migrateStatus !== 0) {
+        console.error('Failed to generate new migration');
+        process.exit(migrateStatus);
+      }
 
       console.log('Database initialized');
     });
@@ -134,7 +147,15 @@ export function testingCommand(program: Command): void {
         !command.getOptionValue('storage');
 
       if (command.getOptionValue('database') || resetAll) {
-        await runProcess('prisma', ['migrate', 'reset', '-f'], { quiet });
+        const migrateStatus = await runProcess(
+          'prisma',
+          ['migrate', 'reset', '-f'],
+          { quiet }
+        );
+        if (migrateStatus !== 0) {
+          console.error('Failed to migrate database');
+          process.exit(migrateStatus);
+        }
         console.log('Database reset');
       }
 

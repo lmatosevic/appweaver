@@ -40,6 +40,9 @@ The basic file structure of the Appweaver project:
 - `appweaver.{env}.json` - environment specific configuration files that override the central configuration
 - `Dockerfile` - the dockerfile used for building a docker image for deploying the application
 
+**IMPORTANT:** `{env}` is controlled by `NODE_ENV` environment variable set before any command is executed (can also be
+set in the `.env` file).
+
 ## Core patterns
 
 ### Scaffolding a new application
@@ -138,6 +141,22 @@ must be also created. If routes are created, then service must be created. Only 
 resources.
 
 Dependency chain: **model** → **service** → **routes** → **policy**
+
+**DOS:**
+
+- Use default configuration values whenever possible
+- Rely on library defaults for `omit`/`pick`, ad `input`/`output` settings
+- Use default `mimeType` and `namePattern` patterns in file configurations unless specifically requested
+- Prefer storing configuration in JSON file (`appweaver.json`) over environment (`.env`) file, but prefer it for secrets
+- Always create all four resource configs (model, service, routes, and policy) unless specified otherwise
+
+**DON'TS:**
+
+- Don't explicitly set default values in configuration unless specifically requested
+- Don't override `omit`/`pick` for `read`, `create` and `update` settings unnecessarily
+- Don't specify `input`/`output` configurations if defaults suffice
+- Don't modify file's `mimeType` and `namePattern` patterns unless specifically instructed
+- Don't customize index arrays without an explicit requirement
 
 #### Creating a resource model
 

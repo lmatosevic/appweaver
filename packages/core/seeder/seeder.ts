@@ -42,7 +42,7 @@ export class Seeder extends LifecycleManager {
     try {
       seederFiles = await this.loadSeederFiles();
     } catch (error) {
-      console.warn(`Seeders directory ${this._dirPath} is not accessible`);
+      console.error(`Seeders directory ${this._dirPath} is not accessible`);
       return;
     }
 

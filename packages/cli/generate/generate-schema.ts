@@ -49,7 +49,7 @@ export async function generateSchema(
   schemaPath: string,
   clientPath: string,
   quiet: boolean = false
-): Promise<void> {
+): Promise<number> {
   const cwd = process.cwd();
   const schemaDir = path.join(cwd, path.dirname(schemaPath));
 
@@ -311,11 +311,14 @@ export async function generateSchema(
       console.error(
         `Schema generation failed. ${quiet ? 'Start with --verbose flag to see error details.' : ''}`
       );
+      return 1;
     } else {
       console.log(`Schema generated to ${path.relative(cwd, schemaPath)}`);
+      return 0;
     }
   } catch (error) {
     console.error(`Schema generation failed:`, error);
+    return 2;
   }
 }
 

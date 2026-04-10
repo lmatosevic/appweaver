@@ -15,7 +15,7 @@ export async function generateTypes(
   models: Record<string, ResourceModel>,
   typesPath: string,
   quiet: boolean = false
-): Promise<void> {
+): Promise<number> {
   const cwd = process.cwd();
   const typesDir = path.join(cwd, path.dirname(typesPath));
 
@@ -68,8 +68,11 @@ export async function generateTypes(
     ]);
 
     console.log(`Types generated to ${path.relative(cwd, outputPath)}`);
+
+    return 0;
   } catch (error) {
     console.error(`Types generation failed:`, error);
+    return 2;
   }
 }
 

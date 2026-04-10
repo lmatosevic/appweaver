@@ -4,8 +4,10 @@ process.env.WEAVER_CLI = 'true';
 
 import { spawnSync } from 'node:child_process';
 import { config, Runtime } from '@appweaver/common';
-import { loadPackageJson, isBunProcess } from './utils';
+import { isBunProcess, loadCliPackageJson } from './utils';
 
+// Restart the same process if the Bun runtime is configured and Bun is
+// available on the host machine
 if (!isBunProcess() && config.APP_RUNTIME === Runtime.Bun) {
   const check = spawnSync('bun --version', {
     stdio: 'ignore',
@@ -21,6 +23,8 @@ if (!isBunProcess() && config.APP_RUNTIME === Runtime.Bun) {
   // Bun isn't found — fall through to Node execution
 }
 
+// These imports should be added after resolving current runtime to avoid
+// unnecessary loading of all dependencies
 import { Command } from 'commander';
 import { buildCommand } from './build';
 import { generateCommand } from './generate';
@@ -29,8 +33,9 @@ import { migrationCommand } from './migration';
 import { seedCommand } from './seed';
 import { startCommand } from './start';
 import { testingCommand } from './testing';
+import { updateCommand } from './update';
 
-const pkg = loadPackageJson();
+const pkg = loadCliPackageJson();
 
 const program = new Command();
 
@@ -54,5 +59,7 @@ seedCommand(program);
 startCommand(program);
 
 testingCommand(program);
+
+updateCommand(program);
 
 program.parse();

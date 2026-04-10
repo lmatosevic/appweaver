@@ -9,6 +9,9 @@
   "bin": {
     "weaver": "./weaver.js"
   },
+  "files": [
+    "../../skill"
+  ],
   "repository": {
     "type": "git",
     "url": "https://gitlab.com/app-weaver/appweaver.git",

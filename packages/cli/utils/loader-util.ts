@@ -1,24 +1,34 @@
-import fs from 'node:fs';
 import path from 'node:path';
+import fs from 'node:fs';
+import fsp from 'node:fs/promises';
 import { glob } from 'glob';
 import { register } from 'ts-node';
 import { config, isResourceModel, ResourceModel } from '@appweaver/common';
 
 /**
- * Loads and parses the `package.json` file located at a specified path.
+ * Loads and parses the `package.json` file located in the CLI project package directory.
  * The function attempts to locate the `package.json` file in one of two
  * predefined directories relative to the current module's directory.
  * If the file is found, its contents are read and parsed into a JavaScript object.
  *
- * @return {Record<string, string>} The parsed contents of the `package.json` file as a key-value object.
+ * @return {Record<string, Object>} The parsed contents of the `package.json` file as a key-value object.
  */
-export function loadPackageJson(): Record<string, string> {
-  let pkgPath = path.join(__dirname, '../../package.json');
-  if (!fs.existsSync(pkgPath)) {
-    pkgPath = path.join(__dirname, '../package.json');
-  }
+export function loadCliPackageJson(): Record<string, any> {
+  const pkgPath = path.join(__dirname, '../package.json');
+  const pkgContent = fs.readFileSync(pkgPath, 'utf8');
+  return JSON.parse(pkgContent);
+}
 
-  return JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+/**
+ * Loads the `package.json` file from the local working directory and parses its content into a JavaScript object.
+ *
+ * @return {Promise<Record<string, Object>>} A promise that resolves to an object representing the contents of the
+ * `package.json` file, where keys and values are strings.
+ */
+export async function loadLocalPackageJson(): Promise<Record<string, any>> {
+  const pkgPath = path.join(process.cwd(), 'package.json');
+  const pkgContent = await fsp.readFile(pkgPath, 'utf-8');
+  return JSON.parse(pkgContent);
 }
 
 /**

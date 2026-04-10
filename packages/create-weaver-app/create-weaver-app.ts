@@ -62,7 +62,7 @@ program
   )
   .option(
     '--agent [agent]',
-    `The AI Agent provider (${agentTypes.join(', ')}).`,
+    `The AI agent for which to configure guidelines and skill files (${agentTypes.join(', ')}).`,
     parseAgentType,
     'claude'
   )
@@ -267,7 +267,7 @@ function getNodeDependencies(command: Command, runtime: string): string[] {
   }
 
   if (!command.getOptionValue('noMailer')) {
-    dependencies.push('"nodemailer": "8.0.1"');
+    dependencies.push('"nodemailer": "8.0.5"');
   }
 
   return dependencies.sort().map((d) => `    ${d}`);

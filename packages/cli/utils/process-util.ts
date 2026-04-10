@@ -10,13 +10,13 @@ import { config } from '@appweaver/common';
  * @param {Object} [params={ quiet: false }] - Configurations for how the process should run.
  * @param {boolean} [params.quiet=false] - If true, suppresses the process output.
  * @param {AbortSignal} [params.signal] - Optional AbortSignal to terminate the running process.
- * @return {Promise<number | null>} A promise that resolves with the exit code of the process or null on error.
+ * @return {Promise<number>} A promise that resolves with the exit code of the process or 1 on error.
  */
 export function runProcess(
   cmd: string,
   args: string[] = [],
   params: { quiet?: boolean; signal?: AbortSignal } = {}
-): Promise<number | null> {
+): Promise<number> {
   const { quiet = false, signal } = params;
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
@@ -49,7 +49,7 @@ export function runProcess(
     child.on('error', reject);
 
     child.on('close', (code) => {
-      resolve(code);
+      resolve(code ?? 1);
     });
   });
 }

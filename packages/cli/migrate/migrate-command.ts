@@ -7,6 +7,6 @@ export function migrateCommand(program: Command): void {
     .alias('mge')
     .description('Run database migrations')
     .action(async () => {
-      await runProcess('prisma', ['migrate', 'deploy']);
+      process.exit(await runProcess('prisma', ['migrate', 'deploy']));
     });
 }

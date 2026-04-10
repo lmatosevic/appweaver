@@ -11,7 +11,9 @@ export function migrationCommand(program: Command): void {
     .command('new <name>')
     .description('Create a new database migration')
     .action(async (name: string) => {
-      await runProcess('prisma', ['migrate', 'dev', '--name', name]);
+      process.exit(
+        await runProcess('prisma', ['migrate', 'dev', '--name', name])
+      );
     });
 
   migration
@@ -37,6 +39,6 @@ export function migrationCommand(program: Command): void {
         args.push('--force');
       }
 
-      await runProcess('prisma', args);
+      process.exit(await runProcess('prisma', args));
     });
 }

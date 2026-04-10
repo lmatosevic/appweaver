@@ -249,6 +249,33 @@ export function errorMessage(error: unknown): string {
 }
 
 /**
+ * Compares two version strings and determines their relative order.
+ * The versions are compared numerically in a point-wise manner.
+ *
+ * @param {string} first - The first version string to compare, formatted as dot-separated numeric segments.
+ * @param {string} second - The second version string to compare, formatted as dot-separated numeric segments.
+ * @return {number} A negative number if `first` is less than `second`, positive if `first` is greater than `second`,
+ * or 0 if they are equal.
+ */
+export function compareVersions(first: string, second: string): number {
+  const firstVersionParts = first.split('.').map(Number);
+  const secondVersionParts = second.split('.').map(Number);
+
+  for (
+    let i = 0;
+    i < Math.max(firstVersionParts.length, secondVersionParts.length);
+    i++
+  ) {
+    const diff = (firstVersionParts[i] ?? 0) - (secondVersionParts[i] ?? 0);
+    if (diff !== 0) {
+      return diff;
+    }
+  }
+
+  return 0;
+}
+
+/**
  * Converts a human-readable size string (e.g., "1.5 MB", "2GB", "5k") into its equivalent size in bytes.
  *
  * @param {string} sizeText - A string representing the size with an optional unit (e.g., "KB", "MB", "GB", "TB").

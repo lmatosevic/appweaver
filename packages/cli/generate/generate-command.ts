@@ -38,8 +38,9 @@ export function generateCommand(program: Command): void {
         command.getOptionValue('modelPattern') ?? config.RESOURCE_MODEL_PATTERN
       );
 
+      let typeGenerateResult: number = 0;
       if (command.getOptionValue('types') || generateAll) {
-        await generateTypes(
+        typeGenerateResult = await generateTypes(
           models,
           command.getOptionValue('typesPath') ??
             config.RESOURCE_GENERATED_TYPES_PATH,
@@ -47,14 +48,19 @@ export function generateCommand(program: Command): void {
         );
       }
 
+      let schemaGenerateResult: number = 0;
       if (command.getOptionValue('schema') || generateAll) {
-        await generateSchema(
+        schemaGenerateResult = await generateSchema(
           models,
           command.getOptionValue('schemaPath') ?? config.DATABASE_SCHEMA_PATH,
           command.getOptionValue('clientPath') ??
             config.DATABASE_CLIENT_OUTPUT_DIR_PATH,
           quiet
         );
+      }
+
+      if (typeGenerateResult !== 0 || schemaGenerateResult !== 0) {
+        process.exit(typeGenerateResult || schemaGenerateResult);
       }
     });
 }

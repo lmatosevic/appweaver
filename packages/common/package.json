@@ -36,11 +36,7 @@
     "pluralize": "8.0.0",
     "rotating-file-stream": "3.2.7"
   },
-  "devDependencies": {
-    "@prisma/client": "^7.3.0"
-  },
-  "peerDependencies": {
-    "@prisma/client": "^7.3.0"
-  },
+  "devDependencies": {},
+  "peerDependencies": {},
   "peerDependenciesMeta": {}
 }
