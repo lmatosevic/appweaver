@@ -71,6 +71,9 @@ async function watchBunProcess(): Promise<void> {
     process.exit(1);
   });
 
+  // Wait before starting watcher to prevent restarts during init phase
+  await new Promise((r) => setTimeout(r, 200));
+
   // Watch for file changes and start new process using debounce timer
   for await (const info of watch(config.APP_SOURCE_PATH, { recursive: true })) {
     if (info.filename === null) {
