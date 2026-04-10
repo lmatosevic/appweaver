@@ -42,14 +42,11 @@ for (const pkgName of fs.readdirSync(packagesDir)) {
 
     // Copy additional files into dist directory for packages with a "files" field
     if (pkgJson.files) {
-      const resolvedDestFiles = [];
-
       // Copy existing file paths to dist directory
       for (const file of pkgJson.files) {
         const sourcePath = path.join(fullPath, file);
         if (fs.existsSync(sourcePath)) {
           const destFile = file.replace(/\.\.\//g, '');
-          resolvedDestFiles.push(destFile);
           fs.cpSync(sourcePath, path.join(fullPath, distDir, destFile), {
             recursive: true,
             force: true
@@ -57,14 +54,12 @@ for (const pkgName of fs.readdirSync(packagesDir)) {
         }
       }
 
-      // Update package.json with resolved destination file paths
-      if (resolvedDestFiles.length > 0) {
-        pkgJson.files = resolvedDestFiles;
-        fs.writeFileSync(
-          path.join(fullPath, distDir, 'package.json'),
-          JSON.stringify(pkgJson, null, 2)
-        );
-      }
+      // Remove files from package.json to not interfere with publishing process
+      pkgJson.files = undefined;
+      fs.writeFileSync(
+        path.join(fullPath, distDir, 'package.json'),
+        JSON.stringify(pkgJson, null, 2)
+      );
     }
 
     // Create .bin shims for packages that declare a "bin" field
