@@ -157,7 +157,7 @@ program
     for (const runtimeFile of runtimeFiles) {
       if (runtimeFile.endsWith(`.${runtime}`)) {
         const outputFile = runtimeFile.replace(`.${runtime}`, '');
-        await fsp.cp(runtimeFile, outputFile, { force: true });
+        await fsp.cp(runtimeFile, outputFile);
       }
       await fsp.unlink(runtimeFile);
     }
