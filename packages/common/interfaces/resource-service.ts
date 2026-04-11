@@ -56,7 +56,8 @@ export interface IResourceService<
    * @param {string} [from] - The optional start date for filtering data within a specific range.
    * @param {string} [to] - The optional end date for filtering data within a specific range.
    * @param {number} [step] - The optional step value for bucketing or interval aggregation.
-   * @param {boolean} [safeIncrement] - Whether to apply safe increment logic during aggregation.
+   * @param {boolean} [safeIncrement] - Whether to increment time periods based on the calculated time difference, or
+   * otherwise use increments in blocks by seconds relative to the starting date.
    * @return {Promise<AggregateResponse<Object>>} A promise that resolves to the aggregated response based on the
    * criteria.
    */

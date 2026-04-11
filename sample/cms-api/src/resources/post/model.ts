@@ -22,7 +22,7 @@ export default createModel({
       type: 'string',
       unique: true,
       pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
-      examples: ['title-of-post']
+      example: 'title-of-post'
     },
     content: {
       type: 'string',
@@ -96,7 +96,7 @@ export default createModel({
   virtual: {
     randomNumbers: {
       type: 'float',
-      examples: [12.24],
+      example: 12.24,
       array: true,
       input: {
         type: 'none'

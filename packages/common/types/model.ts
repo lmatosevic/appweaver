@@ -106,8 +106,8 @@ type BaseScalarField<T, G = never, IsArray extends boolean = boolean> = {
   unique?: boolean;
   /** Exclude field from API output */
   hidden?: boolean;
-  /** Example values used in generated schema/docs */
-  examples?: PrimitiveType[];
+  /** Example value used in the generated OpenAPI (Swagger) schema documentation */
+  example?: PrimitiveType;
 };
 
 export type ScalarFieldString = BaseScalarField<

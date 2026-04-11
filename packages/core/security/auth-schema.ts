@@ -8,34 +8,34 @@ import {
 import { AllErrorResponses } from '../errors';
 
 export const LoginRequest = Type.Object({
-  username: Type.String({ examples: ['john.doe@example.com'] }),
-  password: Type.String({ examples: ['yourPassword123!'] })
+  username: Type.String({ example: 'john.doe@example.com' }),
+  password: Type.String({ example: 'yourPassword123!' })
 });
 
 export const AuthTokensResponse = Type.Object({
   accessToken: Type.String({
-    examples: ['eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJuYk92']
+    example: 'eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJuYk92'
   }),
   refreshToken: Type.String({
-    examples: ['eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJkNTBl']
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJkNTBl'
   }),
-  expiresIn: Type.Number({ examples: [2592000] }),
-  refreshExpiresIn: Type.Number({ examples: [5184000] })
+  expiresIn: Type.Number({ example: 2592000 }),
+  refreshExpiresIn: Type.Number({ example: 5184000 })
 });
 
 export const ChangePasswordRequest = Type.Object({
-  currentPassword: Type.String({ examples: ['yourPassword123!'] }),
+  currentPassword: Type.String({ example: 'yourPassword123!' }),
   newPassword: Type.String({
-    examples: ['yourNewPassword123!']
+    example: 'yourNewPassword123!'
   })
 });
 
 export const LogoutResponse = Type.Object({
-  success: Type.Boolean({ examples: [true] })
+  success: Type.Boolean({ example: true })
 });
 
 export const ExchangeRequest = Type.Object({
-  token: Type.String({ examples: ['aBcDeFgHijkLMnO123456789'] })
+  token: Type.String({ example: 'aBcDeFgHijkLMnO123456789' })
 });
 
 export const loginSchema = {

@@ -9,6 +9,7 @@ import {
   ResourceModelConfig,
   ResourceServiceConfig,
   ScalarConfig,
+  ScalarFieldString,
   uncapitalize,
   VirtualConfig
 } from '@appweaver/common';
@@ -47,6 +48,14 @@ export function createAuthModel(config: ResourceModelConfig): ResourceModel {
       required: false
     }
   };
+
+  // Override email properties if already present in the model config
+  if (config.scalars?.email?.type === 'string') {
+    authModelScalars.email = {
+      ...authModelScalars.email,
+      ...config.scalars.email
+    } as ScalarFieldString;
+  }
 
   const authModelVirtual: VirtualConfig = {
     password: {

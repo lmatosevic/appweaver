@@ -19,7 +19,7 @@ export const HealthCheckCommonData = Type.Object({
 });
 
 export const ReadyResponse = Type.Object({
-  ready: Type.Boolean({ examples: [true] })
+  ready: Type.Boolean({ example: true })
 });
 
 export const healthReadySchema = {

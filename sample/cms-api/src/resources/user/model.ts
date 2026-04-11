@@ -24,11 +24,13 @@ export default createAuthModel({
       type: 'string',
       unique: true,
       format: 'email',
-      maxLength: 255
+      maxLength: 255,
+      example: 'user@example.com'
     },
     phone: {
       type: 'string',
-      maxLength: 32
+      maxLength: 32,
+      example: '+37534567890'
     },
     secret: {
       type: 'string',

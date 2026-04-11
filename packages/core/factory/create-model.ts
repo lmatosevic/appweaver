@@ -190,36 +190,36 @@ function buildScalarSchema(field: ScalarField): TSchema {
           'format',
           'pattern',
           'hidden',
-          'examples'
+          'example'
         ])
       );
       break;
     case 'int':
     case 'bigInt':
       fieldType = Type.Integer(
-        pickProperties(field, ['minimum', 'maximum', 'hidden', 'examples'])
+        pickProperties(field, ['minimum', 'maximum', 'hidden', 'example'])
       );
       break;
     case 'float':
       fieldType = Type.Number(
-        pickProperties(field, ['minimum', 'maximum', 'hidden', 'examples'])
+        pickProperties(field, ['minimum', 'maximum', 'hidden', 'example'])
       );
       break;
     case 'boolean':
-      fieldType = Type.Boolean(pickProperties(field, ['hidden', 'examples']));
+      fieldType = Type.Boolean(pickProperties(field, ['hidden', 'example']));
       break;
     case 'dateTime':
       fieldType = StringDate(
-        pickProperties(field, ['format', 'hidden', 'examples'])
+        pickProperties(field, ['format', 'hidden', 'example'])
       );
       break;
     case 'json':
-      fieldType = AnyJson(pickProperties(field, ['hidden', 'examples']));
+      fieldType = AnyJson(pickProperties(field, ['hidden', 'example']));
       break;
     case 'enum':
       fieldType = StringEnum(
         field.values ?? [],
-        pickProperties(field, ['hidden', 'examples'])
+        pickProperties(field, ['hidden', 'example'])
       );
       break;
   }
@@ -408,7 +408,7 @@ function buildFileInputModels(config: ResourceModelConfig): {
     format: 'binary',
     [Kind]: 'String'
   });
-  const FileDelete = Type.String({ examples: ['image_123.png'] });
+  const FileDelete = Type.String({ example: 'image_123.png' });
 
   const fileUploadModel = Type.Object(
     Object.fromEntries(

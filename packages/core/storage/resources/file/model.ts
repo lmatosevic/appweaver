@@ -7,12 +7,12 @@ export default createModel({
       type: 'string',
       maxLength: 1023,
       unique: true,
-      examples: ['image_123.png']
+      example: 'image_123.png'
     },
     originalName: {
       type: 'string',
       maxLength: 255,
-      examples: ['image.png']
+      example: 'image.png'
     },
     mimeType: {
       type: 'string',
@@ -21,7 +21,7 @@ export default createModel({
     sizeBytes: {
       type: 'int',
       minimum: 0,
-      examples: [1024]
+      example: 1024
     },
     title: {
       type: 'string',

@@ -25,35 +25,33 @@ export const IdString = Type.Object({
 export const AuditData = Type.Object({
   updatedAt: StringDate(),
   createdAt: StringDate(),
-  createdById: Nullable(Type.Integer({ minimum: 1, examples: [1] }))
+  createdById: Nullable(Type.Integer({ minimum: 1, example: 1 }))
 });
 
 export const QueryRequestData = Type.Object({
-  filter: Type.Optional(AnyJson({ examples: [{ field: 'value' }] })),
-  page: Type.Optional(Type.Number({ minimum: 1, examples: [1] })),
-  size: Type.Optional(
-    Type.Number({ minimum: 0, maximum: 1000, examples: [50] })
-  ),
-  sort: Type.Optional(Type.String({ examples: ['-createdAt,id'] }))
+  filter: Type.Optional(AnyJson({ example: { field: 'value' } })),
+  page: Type.Optional(Type.Number({ minimum: 1, example: 1 })),
+  size: Type.Optional(Type.Number({ minimum: 0, maximum: 1000, example: 50 })),
+  sort: Type.Optional(Type.String({ example: '-createdAt,id' }))
 });
 
 export const QueryResponseData = Type.Object({
-  resultCount: Type.Number({ examples: [10] }),
-  totalCount: Type.Number({ examples: [100] })
+  resultCount: Type.Number({ example: 10 }),
+  totalCount: Type.Number({ example: 100 })
 });
 
 export const AggregateRequestData = Type.Object({
-  filter: Type.Optional(AnyJson({ examples: [{ field: 'value' }] })),
-  select: Type.Optional(AnyJson({ examples: [{ field: 'value' }] })),
-  dateField: Type.Optional(Type.String({ examples: ['createdAt'] })),
+  filter: Type.Optional(AnyJson({ example: { field: 'value' } })),
+  select: Type.Optional(AnyJson({ example: { field: 'value' } })),
+  dateField: Type.Optional(Type.String({ example: 'createdAt' })),
   from: Type.Optional(StringDate()),
   to: Type.Optional(StringDate()),
-  step: Type.Optional(Type.Integer({ minimum: 1, examples: [3600] })),
-  safeIncrement: Type.Optional(Type.Boolean({ examples: [true] }))
+  step: Type.Optional(Type.Integer({ minimum: 1, example: 3600 })),
+  safeIncrement: Type.Optional(Type.Boolean({ example: true }))
 });
 
 export const AggregateResponseData = Type.Optional(
-  AnyJson({ examples: [{ field: 'value' }] })
+  AnyJson({ example: { field: 'value' } })
 );
 
 export function createSchema(

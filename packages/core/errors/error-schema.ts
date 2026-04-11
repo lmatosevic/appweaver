@@ -1,8 +1,13 @@
 import { Type } from '@sinclair/typebox';
 
-export const ErrorResponse = Type.Object({
-  errorCode: Type.Integer({ examples: [400] }),
-  message: Type.String({ examples: ['Error description'] })
+export const ClientErrorResponse = Type.Object({
+  errorCode: Type.Integer({ example: 400 }),
+  message: Type.String({ example: 'Client error description' })
+});
+
+export const ServerErrorResponse = Type.Object({
+  errorCode: Type.Integer({ example: 500 }),
+  message: Type.String({ example: 'Server error description' })
 });
 
 export const AllErrorResponses = {
@@ -10,7 +15,7 @@ export const AllErrorResponses = {
     description: 'Client error',
     content: {
       'application/json': {
-        schema: ErrorResponse
+        schema: ClientErrorResponse
       }
     }
   },
@@ -18,7 +23,7 @@ export const AllErrorResponses = {
     description: 'Server error',
     content: {
       'application/json': {
-        schema: ErrorResponse
+        schema: ServerErrorResponse
       }
     }
   }

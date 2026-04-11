@@ -12,8 +12,10 @@ import {
  *
  * @template T - An object whose values represent the valid string enumeration options.
  *
- * @param {T} value - An object containing the valid values for the enumeration. The values of this object must be strings, as they will form the enumeration.
- * @param {StringOptions} [options={}] - Optional configuration options that can be passed to customize the resulting string enumeration.
+ * @param {T} value - An object containing the valid values for the enumeration. The values of this object must be
+ * strings, as they will form the enumeration.
+ * @param {StringOptions} [options={}] - Optional configuration options that can be passed to customize the resulting
+ * string enumeration.
  *
  * @returns A type-safe string enumeration constructed from the values of the provided object.
  */
@@ -32,10 +34,10 @@ export const StringEnum = <T extends object>(
 /**
  * A function that returns a type definition representing a string formatted as a date-time.
  *
- * This function utilizes the `Type.Unsafe` method to define a custom type for a date string.
+ * This function uses the `Type.Unsafe` method to define a custom type for a date string.
  * The resulting type expects a `string` with the format `date-time`, as per ISO 8601 standard.
  *
- * The type includes metadata such as examples and an optional set of additional properties
+ * The type includes metadata such as example value and an optional set of additional properties
  * passed through the `options` parameter.
  *
  * @param {object} [options={}] - Optional configuration object to extend the base type definition.
@@ -48,8 +50,8 @@ export const StringDate = (
   Type.Unsafe<Date>({
     type: 'string',
     format: 'date-time',
+    example: new Date().toISOString(),
     [Kind]: 'String',
-    examples: [new Date().toISOString()],
     ...options
   });
 
@@ -67,7 +69,7 @@ export const StringDate = (
  */
 export const AnyJson = (options: Parameters<typeof Type.Unsafe<any>>[0] = {}) =>
   Type.Any({
-    examples: [{}],
+    example: {},
     ...options
   });
 

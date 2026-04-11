@@ -7,7 +7,7 @@ export const FileName = Type.Object({
 });
 
 export const FileRangeHeader = Type.Object({
-  Range: Type.Optional(Type.String({ examples: ['bytes=0-1023'] }))
+  Range: Type.Optional(Type.String({ example: 'bytes=0-1023' }))
 });
 
 export const FileResponse = Type.String({ format: 'binary' });

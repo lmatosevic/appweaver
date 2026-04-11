@@ -9,18 +9,18 @@ export const OAuth2RedirectQuery = Type.Object({
       'A URL to redirect to with one-time-token after successful' +
       ' authentication. The client then needs to exchange this token for' +
       ' an JWT access token',
-    examples: ['https://example.com/login/handler']
+    example: 'https://example.com/login/handler'
   })
 });
 
 export const OAuth2CallbackQuery = Type.Object({
   code: Type.String({
     description: 'Authorization code from OAuth2 provider',
-    examples: ['3b7bdc9982feac0e20cf4ddc9be52a1a027142e25b4d14c1b5a280595bc20']
+    example: '3b7bdc9982feac0e20cf4ddc9be52a1a027142e25b4d14c1b5a280595bc20'
   }),
   state: Type.String({
     description: 'Authorization state returned from OAuth2 provider',
-    examples: ['89bbb34d76801fcf8251193a02a1d62c7c87a']
+    example: '89bbb34d76801fcf8251193a02a1d62c7c87a'
   })
 });
 

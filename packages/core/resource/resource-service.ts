@@ -627,7 +627,7 @@ export abstract class ResourceService<
       return projectedResource;
     }
 
-    // Create new relations count properties on the resource object
+    // Create new relation count properties on the resource object
     for (const [key, count] of Object.entries(projectedResource['_count'])) {
       projectedResource[countFieldName(key)] = count;
     }

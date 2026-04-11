@@ -53,7 +53,8 @@ export function createServer(): Server {
     ajv: {
       customOptions: {
         removeAdditional: 'all'
-      }
+      },
+      plugins: [(ajv): any => ajv.addKeyword('example')]
     },
     routerOptions: {
       maxParamLength: 512,
