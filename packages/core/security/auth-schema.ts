@@ -1,4 +1,4 @@
-import { TObject, Type } from '@sinclair/typebox';
+import { TObject, TSchema, Type } from '@sinclair/typebox';
 import {
   AuthType,
   config,
@@ -6,47 +6,61 @@ import {
   RouteSchema
 } from '@appweaver/common';
 import { AllErrorResponses } from '../errors';
+import { createSchemaModel } from '../utils';
 
-export const LoginRequest = Type.Object({
-  username: Type.String({ example: 'john.doe@example.com' }),
-  password: Type.String({ example: 'yourPassword123!' })
-});
+export const LoginRequest = Type.Object(
+  {
+    username: Type.String({ example: 'john.doe@example.com' }),
+    password: Type.String({ example: 'yourPassword123!' })
+  },
+  { $id: 'LoginRequest' }
+);
 
-export const AuthTokensResponse = Type.Object({
-  accessToken: Type.String({
-    example: 'eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJuYk92'
-  }),
-  refreshToken: Type.String({
-    example: 'eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJkNTBl'
-  }),
-  expiresIn: Type.Number({ example: 2592000 }),
-  refreshExpiresIn: Type.Number({ example: 5184000 })
-});
+export const AuthenticationResponse = Type.Object(
+  {
+    accessToken: Type.String({
+      example: 'eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJuYk92'
+    }),
+    refreshToken: Type.String({
+      example: 'eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJkNTBl'
+    }),
+    expiresIn: Type.Number({ example: 2592000 }),
+    refreshExpiresIn: Type.Number({ example: 5184000 })
+  },
+  { $id: 'AuthenticationResponse' }
+);
 
-export const ChangePasswordRequest = Type.Object({
-  currentPassword: Type.String({ example: 'yourPassword123!' }),
-  newPassword: Type.String({
-    example: 'yourNewPassword123!'
-  })
-});
+export const ChangePasswordRequest = Type.Object(
+  {
+    currentPassword: Type.String({ example: 'oldPassword123!' }),
+    newPassword: Type.String({ example: 'newPassword321!' })
+  },
+  { $id: 'ChangePasswordRequest' }
+);
 
-export const LogoutResponse = Type.Object({
-  success: Type.Boolean({ example: true })
-});
+export const LogoutResponse = Type.Object(
+  {
+    success: Type.Boolean({ example: true })
+  },
+  { $id: 'LogoutResponse' }
+);
 
-export const ExchangeRequest = Type.Object({
-  token: Type.String({ example: 'aBcDeFgHijkLMnO123456789' })
-});
+export const ExchangeTokenRequest = Type.Object(
+  {
+    token: Type.String({ example: 'aBcDeFgHijkLMnO123456789' })
+  },
+  { $id: 'ExchangeTokenRequest' }
+);
 
 export const loginSchema = {
   tags: ['Auth'],
   summary: 'Login identity',
   description: 'Login identity',
   response: {
-    200: AuthTokensResponse,
+    200: createSchemaModel(AuthenticationResponse),
     ...AllErrorResponses
   },
-  body: LoginRequest
+  body: createSchemaModel(LoginRequest)
 };
 
 export const refreshSchema = {
@@ -55,7 +69,7 @@ export const refreshSchema = {
   summary: 'Refresh identity token',
   description: 'Refresh identity token',
   response: {
-    200: AuthTokensResponse,
+    200: createSchemaModel(AuthenticationResponse),
     ...AllErrorResponses
   }
 };
@@ -66,7 +80,7 @@ export const logoutSchema = {
   summary: 'Logout identity',
   description: 'Logout identity',
   response: {
-    200: LogoutResponse,
+    200: createSchemaModel(LogoutResponse),
     ...AllErrorResponses
   }
 };
@@ -77,10 +91,10 @@ export const changePasswordSchema = {
   summary: 'Change identity password',
   description: 'Change identity password',
   response: {
-    200: AuthTokensResponse,
+    200: createSchemaModel(AuthenticationResponse),
     ...AllErrorResponses
   },
-  body: ChangePasswordRequest
+  body: createSchemaModel(ChangePasswordRequest)
 };
 
 export const exchangeTokenSchema = {
@@ -88,10 +102,10 @@ export const exchangeTokenSchema = {
   summary: 'Exchange one time token for access token',
   description: 'Exchange one time token for access token',
   response: {
-    200: AuthTokensResponse,
+    200: createSchemaModel(AuthenticationResponse),
     ...AllErrorResponses
   },
-  body: ExchangeRequest
+  body: createSchemaModel(ExchangeTokenRequest)
 };
 
 export function authSchema(authTypes?: AuthType[]): any[] {
@@ -135,14 +149,14 @@ export function recaptchaHeaderSchema(
   );
 }
 
-export function createCurrentAuthUserSchema(modelRef: string): RouteSchema {
+export function createCurrentAuthUserSchema(modelSchema: TSchema): RouteSchema {
   return {
     tags: ['Auth'],
     security: authSchema(),
     summary: 'Return currently authorized identity',
     description: 'Return currently authorized identity',
     response: {
-      200: Type.Ref(modelRef),
+      200: modelSchema,
       ...AllErrorResponses
     }
   };

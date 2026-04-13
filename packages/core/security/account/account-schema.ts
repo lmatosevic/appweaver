@@ -2,96 +2,124 @@ import { Type } from '@sinclair/typebox';
 import { AuthType, StringEnum } from '@appweaver/common';
 import { AllErrorResponses } from '../../errors';
 import { authSchema, recaptchaHeaderSchema } from '../auth-schema';
+import { createSchemaModel } from '../../utils';
 import { VerificationType } from './account-service';
 
-export const AccountSendEmailVerificationRequest = Type.Object({
-  redirectToUrl: Type.String({
-    format: 'uri',
-    description:
-      'A URL to redirect to with token or status code after email verification is completed',
-    example: 'https://example.com/account'
-  }),
-  verificationType: Type.Optional(
-    StringEnum(VerificationType, {
+export const AccountSendEmailVerificationRequest = Type.Object(
+  {
+    redirectToUrl: Type.String({
+      format: 'uri',
       description:
-        'auto (default) - token is verified automatically before redirecting to provided URL with status message, ' +
-        'manual - client must manually verify received token on provided URL',
-      example: 'auto'
+        'A URL to redirect to with token or status code after email verification is completed',
+      example: 'https://example.com/account'
+    }),
+    verificationType: Type.Optional(
+      StringEnum(VerificationType, {
+        description:
+          'auto (default) - token is verified automatically before redirecting to provided URL with status message, ' +
+          'manual - client must manually verify received token on provided URL',
+        example: 'auto'
+      })
+    )
+  },
+  { $id: 'AccountSendEmailVerificationRequest' }
+);
+
+export const AccountEmailVerificationRequest = Type.Object(
+  {
+    token: Type.String({
+      description: 'Verification token sent to the user email',
+      example: 'aBcDeFgHijkLMnO123456789'
     })
-  )
-});
+  },
+  { $id: 'AccountEmailVerificationRequest' }
+);
 
-export const AccountEmailVerificationRequest = Type.Object({
-  token: Type.String({
-    description: 'Verification token sent to the user email',
-    example: 'aBcDeFgHijkLMnO123456789'
-  })
-});
-
-export const AccountSendResetPasswordRequest = Type.Object({
-  redirectToUrl: Type.String({
-    format: 'uri',
-    description:
-      'A URL to redirect to where the user will perform the password reset' +
-      ' with one-time-token in the request',
-    example: 'https://example.com/reset-password'
-  }),
-  email: Type.String({
-    format: 'email',
-    description: 'A email address for which to perform password reset',
-    example: 'account@example.com'
-  })
-});
-
-export const AccountResetPasswordRequest = Type.Object({
-  token: Type.String({
-    description: 'Password reset token sent to the user email',
-    example: 'aBcDeFgHijkLMnO123456789'
-  }),
-  newPassword: Type.String({
-    description: 'The new password to set for this user',
-    example: 'yourNewPassword123'
-  })
-});
-
-export const AccountSend2FACodeRequest = Type.Object({
-  purpose: Type.Optional(
-    Type.String({
-      description: 'A purpose for using two factor authentication method',
-      example: 'authentication'
+export const AccountSendResetPasswordRequest = Type.Object(
+  {
+    redirectToUrl: Type.String({
+      format: 'uri',
+      description:
+        'A URL to redirect to where the user will perform the password reset' +
+        ' with one-time-token in the request',
+      example: 'https://example.com/reset-password'
+    }),
+    email: Type.String({
+      format: 'email',
+      description: 'A email address for which to perform password reset',
+      example: 'account@example.com'
     })
-  )
-});
+  },
+  { $id: 'AccountSendResetPasswordRequest' }
+);
 
-export const AccountSend2FAResponse = Type.Object({
-  challengeId: Type.String({
-    description: 'The ID for currently requested 2FA',
-    example: 'aBcDeFgHijkLMnO123456789'
-  })
-});
+export const AccountResetPasswordRequest = Type.Object(
+  {
+    token: Type.String({
+      description: 'Password reset token sent to the user email',
+      example: 'aBcDeFgHijkLMnO123456789'
+    }),
+    newPassword: Type.String({
+      description: 'The new password to set for this user',
+      example: 'yourNewPassword123'
+    })
+  },
+  { $id: 'AccountResetPasswordRequest' }
+);
 
-export const AccountVerify2FARequest = Type.Object({
-  challengeId: Type.String({
-    description: 'The ID value received on sending 2FA code request',
-    example: 'aBcDeFgHijkLMnO123456789'
-  }),
-  code: Type.String({
-    description: 'The 2FA code to verify',
-    example: '123456'
-  })
-});
+export const AccountSend2FACodeRequest = Type.Object(
+  {
+    purpose: Type.Optional(
+      Type.String({
+        description: 'A purpose for using two factor authentication method',
+        example: 'authentication'
+      })
+    )
+  },
+  { $id: 'AccountSend2FACodeRequest' }
+);
 
-export const AccountVerify2FAResponse = Type.Object({
-  token: Type.String({
-    description:
-      'The one-time-token for requested purpose (e.g. authentication)',
-    example: 'aBcDeFgHijkLMnO123456789'
-  })
-});
+export const AccountSend2FAResponse = Type.Object(
+  {
+    challengeId: Type.String({
+      description: 'The ID for currently requested 2FA',
+      example: 'aBcDeFgHijkLMnO123456789'
+    })
+  },
+  { $id: 'AccountSend2FAResponse' }
+);
 
-export const AccountStatusResponse = Type.Object({
-  message: Type.String({ example: 'Operation finished successfully' })
-});
+export const AccountVerify2FARequest = Type.Object(
+  {
+    challengeId: Type.String({
+      description: 'The ID value received on sending 2FA code request',
+      example: 'aBcDeFgHijkLMnO123456789'
+    }),
+    code: Type.String({
+      description: 'The 2FA code to verify',
+      example: '123456'
+    })
+  },
+  { $id: 'AccountVerify2FARequest' }
+);
+
+export const AccountVerify2FAResponse = Type.Object(
+  {
+    token: Type.String({
+      description:
+        'The one-time-token for requested purpose (e.g. authentication)',
+      example: 'aBcDeFgHijkLMnO123456789'
+    })
+  },
+  { $id: 'AccountVerify2FAResponse' }
+);
+
+export const AccountStatusResponse = Type.Object(
+  {
+    message: Type.String({ example: 'Operation finished successfully' })
+  },
+  { $id: 'AccountStatusResponse' }
+);
 
 export const sendEmailVerificationSchema = {
   tags: ['Account'],
@@ -99,10 +127,10 @@ export const sendEmailVerificationSchema = {
   summary: 'Send verification email',
   description: 'Send verification email',
   response: {
-    200: AccountStatusResponse,
+    200: createSchemaModel(AccountStatusResponse),
     ...AllErrorResponses
   },
-  body: AccountSendEmailVerificationRequest
+  body: createSchemaModel(AccountSendEmailVerificationRequest)
 };
 
 export const verifyEmailSchema = {
@@ -110,10 +138,10 @@ export const verifyEmailSchema = {
   summary: 'Verify email token',
   description: 'Verify email token',
   response: {
-    200: AccountStatusResponse,
+    200: createSchemaModel(AccountStatusResponse),
     ...AllErrorResponses
   },
-  body: AccountEmailVerificationRequest
+  body: createSchemaModel(AccountEmailVerificationRequest)
 };
 
 export const verifyEmailRedirectSchema = {
@@ -137,10 +165,10 @@ export const sendResetPasswordSchema = {
   summary: 'Send password reset link to provided email address',
   description: 'Send password reset link to provided email address',
   response: {
-    200: AccountStatusResponse,
+    200: createSchemaModel(AccountStatusResponse),
     ...AllErrorResponses
   },
-  body: AccountSendResetPasswordRequest
+  body: createSchemaModel(AccountSendResetPasswordRequest)
 };
 
 export const resetPasswordSchema = {
@@ -149,10 +177,10 @@ export const resetPasswordSchema = {
   summary: 'Reset the user password to a new value',
   description: 'Reset the user password to a new value',
   response: {
-    200: AccountStatusResponse,
+    200: createSchemaModel(AccountStatusResponse),
     ...AllErrorResponses
   },
-  body: AccountResetPasswordRequest
+  body: createSchemaModel(AccountResetPasswordRequest)
 };
 
 export const send2FACodeSchema = {
@@ -161,10 +189,10 @@ export const send2FACodeSchema = {
   summary: 'Send 2FA code for currently logged-in user',
   description: 'Send 2FA code for currently logged-in user',
   response: {
-    200: AccountSend2FAResponse,
+    200: createSchemaModel(AccountSend2FAResponse),
     ...AllErrorResponses
   },
-  body: AccountSend2FACodeRequest
+  body: createSchemaModel(AccountSend2FACodeRequest)
 };
 
 export const verify2FACodeSchema = {
@@ -173,8 +201,8 @@ export const verify2FACodeSchema = {
   summary: 'Verify 2FA code for currently logged-in user',
   description: 'Verify 2FA code for currently logged-in user',
   response: {
-    200: AccountVerify2FAResponse,
+    200: createSchemaModel(AccountVerify2FAResponse),
     ...AllErrorResponses
   },
-  body: AccountVerify2FARequest
+  body: createSchemaModel(AccountVerify2FARequest)
 };

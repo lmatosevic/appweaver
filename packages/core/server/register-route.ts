@@ -4,13 +4,11 @@ import {
   AuthType,
   isArray,
   logger,
-  objectHasProperty,
-  resourceModelProps,
   ROUTE,
   RouteCacheConfig,
   RouteConfig
 } from '@appweaver/common';
-import { context, define } from '../context';
+import { define } from '../context';
 import { authSchema, recaptchaHeaderSchema } from '../security';
 import { AllErrorResponses } from '../errors';
 import { Router, Server } from '../types';
@@ -20,7 +18,12 @@ export function registerRoute(
   config?: RouteConfig & RouteCacheConfig
 ): void {
   const routes: RouteOptions[] = [];
-  const tempServer = Fastify({ logger: false });
+  const tempServer = Fastify({
+    logger: false,
+    ajv: {
+      plugins: [(ajv): any => ajv.addKeyword('example')]
+    }
+  });
 
   tempServer.addHook('onRoute', (routeOptions) => {
     routes.push(routeOptions);
@@ -34,32 +37,14 @@ export function registerRoute(
     // Add all currently configured schemas to the temporary server
     for (const [id, schema] of Object.entries(server.getSchemas())) {
       if (!tempServer.getSchema(id)) {
-        tempServer.addSchema({ $id: id, ...(schema as any) });
+        tempServer.addSchema({ ...(schema as TObject), $id: id });
       }
     }
-
-    // Add the rest of the resource model schemas to the temporary server
-    iterateResourceModels((_, schema) => {
-      if (schema.$id && !tempServer.getSchema(schema.$id)) {
-        tempServer.addSchema({ ...schema });
-      }
-    });
 
     // Route array will be filled via the 'onRoute' hook after this step
     await tempServer.ready();
 
     for (const route of routes) {
-      // Add schemas for resource models that are not yet added but are used in
-      // this route
-      iterateResourceModels((name, schema) => {
-        // Add schema if it's referenced in the route schema
-        if (route.schema && objectHasProperty(route.schema, '$ref', name)) {
-          if (schema.$id && !server.getSchema(schema.$id)) {
-            server.addSchema({ ...schema });
-          }
-        }
-      });
-
       const recaptchaHeader = recaptchaHeaderSchema({
         recaptcha: config?.recaptcha,
         recaptchaAction: config?.recaptchaAction
@@ -105,16 +90,4 @@ export function registerRoute(
   };
 
   define(routeBuilder, ROUTE, 'append');
-}
-
-function iterateResourceModels(
-  handler: (name: string, schema: TObject) => void
-): void {
-  for (const model of context.resource.models.values()) {
-    for (const [suffix, property] of Object.entries(resourceModelProps)) {
-      const modelName = `${model.name}${suffix}`;
-      const modelSchema = model[property].$defs[modelName];
-      handler(modelName, modelSchema);
-    }
-  }
 }

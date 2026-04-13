@@ -178,6 +178,7 @@
       "path": "./storage",
       "namePattern": "{name}-{hash}.{extension}",
       "cacheTtl": 86400000,
+      "filesRoutePrefix": "/files",
       "provider": "@appweaver/core/storage/filesystem-storage"
     },
     "redis": {

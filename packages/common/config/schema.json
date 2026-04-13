@@ -717,6 +717,10 @@
               "type": "integer",
               "default": 86400000
             },
+            "filesRoutePrefix": {
+              "type": "string",
+              "default": "/files"
+            },
             "provider": {
               "type": "string",
               "default": "@appweaver/core/storage/filesystem-storage"

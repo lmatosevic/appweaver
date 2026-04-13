@@ -129,12 +129,13 @@ Example: storing `photo.jpg` produces `photo-c7d3a1f2.jpg`.
 
 ## Configuration
 
-| Key                    | Type     | Default                                        | Description                                           |
-|------------------------|----------|------------------------------------------------|-------------------------------------------------------|
-| `STORAGE_PATH`         | `string` | `'./storage'`                                  | Root directory where files are stored                 |
-| `STORAGE_NAME_PATTERN` | `string` | `'{name}-{hash}.{extension}'`                  | Template for deriving the stored file name            |
-| `STORAGE_CACHE_TTL`    | `int`    | `86400000`                                     | Cache TTL for storage responses in milliseconds (24h) |
-| `STORAGE_PROVIDER`     | `string` | `'@appweaver/core/storage/filesystem-storage'` | Path to the Storage implementation                    |
+| Key                          | Type     | Default                                        | Description                                           |
+|------------------------------|----------|------------------------------------------------|-------------------------------------------------------|
+| `STORAGE_PATH`               | `string` | `'./storage'`                                  | Root directory where files are stored                 |
+| `STORAGE_NAME_PATTERN`       | `string` | `'{name}-{hash}.{extension}'`                  | Template for deriving the stored file name            |
+| `STORAGE_CACHE_TTL`          | `int`    | `86400000`                                     | Cache TTL for storage responses in milliseconds (24h) |
+| `STORAGE_FILES_ROUTE_PREFIX` | `string` | `/files`                                       | URL prefix for file access routes.                    |
+| `STORAGE_PROVIDER`           | `string` | `'@appweaver/core/storage/filesystem-storage'` | Path to the Storage implementation                    |
 
 **`appweaver.json` example:**
 

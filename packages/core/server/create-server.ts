@@ -164,11 +164,11 @@ export function createServer(): Server {
     server.register(health, { prefix: config.HEALTH_CHECK_ROUTE_PREFIX });
   }
 
+  // Register files route
+  server.register(files, { prefix: config.STORAGE_FILES_ROUTE_PREFIX });
+
   // Register info route
   server.register(info, { prefix: config.SERVER_API_PREFIX });
-
-  // Register files route
-  server.register(files, { prefix: config.SERVER_API_PREFIX });
 
   // Register resource routes
   for (const route of context.resource.routes.values()) {

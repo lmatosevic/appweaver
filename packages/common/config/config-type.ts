@@ -273,6 +273,8 @@ export type Config = {
   STORAGE_NAME_PATTERN: string;
   /** File storage cache TTL in milliseconds. Default: `86400000` (24 hours). */
   STORAGE_CACHE_TTL: number;
+  /** URL prefix for file access routes. Default: `'/files'`. */
+  STORAGE_FILES_ROUTE_PREFIX: string;
   /** Storage provider implementation path. Default: `'@appweaver/core/storage/filesystem-storage'`. */
   STORAGE_PROVIDER: string;
 

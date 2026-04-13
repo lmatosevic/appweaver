@@ -37,9 +37,11 @@ registerRoute(
 );
 
 registerModel(
-  'PostPublishResponse',
-  Type.Object({
-    text: Type.String(),
-    post: Nullable(Type.Ref('PostSingle'))
-  })
+  Type.Object(
+    {
+      text: Type.String(),
+      post: Nullable(Type.Ref('PostSingle'))
+    },
+    { $id: 'PostPublishResponse' }
+  )
 );

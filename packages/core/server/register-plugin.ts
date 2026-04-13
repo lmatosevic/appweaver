@@ -8,7 +8,7 @@ export function registerPlugin(
   plugin: (server: Server) => void,
   dependencies: string[] = []
 ): void {
-  logger.debug({ plugin: name, dependencies }, 'Registered plugin');
-
   define(fastifyPlugin(plugin, { name, dependencies }), PLUGIN, 'append');
+
+  logger.debug({ plugin: name, dependencies }, 'Registered plugin');
 }

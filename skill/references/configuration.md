@@ -299,12 +299,13 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 ### File storage (STORAGE_*)
 
-| Property               | Type    | Default                                        | Description                                                |
-|------------------------|---------|------------------------------------------------|------------------------------------------------------------|
-| `STORAGE_PATH`         | string  | `'./storage'`                                  | Base directory for file storage.                           |
-| `STORAGE_NAME_PATTERN` | string  | `'{name}-{hash}.{extension}'`                  | File naming pattern for stored files.                      |
-| `STORAGE_CACHE_TTL`    | integer | `86400000`                                     | File storage cache TTL in milliseconds (default 24 hours). |
-| `STORAGE_PROVIDER`     | string  | `'@appweaver/core/storage/filesystem-storage'` | Storage provider implementation path.                      |
+| Property                     | Type    | Default                                        | Description                                   |
+|------------------------------|---------|------------------------------------------------|-----------------------------------------------|
+| `STORAGE_PATH`               | string  | `'./storage'`                                  | Base directory for file storage.              |
+| `STORAGE_NAME_PATTERN`       | string  | `'{name}-{hash}.{extension}'`                  | File naming pattern for stored files.         |
+| `STORAGE_CACHE_TTL`          | integer | `86400000`                                     | File storage cache TTL in milliseconds. (24h) |
+| `STORAGE_FILES_ROUTE_PREFIX` | string  | `/files`                                       | URL prefix for file access routes.            |
+| `STORAGE_PROVIDER`           | string  | `'@appweaver/core/storage/filesystem-storage'` | Storage provider implementation path.         |
 
 ### Redis (REDIS_*)
 

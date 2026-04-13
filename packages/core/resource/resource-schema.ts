@@ -13,6 +13,7 @@ import {
 import { injectModel } from '../context';
 import { authSchema, recaptchaHeaderSchema } from '../security';
 import { AllErrorResponses } from '../errors';
+import { createSchemaModel, toSchemaReference } from '../utils';
 
 export const Id = Type.Object({
   id: Type.Integer({ minimum: 1 })
@@ -64,6 +65,33 @@ export function createSchema(
   const resourceName = camelToSnakeCase(name, ' ');
   const tag = plural(name);
 
+  const queryRequest = Type.Composite([QueryRequestData], {
+    $id: `${name}QueryRequest`
+  });
+
+  const queryResponse = Type.Composite(
+    [
+      QueryResponseData,
+      Type.Object({
+        items: Type.Array(toSchemaReference(resourceModel.readManyModel))
+      })
+    ],
+    { $id: `${name}QueryResponse` }
+  );
+
+  const aggregateRequest = Type.Composite([AggregateRequestData], {
+    $id: `${name}AggregateRequest`
+  });
+
+  const aggregateResponse = Type.Composite([AggregateResponseData], {
+    $id: `${name}AggregateResponse`
+  });
+
+  const exportRequest = Type.Composite(
+    [Type.Pick(QueryRequestData, ['filter', 'sort'])],
+    { $id: `${name}ExportRequest` }
+  );
+
   return {
     findSchema: {
       tags: [tag],
@@ -72,7 +100,7 @@ export function createSchema(
       summary: `Find ${resourceName} data`,
       description: `Find ${resourceName} data`,
       response: {
-        200: resourceModel.readOneModel,
+        200: toSchemaReference(resourceModel.readOneModel),
         ...AllErrorResponses
       },
       params: Id
@@ -84,15 +112,10 @@ export function createSchema(
       summary: `Query ${resourceName} data`,
       description: `Query ${resourceName} data`,
       response: {
-        200: Type.Composite([
-          QueryResponseData,
-          Type.Object({
-            items: Type.Array(resourceModel.readManyModel)
-          })
-        ]),
+        200: createSchemaModel(queryResponse),
         ...AllErrorResponses
       },
-      body: QueryRequestData
+      body: createSchemaModel(queryRequest)
     },
     aggregateSchema: {
       tags: [tag],
@@ -101,10 +124,10 @@ export function createSchema(
       summary: `Aggregate ${resourceName} data`,
       description: `Aggregate ${resourceName} data`,
       response: {
-        200: AggregateResponseData,
+        200: createSchemaModel(aggregateResponse),
         ...AllErrorResponses
       },
-      body: AggregateRequestData
+      body: createSchemaModel(aggregateRequest)
     },
     createSchema: {
       tags: [tag],
@@ -113,10 +136,10 @@ export function createSchema(
       summary: `Create ${resourceName} data`,
       description: `Create ${resourceName} data`,
       response: {
-        201: resourceModel.readOneModel,
+        201: toSchemaReference(resourceModel.readOneModel),
         ...AllErrorResponses
       },
-      body: resourceModel.createOneModel
+      body: toSchemaReference(resourceModel.createOneModel)
     },
     updateSchema: {
       tags: [tag],
@@ -125,10 +148,10 @@ export function createSchema(
       summary: `Update ${resourceName} data`,
       description: `Update ${resourceName} data`,
       response: {
-        200: resourceModel.readOneModel,
+        200: toSchemaReference(resourceModel.readOneModel),
         ...AllErrorResponses
       },
-      body: resourceModel.updateOneModel,
+      body: toSchemaReference(resourceModel.updateOneModel),
       params: Id
     },
     deleteSchema: {
@@ -138,7 +161,7 @@ export function createSchema(
       summary: `Delete ${resourceName} data`,
       description: `Delete ${resourceName} data`,
       response: {
-        200: resourceModel.readOneModel,
+        200: toSchemaReference(resourceModel.readOneModel),
         ...AllErrorResponses
       },
       params: Id
@@ -159,7 +182,7 @@ export function createSchema(
         },
         ...AllErrorResponses
       },
-      body: Type.Pick(QueryRequestData, ['filter', 'sort'])
+      body: createSchemaModel(exportRequest)
     },
     fileUploadSchema: {
       tags: [tag],
@@ -169,10 +192,10 @@ export function createSchema(
       description: `Upload ${resourceName} files`,
       consumes: ['multipart/form-data'],
       response: {
-        200: resourceModel.filesModel,
+        200: toSchemaReference(resourceModel.filesModel),
         ...AllErrorResponses
       },
-      body: resourceModel.fileUploadModel,
+      body: toSchemaReference(resourceModel.fileUploadModel),
       params: Id
     },
     fileDeleteSchema: {
@@ -182,10 +205,10 @@ export function createSchema(
       summary: `Delete ${resourceName} files`,
       description: `Delete ${resourceName} files`,
       response: {
-        200: resourceModel.filesModel,
+        200: toSchemaReference(resourceModel.filesModel),
         ...AllErrorResponses
       },
-      body: resourceModel.fileDeleteModel,
+      body: toSchemaReference(resourceModel.fileDeleteModel),
       params: Id
     }
   };

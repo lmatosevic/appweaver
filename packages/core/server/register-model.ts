@@ -1,9 +1,12 @@
 import { TObject } from '@sinclair/typebox';
-import { logger, MODEL } from '@appweaver/common';
-import { define } from '../context';
+import { logger } from '@appweaver/common';
+import { createSchemaModel } from '../utils';
 
-export function registerModel(name: string, schema: TObject) {
-  logger.debug({ model: name }, 'Registered model');
+export function registerModel(schema: TObject, name?: string): void {
+  const refType = createSchemaModel(schema, {
+    name,
+    addToServer: false
+  });
 
-  define({ name, schema }, MODEL, 'append');
+  logger.debug({ modelName: refType.$ref }, 'Registered model');
 }

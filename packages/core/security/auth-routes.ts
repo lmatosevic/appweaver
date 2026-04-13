@@ -120,17 +120,10 @@ export function authRoutes(server: Server): void {
 
   const authUserModel = resourceAuthModel();
   if (authUserModel) {
-    const modelRef = `${authUserModel.name}Single`;
-    const modelSchema = authUserModel.readOneModel.$defs[modelRef];
-
-    if (!server.getSchema(modelSchema.$id)) {
-      server.addSchema({ ...modelSchema });
-    }
-
     server.get(
       '/me',
       {
-        schema: createCurrentAuthUserSchema(modelRef),
+        schema: createCurrentAuthUserSchema(authUserModel.readOneModel),
         onRequest: authenticate()
       },
       async (_, reply) => {
