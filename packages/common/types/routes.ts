@@ -99,3 +99,24 @@ export type ResourceRoutesConfig = {
   /** Config for the file delete route */
   fileDelete?: RouteConfig;
 };
+
+export type ResourceSchemaConfig = {
+  /** Schema for finding one or more resources */
+  findSchema: RouteSchema;
+  /** Schema for querying resources based on specific criteria */
+  querySchema: RouteSchema;
+  /** Schema for aggregation operations on resources */
+  aggregateSchema: RouteSchema;
+  /** Schema for creating a new resource */
+  createSchema: RouteSchema;
+  /** Schema for updating an existing resource */
+  updateSchema: RouteSchema;
+  /** Schema for deleting a resource */
+  deleteSchema: RouteSchema;
+  /** Schema for exporting resource data */
+  exportSchema: RouteSchema;
+  /** Schema for handling file uploads related to a resource */
+  fileUploadSchema: RouteSchema;
+  /** Schema for handling file deletions related to a resource */
+  fileDeleteSchema: RouteSchema;
+};

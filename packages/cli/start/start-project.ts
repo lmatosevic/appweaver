@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { watch } from 'node:fs/promises';
+import { TscWatchClient } from 'tsc-watch/client';
 import { config, Runtime } from '@appweaver/common';
 import { isBunProcess, runProcess } from '../utils';
 
@@ -21,11 +22,7 @@ async function startNodeProject(
   watch: boolean
 ): Promise<void> {
   if (watch) {
-    await runProcess('tsc-watch', [
-      '-p tsconfig.build.json',
-      '--onCompilationComplete "tsc-alias -p tsconfig.build.json"',
-      `--onSuccess "node ${mainFilePath}"`
-    ]);
+    await watchNodeProject(mainFilePath);
   } else {
     await runProcess('node', [mainFilePath]);
   }
@@ -43,11 +40,66 @@ async function startBunProject(
 }
 
 /**
+ * Watches the specified Node.js project for changes, recompiles TypeScript files, replaces aliases in import patsh,
+ * and restarts the main application process upon successful compilation.
+ *
+ * @param {string} mainFilePath - The entry point of the application that will be executed after each successful
+ * compilation.
+ * @return {Promise<void>} A promise that resolves when the watching process is stopped.
+ */
+async function watchNodeProject(mainFilePath: string): Promise<void> {
+  let abortController: AbortController | undefined;
+  const watch = new TscWatchClient();
+
+  // Handler for every successful compilation of watched code, aborts previous
+  // process and starts a new one
+  watch.on('success', async () => {
+    if (abortController) {
+      abortController.abort();
+    }
+    abortController = new AbortController();
+
+    // Replace import aliases in compiled code
+    await runProcess('tsc-alias', ['-p tsconfig.build.json'], {
+      signal: abortController.signal
+    });
+
+    // Start the main application process
+    await runProcess('node', [mainFilePath], {
+      signal: abortController.signal
+    });
+  });
+
+  // Handler for any compilation error to abort previously started process
+  watch.on('compile_errors', () => {
+    abortController?.abort();
+  });
+
+  // Cleanup should be done only once per termination handler
+  let cleanedUp = false;
+  const cleanup = () => {
+    if (cleanedUp) {
+      return;
+    }
+    cleanedUp = true;
+    abortController?.abort();
+    watch.kill();
+  };
+
+  // When process is terminated in any way, all processes should be aborted
+  process.on('SIGINT', cleanup);
+  process.on('SIGTERM', cleanup);
+  process.on('exit', cleanup);
+
+  watch.start('-p', 'tsconfig.build.json');
+}
+
+/**
  * Monitors file changes in the specified directory and restarts the Bun process accordingly.
  * The function uses a debounced mechanism to prevent restarting the process too frequently.
  * Debounce threshold is 200 milliseconds.
  *
- * @return A promise that resolves when the watching process is stopped or completed.
+ * @return {Promise<void>} A promise that resolves when the watching process is stopped.
  */
 async function watchBunProcess(): Promise<void> {
   let abortController: AbortController | undefined;

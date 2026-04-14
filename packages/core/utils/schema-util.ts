@@ -1,4 +1,4 @@
-import { TObject, TSchema, Type } from '@sinclair/typebox';
+import { TObject, Type } from '@sinclair/typebox';
 import { MODEL } from '@appweaver/common';
 import { context, define } from '../context';
 
@@ -44,18 +44,4 @@ export function createSchemaModel<T extends TObject>(
   }
 
   return reference;
-}
-
-/**
- * Converts the given schema model into a schema reference if it is not already a reference.
- * If the model schema has a `$ref` property, it is returned as is.
- * Otherwise, it creates a reference using the `$id` of the model schema.
- *
- * @param {TSchema} modelSchema - The schema model to process. It must extend the `TSchema` type.
- * @return {TSchema} The processed schema model, either as the original reference or converted into one.
- */
-export function toSchemaReference<T extends TSchema>(modelSchema: T): T {
-  return modelSchema.$ref
-    ? modelSchema
-    : (Type.Ref(modelSchema.$id!) as unknown as T);
 }

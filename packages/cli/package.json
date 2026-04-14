@@ -41,7 +41,8 @@
     "glob": "13.0.1",
     "rimraf": "6.1.2",
     "tree-kill": "1.2.2",
-    "ts-node": "10.9.2"
+    "ts-node": "10.9.2",
+    "tsc-watch": "7.2.0"
   },
   "devDependencies": {
     "@appweaver/core": "^1.0.0",
@@ -54,7 +55,6 @@
     "prisma": "^7.3.0",
     "prettier": "^3.8.0",
     "tsc-alias": "^1.8.0",
-    "tsc-watch": "^7.2.0",
     "typescript": "^5.9.0"
   },
   "peerDependenciesMeta": {}

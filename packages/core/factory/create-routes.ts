@@ -19,9 +19,9 @@ export function createRoutes(
     config.modelName || path.basename(path.dirname(__dirname))
   );
 
-  const { handler, schema } = resourceRoutes(name, config);
+  const handler = resourceRoutes(name, config);
 
-  const routeData = { config, schema, handler };
+  const routeData = { config, handler };
 
   routeData[RESOURCE_NAME] = name;
   routeData[RESOURCE_TYPE] = RESOURCE_ROUTES_TYPE;
