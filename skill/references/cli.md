@@ -9,11 +9,11 @@ weaver <command> [options]
 | Option/Command  | Alias | Description                            |
 |-----------------|-------|----------------------------------------|
 | `build`         | `b`   | Build the application                  |
-| `docs`          |       | Generate OpenAPI specification schema  |
+| `spec`          | `sc`  | Generate OpenAPI specification schema  |
 | `generate`      | `g`   | Generate types and/or schemas          |
 | `migrate`       | `mge` | Run database migrations                |
 | `migration`     | `mgn` | Database migration commands            |
-| `seed`          |       | Seed the database                      |
+| `seed`          | `sd`  | Seed the database                      |
 | `start`         | `s`   | Start the application                  |
 | `test`          | `t`   | Perform operations used during testing |
 | `update`        | `u`   | Update the Appweaver packages          |
@@ -37,17 +37,18 @@ Build the application.
 
 ---
 
-## `weaver docs`
+## `weaver spec`
 
 ```
-weaver docs [options]
+weaver spec [options]
 ```
 
 Generate application OpenAPI specification schema.
 
-| Option                    | Description                            | Default         |
-|---------------------------|----------------------------------------|-----------------|
-| `-o, --outputPath [path]` | Output path for generated OpenAPI spec | `./schema.json` |
+| Option                    | Description                                                      | Default         |
+|---------------------------|------------------------------------------------------------------|-----------------|
+| `-o, --outputPath [path]` | Output path for generated OpenAPI specification                  | `./schema.json` |
+| `-f, --format [format]`   | Output format for generated OpenAPI specification (json or yaml) | `json`          |
 
 ---
 

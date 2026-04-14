@@ -5,6 +5,7 @@ import { buildProject } from '../build';
 export function seedCommand(program: Command): void {
   program
     .command('seed')
+    .alias('sd')
     .description('Seed the database.')
     .option(
       '--seedersPath [path]',

@@ -107,13 +107,21 @@ export class Application extends LifecycleManager {
   }
 
   /**
-   * Generates and returns the API documentation in JSON format.
+   * Generates and returns the OpenAPI specification in JSON or YAML format.
    *
-   * @return {Promise<string>} A promise that resolves to a JSON-formatted string containing the API documentation.
+   * @param {'json' | 'yaml'} [format='json'] - The format in which to generate specification.
+   * @return {Promise<string>} A promise that resolves to a JSON or YAML formatted string containing the OpenAPI
+   * specification.
    */
-  public async docs(): Promise<string> {
+  public async spec(format: 'json' | 'yaml' = 'json'): Promise<string> {
     await this._server.ready();
-    const document = this._server.swagger();
+
+    const document = this._server.swagger({ yaml: format === 'yaml' });
+
+    if (typeof document === 'string') {
+      return document;
+    }
+
     return JSON.stringify(document, null, 4);
   }
 }

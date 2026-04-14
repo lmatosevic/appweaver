@@ -539,8 +539,9 @@ weaver seed --fixWarnings           # fix all warnings like invalid checksum or 
 ### Generate OpenAPI specification
 
 ```sh
-weaver docs                                        # generate schema to ./schema.json
-weaver docs --outputPath ./generated/openapi.json  # generate schema to a custom path
+weaver spec                                        # generate schema to ./openapi.json
+weaver spec --outputPath ./generated/openapi.json  # generate schema to a custom path
+weaver spec --format yaml                          # generate schema in yaml format
 ```
 
 ### Run tests

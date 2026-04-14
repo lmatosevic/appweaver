@@ -27,11 +27,11 @@ if (!isBunProcess() && config.APP_RUNTIME === Runtime.Bun) {
 // unnecessary loading of all dependencies
 import { Command } from 'commander';
 import { buildCommand } from './build';
-import { docsCommand } from './docs';
 import { generateCommand } from './generate';
 import { migrateCommand } from './migrate';
 import { migrationCommand } from './migration';
 import { seedCommand } from './seed';
+import { specCommand } from './spec';
 import { startCommand } from './start';
 import { testingCommand } from './testing';
 import { updateCommand } from './update';
@@ -49,7 +49,7 @@ program
 
 buildCommand(program);
 
-docsCommand(program);
+specCommand(program);
 
 generateCommand(program);
 
