@@ -92,9 +92,11 @@ function pruneUnusedSchemas(document: any): any {
 
   if (document.openapiObject.components?.schemas) {
     document.openapiObject.components.schemas = Object.fromEntries(
-      Object.entries(document.openapiObject.components.schemas).filter(
-        ([name]) => used.has(name)
-      )
+      Object.entries<any>(document.openapiObject.components.schemas)
+        .sort(([nameA, objA], [nameB, objB]) =>
+          String(objA.title ?? nameA).localeCompare(String(objB.title ?? nameB))
+        )
+        .filter(([name]) => used.has(name))
     );
   }
 
