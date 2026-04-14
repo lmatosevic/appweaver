@@ -75,7 +75,7 @@ async function watchNodeProject(mainFilePath: string): Promise<void> {
     abortController?.abort();
   });
 
-  // Cleanup should be done only once per termination handler
+  // Cleanup should be done only once on process termination
   let cleanedUp = false;
   const cleanup = () => {
     if (cleanedUp) {
