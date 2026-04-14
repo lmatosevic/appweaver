@@ -911,22 +911,27 @@ Registers a custom TypeBox schema as a named model in the schema registry. Regis
 
 ```ts
 import { registerModel } from '@appweaver/core';
+import { Nullable } from '@appweaver/common';
 import { Type } from '@sinclair/typebox';
 
 registerModel(
-  'SearchResult',
-  Type.Object({
-    id: Type.Number(),
-    title: Type.String(),
-    score: Type.Number({ minimum: 0, maximum: 1 })
-  })
+  Type.Object(
+    {
+      id: Type.Integer(),
+      title: Type.String({ example: 'My Title' }),
+      description: Nullable(Type.String({ maxLength: 512 })),
+      score: Type.Number({ minimum: 0, maximum: 1 })
+    },
+    { $id: 'SearchResult' } // The prefered way for naming the model
+  ),
+  'SearchResult' // Model name can be overriden as a second optional argument
 );
 ```
 
-| Parameter | Type    | Description                                    |
-|-----------|---------|------------------------------------------------|
-| `name`    | string  | Schema identifier for `Type.Ref()` references. |
-| `schema`  | TObject | TypeBox object schema definition.              |
+| Parameter | Type    | Description                                                  |
+|-----------|---------|--------------------------------------------------------------|
+| `schema`  | TObject | TypeBox object schema definition.                            |
+| `name`    | string? | Override schema name identifier for `Type.Ref()` references. |
 
 ---
 

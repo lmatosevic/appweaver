@@ -389,12 +389,14 @@ import { registerModel } from '@appweaver/core';
 import { Type } from '@sinclair/typebox';
 
 registerModel(
-  'SearchResult',
-  Type.Object({
-    id: Type.Number(),
-    title: Type.String(),
-    score: Type.Number({ minimum: 0, maximum: 1 })
-  })
+  Type.Object(
+    {
+      id: Type.Number(),
+      title: Type.String(),
+      score: Type.Number({ minimum: 0, maximum: 1 })
+    },
+    { $id: 'SearchResult' }
+  )
 );
 ```
 
