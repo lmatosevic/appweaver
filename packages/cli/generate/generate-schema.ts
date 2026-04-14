@@ -25,7 +25,7 @@ import {
   ScalarField,
   uncapitalize
 } from '@appweaver/common';
-import { relativePathFrom, runProcess } from '../utils';
+import { ensureDirExists, relativePathFrom, runProcess } from '../utils';
 
 type PrismaSchemaField = {
   name: string;
@@ -51,15 +51,10 @@ export async function generateSchema(
   quiet: boolean = false
 ): Promise<number> {
   const cwd = process.cwd();
-  const schemaDir = path.join(cwd, path.dirname(schemaPath));
 
   try {
-    await fsp.access(schemaDir, fsp.constants.F_OK);
-  } catch (e) {
-    await fsp.mkdir(schemaDir, { recursive: true });
-  }
+    await ensureDirExists(path.join(cwd, schemaPath));
 
-  try {
     const prismaModels: Record<string, PrismaSchemaModel> = {};
     const prismaEnums: Record<string, string[]> = {};
 
@@ -317,7 +312,7 @@ export async function generateSchema(
       return 0;
     }
   } catch (error) {
-    console.error(`Schema generation failed:`, error);
+    console.error('Schema generation failed', error);
     return 2;
   }
 }

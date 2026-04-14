@@ -14,7 +14,7 @@ export function testingCommand(program: Command): void {
   const testCommand = program
     .command('test')
     .alias('t')
-    .description('Perform operations used during testing');
+    .description('Perform operations used during testing.');
 
   testCommand
     .command('setup')

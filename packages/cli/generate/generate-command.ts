@@ -8,7 +8,7 @@ export function generateCommand(program: Command): void {
   program
     .command('generate')
     .alias('g')
-    .description('Generate types and/or schemas')
+    .description('Generate application types and/or schemas.')
     .option('-t, --types', 'Generate TypeScript types.')
     .option('-s, --schema', 'Generate Prisma schema.')
     .option(

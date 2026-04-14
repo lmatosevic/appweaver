@@ -9,7 +9,7 @@ import {
   NullType,
   ResourceModel
 } from '@appweaver/common';
-import { runProcess } from '../utils';
+import { ensureDirExists, runProcess } from '../utils';
 
 export async function generateTypes(
   models: Record<string, ResourceModel>,
@@ -17,15 +17,10 @@ export async function generateTypes(
   quiet: boolean = false
 ): Promise<number> {
   const cwd = process.cwd();
-  const typesDir = path.join(cwd, path.dirname(typesPath));
 
   try {
-    await fsp.access(typesDir, fsp.constants.F_OK);
-  } catch (e) {
-    await fsp.mkdir(typesDir, { recursive: true });
-  }
+    await ensureDirExists(path.join(cwd, typesPath));
 
-  try {
     const resourceModels: Record<string, TSchema> = {};
 
     for (const [name, schema] of Object.entries(models)) {

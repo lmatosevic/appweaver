@@ -1,5 +1,6 @@
-import { rimraf } from 'rimraf';
 import path from 'node:path';
+import fsp from 'node:fs/promises';
+import { rimraf } from 'rimraf';
 
 /**
  * Computes the relative path from the directory of the first path to the other path.
@@ -81,5 +82,22 @@ export async function rimrafPath(
       console.error(`Error removing path: ${path}`, error);
     }
     return false;
+  }
+}
+
+/**
+ * Ensures that the directory for the given file path exists. If the directory does not exist, it is created
+ * recursively.
+ *
+ * @param {string} filePath - The path of the file whose directory needs to be checked or created.
+ * @return {Promise<void>} A promise that resolves when the directory exists or has been successfully created.
+ */
+export async function ensureDirExists(filePath: string): Promise<void> {
+  const dirPath = path.resolve(path.dirname(filePath));
+
+  try {
+    await fsp.access(dirPath, fsp.constants.F_OK);
+  } catch (e) {
+    await fsp.mkdir(dirPath, { recursive: true });
   }
 }

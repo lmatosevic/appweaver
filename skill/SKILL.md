@@ -536,6 +536,13 @@ weaver seed --continueOnError       # continue if a seeder throws error
 weaver seed --fixWarnings           # fix all warnings like invalid checksum or missing seeder
 ```
 
+### Generate OpenAPI specification
+
+```sh
+weaver docs                                        # generate schema to ./schema.json
+weaver docs --outputPath ./generated/openapi.json  # generate schema to a custom path
+```
+
 ### Run tests
 
 ```sh

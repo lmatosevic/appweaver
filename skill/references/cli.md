@@ -9,6 +9,7 @@ weaver <command> [options]
 | Option/Command  | Alias | Description                            |
 |-----------------|-------|----------------------------------------|
 | `build`         | `b`   | Build the application                  |
+| `docs`          |       | Generate OpenAPI specification schema  |
 | `generate`      | `g`   | Generate types and/or schemas          |
 | `migrate`       | `mge` | Run database migrations                |
 | `migration`     | `mgn` | Database migration commands            |
@@ -33,6 +34,20 @@ Build the application.
 | Option       | Description              |
 |--------------|--------------------------|
 | `-h, --help` | Output usage information |
+
+---
+
+## `weaver docs`
+
+```
+weaver docs [options]
+```
+
+Generate application OpenAPI specification schema.
+
+| Option                    | Description                            | Default         |
+|---------------------------|----------------------------------------|-----------------|
+| `-o, --outputPath [path]` | Output path for generated OpenAPI spec | `./schema.json` |
 
 ---
 
