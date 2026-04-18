@@ -16,7 +16,7 @@ export const AccountSendEmailVerificationRequest = Type.Object(
     verificationType: Type.Optional(
       StringEnum(VerificationType, {
         description:
-          'auto (default) - token is verified automatically before redirecting to provided URL with status message, ' +
+          'auto (default) - token is verified automatically before redirecting to provided URL with a status message, ' +
           'manual - client must manually verify received token on provided URL',
         example: 'auto'
       })
@@ -71,7 +71,7 @@ export const AccountSend2FACodeRequest = Type.Object(
   {
     purpose: Type.Optional(
       Type.String({
-        description: 'A purpose for using two factor authentication method',
+        description: 'A purpose for using two-factor authentication method',
         example: 'authentication'
       })
     )
@@ -107,7 +107,7 @@ export const AccountVerify2FAResponse = Type.Object(
   {
     token: Type.String({
       description:
-        'The one-time-token for requested purpose (e.g. authentication)',
+        'The one-time-token for requested purpose (e.g., authentication)',
       example: 'aBcDeFgHijkLMnO123456789'
     })
   },

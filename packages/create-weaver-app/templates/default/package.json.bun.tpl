@@ -33,7 +33,6 @@
     "eslint-plugin-prettier": "5.5.5",
     "globals": "17.4.0",
     "prettier": "3.8.1",
-    "tsc-alias": "1.8.16",
     "typescript": "5.9.3",
     "typescript-eslint": "8.53.1"
   }

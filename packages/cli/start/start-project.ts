@@ -1,10 +1,14 @@
 import path from 'node:path';
 import { watch } from 'node:fs/promises';
 import { TscWatchClient } from 'tsc-watch/client';
+import { replaceTscAliasPaths } from 'tsc-alias';
 import { config, Runtime } from '@appweaver/common';
 import { isBunProcess, runProcess } from '../utils';
 
-export async function startProject(watch: boolean) {
+export async function startProject(
+  projectFile: string,
+  watch: boolean
+): Promise<void> {
   const mainFilePath = path.join(
     config.APP_BUILD_PATH,
     config.APP_MAIN_FILE_PATH.replace(/\.ts$/i, '.js')
@@ -13,16 +17,17 @@ export async function startProject(watch: boolean) {
   if (isBunProcess() && config.APP_RUNTIME === Runtime.Bun) {
     await startBunProject(mainFilePath, watch);
   } else {
-    await startNodeProject(mainFilePath, watch);
+    await startNodeProject(mainFilePath, projectFile, watch);
   }
 }
 
 async function startNodeProject(
   mainFilePath: string,
+  projectFile: string,
   watch: boolean
 ): Promise<void> {
   if (watch) {
-    await watchNodeProject(mainFilePath);
+    await watchNodeProject(mainFilePath, projectFile);
   } else {
     await runProcess('node', [mainFilePath]);
   }
@@ -45,9 +50,13 @@ async function startBunProject(
  *
  * @param {string} mainFilePath - The entry point of the application that will be executed after each successful
  * compilation.
+ * @param {string} projectFile - The TypeScript config file path (tsconfig.json).
  * @return {Promise<void>} A promise that resolves when the watching process is stopped.
  */
-async function watchNodeProject(mainFilePath: string): Promise<void> {
+async function watchNodeProject(
+  mainFilePath: string,
+  projectFile: string
+): Promise<void> {
   let abortController: AbortController | undefined;
   const watch = new TscWatchClient();
 
@@ -59,10 +68,8 @@ async function watchNodeProject(mainFilePath: string): Promise<void> {
     }
     abortController = new AbortController();
 
-    // Replace import aliases in compiled code
-    await runProcess('tsc-alias', ['-p tsconfig.build.json'], {
-      signal: abortController.signal
-    });
+    // Replace import alias paths in compiled code
+    await replaceTscAliasPaths({ configFile: projectFile });
 
     // Start the main application process
     await runProcess('node', [mainFilePath], {
@@ -91,7 +98,7 @@ async function watchNodeProject(mainFilePath: string): Promise<void> {
   process.on('SIGTERM', cleanup);
   process.on('exit', cleanup);
 
-  watch.start('-p', 'tsconfig.build.json');
+  watch.start('-p', projectFile);
 }
 
 /**

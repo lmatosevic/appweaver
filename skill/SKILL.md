@@ -501,13 +501,15 @@ export async function createAdminUser(): Promise<void> {
 
 ```sh
 weaver build
+weaver build --project tsconfig.build.json  # path to tsconfig build file
 ```
 
 ### Start application
 
 ```sh
-weaver start          # production
-weaver start --watch  # development (watch mode)
+weaver start                          # production
+weaver start --watch                  # development (watch mode)
+weaver start --project tsconfig.json  # path to tsconfig file
 ```
 
 ### Generate types and schema
@@ -530,10 +532,11 @@ weaver migration reset --force --yes  # force reset, skip confirmation
 ### Seed the database
 
 ```sh
-weaver seed                         # run seeders
-weaver seed --buildProject          # build project first, then run seeders
-weaver seed --continueOnError       # continue if a seeder throws error
-weaver seed --fixWarnings           # fix all warnings like invalid checksum or missing seeder
+weaver seed                          # run seeders
+weaver seed --buildProject           # build project first, then run seeders
+weaver seed --continueOnError        # continue if a seeder throws error
+weaver seed --fixWarnings            # fix all warnings like invalid checksum or missing seeder
+weaver seed --project tsconfig.build.json  # path to tsconfig build file
 ```
 
 ### Generate OpenAPI specification
@@ -544,13 +547,6 @@ weaver spec --outputPath ./generated/openapi.json  # generate schema to a custom
 weaver spec --format yaml                          # generate schema in yaml format
 ```
 
-### Run tests
-
-```sh
-npm run test  # unit tests with coverage
-npm run e2e   # e2e tests
-```
-
 ### Update Appweaver packages
 
 ```sh
@@ -559,6 +555,13 @@ weaver update @appweaver/core @appweaver/cli         # update specific packages
 weaver update --targetVersion 1.2.3                  # update to a specific version
 weaver update --noSkill                              # skip updating AI agent skill files
 weaver update --force                                # force update despite peerDependency mismatches
+```
+
+### Run tests
+
+```sh
+npm run test  # unit tests with coverage
+npm run e2e   # e2e tests
 ```
 
 ### Format code

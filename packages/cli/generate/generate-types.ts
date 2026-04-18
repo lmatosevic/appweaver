@@ -1,5 +1,6 @@
 import path from 'node:path';
 import fsp from 'node:fs/promises';
+import prettier from 'prettier';
 import { TModule, TObject, TSchema, Type } from '@sinclair/typebox';
 import { ModelToTypeScript } from '@sinclair/typebox-codegen';
 import {
@@ -9,7 +10,7 @@ import {
   NullType,
   ResourceModel
 } from '@appweaver/common';
-import { ensureDirExists, runProcess } from '../utils';
+import { ensureDirExists } from '../utils';
 
 export async function generateTypes(
   models: Record<string, ResourceModel>,
@@ -55,18 +56,23 @@ export async function generateTypes(
     }
 
     const outputPath = path.join(cwd, typesPath);
-    await fsp.writeFile(outputPath, typesContent.join('\n'));
 
-    await runProcess('prettier', [
-      quiet ? '--log-level silent' : '',
-      `--write ${outputPath}`
-    ]);
+    const prettierConfig = await prettier.resolveConfig(outputPath);
+    const formattedTypes = await prettier.format(typesContent.join('\n'), {
+      ...prettierConfig,
+      filepath: outputPath
+    });
+
+    await fsp.writeFile(outputPath, formattedTypes);
 
     console.log(`Types generated to ${path.relative(cwd, outputPath)}`);
 
     return 0;
   } catch (error) {
-    console.error(`Types generation failed:`, error);
+    console.error(`Types generation failed.`);
+    if (!quiet) {
+      console.error(error);
+    }
     return 2;
   }
 }

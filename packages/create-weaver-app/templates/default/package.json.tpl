@@ -38,7 +38,6 @@
     "jest": "30.2.0",
     "jest-junit": "16.0.0",
     "prettier": "3.8.1",
-    "tsc-alias": "1.8.16",
     "typescript": "5.9.3",
     "typescript-eslint": "8.53.1"
   }

@@ -31,9 +31,10 @@ weaver build|b [options]
 
 Build the application.
 
-| Option       | Description              |
-|--------------|--------------------------|
-| `-h, --help` | Output usage information |
+| Option          | Description                          | Default               |
+|-----------------|--------------------------------------|-----------------------|
+| `-p, --project` | TypeScript project build config file | `tsconfig.build.json` |
+| `-h, --help`    | Output usage information             |                       |
 
 ---
 
@@ -116,6 +117,7 @@ Seed the database.
 |-------------------------|---------------------------------------------------------------------|-----------------------|
 | `--seedersPath [path]`  | Seeders directory path                                              | `config.SEEDERS_PATH` |
 | `-b, --buildProject`    | Build the project before seeding                                    | `false`               |
+| `-p, --project`         | TypeScript project build config file (used when `-b` is set)        | `tsconfig.build.json` |
 | `-c, --continueOnError` | Continue seeder execution if error is thrown                        | `false`               |
 | `-f, --fixWarnings`     | Fix all seeder warnings like wrong checksum or deleted seeder files | `false`               |
 
@@ -129,9 +131,10 @@ weaver start|s [options]
 
 Start the application.
 
-| Option        | Description                                                 | Default |
-|---------------|-------------------------------------------------------------|---------|
-| `-w, --watch` | Run in watch mode (recompiles and restarts on file changes) | `false` |
+| Option          | Description                                                 | Default         |
+|-----------------|-------------------------------------------------------------|-----------------|
+| `-p, --project` | TypeScript project config file                              | `tsconfig.json` |
+| `-w, --watch`   | Run in watch mode (recompiles and restarts on file changes) | `false`         |
 
 ---
 

@@ -13,6 +13,11 @@ export function seedCommand(program: Command): void {
     )
     .option('-b, --buildProject', 'Build the project before seeding.')
     .option(
+      '-p, --project',
+      'TypeScript project build config file.',
+      'tsconfig.build.json'
+    )
+    .option(
       '-c, --continueOnError',
       'Continue seeder execution if error is thrown.'
     )
@@ -22,11 +27,12 @@ export function seedCommand(program: Command): void {
     )
     .action(async (_, command: Command) => {
       const seedersPath = command.getOptionValue('seedersPath');
+      const projectFile = command.getOptionValue('project');
       const continueOnError = command.getOptionValue('continueOnError');
       const fixWarnings = command.getOptionValue('fixWarnings');
 
       if (command.getOptionValue('buildProject')) {
-        await buildProject();
+        await buildProject(projectFile);
       }
 
       const seeder = await createSeeder({

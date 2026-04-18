@@ -6,7 +6,14 @@ export function buildCommand(program: Command): void {
     .command('build')
     .alias('b')
     .description('Build the application.')
-    .action(async () => {
-      process.exit(await buildProject());
+    .option(
+      '-p, --project',
+      'TypeScript project build config file.',
+      'tsconfig.build.json'
+    )
+    .action(async (_, command: Command) => {
+      const projectFile = command.getOptionValue('project');
+
+      process.exit(await buildProject(projectFile));
     });
 }
