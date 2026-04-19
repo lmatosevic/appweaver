@@ -181,25 +181,27 @@ program
 
       // Copy skill and referenced files
       const skillDir = path.join(__dirname, 'skill');
-      const skillPath = path.join(agentsDir, 'skills', 'appweaver');
-      await fsp.cp(skillDir, path.join(destDir, skillPath), {
+      const projectSkillPath = path.join(agentsDir, 'skills', 'appweaver');
+      const projectSkillDir = path.join(destDir, projectSkillPath);
+      await fsp.cp(skillDir, projectSkillDir, {
         recursive: true
       });
 
-      // Read skill file, remove yml header, and replace reference paths
-      const skillFilePath = path.join(skillDir, 'SKILL.md');
-      const skillFileContents = await fsp.readFile(skillFilePath, 'utf8');
-      const referencesPath = path
-        .join(skillPath, 'references')
-        .replace(/\\/g, '/');
-      const guidelinesFileContent = skillFileContents
-        .replace(/references\//g, `${referencesPath}/`)
-        .replace(/^---[\s\S]+\n---\n\n/g, '')
-        .replace('# Appweaver skill', '# Appweaver project guidelines');
+      // Move the project guidelines file to the project root
+      const guidelinesSkillPath = path.join(projectSkillDir, 'GUIDELINES.md');
+      const guidelinesFilePath = path.join(destDir, guidelinesFileName);
+      await fsp.rename(guidelinesSkillPath, guidelinesFilePath);
 
-      // Copy project guidelines file
-      const guidelinesPath = path.join(destDir, guidelinesFileName);
-      await fsp.writeFile(guidelinesPath, guidelinesFileContent, {
+      // Update project guidelines reference paths to point in skills directory
+      const guidelinesContents = await fsp.readFile(guidelinesFilePath, 'utf8');
+      const referencesPath = path
+        .join(projectSkillPath, 'references')
+        .replace(/\\/g, '/');
+      const updatedGuidelinesContent = guidelinesContents.replace(
+        /(\[.+]\()references\/(.+\))/g,
+        `$1${referencesPath}/$2`
+      );
+      await fsp.writeFile(guidelinesFilePath, updatedGuidelinesContent, {
         encoding: 'utf8'
       });
     }

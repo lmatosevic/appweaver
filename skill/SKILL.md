@@ -532,10 +532,10 @@ weaver migration reset --force --yes  # force reset, skip confirmation
 ### Seed the database
 
 ```sh
-weaver seed                          # run seeders
-weaver seed --buildProject           # build project first, then run seeders
-weaver seed --continueOnError        # continue if a seeder throws error
-weaver seed --fixWarnings            # fix all warnings like invalid checksum or missing seeder
+weaver seed                                # run seeders
+weaver seed --buildProject                 # build project first, then run seeders
+weaver seed --continueOnError              # continue if a seeder throws error
+weaver seed --fixWarnings                  # fix all warnings like invalid checksum or missing seeder
 weaver seed --project tsconfig.build.json  # path to tsconfig build file
 ```
 
@@ -550,11 +550,11 @@ weaver spec --format yaml                          # generate schema in yaml for
 ### Update Appweaver packages
 
 ```sh
-weaver update                                        # update all @appweaver/* packages to latest
-weaver update @appweaver/core @appweaver/cli         # update specific packages
-weaver update --targetVersion 1.2.3                  # update to a specific version
-weaver update --noSkill                              # skip updating AI agent skill files
-weaver update --force                                # force update despite peerDependency mismatches
+weaver update                                 # update all @appweaver/* packages to latest
+weaver update @appweaver/core @appweaver/cli  # update specific packages
+weaver update --targetVersion 1.2.3           # update to a specific version
+weaver update --noSkill                       # skip updating AI agent skill files
+weaver update --force                         # force update despite peerDependency mismatches
 ```
 
 ### Run tests

@@ -13,8 +13,8 @@ export async function updateSkillFiles(quiet: boolean): Promise<void> {
     return;
   }
 
-  const skillFilePath = path.join(skillDir, 'SKILL.md');
-  const skillFileContents = await fsp.readFile(skillFilePath, 'utf8');
+  const guidelinesFilePath = path.join(skillDir, 'GUIDELINES.md');
+  const guidelinesContents = await fsp.readFile(guidelinesFilePath, 'utf8');
 
   const foundAgentDirs: string[] = [];
 
@@ -72,12 +72,10 @@ export async function updateSkillFiles(quiet: boolean): Promise<void> {
     const referencesPath = path
       .join(firstAgentDir, 'skills', 'appweaver', 'references')
       .replace(/\\/g, '/');
-
-    // Remove skill YAML header and change to guideline title
-    const guidelinesContent = skillFileContents
-      .replace(/references\//g, `${referencesPath}/`)
-      .replace(/^---[\s\S]+?\n---\n\n/g, '')
-      .replace('# Appweaver skill', '# Appweaver project guidelines');
+    const guidelinesContent = guidelinesContents.replace(
+      /(\[.+]\()references\/(.+\))/g,
+      `$1${referencesPath}/$2`
+    );
 
     await fsp.writeFile(guidelinesFilePath, guidelinesContent, {
       encoding: 'utf8'
@@ -86,6 +84,9 @@ export async function updateSkillFiles(quiet: boolean): Promise<void> {
     if (!quiet) {
       console.log(`Updated AI guidelines file ${guidelinesFile}\n`);
     }
+
+    // Update only the first found guidelines file
+    break;
   }
 }
 

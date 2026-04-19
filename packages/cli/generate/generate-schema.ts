@@ -304,7 +304,7 @@ export async function generateSchema(
     if (code !== 0 && oldSchema) {
       await fsp.writeFile(outputPath, oldSchema);
       console.error(
-        `Schema generation failed. ${quiet ? 'Start with --verbose flag to see error details.' : ''}`
+        `Schema generation failed.${quiet ? ' Start with --verbose flag to see error details.' : ''}`
       );
       return 1;
     } else {

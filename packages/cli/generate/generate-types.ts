@@ -69,7 +69,9 @@ export async function generateTypes(
 
     return 0;
   } catch (error) {
-    console.error(`Types generation failed.`);
+    console.error(
+      `Types generation failed.${quiet ? ' Start with --verbose flag to see error details.' : ''}`
+    );
     if (!quiet) {
       console.error(error);
     }
