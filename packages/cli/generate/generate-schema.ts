@@ -44,6 +44,16 @@ type PrismaSchemaModel = {
   extra?: Record<string, PrismaSchemaField[]>;
 };
 
+/**
+ * Generates a Prisma schema file based on the provided resource models and saves it to the specified file path.
+ *
+ * @param {Record<string, ResourceModel>} models - An object containing resource model configurations, where each key is
+ * the model name.
+ * @param {string} schemaPath - The file path where the generated Prisma schema should be stored.
+ * @param {string} clientPath - The file path where the Prisma client output should be generated.
+ * @param {boolean} [quiet=false] - Optional flag to suppress logs. Default is false.
+ * @return {Promise<number>} A promise that resolves to the number of models processed for the schema generation.
+ */
 export async function generateSchema(
   models: Record<string, ResourceModel>,
   schemaPath: string,

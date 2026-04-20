@@ -12,6 +12,14 @@ import {
 } from '@appweaver/common';
 import { ensureDirExists } from '../utils';
 
+/**
+ * Generates TypeScript type definitions for the given resource models and writes them to a specified directory.
+ *
+ * @param {Record<string, ResourceModel>} models - A set of resource models for which TypeScript types will be generated.
+ * @param {string} typesPath - The relative path to the directory where the generated types will be written.
+ * @param {boolean} [quiet=false] - If true, suppresses detailed logging during the operation.
+ * @return {Promise<number>} A promise that resolves to a status code: `0` for success, `2` for failure.
+ */
 export async function generateTypes(
   models: Record<string, ResourceModel>,
   typesPath: string,

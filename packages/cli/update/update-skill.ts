@@ -2,6 +2,13 @@ import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 
+/**
+ * Updates skill files and AI guidelines in the project by copying the skill directory
+ * to specified agent directories and updating references in guideline files.
+ *
+ * @param {boolean} quiet - If true, suppresses logging output; otherwise, logs actions performed.
+ * @return {Promise<void>} A promise that resolves when the update process is complete.
+ */
 export async function updateSkillFiles(quiet: boolean): Promise<void> {
   const projectDir = process.cwd();
   const skillDir = path.join(__dirname, '..', 'skill');

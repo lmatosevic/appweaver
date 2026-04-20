@@ -5,6 +5,13 @@ import { replaceTscAliasPaths } from 'tsc-alias';
 import { config, Runtime } from '@appweaver/common';
 import { isBunProcess, runProcess } from '../utils';
 
+/**
+ * Starts the project using the specified project file and runtime options.
+ *
+ * @param {string} projectFile - The path to the project file that should be used.
+ * @param {boolean} watch - A flag indicating whether to enable watch mode for automatic restarts on file changes.
+ * @return {Promise<void>} A promise that resolves when the project has started.
+ */
 export async function startProject(
   projectFile: string,
   watch: boolean
@@ -21,6 +28,15 @@ export async function startProject(
   }
 }
 
+/**
+ * Starts a Node.js project by executing the specified main file.
+ * Optionally enables watch mode to monitor file changes.
+ *
+ * @param {string} mainFilePath - The path to the main file to be executed.
+ * @param {string} projectFile - The project configuration file used during execution.
+ * @param {boolean} watch - Whether to enable watch mode for file changes.
+ * @return {Promise<void>} A promise that resolves when the operation completes.
+ */
 async function startNodeProject(
   mainFilePath: string,
   projectFile: string,
@@ -33,6 +49,13 @@ async function startNodeProject(
   }
 }
 
+/**
+ * Starts a Bun project by running the specified main file. Optionally enables a watch mode.
+ *
+ * @param {string} mainFilePath - The path to the main file to run with Bun.
+ * @param {boolean} watch - Determines whether the Bun process should execute in watch mode.
+ * @return {Promise<void>} A promise that resolves when the Bun process starts or when the watch mode is initiated.
+ */
 async function startBunProject(
   mainFilePath: string,
   watch: boolean
