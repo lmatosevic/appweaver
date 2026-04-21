@@ -8,7 +8,7 @@ export function buildCommand(program: Command): void {
     .description('Build the application.')
     .option(
       '-p, --project [path]',
-      'TypeScript project build config file.',
+      'TypeScript project config file.',
       'tsconfig.build.json'
     )
     .action(async (_, command: Command) => {
