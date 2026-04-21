@@ -13,7 +13,7 @@ export function seedCommand(program: Command): void {
     )
     .option('-b, --buildProject', 'Build the project before seeding.')
     .option(
-      '-p, --project',
+      '-p, --project [path]',
       'TypeScript project build config file.',
       'tsconfig.build.json'
     )

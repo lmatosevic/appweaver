@@ -7,7 +7,7 @@ export function buildCommand(program: Command): void {
     .alias('b')
     .description('Build the application.')
     .option(
-      '-p, --project',
+      '-p, --project [path]',
       'TypeScript project build config file.',
       'tsconfig.build.json'
     )
