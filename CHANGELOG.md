@@ -1,3 +1,26 @@
+## [1.1.0](https://gitlab.com/app-weaver/appweaver/compare/v1.0.8...v1.1.0) (2026-04-29)
+
+### Features
+
+* add `--project` option for CLI commands to specify TypeScript config files, replace `tsc-alias` with `tsc` alias path handling, use prettier programatically in generate types command, update documentation ([b68896b](https://gitlab.com/app-weaver/appweaver/commit/b68896b85d8abfc9568d97500861b8e613ff147e))
+* add `weaver docs` command to generate OpenAPI specification, update documentation and utilities ([3abab2d](https://gitlab.com/app-weaver/appweaver/commit/3abab2de387fd00cebfca4459dcfd76b2f16141b))
+* implement client module for generating types and client source code for using any Appweaver compatible API via OpenAPI specification ([ae0cfbb](https://gitlab.com/app-weaver/appweaver/commit/ae0cfbb98b2024c36fdd84f4a7dd4162b9d0ef46))
+
+### Bug Fixes
+
+* add new agents support (kiro and pi) in create-weaver-app, document `weaver update` command, and update skill guidelines with cli.md file ([42cd8ee](https://gitlab.com/app-weaver/appweaver/commit/42cd8ee8e33f4e72f6a013b8ebfcbce5e0e4ae7b))
+* add sleep before starting bun watcher process ([68616d9](https://gitlab.com/app-weaver/appweaver/commit/68616d9b47f4d1de5118f08e098a278e90a76c4a))
+* add sort by title for OpenAPI schemas ([7c57d32](https://gitlab.com/app-weaver/appweaver/commit/7c57d3255aee318b02a705fa4d87c6accab776b6))
+* fix `--project` option for CLI commands to allow optional paths and update default values ([2e6cbb6](https://gitlab.com/app-weaver/appweaver/commit/2e6cbb6b67d09e2c303f802c830fc64a55dd5291))
+* improve TypeScript node watch logic in CLI, remove toSchemaReference util function, refactor resource routes/schema handling ([313497a](https://gitlab.com/app-weaver/appweaver/commit/313497a75e17a31d1fc1c0b751d686d637f062c5))
+* refactor schema to use references for all routes, add storage files route prefix config, add OpenAPI schema pruning for unused references ([f35f0a6](https://gitlab.com/app-weaver/appweaver/commit/f35f0a6b561e7b2f7aed0903e3d551e1ff6c613f))
+* refactor update skill logic and streamline skill and guidelines updates ([6eb36d1](https://gitlab.com/app-weaver/appweaver/commit/6eb36d1406df2ca9973c91b2cdb96e2b75cd1654))
+* replace "examples" with "example" across schema definitions for OpenAPI consistency ([cc05a18](https://gitlab.com/app-weaver/appweaver/commit/cc05a1809d49ca8ddf9822af1ce681edb38af672))
+* replace `weaver docs` with `weaver spec` command, add YAML format support, update documentation ([802e5eb](https://gitlab.com/app-weaver/appweaver/commit/802e5eb1c8f3984cea9715e37a6e3a5d26022cb5))
+* replace SKILL.md with GUIDELINES.md in generated project, update reference handling in `create-weaver-app` and `weaver update` commands ([6d8ab94](https://gitlab.com/app-weaver/appweaver/commit/6d8ab94a8e88fbd2594bd969bd4ae2d4711f26ac))
+* update description for project config CLI options ([6833204](https://gitlab.com/app-weaver/appweaver/commit/6833204d3c80dd5671dfed3ca53b035a7bfff548))
+* update skill documentation for registering model ([c08bd86](https://gitlab.com/app-weaver/appweaver/commit/c08bd86fe018a4ffab94bbccf3e92b0ec914462d))
+
 ## [1.0.8](https://gitlab.com/app-weaver/appweaver/compare/v1.0.7...v1.0.8) (2026-04-10)
 
 ### Bug Fixes
