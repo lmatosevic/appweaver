@@ -1,3 +1,9 @@
+## [1.0.1](https://gitlab.com/app-weaver/appweaver/compare/v1.0.0...v1.0.1) (2026-04-29)
+
+### Bug Fixes
+
+* add config for git release notes ([df2fa6a](https://gitlab.com/app-weaver/appweaver/commit/df2fa6a7e83f8375004d56ab6e6c2f3aab722961))
+
 ## 1.0.0 (2026-04-29)
 
 ### Features
