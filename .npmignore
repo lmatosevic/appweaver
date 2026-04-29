@@ -11,6 +11,7 @@ tslint.json
 tsconfig.json
 .prettierrc
 
+# build info file
 *.tsbuildinfo
 
 # env file
