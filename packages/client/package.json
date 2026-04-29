@@ -1,0 +1,47 @@
+{
+  "name": "@appweaver/client",
+  "version": "1.0.8",
+  "description": "Appweaver - simple, fast, and reliable web application builder tool (@client)",
+  "author": "Luka Matosevic",
+  "license": "UNLICENSED",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "bin": {
+    "weaver-client": "./weaver-client.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/app-weaver/appweaver.git",
+    "directory": "packages/client"
+  },
+  "maintainers": [
+    {
+      "name": "Luka Matosevic",
+      "email": "lukamatosevic5@gmail.com",
+      "web": "https://lukamatosevic.com"
+    }
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://gitlab.com/api/v4/projects/77748589/packages/npm/"
+  },
+  "engines": {
+    "node": ">= 20"
+  },
+  "scripts": {
+    "weaver-client": "node ./dist/weaver-client.js"
+  },
+  "dependencies": {
+    "commander": "14.0.3",
+    "js-yaml": "4.1.1",
+    "openapi-fetch": "0.17.0",
+    "openapi-typescript": "7.13.0",
+    "openapi-typescript-helpers": "0.1.0",
+    "prettier": "3.8.1",
+    "typescript": "5.9.3"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "4.0.9"
+  },
+  "peerDependenciesMeta": {}
+}

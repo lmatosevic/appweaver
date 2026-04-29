@@ -279,7 +279,7 @@ export async function createAdminUser(): Promise<void> {
 | `npm run lint`                | Lint code with ESLint                     |
 | `weaver migration new <name>` | Create a new database migration           |
 | `weaver update`               | Update all @appweaver/* packages          |
-| `weaver spec`                 | Generate OpenAPI specification            |
+| `weaver openapi`              | Generate OpenAPI specification            |
 
 ## References
 

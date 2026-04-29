@@ -11,6 +11,8 @@ export type RouteSchema = {
   params?: unknown;
   headers?: unknown;
   response?: unknown;
+} & {
+  [key: `x-${string}`]: any;
 };
 
 export type RouteRateLimitFn =

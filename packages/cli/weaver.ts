@@ -30,8 +30,8 @@ import { buildCommand } from './build';
 import { generateCommand } from './generate';
 import { migrateCommand } from './migrate';
 import { migrationCommand } from './migration';
+import { openapiCommand } from './openapi';
 import { seedCommand } from './seed';
-import { specCommand } from './spec';
 import { startCommand } from './start';
 import { testingCommand } from './testing';
 import { updateCommand } from './update';
@@ -49,13 +49,13 @@ program
 
 buildCommand(program);
 
-specCommand(program);
-
 generateCommand(program);
 
 migrateCommand(program);
 
 migrationCommand(program);
+
+openapiCommand(program);
 
 seedCommand(program);
 

@@ -9,7 +9,7 @@ weaver <command> [options]
 | Option/Command  | Alias | Description                            |
 |-----------------|-------|----------------------------------------|
 | `build`         | `b`   | Build the application                  |
-| `spec`          | `sc`  | Generate OpenAPI specification schema  |
+| `openapi`       | `oa`  | Generate OpenAPI specification schema  |
 | `generate`      | `g`   | Generate types and/or schemas          |
 | `migrate`       | `mge` | Run database migrations                |
 | `migration`     | `mgn` | Database migration commands            |
@@ -38,10 +38,10 @@ Build the application.
 
 ---
 
-## `weaver spec`
+## `weaver openapi`
 
 ```
-weaver spec [options]
+weaver openapi|oa [options]
 ```
 
 Generate application OpenAPI specification schema.
@@ -108,7 +108,7 @@ Database migration commands.
 ## `weaver seed`
 
 ```
-weaver seed [options]
+weaver seed|sd [options]
 ```
 
 Seed the database.

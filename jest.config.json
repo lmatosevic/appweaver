@@ -38,6 +38,7 @@
     "<rootDir>/packages/common/test",
     "<rootDir>/packages/core/test",
     "<rootDir>/packages/cli/test",
+    "<rootDir>/packages/client/test",
     "<rootDir>/packages/create-weaver-app/test"
   ]
 }

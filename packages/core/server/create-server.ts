@@ -8,12 +8,10 @@ import fastifyRateLimit from '@fastify/rate-limit';
 import fastifyMultipart from '@fastify/multipart';
 import { fastifyRequestContext } from '@fastify/request-context';
 import {
-  camelToSnakeCase,
   config,
   loggerConfig,
   MemoryType,
   PLUGIN,
-  plural,
   Redis,
   ROUTE,
   textToBytes
@@ -172,10 +170,7 @@ export function createServer(): Server {
 
   // Register resource routes
   for (const route of context.resource.routes.values()) {
-    const routesPath =
-      route.config.path ||
-      camelToSnakeCase(plural(route.config.modelName), '-').toLowerCase();
-    const prefix = [config.SERVER_API_PREFIX, routesPath]
+    const prefix = [config.SERVER_API_PREFIX, route.basePath]
       .join('/')
       .replaceAll('//', '/');
     server.register(route.handler, { prefix });

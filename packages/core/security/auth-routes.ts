@@ -37,6 +37,21 @@ export function authRoutes(server: Server): void {
   );
 
   server.post(
+    '/logout',
+    {
+      schema: logoutSchema,
+      onRequest: authenticate([AuthType.Jwt])
+    },
+    async (_, reply) => {
+      const authUser = currentUser();
+
+      const success = await authService.logout(authUser.id);
+
+      return reply.send({ success });
+    }
+  );
+
+  server.post(
     '/refresh',
     {
       schema: refreshSchema,
@@ -57,21 +72,6 @@ export function authRoutes(server: Server): void {
       );
 
       return reply.send(authResponse);
-    }
-  );
-
-  server.post(
-    '/logout',
-    {
-      schema: logoutSchema,
-      onRequest: authenticate([AuthType.Jwt])
-    },
-    async (_, reply) => {
-      const authUser = currentUser();
-
-      const success = await authService.logout(authUser.id);
-
-      return reply.send({ success });
     }
   );
 

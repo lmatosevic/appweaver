@@ -1,6 +1,6 @@
 require('dotenv/config');
 
-const packages = ['core', 'common', 'cli', 'create-weaver-app'];
+const packages = ['core', 'common', 'cli', 'client', 'create-weaver-app'];
 
 module.exports = {
   branches: ['main'],

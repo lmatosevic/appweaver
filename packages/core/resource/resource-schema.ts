@@ -3,6 +3,7 @@ import {
   AnyJson,
   AuthType,
   camelToSnakeCase,
+  CONFIG_NAME,
   Nullable,
   plural,
   RecaptchaConfig,
@@ -92,7 +93,7 @@ export function createSchema(
     { $id: `${name}ExportRequest` }
   );
 
-  return {
+  const resourceSchemaConfig = {
     findSchema: {
       tags: [tag],
       security: authSchema(routeAuthTypes['find']),
@@ -212,4 +213,10 @@ export function createSchema(
       params: Id
     }
   };
+
+  for (const resourceConfig of Object.values(resourceSchemaConfig)) {
+    resourceConfig[`x-${CONFIG_NAME}-resource`] = name;
+  }
+
+  return resourceSchemaConfig;
 }

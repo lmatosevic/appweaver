@@ -75,6 +75,9 @@ export type ResourceModel = {
 export type ResourceRoutes = {
   /** Configuration for route definitions and behavior */
   config: ResourceRoutesConfig;
+  /** A base path for all registered routes of this resource.
+   * Default is the plural snake-case of the model name if not configured differently. */
+  basePath: string;
   /** Function to register routes with the server instance */
   handler: (server: any) => void;
 };

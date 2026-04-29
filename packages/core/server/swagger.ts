@@ -1,13 +1,14 @@
 import fastifyPlugin from 'fastify-plugin';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
-import { config } from '@appweaver/common';
+import { config, CONFIG_NAME } from '@appweaver/common';
+import { context } from '../context';
 import { Server } from '../types';
 
 export default fastifyPlugin((server: Server) => {
   server.register(fastifySwagger, {
     hideUntagged: config.SWAGGER_HIDE_UNTAGGED,
-    transformObject: pruneUnusedSchemas,
+    transformObject: (document) => addConfig(pruneUnusedSchemas(document)),
     openapi: {
       info: {
         title: config.APP_NAME,
@@ -101,4 +102,29 @@ function pruneUnusedSchemas(document: any): any {
   }
 
   return document.openapiObject;
+}
+
+function addConfig(document: any): any {
+  const normalizePath = (path: string): string => {
+    const withLeadingSlash = path.startsWith('/') ? path : `/${path}`;
+    return withLeadingSlash.endsWith('/') && withLeadingSlash.length > 1
+      ? withLeadingSlash.slice(0, -1)
+      : withLeadingSlash;
+  };
+
+  document[`x-${CONFIG_NAME}-config`] = {
+    resourcePaths: [...context.resource.routes.values()].map((r) => ({
+      name: r.config.modelName,
+      basePath: normalizePath(r.basePath)
+    })),
+    routePrefixes: {
+      api: normalizePath(config.SERVER_API_PREFIX),
+      static: normalizePath(config.SERVER_STATIC_ROUTE_PREFIX),
+      health: normalizePath(config.HEALTH_CHECK_ROUTE_PREFIX),
+      auth: normalizePath(config.SECURITY_ROUTE_PREFIX),
+      account: normalizePath(config.SECURITY_ACCOUNT_ROUTE_PREFIX),
+      files: normalizePath(config.STORAGE_FILES_ROUTE_PREFIX)
+    }
+  };
+  return document;
 }

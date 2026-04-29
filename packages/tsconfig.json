@@ -11,6 +11,9 @@
       "path": "./cli/tsconfig.build.json"
     },
     {
+      "path": "./client/tsconfig.build.json"
+    },
+    {
       "path": "./create-weaver-app/tsconfig.build.json"
     }
   ]

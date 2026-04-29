@@ -152,6 +152,20 @@ export function loadConfigFromFile(
 }
 
 /**
+ * Loads and parses the `package.json` file located at the specified file path.
+ *
+ * @param {string} [filePath='./package.json'] - The relative or absolute path to the `package.json` file.
+ * @return {Record<string, any>} The parsed contents of the `package.json` file as a JavaScript object.
+ */
+export function loadPackageJson(
+  filePath: string = './package.json'
+): Record<string, any> {
+  const pkgPath = path.join(process.cwd(), filePath);
+  const pkgContent = fs.readFileSync(pkgPath, 'utf8');
+  return JSON.parse(pkgContent);
+}
+
+/**
  * Recursively processes a map of configurations and flattens its key structure
  * into a single record with snake_case uppercase keys joined by underscores.
  *

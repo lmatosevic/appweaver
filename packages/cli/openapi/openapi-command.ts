@@ -6,11 +6,11 @@ import { ensureDirExists } from '../utils';
 
 const formats = ['json', 'yaml'];
 
-export function specCommand(program: Command): void {
+export function openapiCommand(program: Command): void {
   program
-    .command('spec')
-    .alias('sc')
-    .description('Generate application OpenAPI specification schema.')
+    .command('openapi')
+    .alias('oa')
+    .description("Generate application's OpenAPI specification schema.")
     .option(
       '-o, --outputPath [path]',
       'Output path for generated OpenAPI specification.',

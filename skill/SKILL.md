@@ -542,9 +542,9 @@ weaver seed --project tsconfig.build.json  # path to tsconfig build file
 ### Generate OpenAPI specification
 
 ```sh
-weaver spec                                        # generate schema to ./openapi.json
-weaver spec --outputPath ./generated/openapi.json  # generate schema to a custom path
-weaver spec --format yaml                          # generate schema in yaml format
+weaver openapi                                        # generate schema to ./openapi.json
+weaver openapi --outputPath ./generated/openapi.json  # generate schema to a custom path
+weaver openapi --format yaml                          # generate schema in yaml format
 ```
 
 ### Update Appweaver packages

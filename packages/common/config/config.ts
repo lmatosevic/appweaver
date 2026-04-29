@@ -10,7 +10,11 @@ import {
   MemoryType,
   Runtime
 } from '../enums';
-import { loadConfigFromEnv, loadConfigFromFiles } from './config-loader';
+import {
+  loadConfigFromEnv,
+  loadConfigFromFiles,
+  loadPackageJson
+} from './config-loader';
 import { addHelpers } from './config-helper';
 import { Config } from './config-type';
 
@@ -271,6 +275,18 @@ const { config: jsonConfig, files: jsonFiles } =
 const configFiles = envFiles.concat(jsonFiles);
 
 const parsedConfig = Value.Parse(configSchema, { ...jsonConfig, ...envConfig });
+
+// If application version is not set, try to load it from the local package.json
+if (parsedConfig.APP_VERSION === 'unknown') {
+  try {
+    const pkg = loadPackageJson();
+    if (pkg.version) {
+      parsedConfig.APP_VERSION = pkg.version;
+    }
+  } catch {
+    // package.json does not exist in the project root
+  }
+}
 
 // Construct application hostname if not already configured
 if (!parsedConfig.APP_HOSTNAME) {

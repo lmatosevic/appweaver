@@ -208,7 +208,22 @@ Executes `prisma migrate reset` (with `--force` when `-y` is passed).
 
 ---
 
-### `weaver seed`
+### `weaver openapi` (alias: `oa`)
+
+Generate the application's OpenAPI specification schema.
+
+```
+weaver openapi [options]
+```
+
+| Option                    | Description                                            | Default          |
+|---------------------------|--------------------------------------------------------|------------------|
+| `-o, --outputPath [path]` | Output path for the generated OpenAPI specification    | `./openapi.json` |
+| `-f, --format [format]`   | Output format for the specification (`json` or `yaml`) | `json`           |
+
+---
+
+### `weaver seed` (alias: `sd`)
 
 Seed the database with initial data.
 
@@ -240,6 +255,10 @@ weaver start [options]
 - **Watch mode**: `tsc-watch` with alias resolution and server restart on each successful build.
 
 ---
+
+### `weaver test` (alias: `t`)
+
+Has following subcommands for setting up the test environment: `setup`, `reset`, and `teardown`.
 
 ### `weaver test setup`
 
