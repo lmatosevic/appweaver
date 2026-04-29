@@ -590,3 +590,4 @@ npm run lint  # eslint "./**/*.ts"
 - Queue jobs: [queue.md](references/queue.md)
 - Scheduling jobs: [scheduler.md](references/scheduler.md)
 - Sending emails: [mailer.md](references/mailer.md)
+- Generating an HTTP client for using API: [client.md](references/client.md)
