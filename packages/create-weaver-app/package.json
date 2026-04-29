@@ -1,6 +1,6 @@
 {
   "name": "@appweaver/create-weaver-app",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Appweaver - simple, fast, and reliable web application builder tool (@create-weaver-app)",
   "author": "Luka Matosevic",
   "license": "UNLICENSED",
