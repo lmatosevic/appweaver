@@ -44,7 +44,10 @@ export async function updateSkillFiles(quiet: boolean): Promise<void> {
 
     // Copy skill directory to {agentDir}/skills/appweaver/
     const skillDestPath = path.join(agentDirPath, 'skills', 'appweaver');
-    await fsp.cp(skillDir, skillDestPath, { recursive: true });
+    await fsp.cp(skillDir, skillDestPath, {
+      recursive: true,
+      filter: (src) => !src.endsWith('GUIDELINES.md')
+    });
 
     if (!quiet) {
       console.log(
@@ -71,7 +74,10 @@ export async function updateSkillFiles(quiet: boolean): Promise<void> {
         'skills',
         'appweaver'
       );
-      await fsp.cp(skillDir, skillDestPath, { recursive: true });
+      await fsp.cp(skillDir, skillDestPath, {
+        recursive: true,
+        filter: (src) => !src.endsWith('GUIDELINES.md')
+      });
     }
 
     // Replace guideline file path references with path references in first
