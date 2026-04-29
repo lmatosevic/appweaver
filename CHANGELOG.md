@@ -1,3 +1,9 @@
+## [1.0.2](https://gitlab.com/app-weaver/appweaver/compare/v1.0.1...v1.0.2) (2026-04-29)
+
+### Bug Fixes
+
+* skip copying GUIDELINES.md file in agent skill directory ([d319b0c](https://gitlab.com/app-weaver/appweaver/commit/d319b0c1cdfe763c83f821b8825f93fc1dae158d))
+
 ## [1.0.1](https://gitlab.com/app-weaver/appweaver/compare/v1.0.0...v1.0.1) (2026-04-29)
 
 ### Bug Fixes
