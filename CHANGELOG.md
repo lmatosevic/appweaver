@@ -1,3 +1,9 @@
+## [1.1.1](https://gitlab.com/app-weaver/appweaver/compare/v1.1.0...v1.1.1) (2026-04-29)
+
+### Bug Fixes
+
+* add .npmignore files for all packages ([a57ceb9](https://gitlab.com/app-weaver/appweaver/commit/a57ceb92d494f09f5f1aefb129f61814ee5a94ff))
+
 ## [1.1.0](https://gitlab.com/app-weaver/appweaver/compare/v1.0.8...v1.1.0) (2026-04-29)
 
 ### Features
