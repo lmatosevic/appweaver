@@ -11,7 +11,7 @@ const pkg = JSON.parse(
   fs.readFileSync(path.join(__dirname, './package.json'), 'utf8')
 );
 
-const prismaVersion = '7.7.0';
+const prismaVersion = '7.8.0';
 
 const dbTypes = ['sqlite', 'postgresql', 'mysql', 'sqlserver'];
 const agentTypes = [
