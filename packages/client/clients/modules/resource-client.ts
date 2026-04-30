@@ -1,5 +1,6 @@
 import { Client } from 'openapi-fetch';
-import { BaseClient, FileDataResponse, RequestOptions } from './base-client';
+import { BaseClient, RequestOptions } from './base-client';
+import { FileDataResponse } from '../responses';
 import { RESOURCE_OPERATIONS, RESOURCE_TYPES } from '../../constants';
 
 export type ResourceType = Record<(typeof RESOURCE_TYPES)[number], unknown>;

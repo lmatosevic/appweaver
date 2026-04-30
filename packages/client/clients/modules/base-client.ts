@@ -1,5 +1,6 @@
 import { Client, FetchOptions } from 'openapi-fetch';
 import { HttpMethod, RequiredKeysOf } from 'openapi-typescript-helpers';
+import { FileContentRange, FileDataResponse } from '../responses';
 import { ClientError } from '../../errors';
 
 export type InitParam<Init> =
@@ -8,22 +9,6 @@ export type InitParam<Init> =
     : [Init & { [key: string]: unknown }];
 
 export type RequestOptions<T = any> = FetchOptions<T>;
-
-export type FileDataResponse = {
-  stream: ReadableStream;
-  fileName: string;
-  type: string;
-  length: number;
-  range?: FileContentRange;
-  maxAge?: number;
-  expiresAt?: string;
-};
-
-export type FileContentRange = {
-  start: number;
-  end: number;
-  total: number;
-};
 
 export abstract class BaseClient {
   protected constructor(
@@ -88,7 +73,7 @@ export abstract class BaseClient {
       };
     }
 
-    return {
+    return new FileDataResponse({
       fileName,
       stream: response.body!,
       type: response.headers.get('Content-Type') ?? '',
@@ -96,7 +81,7 @@ export abstract class BaseClient {
       range,
       maxAge: maxAge ? parseInt(maxAge, 10) : undefined,
       expiresAt: response.headers.get('Expires') ?? undefined
-    };
+    });
   }
 
   protected handleError(error: any, response: Response): void {

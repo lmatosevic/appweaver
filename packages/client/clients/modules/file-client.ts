@@ -1,5 +1,6 @@
 import { Client } from 'openapi-fetch';
-import { BaseClient, FileDataResponse, RequestOptions } from './base-client';
+import { BaseClient, RequestOptions } from './base-client';
+import { FileDataResponse } from '../responses';
 import { FILE_OPERATIONS } from '../../constants';
 
 export type FileInterface = {
