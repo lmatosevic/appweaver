@@ -3,3 +3,6 @@
 
 # env file
 .env
+
+# generated samples
+generated
