@@ -1,3 +1,10 @@
+## [1.0.4](https://gitlab.com/app-weaver/appweaver/compare/v1.0.3...v1.0.4) (2026-04-30)
+
+### Bug Fixes
+
+* add data object in case of client error and re-exported ClientError from generated client file ([9f7c777](https://gitlab.com/app-weaver/appweaver/commit/9f7c777229e271e82125c09b45d5cdab56a42640))
+* update Prisma version to 7.8.0 ([52a2645](https://gitlab.com/app-weaver/appweaver/commit/52a2645c93a4b5bec839c20fbcb2e9447f6c6ce3))
+
 ## [1.0.3](https://gitlab.com/app-weaver/appweaver/compare/v1.0.2...v1.0.3) (2026-04-30)
 
 ### Bug Fixes
