@@ -84,6 +84,10 @@ export const AccountSend2FAResponse = Type.Object(
     challengeId: Type.String({
       description: 'The ID for currently requested 2FA',
       example: 'aBcDeFgHijkLMnO123456789'
+    }),
+    expiresIn: Type.Integer({
+      description: 'The expiration time in milliseconds for the 2FA challenge',
+      example: 300000
     })
   },
   { $id: 'AccountSend2FAResponse' }
@@ -109,6 +113,11 @@ export const AccountVerify2FAResponse = Type.Object(
       description:
         'The one-time-token for requested purpose (e.g., authentication)',
       example: 'aBcDeFgHijkLMnO123456789'
+    }),
+    expiresIn: Type.Integer({
+      description:
+        'The expiration time in milliseconds for the 2FA authentication token',
+      example: 120000
     })
   },
   { $id: 'AccountVerify2FAResponse' }

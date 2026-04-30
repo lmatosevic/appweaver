@@ -144,12 +144,12 @@ export function accountRoutes(server: Server): void {
       async (request, reply) => {
         const authUser = currentUser();
 
-        const challengeId = await accountService.send2FACode(
+        const response = await accountService.send2FACode(
           authUser,
           request.body.purpose
         );
 
-        return reply.send({ challengeId });
+        return reply.send(response);
       }
     );
 
@@ -165,12 +165,12 @@ export function accountRoutes(server: Server): void {
         }
       },
       async (request, reply) => {
-        const token = await accountService.verify2FACode(
+        const response = await accountService.verify2FACode(
           request.body.challengeId,
           request.body.code
         );
 
-        return reply.send({ token });
+        return reply.send(response);
       }
     );
   }

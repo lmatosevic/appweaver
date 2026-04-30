@@ -253,23 +253,25 @@ export class AccountService {
    * @param {AuthUser} authUser - The authenticated user to whom the 2FA code will be sent.
    * @param {string} [purpose='authentication'] - The purpose for sending the 2FA code (e.g., authentication, account
    * recovery).
-   * @return {Promise<string>} A promise that resolves to the unique challenge ID associated with the 2FA code.
+   * @return {Promise<{ challengeId: string; expiresIn: number }>} A promise that resolves to the unique challenge ID
+   * and expiration time associated with the 2FA code.
    * @throws {HttpError} If the email service is not available, an error with a 501 status code is thrown.
    */
   public async send2FACode(
     authUser: AuthUser,
     purpose: string = 'authentication'
-  ): Promise<string> {
+  ): Promise<{ challengeId: string; expiresIn: number }> {
     if (!this._emailService) {
       throw new HttpError('2FA is not supported', 501);
     }
 
+    const expiresIn = config.SECURITY_ACCOUNT_2FA_OTT_TTL;
     const code = randomString(6, { numbers: true });
     const challengeId =
       await this._securityStore.generateOneTimeToken<TwoFactorAuthData>(
         AuthOTTPurpose.TwoFAVerification,
         { authUserId: authUser.id, codeHash: makeHash(code), purpose },
-        config.SECURITY_ACCOUNT_2FA_OTT_TTL
+        expiresIn
       );
 
     await this._emailService.sendEmail({
@@ -278,21 +280,22 @@ export class AccountService {
       text: `Please enter the following code: ${code}`
     });
 
-    return challengeId;
+    return { challengeId, expiresIn };
   }
 
   /**
    * Verifies a two-factor authentication (2FA) code for a provided challenge ID.
    *
-   * @param challengeId The unique identifier of the 2FA challenge.
-   * @param code The 2FA code entered by the user.
-   * @return A promise that resolves to a one-time token if the 2FA verification is successful.
-   *         Throws an error if verification fails or the associated user is disabled or does not exist.
+   * @param {string} challengeId The unique identifier of the 2FA challenge.
+   * @param {string} code The 2FA code entered by the user.
+   * @return {Promise<{ token: string; expiresIn: number }>} A promise that resolves to a one-time token and expiration
+   * time if the 2FA verification is successful.
+   * @throws {Error} An error if verification fails or the associated user is disabled or does not exist.
    */
   public async verify2FACode(
     challengeId: string,
     code: string
-  ): Promise<string> {
+  ): Promise<{ token: string; expiresIn: number }> {
     const data = await this._securityStore.useOneTimeToken<TwoFactorAuthData>(
       challengeId,
       AuthOTTPurpose.TwoFAVerification,
@@ -309,10 +312,13 @@ export class AccountService {
       throw new HttpError('Auth user does not exist or is disabled', 400);
     }
 
-    return this._securityStore.generateOneTimeToken<AuthOTTData>(
+    const expiresIn = config.SECURITY_AUTH_OTT_TTL;
+    const token = await this._securityStore.generateOneTimeToken<AuthOTTData>(
       data.purpose,
       { authUserId: authUser.id, authSource: AuthSource.Password },
-      config.SECURITY_AUTH_OTT_TTL
+      expiresIn
     );
+
+    return { token, expiresIn };
   }
 }
