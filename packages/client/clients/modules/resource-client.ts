@@ -149,7 +149,7 @@ export class ResourceClient<Resource extends ResourceType>
     request: Resource['exportRequest'],
     options: RequestOptions = {}
   ): Promise<FileDataResponse> {
-    const { error, response } = await this.sendRequestRaw(
+    const { data, error, response } = await this.sendRequestRaw(
       'post',
       `${this._resourcePath}/export`,
       {
@@ -160,7 +160,7 @@ export class ResourceClient<Resource extends ResourceType>
     );
 
     if (error) {
-      this.handleError(error, response);
+      this.handleError(error, response, data);
     }
 
     return this.toFileResponse(response);

@@ -229,7 +229,7 @@ export async function generateClient(
     usedMethodNames.add(propName);
   }
 
-  return `import { ClientConfig, FetchClient } from '@appweaver/client';
+  return `import { ClientConfig, ClientError, FetchClient } from '@appweaver/client';
 ${pathsTypeImport}
 export class ${className} extends FetchClient<${typePrefix}paths> {
   ${clientMethodContent}
@@ -238,6 +238,8 @@ export class ${className} extends FetchClient<${typePrefix}paths> {
 export function createClient(config: ClientConfig): ${className} {
   return new ${className}(config);
 }
+
+export { ClientError };
 `;
 }
 

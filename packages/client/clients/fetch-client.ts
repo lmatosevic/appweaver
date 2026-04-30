@@ -234,7 +234,8 @@ export class FetchClient<Paths extends {}> {
       throw new ClientError(
         err.message ?? 'Unknown error',
         err.errorCode ?? response.status,
-        response
+        response,
+        data
       );
     }
 
