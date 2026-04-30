@@ -1,3 +1,11 @@
+## [1.0.3](https://gitlab.com/app-weaver/appweaver/compare/v1.0.2...v1.0.3) (2026-04-30)
+
+### Bug Fixes
+
+* add expiresIn property to account 2FA responses ([ca8e7e6](https://gitlab.com/app-weaver/appweaver/commit/ca8e7e63402b9afaa1c177f7468707a8388e9bb3))
+* add FileDataResponse methods for transforming file stream to buffer, blob, text or base64 contents ([7ed4539](https://gitlab.com/app-weaver/appweaver/commit/7ed45390af5cefde45d66a36f5bf30d9fead5b7b))
+* add health check cache config property and route caching with 3 sec default ([d31f867](https://gitlab.com/app-weaver/appweaver/commit/d31f86714d3c88716a4d8b8292155a59c59506ef))
+
 ## [1.0.2](https://gitlab.com/app-weaver/appweaver/compare/v1.0.1...v1.0.2) (2026-04-29)
 
 ### Bug Fixes
