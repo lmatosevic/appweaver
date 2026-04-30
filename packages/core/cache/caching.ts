@@ -1,5 +1,6 @@
 import { FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
+import { requestContext } from '@fastify/request-context';
 import {
   AuthUser,
   isFunction,
@@ -9,7 +10,6 @@ import {
 import { CacheService } from './cache-service';
 import { inject } from '../context';
 import { Server } from '../types';
-import { requestContext } from '@fastify/request-context';
 
 type FullRouteConfig = RouteConfig & RouteCacheConfig;
 
@@ -82,6 +82,7 @@ function shouldUseCache(
   return !!(
     (req.method === 'GET' || req.method === 'POST') &&
     (config.cacheTTL || config.cacheKey || config.cache) &&
+    (config.cacheTTL === undefined || config.cacheTTL > 0) &&
     config.cache !== false
   );
 }

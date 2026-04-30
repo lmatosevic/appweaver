@@ -253,6 +253,10 @@
                 }
               ],
               "default": null
+            },
+            "cacheTtl": {
+              "type": "integer",
+              "default": 3000
             }
           }
         },

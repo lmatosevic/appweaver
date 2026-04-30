@@ -52,6 +52,7 @@
       "enabled": true,
       "auth": true,
       "routePrefix": "/health",
+      "cacheTtl": 3000,
       "pickInstances": ["database", "redis", "storage"],
       "omitInstances": null
     },

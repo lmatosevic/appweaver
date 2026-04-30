@@ -75,6 +75,7 @@ const configSchema = Type.Object({
   HEALTH_CHECK_ENABLED: Type.Boolean({ default: true }),
   HEALTH_CHECK_AUTH: Type.Boolean({ default: true }),
   HEALTH_CHECK_ROUTE_PREFIX: Type.String({ default: '/health' }),
+  HEALTH_CHECK_CACHE_TTL: Type.Integer({ default: 3000 }),
   HEALTH_CHECK_PICK_INSTANCES: Type.Optional(Type.Array(Type.String())),
   HEALTH_CHECK_OMIT_INSTANCES: Type.Optional(Type.Array(Type.String())),
 

@@ -19,6 +19,7 @@ export function health(server: Server): void {
       schema: healthCheckSchema,
       onRequest: config.HEALTH_CHECK_AUTH ? authenticate() : undefined,
       config: {
+        cacheTTL: config.HEALTH_CHECK_CACHE_TTL,
         rateLimit: {
           max: 12
         }

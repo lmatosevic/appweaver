@@ -99,6 +99,8 @@ export type Config = {
   HEALTH_CHECK_AUTH: boolean;
   /** URL prefix for health check routes. Default: `'/health'`. */
   HEALTH_CHECK_ROUTE_PREFIX: string;
+  /** Cache TTL for the health check response in milliseconds. Default: `3000` (3 sec). */
+  HEALTH_CHECK_CACHE_TTL: number;
   /** List of health check instance names to include in response. */
   HEALTH_CHECK_PICK_INSTANCES?: string[];
   /** List of health check instance names to exclude from response. */
