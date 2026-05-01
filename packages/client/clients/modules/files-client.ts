@@ -26,7 +26,7 @@ export class FilesClient extends BaseClient implements FilesInterface {
     fileName: string,
     options: RequestOptions = {}
   ): Promise<FileDataResponse> {
-    const { data, error, response } = await this.sendRequestRaw(
+    const { error, response } = await this.sendRequestRaw(
       'get',
       `${this.basePath}/public/{*}`,
       {
@@ -42,7 +42,7 @@ export class FilesClient extends BaseClient implements FilesInterface {
     );
 
     if (error) {
-      this.handleError(error, response, data);
+      this.handleError(error, response);
     }
 
     return this.toFileResponse(response, fileName);
@@ -59,7 +59,7 @@ export class FilesClient extends BaseClient implements FilesInterface {
     fileName: string,
     options: RequestOptions = {}
   ): Promise<FileDataResponse> {
-    const { data, error, response } = await this.sendRequestRaw(
+    const { error, response } = await this.sendRequestRaw(
       'get',
       `${this.basePath}/protected/{*}`,
       {
@@ -75,7 +75,7 @@ export class FilesClient extends BaseClient implements FilesInterface {
     );
 
     if (error) {
-      this.handleError(error, response, data);
+      this.handleError(error, response);
     }
 
     return this.toFileResponse(response, fileName);

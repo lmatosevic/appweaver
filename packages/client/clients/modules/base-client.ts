@@ -27,7 +27,7 @@ export abstract class BaseClient {
     );
 
     if (error) {
-      this.handleError(error, response, data);
+      this.handleError(error, response);
     }
 
     return data;
@@ -84,12 +84,12 @@ export abstract class BaseClient {
     });
   }
 
-  protected handleError(error: any, response: Response, data: any): void {
+  protected handleError(error: any, response: Response): void {
     throw new ClientError(
-      error.message ?? 'Unknown error',
+      error.message ?? response.statusText ?? 'Unknown error',
       error.errorCode ?? response.status,
       response,
-      data
+      error
     );
   }
 }

@@ -260,10 +260,10 @@ export class FetchClient<Paths extends {}> {
     if (error) {
       const err = error as { message?: string; errorCode?: number };
       throw new ClientError(
-        err.message ?? 'Unknown error',
+        err.message ?? response.statusText ?? 'Unknown error',
         err.errorCode ?? response.status,
         response,
-        data
+        error
       );
     }
 
