@@ -14,7 +14,7 @@ export class HealthClient<Health extends HealthType>
 {
   constructor(
     client: Client<{ [key: string]: any }>,
-    private readonly _healthPath: string
+    public readonly basePath: string
   ) {
     super(client);
   }
@@ -28,7 +28,7 @@ export class HealthClient<Health extends HealthType>
   public async check(
     options: RequestOptions = {}
   ): Promise<Health['checkResponse']> {
-    return this.sendRequest('get', `${this._healthPath}/check`, options);
+    return this.sendRequest('get', `${this.basePath}/check`, options);
   }
 
   /**
@@ -40,6 +40,6 @@ export class HealthClient<Health extends HealthType>
   public async ready(
     options: RequestOptions = {}
   ): Promise<Health['readyResponse']> {
-    return this.sendRequest('get', `${this._healthPath}/ready`, options);
+    return this.sendRequest('get', `${this.basePath}/ready`, options);
   }
 }

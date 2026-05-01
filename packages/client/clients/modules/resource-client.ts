@@ -15,7 +15,7 @@ export class ResourceClient<Resource extends ResourceType>
 {
   constructor(
     client: Client<{ [key: string]: any }>,
-    private readonly _resourcePath: string
+    public readonly basePath: string
   ) {
     super(client);
   }
@@ -31,7 +31,7 @@ export class ResourceClient<Resource extends ResourceType>
     id: number,
     options: RequestOptions = {}
   ): Promise<Resource['single']> {
-    return this.sendRequest('get', `${this._resourcePath}/{id}`, {
+    return this.sendRequest('get', `${this.basePath}/{id}`, {
       ...options,
       params: {
         ...(options.params ?? {}),
@@ -53,7 +53,7 @@ export class ResourceClient<Resource extends ResourceType>
     request: Resource['queryRequest'],
     options: RequestOptions = {}
   ): Promise<Resource['queryResponse']> {
-    return this.sendRequest('post', `${this._resourcePath}/query`, {
+    return this.sendRequest('post', `${this.basePath}/query`, {
       ...options,
       body: request
     });
@@ -70,7 +70,7 @@ export class ResourceClient<Resource extends ResourceType>
     request: Resource['aggregateRequest'],
     options: RequestOptions = {}
   ): Promise<Resource['aggregateResponse']> {
-    return this.sendRequest('post', `${this._resourcePath}/aggregate`, {
+    return this.sendRequest('post', `${this.basePath}/aggregate`, {
       ...options,
       body: request
     });
@@ -87,7 +87,7 @@ export class ResourceClient<Resource extends ResourceType>
     resource: Resource['create'],
     options: RequestOptions = {}
   ): Promise<Resource['single']> {
-    return this.sendRequest('post', `${this._resourcePath}`, {
+    return this.sendRequest('post', `${this.basePath}`, {
       ...options,
       body: resource
     });
@@ -104,7 +104,7 @@ export class ResourceClient<Resource extends ResourceType>
     resource: Resource['update'] & { id: number },
     options: RequestOptions = {}
   ): Promise<Resource['single']> {
-    return this.sendRequest('put', `${this._resourcePath}/{id}`, {
+    return this.sendRequest('put', `${this.basePath}/{id}`, {
       ...options,
       params: {
         ...(options.params ?? {}),
@@ -127,7 +127,7 @@ export class ResourceClient<Resource extends ResourceType>
     id: number,
     options: RequestOptions = {}
   ): Promise<Resource['single']> {
-    return this.sendRequest('delete', `${this._resourcePath}/{id}`, {
+    return this.sendRequest('delete', `${this.basePath}/{id}`, {
       ...options,
       params: {
         ...(options.params ?? {}),
@@ -151,7 +151,7 @@ export class ResourceClient<Resource extends ResourceType>
   ): Promise<FileDataResponse> {
     const { data, error, response } = await this.sendRequestRaw(
       'post',
-      `${this._resourcePath}/export`,
+      `${this.basePath}/export`,
       {
         ...options,
         parseAs: 'stream',
@@ -193,7 +193,7 @@ export class ResourceClient<Resource extends ResourceType>
       }
     }
 
-    return this.sendRequest('post', `${this._resourcePath}/{id}/files`, {
+    return this.sendRequest('post', `${this.basePath}/{id}/files`, {
       ...options,
       body: files
     });
@@ -210,7 +210,7 @@ export class ResourceClient<Resource extends ResourceType>
     files: Resource['fileDelete'],
     options: RequestOptions = {}
   ): Promise<Resource['files']> {
-    return this.sendRequest('post', `${this._resourcePath}/{id}/delete-files`, {
+    return this.sendRequest('post', `${this.basePath}/{id}/delete-files`, {
       ...options,
       body: files
     });

@@ -63,11 +63,12 @@ export class FileDataResponse {
   /**
    * Reads and decodes the content of the buffer into a string using the TextDecoder API.
    *
+   * @param {string} encoding - The character encoding to use for decoding. Defaults to 'utf-8'.
    * @return {Promise<string>} A promise that resolves to the decoded string.
    */
-  public async text(): Promise<string> {
+  public async text(encoding: string = 'utf-8'): Promise<string> {
     const buf = await this._readArrayBuffer();
-    return new TextDecoder().decode(buf);
+    return new TextDecoder(encoding).decode(buf);
   }
 
   /**

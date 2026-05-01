@@ -122,7 +122,7 @@ export class CMSAPIClient extends FetchClient<Type.paths> {
 
   public health = this.healthClient<Type.HealthModuleType>('/health');
 
-  public files = this.fileClient('/files');
+  public files = this.filesClient('/files');
 
   // Resource with some operations excluded (compile-time Omit)
   public apiKey = this.resourceClient<
@@ -342,7 +342,7 @@ await client.account.resetPassword({ token: 'abc123', password: 'newpass' });
 const status = await client.health.check();
 ```
 
-### `FileClient`
+### `FilesClient`
 
 | Method                      | HTTP                  | Description               |
 |-----------------------------|-----------------------|---------------------------|
@@ -351,6 +351,69 @@ const status = await client.health.check();
 
 ```ts
 const file = await client.files.public('images/photo.jpg');
+const fileData = await file.base64(); // or use file.stream to pipe output to file etc.
+```
+
+### `FileDataResponse`
+
+Both `FilesClient` methods and `ResourceClient.export` return a `FileDataResponse` instance instead of a raw response
+body. It exposes file metadata as properties and provides helper methods to consume the content.
+
+**Properties:**
+
+| Property    | Type                | Description                                                     |
+|-------------|---------------------|-----------------------------------------------------------------|
+| `stream`    | `ReadableStream`    | Readable stream of the file content                             |
+| `fileName`  | `string`            | File name extracted from the `Content-Disposition` header       |
+| `type`      | `string`            | MIME type from the `Content-Type` header                        |
+| `length`    | `number`            | File size in bytes from the `Content-Length` header             |
+| `range`     | `FileContentRange?` | Byte range info present on partial-content (HTTP 206) responses |
+| `maxAge`    | `number?`           | Cache duration in seconds from `Cache-Control: max-age`         |
+| `expiresAt` | `string?`           | Expiration timestamp from the `Expires` header                  |
+
+**Methods:**
+
+| Method                   | Returns                | Description                                                           |
+|--------------------------|------------------------|-----------------------------------------------------------------------|
+| `buffer()`               | `Promise<ArrayBuffer>` | Raw binary content as an `ArrayBuffer`                                |
+| `blob()`                 | `Promise<Blob>`        | Content wrapped in a `Blob` with the correct MIME type                |
+| `text(encoding: string)` | `Promise<string>`      | Content decoded to string using specified encoding (default is UTF-8) |
+| `base64()`               | `Promise<string>`      | Content as a Base64 data URL (`data:<type>;base64,...`)               |
+
+The stream is read lazily on the first call to any consumption method, and the result is cached — later calls return the
+same `ArrayBuffer` without re-reading the stream.
+
+The `FileContentRange` type describes a partial-content range:
+
+```ts
+type FileContentRange = {
+  start: number;  // Starting byte position (inclusive)
+  end: number;    // Ending byte position (inclusive)
+  total: number;  // Total size of the complete file in bytes
+};
+```
+
+**Examples:**
+
+```ts
+// Download a public file and convert to a data URL for display
+let file = await client.files.public('images/photo.jpg');
+const dataUrl = await file.base64();
+img.src = dataUrl;
+
+// Download a protected file and save as a Blob
+file = await client.files.protected('reports/data.pdf');
+const blob = await file.blob();
+const url = URL.createObjectURL(blob);
+
+// Export a resource collection as CSV and read as text
+file = await client.post.export({ filter: { published: true } });
+const csv = await file.text();
+
+// Inspect metadata before consuming
+console.log(file.fileName); // e.g. "export.csv"
+console.log(file.type);     // e.g. "text/csv"
+console.log(file.length);   // e.g. 4096
 ```
 
 ---

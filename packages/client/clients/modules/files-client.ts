@@ -3,14 +3,14 @@ import { BaseClient, RequestOptions } from './base-client';
 import { FileDataResponse } from '../responses';
 import { FILE_OPERATIONS } from '../../constants';
 
-export type FileInterface = {
+export type FilesInterface = {
   [K in keyof typeof FILE_OPERATIONS]: (...args: any[]) => Promise<any>;
 };
 
-export class FileClient extends BaseClient implements FileInterface {
+export class FilesClient extends BaseClient implements FilesInterface {
   constructor(
     client: Client<{ [key: string]: any }>,
-    private readonly _filesPath: string
+    public readonly basePath: string
   ) {
     super(client);
   }
@@ -28,7 +28,7 @@ export class FileClient extends BaseClient implements FileInterface {
   ): Promise<FileDataResponse> {
     const { data, error, response } = await this.sendRequestRaw(
       'get',
-      `${this._filesPath}/public/{*}`,
+      `${this.basePath}/public/{*}`,
       {
         ...options,
         parseAs: 'stream',
@@ -61,7 +61,7 @@ export class FileClient extends BaseClient implements FileInterface {
   ): Promise<FileDataResponse> {
     const { data, error, response } = await this.sendRequestRaw(
       'get',
-      `${this._filesPath}/protected/{*}`,
+      `${this.basePath}/protected/{*}`,
       {
         ...options,
         parseAs: 'stream',

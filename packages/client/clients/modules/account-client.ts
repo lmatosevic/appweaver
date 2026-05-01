@@ -14,7 +14,7 @@ export class AccountClient<Account extends AccountType>
 {
   constructor(
     client: Client<{ [key: string]: any }>,
-    private readonly _accountPath: string
+    public readonly basePath: string
   ) {
     super(client);
   }
@@ -30,7 +30,7 @@ export class AccountClient<Account extends AccountType>
     request: Account['sendEmailVerificationRequest'],
     options: RequestOptions = {}
   ): Promise<Account['statusResponse']> {
-    return this.sendRequest('post', `${this._accountPath}/send-verify-email`, {
+    return this.sendRequest('post', `${this.basePath}/send-verify-email`, {
       ...options,
       body: request
     });
@@ -47,7 +47,7 @@ export class AccountClient<Account extends AccountType>
     request: Account['emailVerificationRequest'],
     options: RequestOptions = {}
   ): Promise<Account['statusResponse']> {
-    return this.sendRequest('post', `${this._accountPath}/verify-email`, {
+    return this.sendRequest('post', `${this.basePath}/verify-email`, {
       ...options,
       body: request
     });
@@ -66,20 +66,16 @@ export class AccountClient<Account extends AccountType>
     token: string,
     options: RequestOptions = {}
   ): Promise<any> {
-    return this.sendRequest(
-      'get',
-      `${this._accountPath}/verify-email-redirect`,
-      {
-        ...options,
-        params: {
-          ...(options.params ?? {}),
-          query: {
-            ...(options.params?.query ?? {}),
-            token
-          }
+    return this.sendRequest('get', `${this.basePath}/verify-email-redirect`, {
+      ...options,
+      params: {
+        ...(options.params ?? {}),
+        query: {
+          ...(options.params?.query ?? {}),
+          token
         }
       }
-    );
+    });
   }
 
   /**
@@ -93,14 +89,10 @@ export class AccountClient<Account extends AccountType>
     request: Account['sendResetPasswordRequest'],
     options: RequestOptions = {}
   ): Promise<Account['statusResponse']> {
-    return this.sendRequest(
-      'post',
-      `${this._accountPath}/send-reset-password`,
-      {
-        ...options,
-        body: request
-      }
-    );
+    return this.sendRequest('post', `${this.basePath}/send-reset-password`, {
+      ...options,
+      body: request
+    });
   }
 
   /**
@@ -114,7 +106,7 @@ export class AccountClient<Account extends AccountType>
     request: Account['resetPasswordRequest'],
     options: RequestOptions = {}
   ): Promise<Account['statusResponse']> {
-    return this.sendRequest('post', `${this._accountPath}/reset-password`, {
+    return this.sendRequest('post', `${this.basePath}/reset-password`, {
       ...options,
       body: request
     });
@@ -131,7 +123,7 @@ export class AccountClient<Account extends AccountType>
     request: Account['send2FACodeRequest'],
     options: RequestOptions = {}
   ): Promise<Account['send2FAResponse']> {
-    return this.sendRequest('post', `${this._accountPath}/send-2fa-code`, {
+    return this.sendRequest('post', `${this.basePath}/send-2fa-code`, {
       ...options,
       body: request
     });
@@ -150,7 +142,7 @@ export class AccountClient<Account extends AccountType>
   ): Promise<Account['verify2FAResponse']> {
     return this.sendRequest(
       'post',
-      `${this._accountPath}/account/verify-2fa-code`,
+      `${this.basePath}/account/verify-2fa-code`,
       {
         ...options,
         body: request

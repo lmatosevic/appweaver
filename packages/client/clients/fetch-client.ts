@@ -17,7 +17,7 @@ import {
   AuthClient,
   AuthInterface,
   AuthType,
-  FileClient,
+  FilesClient,
   HealthClient,
   HealthInterface,
   HealthType,
@@ -37,13 +37,21 @@ type ClientResult<
   ? TClient
   : Omit<TClient, OmitFields[number]>;
 
+type ClientModules = {
+  resources: ResourceClient<ResourceType>[];
+  auth?: AuthClient<AuthType>;
+  account?: AccountClient<AccountType>;
+  health?: HealthClient<HealthType>;
+  files?: FilesClient;
+};
+
 type AuthFn<T> = (req: Request) => T | Promise<T>;
 
 /** Configuration for JWT-based authentication. */
 export type JwtAuthConfig = {
   /** The JWT access token to include in the `Authorization: Bearer` header. */
   accessToken: string;
-  /** Optional refresh token for renewing expired access tokens when calling /refresh endpoint. */
+  /** Optional refresh token for renewing expired access tokens when calling the refresh endpoint. */
   refreshToken?: string;
 };
 
@@ -116,15 +124,16 @@ export type ClientConfig = {
  */
 export class FetchClient<Paths extends {}> {
   private readonly _client: Client<Paths>;
+  private readonly _modules: ClientModules = { resources: [] };
 
-  constructor(readonly config: ClientConfig) {
-    const { baseUrl, timeout, middlewares, auth } = config;
+  constructor(private readonly _config: ClientConfig) {
+    const { baseUrl, timeout, middlewares, auth } = _config;
 
     this._client = createClient<Paths>({ baseUrl });
 
     if (timeout) {
       this._client.use({
-        async onRequest({ request }) {
+        onRequest: async ({ request }) => {
           const timeoutSignal = AbortSignal.timeout(timeout);
 
           return new Request(request, {
@@ -138,7 +147,7 @@ export class FetchClient<Paths extends {}> {
 
     if (auth) {
       this._client.use({
-        async onRequest({ request }) {
+        onRequest: async ({ request, schemaPath }) => {
           const headers = new Headers(request.headers);
 
           if ('jwt' in auth) {
@@ -146,7 +155,17 @@ export class FetchClient<Paths extends {}> {
               typeof auth.jwt === 'function'
                 ? await auth.jwt(request)
                 : auth.jwt;
-            const token = typeof jwt === 'string' ? jwt : jwt.accessToken;
+            let token: string | undefined;
+            if (typeof jwt === 'object') {
+              token = jwt.accessToken;
+              const refreshPath =
+                `/${this._modules.auth?.basePath}/refresh`.replace(/\/+/g, '/');
+              if (schemaPath === refreshPath && jwt.refreshToken) {
+                token = jwt.refreshToken;
+              }
+            } else {
+              token = jwt;
+            }
             headers.set('Authorization', `Bearer ${token}`);
           } else if ('basic' in auth) {
             const basic =
@@ -193,6 +212,15 @@ export class FetchClient<Paths extends {}> {
    */
   public getClient(): Client<Paths> {
     return this._client;
+  }
+
+  /**
+   * Retrieves the client configuration.
+   *
+   * @return {ClientConfig} The current client configuration instance.
+   */
+  public getConfig(): ClientConfig {
+    return this._config;
   }
 
   /**
@@ -296,7 +324,9 @@ export class FetchClient<Paths extends {}> {
   >(
     resourcePath: string
   ): ClientResult<ResourceClient<Resource>, ResourceInterface, OmitFields> {
-    return new ResourceClient<Resource>(this._client, resourcePath);
+    const resource = new ResourceClient<Resource>(this._client, resourcePath);
+    this._modules.resources.push(resource);
+    return resource;
   }
 
   protected authClient<
@@ -305,7 +335,9 @@ export class FetchClient<Paths extends {}> {
   >(
     authPath: string
   ): ClientResult<AuthClient<Auth>, AuthInterface, OmitFields> {
-    return new AuthClient<Auth>(this._client, authPath);
+    const auth = new AuthClient<Auth>(this._client, authPath);
+    this._modules.auth = auth;
+    return auth;
   }
 
   protected accountClient<
@@ -314,7 +346,9 @@ export class FetchClient<Paths extends {}> {
   >(
     accountPath: string
   ): ClientResult<AccountClient<Account>, AccountInterface, OmitFields> {
-    return new AccountClient<Account>(this._client, accountPath);
+    const account = new AccountClient<Account>(this._client, accountPath);
+    this._modules.account = account;
+    return account;
   }
 
   protected healthClient<
@@ -323,12 +357,16 @@ export class FetchClient<Paths extends {}> {
   >(
     healthPath: string
   ): ClientResult<HealthClient<Health>, HealthInterface, OmitFields> {
-    return new HealthClient<Health>(this._client, healthPath);
+    const health = new HealthClient<Health>(this._client, healthPath);
+    this._modules.health = health;
+    return health;
   }
 
-  protected fileClient<
+  protected filesClient<
     OmitFields extends readonly (keyof HealthInterface)[] = []
-  >(filesPath: string): ClientResult<FileClient, HealthInterface, OmitFields> {
-    return new FileClient(this._client, filesPath);
+  >(filesPath: string): ClientResult<FilesClient, HealthInterface, OmitFields> {
+    const files = new FilesClient(this._client, filesPath);
+    this._modules.files = files;
+    return files;
   }
 }

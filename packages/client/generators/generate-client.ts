@@ -182,7 +182,7 @@ export async function generateClient(
     const genericType = omittedType ? `<${omittedType}>` : '';
     clientMethods.push({
       name: 'files',
-      expression: `this.fileClient${genericType}('${config.routePrefixes.files}')`
+      expression: `this.filesClient${genericType}('${config.routePrefixes.files}')`
     });
   }
 

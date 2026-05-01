@@ -14,7 +14,7 @@ export class AuthClient<Auth extends AuthType>
 {
   constructor(
     client: Client<{ [key: string]: any }>,
-    private readonly _authPath: string
+    public readonly basePath: string
   ) {
     super(client);
   }
@@ -30,7 +30,7 @@ export class AuthClient<Auth extends AuthType>
     request: Auth['loginRequest'],
     options: RequestOptions = {}
   ): Promise<Auth['authenticationResponse']> {
-    return this.sendRequest('post', `${this._authPath}/login`, {
+    return this.sendRequest('post', `${this.basePath}/login`, {
       ...options,
       body: request
     });
@@ -45,7 +45,7 @@ export class AuthClient<Auth extends AuthType>
   public async logout(
     options: RequestOptions = {}
   ): Promise<Auth['logoutResponse']> {
-    return this.sendRequest('post', `${this._authPath}/logout`, options);
+    return this.sendRequest('post', `${this.basePath}/logout`, options);
   }
 
   /**
@@ -57,7 +57,7 @@ export class AuthClient<Auth extends AuthType>
   public async refresh(
     options: RequestOptions = {}
   ): Promise<Auth['authenticationResponse']> {
-    return this.sendRequest('post', `${this._authPath}/refresh`, options);
+    return this.sendRequest('post', `${this.basePath}/refresh`, options);
   }
 
   /**
@@ -71,7 +71,7 @@ export class AuthClient<Auth extends AuthType>
     request: Auth['changePasswordRequest'],
     options: RequestOptions = {}
   ): Promise<Auth['authenticationResponse']> {
-    return this.sendRequest('post', `${this._authPath}/change-password`, {
+    return this.sendRequest('post', `${this.basePath}/change-password`, {
       ...options,
       body: request
     });
@@ -88,7 +88,7 @@ export class AuthClient<Auth extends AuthType>
     request: Auth['exchangeTokenRequest'],
     options: RequestOptions = {}
   ): Promise<Auth['authenticationResponse']> {
-    return this.sendRequest('post', `${this._authPath}/exchange-token`, {
+    return this.sendRequest('post', `${this.basePath}/exchange-token`, {
       ...options,
       body: request
     });
@@ -101,6 +101,6 @@ export class AuthClient<Auth extends AuthType>
    * @returns The identity object for the authenticated user.
    */
   public async me(options: RequestOptions = {}): Promise<Auth['identity']> {
-    return this.sendRequest('get', `${this._authPath}/me`, options);
+    return this.sendRequest('get', `${this.basePath}/me`, options);
   }
 }
