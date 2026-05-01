@@ -1,3 +1,9 @@
+## [1.0.6](https://gitlab.com/app-weaver/appweaver/compare/v1.0.5...v1.0.6) (2026-05-01)
+
+### Bug Fixes
+
+* update fetch and base client error handling ([9504e78](https://gitlab.com/app-weaver/appweaver/commit/9504e789fbd199bd375d7091fa0da61671a5f492))
+
 ## [1.0.5](https://gitlab.com/app-weaver/appweaver/compare/v1.0.4...v1.0.5) (2026-05-01)
 
 ### Bug Fixes
