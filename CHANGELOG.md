@@ -1,3 +1,9 @@
+## [1.0.7](https://gitlab.com/app-weaver/appweaver/compare/v1.0.6...v1.0.7) (2026-05-01)
+
+### Bug Fixes
+
+* return health check response in case of 503 error ([bbe2d03](https://gitlab.com/app-weaver/appweaver/commit/bbe2d03e414979e5afc796239d097bc732d3ffff))
+
 ## [1.0.6](https://gitlab.com/app-weaver/appweaver/compare/v1.0.5...v1.0.6) (2026-05-01)
 
 ### Bug Fixes
