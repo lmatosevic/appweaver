@@ -1,3 +1,9 @@
+## [1.0.5](https://gitlab.com/app-weaver/appweaver/compare/v1.0.4...v1.0.5) (2026-05-01)
+
+### Bug Fixes
+
+* expose module clients base paths and add support for refresh token auto apply, update client skills file ([6eecf65](https://gitlab.com/app-weaver/appweaver/commit/6eecf65724c63900f334229f7694197dc243027d))
+
 ## [1.0.4](https://gitlab.com/app-weaver/appweaver/compare/v1.0.3...v1.0.4) (2026-04-30)
 
 ### Bug Fixes
