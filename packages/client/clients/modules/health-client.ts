@@ -23,12 +23,22 @@ export class HealthClient<Health extends HealthType>
    * Performs a basic health check against the server.
    *
    * @param {RequestOptions} options - Additional request options.
-   * @returns The health check response indicating overall server status.
+   * @returns The health check response indicating overall server and it's services status.
    */
   public async check(
     options: RequestOptions = {}
   ): Promise<Health['checkResponse']> {
-    return this.sendRequest('get', `${this.basePath}/check`, options);
+    const { data, error, response } = await this.sendRequestRaw(
+      'get',
+      `${this.basePath}/check`,
+      options
+    );
+
+    if (error && response.status !== 503) {
+      this.handleError(error, response);
+    }
+
+    return data ?? error;
   }
 
   /**
