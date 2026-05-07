@@ -35,8 +35,5 @@
     "pino-pretty": "13.1.3",
     "pluralize": "8.0.0",
     "rotating-file-stream": "3.2.7"
-  },
-  "devDependencies": {},
-  "peerDependencies": {},
-  "peerDependenciesMeta": {}
+  }
 }
