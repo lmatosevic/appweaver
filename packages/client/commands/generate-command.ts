@@ -41,6 +41,10 @@ export function generateCommand(program: Command): void {
       '--clientOnly',
       'Generate only client class (without TypeScript types).'
     )
+    .option(
+      '--noTypes',
+      'Generate client class without TypeScript type support.'
+    )
     .action(async (schemaPath: string, _, command: Command) => {
       const outputPath = command.getOptionValue('outputPath');
       const typesPath = command.getOptionValue('typesPath') || outputPath;
@@ -48,12 +52,13 @@ export function generateCommand(program: Command): void {
       const clientName = command.getOptionValue('clientName');
       const typesOnly = command.getOptionValue('typesOnly');
       const clientOnly = command.getOptionValue('clientOnly');
+      const noTypes = command.getOptionValue('noTypes');
       const cwd = process.cwd();
 
       const schemaContent = await readSchemaContent(schemaPath);
       const schemaObject = await toSchemaObject(schemaContent);
 
-      if (!clientOnly) {
+      if (!clientOnly && !noTypes) {
         const typesContent = await generateTypes(schemaObject);
         await formatAndWriteFile(
           typesPath,
@@ -73,7 +78,7 @@ export function generateCommand(program: Command): void {
           schemaObject,
           clientName,
           typesImportPath,
-          clientOnly
+          noTypes
         );
         await formatAndWriteFile(
           clientPath,

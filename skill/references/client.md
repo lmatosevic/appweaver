@@ -46,6 +46,7 @@ Reads an OpenAPI v3 schema and generates TypeScript types and a typed client cla
 | `--clientName [name]` | Custom name for the generated client class                                                 | derived from schema title |
 | `--typesOnly`         | Generate TypeScript types only, skip client class generation                               | `false`                   |
 | `--clientOnly`        | Generate client class only, skip TypeScript types generation                               | `false`                   |
+| `--noTypes`           | Generate client class without TypeScript type support                                      | `false`                   |
 
 **Generation process:**
 
@@ -71,8 +72,11 @@ weaver-client generate http://localhost:3000/openapi.json --outputPath ./src/gen
 # Generate types only
 weaver-client generate ./openapi.json --typesOnly --outputPath ./src/types/api.ts
 
-# Generate client only (for non TypeScript environments)
+# Generate client class only
 weaver-client generate ./openapi.json --clientOnly --outputPath ./src/client.ts
+
+# Generate client class without TypeScript types
+weaver-client generate ./openapi.json --noTypes --outputPath ./src/client.ts
 
 # Separate output files with a custom class name
 weaver-client generate ./openapi.json \
