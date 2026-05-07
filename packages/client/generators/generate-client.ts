@@ -40,12 +40,15 @@ type RouteDetails = {
  * @param {string} [clientName] - Optional name of the client class name to be generated. (default: derived from OpenAPI
  * title or WeaverClient if title is missing)
  * @param {string} [typesPath] - Optional path to the types module, for importing related type definitions.
+ * @param {boolean} [noTypes=false] - Optional flag to disable client class generic types, useful for environments
+ * without type support.
  * @return {Promise<string>} A Promise that resolves to the generated client class as a string.
  */
 export async function generateClient(
   schema: string | OpenAPI3,
   clientName?: string,
-  typesPath?: string
+  typesPath?: string,
+  noTypes: boolean = false
 ): Promise<string> {
   const schemaObject =
     typeof schema === 'string' ? await toSchemaObject(schema) : schema;
@@ -60,9 +63,11 @@ export async function generateClient(
   // Resolve the type import statement and types prefix
   const typeName = 'Type';
   const typePrefix = typesPath ? `${typeName}.` : '';
-  const pathsTypeImport = typesPath
-    ? `import * as ${typeName} from '${typesPath}';\n`
-    : '';
+  const pathsTypeImport =
+    typesPath && !noTypes
+      ? `import * as ${typeName} from '${typesPath}';\n`
+      : '';
+  const pathsTypeGeneric = !noTypes ? `<${typePrefix}paths>` : '';
 
   const config: RoutePathConfig = schemaObject[CONFIG_FIELD];
 
@@ -121,68 +126,84 @@ export async function generateClient(
 
   const clientMethods: { name: string; expression: string }[] = [];
 
-  // Utility function for generating omitted fields type so the client instance
-  // will not allow usage of unsupported operations
-  const omittedFieldsType = (
+  // Utility function for generating generic types for client methods using
+  // module type prefix and omitted types based on operations usage
+  const makeGenericTypes = (
+    moduleTypeName: string | undefined,
     operations: Record<string, string>,
-    used: string[],
-    comma: boolean = true
+    usedOperations: string[]
   ): string => {
+    if (noTypes) {
+      return '';
+    }
+
+    const genericTypes: string[] = [];
+
+    if (moduleTypeName) {
+      genericTypes.push(`${typePrefix}${moduleTypeName}`);
+    }
+
     const omittedFields = Object.keys(operations).filter(
-      (o) => !used.includes(o)
+      (o) => !usedOperations.includes(o)
     );
-    return omittedFields.length > 0
-      ? `${comma ? ', ' : ''}[${omittedFields.map((field) => "'" + field + "'").join(', ')}]`
-      : '';
+    if (omittedFields.length > 0) {
+      genericTypes.push(
+        `[${omittedFields.map((field) => "'" + field + "'").join(', ')}]`
+      );
+    }
+
+    return genericTypes.length > 0 ? `<${genericTypes.join(', ')}>` : '';
   };
 
   // Add auth client
   if (schemaRoutes.auth.length > 0) {
-    const authTypeName = `${typePrefix}${AUTH_MODULE_TYPE}`;
-    const omittedType = omittedFieldsType(AUTH_OPERATIONS, schemaRoutes.auth);
+    const genericTypes = makeGenericTypes(
+      AUTH_MODULE_TYPE,
+      AUTH_OPERATIONS,
+      schemaRoutes.auth
+    );
     clientMethods.push({
       name: 'auth',
-      expression: `this.authClient<${authTypeName}${omittedType}>('${config.routePrefixes.auth}')`
+      expression: `this.authClient${genericTypes}('${config.routePrefixes.auth}')`
     });
   }
 
   // Add account client
   if (schemaRoutes.account.length > 0) {
-    const accountTypeName = `${typePrefix}${ACCOUNT_MODULE_TYPE}`;
-    const omittedType = omittedFieldsType(
+    const genericTypes = makeGenericTypes(
+      ACCOUNT_MODULE_TYPE,
       ACCOUNT_OPERATIONS,
       schemaRoutes.account
     );
     clientMethods.push({
       name: 'account',
-      expression: `this.accountClient<${accountTypeName}${omittedType}>('${config.routePrefixes.account}')`
+      expression: `this.accountClient${genericTypes}('${config.routePrefixes.account}')`
     });
   }
 
   // Add health client
   if (schemaRoutes.health.length > 0) {
-    const healthTypeName = `${typePrefix}${HEALTH_MODULE_TYPE}`;
-    const omittedType = omittedFieldsType(
+    const genericTypes = makeGenericTypes(
+      HEALTH_MODULE_TYPE,
       HEALTH_OPERATIONS,
       schemaRoutes.health
     );
     clientMethods.push({
       name: 'health',
-      expression: `this.healthClient<${healthTypeName}${omittedType}>('${config.routePrefixes.health}')`
+      expression: `this.healthClient${genericTypes}('${config.routePrefixes.health}')`
     });
   }
 
   // Add file client
   if (schemaRoutes.files.length > 0) {
-    const omittedType = omittedFieldsType(
+    const genericTypes = makeGenericTypes(
+      undefined,
       FILE_OPERATIONS,
-      schemaRoutes.files,
-      false
+      schemaRoutes.files
     );
-    const genericType = omittedType ? `<${omittedType}>` : '';
     clientMethods.push({
       name: 'files',
-      expression: `this.filesClient${genericType}('${config.routePrefixes.files}')`
+      expression: `this.filesClient${genericTypes}('${config.routePrefixes.files}')`
     });
   }
 
@@ -196,13 +217,16 @@ export async function generateClient(
     }
 
     const lowerName = name.charAt(0).toLowerCase() + name.slice(1);
-    const moduleTypeName = `${typePrefix}${name}${RESOURCE_MODULE_TYPE}`;
     const resourcePath = `${config.routePrefixes.api}${basePath}`;
-    const omittedType = omittedFieldsType(RESOURCE_OPERATIONS, operations);
+    const genericTypes = makeGenericTypes(
+      `${name}${RESOURCE_MODULE_TYPE}`,
+      RESOURCE_OPERATIONS,
+      operations
+    );
 
     clientMethods.push({
       name: lowerName,
-      expression: `this.resourceClient<${moduleTypeName}${omittedType}>('${resourcePath}')`
+      expression: `this.resourceClient${genericTypes}('${resourcePath}')`
     });
   }
 
@@ -231,7 +255,7 @@ export async function generateClient(
 
   return `import { ClientConfig, ClientError, FetchClient } from '@appweaver/client';
 ${pathsTypeImport}
-export class ${className} extends FetchClient<${typePrefix}paths> {
+export class ${className} extends FetchClient${pathsTypeGeneric} {
   ${clientMethodContent}
 }
 

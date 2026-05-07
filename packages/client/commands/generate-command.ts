@@ -37,33 +37,43 @@ export function generateCommand(program: Command): void {
       '--typesOnly',
       'Generate TypeScript types only (without client class).'
     )
+    .option(
+      '--clientOnly',
+      'Generate only client class (without TypeScript types).'
+    )
     .action(async (schemaPath: string, _, command: Command) => {
       const outputPath = command.getOptionValue('outputPath');
       const typesPath = command.getOptionValue('typesPath') || outputPath;
       const clientPath = command.getOptionValue('clientPath') || outputPath;
       const clientName = command.getOptionValue('clientName');
       const typesOnly = command.getOptionValue('typesOnly');
+      const clientOnly = command.getOptionValue('clientOnly');
       const cwd = process.cwd();
 
       const schemaContent = await readSchemaContent(schemaPath);
       const schemaObject = await toSchemaObject(schemaContent);
 
-      const typesContent = await generateTypes(schemaObject);
-      await formatAndWriteFile(
-        typesPath,
-        typesContent,
-        typesOnly || typesPath !== clientPath
-      );
+      if (!clientOnly) {
+        const typesContent = await generateTypes(schemaObject);
+        await formatAndWriteFile(
+          typesPath,
+          typesContent,
+          typesOnly || typesPath !== clientPath
+        );
 
-      console.log(`Generated types to ${path.relative(cwd, typesPath)}`);
+        console.log(`Generated types to ${path.relative(cwd, typesPath)}`);
+      }
 
       if (!typesOnly) {
+        const typesImportPath =
+          typesPath === clientPath
+            ? undefined
+            : relativePathFrom(clientPath, typesPath);
         const clientContent = await generateClient(
           schemaObject,
           clientName,
-          typesPath === clientPath
-            ? undefined
-            : relativePathFrom(clientPath, typesPath)
+          typesImportPath,
+          clientOnly
         );
         await formatAndWriteFile(
           clientPath,
