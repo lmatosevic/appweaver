@@ -54,11 +54,13 @@ export default fastifyPlugin((server: Server) => {
     }
   });
 
-  server.register(fastifySwaggerUI, {
-    routePrefix: config.SWAGGER_PATH,
-    indexPrefix: new URL(config.APP_HOSTNAME).pathname,
-    staticCSP: false
-  });
+  if (config.SWAGGER_ENABLED) {
+    server.register(fastifySwaggerUI, {
+      routePrefix: config.SWAGGER_PATH,
+      indexPrefix: new URL(config.APP_HOSTNAME).pathname,
+      staticCSP: false
+    });
+  }
 });
 
 function pruneUnusedSchemas(document: any): any {

@@ -142,9 +142,7 @@ export function createServer(): Server {
 
   // Register swagger documentation and UI. Must be registered after
   // loadResources and before any route registration
-  if (config.SWAGGER_ENABLED) {
-    server.register(swagger);
-  }
+  server.register(swagger);
 
   // Register schema models to enable $ref usage in route validation
   server.register(schemas);
