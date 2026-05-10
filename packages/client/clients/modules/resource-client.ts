@@ -1,5 +1,5 @@
-import { Client } from 'openapi-fetch';
-import { BaseClient, RequestOptions } from './base-client';
+import { BaseModule, RequestOptions } from './base-module';
+import { BaseClientInterface } from '../base-client-interface';
 import { FileDataResponse } from '../responses';
 import { RESOURCE_OPERATIONS, RESOURCE_TYPES } from '../../constants';
 
@@ -10,11 +10,11 @@ export type ResourceInterface = {
 };
 
 export class ResourceClient<Resource extends ResourceType>
-  extends BaseClient
+  extends BaseModule
   implements ResourceInterface
 {
   constructor(
-    client: Client<{ [key: string]: any }>,
+    client: BaseClientInterface,
     public readonly basePath: string
   ) {
     super(client);

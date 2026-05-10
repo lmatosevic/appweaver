@@ -2,9 +2,14 @@ import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import prettier from 'prettier';
-import { Command, InvalidArgumentError } from 'commander';
+import {
+  Command,
+  InvalidArgumentError,
+  InvalidOptionArgumentError
+} from 'commander';
 import { generateClient, generateTypes } from '../generators';
 import { readSchemaContent, toSchemaObject } from '../utils';
+import { FRAMEWORKS } from '../constants';
 
 export function generateCommand(program: Command): void {
   program
@@ -34,6 +39,12 @@ export function generateCommand(program: Command): void {
       'Name for generated client class. (default: OpenAPI schema title)'
     )
     .option(
+      '--framework [name]',
+      `The framework for generated client class (${FRAMEWORKS.join(', ')})`,
+      parseFramework,
+      'fetch'
+    )
+    .option(
       '--typesOnly',
       'Generate TypeScript types only (without client class).'
     )
@@ -50,6 +61,7 @@ export function generateCommand(program: Command): void {
       const typesPath = command.getOptionValue('typesPath') || outputPath;
       const clientPath = command.getOptionValue('clientPath') || outputPath;
       const clientName = command.getOptionValue('clientName');
+      const framework = command.getOptionValue('framework');
       const typesOnly = command.getOptionValue('typesOnly');
       const clientOnly = command.getOptionValue('clientOnly');
       const noTypes = command.getOptionValue('noTypes');
@@ -77,6 +89,7 @@ export function generateCommand(program: Command): void {
         const clientContent = await generateClient(
           schemaObject,
           clientName,
+          framework,
           typesImportPath,
           noTypes
         );
@@ -179,4 +192,15 @@ function parseSchema(value: string): string {
   }
 
   return value;
+}
+
+function parseFramework(value: string): string {
+  const lowerFramework = value.toLowerCase();
+  if (!FRAMEWORKS.includes(lowerFramework as any)) {
+    throw new InvalidOptionArgumentError(
+      `Must be one of following: ${FRAMEWORKS.join(', ')}.`
+    );
+  }
+
+  return lowerFramework;
 }

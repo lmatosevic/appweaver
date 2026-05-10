@@ -2,6 +2,9 @@
 // They are typically only modified when changes occur in other Appweaver packages
 // (such as core and common) to reflect new route paths or methods.
 
+/** Supported frameworks for generating the client class. */
+export const FRAMEWORKS = ['fetch', 'angular'] as const;
+
 /** Custom OpenAPI extension key used for extracting route prefixes and base paths to their resources. */
 export const CONFIG_FIELD = 'x-appweaver-config';
 

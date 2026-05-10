@@ -1,5 +1,5 @@
-import { Client } from 'openapi-fetch';
-import { BaseClient, RequestOptions } from './base-client';
+import { BaseModule, RequestOptions } from './base-module';
+import { BaseClientInterface } from '../base-client-interface';
 import { HEALTH_OPERATIONS, HEALTH_TYPES } from '../../constants';
 
 export type HealthType = Record<(typeof HEALTH_TYPES)[number], unknown>;
@@ -9,11 +9,11 @@ export type HealthInterface = {
 };
 
 export class HealthClient<Health extends HealthType>
-  extends BaseClient
+  extends BaseModule
   implements HealthInterface
 {
   constructor(
-    client: Client<{ [key: string]: any }>,
+    client: BaseClientInterface,
     public readonly basePath: string
   ) {
     super(client);

@@ -1,5 +1,5 @@
-import { Client } from 'openapi-fetch';
-import { BaseClient, RequestOptions } from './base-client';
+import { BaseModule, RequestOptions } from './base-module';
+import { BaseClientInterface } from '../base-client-interface';
 import { ACCOUNT_OPERATIONS, ACCOUNT_TYPES } from '../../constants';
 
 export type AccountType = Record<(typeof ACCOUNT_TYPES)[number], unknown>;
@@ -9,11 +9,11 @@ export type AccountInterface = {
 };
 
 export class AccountClient<Account extends AccountType>
-  extends BaseClient
+  extends BaseModule
   implements AccountInterface
 {
   constructor(
-    client: Client<{ [key: string]: any }>,
+    client: BaseClientInterface,
     public readonly basePath: string
   ) {
     super(client);

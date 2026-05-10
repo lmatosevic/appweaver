@@ -11,6 +11,7 @@ import {
   CONFIG_FIELD,
   CONFIG_RESOURCE_FIELD,
   FILE_OPERATIONS,
+  FRAMEWORKS,
   HEALTH_MODULE_TYPE,
   HEALTH_OPERATIONS,
   RESOURCE_MODULE_TYPE,
@@ -39,6 +40,7 @@ type RouteDetails = {
  * (URL or JSON/YAML) or an object.
  * @param {string} [clientName] - Optional name of the client class name to be generated. (default: derived from OpenAPI
  * title or WeaverClient if title is missing)
+ * @param {string} [framework='fetch'] - Optional framework for which to generate the client class.
  * @param {string} [typesPath] - Optional path to the types module, for importing related type definitions.
  * @param {boolean} [noTypes=false] - Optional flag to disable client class generic types, useful for environments
  * without type support.
@@ -47,6 +49,7 @@ type RouteDetails = {
 export async function generateClient(
   schema: string | OpenAPI3,
   clientName?: string,
+  framework: (typeof FRAMEWORKS)[number] = 'fetch',
   typesPath?: string,
   noTypes: boolean = false
 ): Promise<string> {
@@ -253,6 +256,28 @@ export async function generateClient(
     usedMethodNames.add(propName);
   }
 
+  // Generate framework-specific client code
+  return framework === 'angular'
+    ? generateAngularClient(
+        pathsTypeImport,
+        pathsTypeGeneric,
+        className,
+        clientMethodContent
+      )
+    : generateFetchClient(
+        pathsTypeImport,
+        pathsTypeGeneric,
+        className,
+        clientMethodContent
+      );
+}
+
+function generateFetchClient(
+  pathsTypeImport: string,
+  pathsTypeGeneric: string,
+  className: string,
+  clientMethodContent: string
+): string {
   return `import { ClientConfig, ClientError, FetchClient } from '@appweaver/client';
 ${pathsTypeImport}
 export class ${className} extends FetchClient${pathsTypeGeneric} {
@@ -261,6 +286,81 @@ export class ${className} extends FetchClient${pathsTypeGeneric} {
 
 export function createClient(config: ClientConfig): ${className} {
   return new ${className}(config);
+}
+
+export { ClientError };
+`;
+}
+
+function generateAngularClient(
+  pathsTypeImport: string,
+  pathsTypeGeneric: string,
+  className: string,
+  clientMethodContent: string
+): string {
+  return `import { ClientConfig, ClientError, AngularClient } from '@appweaver/client';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+${pathsTypeImport}
+export class ${className} extends AngularClient${pathsTypeGeneric} {
+  constructor(http: HttpClient, config: ClientConfig) {
+    super(${className}.fetchHandler(http), config);
+  }
+
+  ${clientMethodContent}
+  
+  private static fetchHandler(http: HttpClient) {
+    return async (
+      input: RequestInfo | URL,
+      init?: RequestInit
+    ): Promise<Response> => {
+      const request = input instanceof Request ? input : null;
+
+      const url = request
+        ? request.url
+        : input instanceof URL
+          ? input.toString()
+          : input;
+
+      const method = init?.method ?? request?.method ?? 'GET';
+
+      const headers = new HttpHeaders(
+        Object.fromEntries(
+          new Headers(init?.headers ?? request?.headers ?? {}).entries()
+        )
+      );
+
+      const body =
+        method === 'GET' || method === 'HEAD'
+          ? undefined
+          : (init?.body ?? request?.body ?? undefined);
+
+      const angularResponse: HttpResponse<Blob> = await firstValueFrom(
+        http.request<Blob>(method, url as string, {
+          body,
+          headers,
+          observe: 'response',
+          responseType: 'json',
+          withCredentials: init?.credentials === 'include'
+        })
+      );
+
+      const responseHeaders = new Headers();
+
+      angularResponse.headers.keys().forEach((key) => {
+        const value = angularResponse.headers.get(key);
+        if (value !== null) {
+          responseHeaders.set(key, value);
+        }
+      });
+
+      return new Response(angularResponse.body, {
+        status: angularResponse.status,
+        statusText: angularResponse.statusText,
+        headers: responseHeaders
+      });
+    };
+  }
 }
 
 export { ClientError };

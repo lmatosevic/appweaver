@@ -145,7 +145,7 @@ export function createService<T = any, C = any, U = any>(
       const policy = injectPolicy(name);
 
       if (policy.readRestrictions) {
-        return policy.readRestrictions(action, data);
+        return policy.readRestrictions(action, data) ?? {};
       }
 
       return super.readRestrictions(action, data);
@@ -160,7 +160,7 @@ export function createService<T = any, C = any, U = any>(
       const policy = injectPolicy(name);
 
       if (policy.writeRestrictions) {
-        return policy.writeRestrictions(action, data);
+        return policy.writeRestrictions(action, data) ?? {};
       }
 
       return super.writeRestrictions(action, data);

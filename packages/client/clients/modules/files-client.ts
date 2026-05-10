@@ -1,5 +1,5 @@
-import { Client } from 'openapi-fetch';
-import { BaseClient, RequestOptions } from './base-client';
+import { BaseModule, RequestOptions } from './base-module';
+import { BaseClientInterface } from '../base-client-interface';
 import { FileDataResponse } from '../responses';
 import { FILE_OPERATIONS } from '../../constants';
 
@@ -7,9 +7,9 @@ export type FilesInterface = {
   [K in keyof typeof FILE_OPERATIONS]: (...args: any[]) => Promise<any>;
 };
 
-export class FilesClient extends BaseClient implements FilesInterface {
+export class FilesClient extends BaseModule implements FilesInterface {
   constructor(
-    client: Client<{ [key: string]: any }>,
+    client: BaseClientInterface,
     public readonly basePath: string
   ) {
     super(client);

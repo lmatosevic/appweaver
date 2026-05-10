@@ -1,36 +1,20 @@
-import { Client, FetchOptions } from 'openapi-fetch';
-import { HttpMethod, RequiredKeysOf } from 'openapi-typescript-helpers';
+import { FetchOptions } from 'openapi-fetch';
+import { HttpMethod } from 'openapi-typescript-helpers';
+import { BaseClientInterface, InitParam } from '../base-client-interface';
 import { FileContentRange, FileDataResponse } from '../responses';
 import { ClientError } from '../../errors';
 
-export type InitParam<Init> =
-  RequiredKeysOf<Init> extends never
-    ? [(Init & { [key: string]: unknown })?]
-    : [Init & { [key: string]: unknown }];
-
 export type RequestOptions<T = any> = FetchOptions<T>;
 
-export abstract class BaseClient {
-  protected constructor(
-    private readonly _client: Client<{ [key: string]: any }>
-  ) {}
+export abstract class BaseModule {
+  protected constructor(private readonly _client: BaseClientInterface) {}
 
   protected async sendRequest<Resp = any>(
     method: HttpMethod,
     path: string,
     ...params: InitParam<any>
   ): Promise<Resp> {
-    const { data, error, response } = await this._client.request(
-      method,
-      path,
-      ...params
-    );
-
-    if (error) {
-      this.handleError(error, response);
-    }
-
-    return data;
+    return this._client.sendRequestPromise(method, path, ...params);
   }
 
   protected async sendRequestRaw<Resp = any>(
@@ -38,7 +22,11 @@ export abstract class BaseClient {
     path: string,
     ...params: InitParam<any>
   ): Promise<{ data: Resp; error: any; response: Response }> {
-    return this._client.request(method, path, ...params) as any;
+    return (await this._client.sendRequestRawPromise(
+      method,
+      path,
+      ...params
+    )) as any;
   }
 
   protected toFileResponse(

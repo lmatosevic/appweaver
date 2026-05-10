@@ -41,6 +41,15 @@
     "typescript": "5.9.3"
   },
   "devDependencies": {
-    "@types/js-yaml": "4.0.9"
+    "@types/js-yaml": "4.0.9",
+    "rxjs": "7.8.2"
+  },
+  "peerDependencies": {
+    "rxjs": "^7.8.0"
+  },
+  "peerDependenciesMeta": {
+    "rxjs": {
+      "optional": true
+    }
   }
 }

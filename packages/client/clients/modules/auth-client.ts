@@ -1,5 +1,5 @@
-import { Client } from 'openapi-fetch';
-import { BaseClient, RequestOptions } from './base-client';
+import { BaseModule, RequestOptions } from './base-module';
+import { BaseClientInterface } from '../base-client-interface';
 import { AUTH_OPERATIONS, AUTH_TYPES } from '../../constants';
 
 export type AuthType = Record<(typeof AUTH_TYPES)[number], unknown>;
@@ -9,11 +9,11 @@ export type AuthInterface = {
 };
 
 export class AuthClient<Auth extends AuthType>
-  extends BaseClient
+  extends BaseModule
   implements AuthInterface
 {
   constructor(
-    client: Client<{ [key: string]: any }>,
+    client: BaseClientInterface,
     public readonly basePath: string
   ) {
     super(client);
