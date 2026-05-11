@@ -85,13 +85,13 @@ export class CacheService {
    * Invalidates the cache for the specified model and action type based on the configured cache invalidation strategy.
    *
    * @param {string} modelName - The name of the model whose cache needs to be invalidated.
-   * @param {Extract<ActionType, 'create' | 'update' | 'delete'>} action - The action type that triggered the cache
-   * invalidation (e.g., 'create', 'update', or 'delete').
+   * @param {Extract<ActionType, 'create' | 'update' | 'delete' | 'uploadFiles' | 'deleteFiles'>} action - The action type
+   * that triggered the cache invalidation (e.g., 'create', 'update', 'delete', 'uploadFiles', or 'fileDelete').
    * @return {Promise<void>} Resolves when the cache invalidation process is completed.
    */
   public async invalidateCache(
     modelName: string,
-    action: Extract<ActionType, 'create' | 'update' | 'delete'>
+    action: 'create' | 'update' | 'delete' | 'uploadFiles' | 'deleteFiles'
   ): Promise<void> {
     if (!config.CACHE_ENABLED) {
       return;

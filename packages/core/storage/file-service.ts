@@ -16,6 +16,7 @@ import { inject, injectModel, injectPolicy, injectService } from '../context';
 import { HttpError } from '../errors';
 import { currentAuthUser } from '../security';
 import { PrismaDatabase } from '../database';
+import { CacheService } from '../cache';
 import {
   generateFileName,
   isValidMimeType,
@@ -37,6 +38,8 @@ export class FileService {
   private readonly _db = inject<PrismaDatabase>(Database as any);
   /** @internal */
   private readonly _storage = inject(Storage);
+  /** @internal */
+  private readonly _cacheService = inject(CacheService);
 
   /**
    * Searches for a file by its name from a database.
@@ -342,6 +345,8 @@ export class FileService {
       throw new HttpError(`Error while saving files: ${errorMessage}`, 400);
     }
 
+    await this._cacheService.invalidateCache(client.name, 'uploadFiles');
+
     return savedFiles;
   }
 
@@ -411,7 +416,7 @@ export class FileService {
    * @param {Record<string, string | string[]>} fileNames - An object where the keys correspond to file fields and the
    * values are either a string (single file name) or an array of file names to be deleted.
    * @param {Resource} resource - The resource instance associated with the files to be deleted.
-   * @param {ResourceClient} client - The resource client used to handle deletion operations.
+   * @param {ResourceClient} client - The resource a client used to handle deletion operations.
    * @return {Promise<File[]>} A promise that resolves to an array of files that were successfully deleted. Rejects with
    * an error if no files could be deleted.
    */
@@ -447,6 +452,8 @@ export class FileService {
       const errorMessage = errors.join('\n');
       throw new HttpError(`Error while deleting files: ${errorMessage}`, 400);
     }
+
+    await this._cacheService.invalidateCache(client.name, 'deleteFiles');
 
     return deletedFiles;
   }

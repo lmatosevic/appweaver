@@ -16,7 +16,7 @@ import {
   ScalarField
 } from '../types';
 import { IResourceService } from '../interfaces';
-import { isConstructor, isObject } from './type-util';
+import { isArray, isConstructor, isObject } from './type-util';
 
 export const resourceModelProps: Record<
   string,
@@ -54,15 +54,28 @@ export function extractSchemaProperties(
   schema?: TSchema,
   key?: string
 ): TSchema | undefined {
-  let properties: TSchema | undefined;
-
-  if (schema && '$ref' in schema && '$defs' in schema) {
-    properties = schema['$defs'][schema['$ref']]?.properties;
-  } else {
-    properties = schema?.properties;
+  if (!schema) {
+    return undefined;
   }
 
-  return key ? properties?.[key] : properties;
+  const properties =
+    '$ref' in schema && '$defs' in schema
+      ? schema['$defs'][schema['$ref']]?.properties
+      : schema.properties;
+
+  if (!key) {
+    return properties;
+  }
+
+  const field = properties?.[key];
+  if (isArray(field?.['anyOf'])) {
+    const ref = field['anyOf'].find((entry: TSchema) => '$ref' in entry)?.[
+      '$ref'
+    ];
+    return ref ? schema['$defs']?.[ref] : undefined;
+  }
+
+  return field;
 }
 
 export function countFieldName(name: string): string {

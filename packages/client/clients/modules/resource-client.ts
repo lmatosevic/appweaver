@@ -171,11 +171,13 @@ export class ResourceClient<Resource extends ResourceType>
    *
    * Each entry in `files` maps a field name to a single `File` or an array of `File` objects.
    *
+   * @param {number} id - The ID of the resource for which to upload files.
    * @param {Object} files - A map of field names to the file(s) to upload.
    * @param {RequestOptions} options - Additional request options.
    * @returns The updated file metadata for the resource.
    */
   public async uploadFiles(
+    id: number,
     files: Resource['fileUpload'],
     options: RequestOptions = {}
   ): Promise<Resource['files']> {
@@ -195,24 +197,38 @@ export class ResourceClient<Resource extends ResourceType>
 
     return this.sendRequest('post', `${this.basePath}/{id}/files`, {
       ...options,
-      body: files
+      body: formData,
+      params: {
+        ...(options.params ?? {}),
+        path: {
+          id
+        }
+      }
     });
   }
 
   /**
    * Removes specific files from the resource record.
    *
+   * @param {number} id - The ID of the resource for which to delete files.
    * @param {Object} files - The file deletion payload identifying which files to remove.
    * @param {RequestOptions} options - Additional request options.
    * @returns The updated file metadata for the resource after deletion.
    */
   public async deleteFiles(
+    id: number,
     files: Resource['fileDelete'],
     options: RequestOptions = {}
   ): Promise<Resource['files']> {
     return this.sendRequest('post', `${this.basePath}/{id}/delete-files`, {
       ...options,
-      body: files
+      body: files,
+      params: {
+        ...(options.params ?? {}),
+        path: {
+          id
+        }
+      }
     });
   }
 }

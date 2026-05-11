@@ -170,6 +170,7 @@ export type File = {
   resourceField?: string | null;
   resourceName?: string | null;
   resourceId?: number | null;
+  url: string;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
@@ -183,6 +184,7 @@ export type FileSingle = {
   sizeBytes: number;
   title?: string | null;
   description?: string | null;
+  url: string;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
@@ -196,6 +198,7 @@ export type FileMultiple = {
   sizeBytes: number;
   title?: string | null;
   description?: string | null;
+  url: string;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
