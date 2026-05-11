@@ -28,16 +28,10 @@ export class FilesClient extends BaseModule implements FilesInterface {
   ): Promise<FileDataResponse> {
     const { error, response } = await this.sendRequestRaw(
       'get',
-      `${this.basePath}/public/{*}`,
+      `${this.basePath}/public/${fileName}`,
       {
         ...options,
-        parseAs: 'stream',
-        params: {
-          ...(options.params ?? {}),
-          path: {
-            '*': fileName
-          }
-        }
+        parseAs: 'stream'
       }
     );
 
@@ -61,16 +55,10 @@ export class FilesClient extends BaseModule implements FilesInterface {
   ): Promise<FileDataResponse> {
     const { error, response } = await this.sendRequestRaw(
       'get',
-      `${this.basePath}/protected/{*}`,
+      `${this.basePath}/protected/${fileName}`,
       {
         ...options,
-        parseAs: 'stream',
-        params: {
-          ...(options.params ?? {}),
-          path: {
-            '*': fileName
-          }
-        }
+        parseAs: 'stream'
       }
     );
 
