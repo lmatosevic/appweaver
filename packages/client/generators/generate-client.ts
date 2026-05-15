@@ -324,7 +324,7 @@ export class ${className} extends AngularClient${pathsTypeGeneric} {
 
       const method = init?.method ?? request?.method ?? 'GET';
 
-      let headers = new HttpHeaders(
+      const headers = new HttpHeaders(
         Object.fromEntries(
           new Headers(init?.headers ?? request?.headers ?? {}).entries()
         )
@@ -348,7 +348,7 @@ export class ${className} extends AngularClient${pathsTypeGeneric} {
         }
       }
 
-      const angularResponse = await firstValueFrom(
+      const angularResponse: HttpResponse<Blob> = await firstValueFrom(
         http.request(method, url as string, {
           body: parsedBody,
           headers: headers,
@@ -360,7 +360,7 @@ export class ${className} extends AngularClient${pathsTypeGeneric} {
 
       const responseHeaders = new Headers();
 
-      angularResponse.headers.keys().forEach((key) => {
+      angularResponse.headers.keys().forEach((key: string) => {
         const value = angularResponse.headers.get(key);
         if (value !== null) {
           responseHeaders.set(key, value);
