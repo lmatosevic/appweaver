@@ -638,6 +638,10 @@ export abstract class ResourceService<
   }
 
   private projectVirtualFields<T>(resource: T, resourceName?: string): T {
+    if (!resource) {
+      return resource;
+    }
+
     const projectedVirtual = { ...resource };
 
     const resourceModel = injectModel(resourceName ?? this._client.name, false);

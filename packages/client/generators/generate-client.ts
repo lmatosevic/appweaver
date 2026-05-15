@@ -324,7 +324,7 @@ export class ${className} extends AngularClient${pathsTypeGeneric} {
 
       const method = init?.method ?? request?.method ?? 'GET';
 
-      const headers = new HttpHeaders(
+      let headers = new HttpHeaders(
         Object.fromEntries(
           new Headers(init?.headers ?? request?.headers ?? {}).entries()
         )
@@ -335,12 +335,25 @@ export class ${className} extends AngularClient${pathsTypeGeneric} {
           ? undefined
           : (init?.body ?? request?.body ?? undefined);
 
-      const angularResponse: HttpResponse<Blob> = await firstValueFrom(
-        http.request<Blob>(method, url as string, {
-          body,
-          headers,
+      let parsedBody: any;
+      if (body) {
+        if (headers.get('Content-Type')?.includes('multipart')) {
+          parsedBody = await new Response(body).blob();
+        } else {
+          try {
+            parsedBody = JSON.parse(await new Response(body).text());
+          } catch (e) {
+            parsedBody = body;
+          }
+        }
+      }
+
+      const angularResponse = await firstValueFrom(
+        http.request(method, url as string, {
+          body: parsedBody,
+          headers: headers,
           observe: 'response',
-          responseType: 'json',
+          responseType: 'blob',
           withCredentials: init?.credentials === 'include'
         })
       );

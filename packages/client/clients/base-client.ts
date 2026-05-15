@@ -174,9 +174,9 @@ export abstract class BaseClient<
   };
 
   protected constructor(private readonly _config: ClientConfig) {
-    const { baseUrl, timeout, middlewares, auth } = _config;
+    const { baseUrl, timeout, middlewares, auth, fetch } = _config;
 
-    this._client = createClient<Paths>({ baseUrl });
+    this._client = createClient<Paths>({ baseUrl, fetch });
 
     if (timeout) {
       this._client.use({

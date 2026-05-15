@@ -1,5 +1,6 @@
 import { Multipart, MultipartFile } from '@fastify/multipart';
 import {
+  config,
   ContentStream,
   Database,
   FileField,
@@ -154,30 +155,30 @@ export class FileService {
       );
     }
 
-    const config = this.getFileConfig(client.name, data.fieldname);
+    const fileConfig = this.getFileConfig(client.name, data.fieldname);
     const policy = this.getFilePolicy(client.name, data.fieldname);
 
-    if (!isValidMimeType(data.mimetype, config.mimeType)) {
+    if (!isValidMimeType(data.mimetype, fileConfig.mimeType)) {
       throw new HttpError(`Unsupported media file type: ${data.mimetype}`, 400);
     }
 
-    if (config.array) {
+    if (fileConfig.array) {
       const fileCount = await this.fileCount(
         data.fieldname,
         client.name,
         resource.id
       );
-      if (config.maxCount && config.maxCount < fileCount + 1) {
+      if (fileConfig.maxCount && fileConfig.maxCount < fileCount + 1) {
         throw new HttpError(
-          `Maximum number of files allowed: ${config.maxCount}`,
+          `Maximum number of files allowed: ${fileConfig.maxCount}`,
           400
         );
       }
     }
 
     let pattern: string | undefined;
-    if (isFunction(config.namePattern)) {
-      pattern = config.namePattern(
+    if (isFunction(fileConfig.namePattern)) {
+      pattern = fileConfig.namePattern(
         {
           fieldName: data.fieldname,
           fileName: data.filename,
@@ -189,7 +190,7 @@ export class FileService {
         resource
       );
     } else {
-      pattern = config.namePattern;
+      pattern = fileConfig.namePattern;
     }
 
     let generatedName = generateFileName(data.filename, pattern, {
@@ -247,7 +248,7 @@ export class FileService {
 
     // File size checks must come after storing a file due to bytesRead and
     // truncated fields being set only after reading the full file stream.
-    const maxSizeBytes = sizeInBytes(config.maxSize);
+    const maxSizeBytes = sizeInBytes(fileConfig.maxSize);
     if (
       data.file.truncated ||
       (maxSizeBytes > 0 && data.file.bytesRead > maxSizeBytes)
@@ -263,7 +264,7 @@ export class FileService {
       // Check if a resource already has a file for a single file property and
       // delete it after successfully creating the new one.
       let existingFile: File | null = null;
-      if (!config.array) {
+      if (!fileConfig.array) {
         const resourceWithFile = await client.findFirst({
           where: { id: resource.id },
           include: { [data.fieldname]: true }
@@ -291,6 +292,10 @@ export class FileService {
           (f: File) => f.name === createFile.name
         );
       }
+
+      const pathPrefix =
+        policy.accessType === 'public' ? 'public' : 'protected';
+      file.url = `${config.APP_HOSTNAME}/files/${pathPrefix}/${file.name}`;
 
       logger.debug({ file }, 'File saved');
 
@@ -401,6 +406,10 @@ export class FileService {
       const deletedFile = (await this._db.client().file.delete({
         where: { name: fileName }
       })) as File;
+
+      const pathPrefix =
+        policy.accessType === 'public' ? 'public' : 'protected';
+      deletedFile.url = `${config.APP_HOSTNAME}/files/${pathPrefix}/${deletedFile.name}`;
 
       logger.debug({ deletedFile }, 'File deleted');
 
