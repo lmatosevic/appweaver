@@ -463,6 +463,7 @@ export class FileService {
     return deletedFiles;
   }
 
+  /** @internal */
   private buildFileUrl(file: File, policy: FilePolicy): string {
     return `${config.APP_HOSTNAME}/files/${policy.accessType === 'public' ? 'public' : 'protected'}/${file.name}`;
   }
