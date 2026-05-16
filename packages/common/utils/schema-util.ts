@@ -50,7 +50,7 @@ export const StringDate = (
   Type.Unsafe<Date>({
     type: 'string',
     format: 'date-time',
-    example: new Date().toISOString(),
+    example: '2026-03-24T16:35:09.521Z',
     [Kind]: 'String',
     ...options
   });
