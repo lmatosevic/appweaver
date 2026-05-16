@@ -1,3 +1,18 @@
+## [1.0.8](https://gitlab.com/app-weaver/appweaver/compare/v1.0.7...v1.0.8) (2026-05-16)
+
+### Bug Fixes
+
+* add --noTypes option for client generation without TypeScript types ([0f318ff](https://gitlab.com/app-weaver/appweaver/commit/0f318ffcee4102d5c11504b0a0dc5cbbe4d62b1e))
+* add generate client only option and refactor client generation code ([c3e2de1](https://gitlab.com/app-weaver/appweaver/commit/c3e2de1d36206090f55204a399fa2f9e54e3fc1a))
+* add resource id argument to client uploadFiles and deleteFiles methods, add cache invalidation on those actions, add virtual file url property to API responses ([6714c88](https://gitlab.com/app-weaver/appweaver/commit/6714c889090d681120715c82d50edbd21167ad53))
+* conditionally register Swagger UI and update dependencies ([a4dfb1c](https://gitlab.com/app-weaver/appweaver/commit/a4dfb1c8d5292b2c50d6a63b5d62fd50286d356b))
+* fix client form data file upload, add file URL mapping on upload and delete endpoints ([d918aa0](https://gitlab.com/app-weaver/appweaver/commit/d918aa01acaf07f51f4b980de0e9383bc9b0db0d))
+* implement Angular framework client support, refactor BaseClient to support both Observable and Promise-based HTTP responses ([2c582ce](https://gitlab.com/app-weaver/appweaver/commit/2c582ce8088cf541b34e151b4af345f000346ede))
+* improve type safety in Angular client generator by adding specific typings for headers and response ([782cd1c](https://gitlab.com/app-weaver/appweaver/commit/782cd1cf48b8b51109fa95c94f020f6ee1130673))
+* refactor file URL generation by introducing `buildFileUrl` helper method ([98097e7](https://gitlab.com/app-weaver/appweaver/commit/98097e7553268f8c8e64c8ad8150d1dfeaa6fbc9))
+* refactor file URL generation by introducing `buildFileUrl` helper method ([dfb30c6](https://gitlab.com/app-weaver/appweaver/commit/dfb30c6f8a95ec08542d2ed1f3a25987b5c2e0f4))
+* simplify file path handling in files-client by replacing wildcard path with direct fileName variable ([5a989f8](https://gitlab.com/app-weaver/appweaver/commit/5a989f820d1093cff39ddc8f2b5eb4b39a7cfc9d))
+
 ## [1.0.7](https://gitlab.com/app-weaver/appweaver/compare/v1.0.6...v1.0.7) (2026-05-01)
 
 ### Bug Fixes
