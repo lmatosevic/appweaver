@@ -293,9 +293,7 @@ export class FileService {
         );
       }
 
-      const pathPrefix =
-        policy.accessType === 'public' ? 'public' : 'protected';
-      file.url = `${config.APP_HOSTNAME}/files/${pathPrefix}/${file.name}`;
+      file.url = this.buildFileUrl(file, policy);
 
       logger.debug({ file }, 'File saved');
 
@@ -407,9 +405,7 @@ export class FileService {
         where: { name: fileName }
       })) as File;
 
-      const pathPrefix =
-        policy.accessType === 'public' ? 'public' : 'protected';
-      deletedFile.url = `${config.APP_HOSTNAME}/files/${pathPrefix}/${deletedFile.name}`;
+      deletedFile.url = this.buildFileUrl(deletedFile, policy);
 
       logger.debug({ deletedFile }, 'File deleted');
 
@@ -465,6 +461,10 @@ export class FileService {
     await this._cacheService.invalidateCache(client.name, 'deleteFiles');
 
     return deletedFiles;
+  }
+
+  private buildFileUrl(file: File, policy: FilePolicy): string {
+    return `${config.APP_HOSTNAME}/files/${policy.accessType === 'public' ? 'public' : 'protected'}/${file.name}`;
   }
 
   /** @internal */
