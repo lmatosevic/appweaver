@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://gitlab.com/app-weaver/appweaver.git",
+    "url": "https://github.com/lmatosevic/appweaver.git",
     "directory": "packages/client"
   },
   "maintainers": [
@@ -22,8 +22,7 @@
     }
   ],
   "publishConfig": {
-    "access": "public",
-    "registry": "https://gitlab.com/api/v4/projects/77748589/packages/npm/"
+    "access": "public"
   },
   "engines": {
     "node": ">= 20"

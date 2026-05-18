@@ -4,7 +4,7 @@ const packages = ['core', 'common', 'cli', 'client', 'create-weaver-app'];
 
 module.exports = {
   branches: ['main'],
-  repositoryUrl: 'https://gitlab.com/app-weaver/appweaver.git',
+  repositoryUrl: 'https://github.com/lmatosevic/appweaver.git',
   preset: 'conventionalcommits',
   plugins: [
     '@semantic-release/commit-analyzer',

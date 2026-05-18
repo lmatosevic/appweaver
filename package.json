@@ -7,7 +7,7 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://gitlab.com/app-weaver/appweaver.git"
+    "url": "https://github.com/lmatosevic/appweaver.git"
   },
   "maintainers": [
     {

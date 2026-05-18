@@ -579,7 +579,7 @@ This runs the following steps automatically:
     - `packages/create-weaver-app/package.json`
 6. **Package copy** (`@semantic-release/exec`) — runs `node ./tools/copy-packages.js` to sync built packages into
    `node_modules/@appweaver`.
-7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the GitLab npm registry:
+7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the npm registry:
     ```bash
     cd packages/core/dist    && npm publish
     cd packages/common/dist  && npm publish
@@ -592,10 +592,10 @@ This runs the following steps automatically:
 
 ### Registry
 
-All packages are published to the GitLab npm registry:
+All packages are published to the public @appweaver organization npm registry:
 
 ```
-https://gitlab.com/api/v4/projects/77748589/packages/npm/
+https://www.npmjs.com/package/@appweaver
 ```
 
 Ensure your environment has a valid `NPM_TOKEN` (or `CI_JOB_TOKEN` in CI) with write access to this registry before
