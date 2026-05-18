@@ -1,3 +1,9 @@
+## [1.0.1](https://github.com/lmatosevic/appweaver/compare/v1.0.0...v1.0.1) (2026-05-18)
+
+### Bug Fixes
+
+* return git commit release notes when publishing new version ([0aad358](https://github.com/lmatosevic/appweaver/commit/0aad358407bfb3d090783ef79d9c5993a5152f41))
+
 ## 1.0.0 (2026-05-18)
 
 ### Features
