@@ -131,7 +131,7 @@ const foundUser = await client.user.find(user.id);
 const avatar = await client.user.uploadFiles(user.id, { avatar: file });
 
 // Get the public avatar file and transform it to base64
-const avatarFile = await client.files.public(file.url);
+const avatarFile = await client.files.public(avatar.url);
 const avatarData = await avatarFile.base64();
 
 // Delete the user
