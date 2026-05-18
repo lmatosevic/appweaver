@@ -1,3 +1,9 @@
+## [1.0.3](https://github.com/lmatosevic/appweaver/compare/v1.0.2...v1.0.3) (2026-05-18)
+
+### Bug Fixes
+
+* update license to MIT across all packages ([c3eaac2](https://github.com/lmatosevic/appweaver/commit/c3eaac2bc8e0ef11e57df71279d38b093ac00146))
+
 ## [1.0.2](https://github.com/lmatosevic/appweaver/compare/v1.0.1...v1.0.2) (2026-05-18)
 
 ### Bug Fixes
