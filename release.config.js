@@ -2,15 +2,29 @@ require('dotenv/config');
 
 const packages = ['core', 'common', 'cli', 'client', 'create-weaver-app'];
 
+const preset = 'conventionalcommits';
+
 module.exports = {
   branches: ['main'],
   repositoryUrl: 'https://github.com/lmatosevic/appweaver.git',
-  preset: 'conventionalcommits',
   plugins: [
-    '@semantic-release/commit-analyzer',
-    '@semantic-release/release-notes-generator',
+    // 1) Analyze commits to determine version bump
+    [
+      '@semantic-release/commit-analyzer',
+      {
+        preset
+      }
+    ],
 
-    // 1) Generate changelog
+    // 2) Generate release notes from commits
+    [
+      '@semantic-release/release-notes-generator',
+      {
+        preset
+      }
+    ],
+
+    // 3) Generate changelog
     [
       '@semantic-release/changelog',
       {
@@ -18,7 +32,7 @@ module.exports = {
       }
     ],
 
-    // 2) Update versions without publishing
+    // 4) Update root package version without publishing
     [
       '@semantic-release/npm',
       {
@@ -26,6 +40,7 @@ module.exports = {
         npmPublish: false
       }
     ],
+    // 5) Update versions for all packages without publishing
     ...packages.map((pkg) => [
       '@semantic-release/npm',
       {
@@ -34,7 +49,7 @@ module.exports = {
       }
     ]),
 
-    // 3) Copy packages with updated versions
+    // 6) Copy packages with updated versions
     [
       '@semantic-release/exec',
       {
@@ -42,7 +57,7 @@ module.exports = {
       }
     ],
 
-    // 4) Publish all packages
+    // 7) Publish all packages
     ...packages.map((pkg) => [
       '@semantic-release/exec',
       {
@@ -50,7 +65,7 @@ module.exports = {
       }
     ]),
 
-    // 5) Commit updated files to the repository
+    // 8) Commit updated files to the repository
     [
       '@semantic-release/git',
       {
@@ -62,6 +77,14 @@ module.exports = {
         ],
         message:
           'chore(release): version ${nextRelease.version}\n\n${nextRelease.notes}'
+      }
+    ],
+
+    // 9) Update GitHub repository content
+    [
+      '@semantic-release/github',
+      {
+        assets: []
       }
     ]
   ]
