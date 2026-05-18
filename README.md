@@ -217,6 +217,51 @@ weaver migration new <describe_the_change>
 
 ---
 
+## Contributing
+
+### Building the project
+
+The project is a TypeScript monorepo. Install dependencies and build all packages with:
+
+```sh
+npm install
+npm run build
+```
+
+`npm run build` performs three steps: removes `dist/` folders from all packages, runs `tsc -b` to compile everything,
+then copies the built packages into `node_modules/@appweaver` so packages can reference each other locally.
+
+For active development, use watch mode to rebuild automatically on file changes:
+
+```sh
+npm run build:dev
+```
+
+### Testing
+
+Run the full test suite with:
+
+```sh
+npm run test
+```
+
+### Releasing
+
+Releases are automated via **semantic-release** using conventional commits. To cut a release:
+
+```sh
+npm run release
+```
+
+This will: build all packages, determine the next version from commit messages (`fix:` → patch, `feat:` → minor,
+`feat!:` / `BREAKING CHANGE` → major), generate a changelog, bump versions across all `package.json` files, publish
+each package to npm, and push the release commit and tag.
+
+Requires valid `NPM_TOKEN` and `GITHUB_TOKEN` environment variables with write access to the `@appweaver` npm
+organization, set in the .env file.
+
+---
+
 ## License
 
 Appweaver is [MIT licensed](LICENSE).
