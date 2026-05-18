@@ -1,3 +1,9 @@
+## [1.0.2](https://github.com/lmatosevic/appweaver/compare/v1.0.1...v1.0.2) (2026-05-18)
+
+### Bug Fixes
+
+* add @semantic-release/github plugin and update release config ([4474719](https://github.com/lmatosevic/appweaver/commit/44747196d5e2b841f2f282ba5160e8e94d102303))
+
 ## [1.0.1](https://github.com/lmatosevic/appweaver/compare/v1.0.0...v1.0.1) (2026-05-18)
 
 ### Bug Fixes
