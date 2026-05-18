@@ -1,5 +1,10 @@
 # Appweaver
 
+![npm](https://img.shields.io/npm/v/@appweaver/core)
+![NPM License](https://img.shields.io/npm/l/@appweaver/core)
+![npm](https://img.shields.io/npm/dw/@appweaver/core)
+![npm](https://img.shields.io/badge/build-passing-brightgreen)
+
 > Simple, fast, and reliable web application builder for TypeScript and Node.js (or Bun).
 
 Appweaver is a batteries-included framework built on top of **Fastify** and **Prisma**. It provides factory methods, a
@@ -214,4 +219,4 @@ weaver migration new <describe_the_change>
 
 ## License
 
-UNLICENSED
+Appweaver is [MIT licensed](LICENSE).

@@ -3,7 +3,7 @@
   "version": "1.0.2",
   "description": "Appweaver - simple, fast, and reliable web application builder tool (@cli)",
   "author": "Luka Matosevic",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "main": "./weaver.js",
   "types": "./weaver.d.ts",
   "bin": {

@@ -4,4 +4,4 @@
 
 ## License
 
-UNLICENSED
+Appweaver is [MIT licensed](LICENSE).
