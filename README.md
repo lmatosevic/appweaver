@@ -56,7 +56,7 @@ npm run seed
 ### 3. Start the dev server
 
 ```sh
-npm run dev           # watch mode — recompiles and restarts on changes
+npm run dev           # watch mode, recompiles and restarts on changes
 npm run start         # production
 ```
 
@@ -153,7 +153,7 @@ npx create-weaver-app <name> [description] [options]
 
 A resource is the core building block of an Appweaver API. Create four files under `src/resources/<name>/`:
 
-**model.ts** — defines database fields, relations, files, and I/O restrictions:
+**model.ts** - defines database fields, relations, files, and I/O restrictions:
 
 ```ts
 import { createModel } from '@appweaver/core';
@@ -168,7 +168,7 @@ export default createModel({
 });
 ```
 
-**service.ts** — business logic and lifecycle hooks:
+**service.ts** - business logic and lifecycle hooks:
 
 ```ts
 import { createService } from '@appweaver/core';
@@ -179,7 +179,7 @@ export default createService({
 });
 ```
 
-**routes.ts** — which CRUD endpoints to expose and their auth/cache settings:
+**routes.ts** - which CRUD endpoints to expose and their auth/cache settings:
 
 ```ts
 import { createRoutes } from '@appweaver/core';
@@ -192,7 +192,7 @@ export default createRoutes({
 });
 ```
 
-**policy.ts** — row-level access control:
+**policy.ts** - row-level access control:
 
 ```ts
 import { createPolicy } from '@appweaver/core';
