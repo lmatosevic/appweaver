@@ -194,11 +194,17 @@ export default createPolicy({
 });
 ```
 
-After any model change, regenerate types and create a migration:
+After any model change, regenerate types and Prisma schema:
 
 ```sh
-weaver generate
-weaver migration new <describe_the_change>
+weaver generate  # generates types and Prisma schema
+```
+
+When ready, generate a migration file and apply it to the database:
+
+```sh
+weaver migration new <describe_the_change>  # creates a new migration file
+weaver migrate                              # apply new database migration
 ```
 
 ---
