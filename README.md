@@ -21,9 +21,8 @@ on business logic instead of boilerplate.
   the app for a different environment.
 - **Agent-first conventions** → a consistent, predictable project structure means agents always know where to find and
   place code: models, services, routes, and policies each live in their own file under `src/resources/<name>/`.
-- **Built-in skill files** → every scaffolded project ships with agent-readable skill files (see
-  the [Skills](#skills-for-ai-agents) section) that give your agent harness a complete map of the framework's API,
-  conventions, and CLI, which means no hallucination, and no trial-and-error.
+- **Built-in skill files** → every scaffolded project ships with agent-readable skill files that give your agent harness
+  a complete map of the framework's API, conventions, and CLI, which means no hallucination, and no trial-and-error.
 - **Works with any agent harness** → Claude Code, Cursor, Codex, Copilot Workspace, or any coding assistant that can
   read project files. Point your agent at the skill files, and it has everything it needs.
 
