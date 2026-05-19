@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/lmatosevic/appweaver/compare/v1.0.3...v1.0.4) (2026-05-19)
+
+### Bug Fixes
+
+* update policies to include user context for access control and restrictions, update readme and skills ([a9b7907](https://github.com/lmatosevic/appweaver/commit/a9b79071db26d53ec1d4624a5e0f27c627c6c2fc))
+* update READMEs with badges, detailed framework overview, and agent-specific features ([c94f10c](https://github.com/lmatosevic/appweaver/commit/c94f10c0c57ea6dd0060e952bc60cac3324de61c))
+
 ## [1.0.3](https://github.com/lmatosevic/appweaver/compare/v1.0.2...v1.0.3) (2026-05-18)
 
 ### Bug Fixes
