@@ -1,7 +1,7 @@
 {
   "name": "appweaver",
   "version": "1.0.3",
-  "description": "Appweaver - simple, fast, and reliable web application builder tool",
+  "description": "Appweaver - simple, fast, and reliable web application builder for AI agents",
   "author": "Luka Matosevic",
   "license": "MIT",
   "private": true,

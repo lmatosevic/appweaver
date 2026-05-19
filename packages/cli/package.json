@@ -1,7 +1,7 @@
 {
   "name": "@appweaver/cli",
   "version": "1.0.3",
-  "description": "Appweaver - simple, fast, and reliable web application builder tool (@cli)",
+  "description": "Appweaver - simple, fast, and reliable web application builder for AI agents (@cli)",
   "author": "Luka Matosevic",
   "license": "MIT",
   "main": "./weaver.js",

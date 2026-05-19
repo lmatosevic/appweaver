@@ -1,7 +1,7 @@
 {
   "name": "@appweaver/create-weaver-app",
   "version": "1.0.3",
-  "description": "Appweaver - simple, fast, and reliable web application builder tool (@create-weaver-app)",
+  "description": "Appweaver - simple, fast, and reliable web application builder for AI agents (@create-weaver-app)",
   "author": "Luka Matosevic",
   "license": "MIT",
   "main": "./create-weaver-app.js",

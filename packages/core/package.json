@@ -1,7 +1,7 @@
 {
   "name": "@appweaver/core",
   "version": "1.0.3",
-  "description": "Appweaver - simple, fast, and reliable web application builder tool (@core)",
+  "description": "Appweaver - simple, fast, and reliable web application builder for AI agents (@core)",
   "author": "Luka Matosevic",
   "license": "MIT",
   "main": "./index.js",

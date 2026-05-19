@@ -5,7 +5,7 @@
 ![npm](https://img.shields.io/npm/dw/@appweaver/core)
 ![npm](https://img.shields.io/badge/build-passing-brightgreen)
 
-> Simple, fast, and reliable web application builder for TypeScript and Node.js (or Bun).
+> Simple, fast, and reliable web application builder for AI agents.
 
 Appweaver is a batteries-included framework built on top of **Fastify** and **Prisma**. It provides factory methods, a
 CLI, and conventions so you can focus on business logic instead of boilerplate.

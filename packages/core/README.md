@@ -1,6 +1,6 @@
 # Appweaver - Core
 
-> Simple, fast, and reliable web application builder tool.
+> Simple, fast, and reliable web application builder for AI agents.
 
 ## License
 
