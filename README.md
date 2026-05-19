@@ -5,10 +5,27 @@
 ![npm](https://img.shields.io/npm/dw/@appweaver/core)
 ![npm](https://img.shields.io/badge/build-passing-brightgreen)
 
-> Simple, fast, and reliable web application builder for AI agents.
+> The backend framework for AI-assisted development. Scaffold, extend, and ship APIs with any agent.
 
-Appweaver is a batteries-included framework built on top of **Fastify** and **Prisma**. It provides factory methods, a
-CLI, and conventions so you can focus on business logic instead of boilerplate.
+Appweaver is a batteries-included framework built on top of **Fastify** and **Prisma**, designed from the ground up to
+be developed with AI agents. Instead of writing backend boilerplate from scratch, you describe resources using concise
+factory functions and let the framework handle routing, validation, database, auth, migrations, so you can focus
+on business logic instead of boilerplate.
+
+### Why Appweaver for agentic development?
+
+- **80% fewer tokens** → Appweaver's conventions and factory API eliminate the boilerplate that dominates most backend
+  codebases. Your agent reads and writes only the code that matters, not hundreds of lines of scaffolding.
+- **Zero-code configuration** → every framework behavior like server, database, auth, queues, mailer, storage is
+  controlled through `appweaver.json` config files or environment variables. No code changes are needed to reconfigure
+  the app for a different environment.
+- **Agent-first conventions** → a consistent, predictable project structure means agents always know where to find and
+  place code: models, services, routes, and policies each live in their own file under `src/resources/<name>/`.
+- **Built-in skill files** → every scaffolded project ships with agent-readable skill files (see
+  the [Skills](#skills-for-ai-agents) section) that give your agent harness a complete map of the framework's API,
+  conventions, and CLI, which means no hallucination, and no trial-and-error.
+- **Works with any agent harness** → Claude Code, Cursor, Codex, Copilot Workspace, or any coding assistant that can
+  read project files. Point your agent at the skill files, and it has everything it needs.
 
 ## Requirements
 
@@ -67,6 +84,54 @@ npm run start         # production
 
 ---
 
+## Configuration
+
+Appweaver is configured through `appweaver.json` files at the project root, with environment-specific overlays loaded
+automatically based on `NODE_ENV`:
+
+| File                  | Loaded when            |
+|-----------------------|------------------------|
+| `appweaver.json`      | Always (base config)   |
+| `appweaver.dev.json`  | `NODE_ENV=development` |
+| `appweaver.test.json` | `NODE_ENV=test`        |
+
+Every option can also be set via an environment variable which useful for secrets and CI/CD. The full list of options
+is documented in [`skill/references/configuration.md`](./skill/references/configuration.md) and available
+in [appweaver.example.json](appweaver.example.json) or [.env.example](.env.example).
+
+---
+
+## Skills for AI Agents
+
+The `./skill` directory contains structured, agent-readable documentation that gives your AI coding assistant a
+complete understanding of Appweaver's architecture, APIs, conventions, and CLI without burning tokens re-reading
+source code on every task.
+
+### How it works
+
+When you scaffold a new project with `create-weaver-app`, the generated `AGENTS.md` (or `CLAUDE.md`) at the project
+root automatically references the skill files. Any agent harness that supports project-level instruction files
+(Claude Code, Cursor, Codex, etc.) will load these as context, giving the agent accurate, up-to-date guidance.
+
+### Skill file index
+
+The `./skill` directory contains two files any agent can load to use Appweaver as a development framework:
+
+- [`skill/SKILL.md`](./skill/SKILL.md) – complete framework reference for agents: architecture, factory APIs, CLI
+  commands, and conventions.
+- [`skill/GUIDELINES.md`](./skill/GUIDELINES.md) – development guidelines: project structure, code style, workflow
+  steps, and common patterns.
+
+### Keeping skill files up to date
+
+After upgrading Appweaver packages in a project, skill files are refreshed automatically:
+
+```sh
+weaver update     # updates packages and refreshes skill files
+```
+
+---
+
 ## Packages
 
 ### `@appweaver/core`
@@ -107,7 +172,7 @@ weaver migration new <name>       # create a new database migration
 weaver migrate                    # apply pending migrations
 weaver seed                       # seed the database
 weaver openapi                    # export OpenAPI spec to openapi.json
-weaver update                     # update all @appweaver/* packages
+weaver update                     # update all @appweaver/* packages and skill files
 ```
 
 ### `@appweaver/client`

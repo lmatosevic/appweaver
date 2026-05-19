@@ -1,6 +1,6 @@
 # Appweaver - CLI
 
-> Simple, fast, and reliable web application builder for AI agents.
+> The backend framework for AI-assisted development.
 
 ## License
 

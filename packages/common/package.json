@@ -1,7 +1,7 @@
 {
   "name": "@appweaver/common",
   "version": "1.0.3",
-  "description": "Appweaver - simple, fast, and reliable web application builder for AI agents (@common)",
+  "description": "Appweaver - the backend framework for AI-assisted development (@common)",
   "author": "Luka Matosevic",
   "license": "MIT",
   "main": "./index.js",
