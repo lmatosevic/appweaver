@@ -16,9 +16,9 @@ on business logic instead of boilerplate.
 
 - **80% fewer tokens** → Appweaver's conventions and factory API eliminate the boilerplate that dominates most backend
   codebases. Your agent reads and writes only the code that matters, not hundreds of lines of scaffolding.
-- **Zero-code configuration** → every framework behavior like server, database, auth, queues, mailer, cache, storage is
-  controlled through `appweaver.json` config files or environment variables. No code changes are needed to reconfigure
-  the app for a different environment.
+- **Zero-code configuration** → every framework behavior like HTTP server, database, auth, queues, mailer, cache,
+  storage is controlled through `appweaver.json` config files or environment variables. No code changes are needed to
+  reconfigure the app for a different environment.
 - **Agent-first conventions** → a consistent, predictable project structure means agents always know where to find and
   place code: models, services, routes, and policies each live in their own file under `src/resources/<name>/`.
 - **Built-in skill files** → every scaffolded project ships with agent-readable skill files that give your agent harness
@@ -227,7 +227,8 @@ createApp().catch(console.error);
 ```
 
 Resources follow a simple dependency chain: **model → service → routes → policy**. Define each in its own file under
-`src/resources/<name>/` and the framework autoloads them on startup.
+`src/resources/<name>/` and the framework autoloads them on startup. They can also be created and exported from a single
+file.
 
 ### `@appweaver/common`
 
