@@ -1,6 +1,6 @@
 import { config, uncapitalize } from '@appweaver/common';
+import { resourceAuthModel } from '../../helper';
 import { createPolicy } from '../../../factory';
-import { resourceAuthModel, currentAuthUser } from '../../helper';
 
 function authModelField(): string {
   return uncapitalize(resourceAuthModel()!.name);
@@ -9,17 +9,17 @@ function authModelField(): string {
 export default config.SECURITY_API_KEY_ENABLED
   ? createPolicy({
       modelName: 'ApiKey',
-      checkAccess: (action, resource) => {
+      checkAccess: (user, resource, action) => {
         const authFieldName = authModelField();
-        const currentAuthId = currentAuthUser()!.id;
+        const currentAuthId = user!.id;
         if (action === 'create') {
           return resource[authFieldName].id === currentAuthId;
         } else {
           return resource[`${authFieldName}Id`] === currentAuthId;
         }
       },
-      readRestrictions: () => {
-        return { [authModelField()]: { id: currentAuthUser()!.id } };
+      readRestrictions: (user) => {
+        return { [authModelField()]: { id: user!.id } };
       }
     })
   : undefined;

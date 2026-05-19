@@ -2,15 +2,15 @@ import { createPolicy } from '@appweaver/core';
 
 export default createPolicy({
   modelName: 'Post',
-  checkAccess: (action, resource) => true,
-  readRestrictions: (action, resource) => null,
-  writeRestrictions: (action, resource) => null,
+  checkAccess: (user, resource, action) => true,
+  readRestrictions: (user, resource, action) => null,
+  writeRestrictions: (user, resource, action) => null,
   files: {
     coverImage: {
       accessType: 'protected',
-      canAccess: (identity, resource, file) => true,
-      canCreate: (identity, resource, file) => true,
-      canDelete: (identity, resource, file) => true
+      canAccess: (user, resource, file) => true,
+      canCreate: (user, resource, file) => true,
+      canDelete: (user, resource, file) => true
     },
     galleryImages: {
       accessType: 'public'

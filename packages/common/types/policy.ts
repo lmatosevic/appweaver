@@ -34,20 +34,22 @@ export type FilePolicy<T = any> = {
   canDelete?: FileAccessFn<T>;
 };
 
-export type ResourcePolicyConfig<T = any> = {
+export type ResourcePolicyConfig<T = any, U = AuthUser> = {
   /** Resource model name */
   modelName: string;
   /** Return false to deny the action for the given resource */
-  checkAccess?: (action: ActionType, resource: T) => boolean;
+  checkAccess?: (user: U | null, resource: T, action: ActionType) => boolean;
   /** Returns additional filter constraints for read operations */
   readRestrictions?: (
-    action: Exclude<ActionType, 'create'>,
-    resource: T
+    user: U | null,
+    resource: T,
+    action: Exclude<ActionType, 'create'>
   ) => any;
   /** Returns field restrictions applied during write operations */
   writeRestrictions?: (
-    action: Extract<ActionType, 'create' | 'update'>,
-    resource: T
+    user: U | null,
+    resource: T,
+    action: Extract<ActionType, 'create' | 'update'>
   ) => any;
   /** Per-field file policies keyed by field name */
   files?: Record<string, FilePolicy<T>>;

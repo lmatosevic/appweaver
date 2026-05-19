@@ -124,8 +124,8 @@ import { createPolicy } from '@appweaver/core';
 
 export default createPolicy({
   modelName: 'Product',
-  checkAccess: (action, resource) => resource.status === 'Draft',
-  readRestrictions: (action, resource) => {
+  checkAccess: (user, resource, action) => resource.status === 'Draft',
+  readRestrictions: (user, resource, action) => {
     enabled: true;
   },
   files: {

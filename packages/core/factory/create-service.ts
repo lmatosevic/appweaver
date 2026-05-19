@@ -19,6 +19,7 @@ import {
 } from '@appweaver/common';
 import { define, injectPolicy } from '../context';
 import { ResourceService } from '../resource';
+import { currentAuthUser } from '../security';
 
 export function createService<T = any, C = any, U = any>(
   config: ResourceServiceConfig<T, C, U>,
@@ -145,7 +146,8 @@ export function createService<T = any, C = any, U = any>(
       const policy = injectPolicy(name);
 
       if (policy.readRestrictions) {
-        return policy.readRestrictions(action, data) ?? {};
+        const user = currentAuthUser() ?? null;
+        return policy.readRestrictions(user, data, action) ?? {};
       }
 
       return super.readRestrictions(action, data);
@@ -160,7 +162,8 @@ export function createService<T = any, C = any, U = any>(
       const policy = injectPolicy(name);
 
       if (policy.writeRestrictions) {
-        return policy.writeRestrictions(action, data) ?? {};
+        const user = currentAuthUser() ?? null;
+        return policy.writeRestrictions(user, data, action) ?? {};
       }
 
       return super.writeRestrictions(action, data);
@@ -173,7 +176,8 @@ export function createService<T = any, C = any, U = any>(
       const policy = injectPolicy(name);
 
       if (policy?.checkAccess) {
-        return policy.checkAccess(action, resource);
+        const user = currentAuthUser() ?? null;
+        return policy.checkAccess(user, resource, action);
       }
 
       return super.checkAccess(action, resource);

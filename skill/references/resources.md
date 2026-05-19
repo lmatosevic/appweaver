@@ -820,8 +820,8 @@ import { createPolicy } from '@appweaver/core';
 
 export default createPolicy({
   modelName: 'Product',
-  checkAccess: (action, resource) => resource.status === 'Draft',
-  readRestrictions: (action, resource) => ({
+  checkAccess: (user, resource, action) => resource.status === 'Draft',
+  readRestrictions: (user, resource, action) => ({
     enabled: true
   }),
   files: {
@@ -837,13 +837,13 @@ function createPolicy(config: ResourcePolicyConfig, override ?: Partial<Resource
 }
 ```
 
-| Property            | Type                            | Description                                                                                                               |
-|---------------------|---------------------------------|---------------------------------------------------------------------------------------------------------------------------|
-| `modelName`         | string                          | Model name to bind this policy to (required).                                                                             |
-| `checkAccess`       | `(action, resource) => boolean` | Dynamic access check against a resource instance. Return `true` to allow, `false` to deny.                                |
-| `readRestrictions`  | `(action, resource) => filter`  | Returns a Prisma filter object applied to all read queries (find, query, aggregate). Restricts which records are visible. |
-| `writeRestrictions` | `(action, resource) => data`    | Returns data to merge or validate on create/update operations.                                                            |
-| `files`             | Record\<string, FilePolicy>     | Per-file field access policy.                                                                                             |
+| Property            | Type                                  | Description                                                                                                               |
+|---------------------|---------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| `modelName`         | string                                | Model name to bind this policy to (required).                                                                             |
+| `checkAccess`       | `(user, resource, action) => boolean` | Dynamic access check against a resource instance. Return `true` to allow, `false` to deny.                                |
+| `readRestrictions`  | `(user, resource, action) => filter`  | Returns a Prisma filter object applied to all read queries (find, query, aggregate). Restricts which records are visible. |
+| `writeRestrictions` | `(user, resource, action) => data`    | Returns data to merge or validate on create/update operations.                                                            |
+| `files`             | Record\<string, FilePolicy>           | Per-file field access policy.                                                                                             |
 
 **Action types**: `'find'`, `'query'`, `'aggregate'`, `'create'`, `'update'`, `'delete'`
 

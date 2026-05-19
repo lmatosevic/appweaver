@@ -126,7 +126,88 @@ The `./skill` directory contains two files any agent can load to use Appweaver a
 After upgrading Appweaver packages in a project, skill files are refreshed automatically:
 
 ```sh
-weaver update     # updates packages and refreshes skill files
+weaver update     # updates packages and refreshes agent skill files
+```
+
+---
+
+## Building a resource
+
+A resource is the core building block of an Appweaver API. Create four files under `src/resources/<name>/`:
+
+**model.ts** – defines database fields, relations, files, and I/O restrictions:
+
+```ts
+import { createModel } from '@appweaver/core';
+
+export default createModel({
+  name: 'Post',
+  scalars: {
+    title: { type: 'string', minLength: 1, maxLength: 200 },
+    slug: { type: 'string', unique: true },
+    body: { type: 'string' },
+    published: { type: 'boolean', default: false }
+  },
+  relations: {
+    author: {
+      model: 'User',
+      mappedBy: 'posts',
+      required: false
+    }
+  },
+  files: {
+    gallery: {
+      array: true,
+      mimeType: 'image/*',
+      maxSize: '5 MB',
+      maxCount: 25
+    }
+  },
+  index: ['slug']
+});
+```
+
+**service.ts** – business logic and lifecycle hooks:
+
+```ts
+import { createService } from '@appweaver/core';
+
+export default createService({
+  modelName: 'Post',
+  afterCreate: (post) => console.log('created:', post.id)
+});
+```
+
+**routes.ts** – which CRUD endpoints to expose and their auth/cache settings:
+
+```ts
+import { createRoutes } from '@appweaver/core';
+
+export default createRoutes({
+  modelName: 'Post',
+  find: { roles: ['Admin', 'User'] },
+  query: { cacheTTL: 5000 },
+  create: { permissions: ['post:create'] },
+  delete: { exclude: true }
+});
+```
+
+**policy.ts** – row-level access control:
+
+```ts
+import { createPolicy } from '@appweaver/core';
+
+export default createPolicy({
+  modelName: 'Post',
+  readRestrictions: (user) => ({ author: { id: user.id } })
+});
+```
+
+After any model change, regenerate types and create a migration:
+
+```sh
+weaver generate
+weaver migration new <describe_the_change>
 ```
 
 ---
@@ -140,7 +221,7 @@ authentication, dependency injection, file storage, queues, cron scheduler, mail
 server.
 
 ```ts
-import { createApp, createModel, createService, createRoutes, createPolicy } from '@appweaver/core';
+import { createApp } from '@appweaver/core';
 
 // Bootstrap the application
 createApp().catch(console.error);
@@ -214,69 +295,6 @@ runtimes, multiple databases, and optional modules (queue, mailer, scheduler).
 
 ```sh
 npx create-weaver-app <name> [description] [options]
-```
-
----
-
-## Building a resource
-
-A resource is the core building block of an Appweaver API. Create four files under `src/resources/<name>/`:
-
-**model.ts** – defines database fields, relations, files, and I/O restrictions:
-
-```ts
-import { createModel } from '@appweaver/core';
-
-export default createModel({
-  name: 'Post',
-  scalars: {
-    title: { type: 'string', minLength: 1, maxLength: 200 },
-    body: { type: 'string' },
-    published: { type: 'boolean', default: false }
-  }
-});
-```
-
-**service.ts** – business logic and lifecycle hooks:
-
-```ts
-import { createService } from '@appweaver/core';
-
-export default createService({
-  modelName: 'Post',
-  afterCreate: (post) => console.log('created:', post.id)
-});
-```
-
-**routes.ts** – which CRUD endpoints to expose and their auth/cache settings:
-
-```ts
-import { createRoutes } from '@appweaver/core';
-
-export default createRoutes({
-  modelName: 'Post',
-  find: { roles: ['Admin', 'User'] },
-  create: { permissions: ['post:create'] },
-  delete: { exclude: true }
-});
-```
-
-**policy.ts** – row-level access control:
-
-```ts
-import { createPolicy } from '@appweaver/core';
-
-export default createPolicy({
-  modelName: 'Post',
-  readRestrictions: () => ({ published: true })
-});
-```
-
-After any model change, regenerate types and create a migration:
-
-```sh
-weaver generate
-weaver migration new <describe_the_change>
 ```
 
 ---
