@@ -258,7 +258,7 @@ This will: build all packages, determine the next version from commit messages (
 each package to npm, and push the release commit and tag.
 
 Requires valid `NPM_TOKEN` and `GITHUB_TOKEN` environment variables with write access to the `@appweaver` npm
-organization, set in the .env file.
+organization.
 
 ---
 
