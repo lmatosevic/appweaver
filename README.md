@@ -149,19 +149,10 @@ export default createModel({
     published: { type: 'boolean', default: false }
   },
   relations: {
-    author: {
-      model: 'User',
-      mappedBy: 'posts',
-      required: false
-    }
+    author: { model: 'User', mappedBy: 'posts', required: false }
   },
   files: {
-    gallery: {
-      array: true,
-      mimeType: 'image/*',
-      maxSize: '5 MB',
-      maxCount: 25
-    }
+    gallery: { array: true, mimeType: 'image/*', maxSize: '5 MB', maxCount: 25 }
   },
   index: ['slug']
 });
