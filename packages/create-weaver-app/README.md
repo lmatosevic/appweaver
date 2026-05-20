@@ -16,10 +16,10 @@
 
 ## Description
 
-Appweaver is a batteries-included framework built on top of **Fastify** and **Prisma**, designed from the ground up to
-be developed with AI agents. Instead of writing backend boilerplate from scratch, you describe resources using concise
-factory functions and let the framework handle routing, validation, database, auth, migrations, so you can focus
-on business logic instead of boilerplate.
+Appweaver is a batteries-included framework built on top of [Fastify](https://fastify.dev) and
+[Prisma](https://prisma.io), designed from the ground up to be developed with AI agents. Instead of writing backend
+boilerplate from scratch, you describe resources using concise factory functions and let the framework handle routing,
+validation, database, auth, migrations, so you can focus on business logic instead of boilerplate.
 
 ### Built for agents
 
