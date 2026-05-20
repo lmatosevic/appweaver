@@ -1,7 +1,7 @@
 {
   "name": "appweaver",
   "version": "1.0.5",
-  "description": "Appweaver - the backend framework for AI-assisted development",
+  "description": "Appweaver - the backend framework for AI-first development",
   "author": "Luka Matosevic",
   "license": "MIT",
   "private": true,

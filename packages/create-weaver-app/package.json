@@ -1,7 +1,7 @@
 {
   "name": "@appweaver/create-weaver-app",
   "version": "1.0.5",
-  "description": "Appweaver - the backend framework for AI-assisted development (@create-weaver-app)",
+  "description": "Appweaver - the backend framework for AI-first development (@create-weaver-app)",
   "author": "Luka Matosevic",
   "license": "MIT",
   "main": "./create-weaver-app.js",

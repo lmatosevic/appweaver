@@ -3,7 +3,7 @@
   "config": {
     "app": {
       "name": "Appweaver",
-      "description": "Appweaver - the backend framework for AI-assisted development",
+      "description": "Appweaver - the backend framework for AI-first development",
       "hostname": "http://localhost:5000",
       "runtime": "node",
       "buildPath": "./dist",
