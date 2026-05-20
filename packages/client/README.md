@@ -1,11 +1,20 @@
-# Appweaver - Client
+<p align="center">
+  <a href="https://appweaver.co" target="_blank"><img src="https://raw.githubusercontent.com/lmatosevic/appweaver/master/resources/appweaver-logo.svg" width="280" alt="Appweaver Logo" /></a>
+</p>
 
-![npm](https://img.shields.io/npm/v/@appweaver/client)
-![NPM License](https://img.shields.io/npm/l/@appweaver/client)
-![npm](https://img.shields.io/npm/dw/@appweaver/client)
-![npm](https://img.shields.io/badge/build-passing-brightgreen)
+<p align="center">
+  The AI-first <a href="https://nodejs.org" target="_blank">Node.js</a> framework for quick scaffolding, extending, and shipping APIs with any agent.
+</p>
 
-> The backend framework for AI-assisted development. Scaffold, extend, and ship APIs with any agent.
+<p align="center">
+<a href="https://www.npmjs.com/@appweaver/client" target="_blank"><img src="https://img.shields.io/npm/v/@appweaver/client.svg" alt="NPM Version" /></a>
+<a href="https://github.com/lmatosevic/appweaver/blob/master/LICENSE" target="_blank"><img src="https://img.shields.io/npm/l/@appweaver/client.svg" alt="Package License" /></a>
+<a href="https://www.npmjs.com/@appweaver/client" target="_blank"><img src="https://img.shields.io/npm/dw/@appweaver/client.svg" alt="NPM Downloads" /></a>
+<a href="https://www.npmjs.com/@appweaver/client" target="_blank"><img src="https://img.shields.io/badge/build-passing-brightgreen.svg" alt="Build Status" /></a>
+
+</p>
+
+## Description
 
 Appweaver is a batteries-included framework built on top of **Fastify** and **Prisma**, designed from the ground up to
 be developed with AI agents. Instead of writing backend boilerplate from scratch, you describe resources using concise

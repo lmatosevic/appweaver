@@ -1,0 +1,49 @@
+<svg width="620" height="243" viewBox="135 65 500 207" xmlns="http://www.w3.org/2000/svg">
+    <title>Appweaver</title>
+    <desc>Appweaver backend framework logo — woven A mark with wordmark.</desc>
+    <defs>
+        <linearGradient id="pg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#4C1D95"/>
+            <stop offset="50%" stop-color="#7C3AED"/>
+            <stop offset="100%" stop-color="#C026D3"/>
+        </linearGradient>
+        <linearGradient id="pgLight" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#8B5CF6"/>
+            <stop offset="100%" stop-color="#D946EF"/>
+        </linearGradient>
+        <clipPath id="aClip">
+            <polygon points="160,260 200,80 240,80 280,260 240,260 230,215 210,215 200,260"/>
+        </clipPath>
+    </defs>
+
+    <polygon points="160,260 200,80 240,80 280,260 240,260 230,215 210,215 200,260" fill="url(#pg)"/>
+
+    <g clip-path="url(#aClip)" opacity="0.55">
+        <path d="M150,110 L290,110" stroke="#FFFFFF" stroke-width="3" fill="none"/>
+        <path d="M150,135 L290,135" stroke="#FFFFFF" stroke-width="3" fill="none"/>
+        <path d="M150,160 L290,160" stroke="#FFFFFF" stroke-width="3" fill="none"/>
+        <path d="M150,185 L290,185" stroke="#FFFFFF" stroke-width="3" fill="none"/>
+        <path d="M150,210 L290,210" stroke="#FFFFFF" stroke-width="3" fill="none"/>
+        <path d="M150,235 L290,235" stroke="#FFFFFF" stroke-width="3" fill="none"/>
+        <path d="M170,70 L170,270" stroke="#FFFFFF" stroke-width="3" fill="none" opacity="0.6"/>
+        <path d="M195,70 L195,270" stroke="#FFFFFF" stroke-width="3" fill="none" opacity="0.6"/>
+        <path d="M220,70 L220,270" stroke="#FFFFFF" stroke-width="3" fill="none" opacity="0.6"/>
+        <path d="M245,70 L245,270" stroke="#FFFFFF" stroke-width="3" fill="none" opacity="0.6"/>
+        <path d="M270,70 L270,270" stroke="#FFFFFF" stroke-width="3" fill="none" opacity="0.6"/>
+    </g>
+
+    <polygon points="160,260 200,80 240,80 280,260 240,260 230,215 210,215 200,260" fill="none" stroke="url(#pgLight)"
+             stroke-width="2"/>
+
+    <circle cx="220" cy="170" r="6" fill="#FFFFFF"/>
+    <circle cx="220" cy="170" r="3" fill="#7C3AED"/>
+
+    <text x="320" y="195" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="64"
+          font-weight="600" fill="url(#pg)" letter-spacing="-2">appweaver
+    </text>
+
+    <rect x="322" y="215" width="244" height="3" rx="1.5" fill="url(#pgLight)" opacity="0.7"/>
+    <text x="322" y="245" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="16"
+          font-weight="400" fill="#7C3AED" letter-spacing="6">AI-FIRST FRAMEWORK
+    </text>
+</svg>
