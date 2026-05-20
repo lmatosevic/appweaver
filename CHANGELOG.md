@@ -1,3 +1,9 @@
+## [1.0.5](https://github.com/lmatosevic/appweaver/compare/v1.0.4...v1.0.5) (2026-05-20)
+
+### Bug Fixes
+
+* update READMEs to include logo, badges, and unified descriptions across packages ([369880e](https://github.com/lmatosevic/appweaver/commit/369880e25410da763528038f19a9147c2deb45ae))
+
 ## [1.0.4](https://github.com/lmatosevic/appweaver/compare/v1.0.3...v1.0.4) (2026-05-19)
 
 ### Bug Fixes
