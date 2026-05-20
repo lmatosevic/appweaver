@@ -264,14 +264,16 @@ weaver openapi                    # export OpenAPI spec to openapi.json
 weaver update                     # update all @appweaver/* packages and skill files
 ```
 
-### `@appweaver/client`
+### `@appweaver/client` (`weaver-client`)
 
 A type-safe HTTP client generator. Reads your OpenAPI spec and emits typed TypeScript interfaces and a client class with
 built-in JWT, API key, and HTTP Basic auth support.
 
 ```sh
-# Generate a typed client from a running server
+# generate OpenAPI specification from the current project
 weaver openapi --outputPath ./openapi.json
+
+# generate a typed client class for interacting with the API
 weaver-client generate ./openapi.json --outputPath ./src/generated/client.ts
 ```
 
@@ -297,7 +299,7 @@ const avatarData = await avatarFile.base64();
 await client.user.delete(user.id);
 ```
 
-### `create-weaver-app`
+### `@appweaver/create-weaver-app` (`create-weaver-app`)
 
 Project scaffolding tool. Generates a complete Appweaver application from a template with support for Node and Bun
 runtimes, multiple databases, and optional modules (queue, mailer, scheduler).
