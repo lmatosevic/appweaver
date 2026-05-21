@@ -340,7 +340,7 @@ npm run test
 
 ### Releasing
 
-Releases are automated via **semantic-release** using conventional commits. To cut a release:
+Releases are automated via **semantic-release** using conventional commits. To make a new release:
 
 ```sh
 npm run release
