@@ -1,3 +1,9 @@
+## [1.0.6](https://github.com/lmatosevic/appweaver/compare/v1.0.5...v1.0.6) (2026-05-21)
+
+### Bug Fixes
+
+* update readme to clarify release process ([4cc1a9b](https://github.com/lmatosevic/appweaver/commit/4cc1a9bbb99a2ffdb028f5fd29e9b70cf151062f))
+
 ## [1.0.5](https://github.com/lmatosevic/appweaver/compare/v1.0.4...v1.0.5) (2026-05-20)
 
 ### Bug Fixes
