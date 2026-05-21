@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  The AI-first <a href="https://nodejs.org" target="_blank">Node.js</a> framework for quick scaffolding, extending, and shipping backends with any agent.
+  The AI-first <a href="https://nodejs.org" target="_blank">Node.js</a> framework for quick scaffolding, extending, and shipping backends with agents.
 </p>
 
 <p align="center">
