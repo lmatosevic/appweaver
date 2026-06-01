@@ -1,3 +1,9 @@
+## [1.0.7](https://github.com/lmatosevic/appweaver/compare/v1.0.6...v1.0.7) (2026-06-01)
+
+### Bug Fixes
+
+* update critical fastify JWT package dependency to safe version ([2dfb230](https://github.com/lmatosevic/appweaver/commit/2dfb23027973732edf6464a1cfe7786a90a514a4))
+
 ## [1.0.6](https://github.com/lmatosevic/appweaver/compare/v1.0.5...v1.0.6) (2026-05-21)
 
 ### Bug Fixes
