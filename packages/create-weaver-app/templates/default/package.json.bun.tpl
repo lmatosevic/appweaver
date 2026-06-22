@@ -24,16 +24,16 @@
   },
   "devDependencies": {
     "@eslint/js": "9.39.2",
-    "@types/bun": "1.3.11",
-    "@types/node": "25.0.10",
-    "@typescript-eslint/eslint-plugin": "8.53.1",
-    "@typescript-eslint/parser": "8.53.1",
+    "@types/bun": "1.3.14",
+    "@types/node": "26.0.0",
+    "@typescript-eslint/eslint-plugin": "8.61.1",
+    "@typescript-eslint/parser": "8.61.1",
     "eslint": "9.39.2",
     "eslint-config-prettier": "10.1.8",
-    "eslint-plugin-prettier": "5.5.5",
-    "globals": "17.4.0",
-    "prettier": "3.8.1",
+    "eslint-plugin-prettier": "5.5.6",
+    "globals": "17.6.0",
+    "prettier": "3.8.4",
     "typescript": "5.9.3",
-    "typescript-eslint": "8.53.1"
+    "typescript-eslint": "8.61.1"
   }
 }

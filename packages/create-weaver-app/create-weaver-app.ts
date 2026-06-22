@@ -259,7 +259,7 @@ function getNodeDependencies(command: Command, runtime: string): string[] {
   dependencies.push(`"prisma": "${prismaVersion}"`);
 
   if (!command.getOptionValue('noQueue')) {
-    dependencies.push('"bullmq": "5.70.1"');
+    dependencies.push('"bullmq": "5.79.1"');
   }
 
   if (!command.getOptionValue('noCron')) {
@@ -267,11 +267,11 @@ function getNodeDependencies(command: Command, runtime: string): string[] {
   }
 
   if (!command.getOptionValue('noRedis')) {
-    dependencies.push('"ioredis": "5.9.3"');
+    dependencies.push('"ioredis": "5.11.1"');
   }
 
   if (!command.getOptionValue('noMailer')) {
-    dependencies.push('"nodemailer": "8.0.5"');
+    dependencies.push('"nodemailer": "9.0.1"');
   }
 
   return dependencies.sort().map((d) => `    ${d}`);

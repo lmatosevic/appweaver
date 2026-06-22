@@ -96,7 +96,7 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
   constructor(public readonly name: string) {
     super();
     this._queue = new Queue(name, {
-      connection: this._connection,
+      connection: this._connection as any, // Needed because of different ioredis types
       skipVersionCheck: true,
       defaultJobOptions: {
         removeOnComplete: {
@@ -146,7 +146,7 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
   ): Worker<Data, Response> {
     const worker = new Worker<Data, Response>(this.name, processor, {
       ...options,
-      connection: this._connection,
+      connection: this._connection as any, // Needed because of different ioredis types
       skipVersionCheck: true,
       name: `${this.name}_${uuid()}`
     });

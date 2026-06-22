@@ -83,7 +83,7 @@ export function testingCommand(program: Command): void {
 
       await fsp.mkdir(storagePath, { recursive: true });
 
-      console.log('Storage initialized');
+      console.log('\nStorage initialized');
 
       const models = await loadModels(
         command.getOptionValue('modelPattern') ?? config.RESOURCE_MODEL_PATTERN
