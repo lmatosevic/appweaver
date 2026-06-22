@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mise — your dishes, your week</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap"
+          rel="stylesheet">
+    <style>
+        :root {
+            --paper: #EFEAE0;
+            --paper-2: #F6F2EA;
+            --ink: #1E2B25;
+            --ink-soft: #56655C;
+            --herb: #2F5D44;
+            --herb-deep: #234835;
+            --persimmon: #D9542B;
+            --turmeric: #D69A2C;
+            --line: #D5CCBC;
+            --line-strong: #C2B7A2;
+            --card: #FBF8F2;
+            --shadow: 0 1px 0 var(--line-strong), 0 8px 22px -16px rgba(30, 43, 37, .5);
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            background: var(--paper);
+            color: var(--ink);
+            font-family: "Inter", system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            background-image: radial-gradient(var(--line) .5px, transparent .5px);
+            background-size: 22px 22px;
+            min-height: 100vh;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: inherit
+        }
+
+        input, textarea {
+            font-family: inherit
+        }
+
+        .mono {
+            font-family: "Space Mono", monospace
+        }
+
+        .wrap {
+            max-width: 1040px;
+            margin: 0 auto;
+            padding: 0 20px 80px
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            background: var(--paper);
+            border-bottom: 2px solid var(--ink);
+            box-shadow: 0 6px 0 -4px var(--line-strong);
+        }
+
+        .head-inner {
+            max-width: 1040px;
+            margin: 0 auto;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap
+        }
+
+        .brand {
+            display: flex;
+            align-items: baseline;
+            gap: 10px
+        }
+
+        .brand h1 {
+            font-family: "Bricolage Grotesque", sans-serif;
+            font-weight: 800;
+            font-size: 30px;
+            letter-spacing: -1px;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .brand .dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: var(--persimmon);
+            display: inline-block;
+            transform: translateY(-2px)
+        }
+
+        .brand .tag {
+            font-size: 11px;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            font-weight: 500
+        }
+
+        nav {
+            margin-left: auto;
+            display: flex;
+            gap: 6px;
+            background: var(--paper-2);
+            border: 1.5px solid var(--ink);
+            border-radius: 999px;
+            padding: 4px
+        }
+
+        nav button {
+            padding: 8px 18px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--ink-soft);
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            transition: .15s;
+        }
+
+        nav button .n {
+            font-family: "Space Mono", monospace;
+            font-size: 11px
+        }
+
+        nav button.on {
+            background: var(--ink);
+            color: var(--paper-2)
+        }
+
+        nav button:not(.on):hover {
+            color: var(--ink)
+        }
+
+        /* Section heads */
+        .eyebrow {
+            font-family: "Space Mono", monospace;
+            font-size: 11px;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--herb);
+            font-weight: 700
+        }
+
+        .screen-title {
+            font-family: "Bricolage Grotesque", sans-serif;
+            font-weight: 700;
+            font-size: clamp(26px, 4vw, 38px);
+            letter-spacing: -1.2px;
+            margin: 4px 0 0
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            gap: 14px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin: 26px 0 18px
+        }
+
+        .search {
+            flex: 1;
+            min-width: 220px
+        }
+
+        .search label {
+            display: block;
+            font-family: "Space Mono", monospace;
+            font-size: 10px;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: 6px
+        }
+
+        .search input {
+            width: 100%;
+            padding: 11px 14px;
+            background: var(--card);
+            border: 1.5px solid var(--line-strong);
+            border-radius: 10px;
+            font-size: 15px;
+            color: var(--ink);
+        }
+
+        .search input:focus {
+            outline: none;
+            border-color: var(--herb);
+            box-shadow: 0 0 0 3px rgba(47, 93, 68, .15)
+        }
+
+        .btn-primary {
+            padding: 12px 20px;
+            background: var(--persimmon);
+            color: #fff;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1.5px solid #b4421f;
+            box-shadow: 0 2px 0 #b4421f;
+            transition: .12s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(1px);
+            box-shadow: 0 1px 0 #b4421f
+        }
+
+        .btn-primary .plus {
+            font-size: 18px;
+            line-height: 1
+        }
+
+        /* Pantry shelf — ingredient filter */
+        .shelf {
+            background: var(--paper-2);
+            border: 1.5px solid var(--line-strong);
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 24px
+        }
+
+        .shelf-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px
+        }
+
+        .shelf-head .lbl {
+            font-family: "Space Mono", monospace;
+            font-size: 11px;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--ink-soft)
+        }
+
+        .shelf-head .clear {
+            margin-left: auto;
+            font-family: "Space Mono", monospace;
+            font-size: 11px;
+            color: var(--persimmon);
+            text-decoration: underline;
+            text-underline-offset: 2px
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px
+        }
+
+        .chip {
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: var(--card);
+            border: 1.5px solid var(--line-strong);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--ink);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: .12s;
+        }
+
+        .chip .ct {
+            font-family: "Space Mono", monospace;
+            font-size: 10px;
+            color: var(--ink-soft)
+        }
+
+        .chip:hover {
+            border-color: var(--herb)
+        }
+
+        .chip.on {
+            background: var(--herb);
+            border-color: var(--herb-deep);
+            color: #fff
+        }
+
+        .chip.on .ct {
+            color: #cfe3d6
+        }
+
+        /* Dish grid */
+        .grid {
+            display: grid;
+            grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
+            gap: 18px
+        }
+
+        .card {
+            background: var(--card);
+            border: 1.5px solid var(--line-strong);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            transition: .14s;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 1px 0 var(--line-strong), 0 16px 28px -18px rgba(30, 43, 37, .6)
+        }
+
+        .card .pic {
+            aspect-ratio: 4/3;
+            width: 100%;
+            object-fit: cover;
+            display: block;
+            border-bottom: 1.5px solid var(--line-strong)
+        }
+
+        .card .pic-ph {
+            aspect-ratio: 4/3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1.5px solid var(--line-strong);
+            font-size: 40px
+        }
+
+        .card-body {
+            padding: 13px 14px 15px
+        }
+
+        .card-body h3 {
+            font-family: "Bricolage Grotesque", sans-serif;
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: -.3px;
+            margin: 0 0 5px
+        }
+
+        .card-body p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--ink-soft);
+            line-height: 1.45;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden
+        }
+
+        .card-ings {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px
+        }
+
+        .mini {
+            font-family: "Space Mono", monospace;
+            font-size: 10px;
+            background: var(--paper);
+            border: 1px solid var(--line-strong);
+            border-radius: 6px;
+            padding: 2px 6px;
+            color: var(--ink-soft)
+        }
+
+        .mini.hit {
+            background: var(--turmeric);
+            border-color: #b07e1d;
+            color: #3a2a08
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            border: 1.5px dashed var(--line-strong);
+            border-radius: 16px;
+            color: var(--ink-soft)
+        }
+
+        .empty .big {
+            font-family: "Bricolage Grotesque", sans-serif;
+            font-size: 20px;
+            color: var(--ink);
+            margin-bottom: 6px
+        }
+
+        /* Calendar */
+        .cal-nav {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 24px 0 16px
+        }
+
+        .cal-nav button.wk {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            border: 1.5px solid var(--ink);
+            background: var(--card);
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .cal-nav button.wk:hover {
+            background: var(--ink);
+            color: var(--paper-2)
+        }
+
+        .cal-nav .range {
+            font-family: "Space Mono", monospace;
+            font-size: 13px;
+            font-weight: 700
+        }
+
+        .cal-nav .today {
+            margin-left: auto;
+            font-family: "Space Mono", monospace;
+            font-size: 12px;
+            border: 1.5px solid var(--line-strong);
+            border-radius: 8px;
+            padding: 7px 12px
+        }
+
+        .cal-nav .today:hover {
+            border-color: var(--herb);
+            color: var(--herb)
+        }
+
+        .week {
+            display: grid;
+            grid-template-columns:repeat(7, 1fr);
+            gap: 10px
+        }
+
+        .day {
+            background: var(--card);
+            border: 1.5px solid var(--line-strong);
+            border-radius: 12px;
+            padding: 10px 9px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column
+        }
+
+        .day.is-today {
+            border-color: var(--persimmon);
+            box-shadow: 0 0 0 2px rgba(217, 84, 43, .18)
+        }
+
+        .day-h {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            border-bottom: 1.5px solid var(--line);
+            padding-bottom: 7px;
+            margin-bottom: 8px
+        }
+
+        .day-h .dow {
+            font-family: "Space Mono", monospace;
+            font-size: 10px;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--ink-soft)
+        }
+
+        .day-h .dnum {
+            font-family: "Bricolage Grotesque", sans-serif;
+            font-weight: 700;
+            font-size: 17px
+        }
+
+        .day.is-today .dnum {
+            color: var(--persimmon)
+        }
+
+        .slot {
+            margin-bottom: 9px
+        }
+
+        .slot-lbl {
+            font-family: "Space Mono", monospace;
+            font-size: 9px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--herb);
+            font-weight: 700;
+            margin-bottom: 4px
+        }
+
+        .slot-add {
+            width: 100%;
+            text-align: left;
+            font-size: 11px;
+            color: var(--ink-soft);
+            border: 1px dashed var(--line-strong);
+            border-radius: 7px;
+            padding: 5px 7px;
+            transition: .12s
+        }
+
+        .slot-add:hover {
+            border-color: var(--herb);
+            color: var(--herb);
+            background: var(--paper-2)
+        }
+
+        .meal {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--paper-2);
+            border: 1px solid var(--line-strong);
+            border-radius: 7px;
+            padding: 4px 5px 4px 7px;
+            margin-bottom: 4px
+        }
+
+        .meal span {
+            font-size: 11px;
+            font-weight: 600;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .meal button {
+            font-size: 13px;
+            color: var(--ink-soft);
+            width: 16px;
+            height: 16px;
+            line-height: 1;
+            border-radius: 4px
+        }
+
+        .meal button:hover {
+            background: var(--persimmon);
+            color: #fff
+        }
+
+        /* Modal */
+        .scrim {
+            position: fixed;
+            inset: 0;
+            background: rgba(30, 43, 37, .55);
+            z-index: 50;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 40px 16px;
+            overflow-y: auto
+        }
+
+        .modal {
+            background: var(--paper-2);
+            border: 2px solid var(--ink);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .5)
+        }
+
+        .modal-h {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-bottom: 1.5px solid var(--line-strong)
+        }
+
+        .modal-h h2 {
+            font-family: "Bricolage Grotesque", sans-serif;
+            font-weight: 700;
+            font-size: 22px;
+            letter-spacing: -.5px;
+            margin: 0
+        }
+
+        .modal-h .x {
+            font-size: 24px;
+            color: var(--ink-soft);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            line-height: 1
+        }
+
+        .modal-h .x:hover {
+            background: var(--line);
+            color: var(--ink)
+        }
+
+        .modal-b {
+            padding: 20px 22px
+        }
+
+        .field {
+            margin-bottom: 16px
+        }
+
+        .field label {
+            display: block;
+            font-family: "Space Mono", monospace;
+            font-size: 10px;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: 6px
+        }
+
+        .field input, .field textarea {
+            width: 100%;
+            padding: 10px 13px;
+            background: var(--card);
+            border: 1.5px solid var(--line-strong);
+            border-radius: 9px;
+            font-size: 15px;
+            color: var(--ink)
+        }
+
+        .field input:focus, .field textarea:focus {
+            outline: none;
+            border-color: var(--herb);
+            box-shadow: 0 0 0 3px rgba(47, 93, 68, .15)
+        }
+
+        .field .hint {
+            font-size: 11px;
+            color: var(--ink-soft);
+            margin-top: 5px
+        }
+
+        .uploader {
+            display: flex;
+            gap: 14px;
+            align-items: center
+        }
+
+        .uploader .preview {
+            width: 84px;
+            height: 84px;
+            border-radius: 10px;
+            border: 1.5px solid var(--line-strong);
+            object-fit: cover;
+            background: var(--paper);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            flex-shrink: 0
+        }
+
+        .file-btn {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--herb);
+            border: 1.5px solid var(--herb);
+            border-radius: 9px;
+            padding: 9px 14px
+        }
+
+        .file-btn:hover {
+            background: var(--herb);
+            color: #fff
+        }
+
+        .modal-f {
+            display: flex;
+            gap: 10px;
+            padding: 16px 22px;
+            border-top: 1.5px solid var(--line-strong)
+        }
+
+        .modal-f .btn-save {
+            flex: 1;
+            padding: 12px;
+            background: var(--herb);
+            color: #fff;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 15px;
+            border: 1.5px solid var(--herb-deep);
+            box-shadow: 0 2px 0 var(--herb-deep)
+        }
+
+        .modal-f .btn-save:hover {
+            transform: translateY(1px);
+            box-shadow: 0 1px 0 var(--herb-deep)
+        }
+
+        .modal-f .btn-del {
+            padding: 12px 16px;
+            background: var(--card);
+            color: var(--persimmon);
+            border: 1.5px solid var(--line-strong);
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px
+        }
+
+        .modal-f .btn-del:hover {
+            border-color: var(--persimmon)
+        }
+
+        /* Detail */
+        .detail-pic {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1.5px solid var(--line-strong);
+            margin-bottom: 16px
+        }
+
+        .detail-ph {
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: 12px;
+            border: 1.5px solid var(--line-strong);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 52px
+        }
+
+        .detail-b p.desc {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--ink-soft);
+            margin: 0 0 16px
+        }
+
+        .detail-b .ings {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px
+        }
+
+        .detail-b .ings .mini {
+            font-size: 12px;
+            padding: 4px 9px
+        }
+
+        /* Picker list */
+        .picker .picker-search {
+            margin-bottom: 12px
+        }
+
+        .picker .opt {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            width: 100%;
+            text-align: left;
+            padding: 9px 10px;
+            border-radius: 10px;
+            border: 1.5px solid transparent
+        }
+
+        .picker .opt:hover {
+            background: var(--card);
+            border-color: var(--line-strong)
+        }
+
+        .picker .opt .sw {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            border: 1px solid var(--line-strong)
+        }
+
+        .picker .opt .nm {
+            font-weight: 600;
+            font-size: 14px
+        }
+
+        .picker .opt .ig {
+            font-size: 11px;
+            color: var(--ink-soft);
+            font-family: "Space Mono", monospace
+        }
+
+        .count-note {
+            font-family: "Space Mono", monospace;
+            font-size: 11px;
+            color: var(--ink-soft);
+            margin: 0 0 14px
+        }
+
+        @media (max-width: 760px) {
+            .week {
+                grid-template-columns:1fr;
+                gap: 8px
+            }
+
+            .day {
+                min-height: auto
+            }
+
+            nav {
+                margin-left: 0;
+                width: 100%;
+                justify-content: center
+            }
+
+            .head-inner {
+                gap: 12px
+            }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="head-inner">
+        <div class="brand">
+            <h1>Mise<span class="dot"></span></h1>
+            <span class="tag">your dishes · your week</span>
+        </div>
+        <nav>
+            <button id="tab-dishes" class="on" onclick="setView('dishes')">Dishes <span class="n"
+                                                                                        id="dishCount">0</span></button>
+            <button id="tab-cal" onclick="setView('calendar')">Calendar</button>
+        </nav>
+    </div>
+</header>
+
+<main class="wrap" id="main"></main>
+<div id="modal-root"></div>
+
+<script>
+  /* ---------- seed palette for placeholders ---------- */
+  const SWATCH = ["#E8C7A0", "#C9D7B0", "#E6B7A8", "#BCD0D8", "#E3D29A", "#D6C2DE"];
+  const GLYPH = ["🍲", "🥗", "🍝", "🥘", "🫕", "🍜", "🥞", "🍛"];
+
+  function ph(seed) {
+    const i = Math.abs(hash(seed)) % SWATCH.length;
+    return { bg: SWATCH[i], g: GLYPH[Math.abs(hash(seed + "g")) % GLYPH.length] }
+  }
+
+  function hash(s) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) {
+      h = (h << 5) - h + s.charCodeAt(i);
+      h |= 0
+    }
+    return h
+  }
+
+  /* ---------- in-memory store ---------- */
+  let dishes = [
+    {
+      id: "d1",
+      title: "Weeknight Shakshuka",
+      description: "Eggs poached in a spiced tomato and pepper sauce. Scoop with crusty bread.",
+      ingredients: ["eggs", "tomato", "red pepper", "onion", "cumin", "feta"],
+      img: null
+    },
+    {
+      id: "d2",
+      title: "Lemon Garlic Pasta",
+      description: "Bright, fast, 15 minutes. Toasted breadcrumbs on top for crunch.",
+      ingredients: ["pasta", "garlic", "lemon", "parmesan", "olive oil", "parsley"],
+      img: null
+    },
+    {
+      id: "d3",
+      title: "Coconut Chickpea Curry",
+      description: "Creamy, gently spiced, freezer-friendly. Serve over rice.",
+      ingredients: ["chickpeas", "coconut milk", "tomato", "onion", "ginger", "spinach", "rice"],
+      img: null
+    },
+    {
+      id: "d4",
+      title: "Sheet-Pan Salmon",
+      description: "Salmon and broccoli roasted together with a soy-honey glaze.",
+      ingredients: ["salmon", "broccoli", "soy sauce", "honey", "garlic", "sesame"],
+      img: null
+    },
+    {
+      id: "d5",
+      title: "Big Green Salad",
+      description: "The fridge-clearout salad. Whatever's crisp plus a sharp mustard dressing.",
+      ingredients: ["lettuce", "cucumber", "avocado", "mustard", "lemon", "olive oil"],
+      img: null
+    },
+    {
+      id: "d6",
+      title: "Miso Noodle Soup",
+      description: "A bowl of comfort in ten minutes. Top with a soft egg and scallions.",
+      ingredients: ["noodles", "miso", "eggs", "scallion", "ginger", "mushroom"],
+      img: null
+    },
+  ];
+  let calendar = []; // {id, dishId, date:'YYYY-MM-DD', slot}
+  const SLOTS = ["Breakfast", "Lunch", "Dinner"];
+
+  let view = "dishes";
+  let filterIngs = new Set();
+  let search = "";
+  let weekStart = startOfWeek(new Date());
+
+  /* ---------- helpers ---------- */
+  function uid() {
+    return Math.random().toString(36).slice(2, 9)
+  }
+
+  function startOfWeek(d) {
+    const x = new Date(d);
+    const day = (x.getDay() + 6) % 7;
+    x.setHours(0, 0, 0, 0);
+    x.setDate(x.getDate() - day);
+    return x
+  }
+
+  function fmtDate(d) {
+    return d.toISOString().slice(0, 10)
+  }
+
+  function addDays(d, n) {
+    const x = new Date(d);
+    x.setDate(x.getDate() + n);
+    return x
+  }
+
+  function esc(s) {
+    return (s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]))
+  }
+
+  function allIngredients() {
+    const m = {};
+    dishes.forEach(d => d.ingredients.forEach(i => {
+      m[i] = (m[i] || 0) + 1
+    }));
+    return Object.entries(m).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+  }
+
+  /* ---------- routing ---------- */
+  function setView(v) {
+    view = v;
+    document.getElementById("tab-dishes").classList.toggle("on", v === "dishes");
+    document.getElementById("tab-cal").classList.toggle("on", v === "calendar");
+    render()
+  }
+
+  function render() {
+    document.getElementById("dishCount").textContent = String(dishes.length).padStart(2, "0");
+    document.getElementById("main").innerHTML = view === "dishes" ? renderDishes() : renderCalendar();
+  }
+
+  /* ---------- DISHES screen ---------- */
+  function renderDishes() {
+    const ings = allIngredients();
+    const filtered = dishes.filter(d => {
+      const matchSearch = !search || d.title.toLowerCase().includes(search.toLowerCase());
+      const matchIng = filterIngs.size === 0 || [...filterIngs].every(f => d.ingredients.includes(f));
+      return matchSearch && matchIng;
+    });
+    const shelf = `
+    <div class="shelf">
+      <div class="shelf-head">
+        <span class="lbl">Filter by ingredient</span>
+        ${filterIngs.size ? `<button class="clear" onclick="clearFilter()">clear ${filterIngs.size}</button>` : ""}
+      </div>
+      <div class="chips">
+        ${ings.map(([name, ct]) => `<button class="chip ${filterIngs.has(name) ? "on" : ""}" onclick="toggleIng('${esc(name)}')">${esc(name)} <span class="ct">${ct}</span></button>`).join("")}
+      </div>
+    </div>`;
+    const cards = filtered.length ? `<div class="grid">${filtered.map(dishCard).join("")}</div>` :
+      `<div class="empty"><div class="big">Nothing matches yet</div><div>Loosen the filter, or add a dish that fits.</div></div>`;
+    return `
+    <div class="eyebrow">Registry</div>
+    <h2 class="screen-title">Every dish you cook</h2>
+    <div class="toolbar">
+      <div class="search">
+        <label>Search by title</label>
+        <input id="searchInput" placeholder="e.g. pasta" value="${esc(search)}" oninput="onSearch(this.value)">
+      </div>
+      <button class="btn-primary" onclick="openDishForm()"><span class="plus">+</span> Add dish</button>
+    </div>
+    ${shelf}
+    <p class="count-note">Showing ${filtered.length} of ${dishes.length} dishes${filterIngs.size ? ` · matching ${[...filterIngs].join(" + ")}` : ""}</p>
+    ${cards}`;
+  }
+
+  function dishCard(d) {
+    const p = ph(d.id + d.title);
+    const pic = d.img ? `<img class="pic" src="${d.img}" alt="">` : `<div class="pic-ph" style="background:${p.bg}">${p.g}</div>`;
+    const ings = d.ingredients.slice(0, 5).map(i => `<span class="mini ${filterIngs.has(i) ? "hit" : ""}">${esc(i)}</span>`).join("");
+    const more = d.ingredients.length > 5 ? `<span class="mini">+${d.ingredients.length - 5}</span>` : "";
+    return `<button class="card" onclick="openDetail('${d.id}')">${pic}<div class="card-body"><h3>${esc(d.title)}</h3><p>${esc(d.description)}</p><div class="card-ings">${ings}${more}</div></div></button>`;
+  }
+
+  function onSearch(v) {
+    search = v;
+    const f = document.getElementById("main");
+    // re-render only grid + note to keep input focus
+    render();
+    const inp = document.getElementById("searchInput");
+    if (inp) {
+      inp.focus();
+      inp.setSelectionRange(inp.value.length, inp.value.length)
+    }
+  }
+
+  function toggleIng(n) {
+    filterIngs.has(n) ? filterIngs.delete(n) : filterIngs.add(n);
+    render()
+  }
+
+  function clearFilter() {
+    filterIngs.clear();
+    render()
+  }
+
+  /* ---------- DISH detail ---------- */
+  function openDetail(id) {
+    const d = dishes.find(x => x.id === id);
+    if (!d) return;
+    const p = ph(d.id + d.title);
+    const pic = d.img ? `<img class="detail-pic" src="${d.img}">` : `<div class="detail-ph" style="background:${p.bg}">${p.g}</div>`;
+    modal(`
+    <div class="modal-h"><h2>${esc(d.title)}</h2><button class="x" onclick="closeModal()">×</button></div>
+    <div class="modal-b detail-b">
+      ${pic}
+      <p class="desc">${esc(d.description) || "<em>No description.</em>"}</p>
+      <div class="eyebrow" style="margin-bottom:8px">Main ingredients</div>
+      <div class="ings">${d.ingredients.map(i => `<span class="mini">${esc(i)}</span>`).join("") || "—"}</div>
+    </div>
+    <div class="modal-f">
+      <button class="btn-save" onclick="openDishForm('${d.id}')">Edit dish</button>
+      <button class="btn-del" onclick="deleteDish('${d.id}')">Delete</button>
+    </div>`);
+  }
+
+  /* ---------- DISH form (add / edit) ---------- */
+  let formImg = null;
+
+  function openDishForm(id) {
+    const d = id ? dishes.find(x => x.id === id) : null;
+    formImg = d ? d.img : null;
+    const p = d ? ph(d.id + d.title) : { bg: "#E8C7A0", g: "📷" };
+    modal(`
+    <div class="modal-h"><h2>${d ? "Edit dish" : "New dish"}</h2><button class="x" onclick="closeModal()">×</button></div>
+    <div class="modal-b">
+      <div class="field">
+        <label>Title</label>
+        <input id="f-title" placeholder="What do you call it?" value="${d ? esc(d.title) : ""}">
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <textarea id="f-desc" rows="2" placeholder="A line about it — serving idea, why you like it">${d ? esc(d.description) : ""}</textarea>
+      </div>
+      <div class="field">
+        <label>Main ingredients</label>
+        <input id="f-ings" placeholder="comma separated — eggs, tomato, onion" value="${d ? esc(d.ingredients.join(", ")) : ""}">
+        <div class="hint">Separate with commas. These power the filter.</div>
+      </div>
+      <div class="field">
+        <label>Picture</label>
+        <div class="uploader">
+          <div class="preview" id="f-preview" style="${formImg ? `background-image:url(${formImg});background-size:cover` : `background:${p.bg}`}">${formImg ? "" : p.g}</div>
+          <div>
+            <button class="file-btn" onclick="document.getElementById('f-file').click()">Choose image</button>
+            <input id="f-file" type="file" accept="image/*" style="display:none" onchange="onPickImg(event)">
+            <div class="hint" style="margin-top:6px">Optional. Stored in this session only.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn-save" onclick="saveDish('${d ? d.id : ""}')">${d ? "Save changes" : "Add to registry"}</button>
+      ${d ? `<button class="btn-del" onclick="deleteDish('${d.id}')">Delete</button>` : ""}
+    </div>`);
+    setTimeout(() => {
+      const t = document.getElementById("f-title");
+      if (t) t.focus()
+    }, 30);
+  }
+
+  function onPickImg(e) {
+    const f = e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      formImg = r.result;
+      const pv = document.getElementById("f-preview");
+      pv.style.backgroundImage = `url(${formImg})`;
+      pv.style.backgroundSize = "cover";
+      pv.textContent = ""
+    };
+    r.readAsDataURL(f)
+  }
+
+  function saveDish(id) {
+    const title = document.getElementById("f-title").value.trim();
+    if (!title) {
+      document.getElementById("f-title").focus();
+      document.getElementById("f-title").style.borderColor = "var(--persimmon)";
+      return
+    }
+    const description = document.getElementById("f-desc").value.trim();
+    const ingredients = document.getElementById("f-ings").value.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
+    if (id) {
+      const d = dishes.find(x => x.id === id);
+      Object.assign(d, { title, description, ingredients, img: formImg })
+    } else {
+      dishes.unshift({ id: uid(), title, description, ingredients, img: formImg })
+    }
+    formImg = null;
+    closeModal();
+    render();
+  }
+
+  function deleteDish(id) {
+    dishes = dishes.filter(d => d.id !== id);
+    calendar = calendar.filter(c => c.dishId !== id);
+    filterIngs.clear();
+    closeModal();
+    render();
+  }
+
+  /* ---------- CALENDAR screen ---------- */
+  function renderCalendar() {
+    const days = [...Array(7)].map((_, i) => addDays(weekStart, i));
+    const today = fmtDate(new Date());
+    const end = addDays(weekStart, 6);
+    const range = `${weekStart.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric"
+    })} – ${end.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+    const cols = days.map(d => {
+      const ds = fmtDate(d);
+      const isToday = ds === today;
+      const slots = SLOTS.map(slot => {
+        const meals = calendar.filter(c => c.date === ds && c.slot === slot);
+        const items = meals.map(c => {
+          const dish = dishes.find(x => x.id === c.dishId);
+          return `<div class="meal"><span>${dish ? esc(dish.title) : "(removed)"}</span><button onclick="removeMeal('${c.id}')" title="Remove">×</button></div>`
+        }).join("");
+        return `<div class="slot"><div class="slot-lbl">${slot}</div>${items}<button class="slot-add" onclick="openPicker('${ds}','${slot}')">+ add</button></div>`;
+      }).join("");
+      return `<div class="day ${isToday ? "is-today" : ""}">
+      <div class="day-h"><span class="dow">${d.toLocaleDateString("en-US", { weekday: "short" })}</span><span class="dnum">${d.getDate()}</span></div>
+      ${slots}
+    </div>`;
+    }).join("");
+    return `
+    <div class="eyebrow">Meal plan</div>
+    <h2 class="screen-title">Plan the week</h2>
+    <div class="cal-nav">
+      <button class="wk" onclick="shiftWeek(-1)">‹</button>
+      <span class="range mono">${range}</span>
+      <button class="wk" onclick="shiftWeek(1)">›</button>
+      <button class="today" onclick="thisWeek()">This week</button>
+    </div>
+    <div class="week">${cols}</div>`;
+  }
+
+  function shiftWeek(n) {
+    weekStart = addDays(weekStart, n * 7);
+    render()
+  }
+
+  function thisWeek() {
+    weekStart = startOfWeek(new Date());
+    render()
+  }
+
+  function removeMeal(id) {
+    calendar = calendar.filter(c => c.id !== id);
+    render()
+  }
+
+  /* ---------- picker (assign dish to a slot) ---------- */
+  let pickerCtx = null, pickerSearch = "";
+
+  function openPicker(date, slot) {
+    pickerCtx = { date, slot };
+    pickerSearch = "";
+    renderPicker();
+  }
+
+  function renderPicker() {
+    const { date, slot } = pickerCtx;
+    const d = new Date(date + "T00:00:00");
+    const label = `${d.toLocaleDateString("en-US", { weekday: "long" })} · ${slot}`;
+    const list = dishes.filter(x => !pickerSearch || x.title.toLowerCase().includes(pickerSearch.toLowerCase()));
+    const opts = list.length ? list.map(x => {
+      const p = ph(x.id + x.title);
+      const sw = x.img ? `<img class="sw" src="${x.img}">` : `<div class="sw" style="background:${p.bg}">${p.g}</div>`;
+      return `<button class="opt" onclick="assignDish('${x.id}')">${sw}<div><div class="nm">${esc(x.title)}</div><div class="ig">${x.ingredients.slice(0, 4).join(" · ")}</div></div></button>`;
+    }).join("") : `<div class="empty" style="padding:30px">No dishes match.</div>`;
+    modal(`
+    <div class="modal-h"><h2>Add to ${label}</h2><button class="x" onclick="closeModal()">×</button></div>
+    <div class="modal-b picker">
+      <div class="field picker-search"><input id="pick-search" placeholder="Search your dishes" value="${esc(pickerSearch)}" oninput="onPickSearch(this.value)"></div>
+      ${opts}
+    </div>`);
+    setTimeout(() => {
+      const s = document.getElementById("pick-search");
+      if (s) {
+        s.focus();
+        s.setSelectionRange(s.value.length, s.value.length)
+      }
+    }, 20);
+  }
+
+  function onPickSearch(v) {
+    pickerSearch = v;
+    renderPicker()
+  }
+
+  function assignDish(dishId) {
+    calendar.push({ id: uid(), dishId, date: pickerCtx.date, slot: pickerCtx.slot });
+    closeModal();
+    render()
+  }
+
+  /* ---------- modal plumbing ---------- */
+  function modal(html) {
+    document.getElementById("modal-root").innerHTML = `<div class="scrim" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`
+  }
+
+  function closeModal() {
+    document.getElementById("modal-root").innerHTML = "";
+    formImg = null
+  }
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeModal()
+  });
+
+  render();
+</script>
+</body>
+</html>

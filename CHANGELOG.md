@@ -1,3 +1,9 @@
+## [1.0.10](https://github.com/lmatosevic/appweaver/compare/v1.0.9...v1.0.10) (2026-06-22)
+
+### Bug Fixes
+
+* add support for custom HTTP response headers for static files ([35ccf76](https://github.com/lmatosevic/appweaver/commit/35ccf766d09fa125c54265c74d1ccc993643ef0c))
+
 ## [1.0.9](https://github.com/lmatosevic/appweaver/compare/v1.0.8...v1.0.9) (2026-06-22)
 
 ### Bug Fixes
