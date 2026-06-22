@@ -1,3 +1,9 @@
+## [1.0.8](https://github.com/lmatosevic/appweaver/compare/v1.0.7...v1.0.8) (2026-06-22)
+
+### Bug Fixes
+
+* upgrade dependencies in all packages ([a95ce11](https://github.com/lmatosevic/appweaver/commit/a95ce1130f62cc3dbba1e9bb00ff5a5127b8fdc0))
+
 ## [1.0.7](https://github.com/lmatosevic/appweaver/compare/v1.0.6...v1.0.7) (2026-06-01)
 
 ### Bug Fixes
