@@ -1,3 +1,9 @@
+## [1.0.9](https://github.com/lmatosevic/appweaver/compare/v1.0.8...v1.0.9) (2026-06-22)
+
+### Bug Fixes
+
+* keep .gitignore in create-weaver-app default template ([e958741](https://github.com/lmatosevic/appweaver/commit/e958741ab4e0faaa7a23c65aeaadfd27194b4da1))
+
 ## [1.0.8](https://github.com/lmatosevic/appweaver/compare/v1.0.7...v1.0.8) (2026-06-22)
 
 ### Bug Fixes
