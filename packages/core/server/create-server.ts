@@ -95,7 +95,13 @@ export function createServer(): Server {
       prefixAvoidTrailingSlash: true,
       constraints: config.SERVER_STATIC_ALLOWED_HOST
         ? { host: config.SERVER_STATIC_ALLOWED_HOST }
-        : {}
+        : {},
+      setHeaders: (response) => {
+        for (const header of config.SERVER_STATIC_RESPONSE_HEADERS) {
+          const [name, ...valueParts] = header.split(':');
+          response.setHeader(name.trim(), valueParts.join(':').trim());
+        }
+      }
     });
   }
 

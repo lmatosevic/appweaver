@@ -151,6 +151,13 @@
               "type": "string",
               "default": "/public"
             },
+            "staticResponseHeaders": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
             "staticMaxAge": {
               "type": "string",
               "default": "30d"

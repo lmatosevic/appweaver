@@ -66,6 +66,8 @@ export type Config = {
   SERVER_STATIC_DIR_PATH: string;
   /** URL prefix for static file routes. Default: `'/public'`. */
   SERVER_STATIC_ROUTE_PREFIX: string;
+  /** HTTP headers for static files. Format of entry: "{header}: {value}". Default: `[]`. */
+  SERVER_STATIC_RESPONSE_HEADERS: string[];
   /** Cache-Control max-age for static files. Default: `'30d'`. */
   SERVER_STATIC_MAX_AGE: string;
   /** Host allowed accessing static files (CORS). */

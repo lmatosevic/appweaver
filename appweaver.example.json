@@ -20,6 +20,9 @@
       "staticEnabled": true,
       "staticDirPath": "./public",
       "staticRoutePrefix": "/public",
+      "staticResponseHeaders": [
+        "Content-Security-Policy: script-src 'self'"
+      ],
       "staticMaxAge": "30d",
       "staticAllowedHost": null,
       "trustProxy": true,

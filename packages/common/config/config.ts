@@ -57,6 +57,7 @@ const configSchema = Type.Object({
   SERVER_STATIC_ENABLED: Type.Boolean({ default: true }),
   SERVER_STATIC_DIR_PATH: Type.String({ default: './public' }),
   SERVER_STATIC_ROUTE_PREFIX: Type.String({ default: '/public' }),
+  SERVER_STATIC_RESPONSE_HEADERS: Type.Array(Type.String(), { default: [] }),
   SERVER_STATIC_MAX_AGE: Type.String({ default: '30d' }),
   SERVER_STATIC_ALLOWED_HOST: Type.Optional(Type.String()),
   SERVER_TRUST_PROXY: Type.Boolean({ default: true }),
