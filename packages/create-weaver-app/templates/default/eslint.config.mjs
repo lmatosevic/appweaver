@@ -6,13 +6,7 @@ import tsEslint from 'typescript-eslint';
 
 export default tsEslint.config(
   {
-    ignores: [
-      'node_modules',
-      'dist',
-      'database/client',
-      '**/*.js',
-      '**/*.d.ts'
-    ]
+    ignores: ['node_modules', 'dist', 'database/client', '**/*.js', '**/*.d.ts']
   },
   eslint.configs.recommended,
   ...tsEslint.configs.recommendedTypeChecked.map((config) => ({ ...config })),
