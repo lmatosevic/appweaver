@@ -56,12 +56,10 @@ export async function generateClient(
   const schemaObject =
     typeof schema === 'string' ? await toSchemaObject(schema) : schema;
 
-  // Resolve the client class name
-  let className = clientName;
-  if (!className) {
-    const openApiTitle = schemaObject.info?.title || 'Weaver';
-    className = `${openApiTitle.replace(' ', '')}Client`;
-  }
+  // Resolve the client class name, convert to CamelCase, and sanitize
+  const className = (
+    clientName || `${toCamelCase(schemaObject.info.title) || 'Weaver'}Client`
+  ).replace(/[^a-zA-Z0-9_$]/g, '');
 
   // Resolve the type import statement and types prefix
   const typeName = 'Type';
@@ -549,4 +547,18 @@ function resourceOperation(
   };
 
   return operationMap[method]?.[pathSuffix.replace(/^\//, '')];
+}
+
+/**
+ * Converts a given string to CamelCase format.
+ * Words in the input string can be separated by spaces, dashes, or underscores.
+ *
+ * @param {string} text - The input string to be converted to CamelCase.
+ * @return {string} The converted string in CamelCase format.
+ */
+function toCamelCase(text: string): string {
+  const result = text.replace(/[\s\-_]+[a-z0-9]/g, (match) =>
+    match.replace(/[\s\-_]+/, '').toUpperCase()
+  );
+  return result.charAt(0).toUpperCase() + result.slice(1);
 }
