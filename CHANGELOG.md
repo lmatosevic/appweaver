@@ -1,3 +1,9 @@
+## [1.0.11](https://github.com/lmatosevic/appweaver/compare/v1.0.10...v1.0.11) (2026-07-04)
+
+### Bug Fixes
+
+* fix abort process unintentional error and remove unused sample html file ([fffd179](https://github.com/lmatosevic/appweaver/commit/fffd179b5e96a35b525fe9d0a95f2dc30d280855))
+
 ## [1.0.10](https://github.com/lmatosevic/appweaver/compare/v1.0.9...v1.0.10) (2026-06-22)
 
 ### Bug Fixes
