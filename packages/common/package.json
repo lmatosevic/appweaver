@@ -1,6 +1,6 @@
 {
   "name": "@appweaver/common",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Appweaver - the backend framework for AI-first development (@common)",
   "author": "Luka Matosevic",
   "license": "MIT",

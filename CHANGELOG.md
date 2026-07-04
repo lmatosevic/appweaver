@@ -1,3 +1,10 @@
+## [1.0.13](https://github.com/lmatosevic/appweaver/compare/v1.0.12...v1.0.13) (2026-07-04)
+
+### Bug Fixes
+
+* move rxjs to dependencies and remove redundant peerDependency ([2f7749b](https://github.com/lmatosevic/appweaver/commit/2f7749b2595bbaac432cc18f457377971435d8b1))
+* sanitize client class name and add CamelCase conversion utility, removed optional flag for RxJs dependency ([9e356d6](https://github.com/lmatosevic/appweaver/commit/9e356d6c569a02af71273f8420afeab2e27b492d))
+
 ## [1.0.12](https://github.com/lmatosevic/appweaver/compare/v1.0.11...v1.0.12) (2026-07-04)
 
 ### Bug Fixes
