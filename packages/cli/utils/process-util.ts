@@ -33,12 +33,8 @@ export function runProcess(
     if (signal) {
       const abortHandler = () => {
         if (child.pid) {
-          treeKill(child.pid, (err) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(0);
-            }
+          treeKill(child.pid, () => {
+            resolve(0);
           });
         }
       };
