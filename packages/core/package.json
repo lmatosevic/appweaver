@@ -1,6 +1,6 @@
 {
   "name": "@appweaver/core",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Appweaver - the backend framework for AI-first development (@core)",
   "author": "Luka Matosevic",
   "license": "MIT",

@@ -1,3 +1,9 @@
+## [1.0.12](https://github.com/lmatosevic/appweaver/compare/v1.0.11...v1.0.12) (2026-07-04)
+
+### Bug Fixes
+
+* update .gitignore in default template to exclude AI agent local only files ([ce0b0a0](https://github.com/lmatosevic/appweaver/commit/ce0b0a08daca538bb3325a3ddf13871283b34d1f))
+
 ## [1.0.11](https://github.com/lmatosevic/appweaver/compare/v1.0.10...v1.0.11) (2026-07-04)
 
 ### Bug Fixes
