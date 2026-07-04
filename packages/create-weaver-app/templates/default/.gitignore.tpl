@@ -44,3 +44,11 @@ storage
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# AI agents - local/per-user files
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/memory/
+.claude/commands/
+.cursor/
+.aider*

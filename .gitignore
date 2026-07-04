@@ -35,9 +35,7 @@ CLAUDE.local.md
 .claude/memory/
 .claude/commands/
 .cursor/
-.cursorrules
 .aider*
-.agent*
 
 # Env file
 .env
