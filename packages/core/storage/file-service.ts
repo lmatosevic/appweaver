@@ -463,6 +463,73 @@ export class FileService {
     return deletedFiles;
   }
 
+  /**
+   * Deletes all files associated with a resource for file fields configured
+   * with `onResourceDeleted: 'delete'`. Files belonging to fields without this
+   * setting (or set to `'keep'`) are left untouched.
+   *
+   * @param {string} resourceName - The resource model name.
+   * @param {number} resourceId - The ID of the deleted resource.
+   * @return {Promise<File[]>} A promise that resolves to the list of successfully deleted files.
+   */
+  public async deleteResourceFiles(
+    resourceName: string,
+    resourceId: number
+  ): Promise<File[]> {
+    const resourceModel = injectModel(resourceName, false);
+    if (!resourceModel) {
+      return [];
+    }
+
+    const filesConfig = resourceModel.config.files ?? {};
+    const deleteFields = Object.entries(filesConfig)
+      .filter(([_, config]) => config.onResourceDeleted !== 'keep')
+      .map(([field]) => field);
+
+    if (deleteFields.length === 0) {
+      return [];
+    }
+
+    let files: File[];
+    try {
+      files = (await this._db.client().file.findMany({
+        where: {
+          resourceName,
+          resourceId,
+          resourceField: { in: deleteFields }
+        }
+      })) as File[];
+    } catch (e) {
+      logger.error(
+        { resourceName, resourceId, error: e },
+        'Error finding resource files for deletion'
+      );
+      return [];
+    }
+
+    const deletedFiles: File[] = [];
+    for (const file of files) {
+      const success = await this.deleteSafe(file.name);
+      if (success) {
+        deletedFiles.push(file);
+      } else {
+        logger.error(
+          { resourceName, resourceId, fileName: file.name },
+          'Failed to delete file'
+        );
+      }
+    }
+
+    if (deletedFiles.length > 0) {
+      logger.debug(
+        { resourceName, resourceId, deletedCount: deletedFiles.length },
+        'Resource files deleted'
+      );
+    }
+
+    return deletedFiles;
+  }
+
   /** @internal */
   private buildFileUrl(file: File, policy: FilePolicy): string {
     return `${config.APP_HOSTNAME}/files/${policy.accessType === 'public' ? 'public' : 'protected'}/${file.name}`;

@@ -74,7 +74,8 @@ export default createModel({
   files: {
     coverImage: {
       mimeType: 'image/(jpg|png|gif)',
-      namePattern: 'covers/{name}-{hash}.{extension}'
+      namePattern: 'covers/{name}-{hash}.{extension}',
+      onResourceDeleted: 'delete'
     },
     galleryImages: {
       output: {

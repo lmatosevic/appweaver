@@ -195,6 +195,11 @@ export function resourceRoutes(
         async (request, reply) => {
           const response = await service.delete(request.params.id);
 
+          await inject(FileService).deleteResourceFiles(
+            name,
+            request.params.id
+          );
+
           return reply.send(response);
         }
       );

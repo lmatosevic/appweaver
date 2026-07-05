@@ -445,14 +445,15 @@ const config = {
 };
 ```
 
-| Property      | Type               | Description                                                             |
-|---------------|--------------------|-------------------------------------------------------------------------|
-| `mimeType`    | string \| RegExp   | Allowed MIME types (glob patterns like `'image/*'` supported).          |
-| `namePattern` | string \| function | File naming pattern or function (available variables are listed below). |
-| `array`       | boolean            | Allow multiple files.                                                   |
-| `maxSize`     | number \| string   | Maximum file size (e.g. `'2 MB'`, `5242880`).                           |
-| `maxCount`    | number             | Maximum number of files (for array fields).                             |
-| `output`      | RelationOutput     | When to include file info in output.                                    |
+| Property            | Type                   | Description                                                                                                 |
+|---------------------|------------------------|-------------------------------------------------------------------------------------------------------------|
+| `mimeType`          | string \| RegExp       | Allowed MIME types (glob patterns like `'image/*'` supported).                                              |
+| `namePattern`       | string \| function     | File naming pattern or function (available variables are listed below).                                     |
+| `array`             | boolean                | Allow multiple files.                                                                                       |
+| `maxSize`           | number \| string       | Maximum file size (e.g. `'2 MB'`, `5242880`).                                                               |
+| `maxCount`          | number                 | Maximum number of files (for array fields).                                                                 |
+| `output`            | RelationOutput         | When to include file info in output.                                                                        |
+| `onResourceDeleted` | `'delete'` \| `'keep'` | When the owning resource is deleted. `'delete'` (default) removes files from storage, `'keep'` leaves them. |
 
 #### Available namePattern variables
 

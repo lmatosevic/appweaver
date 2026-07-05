@@ -249,3 +249,32 @@ await fileService.deleteFile(
   postClient // ResourceClient
 );
 ```
+
+### Deleting all files on resource deletion
+
+When a resource is deleted, files belonging to file fields configured with `onResourceDeleted: 'delete'` can be
+automatically cleaned up. This is handled by `deleteResourceFiles()`, which is called automatically by the framework's
+delete route handler.
+
+To enable automatic file cleanup, set `onResourceDeleted: 'delete'` on the file field in your model config:
+
+```ts
+const config = {
+  files: {
+    coverImage: {
+      mimeType: 'image/*',
+      onResourceDeleted: 'delete' // default: files removed when resource is deleted
+    },
+    documents: {
+      array: true,
+      onResourceDeleted: 'keep' // opt out: files are kept
+    }
+  }
+};
+```
+
+You can also call `deleteResourceFiles` manually if needed:
+
+```ts
+await fileService.deleteResourceFiles('Post', postId);
+```

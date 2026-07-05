@@ -236,6 +236,9 @@ export type FileField = {
   maxCount?: number;
   /** Output configuration for the file relation */
   output?: Omit<RelationOutput, 'include'>;
+  /** Action to take on associated files when the owning resource is deleted.
+   * `'delete'` (default) removes files from storage, `'keep'` leaves them. */
+  onResourceDeleted?: 'delete' | 'keep';
 };
 
 export type OperationConfig = {
