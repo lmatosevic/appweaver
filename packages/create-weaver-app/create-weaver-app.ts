@@ -70,6 +70,7 @@ program
   )
   .option('--bun', 'Use Bun as application runtime.')
   .option('--skipInstall', 'Skip all dependencies installation.')
+  .option('--noDocker', 'Skip copying Dockerfile and docker-compose.yml files.')
   .option('--noRedis', 'Skip IoRedis package installation.')
   .option('--noQueue', 'Skip BullQueue package installation.')
   .option('--noMailer', 'Skip Nodemailer package installation.')
@@ -112,6 +113,18 @@ program
     // Copy template contents into a new directory
     const templateDir = path.join(__dirname, './templates/default');
     await fsp.cp(templateDir, destDir, { recursive: true });
+
+    // Remove Docker-related files if --noDocker flag is set
+    if (command.getOptionValue('noDocker')) {
+      const dockerFiles = [
+        'Dockerfile',
+        'Dockerfile.bun',
+        'docker-compose.yml.tpl'
+      ];
+      for (const dockerFile of dockerFiles) {
+        await fsp.rm(path.join(destDir, dockerFile), { force: true });
+      }
+    }
 
     // Define all variables used in template files with .tpl extension
     const variables: Record<string, string> = {

@@ -65,6 +65,7 @@ create-weaver-app <name> [description] [options]
 | `--agent`         | The AI agent for which to configure guidelines and skill files | `claude`     |
 | `--bun`           | Use Bun as application runtime. (default is node and npm)      | false        |
 | `--skipInstall`   | Skip all dependencies installation.                            | false        |
+| `--noDocker`      | Skip Dockerfile, Dockerfile.bun and docker-compose.yml files   | false        |
 | `--noRedis`       | Skip ioredis                                                   | false        |
 | `--noQueue`       | Skip bullmq                                                    | false        |
 | `--noMailer`      | Skip nodemailer                                                | false        |
@@ -128,7 +129,7 @@ const app = createApp({ autoStart: false, scanPath: './dist/my/app/path' });
 
 // custom init logic...
 
-app.start().then(address => {
+app.start().then((address) => {
   logger.info(address);
 });
 ```
@@ -412,14 +413,11 @@ optional dependencies on other named plugins.
 // src/plugins/audit-log.ts
 import { registerPlugin } from '@appweaver/core';
 
-registerPlugin(
-  'audit-log',
-  async (server) => {
-    server.addHook('onResponse', async (request, reply) => {
-      console.log(`${request.method} ${request.url} → ${reply.statusCode}`);
-    });
-  }
-);
+registerPlugin('audit-log', async (server) => {
+  server.addHook('onResponse', async (request, reply) => {
+    console.log(`${request.method} ${request.url} → ${reply.statusCode}`);
+  });
+});
 ```
 
 ### Dependency injection
@@ -431,10 +429,10 @@ lazily instantiated as singletons on the first injection.
 import { Cache } from '@appweaver/common';
 import { define, inject } from '@appweaver/core';
 
-define(RedisCacheService, Cache);          // register class under abstract token
+define(RedisCacheService, Cache); // register class under abstract token
 define('https://api.example.com', 'ApiBaseUrl'); // register plain value
 
-const cache = inject(Cache);              // resolves singleton instance
+const cache = inject(Cache); // resolves singleton instance
 const url = inject<string>('ApiBaseUrl'); // resolves by string token
 ```
 
@@ -445,11 +443,11 @@ This is the standard pattern for wiring infrastructure providers in `main.ts`.
 import { loadProvider } from '@appweaver/core';
 import { Database, Cache } from '@appweaver/common';
 
-loadProvider(__dirname, config.DATABASE_PROVIDER, Database);    // required provider
+loadProvider(__dirname, config.DATABASE_PROVIDER, Database); // required provider
 loadProvider(__dirname, config.CACHE_PROVIDER, Cache);
 loadProvider(__dirname, config.MAILER_PROVIDER, Mailer, false); // optional (no error if provider cannot be loaded)
 
-const cache: Mailer | undefined = inject(Mailer, false);        // optional injection
+const cache: Mailer | undefined = inject(Mailer, false); // optional injection
 ```
 
 ### Writing a seeder
