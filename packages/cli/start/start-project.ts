@@ -136,14 +136,19 @@ async function watchNodeProject(
  */
 async function watchBunProcess(): Promise<void> {
   let abortController: AbortController | undefined;
+  let runningProcess: Promise<number> | undefined;
   let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
   // Starts a new process and aborts the previous one
   async function start() {
     abortController?.abort();
+
+    // Wait for the previous process to fully terminate before starting a new one
+    await runningProcess;
+
     abortController = new AbortController();
 
-    await runProcess('bun', [config.APP_MAIN_FILE_PATH], {
+    runningProcess = runProcess('bun', [config.APP_MAIN_FILE_PATH], {
       signal: abortController.signal
     });
   }
