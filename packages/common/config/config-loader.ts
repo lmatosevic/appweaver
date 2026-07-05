@@ -27,28 +27,37 @@ export function loadConfigFromEnv(schema: TObject): ConfigEntry {
   const files: string[] = [];
 
   // Load variables from the default .env file.
-  const envVars = dotenvConfig({ quiet: true });
-  if (!envVars.error) {
+  if (!dotenvConfig({ quiet: true }).error) {
     files.push('.env');
   }
 
   // Load and override variables from the environment-specific .env.* file.
   const envFilePath = `.env.${process.env.NODE_ENV ?? 'dev'}`;
-  const envSpecificVars = dotenvConfig({
-    path: envFilePath,
-    override: true,
-    quiet: true
-  });
-  if (!envSpecificVars.error) {
+  if (
+    !dotenvConfig({
+      path: envFilePath,
+      override: true,
+      quiet: true
+    }).error
+  ) {
     files.push(envFilePath);
   }
 
   // Expand environment variables using $VAR_NAME or ${VAR_NAME} syntax
-  const expandedVars = dotenvExpand({
-    parsed: { ...envVars.parsed, ...envSpecificVars.parsed }
-  });
+  const parsed: Record<string, string> = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    if (value !== undefined) {
+      parsed[key] = value;
+    }
+  }
+  const expanded = dotenvExpand({ parsed });
+  if (expanded.parsed) {
+    for (const [key, value] of Object.entries(expanded.parsed)) {
+      process.env[key] = value;
+    }
+  }
 
-  const variables = Object.entries({ ...expandedVars.parsed });
+  const variables = Object.entries({ ...process.env });
 
   // Create configuration based on the provided schema object properties using
   // environment variables loaded from default and environment-specific files.
