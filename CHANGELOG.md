@@ -1,3 +1,11 @@
+## [1.0.20](https://github.com/lmatosevic/appweaver/compare/v1.0.19...v1.0.20) (2026-07-05)
+
+### Bug Fixes
+
+* add dotenv-expand for env variable expansion support ([d981505](https://github.com/lmatosevic/appweaver/commit/d981505c101cd95d87f96b9b79b8190612bdd95b))
+* add flag --noDocker to avoid creating docker and docker-compose.yml files when scaffolding new app ([58dc5f1](https://github.com/lmatosevic/appweaver/commit/58dc5f13a72c049be83ea01677aeed4d31169841))
+* update start.sh scripts to use direct weaver cli commands, fix port mapping and add seeder service in docker-compose template ([9f09d74](https://github.com/lmatosevic/appweaver/commit/9f09d74629560959504cffca14ead170a189e1b7))
+
 ## [1.0.19](https://github.com/lmatosevic/appweaver/compare/v1.0.18...v1.0.19) (2026-07-05)
 
 ### Bug Fixes
