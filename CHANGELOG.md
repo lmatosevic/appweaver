@@ -1,3 +1,9 @@
+## [1.0.18](https://github.com/lmatosevic/appweaver/compare/v1.0.17...v1.0.18) (2026-07-05)
+
+### Bug Fixes
+
+* fixed docker-compose template for scaffolding new app ([c92231d](https://github.com/lmatosevic/appweaver/commit/c92231d2af01fec6640244ab816b84d5ec2c0675))
+
 ## [1.0.17](https://github.com/lmatosevic/appweaver/compare/v1.0.16...v1.0.17) (2026-07-05)
 
 ### Bug Fixes
