@@ -59,6 +59,7 @@
     "dotenv": "17.4.2",
     "fastify": "5.8.5",
     "fastify-plugin": "6.0.0",
+    "fkill": "10.0.3",
     "flatted": "3.4.2",
     "generate-api-key": "1.0.2",
     "glob": "13.0.6",
@@ -73,8 +74,7 @@
     "pluralize": "8.0.0",
     "prisma": "7.8.0",
     "rotating-file-stream": "3.2.9",
-    "rxjs": "7.8.2",
-    "tree-kill": "1.2.2"
+    "rxjs": "7.8.2"
   },
   "devDependencies": {
     "@eslint/js": "9.39.2",

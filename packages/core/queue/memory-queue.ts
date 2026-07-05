@@ -428,7 +428,7 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
         job.status = 'failed';
         job.finishedAt = Date.now();
 
-        await this.emitEvent('failed', job, error as Error, 'active');
+        await this.emitEvent('failed', job, error, 'active');
 
         // Clean up failed job after a short delay
         setTimeout(() => {
@@ -437,7 +437,7 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       } else {
         // Retry the job
         job.status = 'waiting';
-        await this.emitEvent('error', error as Error);
+        await this.emitEvent('error', error);
       }
     }
   }

@@ -47,10 +47,12 @@ export class Application extends LifecycleManager {
     Object.freeze(context);
 
     // Add a termination handler for gracefully stopping the application
-    process.on('SIGINT', async () => {
+    const shutdown = async () => {
       await this.stop();
       process.exit(0);
-    });
+    };
+    process.on('SIGTERM', shutdown);
+    process.on('SIGINT', shutdown);
 
     // Add unhandled rejection handler
     process.on('unhandledRejection', async (err) => {

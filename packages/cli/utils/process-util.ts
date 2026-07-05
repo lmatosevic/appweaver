@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import treeKill from 'tree-kill';
+import fkill from 'fkill';
 import { config } from '@appweaver/common';
 
 /**
@@ -10,7 +10,7 @@ import { config } from '@appweaver/common';
  * @param {Object} [params={ quiet: false }] - Configurations for how the process should run.
  * @param {boolean} [params.quiet=false] - If true, suppresses the process output.
  * @param {AbortSignal} [params.signal] - Optional AbortSignal to terminate the running process.
- * @return {Promise<number>} A promise that resolves with the exit code of the process or 1 on error.
+ * @return {Promise<number>} A promise that resolves with the exit code of the process.
  */
 export function runProcess(
   cmd: string,
@@ -30,12 +30,18 @@ export function runProcess(
       env: { ...process.env, WEAVER_CLI: undefined }
     });
 
+    let aborted = false;
+
     if (signal) {
-      const abortHandler = () => {
+      const abortHandler = async () => {
         if (child.pid) {
-          treeKill(child.pid, () => {
-            resolve(0);
-          });
+          aborted = true;
+          try {
+            await fkill(child.pid, { force: true, tree: true });
+          } catch (e) {
+            console.error('Failed to kill process:', e);
+          }
+          resolve(0);
         }
       };
 
@@ -45,7 +51,9 @@ export function runProcess(
     child.on('error', reject);
 
     child.on('close', (code) => {
-      resolve(code ?? 99);
+      if (!aborted) {
+        resolve(code ?? 99);
+      }
     });
   });
 }

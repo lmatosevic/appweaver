@@ -2,7 +2,6 @@ import { Readable } from 'node:stream';
 import {
   config,
   ExportConfig,
-  ExportRelations,
   extractResourceName,
   extractSchemaProperties,
   isArray,
@@ -184,7 +183,7 @@ export class ExportService {
           const mappedItem = this.mapProperty(
             relationName,
             subItem,
-            exportField as ExportRelations,
+            exportField,
             header
           );
           for (const subKey in mappedItem) {

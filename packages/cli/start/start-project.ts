@@ -81,21 +81,24 @@ async function watchNodeProject(
   projectFile: string
 ): Promise<void> {
   let abortController: AbortController | undefined;
+  let runningProcess: Promise<number> | undefined;
   const watch = new TscWatchClient();
 
   // Handler for every successful compilation of watched code, aborts previous
   // process and starts a new one
   watch.on('success', async () => {
-    if (abortController) {
-      abortController.abort();
-    }
+    abortController?.abort();
+
+    // Wait for the previous process to fully terminate before starting a new one
+    await runningProcess;
+
     abortController = new AbortController();
 
     // Replace import alias paths in compiled code
     await replaceTscAliasPaths({ configFile: projectFile });
 
     // Start the main application process
-    await runProcess('node', [mainFilePath], {
+    runningProcess = runProcess('node', [mainFilePath], {
       signal: abortController.signal
     });
   });
@@ -137,9 +140,7 @@ async function watchBunProcess(): Promise<void> {
 
   // Starts a new process and aborts the previous one
   async function start() {
-    if (abortController) {
-      abortController.abort();
-    }
+    abortController?.abort();
     abortController = new AbortController();
 
     await runProcess('bun', [config.APP_MAIN_FILE_PATH], {

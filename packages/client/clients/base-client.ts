@@ -421,11 +421,7 @@ export abstract class BaseClient<
     UseObservable
   > {
     return (...params: InitParam<Init>) => {
-      return this.sendRequest<Method, Path, Init>(
-        method,
-        url,
-        ...params
-      ) as any;
+      return this.sendRequest<Method, Path, Init>(method, url, ...params);
     };
   }
 

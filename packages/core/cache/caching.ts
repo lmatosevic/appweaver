@@ -72,7 +72,7 @@ export default fastifyPlugin((server: Server) => {
 });
 
 function getRouteConfig(req: FastifyRequest): FullRouteConfig {
-  return req.routeOptions.config as FullRouteConfig;
+  return req.routeOptions.config;
 }
 
 function shouldUseCache(
