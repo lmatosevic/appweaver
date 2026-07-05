@@ -1,3 +1,9 @@
+## [1.0.21](https://github.com/lmatosevic/appweaver/compare/v1.0.20...v1.0.21) (2026-07-05)
+
+### Bug Fixes
+
+* fix variable expansion to include all env variables from the current process ([7bd5461](https://github.com/lmatosevic/appweaver/commit/7bd5461b4f769537351a9d621a89761c58b193a5))
+
 ## [1.0.20](https://github.com/lmatosevic/appweaver/compare/v1.0.19...v1.0.20) (2026-07-05)
 
 ### Bug Fixes
