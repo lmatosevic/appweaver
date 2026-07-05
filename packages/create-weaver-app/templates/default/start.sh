@@ -10,15 +10,15 @@ fi
 
 if [ "$role" = "app" ]; then
   echo "Starting application..."
-  npm run start
+  npx weaver start
 
 elif [ "$role" = "migrations" ]; then
   echo "Executing migrations..."
-  npm run migrate
+  npx weaver migrate
 
 elif [ "$role" = "seed" ]; then
   echo "Seeding database..."
-  npm run seed
+  npx weaver seed
 
 else
   echo "Could not match the container role \"$role\""

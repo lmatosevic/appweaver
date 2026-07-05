@@ -11,13 +11,13 @@ services:
       start_period: 5s
       start_interval: 5s
     ports:
-      - "127.0.0.1:54312:5432"
+      - "127.0.0.1:5433:5432"
     environment:
       POSTGRES_DB: "${DB_NAME}"
       POSTGRES_USER: "${DB_USER}"
       POSTGRES_PASSWORD: "${DB_PASSWORD}"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
     networks:
       - {{LOWER_NAME}}
 
@@ -33,7 +33,7 @@ services:
       start_period: 5s
       start_interval: 5s
     ports:
-      - "127.0.0.1:6380:6379"
+      - "127.0.0.1:6378:6379"
     volumes:
       - redis-data:/data
     networks:
@@ -54,6 +54,21 @@ services:
     networks:
       - {{LOWER_NAME}}
 
+  {{LOWER_NAME}}.seed:
+    image: {{LOWER_NAME}}:latest
+    container_name: {{LOWER_NAME}}-seed
+    restart: no
+    build:
+      context: .
+    depends_on:
+      {{LOWER_NAME}}.migrations:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    command: [ "seed" ]
+    networks:
+      - {{LOWER_NAME}}
+
   {{LOWER_NAME}}:
     image: {{LOWER_NAME}}:latest
     container_name: {{LOWER_NAME}}
@@ -61,7 +76,7 @@ services:
     build:
       context: .
     healthcheck:
-      test: "wget -qO - http://127.0.0.1:3030/health/ready || exit 1"
+      test: "wget -qO - http://127.0.0.1:{{PORT}}/health/ready || exit 1"
       interval: 30s
       timeout: 10s
       retries: 5
@@ -70,10 +85,10 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-      {{LOWER_NAME}}.migrations:
+      {{LOWER_NAME}}.seed:
         condition: service_completed_successfully
     ports:
-      - "127.0.0.1:3030:3003"
+      - "127.0.0.1:{{PORT}}:{{PORT}}"
     volumes:
       - ./storage:/usr/app/storage
       - ./logs:/usr/app/logs
