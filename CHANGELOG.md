@@ -1,3 +1,9 @@
+## [1.0.14](https://github.com/lmatosevic/appweaver/compare/v1.0.13...v1.0.14) (2026-07-05)
+
+### Bug Fixes
+
+* replace tree-kill with fkill package, improve process handling, and update dependencies ([a5fb6e3](https://github.com/lmatosevic/appweaver/commit/a5fb6e33e6c670d8b30854f0247a7238a176029b))
+
 ## [1.0.13](https://github.com/lmatosevic/appweaver/compare/v1.0.12...v1.0.13) (2026-07-04)
 
 ### Bug Fixes
