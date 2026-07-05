@@ -1,3 +1,9 @@
+## [1.0.16](https://github.com/lmatosevic/appweaver/compare/v1.0.15...v1.0.16) (2026-07-05)
+
+### Bug Fixes
+
+* add file config property to control automatic file cleanup on owning resource deletion ([7d266ac](https://github.com/lmatosevic/appweaver/commit/7d266ac8cdfbcf3384a7f3d200de368902808843))
+
 ## [1.0.15](https://github.com/lmatosevic/appweaver/compare/v1.0.14...v1.0.15) (2026-07-05)
 
 ### Bug Fixes
