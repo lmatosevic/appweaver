@@ -29,7 +29,7 @@ WORKDIR /usr/app
 # Copy NPM package
 COPY --from=build /usr/app/package*.json /usr/app/
 
-# Install NPM dependencies for production
+# Install production NPM dependencies
 RUN npm ci --omit=dev
 
 # Copy build files
