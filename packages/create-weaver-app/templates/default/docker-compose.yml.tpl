@@ -81,7 +81,7 @@ services:
       - {{LOWER_NAME}}
 
 networks:
-    {{LOWER_NAME}}:
+  {{LOWER_NAME}}:
     driver: bridge
     name: {{LOWER_NAME}}-network
 
