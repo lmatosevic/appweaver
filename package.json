@@ -57,6 +57,7 @@
     "csv-stringify": "6.8.0",
     "date-fns": "4.4.0",
     "dotenv": "17.4.2",
+    "dotenv-expand": "13.0.0",
     "fastify": "5.8.5",
     "fastify-plugin": "6.0.0",
     "fkill": "10.0.3",

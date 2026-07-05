@@ -13,6 +13,9 @@ Configuration is loaded and merged in the following order (later sources overrid
 4. **Default .env file** `.env`
 5. **Environment-specific .env file** `.env.{NODE_ENV}` (overrides all above)
 
+`.env` values support `${VAR_NAME}` expansion referencing any other environment variable; escape as `\${VAR_NAME}` to
+keep it literal.
+
 ## JSON configuration format
 
 Configuration in JSON files is nested under the `config` key using camelCase property names. This is the preferred way
@@ -53,12 +56,12 @@ The config object provides type-safe accessor methods:
 ```ts
 import { config } from '@appweaver/common';
 
-config.env('APP_ENV', 'prod');       // string
-config.str('APP_NAME', 'MyApp');     // string
-config.int('SERVER_PORT', 5000);     // number (integer)
-config.float('SOME_RATIO', 0.5);    // number (float)
-config.bool('CACHE_ENABLED', true);  // boolean
-config.arr('CORS_METHODS', ['*']);   // string[]
+config.env('APP_ENV', 'prod'); // string
+config.str('APP_NAME', 'MyApp'); // string
+config.int('SERVER_PORT', 5000); // number (integer)
+config.float('SOME_RATIO', 0.5); // number (float)
+config.bool('CACHE_ENABLED', true); // boolean
+config.arr('CORS_METHODS', ['*']); // string[]
 ```
 
 The config object is frozen with `Object.freeze()` after loading to prevent runtime mutations.
@@ -67,7 +70,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 ## Configuration properties
 
-### Application (APP_*)
+### Application (APP\_\*)
 
 | Property                 | Type     | Default                            | Description                                                                                               |
 |--------------------------|----------|------------------------------------|-----------------------------------------------------------------------------------------------------------|
@@ -83,7 +86,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `APP_MAIN_FILE_PATH`     | string   | `'<srcPath>/main.ts'`              | Path to main application entrypoint file.                                                                 |
 | `APP_AUTOLOAD_MODULES`   | string[] | `[]`                               | Module paths to auto-load on startup.                                                                     |
 
-### Logging (LOG_*)
+### Logging (LOG\_\*)
 
 | Property               | Type    | Default  | Description                                                                              |
 |------------------------|---------|----------|------------------------------------------------------------------------------------------|
@@ -97,7 +100,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `LOG_ROTATE_COMPRESS`  | boolean | `true`   | Compress rotated log files with gzip.                                                    |
 | `LOG_PRETTY`           | boolean | `false`  | Enable pretty-printed JSON logs.                                                         |
 
-### Server (SERVER_*)
+### Server (SERVER\_\*)
 
 | Property                         | Type     | Default      | Description                                                |
 |----------------------------------|----------|--------------|------------------------------------------------------------|
@@ -114,7 +117,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `SERVER_TRUST_PROXY`             | boolean  | `true`       | Trust `X-Forwarded-*` headers from reverse proxies.        |
 | `SERVER_REQUEST_LOGGING_ENABLED` | boolean  | `false`      | Enable HTTP request/response logging.                      |
 
-### Rate limiting (RATE_LIMIT_*)
+### Rate limiting (RATE*LIMIT*\*)
 
 | Property                | Type      | Default   | Description                                                      |
 |-------------------------|-----------|-----------|------------------------------------------------------------------|
@@ -124,7 +127,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `RATE_LIMIT_ALLOW_LIST` | string[]? | -         | IP addresses/patterns exempt from rate limiting.                 |
 | `RATE_LIMIT_STORE`      | enum      | `'redis'` | Store backend for tracking limits. Values: `redis`, `in-memory`. |
 
-### Swagger / OpenAPI (SWAGGER_*)
+### Swagger / OpenAPI (SWAGGER\_\*)
 
 | Property                | Type    | Default      | Description                                 |
 |-------------------------|---------|--------------|---------------------------------------------|
@@ -132,7 +135,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `SWAGGER_PATH`          | string  | `'/swagger'` | URL path for the Swagger UI.                |
 | `SWAGGER_HIDE_UNTAGGED` | boolean | `false`      | Hide untagged endpoints from documentation. |
 
-### Health check (HEALTH_CHECK_*)
+### Health check (HEALTH*CHECK*\*)
 
 | Property                      | Type      | Default     | Description                                                   |
 |-------------------------------|-----------|-------------|---------------------------------------------------------------|
@@ -143,7 +146,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `HEALTH_CHECK_PICK_INSTANCES` | string[]? | -           | List of health check instance names to include in response.   |
 | `HEALTH_CHECK_OMIT_INSTANCES` | string[]? | -           | List of health check instance names to exclude from response. |
 
-### CORS (CORS_*)
+### CORS (CORS\_\*)
 
 | Property               | Type     | Default | Description                                   |
 |------------------------|----------|---------|-----------------------------------------------|
@@ -154,7 +157,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `CORS_MAX_AGE`         | integer  | `86400` | Preflight response cache duration in seconds. |
 | `CORS_CREDENTIALS`     | boolean  | `true`  | Allow credentials (cookies, auth headers).    |
 
-### Resources (RESOURCE_*)
+### Resources (RESOURCE\_\*)
 
 | Property                        | Type   | Default                              | Description                                 |
 |---------------------------------|--------|--------------------------------------|---------------------------------------------|
@@ -164,7 +167,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `RESOURCE_ROUTES_PATTERN`       | string | `'<srcPath>/resources/*/routes.ts'`  | Glob pattern for resource routes files.     |
 | `RESOURCE_GENERATED_TYPES_PATH` | string | `'<srcPath>/types/generated.ts'`     | Output path for generated TypeScript types. |
 
-### Data export (EXPORT_*)
+### Data export (EXPORT\_\*)
 
 | Property                    | Type    | Default | Description                                      |
 |-----------------------------|---------|---------|--------------------------------------------------|
@@ -174,7 +177,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `EXPORT_CSV_ADD_HEADERS`    | boolean | `true`  | Include a header row in CSV exports.             |
 | `EXPORT_CSV_ADD_SEP_ROW`    | boolean | `false` | Add separator row (BOM) for Excel compatibility. |
 
-### Security (SECURITY_*)
+### Security (SECURITY\_\*)
 
 #### General
 
@@ -284,7 +287,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `SECURITY_OAUTH2_CUSTOM_CLIENT_SECRET` | string? | -       | Custom OAuth2 client secret.                    |
 | `SECURITY_OAUTH2_CUSTOM_ISSUER`        | string? | -       | OpenID Connect issuer URL (used for discovery). |
 
-### Database (DATABASE_*)
+### Database (DATABASE\_\*)
 
 | Property                          | Type     | Default                                      | Description                                                              |
 |-----------------------------------|----------|----------------------------------------------|--------------------------------------------------------------------------|
@@ -299,7 +302,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `DATABASE_LOG_EVENTS`             | string[] | `[]`                                         | List of database events to log. Values: `query`, `info`, `warn`, `error` |
 | `DATABASE_PROVIDER`               | string   | `'@appweaver/core/database/prisma-database'` | Database provider implementation path.                                   |
 
-### File storage (STORAGE_*)
+### File storage (STORAGE\_\*)
 
 | Property                     | Type    | Default                                        | Description                                   |
 |------------------------------|---------|------------------------------------------------|-----------------------------------------------|
@@ -309,21 +312,21 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `STORAGE_FILES_ROUTE_PREFIX` | string  | `/files`                                       | URL prefix for file access routes.            |
 | `STORAGE_PROVIDER`           | string  | `'@appweaver/core/storage/filesystem-storage'` | Storage provider implementation path.         |
 
-### Redis (REDIS_*)
+### Redis (REDIS\_\*)
 
 | Property         | Type   | Default                          | Description                         |
 |------------------|--------|----------------------------------|-------------------------------------|
 | `REDIS_URL`      | string | `'redis://localhost:6379/0'`     | Redis connection URL.               |
 | `REDIS_PROVIDER` | string | `'@appweaver/core/memory/redis'` | Redis provider implementation path. |
 
-### In-memory store (MEMORY_*)
+### In-memory store (MEMORY\_\*)
 
 | Property          | Type    | Default                              | Description                             |
 |-------------------|---------|--------------------------------------|-----------------------------------------|
 | `MEMORY_MAX_SIZE` | string? | -                                    | Maximum size of the in-memory store.    |
 | `MEMORY_PROVIDER` | string  | `'@appweaver/core/memory/in-memory'` | In-memory provider implementation path. |
 
-### Cache (CACHE_*)
+### Cache (CACHE\_\*)
 
 | Property                      | Type    | Default                               | Description                                                            |
 |-------------------------------|---------|---------------------------------------|------------------------------------------------------------------------|
@@ -340,7 +343,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `CACHE_INVALIDATION_DEFERRED` | boolean | `false`                               | Defer invalidation to a background process.                            |
 | `CACHE_PROVIDER`              | string  | `'@appweaver/core/cache/redis-cache'` | Cache provider implementation path.                                    |
 
-### Job queue (QUEUE_*)
+### Job queue (QUEUE\_\*)
 
 | Property                       | Type     | Default                              | Description                                            |
 |--------------------------------|----------|--------------------------------------|--------------------------------------------------------|
@@ -353,21 +356,21 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `QUEUE_RETRY_BACKOFF_TYPE`     | enum     | `'fixed'`                            | Retry backoff type. Values: `fixed`, `exponential`.    |
 | `QUEUE_PROVIDER`               | string   | `'@appweaver/core/queue/bull-queue'` | Job queue provider implementation path.                |
 
-### Scheduler (SCHEDULER_*)
+### Scheduler (SCHEDULER\_\*)
 
 | Property                   | Type    | Default                                      | Description                                       |
 |----------------------------|---------|----------------------------------------------|---------------------------------------------------|
 | `SCHEDULER_AUTO_START_JOB` | boolean | `true`                                       | Auto-start scheduled jobs on application startup. |
 | `SCHEDULER_PROVIDER`       | string  | `'@appweaver/core/scheduler/cron-scheduler'` | Scheduler provider implementation path.           |
 
-### Events (EVENTS_*)
+### Events (EVENTS\_\*)
 
 | Property               | Type    | Default                                | Description                                 |
 |------------------------|---------|----------------------------------------|---------------------------------------------|
 | `EVENTS_MAX_LISTENERS` | integer | `20`                                   | Maximum event listeners per event type.     |
 | `EVENTS_PROVIDER`      | string  | `'@appweaver/core/events/node-events'` | Event emitter provider implementation path. |
 
-### Mailer (MAILER_*)
+### Mailer (MAILER\_\*)
 
 | Property                | Type    | Default                                | Description                              |
 |-------------------------|---------|----------------------------------------|------------------------------------------|
@@ -380,7 +383,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `MAILER_SMTP_USER`      | string? | -                                      | SMTP authentication username.            |
 | `MAILER_SMTP_PASSWORD`  | string? | -                                      | SMTP authentication password.            |
 
-### System (SYSTEM_*)
+### System (SYSTEM\_\*)
 
 | Property                        | Type    | Default                | Description                                       |
 |---------------------------------|---------|------------------------|---------------------------------------------------|

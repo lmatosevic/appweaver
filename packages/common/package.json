@@ -28,6 +28,7 @@
     "@sinclair/typebox": "0.34.49",
     "date-fns": "4.4.0",
     "dotenv": "17.4.2",
+    "dotenv-expand": "13.0.0",
     "generate-api-key": "1.0.2",
     "glob": "13.0.6",
     "pino": "10.3.1",

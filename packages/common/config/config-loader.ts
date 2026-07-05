@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { config as dotenvConfig } from 'dotenv';
+import { expand as dotenvExpand } from 'dotenv-expand';
 import { TObject } from '@sinclair/typebox';
 import { camelToSnakeCase, isObject, parseArray } from '../utils';
 import { CONFIG_NAME } from '../constants';
@@ -13,7 +14,8 @@ export type ConfigEntry = {
 /**
  * Loads configuration values from the environment variables based on the provided schema object.
  * Supports parsing environment variables into scalar or array values as defined in the schema.
- * Automatically handles loading of `.env` files (default and environment-specific).
+ * Automatically handles the loading of `.env` files (default and environment-specific).
+ * Also expands `${VAR_NAME}` references between environment variables.
  *
  * @param {TObject} schema The schema object that defines the expected structure and mapping of configuration
  * properties. Each property in the schema should include `type`, `mapFrom`, and optionally `default` definitions.
@@ -25,23 +27,28 @@ export function loadConfigFromEnv(schema: TObject): ConfigEntry {
   const files: string[] = [];
 
   // Load variables from the default .env file.
-  if (!dotenvConfig({ quiet: true }).error) {
+  const envVars = dotenvConfig({ quiet: true });
+  if (!envVars.error) {
     files.push('.env');
   }
 
   // Load and override variables from the environment-specific .env.* file.
-  const envFilePath = `.env.${process.env.NODE_ENV}`;
-  if (
-    !dotenvConfig({
-      path: envFilePath,
-      override: true,
-      quiet: true
-    })
-  ) {
+  const envFilePath = `.env.${process.env.NODE_ENV ?? 'dev'}`;
+  const envSpecificVars = dotenvConfig({
+    path: envFilePath,
+    override: true,
+    quiet: true
+  });
+  if (!envSpecificVars.error) {
     files.push(envFilePath);
   }
 
-  const variables = Object.entries({ ...process.env });
+  // Expand environment variables using $VAR_NAME or ${VAR_NAME} syntax
+  const expandedVars = dotenvExpand({
+    parsed: { ...envVars.parsed, ...envSpecificVars.parsed }
+  });
+
+  const variables = Object.entries({ ...expandedVars.parsed });
 
   // Create configuration based on the provided schema object properties using
   // environment variables loaded from default and environment-specific files.
