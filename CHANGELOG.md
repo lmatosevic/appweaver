@@ -1,3 +1,9 @@
+## [1.0.15](https://github.com/lmatosevic/appweaver/compare/v1.0.14...v1.0.15) (2026-07-05)
+
+### Bug Fixes
+
+* ensure correct process management in bun watch mode ([dfa0c01](https://github.com/lmatosevic/appweaver/commit/dfa0c015a11b48e7a3430c9971ef74358e9697bb))
+
 ## [1.0.14](https://github.com/lmatosevic/appweaver/compare/v1.0.13...v1.0.14) (2026-07-05)
 
 ### Bug Fixes
