@@ -43,6 +43,8 @@ services:
     image: {{LOWER_NAME}}:latest
     container_name: {{LOWER_NAME}}-migrations
     restart: no
+    build:
+      context: .
     depends_on:
       postgres:
         condition: service_healthy
