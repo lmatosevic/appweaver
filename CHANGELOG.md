@@ -1,3 +1,9 @@
+## [1.0.17](https://github.com/lmatosevic/appweaver/compare/v1.0.16...v1.0.17) (2026-07-05)
+
+### Bug Fixes
+
+* add image compression and resizing support for file uploads, update dependencies, and improve Docker configurations ([fba36cb](https://github.com/lmatosevic/appweaver/commit/fba36cb97508bf48e5a9913d43ce689007e40132))
+
 ## [1.0.16](https://github.com/lmatosevic/appweaver/compare/v1.0.15...v1.0.16) (2026-07-05)
 
 ### Bug Fixes
