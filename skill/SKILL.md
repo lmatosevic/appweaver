@@ -212,7 +212,8 @@ export default createModel({
   files: {
     photo: {
       mimeType: 'image/*',
-      maxSize: '2 MB'
+      maxSize: '2 MB',
+      image: { quality: 80, maxWidth: 1200 }
     }
   },
   create: {
@@ -333,7 +334,8 @@ export default createAuthModel({
   files: {
     avatar: {
       mimeType: 'image/(png|jpeg|gif)',
-      maxSize: '2 MB'
+      maxSize: '2 MB',
+      image: { quality: 80, maxHeight: 800, fit: 'inside' }
     }
   }
 });

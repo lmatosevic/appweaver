@@ -35,6 +35,9 @@ RUN npm ci --omit=dev
 # Copy build files
 COPY --from=build /usr/app/dist /usr/app/dist
 
+# Copy public static files
+COPY --from=build /usr/app/public /usr/app/public
+
 # Copy Prisma config, database migrations, and schema file
 COPY --from=build /usr/app/prisma.config.ts /usr/app/prisma.config.ts
 COPY --from=build /usr/app/database/migrations /usr/app/database/migrations

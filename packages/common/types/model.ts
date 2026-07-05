@@ -220,6 +220,25 @@ export type RelationField = {
   onUpdate?: ReferentialAction;
 };
 
+export type ImageFit = 'contain' | 'cover' | 'fill' | 'inside' | 'outside';
+
+export type ImageConfig = {
+  /** Compression quality (1-100). Applies to JPEG, PNG, WebP, AVIF, and TIFF. */
+  quality?: number;
+  /** Exact resize width in pixels. Takes precedence over maxWidth. */
+  width?: number;
+  /** Exact resize height in pixels. Takes precedence over maxHeight. */
+  height?: number;
+  /** Maximum width in pixels. Only downscales if the image exceeds this value. */
+  maxWidth?: number;
+  /** Maximum height in pixels. Only downscales if the image exceeds this value. */
+  maxHeight?: number;
+  /** How the image should be resized to fit the provided dimensions.
+   * `'inside'` (default) preserves an aspect ratio within the given dimensions.
+   * Other options: `'contain'`, `'cover'`, `'fill'`, `'outside'`. */
+  fit?: ImageFit;
+};
+
 export type FileField = {
   /** Allowed MIME type(s) or regex pattern */
   mimeType?: string | RegExp;
@@ -239,6 +258,9 @@ export type FileField = {
   /** Action to take on associated files when the owning resource is deleted.
    * `'delete'` (default) removes files from storage, `'keep'` leaves them. */
   onResourceDeleted?: 'delete' | 'keep';
+  /** Image compression and resizing configuration. Only applies to image files
+   * (JPEG, PNG, WebP, AVIF, TIFF). GIF files are passed through unchanged. */
+  image?: ImageConfig;
 };
 
 export type OperationConfig = {

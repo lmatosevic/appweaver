@@ -1,3 +1,4 @@
+import { Readable } from 'node:stream';
 import { Multipart, MultipartFile } from '@fastify/multipart';
 import {
   config,
@@ -20,8 +21,10 @@ import { PrismaDatabase } from '../database';
 import { CacheService } from '../cache';
 import {
   generateFileName,
+  isProcessableImage,
   isValidMimeType,
   parseRange,
+  processImage,
   sizeInBytes
 } from '../utils';
 import { File } from '../types';
@@ -239,7 +242,12 @@ export class FileService {
       throw new HttpError('Creating file is forbidden', 403);
     }
 
-    const fileName = await this._storage.store(generatedName, data.file);
+    let fileStream: Readable = data.file;
+    if (fileConfig.image && isProcessableImage(data.mimetype)) {
+      fileStream = processImage(data.file, data.mimetype, fileConfig.image);
+    }
+
+    const fileName = await this._storage.store(generatedName, fileStream);
     if (!fileName) {
       throw new HttpError('Error saving file to storage', 500);
     }

@@ -54,7 +54,13 @@ export default createAuthModel({
     avatar: {
       mimeType: 'image/*',
       namePattern: 'avatars/{name}-{hash}.{extension}',
-      maxSize: '3 MB'
+      maxSize: '3 MB',
+      image: {
+        quality: 80,
+        width: 480,
+        height: 480,
+        fit: 'cover'
+      }
     }
   },
   virtual: {

@@ -48,7 +48,8 @@
     "date-fns": "4.4.0",
     "fastify": "5.8.5",
     "fastify-plugin": "6.0.0",
-    "flatted": "3.4.2"
+    "flatted": "3.4.2",
+    "sharp": "0.35.3"
   },
   "devDependencies": {
     "@appweaver/common": "^1.0.0",

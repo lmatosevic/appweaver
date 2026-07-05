@@ -434,7 +434,13 @@ const config = {
     photo: {
       mimeType: 'image/*',
       namePattern: 'photos/{userId}-{name}-{hash}.{extension}',
-      maxSize: '2 MB'
+      maxSize: '2 MB',
+      image: {
+        quality: 80,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        fit: 'inside'
+      }
     },
     documents: {
       mimeType: 'application/pdf',
@@ -454,6 +460,7 @@ const config = {
 | `maxCount`          | number                 | Maximum number of files (for array fields).                                                                 |
 | `output`            | RelationOutput         | When to include file info in output.                                                                        |
 | `onResourceDeleted` | `'delete'` \| `'keep'` | When the owning resource is deleted. `'delete'` (default) removes files from storage, `'keep'` leaves them. |
+| `image`             | ImageConfig            | Image compression and resize settings. Only applies to image MIME types (excluding GIF).                    |
 
 #### Available namePattern variables
 
@@ -482,6 +489,49 @@ Default pattern is: `{name}-{hash}.{extension}`.
 | `date`          | string | Current date in ISO 8601 format.            |
 | `uuid`          | string | Generated random UUID.                      |
 | `hash`          | string | Generated random hash (32 bytes).           |
+
+#### Image compression
+
+Configure automatic image compression and resizing by adding the `image` property to a file field. Processing only
+applies to supported image MIME types: `image/jpeg`, `image/png`, `image/webp`, `image/avif`, `image/tiff`. GIF files
+are passed through unchanged.
+
+| Property    | Type     | Description                                                                                                    |
+|-------------|----------|----------------------------------------------------------------------------------------------------------------|
+| `quality`   | number   | Compression quality (1-100). Applies to JPEG, PNG, WebP, AVIF, and TIFF.                                       |
+| `width`     | number   | Exact resize width in pixels.                                                                                  |
+| `height`    | number   | Exact resize height in pixels.                                                                                 |
+| `maxWidth`  | number   | Maximum width. Only downscales if the image exceeds this dimension.                                            |
+| `maxHeight` | number   | Maximum height. Only downscales if the image exceeds this dimension.                                           |
+| `fit`       | ImageFit | How the image fits the target dimensions: `'inside'` (default), `'contain'`, `'cover'`, `'fill'`, `'outside'`. |
+
+`width`/`height` take precedence over `maxWidth`/`maxHeight`. When using `maxWidth`/`maxHeight`, images smaller than
+the specified dimensions are not enlarged.
+
+```ts
+// Compress and limit dimensions
+const config = {
+  files: {
+    avatar: {
+      mimeType: 'image/*',
+      maxSize: '5 MB',
+      image: { quality: 80, maxWidth: 800, maxHeight: 800 }
+    }
+  }
+};
+```
+
+```ts
+// Exact resize for thumbnails
+const config = {
+  files: {
+    thumbnail: {
+      mimeType: 'image/jpeg',
+      image: { quality: 70, width: 200, height: 200, fit: 'inside' }
+    }
+  }
+}
+```
 
 ### Virtual fields
 
