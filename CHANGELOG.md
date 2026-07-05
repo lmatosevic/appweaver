@@ -1,3 +1,9 @@
+## [1.0.19](https://github.com/lmatosevic/appweaver/compare/v1.0.18...v1.0.19) (2026-07-05)
+
+### Bug Fixes
+
+* add build context to migration service in docker-compose template ([2278fcd](https://github.com/lmatosevic/appweaver/commit/2278fcdfbc72998779fc5dd31133ea142a898654))
+
 ## [1.0.18](https://github.com/lmatosevic/appweaver/compare/v1.0.17...v1.0.18) (2026-07-05)
 
 ### Bug Fixes
