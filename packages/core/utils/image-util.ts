@@ -21,40 +21,43 @@ export function isProcessableImage(mimeType: string): boolean {
 }
 
 /**
- * Processes an image stream by resizing it and compressing it based on the provided configuration.
+ * Processes an image stream by applying EXIF-based autorotation, resizing, and compressing based on the
+ * provided configuration. When no config is provided, only EXIF-based autorotation is applied.
  *
  * @param {Readable} stream - The readable stream representing the input image.
  * @param {string} mimeType - The MIME type of the input image (e.g., "image/jpeg", "image/png").
- * @param {ImageConfig} config - Configuration for image processing, including dimensions, quality, and other options.
+ * @param {ImageConfig} [config] - Configuration for image processing, including dimensions, quality, and other options.
  * @return {Readable} A readable stream of the processed image.
  */
 export function processImage(
   stream: Readable,
   mimeType: string,
-  config: ImageConfig
+  config?: ImageConfig
 ): Readable {
   const format = IMAGE_MIME_FORMATS[mimeType];
   if (!format) {
     return stream;
   }
 
-  let pipeline = sharp();
+  let pipeline = sharp().rotate();
 
-  const width = config.width ?? config.maxWidth;
-  const height = config.height ?? config.maxHeight;
-  const fit = config.fit ?? 'inside';
+  if (config) {
+    const width = config.width ?? config.maxWidth;
+    const height = config.height ?? config.maxHeight;
+    const fit = config.fit ?? 'inside';
 
-  if (width || height) {
-    pipeline = pipeline.resize({
-      width: width ?? undefined,
-      height: height ?? undefined,
-      fit,
-      withoutEnlargement: !config.width && !config.height
-    });
+    if (width || height) {
+      pipeline = pipeline.resize({
+        width: width ?? undefined,
+        height: height ?? undefined,
+        fit,
+        withoutEnlargement: !config.width && !config.height
+      });
+    }
+
+    const opts = config.quality ? { quality: config.quality } : {};
+    pipeline = pipeline.toFormat(format as any, opts);
   }
-
-  const opts = config.quality ? { quality: config.quality } : {};
-  pipeline = pipeline.toFormat(format as any, opts);
 
   return stream.pipe(pipeline);
 }

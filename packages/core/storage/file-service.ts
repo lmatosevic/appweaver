@@ -243,7 +243,7 @@ export class FileService {
     }
 
     let fileStream: Readable = data.file;
-    if (fileConfig.image && isProcessableImage(data.mimetype)) {
+    if (isProcessableImage(data.mimetype)) {
       fileStream = processImage(data.file, data.mimetype, fileConfig.image);
     }
 
