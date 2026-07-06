@@ -1,3 +1,9 @@
+## [1.0.22](https://github.com/lmatosevic/appweaver/compare/v1.0.21...v1.0.22) (2026-07-06)
+
+### Bug Fixes
+
+* add support for image rotation based on EXIF data ([7dc8287](https://github.com/lmatosevic/appweaver/commit/7dc8287481200029846c2e06222a16618cd5245c))
+
 ## [1.0.21](https://github.com/lmatosevic/appweaver/compare/v1.0.20...v1.0.21) (2026-07-05)
 
 ### Bug Fixes
