@@ -18,7 +18,7 @@ provides factory methods for creating resource models, services, policies, and r
 - `appweaver.json` / `appweaver.{env}.json` - central configuration
 - `Dockerfile` - Docker image definition
 
-**IMPORTANT:** `{env}` is controlled by `NODE_ENV` evironment variable.
+**IMPORTANT:** `{env}` is controlled by `NODE_ENV` environment variable.
 
 ## Application entrypoint
 
