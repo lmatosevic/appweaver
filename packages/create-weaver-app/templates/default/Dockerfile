@@ -52,8 +52,8 @@ COPY --from=build /usr/app/start.sh /usr/app/start.sh
 # Make start script executable
 RUN chmod +x /usr/app/start.sh
 
-# Create storage and logs directories
-RUN mkdir storage logs
+# Create storage, logs, and data directories
+RUN mkdir storage logs data
 
 # Start container
 ENTRYPOINT ["/usr/app/start.sh"]

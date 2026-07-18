@@ -1,27 +1,5 @@
 services:
-  postgres:
-    image: postgres:18.4
-    container_name: {{LOWER_NAME}}-postgres
-    restart: unless-stopped
-    healthcheck:
-      test: "PGPASSWORD=$$POSTGRES_PASSWORD psql -U $$POSTGRES_USER -d $$POSTGRES_DB -c 'SELECT 1'"
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 5s
-      start_interval: 5s
-    ports:
-      - "127.0.0.1:5433:5432"
-    environment:
-      POSTGRES_DB: "${DB_NAME}"
-      POSTGRES_USER: "${DB_USER}"
-      POSTGRES_PASSWORD: "${DB_PASSWORD}"
-    volumes:
-      - postgres-data:/var/lib/postgresql
-    networks:
-      - {{LOWER_NAME}}
-
-  redis:
+{{DATABASE_DOCKER_SERVICE}}  redis:
     image: redis:7.4.9
     container_name: {{LOWER_NAME}}-redis
     restart: unless-stopped
@@ -45,13 +23,10 @@ services:
     restart: no
     build:
       context: .
-    depends_on:
-      postgres:
-        condition: service_healthy
-    env_file:
+{{DATABASE_DOCKER_MIGRATE_DEPENDS}}    env_file:
       - .env
     command: [ "migrations" ]
-    networks:
+{{DATABASE_DOCKER_SQLITE_VOLUMES}}    networks:
       - {{LOWER_NAME}}
 
   {{LOWER_NAME}}.seed:
@@ -66,7 +41,7 @@ services:
     env_file:
       - .env
     command: [ "seed" ]
-    networks:
+{{DATABASE_DOCKER_SQLITE_VOLUMES}}    networks:
       - {{LOWER_NAME}}
 
   {{LOWER_NAME}}:
@@ -91,7 +66,7 @@ services:
       - "127.0.0.1:{{PORT}}:{{PORT}}"
     volumes:
       - ./storage:/usr/app/storage
-      - ./logs:/usr/app/logs
+      - ./logs:/usr/app/logs{{DATABASE_DOCKER_APP_VOLUME}}
     env_file:
       - .env
     networks:
@@ -103,5 +78,4 @@ networks:
     name: {{LOWER_NAME}}-network
 
 volumes:
-  postgres-data:
-  redis-data:
+{{DATABASE_DOCKER_NAMED_VOLUME}}  redis-data:

@@ -126,6 +126,9 @@ program
       }
     }
 
+    // Build database-specific docker-compose service blocks
+    const dockerDb = getDatabaseDockerConfig(command, sanitizedName);
+
     // Define all variables used in template files with .tpl extension
     const variables: Record<string, string> = {
       NAME: name.charAt(0).toUpperCase() + name.slice(1),
@@ -136,6 +139,11 @@ program
       DEPENDENCIES: getNodeDependencies(command, runtime).join(',\n'),
       DATABASE_URL: getDatabaseUrl(command, sanitizedName, 'dev'),
       DATABASE_TEST_URL: getDatabaseUrl(command, sanitizedName, 'test'),
+      DATABASE_DOCKER_SERVICE: dockerDb.service,
+      DATABASE_DOCKER_MIGRATE_DEPENDS: dockerDb.migrateDepends,
+      DATABASE_DOCKER_SQLITE_VOLUMES: dockerDb.sqliteVolumes,
+      DATABASE_DOCKER_APP_VOLUME: dockerDb.appVolume,
+      DATABASE_DOCKER_NAMED_VOLUME: dockerDb.namedVolume,
       VERSION: pkg.version
     };
 
@@ -177,6 +185,11 @@ program
 
     // Create test reports directory
     await fsp.mkdir(path.join(destDir, 'reports'));
+
+    // Create the SQLite database data directory (matches the "data/" DATABASE_URL)
+    if (command.getOptionValue('database') === 'sqlite') {
+      await fsp.mkdir(path.join(destDir, 'data'), { recursive: true });
+    }
 
     // Add instructions for AI Agents and skill files
     const agent = command.getOptionValue('agent');
@@ -297,7 +310,7 @@ function getDatabaseUrl(
 ): string {
   const dbName = mode === 'test' ? `${name}-test` : name;
   const urls = {
-    sqlite: `file:./${mode === 'test' ? 'temp/' : ''}${dbName}.db`,
+    sqlite: `file:./${mode === 'test' ? 'temp/' : 'data/'}${dbName}.db`,
     postgresql: `postgresql://${name}:${name}@localhost:5432/${dbName}?schema=public`,
     mysql: `mysql://${name}:${name}@localhost:3306/${dbName}`,
     sqlserver: `sqlserver://localhost:1433;database=${dbName};user=${name};password=${name};trustServerCertificate=true`
@@ -311,6 +324,130 @@ function getDatabaseUrl(
   }
 
   return databaseUrl;
+}
+
+function getDatabaseDockerConfig(
+  command: Command,
+  name: string
+): {
+  service: string;
+  migrateDepends: string;
+  sqliteVolumes: string;
+  appVolume: string;
+  namedVolume: string;
+} {
+  const database = command.getOptionValue('database').toLowerCase();
+
+  // SQLite runs embedded in the application, so there is no database service.
+  // The database file is persisted in a named volume shared by the migration,
+  // seed, and application containers (see the "data/" DATABASE_URL location).
+  if (database === 'sqlite') {
+    return {
+      service: '',
+      migrateDepends: '',
+      sqliteVolumes: `    volumes:\n      - sqlite-data:/usr/app/data\n`,
+      appVolume: `\n      - sqlite-data:/usr/app/data`,
+      namedVolume: `  sqlite-data:\n`
+    };
+  }
+
+  const services: Record<string, { service: string; volume: string }> = {
+    postgresql: {
+      service: `  postgres:
+    image: postgres:18.4
+    container_name: ${name}-postgres
+    restart: unless-stopped
+    healthcheck:
+      test: "PGPASSWORD=$$POSTGRES_PASSWORD psql -U $$POSTGRES_USER -d $$POSTGRES_DB -c 'SELECT 1'"
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 5s
+      start_interval: 5s
+    ports:
+      - "127.0.0.1:5433:5432"
+    environment:
+      POSTGRES_DB: "\${DB_NAME}"
+      POSTGRES_USER: "\${DB_USER}"
+      POSTGRES_PASSWORD: "\${DB_PASSWORD}"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    networks:
+      - ${name}
+
+`,
+      volume: `  postgres-data:\n`
+    },
+    mysql: {
+      service: `  mysql:
+    image: mysql:8.4
+    container_name: ${name}-mysql
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD" ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 5s
+      start_interval: 5s
+    ports:
+      - "127.0.0.1:3307:3306"
+    environment:
+      MYSQL_DATABASE: "\${DB_NAME}"
+      MYSQL_USER: "\${DB_USER}"
+      MYSQL_PASSWORD: "\${DB_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "\${DB_PASSWORD}"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - ${name}
+
+`,
+      volume: `  mysql-data:\n`
+    },
+    sqlserver: {
+      service: `  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ${name}-sqlserver
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \\"$$MSSQL_SA_PASSWORD\\" -C -Q 'SELECT 1' || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 10s
+      start_interval: 5s
+    ports:
+      - "127.0.0.1:1434:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "\${DB_PASSWORD}"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - ${name}
+
+`,
+      volume: `  sqlserver-data:\n`
+    }
+  };
+
+  const config = services[database];
+  if (!config) {
+    console.error(`Invalid database type: ${database}`);
+    process.exit(1);
+  }
+
+  return {
+    service: config.service,
+    migrateDepends: `    depends_on:
+      ${database === 'postgresql' ? 'postgres' : database}:
+        condition: service_healthy
+`,
+    sqliteVolumes: '',
+    appVolume: '',
+    namedVolume: config.volume
+  };
 }
 
 function runProcess(
