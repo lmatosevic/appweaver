@@ -172,7 +172,7 @@ import { HttpClient } from '@angular/common/http';
 
 // In an Angular service or provider:
 const client = new CMSAPIClient(httpClient, { baseUrl: 'http://localhost:3000' });
-client.user.query({ filter: { enabled: true } }).subscribe((users) => { ... });
+client.user.query({ filter: { enabled: true } }).subscribe((users) => {});
 ```
 
 **Important:** `AngularClient` is only available from the `@appweaver/client/angular` subpath — it is not exported from
