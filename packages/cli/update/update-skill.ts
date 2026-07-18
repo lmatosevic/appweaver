@@ -13,8 +13,8 @@ import path from 'node:path';
  */
 export async function updateSkillFiles(
   quiet: boolean,
-  updateSkill = true,
-  updateGuidelines = true
+  updateSkill: boolean = true,
+  updateGuidelines: boolean = true
 ): Promise<void> {
   if (!updateSkill && !updateGuidelines) {
     return;
