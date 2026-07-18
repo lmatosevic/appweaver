@@ -1,3 +1,10 @@
+## [1.0.23](https://github.com/lmatosevic/appweaver/compare/v1.0.22...v1.0.23) (2026-07-18)
+
+### Bug Fixes
+
+* enable support for create-weaver-app docker-compose database specific service and volumes ([87b749b](https://github.com/lmatosevic/appweaver/commit/87b749b26ccb437bdc485aa9c03ef648b4186824))
+* separete fetchClient and angularClient import paths in @appweaver/client module ([ab1602a](https://github.com/lmatosevic/appweaver/commit/ab1602ab6e9aaf96018505290a9a36d684aed68a))
+
 ## [1.0.22](https://github.com/lmatosevic/appweaver/compare/v1.0.21...v1.0.22) (2026-07-06)
 
 ### Bug Fixes
