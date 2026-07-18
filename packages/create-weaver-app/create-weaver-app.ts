@@ -380,11 +380,11 @@ function getDatabaseDockerConfig(
     },
     mysql: {
       service: `  mysql:
-    image: mysql:8.4
+    image: mariadb:11.4
     container_name: ${name}-mysql
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD" ]
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
       interval: 30s
       timeout: 10s
       retries: 10
@@ -393,10 +393,10 @@ function getDatabaseDockerConfig(
     ports:
       - "127.0.0.1:3307:3306"
     environment:
-      MYSQL_DATABASE: "\${DB_NAME}"
-      MYSQL_USER: "\${DB_USER}"
-      MYSQL_PASSWORD: "\${DB_PASSWORD}"
-      MYSQL_ROOT_PASSWORD: "\${DB_PASSWORD}"
+      MARIADB_DATABASE: "\${DB_NAME}"
+      MARIADB_USER: "\${DB_USER}"
+      MARIADB_PASSWORD: "\${DB_PASSWORD}"
+      MARIADB_ROOT_PASSWORD: "\${DB_PASSWORD}"
     volumes:
       - mysql-data:/var/lib/mysql
     networks:

@@ -7,9 +7,19 @@ import path from 'node:path';
  * to specified agent directories and updating references in guideline files.
  *
  * @param {boolean} quiet - If true, suppresses logging output; otherwise, logs actions performed.
+ * @param {boolean} updateSkill - If true, copies skill files into agent directories (e.g. .claude, .agents).
+ * @param {boolean} updateGuidelines - If true, updates AI guideline files (e.g. AGENTS.md, CLAUDE.md).
  * @return {Promise<void>} A promise that resolves when the update process is complete.
  */
-export async function updateSkillFiles(quiet: boolean): Promise<void> {
+export async function updateSkillFiles(
+  quiet: boolean,
+  updateSkill = true,
+  updateGuidelines = true
+): Promise<void> {
+  if (!updateSkill && !updateGuidelines) {
+    return;
+  }
+
   const projectDir = process.cwd();
   const skillDir = path.join(__dirname, '..', 'skill');
 
@@ -42,6 +52,12 @@ export async function updateSkillFiles(quiet: boolean): Promise<void> {
 
     foundAgentDirs.push(agentDir);
 
+    // Skip copying skill files when disabled, but keep the discovered agent
+    // dir so guideline references can still point to it.
+    if (!updateSkill) {
+      continue;
+    }
+
     // Copy skill directory to {agentDir}/skills/appweaver/
     const skillDestPath = path.join(agentDirPath, 'skills', 'appweaver');
     await fsp.cp(skillDir, skillDestPath, {
@@ -56,6 +72,11 @@ export async function updateSkillFiles(quiet: boolean): Promise<void> {
     }
   }
 
+  // Nothing more to do when guideline files should not be updated
+  if (!updateGuidelines) {
+    return;
+  }
+
   let firstAgentDir: string | undefined = foundAgentDirs[0];
 
   for (const guidelinesFile of ['AGENTS.md', 'CLAUDE.md']) {
@@ -66,18 +87,21 @@ export async function updateSkillFiles(quiet: boolean): Promise<void> {
       continue;
     }
 
-    // If no agent-specific dir was discovered, create new generic .agents dir
+    // If no agent-specific dir was discovered, fall back to a generic .agents
+    // dir and, unless skill updates are disabled, populate it with skill files.
     if (!firstAgentDir) {
       firstAgentDir = '.agents';
-      const skillDestPath = path.join(
-        path.join(projectDir, firstAgentDir),
-        'skills',
-        'appweaver'
-      );
-      await fsp.cp(skillDir, skillDestPath, {
-        recursive: true,
-        filter: (src) => !src.endsWith('GUIDELINES.md')
-      });
+      if (updateSkill) {
+        const skillDestPath = path.join(
+          path.join(projectDir, firstAgentDir),
+          'skills',
+          'appweaver'
+        );
+        await fsp.cp(skillDir, skillDestPath, {
+          recursive: true,
+          filter: (src) => !src.endsWith('GUIDELINES.md')
+        });
+      }
     }
 
     // Replace guideline file path references with path references in first

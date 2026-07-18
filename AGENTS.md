@@ -354,14 +354,16 @@ weaver update [packages...] [options]
 |---------------|------------------------------------------------------------------------------------------------------------------------|---------------------------------------|
 | `[packages…]` | One or more package names to update (e.g. `@appweaver/core @appweaver/cli`). Only `@appweaver/*` packages are updated. | All installed `@appweaver/*` packages |
 
-| Option                      | Description                                                | Default  |
-|-----------------------------|------------------------------------------------------------|----------|
-| `--targetVersion [version]` | The version to update the packages to.                     | `latest` |
-| `--noSkill`                 | Skip updating AI agent skill files in the current project. | false    |
-| `-f, --force`               | Force update despite `peerDependency` version mismatches.  | false    |
-| `--verbose`                 | Print verbose output.                                      | false    |
+| Option                      | Description                                                                        | Default  |
+|-----------------------------|------------------------------------------------------------------------------------|----------|
+| `--targetVersion [version]` | The version to update the packages to.                                             | `latest` |
+| `--noSkill`                 | Skip updating AI agent skill files in agent directories (`.claude`, `.agents`, …). | false    |
+| `--noGuidelines`            | Skip updating AI agent guideline files (`AGENTS.md`, `CLAUDE.md`).                 | false    |
+| `-f, --force`               | Force update despite `peerDependency` version mismatches.                          | false    |
+| `--verbose`                 | Print verbose output.                                                              | false    |
 
-After a successful package update, skill files are automatically refreshed unless `--noSkill` is passed.
+After a successful package update, skill files and guideline files are automatically refreshed unless `--noSkill` and/or
+`--noGuidelines` are passed respectively.
 
 ---
 
