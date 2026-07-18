@@ -296,7 +296,8 @@ function generateAngularClient(
   className: string,
   clientMethodContent: string
 ): string {
-  return `import { ClientConfig, ClientError, AngularClient } from '@appweaver/client';
+  return `import { ClientConfig, ClientError } from '@appweaver/client';
+import { AngularClient } from '@appweaver/client/angular';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 ${pathsTypeImport}

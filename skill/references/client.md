@@ -44,6 +44,7 @@ Reads an OpenAPI v3 schema and generates TypeScript types and a typed client cla
 | `--typesPath [path]`  | Output path for generated TypeScript types only                                            | same as `outputPath`      |
 | `--clientPath [path]` | Output path for generated client class only                                                | same as `outputPath`      |
 | `--clientName [name]` | Custom name for the generated client class                                                 | derived from schema title |
+| `--framework [name]`  | Framework for the generated client class (`fetch` or `angular`)                            | `fetch`                   |
 | `--typesOnly`         | Generate TypeScript types only, skip client class generation                               | `false`                   |
 | `--clientOnly`        | Generate client class only, skip TypeScript types generation                               | `false`                   |
 | `--noTypes`           | Generate client class without TypeScript type support                                      | `false`                   |
@@ -157,6 +158,27 @@ export function createClient(config: ClientConfig): CMSAPIClient {
 The generated second type argument to `resourceClient` (e.g., `['aggregate', 'export', 'uploadFiles', 'deleteFiles']`)
 removes those methods from the returned `ResourceClient` at the TypeScript level, preventing accidental calls to
 operations not exposed by the API.
+
+### Angular client (`--framework angular`)
+
+Passing `--framework angular` generates a client class extending `AngularClient` instead of `FetchClient`. The
+generated class is constructed with Angular's `HttpClient` and all its methods return RxJS `Observable`s instead of
+`Promise`s:
+
+```ts
+import { ClientConfig, ClientError } from '@appweaver/client';
+import { AngularClient } from '@appweaver/client/angular';
+import { HttpClient } from '@angular/common/http';
+
+// In an Angular service or provider:
+const client = new CMSAPIClient(httpClient, { baseUrl: 'http://localhost:3000' });
+client.user.query({ filter: { enabled: true } }).subscribe((users) => { ... });
+```
+
+**Important:** `AngularClient` is only available from the `@appweaver/client/angular` subpath — it is not exported from
+the main `@appweaver/client` entry point. This keeps `rxjs` completely out of the module graph (runtime and types) for
+`FetchClient` users. `rxjs` is an **optional peer dependency**: Angular projects already have it installed, while
+fetch-only projects do not need it at all.
 
 ---
 

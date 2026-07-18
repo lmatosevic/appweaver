@@ -5,7 +5,6 @@ import {
   PathsWithMethod,
   RequiredKeysOf
 } from 'openapi-typescript-helpers';
-import { Observable } from 'rxjs';
 
 export type ExtendedPaths<Paths> = Paths &
   Record<string, Record<HttpMethod, {}>>;
@@ -15,12 +14,27 @@ export type InitParam<Init> =
     ? [(Init & { [key: string]: unknown })?]
     : [Init & { [key: string]: unknown }];
 
+/**
+ * Minimal structural subset of an RxJS `Observable`.
+ *
+ * Keeps the base client free of any `rxjs` dependency (runtime and types) while
+ * remaining assignable from a real `Observable` — `AngularClient` narrows these
+ * return types to concrete RxJS Observables in the `@appweaver/client/angular` entry.
+ */
+export interface ObservableLike<T> {
+  subscribe(observer?: {
+    next?: (value: T) => void;
+    error?: (error: any) => void;
+    complete?: () => void;
+  }): { unsubscribe(): void };
+}
+
 export type ObservableOrPromise<T, B extends boolean> = B extends true
-  ? Observable<T>
+  ? ObservableLike<T>
   : Promise<T>;
 
 export type PromiseToObservable<T> =
-  T extends Promise<infer R> ? Observable<R> : T;
+  T extends Promise<infer R> ? ObservableLike<R> : T;
 
 export type ObservableMethods<T> = {
   [K in keyof T]: T[K] extends (...args: infer A) => infer R

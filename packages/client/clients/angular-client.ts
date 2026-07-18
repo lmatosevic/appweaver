@@ -11,11 +11,7 @@ import {
   ClientResult,
   FetchHandler
 } from './base-client';
-import {
-  ExtendedPaths,
-  InitParam,
-  ObservableMethods
-} from './base-client-interface';
+import { ExtendedPaths, InitParam } from './base-client-interface';
 import {
   AccountClient,
   AccountInterface,
@@ -31,6 +27,17 @@ import {
   ResourceInterface,
   ResourceType
 } from './modules';
+
+/** Maps a `Promise`-returning type to a concrete RxJS `Observable`. */
+export type PromiseToObservable<T> =
+  T extends Promise<infer R> ? Observable<R> : T;
+
+/** Maps every `Promise`-returning method of `T` to return a concrete RxJS `Observable`. */
+export type ObservableMethods<T> = {
+  [K in keyof T]: T[K] extends (...args: infer A) => infer R
+    ? (...args: A) => PromiseToObservable<R>
+    : T[K];
+};
 
 export class AngularClient<
   Paths extends {} = { [key: string]: any }
@@ -150,7 +157,7 @@ export class AngularClient<
     return this.wrapWithObservables(instance);
   }
 
-  private wrapWithObservables<T extends object>(instance: T): T {
+  private wrapWithObservables<R>(instance: object): R {
     const isPromiseLike = (value: unknown): value is PromiseLike<unknown> =>
       value !== null &&
       (typeof value === 'object' || typeof value === 'function') &&
@@ -169,6 +176,6 @@ export class AngularClient<
           return isPromiseLike(result) ? from(result) : result;
         };
       }
-    });
+    }) as unknown as R;
   }
 }
