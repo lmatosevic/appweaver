@@ -22,9 +22,10 @@
   "scripts": {
     "clean:packages": "rimraf --glob \"packages/**/dist\"",
     "clean:modules": "rimraf node_modules/@appweaver",
+    "resolve:esm": "tsc-alias -p packages/client/tsconfig.esm.json --resolve-full-paths",
     "prebuild": "npm run clean:packages",
     "build": "tsc -b -v packages",
-    "postbuild": "npm run clean:modules && node tools/copy-packages.js",
+    "postbuild": "npm run resolve:esm && npm run clean:modules && node tools/copy-packages.js",
     "test": "jest --forceExit --detectOpenHandles --coverage",
     "format": "prettier --write \"packages/**/*.ts\" \"sample/**/*.ts\"",
     "lint": "eslint \"{packages,sample}/**/*.ts\"",

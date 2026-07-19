@@ -90,6 +90,23 @@ for (const pkgName of fs.readdirSync(packagesDir)) {
     }
   }
 
+  // Emit module-type markers for packages that ship dual CJS/ESM builds, so
+  // Node resolves each subtree with the correct module system regardless of
+  // the root package.json "type" field.
+  const dualModuleMarkers = [
+    ['cjs', 'commonjs'],
+    ['esm', 'module']
+  ];
+  for (const [subDir, moduleType] of dualModuleMarkers) {
+    const subDirPath = path.join(fullPath, distDir, subDir);
+    if (fs.existsSync(subDirPath) && fs.statSync(subDirPath).isDirectory()) {
+      fs.writeFileSync(
+        path.join(subDirPath, 'package.json'),
+        JSON.stringify({ type: moduleType }, null, 2)
+      );
+    }
+  }
+
   // Copy a dist content to node_modules so it can be imported by other modules
   fs.cpSync(path.join(fullPath, distDir), fileDestPath, {
     recursive: true,

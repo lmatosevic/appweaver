@@ -1,0 +1,19 @@
+{
+  "extends": "../tsconfig.build.json",
+  "compilerOptions": {
+    "rootDir": "./",
+    "outDir": "./dist/esm",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "paths": {}
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "generated",
+    "test/**/*",
+    "*.(spec|test).ts",
+    "weaver-client.ts"
+  ],
+  "references": []
+}

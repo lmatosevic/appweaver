@@ -4,10 +4,34 @@
   "description": "Appweaver - the backend framework for AI-first development (@client)",
   "author": "Luka Matosevic",
   "license": "MIT",
-  "main": "./index.js",
-  "types": "./index.d.ts",
+  "main": "./cjs/index.js",
+  "module": "./esm/index.js",
+  "types": "./cjs/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./esm/index.d.ts",
+        "default": "./esm/index.js"
+      },
+      "require": {
+        "types": "./cjs/index.d.ts",
+        "default": "./cjs/index.js"
+      }
+    },
+    "./angular": {
+      "import": {
+        "types": "./esm/angular/index.d.ts",
+        "default": "./esm/angular/index.js"
+      },
+      "require": {
+        "types": "./cjs/angular/index.d.ts",
+        "default": "./cjs/angular/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
   "bin": {
-    "weaver-client": "./weaver-client.js"
+    "weaver-client": "./cjs/weaver-client.js"
   },
   "repository": {
     "type": "git",
@@ -28,7 +52,7 @@
     "node": ">= 20"
   },
   "scripts": {
-    "weaver-client": "node ./dist/weaver-client.js"
+    "weaver-client": "node ./dist/cjs/weaver-client.js"
   },
   "dependencies": {
     "commander": "15.0.0",

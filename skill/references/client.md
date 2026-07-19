@@ -8,6 +8,23 @@ distinct parts:
 
 ---
 
+## Module formats (ESM & CommonJS)
+
+The package ships **both** an ESM and a CommonJS build, selected automatically via the `exports` map — no configuration
+needed. Both import styles work for the main entry and the `/angular` subpath:
+
+```ts
+// ESM (tree-shakable — preferred for bundlers like Angular/Vite/webpack prod builds)
+import { FetchClient, ClientError } from '@appweaver/client';
+import { AngularClient } from '@appweaver/client/angular';
+
+// CommonJS (e.g. plain Node scripts without a build step)
+const { FetchClient, ClientError } = require('@appweaver/client');
+const { AngularClient } = require('@appweaver/client/angular');
+```
+
+---
+
 ## `weaver-client` CLI
 
 ```
@@ -52,8 +69,8 @@ Reads an OpenAPI v3 schema and generates TypeScript types and a typed client cla
 **Generation process:**
 
 1. Reads and parses the schema (JSON or YAML, local or remote).
-2. Generates TypeScript interfaces via `openapi-typescript`, enriching them with JSDoc validation tags
-   (`@minLength`, `@maxLength`, `@minimum`, `@maximum`, `@pattern`, `@format`).
+2. Generates TypeScript interfaces via `openapi-typescript`, enriching them with JSDoc validation tags (`@minLength`,
+   `@maxLength`, `@minimum`, `@maximum`, `@pattern`, `@format`).
 3. Deduplicates union types and extracts inline schemas to named exported types.
 4. Classifies all API paths into route groups: resources, auth, account, health, files, and custom.
 5. Emits a typed client class extending `FetchClient<Paths>` with a getter for each route group. Resources with
@@ -161,8 +178,8 @@ operations not exposed by the API.
 
 ### Angular client (`--framework angular`)
 
-Passing `--framework angular` generates a client class extending `AngularClient` instead of `FetchClient`. The
-generated class is constructed with Angular's `HttpClient` and all its methods return RxJS `Observable`s instead of
+Passing `--framework angular` generates a client class extending `AngularClient` instead of `FetchClient`. The generated
+class is constructed with Angular's `HttpClient` and all its methods return RxJS `Observable`s instead of
 `Promise`s:
 
 ```ts
@@ -172,7 +189,8 @@ import { HttpClient } from '@angular/common/http';
 
 // In an Angular service or provider:
 const client = new CMSAPIClient(httpClient, { baseUrl: 'http://localhost:3000' });
-client.user.query({ filter: { enabled: true } }).subscribe((users) => {});
+client.user.query({ filter: { enabled: true } }).subscribe((users) => {
+});
 ```
 
 **Important:** `AngularClient` is only available from the `@appweaver/client/angular` subpath — it is not exported from
@@ -460,8 +478,8 @@ const data = await client.sendRequest('get', '/api/custom-endpoint');
 
 ### `sendRequestRaw`
 
-Returns the raw `{ data, error, response }` tuple from `openapi-fetch` without throwing. Useful when the caller
-needs to inspect error details or branch on status codes.
+Returns the raw `{ data, error, response }` tuple from `openapi-fetch` without throwing. Useful when the caller needs to
+inspect error details or branch on status codes.
 
 ```ts
 const { data, error, response } = await client.sendRequestRaw('post', '/api/custom-endpoint', {
