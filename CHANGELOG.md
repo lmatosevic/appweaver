@@ -1,3 +1,11 @@
+## [1.0.24](https://github.com/lmatosevic/appweaver/compare/v1.0.23...v1.0.24) (2026-07-19)
+
+### Bug Fixes
+
+* add --noGuidelines flag support and update skill/guidelines handling logic ([f7f0116](https://github.com/lmatosevic/appweaver/commit/f7f0116aa0c06879b262e7a36869f40a3de1cd73))
+* add dual CJS/ESM module support in @appweaver/client and update build scripts ([8b2354c](https://github.com/lmatosevic/appweaver/commit/8b2354c72fd53372d7a79fdcce82e12854f71932))
+* add explicit typing for updateSkill ([09d0bd4](https://github.com/lmatosevic/appweaver/commit/09d0bd49bfd8ff7c5e99e91aea06e098d6f52224))
+
 ## [1.0.23](https://github.com/lmatosevic/appweaver/compare/v1.0.22...v1.0.23) (2026-07-18)
 
 ### Bug Fixes
