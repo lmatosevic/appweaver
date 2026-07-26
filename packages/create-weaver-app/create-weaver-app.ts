@@ -230,11 +230,10 @@ program
       const guidelinesContent =
         `# ${variables.NAME}\n\n` +
         `${description}\n\n` +
-        `This is an [Appweaver](https://github.com/lmatosevic/appweaver) project. ` +
-        `Follow the framework conventions, architecture, and usage documented in the guidelines:\n\n` +
-        `${guidelinesReference}\n\n` +
-        `<!-- Add your own project-specific instructions below this line. ` +
-        `This file is not modified by \`weaver update\`. -->\n`;
+        `This is an [Appweaver](https://github.com/lmatosevic/appweaver) ` +
+        `project. Follow the framework conventions, architecture,\n and ` +
+        `usage documented in the guidelines:\n\n${guidelinesReference}\n\n` +
+        `<!-- Add your own project-specific instructions below this line. -->\n`;
       await fsp.writeFile(guidelinesFilePath, guidelinesContent, {
         encoding: 'utf8'
       });
