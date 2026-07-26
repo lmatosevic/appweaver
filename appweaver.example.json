@@ -227,18 +227,18 @@
     },
     "mailer": {
       "senderName": "John Doe",
-      "senderAddress": "no-reply@appweaver.com",
+      "senderAddress": "no-reply@appweaver.co",
       "provider": "@appweaver/core/mailer/smtp-mailer",
       "smtp": {
-        "host": "mail.appweaver.com",
+        "host": "mail.appweaver.co",
         "port": 587,
         "secure": false,
-        "user": "no-reply@appweaver.com",
+        "user": "no-reply@appweaver.co",
         "password": ""
       }
     },
     "system": {
-      "adminInitialEmail": "admin@appweaver.com",
+      "adminInitialEmail": "admin@appweaver.co",
       "adminInitialPassword": "Password1!"
     }
   }

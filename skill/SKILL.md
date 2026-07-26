@@ -472,7 +472,7 @@ export async function createAdminUser(): Promise<void> {
     data: {
       firstName: 'Admin',
       lastName: 'Admin',
-      email: 'admin@appweaver.com',
+      email: 'admin@appweaver.co',
       phone: '01234435',
       roles: {
         connectOrCreate: [
