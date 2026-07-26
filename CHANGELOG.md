@@ -1,3 +1,9 @@
+## [1.0.25](https://github.com/lmatosevic/appweaver/compare/v1.0.24...v1.0.25) (2026-07-26)
+
+### Bug Fixes
+
+* update create-weaver-app to create reference in AGENTS.md file to the GUIDELINES.md from skills directory ([0b38e06](https://github.com/lmatosevic/appweaver/commit/0b38e060b39f778071c5f501428e44a0c3379d56))
+
 ## [1.0.24](https://github.com/lmatosevic/appweaver/compare/v1.0.23...v1.0.24) (2026-07-19)
 
 ### Bug Fixes
