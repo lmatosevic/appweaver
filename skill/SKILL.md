@@ -554,7 +554,6 @@ weaver update                                 # update all @appweaver/* packages
 weaver update @appweaver/core @appweaver/cli  # update specific packages
 weaver update --targetVersion 1.2.3           # update to a specific version
 weaver update --noSkill                       # skip updating AI agent skill files (.claude, .agents, …)
-weaver update --noGuidelines                  # skip updating AI agent guideline files (AGENTS.md, CLAUDE.md)
 weaver update --force                         # force update despite peerDependency mismatches
 ```
 

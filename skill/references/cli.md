@@ -209,6 +209,5 @@ Update the Appweaver packages.
 |-----------------------------------|-----------------------------------------------------------------------------|------------|
 | `--targetVersion [targetVersion]` | The version to update the packages to                                       | `"latest"` |
 | `--noSkill`                       | Skip updating AI agents skill files in agent dirs (`.claude`, `.agents`, …) | `false`    |
-| `--noGuidelines`                  | Skip updating AI agents guideline files (`AGENTS.md`, `CLAUDE.md`)          | `false`    |
 | `-f, --force`                     | Force update despite peerDependency version mismatches                      | `false`    |
 | `--verbose`                       | Print verbose output                                                        | `false`    |

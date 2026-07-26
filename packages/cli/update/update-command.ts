@@ -24,10 +24,6 @@ export function updateCommand(program: Command): void {
       'Skip updating AI agents skill files in the agent directories (e.g. .claude, .agents) of the current project.'
     )
     .option(
-      '--noGuidelines',
-      'Skip updating AI agents guideline files (e.g. AGENTS.md, CLAUDE.md) in the current project.'
-    )
-    .option(
       '-f, --force',
       'Force update despite peerDependency version mismatches.'
     )
@@ -36,7 +32,6 @@ export function updateCommand(program: Command): void {
       const quiet = !command.getOptionValue('verbose');
       const force = command.getOptionValue('force');
       const updateSkill = !command.getOptionValue('noSkill');
-      const updateGuidelines = !command.getOptionValue('noGuidelines');
       const targetVersion = command.getOptionValue('targetVersion');
 
       // Load all currently installed packages
@@ -107,8 +102,8 @@ export function updateCommand(program: Command): void {
       );
 
       if (status === 0) {
-        if (updateSkill || updateGuidelines) {
-          await updateSkillFiles(quiet, updateSkill, updateGuidelines);
+        if (updateSkill) {
+          await updateSkillFiles(quiet);
         }
         console.log(
           `Successfully updated packages to ${targetVersion} version.`

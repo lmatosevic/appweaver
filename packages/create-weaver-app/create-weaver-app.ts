@@ -205,7 +205,10 @@ program
 
       const guidelinesFileName = agent === 'claude' ? 'CLAUDE.md' : 'AGENTS.md';
 
-      // Copy skill and referenced files
+      // Copy skill and referenced files. The framework guidelines
+      // (GUIDELINES.md) are preserved inside the skills directory so that
+      // `weaver update` can keep them in sync without touching the project's
+      // own root guidelines file.
       const skillDir = path.join(__dirname, 'skill');
       const projectSkillPath = path.join(agentsDir, 'skills', 'appweaver');
       const projectSkillDir = path.join(destDir, projectSkillPath);
@@ -213,21 +216,26 @@ program
         recursive: true
       });
 
-      // Move the project guidelines file to the project root
-      const guidelinesSkillPath = path.join(projectSkillDir, 'GUIDELINES.md');
-      const guidelinesFilePath = path.join(destDir, guidelinesFileName);
-      await fsp.rename(guidelinesSkillPath, guidelinesFilePath);
-
-      // Update project guidelines reference paths to point in skills directory
-      const guidelinesContents = await fsp.readFile(guidelinesFilePath, 'utf8');
-      const referencesPath = path
-        .join(projectSkillPath, 'references')
+      // Create a thin root guidelines file that references the framework
+      // guidelines from the skills directory. This file is never overwritten
+      // by `weaver update`, so it can be freely extended in the project.
+      const guidelinesPath = path
+        .join(projectSkillPath, 'GUIDELINES.md')
         .replace(/\\/g, '/');
-      const updatedGuidelinesContent = guidelinesContents.replace(
-        /(\[.+]\()references\/(.+\))/g,
-        `$1${referencesPath}/$2`
-      );
-      await fsp.writeFile(guidelinesFilePath, updatedGuidelinesContent, {
+      const guidelinesFilePath = path.join(destDir, guidelinesFileName);
+      const guidelinesReference =
+        agent === 'claude'
+          ? `@${guidelinesPath}`
+          : `[Appweaver framework guidelines](${guidelinesPath})`;
+      const guidelinesContent =
+        `# ${variables.NAME}\n\n` +
+        `${description}\n\n` +
+        `This is an [Appweaver](https://github.com/lmatosevic/appweaver) project. ` +
+        `Follow the framework conventions, architecture, and usage documented in the guidelines:\n\n` +
+        `${guidelinesReference}\n\n` +
+        `<!-- Add your own project-specific instructions below this line. ` +
+        `This file is not modified by \`weaver update\`. -->\n`;
+      await fsp.writeFile(guidelinesFilePath, guidelinesContent, {
         encoding: 'utf8'
       });
     }

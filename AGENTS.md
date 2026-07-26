@@ -358,12 +358,8 @@ weaver update [packages...] [options]
 |-----------------------------|------------------------------------------------------------------------------------|----------|
 | `--targetVersion [version]` | The version to update the packages to.                                             | `latest` |
 | `--noSkill`                 | Skip updating AI agent skill files in agent directories (`.claude`, `.agents`, …). | false    |
-| `--noGuidelines`            | Skip updating AI agent guideline files (`AGENTS.md`, `CLAUDE.md`).                 | false    |
 | `-f, --force`               | Force update despite `peerDependency` version mismatches.                          | false    |
 | `--verbose`                 | Print verbose output.                                                              | false    |
-
-After a successful package update, skill files and guideline files are automatically refreshed unless `--noSkill` and/or
-`--noGuidelines` are passed respectively.
 
 ---
 
@@ -625,8 +621,10 @@ architecture, conventions, APIs, and best practices to enable agentic developmen
 ### For new projects created with `create-weaver-app`
 
 New projects scaffolded via `npx create-weaver-app` include a `AGENTS.md` or `CLAUDE.md` file at the project root. This
-file is automatically generated to guide AI agents through the project's specific setup, structure, and usage patterns.
-It serves as a project-level guideline using the [SKILL.md](./skill/SKILL.md).
+file is a thin, project-owned stub that references the framework guidelines (`GUIDELINES.md`) copied into the agent's
+skills directory (e.g. `.claude/skills/appweaver/GUIDELINES.md`). It can be freely extended with project-specific
+instructions and is never overwritten by `weaver update`, which refreshes only the skill files (including
+`GUIDELINES.md`) inside the skills' directory.
 
 ### Updating skill files
 
