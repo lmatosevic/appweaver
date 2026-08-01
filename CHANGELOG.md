@@ -1,3 +1,15 @@
+## [1.1.0](https://github.com/lmatosevic/appweaver/compare/v1.0.25...v1.1.0) (2026-08-01)
+
+### Features
+
+* add file integrity checksum calculation for file resource ([487bc45](https://github.com/lmatosevic/appweaver/commit/487bc457aeac36b36386f1530489ee84fd238d93))
+* add mapping of virtual fields for any custom API response ([e1a22f0](https://github.com/lmatosevic/appweaver/commit/e1a22f0f88dc868b75ba8b93d208c70d1e7b0e4d))
+* add OAuth2 check before registration function and avatar resolving ([e49c162](https://github.com/lmatosevic/appweaver/commit/e49c16297e750e28057a8d5f54d691a98b41d94d))
+
+### Bug Fixes
+
+* regenerate core prisma models and merge checksum with hash function ([7b106f4](https://github.com/lmatosevic/appweaver/commit/7b106f47825cba6feb5fa33a5e104304d2adebf1))
+
 ## [1.0.25](https://github.com/lmatosevic/appweaver/compare/v1.0.24...v1.0.25) (2026-07-26)
 
 ### Bug Fixes
