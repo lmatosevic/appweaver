@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { Readable } from 'node:stream';
 import { DefaultGenerationOptions, generateApiKey } from 'generate-api-key';
 import { getDayOfYear, getISOWeek } from 'date-fns';
 import { plural as pluralize, singular as singularize } from 'pluralize';
@@ -185,6 +186,44 @@ export function makeHash(
   encoding: 'base64' | 'base64url' | 'hex' | 'binary' = 'hex'
 ): string {
   return createHash(algorithm).update(text).digest(encoding);
+}
+
+/**
+ * Calculates a checksum of the given content using the specified algorithm and encoding. Supports strings, buffers,
+ * and readable streams (streams are consumed chunk-by-chunk without buffering the whole content in memory).
+ *
+ * Can be used to verify the integrity/authenticity of a file by comparing the calculated checksum with a previously
+ * stored one (e.g. the `checksum` field of an uploaded `File` resource).
+ *
+ * @param {Readable | Buffer | string} content - The content to calculate the checksum for. Can be a readable stream
+ *        (e.g. `fs.createReadStream(path)`), a buffer, or a string.
+ * @param {'sha256'|'sha512'|'sha3-256'|'sha3-512'|'blake2s256'|'blake2s512'|'md5'} [algorithm='sha256'] - The hash algorithm to use.
+ * @param {'base64'|'base64url'|'hex'|'binary'} [encoding='hex'] - The encoding format for the resulting checksum.
+ * @return {Promise<string>} A promise that resolves to the checksum string in the specified encoding format.
+ */
+export async function makeChecksum(
+  content: Readable | Buffer | string,
+  algorithm:
+    | 'sha256'
+    | 'sha512'
+    | 'sha3-256'
+    | 'sha3-512'
+    | 'blake2s256'
+    | 'blake2s512'
+    | 'md5' = 'sha256',
+  encoding: 'base64' | 'base64url' | 'hex' | 'binary' = 'hex'
+): Promise<string> {
+  const hash = createHash(algorithm);
+
+  if (content instanceof Readable) {
+    return new Promise((resolve, reject) => {
+      content.on('data', (chunk) => hash.update(chunk));
+      content.on('end', () => resolve(hash.digest(encoding)));
+      content.on('error', (e) => reject(e));
+    });
+  }
+
+  return hash.update(content).digest(encoding);
 }
 
 /**

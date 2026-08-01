@@ -81,6 +81,7 @@ model File {
   originalName  String
   mimeType      String
   sizeBytes     Int
+  checksum      String?
   title         String?
   description   String?
   resourceField String?

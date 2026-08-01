@@ -1,4 +1,4 @@
-import { Readable } from 'node:stream';
+import { PassThrough, Readable } from 'node:stream';
 import { Multipart, MultipartFile } from '@fastify/multipart';
 import {
   config,
@@ -10,6 +10,7 @@ import {
   isArray,
   isFunction,
   logger,
+  makeChecksum,
   Resource,
   ResourceClient,
   Storage
@@ -247,12 +248,32 @@ export class FileService {
       fileStream = processImage(data.file, data.mimetype, fileConfig.image);
     }
 
-    const fileName = await this._storage.store(generatedName, fileStream);
+    // Tee the stream so the checksum is calculated over the exact bytes
+    // written to storage in a single pass, without buffering the file.
+    const storageStream = new PassThrough();
+    const checksumStream = new PassThrough();
+
+    fileStream.pipe(storageStream);
+    fileStream.pipe(checksumStream);
+
+    // pipe() does not forward source errors to destinations, so both branches
+    // must be destroyed manually to avoid hanging on a failed upload stream.
+    fileStream.on('error', (e) => {
+      logger.error(e, 'Error calculating file checksum');
+      storageStream.destroy(e);
+      checksumStream.destroy(e);
+    });
+
+    const [fileName, checksum] = await Promise.all([
+      this._storage.store(generatedName, storageStream),
+      makeChecksum(checksumStream)
+    ]);
     if (!fileName) {
       throw new HttpError('Error saving file to storage', 500);
     }
 
     createFile.name = fileName;
+    createFile.checksum = checksum;
 
     // File size checks must come after storing a file due to bytesRead and
     // truncated fields being set only after reading the full file stream.

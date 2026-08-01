@@ -1,8 +1,8 @@
 # Storage
 
-The storage module handles file persistence: storing, streaming, and deleting binary content. The default
-implementation (`FilesystemStorage`) writes files to a local directory using a configurable name pattern. The module
-supports range-based streaming for efficient large-file delivery (e.g., video, audio).
+The storage module handles file persistence: storing, streaming, and deleting binary content. The default implementation
+(`FilesystemStorage`) writes files to a local directory using a configurable name pattern. The module supports
+range-based streaming for efficient large-file delivery (e.g., video, audio).
 
 ## Injecting Storage
 
@@ -220,6 +220,35 @@ export class PostService {
   }
 }
 ```
+
+### File integrity (checksum)
+
+When a file is uploaded through `FileService.saveFile()` (or the resource file upload routes), a **SHA-256 checksum**
+(hex-encoded) of the stored content is calculated during the upload and persisted on the `File` record in the
+`checksum` field. The checksum is calculated over the exact bytes written to storage (i.e., after any configured image
+processing), so it can be used at any later point to verify that the file on disk has not been modified or corrupted.
+
+The checksum is included in file API responses, so clients can verify downloaded content against it.
+
+To verify a file's integrity, recalculate the checksum with the `makeChecksum` utility from `@appweaver/common` and
+compare it with the stored value:
+
+```ts
+import { createReadStream } from 'node:fs';
+import { makeChecksum } from '@appweaver/common';
+
+// From a readable stream (no memory buffering, works for large files)
+const checksum = await makeChecksum(createReadStream('/path/to/stored/file'));
+
+// Or from a Buffer / string
+// const checksum = await makeChecksum(downloadedBuffer);
+
+if (checksum !== file.checksum) {
+  throw new Error(`File ${file.name} has been modified or corrupted`);
+}
+```
+
+Stored file checksums always use the defaults: **`sha256` + `hex`**.
 
 ### Streaming a file
 
