@@ -55,7 +55,7 @@ CREATE TABLE "File" (
     "originalName" TEXT NOT NULL,
     "mimeType" TEXT NOT NULL,
     "sizeBytes" INTEGER NOT NULL,
-    "checksum" TEXT,
+    "checksum" TEXT NOT NULL,
     "title" TEXT,
     "description" TEXT,
     "resourceField" TEXT,

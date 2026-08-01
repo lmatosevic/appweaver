@@ -251,7 +251,7 @@ export type FileGroupByOutputType = {
   originalName: string
   mimeType: string
   sizeBytes: number
-  checksum: string | null
+  checksum: string
   title: string | null
   description: string | null
   resourceField: string | null
@@ -291,7 +291,7 @@ export type FileWhereInput = {
   originalName?: Prisma.StringFilter<"File"> | string
   mimeType?: Prisma.StringFilter<"File"> | string
   sizeBytes?: Prisma.IntFilter<"File"> | number
-  checksum?: Prisma.StringNullableFilter<"File"> | string | null
+  checksum?: Prisma.StringFilter<"File"> | string
   title?: Prisma.StringNullableFilter<"File"> | string | null
   description?: Prisma.StringNullableFilter<"File"> | string | null
   resourceField?: Prisma.StringNullableFilter<"File"> | string | null
@@ -312,7 +312,7 @@ export type FileOrderByWithRelationInput = {
   originalName?: Prisma.SortOrder
   mimeType?: Prisma.SortOrder
   sizeBytes?: Prisma.SortOrder
-  checksum?: Prisma.SortOrderInput | Prisma.SortOrder
+  checksum?: Prisma.SortOrder
   title?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   resourceField?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -336,7 +336,7 @@ export type FileWhereUniqueInput = Prisma.AtLeast<{
   originalName?: Prisma.StringFilter<"File"> | string
   mimeType?: Prisma.StringFilter<"File"> | string
   sizeBytes?: Prisma.IntFilter<"File"> | number
-  checksum?: Prisma.StringNullableFilter<"File"> | string | null
+  checksum?: Prisma.StringFilter<"File"> | string
   title?: Prisma.StringNullableFilter<"File"> | string | null
   description?: Prisma.StringNullableFilter<"File"> | string | null
   resourceField?: Prisma.StringNullableFilter<"File"> | string | null
@@ -357,7 +357,7 @@ export type FileOrderByWithAggregationInput = {
   originalName?: Prisma.SortOrder
   mimeType?: Prisma.SortOrder
   sizeBytes?: Prisma.SortOrder
-  checksum?: Prisma.SortOrderInput | Prisma.SortOrder
+  checksum?: Prisma.SortOrder
   title?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   resourceField?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -382,7 +382,7 @@ export type FileScalarWhereWithAggregatesInput = {
   originalName?: Prisma.StringWithAggregatesFilter<"File"> | string
   mimeType?: Prisma.StringWithAggregatesFilter<"File"> | string
   sizeBytes?: Prisma.IntWithAggregatesFilter<"File"> | number
-  checksum?: Prisma.StringNullableWithAggregatesFilter<"File"> | string | null
+  checksum?: Prisma.StringWithAggregatesFilter<"File"> | string
   title?: Prisma.StringNullableWithAggregatesFilter<"File"> | string | null
   description?: Prisma.StringNullableWithAggregatesFilter<"File"> | string | null
   resourceField?: Prisma.StringNullableWithAggregatesFilter<"File"> | string | null
@@ -398,7 +398,7 @@ export type FileCreateInput = {
   originalName: string
   mimeType: string
   sizeBytes: number
-  checksum?: string | null
+  checksum: string
   title?: string | null
   description?: string | null
   resourceField?: string | null
@@ -418,7 +418,7 @@ export type FileUncheckedCreateInput = {
   originalName: string
   mimeType: string
   sizeBytes: number
-  checksum?: string | null
+  checksum: string
   title?: string | null
   description?: string | null
   resourceField?: string | null
@@ -437,7 +437,7 @@ export type FileUpdateInput = {
   originalName?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
-  checksum?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checksum?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -457,7 +457,7 @@ export type FileUncheckedUpdateInput = {
   originalName?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
-  checksum?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checksum?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -477,7 +477,7 @@ export type FileCreateManyInput = {
   originalName: string
   mimeType: string
   sizeBytes: number
-  checksum?: string | null
+  checksum: string
   title?: string | null
   description?: string | null
   resourceField?: string | null
@@ -493,7 +493,7 @@ export type FileUpdateManyMutationInput = {
   originalName?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
-  checksum?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checksum?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -509,7 +509,7 @@ export type FileUncheckedUpdateManyInput = {
   originalName?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
-  checksum?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checksum?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -717,7 +717,7 @@ export type FileCreateWithoutCoverImagePostsInput = {
   originalName: string
   mimeType: string
   sizeBytes: number
-  checksum?: string | null
+  checksum: string
   title?: string | null
   description?: string | null
   resourceField?: string | null
@@ -736,7 +736,7 @@ export type FileUncheckedCreateWithoutCoverImagePostsInput = {
   originalName: string
   mimeType: string
   sizeBytes: number
-  checksum?: string | null
+  checksum: string
   title?: string | null
   description?: string | null
   resourceField?: string | null
@@ -759,7 +759,7 @@ export type FileCreateWithoutGalleryImagesPostsInput = {
   originalName: string
   mimeType: string
   sizeBytes: number
-  checksum?: string | null
+  checksum: string
   title?: string | null
   description?: string | null
   resourceField?: string | null
@@ -778,7 +778,7 @@ export type FileUncheckedCreateWithoutGalleryImagesPostsInput = {
   originalName: string
   mimeType: string
   sizeBytes: number
-  checksum?: string | null
+  checksum: string
   title?: string | null
   description?: string | null
   resourceField?: string | null
@@ -812,7 +812,7 @@ export type FileUpdateWithoutCoverImagePostsInput = {
   originalName?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
-  checksum?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checksum?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -831,7 +831,7 @@ export type FileUncheckedUpdateWithoutCoverImagePostsInput = {
   originalName?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
-  checksum?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checksum?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -869,7 +869,7 @@ export type FileScalarWhereInput = {
   originalName?: Prisma.StringFilter<"File"> | string
   mimeType?: Prisma.StringFilter<"File"> | string
   sizeBytes?: Prisma.IntFilter<"File"> | number
-  checksum?: Prisma.StringNullableFilter<"File"> | string | null
+  checksum?: Prisma.StringFilter<"File"> | string
   title?: Prisma.StringNullableFilter<"File"> | string | null
   description?: Prisma.StringNullableFilter<"File"> | string | null
   resourceField?: Prisma.StringNullableFilter<"File"> | string | null
@@ -885,7 +885,7 @@ export type FileCreateWithoutAvatarUsersInput = {
   originalName: string
   mimeType: string
   sizeBytes: number
-  checksum?: string | null
+  checksum: string
   title?: string | null
   description?: string | null
   resourceField?: string | null
@@ -904,7 +904,7 @@ export type FileUncheckedCreateWithoutAvatarUsersInput = {
   originalName: string
   mimeType: string
   sizeBytes: number
-  checksum?: string | null
+  checksum: string
   title?: string | null
   description?: string | null
   resourceField?: string | null
@@ -927,7 +927,7 @@ export type FileCreateWithoutCreatedByInput = {
   originalName: string
   mimeType: string
   sizeBytes: number
-  checksum?: string | null
+  checksum: string
   title?: string | null
   description?: string | null
   resourceField?: string | null
@@ -946,7 +946,7 @@ export type FileUncheckedCreateWithoutCreatedByInput = {
   originalName: string
   mimeType: string
   sizeBytes: number
-  checksum?: string | null
+  checksum: string
   title?: string | null
   description?: string | null
   resourceField?: string | null
@@ -984,7 +984,7 @@ export type FileUpdateWithoutAvatarUsersInput = {
   originalName?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
-  checksum?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checksum?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1003,7 +1003,7 @@ export type FileUncheckedUpdateWithoutAvatarUsersInput = {
   originalName?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
-  checksum?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checksum?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1037,7 +1037,7 @@ export type FileUpdateWithoutGalleryImagesPostsInput = {
   originalName?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
-  checksum?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checksum?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1056,7 +1056,7 @@ export type FileUncheckedUpdateWithoutGalleryImagesPostsInput = {
   originalName?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
-  checksum?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checksum?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1075,7 +1075,7 @@ export type FileUncheckedUpdateManyWithoutGalleryImagesPostsInput = {
   originalName?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
-  checksum?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checksum?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1092,7 +1092,7 @@ export type FileCreateManyCreatedByInput = {
   originalName: string
   mimeType: string
   sizeBytes: number
-  checksum?: string | null
+  checksum: string
   title?: string | null
   description?: string | null
   resourceField?: string | null
@@ -1107,7 +1107,7 @@ export type FileUpdateWithoutCreatedByInput = {
   originalName?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
-  checksum?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checksum?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1126,7 +1126,7 @@ export type FileUncheckedUpdateWithoutCreatedByInput = {
   originalName?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
-  checksum?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checksum?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1145,7 +1145,7 @@ export type FileUncheckedUpdateManyWithoutCreatedByInput = {
   originalName?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
-  checksum?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checksum?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1311,7 +1311,7 @@ export type $FilePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     originalName: string
     mimeType: string
     sizeBytes: number
-    checksum: string | null
+    checksum: string
     title: string | null
     description: string | null
     resourceField: string | null

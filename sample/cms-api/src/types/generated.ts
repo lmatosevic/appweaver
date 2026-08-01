@@ -303,7 +303,7 @@ export type File = {
   originalName: string;
   mimeType: string;
   sizeBytes: number;
-  checksum?: string | null;
+  checksum: string;
   title?: string | null;
   description?: string | null;
   resourceField?: string | null;
@@ -321,7 +321,7 @@ export type FileSingle = {
   originalName: string;
   mimeType: string;
   sizeBytes: number;
-  checksum?: string | null;
+  checksum: string;
   title?: string | null;
   description?: string | null;
   url: string;
@@ -336,7 +336,7 @@ export type FileMultiple = {
   originalName: string;
   mimeType: string;
   sizeBytes: number;
-  checksum?: string | null;
+  checksum: string;
   title?: string | null;
   description?: string | null;
   url: string;
@@ -350,7 +350,7 @@ export type FileCreate = {
   originalName: string;
   mimeType: string;
   sizeBytes: number;
-  checksum?: string | null;
+  checksum: string;
   title?: string | null;
   description?: string | null;
 };
@@ -360,7 +360,7 @@ export type FileUpdate = {
   originalName?: string;
   mimeType?: string;
   sizeBytes?: number;
-  checksum?: string | null;
+  checksum?: string;
   title?: string | null;
   description?: string | null;
 };
