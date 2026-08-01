@@ -78,7 +78,7 @@ create-weaver-app MyBlogAPI "My own CMS for blogging" --database postgresql --no
 ```
 
 This creates a `./my-blog-api` directory, installs all dependencies, and runs the initial schema and type generation.
-Default test runner is `jest` with `swc` transpiler.
+The default test runner is `jest` with `swc` transpiler.
 
 **Example — Bun project with Sqlite:**
 
@@ -86,8 +86,8 @@ Default test runner is `jest` with `swc` transpiler.
 create-weaver-app BunApp "Bun application with simple API" --bun --database sqlite
 ```
 
-This creates a `./bun-app` directory, installs all dependencies using bun package manager, and runs the initial
-schema and type generation. Default test runner is `bun`.
+This creates a `./bun-app` directory, installs all dependencies using bun package manager, and runs the initial schema
+and type generation. The default test runner is `bun`.
 
 After the application is scaffolded, the following commands need to be run to finish the application setup:
 
@@ -314,11 +314,14 @@ Use `createAuthModel` and `createAuthService` instead of `createModel`/`createSe
 authenticatable user. They cannot be used independently! If an auth model is created, then also auth service must exist.
 
 `createAuthModel` extends the config with: `email`, `passwordHash`, `verifiedEmail`, `twoFactorAuth`, `enabled`,
-`logoutAt` scalars; a virtual `password` field (write-only); a `roles` relation; and an optional `apiKeys` relation (
-when `SECURITY_API_KEY_ENABLED` is set).
+`logoutAt` scalars; a virtual `password` field (write-only); a `roles` relation; and an optional `apiKeys` relation
+(when `SECURITY_API_KEY_ENABLED` is set).
 
-`createAuthService` extends the config with automatic password hashing on create/update and an optional
-`registrationData` callback to customize registration payload.
+`createAuthService` extends the config with automatic password hashing on create/update, an optional
+`registrationData` callback to customize registration payload (for OAuth2 logins its `additionalData` argument includes
+`firstName`, `lastName`, `avatarUrl`, and — when `SECURITY_OAUTH2_FETCH_AVATAR_ENABLED` is set — a downloaded
+`avatarFile`), and an optional `checkOAuth2User` callback invoked before a user is registered or authenticated via
+OAuth2 (return nothing to proceed, or a string/`Error`/`HttpError` to abort the login with an error).
 
 ```ts
 // src/resources/user/model.ts
@@ -422,8 +425,8 @@ registerPlugin('audit-log', async (server) => {
 
 ### Dependency injection
 
-Use `define` to register a value or class in the app context, and `inject` to retrieve it. Class constructors are
-lazily instantiated as singletons on the first injection.
+Use `define` to register a value or class in the app context, and `inject` to retrieve it. Class constructors are lazily
+instantiated as singletons on the first injection.
 
 ```ts
 import { Cache } from '@appweaver/common';

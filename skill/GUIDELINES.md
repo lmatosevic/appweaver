@@ -141,6 +141,10 @@ Use `createAuthModel` and `createAuthService` for authenticatable users. They mu
 `createAuthModel` adds: `email`, `passwordHash`, `verifiedEmail`, `twoFactorAuth`, `enabled`, `logoutAt` scalars; a
 virtual `password` field; a `roles` relation; and optional `apiKeys` relation.
 
+`createAuthService` supports an optional `registrationData` callback to customize the registration payload and an
+optional `checkOAuth2User` callback to allow or reject OAuth2 registrations/logins (return nothing to proceed, or a
+string/`Error` to abort).
+
 ```ts
 // src/resources/user/model.ts
 import { createAuthModel } from '@appweaver/core';

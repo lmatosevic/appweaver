@@ -8,6 +8,7 @@ export type OAuth2UserInfo = {
   email: string;
   given_name: string;
   family_name: string;
+  picture?: string;
 };
 
 export const oauth2Custom = createOAuth2Plugin(AuthSource.OAuth2Custom, {
@@ -49,6 +50,7 @@ async function fetchCustomUser(accessToken: string): Promise<UserInfo> {
     id: data.sub,
     email: data.email,
     firstName: data.given_name,
-    lastName: data.family_name
+    lastName: data.family_name,
+    avatarUrl: data.picture
   };
 }

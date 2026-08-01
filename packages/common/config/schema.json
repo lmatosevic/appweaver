@@ -596,6 +596,14 @@
                   "type": "integer",
                   "default": 600000
                 },
+                "registrationEnabled": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "fetchAvatarEnabled": {
+                  "type": "boolean",
+                  "default": false
+                },
                 "google": {
                   "type": "object",
                   "properties": {

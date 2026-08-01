@@ -212,7 +212,9 @@ follow the same flow pattern.
 6. Server verifies the state token (one-time use)
 7. Server exchanges the code for an access token with the provider
 8. Server fetches user info from the provider
-9. Server creates or finds the user by email
+9. Server finds the user by email and invokes the optional checkOAuth2User callback
+   (aborts with an error when the callback returns a string or an Error).
+   New users are registered unless SECURITY_OAUTH2_REGISTRATION_ENABLED=false
 10. Server generates an authentication OTT
 11. Server redirects to the original URL with the token:
     -> https://myapp.com/dashboard?token={ott}
@@ -259,7 +261,7 @@ SECURITY_OAUTH2_GOOGLE_CLIENT_SECRET=your-google-client-secret
 
 **Scopes**: `profile`, `email`
 
-**User info extracted**: `email`, `given_name` (firstName), `family_name` (lastName)
+**User info extracted**: `email`, `given_name` (firstName), `family_name` (lastName), `picture` (avatarUrl)
 
 **Google Cloud Console setup:**
 
@@ -304,7 +306,7 @@ SECURITY_OAUTH2_FACEBOOK_CLIENT_SECRET=your-facebook-app-secret
 
 **Scopes**: `public_profile`, `email`
 
-**User info extracted**: `email`, `name` (split into firstName/lastName)
+**User info extracted**: `email`, `name` (split into firstName/lastName), `picture` (avatarUrl)
 
 **Facebook Developer Console setup:**
 
@@ -346,7 +348,48 @@ For any OpenID Connect-compatible provider (Keycloak, Auth0, etc.).
 
 **User info endpoint**: `{issuer}/protocol/openid-connect/userinfo`
 
-**Standard claims expected**: `sub`, `email`, `given_name`, `family_name`
+**Standard claims expected**: `sub`, `email`, `given_name`, `family_name`, `picture` (optional, avatarUrl)
+
+### OAuth2 registration control and hooks
+
+**Disable OAuth2 registration** — set `SECURITY_OAUTH2_REGISTRATION_ENABLED=false` (JSON:
+`security.oauth2.registrationEnabled`) to prevent new users from being created during OAuth2 login. Only users that
+already exist in the database (matched by email) can then log in via OAuth2; unknown emails receive a 403 error.
+
+**`checkOAuth2User` callback** — an optional callback on `createAuthService` invoked on every OAuth2 login, before a
+user is registered or authenticated. It receives the auth source, the user info extracted from the provider, and the
+existing auth user (or `null` when the user would be newly registered). Return nothing to proceed, or return a string,
+`Error`, or `HttpError` to abort the flow (a 403 error is thrown, or the `HttpError` as-is):
+
+```ts
+// src/resources/user/service.ts
+import { AuthSource } from '@appweaver/common';
+import { createAuthService, HttpError } from '@appweaver/core';
+
+export default createAuthService({
+  modelName: 'User',
+  checkOAuth2User: (source, userInfo, authUser) => {
+    if (!userInfo.email.endsWith('@mycompany.com')) {
+      return new HttpError('Only company accounts are allowed', 403);
+    }
+    if (!authUser && source === AuthSource.OAuth2Facebook) {
+      return 'New accounts cannot be created via Facebook';
+    }
+    // Return nothing to proceed with registration/login
+  },
+  registrationData: (source, email, password, additionalData) => ({
+    email,
+    password,
+    name: `${additionalData?.firstName} ${additionalData?.lastName}`
+  })
+});
+```
+
+**User avatar** — the provider's avatar/picture URL is passed to `registrationData` as `additionalData.avatarUrl`.
+When `SECURITY_OAUTH2_FETCH_AVATAR_ENABLED=true` (JSON: `security.oauth2.fetchAvatarEnabled`), the avatar image is
+also downloaded during registration and passed as `additionalData.avatarFile`
+(`{ name, mimeType, size, data: Buffer }`), so it can be mapped to a model field or stored via the file service. The
+download is best-effort: failures are logged and registration proceeds without the file.
 
 ### Client-side OAuth2 integration example
 

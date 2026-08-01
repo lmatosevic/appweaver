@@ -24,9 +24,11 @@ import { HttpError } from '../errors';
 import {
   AuthOTTData,
   AuthTokens,
+  CheckOAuth2UserFn,
   JwtPayload,
   RegistrationDataFn,
-  UserAdditionalData
+  UserAdditionalData,
+  UserInfo
 } from '../types';
 
 const AUTH_KEY = 'auth';
@@ -171,6 +173,52 @@ export class AuthService {
     } catch (e) {
       throw new HttpError('Auth user registration error', 500, e);
     }
+  }
+
+  /**
+   * Checks whether a user is allowed to be registered and/or authenticated via OAuth2 by invoking the optional
+   * `checkOAuth2User` callback configured on the auth service. When the callback returns nothing, the OAuth2 flow
+   * proceeds normally (registration of a new user or login of an existing one). When it returns a string or an error,
+   * the flow is aborted by throwing an `HttpError`.
+   *
+   * @param {AuthSource} source - The OAuth2 authentication source, e.g., oauth2Google, oauth2Facebook, oauth2Custom.
+   * @param {UserInfo} userInfo - The user info extracted from the OAuth2 provider.
+   * @param {AuthUser | null} authUser - The existing authenticated user matched by email, or null when the user does
+   * not exist yet (i.e., a new user would be registered).
+   * @return {Promise<void>} A promise that resolves when the user is allowed to proceed.
+   * @throws {HttpError} If the configured callback returns a string or an error (status 403 unless an `HttpError` is
+   * returned, in which case it is thrown as-is).
+   */
+  public async checkOAuth2User(
+    source: AuthSource,
+    userInfo: UserInfo,
+    authUser: AuthUser | null
+  ): Promise<void> {
+    const serviceConfig: { checkOAuth2User?: CheckOAuth2UserFn } =
+      this._authUserService[CONFIG];
+
+    if (!serviceConfig.checkOAuth2User) {
+      return;
+    }
+
+    const result = await serviceConfig.checkOAuth2User(
+      source,
+      userInfo,
+      authUser
+    );
+    if (!result) {
+      return;
+    }
+
+    if (result instanceof HttpError) {
+      throw result;
+    }
+
+    throw new HttpError(
+      result instanceof Error ? result.message : result,
+      403,
+      result instanceof Error ? result : undefined
+    );
   }
 
   /**

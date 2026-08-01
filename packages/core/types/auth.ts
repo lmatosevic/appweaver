@@ -1,4 +1,4 @@
-import { AuthScope, AuthSource } from '@appweaver/common';
+import { AuthScope, AuthSource, AuthUser } from '@appweaver/common';
 
 export type JwtPayload = {
   scope: AuthScope;
@@ -30,9 +30,26 @@ export type OAuth2StateData = {
   redirectToUrl: string;
 };
 
+export type UserInfo = {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string;
+};
+
+export type AvatarFile = {
+  name: string;
+  mimeType: string;
+  size: number;
+  data: Buffer;
+};
+
 export type UserAdditionalData = {
   firstName: string;
   lastName: string;
+  avatarUrl?: string;
+  avatarFile?: AvatarFile;
 };
 
 export type RegistrationDataFn<T = any> = (
@@ -41,3 +58,9 @@ export type RegistrationDataFn<T = any> = (
   password?: string,
   additionalData?: Partial<UserAdditionalData>
 ) => T | Promise<T>;
+
+export type CheckOAuth2UserFn = (
+  source: AuthSource,
+  userInfo: UserInfo,
+  authUser: AuthUser | null
+) => void | string | Error | Promise<void | string | Error>;

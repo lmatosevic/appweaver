@@ -31,6 +31,7 @@ async function fetchGoogleUser(accessToken: string): Promise<UserInfo> {
     id: data.id,
     email: data.email,
     firstName: data.given_name,
-    lastName: data.family_name
+    lastName: data.family_name,
+    avatarUrl: data.picture
   };
 }

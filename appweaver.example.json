@@ -146,6 +146,8 @@
       },
       "oauth2": {
         "stateTtl": 600000,
+        "registrationEnabled": true,
+        "fetchAvatarEnabled": false,
         "google": {
           "enabled": true,
           "clientId": "3255464567435-tzr346jsgh63462vdp234sodhpsfjzop.apps.googleusercontent.com",

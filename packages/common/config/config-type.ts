@@ -225,6 +225,12 @@ export type Config = {
   SECURITY_JWT_REFRESH_EXPIRES_IN: number;
   /** OAuth2 state parameter TTL in milliseconds. Default: `600000` (10 min). */
   SECURITY_OAUTH2_STATE_TTL: number;
+  /** Allow registering new users via OAuth2 login. When `false`, only already existing users (matched by email) can
+   * log in via OAuth2. Default: `true`. */
+  SECURITY_OAUTH2_REGISTRATION_ENABLED: boolean;
+  /** Download the user's avatar image from the OAuth2 provider during registration and pass it as `avatarFile` to the
+   * `registrationData` callback. Default: `false`. */
+  SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: boolean;
   /** Enable Google OAuth2 provider. Default: `false`. */
   SECURITY_OAUTH2_GOOGLE_ENABLED: boolean;
   /** Google OAuth2 client ID. */

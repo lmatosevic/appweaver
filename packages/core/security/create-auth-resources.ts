@@ -15,7 +15,7 @@ import {
 } from '@appweaver/common';
 import { updatePasswordHash } from './helper';
 import { createModel, createService } from '../factory';
-import { RegistrationDataFn } from '../types';
+import { CheckOAuth2UserFn, RegistrationDataFn } from '../types';
 
 export function createAuthModel(config: ResourceModelConfig): ResourceModel {
   const authModelScalars: ScalarConfig = {
@@ -129,6 +129,7 @@ export function createAuthModel(config: ResourceModelConfig): ResourceModel {
 export function createAuthService<T = any, C = any, U = any>(
   config: ResourceServiceConfig<T, C, U> & {
     registrationData?: RegistrationDataFn<T>;
+    checkOAuth2User?: CheckOAuth2UserFn;
   }
 ): Ctor<IResourceService<T, T, C, U>> {
   // Capture original functions to invoke after new auth logic

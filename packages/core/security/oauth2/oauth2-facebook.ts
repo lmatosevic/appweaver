@@ -12,7 +12,7 @@ export const oauth2Facebook = createOAuth2Plugin(AuthSource.OAuth2Facebook, {
 
 async function fetchFacebookUser(accessToken: string): Promise<UserInfo> {
   const params = new URLSearchParams();
-  params.append('fields', 'id,name,email');
+  params.append('fields', 'id,name,email,picture.width(512)');
   params.append('access_token', accessToken);
 
   const resp = await fetch(
@@ -33,6 +33,7 @@ async function fetchFacebookUser(accessToken: string): Promise<UserInfo> {
     id: data.id,
     email: data.email,
     firstName,
-    lastName
+    lastName,
+    avatarUrl: data.picture?.data?.url
   };
 }

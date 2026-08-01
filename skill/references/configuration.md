@@ -256,9 +256,11 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 #### OAuth2 general
 
-| Property                    | Type    | Default  | Description                                                  |
-|-----------------------------|---------|----------|--------------------------------------------------------------|
-| `SECURITY_OAUTH2_STATE_TTL` | integer | `600000` | OAuth2 state parameter TTL in milliseconds (default 10 min). |
+| Property                               | Type    | Default  | Description                                                                                                                       |
+|----------------------------------------|---------|----------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `SECURITY_OAUTH2_STATE_TTL`            | integer | `600000` | OAuth2 state parameter TTL in milliseconds (default 10 min).                                                                      |
+| `SECURITY_OAUTH2_REGISTRATION_ENABLED` | boolean | `true`   | Allow registering new users via OAuth2 login. When `false`, only already existing users (matched by email) can log in via OAuth2. |
+| `SECURITY_OAUTH2_FETCH_AVATAR_ENABLED` | boolean | `false`  | Download the user's avatar from the OAuth2 provider during registration and pass it as `avatarFile` to `registrationData`.        |
 
 #### OAuth2 Google
 
