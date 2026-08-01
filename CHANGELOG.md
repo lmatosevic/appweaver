@@ -1,3 +1,9 @@
+## [1.1.3](https://github.com/lmatosevic/appweaver/compare/v1.1.2...v1.1.3) (2026-08-01)
+
+### Bug Fixes
+
+* add docker volumes for storage and logs in migration and seed services ([a7724e4](https://github.com/lmatosevic/appweaver/commit/a7724e4df9bf66f33f1d45dfe80d60f5124429e9))
+
 ## [1.1.2](https://github.com/lmatosevic/appweaver/compare/v1.1.1...v1.1.2) (2026-08-01)
 
 ### Bug Fixes
