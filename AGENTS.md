@@ -100,6 +100,22 @@ npm run generate
 npm run db:recreate
 ```
 
+**IMPORTANT**: whenever a resource schema in `packages/core` changes — any `model.ts` under `security/resources/`,
+`storage/resources/`, `seeder/resources/`, etc. (adding, removing, or altering a scalar, relation, virtual field, or
+index) — you must regenerate the types and the Prisma directory contents, then recreate the test database:
+
+```bash
+cd packages/core
+npm run generate      # refresh types/generated.ts, prisma/schema.prisma and prisma/client
+npm run db:recreate   # drop dev.db, remove the *_init migration and recreate it from the new schema
+```
+
+A stale `prisma/client` makes Prisma reject writes with a misleading "Unknown argument" naming an *unrelated* field
+(usually `createdById`) — suspect regeneration before the calling code.
+
+Downstream sample projects need the same refresh; in `sample/cms-api` use `npm run generate` then
+`weaver migration new <name>`, since it keeps a real migration history.
+
 ### `packages/cli`
 
 The `weaver` CLI tool. Entry point: `weaver.ts` → compiled to `dist/weaver.js`.

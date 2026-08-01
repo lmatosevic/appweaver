@@ -1,4 +1,5 @@
 import path from 'node:path';
+import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import {
   Database,
@@ -29,7 +30,7 @@ export class Seeder extends LifecycleManager {
   /**
    * Executes the seeders by discovering, validating, and running seeder files.
    * Logs the seeding process, including warnings for checksum mismatches
-   * and files that do not exist but are present in database table.
+   * and files that do not exist but are present in the database table.
    *
    * @return Resolves when all seeders have been processed. Logs relevant
    * information during execution.
@@ -169,12 +170,12 @@ export class Seeder extends LifecycleManager {
       }
     }
 
-    const seederHash = await this.seederHash(seederFile);
+    const checksum = await this.seederHash(seederFile);
 
     // Insert seeder result into the database
     await this._db.client().seeder.create({
       data: {
-        checksum: seederHash,
+        checksum,
         seederName: this.seederName(seederFile),
         startedAt: start,
         finishedAt: new Date(),
@@ -203,8 +204,7 @@ export class Seeder extends LifecycleManager {
 
   /** @internal */
   private async seederHash(seederFile: string): Promise<string> {
-    const seederContent = await fsp.readFile(seederFile, 'utf8');
-    return makeHash(seederContent);
+    return makeHash(fs.createReadStream(seederFile, 'utf8'));
   }
 
   /** @internal */

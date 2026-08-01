@@ -165,54 +165,57 @@ export function uncapitalize(text: string): string {
   return text.charAt(0).toLowerCase() + text.slice(1);
 }
 
+/** The hash algorithms supported by {@link makeHash}. */
+export type HashAlgorithm =
+  | 'sha256'
+  | 'sha512'
+  | 'sha3-256'
+  | 'sha3-512'
+  | 'blake2s256'
+  | 'blake2s512'
+  | 'md5';
+
+/** The encoding formats supported by {@link makeHash}. */
+export type HashEncoding = 'base64' | 'base64url' | 'hex' | 'binary';
+
 /**
- * Generates a hash string from the given text using the specified algorithm and encoding.
+ * Generates a hash of the given content using the specified algorithm and encoding. Supports strings, buffers, and
+ * readable streams (streams are consumed chunk-by-chunk without buffering the whole content in memory, and therefore
+ * resolve asynchronously).
  *
- * @param {string} text - The input text to be hashed.
+ * Can also be used to verify the integrity/authenticity of a file by comparing the calculated hash with a previously
+ * stored one (e.g. the `checksum` field of an uploaded `File` resource).
+ *
+ * @param {Readable} content - The readable stream to hash (e.g. `fs.createReadStream(path)`).
+ * @param {'sha256'|'sha512'|'sha3-256'|'sha3-512'|'blake2s256'|'blake2s512'|'md5'} [algorithm='sha256'] - The hash algorithm to use.
+ * @param {'base64'|'base64url'|'hex'|'binary'} [encoding='hex'] - The encoding format for the resulting hash.
+ * @return {Promise<string>} A promise that resolves to the hash string in the specified encoding format.
+ */
+export function makeHash(
+  content: Readable,
+  algorithm?: HashAlgorithm,
+  encoding?: HashEncoding
+): Promise<string>;
+
+/**
+ * Generates a hash of the given content using the specified algorithm and encoding.
+ *
+ * @param {Buffer | string} content - The buffer or text to be hashed.
  * @param {'sha256'|'sha512'|'sha3-256'|'sha3-512'|'blake2s256'|'blake2s512'|'md5'} [algorithm='sha256'] - The hash algorithm to use.
  * @param {'base64'|'base64url'|'hex'|'binary'} [encoding='hex'] - The encoding format for the resulting hash.
  * @return {string} The resulting hash string in the specified encoding format.
  */
 export function makeHash(
-  text: string,
-  algorithm:
-    | 'sha256'
-    | 'sha512'
-    | 'sha3-256'
-    | 'sha3-512'
-    | 'blake2s256'
-    | 'blake2s512'
-    | 'md5' = 'sha256',
-  encoding: 'base64' | 'base64url' | 'hex' | 'binary' = 'hex'
-): string {
-  return createHash(algorithm).update(text).digest(encoding);
-}
+  content: Buffer | string,
+  algorithm?: HashAlgorithm,
+  encoding?: HashEncoding
+): string;
 
-/**
- * Calculates a checksum of the given content using the specified algorithm and encoding. Supports strings, buffers,
- * and readable streams (streams are consumed chunk-by-chunk without buffering the whole content in memory).
- *
- * Can be used to verify the integrity/authenticity of a file by comparing the calculated checksum with a previously
- * stored one (e.g. the `checksum` field of an uploaded `File` resource).
- *
- * @param {Readable | Buffer | string} content - The content to calculate the checksum for. Can be a readable stream
- *        (e.g. `fs.createReadStream(path)`), a buffer, or a string.
- * @param {'sha256'|'sha512'|'sha3-256'|'sha3-512'|'blake2s256'|'blake2s512'|'md5'} [algorithm='sha256'] - The hash algorithm to use.
- * @param {'base64'|'base64url'|'hex'|'binary'} [encoding='hex'] - The encoding format for the resulting checksum.
- * @return {Promise<string>} A promise that resolves to the checksum string in the specified encoding format.
- */
-export async function makeChecksum(
+export function makeHash(
   content: Readable | Buffer | string,
-  algorithm:
-    | 'sha256'
-    | 'sha512'
-    | 'sha3-256'
-    | 'sha3-512'
-    | 'blake2s256'
-    | 'blake2s512'
-    | 'md5' = 'sha256',
-  encoding: 'base64' | 'base64url' | 'hex' | 'binary' = 'hex'
-): Promise<string> {
+  algorithm: HashAlgorithm = 'sha256',
+  encoding: HashEncoding = 'hex'
+): string | Promise<string> {
   const hash = createHash(algorithm);
 
   if (content instanceof Readable) {

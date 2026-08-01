@@ -9,7 +9,7 @@ import {
   isArray,
   isFunction,
   logger,
-  makeChecksum,
+  makeHash,
   Resource,
   ResourceClient,
   Storage
@@ -266,7 +266,7 @@ export class FileService {
 
     const [fileName, checksum] = await Promise.all([
       this._storage.store(generatedName, storageStream),
-      makeChecksum(checksumStream)
+      makeHash(checksumStream)
     ]);
     if (!fileName) {
       throw new HttpError('Error saving file to storage', 500);

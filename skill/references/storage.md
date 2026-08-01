@@ -230,18 +230,18 @@ processing), so it can be used at any later point to verify that the file on dis
 
 The checksum is included in file API responses, so clients can verify downloaded content against it.
 
-To verify a file's integrity, recalculate the checksum with the `makeChecksum` utility from `@appweaver/common` and
+To verify a file's integrity, recalculate the checksum with the `makeHash` utility from `@appweaver/common` and
 compare it with the stored value:
 
 ```ts
 import { createReadStream } from 'node:fs';
-import { makeChecksum } from '@appweaver/common';
+import { makeHash } from '@appweaver/common';
 
-// From a readable stream (no memory buffering, works for large files)
-const checksum = await makeChecksum(createReadStream('/path/to/stored/file'));
+// From a readable stream (no memory buffering, works for large files) — returns a promise
+const checksum = await makeHash(createReadStream('/path/to/stored/file'));
 
-// Or from a Buffer / string
-// const checksum = await makeChecksum(downloadedBuffer);
+// Or from a Buffer / string — returns the hash synchronously
+// const checksum = makeHash(downloadedBuffer);
 
 if (checksum !== file.checksum) {
   throw new Error(`File ${file.name} has been modified or corrupted`);
