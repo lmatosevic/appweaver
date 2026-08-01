@@ -26,7 +26,10 @@ services:
 {{DATABASE_DOCKER_MIGRATE_DEPENDS}}    env_file:
       - .env
     command: [ "migrations" ]
-{{DATABASE_DOCKER_SQLITE_VOLUMES}}    networks:
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs{{DATABASE_DOCKER_APP_VOLUME}}
+    networks:
       - {{LOWER_NAME}}
 
   {{LOWER_NAME}}.seed:
@@ -41,7 +44,10 @@ services:
     env_file:
       - .env
     command: [ "seed" ]
-{{DATABASE_DOCKER_SQLITE_VOLUMES}}    networks:
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs{{DATABASE_DOCKER_APP_VOLUME}}
+    networks:
       - {{LOWER_NAME}}
 
   {{LOWER_NAME}}:

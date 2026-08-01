@@ -141,7 +141,6 @@ program
       DATABASE_TEST_URL: getDatabaseUrl(command, sanitizedName, 'test'),
       DATABASE_DOCKER_SERVICE: dockerDb.service,
       DATABASE_DOCKER_MIGRATE_DEPENDS: dockerDb.migrateDepends,
-      DATABASE_DOCKER_SQLITE_VOLUMES: dockerDb.sqliteVolumes,
       DATABASE_DOCKER_APP_VOLUME: dockerDb.appVolume,
       DATABASE_DOCKER_NAMED_VOLUME: dockerDb.namedVolume,
       VERSION: pkg.version
@@ -339,7 +338,6 @@ function getDatabaseDockerConfig(
 ): {
   service: string;
   migrateDepends: string;
-  sqliteVolumes: string;
   appVolume: string;
   namedVolume: string;
 } {
@@ -352,7 +350,6 @@ function getDatabaseDockerConfig(
     return {
       service: '',
       migrateDepends: '',
-      sqliteVolumes: `    volumes:\n      - sqlite-data:/usr/app/data\n`,
       appVolume: `\n      - sqlite-data:/usr/app/data`,
       namedVolume: `  sqlite-data:\n`
     };
@@ -451,7 +448,6 @@ function getDatabaseDockerConfig(
       ${database === 'postgresql' ? 'postgres' : database}:
         condition: service_healthy
 `,
-    sqliteVolumes: '',
     appVolume: '',
     namedVolume: config.volume
   };
