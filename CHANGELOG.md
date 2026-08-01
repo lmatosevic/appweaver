@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/lmatosevic/appweaver/compare/v1.1.0...v1.1.1) (2026-08-01)
+
+### Bug Fixes
+
+* make File resource checksum required ([56ec5f3](https://github.com/lmatosevic/appweaver/commit/56ec5f3be89e0e72babc18e2e5cfd0dfebe2dd9a))
+
 ## [1.1.0](https://github.com/lmatosevic/appweaver/compare/v1.0.25...v1.1.0) (2026-08-01)
 
 ### Features
