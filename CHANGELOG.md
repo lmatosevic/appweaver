@@ -1,3 +1,9 @@
+## [1.1.2](https://github.com/lmatosevic/appweaver/compare/v1.1.1...v1.1.2) (2026-08-01)
+
+### Bug Fixes
+
+* change File checksum maxLength to 127 ([1cd19ff](https://github.com/lmatosevic/appweaver/commit/1cd19ff4a1f857f8378a6be6b0a9f24616c2ffcc))
+
 ## [1.1.1](https://github.com/lmatosevic/appweaver/compare/v1.1.0...v1.1.1) (2026-08-01)
 
 ### Bug Fixes
