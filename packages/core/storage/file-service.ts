@@ -1,7 +1,6 @@
 import { PassThrough, Readable } from 'node:stream';
 import { Multipart, MultipartFile } from '@fastify/multipart';
 import {
-  config,
   ContentStream,
   Database,
   FileField,
@@ -21,6 +20,7 @@ import { currentAuthUser } from '../security';
 import { PrismaDatabase } from '../database';
 import { CacheService } from '../cache';
 import {
+  buildFileUrl,
   generateFileName,
   isProcessableImage,
   isValidMimeType,
@@ -322,7 +322,7 @@ export class FileService {
         );
       }
 
-      file.url = this.buildFileUrl(file, policy);
+      file.url = buildFileUrl(file);
 
       logger.debug({ file }, 'File saved');
 
@@ -434,7 +434,7 @@ export class FileService {
         where: { name: fileName }
       })) as File;
 
-      deletedFile.url = this.buildFileUrl(deletedFile, policy);
+      deletedFile.url = buildFileUrl(deletedFile);
 
       logger.debug({ deletedFile }, 'File deleted');
 
@@ -557,11 +557,6 @@ export class FileService {
     }
 
     return deletedFiles;
-  }
-
-  /** @internal */
-  private buildFileUrl(file: File, policy: FilePolicy): string {
-    return `${config.APP_HOSTNAME}/files/${policy.accessType === 'public' ? 'public' : 'protected'}/${file.name}`;
   }
 
   /** @internal */

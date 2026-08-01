@@ -1,9 +1,9 @@
 # Resources
 
-Resources are the core building blocks of an Appweaver application. There are four resource types that form a
-dependency chain: **model** → **service** → **routes** → **policy**. Each resource type is created using a
-corresponding factory function and autoloaded from `src/resources/*/` on application start. Source directory and
-resources pattern could be changed with `APP_SOURCE_PATH` and `RESOURCE_{MODEL,SERVICE,...}_PATTERN` config variables.
+Resources are the core building blocks of an Appweaver application. There are four resource types that form a dependency
+chain: **model** → **service** → **routes** → **policy**. Each resource type is created using a corresponding factory
+function and autoloaded from `src/resources/*/` on application start. Source directory and resources pattern could be
+changed with `APP_SOURCE_PATH` and `RESOURCE_{MODEL,SERVICE,...}_PATTERN` config variables.
 
 - A **model** is always required.
 - A **service** requires a model.
@@ -14,9 +14,9 @@ resources pattern could be changed with `APP_SOURCE_PATH` and `RESOURCE_{MODEL,S
 
 ## createModel
 
-Creates a resource model definition. The model defines database fields, relations, files, virtual fields, DTOs for
-CRUD operations, and index configuration. It is used to generate Prisma schema, TypeScript types, and route
-request/response schemas.
+Creates a resource model definition. The model defines database fields, relations, files, virtual fields, DTOs for CRUD
+operations, and index configuration. It is used to generate Prisma schema, TypeScript types, and route request/response
+schemas.
 
 ```ts
 import { createModel } from '@appweaver/core';
@@ -505,8 +505,8 @@ are passed through unchanged.
 | `maxHeight` | number   | Maximum height. Only downscales if the image exceeds this dimension.                                           |
 | `fit`       | ImageFit | How the image fits the target dimensions: `'inside'` (default), `'contain'`, `'cover'`, `'fill'`, `'outside'`. |
 
-`width`/`height` take precedence over `maxWidth`/`maxHeight`. When using `maxWidth`/`maxHeight`, images smaller than
-the specified dimensions are not enlarged.
+`width`/`height` take precedence over `maxWidth`/`maxHeight`. When using `maxWidth`/`maxHeight`, images smaller than the
+specified dimensions are not enlarged.
 
 ```ts
 // Compress and limit dimensions
@@ -565,6 +565,17 @@ const config = {
 | `input.value`    | primitive \| function                                | Default value or transformer for input.                    |
 | `output.type`    | `'always'` \| `'single'` \| `'multiple'` \| `'none'` | When the virtual field appears in output.                  |
 | `output.value`   | primitive \| function                                | Computed value or transformer for output.                  |
+
+Virtual output values are applied automatically to responses of resource CRUD routes (including nested relation and file
+objects) and to responses of custom `registerRoute` routes whose 2xx response schemas reference resource output models.
+To apply them manually on a raw resource object (e.g. one fetched directly through a Prisma client), use the
+`projectVirtualFields` helper:
+
+```ts
+import { projectVirtualFields } from '@appweaver/core';
+
+const projected = projectVirtualFields(post, 'Post'); // sets virtual values, recursing into relations and files
+```
 
 ### Operation config (read, create, update)
 
@@ -988,8 +999,8 @@ registerModel(
 
 ## registerPlugin
 
-Registers a custom Fastify plugin. Plugins are wrapped with `fastify-plugin` so their decorators and hooks are scoped
-to the entire server instance.
+Registers a custom Fastify plugin. Plugins are wrapped with `fastify-plugin` so their decorators and hooks are scoped to
+the entire server instance.
 
 ```ts
 import { registerPlugin } from '@appweaver/core';

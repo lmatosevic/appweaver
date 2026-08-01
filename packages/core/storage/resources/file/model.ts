@@ -1,6 +1,5 @@
-import { config } from '@appweaver/common';
 import { createModel } from '../../../factory';
-import { injectPolicy } from '../../../context';
+import { buildFileUrl } from '../../../utils';
 import { File } from '../../../types';
 
 export default createModel({
@@ -69,12 +68,7 @@ export default createModel({
         type: 'none'
       },
       output: {
-        value: (file: File) => {
-          const accessType = injectPolicy(file.resourceName ?? '', false)
-            ?.files?.[file.resourceField ?? '']?.accessType;
-          const pathPrefix = accessType === 'public' ? 'public' : 'protected';
-          return `${config.APP_HOSTNAME}/files/${pathPrefix}/${file.name}`;
-        }
+        value: (file: File) => buildFileUrl(file)
       }
     }
   },

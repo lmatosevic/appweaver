@@ -12,6 +12,10 @@ import { define } from '../context';
 import { authSchema, recaptchaHeaderSchema } from '../security';
 import { AllErrorResponses } from '../errors';
 import { Router, Server } from '../types';
+import {
+  buildVirtualProjectionPlan,
+  createVirtualProjectionHook
+} from './virtual-projection';
 
 export function registerRoute(
   handler: (router: Router) => void,
@@ -50,6 +54,17 @@ export function registerRoute(
         recaptchaAction: config?.recaptchaAction
       });
 
+      // Automatically project virtual fields onto response payloads for routes
+      // whose response schemas reference resource models
+      const projectionPlan = buildVirtualProjectionPlan(
+        route.schema?.response as Record<string, unknown> | undefined,
+        (id) => server.getSchema(id)
+      );
+      const projectionHook =
+        Object.keys(projectionPlan).length > 0
+          ? createVirtualProjectionHook(projectionPlan)
+          : undefined;
+
       // Merge received route schema with default values based on configuration
       const mergedRoute = {
         ...route,
@@ -73,6 +88,12 @@ export function registerRoute(
           config?.public ? undefined : authenticate(config?.auth as AuthType[]),
           config?.recaptcha || config?.recaptchaAction ? recaptcha : undefined,
           ...(isArray(route.onRequest) ? route.onRequest : [route.onRequest])
+        ].filter((h) => h !== undefined),
+        preSerialization: [
+          ...(isArray(route.preSerialization)
+            ? route.preSerialization
+            : [route.preSerialization]),
+          projectionHook
         ].filter((h) => h !== undefined),
         config: {
           ...config,

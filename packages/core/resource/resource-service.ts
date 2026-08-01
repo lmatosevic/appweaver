@@ -26,7 +26,6 @@ import {
   IResourceService,
   isArray,
   isCountField,
-  isFunction,
   isObject,
   OutputType,
   PeriodIncrementFn,
@@ -40,6 +39,7 @@ import {
   uncapitalize
 } from '@appweaver/common';
 import { inject, injectModel } from '../context';
+import { projectVirtualFields } from '../utils';
 import { currentAuthUser } from '../security';
 import { PrismaDatabase } from '../database';
 import { CacheService } from '../cache';
@@ -621,7 +621,7 @@ export abstract class ResourceService<
   }
 
   private projectResource<T>(resource: T): T {
-    const projectedResource = this.projectVirtualFields(resource);
+    const projectedResource = projectVirtualFields(resource, this._client.name);
 
     if (!isObject(projectedResource['_count'])) {
       return projectedResource;
@@ -635,54 +635,6 @@ export abstract class ResourceService<
     delete projectedResource['_count'];
 
     return projectedResource;
-  }
-
-  private projectVirtualFields<T>(resource: T, resourceName?: string): T {
-    if (!resource) {
-      return resource;
-    }
-
-    const projectedVirtual = { ...resource };
-
-    const resourceModel = injectModel(resourceName ?? this._client.name, false);
-    const relationsModel = resourceModel?.relationsModel;
-    const filesModel = resourceModel?.filesModel;
-
-    // Set output or default value for virtual fields
-    for (const [fieldName, virtual] of Object.entries(
-      resourceModel?.config?.virtual ?? {}
-    )) {
-      const outputValue = virtual.output?.value;
-      if (isFunction(outputValue)) {
-        projectedVirtual[fieldName] = outputValue(projectedVirtual);
-      } else if (outputValue) {
-        projectedVirtual[fieldName] = outputValue;
-      } else if (virtual.required !== false) {
-        projectedVirtual[fieldName] =
-          virtual.default ?? defaultScalarValue(virtual);
-      }
-    }
-
-    // Recursively project virtual fields for nested relational objects
-    for (const key in projectedVirtual) {
-      const value = projectedVirtual[key];
-
-      const relationSchema = extractSchemaProperties(relationsModel, key);
-      const fileSchema = extractSchemaProperties(filesModel, key);
-
-      if (isObject(value) || (isArray(value) && isObject(value[0]))) {
-        const resourceName = extractResourceName(relationSchema ?? fileSchema);
-        if (resourceName) {
-          projectedVirtual[key] = isArray(value)
-            ? (value.map((item: any) =>
-                this.projectVirtualFields(item, resourceName)
-              ) as any)
-            : this.projectVirtualFields(value, resourceName);
-        }
-      }
-    }
-
-    return projectedVirtual;
   }
 
   private sanitizeData<T>(

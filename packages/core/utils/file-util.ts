@@ -5,7 +5,30 @@ import {
   replacePatternVariables,
   textToBytes
 } from '@appweaver/common';
+import { injectPolicy } from '../context';
 import { File } from '../types';
+
+/**
+ * Builds the access URL for a stored file. The `public` or `protected` path prefix is resolved from the access type
+ * configured in the file policy of the resource owning the file, and the route prefix is taken from the
+ * `STORAGE_FILES_ROUTE_PREFIX` configuration.
+ *
+ * @param {File} file - The file object containing the name and owning resource information.
+ * @return {string} The absolute URL for accessing the file.
+ */
+export function buildFileUrl(file: File): string {
+  const accessType = injectPolicy(file.resourceName ?? '', false)?.files?.[
+    file.resourceField ?? ''
+  ]?.accessType;
+  const pathPrefix = accessType === 'public' ? 'public' : 'protected';
+
+  const routePrefix = `/${config.STORAGE_FILES_ROUTE_PREFIX}/`.replace(
+    /\/+/g,
+    '/'
+  );
+
+  return `${config.APP_HOSTNAME}${routePrefix}${pathPrefix}/${file.name}`;
+}
 
 /**
  * Parses a range string and converts it into an object with start and end values.
