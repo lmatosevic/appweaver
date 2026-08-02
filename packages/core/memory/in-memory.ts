@@ -85,7 +85,11 @@ export class InMemory extends Memory {
     // is below the configured value
     if (this._maxSizeBytes) {
       while (this._approximatedSize > this._maxSizeBytes) {
-        await this.removeValue(this._storage.keys()[0]);
+        const oldestKey = this._storage.keys().next().value;
+        if (oldestKey === undefined) {
+          break;
+        }
+        await this.removeValue(oldestKey);
       }
     }
 
@@ -97,14 +101,14 @@ export class InMemory extends Memory {
   }
 
   public async removeValue(key: string): Promise<boolean> {
-    const jsonValue = await this.getValue(key);
-    if (!jsonValue) {
+    const entry = this._storage.get(key);
+    if (!entry) {
       return false;
     }
 
     const deleted = this._storage.delete(key);
 
-    this._approximatedSize -= Buffer.byteLength(jsonValue, 'utf8');
+    this._approximatedSize -= Buffer.byteLength(entry.value, 'utf8');
     if (this._approximatedSize < 0) {
       this._approximatedSize = 0;
     }
@@ -212,7 +216,7 @@ export class InMemory extends Memory {
     const now = Date.now();
 
     // Clean up expired storage entries
-    for (const key in this._storage.keys()) {
+    for (const key of Array.from(this._storage.keys())) {
       const entry = this._storage.get(key);
       if (entry && entry.expiresAt && entry.expiresAt < now) {
         await this.removeValue(key);
@@ -220,7 +224,7 @@ export class InMemory extends Memory {
     }
 
     // Clean up expired locks
-    for (const key in this._locks.keys()) {
+    for (const key of Array.from(this._locks.keys())) {
       const lock = this._locks.get(key);
       if (lock && lock.expiresAt < now) {
         this._locks.delete(key);

@@ -4,6 +4,11 @@
     "noEmit": true,
     "types": ["node", "jest", "bun"]
   },
-  "include": ["packages/**/*.test.ts"],
+  "include": [
+    "packages/**/*.test.ts",
+    "packages/*/test/fixtures/*.ts",
+    "packages/core/types/fastify-extensions.ts",
+    "packages/core/security/jwt/jwt-auth.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

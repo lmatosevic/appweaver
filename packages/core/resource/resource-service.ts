@@ -714,8 +714,12 @@ export abstract class ResourceService<
 
       const isArrayValue = isArray(value);
 
-      // Recursively map nested objects and handle arrays of objects
-      if (isObject(value) || (isArrayValue && isObject(value[0]))) {
+      // Recursively map nested objects and handle arrays of objects. Arrays of
+      // plain values are mapped below as inclusion, range or relation filters.
+      if (
+        (isObject(value) && !isArrayValue) ||
+        (isArrayValue && isObject(value[0]))
+      ) {
         const resourceName = extractResourceName(relationSchema ?? fileSchema);
         if (resourceName) {
           queryFilter[key] = isArrayValue
@@ -941,8 +945,8 @@ export abstract class ResourceService<
 
       // Map relation disconnects if unique keys are no longer present or the
       // new value is null. Delete relations if orphanRemoval is set to true.
-      // Also, do not create a disconnect action if the currentValue is already
-      // null.
+      // Relations that are not set on the current resource are left untouched,
+      // so no relation action is applied for them.
       if (action === 'update') {
         const currentValue = currentData[key];
         const removalMethod = config?.orphanRemoval ? 'delete' : 'disconnect';
