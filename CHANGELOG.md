@@ -1,3 +1,13 @@
+## [1.1.4](https://github.com/lmatosevic/appweaver/compare/v1.1.3...v1.1.4) (2026-08-02)
+
+### Bug Fixes
+
+* add reserved storage path validation and enforcement ([e337c0a](https://github.com/lmatosevic/appweaver/commit/e337c0a5bc40eb6934ecd8913e65bbddd5035fd1))
+* add unit tests for common package and enforced .test.ts naming convention for test files ([1b0175b](https://github.com/lmatosevic/appweaver/commit/1b0175bd7781bd516066e23c0b4335db29da4912))
+* implement secure file storage utilities and permissions handling ([2d2adc4](https://github.com/lmatosevic/appweaver/commit/2d2adc4571ab449962d81316045e9642dc9565d4))
+* refactor makeHash function to unify stream, buffer, and string handling ([25184bc](https://github.com/lmatosevic/appweaver/commit/25184bc2b09ca22040f850786803de890aa28e63))
+* update test config to set log level to silent ([feb1e70](https://github.com/lmatosevic/appweaver/commit/feb1e70ed512bc6e7e2157fcc91bdb8a20241840))
+
 ## [1.1.3](https://github.com/lmatosevic/appweaver/compare/v1.1.2...v1.1.3) (2026-08-01)
 
 ### Bug Fixes
