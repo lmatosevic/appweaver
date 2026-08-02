@@ -4,6 +4,7 @@
   "testEnvironment": "node",
   "testMatch": ["**/*.test.ts"],
   "testPathIgnorePatterns": ["/node_modules/", "/dist/"],
+  "modulePathIgnorePatterns": ["<rootDir>/packages/[^/]+/dist/"],
   "transform": {
     "^.+\\.(t|j)s$": [
       "@swc/jest",

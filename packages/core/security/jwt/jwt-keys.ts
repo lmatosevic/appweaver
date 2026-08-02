@@ -3,6 +3,15 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import { generateKeyPair } from 'node:crypto';
 
+/** Permissions of the directory holding the security keys (owner only). */
+const KEYS_DIR_MODE = 0o700;
+
+/** Permissions of the generated private key file (owner read/write only). */
+const PRIVATE_KEY_MODE = 0o600;
+
+/** Permissions of the generated public key file (owner read/write, others read). */
+const PUBLIC_KEY_MODE = 0o644;
+
 export async function ensureSecurityKeys(
   publicKeyPath: string,
   privateKeyPath: string,
@@ -31,11 +40,23 @@ export async function generateSecurityKeys(
     privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
   });
 
-  await fsp.mkdir(path.dirname(publicKeyPath), { recursive: true });
-  await fsp.writeFile(publicKeyPath, publicKey, 'utf8');
+  await fsp.mkdir(path.dirname(publicKeyPath), {
+    recursive: true,
+    mode: KEYS_DIR_MODE
+  });
+  await fsp.writeFile(publicKeyPath, publicKey, {
+    encoding: 'utf8',
+    mode: PUBLIC_KEY_MODE
+  });
 
-  await fsp.mkdir(path.dirname(privateKeyPath), { recursive: true });
-  await fsp.writeFile(privateKeyPath, privateKey, 'utf8');
+  await fsp.mkdir(path.dirname(privateKeyPath), {
+    recursive: true,
+    mode: KEYS_DIR_MODE
+  });
+  await fsp.writeFile(privateKeyPath, privateKey, {
+    encoding: 'utf8',
+    mode: PRIVATE_KEY_MODE
+  });
 }
 
 export async function loadSecurityKeys(

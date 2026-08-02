@@ -17,8 +17,8 @@ Appweaver supports four authentication methods that can be used independently or
 | API Key      | `SECURITY_API_KEY_ENABLED` | `x-api-key: <id><delimiter><secret>` |
 | OAuth2       | Per-provider flags         | Browser redirect flow                |
 
-When multiple methods are enabled, the authentication middleware tries each in order. A request is authenticated if
-any one method succeeds. If no credentials are present for any method, a 401 error is returned.
+When multiple methods are enabled, the authentication middleware tries each in order. A request is authenticated if any
+one method succeeds. If no credentials are present for any method, a 401 error is returned.
 
 ### Route authentication configuration
 
@@ -53,9 +53,11 @@ if `SECURITY_JWT_SECRET` is set.
 
 ### Key management
 
-- RSA 2048-bit key pair generated automatically if `SECURITY_JWT_AUTO_GENERATE_KEYS` is `true` and key files are
-  missing
+- RSA 2048-bit key pair generated automatically if `SECURITY_JWT_AUTO_GENERATE_KEYS` is `true` and key files are missing
 - Keys stored at `SECURITY_JWT_PUBLIC_KEY_PATH` and `SECURITY_JWT_PRIVATE_KEY_PATH` (default: `./storage/keys/`)
+- Generated keys are written with owner-only permissions (`0600` for the private key, `0700` for its directory)
+- Keep the keys **outside** of `STORAGE_PATH` (e.g. `SECURITY_JWT_PRIVATE_KEY_PATH=./keys/private.key`), so that they
+  are not reachable by the file storage layer at all
 - If `SECURITY_JWT_SECRET` is set, HMAC signing is used instead of RSA
 
 ### Token types and scopes
@@ -121,8 +123,8 @@ When enabled, requests with an `Authorization: Basic` header are authenticated a
 }
 ```
 
-Uses `@fastify/basic-auth` plugin. Extracts Base64-encoded `username:password` from the header and validates against
-the user's stored password hash.
+Uses `@fastify/basic-auth` plugin. Extracts Base64-encoded `username:password` from the header and validates against the
+user's stored password hash.
 
 ---
 
@@ -185,8 +187,8 @@ Default delimiter is `AK`, so a key looks like: `42AKa1b2c3d4e5f6...`
 
 ## OAuth2 authentication
 
-Appweaver supports OAuth2 login with Google, Facebook, and a custom OpenID Connect provider. All OAuth2 providers
-follow the same flow pattern.
+Appweaver supports OAuth2 login with Google, Facebook, and a custom OpenID Connect provider. All OAuth2 providers follow
+the same flow pattern.
 
 ### OAuth2 flow
 
@@ -385,9 +387,9 @@ export default createAuthService({
 });
 ```
 
-**User avatar** — the provider's avatar/picture URL is passed to `registrationData` as `additionalData.avatarUrl`.
-When `SECURITY_OAUTH2_FETCH_AVATAR_ENABLED=true` (JSON: `security.oauth2.fetchAvatarEnabled`), the avatar image is
-also downloaded during registration and passed as `additionalData.avatarFile`
+**User avatar** — the provider's avatar/picture URL is passed to `registrationData` as `additionalData.avatarUrl`. When
+`SECURITY_OAUTH2_FETCH_AVATAR_ENABLED=true` (JSON: `security.oauth2.fetchAvatarEnabled`), the avatar image is also
+downloaded during registration and passed as `additionalData.avatarFile`
 (`{ name, mimeType, size, data: Buffer }`), so it can be mapped to a model field or stored via the file service. The
 download is best-effort: failures are logged and registration proceeds without the file.
 
@@ -716,8 +718,8 @@ Password validation is configurable via `SECURITY_PASSWORD_*` properties:
 
 ### Token invalidation on password change
 
-Both `change-password` and `reset-password` set `logoutAt` to the current timestamp, which invalidates all existing
-JWT tokens across all devices. The `change-password` endpoint returns new tokens so the current session stays active.
+Both `change-password` and `reset-password` set `logoutAt` to the current timestamp, which invalidates all existing JWT
+tokens across all devices. The `change-password` endpoint returns new tokens so the current session stays active.
 
 ---
 

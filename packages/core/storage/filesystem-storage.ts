@@ -8,15 +8,17 @@ import {
   ContentStream,
   HealthCheckResult,
   logger,
+  normalizeStoragePath,
+  resolveStoragePath,
   Storage
 } from '@appweaver/common';
 
 export class FilesystemStorage extends Storage {
   /** @internal */
-  private readonly _dirPath: string = config.STORAGE_PATH;
+  private readonly _dirPath: string = path.resolve(config.STORAGE_PATH);
 
   public async onInit(): Promise<void> {
-    const directoryExists = await this.exists('');
+    const directoryExists = await this.pathExists(this._dirPath);
     if (!directoryExists) {
       await fsp.mkdir(this._dirPath, { recursive: true });
       logger.info(`Storage directory initialized: ${this._dirPath}`);
@@ -28,7 +30,11 @@ export class FilesystemStorage extends Storage {
     start: number = 0,
     end?: number
   ): Promise<ContentStream | null> {
-    const filePath = `${this._dirPath}/${fileName}`;
+    const filePath = this.resolveFilePath(fileName, 'stream');
+    if (!filePath) {
+      return null;
+    }
+
     try {
       const { size } = await fsp.stat(filePath);
 
@@ -50,10 +56,17 @@ export class FilesystemStorage extends Storage {
   }
 
   public async store(fileName: string, data: Readable): Promise<string | null> {
-    const filePath = await this.getFilePath(fileName, true);
+    const filePath = this.resolveFilePath(fileName, 'store');
+    if (!filePath) {
+      // The stream must still be consumed to prevent request from hanging.
+      data.resume();
+      return null;
+    }
+
     try {
+      await this.ensureDirectoryExists(filePath);
       await pipeline(data, fs.createWriteStream(filePath));
-      return fileName;
+      return normalizeStoragePath(fileName) ?? fileName;
     } catch (e) {
       logger.error(e, `Error storing file: ${filePath}`);
       return null;
@@ -61,7 +74,11 @@ export class FilesystemStorage extends Storage {
   }
 
   public async delete(fileName: string): Promise<boolean> {
-    const filePath = await this.getFilePath(fileName);
+    const filePath = this.resolveFilePath(fileName, 'delete');
+    if (!filePath) {
+      return false;
+    }
+
     try {
       await fsp.unlink(filePath);
       await this.removeEmptyDirectories(path.dirname(filePath));
@@ -73,13 +90,11 @@ export class FilesystemStorage extends Storage {
   }
 
   public async exists(fileName: string): Promise<boolean> {
-    const filePath = await this.getFilePath(fileName);
-    try {
-      await fsp.access(filePath, fs.constants.F_OK);
-      return true;
-    } catch (e) {
+    const filePath = this.resolveFilePath(fileName, 'exists');
+    if (!filePath) {
       return false;
     }
+    return this.pathExists(filePath);
   }
 
   public async checkHealth(): Promise<HealthCheckResult> {
@@ -92,15 +107,25 @@ export class FilesystemStorage extends Storage {
   }
 
   /** @internal */
-  private async getFilePath(
-    fileName: string,
-    mkdir: boolean = false
-  ): Promise<string> {
-    const filePath = `${this._dirPath}/${fileName}`;
-    if (mkdir) {
-      await this.ensureDirectoryExists(filePath);
+  private resolveFilePath(fileName: string, action: string): string | null {
+    const filePath = resolveStoragePath(this._dirPath, fileName);
+
+    if (!filePath) {
+      logger.warn({ fileName, action }, 'Rejected invalid storage file path');
+      return null;
     }
+
     return filePath;
+  }
+
+  /** @internal */
+  private async pathExists(filePath: string): Promise<boolean> {
+    try {
+      await fsp.access(filePath, fs.constants.F_OK);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   /** @internal */
@@ -141,9 +166,7 @@ export class FilesystemStorage extends Storage {
   /** @internal */
   private async ensureDirectoryExists(filePath: string): Promise<void> {
     const dirname = path.dirname(filePath);
-    try {
-      await fsp.access(dirname, fs.constants.F_OK);
-    } catch (e) {
+    if (!(await this.pathExists(dirname))) {
       await fsp.mkdir(dirname, { recursive: true });
     }
   }

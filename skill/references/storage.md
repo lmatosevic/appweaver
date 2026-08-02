@@ -125,6 +125,10 @@ Available placeholders:
 
 Example: storing `photo.jpg` produces `photo-c7d3a1f2.jpg`.
 
+Only the pattern itself may contain directory separators (e.g. `photos/{resourceId}/{name}.{extension}`). Every value
+substituted into it — including the uploaded file name — is reduced to a single path segment, so an upload can never
+introduce a subdirectory, a `..` traversal or a hidden file.
+
 ---
 
 ## Configuration
@@ -230,8 +234,8 @@ processing), so it can be used at any later point to verify that the file on dis
 
 The checksum is included in file API responses, so clients can verify downloaded content against it.
 
-To verify a file's integrity, recalculate the checksum with the `makeHash` utility from `@appweaver/common` and
-compare it with the stored value:
+To verify a file's integrity, recalculate the checksum with the `makeHash` utility from `@appweaver/common` and compare
+it with the stored value:
 
 ```ts
 import { createReadStream } from 'node:fs';

@@ -1,7 +1,9 @@
 import {
   config,
   FilesConfig,
+  generateToken,
   isString,
+  normalizeStoragePath,
   replacePatternVariables,
   textToBytes
 } from '@appweaver/common';
@@ -130,10 +132,12 @@ export function generateFileName(
   const defaultPattern =
     config.STORAGE_NAME_PATTERN ?? '{name}-{hash}.{extension}';
 
+  // Only the pattern itself is trusted to contain directory separators, every substituted value is reduced to a
+  // single path segment so that an uploaded file name cannot introduce a sub-path or a traversal.
   let fileName = replacePatternVariables(pattern ?? defaultPattern, {
-    name: nameWithoutExtension,
-    extension,
-    ...variables
+    ...sanitizeVariables(variables),
+    name: sanitizeFileSegment(nameWithoutExtension),
+    extension: sanitizeFileSegment(extension)
   });
 
   fileName = sanitizeFilename(fileName);
@@ -142,17 +146,72 @@ export function generateFileName(
     ? fileName.substring(0, fileName.length - 1)
     : fileName;
 
-  return fileName || name;
+  return (
+    normalizeStoragePath(fileName) ||
+    sanitizeFileSegment(name) ||
+    generateToken('bytes', 32)
+  );
 }
 
 /**
- * Sanitizes a given filename by removing invalid characters that are not allowed in file systems.
+ * Sanitizes a given filename by removing invalid characters that are not allowed in file systems. Path separators are
+ * preserved, since a file name may be a path relative to the storage root.
  *
  * @param fileName The original filename to sanitize.
  * @return A sanitized filename with invalid characters removed.
  */
 export function sanitizeFilename(fileName: string): string {
-  return fileName.replace(/[\\:*?"<>|]/g, '');
+  const invalidFilenameChars = new Set([
+    '\\',
+    ':',
+    '*',
+    '?',
+    '"',
+    '<',
+    '>',
+    '|'
+  ]);
+
+  return [...fileName]
+    .filter((char) => {
+      const code = char.charCodeAt(0);
+      // Strip control characters (including NUL) and characters invalid in file names.
+      return code > 31 && code !== 127 && !invalidFilenameChars.has(char);
+    })
+    .join('');
+}
+
+/**
+ * Sanitizes an untrusted value into a single file path segment. In addition to the characters removed by
+ * {@link sanitizeFilename}, all path separators are stripped and leading dots are removed, so that the value can never
+ * introduce a subdirectory, a `..` traversal or a hidden file.
+ *
+ * @param value The untrusted value to sanitize.
+ * @return A sanitized single path segment, or an empty string when nothing usable remains.
+ */
+export function sanitizeFileSegment(value?: string | null): string {
+  if (!isString(value)) {
+    return '';
+  }
+
+  // Trimming must precede the leading dot removal, otherwise a padded value such as '  ..  ' keeps its dots.
+  return sanitizeFilename(value)
+    .replace(/[/\\]+/g, '')
+    .trim()
+    .replace(/^\.+/, '')
+    .trim();
+}
+
+/** @internal */
+function sanitizeVariables(
+  variables: Record<string, any>
+): Record<string, any> {
+  return Object.fromEntries(
+    Object.entries(variables).map(([key, value]) => [
+      key,
+      isString(value) ? sanitizeFileSegment(value) : value
+    ])
+  );
 }
 
 /**
