@@ -117,7 +117,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `SERVER_TRUST_PROXY`             | boolean  | `true`       | Trust `X-Forwarded-*` headers from reverse proxies.        |
 | `SERVER_REQUEST_LOGGING_ENABLED` | boolean  | `false`      | Enable HTTP request/response logging.                      |
 
-### Rate limiting (RATE *LIMIT*\*)
+### Rate limiting (RATE_LIMIT_\*)
 
 | Property                | Type      | Default   | Description                                                      |
 |-------------------------|-----------|-----------|------------------------------------------------------------------|
@@ -135,7 +135,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `SWAGGER_PATH`          | string  | `'/swagger'` | URL path for the Swagger UI.                |
 | `SWAGGER_HIDE_UNTAGGED` | boolean | `false`      | Hide untagged endpoints from documentation. |
 
-### Health check (HEALTH *CHECK*\*)
+### Health check (HEALTH_CHECK_\*)
 
 | Property                      | Type      | Default     | Description                                                   |
 |-------------------------------|-----------|-------------|---------------------------------------------------------------|
