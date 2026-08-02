@@ -728,6 +728,18 @@
               "type": "string",
               "default": "./storage"
             },
+            "reservedPaths": {
+              "oneOf": [
+                { "type": "string" },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "default": ["keys"]
+            },
             "namePattern": {
               "type": "string",
               "default": "{name}-{hash}.{extension}"

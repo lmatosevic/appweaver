@@ -182,6 +182,7 @@
     },
     "storage": {
       "path": "./storage",
+      "reservedPaths": ["keys"],
       "namePattern": "{name}-{hash}.{extension}",
       "cacheTtl": 86400000,
       "filesRoutePrefix": "/files",

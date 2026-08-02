@@ -117,7 +117,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `SERVER_TRUST_PROXY`             | boolean  | `true`       | Trust `X-Forwarded-*` headers from reverse proxies.        |
 | `SERVER_REQUEST_LOGGING_ENABLED` | boolean  | `false`      | Enable HTTP request/response logging.                      |
 
-### Rate limiting (RATE*LIMIT*\*)
+### Rate limiting (RATE *LIMIT*\*)
 
 | Property                | Type      | Default   | Description                                                      |
 |-------------------------|-----------|-----------|------------------------------------------------------------------|
@@ -135,7 +135,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `SWAGGER_PATH`          | string  | `'/swagger'` | URL path for the Swagger UI.                |
 | `SWAGGER_HIDE_UNTAGGED` | boolean | `false`      | Hide untagged endpoints from documentation. |
 
-### Health check (HEALTH*CHECK*\*)
+### Health check (HEALTH *CHECK*\*)
 
 | Property                      | Type      | Default     | Description                                                   |
 |-------------------------------|-----------|-------------|---------------------------------------------------------------|
@@ -306,13 +306,14 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 ### File storage (STORAGE\_\*)
 
-| Property                     | Type    | Default                                        | Description                                   |
-|------------------------------|---------|------------------------------------------------|-----------------------------------------------|
-| `STORAGE_PATH`               | string  | `'./storage'`                                  | Base directory for file storage.              |
-| `STORAGE_NAME_PATTERN`       | string  | `'{name}-{hash}.{extension}'`                  | File naming pattern for stored files.         |
-| `STORAGE_CACHE_TTL`          | integer | `86400000`                                     | File storage cache TTL in milliseconds. (24h) |
-| `STORAGE_FILES_ROUTE_PREFIX` | string  | `/files`                                       | URL prefix for file access routes.            |
-| `STORAGE_PROVIDER`           | string  | `'@appweaver/core/storage/filesystem-storage'` | Storage provider implementation path.         |
+| Property                     | Type    | Default                                        | Description                                                                                                                                                                                                                                                                               |
+|------------------------------|---------|------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `STORAGE_PATH`               | string  | `'./storage'`                                  | Base directory for file storage.                                                                                                                                                                                                                                                          |
+| `STORAGE_RESERVED_PATHS`     | array   | `['keys']`                                     | Paths inside the storage directory that files can never be stored under. Each entry is a directory or a full file name relative to `STORAGE_PATH`, matched case-insensitively (no wildcards). Violations fail on startup for configured name patterns, and with a `400` error at runtime. |
+| `STORAGE_NAME_PATTERN`       | string  | `'{name}-{hash}.{extension}'`                  | File naming pattern for stored files.                                                                                                                                                                                                                                                     |
+| `STORAGE_CACHE_TTL`          | integer | `86400000`                                     | File storage cache TTL in milliseconds. (24h)                                                                                                                                                                                                                                             |
+| `STORAGE_FILES_ROUTE_PREFIX` | string  | `/files`                                       | URL prefix for file access routes.                                                                                                                                                                                                                                                        |
+| `STORAGE_PROVIDER`           | string  | `'@appweaver/core/storage/filesystem-storage'` | Storage provider implementation path.                                                                                                                                                                                                                                                     |
 
 ### Redis (REDIS\_\*)
 

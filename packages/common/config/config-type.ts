@@ -279,6 +279,9 @@ export type Config = {
 
   /** Base directory for file storage. Default: `'./storage'`. */
   STORAGE_PATH: string;
+  /** Paths under the storage directory where files cannot be stored. Entries are relative to `STORAGE_PATH`
+   *  (directory or file), matched case-insensitively. Default: `['keys']`. */
+  STORAGE_RESERVED_PATHS: string[];
   /** File naming pattern for stored files. Default: `'{name}-{hash}.{extension}'`. */
   STORAGE_NAME_PATTERN: string;
   /** File storage cache TTL in milliseconds. Default: `86400000` (24 hours). */

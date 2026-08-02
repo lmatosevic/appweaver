@@ -14,6 +14,7 @@ import {
   ResourcePolicyConfig,
   ResourceRoutes
 } from '@appweaver/common';
+import { validateFileNamePatterns } from '../utils';
 import { ResourceContext } from '../types';
 
 export type LoadResourcePaths = {
@@ -85,6 +86,10 @@ async function loadModels(
       }
     }
   }
+
+  // Reject file name patterns writing into a reserved storage path before any
+  // upload can reach the storage layer.
+  validateFileNamePatterns(models);
 
   // Map model variants to schemas using their corresponding suffixes
   const resourceModels: Record<string, TSchema> = {};

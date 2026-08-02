@@ -1,10 +1,12 @@
 import {
   config,
   FilesConfig,
+  findReservedStoragePath,
   generateToken,
   isString,
   normalizeStoragePath,
   replacePatternVariables,
+  ResourceModel,
   textToBytes
 } from '@appweaver/common';
 import { injectPolicy } from '../context';
@@ -151,6 +153,52 @@ export function generateFileName(
     sanitizeFileSegment(name) ||
     generateToken('bytes', 32)
   );
+}
+
+/**
+ * Validates that no configured file name pattern writes into a path reserved by `STORAGE_RESERVED_PATHS`. Both the
+ * global `STORAGE_NAME_PATTERN` and the `namePattern` of every file field of the provided models are checked. Patterns
+ * defined as a factory function cannot be resolved before an upload, so they are validated at runtime instead.
+ *
+ * @param {Record<string, ResourceModel>} models - The loaded resource models, keyed by model name.
+ * @throws {Error} Throws an error naming the model, the field, and the reserved path when a pattern is reserved.
+ */
+export function validateFileNamePatterns(
+  models: Record<string, ResourceModel>
+): void {
+  const reservedPaths = config.STORAGE_RESERVED_PATHS;
+
+  const globalReservedPath = findReservedStoragePath(
+    config.STORAGE_NAME_PATTERN,
+    reservedPaths
+  );
+  if (globalReservedPath !== null) {
+    throw new Error(
+      `Configured STORAGE_NAME_PATTERN '${config.STORAGE_NAME_PATTERN}' is placed under the reserved ` +
+        `storage path '${globalReservedPath}'`
+    );
+  }
+
+  for (const model of Object.values(models)) {
+    for (const [field, fileConfig] of Object.entries(
+      model.config.files ?? {}
+    )) {
+      if (!isString(fileConfig.namePattern)) {
+        continue;
+      }
+
+      const reservedPath = findReservedStoragePath(
+        fileConfig.namePattern,
+        reservedPaths
+      );
+      if (reservedPath !== null) {
+        throw new Error(
+          `File name pattern '${fileConfig.namePattern}' of the '${model.name}.${field}' field is placed ` +
+            `under the reserved storage path '${reservedPath}'`
+        );
+      }
+    }
+  }
 }
 
 /**

@@ -131,21 +131,36 @@ introduce a subdirectory, a `..` traversal or a hidden file.
 
 ---
 
+## Reserved paths
+
+`STORAGE_RESERVED_PATHS` (default `['keys']`, protecting the default JWT key location) lists paths inside
+`STORAGE_PATH` that files can never use. An entry is a directory (blocking everything inside it) or a full file name,
+relative to the storage root, and whole segments are matched case-insensitively.
+
+Configured `namePattern`s are validated on startup and abort the start; file paths resolved at upload, stream, or delete
+time are rejected with a `400` error.
+
+---
+
 ## Configuration
 
-| Key                          | Type     | Default                                        | Description                                           |
-|------------------------------|----------|------------------------------------------------|-------------------------------------------------------|
-| `STORAGE_PATH`               | `string` | `'./storage'`                                  | Root directory where files are stored                 |
-| `STORAGE_NAME_PATTERN`       | `string` | `'{name}-{hash}.{extension}'`                  | Template for deriving the stored file name            |
-| `STORAGE_CACHE_TTL`          | `int`    | `86400000`                                     | Cache TTL for storage responses in milliseconds (24h) |
-| `STORAGE_FILES_ROUTE_PREFIX` | `string` | `/files`                                       | URL prefix for file access routes.                    |
-| `STORAGE_PROVIDER`           | `string` | `'@appweaver/core/storage/filesystem-storage'` | Path to the Storage implementation                    |
+| Key                          | Type       | Default                                        | Description                                           |
+|------------------------------|------------|------------------------------------------------|-------------------------------------------------------|
+| `STORAGE_PATH`               | `string`   | `'./storage'`                                  | Root directory where files are stored                 |
+| `STORAGE_RESERVED_PATHS`     | `string[]` | `['keys']`                                     | Paths inside the storage root that files cannot use   |
+| `STORAGE_NAME_PATTERN`       | `string`   | `'{name}-{hash}.{extension}'`                  | Template for deriving the stored file name            |
+| `STORAGE_CACHE_TTL`          | `int`      | `86400000`                                     | Cache TTL for storage responses in milliseconds (24h) |
+| `STORAGE_FILES_ROUTE_PREFIX` | `string`   | `/files`                                       | URL prefix for file access routes.                    |
+| `STORAGE_PROVIDER`           | `string`   | `'@appweaver/core/storage/filesystem-storage'` | Path to the Storage implementation                    |
 
 **`appweaver.json` example:**
 
 ```json
 {
   "STORAGE_PATH": "./uploads",
+  "STORAGE_RESERVED_PATHS": [
+    "keys"
+  ],
   "STORAGE_NAME_PATTERN": "{name}-{hash}.{extension}"
 }
 ```

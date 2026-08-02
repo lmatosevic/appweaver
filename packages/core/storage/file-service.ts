@@ -1,10 +1,12 @@
 import { PassThrough, Readable } from 'node:stream';
 import { Multipart, MultipartFile } from '@fastify/multipart';
 import {
+  config,
   ContentStream,
   Database,
   FileField,
   FilePolicy,
+  findReservedStoragePath,
   generateToken,
   isArray,
   isFunction,
@@ -51,9 +53,12 @@ export class FileService {
    *
    * @param {string} fileName - The name of the file to search for.
    * @return {Promise<File>} A promise that resolves to the file object if found.
-   * @throws {HttpError} Throws an error if a database error occurs or if the file is not found.
+   * @throws {HttpError} Throws an error if the file name is placed under a reserved storage path, if a database error
+   * occurs, or if the file is not found.
    */
   public async findByName(fileName: string): Promise<File> {
+    this.assertPathNotReserved(fileName);
+
     let file: File | null;
 
     try {
@@ -204,6 +209,10 @@ export class FileService {
       userId: identity?.id,
       userEmail: identity?.email
     });
+
+    // The generated name may come from a name pattern configured as a function,
+    // which cannot be validated on startup, so it is checked here as well.
+    this.assertPathNotReserved(generatedName);
 
     let nameRegenCount = 0;
     while (await this._storage.exists(generatedName)) {
@@ -557,6 +566,18 @@ export class FileService {
     }
 
     return deletedFiles;
+  }
+
+  /** @internal */
+  private assertPathNotReserved(fileName: string): void {
+    const reservedPath = findReservedStoragePath(
+      fileName,
+      config.STORAGE_RESERVED_PATHS
+    );
+
+    if (reservedPath !== null) {
+      throw new HttpError(`File path '${fileName}' is not allowed`, 400);
+    }
   }
 
   /** @internal */

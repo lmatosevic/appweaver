@@ -203,6 +203,7 @@ const configSchema = Type.Object({
   }),
 
   STORAGE_PATH: Type.String({ default: './storage' }),
+  STORAGE_RESERVED_PATHS: Type.Array(Type.String(), { default: ['keys'] }),
   STORAGE_NAME_PATTERN: Type.String({ default: '{name}-{hash}.{extension}' }),
   STORAGE_CACHE_TTL: Type.Integer({ default: 86400000 }),
   STORAGE_FILES_ROUTE_PREFIX: Type.String({ default: '/files' }),

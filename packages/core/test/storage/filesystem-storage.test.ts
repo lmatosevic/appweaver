@@ -54,6 +54,16 @@ describe('FilesystemStorage', () => {
       );
     });
 
+    test('refuses to write into a reserved storage path', async () => {
+      const fileName = await storage.store(
+        'keys/private.key',
+        Readable.from(['content'])
+      );
+
+      expect(fileName).toBeNull();
+      expect(fs.existsSync(path.join(tempDir, 'keys/private.key'))).toBe(false);
+    });
+
     test('refuses an absolute file name', async () => {
       const fileName = await storage.store(
         '/etc/appweaver-test.png',
@@ -73,6 +83,13 @@ describe('FilesystemStorage', () => {
     test('refuses to read outside the storage directory', async () => {
       expect(await storage.stream('../../etc/passwd', 0)).toBeNull();
     });
+
+    test('refuses to read from a reserved storage path', async () => {
+      fs.mkdirSync(path.join(tempDir, 'keys'), { recursive: true });
+      fs.writeFileSync(path.join(tempDir, 'keys/private.key'), 'secret');
+
+      expect(await storage.stream('keys/private.key', 0)).toBeNull();
+    });
   });
 
   describe('exists', () => {
@@ -80,11 +97,23 @@ describe('FilesystemStorage', () => {
       expect(await storage.exists('posts/1/image.png')).toBe(true);
       expect(await storage.exists('../escaped.png')).toBe(false);
     });
+
+    test('reports reserved paths as non existing', async () => {
+      expect(await storage.exists('keys/private.key')).toBe(false);
+    });
   });
 
   describe('delete', () => {
     test('refuses to delete outside the storage directory', async () => {
       expect(await storage.delete('../escaped.png')).toBe(false);
+    });
+
+    test('refuses to delete inside a reserved storage path', async () => {
+      fs.mkdirSync(path.join(tempDir, 'keys'), { recursive: true });
+      fs.writeFileSync(path.join(tempDir, 'keys/private.key'), 'secret');
+
+      expect(await storage.delete('keys/private.key')).toBe(false);
+      expect(fs.existsSync(path.join(tempDir, 'keys/private.key'))).toBe(true);
     });
 
     test('deletes a regular file', async () => {

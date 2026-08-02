@@ -72,6 +72,78 @@ export function resolveStoragePath(
   return resolvedPath;
 }
 
+/**
+ * Finds the reserved storage path a given file path (or file name pattern) falls under. A path is reserved when it is
+ * equal to a reserved entry (a full file name) or when it is contained in it (a reserved directory), compared segment
+ * by segment from the storage root. Comparison is case-insensitive, so that a reservation cannot be bypassed on
+ * case-insensitive file systems.
+ *
+ * Reserved entries are plain paths, not patterns — no wildcard or regular expression syntax is supported. A leading
+ * slash in a reserved entry is ignored, since every entry is relative to the storage root.
+ *
+ * @param {string} filePath - The file path, file name, or file name pattern to check.
+ * @param {string[]} [reservedPaths] - The reserved paths, usually taken from the `STORAGE_RESERVED_PATHS` config.
+ * @return {string | null} The matched reserved path, or `null` when the file path is not reserved.
+ */
+export function findReservedStoragePath(
+  filePath: string,
+  reservedPaths: string[] = []
+): string | null {
+  if (!Array.isArray(reservedPaths) || reservedPaths.length === 0) {
+    return null;
+  }
+
+  const normalizedPath = normalizeStoragePath(filePath);
+  if (normalizedPath === null) {
+    return null;
+  }
+
+  const segments = normalizedPath.toLowerCase().split('/');
+
+  for (const reservedPath of reservedPaths) {
+    if (typeof reservedPath !== 'string') {
+      continue;
+    }
+
+    // Reserved entries are always relative to the storage root, so a leading
+    // separator is stripped before normalization rejects it as an absolute path.
+    // Surrounding whitespace is trimmed as well, since entries may come from a
+    // comma-separated environment variable.
+    const normalizedReserved = normalizeStoragePath(
+      reservedPath.trim().replace(/\\/g, '/').replace(/^\/+/, '')
+    );
+    if (normalizedReserved === null) {
+      continue;
+    }
+
+    const reservedSegments = normalizedReserved.toLowerCase().split('/');
+    if (reservedSegments.length > segments.length) {
+      continue;
+    }
+
+    if (reservedSegments.every((segment, i) => segment === segments[i])) {
+      return reservedPath;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Checks whether a file path (or file name pattern) is placed inside, or is equal to, one of the reserved storage
+ * paths. See {@link findReservedStoragePath} for the matching rules.
+ *
+ * @param {string} filePath - The file path, file name, or file name pattern to check.
+ * @param {string[]} [reservedPaths] - The reserved paths, usually taken from the `STORAGE_RESERVED_PATHS` config.
+ * @return {boolean} True when the file path is reserved, false otherwise.
+ */
+export function isReservedStoragePath(
+  filePath: string,
+  reservedPaths: string[] = []
+): boolean {
+  return findReservedStoragePath(filePath, reservedPaths) !== null;
+}
+
 function hasControlCharacters(value: string): boolean {
   for (const char of value) {
     const code = char.charCodeAt(0);

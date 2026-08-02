@@ -1,8 +1,19 @@
+import { ResourceModel } from '@appweaver/common';
 import {
   generateFileName,
   sanitizeFilename,
-  sanitizeFileSegment
+  sanitizeFileSegment,
+  validateFileNamePatterns
 } from '../../utils/file-util';
+
+function modelsWithPattern(namePattern: any): Record<string, ResourceModel> {
+  return {
+    Post: {
+      name: 'Post',
+      config: { files: { image: { namePattern } } }
+    }
+  } as unknown as Record<string, ResourceModel>;
+}
 
 describe('file-util', () => {
   describe('sanitizeFilename', () => {
@@ -95,6 +106,43 @@ describe('file-util', () => {
       // which means there is no extension left to preserve.
       const fileName = generateFileName('   ..   ', '.');
       expect(fileName).toMatch(/^[a-f0-9]+$/);
+    });
+  });
+
+  describe('validateFileNamePatterns', () => {
+    test('accepts patterns outside of the reserved storage paths', () => {
+      expect(() =>
+        validateFileNamePatterns(
+          modelsWithPattern('photos/{resourceId}/{name}.{extension}')
+        )
+      ).not.toThrow();
+    });
+
+    test('rejects a pattern placed under a reserved storage path', () => {
+      expect(() =>
+        validateFileNamePatterns(modelsWithPattern('keys/{name}.{extension}'))
+      ).toThrow(/'Post.image'.*reserved storage path 'keys'/);
+    });
+
+    test('rejects a pattern equal to a reserved storage path', () => {
+      expect(() => validateFileNamePatterns(modelsWithPattern('keys'))).toThrow(
+        /reserved storage path 'keys'/
+      );
+    });
+
+    test('skips factory function patterns, which are checked on upload', () => {
+      expect(() =>
+        validateFileNamePatterns(modelsWithPattern(() => 'keys/{name}'))
+      ).not.toThrow();
+    });
+
+    test('accepts models without file fields', () => {
+      expect(() =>
+        validateFileNamePatterns({
+          Post: { name: 'Post', config: {} }
+        } as unknown as Record<string, ResourceModel>)
+      ).not.toThrow();
+      expect(() => validateFileNamePatterns({})).not.toThrow();
     });
   });
 });

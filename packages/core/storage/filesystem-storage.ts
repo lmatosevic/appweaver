@@ -6,6 +6,7 @@ import { Readable } from 'node:stream';
 import {
   config,
   ContentStream,
+  findReservedStoragePath,
   HealthCheckResult,
   logger,
   normalizeStoragePath,
@@ -111,7 +112,19 @@ export class FilesystemStorage extends Storage {
     const filePath = resolveStoragePath(this._dirPath, fileName);
 
     if (!filePath) {
-      logger.warn({ fileName, action }, 'Rejected invalid storage file path');
+      logger.error({ fileName, action }, 'Rejected invalid storage file path');
+      return null;
+    }
+
+    const reservedPath = findReservedStoragePath(
+      fileName,
+      config.STORAGE_RESERVED_PATHS
+    );
+    if (reservedPath !== null) {
+      logger.error(
+        { fileName, action, reservedPath },
+        'Rejected reserved storage file path'
+      );
       return null;
     }
 
