@@ -3,6 +3,7 @@
   "rootDir": ".",
   "testEnvironment": "node",
   "testMatch": ["**/*.test.ts"],
+  "testPathIgnorePatterns": ["/node_modules/", "/dist/"],
   "transform": {
     "^.+\\.(t|j)s$": [
       "@swc/jest",
@@ -32,13 +33,13 @@
     ]
   ],
   "coverageReporters": ["cobertura", "text"],
-  "collectCoverageFrom": ["**/*.(t|j)s"],
+  "collectCoverageFrom": [
+    "packages/*/**/*.ts",
+    "!**/test/**",
+    "!**/*.d.ts",
+    "!packages/core/prisma/client/**",
+    "!packages/client/generated/**"
+  ],
   "coverageDirectory": "./reports",
-  "roots": [
-    "<rootDir>/packages/common/test",
-    "<rootDir>/packages/core/test",
-    "<rootDir>/packages/cli/test",
-    "<rootDir>/packages/client/test",
-    "<rootDir>/packages/create-weaver-app/test"
-  ]
+  "roots": ["<rootDir>/packages"]
 }
