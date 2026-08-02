@@ -2,7 +2,7 @@
   "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": ".",
   "testEnvironment": "node",
-  "testMatch": ["**/?(*.)+(spec|test).ts"],
+  "testMatch": ["**/*.test.ts"],
   "testPathIgnorePatterns": ["/test/e2e/"],
   "transform": {
     "^.+\\.(t|j)s$": ["@swc/jest"]

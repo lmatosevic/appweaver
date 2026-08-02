@@ -5,6 +5,6 @@
     "outDir": "./dist",
     "paths": {}
   },
-  "exclude": ["node_modules", "dist", "test/**/*", "*.(spec|test).ts"],
+  "exclude": ["node_modules", "dist", "test/**/*", "**/*.test.ts"],
   "references": []
 }

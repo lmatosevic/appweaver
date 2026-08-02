@@ -569,6 +569,9 @@ npm run test  # unit tests with coverage
 npm run e2e   # e2e tests
 ```
 
+Test files must use the **`.test.ts`** extension. Place unit tests in `test/unit/` and end-to-end tests in `test/e2e/`,
+naming each file after its module. Add or update tests whenever a feature is added or existing behaviour changes.
+
 ### Format code
 
 ```sh

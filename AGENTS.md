@@ -17,10 +17,15 @@ The project is a TypeScript monorepo using `tsc -b` for builds.
 Tests are located in `packages/*/test` and use **Jest** with **SWC** for fast execution.
 
 - **Running all tests**: `npm test`
-- **Running specific tests**: `jest path/to/test.spec.ts`
-- **Adding new tests**:
-    - Create a file with `.spec.ts` or `.test.ts` extension in the `test` directory of the relevant package.
-    - Follow the standard `describe`/`test`/`expect` pattern.
+- **Running specific tests**: `jest path/to/file.test.ts`
+- **Type-checking the tests**: `npm run test:typecheck`
+
+### Naming and layout
+
+- Test files must use the **`.test.ts`** extension.
+- Name the file after the module under test: `utils/string-util.ts` → `test/utils/string-util.test.ts`.
+- Mirror the source folder structure inside `test/`, so a test's location is derivable from the source path.
+- Follow the standard `describe`/`test`/`expect` pattern, with a `describe` block per exported function.
 
 **Example Test Case**:
 

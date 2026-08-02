@@ -12,7 +12,7 @@
     "dist",
     "generated",
     "test/**/*",
-    "*.(spec|test).ts"
+    "**/*.test.ts"
   ],
   "references": []
 }

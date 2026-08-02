@@ -29,5 +29,5 @@
     }
   },
   "include": ["packages/**/*", "eslint.config.mjs"],
-  "exclude": ["node_modules", "dist", "sample", "**/*(spec|test).ts"]
+  "exclude": ["node_modules", "dist", "sample"]
 }

@@ -285,6 +285,13 @@ export async function createAdminUser(): Promise<void> {
 | `weaver update`               | Update all @appweaver/* packages          |
 | `weaver openapi`              | Generate OpenAPI specification            |
 
+## Testing
+
+- Test files must use the **`.test.ts`** extension.
+- Unit tests live in `test/unit/`, end-to-end tests in `test/e2e/`; name each file after the module it covers.
+- Add or update tests whenever a feature is added or existing behaviour changes, and run `npm run test` before
+  considering the task done.
+
 ## References
 
 - Application CLI (weaver): [cli.md](references/cli.md)
