@@ -1,3 +1,9 @@
+## [1.1.5](https://github.com/lmatosevic/appweaver/compare/v1.1.4...v1.1.5) (2026-08-02)
+
+### Bug Fixes
+
+* bump Prisma packages to 7.9.1 and update related dependencies ([3b32c4e](https://github.com/lmatosevic/appweaver/commit/3b32c4ebbccb2661ac0dcddeeb6dff64d7cf5a2c))
+
 ## [1.1.4](https://github.com/lmatosevic/appweaver/compare/v1.1.3...v1.1.4) (2026-08-02)
 
 ### Bug Fixes
