@@ -165,19 +165,6 @@ export function uncapitalize(text: string): string {
   return text.charAt(0).toLowerCase() + text.slice(1);
 }
 
-/** The hash algorithms supported by {@link makeHash}. */
-export type HashAlgorithm =
-  | 'sha256'
-  | 'sha512'
-  | 'sha3-256'
-  | 'sha3-512'
-  | 'blake2s256'
-  | 'blake2s512'
-  | 'md5';
-
-/** The encoding formats supported by {@link makeHash}. */
-export type HashEncoding = 'base64' | 'base64url' | 'hex' | 'binary';
-
 /**
  * Generates a hash of the given content using the specified algorithm and encoding. Supports strings, buffers, and
  * readable streams (streams are consumed chunk-by-chunk without buffering the whole content in memory, and therefore
@@ -186,47 +173,37 @@ export type HashEncoding = 'base64' | 'base64url' | 'hex' | 'binary';
  * Can also be used to verify the integrity/authenticity of a file by comparing the calculated hash with a previously
  * stored one (e.g. the `checksum` field of an uploaded `File` resource).
  *
- * @param {Readable} content - The readable stream to hash (e.g. `fs.createReadStream(path)`).
+ * @param {Readable | Buffer | string} content - The stream (e.g. `fs.createReadStream(path)`), buffer or text to hash.
  * @param {'sha256'|'sha512'|'sha3-256'|'sha3-512'|'blake2s256'|'blake2s512'|'md5'} [algorithm='sha256'] - The hash algorithm to use.
  * @param {'base64'|'base64url'|'hex'|'binary'} [encoding='hex'] - The encoding format for the resulting hash.
- * @return {Promise<string>} A promise that resolves to the hash string in the specified encoding format.
+ * @return {Promise<string> | string} The hash string in the specified encoding format, wrapped in a promise when the
+ *         content is a readable stream.
  */
-export function makeHash(
-  content: Readable,
-  algorithm?: HashAlgorithm,
-  encoding?: HashEncoding
-): Promise<string>;
-
-/**
- * Generates a hash of the given content using the specified algorithm and encoding.
- *
- * @param {Buffer | string} content - The buffer or text to be hashed.
- * @param {'sha256'|'sha512'|'sha3-256'|'sha3-512'|'blake2s256'|'blake2s512'|'md5'} [algorithm='sha256'] - The hash algorithm to use.
- * @param {'base64'|'base64url'|'hex'|'binary'} [encoding='hex'] - The encoding format for the resulting hash.
- * @return {string} The resulting hash string in the specified encoding format.
- */
-export function makeHash(
-  content: Buffer | string,
-  algorithm?: HashAlgorithm,
-  encoding?: HashEncoding
-): string;
-
-export function makeHash(
-  content: Readable | Buffer | string,
-  algorithm: HashAlgorithm = 'sha256',
-  encoding: HashEncoding = 'hex'
-): string | Promise<string> {
+export function makeHash<T extends Readable | Buffer | string>(
+  content: T,
+  algorithm:
+    | 'sha256'
+    | 'sha512'
+    | 'sha3-256'
+    | 'sha3-512'
+    | 'blake2s256'
+    | 'blake2s512'
+    | 'md' = 'sha256',
+  encoding: 'base64' | 'base64url' | 'hex' | 'binary' = 'hex'
+): T extends Readable ? Promise<string> : string {
   const hash = createHash(algorithm);
 
   if (content instanceof Readable) {
-    return new Promise((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       content.on('data', (chunk) => hash.update(chunk));
       content.on('end', () => resolve(hash.digest(encoding)));
       content.on('error', (e) => reject(e));
-    });
+    }) as T extends Readable ? Promise<string> : string;
   }
 
-  return hash.update(content).digest(encoding);
+  return hash.update(content).digest(encoding) as T extends Readable
+    ? Promise<string>
+    : string;
 }
 
 /**
