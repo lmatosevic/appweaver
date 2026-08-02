@@ -17,7 +17,7 @@ const withBunRuntime = <T>(fn: () => T): T => {
   try {
     return fn();
   } finally {
-    delete globalThis['Bun'];
+    delete (globalThis as any)['Bun'];
   }
 };
 
