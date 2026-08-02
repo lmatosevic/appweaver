@@ -1,3 +1,11 @@
+## [1.1.6](https://github.com/lmatosevic/appweaver/compare/v1.1.5...v1.1.6) (2026-08-02)
+
+### Bug Fixes
+
+* add comprehensive unit tests for core package modules and fix bugs ([06c9980](https://github.com/lmatosevic/appweaver/commit/06c998082fb2f48ddd47ef2ee1e991c9cb412129))
+* fix request path in verify2FACode client method ([e5c462a](https://github.com/lmatosevic/appweaver/commit/e5c462a5ff2777a92a47fc3b21d3c1fbd2f47dce))
+* update dependencies across packages, add allowScripts/trustedDependencies configurations for build compatibility ([8f9fbd2](https://github.com/lmatosevic/appweaver/commit/8f9fbd20dfbbdc52edc2d447e186b473b503d8e1))
+
 ## [1.1.5](https://github.com/lmatosevic/appweaver/compare/v1.1.4...v1.1.5) (2026-08-02)
 
 ### Bug Fixes
