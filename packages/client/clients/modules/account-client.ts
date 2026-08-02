@@ -140,13 +140,9 @@ export class AccountClient<Account extends AccountType>
     request: Account['verify2FARequest'],
     options: RequestOptions = {}
   ): Promise<Account['verify2FAResponse']> {
-    return this.sendRequest(
-      'post',
-      `${this.basePath}/account/verify-2fa-code`,
-      {
-        ...options,
-        body: request
-      }
-    );
+    return this.sendRequest('post', `${this.basePath}/verify-2fa-code`, {
+      ...options,
+      body: request
+    });
   }
 }
