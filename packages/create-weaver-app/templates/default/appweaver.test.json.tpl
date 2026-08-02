@@ -2,8 +2,7 @@
   "$schema": "./node_modules/@appweaver/common/config/schema.json",
   "config": {
     "log": {
-      "level": "error",
-      "pretty": true
+      "level": "silent"
     },
     "database": {
       "url": "{{DATABASE_TEST_URL}}",
