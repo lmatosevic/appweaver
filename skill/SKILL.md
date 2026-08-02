@@ -103,6 +103,12 @@ bun weaver migration new init
 bun run seed
 ```
 
+**Install scripts:** npm 12+ blocks dependency install scripts by default. The scaffolded `package.json` ships an
+`allowScripts` field (Bun: `trustedDependencies`) covering the packages Appweaver needs to build. Without it,
+`npm install` skips the native builds and `weaver generate` fails. To approve a newly added dependency, run
+`npm install-scripts approve <pkg>`; it writes the entry to the root `package.json`. Note that a `package.json`
+`allowScripts` field makes npm ignore `.npmrc` `allow-scripts` entirely.
+
 ### Creating and starting the application server
 
 The main entrypoint to the application. This function creates an application object and initializes all resources and

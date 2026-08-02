@@ -40,5 +40,14 @@
     "prettier": "3.8.4",
     "typescript": "5.9.3",
     "typescript-eslint": "8.61.1"
+  },
+  "allowScripts": {
+    "@prisma/engines": true,
+    "@swc/core": true,
+    "bcrypt": true,
+    "better-sqlite3": true,
+    "msgpackr-extract": true,
+    "prisma": true,
+    "unrs-resolver": true
   }
 }

@@ -1,5 +1,5 @@
 ## 1. Install dependencies and build the application
-FROM node:24.13.0-alpine AS build
+FROM node:24.18.1-alpine AS build
 
 # Install tools for building libraries on other platforms
 RUN apk add build-base python3 py3-pip make gcc
@@ -18,7 +18,7 @@ RUN npm run build
 
 
 ## 2. Setup server environment, copy build output and start the application script
-FROM node:24.13.0-alpine AS deploy
+FROM node:24.18.1-alpine AS deploy
 
 # Install tools for building libraries on other platforms
 RUN apk add build-base python3 py3-pip make gcc

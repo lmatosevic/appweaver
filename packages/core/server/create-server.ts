@@ -96,10 +96,10 @@ export function createServer(): Server {
       constraints: config.SERVER_STATIC_ALLOWED_HOST
         ? { host: config.SERVER_STATIC_ALLOWED_HOST }
         : {},
-      setHeaders: (response) => {
+      setHeaders: (reply) => {
         for (const header of config.SERVER_STATIC_RESPONSE_HEADERS) {
           const [name, ...valueParts] = header.split(':');
-          response.setHeader(name.trim(), valueParts.join(':').trim());
+          reply.header(name.trim(), valueParts.join(':').trim());
         }
       }
     });

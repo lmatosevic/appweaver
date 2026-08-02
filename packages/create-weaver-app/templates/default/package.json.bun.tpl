@@ -35,5 +35,12 @@
     "prettier": "3.8.4",
     "typescript": "5.9.3",
     "typescript-eslint": "8.61.1"
-  }
+  },
+  "trustedDependencies": [
+    "@prisma/engines",
+    "bcrypt",
+    "msgpackr-extract",
+    "prisma",
+    "unrs-resolver"
+  ]
 }
