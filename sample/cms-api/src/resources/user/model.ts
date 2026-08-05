@@ -46,7 +46,8 @@ export default createAuthModel({
       required: false,
       input: {
         type: 'all',
-        fullModel: true
+        create: true,
+        update: true
       }
     }
   },

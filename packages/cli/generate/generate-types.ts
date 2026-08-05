@@ -50,6 +50,15 @@ export async function generateTypes(
       resourceModels[`${name}Update`] = transformUnsafeTypes(
         schema.updateOneModel
       );
+      resourceModels[`${name}RelationCreate`] = transformUnsafeTypes(
+        schema.relationCreateModel
+      );
+      resourceModels[`${name}RelationUpdate`] = transformUnsafeTypes(
+        schema.relationUpdateModel
+      );
+      resourceModels[`${name}RelationInput`] = transformUnsafeTypes(
+        schema.relationInputModel
+      );
     }
 
     const module = Type.Module(resourceModels);

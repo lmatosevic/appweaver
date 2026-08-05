@@ -93,10 +93,17 @@ export function createModel(
     filesModel,
     config
   );
-  const { createOneModel, updateOneModel } = buildInputModels(
+  const {
+    createOneModel,
+    updateOneModel,
+    relationCreateModel,
+    relationUpdateModel,
+    relationInputModel
+  } = buildInputModels(
     createModel,
     updateModel,
     relationsModel,
+    idSchema,
     config
   );
   const { fileUploadModel, fileDeleteModel } = buildFileInputModels(config);
@@ -114,6 +121,9 @@ export function createModel(
     readManyModel,
     createOneModel,
     updateOneModel,
+    relationCreateModel,
+    relationUpdateModel,
+    relationInputModel,
     fileUploadModel,
     fileDeleteModel
   };
@@ -348,10 +358,14 @@ function buildInputModels(
   createModel: TObject,
   updateModel: TObject,
   relationsModel: TObject,
+  idSchema: TObject,
   config: ResourceModelConfig
 ): {
   createOneModel: TObject;
   updateOneModel: TObject;
+  relationCreateModel: TObject;
+  relationUpdateModel: TObject;
+  relationInputModel: TObject;
 } {
   const virtualConfig = config.virtual;
   const relationsConfig = config.relations;
@@ -367,10 +381,36 @@ function buildInputModels(
     'update'
   );
 
+  // Data models accepted when this model is written inline through another
+  // model's relation input. Relations and files are excluded, so nested
+  // writes stay limited to the model's own columns, enforced by the service.
+  const relationCreateModel = Type.Composite([adjustedCreateModel], {
+    $id: `${config.name}RelationCreate`
+  });
+  const relationUpdateModel = Type.Composite([idSchema, adjustedUpdateModel], {
+    $id: `${config.name}RelationUpdate`
+  });
+
+  // Wire model for nested relation writes, holding the id together with the
+  // fields of both shapes above. It stays permissive because the server
+  // strips properties the matched schema does not declare, so a union of the
+  // narrower shapes would drop the fields of the ones it rejects.
+  const relationInputModel = Type.Object(
+    {
+      id: Type.Optional(idSchema.properties.id),
+      ...optionalProperties(adjustedCreateModel),
+      ...optionalProperties(adjustedUpdateModel)
+    },
+    { $id: `${config.name}RelationInput` }
+  );
+
   if (Object.keys(relationsConfig ?? {}).length === 0) {
     return {
       createOneModel: adjustedCreateModel,
-      updateOneModel: adjustedUpdateModel
+      updateOneModel: adjustedUpdateModel,
+      relationCreateModel,
+      relationUpdateModel,
+      relationInputModel
     };
   }
 
@@ -396,7 +436,23 @@ function buildInputModels(
     { $id: `${config.name}Update` }
   );
 
-  return { createOneModel, updateOneModel };
+  return {
+    createOneModel,
+    updateOneModel,
+    relationCreateModel,
+    relationUpdateModel,
+    relationInputModel
+  };
+}
+
+function optionalProperties(schema: TObject): Record<string, TSchema> {
+  const properties: Record<string, TSchema> = {};
+
+  for (const [name, field] of Object.entries(schema.properties)) {
+    properties[name] = Type.Optional(field);
+  }
+
+  return properties;
 }
 
 function buildFileInputModels(config: ResourceModelConfig): {
@@ -442,49 +498,43 @@ function relationInputProperties<T extends TObject>(
   const relationInputType = (key: string) => {
     const { type, ...options } = object.properties[key];
 
-    const uniqueIdObject = Id;
-    const uniqueIdType = Id.properties.id;
-
-    let fullInputType: TSchema | undefined = undefined;
-
     const config = relationConfig?.[key];
-    if (config) {
-      if (shouldSkipInputField(config.input?.type, inputType)) {
-        return undefined;
-      }
-
-      if (config.input?.fullModel) {
-        fullInputType = Type.Ref(`${config.model}Create`);
-      }
+    if (config && shouldSkipInputField(config.input?.type, inputType)) {
+      return undefined;
     }
 
-    const isArray = type === 'array';
-    const isOptional = config?.required === false;
+    // Inline updates carry the related record id, so only parent update
+    // requests accept them
+    const acceptsInlineWrite =
+      config?.input?.create ||
+      (config?.input?.update && inputType === 'update');
 
-    const idObjectSchema = isArray
-      ? Type.Array(uniqueIdObject, options)
-      : uniqueIdObject;
-    const idTypeSchema = isArray
-      ? Type.Array(uniqueIdType, options)
-      : uniqueIdType;
-
-    const inputTypeSchemas: TSchema[] = [
-      isOptional ? Nullable(idObjectSchema) : idObjectSchema,
-      isOptional ? Nullable(idTypeSchema) : idTypeSchema
+    // Existing records are connected by an id object or a bare id value.
+    // Relations accepting inline writes take the permissive input model
+    // instead, which also covers a lone id. Only one object schema may join
+    // the union, since the server strips undeclared properties.
+    const itemSchemas: TSchema[] = [
+      acceptsInlineWrite ? Type.Ref(`${config.model}RelationInput`) : Id,
+      Id.properties.id
     ];
 
-    if (fullInputType) {
-      const fullInputTypeSchema = isArray
-        ? Type.Array(fullInputType, options)
-        : fullInputType;
-      inputTypeSchemas.push(
-        isOptional ? Nullable(fullInputTypeSchema) : fullInputTypeSchema
+    const isArrayType = type === 'array';
+    const isOptional = config?.required === false;
+
+    let inputSchema: TSchema;
+    if (isArrayType) {
+      // One array of union items, so connect, create, and update inputs mix
+      const arraySchema = Type.Array(Type.Union(itemSchemas), options);
+      inputSchema = isOptional ? Nullable(arraySchema) : arraySchema;
+    } else {
+      inputSchema = Type.Union(
+        itemSchemas.map((itemSchema) =>
+          isOptional ? Nullable(itemSchema) : itemSchema
+        )
       );
     }
 
-    const unionSchema = Type.Union(inputTypeSchemas);
-
-    return isOptional ? Type.Optional(unionSchema) : unionSchema;
+    return isOptional ? Type.Optional(inputSchema) : inputSchema;
   };
 
   return Type.Object({
@@ -533,16 +583,19 @@ function relationOutputProperties<T extends TObject>(
     return Type.Integer({ minimum: 0 });
   };
 
+  // Relation, file, and count fields are optional in the output models: their
+  // presence depends on the inclusion depth of the query. The same schema
+  // describes a record nested in another model's output, without relations.
   return Type.Object({
     ...Object.keys(object.properties).reduce((acc, key) => {
       const type = relationOutputType(key);
       if (type) {
-        acc[key] = type;
+        acc[key] = Type.Optional(type);
       }
 
       const countType = relationCountType(key);
       if (countType) {
-        acc[countFieldName(key)] = countType;
+        acc[countFieldName(key)] = Type.Optional(countType);
       }
 
       return acc;

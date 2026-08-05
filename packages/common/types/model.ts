@@ -176,10 +176,18 @@ export type ScalarField =
 export type RelationInput = {
   /** Which operations accept this relation as input */
   type: InputType;
-  /** Field used to match existing related records */
+  /** Unique field used to match existing related records for the
+   * connect-or-create action when `createIfNotExists` is enabled. Plain connect
+   * and inline update actions always match related records by `id`. */
   uniqueKey?: string;
-  /** Accept the full related model as input instead of just the key */
-  fullModel?: boolean;
+  /** Allow creating related records inline: the input additionally accepts the
+   * related model's create data (objects without an `id`). */
+  create?: boolean;
+  /** Allow updating related records inline on parent update requests: the input
+   * additionally accepts the related model's update data with a required `id`.
+   * On parent create requests, objects carrying an `id` are connected instead,
+   * since the database can only update relations within an update action. */
+  update?: boolean;
 };
 
 export type RelationOutput = {

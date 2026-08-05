@@ -26,7 +26,16 @@ function model(name: string, readModel: any, config: any = {}): ResourceModel {
     readOneModel: Type.Object({ id: Type.Integer() }),
     readManyModel: Type.Object({ items: Type.Array(Type.Integer()) }),
     createOneModel: Type.Object({ title: Type.String() }),
-    updateOneModel: Type.Object({ title: Type.Optional(Type.String()) })
+    updateOneModel: Type.Object({ title: Type.Optional(Type.String()) }),
+    relationCreateModel: Type.Object({ title: Type.String() }),
+    relationUpdateModel: Type.Object({
+      id: Type.Integer(),
+      title: Type.Optional(Type.String())
+    }),
+    relationInputModel: Type.Object({
+      id: Type.Optional(Type.Integer()),
+      title: Type.Optional(Type.String())
+    })
   } as unknown as ResourceModel;
 }
 
@@ -82,6 +91,9 @@ describe('generate-types', () => {
       expect(types).toContain('export type PostMultiple = {');
       expect(types).toContain('export type PostCreate = {');
       expect(types).toContain('export type PostUpdate = {');
+      expect(types).toContain('export type PostRelationCreate = {');
+      expect(types).toContain('export type PostRelationUpdate = {');
+      expect(types).toContain('export type PostRelationInput = {');
     });
 
     test('maps the scalar types to TypeScript types', async () => {

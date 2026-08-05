@@ -301,27 +301,27 @@ const config = {
 };
 ```
 
-| Property            | Type                                                | Default      | Description                                                              |
-|---------------------|-----------------------------------------------------|--------------|--------------------------------------------------------------------------|
-| `model`             | string                                              | **required** | Target model name.                                                       |
-| `type`              | `'oneToOne'` \| `'oneToMany'` \| `'manyToMany'`     | **required** | Relation cardinality between the two models.                             |
-| `owner`             | boolean                                             | `false`      | This side owns the foreign key column (only one side should be owner).   |
-| `mappedBy`          | string                                              | -            | Name of the inverse relation on the target model.                        |
-| `required`          | boolean                                             | `true`       | Whether the relation is required (nullable foreign key if not required). |
-| `minItems`          | number                                              | -            | Minimum items for list relations.                                        |
-| `createIfNotExists` | boolean                                             | `false`      | Auto-create related record if it doesn't exist.                          |
-| `orphanRemoval`     | boolean                                             | `false`      | Delete orphaned records when parent is deleted.                          |
-| `onDelete`          | ReferentialAction                                   | -            | Foreign key action on delete.                                            |
-| `onUpdate`          | ReferentialAction                                   | -            | Foreign key action on update.                                            |
-| `input`             | RelationInput                                       | -            | Input DTO configuration.                                                 |
-| `output`            | RelationOutput                                      | -            | Output DTO configuration.                                                |
+| Property            | Type                                            | Default      | Description                                                              |
+|---------------------|-------------------------------------------------|--------------|--------------------------------------------------------------------------|
+| `model`             | string                                          | **required** | Target model name.                                                       |
+| `type`              | `'oneToOne'` \| `'oneToMany'` \| `'manyToMany'` | **required** | Relation cardinality between the two models.                             |
+| `owner`             | boolean                                         | `false`      | This side owns the foreign key column (only one side should be owner).   |
+| `mappedBy`          | string                                          | -            | Name of the inverse relation on the target model.                        |
+| `required`          | boolean                                         | `true`       | Whether the relation is required (nullable foreign key if not required). |
+| `minItems`          | number                                          | -            | Minimum items for list relations.                                        |
+| `createIfNotExists` | boolean                                         | `false`      | Auto-create related record if it doesn't exist.                          |
+| `orphanRemoval`     | boolean                                         | `false`      | Delete orphaned records when parent is deleted.                          |
+| `onDelete`          | ReferentialAction                               | -            | Foreign key action on delete.                                            |
+| `onUpdate`          | ReferentialAction                               | -            | Foreign key action on update.                                            |
+| `input`             | RelationInput                                   | -            | Input DTO configuration.                                                 |
+| `output`            | RelationOutput                                  | -            | Output DTO configuration.                                                |
 
 **ReferentialAction values**: `'cascade'`, `'restrict'`, `'noAction'`, `'setNull'`, `'setDefault'`
 
 #### Relationship types
 
-The `type` property declares the relation cardinality explicitly, and `owner` marks the side that holds the foreign
-key column in the generated table:
+The `type` property declares the relation cardinality explicitly, and `owner` marks the side that holds the foreign key
+column in the generated table:
 
 **One-to-One** (`type: 'oneToOne'`): Both sides reference a single record. The side with `owner: true` holds a unique
 foreign key; the inverse side is always optional.
@@ -354,8 +354,8 @@ const config = {
 };
 ```
 
-**One-to-Many** (`type: 'oneToMany'`): The "many" side (which holds the foreign key) has `owner: true` and references
-a single record; the "one" side has no `owner` and holds a list of related records.
+**One-to-Many** (`type: 'oneToMany'`): The "many" side (which holds the foreign key) has `owner: true` and references a
+single record; the "one" side has no `owner` and holds a list of related records.
 
 ```ts
 // Category model (one, list side)
@@ -415,8 +415,8 @@ const config = {
 
 #### Relation pair validation
 
-`weaver generate` validates every bidirectional relation pair linked through `mappedBy` and fails schema generation
-with a descriptive error when the two sides are inconsistent:
+`weaver generate` validates every bidirectional relation pair linked through `mappedBy` and fails schema generation with
+a descriptive error when the two sides are inconsistent:
 
 - Both sides must declare the same relation `type`.
 - The mapped relation must reference the declaring model back via its `model` property.
@@ -427,11 +427,45 @@ validation; an inverse field is generated automatically in the Prisma schema.
 
 #### Relation input
 
-| Property    | Type                                            | Description                                       |
-|-------------|-------------------------------------------------|---------------------------------------------------|
-| `type`      | `'all'` \| `'create'` \| `'update'` \| `'none'` | When the relation field is available as input.    |
-| `uniqueKey` | string                                          | Use a unique key field instead of ID for linking. |
-| `fullModel` | boolean                                         | Accept full nested model object as input.         |
+| Property    | Type                                            | Description                                                                                           |
+|-------------|-------------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| `type`      | `'all'` \| `'create'` \| `'update'` \| `'none'` | When the relation field is available as input.                                                        |
+| `create`    | boolean                                         | Allow creating related records inline (input objects without an `id`).                                |
+| `update`    | boolean                                         | Allow updating related records inline on parent update requests (input objects with a required `id`). |
+| `uniqueKey` | string                                          | Unique field used to match existing records for connect-or-create (requires `createIfNotExists`).     |
+
+By default, a relation input only connects existing records. It accepts an id value, an `{ id }` object, or an array of
+either for list relations. The `create` and `update` flags also accept the related model's own data:
+
+- **`create: true`** — input objects **without** an `id` create the related record inline. The accepted fields are the
+  related model's create data, without its own relations and files (`<Model>RelationCreate`).
+- **`update: true`** — input objects **with** an `id` and further fields update the related record inline
+  (`<Model>RelationUpdate`). Objects carrying only an `id` are connected instead. This applies to parent **update**
+  requests only. On parent **create** requests every object with an `id` is connected, since the database updates
+  relations only within an update action.
+
+Relations that accept inline writes document their request shape as `<Model>RelationInput`. It holds the id and the
+fields of both shapes above, all optional. The shape stays permissive on purpose, since the server strips the properties
+that the matched schema does not declare. The service applies the restrictions instead. Fields excluded by the related
+model's `create` or `update` config are dropped. A missing required create field fails with a `400` error naming the
+field.
+
+Connect, create, and update inputs can be mixed within one list relation request:
+
+```ts
+// PUT /api/users/1
+{
+  posts: [
+    5,                                    // connect post 5 by id
+    { id: 7, title: 'Renamed' },          // update post 7 inline
+    { title: 'Fresh post', slug: 'new' }  // create a new post inline
+  ]
+}
+```
+
+Records without an `id` require `create: true` or `createIfNotExists`. Otherwise, the request fails with a `400` error.
+`uniqueKey` only affects the connect-or-create matching of `createIfNotExists` relations. Plain connect and inline
+update always match related records by `id`.
 
 #### Relation output
 

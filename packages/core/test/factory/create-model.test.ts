@@ -384,7 +384,7 @@ describe('create-model', () => {
       expect(author.anyOf[1].type).toBe('integer');
     });
 
-    test('adds the full model input when configured', () => {
+    test('adds the inline create input when configured', () => {
       const model = createModel({
         name: 'Post',
         relations: {
@@ -392,14 +392,99 @@ describe('create-model', () => {
             model: 'User',
             type: 'oneToMany',
             owner: true,
-            input: { type: 'create', fullModel: true }
+            input: { type: 'all', create: true }
           }
         }
       });
 
+      // A single object schema takes part in the union, so that the server
+      // does not strip the fields of the shapes it does not match
       const author = properties(model.createOneModel).author;
-      expect(author.anyOf).toHaveLength(3);
-      expect(author.anyOf[2].$ref).toBe('UserCreate');
+      expect(author.anyOf).toHaveLength(2);
+      expect(author.anyOf[0].$ref).toBe('UserRelationInput');
+      expect(author.anyOf[1].type).toBe('integer');
+    });
+
+    test('adds the inline update input only to the update model', () => {
+      const model = createModel({
+        name: 'Post',
+        relations: {
+          author: {
+            model: 'User',
+            type: 'oneToMany',
+            owner: true,
+            input: { type: 'all', update: true }
+          }
+        }
+      });
+
+      // Inline updates cannot be applied while the parent is created, so the
+      // create input only connects existing records
+      const createAuthor = properties(model.createOneModel).author;
+      expect(createAuthor.anyOf[0].$ref).toBeUndefined();
+      expect(keys(createAuthor.anyOf[0])).toEqual(['id']);
+
+      const updateAuthor = properties(model.updateOneModel).author;
+      expect(updateAuthor.anyOf[0].$ref).toBe('UserRelationInput');
+    });
+
+    test('accepts mixed connect and inline inputs for a list relation', () => {
+      const model = createModel({
+        name: 'Post',
+        relations: {
+          tags: {
+            model: 'Tag',
+            type: 'manyToMany',
+            input: { type: 'all', create: true }
+          }
+        }
+      });
+
+      const tags = properties(model.createOneModel).tags;
+      expect(tags.type).toBe('array');
+      expect(tags.items.anyOf).toHaveLength(2);
+      expect(tags.items.anyOf[0].$ref).toBe('TagRelationInput');
+    });
+
+    test('builds the relation input data models', () => {
+      const model = createModel({
+        name: 'Post',
+        scalars: {
+          title: { type: 'string' },
+          secret: { type: 'string', hidden: true }
+        }
+      });
+
+      expect(model.relationCreateModel.$id).toBe('PostRelationCreate');
+      expect(keys(model.relationCreateModel)).toEqual(['title']);
+
+      expect(model.relationUpdateModel.$id).toBe('PostRelationUpdate');
+      expect(keys(model.relationUpdateModel)).toEqual(['id', 'title']);
+      expect(model.relationUpdateModel.required).toEqual(['id']);
+    });
+
+    test('accepts the create and the update fields in the relation input model', () => {
+      const model = createModel({
+        name: 'Post',
+        scalars: {
+          title: { type: 'string' },
+          slug: { type: 'string' },
+          views: { type: 'int' }
+        },
+        create: { omit: ['views'] },
+        update: { pick: ['title', 'views'] }
+      });
+
+      // The request schema carries the fields of both actions, since the
+      // service applies the per-action restrictions itself
+      expect(model.relationInputModel.$id).toBe('PostRelationInput');
+      expect(keys(model.relationInputModel)).toEqual([
+        'id',
+        'title',
+        'slug',
+        'views'
+      ]);
+      expect(model.relationInputModel.required ?? []).toEqual([]);
     });
 
     test('excludes a relation from the inputs when configured', () => {
@@ -466,6 +551,29 @@ describe('create-model', () => {
 
       expect(keys(model.readOneModel)).toContain('commentsCount');
       expect(properties(model.readOneModel).commentsCount.type).toBe('integer');
+    });
+
+    test('keeps relation, file, and count outputs optional', () => {
+      const model = createModel({
+        name: 'Post',
+        scalars: { title: { type: 'string' } },
+        relations: {
+          author: { model: 'User', type: 'oneToMany', owner: true },
+          comments: {
+            model: 'Comment',
+            type: 'oneToMany',
+            output: { type: 'always', count: true }
+          }
+        },
+        files: { image: {} }
+      });
+
+      const required = model.readOneModel.required ?? [];
+      expect(required).toContain('title');
+      expect(required).not.toContain('author');
+      expect(required).not.toContain('comments');
+      expect(required).not.toContain('commentsCount');
+      expect(required).not.toContain('image');
     });
 
     test('makes an optional relation nullable in the output', () => {
@@ -554,6 +662,9 @@ describe('create-model', () => {
       expect(model.readModel.$id).toBe('Post');
       expect(model.readOneModel.$id).toBe('PostSingle');
       expect(model.readManyModel.$id).toBe('PostMultiple');
+      expect(model.relationCreateModel.$id).toBe('PostRelationCreate');
+      expect(model.relationUpdateModel.$id).toBe('PostRelationUpdate');
+      expect(model.relationInputModel.$id).toBe('PostRelationInput');
       expect(model.virtualModel.$id).toBe('PostVirtual');
       expect(model.relationsModel.$id).toBe('PostRelations');
       expect(model.filesModel.$id).toBe('PostFiles');

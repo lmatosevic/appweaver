@@ -35,8 +35,8 @@ export type PostSingle = {
   createdById?: number | null;
   author?: UserSingle | null;
   coverImage?: FileSingle | null;
-  galleryImages: Array<FileSingle>;
-  galleryImagesCount: number;
+  galleryImages?: Array<FileSingle>;
+  galleryImagesCount?: number;
 };
 
 export type PostMultiple = {
@@ -55,7 +55,7 @@ export type PostMultiple = {
   createdById?: number | null;
   author?: UserSingle | null;
   coverImage?: FileSingle | null;
-  galleryImagesCount: number;
+  galleryImagesCount?: number;
 };
 
 export type PostCreate = {
@@ -75,6 +75,38 @@ export type PostUpdate = {
   counter?: number;
   tags?: string;
   jsonLd?: any | null;
+};
+
+export type PostRelationCreate = {
+  title?: string;
+  slug: string;
+  content?: string | null;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  tags?: string;
+  jsonLd?: any | null;
+  lastActivity?: Date | null;
+};
+
+export type PostRelationUpdate = {
+  id: number;
+  title?: string;
+  slug?: string;
+  content?: string | null;
+  counter?: number;
+  tags?: string;
+  jsonLd?: any | null;
+};
+
+export type PostRelationInput = {
+  id?: number;
+  title?: string;
+  slug?: string;
+  content?: string | null;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  tags?: string;
+  jsonLd?: any | null;
+  lastActivity?: Date | null;
+  counter?: number;
 };
 
 export type User = {
@@ -115,7 +147,7 @@ export type UserSingle = {
   createdAt: Date;
   createdById?: number | null;
   posts?: Array<PostSingle>;
-  roles: Array<RoleSingle>;
+  roles?: Array<RoleSingle>;
   avatar?: FileSingle | null;
 };
 
@@ -134,7 +166,7 @@ export type UserMultiple = {
   createdAt: Date;
   createdById?: number | null;
   posts?: Array<PostSingle>;
-  roles: Array<RoleSingle>;
+  roles?: Array<RoleSingle>;
   avatar?: FileSingle | null;
 };
 
@@ -147,17 +179,13 @@ export type UserCreate = {
   enabled?: boolean;
   active?: boolean;
   password: string;
-  posts?:
-    | Array<{
+  posts?: Array<PostRelationInput | number> | null;
+  roles: Array<
+    | {
         id: number;
-      }>
-    | Array<number>
-    | Array<PostCreate>;
-  roles:
-    | Array<{
-        id: number;
-      }>
-    | Array<number>;
+      }
+    | number
+  >;
 };
 
 export type UserUpdate = {
@@ -169,17 +197,48 @@ export type UserUpdate = {
   enabled?: boolean;
   active?: boolean;
   password?: string;
-  posts?:
-    | Array<{
+  posts?: Array<PostRelationInput | number> | null;
+  roles?: Array<
+    | {
         id: number;
-      }>
-    | Array<number>
-    | Array<PostCreate>;
-  roles?:
-    | Array<{
-        id: number;
-      }>
-    | Array<number>;
+      }
+    | number
+  >;
+};
+
+export type UserRelationCreate = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  twoFactorAuth: 'None' | 'Email';
+  enabled?: boolean;
+  active?: boolean;
+  password: string;
+};
+
+export type UserRelationUpdate = {
+  id: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  twoFactorAuth: 'None' | 'Email';
+  enabled?: boolean;
+  active?: boolean;
+  password?: string;
+};
+
+export type UserRelationInput = {
+  id?: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  twoFactorAuth: 'None' | 'Email';
+  enabled?: boolean;
+  active?: boolean;
+  password?: string;
 };
 
 export type ApiKey = {
@@ -233,6 +292,28 @@ export type ApiKeyUpdate = {
   enabled?: boolean;
 };
 
+export type ApiKeyRelationCreate = {
+  name?: string | null;
+  description?: string | null;
+  enabled?: boolean;
+  expiresAt?: Date | null;
+};
+
+export type ApiKeyRelationUpdate = {
+  id: number;
+  name?: string | null;
+  description?: string | null;
+  enabled?: boolean;
+};
+
+export type ApiKeyRelationInput = {
+  id?: number;
+  name?: string | null;
+  description?: string | null;
+  enabled?: boolean;
+  expiresAt?: Date | null;
+};
+
 export type Role = {
   id: number;
   name: string;
@@ -245,31 +326,47 @@ export type Role = {
 export type RoleSingle = {
   id: number;
   name: string;
-  permissions: Array<PermissionSingle>;
+  permissions?: Array<PermissionSingle>;
 };
 
 export type RoleMultiple = {
   id: number;
   name: string;
-  permissions: Array<PermissionSingle>;
+  permissions?: Array<PermissionSingle>;
 };
 
 export type RoleCreate = {
   name: string;
-  permissions:
-    | Array<{
+  permissions: Array<
+    | {
         id: number;
-      }>
-    | Array<number>;
+      }
+    | number
+  >;
 };
 
 export type RoleUpdate = {
   name?: string;
-  permissions?:
-    | Array<{
+  permissions?: Array<
+    | {
         id: number;
-      }>
-    | Array<number>;
+      }
+    | number
+  >;
+};
+
+export type RoleRelationCreate = {
+  name: string;
+};
+
+export type RoleRelationUpdate = {
+  id: number;
+  name?: string;
+};
+
+export type RoleRelationInput = {
+  id?: number;
+  name?: string;
 };
 
 export type Permission = {
@@ -295,6 +392,20 @@ export type PermissionCreate = {
 };
 
 export type PermissionUpdate = {
+  name?: string;
+};
+
+export type PermissionRelationCreate = {
+  name: string;
+};
+
+export type PermissionRelationUpdate = {
+  id: number;
+  name?: string;
+};
+
+export type PermissionRelationInput = {
+  id?: number;
   name?: string;
 };
 
@@ -357,6 +468,38 @@ export type FileCreate = {
 };
 
 export type FileUpdate = {
+  name?: string;
+  originalName?: string;
+  mimeType?: string;
+  sizeBytes?: number;
+  checksum?: string;
+  title?: string | null;
+  description?: string | null;
+};
+
+export type FileRelationCreate = {
+  name: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  checksum: string;
+  title?: string | null;
+  description?: string | null;
+};
+
+export type FileRelationUpdate = {
+  id: number;
+  name?: string;
+  originalName?: string;
+  mimeType?: string;
+  sizeBytes?: number;
+  checksum?: string;
+  title?: string | null;
+  description?: string | null;
+};
+
+export type FileRelationInput = {
+  id?: number;
   name?: string;
   originalName?: string;
   mimeType?: string;

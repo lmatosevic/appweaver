@@ -50,6 +50,28 @@ export type ApiKeyUpdate = {
   enabled?: boolean;
 };
 
+export type ApiKeyRelationCreate = {
+  name?: string | null;
+  description?: string | null;
+  enabled?: boolean;
+  expiresAt?: Date | null;
+};
+
+export type ApiKeyRelationUpdate = {
+  id: number;
+  name?: string | null;
+  description?: string | null;
+  enabled?: boolean;
+};
+
+export type ApiKeyRelationInput = {
+  id?: number;
+  name?: string | null;
+  description?: string | null;
+  enabled?: boolean;
+  expiresAt?: Date | null;
+};
+
 export type OneTimeToken = {
   id: number;
   tokenHash: string;
@@ -94,6 +116,29 @@ export type OneTimeTokenUpdate = {
   data?: any;
 };
 
+export type OneTimeTokenRelationCreate = {
+  tokenHash: string;
+  purpose: string;
+  expiresAt: Date;
+  data: any;
+};
+
+export type OneTimeTokenRelationUpdate = {
+  id: number;
+  tokenHash?: string;
+  purpose?: string;
+  expiresAt?: Date;
+  data?: any;
+};
+
+export type OneTimeTokenRelationInput = {
+  id?: number;
+  tokenHash?: string;
+  purpose?: string;
+  expiresAt?: Date;
+  data?: any;
+};
+
 export type Permission = {
   id: number;
   name: string;
@@ -120,6 +165,20 @@ export type PermissionUpdate = {
   name?: string;
 };
 
+export type PermissionRelationCreate = {
+  name: string;
+};
+
+export type PermissionRelationUpdate = {
+  id: number;
+  name?: string;
+};
+
+export type PermissionRelationInput = {
+  id?: number;
+  name?: string;
+};
+
 export type Role = {
   id: number;
   name: string;
@@ -132,31 +191,47 @@ export type Role = {
 export type RoleSingle = {
   id: number;
   name: string;
-  permissions: Array<PermissionSingle>;
+  permissions?: Array<PermissionSingle>;
 };
 
 export type RoleMultiple = {
   id: number;
   name: string;
-  permissions: Array<PermissionSingle>;
+  permissions?: Array<PermissionSingle>;
 };
 
 export type RoleCreate = {
   name: string;
-  permissions:
-    | Array<{
+  permissions: Array<
+    | {
         id: number;
-      }>
-    | Array<number>;
+      }
+    | number
+  >;
 };
 
 export type RoleUpdate = {
   name?: string;
-  permissions?:
-    | Array<{
+  permissions?: Array<
+    | {
         id: number;
-      }>
-    | Array<number>;
+      }
+    | number
+  >;
+};
+
+export type RoleRelationCreate = {
+  name: string;
+};
+
+export type RoleRelationUpdate = {
+  id: number;
+  name?: string;
+};
+
+export type RoleRelationInput = {
+  id?: number;
+  name?: string;
 };
 
 export type File = {
@@ -218,6 +293,38 @@ export type FileCreate = {
 };
 
 export type FileUpdate = {
+  name?: string;
+  originalName?: string;
+  mimeType?: string;
+  sizeBytes?: number;
+  checksum?: string;
+  title?: string | null;
+  description?: string | null;
+};
+
+export type FileRelationCreate = {
+  name: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  checksum: string;
+  title?: string | null;
+  description?: string | null;
+};
+
+export type FileRelationUpdate = {
+  id: number;
+  name?: string;
+  originalName?: string;
+  mimeType?: string;
+  sizeBytes?: number;
+  checksum?: string;
+  title?: string | null;
+  description?: string | null;
+};
+
+export type FileRelationInput = {
+  id?: number;
   name?: string;
   originalName?: string;
   mimeType?: string;

@@ -532,6 +532,196 @@ describe('resource-service', () => {
       });
     });
 
+    test('creates a related record inline when enabled', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            author: {
+              model: 'User',
+              type: 'oneToMany',
+              owner: true,
+              input: { type: 'all', create: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+
+      await new PostService().create({
+        title: 'First',
+        author: { email: 'ada@mail.com' }
+      });
+
+      expect(db.lastQuery('create').args.data.author).toEqual({
+        create: { email: 'ada@mail.com' }
+      });
+    });
+
+    test('mixes connected and inline created records in a list relation', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              input: { type: 'all', create: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+
+      await new PostService().create({
+        title: 'First',
+        tags: [{ id: 1 }, { name: 'fresh' }]
+      });
+
+      expect(db.lastQuery('create').args.data.tags).toEqual({
+        connect: [{ id: 1 }],
+        create: [{ name: 'fresh' }]
+      });
+    });
+
+    test('connects instead of updating inline on the create action', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            author: {
+              model: 'User',
+              type: 'oneToMany',
+              owner: true,
+              input: { type: 'all', update: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+
+      await new PostService().create({
+        title: 'First',
+        author: { id: 5, email: 'ada@mail.com' }
+      });
+
+      expect(db.lastQuery('create').args.data.author).toEqual({
+        connect: { id: 5 }
+      });
+    });
+
+    test('matches records with the unique key when createIfNotExists is set', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              createIfNotExists: true,
+              input: { type: 'all', uniqueKey: 'name' }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+
+      await new PostService().create({ title: 'First', tags: ['fresh'] });
+
+      expect(db.lastQuery('create').args.data.tags).toEqual({
+        connectOrCreate: [
+          {
+            where: { name: 'fresh' },
+            create: { name: 'fresh' }
+          }
+        ]
+      });
+    });
+
+    test('rejects an inline record missing a required field', async () => {
+      createModel(
+        {
+          name: 'Tag',
+          scalars: { name: { type: 'string' }, color: { type: 'string' } }
+        },
+        true
+      );
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              input: { type: 'all', create: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+
+      await expect(
+        new PostService().create({ title: 'First', tags: [{ name: 'fresh' }] })
+      ).rejects.toMatchObject({
+        statusCode: 400,
+        message: expect.stringContaining('missing required fields: color')
+      });
+    });
+
+    test('drops the fields excluded from the related create model', async () => {
+      createModel(
+        {
+          name: 'Tag',
+          scalars: { name: { type: 'string' }, hits: { type: 'int' } },
+          create: { omit: ['hits'] }
+        },
+        true
+      );
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              input: { type: 'all', create: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+
+      await new PostService().create({
+        title: 'First',
+        tags: [{ name: 'fresh', hits: 99 }]
+      });
+
+      expect(db.lastQuery('create').args.data.tags).toEqual({
+        create: [{ name: 'fresh' }]
+      });
+    });
+
+    test('rejects an inline record when creation is not enabled', async () => {
+      await expect(
+        service.create({ title: 'First', author: { email: 'ada@mail.com' } })
+      ).rejects.toMatchObject({
+        statusCode: 400,
+        message: expect.stringContaining("relation 'author'")
+      });
+    });
+
     test('applies the write restrictions', async () => {
       class RestrictedService extends PostService {
         protected async writeRestrictions(): Promise<any> {
@@ -679,6 +869,191 @@ describe('resource-service', () => {
       expect(db.lastQuery('update').args.data.tags).toEqual({
         disconnect: [{ id: 2 }],
         connect: [{ id: 1 }]
+      });
+    });
+
+    test('connects a relation that is currently empty', async () => {
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        author: null,
+        tags: []
+      });
+
+      await service.update(1, { author: 9 });
+
+      expect(db.lastQuery('update').args.data.author).toEqual({
+        connect: { id: 9 }
+      });
+    });
+
+    test('updates a related record inline when enabled', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            author: {
+              model: 'User',
+              type: 'oneToMany',
+              owner: true,
+              input: { type: 'all', update: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        author: { id: 2 }
+      });
+
+      await new PostService().update(1, {
+        author: { id: 2, email: 'new@mail.com' }
+      });
+
+      expect(db.lastQuery('update').args.data.author).toEqual({
+        update: { where: { id: 2 }, data: { email: 'new@mail.com' } }
+      });
+    });
+
+    test('connects a record given by id only when inline update is enabled', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            author: {
+              model: 'User',
+              type: 'oneToMany',
+              owner: true,
+              input: { type: 'all', update: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        author: { id: 2 }
+      });
+
+      await new PostService().update(1, { author: { id: 9 } });
+
+      expect(db.lastQuery('update').args.data.author).toEqual({
+        connect: { id: 9 }
+      });
+    });
+
+    test('drops the fields excluded from the related update model', async () => {
+      createModel(
+        {
+          name: 'Tag',
+          scalars: { name: { type: 'string' }, hits: { type: 'int' } },
+          update: { pick: ['name'] }
+        },
+        true
+      );
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              input: { type: 'all', update: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        tags: [{ id: 1 }]
+      });
+
+      await new PostService().update(1, {
+        tags: [{ id: 1, name: 'renamed', hits: 99 }]
+      });
+
+      expect(db.lastQuery('update').args.data.tags).toEqual({
+        update: [{ where: { id: 1 }, data: { name: 'renamed' } }]
+      });
+    });
+
+    test('connects when every inline field is excluded from the update model', async () => {
+      createModel(
+        {
+          name: 'Tag',
+          scalars: { name: { type: 'string' }, hits: { type: 'int' } },
+          update: { pick: ['name'] }
+        },
+        true
+      );
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              input: { type: 'all', update: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        tags: [{ id: 1 }]
+      });
+
+      await new PostService().update(1, { tags: [{ id: 1, hits: 99 }] });
+
+      expect(db.lastQuery('update').args.data.tags).toEqual({
+        connect: [{ id: 1 }]
+      });
+    });
+
+    test('updates list items inline while disconnecting missing ones', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              input: { type: 'all', update: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        tags: [{ id: 1 }, { id: 2 }]
+      });
+
+      await new PostService().update(1, {
+        tags: [{ id: 1, name: 'renamed' }]
+      });
+
+      expect(db.lastQuery('update').args.data.tags).toEqual({
+        disconnect: [{ id: 2 }],
+        update: [{ where: { id: 1 }, data: { name: 'renamed' } }]
       });
     });
 

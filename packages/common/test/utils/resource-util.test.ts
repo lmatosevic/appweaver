@@ -32,6 +32,9 @@ describe('resource-util', () => {
       expect(resourceModelProps['Multiple']).toBe('readManyModel');
       expect(resourceModelProps['Create']).toBe('createOneModel');
       expect(resourceModelProps['Update']).toBe('updateOneModel');
+      expect(resourceModelProps['RelationCreate']).toBe('relationCreateModel');
+      expect(resourceModelProps['RelationUpdate']).toBe('relationUpdateModel');
+      expect(resourceModelProps['RelationInput']).toBe('relationInputModel');
       expect(resourceModelProps['FileUpload']).toBe('fileUploadModel');
     });
   });
