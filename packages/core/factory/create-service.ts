@@ -7,7 +7,7 @@ import {
   CONFIG,
   Ctor,
   isFunction,
-  isObject,
+  isPlainObject,
   logger,
   QueryResponse,
   Resource,
@@ -132,7 +132,7 @@ export function createService<T = any, C = any, U = any>(
         return config.textSearch(searchText);
       }
 
-      if (isObject(config.textSearch)) {
+      if (isPlainObject(config.textSearch)) {
         return config.textSearch;
       }
 

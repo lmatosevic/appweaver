@@ -72,6 +72,14 @@ describe('lfu-eviction-index', () => {
       expect(index.evictionCandidates(3, NOW, 0)).toEqual([]);
     });
 
+    test('returns an empty array when no candidates are requested', () => {
+      index.add('a', meta(1));
+      index.add('b', meta(2));
+
+      expect(index.evictionCandidates(0, NOW, 0)).toEqual([]);
+      expect(index.evictionCandidates(-1, NOW, 0)).toEqual([]);
+    });
+
     test('selects the lowest scored keys out of many entries', () => {
       for (let i = 1; i <= 20; i++) {
         index.add(`key-${i}`, meta(i));

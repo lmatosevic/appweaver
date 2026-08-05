@@ -16,7 +16,7 @@ import {
   ScalarField
 } from '../types';
 import { IResourceService } from '../interfaces';
-import { isArray, isConstructor, isObject } from './type-util';
+import { isArray, isConstructor, isPlainObject } from './type-util';
 
 export const resourceModelProps: Record<
   string,
@@ -58,9 +58,11 @@ export function extractSchemaProperties(
     return undefined;
   }
 
+  const defs = schema['$defs'];
+
   const properties =
-    '$ref' in schema && '$defs' in schema
-      ? schema['$defs'][schema['$ref']]?.properties
+    '$ref' in schema && defs
+      ? defs[schema['$ref']]?.properties
       : schema.properties;
 
   if (!key) {
@@ -68,11 +70,30 @@ export function extractSchemaProperties(
   }
 
   const field = properties?.[key];
-  if (isArray(field?.['anyOf'])) {
+  if (!field) {
+    return undefined;
+  }
+
+  // Nullable single relation and file fields are wrapped in a union with null
+  if (isArray(field['anyOf'])) {
     const ref = field['anyOf'].find((entry: TSchema) => '$ref' in entry)?.[
       '$ref'
     ];
-    return ref ? schema['$defs']?.[ref] : undefined;
+    return ref ? defs?.[ref] : undefined;
+  }
+
+  // Required single relation and file fields reference the target model
+  // directly, so the definition has to be resolved for the caller to be able
+  // to read the resource name off it.
+  if ('$ref' in field) {
+    return defs?.[field['$ref']] ?? field;
+  }
+
+  // Array relation and file fields keep their array wrapper, since callers
+  // distinguish to-many from to-one fields by the `array` schema type.
+  if (field['items'] && '$ref' in field['items']) {
+    const resolved = defs?.[field['items']['$ref']];
+    return resolved ? { ...field, items: resolved } : field;
   }
 
   return field;
@@ -87,7 +108,7 @@ export function isCountField(name: string): boolean {
 }
 
 export function isResourceModel(value: any): value is ResourceModel {
-  return isObject(value) && value[RESOURCE_TYPE] === RESOURCE_MODEL_TYPE;
+  return isPlainObject(value) && value[RESOURCE_TYPE] === RESOURCE_MODEL_TYPE;
 }
 
 export function isResourceAuthModel(value: any): value is ResourceModel {
@@ -96,7 +117,7 @@ export function isResourceAuthModel(value: any): value is ResourceModel {
 
 export function isResourceService(value: any): value is IResourceService {
   return (
-    (isObject(value) || isConstructor(value)) &&
+    (isPlainObject(value) || isConstructor(value)) &&
     value[RESOURCE_TYPE] === RESOURCE_SERVICE_TYPE
   );
 }
@@ -106,11 +127,11 @@ export function isResourceAuthService(value: any): value is IResourceService {
 }
 
 export function isResourceRoutes(value: any): value is ResourceRoutes {
-  return isObject(value) && value[RESOURCE_TYPE] === RESOURCE_ROUTES_TYPE;
+  return isPlainObject(value) && value[RESOURCE_TYPE] === RESOURCE_ROUTES_TYPE;
 }
 
 export function isResourcePolicy(value: any): value is ResourcePolicyConfig {
-  return isObject(value) && value[RESOURCE_TYPE] === RESOURCE_POLICY_TYPE;
+  return isPlainObject(value) && value[RESOURCE_TYPE] === RESOURCE_POLICY_TYPE;
 }
 
 export function defaultScalarValue(scalar: ScalarField): FieldDefault {

@@ -17,7 +17,7 @@ model Post {
   title        String      @default("something...")
   slug         String      @unique
   content      String?
-  counter      Int
+  counter      Int         @default(0)
   status       PostStatus? @default(Draft)
   tags         String      @default("Nature,Animals")
   jsonLd       Json?

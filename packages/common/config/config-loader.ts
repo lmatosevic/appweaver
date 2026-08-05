@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { config as dotenvConfig } from 'dotenv';
 import { expand as dotenvExpand } from 'dotenv-expand';
 import { TObject } from '@sinclair/typebox';
-import { camelToSnakeCase, isObject, parseArray } from '../utils';
+import { camelToSnakeCase, isPlainObject, parseArray } from '../utils';
 import { CONFIG_NAME } from '../constants';
 
 export type ConfigEntry = {
@@ -195,7 +195,7 @@ function recurseConfig(
   config: Record<string, string | string[]>,
   pathParts: string[] = []
 ): Record<string, string | string[]> {
-  if (current !== null && isObject(current) && !Array.isArray(current)) {
+  if (isPlainObject(current)) {
     for (const [k, v] of Object.entries(current)) {
       recurseConfig(v, config, [
         ...pathParts,

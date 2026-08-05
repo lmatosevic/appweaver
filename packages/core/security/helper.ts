@@ -239,7 +239,7 @@ export function checkScopeAccess(url: string, authScope: AuthScope): boolean {
   const accountPrefix = config.SECURITY_ACCOUNT_ROUTE_PREFIX.replace(/\/$/, '');
 
   const refreshPath = `${securityPrefix}/refresh`;
-  const twoFASendPath = `${accountPrefix}/2fa-send-code`;
+  const twoFASendPath = `${accountPrefix}/send-2fa-code`;
   const twoFAVerifyPath = `${accountPrefix}/verify-2fa-code`;
 
   const scopeConfigs: {

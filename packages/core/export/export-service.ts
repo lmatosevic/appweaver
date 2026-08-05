@@ -7,7 +7,7 @@ import {
   isArray,
   isCountField,
   isFunction,
-  isObject,
+  isPlainObject,
   isString,
   logger,
   plural
@@ -149,30 +149,38 @@ export class ExportService {
             : exportField.headerName;
         }
 
-        if (exportField.mapValue) {
-          const mappedValues: string[] = [];
+        const mapValue = exportField.mapValue;
+        if (mapValue) {
+          // A scalar value has no properties to read the configured field name
+          // off, so it is resolved against the exported record itself.
+          if (isString(mapValue) && !relationSchema && !fileSchema) {
+            value = item?.[mapValue];
+          } else {
+            const mappedValues: string[] = [];
 
-          // Transform value items using mapValue configuration.
-          const subItems = isArrayValue ? value : [value];
-          for (const subItem of subItems) {
-            if (isFunction(exportField.mapValue)) {
-              try {
-                mappedValues.push(exportField.mapValue(subItem));
-              } catch (e) {
-                mappedValues.push('');
-                logger.error(e, 'Export value mapping error.');
+            // Transform value items using mapValue configuration.
+            const subItems = isArrayValue ? value : [value];
+            for (const subItem of subItems) {
+              if (isFunction(mapValue)) {
+                try {
+                  mappedValues.push(mapValue(subItem));
+                } catch (e) {
+                  mappedValues.push('');
+                  logger.error(e, 'Export value mapping error.');
+                }
+              } else if (isString(mapValue)) {
+                mappedValues.push(subItem?.[mapValue]);
               }
-            } else if (!isObject(exportField.mapValue)) {
-              mappedValues.push(subItem?.[exportField.mapValue]);
             }
-          }
 
-          value = mappedValues.join(',');
+            value = mappedValues.join(',');
+          }
         }
       }
 
       // Recursively map relation and file fields if the value is an object.
-      if ((value && isObject(value)) || (isArrayValue && isObject(value[0]))) {
+      // Arrays of plain values are written as a single column below.
+      if (isPlainObject(value) || (isArrayValue && isPlainObject(value[0]))) {
         const relationName = extractResourceName(relationSchema ?? fileSchema);
         if (!relationName) {
           continue;

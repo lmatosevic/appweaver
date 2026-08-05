@@ -27,6 +27,7 @@ import {
   isArray,
   isCountField,
   isObject,
+  isPlainObject,
   OutputType,
   PeriodIncrementFn,
   QueryResponse,
@@ -623,7 +624,7 @@ export abstract class ResourceService<
   private projectResource<T>(resource: T): T {
     const projectedResource = projectVirtualFields(resource, this._client.name);
 
-    if (!isObject(projectedResource['_count'])) {
+    if (!isPlainObject(projectedResource['_count'])) {
       return projectedResource;
     }
 
@@ -677,12 +678,15 @@ export abstract class ResourceService<
       const relationSchema = extractSchemaProperties(relationsModel, key);
       const fileSchema = extractSchemaProperties(filesModel, key);
 
-      if (isObject(value) || (isArray(value) && isObject(value[0]))) {
+      // Only nested resource payloads are sanitized. Unique key values, arrays
+      // of them and null values are left untouched, so the relation actions can
+      // still map them to connect and disconnect operations.
+      if (isPlainObject(value) || (isArray(value) && isPlainObject(value[0]))) {
         const resourceName = extractResourceName(relationSchema ?? fileSchema);
         if (resourceName) {
           sanitizedData[key] = isArray(value)
             ? (value.map((item: any) =>
-                this.sanitizeData(item, resourceName)
+                this.sanitizeData(action, item, resourceName)
               ) as any)
             : this.sanitizeData(action, value, resourceName);
         }
@@ -714,12 +718,16 @@ export abstract class ResourceService<
 
       const isArrayValue = isArray(value);
 
+      // Null values are passed through untouched, matching records without a
+      // value or, for relations, without a related record.
+      if (value === null) {
+        queryFilter[key] = null;
+        continue;
+      }
+
       // Recursively map nested objects and handle arrays of objects. Arrays of
       // plain values are mapped below as inclusion, range or relation filters.
-      if (
-        (isObject(value) && !isArrayValue) ||
-        (isArrayValue && isObject(value[0]))
-      ) {
+      if (isPlainObject(value) || (isArrayValue && isPlainObject(value[0]))) {
         const resourceName = extractResourceName(relationSchema ?? fileSchema);
         if (resourceName) {
           queryFilter[key] = isArrayValue
@@ -902,15 +910,15 @@ export abstract class ResourceService<
 
       // Normalize plain unique key values or arrays to object values
       if (isArrayType) {
-        if (isArray(value) && !isObject([0])) {
+        if (isArray(value) && !isPlainObject(value[0])) {
           value = value.map((v: any) => ({
             [uniqueKey]: v
           }));
         }
-      } else {
-        if (!isObject(value)) {
-          value = { [uniqueKey]: value };
-        }
+      } else if (!isObject(value)) {
+        // Only bare unique key values are wrapped. The loose object check keeps
+        // null values untouched, so they still map to a disconnect action.
+        value = { [uniqueKey]: value };
       }
 
       // Map relation connections with an option to create a non-existing entity

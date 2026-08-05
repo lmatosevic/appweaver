@@ -4,7 +4,7 @@ CREATE TABLE "Post" (
     "title" TEXT NOT NULL DEFAULT 'something...',
     "slug" TEXT NOT NULL,
     "content" TEXT,
-    "counter" INTEGER NOT NULL,
+    "counter" INTEGER NOT NULL DEFAULT 0,
     "status" TEXT DEFAULT 'Draft',
     "tags" TEXT NOT NULL DEFAULT 'Nature,Animals',
     "jsonLd" JSONB,

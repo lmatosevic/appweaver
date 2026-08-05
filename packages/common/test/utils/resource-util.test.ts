@@ -126,6 +126,77 @@ describe('resource-util', () => {
       );
     });
 
+    test('resolves a definition referenced directly by a field', () => {
+      const refFieldSchema = {
+        properties: { author: { $ref: 'UserSingle' } },
+        $defs: {
+          UserSingle: {
+            type: 'object',
+            properties: { id: { type: 'string' } },
+            [RESOURCE_NAME]: 'User'
+          }
+        }
+      } as any;
+
+      const field = extractSchemaProperties(refFieldSchema, 'author');
+
+      expect(field).toEqual(refFieldSchema.$defs.UserSingle);
+      expect(extractResourceName(field)).toBe('User');
+    });
+
+    test('resolves the item definition of an array field, keeping the array type', () => {
+      const arrayFieldSchema = {
+        properties: {
+          tags: { type: 'array', items: { $ref: 'TagSingle' }, minItems: 1 }
+        },
+        $defs: {
+          TagSingle: {
+            type: 'object',
+            properties: { id: { type: 'string' } },
+            [RESOURCE_NAME]: 'Tag'
+          }
+        }
+      } as any;
+
+      const field = extractSchemaProperties(arrayFieldSchema, 'tags') as any;
+
+      expect(field.type).toBe('array');
+      expect(field.minItems).toBe(1);
+      expect(field.items).toEqual(arrayFieldSchema.$defs.TagSingle);
+      expect(extractResourceName(field)).toBe('Tag');
+    });
+
+    test('resolves a field reference behind a root level $ref', () => {
+      const rootRefSchema = {
+        $ref: 'PostRelations',
+        $defs: {
+          PostRelations: { properties: { author: { $ref: 'UserSingle' } } },
+          UserSingle: { type: 'object', [RESOURCE_NAME]: 'User' }
+        }
+      } as any;
+
+      expect(extractSchemaProperties(rootRefSchema, 'author')).toEqual(
+        rootRefSchema.$defs.UserSingle
+      );
+    });
+
+    test('returns the raw field when its reference cannot be resolved', () => {
+      const unresolvedSchema = {
+        properties: {
+          author: { $ref: 'UserSingle' },
+          tags: { type: 'array', items: { $ref: 'TagSingle' } }
+        }
+      } as any;
+
+      expect(extractSchemaProperties(unresolvedSchema, 'author')).toEqual({
+        $ref: 'UserSingle'
+      });
+      expect(extractSchemaProperties(unresolvedSchema, 'tags')).toEqual({
+        type: 'array',
+        items: { $ref: 'TagSingle' }
+      });
+    });
+
     test('returns undefined when the anyOf entry has no reference', () => {
       const anyOfSchema = {
         properties: { author: { anyOf: [{ type: 'string' }] } }
@@ -205,6 +276,17 @@ describe('resource-util', () => {
     test('isResourcePolicy', () => {
       expect(isResourcePolicy(policy)).toBe(true);
       expect(isResourcePolicy(routes)).toBe(false);
+    });
+
+    test('rejects null and arrays without throwing', () => {
+      for (const value of [null, undefined, [], [model]]) {
+        expect(isResourceModel(value)).toBe(false);
+        expect(isResourceAuthModel(value)).toBe(false);
+        expect(isResourceService(value)).toBe(false);
+        expect(isResourceAuthService(value)).toBe(false);
+        expect(isResourceRoutes(value)).toBe(false);
+        expect(isResourcePolicy(value)).toBe(false);
+      }
     });
   });
 

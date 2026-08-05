@@ -8,7 +8,7 @@ import {
   FileField,
   IdField,
   InputType,
-  isObject,
+  isPlainObject,
   logger,
   Nullable,
   OperationConfig,
@@ -118,7 +118,7 @@ export function createModel(
   };
 
   for (const value of Object.values(resourceModel)) {
-    if (isObject(value)) {
+    if (isPlainObject(value)) {
       value[RESOURCE_NAME] = name;
     }
   }

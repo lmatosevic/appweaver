@@ -27,6 +27,10 @@ export class LfuEvictionIndex implements EvictionIndex {
     now: number,
     gracePeriod: number
   ): string[] {
+    if (count <= 0) {
+      return [];
+    }
+
     // Build a min-heap of size `count` to find the k entries with the lowest
     // frequency score (usedCount / age), avoiding a full sort.
     // Time complexity: O(n log k) where k = count (typically 1).

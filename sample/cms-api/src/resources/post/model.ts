@@ -31,7 +31,8 @@ export default createModel({
     counter: {
       type: 'int',
       minimum: 1,
-      maximum: 1023
+      maximum: 1023,
+      default: 0
     },
     status: {
       type: 'enum',
@@ -92,7 +93,7 @@ export default createModel({
     omit: ['counter']
   },
   update: {
-    pick: ['title', 'slug', 'content', 'counter', 'tags']
+    pick: ['title', 'slug', 'content', 'counter', 'tags', 'jsonLd']
   },
   virtual: {
     randomNumbers: {
@@ -111,8 +112,7 @@ export default createModel({
   export: {
     title: {
       headerName: 'My Title',
-      exclude: false,
-      mapValue: 'title'
+      mapValue: (val: string) => `Title is ${val}`
     },
     content: {
       exclude: true

@@ -136,6 +136,16 @@ describe('resource-service', () => {
       expect(post._count).toBeUndefined();
     });
 
+    test('returns the record when the relation counts are null', async () => {
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        _count: null
+      });
+
+      await expect(service.find(1)).resolves.toMatchObject({ id: 1 });
+    });
+
     test('throws a not found error for a missing record', async () => {
       db.setResult('Post', 'findFirst', null);
 
@@ -328,6 +338,33 @@ describe('resource-service', () => {
       });
     });
 
+    test('maps a nested single relation filter through the related model', async () => {
+      createModel({ name: 'User', scalars: { age: { type: 'int' } } }, true);
+      linkModels();
+
+      await new PostService().query({ author: { age: [18, 30] } });
+
+      expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
+        author: { age: { gte: 18, lte: 30 } }
+      });
+    });
+
+    test('maps a nested list relation filter through the related model', async () => {
+      await service.query({ tags: [{ name: ['news', 'tech'] }] });
+
+      expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
+        tags: [{ name: { in: ['news', 'tech'] } }]
+      });
+    });
+
+    test('passes a null relation filter through unchanged', async () => {
+      await service.query({ author: null });
+
+      expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
+        author: null
+      });
+    });
+
     test('applies the read restrictions to the query', async () => {
       class RestrictedService extends PostService {
         protected async readRestrictions(): Promise<any> {
@@ -477,6 +514,14 @@ describe('resource-service', () => {
 
     test('connects a list relation', async () => {
       await service.create({ title: 'First', tags: [{ id: 1 }, { id: 2 }] });
+
+      expect(db.lastQuery('create').args.data.tags).toEqual({
+        connect: [{ id: 1 }, { id: 2 }]
+      });
+    });
+
+    test('connects a list relation given as plain ids', async () => {
+      await service.create({ title: 'First', tags: [1, 2] });
 
       expect(db.lastQuery('create').args.data.tags).toEqual({
         connect: [{ id: 1 }, { id: 2 }]

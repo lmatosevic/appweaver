@@ -150,6 +150,106 @@ describe('export-service', () => {
       expect(csv).toContain('FIRST');
     });
 
+    test('maps a scalar value from the named field of the record', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          export: { title: { headerName: 'My Title', mapValue: 'title' } }
+        },
+        true
+      );
+      linkModels();
+      defineService([{ id: 1, title: 'First' }]);
+
+      const { stream } = await service.exportCsv('Post');
+      const csv = await readStream(stream);
+
+      expect(csv).toContain('My Title');
+      expect(csv).toContain('First');
+    });
+
+    test('maps a scalar value from another field of the record', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' }, slug: { type: 'string' } },
+          export: { slug: { mapValue: 'title' } }
+        },
+        true
+      );
+      linkModels();
+      defineService([{ id: 1, title: 'First', slug: 'first-post' }]);
+
+      const { stream } = await service.exportCsv('Post');
+      const csv = await readStream(stream);
+
+      expect(csv).toContain('slug');
+      expect(csv).not.toContain('first-post');
+      expect(csv.split('\n')[1]).toBe('1;First;First');
+    });
+
+    test('maps a single file value from the named field of the file', async () => {
+      createModel({
+        name: 'File',
+        scalars: { originalName: { type: 'string' } }
+      });
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          files: { coverImage: {} },
+          export: { coverImage: { mapValue: 'originalName' } }
+        },
+        true
+      );
+      linkModels();
+      defineService([
+        {
+          id: 1,
+          title: 'First',
+          coverImage: { id: 9, originalName: 'cover.png' }
+        }
+      ]);
+
+      const { stream } = await service.exportCsv('Post');
+      const csv = await readStream(stream);
+
+      expect(csv).toContain('cover.png');
+    });
+
+    test('maps every item of a file array from the named field', async () => {
+      createModel({
+        name: 'File',
+        scalars: { originalName: { type: 'string' } }
+      });
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          files: { galleryImages: { array: true } },
+          export: { galleryImages: { mapValue: 'originalName' } }
+        },
+        true
+      );
+      linkModels();
+      defineService([
+        {
+          id: 1,
+          title: 'First',
+          galleryImages: [
+            { id: 9, originalName: 'a.png' },
+            { id: 10, originalName: 'b.png' }
+          ]
+        }
+      ]);
+
+      const { stream } = await service.exportCsv('Post');
+      const csv = await readStream(stream);
+
+      expect(csv).toContain('a.png,b.png');
+    });
+
     test('keeps the row when the mapping function throws', async () => {
       createModel(
         {
@@ -190,6 +290,101 @@ describe('export-service', () => {
 
       expect(config.EXPORT_CSV_ADD_HEADERS).toBe(true);
       expect(csv).toContain('Post title');
+    });
+
+    test('keeps an array scalar as a single column', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: {
+            title: { type: 'string' },
+            keywords: { type: 'string', array: true }
+          }
+        },
+        true
+      );
+      linkModels();
+      defineService([{ id: 1, title: 'First', keywords: ['news', 'tech'] }]);
+
+      const { stream } = await service.exportCsv('Post');
+      const csv = await readStream(stream);
+
+      expect(csv).toContain('keywords');
+      expect(csv).toContain('news');
+      expect(csv).toContain('tech');
+    });
+
+    test('flattens a single relation into prefixed columns', async () => {
+      createModel({ name: 'User', scalars: { email: { type: 'string' } } });
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: { author: { model: 'User' } }
+        },
+        true
+      );
+      linkModels();
+      defineService([
+        { id: 1, title: 'First', author: { id: 7, email: 'ada@mail.com' } }
+      ]);
+
+      const { stream } = await service.exportCsv('Post');
+      const csv = await readStream(stream);
+
+      expect(csv).toContain('author.email');
+      expect(csv).toContain('ada@mail.com');
+    });
+
+    test('joins the values of an array relation into a single column', async () => {
+      createModel({ name: 'Tag', scalars: { name: { type: 'string' } } });
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: { tags: { model: 'Tag', array: true } }
+        },
+        true
+      );
+      linkModels();
+      defineService([
+        {
+          id: 1,
+          title: 'First',
+          tags: [
+            { id: 2, name: 'News' },
+            { id: 3, name: 'Tech' }
+          ]
+        }
+      ]);
+
+      const { stream } = await service.exportCsv('Post');
+      const csv = await readStream(stream);
+
+      expect(csv).toContain('tags.name');
+      expect(csv).toContain(`News${config.EXPORT_CSV_JOIN_DELIMITER}Tech`);
+    });
+
+    test('flattens a single file relation into prefixed columns', async () => {
+      createModel({ name: 'File', scalars: { name: { type: 'string' } } });
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          files: { image: {} }
+        },
+        true
+      );
+      linkModels();
+      defineService([
+        { id: 1, title: 'First', image: { id: 9, name: 'logo.png' } }
+      ]);
+
+      const { stream } = await service.exportCsv('Post');
+      const csv = await readStream(stream);
+
+      expect(csv).toContain('image.name');
+      expect(csv).toContain('logo.png');
     });
 
     test('throws a server error when the initial query fails', async () => {

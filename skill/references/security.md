@@ -64,7 +64,7 @@ if `SECURITY_JWT_SECRET` is set.
 
 | Scope     | Purpose               | Access                                                                 |
 |-----------|-----------------------|------------------------------------------------------------------------|
-| `Auth`    | Full API access       | All routes except `/refresh`, `/2fa-send-code`, `/verify-2fa-code`     |
+| `Auth`    | Full API access       | All routes except `/refresh`, `/send-2fa-code`, `/verify-2fa-code`     |
 | `Refresh` | Token renewal only    | Only `POST /auth/refresh`                                              |
 | `TwoFA`   | 2FA verification only | Only `POST /account/send-2fa-code` and `POST /account/verify-2fa-code` |
 

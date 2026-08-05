@@ -153,6 +153,140 @@ describe('virtual-util', () => {
       expect(projected.image.url).toBe('/files/logo.png');
     });
 
+    test('projects nested file arrays', () => {
+      createModel({
+        name: 'File',
+        scalars: { name: { type: 'string' } },
+        virtual: {
+          url: {
+            type: 'string',
+            output: { value: (file: any) => `/files/${file.name}` }
+          }
+        }
+      });
+      createModel({ name: 'Post', files: { images: { array: true } } });
+
+      linkModels();
+
+      const projected: any = projectVirtualFields(
+        {
+          id: 1,
+          images: [
+            { id: 5, name: 'a.png' },
+            { id: 6, name: 'b.png' }
+          ]
+        },
+        'Post'
+      );
+
+      expect(projected.images.map((image: any) => image.url)).toEqual([
+        '/files/a.png',
+        '/files/b.png'
+      ]);
+    });
+
+    test('projects a nested single relation object', () => {
+      createModel({
+        name: 'User',
+        scalars: { firstName: { type: 'string' } },
+        virtual: {
+          label: {
+            type: 'string',
+            output: { value: (user: any) => `@${user.firstName}` }
+          }
+        }
+      });
+      createModel({ name: 'Post', relations: { author: { model: 'User' } } });
+
+      linkModels();
+
+      const projected: any = projectVirtualFields(
+        { id: 1, author: { id: 2, firstName: 'Ada' } },
+        'Post'
+      );
+
+      expect(projected.author.label).toBe('@Ada');
+    });
+
+    test('projects a nested relation array', () => {
+      createModel({
+        name: 'Tag',
+        scalars: { name: { type: 'string' } },
+        virtual: {
+          slug: {
+            type: 'string',
+            output: { value: (tag: any) => tag.name.toLowerCase() }
+          }
+        }
+      });
+      createModel({
+        name: 'Post',
+        relations: { tags: { model: 'Tag', array: true } }
+      });
+
+      linkModels();
+
+      const projected: any = projectVirtualFields(
+        {
+          id: 1,
+          tags: [
+            { id: 2, name: 'News' },
+            { id: 3, name: 'Tech' }
+          ]
+        },
+        'Post'
+      );
+
+      expect(projected.tags.map((tag: any) => tag.slug)).toEqual([
+        'news',
+        'tech'
+      ]);
+    });
+
+    test('projects nested relations recursively through their own relations', () => {
+      createModel({
+        name: 'Team',
+        scalars: { name: { type: 'string' } },
+        virtual: {
+          handle: {
+            type: 'string',
+            output: { value: (team: any) => `#${team.name}` }
+          }
+        }
+      });
+      createModel({
+        name: 'User',
+        relations: { team: { model: 'Team' } }
+      });
+      createModel({ name: 'Post', relations: { author: { model: 'User' } } });
+
+      linkModels();
+
+      const projected: any = projectVirtualFields(
+        { id: 1, author: { id: 2, team: { id: 3, name: 'Core' } } },
+        'Post'
+      );
+
+      expect(projected.author.team.handle).toBe('#Core');
+    });
+
+    test('leaves an unset single relation as null', () => {
+      createModel({ name: 'User', scalars: { email: { type: 'string' } } });
+      createModel({
+        name: 'Post',
+        relations: { author: { model: 'User', required: false } }
+      });
+
+      linkModels();
+
+      const projected: any = projectVirtualFields(
+        { id: 1, author: null },
+        'Post'
+      );
+
+      expect(projected.author).toBeNull();
+    });
+
     test('leaves nested objects of unknown relations unchanged', () => {
       createModel({ name: 'Post', scalars: { title: { type: 'string' } } });
 

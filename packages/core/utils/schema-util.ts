@@ -1,5 +1,5 @@
 import { TObject, Type } from '@sinclair/typebox';
-import { MODEL } from '@appweaver/common';
+import { MODEL, Model } from '@appweaver/common';
 import { context, define } from '../context';
 
 /**
@@ -31,7 +31,7 @@ export function createSchemaModel<T extends TObject>(
   const reference = Type.Ref(name) as unknown as T;
 
   if (
-    existingModels.find((m) => m.name === name) &&
+    existingModels.find((m) => (m.value as Model)?.name === name) &&
     config.skipExisting !== false
   ) {
     return reference;

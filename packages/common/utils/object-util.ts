@@ -1,4 +1,4 @@
-import { isArray, isObject } from './type-util';
+import { isArray, isObject, isPlainObject } from './type-util';
 
 /**
  * Sets a value in a nested object at a specified path. If the path does not exist, it creates the necessary objects along the path.
@@ -121,12 +121,13 @@ export function objectHasProperty(
     return false;
   }
 
-  if (data && isObject(data)) {
+  if (isPlainObject(data)) {
     for (const [propKey, propValue] of Object.entries(data)) {
       if (propKey === key && propValue === value) {
         return true;
       }
 
+      // Nested arrays are searched too, so the loose object check is used here
       if (propValue && isObject(propValue)) {
         if (objectHasProperty(propValue, key, value)) {
           return true;

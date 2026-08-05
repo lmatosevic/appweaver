@@ -3,7 +3,7 @@ import {
   extractResourceName,
   extractSchemaProperties,
   isArray,
-  isObject,
+  isPlainObject,
   isString,
   logger
 } from '@appweaver/common';
@@ -72,7 +72,7 @@ export function createVirtualProjectionHook(
   return async (_request, reply, payload) => {
     const entries = plan[String(reply.statusCode)] ?? plan['2xx'];
 
-    if (!entries?.length || (!isObject(payload) && !isArray(payload))) {
+    if (!entries?.length || (!isPlainObject(payload) && !isArray(payload))) {
       return payload;
     }
 
@@ -114,7 +114,7 @@ function collectProjectionEntries(
   getSchema: (id: string) => unknown,
   visitedRefs: Set<string>
 ): void {
-  if (!isObject(schema)) {
+  if (!isPlainObject(schema)) {
     return;
   }
 
@@ -145,7 +145,7 @@ function collectProjectionEntries(
   }
 
   // OpenAPI-style response objects wrap the schema in media type content
-  if (isObject(schema['content'])) {
+  if (isPlainObject(schema['content'])) {
     for (const media of Object.values(schema['content'])) {
       collectProjectionEntries(
         media?.schema,
@@ -166,7 +166,7 @@ function collectProjectionEntries(
     }
   }
 
-  if (isObject(schema['items'])) {
+  if (isPlainObject(schema['items'])) {
     collectProjectionEntries(
       schema['items'],
       [...path, ARRAY_SEGMENT],
@@ -176,7 +176,7 @@ function collectProjectionEntries(
     );
   }
 
-  if (isObject(schema['properties'])) {
+  if (isPlainObject(schema['properties'])) {
     for (const [key, property] of Object.entries(schema['properties'])) {
       collectProjectionEntries(
         property,
@@ -314,10 +314,12 @@ function applyProjection(
   if (index === path.length) {
     if (isArray(value)) {
       return value.map((item) =>
-        isObject(item) ? projectVirtualFields(item, resourceName) : item
+        isPlainObject(item) ? projectVirtualFields(item, resourceName) : item
       );
     }
-    return isObject(value) ? projectVirtualFields(value, resourceName) : value;
+    return isPlainObject(value)
+      ? projectVirtualFields(value, resourceName)
+      : value;
   }
 
   const segment = path[index];
@@ -330,7 +332,7 @@ function applyProjection(
       : value;
   }
 
-  if (!isObject(value) || value[segment] === undefined) {
+  if (!isPlainObject(value) || value[segment] === undefined) {
     return value;
   }
 

@@ -632,6 +632,11 @@ const config = {
 | `exclude`    | boolean            | Exclude this field from exports.   |
 | `mapValue`   | string \| function | Transform the value during export. |
 
+A `string` `mapValue` names the field to read the column value from. On a relation or file field it is read off the
+related record (and off every item for array relations, joined with `,`); on a scalar field it is read off the exported
+record itself. A function `mapValue` receives the field value (or each item of an array field) and returns the column
+value.
+
 ### Index config
 
 Define database indexes as a flat array (single-field indexes) or nested arrays (composite indexes):

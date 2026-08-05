@@ -4,7 +4,7 @@ import {
   extractSchemaProperties,
   isArray,
   isFunction,
-  isObject
+  isPlainObject
 } from '@appweaver/common';
 import { injectModel } from '../context';
 
@@ -51,7 +51,7 @@ export function projectVirtualFields<T>(resource: T, resourceName: string): T {
     const relationSchema = extractSchemaProperties(relationsModel, key);
     const fileSchema = extractSchemaProperties(filesModel, key);
 
-    if (isObject(value) || (isArray(value) && isObject(value[0]))) {
+    if (isPlainObject(value) || (isArray(value) && isPlainObject(value[0]))) {
       const nestedResourceName = extractResourceName(
         relationSchema ?? fileSchema
       );

@@ -18,10 +18,11 @@ export default createRoutes({
     exclude: true
   },
   export: {
-    public: true,
-    recaptcha: true,
-    recaptchaAction: 'post-export'
+    public: true
   },
   fileUpload: {},
-  fileDelete: {}
+  fileDelete: {
+    recaptcha: true,
+    recaptchaAction: 'delete-post-file'
+  }
 });

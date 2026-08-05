@@ -239,14 +239,12 @@ export type ImageConfig = {
   fit?: ImageFit;
 };
 
-export type FileField = {
+export type FileField<T = any> = {
   /** Allowed MIME type(s) or regex pattern */
   mimeType?: string | RegExp;
   /** Storage path pattern or factory function which accepts MultipartFile data
    * and related resource arguments */
-  namePattern?:
-    | string
-    | (<T = any>(file: MultipartFile, resource: T) => string);
+  namePattern?: string | ((file: MultipartFile, resource: T) => string);
   /** Allow multiple file uploads */
   array?: boolean;
   /** Maximum file size (bytes or human-readable string) */
@@ -270,40 +268,40 @@ export type OperationConfig = {
   pick?: string[];
 };
 
-export type VirtualInput = {
+export type VirtualInput<T = any> = {
   /** Which operations accept this virtual field */
   type?: InputType;
   /** Static value or factory function */
   value?:
     | PrimitiveType
     | ObjectType
-    | (<T = any>(resource: T) => PrimitiveType | ObjectType);
+    | ((resource: T) => PrimitiveType | ObjectType);
 };
 
-export type VirtualOutput = {
+export type VirtualOutput<T = any> = {
   /** Which operations expose this virtual field */
   type?: OutputType;
   /** Static value or factory function */
   value?:
     | PrimitiveType
     | ObjectType
-    | (<T = any>(resource: T) => PrimitiveType | ObjectType);
+    | ((resource: T) => PrimitiveType | ObjectType);
 };
 
-export type VirtualField = ScalarField & {
+export type VirtualField<T = any> = ScalarField & {
   /** Input behavior for this virtual field */
-  input?: VirtualInput;
+  input?: VirtualInput<T>;
   /** Output behavior for this virtual field */
-  output?: VirtualOutput;
+  output?: VirtualOutput<T>;
 };
 
-export type ExportField = {
+export type ExportField<T = any> = {
   /** Column header in the exported file */
   headerName?: string;
   /** Exclude this field from exports */
   exclude?: boolean;
   /** Transform the value for export output */
-  mapValue?: string | (<T = any>(value: T) => string);
+  mapValue?: string | ((value: T) => string);
 };
 
 export type ExportRelations = {

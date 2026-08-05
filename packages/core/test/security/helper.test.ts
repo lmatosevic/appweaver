@@ -214,6 +214,18 @@ describe('security-helper', () => {
       expect(checkScopeAccess('/api/posts', AuthScope.TwoFA)).toBe(false);
     });
 
+    test('allows the 2FA code request route only for the 2FA scope', () => {
+      expect(
+        checkScopeAccess('/auth/account/send-2fa-code', AuthScope.TwoFA)
+      ).toBe(true);
+      expect(
+        checkScopeAccess('/auth/account/send-2fa-code', AuthScope.Auth)
+      ).toBe(false);
+      expect(
+        checkScopeAccess('/auth/account/send-2fa-code', AuthScope.Refresh)
+      ).toBe(false);
+    });
+
     test('denies access for an unknown scope', () => {
       expect(checkScopeAccess('/api/posts', 'unknown' as AuthScope)).toBe(
         false

@@ -50,6 +50,17 @@ export function isObject(value: any): value is object {
 }
 
 /**
+ * Checks if the given value is a plain object, meaning any object value except `null` and arrays. Unlike
+ * {@link isObject}, this is safe to use for deciding whether a value can be walked as a nested record.
+ *
+ * @param {Object} value - The value to be checked.
+ * @return A boolean indicating whether the value is a non-null, non-array object.
+ */
+export function isPlainObject(value: any): value is Record<PropertyKey, any> {
+  return isObject(value) && value !== null && !isArray(value);
+}
+
+/**
  * Checks if the given value is a function.
  *
  * @param {Object} value The value to be checked.

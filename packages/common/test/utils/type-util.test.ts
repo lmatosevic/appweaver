@@ -8,6 +8,7 @@ import {
   isLifecycleInit,
   isNumber,
   isObject,
+  isPlainObject,
   isString,
   isSymbol,
   resolveDatabaseType
@@ -84,6 +85,24 @@ describe('type-util', () => {
       expect(isObject(true)).toBe(false);
       expect(isObject(undefined)).toBe(false);
       expect(isObject(() => undefined)).toBe(false);
+    });
+  });
+
+  describe('isPlainObject', () => {
+    test('returns true for objects', () => {
+      expect(isPlainObject({})).toBe(true);
+      expect(isPlainObject({ id: 1 })).toBe(true);
+      expect(isPlainObject(new Date())).toBe(true);
+    });
+
+    test('returns false for arrays, null and primitives', () => {
+      expect(isPlainObject([])).toBe(false);
+      expect(isPlainObject([{ id: 1 }])).toBe(false);
+      expect(isPlainObject(null)).toBe(false);
+      expect(isPlainObject(undefined)).toBe(false);
+      expect(isPlainObject('abc')).toBe(false);
+      expect(isPlainObject(1)).toBe(false);
+      expect(isPlainObject(() => undefined)).toBe(false);
     });
   });
 

@@ -397,7 +397,7 @@ export type PostCreateInput = {
   title?: string
   slug: string
   content?: string | null
-  counter: number
+  counter?: number
   status?: $Enums.PostStatus | null
   tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -415,7 +415,7 @@ export type PostUncheckedCreateInput = {
   title?: string
   slug: string
   content?: string | null
-  counter: number
+  counter?: number
   status?: $Enums.PostStatus | null
   tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -468,7 +468,7 @@ export type PostCreateManyInput = {
   title?: string
   slug: string
   content?: string | null
-  counter: number
+  counter?: number
   status?: $Enums.PostStatus | null
   tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -789,7 +789,7 @@ export type PostCreateWithoutAuthorInput = {
   title?: string
   slug: string
   content?: string | null
-  counter: number
+  counter?: number
   status?: $Enums.PostStatus | null
   tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -806,7 +806,7 @@ export type PostUncheckedCreateWithoutAuthorInput = {
   title?: string
   slug: string
   content?: string | null
-  counter: number
+  counter?: number
   status?: $Enums.PostStatus | null
   tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -831,7 +831,7 @@ export type PostCreateWithoutCreatedByInput = {
   title?: string
   slug: string
   content?: string | null
-  counter: number
+  counter?: number
   status?: $Enums.PostStatus | null
   tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -848,7 +848,7 @@ export type PostUncheckedCreateWithoutCreatedByInput = {
   title?: string
   slug: string
   content?: string | null
-  counter: number
+  counter?: number
   status?: $Enums.PostStatus | null
   tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -925,7 +925,7 @@ export type PostCreateWithoutCoverImageInput = {
   title?: string
   slug: string
   content?: string | null
-  counter: number
+  counter?: number
   status?: $Enums.PostStatus | null
   tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -942,7 +942,7 @@ export type PostUncheckedCreateWithoutCoverImageInput = {
   title?: string
   slug: string
   content?: string | null
-  counter: number
+  counter?: number
   status?: $Enums.PostStatus | null
   tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -967,7 +967,7 @@ export type PostCreateWithoutGalleryImagesInput = {
   title?: string
   slug: string
   content?: string | null
-  counter: number
+  counter?: number
   status?: $Enums.PostStatus | null
   tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -984,7 +984,7 @@ export type PostUncheckedCreateWithoutGalleryImagesInput = {
   title?: string
   slug: string
   content?: string | null
-  counter: number
+  counter?: number
   status?: $Enums.PostStatus | null
   tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1038,7 +1038,7 @@ export type PostCreateManyAuthorInput = {
   title?: string
   slug: string
   content?: string | null
-  counter: number
+  counter?: number
   status?: $Enums.PostStatus | null
   tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1054,7 +1054,7 @@ export type PostCreateManyCreatedByInput = {
   title?: string
   slug: string
   content?: string | null
-  counter: number
+  counter?: number
   status?: $Enums.PostStatus | null
   tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1168,7 +1168,7 @@ export type PostCreateManyCoverImageInput = {
   title?: string
   slug: string
   content?: string | null
-  counter: number
+  counter?: number
   status?: $Enums.PostStatus | null
   tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue

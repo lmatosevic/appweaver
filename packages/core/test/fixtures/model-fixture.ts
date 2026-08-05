@@ -14,7 +14,7 @@ export function linkModels(): void {
   const resourceModels: Record<string, TSchema> = {};
   for (const model of models) {
     for (const [suffix, property] of Object.entries(resourceModelProps)) {
-      resourceModels[`${model.name}${suffix}`] = model[property];
+      resourceModels[`${model.name}${suffix}`] = unlinkModel(model[property]);
     }
   }
 
@@ -27,4 +27,15 @@ export function linkModels(): void {
       ) as unknown as TObject;
     }
   }
+}
+
+/**
+ * Unwraps an already linked schema back to its own definition, so that models
+ * can be linked again after a single model was redefined. Feeding a linked
+ * schema straight back into the module system loses its properties.
+ */
+function unlinkModel(schema: TSchema): TSchema {
+  return schema?.['$ref'] && schema?.['$defs']
+    ? schema['$defs'][schema['$ref']]
+    : schema;
 }

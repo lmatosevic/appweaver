@@ -64,6 +64,38 @@ describe('schema-util', () => {
       expect(second.$ref).toBe('CustomData');
     });
 
+    test('registers a name only once by default', () => {
+      createSchemaModel(Type.Object({ id: Type.Integer() }), {
+        name: 'CustomData'
+      });
+      createSchemaModel(Type.Object({ other: Type.String() }), {
+        name: 'CustomData'
+      });
+
+      expect(injectAll(MODEL)).toHaveLength(1);
+      expect(injectAll<any>(MODEL)[0].schema.properties).toHaveProperty('id');
+    });
+
+    test('registers a duplicate name when skipping existing is disabled', () => {
+      createSchemaModel(Type.Object({}), { name: 'CustomData' });
+      createSchemaModel(Type.Object({}), {
+        name: 'CustomData',
+        skipExisting: false
+      });
+
+      expect(injectAll(MODEL)).toHaveLength(2);
+    });
+
+    test('skips adding an already registered schema to the server', () => {
+      const addSchema = jest.fn();
+      context.server = { addSchema } as any;
+
+      createSchemaModel(Type.Object({}), { name: 'CustomData' });
+      createSchemaModel(Type.Object({}), { name: 'CustomData' });
+
+      expect(addSchema).toHaveBeenCalledTimes(1);
+    });
+
     test('adds the schema to the server instance', () => {
       const addSchema = jest.fn();
       context.server = { addSchema } as any;
