@@ -73,7 +73,7 @@ export default createModel({
     enabled: { type: 'boolean', default: true }
   },
   relations: {
-    category: { model: 'Category', mappedBy: 'products', owner: true, output: { type: 'always' } }
+    category: { model: 'Category', type: 'oneToMany', mappedBy: 'products', owner: true, output: { type: 'always' } }
   },
   files: {
     photo: { mimeType: 'image/*', maxSize: '2 MB' }

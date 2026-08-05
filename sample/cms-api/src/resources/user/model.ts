@@ -41,8 +41,8 @@ export default createAuthModel({
   relations: {
     posts: {
       model: 'Post',
+      type: 'oneToMany',
       mappedBy: 'author',
-      array: true,
       required: false,
       input: {
         type: 'all',

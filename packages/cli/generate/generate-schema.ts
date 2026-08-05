@@ -13,6 +13,8 @@ import {
   isArray,
   isBoolean,
   isNumber,
+  isRelationArray,
+  isRelationOwner,
   isResourceAuthModel,
   isString,
   plural,
@@ -63,6 +65,17 @@ export async function generateSchema(
   const cwd = process.cwd();
 
   try {
+    const relationErrors = validateRelations(models);
+    if (relationErrors.length > 0) {
+      for (const relationError of relationErrors) {
+        console.error(relationError);
+      }
+      console.error(
+        'Schema generation failed due to inconsistent relation definitions.'
+      );
+      return 2;
+    }
+
     await ensureDirExists(path.join(cwd, schemaPath));
 
     const prismaModels: Record<string, PrismaSchemaModel> = {};
@@ -136,39 +149,72 @@ export async function generateSchema(
         }
 
         const relationConfig = modelSchema?.config.relations?.[relation.name];
+        if (!relationConfig) {
+          // Skip auto-generated back reference fields added by other models
+          continue;
+        }
+
         const referencedName = relation.type
           .replaceAll('[]', '')
           .replaceAll('?', '');
         const referencedModel = prismaModels[referencedName];
 
         const mappedField = referencedModel.relations.find(
-          (r) => r.name === relationConfig?.mappedBy
+          (r) => r.name === relationConfig.mappedBy
         );
         if (mappedField?.type.startsWith('Int')) {
           continue;
         }
 
         if (mappedField && mappedField.attributes?.length) {
-          // Ensure that mapped fields have the same reference name
+          // Ensure that mapped fields have the same reference name. The name of
+          // the relation is replaced while any foreign key configuration on the
+          // owning side is preserved.
           const relationAttribute = mappedField.attributes[0];
           const relationParts = relationAttribute.split('"');
           const referenceName = relation.attributes?.[0].split('"')[1];
           relationParts.splice(1, 1, `${referenceName}`);
-          if (relationConfig?.unique) {
-            mappedField.attributes[0] = `@relation("${referenceName}")`;
-          } else {
-            mappedField.attributes[0] = relationParts.join('"');
-          }
+          mappedField.attributes[0] = relationParts.join('"');
         } else {
-          // For unmapped relations add a default relation field using the same
-          // reference name
-          const refName = uncapitalize(plural(name));
-          if (!referencedModel.relations.some((r) => r.name === refName)) {
-            referencedModel.relations.push({
-              name: uncapitalize(plural(name)),
-              type: `${name}[]`,
-              attributes: relation.attributes
-            });
+          // For unmapped relations add a default back reference field matching
+          // the relation type, using the same reference name
+          const referenceName = relation.attributes?.[0].split('"')[1];
+          const owner = isRelationOwner(relationConfig);
+
+          if (relationConfig.type === 'manyToMany' || owner) {
+            // Inverse of a manyToMany relation or of an owning side: for
+            // oneToOne a single optional field, otherwise a list field
+            const single = relationConfig.type === 'oneToOne';
+            const refName = single
+              ? uncapitalize(name)
+              : uncapitalize(plural(name));
+            if (!referencedModel.relations.some((r) => r.name === refName)) {
+              referencedModel.relations.push({
+                name: refName,
+                type: single ? `${name}?` : `${name}[]`,
+                attributes: [`@relation("${referenceName}")`]
+              });
+            }
+          } else {
+            // A non-owning side declared alone: the referenced model holds the
+            // foreign key column
+            const refName = uncapitalize(name);
+            const refFieldName = `${refName}Id`;
+            if (!referencedModel.relations.some((r) => r.name === refName)) {
+              referencedModel.relations.push({
+                name: refName,
+                type: `${name}?`,
+                attributes: [
+                  `@relation("${referenceName}", fields: [${refFieldName}], references: [id])`
+                ]
+              });
+              referencedModel.relations.push({
+                name: refFieldName,
+                type: 'Int?',
+                attributes:
+                  relationConfig.type === 'oneToOne' ? ['@unique'] : []
+              });
+            }
           }
         }
       }
@@ -454,6 +500,77 @@ function createScalarSchema(
   };
 }
 
+/**
+ * Validates the consistency of every bidirectional relation pair linked through
+ * `mappedBy`. Both sides must declare the same relation type, reference each
+ * other's model, and for `oneToOne` and `oneToMany` relations exactly one side
+ * must be the owner. Single-sided relations (where the mapped field does not
+ * exist) are left to the back reference generation and are not validated.
+ *
+ * @param {Record<string, ResourceModel>} models - All resource models keyed by name.
+ * @return {string[]} A list of human-readable error messages, empty when all
+ * relation pairs are consistent.
+ */
+function validateRelations(models: Record<string, ResourceModel>): string[] {
+  const errors: string[] = [];
+  const visited = new Set<string>();
+
+  for (const [name, model] of Object.entries(models)) {
+    const relations = model.config?.relations ?? {};
+
+    for (const [fieldName, relation] of Object.entries(relations)) {
+      if (!relation.mappedBy) {
+        continue;
+      }
+
+      const mapped =
+        models[relation.model]?.config?.relations?.[relation.mappedBy];
+      if (!mapped) {
+        continue;
+      }
+
+      const relationLabel = `${name}.${fieldName}`;
+      const mappedLabel = `${relation.model}.${relation.mappedBy}`;
+
+      // Each pair is reachable from both of its sides, so report it only once
+      const pairKey = [relationLabel, mappedLabel].sort().join('|');
+      if (visited.has(pairKey)) {
+        continue;
+      }
+      visited.add(pairKey);
+
+      if (mapped.model !== name) {
+        errors.push(
+          `Relation '${relationLabel}' is mapped by '${mappedLabel}', which references model '${mapped.model}' instead of '${name}'.`
+        );
+        continue;
+      }
+
+      if (mapped.type !== relation.type) {
+        errors.push(
+          `Relation type mismatch: '${relationLabel}' is declared as '${relation.type}' but '${mappedLabel}' is declared as '${mapped.type}'.`
+        );
+        continue;
+      }
+
+      if (relation.type !== 'manyToMany') {
+        const ownerCount = [relation, mapped].filter(isRelationOwner).length;
+        if (ownerCount === 0) {
+          errors.push(
+            `Relation owner missing: neither '${relationLabel}' nor '${mappedLabel}' declares 'owner: true' for the '${relation.type}' relation.`
+          );
+        } else if (ownerCount === 2) {
+          errors.push(
+            `Relation owner conflict: both '${relationLabel}' and '${mappedLabel}' declare 'owner: true' for the '${relation.type}' relation.`
+          );
+        }
+      }
+    }
+  }
+
+  return errors;
+}
+
 function createRelationsSchema(
   modelName: string,
   relations: RelationConfig = {}
@@ -476,13 +593,20 @@ function createRelationSchema(
   const relationName = `${modelName}${capitalize(name)}${relation.model}`;
   const relationFieldName = `${name}Id`;
   const relationSuffix = relation.required === false ? '?' : '';
-  const type = relation.array
-    ? `${relation.model}[]`
-    : `${relation.model}${relationSuffix}`;
+  const array = isRelationArray(relation);
+  const owner = isRelationOwner(relation);
 
-  if (relation.array) {
-    attributes.push(`@relation("${relationName}")`);
+  let type: string;
+  if (array) {
+    type = `${relation.model}[]`;
+  } else if (owner) {
+    type = `${relation.model}${relationSuffix}`;
   } else {
+    // The inverse side of a oneToOne relation must be optional in Prisma
+    type = `${relation.model}?`;
+  }
+
+  if (owner) {
     const referentialActions: string[] = [];
     if (relation.onDelete) {
       referentialActions.push(`onDelete: ${capitalize(relation.onDelete)}`);
@@ -495,6 +619,8 @@ function createRelationSchema(
     attributes.push(
       `@relation("${relationName}", fields: [${relationFieldName}], references: [id]${referentialConfig})`
     );
+  } else {
+    attributes.push(`@relation("${relationName}")`);
   }
 
   const relationFields: PrismaSchemaField[] = [
@@ -505,11 +631,11 @@ function createRelationSchema(
     }
   ];
 
-  if (!relation.array && relation.owner) {
+  if (owner) {
     relationFields.push({
       name: relationFieldName,
       type: `Int${relationSuffix}`,
-      attributes: relation.unique === true ? ['@unique'] : []
+      attributes: relation.type === 'oneToOne' ? ['@unique'] : []
     });
   }
 

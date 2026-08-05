@@ -213,7 +213,9 @@ describe('generate-schema', () => {
       const { schema } = await generate({
         User: model('User', {}),
         Post: model('Post', {
-          relations: { author: { model: 'User', owner: true } }
+          relations: {
+            author: { model: 'User', type: 'oneToMany', owner: true }
+          }
         })
       });
 
@@ -230,6 +232,7 @@ describe('generate-schema', () => {
           relations: {
             author: {
               model: 'User',
+              type: 'oneToMany',
               owner: true,
               onDelete: 'cascade',
               onUpdate: 'cascade'
@@ -245,7 +248,9 @@ describe('generate-schema', () => {
       const { schema } = await generate({
         User: model('User', {}),
         Post: model('Post', {
-          relations: { author: { model: 'User', owner: true } }
+          relations: {
+            author: { model: 'User', type: 'oneToMany', owner: true }
+          }
         })
       });
 
@@ -259,12 +264,17 @@ describe('generate-schema', () => {
       const { schema } = await generate({
         User: model('User', {
           relations: {
-            articles: { model: 'Post', array: true, mappedBy: 'author' }
+            articles: { model: 'Post', type: 'oneToMany', mappedBy: 'author' }
           }
         }),
         Post: model('Post', {
           relations: {
-            author: { model: 'User', owner: true, mappedBy: 'articles' }
+            author: {
+              model: 'User',
+              type: 'oneToMany',
+              owner: true,
+              mappedBy: 'articles'
+            }
           }
         })
       });
@@ -280,6 +290,258 @@ describe('generate-schema', () => {
       expect(postModel).toContain(
         '@relation("UserArticlesPost", fields: [authorId], references: [id])'
       );
+    });
+
+    test('creates a one-to-one relation with a unique foreign key', async () => {
+      const { schema } = await generate({
+        User: model('User', {}),
+        Profile: model('Profile', {
+          relations: { user: { model: 'User', type: 'oneToOne', owner: true } }
+        })
+      });
+
+      expect(schema).toContain(
+        '@relation("ProfileUserUser", fields: [userId], references: [id])'
+      );
+      expect(schema).toMatch(/userId\s+Int\s+@unique/);
+
+      // The back reference on the inverse side is a single optional field
+      const userModel = schema.slice(schema.indexOf('model User {'));
+      expect(userModel).toMatch(
+        /profile\s+Profile\?\s+@relation\("ProfileUserUser"\)/
+      );
+    });
+
+    test('uses the mapped field for a bidirectional one-to-one relation', async () => {
+      const { schema } = await generate({
+        User: model('User', {
+          relations: {
+            profile: { model: 'Profile', type: 'oneToOne', mappedBy: 'user' }
+          }
+        }),
+        Profile: model('Profile', {
+          relations: {
+            user: {
+              model: 'User',
+              type: 'oneToOne',
+              owner: true,
+              mappedBy: 'profile'
+            }
+          }
+        })
+      });
+
+      const userModel = schema.slice(
+        schema.indexOf('model User {'),
+        schema.indexOf('model Profile {')
+      );
+      expect(userModel).toMatch(
+        /profile\s+Profile\?\s+@relation\("UserProfileProfile"\)/
+      );
+
+      const profileModel = schema.slice(schema.indexOf('model Profile {'));
+      expect(profileModel).toContain(
+        '@relation("UserProfileProfile", fields: [userId], references: [id])'
+      );
+      expect(profileModel).toMatch(/userId\s+Int\s+@unique/);
+    });
+
+    test('creates list fields on both sides of a many-to-many relation', async () => {
+      const { schema } = await generate({
+        Post: model('Post', {
+          relations: { tags: { model: 'Tag', type: 'manyToMany' } }
+        }),
+        Tag: model('Tag', {})
+      });
+
+      const postModel = schema.slice(
+        schema.indexOf('model Post {'),
+        schema.indexOf('model Tag {')
+      );
+      expect(postModel).toMatch(/tags\s+Tag\[]\s+@relation\("PostTagsTag"\)/);
+
+      const tagModel = schema.slice(schema.indexOf('model Tag {'));
+      expect(tagModel).toMatch(/posts\s+Post\[]\s+@relation\("PostTagsTag"\)/);
+    });
+
+    test('adds the foreign key to the referenced model for a lone list side', async () => {
+      const { schema } = await generate({
+        User: model('User', {
+          relations: { posts: { model: 'Post', type: 'oneToMany' } }
+        }),
+        Post: model('Post', {})
+      });
+
+      const userModel = schema.slice(
+        schema.indexOf('model User {'),
+        schema.indexOf('model Post {')
+      );
+      expect(userModel).toMatch(
+        /posts\s+Post\[]\s+@relation\("UserPostsPost"\)/
+      );
+
+      const postModel = schema.slice(schema.indexOf('model Post {'));
+      expect(postModel).toContain(
+        '@relation("UserPostsPost", fields: [userId], references: [id])'
+      );
+      expect(postModel).toMatch(/userId\s+Int\?/);
+    });
+
+    test('fails when the mapped relation types mismatch', async () => {
+      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const { status, schema } = await generate({
+        User: model('User', {
+          relations: {
+            posts: { model: 'Post', type: 'manyToMany', mappedBy: 'author' }
+          }
+        }),
+        Post: model('Post', {
+          relations: {
+            author: {
+              model: 'User',
+              type: 'oneToMany',
+              owner: true,
+              mappedBy: 'posts'
+            }
+          }
+        })
+      });
+
+      expect(status).toBe(2);
+      expect(schema).toBe('');
+      expect(runProcess).not.toHaveBeenCalled();
+      expect(error).toHaveBeenCalledWith(
+        "Relation type mismatch: 'User.posts' is declared as 'manyToMany' but 'Post.author' is declared as 'oneToMany'."
+      );
+    });
+
+    test('fails when both mapped relation sides declare the owner', async () => {
+      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const { status } = await generate({
+        User: model('User', {
+          relations: {
+            profile: {
+              model: 'Profile',
+              type: 'oneToOne',
+              owner: true,
+              mappedBy: 'user'
+            }
+          }
+        }),
+        Profile: model('Profile', {
+          relations: {
+            user: {
+              model: 'User',
+              type: 'oneToOne',
+              owner: true,
+              mappedBy: 'profile'
+            }
+          }
+        })
+      });
+
+      expect(status).toBe(2);
+      expect(error).toHaveBeenCalledWith(
+        "Relation owner conflict: both 'User.profile' and 'Profile.user' declare 'owner: true' for the 'oneToOne' relation."
+      );
+    });
+
+    test('fails when no mapped relation side declares the owner', async () => {
+      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const { status } = await generate({
+        User: model('User', {
+          relations: {
+            posts: { model: 'Post', type: 'oneToMany', mappedBy: 'author' }
+          }
+        }),
+        Post: model('Post', {
+          relations: {
+            author: { model: 'User', type: 'oneToMany', mappedBy: 'posts' }
+          }
+        })
+      });
+
+      expect(status).toBe(2);
+      expect(error).toHaveBeenCalledWith(
+        "Relation owner missing: neither 'User.posts' nor 'Post.author' declares 'owner: true' for the 'oneToMany' relation."
+      );
+    });
+
+    test('fails when the mapped relation references another model', async () => {
+      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const { status } = await generate({
+        Team: model('Team', {}),
+        User: model('User', {
+          relations: {
+            posts: { model: 'Post', type: 'oneToMany', mappedBy: 'author' }
+          }
+        }),
+        Post: model('Post', {
+          relations: {
+            author: {
+              model: 'Team',
+              type: 'oneToMany',
+              owner: true,
+              mappedBy: 'posts'
+            }
+          }
+        })
+      });
+
+      expect(status).toBe(2);
+      expect(error).toHaveBeenCalledWith(
+        "Relation 'User.posts' is mapped by 'Post.author', which references model 'Team' instead of 'User'."
+      );
+    });
+
+    test('reports a relation pair inconsistency only once', async () => {
+      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      await generate({
+        User: model('User', {
+          relations: {
+            posts: { model: 'Post', type: 'manyToMany', mappedBy: 'author' }
+          }
+        }),
+        Post: model('Post', {
+          relations: {
+            author: {
+              model: 'User',
+              type: 'oneToMany',
+              owner: true,
+              mappedBy: 'posts'
+            }
+          }
+        })
+      });
+
+      const mismatchErrors = error.mock.calls.filter(([message]) =>
+        String(message).includes('Relation type mismatch')
+      );
+      expect(mismatchErrors).toHaveLength(1);
+    });
+
+    test('tolerates a mappedBy field missing on the target model', async () => {
+      const { status, schema } = await generate({
+        User: model('User', {}),
+        Post: model('Post', {
+          relations: {
+            author: {
+              model: 'User',
+              type: 'oneToMany',
+              owner: true,
+              mappedBy: 'articles'
+            }
+          }
+        })
+      });
+
+      expect(status).toBe(0);
+      expect(schema).toContain('model Post {');
     });
 
     test('creates optional file relations with a unique foreign key', async () => {

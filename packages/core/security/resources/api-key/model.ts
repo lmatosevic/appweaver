@@ -43,6 +43,7 @@ export default shouldCreateModel
             relations: {
               [uncapitalize(authModel.name)]: {
                 model: authModel.name,
+                type: 'oneToMany',
                 mappedBy: 'apiKeys',
                 owner: true,
                 input: {

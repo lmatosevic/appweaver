@@ -205,7 +205,7 @@ describe('cache-service', () => {
       createModel({
         name: 'Post',
         scalars: { title: { type: 'string' } },
-        relations: { author: { model: 'User', owner: true } }
+        relations: { author: { model: 'User', type: 'oneToMany', owner: true } }
       });
 
       const key = service.buildCacheKey({
@@ -223,7 +223,12 @@ describe('cache-service', () => {
         name: 'Post',
         scalars: { title: { type: 'string' } },
         relations: {
-          author: { model: 'User', owner: true, output: { type: 'none' } }
+          author: {
+            model: 'User',
+            type: 'oneToMany',
+            owner: true,
+            output: { type: 'none' }
+          }
         }
       });
 
@@ -242,7 +247,7 @@ describe('cache-service', () => {
       createModel({
         name: 'Post',
         scalars: { title: { type: 'string' } },
-        relations: { author: { model: 'User', owner: true } }
+        relations: { author: { model: 'User', type: 'oneToMany', owner: true } }
       });
 
       const key = service.buildCacheKey({

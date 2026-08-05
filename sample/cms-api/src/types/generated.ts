@@ -74,6 +74,7 @@ export type PostUpdate = {
   content?: string | null;
   counter?: number;
   tags?: string;
+  jsonLd?: any | null;
 };
 
 export type User = {

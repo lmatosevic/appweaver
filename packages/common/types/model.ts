@@ -191,17 +191,23 @@ export type RelationOutput = {
   count?: boolean;
 };
 
+export type RelationType = 'oneToOne' | 'oneToMany' | 'manyToMany';
+
 export type RelationField = {
   /** Related resource model name */
   model: string;
-  /** Foreign key field on the related model */
+  /** Relation cardinality between the two models:
+   * `'oneToOne'` — both sides reference a single record, the owning side holds
+   * a unique foreign key.
+   * `'oneToMany'` — the owning side (`owner: true`) holds the foreign key and
+   * references a single record, the inverse side holds a list.
+   * `'manyToMany'` — both sides hold lists, joined through an implicit table. */
+  type: RelationType;
+  /** Inverse relation field name on the related model */
   mappedBy?: string;
-  /** Whether this is a one-to-many relation */
-  array?: boolean;
-  /** Whether this side owns the foreign key */
+  /** Whether this side owns the foreign key column in the generated table.
+   * Applies to `oneToOne` and `oneToMany` relations. */
   owner?: boolean;
-  /** Enforce uniqueness on the relation */
-  unique?: boolean;
   /** Input configuration for this relation */
   input?: RelationInput;
   /** Output configuration for this relation */

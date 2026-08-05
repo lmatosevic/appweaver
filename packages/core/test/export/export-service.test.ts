@@ -320,7 +320,9 @@ describe('export-service', () => {
         {
           name: 'Post',
           scalars: { title: { type: 'string' } },
-          relations: { author: { model: 'User' } }
+          relations: {
+            author: { model: 'User', type: 'oneToMany', owner: true }
+          }
         },
         true
       );
@@ -342,7 +344,7 @@ describe('export-service', () => {
         {
           name: 'Post',
           scalars: { title: { type: 'string' } },
-          relations: { tags: { model: 'Tag', array: true } }
+          relations: { tags: { model: 'Tag', type: 'manyToMany' } }
         },
         true
       );

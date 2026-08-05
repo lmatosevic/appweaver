@@ -354,7 +354,7 @@ describe('create-model', () => {
     test('references the related model in the read model', () => {
       const model = createModel({
         name: 'Post',
-        relations: { author: { model: 'User', owner: true } }
+        relations: { author: { model: 'User', type: 'oneToMany', owner: true } }
       });
 
       expect(properties(model.readModel).author.$ref).toBe('UserSingle');
@@ -364,7 +364,7 @@ describe('create-model', () => {
     test('builds an array reference for a list relation', () => {
       const model = createModel({
         name: 'User',
-        relations: { posts: { model: 'Post', array: true } }
+        relations: { posts: { model: 'Post', type: 'oneToMany' } }
       });
 
       const posts = properties(model.relationsModel).posts;
@@ -375,7 +375,7 @@ describe('create-model', () => {
     test('accepts an id or an id object as the relation input', () => {
       const model = createModel({
         name: 'Post',
-        relations: { author: { model: 'User', owner: true } }
+        relations: { author: { model: 'User', type: 'oneToMany', owner: true } }
       });
 
       const author = properties(model.createOneModel).author;
@@ -390,6 +390,7 @@ describe('create-model', () => {
         relations: {
           author: {
             model: 'User',
+            type: 'oneToMany',
             owner: true,
             input: { type: 'create', fullModel: true }
           }
@@ -405,7 +406,12 @@ describe('create-model', () => {
       const model = createModel({
         name: 'Post',
         relations: {
-          author: { model: 'User', owner: true, input: { type: 'none' } }
+          author: {
+            model: 'User',
+            type: 'oneToMany',
+            owner: true,
+            input: { type: 'none' }
+          }
         }
       });
 
@@ -417,7 +423,12 @@ describe('create-model', () => {
       const model = createModel({
         name: 'Post',
         relations: {
-          author: { model: 'User', owner: true, output: { type: 'none' } }
+          author: {
+            model: 'User',
+            type: 'oneToMany',
+            owner: true,
+            output: { type: 'none' }
+          }
         }
       });
 
@@ -431,7 +442,7 @@ describe('create-model', () => {
         relations: {
           comments: {
             model: 'Comment',
-            array: true,
+            type: 'oneToMany',
             output: { type: 'single' }
           }
         }
@@ -447,7 +458,7 @@ describe('create-model', () => {
         relations: {
           comments: {
             model: 'Comment',
-            array: true,
+            type: 'oneToMany',
             output: { type: 'single', count: true }
           }
         }
@@ -461,7 +472,12 @@ describe('create-model', () => {
       const model = createModel({
         name: 'Post',
         relations: {
-          author: { model: 'User', owner: true, required: false }
+          author: {
+            model: 'User',
+            type: 'oneToMany',
+            owner: true,
+            required: false
+          }
         }
       });
 
@@ -548,7 +564,7 @@ describe('create-model', () => {
     test('names the input schemas after the model when relations exist', () => {
       const model = createModel({
         name: 'Post',
-        relations: { author: { model: 'User', owner: true } }
+        relations: { author: { model: 'User', type: 'oneToMany', owner: true } }
       });
 
       expect(model.createOneModel.$id).toBe('PostCreate');

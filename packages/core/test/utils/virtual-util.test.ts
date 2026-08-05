@@ -196,7 +196,12 @@ describe('virtual-util', () => {
           }
         }
       });
-      createModel({ name: 'Post', relations: { author: { model: 'User' } } });
+      createModel({
+        name: 'Post',
+        relations: {
+          author: { model: 'User', type: 'oneToMany', owner: true }
+        }
+      });
 
       linkModels();
 
@@ -221,7 +226,7 @@ describe('virtual-util', () => {
       });
       createModel({
         name: 'Post',
-        relations: { tags: { model: 'Tag', array: true } }
+        relations: { tags: { model: 'Tag', type: 'manyToMany' } }
       });
 
       linkModels();
@@ -256,9 +261,16 @@ describe('virtual-util', () => {
       });
       createModel({
         name: 'User',
-        relations: { team: { model: 'Team' } }
+        relations: {
+          team: { model: 'Team', type: 'oneToMany', owner: true }
+        }
       });
-      createModel({ name: 'Post', relations: { author: { model: 'User' } } });
+      createModel({
+        name: 'Post',
+        relations: {
+          author: { model: 'User', type: 'oneToMany', owner: true }
+        }
+      });
 
       linkModels();
 
@@ -274,7 +286,14 @@ describe('virtual-util', () => {
       createModel({ name: 'User', scalars: { email: { type: 'string' } } });
       createModel({
         name: 'Post',
-        relations: { author: { model: 'User', required: false } }
+        relations: {
+          author: {
+            model: 'User',
+            type: 'oneToMany',
+            owner: true,
+            required: false
+          }
+        }
       });
 
       linkModels();

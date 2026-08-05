@@ -248,6 +248,7 @@ const config = {
   relations: {
     category: {
       model: 'Category',
+      type: 'oneToMany',
       mappedBy: 'products',
       owner: true,
       output: {
@@ -256,8 +257,8 @@ const config = {
     },
     reviews: {
       model: 'Review',
+      type: 'oneToMany',
       mappedBy: 'product',
-      array: true,
       output: {
         type: 'single',
         count: true
@@ -273,8 +274,8 @@ const config = {
   relations: {
     products: {
       model: 'Product',
+      type: 'oneToMany',
       mappedBy: 'category',
-      array: true,
       output: {
         type: 'single'
       }
@@ -289,6 +290,7 @@ const config = {
   relations: {
     product: {
       model: 'Product',
+      type: 'oneToMany',
       mappedBy: 'reviews',
       owner: true,
       input: {
@@ -299,30 +301,30 @@ const config = {
 };
 ```
 
-| Property            | Type              | Default      | Description                                                              |
-|---------------------|-------------------|--------------|--------------------------------------------------------------------------|
-| `model`             | string            | **required** | Target model name.                                                       |
-| `owner`             | boolean           | `false`      | This side owns the foreign key (only one side should be owner).          |
-| `mappedBy`          | string            | -            | Name of the inverse relation on the target model.                        |
-| `array`             | boolean           | `false`      | One-to-many value or many-to-many relation.                              |
-| `unique`            | boolean           | `false`      | One-to-one relation (unique foreign key).                                |
-| `required`          | boolean           | `true`       | Whether the relation is required (nullable foreign key if not required). |
-| `minItems`          | number            | -            | Minimum items for array relations.                                       |
-| `createIfNotExists` | boolean           | `false`      | Auto-create related record if it doesn't exist.                          |
-| `orphanRemoval`     | boolean           | `false`      | Delete orphaned records when parent is deleted.                          |
-| `onDelete`          | ReferentialAction | -            | Foreign key action on delete.                                            |
-| `onUpdate`          | ReferentialAction | -            | Foreign key action on update.                                            |
-| `input`             | RelationInput     | -            | Input DTO configuration.                                                 |
-| `output`            | RelationOutput    | -            | Output DTO configuration.                                                |
+| Property            | Type                                                | Default      | Description                                                              |
+|---------------------|-----------------------------------------------------|--------------|--------------------------------------------------------------------------|
+| `model`             | string                                              | **required** | Target model name.                                                       |
+| `type`              | `'oneToOne'` \| `'oneToMany'` \| `'manyToMany'`     | **required** | Relation cardinality between the two models.                             |
+| `owner`             | boolean                                             | `false`      | This side owns the foreign key column (only one side should be owner).   |
+| `mappedBy`          | string                                              | -            | Name of the inverse relation on the target model.                        |
+| `required`          | boolean                                             | `true`       | Whether the relation is required (nullable foreign key if not required). |
+| `minItems`          | number                                              | -            | Minimum items for list relations.                                        |
+| `createIfNotExists` | boolean                                             | `false`      | Auto-create related record if it doesn't exist.                          |
+| `orphanRemoval`     | boolean                                             | `false`      | Delete orphaned records when parent is deleted.                          |
+| `onDelete`          | ReferentialAction                                   | -            | Foreign key action on delete.                                            |
+| `onUpdate`          | ReferentialAction                                   | -            | Foreign key action on update.                                            |
+| `input`             | RelationInput                                       | -            | Input DTO configuration.                                                 |
+| `output`            | RelationOutput                                      | -            | Output DTO configuration.                                                |
 
 **ReferentialAction values**: `'cascade'`, `'restrict'`, `'noAction'`, `'setNull'`, `'setDefault'`
 
 #### Relationship types
 
-The combination of `owner`, `array`, and `unique` properties determines the relationship type:
+The `type` property declares the relation cardinality explicitly, and `owner` marks the side that holds the foreign
+key column in the generated table:
 
-**One-to-One**: One side has `owner: true` and `unique: true`, the other side has `owner: false` (default) and
-`unique: false` (default).
+**One-to-One** (`type: 'oneToOne'`): Both sides reference a single record. The side with `owner: true` holds a unique
+foreign key; the inverse side is always optional.
 
 ```ts
 // User model
@@ -330,9 +332,9 @@ const config = {
   relations: {
     profile: {
       model: 'Profile',
+      type: 'oneToOne',
       mappedBy: 'user',
       owner: true,
-      unique: true,
       required: false // otherwise the Profile DTO must be sent when creating the user resource
     }
   }
@@ -345,34 +347,36 @@ const config = {
   relations: {
     user: {
       model: 'User',
+      type: 'oneToOne',
       mappedBy: 'profile'
     }
   }
 };
 ```
 
-**One-to-Many**: The "one" side has `owner: false` (default) and `array: true`, the "many" side has `owner: true` and
-`array: false` (default).
+**One-to-Many** (`type: 'oneToMany'`): The "many" side (which holds the foreign key) has `owner: true` and references
+a single record; the "one" side has no `owner` and holds a list of related records.
 
 ```ts
-// Category model (one)
+// Category model (one, list side)
 const config = {
   relations: {
     products: {
       model: 'Product',
-      mappedBy: 'category',
-      array: true
+      type: 'oneToMany',
+      mappedBy: 'category'
     }
   }
 };
 ```
 
 ```ts
-// Product model (many)
+// Product model (many, foreign key side)
 const config = {
   relations: {
     category: {
       model: 'Category',
+      type: 'oneToMany',
       mappedBy: 'products',
       owner: true
     }
@@ -380,8 +384,8 @@ const config = {
 };
 ```
 
-**Many-to-Many**: Both sides have `array: true`. Only one side should have `owner: true` (determines which creates the
-join table).
+**Many-to-Many** (`type: 'manyToMany'`): Both sides hold lists of related records, joined through an implicit join
+table. The `owner` property has no effect on this relation type.
 
 ```ts
 // Post model
@@ -389,9 +393,8 @@ const config = {
   relations: {
     tags: {
       model: 'Tag',
-      mappedBy: 'posts',
-      owner: true,
-      array: true
+      type: 'manyToMany',
+      mappedBy: 'posts'
     }
   }
 };
@@ -403,12 +406,24 @@ const config = {
   relations: {
     posts: {
       model: 'Post',
-      mappedBy: 'tags',
-      array: true
+      type: 'manyToMany',
+      mappedBy: 'tags'
     }
   }
 };
 ```
+
+#### Relation pair validation
+
+`weaver generate` validates every bidirectional relation pair linked through `mappedBy` and fails schema generation
+with a descriptive error when the two sides are inconsistent:
+
+- Both sides must declare the same relation `type`.
+- The mapped relation must reference the declaring model back via its `model` property.
+- For `oneToOne` and `oneToMany` relations, exactly one side must declare `owner: true` (neither or both is an error).
+
+A relation whose `mappedBy` field does not exist on the target model is treated as single-sided and skipped by the
+validation; an inverse field is generated automatically in the Prisma schema.
 
 #### Relation input
 

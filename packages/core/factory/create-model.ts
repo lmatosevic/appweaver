@@ -9,6 +9,7 @@ import {
   IdField,
   InputType,
   isPlainObject,
+  isRelationArray,
   logger,
   Nullable,
   OperationConfig,
@@ -298,7 +299,7 @@ function buildRelationSchema(relation: RelationField): TSchema {
   const modelRefName = `${modelName}Single`;
   let relationType: TSchema = Type.Ref(modelRefName);
 
-  relationType = relation.array
+  relationType = isRelationArray(relation)
     ? Type.Array(relationType, pickProperties(relation, ['minItems']))
     : relationType;
 

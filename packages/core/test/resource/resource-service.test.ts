@@ -46,8 +46,8 @@ describe('resource-service', () => {
         }
       },
       relations: {
-        author: { model: 'User', owner: true },
-        tags: { model: 'Tag', array: true }
+        author: { model: 'User', type: 'oneToMany', owner: true },
+        tags: { model: 'Tag', type: 'manyToMany' }
       }
     });
     linkModels();
@@ -400,8 +400,12 @@ describe('resource-service', () => {
           name: 'Post',
           scalars: { title: { type: 'string' } },
           relations: {
-            author: { model: 'User', owner: true },
-            tags: { model: 'Tag', array: true, output: { type: 'single' } }
+            author: { model: 'User', type: 'oneToMany', owner: true },
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              output: { type: 'single' }
+            }
           }
         },
         true
@@ -424,7 +428,7 @@ describe('resource-service', () => {
           relations: {
             tags: {
               model: 'Tag',
-              array: true,
+              type: 'manyToMany',
               output: { type: 'always', count: true }
             }
           }

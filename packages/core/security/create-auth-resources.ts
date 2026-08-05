@@ -73,7 +73,7 @@ export function createAuthModel(config: ResourceModelConfig): ResourceModel {
   const authModelRelations: RelationConfig = {
     roles: {
       model: 'Role',
-      array: true,
+      type: 'manyToMany',
       input: {
         type: 'all'
       },
@@ -90,8 +90,8 @@ export function createAuthModel(config: ResourceModelConfig): ResourceModel {
       ? {
           apiKeys: {
             model: 'ApiKey',
+            type: 'oneToMany',
             mappedBy: uncapitalize(config.name),
-            array: true,
             input: {
               type: 'none'
             },

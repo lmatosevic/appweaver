@@ -12,7 +12,7 @@ export default createModel({
   relations: {
     permissions: {
       model: 'Permission',
-      array: true
+      type: 'manyToMany'
     }
   },
   read: {

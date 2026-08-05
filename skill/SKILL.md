@@ -209,6 +209,7 @@ export default createModel({
   relations: {
     category: {
       model: 'Category',
+      type: 'oneToMany',
       mappedBy: 'products',
       owner: true,
       output: {
