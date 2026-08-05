@@ -309,7 +309,6 @@ const config = {
 | `mappedBy`          | string                                          | -            | Name of the inverse relation on the target model.                        |
 | `required`          | boolean                                         | `true`       | Whether the relation is required (nullable foreign key if not required). |
 | `minItems`          | number                                          | -            | Minimum items for list relations.                                        |
-| `createIfNotExists` | boolean                                         | `false`      | Auto-create related record if it doesn't exist.                          |
 | `orphanRemoval`     | boolean                                         | `false`      | Delete orphaned records when parent is deleted.                          |
 | `onDelete`          | ReferentialAction                               | -            | Foreign key action on delete.                                            |
 | `onUpdate`          | ReferentialAction                               | -            | Foreign key action on update.                                            |
@@ -427,19 +426,21 @@ validation; an inverse field is generated automatically in the Prisma schema.
 
 #### Relation input
 
-| Property    | Type                                            | Description                                                                                           |
-|-------------|-------------------------------------------------|-------------------------------------------------------------------------------------------------------|
-| `type`      | `'all'` \| `'create'` \| `'update'` \| `'none'` | When the relation field is available as input.                                                        |
-| `create`    | boolean                                         | Allow creating related records inline (input objects without an `id`).                                |
-| `update`    | boolean                                         | Allow updating related records inline on parent update requests (input objects with a required `id`). |
-| `uniqueKey` | string                                          | Unique field used to match existing records for connect-or-create (requires `createIfNotExists`).     |
+| Property       | Type                                            | Description                                                                                           |
+|----------------|-------------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| `type`         | `'all'` \| `'create'` \| `'update'` \| `'none'` | When the relation field is available as input.                                                        |
+| `allowCreate`  | boolean                                         | Allow creating related records inline (input objects without an `id`).                                |
+| `allowUpdate`  | boolean                                         | Allow updating related records inline on parent update requests (input objects with a required `id`). |
+| `uniqueKey`    | string                                          | Unique field matching existing records, turning an inline create into a connect-or-create.            |
+
+Both flags are off by default: a relation only connects existing records unless `allowCreate` / `allowUpdate` is set.
 
 By default, a relation input only connects existing records. It accepts an id value, an `{ id }` object, or an array of
-either for list relations. The `create` and `update` flags also accept the related model's own data:
+either for list relations. The `allowCreate` and `allowUpdate` flags also accept the related model's own data:
 
-- **`create: true`** — input objects **without** an `id` create the related record inline. The accepted fields are the
-  related model's create data, without its own relations and files (`<Model>RelationCreate`).
-- **`update: true`** — input objects **with** an `id` and further fields update the related record inline
+- **`allowCreate: true`** — input objects **without** an `id` create the related record inline. The accepted fields are
+  the related model's create data, without its own relations and files (`<Model>RelationCreate`).
+- **`allowUpdate: true`** — input objects **with** an `id` and further fields update the related record inline
   (`<Model>RelationUpdate`). Objects carrying only an `id` are connected instead. This applies to parent **update**
   requests only. On parent **create** requests every object with an `id` is connected, since the database updates
   relations only within an update action.
@@ -463,9 +464,10 @@ Connect, create, and update inputs can be mixed within one list relation request
 }
 ```
 
-Records without an `id` require `create: true` or `createIfNotExists`. Otherwise, the request fails with a `400` error.
-`uniqueKey` only affects the connect-or-create matching of `createIfNotExists` relations. Plain connect and inline
-update always match related records by `id`.
+Records without an `id` require `allowCreate: true`. Otherwise the request fails with a `400` error and the related
+record has to be created through its own endpoint first. With `allowCreate` set, a `uniqueKey` matches an existing
+record by that field before creating a new one, so the inline create becomes a connect-or-create. Without
+`allowCreate` the `uniqueKey` has no effect. Plain connect and inline update always match related records by `id`.
 
 #### Relation output
 

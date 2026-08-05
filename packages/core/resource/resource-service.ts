@@ -1148,7 +1148,7 @@ export abstract class ResourceService<
    * become inline updates when the parent action is an update and inline updates
    * are enabled for the relation, items with only an id are connected, and items
    * without an id are created inline or matched through a connect-or-create when
-   * `createIfNotExists` is configured. On an update action, the items of the
+   * `input.uniqueKey` is configured. On an update action, the items of the
    * current record that are absent from the new value, as well as the relations
    * set to null, are disconnected, or deleted when `orphanRemoval` is configured.
    * Relations that were not loaded on the current record are left untouched.
@@ -1213,7 +1213,7 @@ export abstract class ResourceService<
       const config: RelationField | undefined = relationsConfig?.[key];
       // The unique key is only used to match existing records for the
       // connect-or-create action; connect and inline update always use the id
-      const uniqueKey = config?.createIfNotExists
+      const uniqueKey = config?.input?.allowCreate
         ? config?.input?.uniqueKey || 'id'
         : 'id';
       const isArrayType = relationSchema.type === 'array';
@@ -1247,7 +1247,7 @@ export abstract class ResourceService<
       // items with an id and additional data become inline updates (on parent
       // update requests with inline updates enabled), items with only an id are
       // connected, and items without an id are created inline or matched with
-      // connect-or-create
+      // connect-or-create, both of which require `allowCreate`
       if (value) {
         const items: any[] = isArrayType && isArray(value) ? value : [value];
         const createdBy = this.createdByConnect(config?.model);
@@ -1273,21 +1273,21 @@ export abstract class ResourceService<
             );
             if (
               action === 'update' &&
-              config?.input?.update &&
+              config?.input?.allowUpdate &&
               Object.keys(updateData).length > 0
             ) {
               actions.update.push({ where: { id }, data: updateData });
             } else {
               actions.connect.push({ id });
             }
-          } else if (config?.createIfNotExists) {
-            actions.connectOrCreate.push({
-              where: item[uniqueKey]
-                ? { [uniqueKey]: item[uniqueKey] }
-                : { id: 0 },
-              create: { ...item, createdBy, id: undefined }
-            });
-          } else if (config?.input?.create) {
+          } else if (!config?.input?.allowCreate) {
+            // Without inline creation the related record must already exist,
+            // so it is created through its own endpoint first
+            throw new HttpError(
+              `${this._client.name} relation '${key}' does not accept new records, an id is required`,
+              400
+            );
+          } else {
             const createData = this.relationWriteData(
               config?.model,
               'create',
@@ -1303,12 +1303,16 @@ export abstract class ResourceService<
                 400
               );
             }
-            actions.create.push({ ...createData, createdBy });
-          } else {
-            throw new HttpError(
-              `${this._client.name} relation '${key}' does not accept new records, an id is required`,
-              400
-            );
+
+            // A unique key matches an existing record before a new one is created
+            if (config?.input?.uniqueKey) {
+              actions.connectOrCreate.push({
+                where: { [uniqueKey]: item[uniqueKey] },
+                create: { ...createData, createdBy }
+              });
+            } else {
+              actions.create.push({ ...createData, createdBy });
+            }
           }
         }
 

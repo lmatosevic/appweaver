@@ -542,7 +542,7 @@ describe('resource-service', () => {
               model: 'User',
               type: 'oneToMany',
               owner: true,
-              input: { type: 'all', create: true }
+              input: { type: 'all', allowCreate: true }
             }
           }
         },
@@ -569,7 +569,7 @@ describe('resource-service', () => {
             tags: {
               model: 'Tag',
               type: 'manyToMany',
-              input: { type: 'all', create: true }
+              input: { type: 'all', allowCreate: true }
             }
           }
         },
@@ -598,7 +598,7 @@ describe('resource-service', () => {
               model: 'User',
               type: 'oneToMany',
               owner: true,
-              input: { type: 'all', update: true }
+              input: { type: 'all', allowUpdate: true }
             }
           }
         },
@@ -616,7 +616,7 @@ describe('resource-service', () => {
       });
     });
 
-    test('matches records with the unique key when createIfNotExists is set', async () => {
+    test('matches records with the unique key when it is set', async () => {
       createModel(
         {
           name: 'Post',
@@ -625,8 +625,7 @@ describe('resource-service', () => {
             tags: {
               model: 'Tag',
               type: 'manyToMany',
-              createIfNotExists: true,
-              input: { type: 'all', uniqueKey: 'name' }
+              input: { type: 'all', allowCreate: true, uniqueKey: 'name' }
             }
           }
         },
@@ -646,6 +645,31 @@ describe('resource-service', () => {
       });
     });
 
+    test('rejects a new record when the unique key is set without allowCreate', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              input: { type: 'all', uniqueKey: 'name' }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+
+      await expect(
+        new PostService().create({ title: 'First', tags: [{ name: 'fresh' }] })
+      ).rejects.toMatchObject({
+        statusCode: 400,
+        message: expect.stringContaining('does not accept new records')
+      });
+    });
+
     test('rejects an inline record missing a required field', async () => {
       createModel(
         {
@@ -662,7 +686,7 @@ describe('resource-service', () => {
             tags: {
               model: 'Tag',
               type: 'manyToMany',
-              input: { type: 'all', create: true }
+              input: { type: 'all', allowCreate: true }
             }
           }
         },
@@ -695,7 +719,7 @@ describe('resource-service', () => {
             tags: {
               model: 'Tag',
               type: 'manyToMany',
-              input: { type: 'all', create: true }
+              input: { type: 'all', allowCreate: true }
             }
           }
         },
@@ -897,7 +921,7 @@ describe('resource-service', () => {
               model: 'User',
               type: 'oneToMany',
               owner: true,
-              input: { type: 'all', update: true }
+              input: { type: 'all', allowUpdate: true }
             }
           }
         },
@@ -929,7 +953,7 @@ describe('resource-service', () => {
               model: 'User',
               type: 'oneToMany',
               owner: true,
-              input: { type: 'all', update: true }
+              input: { type: 'all', allowUpdate: true }
             }
           }
         },
@@ -966,7 +990,7 @@ describe('resource-service', () => {
             tags: {
               model: 'Tag',
               type: 'manyToMany',
-              input: { type: 'all', update: true }
+              input: { type: 'all', allowUpdate: true }
             }
           }
         },
@@ -1005,7 +1029,7 @@ describe('resource-service', () => {
             tags: {
               model: 'Tag',
               type: 'manyToMany',
-              input: { type: 'all', update: true }
+              input: { type: 'all', allowUpdate: true }
             }
           }
         },
@@ -1034,7 +1058,7 @@ describe('resource-service', () => {
             tags: {
               model: 'Tag',
               type: 'manyToMany',
-              input: { type: 'all', update: true }
+              input: { type: 'all', allowUpdate: true }
             }
           }
         },

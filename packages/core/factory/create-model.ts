@@ -506,8 +506,8 @@ function relationInputProperties<T extends TObject>(
     // Inline updates carry the related record id, so only parent update
     // requests accept them
     const acceptsInlineWrite =
-      config?.input?.create ||
-      (config?.input?.update && inputType === 'update');
+      config?.input?.allowCreate ||
+      (config?.input?.allowUpdate && inputType === 'update');
 
     // Existing records are connected by an id object or a bare id value.
     // Relations accepting inline writes take the permissive input model

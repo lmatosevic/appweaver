@@ -96,7 +96,7 @@ describe('relation input schema', () => {
 
   describe('inline writes enabled', () => {
     beforeEach(() => {
-      defineModels({ type: 'all', create: true, update: true });
+      defineModels({ type: 'all', allowCreate: true, allowUpdate: true });
     });
 
     test('keeps the fields of an inline update payload', async () => {

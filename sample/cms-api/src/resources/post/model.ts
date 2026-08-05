@@ -68,7 +68,6 @@ export default createModel({
       },
       minItems: 1,
       required: false,
-      createIfNotExists: false,
       orphanRemoval: true,
       onDelete: 'setNull'
     }

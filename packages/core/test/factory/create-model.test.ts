@@ -392,7 +392,7 @@ describe('create-model', () => {
             model: 'User',
             type: 'oneToMany',
             owner: true,
-            input: { type: 'all', create: true }
+            input: { type: 'all', allowCreate: true }
           }
         }
       });
@@ -413,7 +413,7 @@ describe('create-model', () => {
             model: 'User',
             type: 'oneToMany',
             owner: true,
-            input: { type: 'all', update: true }
+            input: { type: 'all', allowUpdate: true }
           }
         }
       });
@@ -435,7 +435,7 @@ describe('create-model', () => {
           tags: {
             model: 'Tag',
             type: 'manyToMany',
-            input: { type: 'all', create: true }
+            input: { type: 'all', allowCreate: true }
           }
         }
       });
