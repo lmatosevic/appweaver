@@ -1,7 +1,7 @@
-import { createModel } from '../../factory/create-model';
-import { mapQueryFilter } from '../../utils/filter-util';
-import { resetContext } from '../fixtures/context-fixture';
-import { linkModels } from '../fixtures/model-fixture';
+import { createModel } from '../../../factory/create-model';
+import { mapQueryFilter } from '../../../resource/utils/filter-util';
+import { resetContext } from '../../fixtures/context-fixture';
+import { linkModels } from '../../fixtures/model-fixture';
 
 describe('filter-util', () => {
   /** Maps a filter against the Post model defined below. */

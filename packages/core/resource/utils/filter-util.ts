@@ -4,7 +4,7 @@ import {
   isArray,
   isPlainObject
 } from '@appweaver/common';
-import { injectModel } from '../context';
+import { injectModel } from '../../context';
 
 /**
  * Logical filter operators mapped to their database query connectives. Both

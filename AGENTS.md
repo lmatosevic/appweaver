@@ -91,7 +91,11 @@ Core application logic. Organized into the following modules:
 | `events/`    | Node.js event emitter integration                                                                                                                         |
 | `errors/`    | Custom application error classes                                                                                                                          |
 | `types/`     | TypeScript type definitions (hand-written and generated)                                                                                                  |
-| `utils/`     | Shared utility functions                                                                                                                                  |
+| `utils/`     | Utility functions shared across modules or meant for library users (see the placement rule below)                                                         |
+
+**Utility placement rule**: `core/utils` holds helpers shared by two or more modules, or ones useful to library users
+directly. Helpers internal to a single module go in that module's own `utils/` directory (i.e. `core/resource/utils`),
+keeping `core/utils` a leaf that depends only on `context` and `types` and so cannot form import cycles.
 
 **Core development scripts** (run from `packages/core`):
 
