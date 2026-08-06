@@ -49,9 +49,9 @@ Reads an OpenAPI v3 schema and generates TypeScript types and a typed client cla
 
 **Arguments:**
 
-| Argument       | Description                                                                                                                          |
-|----------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| `<schemaPath>` | Path to the OpenAPI schema. Accepts a file path or URL (`http://`, `https://`, `file://`). JSON and YAML formats are both supported. |
+| Argument       | Description                                                                                                                                                                                                                |
+|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `<schemaPath>` | Path to the OpenAPI schema. Accepts a relative or absolute file path (including a Windows drive path such as `C:\api\openapi.json`) or a URL (`http://`, `https://`, `file://`). JSON and YAML formats are both supported. |
 
 **Options:**
 

@@ -45,6 +45,7 @@ describe('Feature Verification', () => {
       involves code changes.
     - **Linting**: The project uses **ESLint**. Run `npm run lint` to check for issues and `npm run lint -- --fix` to
       automatically fix what's possible.
+    - **Comments**: Keep code comments short and to the point. Explain only what the code itself cannot show.
 - **Dependency Management**: Packages are linked locally in `node_modules/@appweaver` after the build. Ensure you run
   `npm run build` after making changes to shared packages if they are used by other packages or the sample application.
 
@@ -398,7 +399,8 @@ Generate TypeScript types and/or a typed client class from an OpenAPI v3 schema.
 weaver-client generate <schemaPath> [options]
 ```
 
-`<schemaPath>` accepts a local file path or a URL (`http://`, `https://`, `file://`). The schema may be JSON or YAML.
+`<schemaPath>` accepts a local file path, relative or absolute (including a Windows drive path such as
+`C:\api\openapi.json`), or a URL (`http://`, `https://`, `file://`). The schema may be JSON or YAML.
 
 | Option                | Description                                                                                | Default                   |
 |-----------------------|--------------------------------------------------------------------------------------------|---------------------------|
@@ -558,7 +560,8 @@ npm run e2e
 ```
 
 E2E tests use `weaver test setup` / `weaver test reset` / `weaver test teardown` to manage a temporary test database and
-storage directory.
+storage directory. Setup and teardown are wired for the whole run, but each test file must register the reset itself
+with `afterAll(resetTestData, 10_000)`, declared after the hook that stops the application.
 
 #### Docker
 

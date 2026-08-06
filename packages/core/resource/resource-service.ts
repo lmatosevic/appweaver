@@ -31,6 +31,7 @@ import {
   OutputType,
   PeriodIncrementFn,
   pickProperties,
+  QueryFilter,
   QueryResponse,
   RelationField,
   removeUndefined,
@@ -41,7 +42,7 @@ import {
   uncapitalize
 } from '@appweaver/common';
 import { inject, injectModel } from '../context';
-import { projectVirtualFields } from '../utils';
+import { mapQueryFilter, projectVirtualFields } from '../utils';
 import { currentAuthUser } from '../security';
 import { PrismaDatabase } from '../database';
 import { CacheService } from '../cache';
@@ -52,7 +53,7 @@ export abstract class ResourceService<
   ReadMany = Resource,
   Create = ResourceData<Resource>,
   Update = Partial<ResourceData<Resource>>,
-  Query = any
+  Query = QueryFilter<ReadOne>
 > implements IResourceService<ReadOne, ReadMany, Create, Update, Query> {
   /** @internal */
   private readonly _db = inject<PrismaDatabase>(Database as any);
@@ -141,9 +142,14 @@ export abstract class ResourceService<
    * together with the total count in a single transaction. A resource event is
    * emitted after a successful query.
    *
-   * @param {Object} [filter] The query filter object. Its `searchText` property,
-   * if present, is passed to {@link ResourceService.textSearchQuery} instead of
-   * being matched as a field.
+   * @param {Object} [filter] The query filter object, supporting the logical
+   * (`_and`, `_or`, `_not`, `_nor`), comparison (`_eq`, `_ne`, `_gt`, `_gte`,
+   * `_lt`, `_lte`, `_in`, `_nin`, `_between`, `_like`, `_ilike`, `_starts`,
+   * `_ends`, `_contains`, `_exists`), list (`_has`, `_hasSome`, `_hasEvery`,
+   * `_isEmpty`), and relation (`_some`, `_every`, `_none`) operators, as well
+   * as plain field values. Its `searchText` property, if present, is passed to
+   * {@link ResourceService.textSearchQuery} instead of being matched as a
+   * field.
    * @param {number} [page] The one-based page number of results to return.
    * @param {number} [size] The maximum number of results per page.
    * @param {string} [sort] The comma-separated list of fields to sort by, where a
@@ -156,13 +162,13 @@ export abstract class ResourceService<
    */
   public async query(
     filter: Query = {} as any,
-    page = 1,
-    size = 50,
-    sort = '-createdAt,id'
+    page: number = 1,
+    size: number = 50,
+    sort: string = '-createdAt,id'
   ): Promise<QueryResponse<ReadMany>> {
     const restrictions = await this.readRestrictions('query', filter);
     const textSearch = this.extractTextSearchQuery(filter);
-    const mappedFilter = this.mapQueryFilter(filter);
+    const mappedFilter = mapQueryFilter(filter, this._client.name);
 
     const query = { AND: [mappedFilter, textSearch, restrictions] };
     const includeRelations = this.mapRelationInclusions('query');
@@ -233,7 +239,7 @@ export abstract class ResourceService<
     from?: string,
     to?: string,
     step?: number,
-    safeIncrement = true
+    safeIncrement: boolean = true
   ): Promise<AggregateResponse<ReadOne>> {
     const toDate = parseISO(to ?? new Date().toISOString());
     const fromDate = from ? parseISO(from) : subDays(toDate, 7);
@@ -258,7 +264,7 @@ export abstract class ResourceService<
 
     const restrictions = await this.readRestrictions('aggregate', filter);
     const textSearch = this.extractTextSearchQuery(filter);
-    const mappedFilter = this.mapQueryFilter(filter);
+    const mappedFilter = mapQueryFilter(filter, this._client.name);
 
     const query = { AND: [mappedFilter, textSearch, restrictions] };
 
@@ -543,13 +549,13 @@ export abstract class ResourceService<
    * operations on specific data for currently logged-in user and other
    * authorization rules. The returned object will be applied as a filter on
    * all actions (except create action) which will prevent unwanted data access
-   * and modifications. This method can also cancel current action by throwing
-   * an error, recommended is {@link HttpError } with appropriate HTTP error
-   * code.
+   * and modifications. This method can also cancel the current action by
+   * throwing an error, recommended is {@link HttpError } with appropriate HTTP
+   * error code.
    *
    * @param {ActionType} action The called action method on this service (find,
    * query, aggregate, update, or delete)
-   * @param {Object|number} data The passed data to the called function, can be
+   * @param {Object|number} data The passed data to the called function can be
    * number or object. If the data is a type of number, then it represents the
    * resource id, otherwise it depends on the action and can be one of the
    * following:
@@ -558,14 +564,15 @@ export abstract class ResourceService<
    * - update -> combined id and the data object (i.e. { id, ...data })
    *
    * For other actions (find and delete) it represents the resource id.
-   * @return {Promise<Object>} The filter containing additional query
-   * restrictions.
+   * @return {Promise<Object>} The database-level `where` conditions containing
+   * additional query restrictions. The returned object is applied directly to
+   * the database query, so it uses the native Prisma filter syntax.
    */
   protected async readRestrictions(
     action: Exclude<ActionType, 'create'>,
     data: any
-  ): Promise<Query> {
-    return {} as Query;
+  ): Promise<any> {
+    return {};
   }
 
   /**
@@ -602,7 +609,7 @@ export abstract class ResourceService<
    *
    * @param {ActionType} action The called action method on this service (find,
    * query, aggregate, create, update, or delete)
-   * @param {Object} resource The resource object that is being check for access.
+   * @param {Object} resource The resource object that is being checked for access.
    * @returns {Promise<boolean>} True if the access for resource is granted, false
    * otherwise.
    */
@@ -621,11 +628,11 @@ export abstract class ResourceService<
    *
    * @param {string} searchText The text string used for searching resources.
    * @returns {Object} A query object that represents the conditions for the text
-   * search operation. This will be used by the database query methods to
-   * retrieve matching resources.
+   * search operation, using the native Prisma filter syntax. This will be used
+   * by the database query methods to retrieve matching resources.
    */
-  protected textSearchQuery(searchText: string): Query {
-    return {} as Query;
+  protected textSearchQuery(searchText: string): any {
+    return {};
   }
 
   /**
@@ -639,13 +646,13 @@ export abstract class ResourceService<
    * @returns {Object} The text search query for the extracted search text, or an
    * empty object if the filter contains no search text.
    */
-  private extractTextSearchQuery(filter: any): Query {
+  private extractTextSearchQuery(filter: any): any {
     if (filter.searchText) {
       const searchQuery = this.textSearchQuery(filter.searchText);
       delete filter.searchText;
       return searchQuery;
     }
-    return {} as Query;
+    return {};
   }
 
   /**
@@ -917,102 +924,6 @@ export abstract class ResourceService<
     }
 
     return sanitizedData;
-  }
-
-  /**
-   * Maps a request filter to a Prisma `where` clause based on the schema of the
-   * resource model. Relation and file fields are matched by id (wrapped in a
-   * `some` condition for the array relations), array fields use the `has` and
-   * `hasSome` operators, an array value on a numeric or date field becomes an
-   * inclusive `gte`/`lte` range, other array values become an `in` inclusion,
-   * nested objects are mapped recursively against the related model, and null
-   * values are passed through to match records without a value or a related
-   * record. Values that match no known field are passed through unchanged, so
-   * the Prisma operators can be used directly.
-   *
-   * @param {Object} filter The request filter object to map.
-   * @param {string} [resourceName] The name of the model the filter is matched
-   * against. Defaults to the model of this service and is set to the related model
-   * name when recursing into a nested relation or file filter.
-   * @returns {Object} The `where` clause with every recognized field mapped to its
-   * database condition and the unrecognized values passed through unchanged.
-   */
-  private mapQueryFilter(filter: any, resourceName?: string): any {
-    const queryFilter = {};
-
-    const resourceModel = injectModel(resourceName ?? this._client.name, false);
-    const readModel = resourceModel?.readModel;
-    const relationsModel = resourceModel?.relationsModel;
-    const filesModel = resourceModel?.filesModel;
-
-    for (const key in filter) {
-      const value = filter[key];
-
-      const readSchema = extractSchemaProperties(readModel, key);
-      const relationSchema = extractSchemaProperties(relationsModel, key);
-      const fileSchema = extractSchemaProperties(filesModel, key);
-
-      const isArrayType =
-        readSchema?.type === 'array' ||
-        relationSchema?.type === 'array' ||
-        fileSchema?.type === 'array';
-
-      const isArrayValue = isArray(value);
-
-      // Null values are passed through untouched, matching records without a
-      // value or, for relations, without a related record.
-      if (value === null) {
-        queryFilter[key] = null;
-        continue;
-      }
-
-      // Recursively map nested objects and handle arrays of objects. Arrays of
-      // plain values are mapped below as inclusion, range or relation filters.
-      if (isPlainObject(value) || (isArrayValue && isPlainObject(value[0]))) {
-        const resourceName = extractResourceName(relationSchema ?? fileSchema);
-        if (resourceName) {
-          queryFilter[key] = isArrayValue
-            ? value.map((item: any) => this.mapQueryFilter(item, resourceName))
-            : this.mapQueryFilter(value, resourceName);
-        }
-      }
-      // Map ID values for both single and array types of relationships
-      else if (relationSchema || fileSchema) {
-        const queryId = { id: isArrayValue ? { in: value } : value };
-        queryFilter[key] = isArrayType ? { some: queryId } : queryId;
-      }
-      // Map fields without relationships, supporting array types
-      else if (readSchema) {
-        if (isArrayType) {
-          queryFilter[key] = isArrayValue ? { hasSome: value } : { has: value };
-        } else if (isArrayValue) {
-          // For date and numeric types, apply range filtering with inclusive
-          // intervals
-          if (
-            value.length > 0 &&
-            value.length <= 2 &&
-            (['number', 'integer'].includes(readSchema.type) ||
-              ['date', 'date-time'].includes(readSchema.format))
-          ) {
-            queryFilter[key] = {
-              gte: value[0],
-              lte: value[1]
-            };
-          }
-          // Map array values for inclusion checks
-          else {
-            queryFilter[key] = { in: value };
-          }
-        }
-      }
-
-      // If no query filter was defined, assign the original value
-      if (queryFilter[key] === undefined) {
-        queryFilter[key] = value;
-      }
-    }
-
-    return queryFilter;
   }
 
   /**

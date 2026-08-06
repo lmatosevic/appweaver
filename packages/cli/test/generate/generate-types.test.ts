@@ -178,6 +178,49 @@ describe('generate-types', () => {
       expect(types).not.toContain('export type Draft = {');
     });
 
+    test('generates a query filter type for every resource', async () => {
+      const { types } = await generate({
+        Post: model('Post', Type.Object({ id: Type.Integer() })),
+        User: model('User', Type.Object({ email: Type.String() }))
+      });
+
+      expect(types).toContain(
+        `import { QueryFilter } from '@appweaver/common';`
+      );
+      expect(types).toContain('export type PostQuery = QueryFilter<Post>;');
+      expect(types).toContain('export type UserQuery = QueryFilter<User>;');
+    });
+
+    test('skips the query filter type for disabled models', async () => {
+      const { types } = await generate({
+        Draft: model('Draft', Type.Object({ id: Type.Integer() }), {
+          generateTypes: false
+        })
+      });
+
+      expect(types).not.toContain('import { QueryFilter }');
+      expect(types).not.toContain('export type DraftQuery');
+    });
+
+    test('emits the query type at the end of its own model group', async () => {
+      const { types } = await generate({
+        Post: model('Post', Type.Object({ id: Type.Integer() })),
+        User: model('User', Type.Object({ email: Type.String() }))
+      });
+
+      // The query type of a model follows the last type of that model and
+      // still precedes the first type of the next model
+      expect(types.indexOf('export type PostRelationInput')).toBeLessThan(
+        types.indexOf('export type PostQuery')
+      );
+      expect(types.indexOf('export type PostQuery')).toBeLessThan(
+        types.indexOf('export type User = {')
+      );
+      expect(types.indexOf('export type UserRelationInput')).toBeLessThan(
+        types.indexOf('export type UserQuery')
+      );
+    });
+
     test('returns 2 when the generation fails', async () => {
       const error = jest.spyOn(console, 'error').mockImplementation(() => {});
 

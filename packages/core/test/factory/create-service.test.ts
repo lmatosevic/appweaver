@@ -209,7 +209,7 @@ describe('create-service', () => {
         textSearch: { title: { contains: '{input}' } }
       });
 
-      await new Service().query({ searchText: 'news' } as any);
+      await new Service().query({ searchText: 'news' });
 
       expect(db.lastQuery('findMany').args.where.AND).toContainEqual({
         title: { contains: '{input}' }
@@ -222,7 +222,7 @@ describe('create-service', () => {
         textSearch: (input: string) => ({ title: { contains: input } })
       });
 
-      await new Service().query({ searchText: 'news' } as any);
+      await new Service().query({ searchText: 'news' });
 
       expect(db.lastQuery('findMany').args.where.AND).toContainEqual({
         title: { contains: 'news' }
@@ -232,7 +232,7 @@ describe('create-service', () => {
     test('adds no text search filter by default', async () => {
       const Service = createService({ modelName: 'Post' });
 
-      await new Service().query({ searchText: 'news' } as any);
+      await new Service().query({ searchText: 'news' });
 
       expect(db.lastQuery('findMany').args.where.AND).toEqual([{}, {}, {}]);
     });

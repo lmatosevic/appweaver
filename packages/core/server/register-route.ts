@@ -25,6 +25,7 @@ export function registerRoute(
   const tempServer = Fastify({
     logger: false,
     ajv: {
+      customOptions: { allowUnionTypes: true },
       plugins: [(ajv): any => ajv.addKeyword('example')]
     }
   });

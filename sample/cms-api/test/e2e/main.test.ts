@@ -1,4 +1,5 @@
 import { Application, createApp } from '@appweaver/core';
+import { resetTestData } from './support/reset';
 
 describe('Test Sample CMS API', () => {
   let app: Application;
@@ -10,6 +11,8 @@ describe('Test Sample CMS API', () => {
   afterAll(async () => {
     await app.stop();
   });
+
+  afterAll(resetTestData, 10_000);
 
   test('Info endpoint /api', async () => {
     const resp = await app.server.inject({

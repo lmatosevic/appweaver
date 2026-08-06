@@ -1,6 +1,7 @@
 import {
   AggregateResponse,
   AggregateSelect,
+  QueryFilter,
   QueryResponse,
   Resource,
   ResourceClient,
@@ -12,7 +13,7 @@ export interface IResourceService<
   ReadMany = Resource,
   Create = ResourceData<Resource>,
   Update = Partial<ResourceData<Resource>>,
-  Query = any
+  Query = QueryFilter<ReadOne>
 > {
   modelName: string;
 

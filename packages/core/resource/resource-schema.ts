@@ -15,6 +15,10 @@ import { injectModel } from '../context';
 import { authSchema, recaptchaHeaderSchema } from '../security';
 import { AllErrorResponses } from '../errors';
 import { createSchemaModel } from '../utils';
+import {
+  queryFilterName,
+  registerQueryFilterSchemas
+} from './resource-filter-schema';
 
 export const Id = Type.Object({
   id: Type.Integer({ minimum: 1 })
@@ -31,7 +35,6 @@ export const AuditData = Type.Object({
 });
 
 export const QueryRequestData = Type.Object({
-  filter: Type.Optional(AnyJson({ example: { field: 'value' } })),
   page: Type.Optional(Type.Number({ minimum: 1, example: 1 })),
   size: Type.Optional(Type.Number({ minimum: 0, maximum: 1000, example: 50 })),
   sort: Type.Optional(Type.String({ example: '-createdAt,id' }))
@@ -43,7 +46,6 @@ export const QueryResponseData = Type.Object({
 });
 
 export const AggregateRequestData = Type.Object({
-  filter: Type.Optional(AnyJson({ example: { field: 'value' } })),
   select: Type.Optional(AnyJson({ example: { field: 'value' } })),
   dateField: Type.Optional(Type.String({ example: 'createdAt' })),
   from: Type.Optional(StringDate()),
@@ -66,7 +68,15 @@ export function createSchema(
   const resourceName = camelToSnakeCase(name, ' ');
   const tag = plural(name);
 
-  const queryRequest = Type.Composite([QueryRequestData], {
+  // Register the recursive query filter schemas of all loaded models,
+  // referenced by the query, aggregate, and export request bodies
+  registerQueryFilterSchemas();
+
+  const filterData = Type.Object({
+    filter: Type.Optional(Type.Ref(queryFilterName(name)))
+  });
+
+  const queryRequest = Type.Composite([filterData, QueryRequestData], {
     $id: `${name}QueryRequest`
   });
 
@@ -80,7 +90,7 @@ export function createSchema(
     { $id: `${name}QueryResponse` }
   );
 
-  const aggregateRequest = Type.Composite([AggregateRequestData], {
+  const aggregateRequest = Type.Composite([filterData, AggregateRequestData], {
     $id: `${name}AggregateRequest`
   });
 
@@ -89,7 +99,7 @@ export function createSchema(
   });
 
   const exportRequest = Type.Composite(
-    [Type.Pick(QueryRequestData, ['filter', 'sort'])],
+    [filterData, Type.Pick(QueryRequestData, ['sort'])],
     { $id: `${name}ExportRequest` }
   );
 

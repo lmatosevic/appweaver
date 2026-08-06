@@ -1,5 +1,6 @@
 export * from './auth';
 export * from './file';
+export * from './filter';
 export * from './model';
 export * from './policy';
 export * from './resource';

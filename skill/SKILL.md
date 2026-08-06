@@ -362,6 +362,41 @@ export default createAuthService({
 });
 ```
 
+#### Querying resources with filters
+
+The `filter` argument of the `query`, `aggregate`, and `export` service methods (and of the matching `POST /query`,
+`POST /aggregate`, `POST /export` routes) mirrors the WHERE part of a database query. It combines `_`-prefixed operators
+with plain value shorthands and nests through relations:
+
+- **Logical**: `_and`, `_or`, `_not`, `_nor` — take a filter object (each entry becomes one condition) or a list of
+  filter objects.
+- **Comparison**: `_eq`, `_ne`, `_gt`, `_gte`, `_lt`, `_lte`, `_in`, `_nin`, `_between`, `_like`, `_ilike`, `_starts`,
+  `_ends`, `_contains`, `_exists`, `_not`. Operators combined in one object must all match.
+- **List fields**: `_has`, `_hasSome`, `_hasEvery`, `_isEmpty`.
+- **Relations**: `_some`, `_every`, `_none` for list relations, `_exists` for any relation.
+- **Shorthands**: a bare value matches by equality, a list by inclusion, a two-value list on a numeric or date field as
+  an inclusive range, and a bare value or list on a relation matches by id.
+
+```ts
+import { injectService } from '@appweaver/core';
+import { UserQuery } from '@/types/generated';
+
+const filter: UserQuery = {
+  _and: {
+    firstName: { _eq: 'John', _exists: true },
+    avatar: { _or: { title: { _eq: 'Avatar' }, description: { _like: '%avatar%' } } }
+  },
+  _or: [{ firstName: { _like: 'Jo%' } }, { lastName: 'Doe' }],
+  roles: { _some: { name: { _contains: 'Admin' } } }
+};
+
+const users = await injectService('User').query(filter, 1, 50, '-createdAt,id');
+```
+
+Filters are typed by `QueryFilter<T>` from `@appweaver/common`, and `weaver generate` emits a
+`<Model>Query = QueryFilter<Model>` alias per model. Over HTTP, they are validated against a generated per-model
+`<Model>QueryFilter` JSON schema, which strips unknown and hidden fields.
+
 ### Registering a custom route
 
 Use `registerRoute` to register a custom [Fastify route](https://fastify.dev/docs/latest/Reference/Routes/) handler. The
@@ -578,6 +613,27 @@ npm run e2e   # e2e tests
 
 Test files must use the **`.test.ts`** extension. Place unit tests in `test/unit/` and end-to-end tests in `test/e2e/`,
 naming each file after its module. Add or update tests whenever a feature is added or existing behaviour changes.
+
+The e2e setup and teardown are wired automatically, but **each e2e test file must register the per-file database reset
+itself**, after the hook that stops the application:
+
+```ts
+import { resetTestData } from './support/reset';
+
+describe('My e2e test', () => {
+  let app: Application;
+
+  beforeAll(async () => {
+    app = await createApp({ autoStartServer: false });
+  });
+
+  afterAll(async () => {
+    await app.stop();
+  });
+
+  afterAll(resetTestData, 10_000);
+});
+```
 
 ### Format code
 

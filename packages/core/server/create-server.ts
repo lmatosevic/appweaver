@@ -50,7 +50,10 @@ export function createServer(): Server {
   const server = Fastify({
     ajv: {
       customOptions: {
-        removeAdditional: 'all'
+        removeAdditional: 'all',
+        // Query filter schemas declare plain values as a list of accepted
+        // primitive types, so the validator does not coerce them
+        allowUnionTypes: true
       },
       plugins: [(ajv): any => ajv.addKeyword('example')]
     },

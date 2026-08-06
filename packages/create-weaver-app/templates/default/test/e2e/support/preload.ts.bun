@@ -1,6 +1,5 @@
 import setup from './setup';
 import teardown from './teardown';
-import './each';
 
 beforeAll(async () => {
   await setup();

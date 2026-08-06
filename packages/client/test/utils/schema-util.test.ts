@@ -2,9 +2,49 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { readSchemaContent, toSchemaObject } from '../../utils/schema-util';
+import {
+  parseSchemaUrl,
+  readSchemaContent,
+  toSchemaObject
+} from '../../utils/schema-util';
 
 describe('schema-util', () => {
+  describe('parseSchemaUrl', () => {
+    test('parses the supported URL protocols', () => {
+      expect(parseSchemaUrl('https://example.com/openapi.json')?.protocol).toBe(
+        'https:'
+      );
+      expect(
+        parseSchemaUrl('http://localhost:3000/openapi.json')?.protocol
+      ).toBe('http:');
+      expect(parseSchemaUrl('file:///tmp/openapi.json')?.protocol).toBe(
+        'file:'
+      );
+    });
+
+    test('parses an unsupported protocol as a URL', () => {
+      expect(parseSchemaUrl('ftp://example.com/openapi.json')?.protocol).toBe(
+        'ftp:'
+      );
+    });
+
+    test('treats a Windows drive letter path as a file path', () => {
+      expect(parseSchemaUrl('C:\\projects\\api\\openapi.json')).toBeUndefined();
+      expect(parseSchemaUrl('C:/projects/api/openapi.json')).toBeUndefined();
+      expect(parseSchemaUrl('d:\\openapi.json')).toBeUndefined();
+    });
+
+    test('treats a relative path as a file path', () => {
+      expect(parseSchemaUrl('./openapi.json')).toBeUndefined();
+      expect(parseSchemaUrl('../schemas/openapi.json')).toBeUndefined();
+      expect(parseSchemaUrl('openapi.json')).toBeUndefined();
+    });
+
+    test('treats a POSIX absolute path as a file path', () => {
+      expect(parseSchemaUrl('/srv/api/openapi.json')).toBeUndefined();
+    });
+  });
+
   describe('readSchemaContent', () => {
     let tempDir: string;
     let schemaFile: string;
@@ -32,6 +72,10 @@ describe('schema-util', () => {
     test('reads a schema from a file URL', async () => {
       const fileUrl = pathToFileURL(schemaFile).toString();
       await expect(readSchemaContent(fileUrl)).resolves.toBe(content);
+    });
+
+    test('reads a schema from an absolute file path', async () => {
+      await expect(readSchemaContent(schemaFile)).resolves.toBe(content);
     });
 
     test('rejects when the local file does not exist', async () => {

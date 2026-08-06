@@ -301,19 +301,19 @@ const config = {
 };
 ```
 
-| Property            | Type                                            | Default      | Description                                                              |
-|---------------------|-------------------------------------------------|--------------|--------------------------------------------------------------------------|
-| `model`             | string                                          | **required** | Target model name.                                                       |
-| `type`              | `'oneToOne'` \| `'oneToMany'` \| `'manyToMany'` | **required** | Relation cardinality between the two models.                             |
-| `owner`             | boolean                                         | `false`      | This side owns the foreign key column (only one side should be owner).   |
-| `mappedBy`          | string                                          | -            | Name of the inverse relation on the target model.                        |
-| `required`          | boolean                                         | `true`       | Whether the relation is required (nullable foreign key if not required). |
-| `minItems`          | number                                          | -            | Minimum items for list relations.                                        |
-| `orphanRemoval`     | boolean                                         | `false`      | Delete orphaned records when parent is deleted.                          |
-| `onDelete`          | ReferentialAction                               | -            | Foreign key action on delete.                                            |
-| `onUpdate`          | ReferentialAction                               | -            | Foreign key action on update.                                            |
-| `input`             | RelationInput                                   | -            | Input DTO configuration.                                                 |
-| `output`            | RelationOutput                                  | -            | Output DTO configuration.                                                |
+| Property        | Type                                            | Default      | Description                                                              |
+|-----------------|-------------------------------------------------|--------------|--------------------------------------------------------------------------|
+| `model`         | string                                          | **required** | Target model name.                                                       |
+| `type`          | `'oneToOne'` \| `'oneToMany'` \| `'manyToMany'` | **required** | Relation cardinality between the two models.                             |
+| `owner`         | boolean                                         | `false`      | This side owns the foreign key column (only one side should be owner).   |
+| `mappedBy`      | string                                          | -            | Name of the inverse relation on the target model.                        |
+| `required`      | boolean                                         | `true`       | Whether the relation is required (nullable foreign key if not required). |
+| `minItems`      | number                                          | -            | Minimum items for list relations.                                        |
+| `orphanRemoval` | boolean                                         | `false`      | Delete orphaned records when parent is deleted.                          |
+| `onDelete`      | ReferentialAction                               | -            | Foreign key action on delete.                                            |
+| `onUpdate`      | ReferentialAction                               | -            | Foreign key action on update.                                            |
+| `input`         | RelationInput                                   | -            | Input DTO configuration.                                                 |
+| `output`        | RelationOutput                                  | -            | Output DTO configuration.                                                |
 
 **ReferentialAction values**: `'cascade'`, `'restrict'`, `'noAction'`, `'setNull'`, `'setDefault'`
 
@@ -426,12 +426,12 @@ validation; an inverse field is generated automatically in the Prisma schema.
 
 #### Relation input
 
-| Property       | Type                                            | Description                                                                                           |
-|----------------|-------------------------------------------------|-------------------------------------------------------------------------------------------------------|
-| `type`         | `'all'` \| `'create'` \| `'update'` \| `'none'` | When the relation field is available as input.                                                        |
-| `allowCreate`  | boolean                                         | Allow creating related records inline (input objects without an `id`).                                |
-| `allowUpdate`  | boolean                                         | Allow updating related records inline on parent update requests (input objects with a required `id`). |
-| `uniqueKey`    | string                                          | Unique field matching existing records, turning an inline create into a connect-or-create.            |
+| Property      | Type                                            | Description                                                                                           |
+|---------------|-------------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| `type`        | `'all'` \| `'create'` \| `'update'` \| `'none'` | When the relation field is available as input.                                                        |
+| `allowCreate` | boolean                                         | Allow creating related records inline (input objects without an `id`).                                |
+| `allowUpdate` | boolean                                         | Allow updating related records inline on parent update requests (input objects with a required `id`). |
+| `uniqueKey`   | string                                          | Unique field matching existing records, turning an inline create into a connect-or-create.            |
 
 Both flags are off by default: a relation only connects existing records unless `allowCreate` / `allowUpdate` is set.
 
@@ -776,6 +776,107 @@ The created service exposes the following methods:
 | `create`    | `(data) => Promise<ReadOne>`                                                                      | Create a new resource.                                   |
 | `update`    | `(id, data) => Promise<ReadOne>`                                                                  | Update an existing resource.                             |
 | `delete`    | `(id) => Promise<ReadOne>`                                                                        | Delete a resource.                                       |
+
+### Query filters
+
+The `filter` argument of `query`, `aggregate`, and `export` mirrors the WHERE part of a database query. The matching
+`POST /query`, `POST /aggregate`, and `POST /export` routes accept the same structure, validated against a generated
+per-model `<Model>QueryFilter` schema that strips unknown and hidden fields.
+
+**Logical operators** (filter level) — take a single filter object (each entry becomes one condition) or a list of them:
+
+| Operator | Description                               |
+|----------|-------------------------------------------|
+| `_and`   | All nested conditions must match.         |
+| `_or`    | At least one nested condition must match. |
+| `_not`   | No nested condition may match.            |
+| `_nor`   | Alias of `_not`.                          |
+
+**Comparison operators** (field level) — combined inside one object, all must match:
+
+| Operator                        | Description                                                                                                                  |
+|---------------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| `_eq`                           | Equal to the given value.                                                                                                    |
+| `_ne`                           | Not equal to the given value.                                                                                                |
+| `_gt`, `_gte`, `_lt`, `_lte`    | Greater/lower than (or equal to) the given value.                                                                            |
+| `_in`, `_nin`                   | Included / not included in the given list.                                                                                   |
+| `_between`                      | Inside the inclusive `[min, max]` range.                                                                                     |
+| `_like`                         | SQL LIKE pattern with `%` wildcards (`Luk%` → starts with, `%avatar%` → contains, `%png` → ends with, no wildcard → equals). |
+| `_ilike`                        | Case-insensitive `_like` (uses `mode: 'insensitive'`, PostgreSQL and MongoDB only).                                          |
+| `_starts`, `_ends`, `_contains` | Starts with / ends with / contains the given string.                                                                         |
+| `_exists`                       | Not null (`true`) or null (`false`).                                                                                         |
+| `_not`                          | Negates a nested operator object or plain value.                                                                             |
+
+**List (array scalar) operators**: `_has`, `_hasSome`, `_hasEvery`, `_isEmpty`.
+
+**Relation operators**: `_some`, `_every`, `_none` take a filter of the related model; `_exists` maps to an `is`/`isNot`
+null check on a single relation and to `some`/`none` on a list relation.
+
+**Plain value shorthands**: a bare value matches by equality, a list by inclusion, a two-value list on a numeric or date
+field as an inclusive range, a value or list on a relation by id, an array field uses `has`/`hasSome`, and `null`
+matches missing values or related records.
+
+```json
+{
+  "filter": {
+    "_and": {
+      "firstName": {
+        "_eq": "Luka",
+        "_exists": true
+      },
+      "avatar": {
+        "_or": {
+          "title": {
+            "_eq": "New user avatar"
+          },
+          "description": {
+            "_like": "%avatar%"
+          }
+        },
+        "originalName": {
+          "_eq": "new_user_avatar.png"
+        }
+      }
+    },
+    "_or": [
+      {
+        "firstName": {
+          "_like": "Luk%"
+        }
+      },
+      {
+        "lastName": "Matošević"
+      }
+    ],
+    "tags": {
+      "_some": {
+        "name": {
+          "_contains": "news"
+        }
+      }
+    }
+  },
+  "page": 1,
+  "size": 50,
+  "sort": "-createdAt,id"
+}
+```
+
+The `QueryFilter<T>` type from `@appweaver/common` provides code completion, and `weaver generate` emits a
+`<Model>Query = QueryFilter<Model>` alias per model:
+
+```ts
+import { QueryFilter } from '@appweaver/common';
+import { User, UserQuery } from '@/types/generated';
+
+const filter: UserQuery = {
+  _and: {
+    firstName: { _eq: 'Luka' },
+    loginAt: { _exists: true }
+  }
+};
+const users = await userService.query(filter);
+```
 
 ### Query response
 

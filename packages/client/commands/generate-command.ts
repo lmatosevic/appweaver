@@ -8,7 +8,7 @@ import {
   InvalidOptionArgumentError
 } from 'commander';
 import { generateClient, generateTypes } from '../generators';
-import { readSchemaContent, toSchemaObject } from '../utils';
+import { parseSchemaUrl, readSchemaContent, toSchemaObject } from '../utils';
 import { FRAMEWORKS } from '../constants';
 
 export function generateCommand(program: Command): void {
@@ -167,14 +167,8 @@ export function relativePathFrom(firstPath: string, otherPath: string): string {
   return rel.replace(/\\/g, '/');
 }
 
-function parseSchema(value: string): string {
-  let schemaUrl: URL | undefined;
-
-  try {
-    schemaUrl = new URL(value);
-  } catch {
-    // Schema path is not in URL format
-  }
+export function parseSchema(value: string): string {
+  const schemaUrl = parseSchemaUrl(value);
 
   if (schemaUrl) {
     if (!['http:', 'https:', 'file:'].includes(schemaUrl.protocol)) {

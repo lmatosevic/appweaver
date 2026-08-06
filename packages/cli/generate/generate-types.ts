@@ -31,34 +31,31 @@ export async function generateTypes(
     await ensureDirExists(path.join(cwd, typesPath));
 
     const resourceModels: Record<string, TSchema> = {};
+    // The generated type names of every model, in the order they are emitted,
+    // so each model group can be written out followed by its own query type
+    const modelTypeNames: Record<string, string[]> = {};
 
     for (const [name, schema] of Object.entries(models)) {
       if (schema.config.generateTypes === false) {
         continue;
       }
 
-      resourceModels[name] = transformUnsafeTypes(schema.readModel);
-      resourceModels[`${name}Single`] = transformUnsafeTypes(
-        schema.readOneModel
-      );
-      resourceModels[`${name}Multiple`] = transformUnsafeTypes(
-        schema.readManyModel
-      );
-      resourceModels[`${name}Create`] = transformUnsafeTypes(
-        schema.createOneModel
-      );
-      resourceModels[`${name}Update`] = transformUnsafeTypes(
-        schema.updateOneModel
-      );
-      resourceModels[`${name}RelationCreate`] = transformUnsafeTypes(
-        schema.relationCreateModel
-      );
-      resourceModels[`${name}RelationUpdate`] = transformUnsafeTypes(
-        schema.relationUpdateModel
-      );
-      resourceModels[`${name}RelationInput`] = transformUnsafeTypes(
-        schema.relationInputModel
-      );
+      const modelSchemas: [string, TObject][] = [
+        [name, schema.readModel],
+        [`${name}Single`, schema.readOneModel],
+        [`${name}Multiple`, schema.readManyModel],
+        [`${name}Create`, schema.createOneModel],
+        [`${name}Update`, schema.updateOneModel],
+        [`${name}RelationCreate`, schema.relationCreateModel],
+        [`${name}RelationUpdate`, schema.relationUpdateModel],
+        [`${name}RelationInput`, schema.relationInputModel]
+      ];
+
+      for (const [typeName, typeSchema] of modelSchemas) {
+        resourceModels[typeName] = transformUnsafeTypes(typeSchema);
+      }
+
+      modelTypeNames[name] = modelSchemas.map(([typeName]) => typeName);
     }
 
     const module = Type.Module(resourceModels);
@@ -68,8 +65,16 @@ export async function generateTypes(
       ``
     ];
 
-    for (const name of Object.keys(resourceModels)) {
-      typesContent.push(generateTypeScriptType(module, name), ``);
+    if (Object.keys(modelTypeNames).length > 0) {
+      typesContent.push(`import { QueryFilter } from '@appweaver/common';`, ``);
+    }
+
+    for (const [name, typeNames] of Object.entries(modelTypeNames)) {
+      for (const typeName of typeNames) {
+        typesContent.push(generateTypeScriptType(module, typeName), ``);
+      }
+
+      typesContent.push(`export type ${name}Query = QueryFilter<${name}>;`, ``);
     }
 
     const outputPath = path.join(cwd, typesPath);
