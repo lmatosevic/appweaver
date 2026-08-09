@@ -1,3 +1,18 @@
+## [1.2.0](https://github.com/lmatosevic/appweaver/compare/v1.1.6...v1.2.0) (2026-08-09)
+
+### Features
+
+* implement create and update input options for relational models ([bc2cd5b](https://github.com/lmatosevic/appweaver/commit/bc2cd5bd0a87ff3b5f39b1fef4ce50c59ec3c2b8))
+* implement query filter schema and type support for query, aggregate and export actions ([3829e3e](https://github.com/lmatosevic/appweaver/commit/3829e3e7a1e2de33941ba1488cd522bccc09baf1))
+* implement sort and aggregate type support for resource actions ([2f3c8ff](https://github.com/lmatosevic/appweaver/commit/2f3c8ff5e5299ef84c85c3eb32ba146358b6e736))
+* refactored model relation sytax for oneToOne, oneToMany and manyToMany types ([98086b9](https://github.com/lmatosevic/appweaver/commit/98086b980bbb9f47bb78bf25882eff73f0c72ac1))
+
+### Bug Fixes
+
+* bug fixes in export and resource services ([c291971](https://github.com/lmatosevic/appweaver/commit/c291971440348c048125a20434813951998a92ae))
+* refactor Resource Service by separating aggregation, filtering and relation handling logic to utility files ([99e4969](https://github.com/lmatosevic/appweaver/commit/99e4969febdcdecc592f4465dcb15bea5605834c))
+* replace `create` and `update` flags with `allowCreate` and `allowUpdate` in relation input configuration ([38fdb29](https://github.com/lmatosevic/appweaver/commit/38fdb2960bffbd77fd679b8a98f4bd12279b68ff))
+
 ## [1.1.6](https://github.com/lmatosevic/appweaver/compare/v1.1.5...v1.1.6) (2026-08-02)
 
 ### Bug Fixes
