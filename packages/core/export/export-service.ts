@@ -10,7 +10,8 @@ import {
   isPlainObject,
   isString,
   logger,
-  plural
+  plural,
+  QuerySort
 } from '@appweaver/common';
 import { injectModel, injectService } from '../context';
 import { HttpError } from '../errors';
@@ -29,14 +30,15 @@ export class ExportService {
    *
    * @param {string} modelName - The resource name for which to export data.
    * @param {Object} [filter={}] - The filter conditions to apply when retrieving the data. Default is an empty object.
-   * @param {string} [sort='-createdAt,id'] - The sorting criteria for the data. Default is `-createdAt, id`.
+   * @param {QuerySort} [sort='-createdAt,id'] - The sorting criteria for the data, given either as a comma-separated
+   * field list or as an object of field directions. Default is `-createdAt, id`.
    * @return {Promise<ExportStream>} A promise resolving to the export stream object, which includes the readable
    * stream, MIME type, and file name for the CSV.
    */
   public async exportCsv(
     modelName: string,
     filter: any = {},
-    sort: string = '-createdAt,id'
+    sort: QuerySort = '-createdAt,id'
   ): Promise<ExportStream> {
     const service = injectService(modelName);
 

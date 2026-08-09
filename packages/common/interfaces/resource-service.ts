@@ -3,6 +3,7 @@ import {
   AggregateSelect,
   QueryFilter,
   QueryResponse,
+  QuerySort,
   Resource,
   ResourceClient,
   ResourceData
@@ -38,14 +39,15 @@ export interface IResourceService<
    * @param {Query} filter - The filter criteria used to narrow down the results.
    * @param {number} [page] - The page number to retrieve (optional).
    * @param {number} [size] - The number of items per page (optional).
-   * @param {string} [sort] - The sorting criteria in the format of a sort string (optional).
+   * @param {QuerySort} [sort] - The sorting criteria, given either as a comma-separated field list or as an object of
+   * field directions (optional).
    * @return {Promise<QueryResponse<Object>>} A promise that resolves to the query response containing the results.
    */
   query(
     filter: Query,
     page?: number,
     size?: number,
-    sort?: string
+    sort?: QuerySort<ReadMany>
   ): Promise<QueryResponse<ReadMany>>;
 
   /**

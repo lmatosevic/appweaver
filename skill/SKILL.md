@@ -397,6 +397,49 @@ Filters are typed by `QueryFilter<T>` from `@appweaver/common`, and `weaver gene
 `<Model>Query = QueryFilter<Model>` alias per model. Over HTTP, they are validated against a generated per-model
 `<Model>QueryFilter` JSON schema, which strips unknown and hidden fields.
 
+### Sorting
+
+The `sort` argument of `query` and `export`, and the `sort` property of the `POST /query` and `POST /export` bodies,
+accept either a comma-separated field list, where a `-` prefix sorts descending, or an object of `asc` and `desc` field
+directions. Both sort by a field of an included to-one relation and by the record count of a to-many relation:
+
+```ts
+await injectService('Post').query({}, 1, 50, '-author.createdAt,tagsCount,id');
+await injectService('Post').query({}, 1, 50, {
+  author: { createdAt: 'desc' },
+  tagsCount: 'asc',
+  id: 'asc'
+});
+```
+
+A hidden, virtual, or array scalar field, a field of a to-many relation, or a relation the action does not include is
+rejected with a `400` error. Sort inputs are typed by `QuerySort<T>` from `@appweaver/common`, with a `<Model>Sort`
+alias emitted per model, and validated over HTTP against a generated `<Model>QuerySort` JSON schema. The default is
+`-createdAt,id`. See [resources.md](./references/resources.md) for the full rules.
+
+### Aggregating
+
+The required `select` argument of `aggregate` (and of the `POST /aggregate` body) holds the operators to apply per
+field. Only the numeric fields (`count`, `sum`, `avg`, `min`, `max`, `first`, `last`), the date fields (all but `sum`
+and `avg`), and the numeric `id` and audit fields of the model can be aggregated:
+
+```ts
+await injectService('Post').aggregate({}, {
+  counter: { count: true, sum: true, avg: true, first: true, last: true },
+  publishedAt: { min: true, max: true }
+}, 'createdAt', '2026-01-01T00:00:00.000Z', '2026-01-08T00:00:00.000Z');
+```
+
+`first` and `last` take the value held by the earliest and the latest record of a period, ordered by the aggregated
+`dateField` (ties broken by `id`). The database cannot aggregate them, so each period requesting them costs up to two
+additional queries, skipped for the periods holding no record.
+
+Any other field (string, boolean, enum, JSON, array, hidden, virtual, or a relation), an operator its type does not
+support, an empty selection, or a `dateField` that is not a date field is rejected with a `400` error. Selections are
+typed by `AggregateSelect<T>` from `@appweaver/common`, with a `<Model>Aggregate` alias emitted per model, and
+validated over HTTP against a generated `<Model>AggregateSelect` JSON schema. The response stays untyped JSON, since
+its shape follows the selection.
+
 ### Registering a custom route
 
 Use `registerRoute` to register a custom [Fastify route](https://fastify.dev/docs/latest/Reference/Routes/) handler. The

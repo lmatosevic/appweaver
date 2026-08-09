@@ -66,7 +66,10 @@ export async function generateTypes(
     ];
 
     if (Object.keys(modelTypeNames).length > 0) {
-      typesContent.push(`import { QueryFilter } from '@appweaver/common';`, ``);
+      typesContent.push(
+        `import { AggregateSelect, QueryFilter, QuerySort } from '@appweaver/common';`,
+        ``
+      );
     }
 
     for (const [name, typeNames] of Object.entries(modelTypeNames)) {
@@ -75,6 +78,16 @@ export async function generateTypes(
       }
 
       typesContent.push(`export type ${name}Query = QueryFilter<${name}>;`, ``);
+      // The sort type is built from the query output model, so it only offers
+      // the relations included in a query response and their count fields
+      typesContent.push(
+        `export type ${name}Sort = QuerySort<${name}Multiple>;`,
+        ``
+      );
+      typesContent.push(
+        `export type ${name}Aggregate = AggregateSelect<${name}>;`,
+        ``
+      );
     }
 
     const outputPath = path.join(cwd, typesPath);

@@ -1,13 +1,13 @@
 import Fastify, { FastifyInstance } from 'fastify';
-import { context } from '../../context';
-import { createModel } from '../../factory/create-model';
+import { context } from '../../../context';
+import { createModel } from '../../../factory/create-model';
 import {
   buildQueryFilterSchema,
   QUERY_CONDITION_SCHEMA_NAME,
   QueryConditionSchema,
   queryFilterName
-} from '../../resource/resource-filter-schema';
-import { resetContext } from '../fixtures/context-fixture';
+} from '../../../resource/schemas/resource-filter-schema';
+import { resetContext } from '../../fixtures/context-fixture';
 
 /**
  * Builds a server validating a request body against a model's query filter

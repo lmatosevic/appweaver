@@ -1,7 +1,9 @@
 import { isArray, isObject, isPlainObject } from './type-util';
 
 /**
- * Sets a value in a nested object at a specified path. If the path does not exist, it creates the necessary objects along the path.
+ * Sets a value in a nested object at a specified path. If the path does not exist, it creates the necessary objects
+ * along the path, and the objects already present on it are descended into, so the values previously set under the
+ * same path are kept.
  *
  * @param {Record<string, any>} obj - The object in which the value will be set.
  * @param {string} path - The string representation of the path to where the value should be set, with keys separated by dots.
@@ -21,7 +23,9 @@ export function setValue(
     if (i === keys.length - 1) {
       current[key] = value;
     } else {
-      current[key] = {};
+      if (!isPlainObject(current[key])) {
+        current[key] = {};
+      }
       current = current[key];
     }
   }

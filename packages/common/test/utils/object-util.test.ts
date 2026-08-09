@@ -28,10 +28,16 @@ describe('object-util', () => {
       expect(obj).toEqual({ a: { b: 2 } });
     });
 
-    test('replaces intermediate branches instead of merging into them', () => {
+    test('merges into an existing intermediate branch', () => {
       const obj: Record<string, any> = { a: { keep: true } };
       setValue(obj, 'a.b', 1);
-      expect(obj).toEqual({ a: { b: 1 } });
+      expect(obj).toEqual({ a: { keep: true, b: 1 } });
+    });
+
+    test('replaces an intermediate value that is not an object', () => {
+      const obj: Record<string, any> = { a: 1 };
+      setValue(obj, 'a.b', 2);
+      expect(obj).toEqual({ a: { b: 2 } });
     });
 
     test('supports any value type', () => {

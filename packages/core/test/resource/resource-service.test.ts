@@ -269,6 +269,42 @@ describe('resource-service', () => {
       ]);
     });
 
+    test('maps a sort object in the declared field order', async () => {
+      await service.query({}, 1, 50, { title: 'asc', views: 'desc' });
+
+      expect(db.lastQuery('findMany').args.orderBy).toEqual([
+        { title: 'asc' },
+        { views: 'desc' }
+      ]);
+    });
+
+    test('throws a bad request error for a direction that is not lower case', async () => {
+      await expect(
+        service.query({}, 1, 50, { title: 'ASC' } as any)
+      ).rejects.toMatchObject({
+        statusCode: 400,
+        message: expect.stringContaining("Invalid sort direction 'ASC'")
+      });
+    });
+
+    test('maps a nested relation sort object', async () => {
+      await service.query({}, 1, 50, { author: { email: 'desc' }, id: 'asc' });
+
+      expect(db.lastQuery('findMany').args.orderBy).toEqual([
+        { author: { email: 'desc' } },
+        { id: 'asc' }
+      ]);
+    });
+
+    test('throws a bad request error for a field that cannot be sorted by', async () => {
+      await expect(
+        service.query({}, 1, 50, { unknown: 'asc' })
+      ).rejects.toMatchObject({
+        statusCode: 400,
+        message: expect.stringContaining('is not a sortable field')
+      });
+    });
+
     test('maps a scalar filter value directly', async () => {
       await service.query({ title: 'First' });
 
@@ -1190,7 +1226,7 @@ describe('resource-service', () => {
     });
 
     test('maps the selection to the Prisma aggregation operators', async () => {
-      await service.aggregate({}, { views: { sum: true } } as any);
+      await service.aggregate({}, { views: { sum: true } });
 
       expect(db.lastQuery('aggregate').args._sum).toEqual({ views: true });
     });
@@ -1198,7 +1234,7 @@ describe('resource-service', () => {
     test('maps the aggregation results back to the response format', async () => {
       const result = await service.aggregate(
         {},
-        { views: { sum: true } } as any,
+        { views: { sum: true } },
         'createdAt',
         '2026-01-01T00:00:00.000Z',
         '2026-01-08T00:00:00.000Z'
@@ -1215,7 +1251,7 @@ describe('resource-service', () => {
     test('splits the interval into periods', async () => {
       const result = await service.aggregate(
         {},
-        { views: { sum: true } } as any,
+        { views: { sum: true } },
         'createdAt',
         '2026-01-01T00:00:00.000Z',
         '2026-01-08T00:00:00.000Z'
@@ -1228,7 +1264,7 @@ describe('resource-service', () => {
     test('applies the date field range to every aggregation', async () => {
       await service.aggregate(
         {},
-        { views: { sum: true } } as any,
+        { views: { sum: true } },
         'publishedAt',
         '2026-01-01T00:00:00.000Z',
         '2026-01-08T00:00:00.000Z'
@@ -1239,12 +1275,167 @@ describe('resource-service', () => {
     });
 
     test('applies the query filter to the aggregation', async () => {
-      await service.aggregate({ title: 'First' }, {
-        views: { sum: true }
-      } as any);
+      await service.aggregate(
+        { title: 'First' },
+        {
+          views: { sum: true }
+        }
+      );
 
       const conditions = db.lastQuery('aggregate').args.where.AND[0].AND;
       expect(conditions[0]).toEqual({ title: 'First' });
+    });
+
+    describe('first and last operators', () => {
+      // A one second range keeps the aggregation to a single period, so the
+      // recorded queries belong to it and to the overall range alike
+      const from = '2026-01-01T00:00:00.000Z';
+      const to = '2026-01-01T00:00:01.000Z';
+
+      const findFirstQueries = () =>
+        db.queries.filter((query) => query.method === 'findFirst');
+
+      test('reads the boundary records of the range', async () => {
+        db.setResult('Post', 'aggregate', { _count: { _all: 2 } });
+        db.setResult('Post', 'findFirst', (args: any) => ({
+          views: args.orderBy[0].createdAt === 'asc' ? 3 : 9
+        }));
+
+        const result = await service.aggregate(
+          {},
+          { views: { first: true, last: true } },
+          'createdAt',
+          from,
+          to
+        );
+
+        expect(result.total).toEqual({ views: { first: 3, last: 9 } });
+        expect(result.items[0].result).toEqual({
+          views: { first: 3, last: 9 }
+        });
+      });
+
+      test('orders the boundary lookups by the aggregated date field', async () => {
+        db.setResult('Post', 'aggregate', { _count: { _all: 2 } });
+        db.setResult('Post', 'findFirst', { publishedAt: null });
+
+        await service.aggregate(
+          {},
+          { views: { first: true } },
+          'publishedAt',
+          from,
+          to
+        );
+
+        expect(findFirstQueries()).toHaveLength(1);
+        expect(findFirstQueries()[0].args).toMatchObject({
+          orderBy: [{ publishedAt: 'asc' }, { id: 'asc' }],
+          select: { views: true }
+        });
+      });
+
+      test('applies the range query to the boundary lookups', async () => {
+        db.setResult('Post', 'aggregate', { _count: { _all: 2 } });
+        db.setResult('Post', 'findFirst', { views: 3 });
+
+        await service.aggregate(
+          { title: 'First' },
+          { views: { first: true } },
+          'createdAt',
+          from,
+          to
+        );
+
+        const conditions = findFirstQueries()[0].args.where.AND;
+        expect(conditions[0].AND[0]).toEqual({ title: 'First' });
+        expect(conditions[1]).toHaveProperty('createdAt');
+      });
+
+      test('skips the boundary lookups of an empty range', async () => {
+        db.setResult('Post', 'aggregate', { _count: { _all: 0 } });
+
+        const result = await service.aggregate(
+          {},
+          { views: { first: true, last: true } },
+          'createdAt',
+          from,
+          to
+        );
+
+        expect(findFirstQueries()).toHaveLength(0);
+        expect(result.total).toEqual({ views: { first: null, last: null } });
+      });
+
+      test('reads no boundary record when the operators are not selected', async () => {
+        db.setResult('Post', 'aggregate', { _sum: { views: 8 } });
+
+        await service.aggregate(
+          {},
+          { views: { sum: true } },
+          'createdAt',
+          from,
+          to
+        );
+
+        expect(findFirstQueries()).toHaveLength(0);
+        expect(db.lastQuery('aggregate').args).not.toHaveProperty('_count');
+      });
+
+      test('leaves the counted records of the range out of the response', async () => {
+        db.setResult('Post', 'aggregate', {
+          _count: { _all: 2, views: 2 },
+          _sum: { views: 8 }
+        });
+        db.setResult('Post', 'findFirst', { views: 3 });
+
+        const result = await service.aggregate(
+          {},
+          { views: { count: true, sum: true, first: true } },
+          'createdAt',
+          from,
+          to
+        );
+
+        expect(result.total).toEqual({
+          views: { count: 2, sum: 8, first: 3 }
+        });
+      });
+    });
+
+    test('throws a bad request error for an empty selection', async () => {
+      await expect(service.aggregate({}, {} as any)).rejects.toMatchObject({
+        statusCode: 400,
+        message: expect.stringContaining(
+          'at least one field with a selected aggregation operator'
+        )
+      });
+    });
+
+    test('throws a bad request error for a field that cannot be aggregated', async () => {
+      await expect(
+        service.aggregate({}, { title: { count: true } } as any)
+      ).rejects.toMatchObject({
+        statusCode: 400,
+        message: expect.stringContaining('not a numeric or date field')
+      });
+    });
+
+    test('throws a bad request error for an operator the field does not support', async () => {
+      await expect(
+        service.aggregate({}, { publishedAt: { sum: true } } as any)
+      ).rejects.toMatchObject({
+        statusCode: 400,
+        message: expect.stringContaining("Cannot apply the 'sum' operator")
+      });
+    });
+
+    test('throws a bad request error for a date field that is not a date', async () => {
+      await expect(
+        service.aggregate({}, { views: { sum: true } } as any, 'title')
+      ).rejects.toMatchObject({
+        statusCode: 400,
+        message: expect.stringContaining('not a date field')
+      });
     });
 
     test('wraps a database error into a server error', async () => {

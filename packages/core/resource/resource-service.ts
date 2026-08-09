@@ -10,15 +10,14 @@ import {
   extractSchemaProperties,
   IResourceService,
   isArray,
-  isCountField,
   isPlainObject,
   QueryFilter,
   QueryResponse,
+  QuerySort,
   removeUndefined,
   Resource,
   ResourceClient,
   ResourceData,
-  setValue,
   uncapitalize
 } from '@appweaver/common';
 import { inject, injectModel } from '../context';
@@ -27,12 +26,17 @@ import { PrismaDatabase } from '../database';
 import { CacheService } from '../cache';
 import { HttpError } from '../errors';
 import {
+  aggregationRecordCount,
   buildAggregationPeriods,
+  checkAggregationDateField,
   createdByConnect,
-  mapAggregationValues,
+  mapAggregationResult,
+  mapAggregationSelect,
   mapQueryFilter,
+  readAggregationBoundaries,
   mapRelationActions,
-  mapRelationInclusions
+  mapRelationInclusions,
+  mapSortValues
 } from './utils';
 
 export abstract class ResourceService<
@@ -139,19 +143,23 @@ export abstract class ResourceService<
    * field.
    * @param {number} [page] The one-based page number of results to return.
    * @param {number} [size] The maximum number of results per page.
-   * @param {string} [sort] The comma-separated list of fields to sort by, where a
-   * field prefixed with `-` is sorted in descending order (i.e. `-createdAt,id`).
-   * Nested relation fields are supported with a dot notation.
+   * @param {QuerySort} [sort] The fields to sort by, either as a comma-separated
+   * list where a field prefixed with `-` is sorted in descending order
+   * (i.e. `-createdAt,id`), or as an object of field directions
+   * (i.e. `{ createdAt: 'desc', id: 'asc' }`). Both forms support the fields of
+   * the included to-one relations, given with a dot notation (`author.createdAt`)
+   * or as a nested object (`{ author: { createdAt: 'desc' } }`).
    * @returns {Promise<QueryResponse<Object>>} The paged query response containing
    * the returned resources, the count of the returned items and the total count
    * of matching resources.
-   * @throws {@link HttpError} 500 on a database error.
+   * @throws {@link HttpError} 400 if the sort input names a field that cannot be
+   * sorted by, and 500 on a database error.
    */
   public async query(
     filter: Query = {} as any,
     page: number = 1,
     size: number = 50,
-    sort: string = '-createdAt,id'
+    sort: QuerySort<ReadMany> = '-createdAt,id'
   ): Promise<QueryResponse<ReadMany>> {
     const restrictions = await this.readRestrictions('query', filter);
     const textSearch = this.extractTextSearchQuery(filter);
@@ -159,7 +167,7 @@ export abstract class ResourceService<
 
     const query = { AND: [mappedFilter, textSearch, restrictions] };
     const includeRelations = mapRelationInclusions(this._client.name, 'query');
-    const orderBy = this.mapSortValues(sort);
+    const orderBy = mapSortValues(sort, this._client.name, 'query');
 
     let resources: ReadMany[];
     let totalCount: number;
@@ -200,7 +208,12 @@ export abstract class ResourceService<
    * @param {Object} [filter] The query filter object, mapped the same way as in
    * {@link ResourceService.query}.
    * @param {AggregateSelect<Object>} select The aggregation operations to perform
-   * per field (i.e. count, sum, avg, min, max).
+   * per field (i.e. `{ views: { count: true, sum: true } }`). Only the numeric
+   * fields of the model accept every operator, while its date fields accept
+   * `count`, `min`, `max`, `first` and `last`. The `first` and `last` operators
+   * take the value the earliest and the latest record of a period holds, which
+   * costs one additional query per period and boundary, skipped for the periods
+   * holding no record.
    * @param {string} [dateField] The date field the range is applied on.
    * @param {string} [from] The ISO date string of the range start. Defaults to
    * seven days before the range end.
@@ -217,7 +230,8 @@ export abstract class ResourceService<
    * @returns {Promise<AggregateResponse<Object>>} The aggregation response with
    * the overall total and one result per period, each labeled with the median
    * date of its period.
-   * @throws {@link HttpError} 500 on a database error.
+   * @throws {@link HttpError} 400 if the selection is empty or names a field or
+   * operator that cannot be aggregated, and 500 on a database error.
    */
   public async aggregate(
     filter: Query = {} as any,
@@ -234,7 +248,8 @@ export abstract class ResourceService<
       ranges: dateRanges
     } = buildAggregationPeriods(from, to, step, safeIncrement);
 
-    const aggregateOperations = mapAggregationValues(select);
+    const operations = mapAggregationSelect(select, this._client.name);
+    checkAggregationDateField(dateField, this._client.name);
 
     const restrictions = await this.readRestrictions('aggregate', filter);
     const textSearch = this.extractTextSearchQuery(filter);
@@ -242,26 +257,39 @@ export abstract class ResourceService<
 
     const query = { AND: [mappedFilter, textSearch, restrictions] };
 
-    let total: Record<string, Record<string, number>> = {};
-    let items: Record<string, Record<string, number>>[] = [];
+    const rangeQuery = (rangeFrom: Date, rangeTo: Date) => ({
+      AND: [query, { [dateField]: { gte: rangeFrom, lt: rangeTo } }]
+    });
+
+    // Aggregates a single range and reads the boundary records it holds the
+    // first and last values of which the database cannot aggregate
+    const aggregateRange = async (txModel: any, where: any) => {
+      const result = await txModel.aggregate({
+        ...operations.aggregate,
+        where
+      });
+
+      const boundaries = await readAggregationBoundaries(
+        txModel,
+        where,
+        dateField,
+        operations,
+        aggregationRecordCount(result)
+      );
+
+      return { ...result, ...boundaries };
+    };
+
+    let total: Record<string, Record<string, any>> = {};
+    let items: Record<string, Record<string, any>>[] = [];
     try {
       [total, items] = await this._db.client().$transaction(async (tx) => {
         const txModel = tx[this._client.name];
 
-        const overall = await txModel.aggregate({
-          ...aggregateOperations,
-          where: {
-            AND: [
-              query,
-              {
-                [dateField]: {
-                  gte: fromDate,
-                  lt: toDate
-                }
-              }
-            ]
-          }
-        });
+        const overall = await aggregateRange(
+          txModel,
+          rangeQuery(fromDate, toDate)
+        );
 
         // Skip executing the same query if only one range value is generated
         if (dateRanges.length === 1) {
@@ -270,20 +298,7 @@ export abstract class ResourceService<
 
         const ranges = await Promise.all(
           dateRanges.map((dateRange) =>
-            txModel.aggregate({
-              ...aggregateOperations,
-              where: {
-                AND: [
-                  query,
-                  {
-                    [dateField]: {
-                      gte: dateRange.from,
-                      lt: dateRange.to
-                    }
-                  }
-                ]
-              }
-            })
+            aggregateRange(txModel, rangeQuery(dateRange.from, dateRange.to))
           )
         );
 
@@ -294,10 +309,10 @@ export abstract class ResourceService<
     }
 
     return {
-      total: mapAggregationValues<ReadOne>(total, true),
+      total: mapAggregationResult<ReadOne>(total),
       items: items.map((item, index) => ({
         date: dateRanges[index].median,
-        result: mapAggregationValues<ReadOne>(item, true)
+        result: mapAggregationResult<ReadOne>(item)
       }))
     };
   }
@@ -635,50 +650,6 @@ export abstract class ResourceService<
       return searchQuery;
     }
     return {};
-  }
-
-  /**
-   * Maps a comma-separated sort expression to the ordered list of Prisma
-   * `orderBy` entries. A `-` prefix selects a descending order, dot notation
-   * paths are expanded into nested objects, relation count fields are rewritten
-   * to their `_count` form, and the default `createdAt` sort is dropped when the
-   * model does not audit that field.
-   *
-   * @param {string} sort The comma-separated list of fields to sort by, where a
-   * field prefixed with `-` is sorted in descending order and a dot notation path
-   * targets a nested relation field (i.e. `-createdAt,author.name`).
-   * @returns {Object[]} The list of single-property `orderBy` entries, in the
-   * order the fields were listed, each mapping a field path to `asc` or `desc`.
-   */
-  private mapSortValues(sort: string): any[] {
-    const sortMap = {};
-
-    const resourceModel = injectModel(this._client.name);
-
-    const parts = sort.split(',');
-
-    for (const part of parts) {
-      let path = part.trim();
-      const order = path.startsWith('-') ? 'desc' : 'asc';
-      path = path.replace(/[-+]/g, '');
-
-      // Skip the default sort by createdAt field if not configured
-      if (
-        resourceModel.config.audit?.createdAt === false &&
-        path === 'createdAt'
-      ) {
-        continue;
-      }
-
-      // Map relations count field sort order.
-      if (isCountField(path)) {
-        path = path.replace('Count', '._count');
-      }
-
-      setValue(sortMap, path, order);
-    }
-
-    return Object.entries(sortMap).map(([key, value]) => ({ [key]: value }));
   }
 
   /**

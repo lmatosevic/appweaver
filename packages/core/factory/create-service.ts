@@ -10,6 +10,7 @@ import {
   isPlainObject,
   logger,
   QueryResponse,
+  QuerySort,
   Resource,
   RESOURCE_NAME,
   RESOURCE_SERVICE_TYPE,
@@ -52,7 +53,7 @@ export function createService<T = any, C = any, U = any>(
       filter: any = {} as any,
       page: number = 1,
       size: number = 50,
-      sort: string = '-createdAt,id'
+      sort: QuerySort<T> = '-createdAt,id'
     ): Promise<QueryResponse<any>> {
       await config.beforeQuery?.(filter, page, size, sort);
 

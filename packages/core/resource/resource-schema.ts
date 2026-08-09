@@ -16,9 +16,14 @@ import { authSchema, recaptchaHeaderSchema } from '../security';
 import { AllErrorResponses } from '../errors';
 import { createSchemaModel } from '../utils';
 import {
+  aggregateDateFieldSchema,
+  aggregateSelectName,
   queryFilterName,
-  registerQueryFilterSchemas
-} from './resource-filter-schema';
+  querySortSchema,
+  registerAggregateSelectSchemas,
+  registerQueryFilterSchemas,
+  registerQuerySortSchemas
+} from './schemas';
 
 export const Id = Type.Object({
   id: Type.Integer({ minimum: 1 })
@@ -34,10 +39,11 @@ export const AuditData = Type.Object({
   createdById: Nullable(Type.Integer({ minimum: 1, example: 1 }))
 });
 
+// The sort property is declared per model instead, since its object form
+// references the sortable fields of the queried resource
 export const QueryRequestData = Type.Object({
   page: Type.Optional(Type.Number({ minimum: 1, example: 1 })),
-  size: Type.Optional(Type.Number({ minimum: 0, maximum: 1000, example: 50 })),
-  sort: Type.Optional(Type.String({ example: '-createdAt,id' }))
+  size: Type.Optional(Type.Number({ minimum: 0, maximum: 1000, example: 50 }))
 });
 
 export const QueryResponseData = Type.Object({
@@ -45,9 +51,9 @@ export const QueryResponseData = Type.Object({
   totalCount: Type.Number({ example: 100 })
 });
 
+// The select and dateField properties are declared per model instead, since
+// they reference the aggregatable fields of the aggregated resource
 export const AggregateRequestData = Type.Object({
-  select: Type.Optional(AnyJson({ example: { field: 'value' } })),
-  dateField: Type.Optional(Type.String({ example: 'createdAt' })),
   from: Type.Optional(StringDate()),
   to: Type.Optional(StringDate()),
   step: Type.Optional(Type.Integer({ minimum: 1, example: 3600 })),
@@ -68,17 +74,26 @@ export function createSchema(
   const resourceName = camelToSnakeCase(name, ' ');
   const tag = plural(name);
 
-  // Register the recursive query filter schemas of all loaded models,
+  // Register the recursive query filter and sort schemas of all loaded models,
   // referenced by the query, aggregate, and export request bodies
   registerQueryFilterSchemas();
+  registerQuerySortSchemas();
+  registerAggregateSelectSchemas();
 
   const filterData = Type.Object({
     filter: Type.Optional(Type.Ref(queryFilterName(name)))
   });
 
-  const queryRequest = Type.Composite([filterData, QueryRequestData], {
-    $id: `${name}QueryRequest`
+  const sortData = Type.Object({
+    sort: querySortSchema(name)
   });
+
+  const queryRequest = Type.Composite(
+    [filterData, sortData, QueryRequestData],
+    {
+      $id: `${name}QueryRequest`
+    }
+  );
 
   const queryResponse = Type.Composite(
     [
@@ -90,18 +105,23 @@ export function createSchema(
     { $id: `${name}QueryResponse` }
   );
 
-  const aggregateRequest = Type.Composite([filterData, AggregateRequestData], {
-    $id: `${name}AggregateRequest`
+  const selectData = Type.Object({
+    select: Type.Ref(aggregateSelectName(name)),
+    dateField: aggregateDateFieldSchema(resourceModel)
   });
+
+  const aggregateRequest = Type.Composite(
+    [filterData, selectData, AggregateRequestData],
+    { $id: `${name}AggregateRequest` }
+  );
 
   const aggregateResponse = Type.Composite([AggregateResponseData], {
     $id: `${name}AggregateResponse`
   });
 
-  const exportRequest = Type.Composite(
-    [filterData, Type.Pick(QueryRequestData, ['sort'])],
-    { $id: `${name}ExportRequest` }
-  );
+  const exportRequest = Type.Composite([filterData, sortData], {
+    $id: `${name}ExportRequest`
+  });
 
   const resourceSchemaConfig = {
     findSchema: {

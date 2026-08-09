@@ -1,7 +1,7 @@
 import { TObject, TSchema, Type } from '@sinclair/typebox';
 import { AuditFields, capitalize, ResourceModel } from '@appweaver/common';
-import { context } from '../context';
-import { createSchemaModel } from '../utils';
+import { context } from '../../context';
+import { createSchemaModel } from '../../utils';
 
 /** The schema name the shared field condition object is registered under. */
 export const QUERY_CONDITION_SCHEMA_NAME = 'QueryCondition';
