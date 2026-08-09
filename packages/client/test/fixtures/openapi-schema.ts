@@ -72,7 +72,27 @@ const SCHEMA: any = {
         type: 'object',
         properties: {
           page: { type: 'integer', minimum: 1, maximum: 1000 },
-          size: { type: 'integer' }
+          size: { type: 'integer' },
+          sort: { $ref: '#/components/schemas/def-20' }
+        }
+      },
+      'def-20': {
+        title: 'PostQuerySort',
+        description: 'Query sort for the Post resource',
+        type: 'object',
+        properties: {
+          id: { type: 'string', enum: ['asc', 'desc'], example: 'desc' },
+          title: { type: 'string', enum: ['asc', 'desc'], example: 'desc' },
+          author: { $ref: '#/components/schemas/def-21' }
+        }
+      },
+      'def-21': {
+        title: 'UserQuerySort',
+        description: 'Query sort for the User resource',
+        type: 'object',
+        properties: {
+          id: { type: 'string', enum: ['asc', 'desc'], example: 'desc' },
+          email: { type: 'string', enum: ['asc', 'desc'], example: 'desc' }
         }
       },
       'def-3': {
@@ -93,14 +113,16 @@ const SCHEMA: any = {
         required: ['title'],
         properties: {
           title: { type: 'string', maxLength: 100 },
-          content: { type: 'string' }
+          content: { type: 'string' },
+          visibility: { type: 'string', enum: ['public', 'private'] }
         }
       },
       'def-5': {
         title: 'PostUpdate',
         type: 'object',
         properties: {
-          title: { type: 'string', maxLength: 100 }
+          title: { type: 'string', maxLength: 100 },
+          visibility: { type: 'string', enum: ['public', 'private'] }
         }
       },
       'def-6': {

@@ -1,6 +1,6 @@
 import openapiTS, { astToString, OpenAPI3 } from 'openapi-typescript';
 import ts from 'typescript';
-import { toSchemaObject } from '../utils';
+import { hoistSharedEnums, toSchemaObject } from '../utils';
 import { RoutePathConfig } from '../types';
 import {
   ACCOUNT_MODULE_TYPE,
@@ -18,14 +18,19 @@ import {
  * Generates TypeScript types based on an OpenAPI V3 schema content.
  *
  * @param {string | OpenAPI3} schema - The OpenAPI V3 schema to generate types from. The value can be a string
- * representing JSON or YAML format, or already parsed OpenAPI3 object.
+ * representing JSON or YAML format, or an already parsed OpenAPI3 object.
  * @return {Promise<string>} A promise that resolves to a string containing the generated TypeScript types.
  */
 export async function generateTypes(
   schema: string | OpenAPI3
 ): Promise<string> {
+  // The schema is copied before the shared enums are hoisted into it, so the
+  // caller keeps the schema it passed in unchanged
   const schemaObject =
-    typeof schema === 'string' ? await toSchemaObject(schema) : schema;
+    typeof schema === 'string'
+      ? await toSchemaObject(schema)
+      : structuredClone(schema);
+  const sharedEnums = hoistSharedEnums(schemaObject);
 
   const ast = await openapiTS(schemaObject, {
     exportType: true,
@@ -80,7 +85,7 @@ export async function generateTypes(
   });
 
   let typesContent = astToString(deduplicateUnionConstituents(ast));
-  typesContent = extractSchemaTypes(typesContent);
+  typesContent = extractSchemaTypes(typesContent, sharedEnums);
   typesContent = combineModuleTypes(typesContent, schemaObject);
   typesContent = deduplicateExportedTypes(typesContent);
   return replaceFileUploadTypes(typesContent);
@@ -99,11 +104,14 @@ export async function generateTypes(
  * And replaces the inline body in `schemas` with a reference to the new type.
  *
  * @param {string} typeContent - The generated TypeScript type content as a string.
+ * @param {string[]} sharedEnums - The names of the definitions holding the enums shared
+ * between the other definitions, whose references are replaced by the name alone.
  * @return {string} The transformed types content with extracted schema types.
  */
-function extractSchemaTypes(typeContent: string): string {
-  // Matches the header: /** TypeName */ "def-N": <cursor here before the opening brace>
-
+function extractSchemaTypes(
+  typeContent: string,
+  sharedEnums: string[] = []
+): string {
   const extractedTypes: string[] = [];
   const typeNames = new Set<string>();
 
@@ -120,15 +128,27 @@ function extractSchemaTypes(typeContent: string): string {
   // Maps "def-N" key → extracted type name, used to replace cross-references
   const defToTypeName = new Map<string, string>();
 
+  // Matches the JSDoc header of a definition, capturing its name, which is the first
+  // word of the comment, whether it stands alone or is followed by the description and
+  // the tags of the definition. The body of the comment is matched one character at a
+  // time, so that a header never spans the comments of the definitions before it.
+  const headerComment = String.raw`\/\*\*[\s*]*(\w+)(?:(?!\*\/)[\s\S])*\*\/`;
+
   // Replace Record<...> types with object types so schema type can be extracted
   const normalizedTypes = typeContent.replace(
-    /(\/\*\*\s*\w+\s*\*\/\s*"def-\d+"):\s*Record<(\w+), (\w+)>;/g,
-    `$1: { [key: $2]: $3 };`
+    new RegExp(
+      `(${headerComment}\\s*"def-\\d+"):\\s*Record<(\\w+), (\\w+)>;`,
+      'g'
+    ),
+    `$1: { [key: $3]: $4 };`
   );
 
   let m: RegExpExecArray | null;
   // Also capture the "def-N" key from the header
-  const headerPatternWithKey = /\/\*\*\s*(\w+)\s*\*\/\s*("def-\d+"):\s*(?=\{)/g;
+  const headerPatternWithKey = new RegExp(
+    `${headerComment}\\s*("def-\\d+"):\\s*(?=\\{)`,
+    'g'
+  );
   while ((m = headerPatternWithKey.exec(normalizedTypes)) !== null) {
     const typeName = m[1];
     const defKey = m[2]; // e.g. "def-89"
@@ -186,11 +206,15 @@ function extractSchemaTypes(typeContent: string): string {
   }
   updatedBaseContent += normalizedTypes.slice(cursor);
 
-  const enumDefPrefixType: Record<string, string> = {};
-
   // Replace all cross-references like components["schemas"]["def-89"] with the type name
-  // Also, extract all enum prefixes in a list
+  const references = new Map<string, string>(
+    sharedEnums.map((name) => [`"${name}"`, name])
+  );
   for (const [defKey, typeName] of defToTypeName) {
+    references.set(defKey, typeName);
+  }
+
+  for (const [defKey, typeName] of references) {
     // The defKey already includes surrounding quotes, e.g. "def-89"
     const refPattern = new RegExp(
       `components\\["schemas"]\\[${defKey}\\]`,
@@ -200,40 +224,22 @@ function extractSchemaTypes(typeContent: string): string {
     extractedTypes.forEach((t, idx) => {
       extractedTypes[idx] = t.replace(refPattern, typeName);
     });
-
-    // Extract defKey prefix for enums to be replaced them with type name
-    const defKeyPrefix = defKey
-      .replace(/"/g, '')
-      .replace(/(^|-)([a-z])/g, (_, __, ch) => ch.toUpperCase())
-      .replace(/-(\d+)/g, '$1');
-    enumDefPrefixType[defKeyPrefix] = typeName;
   }
 
-  const getFirstNumber = (value: string): number => {
-    const match = value.match(/\d+/);
-    return match ? Number(match[0]) : -Infinity;
-  };
-
-  // Sort keys descending by definition ID number if present. This is required
-  // to prevent replacing the prefix 'Def125' with 'Def12' or 'Def1' sub-prefix.
-  const sortedEnumKeys = Object.keys(enumDefPrefixType).sort(
-    (a, b) => getFirstNumber(b) - getFirstNumber(a)
-  );
-
-  // Replace enum definition prefixes with corresponding type names
-  for (const prefix of sortedEnumKeys) {
-    const typeName = enumDefPrefixType[prefix];
-    const exportEnumPattern = new RegExp(`export enum ${prefix}(.*){`, 'g');
-    updatedBaseContent = updatedBaseContent.replace(
-      exportEnumPattern,
-      `export enum ${typeName}$1{`
-    );
-
-    const referenceEnumPattern = new RegExp(`: ${prefix}(.*);`, 'g');
-    extractedTypes.forEach((t, idx) => {
-      extractedTypes[idx] = t.replace(referenceEnumPattern, `: ${typeName}$1;`);
+  // Rename the enums generated for the properties of a definition (i.e. `Def89Status`)
+  // after the type extracted from it (i.e. `PostSingleStatus`), declarations and
+  // references alike. The digits are matched as a whole, so a definition number is never
+  // mistaken for the prefix of a longer one (i.e. `Def12` inside of `Def125Status`).
+  const renameEnums = (content: string): string =>
+    content.replace(/\bDef(\d+)([A-Z]\w*)\b/g, (match, id, property) => {
+      const typeName = defToTypeName.get(`"def-${id}"`);
+      return typeName ? `${typeName}${property}` : match;
     });
-  }
+
+  updatedBaseContent = renameEnums(updatedBaseContent);
+  extractedTypes.forEach((t, idx) => {
+    extractedTypes[idx] = renameEnums(t);
+  });
 
   // Remove redundant "Format: ..." prose lines since the @format tag already captures this.
   // If the line ends with */ (end-of-comment), preserve the closing; otherwise remove entirely.

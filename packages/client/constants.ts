@@ -11,6 +11,13 @@ export const CONFIG_FIELD = 'x-appweaver-config';
 /** Custom OpenAPI extension key used for extracting resources names from schema CRUD objects. */
 export const CONFIG_RESOURCE_FIELD = 'x-appweaver-resource';
 
+/** Names given to the well-known enums an Appweaver schema repeats inline across its definitions.
+ * The key is the enum values joined by a `|`; the value is the name of the shared type generated
+ * for them. Enums that are not listed here are named after the definitions declaring them. */
+export const SHARED_ENUM_NAMES: Record<string, string> = {
+  'asc|desc': 'SortDirection'
+};
+
 /** Suffix used when generating the TypeScript module type name for a resource. */
 export const RESOURCE_MODULE_TYPE = 'ResourceModuleType';
 
@@ -35,6 +42,7 @@ export const RESOURCE_TYPES = [
   'update',
   'queryRequest',
   'queryResponse',
+  'querySort',
   'aggregateRequest',
   'aggregateResponse',
   'exportRequest',

@@ -22,6 +22,12 @@ describe('generate-types', () => {
       expect(types).toContain('export type HealthCheckResponse = {');
     });
 
+    test('extracts schema definitions carrying a description', () => {
+      expect(types).toContain('export type PostQuerySort = {');
+      expect(types).toContain('export type UserQuerySort = {');
+      expect(types).toContain('@description Query sort for the Post resource');
+    });
+
     test('replaces the schema definition bodies with references', () => {
       expect(types).toMatch(/"def-1": PostSingle;/);
       expect(types).toMatch(/"def-16": HealthCheckResponse;/);
@@ -51,7 +57,23 @@ describe('generate-types', () => {
     test('names generated enums after the extracted type', () => {
       expect(types).toContain('export enum PostSingleStatus {');
       expect(types).toContain('status?: PostSingleStatus;');
-      expect(types).not.toContain('export enum Def1Status');
+      expect(types).not.toMatch(/\bDef\d+\w*\b/);
+    });
+
+    test('hoists a repeated enum into a single shared enum', () => {
+      expect(enumNames(types, 'asc = "asc"')).toEqual(['SortDirection']);
+      expect(types).toContain('id?: SortDirection;');
+      expect(types).toContain('email?: SortDirection;');
+    });
+
+    test('names a hoisted enum after the definitions sharing it', () => {
+      expect(enumNames(types, 'public = "public"')).toEqual(['PostVisibility']);
+      expect(types).toContain('visibility?: PostVisibility;');
+    });
+
+    test('leaves the references to the hoisted enums resolvable', () => {
+      expect(types).not.toContain('components["schemas"]["SortDirection"]');
+      expect(types).not.toContain('components["schemas"]["PostVisibility"]');
     });
 
     test('uses File types for binary file upload properties', () => {
@@ -111,9 +133,17 @@ describe('generate-types', () => {
       expect(post).toContain('fileUpload: PostFileUpload');
       expect(post).toContain('aggregateRequest: never');
 
+      expect(post).toContain('querySort: PostQuerySort');
+
       const user = moduleType(types, 'UserResourceModuleType');
       expect(user).toContain('single: UserSingle');
       expect(user).toContain('create: never');
+    });
+
+    test('keeps the schema given by the caller unchanged', async () => {
+      const schema = createOpenApiSchema();
+      await generateTypes(schema);
+      expect(schema).toEqual(createOpenApiSchema());
     });
 
     test('accepts the schema as a JSON string', async () => {
@@ -124,6 +154,20 @@ describe('generate-types', () => {
     });
   });
 });
+
+function enumNames(types: string, member: string): string[] {
+  const names: string[] = [];
+  const pattern = /export enum (\w+) \{([^}]*)}/g;
+
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(types)) !== null) {
+    if (match[2].includes(member)) {
+      names.push(match[1]);
+    }
+  }
+
+  return names;
+}
 
 function moduleType(types: string, name: string): string {
   const match = types.match(new RegExp(`export type ${name} = \\{[^}]*};`));
