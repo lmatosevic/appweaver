@@ -1,3 +1,9 @@
+## [1.2.1](https://github.com/lmatosevic/appweaver/compare/v1.2.0...v1.2.1) (2026-08-09)
+
+### Bug Fixes
+
+* remove duplicated enums from generated client types and fix sort extraction logic ([cd0be8b](https://github.com/lmatosevic/appweaver/commit/cd0be8b259fd76b01649b5912206ab994a2095a1))
+
 ## [1.2.0](https://github.com/lmatosevic/appweaver/compare/v1.1.6...v1.2.0) (2026-08-09)
 
 ### Features
