@@ -35,7 +35,7 @@ The basic file structure of the Appweaver project:
 - `test/e2e/` - the end-to-end tests root directory
 - `test/unit/` - the unit tests root directory
 - `.env` - override the central configuration (optional)
-- `.env.{env}` - override the central configuration for specific envirnment (optional)
+- `.env.{env}` - override the central configuration for a specific environment (optional)
 - `appweaver.json` - central library configuration file
 - `appweaver.{env}.json` - environment specific configuration files that override the central configuration
 - `Dockerfile` - the dockerfile used for building a docker image for deploying the application
@@ -414,8 +414,8 @@ await injectService('Post').query({}, 1, 50, {
 
 A hidden, virtual, or array scalar field, a field of a to-many relation, or a relation the action does not include is
 rejected with a `400` error. Sort inputs are typed by `QuerySort<T>` from `@appweaver/common`, with a `<Model>Sort`
-alias emitted per model, and validated over HTTP against a generated `<Model>QuerySort` JSON schema. The default is
-`-createdAt,id`. See [resources.md](./references/resources.md) for the full rules.
+alias emitted per model and validated over HTTP against a generated `<Model>QuerySort` JSON schema. The default is
+`-createdAt,id`.
 
 ### Aggregating
 
@@ -436,9 +436,9 @@ additional queries, skipped for the periods holding no record.
 
 Any other field (string, boolean, enum, JSON, array, hidden, virtual, or a relation), an operator its type does not
 support, an empty selection, or a `dateField` that is not a date field is rejected with a `400` error. Selections are
-typed by `AggregateSelect<T>` from `@appweaver/common`, with a `<Model>Aggregate` alias emitted per model, and
-validated over HTTP against a generated `<Model>AggregateSelect` JSON schema. The response stays untyped JSON, since
-its shape follows the selection.
+typed by `AggregateSelect<T>` from `@appweaver/common`, with a `<Model>Aggregate` alias emitted per model, and validated
+over HTTP against a generated `<Model>AggregateSelect` JSON schema. The response stays untyped JSON, since its shape
+follows the selection.
 
 ### Registering a custom route
 

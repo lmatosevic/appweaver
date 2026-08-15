@@ -117,12 +117,12 @@
     "typescript-eslint": "8.61.1"
   },
   "allowScripts": {
-    "bcrypt@6.0.0": true,
-    "better-sqlite3@12.11.1": true,
-    "msgpackr-extract@3.0.4": true,
-    "prisma@7.9.1": true,
-    "unrs-resolver@1.12.2": true,
-    "@prisma/engines@7.9.1": true,
-    "@swc/core@1.15.41": true
+    "bcrypt": true,
+    "better-sqlite3": true,
+    "msgpackr-extract": true,
+    "prisma": true,
+    "unrs-resolver": true,
+    "@prisma/engines": true,
+    "@swc/core": true
   }
 }
