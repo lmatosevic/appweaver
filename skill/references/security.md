@@ -73,7 +73,7 @@ if `SECURITY_JWT_SECRET` is set.
 ```json
 {
   "scope": "auth | refresh | 2fa",
-  "source": "password | oauth2Google | oauth2Facebook | oauth2Custom | apiKey | basic",
+  "source": "password | apiKey | basic | oauth2Google | oauth2Facebook | oauth2X | oauth2Github | oauth2Gitlab | oauth2Linkedin | oauth2Apple | oauth2Microsoft | oauth2Custom",
   "username": "User email (e.g. admin@example.com)",
   "sub": "User ID (e.g. 123)",
   "iat": "Issued at timestamp (e.g. 1774623924234)"
@@ -187,8 +187,8 @@ Default delimiter is `AK`, so a key looks like: `42AKa1b2c3d4e5f6...`
 
 ## OAuth2 authentication
 
-Appweaver supports OAuth2 login with Google, Facebook, and a custom OpenID Connect provider. All OAuth2 providers follow
-the same flow pattern.
+Appweaver supports OAuth2 login with Google, Facebook, X, GitHub, GitLab, LinkedIn, Apple, Microsoft, and a custom
+OpenID Connect provider. All of them are built from the same `createOAuth2Plugin` factory and follow the same flow.
 
 ### OAuth2 flow
 
@@ -226,131 +226,40 @@ the same flow pattern.
     -> { accessToken, refreshToken }
 ```
 
-### Google OAuth2
+### Providers
 
-**Configuration:**
+Every provider is disabled by default and enabled with `SECURITY_OAUTH2_<NAME>_ENABLED` plus `_CLIENT_ID` and
+`_CLIENT_SECRET` (JSON: `security.oauth2.<name>`). Enabling one registers `GET /auth/login/<name>` and
+`/auth/login/<name>/callback`. Register the callback URL `{APP_HOSTNAME}{SERVER_API_PREFIX}/auth/login/<name>/callback`
+with the provider.
 
-```json
-{
-  "config": {
-    "security": {
-      "oauth2": {
-        "google": {
-          "enabled": true,
-          "clientId": "your-google-client-id",
-          "clientSecret": "your-google-client-secret"
-        }
-      }
-    }
-  }
-}
-```
+| `<name>`    | Scopes                                    | User info source                            |
+|-------------|-------------------------------------------|---------------------------------------------|
+| `google`    | `profile`, `email`                        | `googleapis.com/oauth2/v2/userinfo`         |
+| `facebook`  | `public_profile`, `email`                 | `graph.facebook.com/me`                     |
+| `x`         | `users.read`, `tweet.read`                | `api.x.com/2/users/me`                      |
+| `github`    | `read:user`, `user:email`                 | `api.github.com/user`                       |
+| `gitlab`    | `read_user`                               | `gitlab.com/api/v4/user`                    |
+| `linkedin`  | `openid`, `profile`, `email`              | `api.linkedin.com/v2/userinfo`              |
+| `apple`     | `name`, `email`                           | the `id_token` (no endpoint)                |
+| `microsoft` | `openid`, `profile`, `email`, `User.Read` | `graph.microsoft.com/v1.0/me`               |
+| `custom`    | `openid`, `profile`, `email`              | `{issuer}/protocol/openid-connect/userinfo` |
 
-Or via environment variables:
+### Provider anomalies
 
-```env
-SECURITY_OAUTH2_GOOGLE_ENABLED=true
-SECURITY_OAUTH2_GOOGLE_CLIENT_ID=your-google-client-id
-SECURITY_OAUTH2_GOOGLE_CLIENT_SECRET=your-google-client-secret
-```
-
-**Routes:**
-
-| Method | Path                          | Description                                                              |
-|--------|-------------------------------|--------------------------------------------------------------------------|
-| `GET`  | `/auth/login/google`          | Redirect to Google consent screen. Query: `redirectToUrl`.               |
-| `GET`  | `/auth/login/google/callback` | Google callback. Exchanges code, creates/finds user, redirects with OTT. |
-
-**Scopes**: `profile`, `email`
-
-**User info extracted**: `email`, `given_name` (firstName), `family_name` (lastName), `picture` (avatarUrl)
-
-**Google Cloud Console setup:**
-
-1. Create OAuth 2.0 credentials in the Google Cloud Console
-2. Set the authorized redirect URI to: `{APP_HOSTNAME}{SERVER_API_PREFIX}/auth/login/google/callback`
-   (e.g. `https://api.myapp.com/api/auth/login/google/callback`)
-
-### Facebook OAuth2
-
-**Configuration:**
-
-```json
-{
-  "config": {
-    "security": {
-      "oauth2": {
-        "facebook": {
-          "enabled": true,
-          "clientId": "your-facebook-app-id",
-          "clientSecret": "your-facebook-app-secret"
-        }
-      }
-    }
-  }
-}
-```
-
-Or via environment variables:
-
-```env
-SECURITY_OAUTH2_FACEBOOK_ENABLED=true
-SECURITY_OAUTH2_FACEBOOK_CLIENT_ID=your-facebook-app-id
-SECURITY_OAUTH2_FACEBOOK_CLIENT_SECRET=your-facebook-app-secret
-```
-
-**Routes:**
-
-| Method | Path                            | Description                                                                |
-|--------|---------------------------------|----------------------------------------------------------------------------|
-| `GET`  | `/auth/login/facebook`          | Redirect to Facebook login. Query: `redirectToUrl`.                        |
-| `GET`  | `/auth/login/facebook/callback` | Facebook callback. Exchanges code, creates/finds user, redirects with OTT. |
-
-**Scopes**: `public_profile`, `email`
-
-**User info extracted**: `email`, `name` (split into firstName/lastName), `picture` (avatarUrl)
-
-**Facebook Developer Console setup:**
-
-1. Create an app in the Facebook Developer Console
-2. Add Facebook Login product
-3. Set the valid OAuth redirect URI to: `{APP_HOSTNAME}{SERVER_API_PREFIX}/auth/login/facebook/callback`
-
-### Custom OAuth2 (OpenID Connect)
-
-For any OpenID Connect-compatible provider (Keycloak, Auth0, etc.).
-
-**Configuration:**
-
-```json
-{
-  "config": {
-    "security": {
-      "oauth2": {
-        "custom": {
-          "enabled": true,
-          "clientId": "your-client-id",
-          "clientSecret": "your-client-secret",
-          "issuer": "https://keycloak.example.com/realms/myrealm"
-        }
-      }
-    }
-  }
-}
-```
-
-**Routes:**
-
-| Method | Path                          | Description                                          |
-|--------|-------------------------------|------------------------------------------------------|
-| `GET`  | `/auth/login/custom`          | Redirect to custom provider. Query: `redirectToUrl`. |
-| `GET`  | `/auth/login/custom/callback` | Custom provider callback.                            |
-
-**Scopes**: `openid`, `profile`, `email`
-
-**User info endpoint**: `{issuer}/protocol/openid-connect/userinfo`
-
-**Standard claims expected**: `sub`, `email`, `given_name`, `family_name`, `picture` (optional, avatarUrl)
+- **X only releases the email address to approved apps.** The `confirmed_email` field is requested explicitly, but X
+  serves it solely to apps granted the email permission in the developer portal — without it the call fails and the
+  login is rejected with a 403.
+- **Apple's callback is a `POST`** (`response_mode=form_post`), the identity comes from the `id_token`, and the client
+  secret is an ES256 JWT signed at startup from `teamId`/`keyId`/the `.p8` key — expiring after
+  `clientSecretExpiresIn` seconds, so a longer-running process needs a restart. Set `clientSecret` directly to use your
+  own. The name is sent **only on the first authorization**; later logins yield empty `firstName`/`lastName`.
+- **GitHub** falls back to `/user/emails` for the primary-verified address when the profile email is private and rejects
+  accounts with no verified address.
+- **GitLab** self-managed instances need `SECURITY_OAUTH2_GITLAB_BASE_URL` and `_USER_INFO_URL`.
+- **Microsoft** uses `SECURITY_OAUTH2_MICROSOFT_TENANT` (default `common`) in its endpoints, and its Graph photo is an
+  authenticated binary, so it arrives as `avatarFile` instead of `avatarUrl`.
+- **Custom** targets any OpenID Connect provider (Keycloak, Auth0, …) and needs `issuer` instead of preset endpoints.
 
 ### OAuth2 registration control and hooks
 

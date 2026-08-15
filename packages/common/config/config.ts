@@ -174,6 +174,50 @@ const configSchema = Type.Object({
   SECURITY_OAUTH2_FACEBOOK_USER_INFO_URL: Type.String({
     default: 'https://graph.facebook.com/me'
   }),
+  SECURITY_OAUTH2_X_ENABLED: Type.Boolean({ default: false }),
+  SECURITY_OAUTH2_X_CLIENT_ID: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_X_CLIENT_SECRET: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_X_USER_INFO_URL: Type.String({
+    default: 'https://api.x.com/2/users/me'
+  }),
+  SECURITY_OAUTH2_GITHUB_ENABLED: Type.Boolean({ default: false }),
+  SECURITY_OAUTH2_GITHUB_CLIENT_ID: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_GITHUB_CLIENT_SECRET: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_GITHUB_USER_INFO_URL: Type.String({
+    default: 'https://api.github.com/user'
+  }),
+  SECURITY_OAUTH2_GITLAB_ENABLED: Type.Boolean({ default: false }),
+  SECURITY_OAUTH2_GITLAB_CLIENT_ID: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_GITLAB_CLIENT_SECRET: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_GITLAB_BASE_URL: Type.String({
+    default: 'https://gitlab.com'
+  }),
+  SECURITY_OAUTH2_GITLAB_USER_INFO_URL: Type.String({
+    default: 'https://gitlab.com/api/v4/user'
+  }),
+  SECURITY_OAUTH2_LINKEDIN_ENABLED: Type.Boolean({ default: false }),
+  SECURITY_OAUTH2_LINKEDIN_CLIENT_ID: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_LINKEDIN_CLIENT_SECRET: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_LINKEDIN_USER_INFO_URL: Type.String({
+    default: 'https://api.linkedin.com/v2/userinfo'
+  }),
+  SECURITY_OAUTH2_APPLE_ENABLED: Type.Boolean({ default: false }),
+  SECURITY_OAUTH2_APPLE_CLIENT_ID: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_APPLE_CLIENT_SECRET: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_APPLE_TEAM_ID: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_APPLE_KEY_ID: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_APPLE_PRIVATE_KEY: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_APPLE_PRIVATE_KEY_PATH: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_APPLE_CLIENT_SECRET_EXPIRES_IN: Type.Integer({
+    default: 15552000
+  }),
+  SECURITY_OAUTH2_MICROSOFT_ENABLED: Type.Boolean({ default: false }),
+  SECURITY_OAUTH2_MICROSOFT_CLIENT_ID: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_MICROSOFT_CLIENT_SECRET: Type.Optional(Type.String()),
+  SECURITY_OAUTH2_MICROSOFT_TENANT: Type.String({ default: 'common' }),
+  SECURITY_OAUTH2_MICROSOFT_USER_INFO_URL: Type.String({
+    default: 'https://graph.microsoft.com/v1.0/me'
+  }),
   SECURITY_OAUTH2_CUSTOM_ENABLED: Type.Boolean({ default: false }),
   SECURITY_OAUTH2_CUSTOM_CLIENT_ID: Type.Optional(Type.String()),
   SECURITY_OAUTH2_CUSTOM_CLIENT_SECRET: Type.Optional(Type.String()),

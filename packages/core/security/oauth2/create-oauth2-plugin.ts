@@ -1,5 +1,6 @@
+import { FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import oauthPlugin from '@fastify/oauth2';
+import oauthPlugin, { ProviderConfiguration } from '@fastify/oauth2';
 import {
   AuthOTTPurpose,
   AuthSource,
@@ -16,6 +17,8 @@ import {
   AuthOTTData,
   AvatarFile,
   OAuth2StateData,
+  OAuth2TokenSet,
+  OAuth2UserInfoContext,
   Server,
   UserInfo
 } from '../../types';
@@ -24,15 +27,32 @@ import {
   createOAuth2RedirectSchema
 } from './oauth2-schema';
 
-export type { UserInfo };
+export type { UserInfo, OAuth2TokenSet, OAuth2UserInfoContext };
 
 export type OAuth2Config = {
   enabled: boolean;
   clientId?: string;
-  clientSecret?: string;
+  /** A function is resolved lazily, only once the provider is known to be enabled. */
+  clientSecret?: string | (() => string | undefined);
   issuer?: string;
   scope: string[];
-  extractUserInfo: (accessToken: string) => Promise<UserInfo>;
+  /** Provider endpoints. Defaults to the `@fastify/oauth2` preset matching the auth source name. */
+  auth?: ProviderConfiguration;
+  /** Human-readable provider name used in the generated OpenAPI schema. Defaults to the auth source name. */
+  displayName?: string;
+  /** Enables the PKCE extension, required by providers such as X. */
+  pkce?: 'S256' | 'plain';
+  /** Provider posts the authorization response as a form body instead of query parameters (`response_mode=form_post`). */
+  formPostCallback?: boolean;
+  /** `User-Agent` sent with the token request. Some providers reject the default one. */
+  userAgent?: string;
+  /** How client credentials are sent to the token endpoint. Defaults to `header` (HTTP Basic); providers such as
+   * Apple and LinkedIn only accept them in the request body. */
+  authorizationMethod?: 'header' | 'body';
+  extractUserInfo: (
+    accessToken: string,
+    context: OAuth2UserInfoContext
+  ) => Promise<UserInfo>;
 };
 
 export function createOAuth2Plugin(
@@ -42,13 +62,19 @@ export function createOAuth2Plugin(
   const name = authSource.replace('oauth2', '');
   const upperName = name.toUpperCase();
   const lowerName = name.toLowerCase();
+  const displayName = oAuth2Config.displayName ?? name;
 
   return fastifyPlugin(async (server: Server) => {
     if (!oAuth2Config.enabled) {
       return;
     }
 
-    if (!oAuth2Config.clientId || !oAuth2Config.clientSecret) {
+    const clientSecret =
+      typeof oAuth2Config.clientSecret === 'function'
+        ? oAuth2Config.clientSecret()
+        : oAuth2Config.clientSecret;
+
+    if (!oAuth2Config.clientId || !clientSecret) {
       throw Error(`${name} OAuth2 configuration is missing`);
     }
 
@@ -56,7 +82,8 @@ export function createOAuth2Plugin(
       throw Error(`${name} OAuth2 provider is already registered`);
     }
 
-    const authConfig = oauthPlugin[`${upperName}_CONFIGURATION`];
+    const authConfig =
+      oAuth2Config.auth ?? oauthPlugin[`${upperName}_CONFIGURATION`];
     if (!authConfig && !oAuth2Config.issuer) {
       throw Error(`${name} OAuth2 provider is not supported`);
     }
@@ -65,23 +92,38 @@ export function createOAuth2Plugin(
     const securityStore = inject(SecurityStore);
 
     const prefix = config.SECURITY_ROUTE_PREFIX.replace(/\/$/, '');
+    const callbackPath = `${prefix}/login/${lowerName}/callback`;
+
+    // With `response_mode=form_post` the authorization response arrives in the request body, while
+    // @fastify/oauth2 always reads the `code` and `state` from the query string.
+    const authResponse = (request: FastifyRequest): Record<string, string> =>
+      (oAuth2Config.formPostCallback
+        ? (request.body as Record<string, string>)
+        : (request.query as Record<string, string>)) ?? {};
 
     server.register(oauthPlugin, {
       name: authSource,
       credentials: {
         client: {
           id: oAuth2Config.clientId,
-          secret: oAuth2Config.clientSecret
+          secret: clientSecret
         },
-        auth: authConfig
+        auth: authConfig,
+        ...(oAuth2Config.authorizationMethod
+          ? {
+              options: { authorizationMethod: oAuth2Config.authorizationMethod }
+            }
+          : {})
       },
       ...(oAuth2Config.issuer
         ? { discovery: { issuer: oAuth2Config.issuer } }
         : {}),
       scope: oAuth2Config.scope,
-      schema: createOAuth2RedirectSchema(name),
+      schema: createOAuth2RedirectSchema(displayName),
       startRedirectPath: `${prefix}/login/${lowerName}`,
-      callbackUri: `${config.APP_HOSTNAME}${prefix}/login/${lowerName}/callback`,
+      callbackUri: `${config.APP_HOSTNAME}${callbackPath}`,
+      ...(oAuth2Config.pkce ? { pkce: oAuth2Config.pkce } : {}),
+      ...(oAuth2Config.userAgent ? { userAgent: oAuth2Config.userAgent } : {}),
       generateStateFunction: async (request: any) => {
         const redirectToUrl = request.query.redirectToUrl as string;
         const result = validateRedirectUrl(redirectToUrl);
@@ -97,7 +139,7 @@ export function createOAuth2Plugin(
         );
       },
       checkStateFunction: async (request: any) => {
-        const state = request.query.state as string;
+        const state = authResponse(request).state;
 
         request.oauth2State =
           await securityStore.useOneTimeToken<OAuth2StateData>(
@@ -109,63 +151,91 @@ export function createOAuth2Plugin(
       }
     });
 
-    server.get(
-      `${prefix}/login/${lowerName}/callback`,
-      {
-        schema: createOAuth2CallbackSchema(name)
-      },
-      async function (request, reply) {
-        const { token } =
-          await server[authSource].getAccessTokenFromAuthorizationCodeFlow(
-            request
+    const callbackHandler = async function (request: any, reply: any) {
+      const { token } =
+        await server[authSource].getAccessTokenFromAuthorizationCodeFlow(
+          request
+        );
+
+      const userInfo = await oAuth2Config.extractUserInfo(token.access_token, {
+        token: token as OAuth2TokenSet,
+        request
+      });
+
+      let authUser = await authService.findByUsername(userInfo.email);
+
+      await authService.checkOAuth2User(authSource, userInfo, authUser);
+
+      if (!authUser) {
+        if (!config.SECURITY_OAUTH2_REGISTRATION_ENABLED) {
+          throw new HttpError(
+            'Auth user does not exist and OAuth2 registration is disabled',
+            403
           );
-
-        const userInfo = await oAuth2Config.extractUserInfo(token.access_token);
-
-        let authUser = await authService.findByUsername(userInfo.email);
-
-        await authService.checkOAuth2User(authSource, userInfo, authUser);
-
-        if (!authUser) {
-          if (!config.SECURITY_OAUTH2_REGISTRATION_ENABLED) {
-            throw new HttpError(
-              'Auth user does not exist and OAuth2 registration is disabled',
-              403
-            );
-          }
-
-          authUser = await authService.registerAuthUser(
-            authSource,
-            userInfo.email,
-            undefined,
-            {
-              ...pickProperties(userInfo, [
-                'firstName',
-                'lastName',
-                'avatarUrl'
-              ]),
-              avatarFile: await fetchAvatarFile(userInfo)
-            }
-          );
-        } else if (!authUser.verifiedEmail) {
-          throw new HttpError('Auth user email address is not verified', 403);
         }
 
-        const stateData: OAuth2StateData = (request as any).oauth2State;
-
-        const ott = await securityStore.generateOneTimeToken<AuthOTTData>(
-          AuthOTTPurpose.Authentication,
-          { authUserId: authUser.id, authSource },
-          config.SECURITY_AUTH_OTT_TTL
+        authUser = await authService.registerAuthUser(
+          authSource,
+          userInfo.email,
+          undefined,
+          {
+            ...pickProperties(userInfo, ['firstName', 'lastName', 'avatarUrl']),
+            avatarFile: userInfo.avatarFile ?? (await fetchAvatarFile(userInfo))
+          }
         );
+      } else if (!authUser.verifiedEmail) {
+        throw new HttpError('Auth user email address is not verified', 403);
+      }
 
-        const separator = stateData.redirectToUrl.includes('?') ? '&' : '?';
+      const stateData: OAuth2StateData = request.oauth2State;
 
-        return reply.redirect(
-          `${stateData.redirectToUrl}${separator}token=${ott}`
+      const ott = await securityStore.generateOneTimeToken<AuthOTTData>(
+        AuthOTTPurpose.Authentication,
+        { authUserId: authUser.id, authSource },
+        config.SECURITY_AUTH_OTT_TTL
+      );
+
+      const separator = stateData.redirectToUrl.includes('?') ? '&' : '?';
+
+      return reply.redirect(
+        `${stateData.redirectToUrl}${separator}token=${ott}`
+      );
+    };
+
+    if (!oAuth2Config.formPostCallback) {
+      server.get(
+        callbackPath,
+        { schema: createOAuth2CallbackSchema(displayName) },
+        callbackHandler
+      );
+      return;
+    }
+
+    // Register the form-post callback in an encapsulated scope so its urlencoded body parser and
+    // the query rewrite below stay local to this single route.
+    await server.register(async (scope: Server) => {
+      if (!scope.hasContentTypeParser('application/x-www-form-urlencoded')) {
+        scope.addContentTypeParser(
+          'application/x-www-form-urlencoded',
+          { parseAs: 'string' },
+          (_request, body: string, done) =>
+            done(null, Object.fromEntries(new URLSearchParams(body)))
         );
       }
-    );
+
+      scope.post(
+        callbackPath,
+        {
+          schema: createOAuth2CallbackSchema(displayName, true),
+          preHandler: async (request) => {
+            // @fastify/oauth2 reads the authorization code off the query string only.
+            const { code, state } = authResponse(request);
+            request.query = { ...(request.query as object), code, state };
+          }
+        },
+        callbackHandler
+      );
+    });
   });
 }
 

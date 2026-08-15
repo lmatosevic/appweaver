@@ -22,7 +22,7 @@
     "access": "public"
   },
   "engines": {
-    "node": ">= 20"
+    "node": ">= 22"
   },
   "scripts": {
     "generate": "weaver generate --modelPattern ./**/model.ts --typesPath ./types/generated.ts --schemaPath ./prisma/schema.prisma --clientPath ./prisma/client",

@@ -1,4 +1,4 @@
-import { FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import fastifyAuth from '@fastify/auth';
 import { AuthType, config } from '@appweaver/common';
@@ -12,6 +12,19 @@ import { basicAuth, hasBasicAuth } from './basic';
 import { apiKeyAuth, hasApiKey } from './api-key';
 import { hasBearerAuth, jwtAuth } from './jwt';
 import * as oauth2Plugins from './oauth2';
+
+const PLUGIN_META = Symbol.for('plugin-meta');
+
+/**
+ * Tells the fastify plugins exported from the oauth2 directory apart from the user info extractors the same modules
+ * export, using the metadata `fastify-plugin` attaches to every plugin it wraps.
+ *
+ * @param {unknown} value - The exported value to check.
+ * @return {boolean} Whether the value is a fastify plugin.
+ */
+function isFastifyPlugin(value: unknown): value is FastifyPluginAsync {
+  return typeof value === 'function' && PLUGIN_META in value;
+}
 
 export default fastifyPlugin((server: Server) => {
   server.register(fastifyAuth);
@@ -32,8 +45,10 @@ export default fastifyPlugin((server: Server) => {
 
   // Load and register all plugins exported from oauth2 dir, plugin-enabled
   // status and required config values are checked at plugin initialization
-  for (const oauth2Plugin of Object.values(oauth2Plugins)) {
-    server.register(oauth2Plugin);
+  for (const exported of Object.values(oauth2Plugins)) {
+    if (isFastifyPlugin(exported)) {
+      server.register(exported);
+    }
   }
 
   server.register(authRoutes, { prefix: config.SECURITY_ROUTE_PREFIX });

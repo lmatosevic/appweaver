@@ -1,6 +1,15 @@
 import { AuthSource, config } from '@appweaver/common';
-import { HttpError } from '../../errors';
-import { createOAuth2Plugin, UserInfo } from './create-oauth2-plugin';
+import { UserInfo } from '../../types';
+import { createOAuth2Plugin } from './create-oauth2-plugin';
+import { fetchUserInfo, requireEmail } from './oauth2-util';
+
+type GoogleUser = {
+  id: string;
+  email?: string;
+  given_name?: string;
+  family_name?: string;
+  picture?: string;
+};
 
 export const oauth2Google = createOAuth2Plugin(AuthSource.OAuth2Google, {
   enabled: config.SECURITY_OAUTH2_GOOGLE_ENABLED,
@@ -10,28 +19,18 @@ export const oauth2Google = createOAuth2Plugin(AuthSource.OAuth2Google, {
   extractUserInfo: (accessToken) => fetchGoogleUser(accessToken)
 });
 
-async function fetchGoogleUser(accessToken: string): Promise<UserInfo> {
-  const params = new URLSearchParams();
-  params.append('access_token', accessToken);
-
-  const resp = await fetch(
-    `${config.SECURITY_OAUTH2_GOOGLE_USER_INFO_URL}?${params}`,
-    { method: 'GET' }
+export async function fetchGoogleUser(accessToken: string): Promise<UserInfo> {
+  const data = await fetchUserInfo<GoogleUser>(
+    'Google',
+    config.SECURITY_OAUTH2_GOOGLE_USER_INFO_URL,
+    accessToken
   );
-  if (!resp.ok) {
-    throw new HttpError(
-      `Google API error: ${resp.status} ${resp.statusText}`,
-      500
-    );
-  }
-
-  const data = await resp.json();
 
   return {
     id: data.id,
-    email: data.email,
-    firstName: data.given_name,
-    lastName: data.family_name,
+    email: requireEmail('Google', data.email),
+    firstName: data.given_name ?? '',
+    lastName: data.family_name ?? '',
     avatarUrl: data.picture
   };
 }

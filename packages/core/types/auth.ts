@@ -1,3 +1,4 @@
+import { FastifyRequest } from 'fastify';
 import { AuthScope, AuthSource, AuthUser } from '@appweaver/common';
 
 export type JwtPayload = {
@@ -30,19 +31,35 @@ export type OAuth2StateData = {
   redirectToUrl: string;
 };
 
+export type AvatarFile = {
+  name: string;
+  mimeType: string;
+  size: number;
+  data: Buffer;
+};
+
 export type UserInfo = {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
   avatarUrl?: string;
+  avatarFile?: AvatarFile;
 };
 
-export type AvatarFile = {
-  name: string;
-  mimeType: string;
-  size: number;
-  data: Buffer;
+export type OAuth2TokenSet = {
+  access_token: string;
+  token_type?: string;
+  id_token?: string;
+  refresh_token?: string;
+  expires_in?: number;
+  scope?: string;
+  [key: string]: unknown;
+};
+
+export type OAuth2UserInfoContext = {
+  token: OAuth2TokenSet;
+  request: FastifyRequest;
 };
 
 export type UserAdditionalData = {

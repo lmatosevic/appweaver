@@ -160,6 +160,46 @@
           "clientSecret": "89a8956f566c5655c6a56565a56c",
           "userInfoUrl": "https://graph.facebook.com/me"
         },
+        "x": {
+          "enabled": true,
+          "clientId": "V1JhZXhhbXBsZWNsaWVudGlkOjE6Y2k",
+          "clientSecret": "3dj4k2mfk39dkalq02mdk39dka02mdkq93",
+          "userInfoUrl": "https://api.x.com/2/users/me"
+        },
+        "github": {
+          "enabled": true,
+          "clientId": "Iv1.8a61f9b3a7aba766",
+          "clientSecret": "8a61f9b3a7aba7668a61f9b3a7aba7668a61f9b3",
+          "userInfoUrl": "https://api.github.com/user"
+        },
+        "gitlab": {
+          "enabled": true,
+          "clientId": "7d1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8",
+          "clientSecret": "gloas-1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8",
+          "baseUrl": "https://gitlab.com",
+          "userInfoUrl": "https://gitlab.com/api/v4/user"
+        },
+        "linkedin": {
+          "enabled": true,
+          "clientId": "86xk2mfk39dkal",
+          "clientSecret": "WPL_AP1.3dj4k2mfk39dkalq.02mdkq",
+          "userInfoUrl": "https://api.linkedin.com/v2/userinfo"
+        },
+        "apple": {
+          "enabled": true,
+          "clientId": "com.example.service",
+          "teamId": "A1B2C3D4E5",
+          "keyId": "F6G7H8I9J0",
+          "privateKeyPath": "./storage/keys/apple-auth-key.p8",
+          "clientSecretExpiresIn": 15552000
+        },
+        "microsoft": {
+          "enabled": true,
+          "clientId": "3f8e1c2a-9b4d-4e7f-8a1b-2c3d4e5f6071",
+          "clientSecret": "Hj8Q~9dkalq02mdkq93dj4k2mfk39dkalq02mdkq",
+          "tenant": "common",
+          "userInfoUrl": "https://graph.microsoft.com/v1.0/me"
+        },
         "custom": {
           "enabled": true,
           "clientId": "123345456723423",

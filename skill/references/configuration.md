@@ -280,6 +280,72 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `SECURITY_OAUTH2_FACEBOOK_CLIENT_SECRET` | string? | -                                 | Facebook OAuth2 client secret.   |
 | `SECURITY_OAUTH2_FACEBOOK_USER_INFO_URL` | string  | `'https://graph.facebook.com/me'` | Facebook user info endpoint.     |
 
+#### OAuth2 X (Twitter)
+
+The app must be granted the email permission in the X developer portal, otherwise X refuses to return the
+`confirmed_email` field and every login is rejected.
+
+| Property                          | Type    | Default                          | Description                                                            |
+|-----------------------------------|---------|----------------------------------|--------------------------------------------------------------------------|
+| `SECURITY_OAUTH2_X_ENABLED`       | boolean | `false`                          | Enable X OAuth2 provider. The flow always uses PKCE, which X requires. |
+| `SECURITY_OAUTH2_X_CLIENT_ID`     | string? | -                                | X OAuth2 client ID.                                                    |
+| `SECURITY_OAUTH2_X_CLIENT_SECRET` | string? | -                                | X OAuth2 client secret.                                                |
+| `SECURITY_OAUTH2_X_USER_INFO_URL` | string  | `'https://api.x.com/2/users/me'` | X user info endpoint.                                                  |
+
+#### OAuth2 GitHub
+
+| Property                               | Type    | Default                         | Description                    |
+|----------------------------------------|---------|---------------------------------|--------------------------------|
+| `SECURITY_OAUTH2_GITHUB_ENABLED`       | boolean | `false`                         | Enable GitHub OAuth2 provider. |
+| `SECURITY_OAUTH2_GITHUB_CLIENT_ID`     | string? | -                               | GitHub OAuth2 client ID.       |
+| `SECURITY_OAUTH2_GITHUB_CLIENT_SECRET` | string? | -                               | GitHub OAuth2 client secret.   |
+| `SECURITY_OAUTH2_GITHUB_USER_INFO_URL` | string  | `'https://api.github.com/user'` | GitHub user info endpoint.     |
+
+#### OAuth2 GitLab
+
+| Property                               | Type    | Default                            | Description                                                                                 |
+|----------------------------------------|---------|------------------------------------|---------------------------------------------------------------------------------------------|
+| `SECURITY_OAUTH2_GITLAB_ENABLED`       | boolean | `false`                            | Enable GitLab OAuth2 provider.                                                              |
+| `SECURITY_OAUTH2_GITLAB_CLIENT_ID`     | string? | -                                  | GitLab OAuth2 client ID.                                                                    |
+| `SECURITY_OAUTH2_GITLAB_CLIENT_SECRET` | string? | -                                  | GitLab OAuth2 client secret.                                                                |
+| `SECURITY_OAUTH2_GITLAB_BASE_URL`      | string  | `'https://gitlab.com'`             | Instance base URL for the authorize and token endpoints. Change it for self-managed GitLab. |
+| `SECURITY_OAUTH2_GITLAB_USER_INFO_URL` | string  | `'https://gitlab.com/api/v4/user'` | GitLab user info endpoint.                                                                  |
+
+#### OAuth2 LinkedIn
+
+| Property                                 | Type    | Default                                  | Description                      |
+|------------------------------------------|---------|------------------------------------------|----------------------------------|
+| `SECURITY_OAUTH2_LINKEDIN_ENABLED`       | boolean | `false`                                  | Enable LinkedIn OAuth2 provider. |
+| `SECURITY_OAUTH2_LINKEDIN_CLIENT_ID`     | string? | -                                        | LinkedIn OAuth2 client ID.       |
+| `SECURITY_OAUTH2_LINKEDIN_CLIENT_SECRET` | string? | -                                        | LinkedIn OAuth2 client secret.   |
+| `SECURITY_OAUTH2_LINKEDIN_USER_INFO_URL` | string  | `'https://api.linkedin.com/v2/userinfo'` | LinkedIn user info endpoint.     |
+
+#### OAuth2 Apple
+
+Apple expects the client secret to be a short-lived ES256 JWT: either set `SECURITY_OAUTH2_APPLE_CLIENT_SECRET` to one
+you generated yourself, or provide the team ID, key ID and `.p8` private key and let the framework sign one at startup.
+
+| Property                                         | Type    | Default    | Description                                                                                      |
+|--------------------------------------------------|---------|------------|--------------------------------------------------------------------------------------------------|
+| `SECURITY_OAUTH2_APPLE_ENABLED`                  | boolean | `false`    | Enable Apple OAuth2 provider.                                                                    |
+| `SECURITY_OAUTH2_APPLE_CLIENT_ID`                | string? | -          | Apple OAuth2 client ID (the Services ID identifier, e.g. `com.example.service`).                 |
+| `SECURITY_OAUTH2_APPLE_CLIENT_SECRET`            | string? | -          | Pre-generated client secret JWT. Takes precedence over the signing key settings below.           |
+| `SECURITY_OAUTH2_APPLE_TEAM_ID`                  | string? | -          | Apple developer team ID.                                                                         |
+| `SECURITY_OAUTH2_APPLE_KEY_ID`                   | string? | -          | Identifier of the `.p8` signing key.                                                             |
+| `SECURITY_OAUTH2_APPLE_PRIVATE_KEY`              | string? | -          | Contents of the `.p8` private key (PEM). Escaped `\n` sequences are restored.                    |
+| `SECURITY_OAUTH2_APPLE_PRIVATE_KEY_PATH`         | string? | -          | Path to the `.p8` private key file. Used when the inline key is not set.                         |
+| `SECURITY_OAUTH2_APPLE_CLIENT_SECRET_EXPIRES_IN` | integer | `15552000` | Lifetime in seconds of the generated secret. Apple rejects anything above `15777000` (6 months). |
+
+#### OAuth2 Microsoft
+
+| Property                                  | Type    | Default                                 | Description                                                                                              |
+|-------------------------------------------|---------|-----------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `SECURITY_OAUTH2_MICROSOFT_ENABLED`       | boolean | `false`                                 | Enable Microsoft OAuth2 provider.                                                                        |
+| `SECURITY_OAUTH2_MICROSOFT_CLIENT_ID`     | string? | -                                       | Microsoft OAuth2 client ID (the Entra ID application ID).                                                |
+| `SECURITY_OAUTH2_MICROSOFT_CLIENT_SECRET` | string? | -                                       | Microsoft OAuth2 client secret.                                                                          |
+| `SECURITY_OAUTH2_MICROSOFT_TENANT`        | string  | `'common'`                              | Tenant used in the authorize and token endpoints: a tenant ID, `common`, `organizations` or `consumers`. |
+| `SECURITY_OAUTH2_MICROSOFT_USER_INFO_URL` | string  | `'https://graph.microsoft.com/v1.0/me'` | Microsoft Graph user info endpoint.                                                                      |
+
 #### OAuth2 Custom (OpenID Connect)
 
 | Property                               | Type    | Default | Description                                     |

@@ -1,6 +1,14 @@
 import { AuthSource, config } from '@appweaver/common';
-import { HttpError } from '../../errors';
-import { createOAuth2Plugin, UserInfo } from './create-oauth2-plugin';
+import { UserInfo } from '../../types';
+import { createOAuth2Plugin } from './create-oauth2-plugin';
+import { fetchUserInfo, requireEmail, splitFullName } from './oauth2-util';
+
+type FacebookUser = {
+  id: string;
+  name?: string;
+  email?: string;
+  picture?: { data?: { url?: string } };
+};
 
 export const oauth2Facebook = createOAuth2Plugin(AuthSource.OAuth2Facebook, {
   enabled: config.SECURITY_OAUTH2_FACEBOOK_ENABLED,
@@ -10,30 +18,22 @@ export const oauth2Facebook = createOAuth2Plugin(AuthSource.OAuth2Facebook, {
   extractUserInfo: (accessToken) => fetchFacebookUser(accessToken)
 });
 
-async function fetchFacebookUser(accessToken: string): Promise<UserInfo> {
+export async function fetchFacebookUser(
+  accessToken: string
+): Promise<UserInfo> {
   const params = new URLSearchParams();
   params.append('fields', 'id,name,email,picture.width(512)');
-  params.append('access_token', accessToken);
 
-  const resp = await fetch(
+  const data = await fetchUserInfo<FacebookUser>(
+    'Facebook Graph',
     `${config.SECURITY_OAUTH2_FACEBOOK_USER_INFO_URL}?${params}`,
-    { method: 'GET' }
+    accessToken
   );
-  if (!resp.ok) {
-    throw new HttpError(
-      `Facebook Graph API error: ${resp.status} ${resp.statusText}`,
-      500
-    );
-  }
-
-  const data = await resp.json();
-  const [firstName, lastName] = data.name.split(' ');
 
   return {
     id: data.id,
-    email: data.email,
-    firstName,
-    lastName,
+    email: requireEmail('Facebook', data.email),
+    ...splitFullName(data.name),
     avatarUrl: data.picture?.data?.url
   };
 }

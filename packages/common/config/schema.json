@@ -642,6 +642,140 @@
                     }
                   }
                 },
+                "x": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "userInfoUrl": {
+                      "type": "string",
+                      "default": "https://api.x.com/2/users/me"
+                    }
+                  }
+                },
+                "github": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "userInfoUrl": {
+                      "type": "string",
+                      "default": "https://api.github.com/user"
+                    }
+                  }
+                },
+                "gitlab": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "baseUrl": {
+                      "type": "string",
+                      "default": "https://gitlab.com"
+                    },
+                    "userInfoUrl": {
+                      "type": "string",
+                      "default": "https://gitlab.com/api/v4/user"
+                    }
+                  }
+                },
+                "linkedin": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "userInfoUrl": {
+                      "type": "string",
+                      "default": "https://api.linkedin.com/v2/userinfo"
+                    }
+                  }
+                },
+                "apple": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "teamId": {
+                      "type": "string"
+                    },
+                    "keyId": {
+                      "type": "string"
+                    },
+                    "privateKey": {
+                      "type": "string"
+                    },
+                    "privateKeyPath": {
+                      "type": "string"
+                    },
+                    "clientSecretExpiresIn": {
+                      "type": "integer",
+                      "default": 15552000
+                    }
+                  }
+                },
+                "microsoft": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "tenant": {
+                      "type": "string",
+                      "default": "common"
+                    },
+                    "userInfoUrl": {
+                      "type": "string",
+                      "default": "https://graph.microsoft.com/v1.0/me"
+                    }
+                  }
+                },
                 "custom": {
                   "type": "object",
                   "properties": {

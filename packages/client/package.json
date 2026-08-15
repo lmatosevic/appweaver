@@ -49,7 +49,7 @@
     "access": "public"
   },
   "engines": {
-    "node": ">= 20"
+    "node": ">= 22"
   },
   "scripts": {
     "weaver-client": "node ./dist/cjs/weaver-client.js"

@@ -37,7 +37,7 @@ validation, database, auth, migrations, so you can focus on business logic inste
 
 ## Requirements
 
-- Node >= 20 (or Bun >= 1.3)
+- Node >= 22 (or Bun >= 1.3)
 - NPM >= 6
 
 Optional:

@@ -247,6 +247,71 @@ export type Config = {
   SECURITY_OAUTH2_FACEBOOK_CLIENT_SECRET?: string;
   /** Facebook user info endpoint. Default: `'https://graph.facebook.com/me'`. */
   SECURITY_OAUTH2_FACEBOOK_USER_INFO_URL: string;
+  /** Enable X (Twitter) OAuth2 provider. Default: `false`. */
+  SECURITY_OAUTH2_X_ENABLED: boolean;
+  /** X OAuth2 client ID. */
+  SECURITY_OAUTH2_X_CLIENT_ID?: string;
+  /** X OAuth2 client secret. */
+  SECURITY_OAUTH2_X_CLIENT_SECRET?: string;
+  /** X user info endpoint. Default: `'https://api.x.com/2/users/me'`. */
+  SECURITY_OAUTH2_X_USER_INFO_URL: string;
+  /** Enable GitHub OAuth2 provider. Default: `false`. */
+  SECURITY_OAUTH2_GITHUB_ENABLED: boolean;
+  /** GitHub OAuth2 client ID. */
+  SECURITY_OAUTH2_GITHUB_CLIENT_ID?: string;
+  /** GitHub OAuth2 client secret. */
+  SECURITY_OAUTH2_GITHUB_CLIENT_SECRET?: string;
+  /** GitHub user info endpoint. Default: `'https://api.github.com/user'`. */
+  SECURITY_OAUTH2_GITHUB_USER_INFO_URL: string;
+  /** Enable GitLab OAuth2 provider. Default: `false`. */
+  SECURITY_OAUTH2_GITLAB_ENABLED: boolean;
+  /** GitLab OAuth2 client ID. */
+  SECURITY_OAUTH2_GITLAB_CLIENT_ID?: string;
+  /** GitLab OAuth2 client secret. */
+  SECURITY_OAUTH2_GITLAB_CLIENT_SECRET?: string;
+  /** GitLab instance base URL, used for the authorize and token endpoints. Set it to your own host when using a
+   * self-managed GitLab. Default: `'https://gitlab.com'`. */
+  SECURITY_OAUTH2_GITLAB_BASE_URL: string;
+  /** GitLab user info endpoint. Default: `'https://gitlab.com/api/v4/user'`. */
+  SECURITY_OAUTH2_GITLAB_USER_INFO_URL: string;
+  /** Enable LinkedIn OAuth2 provider. Default: `false`. */
+  SECURITY_OAUTH2_LINKEDIN_ENABLED: boolean;
+  /** LinkedIn OAuth2 client ID. */
+  SECURITY_OAUTH2_LINKEDIN_CLIENT_ID?: string;
+  /** LinkedIn OAuth2 client secret. */
+  SECURITY_OAUTH2_LINKEDIN_CLIENT_SECRET?: string;
+  /** LinkedIn user info endpoint. Default: `'https://api.linkedin.com/v2/userinfo'`. */
+  SECURITY_OAUTH2_LINKEDIN_USER_INFO_URL: string;
+  /** Enable Apple OAuth2 provider. Default: `false`. */
+  SECURITY_OAUTH2_APPLE_ENABLED: boolean;
+  /** Apple OAuth2 client ID (the Services ID identifier). */
+  SECURITY_OAUTH2_APPLE_CLIENT_ID?: string;
+  /** Apple OAuth2 client secret. Apple expects a signed ES256 JWT here; when omitted, one is generated from
+   * `SECURITY_OAUTH2_APPLE_TEAM_ID`, `SECURITY_OAUTH2_APPLE_KEY_ID` and the private key. */
+  SECURITY_OAUTH2_APPLE_CLIENT_SECRET?: string;
+  /** Apple developer team ID, used to generate the client secret. */
+  SECURITY_OAUTH2_APPLE_TEAM_ID?: string;
+  /** Identifier of the Apple `.p8` signing key, used to generate the client secret. */
+  SECURITY_OAUTH2_APPLE_KEY_ID?: string;
+  /** Contents of the Apple `.p8` private key (PEM), used to generate the client secret. Takes precedence over
+   * `SECURITY_OAUTH2_APPLE_PRIVATE_KEY_PATH`. */
+  SECURITY_OAUTH2_APPLE_PRIVATE_KEY?: string;
+  /** Path to the Apple `.p8` private key file, used to generate the client secret. */
+  SECURITY_OAUTH2_APPLE_PRIVATE_KEY_PATH?: string;
+  /** Lifetime in seconds of the generated Apple client secret. Apple rejects anything above `15777000` (6 months).
+   * Default: `15552000` (180 days). */
+  SECURITY_OAUTH2_APPLE_CLIENT_SECRET_EXPIRES_IN: number;
+  /** Enable Microsoft OAuth2 provider. Default: `false`. */
+  SECURITY_OAUTH2_MICROSOFT_ENABLED: boolean;
+  /** Microsoft OAuth2 client ID (the Entra ID application ID). */
+  SECURITY_OAUTH2_MICROSOFT_CLIENT_ID?: string;
+  /** Microsoft OAuth2 client secret. */
+  SECURITY_OAUTH2_MICROSOFT_CLIENT_SECRET?: string;
+  /** Microsoft tenant used in the authorize and token endpoints. Values: a tenant ID, `common`, `organizations` or
+   * `consumers`. Default: `'common'`. */
+  SECURITY_OAUTH2_MICROSOFT_TENANT: string;
+  /** Microsoft user info endpoint. Default: `'https://graph.microsoft.com/v1.0/me'`. */
+  SECURITY_OAUTH2_MICROSOFT_USER_INFO_URL: string;
   /** Enable a custom OpenID Connect provider. Default: `false`. */
   SECURITY_OAUTH2_CUSTOM_ENABLED: boolean;
   /** Custom OAuth2 client ID. */
