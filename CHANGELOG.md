@@ -1,3 +1,14 @@
+## [1.3.0](https://github.com/lmatosevic/appweaver/compare/v1.2.1...v1.3.0) (2026-08-15)
+
+### Features
+
+* add ConnectedAccounts model which links auth users with OAuth2 providers ([d4e307b](https://github.com/lmatosevic/appweaver/commit/d4e307be808091836366027e4e7e3159508771c3))
+* implement Apple, Microsoft, LinkedIn, X, GitHub, GitLab OAuth2 integrations ([0ba90e1](https://github.com/lmatosevic/appweaver/commit/0ba90e1c4589e468445719e925ecd5277a72fa6e))
+
+### Bug Fixes
+
+* extract aggregate types into a dedicated module in common types package ([f202726](https://github.com/lmatosevic/appweaver/commit/f202726be9df7194b6755d6772fcc75dcd0402b8))
+
 ## [1.2.1](https://github.com/lmatosevic/appweaver/compare/v1.2.0...v1.2.1) (2026-08-09)
 
 ### Bug Fixes
