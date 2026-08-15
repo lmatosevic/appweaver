@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/lmatosevic/appweaver/compare/v1.3.0...v1.3.1) (2026-08-15)
+
+### Bug Fixes
+
+* update client to generate type literals for enums and hoist shared complex types ([05efd3e](https://github.com/lmatosevic/appweaver/commit/05efd3eab478779d10ed5cc8dfaf48485716616a))
+
 ## [1.3.0](https://github.com/lmatosevic/appweaver/compare/v1.2.1...v1.3.0) (2026-08-15)
 
 ### Features
