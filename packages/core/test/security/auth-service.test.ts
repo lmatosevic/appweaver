@@ -5,6 +5,7 @@ import {
   AuthUser,
   CONFIG,
   RESOURCE_AUTH,
+  RESOURCE_MODEL_TYPE,
   RESOURCE_NAME,
   RESOURCE_SERVICE_TYPE,
   RESOURCE_TYPE,
@@ -15,12 +16,14 @@ import { context, define } from '../../context';
 import { CacheService } from '../../cache';
 import { HttpError } from '../../errors';
 import { AuthService } from '../../security/auth-service';
+import { OAuth2Service } from '../../security/oauth2/oauth2-service';
 import { hashPassword } from '../../security/helper';
 import { resetContext } from '../fixtures/context-fixture';
 
 describe('auth-service', () => {
   let authUserService: any;
   let securityStore: any;
+  let connectedAccountService: any;
   let cacheService: any;
   let signedTokens: any[];
   let service: AuthService;
@@ -52,6 +55,20 @@ describe('auth-service', () => {
     };
     define(authUserService, 'User');
 
+    context.resource.models.set('User', {
+      name: 'User',
+      [RESOURCE_TYPE]: RESOURCE_MODEL_TYPE,
+      [RESOURCE_AUTH]: true
+    } as any);
+
+    connectedAccountService = {
+      modelName: 'ConnectedAccount',
+      query: jest.fn().mockResolvedValue({ items: [] }),
+      create: jest.fn().mockResolvedValue({ id: 1 }),
+      update: jest.fn().mockResolvedValue({ id: 1 })
+    };
+    context.resource.services.set('ConnectedAccount', connectedAccountService);
+
     securityStore = {
       useOneTimeToken: jest.fn(),
       createOneTimeToken: jest.fn()
@@ -65,6 +82,9 @@ describe('auth-service', () => {
       removeCachedValue: jest.fn().mockResolvedValue(true)
     };
     define(cacheService, CacheService);
+
+    // exchangeToken delegates the OAuth2 account linking to it
+    define(new OAuth2Service(), OAuth2Service);
 
     signedTokens = [];
     context.server = {
@@ -369,6 +389,126 @@ describe('auth-service', () => {
         statusCode: 400
       });
     });
+
+    test('links the provider account after a successful exchange', async () => {
+      securityStore.useOneTimeToken.mockResolvedValue({
+        authUserId: 1,
+        authSource: AuthSource.OAuth2Google,
+        providerAccountId: '42',
+        scope: 'profile email'
+      });
+      authUserService.find.mockResolvedValue(user());
+
+      await service.exchangeToken('ott-token');
+
+      expect(connectedAccountService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: AuthSource.OAuth2Google,
+          providerAccountId: '42',
+          scope: 'profile email'
+        })
+      );
+    });
+
+    test('marks an unverified email as verified after an OAuth2 exchange', async () => {
+      securityStore.useOneTimeToken.mockResolvedValue({
+        authUserId: 1,
+        authSource: AuthSource.OAuth2Google,
+        providerAccountId: '42'
+      });
+      authUserService.find.mockResolvedValue(user({ verifiedEmail: false }));
+
+      await service.exchangeToken('ott-token');
+
+      expect(authUserService.update).toHaveBeenCalledWith(1, {
+        verifiedEmail: true
+      });
+    });
+
+    test('leaves an already verified email untouched', async () => {
+      securityStore.useOneTimeToken.mockResolvedValue({
+        authUserId: 1,
+        authSource: AuthSource.OAuth2Google,
+        providerAccountId: '42'
+      });
+      authUserService.find.mockResolvedValue(user({ verifiedEmail: true }));
+
+      await service.exchangeToken('ott-token');
+
+      expect(authUserService.update).not.toHaveBeenCalled();
+    });
+
+    test('does not verify the email when the confirmation fails', async () => {
+      securityStore.useOneTimeToken.mockResolvedValue({
+        authUserId: 1,
+        authSource: AuthSource.OAuth2Google,
+        providerAccountId: '42',
+        passwordRequired: true
+      });
+      authUserService.find.mockResolvedValue(
+        user({
+          verifiedEmail: false,
+          passwordHash: await hashPassword('Str0ng!Pass')
+        })
+      );
+
+      await expect(
+        service.exchangeToken('ott-token', 'WrongPass1!')
+      ).rejects.toMatchObject({ statusCode: 401 });
+      expect(authUserService.update).not.toHaveBeenCalled();
+    });
+
+    test('rejects a flagged token when no password is supplied', async () => {
+      securityStore.useOneTimeToken.mockResolvedValue({
+        authUserId: 1,
+        authSource: AuthSource.OAuth2Google,
+        providerAccountId: '42',
+        passwordRequired: true
+      });
+      authUserService.find.mockResolvedValue(
+        user({ passwordHash: await hashPassword('Str0ng!Pass') })
+      );
+
+      await expect(service.exchangeToken('ott-token')).rejects.toMatchObject({
+        statusCode: 401,
+        message: expect.stringContaining('Password confirmation is required')
+      });
+      expect(connectedAccountService.create).not.toHaveBeenCalled();
+    });
+
+    test('rejects a flagged token when the password is wrong', async () => {
+      securityStore.useOneTimeToken.mockResolvedValue({
+        authUserId: 1,
+        authSource: AuthSource.OAuth2Google,
+        providerAccountId: '42',
+        passwordRequired: true
+      });
+      authUserService.find.mockResolvedValue(
+        user({ passwordHash: await hashPassword('Str0ng!Pass') })
+      );
+
+      await expect(
+        service.exchangeToken('ott-token', 'WrongPass1!')
+      ).rejects.toMatchObject({ statusCode: 401 });
+      expect(connectedAccountService.create).not.toHaveBeenCalled();
+    });
+
+    test('links the account once the correct password confirms the flagged token', async () => {
+      securityStore.useOneTimeToken.mockResolvedValue({
+        authUserId: 1,
+        authSource: AuthSource.OAuth2Google,
+        providerAccountId: '42',
+        passwordRequired: true
+      });
+      authUserService.find.mockResolvedValue(
+        user({ passwordHash: await hashPassword('Str0ng!Pass') })
+      );
+
+      const tokens = await service.exchangeToken('ott-token', 'Str0ng!Pass');
+
+      expect(tokens.accessToken).toBe('token-1');
+      expect(connectedAccountService.create).toHaveBeenCalled();
+    });
   });
 
   describe('changePassword', () => {
@@ -482,62 +622,6 @@ describe('auth-service', () => {
       await expect(
         service.registerAuthUser(AuthSource.Password, 'new@test.com')
       ).rejects.toMatchObject({ statusCode: 500 });
-    });
-  });
-
-  describe('checkOAuth2User', () => {
-    const userInfo = { email: 'new@test.com' } as any;
-
-    test('passes when no callback is configured', async () => {
-      await expect(
-        service.checkOAuth2User(
-          AuthSource.OAuth2Google as AuthSource,
-          userInfo,
-          null
-        )
-      ).resolves.toBeUndefined();
-    });
-
-    test('passes when the callback returns nothing', async () => {
-      authUserService[CONFIG] = { checkOAuth2User: () => undefined };
-
-      await expect(
-        service.checkOAuth2User(
-          AuthSource.OAuth2Google as AuthSource,
-          userInfo,
-          null
-        )
-      ).resolves.toBeUndefined();
-    });
-
-    test('rejects with a forbidden error for a returned message', async () => {
-      authUserService[CONFIG] = {
-        checkOAuth2User: () => 'Domain is not allowed'
-      };
-
-      await expect(
-        service.checkOAuth2User(
-          AuthSource.OAuth2Google as AuthSource,
-          userInfo,
-          null
-        )
-      ).rejects.toMatchObject({
-        statusCode: 403,
-        message: expect.stringContaining('Domain is not allowed')
-      });
-    });
-
-    test('rethrows a returned HttpError as is', async () => {
-      const error = new HttpError('Blocked', 409);
-      authUserService[CONFIG] = { checkOAuth2User: () => error };
-
-      await expect(
-        service.checkOAuth2User(
-          AuthSource.OAuth2Google as AuthSource,
-          userInfo,
-          null
-        )
-      ).rejects.toBe(error);
     });
   });
 

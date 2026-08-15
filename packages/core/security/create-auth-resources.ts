@@ -13,7 +13,7 @@ import {
   uncapitalize,
   VirtualConfig
 } from '@appweaver/common';
-import { updatePasswordHash } from './helper';
+import { isOAuth2Enabled, updatePasswordHash } from './helper';
 import { createModel, createService } from '../factory';
 import { CheckOAuth2UserFn, RegistrationDataFn } from '../types';
 
@@ -90,6 +90,21 @@ export function createAuthModel(config: ResourceModelConfig): ResourceModel {
       ? {
           apiKeys: {
             model: 'ApiKey',
+            type: 'oneToMany',
+            mappedBy: uncapitalize(config.name),
+            input: {
+              type: 'none'
+            },
+            output: {
+              type: 'none'
+            }
+          }
+        }
+      : {}),
+    ...(isOAuth2Enabled()
+      ? {
+          connectedAccounts: {
+            model: 'ConnectedAccount',
             type: 'oneToMany',
             mappedBy: uncapitalize(config.name),
             input: {

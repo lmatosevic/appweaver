@@ -256,11 +256,12 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 #### OAuth2 general
 
-| Property                               | Type    | Default  | Description                                                                                                                       |
-|----------------------------------------|---------|----------|-----------------------------------------------------------------------------------------------------------------------------------|
-| `SECURITY_OAUTH2_STATE_TTL`            | integer | `600000` | OAuth2 state parameter TTL in milliseconds (default 10 min).                                                                      |
-| `SECURITY_OAUTH2_REGISTRATION_ENABLED` | boolean | `true`   | Allow registering new users via OAuth2 login. When `false`, only already existing users (matched by email) can log in via OAuth2. |
-| `SECURITY_OAUTH2_FETCH_AVATAR_ENABLED` | boolean | `false`  | Download the user's avatar from the OAuth2 provider during registration and pass it as `avatarFile` to `registrationData`.        |
+| Property                                                 | Type    | Default  | Description                                                                                                                        |
+|----------------------------------------------------------|---------|----------|------------------------------------------------------------------------------------------------------------------------------------|
+| `SECURITY_OAUTH2_STATE_TTL`                              | integer | `600000` | OAuth2 state parameter TTL in milliseconds (default 10 min).                                                                       |
+| `SECURITY_OAUTH2_REGISTRATION_ENABLED`                   | boolean | `true`   | Allow registering new users via OAuth2 login. When `false`, only already existing users (matched by email) can log in via OAuth2.  |
+| `SECURITY_OAUTH2_FETCH_AVATAR_ENABLED`                   | boolean | `false`  | Download the user's avatar from the OAuth2 provider during registration and pass it as `avatarFile` to `registrationData`.         |
+| `SECURITY_OAUTH2_CONNECTED_ACCOUNTS_KEEP_DATABASE_TABLE` | boolean | `false`  | Keep the `ConnectedAccount` table even when every OAuth2 provider is disabled, so the links are not dropped by the next migration. |
 
 #### OAuth2 Google
 
@@ -286,7 +287,7 @@ The app must be granted the email permission in the X developer portal, otherwis
 `confirmed_email` field and every login is rejected.
 
 | Property                          | Type    | Default                          | Description                                                            |
-|-----------------------------------|---------|----------------------------------|--------------------------------------------------------------------------|
+|-----------------------------------|---------|----------------------------------|------------------------------------------------------------------------|
 | `SECURITY_OAUTH2_X_ENABLED`       | boolean | `false`                          | Enable X OAuth2 provider. The flow always uses PKCE, which X requires. |
 | `SECURITY_OAUTH2_X_CLIENT_ID`     | string? | -                                | X OAuth2 client ID.                                                    |
 | `SECURITY_OAUTH2_X_CLIENT_SECRET` | string? | -                                | X OAuth2 client secret.                                                |

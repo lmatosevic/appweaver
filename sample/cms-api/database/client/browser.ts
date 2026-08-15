@@ -33,6 +33,11 @@ export type User = Prisma.UserModel
  */
 export type ApiKey = Prisma.ApiKeyModel
 /**
+ * Model ConnectedAccount
+ * 
+ */
+export type ConnectedAccount = Prisma.ConnectedAccountModel
+/**
  * Model Role
  * 
  */

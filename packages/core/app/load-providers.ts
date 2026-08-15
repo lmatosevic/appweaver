@@ -39,6 +39,7 @@ export function loadProviders(baseDir: string): void {
   loadProvider(__dirname, '../storage/file-service');
   loadProvider(__dirname, '../security/auth-service');
   loadProvider(__dirname, '../security/account/account-service');
+  loadProvider(__dirname, '../security/oauth2/oauth2-service');
   loadProvider(__dirname, '../export/export-service');
   loadProvider(__dirname, '../health/health-service');
 }

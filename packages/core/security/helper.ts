@@ -193,6 +193,24 @@ export function validatePasswordComplexity(password: string): ValidationResult {
 }
 
 /**
+ * Checks whether at least one OAuth2 provider is enabled, by resolving each OAuth2 auth source to its
+ * `SECURITY_OAUTH2_<PROVIDER>_ENABLED` config flag. New providers are picked up automatically as long as they follow
+ * that naming convention.
+ *
+ * @return {boolean} True when any OAuth2 provider is enabled.
+ */
+export function isOAuth2Enabled(): boolean {
+  return Object.values(AuthSource)
+    .filter((source) => source.startsWith('oauth2'))
+    .some(
+      (source) =>
+        config[
+          `SECURITY_OAUTH2_${source.replace('oauth2', '').toUpperCase()}_ENABLED`
+        ] === true
+    );
+}
+
+/**
  * Validates a URL and checks if it's allowed based on the configured list of allowed hosts.
  *
  * @param {string} url - The URL string to validate.

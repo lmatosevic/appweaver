@@ -110,9 +110,9 @@ export function authRoutes(server: Server): void {
       }
     },
     async (request, reply) => {
-      const { token } = request.body;
+      const { token, password } = request.body;
 
-      const authResponse = await authService.exchangeToken(token);
+      const authResponse = await authService.exchangeToken(token, password);
 
       return reply.send(authResponse);
     }

@@ -58,6 +58,19 @@ CREATE TABLE "ApiKey" (
 );
 
 -- CreateTable
+CREATE TABLE "ConnectedAccount" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "provider" TEXT NOT NULL,
+    "providerAccountId" TEXT NOT NULL,
+    "scope" TEXT,
+    "lastLoginAt" DATETIME NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "updatedAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "ConnectedAccount_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- CreateTable
 CREATE TABLE "Role" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "name" TEXT NOT NULL,
@@ -150,6 +163,9 @@ CREATE INDEX "User_email_idx" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ApiKey_keyHash_key" ON "ApiKey"("keyHash");
+
+-- CreateIndex
+CREATE INDEX "ConnectedAccount_provider_providerAccountId_idx" ON "ConnectedAccount"("provider", "providerAccountId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");

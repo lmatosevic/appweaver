@@ -12,6 +12,7 @@ import {
 import { inject } from '../../context';
 import { HttpError } from '../../errors';
 import { AuthService } from '../auth-service';
+import { OAuth2Service } from './oauth2-service';
 import { validateRedirectUrl } from '../helper';
 import {
   AuthOTTData,
@@ -89,6 +90,7 @@ export function createOAuth2Plugin(
     }
 
     const authService = inject(AuthService);
+    const oauth2Service = inject(OAuth2Service);
     const securityStore = inject(SecurityStore);
 
     const prefix = config.SECURITY_ROUTE_PREFIX.replace(/\/$/, '');
@@ -164,7 +166,16 @@ export function createOAuth2Plugin(
 
       let authUser = await authService.findByUsername(userInfo.email);
 
-      await authService.checkOAuth2User(authSource, userInfo, authUser);
+      await oauth2Service.checkUser(authSource, userInfo, authUser);
+
+      // Decided before the user is (possibly) registered, so a freshly created account is never asked to confirm
+      const passwordRequired =
+        !!authUser &&
+        (await oauth2Service.requiresPasswordConfirmation(
+          authUser,
+          authSource,
+          userInfo.id
+        ));
 
       if (!authUser) {
         if (!config.SECURITY_OAUTH2_REGISTRATION_ENABLED) {
@@ -183,22 +194,28 @@ export function createOAuth2Plugin(
             avatarFile: userInfo.avatarFile ?? (await fetchAvatarFile(userInfo))
           }
         );
-      } else if (!authUser.verifiedEmail) {
-        throw new HttpError('Auth user email address is not verified', 403);
       }
 
       const stateData: OAuth2StateData = request.oauth2State;
 
       const ott = await securityStore.generateOneTimeToken<AuthOTTData>(
         AuthOTTPurpose.Authentication,
-        { authUserId: authUser.id, authSource },
+        {
+          authUserId: authUser.id,
+          authSource,
+          providerAccountId: userInfo.id,
+          scope: (token.scope as string) ?? oAuth2Config.scope.join(' '),
+          passwordRequired
+        },
         config.SECURITY_AUTH_OTT_TTL
       );
 
       const separator = stateData.redirectToUrl.includes('?') ? '&' : '?';
+      // Tell the client upfront so it can collect the password before spending the single-use token
+      const confirmation = passwordRequired ? '&passwordRequired=true' : '';
 
       return reply.redirect(
-        `${stateData.redirectToUrl}${separator}token=${ott}`
+        `${stateData.redirectToUrl}${separator}token=${ott}${confirmation}`
       );
     };
 

@@ -19,6 +19,9 @@ export type AuthTokens = {
 export type AuthOTTData = {
   authUserId: number;
   authSource: AuthSource;
+  providerAccountId?: string;
+  scope?: string;
+  passwordRequired?: boolean;
 };
 
 export type TwoFactorAuthData = {

@@ -134,6 +134,7 @@ export type User = {
   posts?: Array<PostSingle>;
   roles: Array<RoleSingle>;
   apiKeys: Array<ApiKeySingle>;
+  connectedAccounts: Array<ConnectedAccountSingle>;
   avatar?: FileSingle | null;
   updatedAt: Date;
   createdAt: Date;
@@ -333,6 +334,80 @@ export type ApiKeyQuery = QueryFilter<ApiKey>;
 export type ApiKeySort = QuerySort<ApiKeyMultiple>;
 
 export type ApiKeyAggregate = AggregateSelect<ApiKey>;
+
+export type ConnectedAccount = {
+  id: number;
+  provider: string;
+  providerAccountId: string;
+  scope?: string | null;
+  lastLoginAt: Date;
+  user: UserSingle;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type ConnectedAccountSingle = {
+  id: number;
+  provider: string;
+  providerAccountId: string;
+  scope?: string | null;
+  lastLoginAt: Date;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type ConnectedAccountMultiple = {
+  id: number;
+  provider: string;
+  providerAccountId: string;
+  scope?: string | null;
+  lastLoginAt: Date;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type ConnectedAccountCreate = {
+  provider: string;
+  providerAccountId: string;
+  scope?: string | null;
+  lastLoginAt: Date;
+};
+
+export type ConnectedAccountUpdate = {
+  provider?: string;
+  providerAccountId?: string;
+  scope?: string | null;
+  lastLoginAt?: Date;
+};
+
+export type ConnectedAccountRelationCreate = {
+  provider: string;
+  providerAccountId: string;
+  scope?: string | null;
+  lastLoginAt: Date;
+};
+
+export type ConnectedAccountRelationUpdate = {
+  id: number;
+  provider?: string;
+  providerAccountId?: string;
+  scope?: string | null;
+  lastLoginAt?: Date;
+};
+
+export type ConnectedAccountRelationInput = {
+  id?: number;
+  provider?: string;
+  providerAccountId?: string;
+  scope?: string | null;
+  lastLoginAt?: Date;
+};
+
+export type ConnectedAccountQuery = QueryFilter<ConnectedAccount>;
+
+export type ConnectedAccountSort = QuerySort<ConnectedAccountMultiple>;
+
+export type ConnectedAccountAggregate = AggregateSelect<ConnectedAccount>;
 
 export type Role = {
   id: number;

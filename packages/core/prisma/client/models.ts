@@ -9,6 +9,7 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/ApiKey'
+export type * from './models/ConnectedAccount'
 export type * from './models/OneTimeToken'
 export type * from './models/Permission'
 export type * from './models/Role'

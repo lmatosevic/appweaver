@@ -8,6 +8,7 @@ import {
   ServerErrorResponse
 } from '../../../errors/error-schema';
 import { AuthService } from '../../../security/auth-service';
+import { OAuth2Service } from '../../../security/oauth2/oauth2-service';
 import {
   createOAuth2Plugin,
   OAuth2Config
@@ -29,6 +30,8 @@ const authUser = { id: 7, verifiedEmail: true };
 let registerAuthUser: jest.Mock;
 let findByUsername: jest.Mock;
 let useOneTimeToken: jest.Mock;
+let generateOneTimeToken: jest.Mock;
+let requiresPasswordConfirmation: jest.Mock;
 let tokenRequest: jest.Mock;
 
 /** Creates a bare fastify instance with the same schema setup as `createServer`. */
@@ -88,24 +91,14 @@ beforeEach(() => {
   findByUsername = jest.fn().mockResolvedValue(authUser);
   registerAuthUser = jest.fn().mockResolvedValue(authUser);
   useOneTimeToken = jest.fn().mockResolvedValue({ redirectToUrl: REDIRECT_TO });
+  requiresPasswordConfirmation = jest.fn().mockResolvedValue(false);
+  generateOneTimeToken = jest
+    .fn()
+    .mockImplementation(async (purpose: string) => `${purpose}-token`);
 
-  define(
-    {
-      findByUsername,
-      registerAuthUser,
-      checkOAuth2User: jest.fn()
-    },
-    AuthService
-  );
-  define(
-    {
-      generateOneTimeToken: jest
-        .fn()
-        .mockImplementation(async (purpose: string) => `${purpose}-token`),
-      useOneTimeToken
-    },
-    SecurityStore
-  );
+  define({ findByUsername, registerAuthUser }, AuthService);
+  define({ requiresPasswordConfirmation, checkUser: jest.fn() }, OAuth2Service);
+  define({ generateOneTimeToken, useOneTimeToken }, SecurityStore);
 });
 
 afterEach(() => {
@@ -288,7 +281,66 @@ describe('createOAuth2Plugin', () => {
     await server.close();
   });
 
-  test('should reject an existing user whose email is not verified', async () => {
+  test('should carry the provider account and scope into the one-time token', async () => {
+    const server = await startServer(AuthSource.OAuth2Google, {
+      scope: ['profile', 'email']
+    });
+
+    await server.inject({
+      method: 'GET',
+      url: '/auth/login/google/callback?code=auth-code&state=oauth2state-token'
+    });
+
+    expect(generateOneTimeToken).toHaveBeenLastCalledWith(
+      'authentication',
+      {
+        authUserId: 7,
+        authSource: AuthSource.OAuth2Google,
+        providerAccountId: '42',
+        scope: 'profile email',
+        passwordRequired: false
+      },
+      expect.any(Number)
+    );
+    await server.close();
+  });
+
+  test('should flag the redirect when the account password has to be confirmed', async () => {
+    requiresPasswordConfirmation.mockResolvedValue(true);
+    const server = await startServer(AuthSource.OAuth2Google);
+
+    const callback = await server.inject({
+      method: 'GET',
+      url: '/auth/login/google/callback?code=auth-code&state=oauth2state-token'
+    });
+
+    expect(callback.headers.location).toBe(
+      `${REDIRECT_TO}?token=authentication-token&passwordRequired=true`
+    );
+    expect(generateOneTimeToken).toHaveBeenLastCalledWith(
+      'authentication',
+      expect.objectContaining({ passwordRequired: true }),
+      expect.any(Number)
+    );
+    await server.close();
+  });
+
+  test('should never ask a newly registered user to confirm a password', async () => {
+    findByUsername.mockResolvedValue(null);
+    const server = await startServer(AuthSource.OAuth2Google);
+
+    const callback = await server.inject({
+      method: 'GET',
+      url: '/auth/login/google/callback?code=auth-code&state=oauth2state-token'
+    });
+
+    expect(callback.headers.location).not.toContain('passwordRequired');
+    expect(requiresPasswordConfirmation).not.toHaveBeenCalled();
+    await server.close();
+  });
+
+  test('should admit an existing user whose email was never verified locally', async () => {
+    // Ownership is proven by the password confirmation instead, so an unverified address is no longer a blocker
     findByUsername.mockResolvedValue({ id: 7, verifiedEmail: false });
     const server = await startServer(AuthSource.OAuth2Google);
 
@@ -297,7 +349,10 @@ describe('createOAuth2Plugin', () => {
       url: '/auth/login/google/callback?code=auth-code&state=oauth2state-token'
     });
 
-    expect(callback.statusCode).toBe(403);
+    expect(callback.statusCode).toBe(302);
+    expect(callback.headers.location).toBe(
+      `${REDIRECT_TO}?token=authentication-token`
+    );
     await server.close();
   });
 });

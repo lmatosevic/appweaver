@@ -12,6 +12,17 @@ CREATE TABLE "ApiKey" (
 );
 
 -- CreateTable
+CREATE TABLE "ConnectedAccount" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "provider" TEXT NOT NULL,
+    "providerAccountId" TEXT NOT NULL,
+    "scope" TEXT,
+    "lastLoginAt" DATETIME NOT NULL,
+    "updatedAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
 CREATE TABLE "OneTimeToken" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "tokenHash" TEXT NOT NULL,
@@ -75,6 +86,9 @@ CREATE TABLE "_RolePermissionsPermission" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ApiKey_keyHash_key" ON "ApiKey"("keyHash");
+
+-- CreateIndex
+CREATE INDEX "ConnectedAccount_provider_providerAccountId_idx" ON "ConnectedAccount"("provider", "providerAccountId");
 
 -- CreateIndex
 CREATE INDEX "OneTimeToken_tokenHash_purpose_idx" ON "OneTimeToken"("tokenHash", "purpose");

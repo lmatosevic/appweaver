@@ -47,7 +47,14 @@ export const LogoutResponse = Type.Object(
 
 export const ExchangeTokenRequest = Type.Object(
   {
-    token: Type.String({ example: 'aBcDeFgHijkLMnO123456789' })
+    token: Type.String({ example: 'aBcDeFgHijkLMnO123456789' }),
+    password: Type.Optional(
+      Type.String({
+        description:
+          'Account password, required when the OAuth2 redirect returned `passwordRequired=true`',
+        example: 'yourPassword123!'
+      })
+    )
   },
   { $id: 'ExchangeTokenRequest' }
 );

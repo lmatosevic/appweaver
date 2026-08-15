@@ -231,6 +231,8 @@ export type Config = {
   /** Download the user's avatar image from the OAuth2 provider during registration and pass it as `avatarFile` to the
    * `registrationData` callback. Default: `false`. */
   SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: boolean;
+  /** Keep the `ConnectedAccount` database table even when every OAuth2 provider is disabled. Default: `false`. */
+  SECURITY_OAUTH2_CONNECTED_ACCOUNTS_KEEP_DATABASE_TABLE: boolean;
   /** Enable Google OAuth2 provider. Default: `false`. */
   SECURITY_OAUTH2_GOOGLE_ENABLED: boolean;
   /** Google OAuth2 client ID. */

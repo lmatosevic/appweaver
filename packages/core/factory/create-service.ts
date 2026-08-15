@@ -144,9 +144,9 @@ export function createService<T = any, C = any, U = any>(
       action: Exclude<ActionType, 'create'>,
       data: any
     ): Promise<any> {
-      const policy = injectPolicy(name);
+      const policy = injectPolicy(name, false);
 
-      if (policy.readRestrictions) {
+      if (policy?.readRestrictions) {
         const user = currentAuthUser() ?? null;
         return policy.readRestrictions(user, data, action) ?? {};
       }
@@ -160,9 +160,9 @@ export function createService<T = any, C = any, U = any>(
     ): Promise<
       Partial<ResourceData<Resource> & Partial<ResourceData<Resource>>>
     > {
-      const policy = injectPolicy(name);
+      const policy = injectPolicy(name, false);
 
-      if (policy.writeRestrictions) {
+      if (policy?.writeRestrictions) {
         const user = currentAuthUser() ?? null;
         return policy.writeRestrictions(user, data, action) ?? {};
       }
@@ -174,7 +174,7 @@ export function createService<T = any, C = any, U = any>(
       action: ActionType,
       resource: T
     ): Promise<boolean> {
-      const policy = injectPolicy(name);
+      const policy = injectPolicy(name, false);
 
       if (policy?.checkAccess) {
         const user = currentAuthUser() ?? null;

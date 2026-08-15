@@ -604,6 +604,10 @@
                   "type": "boolean",
                   "default": false
                 },
+                "connectedAccountsKeepDatabaseTable": {
+                  "type": "boolean",
+                  "default": false
+                },
                 "google": {
                   "type": "object",
                   "properties": {

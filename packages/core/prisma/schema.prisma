@@ -26,6 +26,20 @@ model ApiKey {
   createdAt DateTime @default(now())
 }
 
+model ConnectedAccount {
+  id                Int      @id @default(autoincrement())
+  provider          String
+  providerAccountId String
+  scope             String?
+  lastLoginAt       DateTime
+
+  /// Audit columns
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@index([provider, providerAccountId])
+}
+
 model OneTimeToken {
   id        Int      @id @default(autoincrement())
   tokenHash String

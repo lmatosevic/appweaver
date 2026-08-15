@@ -1,6 +1,8 @@
 import {
   AuthScope,
+  AuthSource,
   AuthUser,
+  config,
   RESOURCE_AUTH,
   RESOURCE_MODEL_TYPE,
   RESOURCE_SERVICE_TYPE,
@@ -8,6 +10,7 @@ import {
   RESOURCE_NAME
 } from '@appweaver/common';
 import { define } from '../../context';
+import { createAuthService } from '../../security/create-auth-resources';
 import { HttpError } from '../../errors';
 import {
   checkPassword,
@@ -17,6 +20,7 @@ import {
   hashPassword,
   hasRole,
   hasRoles,
+  isOAuth2Enabled,
   resourceAuthModel,
   resourceAuthService,
   updatePasswordHash,
@@ -189,6 +193,34 @@ describe('security-helper', () => {
     });
   });
 
+  describe('isOAuth2Enabled', () => {
+    const providerFlags = Object.values(AuthSource)
+      .filter((source) => source.startsWith('oauth2'))
+      .map(
+        (source) =>
+          `SECURITY_OAUTH2_${source.replace('oauth2', '').toUpperCase()}_ENABLED`
+      );
+
+    test('resolves a config flag for every OAuth2 auth source', () => {
+      // A provider whose flag is missing would silently never enable the connected accounts table
+      for (const flag of providerFlags) {
+        expect(config).toHaveProperty(flag);
+      }
+    });
+
+    test('reports disabled when no provider is turned on', () => {
+      expect(providerFlags.some((flag) => config[flag] === true)).toBe(false);
+      expect(isOAuth2Enabled()).toBe(false);
+    });
+
+    test('ignores the general OAuth2 flags that are on by default', () => {
+      expect(config.SECURITY_OAUTH2_REGISTRATION_ENABLED).toBe(true);
+      expect(providerFlags).not.toContain(
+        'SECURITY_OAUTH2_REGISTRATION_ENABLED'
+      );
+    });
+  });
+
   describe('checkScopeAccess', () => {
     test('allows a regular route for the auth scope', () => {
       expect(checkScopeAccess('/api/posts', AuthScope.Auth)).toBe(true);
@@ -355,6 +387,21 @@ describe('security-helper', () => {
 
     test('returns undefined without an auth service', () => {
       expect(resourceAuthService()).toBeUndefined();
+    });
+
+    test('still resolves an auth service that was replaced by its instance', () => {
+      const service = createAuthService({ modelName: 'User' });
+
+      // The context swaps the class for its instance on the first injection. Mirrored here without a database, since
+      // every later caller has to keep finding it: the auth marker must be reachable from an instance, not just the
+      // class.
+      const instance = Object.create(service.prototype);
+      instance[RESOURCE_TYPE] = RESOURCE_SERVICE_TYPE;
+      instance[RESOURCE_NAME] = 'User';
+
+      define(instance, 'User', 'override');
+
+      expect(resourceAuthService()).toBe(instance);
     });
   });
 });

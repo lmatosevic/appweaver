@@ -54,6 +54,7 @@ export const ModelName = {
   Post: 'Post',
   User: 'User',
   ApiKey: 'ApiKey',
+  ConnectedAccount: 'ConnectedAccount',
   Role: 'Role',
   Permission: 'Permission',
   Seeder: 'Seeder',
@@ -129,6 +130,20 @@ export const ApiKeyScalarFieldEnum = {
 } as const
 
 export type ApiKeyScalarFieldEnum = (typeof ApiKeyScalarFieldEnum)[keyof typeof ApiKeyScalarFieldEnum]
+
+
+export const ConnectedAccountScalarFieldEnum = {
+  id: 'id',
+  provider: 'provider',
+  providerAccountId: 'providerAccountId',
+  scope: 'scope',
+  lastLoginAt: 'lastLoginAt',
+  userId: 'userId',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type ConnectedAccountScalarFieldEnum = (typeof ConnectedAccountScalarFieldEnum)[keyof typeof ConnectedAccountScalarFieldEnum]
 
 
 export const RoleScalarFieldEnum = {

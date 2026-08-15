@@ -217,13 +217,13 @@ OpenID Connect provider. All of them are built from the same `createOAuth2Plugin
 9. Server finds the user by email and invokes the optional checkOAuth2User callback
    (aborts with an error when the callback returns a string or an Error).
    New users are registered unless SECURITY_OAUTH2_REGISTRATION_ENABLED=false
-10. Server generates an authentication OTT
+10. Server generates an authentication OTT, flagging it when the password has to be confirmed
 11. Server redirects to the original URL with the token:
-    -> https://myapp.com/dashboard?token={ott}
-
-12. Client exchanges the OTT for JWT tokens:
-    POST /auth/exchange-token { token: "{ott}" }
+    -> https://myapp.com/dashboard?token={ott}[&passwordRequired=true]
+12. Client exchanges the OTT for JWT tokens, adding the password when it was asked for:
+    POST /auth/exchange-token { token: "{ott}", password: "..." }
     -> { accessToken, refreshToken }
+13. Server records the provider account in the ConnectedAccount table
 ```
 
 ### Providers
@@ -260,6 +260,31 @@ with the provider.
 - **Microsoft** uses `SECURITY_OAUTH2_MICROSOFT_TENANT` (default `common`) in its endpoints, and its Graph photo is an
   authenticated binary, so it arrives as `avatarFile` instead of `avatarUrl`.
 - **Custom** targets any OpenID Connect provider (Keycloak, Auth0, …) and needs `issuer` instead of preset endpoints.
+
+### Account takeover protection
+
+An OAuth2 sign-in matches an existing user by email, so a provider account carrying someone else's address must not by
+itself unlock a password-protected account. The first time a provider is linked to a user that has a `passwordHash`, the
+redirect carries `&passwordRequired=true` and `POST /auth/exchange-token` rejects the token unless
+`{ token, password }` is sent. The one-time token is spent either way, so a wrong password means restarting the flow.
+
+Confirmation happens once: the pairing is stored in `ConnectedAccount` and later sign-ins pass through. Users without a
+password, and users being registered by the current sign-in, are never asked. There is no flag to switch this off — the
+check only ever fires where skipping it would hand the account over. Without a `ConnectedAccount` table there is nowhere
+to record the confirmation, so the password is asked on every sign-in instead.
+
+A local `verifiedEmail: false` does not block the sign-in — the provider vouches for the address and the password
+confirms the account, which together prove more than local verification would. The address is marked verified once the
+exchange succeeds.
+
+### Connected accounts
+
+`ConnectedAccount` pairs a provider account with a local user: `provider`, `providerAccountId`, `scope`, `lastLoginAt`
+(`createdAt` holds the link date) and a relation to the auth model, indexed on `[provider, providerAccountId]`. A
+provider account belongs to one user only — relinking it elsewhere fails with a 403.
+
+The table exists when any OAuth2 provider is enabled; `SECURITY_OAUTH2_CONNECTED_ACCOUNTS_KEEP_DATABASE_TABLE=true`
+keeps it after disabling OAuth2, like `SECURITY_API_KEY_KEEP_DATABASE_TABLE` does for API keys.
 
 ### OAuth2 registration control and hooks
 

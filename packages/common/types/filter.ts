@@ -111,16 +111,16 @@ export type FilterValue<V> =
  * database query. Field conditions given as sibling properties must all match,
  * while the logical operators combine their nested conditions with the
  * matching logical connective. The nested conditions can be given either as a
- * single object whose entries are combined per key, or as a list of filter
+ * single object whose entries are combined per key or as a list of filter
  * objects.
  *
  * @example
  * const filter: QueryFilter<User> = {
  *   _and: {
- *     firstName: { _eq: 'Luka', _exists: true },
+ *     firstName: { _eq: 'John', _exists: true },
  *     avatar: { title: { _like: '%avatar%' } }
  *   },
- *   _or: [{ firstName: { _like: 'Luk%' } }, { lastName: 'Matošević' }]
+ *   _or: [{ firstName: { _like: 'Jo%' } }, { lastName: 'Doe' }]
  * };
  */
 export type QueryFilter<T = any> = {

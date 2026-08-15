@@ -155,6 +155,23 @@ export function isCountField(name: string): boolean {
 }
 
 /**
+ * Reads a marker symbol off a value regardless of how it was declared or which shape the value has. Markers may sit on
+ * the value itself, on its class as a static member, or on its prototype, and the application context replaces a
+ * registered class with its instance the first time it is injected, so both shapes have to keep resolving.
+ *
+ * @param {any} value - The value to read the marker from.
+ * @param {symbol} marker - The marker symbol to look up.
+ * @return {any} The marker value, or `undefined` when the value carries it in no shape.
+ */
+export function readMarker(value: any, marker: symbol): any {
+  return (
+    value?.[marker] ??
+    value?.constructor?.[marker] ??
+    value?.prototype?.[marker]
+  );
+}
+
+/**
  * Determines whether the given value is a resource model created by
  * `createModel` or `createAuthModel`.
  *
@@ -162,7 +179,10 @@ export function isCountField(name: string): boolean {
  * @return {boolean} True when the value is a resource model.
  */
 export function isResourceModel(value: any): value is ResourceModel {
-  return isPlainObject(value) && value[RESOURCE_TYPE] === RESOURCE_MODEL_TYPE;
+  return (
+    isPlainObject(value) &&
+    readMarker(value, RESOURCE_TYPE) === RESOURCE_MODEL_TYPE
+  );
 }
 
 /**
@@ -173,7 +193,7 @@ export function isResourceModel(value: any): value is ResourceModel {
  * @return {boolean} True when the value is an authentication resource model.
  */
 export function isResourceAuthModel(value: any): value is ResourceModel {
-  return isResourceModel(value) && value[RESOURCE_AUTH];
+  return isResourceModel(value) && !!readMarker(value, RESOURCE_AUTH);
 }
 
 /**
@@ -187,7 +207,7 @@ export function isResourceAuthModel(value: any): value is ResourceModel {
 export function isResourceService(value: any): value is IResourceService {
   return (
     (isPlainObject(value) || isConstructor(value)) &&
-    value[RESOURCE_TYPE] === RESOURCE_SERVICE_TYPE
+    readMarker(value, RESOURCE_TYPE) === RESOURCE_SERVICE_TYPE
   );
 }
 
@@ -199,7 +219,7 @@ export function isResourceService(value: any): value is IResourceService {
  * @return {boolean} True when the value is an authentication resource service.
  */
 export function isResourceAuthService(value: any): value is IResourceService {
-  return isResourceService(value) && value[RESOURCE_AUTH];
+  return isResourceService(value) && !!readMarker(value, RESOURCE_AUTH);
 }
 
 /**
@@ -210,7 +230,10 @@ export function isResourceAuthService(value: any): value is IResourceService {
  * @return {boolean} True when the value is a resource routes definition.
  */
 export function isResourceRoutes(value: any): value is ResourceRoutes {
-  return isPlainObject(value) && value[RESOURCE_TYPE] === RESOURCE_ROUTES_TYPE;
+  return (
+    isPlainObject(value) &&
+    readMarker(value, RESOURCE_TYPE) === RESOURCE_ROUTES_TYPE
+  );
 }
 
 /**
@@ -221,7 +244,10 @@ export function isResourceRoutes(value: any): value is ResourceRoutes {
  * @return {boolean} True when the value is a resource policy configuration.
  */
 export function isResourcePolicy(value: any): value is ResourcePolicyConfig {
-  return isPlainObject(value) && value[RESOURCE_TYPE] === RESOURCE_POLICY_TYPE;
+  return (
+    isPlainObject(value) &&
+    readMarker(value, RESOURCE_TYPE) === RESOURCE_POLICY_TYPE
+  );
 }
 
 /**

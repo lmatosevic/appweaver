@@ -18,17 +18,16 @@ import {
   resourceAuthService,
   validatePasswordComplexity
 } from './helper';
+import { OAuth2Service } from './oauth2/oauth2-service';
 import { context, inject } from '../context';
 import { CacheService } from '../cache';
 import { HttpError } from '../errors';
 import {
   AuthOTTData,
   AuthTokens,
-  CheckOAuth2UserFn,
   JwtPayload,
   RegistrationDataFn,
-  UserAdditionalData,
-  UserInfo
+  UserAdditionalData
 } from '../types';
 
 const AUTH_KEY = 'auth';
@@ -40,6 +39,9 @@ export class AuthService {
   private readonly _cacheService = inject(CacheService);
   /** @internal */
   private readonly _authUserService = resourceAuthService()!;
+  /** Optional, since an application with no OAuth2 provider never registers it.
+   * @internal */
+  private readonly _oauth2Service = inject(OAuth2Service, false);
 
   /**
    * Finds an authenticated user by their unique identifier.
@@ -176,52 +178,6 @@ export class AuthService {
   }
 
   /**
-   * Checks whether a user is allowed to be registered and/or authenticated via OAuth2 by invoking the optional
-   * `checkOAuth2User` callback configured on the auth service. When the callback returns nothing, the OAuth2 flow
-   * proceeds normally (registration of a new user or login of an existing one). When it returns a string or an error,
-   * the flow is aborted by throwing an `HttpError`.
-   *
-   * @param {AuthSource} source - The OAuth2 authentication source, e.g., oauth2Google, oauth2Facebook, oauth2Custom.
-   * @param {UserInfo} userInfo - The user info extracted from the OAuth2 provider.
-   * @param {AuthUser | null} authUser - The existing authenticated user matched by email, or null when the user does
-   * not exist yet (i.e., a new user would be registered).
-   * @return {Promise<void>} A promise that resolves when the user is allowed to proceed.
-   * @throws {HttpError} If the configured callback returns a string or an error (status 403 unless an `HttpError` is
-   * returned, in which case it is thrown as-is).
-   */
-  public async checkOAuth2User(
-    source: AuthSource,
-    userInfo: UserInfo,
-    authUser: AuthUser | null
-  ): Promise<void> {
-    const serviceConfig: { checkOAuth2User?: CheckOAuth2UserFn } =
-      this._authUserService[CONFIG];
-
-    if (!serviceConfig.checkOAuth2User) {
-      return;
-    }
-
-    const result = await serviceConfig.checkOAuth2User(
-      source,
-      userInfo,
-      authUser
-    );
-    if (!result) {
-      return;
-    }
-
-    if (result instanceof HttpError) {
-      throw result;
-    }
-
-    throw new HttpError(
-      result instanceof Error ? result.message : result,
-      403,
-      result instanceof Error ? result : undefined
-    );
-  }
-
-  /**
    * Changes the password for the authenticated user.
    *
    * @param {AuthUser} authUser - The authenticated user object containing user details.
@@ -352,27 +308,85 @@ export class AuthService {
   }
 
   /**
-   * Exchanges an existing token for new authentication tokens.
+   * Exchanges an existing token for new authentication tokens. When the one-time token was issued for an OAuth2
+   * sign-in that needs confirming, the account password must be supplied alongside it.
    *
    * @param {string} token - The token to be exchanged for new authentication tokens.
+   * @param {string} [password] - The account password, required when the token was flagged for confirmation.
    * @return {Promise<AuthTokens>} A promise that resolves to a set of new authentication tokens.
-   * @throws {HttpError} If the token is invalid, expired, or associated with a non-existent or disabled user.
+   * @throws {HttpError} If the token is invalid, expired, associated with a non-existent or disabled user, or the
+   * required password confirmation is missing or wrong.
    */
-  public async exchangeToken(token: string): Promise<AuthTokens> {
-    const { authUserId, authSource } =
-      await this._securityStore.useOneTimeToken<AuthOTTData>(
-        token,
-        AuthOTTPurpose.Authentication
-      );
+  public async exchangeToken(
+    token: string,
+    password?: string
+  ): Promise<AuthTokens> {
+    const {
+      authUserId,
+      authSource,
+      providerAccountId,
+      scope,
+      passwordRequired
+    } = await this._securityStore.useOneTimeToken<AuthOTTData>(
+      token,
+      AuthOTTPurpose.Authentication
+    );
 
     const authUser = await this.findById(authUserId);
     if (!authUser || !authUser.enabled) {
       throw new HttpError('Auth user does not exist or is disabled', 400);
     }
 
+    if (passwordRequired) {
+      await this.confirmPassword(authUser, password);
+    }
+
+    if (providerAccountId) {
+      await this._oauth2Service?.linkConnectedAccount(
+        authUser,
+        authSource,
+        providerAccountId,
+        scope
+      );
+
+      // The provider confirmed the address, and ownership of the local account was proven by the password whenever it
+      // had one, so an address that was never verified locally is settled by this sign-in
+      if (!authUser.verifiedEmail) {
+        await this.updateAuthUser(authUser.id, { verifiedEmail: true });
+      }
+    }
+
     logger.debug({ id: authUser.id, token }, 'User token exchanged');
 
     return this.generateAuthTokens(authUser, AuthScope.Auth, authSource);
+  }
+
+  /**
+   * Verifies the account password supplied to confirm linking an OAuth2 provider.
+   *
+   * @internal
+   */
+  private async confirmPassword(
+    authUser: AuthUser,
+    password?: string
+  ): Promise<void> {
+    if (!password) {
+      throw new HttpError(
+        'Password confirmation is required to link this provider account',
+        401
+      );
+    }
+
+    if (
+      !authUser.passwordHash ||
+      !(await checkPassword(password, authUser.passwordHash))
+    ) {
+      logger.debug(
+        { id: authUser.id },
+        'OAuth2 password confirmation rejected'
+      );
+      throw new HttpError('Invalid user credentials', 401);
+    }
   }
 
   /**

@@ -294,6 +294,24 @@ describe('create-service', () => {
       await expect(new Service().find(1)).resolves.toMatchObject({ id: 1 });
     });
 
+    test('works for a resource that has no policy at all', async () => {
+      // Most framework resources ship without one, so a missing policy must not fail the request
+      context.resource.policies.delete('Post');
+      const Service = createService({ modelName: 'Post' });
+      const service = new Service();
+
+      await expect(service.find(1)).resolves.toMatchObject({ id: 1 });
+      await expect(service.query({})).resolves.toMatchObject({
+        items: [{ id: 1 }]
+      });
+      await expect(
+        service.create({ title: 'First' } as any)
+      ).resolves.toMatchObject({ id: 1 });
+      await expect(
+        service.update(1, { title: 'Updated' } as any)
+      ).resolves.toMatchObject({ id: 1 });
+    });
+
     test('falls back to no restrictions when the policy has none', async () => {
       const Service = createService({ modelName: 'Post' });
 
