@@ -146,17 +146,18 @@ The package exposes a `weaver-client` CLI binary. See **Section 6** for the full
 
 **Key source locations:**
 
-| Path                            | Purpose                                                          |
-|---------------------------------|------------------------------------------------------------------|
-| `weaver-client.ts`              | CLI entry point                                                  |
-| `commands/generate-command.ts`  | `generate` command — schema I/O and file writing                 |
-| `generators/generate-types.ts`  | OpenAPI → TypeScript type definitions                            |
-| `generators/generate-client.ts` | OpenAPI → typed client class                                     |
-| `utils/enum-util.ts`            | Hoists the enums a schema repeats inline into shared definitions |
-| `clients/fetch-client.ts`       | `FetchClient` base class with auth/middleware                    |
-| `clients/modules/`              | `ResourceClient`, `AuthClient`, `AccountClient`, etc.            |
-| `errors/client-error.ts`        | `ClientError` with HTTP status code and response object          |
-| `constants.ts`                  | OpenAPI extension keys and operation/type mapping tables         |
+| Path                            | Purpose                                                              |
+|---------------------------------|----------------------------------------------------------------------|
+| `weaver-client.ts`              | CLI entry point                                                      |
+| `commands/generate-command.ts`  | `generate` command — schema I/O and file writing                     |
+| `generators/generate-types.ts`  | OpenAPI → TypeScript type definitions                                |
+| `generators/generate-client.ts` | OpenAPI → typed client class                                         |
+| `utils/hoist-util.ts`           | Hoists the schemas a document repeats inline into shared definitions |
+| `utils/enum-util.ts`            | Rewrites the generated enums into constant objects and value unions  |
+| `clients/fetch-client.ts`       | `FetchClient` base class with auth/middleware                        |
+| `clients/modules/`              | `ResourceClient`, `AuthClient`, `AccountClient`, etc.                |
+| `errors/client-error.ts`        | `ClientError` with HTTP status code and response object              |
+| `constants.ts`                  | OpenAPI extension keys and operation/type mapping tables             |
 
 ---
 

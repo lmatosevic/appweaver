@@ -1,7 +1,11 @@
 import openapiTS, { astToString, OpenAPI3 } from 'openapi-typescript';
 import ts from 'typescript';
-import { hoistSharedEnums, toSchemaObject } from '../utils';
-import { RoutePathConfig } from '../types';
+import {
+  hoistSharedTypes,
+  rewriteEnumsAsObjects,
+  toSchemaObject
+} from '../utils';
+import { GenerateTypesOptions, RoutePathConfig } from '../types';
 import {
   ACCOUNT_MODULE_TYPE,
   ACCOUNT_TYPES,
@@ -19,18 +23,20 @@ import {
  *
  * @param {string | OpenAPI3} schema - The OpenAPI V3 schema to generate types from. The value can be a string
  * representing JSON or YAML format, or an already parsed OpenAPI3 object.
+ * @param {GenerateTypesOptions} [options] - Options controlling how the types are emitted.
  * @return {Promise<string>} A promise that resolves to a string containing the generated TypeScript types.
  */
 export async function generateTypes(
-  schema: string | OpenAPI3
+  schema: string | OpenAPI3,
+  options: GenerateTypesOptions = {}
 ): Promise<string> {
-  // The schema is copied before the shared enums are hoisted into it, so the
-  // caller keeps the schema it passed in unchanged
+  // The schema is copied before the shared definitions are hoisted into it, so
+  // the caller keeps the schema it passed in unchanged
   const schemaObject =
     typeof schema === 'string'
       ? await toSchemaObject(schema)
       : structuredClone(schema);
-  const sharedEnums = hoistSharedEnums(schemaObject);
+  const sharedTypes = hoistSharedTypes(schemaObject);
 
   const ast = await openapiTS(schemaObject, {
     exportType: true,
@@ -85,10 +91,11 @@ export async function generateTypes(
   });
 
   let typesContent = astToString(deduplicateUnionConstituents(ast));
-  typesContent = extractSchemaTypes(typesContent, sharedEnums);
+  typesContent = extractSchemaTypes(typesContent, sharedTypes);
   typesContent = combineModuleTypes(typesContent, schemaObject);
   typesContent = deduplicateExportedTypes(typesContent);
-  return replaceFileUploadTypes(typesContent);
+  typesContent = replaceFileUploadTypes(typesContent);
+  return rewriteEnumsAsObjects(typesContent, options.declaration);
 }
 
 /**
@@ -103,14 +110,18 @@ export async function generateTypes(
  *
  * And replaces the inline body in `schemas` with a reference to the new type.
  *
+ * The definitions holding the schemas shared between the other definitions are lifted the
+ * same way, whether they hold an object or, as the hoisted enums and filter values do, a
+ * union of their own.
+ *
  * @param {string} typeContent - The generated TypeScript type content as a string.
- * @param {string[]} sharedEnums - The names of the definitions holding the enums shared
+ * @param {string[]} sharedTypes - The names of the definitions holding the schemas shared
  * between the other definitions, whose references are replaced by the name alone.
  * @return {string} The transformed types content with extracted schema types.
  */
 function extractSchemaTypes(
   typeContent: string,
-  sharedEnums: string[] = []
+  sharedTypes: string[] = []
 ): string {
   const extractedTypes: string[] = [];
   const typeNames = new Set<string>();
@@ -206,9 +217,18 @@ function extractSchemaTypes(
   }
   updatedBaseContent += normalizedTypes.slice(cursor);
 
+  // Lift the shared definitions holding a union rather than an object, which the
+  // entries above leave in place (i.e. `QueryFilterValue: QueryFilterScalar | ...;`)
+  updatedBaseContent = extractSharedTypes(
+    updatedBaseContent,
+    sharedTypes,
+    extractedTypes,
+    typeNames
+  );
+
   // Replace all cross-references like components["schemas"]["def-89"] with the type name
   const references = new Map<string, string>(
-    sharedEnums.map((name) => [`"${name}"`, name])
+    sharedTypes.map((name) => [`"${name}"`, name])
   );
   for (const [defKey, typeName] of defToTypeName) {
     references.set(defKey, typeName);
@@ -260,6 +280,104 @@ function extractSchemaTypes(
   );
 
   return updatedBaseContent + '\n' + mergedExtractedTypes;
+}
+
+/**
+ * Lifts the shared definitions holding a type of their own out of the generated `schemas`
+ * block, so the type they hold is declared once and referenced by name everywhere else.
+ *
+ * Finds entries like:
+ *   QueryFilterValue: QueryFilterScalar | QueryFilterScalar[] | QueryCondition;
+ *
+ * Lifts each one into:
+ *   export type QueryFilterValue = QueryFilterScalar | QueryFilterScalar[] | QueryCondition;
+ *
+ * The definitions holding nothing but a reference to a type declared elsewhere, as the hoisted
+ * enums do, are left alone.
+ *
+ * @param {string} content - The generated types, with the object definitions already extracted.
+ * @param {string[]} names - The names of the shared definitions to lift.
+ * @param {string[]} extractedTypes - The extracted types, appended to for every lifted entry.
+ * @param {Set<string>} typeNames - The names already extracted, added to for every lifted entry.
+ * @return {string} The types with the body of every lifted entry replaced by its name.
+ */
+function extractSharedTypes(
+  content: string,
+  names: string[],
+  extractedTypes: string[],
+  typeNames: Set<string>
+): string {
+  // The definitions live in the components block, so a property named after one of them
+  // elsewhere in the types is never mistaken for its declaration
+  const componentsStart = content.indexOf('export type components');
+  if (componentsStart < 0) {
+    return content;
+  }
+
+  for (const name of names) {
+    if (typeNames.has(name)) {
+      continue;
+    }
+
+    // The entry starts on a line of its own, optionally preceded by the JSDoc header
+    // holding the name of the definition
+    const entry = new RegExp(
+      String.raw`\n[ \t]*(?:\/\*\*(?:(?!\*\/)[\s\S])*\*\/\s*)?${name}: `
+    ).exec(content.slice(componentsStart));
+    if (!entry) {
+      continue;
+    }
+
+    const start = componentsStart + entry.index + entry[0].length;
+    const end = findTypeEnd(content, start);
+    const body = content.slice(start, end).trim();
+
+    // A definition referencing a type declared elsewhere holds nothing to lift
+    if (!body || body === name) {
+      continue;
+    }
+
+    typeNames.add(name);
+    extractedTypes.push(`export type ${name} = ${body};\n`);
+    content = content.slice(0, start) + name + content.slice(end);
+  }
+
+  return content;
+}
+
+/**
+ * Finds the end of the type starting at the given index, which is the first semicolon that is
+ * not nested inside braces, brackets, parentheses or a string literal.
+ *
+ * @param {string} content - The content holding the type.
+ * @param {number} start - The index the type starts at.
+ * @return {number} The index of the semicolon terminating the type.
+ */
+function findTypeEnd(content: string, start: number): number {
+  const closing: Record<string, string> = { '{': '}', '[': ']', '(': ')' };
+  const stack: string[] = [];
+
+  for (let i = start; i < content.length; i++) {
+    const character = content[i];
+
+    if (character === '"' || character === "'") {
+      i = content.indexOf(character, i + 1);
+      if (i < 0) {
+        return content.length;
+      }
+      continue;
+    }
+
+    if (closing[character]) {
+      stack.push(closing[character]);
+    } else if (character === stack[stack.length - 1]) {
+      stack.pop();
+    } else if (character === ';' && stack.length === 0) {
+      return i;
+    }
+  }
+
+  return content.length;
 }
 
 /**

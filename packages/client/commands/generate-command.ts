@@ -71,7 +71,9 @@ export function generateCommand(program: Command): void {
       const schemaObject = await toSchemaObject(schemaContent);
 
       if (!clientOnly && !noTypes) {
-        const typesContent = await generateTypes(schemaObject);
+        const typesContent = await generateTypes(schemaObject, {
+          declaration: typesPath.endsWith('.d.ts')
+        });
         await formatAndWriteFile(
           typesPath,
           typesContent,

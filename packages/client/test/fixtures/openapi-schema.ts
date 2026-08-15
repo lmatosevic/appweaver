@@ -23,6 +23,36 @@ const body = (def: string, mimeType: string = 'application/json') => ({
   content: { [mimeType]: { schema: { $ref: `#/components/schemas/${def}` } } }
 });
 
+// The primitive types a filter value takes, declared inline by every filterable
+// field of every resource, as an Appweaver schema declares them
+const plainValue = {
+  anyOf: [
+    { type: 'string' },
+    { type: 'number' },
+    { type: 'boolean' },
+    { type: 'null' }
+  ]
+};
+
+const filterValue = (description: string) => ({
+  description,
+  anyOf: [
+    plainValue,
+    { type: 'array', items: plainValue },
+    { $ref: '#/components/schemas/def-22' }
+  ]
+});
+
+const relationFilterValue = (def: string, description: string) => ({
+  description,
+  anyOf: [
+    plainValue,
+    { type: 'array', items: plainValue },
+    { $ref: `#/components/schemas/${def}` },
+    { type: 'array', items: { $ref: `#/components/schemas/${def}` } }
+  ]
+});
+
 const idParameter = [
   {
     schema: { type: 'integer' },
@@ -73,7 +103,8 @@ const SCHEMA: any = {
         properties: {
           page: { type: 'integer', minimum: 1, maximum: 1000 },
           size: { type: 'integer' },
-          sort: { $ref: '#/components/schemas/def-20' }
+          sort: { $ref: '#/components/schemas/def-20' },
+          filter: { $ref: '#/components/schemas/def-23' }
         }
       },
       'def-20': {
@@ -93,6 +124,44 @@ const SCHEMA: any = {
         properties: {
           id: { type: 'string', enum: ['asc', 'desc'], example: 'desc' },
           email: { type: 'string', enum: ['asc', 'desc'], example: 'desc' }
+        }
+      },
+      'def-22': {
+        title: 'QueryCondition',
+        type: 'object',
+        properties: {
+          _eq: { description: 'Matches equal values', ...plainValue },
+          _in: {
+            description: 'Matches values of the list',
+            type: 'array',
+            items: plainValue
+          }
+        }
+      },
+      'def-23': {
+        title: 'PostQueryFilter',
+        description: 'Query filter for the Post resource',
+        type: 'object',
+        properties: {
+          _and: {
+            description: 'Matches records satisfying all the conditions',
+            anyOf: [
+              { $ref: '#/components/schemas/def-23' },
+              { type: 'array', items: { $ref: '#/components/schemas/def-23' } }
+            ]
+          },
+          id: filterValue('Filter by the record id'),
+          title: filterValue('Filter by the title field'),
+          author: relationFilterValue('def-24', 'Filter by the author relation')
+        }
+      },
+      'def-24': {
+        title: 'UserQueryFilter',
+        description: 'Query filter for the User resource',
+        type: 'object',
+        properties: {
+          id: filterValue('Filter by the record id'),
+          email: filterValue('Filter by the email field')
         }
       },
       'def-3': {

@@ -18,6 +18,35 @@ export const SHARED_ENUM_NAMES: Record<string, string> = {
   'asc|desc': 'SortDirection'
 };
 
+/** The primitive types a plain filter value takes, as an Appweaver schema declares them. */
+const FILTER_SCALAR = {
+  anyOf: [
+    { type: 'string' },
+    { type: 'number' },
+    { type: 'boolean' },
+    { type: 'null' }
+  ]
+};
+
+/** Shapes an Appweaver schema repeats inline across its definitions, and the name of the shared
+ * definition each of them is hoisted into. A `$ref` names the title of the definition it points
+ * to, since the keys the definitions are generated under vary per document. The shapes are
+ * matched in the order they are declared, so an outer shape is hoisted before the shapes nested
+ * inside it (i.e. `QueryFilterValue` before the `QueryFilterScalar` it is built from). */
+export const SHARED_SCHEMA_SHAPES: { name: string; schema: unknown }[] = [
+  {
+    name: 'QueryFilterValue',
+    schema: {
+      anyOf: [
+        FILTER_SCALAR,
+        { type: 'array', items: FILTER_SCALAR },
+        { $ref: 'QueryCondition' }
+      ]
+    }
+  },
+  { name: 'QueryFilterScalar', schema: FILTER_SCALAR }
+];
+
 /** Suffix used when generating the TypeScript module type name for a resource. */
 export const RESOURCE_MODULE_TYPE = 'ResourceModuleType';
 

@@ -52,7 +52,8 @@
     "node": ">= 22"
   },
   "scripts": {
-    "weaver-client": "node ./dist/cjs/weaver-client.js"
+    "generate-client": "node ./dist/cjs/weaver-client.js generate ./generated/openapi.json --outputPath ./generated/client.ts",
+    "generate-client-schema": "node ./dist/cjs/weaver-client.js generate ./generated/openapi.json --typesPath ./generated/schema.d.ts --clientPath ./generated/client.ts"
   },
   "dependencies": {
     "commander": "15.0.0",

@@ -55,20 +55,58 @@ describe('generate-types', () => {
     });
 
     test('names generated enums after the extracted type', () => {
-      expect(types).toContain('export enum PostSingleStatus {');
+      expect(types).toContain('export const PostSingleStatus = {');
       expect(types).toContain('status?: PostSingleStatus;');
       expect(types).not.toMatch(/\bDef\d+\w*\b/);
     });
 
+    test('generates the enums as objects usable as values and as literals', () => {
+      expect(types).not.toContain('export enum ');
+      expect(types).toContain(
+        'export type SortDirection = (typeof SortDirection)[keyof typeof SortDirection];'
+      );
+      expect(enumMembers(types, 'SortDirection')).toEqual([
+        'asc: "asc"',
+        'desc: "desc"'
+      ]);
+    });
+
     test('hoists a repeated enum into a single shared enum', () => {
-      expect(enumNames(types, 'asc = "asc"')).toEqual(['SortDirection']);
+      expect(enumNames(types, 'asc: "asc"')).toEqual(['SortDirection']);
       expect(types).toContain('id?: SortDirection;');
       expect(types).toContain('email?: SortDirection;');
     });
 
     test('names a hoisted enum after the definitions sharing it', () => {
-      expect(enumNames(types, 'public = "public"')).toEqual(['PostVisibility']);
+      expect(enumNames(types, 'public: "public"')).toEqual(['PostVisibility']);
       expect(types).toContain('visibility?: PostVisibility;');
+    });
+
+    test('declares the repeated filter value once and references it', () => {
+      expect(types).toContain(
+        'export type QueryFilterScalar = string | number | boolean | null;'
+      );
+      expect(types).toMatch(
+        /export type QueryFilterValue = QueryFilterScalar \| QueryFilterScalar\[] \| QueryCondition;/
+      );
+
+      const filter = extractType(types, 'PostQueryFilter');
+      expect(filter).toContain('id?: QueryFilterValue;');
+      expect(filter).toContain('title?: QueryFilterValue;');
+      expect(filter).not.toContain('string | number | boolean | null');
+    });
+
+    test('keeps the branches a relation filter adds to the plain values', () => {
+      expect(extractType(types, 'PostQueryFilter')).toContain(
+        'author?: QueryFilterScalar | QueryFilterScalar[] | UserQueryFilter | UserQueryFilter[];'
+      );
+    });
+
+    test('keeps the description of every filtered field', () => {
+      const filter = extractType(types, 'PostQueryFilter');
+      expect(filter).toContain('@description Filter by the record id');
+      expect(filter).toContain('@description Filter by the title field');
+      expect(filter).toContain('@description Filter by the author relation');
     });
 
     test('leaves the references to the hoisted enums resolvable', () => {
@@ -152,12 +190,34 @@ describe('generate-types', () => {
       );
       expect(fromString).toBe(types);
     });
+
+    test('declares the enum objects when generating a declaration file', async () => {
+      const declarations = await generateTypes(createOpenApiSchema(), {
+        declaration: true
+      });
+
+      expect(declarations).toContain('export declare const SortDirection: {');
+      expect(declarations).toContain('readonly asc: "asc";');
+      expect(declarations).not.toContain('as const');
+      expect(declarations).toContain(
+        'export type SortDirection = (typeof SortDirection)[keyof typeof SortDirection];'
+      );
+    });
   });
 });
 
+function extractType(types: string, name: string): string {
+  const start = types.indexOf(`export type ${name} = {`);
+  expect(start).toBeGreaterThanOrEqual(0);
+
+  // The body ends on the first line holding nothing but the closing brace
+  const end = types.slice(start).search(/\n\s*}/);
+  return types.slice(start, start + end);
+}
+
 function enumNames(types: string, member: string): string[] {
   const names: string[] = [];
-  const pattern = /export enum (\w+) \{([^}]*)}/g;
+  const pattern = /export const (\w+) = \{([^}]*)} as const;/g;
 
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(types)) !== null) {
@@ -167,6 +227,17 @@ function enumNames(types: string, member: string): string[] {
   }
 
   return names;
+}
+
+function enumMembers(types: string, name: string): string[] {
+  const match = types.match(
+    new RegExp(`export const ${name} = \\{([^}]*)} as const;`)
+  );
+  expect(match).not.toBeNull();
+  return match![1]
+    .split(',')
+    .map((member) => member.trim())
+    .filter(Boolean);
 }
 
 function moduleType(types: string, name: string): string {
