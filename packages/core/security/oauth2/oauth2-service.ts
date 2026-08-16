@@ -2,7 +2,6 @@ import {
   AuthSource,
   AuthUser,
   CONFIG,
-  IResourceService,
   logger,
   ResourceId,
   uncapitalize
@@ -10,14 +9,12 @@ import {
 import { injectService } from '../../context';
 import { HttpError } from '../../errors';
 import { resourceAuthService } from '../helper';
-import { CheckOAuth2UserFn, ConnectedAccount, UserInfo } from '../../types';
-
-type ConnectedAccountResourceService = IResourceService<
+import {
+  CheckOAuth2UserFn,
   ConnectedAccount,
-  ConnectedAccount,
-  Partial<ConnectedAccount>,
-  Partial<ConnectedAccount>
->;
+  ConnectedAccountResourceService,
+  UserInfo
+} from '../../types';
 
 /**
  * Handles the parts of authentication that only apply to OAuth2 sign-ins: the application's own admission check, the

@@ -67,7 +67,7 @@ export async function generateTypes(
 
     if (Object.keys(modelTypeNames).length > 0) {
       typesContent.push(
-        `import { AggregateSelect, QueryFilter, QuerySort } from '@appweaver/common';`,
+        `import { AggregateSelect, IResourceService, QueryFilter, QuerySort } from '@appweaver/common';`,
         ``
       );
     }
@@ -86,6 +86,12 @@ export async function generateTypes(
       );
       typesContent.push(
         `export type ${name}Aggregate = AggregateSelect<${name}>;`,
+        ``
+      );
+      // Emitted last, with the arguments making the aliases above exactly the
+      // inputs its methods accept
+      typesContent.push(
+        `export type ${name}ResourceService = IResourceService<${name}, ${name}Multiple, ${name}Create, ${name}Update, ${name}Query>;`,
         ``
       );
     }

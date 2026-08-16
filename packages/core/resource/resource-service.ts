@@ -2,6 +2,7 @@ import {
   ActionType,
   AggregateResponse,
   AggregateSelect,
+  AggregateSelected,
   countFieldName,
   Database,
   defaultScalarValue,
@@ -230,19 +231,21 @@ export abstract class ResourceService<
    * When false, the step is interpreted in seconds.
    * @returns {Promise<AggregateResponse<Object>>} The aggregation response with
    * the overall total and one result per period, each labeled with the median
-   * date of its period.
+   * date of its period. It is typed by the fields the selection named, not by
+   * the whole model, whenever the selection is passed as an object literal or
+   * annotated with `satisfies`.
    * @throws {@link HttpError} 400 if the selection is empty or names a field or
    * operator that cannot be aggregated, and 500 on a database error.
    */
-  public async aggregate(
+  public async aggregate<S extends AggregateSelect<ReadOne>>(
     filter: Query = {} as any,
-    select: AggregateSelect<ReadOne>,
+    select: S,
     dateField: string = 'createdAt',
     from?: string,
     to?: string,
     step?: number,
     safeIncrement: boolean = true
-  ): Promise<AggregateResponse<ReadOne>> {
+  ): Promise<AggregateResponse<AggregateSelected<ReadOne, S>>> {
     const {
       fromDate,
       toDate,
@@ -310,10 +313,10 @@ export abstract class ResourceService<
     }
 
     return {
-      total: mapAggregationResult<ReadOne>(total),
+      total: mapAggregationResult<AggregateSelected<ReadOne, S>>(total),
       items: items.map((item, index) => ({
         date: dateRanges[index].median,
-        result: mapAggregationResult<ReadOne>(item)
+        result: mapAggregationResult<AggregateSelected<ReadOne, S>>(item)
       }))
     };
   }

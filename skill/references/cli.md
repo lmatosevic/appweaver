@@ -71,6 +71,10 @@ Generate types and/or schemas. With no flags, generates both types and schema.
 | `--clientPath [path]`      | Output path for generated Prisma client | `config.DATABASE_CLIENT_OUTPUT_DIR_PATH` |
 | `--verbose`                | Print verbose output                    | `false`                                  |
 
+Per model, the type file holds `<Model>`, `<Model>Single`, `<Model>Multiple`, `<Model>Create`, `<Model>Update`,
+`<Model>RelationCreate`, `<Model>RelationUpdate`, `<Model>RelationInput`, `<Model>Query`, `<Model>Sort`,
+`<Model>Aggregate`, and last `<Model>ResourceService`, the `injectService` type of that model.
+
 ---
 
 ## `weaver migrate`

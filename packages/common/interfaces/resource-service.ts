@@ -1,6 +1,7 @@
 import {
   AggregateResponse,
   AggregateSelect,
+  AggregateSelected,
   QueryFilter,
   QueryResponse,
   QuerySort,
@@ -54,6 +55,9 @@ export interface IResourceService<
   /**
    * Aggregates data based on the provided query, selection criteria, and optional date range parameters.
    *
+   * The response is typed by the selection rather than by the whole model, so it holds only the fields the selection
+   * named when it is passed as an object literal or annotated with `satisfies`.
+   *
    * @param {Query} filter - The query object used to filter records for aggregation.
    * @param {AggregateSelect<Object>} select - The aggregation selection criteria specifying the fields and operations.
    * @param {string} [dateField] - The optional date field to use for range-based aggregation.
@@ -65,15 +69,15 @@ export interface IResourceService<
    * @return {Promise<AggregateResponse<Object>>} A promise that resolves to the aggregated response based on the
    * criteria.
    */
-  aggregate(
+  aggregate<S extends AggregateSelect<ReadOne>>(
     filter: Query,
-    select: AggregateSelect<ReadOne>,
+    select: S,
     dateField?: string,
     from?: string,
     to?: string,
     step?: number,
     safeIncrement?: boolean
-  ): Promise<AggregateResponse<ReadOne>>;
+  ): Promise<AggregateResponse<AggregateSelected<ReadOne, S>>>;
 
   /**
    * Creates a new resource based on the provided data.

@@ -101,6 +101,15 @@ export default createService({
 });
 ```
 
+Inject a resource service anywhere with the `<Model>ResourceService` alias `weaver generate` emits per model:
+
+```ts
+import { injectService } from '@appweaver/core';
+import { ProductResourceService } from '@/types/generated';
+
+const products = injectService<ProductResourceService>('Product');
+```
+
 ### Routes
 
 ```ts

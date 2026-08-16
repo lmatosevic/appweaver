@@ -1248,6 +1248,31 @@ describe('resource-service', () => {
       });
     });
 
+    // The assertions on the response type are checked by `npm run test:typecheck`
+    test('types the response by the fields the selection named', async () => {
+      class TypedPostService extends ResourceService<{
+        id: number;
+        title: string;
+        views: number;
+        publishedAt: Date;
+      }> {
+        constructor() {
+          super('Post');
+        }
+      }
+
+      const result = await new TypedPostService().aggregate(
+        {},
+        { views: { sum: true } }
+      );
+
+      // @ts-expect-error publishedAt was not part of the selection
+      const unselected = result.total.publishedAt;
+
+      expect(result.total.views?.sum).toBe(8);
+      expect(unselected).toBeUndefined();
+    });
+
     test('splits the interval into periods', async () => {
       const result = await service.aggregate(
         {},

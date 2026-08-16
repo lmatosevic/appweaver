@@ -274,6 +274,17 @@ export default createService({
 });
 ```
 
+Any code can reach a resource service with `injectService`, typed by the `<Model>ResourceService` alias `weaver
+generate` emits per model, so no service type has to be written by hand:
+
+```ts
+import { injectService } from '@appweaver/core';
+import { ProductResourceService } from '@/types/generated';
+
+const products = injectService<ProductResourceService>('Product');
+const product = await products.find(1);
+```
+
 #### Creating the resource routes
 
 Resource routes define which CRUD endpoints are exposed for a resource and how they behave: the base URL path,
@@ -453,8 +464,17 @@ additional queries, skipped for the periods holding no record.
 Any other field (string, boolean, enum, JSON, array, hidden, virtual, or a relation), an operator its type does not
 support, an empty selection, or a `dateField` that is not a date field is rejected with a `400` error. Selections are
 typed by `AggregateSelect<T>` from `@appweaver/common`, with a `<Model>Aggregate` alias emitted per model, and validated
-over HTTP against a generated `<Model>AggregateSelect` JSON schema. The response stays untyped JSON, since its shape
-follows the selection.
+over HTTP against a generated `<Model>AggregateSelect` JSON schema.
+
+The response type is inferred from the selection, so a selection given as an object literal (or declared with
+`satisfies <Model>Aggregate`) narrows it to the selected fields, while one annotated as `<Model>Aggregate` keeps every
+aggregatable field of the model:
+
+```ts
+const stats = await injectService<PostResourceService>('Post').aggregate({}, { counter: { sum: true } });
+stats.total.counter?.sum; // typed
+stats.total.publishedAt;  // compile error, the field was not selected
+```
 
 ### Registering a custom route
 

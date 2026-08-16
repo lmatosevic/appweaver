@@ -3,6 +3,7 @@ import {
   ActionType,
   AggregateResponse,
   AggregateSelect,
+  AggregateSelected,
   capitalize,
   CONFIG,
   Ctor,
@@ -65,15 +66,15 @@ export function createService<T = any, C = any, U = any>(
       return result;
     }
 
-    async aggregate(
+    async aggregate<S extends AggregateSelect<T>>(
       filter: any = {} as any,
-      select: AggregateSelect<any>,
+      select: S,
       dateField: string = 'createdAt',
       from?: string,
       to?: string,
       step?: number,
       safeIncrement: boolean = true
-    ): Promise<AggregateResponse<any>> {
+    ): Promise<AggregateResponse<AggregateSelected<T, S>>> {
       await config.beforeAggregate?.(
         filter,
         select,
@@ -94,7 +95,9 @@ export function createService<T = any, C = any, U = any>(
         safeIncrement
       );
 
-      await config.afterAggregate?.(result);
+      // The hook is declared once for the model, so it takes the response of
+      // every selection, of which this one holds a subset of the fields
+      await config.afterAggregate?.(result as AggregateResponse<T>);
 
       return result;
     }

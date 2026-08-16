@@ -185,7 +185,7 @@ describe('generate-types', () => {
       });
 
       expect(types).toContain(
-        `import { AggregateSelect, QueryFilter, QuerySort } from '@appweaver/common';`
+        `import { AggregateSelect, IResourceService, QueryFilter, QuerySort } from '@appweaver/common';`
       );
       expect(types).toContain('export type PostQuery = QueryFilter<Post>;');
       expect(types).toContain('export type UserQuery = QueryFilter<User>;');
@@ -219,6 +219,20 @@ describe('generate-types', () => {
       );
     });
 
+    test('generates a resource service type for every resource', async () => {
+      const { types } = await generate({
+        Post: model('Post', Type.Object({ id: Type.Integer() })),
+        User: model('User', Type.Object({ email: Type.String() }))
+      });
+
+      expect(types).toContain(
+        'export type PostResourceService = IResourceService<Post, PostMultiple, PostCreate, PostUpdate, PostQuery>;'
+      );
+      expect(types).toContain(
+        'export type UserResourceService = IResourceService<User, UserMultiple, UserCreate, UserUpdate, UserQuery>;'
+      );
+    });
+
     test('skips the query filter type for disabled models', async () => {
       const { types } = await generate({
         Draft: model('Draft', Type.Object({ id: Type.Integer() }), {
@@ -226,10 +240,11 @@ describe('generate-types', () => {
         })
       });
 
-      expect(types).not.toContain('import { AggregateSelect, QueryFilter');
+      expect(types).not.toContain('import { AggregateSelect, IResourceService');
       expect(types).not.toContain('export type DraftQuery');
       expect(types).not.toContain('export type DraftSort');
       expect(types).not.toContain('export type DraftAggregate');
+      expect(types).not.toContain('export type DraftResourceService');
     });
 
     test('emits the query type at the end of its own model group', async () => {
@@ -250,6 +265,9 @@ describe('generate-types', () => {
         types.indexOf('export type PostAggregate')
       );
       expect(types.indexOf('export type PostAggregate')).toBeLessThan(
+        types.indexOf('export type PostResourceService')
+      );
+      expect(types.indexOf('export type PostResourceService')).toBeLessThan(
         types.indexOf('export type User = {')
       );
       expect(types.indexOf('export type UserRelationInput')).toBeLessThan(

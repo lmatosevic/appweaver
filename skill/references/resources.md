@@ -814,6 +814,25 @@ The created service exposes the following methods:
 | `create`    | `(data) => Promise<ReadOne>`                                                                      | Create a new resource.                                                                           |
 | `update`    | `(id, data) => Promise<ReadOne>`                                                                  | Update an existing resource.                                                                     |
 | `delete`    | `(id) => Promise<ReadOne>`                                                                        | Delete a resource.                                                                               |
+| `client`    | `ResourceClient` (property)                                                                       | Database client of the model, for operations outside the model contract.                         |
+
+### Typed service injection
+
+`weaver generate` emits a `<Model>ResourceService` alias per model, so `injectService` needs no hand-written type:
+
+```ts
+import { injectService } from '@appweaver/core';
+import { PostResourceService } from '@/types/generated';
+
+const posts = injectService<PostResourceService>('Post');
+```
+
+The alias is `IResourceService<<Model>, <Model>Multiple, <Model>Create, <Model>Update, <Model>Query>`, so the
+`<Model>Query`, `<Model>Sort`, and `<Model>Aggregate` aliases are exactly the inputs its methods accept.
+
+The `create` and `update` inputs are the model's declared contracts, so a field an operation config omits, a hidden
+scalar, or a relation with `input: { type: 'none' }` is deliberately not part of them. A write outside the contract
+belongs on `service.client`, the database client of the model.
 
 ### Query filters
 
@@ -1028,10 +1047,24 @@ const select: PostAggregate = { counter: { sum: true }, createdAt: { max: true }
 const stats = await postService.aggregate({}, select);
 ```
 
+`aggregate` infers the response type from the selection it is given, so a selection passed as an object literal, or
+declared with `satisfies`, narrows the response to the fields it names, while one annotated as `<Model>Aggregate` keeps
+every aggregatable field of the model:
+
+```ts
+const narrow = await postService.aggregate({}, { counter: { sum: true } });
+narrow.total.counter?.sum; // typed
+narrow.total.createdAt;    // compile error, the field was not selected
+
+const select = { counter: { sum: true } } satisfies PostAggregate; // narrows and checks against the model
+const wide: PostAggregate = { counter: { sum: true } };            // keeps the whole model in the response type
+```
+
 ### Aggregate response
 
-The response is untyped JSON, since its shape follows whatever was selected. Each aggregated field holds one property
-per operator applied to it:
+The response shape follows whatever was selected, and its type carries the fields of the selection (see
+[Aggregate selection](#aggregate-selection)). Each aggregated field holds one property per operator applied to it, and
+the operators the selection left out are `undefined`:
 
 ```ts
 const resp = {

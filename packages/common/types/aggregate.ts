@@ -65,6 +65,20 @@ export type AggregateSelect<T = any> = {
     : never]?: DateAggregateSelect;
 };
 
+/**
+ * The fields of a model an aggregate selection asked for, used to type an
+ * aggregate response by the selection that produced it instead of by the whole
+ * model. A selection passed as an object literal, or annotated with
+ * `satisfies <Model>Aggregate`, narrows to the fields it names, while one typed
+ * as `<Model>Aggregate` keeps every aggregatable field of the model.
+ *
+ * @example
+ * // AggregateSelected<Post, { views: { sum: true } }> is { views: number }
+ * const response = await postService.aggregate({}, { views: { sum: true } });
+ * response.total.views?.sum;
+ */
+export type AggregateSelected<T, S> = Pick<T, Extract<keyof S, keyof T>>;
+
 export type AggregateValue<T> = Partial<Record<keyof T, AggregateFunction>>;
 
 export type AggregateResult<T> = {
