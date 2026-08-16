@@ -10,12 +10,14 @@ import {
   InputType,
   isPlainObject,
   isRelationArray,
+  isResourceAuthModel,
   logger,
   Nullable,
   OperationConfig,
   OutputType,
   pickProperties,
   RelationField,
+  RESOURCE_MODEL_RELINK,
   RESOURCE_MODEL_TYPE,
   RESOURCE_NAME,
   RESOURCE_TYPE,
@@ -26,13 +28,34 @@ import {
   StringEnum,
   VirtualConfig
 } from '@appweaver/common';
-import { define } from '../context';
-import { AuditData, Id, IdString } from '../resource';
+import { context, define } from '../context';
+import {
+  auditSchema as buildAuditFieldsSchema,
+  idSchema as buildIdSchema,
+  idValueSchema
+} from '../resource';
 
 export function createModel(
   config: ResourceModelConfig,
   override: boolean = false
 ): ResourceModel {
+  const resourceModel = buildModel(config);
+
+  logger.debug({ modelName: resourceModel.name }, 'Created resource model');
+
+  define(resourceModel, undefined, override ? 'override' : undefined);
+
+  // The relation inputs and audit fields reference the primary key of another
+  // model, which may not be loaded yet. Loaders call this hook once every model
+  // is registered, so those references resolve against their final id type.
+  resourceModel[RESOURCE_MODEL_RELINK] = () => {
+    Object.assign(resourceModel, buildModel(config));
+  };
+
+  return resourceModel;
+}
+
+function buildModel(config: ResourceModelConfig): ResourceModel {
   const name = capitalize(
     config.name || path.basename(path.dirname(__dirname))
   );
@@ -111,6 +134,7 @@ export function createModel(
   const resourceModel: ResourceModel = {
     name,
     config: config,
+    idModel: idSchema,
     readModel,
     createModel,
     updateModel,
@@ -137,27 +161,22 @@ export function createModel(
   resourceModel[RESOURCE_NAME] = name;
   resourceModel[RESOURCE_TYPE] = RESOURCE_MODEL_TYPE;
 
-  logger.debug({ modelName: name }, 'Created resource model');
-
-  define(resourceModel, undefined, override ? 'override' : undefined);
-
   return resourceModel;
 }
 
-function buildIdSchema(idField: IdField = { type: 'int' }): TObject {
-  let idType: TObject;
-
-  switch (idField.type) {
-    case 'string':
-      idType = IdString;
-      break;
-    case 'int':
-    case 'bigInt':
-    default:
-      idType = Id;
+function referencedIdField(modelName?: string): IdField | undefined {
+  if (!modelName) {
+    return undefined;
   }
+  return context.resource.models.get(capitalize(modelName))?.config?.id;
+}
 
-  return idType;
+function authIdField(): IdField | undefined {
+  for (const model of context.resource.models.values()) {
+    if (isResourceAuthModel(model)) {
+      return model.config?.id;
+    }
+  }
 }
 
 function buildAuditSchema(audit: AuditFields = {}): TObject {
@@ -176,7 +195,7 @@ function buildAuditSchema(audit: AuditFields = {}): TObject {
     }
   }
 
-  return Type.Pick(AuditData, fields);
+  return Type.Pick(buildAuditFieldsSchema(authIdField()), fields);
 }
 
 function buildScalarsSchema(fields: Record<string, ScalarField> = {}): TObject {
@@ -509,13 +528,17 @@ function relationInputProperties<T extends TObject>(
       config?.input?.allowCreate ||
       (config?.input?.allowUpdate && inputType === 'update');
 
-    // Existing records are connected by an id object or a bare id value.
-    // Relations accepting inline writes take the permissive input model
-    // instead, which also covers a lone id. Only one object schema may join
-    // the union, since the server strips undeclared properties.
+    // Existing records are connected by an id object or a bare id value, both
+    // typed after the primary key of the related model. Relations accepting
+    // inline writes take the permissive input model instead, which also covers
+    // a lone id. Only one object schema may join the union, since the server
+    // strips undeclared properties.
+    const relatedIdField = referencedIdField(config?.model);
     const itemSchemas: TSchema[] = [
-      acceptsInlineWrite ? Type.Ref(`${config.model}RelationInput`) : Id,
-      Id.properties.id
+      acceptsInlineWrite
+        ? Type.Ref(`${config.model}RelationInput`)
+        : buildIdSchema(relatedIdField),
+      idValueSchema(relatedIdField)
     ];
 
     const isArrayType = type === 'array';

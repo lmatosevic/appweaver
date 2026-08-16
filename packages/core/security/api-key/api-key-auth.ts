@@ -7,9 +7,10 @@ import {
   config,
   Database,
   makeHash,
+  toResourceId,
   uncapitalize
 } from '@appweaver/common';
-import { inject } from '../../context';
+import { inject, injectModel } from '../../context';
 import { resourceAuthModel } from '../helper';
 import { AuthService } from '../auth-service';
 import { HttpError } from '../../errors';
@@ -39,7 +40,12 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
     const apiKeyParts = sanitizedApiKey.split(
       config.SECURITY_API_KEY_DELIMITER
     );
-    const apiKeyId = parseInt(apiKeyParts.shift() ?? '', 10);
+    // The id prefix is read back in the primary key type of the ApiKey model,
+    // which can be configured as a string like on any other model
+    const apiKeyId = toResourceId(
+      apiKeyParts.shift() ?? '',
+      injectModel('ApiKey', false)?.config?.id
+    );
     const apiKeyValue = apiKeyParts.join(config.SECURITY_API_KEY_DELIMITER);
 
     const cacheKey = cacheService.buildCacheKey({
@@ -50,9 +56,10 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
     let apiKey = await cacheService.getCachedValue<ApiKey>(cacheKey);
     if (!apiKey) {
       try {
+        // The generated client types the id after the configured primary key
         apiKey = await db
           .client()
-          .apiKey.findFirst({ where: { id: apiKeyId } });
+          .apiKey.findFirst({ where: { id: apiKeyId as any } });
       } catch (e) {
         throw new HttpError(`Invalid API key format`, 401);
       }

@@ -326,3 +326,9 @@ You can also call `deleteResourceFiles` manually if needed:
 ```ts
 await fileService.deleteResourceFiles('Post', postId);
 ```
+
+### Owning resource reference
+
+The `File` model records its owner through the `resourceName`, `resourceField` and `resourceId` columns. `resourceId`
+is a text column holding the owning record ID, so files attach to models with either an integer or a string primary
+key, and `deleteResourceFiles` accepts an ID of either type.

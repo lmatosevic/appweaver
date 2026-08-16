@@ -2,6 +2,7 @@ import { BaseModule, RequestOptions } from './base-module';
 import { BaseClientInterface } from '../base-client-interface';
 import { FileDataResponse } from '../responses';
 import { RESOURCE_OPERATIONS, RESOURCE_TYPES } from '../../constants';
+import { ResourceId } from '../../types';
 
 export type ResourceType = Record<(typeof RESOURCE_TYPES)[number], unknown>;
 
@@ -21,14 +22,14 @@ export class ResourceClient<Resource extends ResourceType>
   }
 
   /**
-   * Fetches a single resource by its numeric ID.
+   * Fetches a single resource by its ID.
    *
-   * @param {number} id - The ID of the resource to retrieve.
+   * @param {ResourceId} id - The ID of the resource to retrieve.
    * @param {RequestOptions} options - Additional request options (headers, query params, etc.).
    * @returns The resource record matching the given ID.
    */
   public async find(
-    id: number,
+    id: ResourceId,
     options: RequestOptions = {}
   ): Promise<Resource['single']> {
     return this.sendRequest('get', `${this.basePath}/{id}`, {
@@ -101,7 +102,7 @@ export class ResourceClient<Resource extends ResourceType>
    * @returns The updated resource record.
    */
   public async update(
-    resource: Resource['update'] & { id: number },
+    resource: Resource['update'] & { id: ResourceId },
     options: RequestOptions = {}
   ): Promise<Resource['single']> {
     return this.sendRequest('put', `${this.basePath}/{id}`, {
@@ -117,14 +118,14 @@ export class ResourceClient<Resource extends ResourceType>
   }
 
   /**
-   * Deletes a resource record by its numeric ID.
+   * Deletes a resource record by its ID.
    *
-   * @param {number} id - The ID of the resource to delete.
+   * @param {ResourceId} id - The ID of the resource to delete.
    * @param {RequestOptions} options - Additional request options.
    * @returns The deleted resource record.
    */
   public async delete(
-    id: number,
+    id: ResourceId,
     options: RequestOptions = {}
   ): Promise<Resource['single']> {
     return this.sendRequest('delete', `${this.basePath}/{id}`, {
@@ -171,13 +172,13 @@ export class ResourceClient<Resource extends ResourceType>
    *
    * Each entry in `files` maps a field name to a single `File` or an array of `File` objects.
    *
-   * @param {number} id - The ID of the resource for which to upload files.
+   * @param {ResourceId} id - The ID of the resource for which to upload files.
    * @param {Object} files - A map of field names to the file(s) to upload.
    * @param {RequestOptions} options - Additional request options.
    * @returns The updated file metadata for the resource.
    */
   public async uploadFiles(
-    id: number,
+    id: ResourceId,
     files: Resource['fileUpload'],
     options: RequestOptions = {}
   ): Promise<Resource['files']> {
@@ -210,13 +211,13 @@ export class ResourceClient<Resource extends ResourceType>
   /**
    * Removes specific files from the resource record.
    *
-   * @param {number} id - The ID of the resource for which to delete files.
+   * @param {ResourceId} id - The ID of the resource for which to delete files.
    * @param {Object} files - The file deletion payload identifying which files to remove.
    * @param {RequestOptions} options - Additional request options.
    * @returns The updated file metadata for the resource after deletion.
    */
   public async deleteFiles(
-    id: number,
+    id: ResourceId,
     files: Resource['fileDelete'],
     options: RequestOptions = {}
   ): Promise<Resource['files']> {

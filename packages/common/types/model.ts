@@ -66,16 +66,16 @@ export type ReferentialAction =
   | 'setDefault';
 
 export type IdFieldString = {
-  /** Field type for string IDs */
-  type: 'string';
-  /** ID generation strategy */
+  /** Field type for string IDs, inferred when only a string generator is given */
+  type?: 'string';
+  /** ID generation strategy (default: `uuid()`) */
   generator?: GeneratorString;
 };
 
 export type IdFieldInt = {
-  /** Field type for integer IDs */
+  /** Field type for integer IDs (default) */
   type?: 'int' | 'bigInt';
-  /** ID generation strategy */
+  /** ID generation strategy (default: `autoincrement()`) */
   generator?: GeneratorInt;
 };
 

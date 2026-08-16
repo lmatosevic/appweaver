@@ -2,6 +2,101 @@
 
 import { AggregateSelect, QueryFilter, QuerySort } from '@appweaver/common';
 
+export type Comment = {
+  id: string;
+  body: string;
+  authorName?: string | null;
+  approved: boolean;
+  post: PostSingle;
+  pinnedIn?: PostSingle;
+  attachment?: FileSingle | null;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type CommentSingle = {
+  id: string;
+  body: string;
+  authorName?: string | null;
+  approved: boolean;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+  post?: PostSingle;
+  pinnedIn?: PostSingle | null;
+  attachment?: FileSingle | null;
+};
+
+export type CommentMultiple = {
+  id: string;
+  body: string;
+  authorName?: string | null;
+  approved: boolean;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+  attachment?: FileSingle | null;
+};
+
+export type CommentCreate = {
+  body: string;
+  authorName?: string | null;
+  approved?: boolean;
+  post:
+    | {
+        id: number;
+      }
+    | number;
+  pinnedIn?:
+    | {
+        id: number;
+      }
+    | number;
+};
+
+export type CommentUpdate = {
+  body?: string;
+  authorName?: string | null;
+  approved?: boolean;
+  post?:
+    | {
+        id: number;
+      }
+    | number;
+  pinnedIn?:
+    | {
+        id: number;
+      }
+    | number;
+};
+
+export type CommentRelationCreate = {
+  body: string;
+  authorName?: string | null;
+  approved?: boolean;
+};
+
+export type CommentRelationUpdate = {
+  id: string;
+  body?: string;
+  authorName?: string | null;
+  approved?: boolean;
+};
+
+export type CommentRelationInput = {
+  id?: string;
+  body?: string;
+  authorName?: string | null;
+  approved?: boolean;
+};
+
+export type CommentQuery = QueryFilter<Comment>;
+
+export type CommentSort = QuerySort<CommentMultiple>;
+
+export type CommentAggregate = AggregateSelect<Comment>;
+
 export type Post = {
   id: number;
   title: string;
@@ -14,6 +109,8 @@ export type Post = {
   lastActivity?: Date | null;
   randomNumbers: Array<number>;
   author?: UserSingle;
+  comments?: Array<CommentSingle>;
+  pinnedComment?: CommentSingle;
   coverImage?: FileSingle | null;
   galleryImages: Array<FileSingle>;
   updatedAt: Date;
@@ -36,6 +133,9 @@ export type PostSingle = {
   createdAt: Date;
   createdById?: number | null;
   author?: UserSingle | null;
+  comments?: Array<CommentSingle>;
+  commentsCount?: number;
+  pinnedComment?: CommentSingle | null;
   coverImage?: FileSingle | null;
   galleryImages?: Array<FileSingle>;
   galleryImagesCount?: number;
@@ -56,6 +156,7 @@ export type PostMultiple = {
   createdAt: Date;
   createdById?: number | null;
   author?: UserSingle | null;
+  commentsCount?: number;
   coverImage?: FileSingle | null;
   galleryImagesCount?: number;
 };
@@ -68,6 +169,17 @@ export type PostCreate = {
   tags?: string;
   jsonLd?: any | null;
   lastActivity?: Date | null;
+  comments?: Array<
+    | {
+        id: string;
+      }
+    | string
+  > | null;
+  pinnedComment?:
+    | {
+        id: string;
+      }
+    | string;
 };
 
 export type PostUpdate = {
@@ -77,6 +189,17 @@ export type PostUpdate = {
   counter?: number;
   tags?: string;
   jsonLd?: any | null;
+  comments?: Array<
+    | {
+        id: string;
+      }
+    | string
+  > | null;
+  pinnedComment?:
+    | {
+        id: string;
+      }
+    | string;
 };
 
 export type PostRelationCreate = {
@@ -527,7 +650,7 @@ export type File = {
   description?: string | null;
   resourceField?: string | null;
   resourceName?: string | null;
-  resourceId?: number | null;
+  resourceId?: string | null;
   url: string;
   updatedAt: Date;
   createdAt: Date;

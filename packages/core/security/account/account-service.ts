@@ -5,6 +5,7 @@ import {
   config,
   makeHash,
   randomString,
+  ResourceId,
   SecurityStore
 } from '@appweaver/common';
 import { AuthService } from '../auth-service';
@@ -19,7 +20,7 @@ import { HttpError } from '../../errors';
 import { AuthOTTData, TwoFactorAuthData } from '../../types';
 
 type VerifyEmailData = {
-  authUserId: number;
+  authUserId: ResourceId;
   redirectToUrl: string;
 };
 

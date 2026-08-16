@@ -115,6 +115,41 @@ describe('generate-schema', () => {
       expect(schema).toMatch(/id\s+String\s+@id @default\(uuid\(\)\)/);
     });
 
+    test.each([
+      ['uuid()', 'uuid\\(\\)'],
+      ['uuid(7)', 'uuid\\(7\\)'],
+      ['cuid()', 'cuid\\(\\)'],
+      ['cuid(2)', 'cuid\\(2\\)'],
+      ['nanoid()', 'nanoid\\(\\)']
+    ] as const)(
+      'emits the %s string id generator',
+      async (generator, pattern) => {
+        const { schema } = await generate({
+          Post: model('Post', { id: { type: 'string', generator } })
+        });
+
+        expect(schema).toMatch(
+          new RegExp(`id\\s+String\\s+@id @default\\(${pattern}\\)`)
+        );
+      }
+    );
+
+    test('infers a string id from a string generator alone', async () => {
+      const { schema } = await generate({
+        Post: model('Post', { id: { generator: 'cuid()' } })
+      });
+
+      expect(schema).toMatch(/id\s+String\s+@id @default\(cuid\(\)\)/);
+    });
+
+    test('supports a big integer id', async () => {
+      const { schema } = await generate({
+        Post: model('Post', { id: { type: 'bigInt' } })
+      });
+
+      expect(schema).toMatch(/id\s+BigInt\s+@id @default\(autoincrement\(\)\)/);
+    });
+
     test('maps scalar types and the optional modifier', async () => {
       const { schema } = await generate({
         Post: model('Post', {
@@ -611,6 +646,87 @@ describe('generate-schema', () => {
       const { schema } = await generate({ Post: model('Post', {}) });
 
       expect(schema).not.toContain('createdById');
+    });
+
+    test('types the owning foreign key after the string id of the referenced model', async () => {
+      const { schema } = await generate({
+        User: model('User', { id: { type: 'string' } }),
+        Post: model('Post', {
+          relations: {
+            author: { model: 'User', type: 'oneToMany', owner: true }
+          }
+        })
+      });
+
+      const postModel = schema.slice(schema.indexOf('model Post {'));
+      expect(postModel).toMatch(/authorId\s+String\b/);
+      expect(postModel).not.toMatch(/authorId\s+Int\b/);
+    });
+
+    test('types a one-to-one foreign key after the string id of the referenced model', async () => {
+      const { schema } = await generate({
+        User: model('User', { id: { type: 'string' } }),
+        Profile: model('Profile', {
+          relations: { user: { model: 'User', type: 'oneToOne', owner: true } }
+        })
+      });
+
+      expect(schema).toMatch(/userId\s+String\s+@unique/);
+    });
+
+    test('types the generated back reference foreign key after the string id of the owner', async () => {
+      const { schema } = await generate({
+        User: model('User', {
+          id: { type: 'string' },
+          relations: { posts: { model: 'Post', type: 'oneToMany' } }
+        }),
+        Post: model('Post', {})
+      });
+
+      const postModel = schema.slice(schema.indexOf('model Post {'));
+      expect(postModel).toContain(
+        '@relation("UserPostsPost", fields: [userId], references: [id])'
+      );
+      expect(postModel).toMatch(/userId\s+String\?/);
+    });
+
+    test('keeps the relation fields of a string id model out of the back reference pass', async () => {
+      const { schema } = await generate({
+        User: model('User', { id: { type: 'string' } }),
+        Post: model('Post', {
+          id: { type: 'string' },
+          relations: {
+            author: { model: 'User', type: 'oneToMany', owner: true }
+          }
+        })
+      });
+
+      // A String foreign key column mistaken for a relation field would emit a
+      // duplicate back reference on the User model
+      const userModel = schema.slice(schema.indexOf('model User {'));
+      expect(userModel.match(/@relation\("PostAuthorUser"\)/g)).toHaveLength(1);
+      expect(userModel).toMatch(/posts\s+Post\[]/);
+    });
+
+    test('types the file foreign key after the string id of the file model', async () => {
+      const { schema } = await generate({
+        File: model('File', { id: { type: 'string' } }),
+        Post: model('Post', { files: { image: {} } })
+      });
+
+      expect(schema).toMatch(/imageId\s+String\?\s+@unique/);
+    });
+
+    test('types the ownership column after the string id of the auth model', async () => {
+      const { schema } = await generate({
+        User: model('User', { id: { type: 'string' } }, true),
+        Post: model('Post', {})
+      });
+
+      expect(schema).toContain(
+        '@relation("PostCreatedByUser", fields: [createdById], references: [id])'
+      );
+      expect(schema).toMatch(/createdById\s+String\?/);
     });
 
     test('adds single and composite indexes', async () => {

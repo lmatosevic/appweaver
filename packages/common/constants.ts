@@ -3,6 +3,7 @@ export const CONFIG_NAME = 'appweaver';
 export const RESOURCE_NAME = Symbol('ResourceName');
 export const RESOURCE_TYPE = Symbol('ResourceType');
 export const RESOURCE_AUTH = Symbol('ResourceAuth');
+export const RESOURCE_MODEL_RELINK = Symbol('ResourceModelRelink');
 
 export const RESOURCE_MODEL_TYPE = 'Model';
 export const RESOURCE_SERVICE_TYPE = 'Service';

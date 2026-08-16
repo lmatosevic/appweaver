@@ -6,6 +6,7 @@ import {
   RelationConfig,
   RESOURCE_AUTH,
   ResourceModel,
+  ResourceId,
   ResourceModelConfig,
   ResourceServiceConfig,
   ScalarConfig,
@@ -156,7 +157,7 @@ export function createAuthService<T = any, C = any, U = any>(
     await beforeCreate?.(data);
   };
 
-  config.beforeUpdate = async (id: number, data: U): Promise<void> => {
+  config.beforeUpdate = async (id: ResourceId, data: U): Promise<void> => {
     await updatePasswordHash(data as AuthUser, data['password'], true);
     await beforeUpdate?.(id, data);
   };

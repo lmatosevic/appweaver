@@ -1,12 +1,12 @@
-import { Static } from '@sinclair/typebox';
 import {
   AuthType,
   RecaptchaConfig,
+  ResourceId,
   ResourceRoutesConfig,
   RouteCacheConfig,
   RouteConfig
 } from '@appweaver/common';
-import { createSchema, Id } from './resource-schema';
+import { createSchema } from './resource-schema';
 import { inject, injectModel, injectService } from '../context';
 import { FileService } from '../storage';
 import { ExportService } from '../export';
@@ -14,6 +14,10 @@ import { aggregateFiles, maxFileSize } from '../utils';
 import { Server } from '../types';
 
 type FullRouteConfig = RouteConfig & RouteCacheConfig;
+
+/** The `:id` path parameter, validated against the primary key schema of the
+ * resource, so it arrives typed after the model id */
+type IdParams = { id: ResourceId };
 
 export function resourceRoutes(
   name: string,
@@ -86,7 +90,7 @@ export function resourceRoutes(
 
     const findConfig = routeConfig('find');
     if (!findConfig?.exclude) {
-      server.get<{ Params: Static<typeof Id> }>(
+      server.get<{ Params: IdParams }>(
         '/:id',
         {
           schema: schema.findSchema,
@@ -165,7 +169,7 @@ export function resourceRoutes(
 
     const updateConfig = routeConfig('update');
     if (!updateConfig?.exclude) {
-      server.put<{ Params: Static<typeof Id> }>(
+      server.put<{ Params: IdParams }>(
         '/:id',
         {
           schema: schema.updateSchema,
@@ -185,7 +189,7 @@ export function resourceRoutes(
 
     const deleteConfig = routeConfig('delete');
     if (!deleteConfig?.exclude) {
-      server.delete<{ Params: Static<typeof Id> }>(
+      server.delete<{ Params: IdParams }>(
         '/:id',
         {
           schema: schema.deleteSchema,
@@ -238,7 +242,7 @@ export function resourceRoutes(
       const config = resourceModel.config.files;
       const maxSize = maxFileSize(config);
 
-      server.post<{ Params: Static<typeof Id> }>(
+      server.post<{ Params: IdParams }>(
         '/:id/files',
         {
           schema: schema.fileUploadSchema,
@@ -267,7 +271,7 @@ export function resourceRoutes(
       const config = resourceModel.config.files;
 
       server.post<{
-        Params: Static<typeof Id>;
+        Params: IdParams;
         Body: Record<string, string | string[]>;
       }>(
         '/:id/delete-files',

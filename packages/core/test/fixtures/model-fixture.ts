@@ -1,5 +1,5 @@
 import { TObject, TSchema, Type } from '@sinclair/typebox';
-import { resourceModelProps } from '@appweaver/common';
+import { relinkResourceModels, resourceModelProps } from '@appweaver/common';
 import { context } from '../../context';
 
 /**
@@ -10,6 +10,8 @@ import { context } from '../../context';
  */
 export function linkModels(): void {
   const models = Array.from(context.resource.models.values());
+
+  relinkResourceModels(Object.fromEntries(models.map((m) => [m.name, m])));
 
   const resourceModels: Record<string, TSchema> = {};
   for (const model of models) {

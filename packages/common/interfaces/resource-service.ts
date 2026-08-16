@@ -6,7 +6,8 @@ import {
   QuerySort,
   Resource,
   ResourceClient,
-  ResourceData
+  ResourceData,
+  ResourceId
 } from '../types';
 
 export interface IResourceService<
@@ -28,10 +29,10 @@ export interface IResourceService<
   /**
    * Retrieves a specific resource by its identifier.
    *
-   * @param {number} id - The unique identifier of the resource to find.
+   * @param {ResourceId} id - The unique identifier of the resource to find.
    * @return {Promise<Object>} A promise that resolves to the resource object if found.
    */
-  find(id: number): Promise<ReadOne>;
+  find(id: ResourceId): Promise<ReadOne>;
 
   /**
    * Executes a query with the specified filter, pagination, and sorting options.
@@ -85,17 +86,17 @@ export interface IResourceService<
   /**
    * Updates an existing record with the provided data based on the given ID.
    *
-   * @param {number} id - The unique identifier of the record to be updated.
+   * @param {ResourceId} id - The unique identifier of the record to be updated.
    * @param {Object} data - The data object containing the updated fields for the record.
    * @return {Promise<Object>} A promise that resolves to the updated record.
    */
-  update(id: number, data: Update): Promise<ReadOne>;
+  update(id: ResourceId, data: Update): Promise<ReadOne>;
 
   /**
    * Deletes a resource identified by the provided ID.
    *
-   * @param {number} id - The unique identifier of the resource to be deleted.
+   * @param {ResourceId} id - The unique identifier of the resource to be deleted.
    * @return {Promise<Object>} A promise that resolves with the deleted resource data.
    */
-  delete(id: number): Promise<ReadOne>;
+  delete(id: ResourceId): Promise<ReadOne>;
 }

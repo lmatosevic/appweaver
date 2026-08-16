@@ -9,6 +9,8 @@ import {
   FileField,
   FilesConfig,
   IdField,
+  idFieldGenerator,
+  idFieldType,
   IndexConfig,
   isArray,
   isBoolean,
@@ -33,6 +35,8 @@ type PrismaSchemaField = {
   name: string;
   type: string;
   attributes?: string[];
+  /** Marks a generated foreign key column rather than a relation field */
+  foreignKey?: boolean;
 };
 
 type PrismaSchemaModel = {
@@ -110,6 +114,10 @@ export async function generateSchema(
       }
     }
 
+    // A foreign key column has to match the primary key type it references
+    const idTypeOf = (modelName: string): string =>
+      prismaIdType(models[capitalize(modelName)]?.config?.id);
+
     // Create Prisma models and enums from resource model config
     for (const [name, schema] of Object.entries(models)) {
       if (schema.config.generateSchema === false) {
@@ -119,8 +127,12 @@ export async function generateSchema(
       prismaModels[name] = {
         id: createIdSchema(schema.config.id),
         scalars: createScalarsSchema(name, schema.config.scalars),
-        relations: createRelationsSchema(name, schema.config.relations),
-        files: createFilesSchema(name, schema.config.files),
+        relations: createRelationsSchema(
+          name,
+          schema.config.relations,
+          idTypeOf
+        ),
+        files: createFilesSchema(name, schema.config.files, idTypeOf('File')),
         audit: createAuditSchema(name, authModel, schema.config.audit),
         index: createIndexSchema(schema.config.index),
         tableName: schema.config.tableName
@@ -144,7 +156,7 @@ export async function generateSchema(
       )?.[1];
 
       for (const relation of model.relations) {
-        if (relation.type.startsWith('Int')) {
+        if (relation.foreignKey) {
           continue;
         }
 
@@ -162,7 +174,7 @@ export async function generateSchema(
         const mappedField = referencedModel.relations.find(
           (r) => r.name === relationConfig.mappedBy
         );
-        if (mappedField?.type.startsWith('Int')) {
+        if (mappedField?.foreignKey) {
           continue;
         }
 
@@ -210,9 +222,10 @@ export async function generateSchema(
               });
               referencedModel.relations.push({
                 name: refFieldName,
-                type: 'Int?',
+                type: `${idTypeOf(name)}?`,
                 attributes:
-                  relationConfig.type === 'oneToOne' ? ['@unique'] : []
+                  relationConfig.type === 'oneToOne' ? ['@unique'] : [],
+                foreignKey: true
               });
             }
           }
@@ -402,14 +415,22 @@ function calculateMaxLengths(fields: PrismaSchemaField[]): {
   return { nameLength, typeLength };
 }
 
-function createIdSchema(id: IdField = {}): PrismaSchemaField {
-  const defaultType =
-    !id.generator || id.generator === 'autoincrement()' ? 'Int' : 'String';
-  const defaultGenerator = id.type !== 'string' ? 'autoincrement()' : 'uuid()';
+function prismaIdType(id?: IdField): string {
+  switch (idFieldType(id)) {
+    case 'string':
+      return 'String';
+    case 'bigInt':
+      return 'BigInt';
+    default:
+      return 'Int';
+  }
+}
+
+function createIdSchema(id?: IdField): PrismaSchemaField {
   return {
     name: 'id',
-    type: capitalize(id.type ?? defaultType),
-    attributes: ['@id', `@default(${id.generator ?? defaultGenerator})`]
+    type: prismaIdType(id),
+    attributes: ['@id', `@default(${idFieldGenerator(id)})`]
   };
 }
 
@@ -573,12 +594,20 @@ function validateRelations(models: Record<string, ResourceModel>): string[] {
 
 function createRelationsSchema(
   modelName: string,
-  relations: RelationConfig = {}
+  relations: RelationConfig = {},
+  idTypeOf: (modelName: string) => string = () => 'Int'
 ): PrismaSchemaField[] {
   const fields: PrismaSchemaField[] = [];
 
   for (const [name, relation] of Object.entries(relations)) {
-    fields.push(...createRelationSchema(name, modelName, relation));
+    fields.push(
+      ...createRelationSchema(
+        name,
+        modelName,
+        relation,
+        idTypeOf(relation.model)
+      )
+    );
   }
 
   return fields;
@@ -587,7 +616,8 @@ function createRelationsSchema(
 function createRelationSchema(
   name: string,
   modelName: string,
-  relation: RelationField
+  relation: RelationField,
+  relationIdType: string = 'Int'
 ): PrismaSchemaField[] {
   const attributes: string[] = [];
   const relationName = `${modelName}${capitalize(name)}${relation.model}`;
@@ -634,8 +664,9 @@ function createRelationSchema(
   if (owner) {
     relationFields.push({
       name: relationFieldName,
-      type: `Int${relationSuffix}`,
-      attributes: relation.type === 'oneToOne' ? ['@unique'] : []
+      type: `${relationIdType}${relationSuffix}`,
+      attributes: relation.type === 'oneToOne' ? ['@unique'] : [],
+      foreignKey: true
     });
   }
 
@@ -644,12 +675,13 @@ function createRelationSchema(
 
 function createFilesSchema(
   modelName: string,
-  files: FilesConfig = {}
+  files: FilesConfig = {},
+  fileIdType: string = 'Int'
 ): PrismaSchemaField[] {
   const fields: PrismaSchemaField[] = [];
 
   for (const [name, file] of Object.entries(files)) {
-    fields.push(...createFileSchema(name, modelName, file));
+    fields.push(...createFileSchema(name, modelName, file, fileIdType));
   }
 
   return fields;
@@ -658,7 +690,8 @@ function createFilesSchema(
 function createFileSchema(
   name: string,
   modelName: string,
-  file: FileField
+  file: FileField,
+  fileIdType: string = 'Int'
 ): PrismaSchemaField[] {
   const attributes: string[] = [];
   const type = file.array ? 'File[]' : 'File?';
@@ -684,8 +717,9 @@ function createFileSchema(
   if (!file.array) {
     fileFields.push({
       name: fileRelationFieldName,
-      type: 'Int?',
-      attributes: ['@unique']
+      type: `${fileIdType}?`,
+      attributes: ['@unique'],
+      foreignKey: true
     });
   }
 
@@ -734,7 +768,8 @@ function createAuditSchema(
     });
     fields.push({
       name: 'createdById',
-      type: 'Int?'
+      type: `${prismaIdType(authModel?.config.id)}?`,
+      foreignKey: true
     });
   }
 

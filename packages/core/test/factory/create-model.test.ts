@@ -1,5 +1,7 @@
 import { TObject } from '@sinclair/typebox';
 import {
+  relinkResourceModels,
+  RESOURCE_AUTH,
   RESOURCE_MODEL_TYPE,
   RESOURCE_NAME,
   RESOURCE_TYPE
@@ -11,6 +13,13 @@ import { resetContext } from '../fixtures/context-fixture';
 const properties = (schema: TObject) =>
   schema.properties as Record<string, any>;
 const keys = (schema: TObject) => Object.keys(properties(schema));
+
+/** Registers a User model as the auth model, which `createdById` references */
+const authModel = (id: { type: 'int' | 'string' }) => {
+  const model = createModel({ name: 'User', id });
+  model[RESOURCE_AUTH] = true;
+  return model;
+};
 
 describe('create-model', () => {
   beforeEach(() => {
@@ -82,6 +91,42 @@ describe('create-model', () => {
 
       expect(keys(model.createOneModel)).not.toContain('id');
       expect(keys(model.updateOneModel)).not.toContain('id');
+    });
+
+    test('infers a string id from a string generator alone', () => {
+      const model = createModel({
+        name: 'Post',
+        id: { generator: 'cuid()' }
+      });
+
+      expect(properties(model.readModel).id.type).toBe('string');
+    });
+
+    test('exposes the id model used as the route path parameter', () => {
+      const intModel = createModel({ name: 'Post' });
+      const stringModel = createModel({
+        name: 'Comment',
+        id: { type: 'string' }
+      });
+
+      expect(properties(intModel.idModel).id.type).toBe('integer');
+      expect(properties(stringModel.idModel).id.type).toBe('string');
+    });
+
+    test('builds a separate id model per resource', () => {
+      const first = createModel({ name: 'Post' });
+      const second = createModel({ name: 'User' });
+
+      expect(first.idModel).not.toBe(second.idModel);
+      expect((first.idModel as any)[RESOURCE_NAME]).toBe('Post');
+      expect((second.idModel as any)[RESOURCE_NAME]).toBe('User');
+    });
+
+    test('types the relation update model id after the model id', () => {
+      const model = createModel({ name: 'Comment', id: { type: 'string' } });
+
+      expect(properties(model.relationUpdateModel).id.type).toBe('string');
+      expect(properties(model.relationInputModel).id.type).toBe('string');
     });
   });
 
@@ -245,6 +290,38 @@ describe('create-model', () => {
       expect(keys(model.createOneModel)).not.toContain('createdAt');
       expect(keys(model.updateOneModel)).not.toContain('createdAt');
     });
+
+    test('types createdById after the integer id of the auth model', () => {
+      authModel({ type: 'int' });
+      const model = createModel({ name: 'Post' });
+
+      expect(properties(model.readModel).createdById).toMatchObject({
+        type: 'integer',
+        nullable: true
+      });
+    });
+
+    test('types createdById after the string id of the auth model', () => {
+      authModel({ type: 'string' });
+      const model = createModel({ name: 'Post' });
+
+      expect(properties(model.readModel).createdById).toMatchObject({
+        type: 'string',
+        nullable: true
+      });
+    });
+
+    test('resolves createdById when the auth model is loaded after this one', () => {
+      const model = createModel({ name: 'Post' });
+      authModel({ type: 'string' });
+
+      relinkResourceModels(Object.fromEntries(context.resource.models));
+
+      expect(properties(model.readModel).createdById).toMatchObject({
+        type: 'string',
+        nullable: true
+      });
+    });
   });
 
   describe('operation restrictions', () => {
@@ -382,6 +459,37 @@ describe('create-model', () => {
       expect(author.anyOf).toHaveLength(2);
       expect(author.anyOf[0].properties.id).toBeDefined();
       expect(author.anyOf[1].type).toBe('integer');
+    });
+
+    test('types the relation input after the string id of the related model', () => {
+      createModel({ name: 'User', id: { type: 'string' } });
+      const model = createModel({
+        name: 'Post',
+        relations: { author: { model: 'User', type: 'oneToMany', owner: true } }
+      });
+
+      const author = properties(model.createOneModel).author;
+      expect(author.anyOf[0].properties.id.type).toBe('string');
+      expect(author.anyOf[1].type).toBe('string');
+    });
+
+    test('resolves the relation input id of a model loaded after this one', () => {
+      // Post is built before User exists, so its relation input falls back to an
+      // integer id until the relink pass runs
+      const model = createModel({
+        name: 'Post',
+        relations: { author: { model: 'User', type: 'oneToMany', owner: true } }
+      });
+      expect(properties(model.createOneModel).author.anyOf[1].type).toBe(
+        'integer'
+      );
+
+      createModel({ name: 'User', id: { type: 'string' } });
+      relinkResourceModels(Object.fromEntries(context.resource.models));
+
+      const author = properties(model.createOneModel).author;
+      expect(author.anyOf[0].properties.id.type).toBe('string');
+      expect(author.anyOf[1].type).toBe('string');
     });
 
     test('adds the inline create input when configured', () => {

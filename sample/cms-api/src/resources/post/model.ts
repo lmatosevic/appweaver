@@ -30,7 +30,7 @@ export default createModel({
     },
     counter: {
       type: 'int',
-      minimum: 1,
+      minimum: 0,
       maximum: 1023,
       default: 0
     },
@@ -70,6 +70,27 @@ export default createModel({
       required: false,
       orphanRemoval: true,
       onDelete: 'setNull'
+    },
+    comments: {
+      model: 'Comment',
+      type: 'oneToMany',
+      mappedBy: 'post',
+      required: false,
+      output: {
+        type: 'single',
+        count: true
+      }
+    },
+    pinnedComment: {
+      model: 'Comment',
+      type: 'oneToOne',
+      mappedBy: 'pinnedIn',
+      owner: true,
+      required: false,
+      onDelete: 'setNull',
+      output: {
+        type: 'single'
+      }
     }
   },
   files: {

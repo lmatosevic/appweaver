@@ -7,7 +7,8 @@ import {
   isPlainObject,
   OutputType,
   pickProperties,
-  RelationField
+  RelationField,
+  ResourceId
 } from '@appweaver/common';
 import { injectModel } from '../../context';
 import { currentAuthUser } from '../../security';
@@ -360,12 +361,12 @@ export function missingRelationFields(
  * user. Returns undefined when the model does not audit the `createdById` field or when no user is authenticated.
  *
  * @param {string} resourceName - The name of the model the audit relation is built for.
- * @return {{connect: {id: number}}|undefined} The connect action pointing at the id of the currently authenticated
+ * @return {{connect: {id: ResourceId}}|undefined} The connect action pointing at the id of the currently authenticated
  * user, or undefined if the model does not audit the `createdById` field or no user is authenticated.
  */
 export function createdByConnect(
   resourceName: string
-): { connect: { id: number } } | undefined {
+): { connect: { id: ResourceId } } | undefined {
   const resourceModel = injectModel(resourceName, false);
   if (resourceModel?.config.audit?.createdById === false) {
     return undefined;

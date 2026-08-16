@@ -14,7 +14,9 @@ import {
   makeHash,
   Resource,
   ResourceClient,
-  Storage
+  ResourceId,
+  Storage,
+  toResourceId
 } from '@appweaver/common';
 import { inject, injectModel, injectPolicy, injectService } from '../context';
 import { HttpError } from '../errors';
@@ -111,7 +113,14 @@ export class FileService {
       file.resourceId
     ) {
       const resourceService = injectService(file.resourceName);
-      const resource = await resourceService.find(file.resourceId);
+      // The owning id is stored as text, so it is converted back to the
+      // primary key type of that model before the lookup
+      const resource = await resourceService.find(
+        toResourceId(
+          file.resourceId,
+          injectModel(file.resourceName, false)?.config?.id
+        )
+      );
 
       if (identity && policy.canAccess?.(identity, resource, file) === false) {
         throw new HttpError('File access is forbidden', 403);
@@ -175,7 +184,7 @@ export class FileService {
       const fileCount = await this.fileCount(
         data.fieldname,
         client.name,
-        resource.id
+        String(resource.id)
       );
       if (fileConfig.maxCount && fileConfig.maxCount < fileCount + 1) {
         throw new HttpError(
@@ -241,7 +250,7 @@ export class FileService {
       sizeBytes: data.file.bytesRead,
       resourceField: data.fieldname,
       resourceName: client.name,
-      resourceId: resource.id,
+      resourceId: String(resource.id),
       createdById: identity?.id
     } as File;
 
@@ -414,7 +423,7 @@ export class FileService {
 
     const file = await this.findByName(fileName);
     if (
-      file.resourceId !== resource.id ||
+      file.resourceId !== String(resource.id) ||
       file.resourceName !== client.name ||
       file.resourceField !== fieldName
     ) {
@@ -507,13 +516,16 @@ export class FileService {
    * setting (or set to `'keep'`) are left untouched.
    *
    * @param {string} resourceName - The resource model name.
-   * @param {number} resourceId - The ID of the deleted resource.
+   * @param {ResourceId} id - The ID of the deleted resource.
    * @return {Promise<File[]>} A promise that resolves to the list of successfully deleted files.
    */
   public async deleteResourceFiles(
     resourceName: string,
-    resourceId: number
+    id: ResourceId
   ): Promise<File[]> {
+    // Owning ids are stored as text, whatever the model primary key type is
+    const resourceId = String(id);
+
     const resourceModel = injectModel(resourceName, false);
     if (!resourceModel) {
       return [];
@@ -608,7 +620,7 @@ export class FileService {
   private async fileCount(
     resourceField: string,
     resourceName: string,
-    resourceId: number
+    resourceId: string
   ): Promise<number> {
     try {
       return await this._db.client().file.count({

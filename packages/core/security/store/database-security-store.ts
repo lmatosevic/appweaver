@@ -2,6 +2,7 @@ import {
   Database,
   generateToken,
   makeHash,
+  ResourceId,
   SecurityStore,
   ValidationResult
 } from '@appweaver/common';
@@ -69,7 +70,8 @@ export class DatabaseSecurityStore extends SecurityStore {
   }
 
   /** @internal */
-  private async removeOneTimeToken(id: number): Promise<void> {
-    await this._db.client().oneTimeToken.delete({ where: { id } });
+  private async removeOneTimeToken(id: ResourceId): Promise<void> {
+    // The generated client types the id after the configured primary key
+    await this._db.client().oneTimeToken.delete({ where: { id: id as any } });
   }
 }

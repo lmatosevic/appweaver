@@ -16,6 +16,7 @@ import {
   RESOURCE_SERVICE_TYPE,
   RESOURCE_TYPE,
   ResourceData,
+  ResourceId,
   ResourceServiceConfig
 } from '@appweaver/common';
 import { define, injectPolicy } from '../context';
@@ -39,7 +40,7 @@ export function createService<T = any, C = any, U = any>(
       super(name);
     }
 
-    async find(id: number): Promise<any> {
+    async find(id: ResourceId): Promise<any> {
       await config.beforeFind?.(id);
 
       const result = await super.find(id);
@@ -108,7 +109,7 @@ export function createService<T = any, C = any, U = any>(
       return result;
     }
 
-    async update(id: number, data: any): Promise<any> {
+    async update(id: ResourceId, data: any): Promise<any> {
       await config.beforeUpdate?.(id, data);
 
       const result = await super.update(id, data);
@@ -118,7 +119,7 @@ export function createService<T = any, C = any, U = any>(
       return result;
     }
 
-    async delete(id: number): Promise<any> {
+    async delete(id: ResourceId): Promise<any> {
       await config.beforeDelete?.(id);
 
       const result = await super.delete(id);

@@ -100,7 +100,7 @@ model File {
   description   String?
   resourceField String?
   resourceName  String?
-  resourceId    Int?
+  resourceId    String?
 
   /// Audit columns
   updatedAt DateTime @updatedAt

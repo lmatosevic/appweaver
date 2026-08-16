@@ -1,5 +1,6 @@
 import { AggregateResponse, AggregateSelect } from './aggregate';
 import { QuerySort } from './sort';
+import { ResourceId } from './resource';
 
 export type QueryResponse<T> = {
   /** Number of items returned on this page */
@@ -16,7 +17,7 @@ export type ResourceServiceConfig<T = any, C = any, U = any> = {
   /** Resource model name */
   modelName: string;
   /** Hook called before fetching a single resource */
-  beforeFind?: (id: number) => ServiceHookResponse;
+  beforeFind?: (id: ResourceId) => ServiceHookResponse;
   /** Hook called before a list query */
   beforeQuery?: (
     filter: any,
@@ -37,9 +38,9 @@ export type ResourceServiceConfig<T = any, C = any, U = any> = {
   /** Hook called before creating a resource */
   beforeCreate?: (data: C) => ServiceHookResponse;
   /** Hook called before updating a resource */
-  beforeUpdate?: (id: number, data: U) => ServiceHookResponse;
+  beforeUpdate?: (id: ResourceId, data: U) => ServiceHookResponse;
   /** Hook called before deleting a resource */
-  beforeDelete?: (id: number) => ServiceHookResponse;
+  beforeDelete?: (id: ResourceId) => ServiceHookResponse;
   /** Hook called after fetching a single resource */
   afterFind?: (resource: T) => ServiceHookResponse;
   /** Hook called after a list query */

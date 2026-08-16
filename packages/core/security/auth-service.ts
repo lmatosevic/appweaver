@@ -6,6 +6,7 @@ import {
   CONFIG,
   config,
   logger,
+  ResourceId,
   RouteConfig,
   SecurityStore
 } from '@appweaver/common';
@@ -46,11 +47,11 @@ export class AuthService {
   /**
    * Finds an authenticated user by their unique identifier.
    *
-   * @param {number} id - The unique identifier of the authenticated user to find.
+   * @param {ResourceId} id - The unique identifier of the authenticated user to find.
    * @return {Promise<AuthUser | null>} A promise that resolves to the authenticated user object if found, otherwise
    * null.
    */
-  public async findById(id: number): Promise<AuthUser | null> {
+  public async findById(id: ResourceId): Promise<AuthUser | null> {
     try {
       if (!config.CACHE_ENABLED || config.SECURITY_CACHE_TTL < 0) {
         return this._authUserService.find(id);
@@ -123,13 +124,13 @@ export class AuthService {
   /**
    * Updates an authenticated user's information in the system.
    *
-   * @param {number} id - The unique identifier of the authenticated user to be updated.
+   * @param {ResourceId} id - The unique identifier of the authenticated user to be updated.
    * @param {Partial<AuthUser> & { password?: string }} data - The partial user data to update, optionally including a
    * password.
    * @return {Promise<AuthUser>} A promise that resolves to the updated authenticated user object.
    */
   public async updateAuthUser(
-    id: number,
+    id: ResourceId,
     data: Partial<AuthUser> & { password?: string }
   ): Promise<AuthUser> {
     try {
@@ -438,11 +439,11 @@ export class AuthService {
   /**
    * Logs out a user by updating their authentication information with a logout timestamp.
    *
-   * @param {number} id - The unique identifier of the user to be logged out.
+   * @param {ResourceId} id - The unique identifier of the user to be logged out.
    * @return {Promise<boolean>} A promise that resolves to a boolean indicating whether the logout operation was
    * successful.
    */
-  public async logout(id: number): Promise<boolean> {
+  public async logout(id: ResourceId): Promise<boolean> {
     await this._cacheService.removeCachedValue(`${AUTH_KEY}:${id}`);
 
     logger.debug({ id }, 'User logout');

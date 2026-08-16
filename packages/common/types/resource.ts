@@ -2,11 +2,14 @@ import { TObject } from '@sinclair/typebox';
 import { ResourceModelConfig } from './model';
 import { ResourceRoutesConfig } from './routes';
 
+/** Primary key value: a number for `int` and `bigInt` ids, a string for `string` ids */
+export type ResourceId = number | string;
+
 export type Resource = {
-  id: number;
+  id: ResourceId;
   updatedAt?: Date;
   createdAt?: Date;
-  createdById?: number;
+  createdById?: ResourceId;
 };
 
 export type ResourceData<T> = Omit<T, keyof Resource>;
@@ -46,6 +49,9 @@ export type ResourceModel = {
   name: string;
   /** Received model config from default export */
   config: ResourceModelConfig;
+  /** Primary key schema (`{ id }`), used for the route path parameter and for
+   * the relation inputs pointing at this model */
+  idModel: TObject;
   /** Full resource model with all configured fields (scalars, relations, files, and virtual) */
   readModel: TObject;
   /** Internal use only */

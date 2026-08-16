@@ -53,9 +53,11 @@ export default createModel({
       required: false,
       hidden: true
     },
+    // Polymorphic reference without a foreign key, stored as text so a file can
+    // belong to a resource with either primary key type
     resourceId: {
-      type: 'int',
-      minimum: 1,
+      type: 'string',
+      maxLength: 36,
       required: false,
       hidden: true
     }

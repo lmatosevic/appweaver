@@ -51,6 +51,7 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  Comment: 'Comment',
   Post: 'Post',
   User: 'User',
   ApiKey: 'ApiKey',
@@ -74,6 +75,21 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const CommentScalarFieldEnum = {
+  id: 'id',
+  body: 'body',
+  authorName: 'authorName',
+  approved: 'approved',
+  postId: 'postId',
+  attachmentId: 'attachmentId',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt',
+  createdById: 'createdById'
+} as const
+
+export type CommentScalarFieldEnum = (typeof CommentScalarFieldEnum)[keyof typeof CommentScalarFieldEnum]
+
+
 export const PostScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -85,6 +101,7 @@ export const PostScalarFieldEnum = {
   jsonLd: 'jsonLd',
   lastActivity: 'lastActivity',
   authorId: 'authorId',
+  pinnedCommentId: 'pinnedCommentId',
   coverImageId: 'coverImageId',
   updatedAt: 'updatedAt',
   createdAt: 'createdAt',
@@ -216,6 +233,14 @@ export const NullableJsonNullValueInput = {
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
 export const JsonNullValueFilter = {
   DbNull: DbNull,
   JsonNull: JsonNull,
@@ -231,12 +256,4 @@ export const QueryMode = {
 } as const
 
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
-
-
-export const NullsOrder = {
-  first: 'first',
-  last: 'last'
-} as const
-
-export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 

@@ -344,7 +344,7 @@ export type File = {
   description?: string | null;
   resourceField?: string | null;
   resourceName?: string | null;
-  resourceId?: number | null;
+  resourceId?: string | null;
   url: string;
   updatedAt: Date;
   createdAt: Date;

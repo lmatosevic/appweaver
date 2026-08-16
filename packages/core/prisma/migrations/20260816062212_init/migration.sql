@@ -71,7 +71,7 @@ CREATE TABLE "File" (
     "description" TEXT,
     "resourceField" TEXT,
     "resourceName" TEXT,
-    "resourceId" INTEGER,
+    "resourceId" TEXT,
     "updatedAt" DATETIME NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

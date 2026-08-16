@@ -1,11 +1,11 @@
 import { FastifyRequest } from 'fastify';
-import { AuthScope, AuthSource, AuthUser } from '@appweaver/common';
+import { AuthScope, AuthSource, AuthUser, ResourceId } from '@appweaver/common';
 
 export type JwtPayload = {
   scope: AuthScope;
   source: AuthSource;
   username: string;
-  sub: number;
+  sub: ResourceId;
   iat: number;
 };
 
@@ -17,7 +17,7 @@ export type AuthTokens = {
 };
 
 export type AuthOTTData = {
-  authUserId: number;
+  authUserId: ResourceId;
   authSource: AuthSource;
   providerAccountId?: string;
   scope?: string;
@@ -25,7 +25,7 @@ export type AuthOTTData = {
 };
 
 export type TwoFactorAuthData = {
-  authUserId: number;
+  authUserId: ResourceId;
   codeHash: string;
   purpose: string;
 };

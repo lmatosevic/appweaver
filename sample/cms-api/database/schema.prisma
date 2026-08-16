@@ -12,6 +12,30 @@ generator client {
   output   = "./client"
 }
 
+model Comment {
+  id         String  @id @default(cuid(2))
+  body       String
+  authorName String?
+  approved   Boolean @default(false)
+
+  /// Related columns
+  post     Post  @relation("CommentPostPost", fields: [postId], references: [id], onDelete: Cascade)
+  postId   Int
+  pinnedIn Post? @relation("CommentPinnedInPost")
+
+  /// File columns
+  attachment   File? @relation("CommentAttachmentFile", fields: [attachmentId], references: [id])
+  attachmentId Int?  @unique
+
+  /// Audit columns
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  createdBy   User?    @relation("CommentCreatedByUser", fields: [createdById], references: [id])
+  createdById Int?
+
+  @@index(approved)
+}
+
 model Post {
   id           Int         @id @default(autoincrement())
   title        String      @default("something...")
@@ -24,8 +48,11 @@ model Post {
   lastActivity DateTime?   @default(now())
 
   /// Related columns
-  author   User? @relation("PostAuthorUser", fields: [authorId], references: [id], onDelete: SetNull)
-  authorId Int?
+  author          User?     @relation("PostAuthorUser", fields: [authorId], references: [id], onDelete: SetNull)
+  authorId        Int?
+  comments        Comment[] @relation("CommentPostPost")
+  pinnedComment   Comment?  @relation("CommentPinnedInPost", fields: [pinnedCommentId], references: [id], onDelete: SetNull)
+  pinnedCommentId String?   @unique
 
   /// File columns
   coverImage    File?  @relation("PostCoverImageFile", fields: [coverImageId], references: [id])
@@ -65,6 +92,7 @@ model User {
   avatarId Int?  @unique
 
   /// Ownership models referenced with createdById column
+  createdComments    Comment[]    @relation("CommentCreatedByUser")
   createdPosts       Post[]       @relation("PostCreatedByUser")
   createdUsers       User[]       @relation("UserCreatedByUser")
   createdApiKeys     ApiKey[]     @relation("ApiKeyCreatedByUser")
@@ -170,12 +198,13 @@ model File {
   description   String?
   resourceField String?
   resourceName  String?
-  resourceId    Int?
+  resourceId    String?
 
   /// Related models with file columns
-  coverImagePosts    Post[] @relation("PostCoverImageFile")
-  galleryImagesPosts Post[] @relation("PostGalleryImagesFile")
-  avatarUsers        User[] @relation("UserAvatarFile")
+  attachmentComments Comment[] @relation("CommentAttachmentFile")
+  coverImagePosts    Post[]    @relation("PostCoverImageFile")
+  galleryImagesPosts Post[]    @relation("PostGalleryImagesFile")
+  avatarUsers        User[]    @relation("UserAvatarFile")
 
   /// Audit columns
   updatedAt   DateTime @updatedAt

@@ -1,6 +1,7 @@
 import { TSchema } from '@sinclair/typebox';
 import {
   RESOURCE_AUTH,
+  RESOURCE_MODEL_RELINK,
   RESOURCE_MODEL_TYPE,
   RESOURCE_NAME,
   RESOURCE_POLICY_TYPE,
@@ -10,7 +11,9 @@ import {
 } from '../constants';
 import {
   FieldDefault,
+  IdField,
   RelationField,
+  ResourceId,
   ResourceModel,
   ResourcePolicyConfig,
   ResourceRoutes,
@@ -279,6 +282,71 @@ export function isRelationOwner(
   relation: Pick<RelationField, 'type' | 'owner'>
 ): boolean {
   return relation.type !== 'manyToMany' && relation.owner === true;
+}
+
+/**
+ * Rebuilds the schemas of every loaded resource model in place. A model is built
+ * while its own file is imported, so the schemas referencing the primary key of
+ * another model (the relation inputs and the `createdById` audit field) fall
+ * back to an integer id when that model is loaded later. This second pass
+ * resolves them against the final set of models.
+ *
+ * @param {Record<string, ResourceModel>} models - All loaded models keyed by name.
+ */
+export function relinkResourceModels(
+  models: Record<string, ResourceModel>
+): void {
+  for (const model of Object.values(models)) {
+    model[RESOURCE_MODEL_RELINK]?.();
+  }
+}
+
+/**
+ * Resolves the primary key type of a model from its id configuration. An omitted
+ * configuration resolves to `int`, and one declaring only a string generator
+ * (i.e. `{ generator: 'uuid()' }`) resolves to `string`.
+ *
+ * @param {IdField} [id] - The id configuration of the model.
+ * @return {'int' | 'bigInt' | 'string'} The resolved primary key type.
+ */
+export function idFieldType(id?: IdField): 'int' | 'bigInt' | 'string' {
+  if (id?.type) {
+    return id.type;
+  }
+  return id?.generator && id.generator !== 'autoincrement()' ? 'string' : 'int';
+}
+
+/**
+ * Resolves the id generator of a model, defaulting to `autoincrement()` for the
+ * numeric primary keys and `uuid()` for the string ones.
+ *
+ * @param {IdField} [id] - The id configuration of the model.
+ * @return {string} The configured generator, or the default for the id type.
+ */
+export function idFieldGenerator(id?: IdField): string {
+  return (
+    id?.generator ??
+    (idFieldType(id) === 'string' ? 'uuid()' : 'autoincrement()')
+  );
+}
+
+/**
+ * Converts an id carried as text (i.e. the polymorphic `resourceId` column of
+ * the file model) back into the type the primary key of a model holds, so it can
+ * be handed to the database layer. String ids are returned unchanged.
+ *
+ * @param {ResourceId} value - The id value to convert.
+ * @param {IdField} [id] - The id configuration of the model it belongs to.
+ * @return {ResourceId} The converted value, or the unchanged one when a numeric
+ * id cannot be parsed from it.
+ */
+export function toResourceId(value: ResourceId, id?: IdField): ResourceId {
+  if (idFieldType(id) === 'string') {
+    return value;
+  }
+
+  const numericValue = Number(value);
+  return Number.isNaN(numericValue) ? value : numericValue;
 }
 
 /**

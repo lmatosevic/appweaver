@@ -5,7 +5,8 @@ import {
   RESOURCE_NAME,
   RESOURCE_POLICY_TYPE,
   RESOURCE_SERVICE_TYPE,
-  RESOURCE_TYPE
+  RESOURCE_TYPE,
+  ResourceId
 } from '@appweaver/common';
 import { context, define } from '../../context';
 import { CacheService } from '../../cache';
@@ -97,7 +98,7 @@ describe('create-service', () => {
       const calls: string[] = [];
       const Service = createService({
         modelName: 'Post',
-        beforeFind: (id: number) => {
+        beforeFind: (id: ResourceId) => {
           calls.push(`before:${id}`);
         },
         afterFind: (result: any) => {

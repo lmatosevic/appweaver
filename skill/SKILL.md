@@ -234,6 +234,22 @@ export default createModel({
 });
 ```
 
+A model has an auto-incrementing integer primary key unless the `id` block asks for a generated string one:
+
+```ts
+export default createModel({
+  name: 'Comment',
+  id: {
+    type: 'string',
+    generator: 'cuid(2)' // or uuid(), uuid(7), cuid(), nanoid()
+  },
+  scalars: { body: { type: 'string' } }
+});
+```
+
+The choice flows through the Prisma column, the generated TypeScript type, the `:id` route path parameter, and the
+relation inputs and foreign keys of every model pointing at it. Both ID types can be mixed across models.
+
 #### Creating a resource service
 
 Resource service defines the business logic layer for a resource: lifecycle hooks (before/after create, update, delete),

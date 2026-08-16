@@ -1,4 +1,20 @@
 -- CreateTable
+CREATE TABLE "Comment" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "body" TEXT NOT NULL,
+    "authorName" TEXT,
+    "approved" BOOLEAN NOT NULL DEFAULT false,
+    "postId" INTEGER NOT NULL,
+    "attachmentId" INTEGER,
+    "updatedAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdById" INTEGER,
+    CONSTRAINT "Comment_postId_fkey" FOREIGN KEY ("postId") REFERENCES "Post" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Comment_attachmentId_fkey" FOREIGN KEY ("attachmentId") REFERENCES "File" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT "Comment_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateTable
 CREATE TABLE "Post" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "title" TEXT NOT NULL DEFAULT 'something...',
@@ -10,11 +26,13 @@ CREATE TABLE "Post" (
     "jsonLd" JSONB,
     "lastActivity" DATETIME DEFAULT CURRENT_TIMESTAMP,
     "authorId" INTEGER,
+    "pinnedCommentId" TEXT,
     "coverImageId" INTEGER,
     "updatedAt" DATETIME NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdById" INTEGER,
     CONSTRAINT "Post_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT "Post_pinnedCommentId_fkey" FOREIGN KEY ("pinnedCommentId") REFERENCES "Comment" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT "Post_coverImageId_fkey" FOREIGN KEY ("coverImageId") REFERENCES "File" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT "Post_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
@@ -112,7 +130,7 @@ CREATE TABLE "File" (
     "description" TEXT,
     "resourceField" TEXT,
     "resourceName" TEXT,
-    "resourceId" INTEGER,
+    "resourceId" TEXT,
     "updatedAt" DATETIME NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdById" INTEGER,
@@ -144,7 +162,16 @@ CREATE TABLE "_PostGalleryImagesFile" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Comment_attachmentId_key" ON "Comment"("attachmentId");
+
+-- CreateIndex
+CREATE INDEX "Comment_approved_idx" ON "Comment"("approved");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Post_slug_key" ON "Post"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Post_pinnedCommentId_key" ON "Post"("pinnedCommentId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Post_coverImageId_key" ON "Post"("coverImageId");

@@ -3,7 +3,12 @@ import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import { glob } from 'glob';
 import { register } from 'ts-node';
-import { config, isResourceModel, ResourceModel } from '@appweaver/common';
+import {
+  config,
+  isResourceModel,
+  relinkResourceModels,
+  ResourceModel
+} from '@appweaver/common';
 
 /**
  * Loads and parses the `package.json` file located in the CLI project package directory.
@@ -110,6 +115,10 @@ export async function loadModels(
       modelPattern
     );
   }
+
+  // Resolve the schemas referencing the primary key of another model, now that
+  // every model is registered
+  relinkResourceModels(models);
 
   return models;
 }

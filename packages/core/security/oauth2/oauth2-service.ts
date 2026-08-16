@@ -4,6 +4,7 @@ import {
   CONFIG,
   IResourceService,
   logger,
+  ResourceId,
   uncapitalize
 } from '@appweaver/common';
 import { injectService } from '../../context';
@@ -200,7 +201,7 @@ export class OAuth2Service {
    */
   private connectedAccountOwnerId(
     account: ConnectedAccount
-  ): number | undefined {
+  ): ResourceId | undefined {
     return account[`${uncapitalize(this._authUserService.modelName)}Id`];
   }
 }

@@ -29,14 +29,12 @@ export type AggregateFile = {
 export type FileAvgAggregateOutputType = {
   id: number | null
   sizeBytes: number | null
-  resourceId: number | null
   createdById: number | null
 }
 
 export type FileSumAggregateOutputType = {
   id: number | null
   sizeBytes: number | null
-  resourceId: number | null
   createdById: number | null
 }
 
@@ -51,7 +49,7 @@ export type FileMinAggregateOutputType = {
   description: string | null
   resourceField: string | null
   resourceName: string | null
-  resourceId: number | null
+  resourceId: string | null
   updatedAt: Date | null
   createdAt: Date | null
   createdById: number | null
@@ -68,7 +66,7 @@ export type FileMaxAggregateOutputType = {
   description: string | null
   resourceField: string | null
   resourceName: string | null
-  resourceId: number | null
+  resourceId: string | null
   updatedAt: Date | null
   createdAt: Date | null
   createdById: number | null
@@ -96,14 +94,12 @@ export type FileCountAggregateOutputType = {
 export type FileAvgAggregateInputType = {
   id?: true
   sizeBytes?: true
-  resourceId?: true
   createdById?: true
 }
 
 export type FileSumAggregateInputType = {
   id?: true
   sizeBytes?: true
-  resourceId?: true
   createdById?: true
 }
 
@@ -256,7 +252,7 @@ export type FileGroupByOutputType = {
   description: string | null
   resourceField: string | null
   resourceName: string | null
-  resourceId: number | null
+  resourceId: string | null
   updatedAt: Date
   createdAt: Date
   createdById: number | null
@@ -296,10 +292,11 @@ export type FileWhereInput = {
   description?: Prisma.StringNullableFilter<"File"> | string | null
   resourceField?: Prisma.StringNullableFilter<"File"> | string | null
   resourceName?: Prisma.StringNullableFilter<"File"> | string | null
-  resourceId?: Prisma.IntNullableFilter<"File"> | number | null
+  resourceId?: Prisma.StringNullableFilter<"File"> | string | null
   updatedAt?: Prisma.DateTimeFilter<"File"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"File"> | Date | string
   createdById?: Prisma.IntNullableFilter<"File"> | number | null
+  attachmentComments?: Prisma.CommentListRelationFilter
   coverImagePosts?: Prisma.PostListRelationFilter
   galleryImagesPosts?: Prisma.PostListRelationFilter
   avatarUsers?: Prisma.UserListRelationFilter
@@ -321,6 +318,7 @@ export type FileOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrderInput | Prisma.SortOrder
+  attachmentComments?: Prisma.CommentOrderByRelationAggregateInput
   coverImagePosts?: Prisma.PostOrderByRelationAggregateInput
   galleryImagesPosts?: Prisma.PostOrderByRelationAggregateInput
   avatarUsers?: Prisma.UserOrderByRelationAggregateInput
@@ -341,10 +339,11 @@ export type FileWhereUniqueInput = Prisma.AtLeast<{
   description?: Prisma.StringNullableFilter<"File"> | string | null
   resourceField?: Prisma.StringNullableFilter<"File"> | string | null
   resourceName?: Prisma.StringNullableFilter<"File"> | string | null
-  resourceId?: Prisma.IntNullableFilter<"File"> | number | null
+  resourceId?: Prisma.StringNullableFilter<"File"> | string | null
   updatedAt?: Prisma.DateTimeFilter<"File"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"File"> | Date | string
   createdById?: Prisma.IntNullableFilter<"File"> | number | null
+  attachmentComments?: Prisma.CommentListRelationFilter
   coverImagePosts?: Prisma.PostListRelationFilter
   galleryImagesPosts?: Prisma.PostListRelationFilter
   avatarUsers?: Prisma.UserListRelationFilter
@@ -387,7 +386,7 @@ export type FileScalarWhereWithAggregatesInput = {
   description?: Prisma.StringNullableWithAggregatesFilter<"File"> | string | null
   resourceField?: Prisma.StringNullableWithAggregatesFilter<"File"> | string | null
   resourceName?: Prisma.StringNullableWithAggregatesFilter<"File"> | string | null
-  resourceId?: Prisma.IntNullableWithAggregatesFilter<"File"> | number | null
+  resourceId?: Prisma.StringNullableWithAggregatesFilter<"File"> | string | null
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"File"> | Date | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"File"> | Date | string
   createdById?: Prisma.IntNullableWithAggregatesFilter<"File"> | number | null
@@ -403,9 +402,10 @@ export type FileCreateInput = {
   description?: string | null
   resourceField?: string | null
   resourceName?: string | null
-  resourceId?: number | null
+  resourceId?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
+  attachmentComments?: Prisma.CommentCreateNestedManyWithoutAttachmentInput
   coverImagePosts?: Prisma.PostCreateNestedManyWithoutCoverImageInput
   galleryImagesPosts?: Prisma.PostCreateNestedManyWithoutGalleryImagesInput
   avatarUsers?: Prisma.UserCreateNestedManyWithoutAvatarInput
@@ -423,10 +423,11 @@ export type FileUncheckedCreateInput = {
   description?: string | null
   resourceField?: string | null
   resourceName?: string | null
-  resourceId?: number | null
+  resourceId?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
+  attachmentComments?: Prisma.CommentUncheckedCreateNestedManyWithoutAttachmentInput
   coverImagePosts?: Prisma.PostUncheckedCreateNestedManyWithoutCoverImageInput
   galleryImagesPosts?: Prisma.PostUncheckedCreateNestedManyWithoutGalleryImagesInput
   avatarUsers?: Prisma.UserUncheckedCreateNestedManyWithoutAvatarInput
@@ -442,9 +443,10 @@ export type FileUpdateInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resourceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  attachmentComments?: Prisma.CommentUpdateManyWithoutAttachmentNestedInput
   coverImagePosts?: Prisma.PostUpdateManyWithoutCoverImageNestedInput
   galleryImagesPosts?: Prisma.PostUpdateManyWithoutGalleryImagesNestedInput
   avatarUsers?: Prisma.UserUpdateManyWithoutAvatarNestedInput
@@ -462,10 +464,11 @@ export type FileUncheckedUpdateInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resourceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  attachmentComments?: Prisma.CommentUncheckedUpdateManyWithoutAttachmentNestedInput
   coverImagePosts?: Prisma.PostUncheckedUpdateManyWithoutCoverImageNestedInput
   galleryImagesPosts?: Prisma.PostUncheckedUpdateManyWithoutGalleryImagesNestedInput
   avatarUsers?: Prisma.UserUncheckedUpdateManyWithoutAvatarNestedInput
@@ -482,7 +485,7 @@ export type FileCreateManyInput = {
   description?: string | null
   resourceField?: string | null
   resourceName?: string | null
-  resourceId?: number | null
+  resourceId?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
@@ -498,7 +501,7 @@ export type FileUpdateManyMutationInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resourceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -514,7 +517,7 @@ export type FileUncheckedUpdateManyInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resourceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -555,7 +558,6 @@ export type FileCountOrderByAggregateInput = {
 export type FileAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   sizeBytes?: Prisma.SortOrder
-  resourceId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
 }
 
@@ -596,8 +598,23 @@ export type FileMinOrderByAggregateInput = {
 export type FileSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   sizeBytes?: Prisma.SortOrder
-  resourceId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+}
+
+export type FileCreateNestedOneWithoutAttachmentCommentsInput = {
+  create?: Prisma.XOR<Prisma.FileCreateWithoutAttachmentCommentsInput, Prisma.FileUncheckedCreateWithoutAttachmentCommentsInput>
+  connectOrCreate?: Prisma.FileCreateOrConnectWithoutAttachmentCommentsInput
+  connect?: Prisma.FileWhereUniqueInput
+}
+
+export type FileUpdateOneWithoutAttachmentCommentsNestedInput = {
+  create?: Prisma.XOR<Prisma.FileCreateWithoutAttachmentCommentsInput, Prisma.FileUncheckedCreateWithoutAttachmentCommentsInput>
+  connectOrCreate?: Prisma.FileCreateOrConnectWithoutAttachmentCommentsInput
+  upsert?: Prisma.FileUpsertWithoutAttachmentCommentsInput
+  disconnect?: Prisma.FileWhereInput | boolean
+  delete?: Prisma.FileWhereInput | boolean
+  connect?: Prisma.FileWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FileUpdateToOneWithWhereWithoutAttachmentCommentsInput, Prisma.FileUpdateWithoutAttachmentCommentsInput>, Prisma.FileUncheckedUpdateWithoutAttachmentCommentsInput>
 }
 
 export type FileCreateNestedOneWithoutCoverImagePostsInput = {
@@ -712,6 +729,100 @@ export type FileUncheckedUpdateManyWithoutCreatedByNestedInput = {
   deleteMany?: Prisma.FileScalarWhereInput | Prisma.FileScalarWhereInput[]
 }
 
+export type FileCreateWithoutAttachmentCommentsInput = {
+  name: string
+  originalName: string
+  mimeType: string
+  sizeBytes: number
+  checksum: string
+  title?: string | null
+  description?: string | null
+  resourceField?: string | null
+  resourceName?: string | null
+  resourceId?: string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  coverImagePosts?: Prisma.PostCreateNestedManyWithoutCoverImageInput
+  galleryImagesPosts?: Prisma.PostCreateNestedManyWithoutGalleryImagesInput
+  avatarUsers?: Prisma.UserCreateNestedManyWithoutAvatarInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedFilesInput
+}
+
+export type FileUncheckedCreateWithoutAttachmentCommentsInput = {
+  id?: number
+  name: string
+  originalName: string
+  mimeType: string
+  sizeBytes: number
+  checksum: string
+  title?: string | null
+  description?: string | null
+  resourceField?: string | null
+  resourceName?: string | null
+  resourceId?: string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  coverImagePosts?: Prisma.PostUncheckedCreateNestedManyWithoutCoverImageInput
+  galleryImagesPosts?: Prisma.PostUncheckedCreateNestedManyWithoutGalleryImagesInput
+  avatarUsers?: Prisma.UserUncheckedCreateNestedManyWithoutAvatarInput
+}
+
+export type FileCreateOrConnectWithoutAttachmentCommentsInput = {
+  where: Prisma.FileWhereUniqueInput
+  create: Prisma.XOR<Prisma.FileCreateWithoutAttachmentCommentsInput, Prisma.FileUncheckedCreateWithoutAttachmentCommentsInput>
+}
+
+export type FileUpsertWithoutAttachmentCommentsInput = {
+  update: Prisma.XOR<Prisma.FileUpdateWithoutAttachmentCommentsInput, Prisma.FileUncheckedUpdateWithoutAttachmentCommentsInput>
+  create: Prisma.XOR<Prisma.FileCreateWithoutAttachmentCommentsInput, Prisma.FileUncheckedCreateWithoutAttachmentCommentsInput>
+  where?: Prisma.FileWhereInput
+}
+
+export type FileUpdateToOneWithWhereWithoutAttachmentCommentsInput = {
+  where?: Prisma.FileWhereInput
+  data: Prisma.XOR<Prisma.FileUpdateWithoutAttachmentCommentsInput, Prisma.FileUncheckedUpdateWithoutAttachmentCommentsInput>
+}
+
+export type FileUpdateWithoutAttachmentCommentsInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  originalName?: Prisma.StringFieldUpdateOperationsInput | string
+  mimeType?: Prisma.StringFieldUpdateOperationsInput | string
+  sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
+  checksum?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coverImagePosts?: Prisma.PostUpdateManyWithoutCoverImageNestedInput
+  galleryImagesPosts?: Prisma.PostUpdateManyWithoutGalleryImagesNestedInput
+  avatarUsers?: Prisma.UserUpdateManyWithoutAvatarNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedFilesNestedInput
+}
+
+export type FileUncheckedUpdateWithoutAttachmentCommentsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  originalName?: Prisma.StringFieldUpdateOperationsInput | string
+  mimeType?: Prisma.StringFieldUpdateOperationsInput | string
+  sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
+  checksum?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  coverImagePosts?: Prisma.PostUncheckedUpdateManyWithoutCoverImageNestedInput
+  galleryImagesPosts?: Prisma.PostUncheckedUpdateManyWithoutGalleryImagesNestedInput
+  avatarUsers?: Prisma.UserUncheckedUpdateManyWithoutAvatarNestedInput
+}
+
 export type FileCreateWithoutCoverImagePostsInput = {
   name: string
   originalName: string
@@ -722,9 +833,10 @@ export type FileCreateWithoutCoverImagePostsInput = {
   description?: string | null
   resourceField?: string | null
   resourceName?: string | null
-  resourceId?: number | null
+  resourceId?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
+  attachmentComments?: Prisma.CommentCreateNestedManyWithoutAttachmentInput
   galleryImagesPosts?: Prisma.PostCreateNestedManyWithoutGalleryImagesInput
   avatarUsers?: Prisma.UserCreateNestedManyWithoutAvatarInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedFilesInput
@@ -741,10 +853,11 @@ export type FileUncheckedCreateWithoutCoverImagePostsInput = {
   description?: string | null
   resourceField?: string | null
   resourceName?: string | null
-  resourceId?: number | null
+  resourceId?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
+  attachmentComments?: Prisma.CommentUncheckedCreateNestedManyWithoutAttachmentInput
   galleryImagesPosts?: Prisma.PostUncheckedCreateNestedManyWithoutGalleryImagesInput
   avatarUsers?: Prisma.UserUncheckedCreateNestedManyWithoutAvatarInput
 }
@@ -764,9 +877,10 @@ export type FileCreateWithoutGalleryImagesPostsInput = {
   description?: string | null
   resourceField?: string | null
   resourceName?: string | null
-  resourceId?: number | null
+  resourceId?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
+  attachmentComments?: Prisma.CommentCreateNestedManyWithoutAttachmentInput
   coverImagePosts?: Prisma.PostCreateNestedManyWithoutCoverImageInput
   avatarUsers?: Prisma.UserCreateNestedManyWithoutAvatarInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedFilesInput
@@ -783,10 +897,11 @@ export type FileUncheckedCreateWithoutGalleryImagesPostsInput = {
   description?: string | null
   resourceField?: string | null
   resourceName?: string | null
-  resourceId?: number | null
+  resourceId?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
+  attachmentComments?: Prisma.CommentUncheckedCreateNestedManyWithoutAttachmentInput
   coverImagePosts?: Prisma.PostUncheckedCreateNestedManyWithoutCoverImageInput
   avatarUsers?: Prisma.UserUncheckedCreateNestedManyWithoutAvatarInput
 }
@@ -817,9 +932,10 @@ export type FileUpdateWithoutCoverImagePostsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resourceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  attachmentComments?: Prisma.CommentUpdateManyWithoutAttachmentNestedInput
   galleryImagesPosts?: Prisma.PostUpdateManyWithoutGalleryImagesNestedInput
   avatarUsers?: Prisma.UserUpdateManyWithoutAvatarNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedFilesNestedInput
@@ -836,10 +952,11 @@ export type FileUncheckedUpdateWithoutCoverImagePostsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resourceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  attachmentComments?: Prisma.CommentUncheckedUpdateManyWithoutAttachmentNestedInput
   galleryImagesPosts?: Prisma.PostUncheckedUpdateManyWithoutGalleryImagesNestedInput
   avatarUsers?: Prisma.UserUncheckedUpdateManyWithoutAvatarNestedInput
 }
@@ -874,7 +991,7 @@ export type FileScalarWhereInput = {
   description?: Prisma.StringNullableFilter<"File"> | string | null
   resourceField?: Prisma.StringNullableFilter<"File"> | string | null
   resourceName?: Prisma.StringNullableFilter<"File"> | string | null
-  resourceId?: Prisma.IntNullableFilter<"File"> | number | null
+  resourceId?: Prisma.StringNullableFilter<"File"> | string | null
   updatedAt?: Prisma.DateTimeFilter<"File"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"File"> | Date | string
   createdById?: Prisma.IntNullableFilter<"File"> | number | null
@@ -890,9 +1007,10 @@ export type FileCreateWithoutAvatarUsersInput = {
   description?: string | null
   resourceField?: string | null
   resourceName?: string | null
-  resourceId?: number | null
+  resourceId?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
+  attachmentComments?: Prisma.CommentCreateNestedManyWithoutAttachmentInput
   coverImagePosts?: Prisma.PostCreateNestedManyWithoutCoverImageInput
   galleryImagesPosts?: Prisma.PostCreateNestedManyWithoutGalleryImagesInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedFilesInput
@@ -909,10 +1027,11 @@ export type FileUncheckedCreateWithoutAvatarUsersInput = {
   description?: string | null
   resourceField?: string | null
   resourceName?: string | null
-  resourceId?: number | null
+  resourceId?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
+  attachmentComments?: Prisma.CommentUncheckedCreateNestedManyWithoutAttachmentInput
   coverImagePosts?: Prisma.PostUncheckedCreateNestedManyWithoutCoverImageInput
   galleryImagesPosts?: Prisma.PostUncheckedCreateNestedManyWithoutGalleryImagesInput
 }
@@ -932,9 +1051,10 @@ export type FileCreateWithoutCreatedByInput = {
   description?: string | null
   resourceField?: string | null
   resourceName?: string | null
-  resourceId?: number | null
+  resourceId?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
+  attachmentComments?: Prisma.CommentCreateNestedManyWithoutAttachmentInput
   coverImagePosts?: Prisma.PostCreateNestedManyWithoutCoverImageInput
   galleryImagesPosts?: Prisma.PostCreateNestedManyWithoutGalleryImagesInput
   avatarUsers?: Prisma.UserCreateNestedManyWithoutAvatarInput
@@ -951,9 +1071,10 @@ export type FileUncheckedCreateWithoutCreatedByInput = {
   description?: string | null
   resourceField?: string | null
   resourceName?: string | null
-  resourceId?: number | null
+  resourceId?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
+  attachmentComments?: Prisma.CommentUncheckedCreateNestedManyWithoutAttachmentInput
   coverImagePosts?: Prisma.PostUncheckedCreateNestedManyWithoutCoverImageInput
   galleryImagesPosts?: Prisma.PostUncheckedCreateNestedManyWithoutGalleryImagesInput
   avatarUsers?: Prisma.UserUncheckedCreateNestedManyWithoutAvatarInput
@@ -989,9 +1110,10 @@ export type FileUpdateWithoutAvatarUsersInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resourceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  attachmentComments?: Prisma.CommentUpdateManyWithoutAttachmentNestedInput
   coverImagePosts?: Prisma.PostUpdateManyWithoutCoverImageNestedInput
   galleryImagesPosts?: Prisma.PostUpdateManyWithoutGalleryImagesNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedFilesNestedInput
@@ -1008,10 +1130,11 @@ export type FileUncheckedUpdateWithoutAvatarUsersInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resourceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  attachmentComments?: Prisma.CommentUncheckedUpdateManyWithoutAttachmentNestedInput
   coverImagePosts?: Prisma.PostUncheckedUpdateManyWithoutCoverImageNestedInput
   galleryImagesPosts?: Prisma.PostUncheckedUpdateManyWithoutGalleryImagesNestedInput
 }
@@ -1042,9 +1165,10 @@ export type FileUpdateWithoutGalleryImagesPostsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resourceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  attachmentComments?: Prisma.CommentUpdateManyWithoutAttachmentNestedInput
   coverImagePosts?: Prisma.PostUpdateManyWithoutCoverImageNestedInput
   avatarUsers?: Prisma.UserUpdateManyWithoutAvatarNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedFilesNestedInput
@@ -1061,10 +1185,11 @@ export type FileUncheckedUpdateWithoutGalleryImagesPostsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resourceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  attachmentComments?: Prisma.CommentUncheckedUpdateManyWithoutAttachmentNestedInput
   coverImagePosts?: Prisma.PostUncheckedUpdateManyWithoutCoverImageNestedInput
   avatarUsers?: Prisma.UserUncheckedUpdateManyWithoutAvatarNestedInput
 }
@@ -1080,7 +1205,7 @@ export type FileUncheckedUpdateManyWithoutGalleryImagesPostsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resourceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1097,7 +1222,7 @@ export type FileCreateManyCreatedByInput = {
   description?: string | null
   resourceField?: string | null
   resourceName?: string | null
-  resourceId?: number | null
+  resourceId?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
 }
@@ -1112,9 +1237,10 @@ export type FileUpdateWithoutCreatedByInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resourceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  attachmentComments?: Prisma.CommentUpdateManyWithoutAttachmentNestedInput
   coverImagePosts?: Prisma.PostUpdateManyWithoutCoverImageNestedInput
   galleryImagesPosts?: Prisma.PostUpdateManyWithoutGalleryImagesNestedInput
   avatarUsers?: Prisma.UserUpdateManyWithoutAvatarNestedInput
@@ -1131,9 +1257,10 @@ export type FileUncheckedUpdateWithoutCreatedByInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resourceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  attachmentComments?: Prisma.CommentUncheckedUpdateManyWithoutAttachmentNestedInput
   coverImagePosts?: Prisma.PostUncheckedUpdateManyWithoutCoverImageNestedInput
   galleryImagesPosts?: Prisma.PostUncheckedUpdateManyWithoutGalleryImagesNestedInput
   avatarUsers?: Prisma.UserUncheckedUpdateManyWithoutAvatarNestedInput
@@ -1150,7 +1277,7 @@ export type FileUncheckedUpdateManyWithoutCreatedByInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resourceId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1161,12 +1288,14 @@ export type FileUncheckedUpdateManyWithoutCreatedByInput = {
  */
 
 export type FileCountOutputType = {
+  attachmentComments: number
   coverImagePosts: number
   galleryImagesPosts: number
   avatarUsers: number
 }
 
 export type FileCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  attachmentComments?: boolean | FileCountOutputTypeCountAttachmentCommentsArgs
   coverImagePosts?: boolean | FileCountOutputTypeCountCoverImagePostsArgs
   galleryImagesPosts?: boolean | FileCountOutputTypeCountGalleryImagesPostsArgs
   avatarUsers?: boolean | FileCountOutputTypeCountAvatarUsersArgs
@@ -1180,6 +1309,13 @@ export type FileCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
    * Select specific fields to fetch from the FileCountOutputType
    */
   select?: Prisma.FileCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * FileCountOutputType without action
+ */
+export type FileCountOutputTypeCountAttachmentCommentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CommentWhereInput
 }
 
 /**
@@ -1219,6 +1355,7 @@ export type FileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   updatedAt?: boolean
   createdAt?: boolean
   createdById?: boolean
+  attachmentComments?: boolean | Prisma.File$attachmentCommentsArgs<ExtArgs>
   coverImagePosts?: boolean | Prisma.File$coverImagePostsArgs<ExtArgs>
   galleryImagesPosts?: boolean | Prisma.File$galleryImagesPostsArgs<ExtArgs>
   avatarUsers?: boolean | Prisma.File$avatarUsersArgs<ExtArgs>
@@ -1281,6 +1418,7 @@ export type FileSelectScalar = {
 
 export type FileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "originalName" | "mimeType" | "sizeBytes" | "checksum" | "title" | "description" | "resourceField" | "resourceName" | "resourceId" | "updatedAt" | "createdAt" | "createdById", ExtArgs["result"]["file"]>
 export type FileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  attachmentComments?: boolean | Prisma.File$attachmentCommentsArgs<ExtArgs>
   coverImagePosts?: boolean | Prisma.File$coverImagePostsArgs<ExtArgs>
   galleryImagesPosts?: boolean | Prisma.File$galleryImagesPostsArgs<ExtArgs>
   avatarUsers?: boolean | Prisma.File$avatarUsersArgs<ExtArgs>
@@ -1300,6 +1438,7 @@ export type $FilePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     /**
      * Related models with file columns
      */
+    attachmentComments: Prisma.$CommentPayload<ExtArgs>[]
     coverImagePosts: Prisma.$PostPayload<ExtArgs>[]
     galleryImagesPosts: Prisma.$PostPayload<ExtArgs>[]
     avatarUsers: Prisma.$UserPayload<ExtArgs>[]
@@ -1316,7 +1455,7 @@ export type $FilePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     description: string | null
     resourceField: string | null
     resourceName: string | null
-    resourceId: number | null
+    resourceId: string | null
     /**
      * Audit columns
      */
@@ -1717,6 +1856,7 @@ readonly fields: FileFieldRefs;
  */
 export interface Prisma__FileClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  attachmentComments<T extends Prisma.File$attachmentCommentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.File$attachmentCommentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CommentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   coverImagePosts<T extends Prisma.File$coverImagePostsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.File$coverImagePostsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   galleryImagesPosts<T extends Prisma.File$galleryImagesPostsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.File$galleryImagesPostsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   avatarUsers<T extends Prisma.File$avatarUsersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.File$avatarUsersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -1760,7 +1900,7 @@ export interface FileFieldRefs {
   readonly description: Prisma.FieldRef<"File", 'String'>
   readonly resourceField: Prisma.FieldRef<"File", 'String'>
   readonly resourceName: Prisma.FieldRef<"File", 'String'>
-  readonly resourceId: Prisma.FieldRef<"File", 'Int'>
+  readonly resourceId: Prisma.FieldRef<"File", 'String'>
   readonly updatedAt: Prisma.FieldRef<"File", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"File", 'DateTime'>
   readonly createdById: Prisma.FieldRef<"File", 'Int'>
@@ -2160,6 +2300,30 @@ export type FileDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Limit how many Files to delete.
    */
   limit?: number
+}
+
+/**
+ * File.attachmentComments
+ */
+export type File$attachmentCommentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Comment
+   */
+  select?: Prisma.CommentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Comment
+   */
+  omit?: Prisma.CommentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CommentInclude<ExtArgs> | null
+  where?: Prisma.CommentWhereInput
+  orderBy?: Prisma.CommentOrderByWithRelationInput | Prisma.CommentOrderByWithRelationInput[]
+  cursor?: Prisma.CommentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CommentScalarFieldEnum | Prisma.CommentScalarFieldEnum[]
 }
 
 /**

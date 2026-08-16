@@ -1,5 +1,7 @@
+import { ResourceId } from './resource';
+
 export type File = {
-  id: number;
+  id: ResourceId;
   name: string;
   originalName: string;
   mimeType: string;
@@ -8,10 +10,11 @@ export type File = {
   description?: string | null;
   resourceField?: string | null;
   resourceName?: string | null;
-  resourceId?: number | null;
+  /** Id of the owning resource, stored as text so it fits either primary key type */
+  resourceId?: string | null;
   updatedAt: Date;
   createdAt: Date;
-  createdById?: number | null;
+  createdById?: ResourceId | null;
 };
 
 export type MultipartFile = {

@@ -1,9 +1,11 @@
-import { Type } from '@sinclair/typebox';
+import { TObject, TSchema, Type } from '@sinclair/typebox';
 import {
   AnyJson,
   AuthType,
   camelToSnakeCase,
   CONFIG_NAME,
+  IdField,
+  idFieldType,
   Nullable,
   plural,
   RecaptchaConfig,
@@ -25,18 +27,16 @@ import {
   registerQuerySortSchemas
 } from './schemas';
 
+// Maximum length of a string primary key, sized for the longest value the
+// supported generators produce (a 36-character UUID)
+export const ID_STRING_MAX_LENGTH = 36;
+
 export const Id = Type.Object({
-  id: Type.Integer({ minimum: 1 })
+  id: Type.Integer({ minimum: 1, example: 1 })
 });
 
 export const IdString = Type.Object({
-  id: Type.String({ maxLength: 36 })
-});
-
-export const AuditData = Type.Object({
-  updatedAt: StringDate(),
-  createdAt: StringDate(),
-  createdById: Nullable(Type.Integer({ minimum: 1, example: 1 }))
+  id: Type.String({ maxLength: ID_STRING_MAX_LENGTH, example: 'a1b2c3d4' })
 });
 
 // The sort property is declared per model instead, since its object form
@@ -73,6 +73,10 @@ export function createSchema(
 
   const resourceName = camelToSnakeCase(name, ' ');
   const tag = plural(name);
+
+  // The path parameter follows the primary key type of this model, so a string
+  // id is neither coerced to a number nor rejected by the request validation
+  const idParams = resourceModel.idModel;
 
   // Register the recursive query filter and sort schemas of all loaded models,
   // referenced by the query, aggregate, and export request bodies
@@ -134,7 +138,7 @@ export function createSchema(
         200: resourceModel.readOneModel,
         ...AllErrorResponses
       },
-      params: Id
+      params: idParams
     },
     querySchema: {
       tags: [tag],
@@ -183,7 +187,7 @@ export function createSchema(
         ...AllErrorResponses
       },
       body: resourceModel.updateOneModel,
-      params: Id
+      params: idParams
     },
     deleteSchema: {
       tags: [tag],
@@ -195,7 +199,7 @@ export function createSchema(
         200: resourceModel.readOneModel,
         ...AllErrorResponses
       },
-      params: Id
+      params: idParams
     },
     exportSchema: {
       tags: [tag],
@@ -227,7 +231,7 @@ export function createSchema(
         ...AllErrorResponses
       },
       body: resourceModel.fileUploadModel,
-      params: Id
+      params: idParams
     },
     fileDeleteSchema: {
       tags: [tag],
@@ -240,7 +244,7 @@ export function createSchema(
         ...AllErrorResponses
       },
       body: resourceModel.fileDeleteModel,
-      params: Id
+      params: idParams
     }
   };
 
@@ -249,4 +253,44 @@ export function createSchema(
   }
 
   return resourceSchemaConfig;
+}
+
+/**
+ * Builds the schema of a single primary key value, used wherever an id is
+ * accepted on its own (i.e. a relation input connecting an existing record).
+ *
+ * @param {IdField} [idField] - The id configuration, integer by default.
+ * @return {TSchema} The schema of the id value.
+ */
+export function idValueSchema(idField?: IdField): TSchema {
+  return idFieldType(idField) === 'string'
+    ? IdString.properties.id
+    : Id.properties.id;
+}
+
+/**
+ * Builds the primary key schema of a model, used as the route path parameter
+ * and as the connect shape of the relation inputs pointing at the model. A
+ * fresh object per call, since each model annotates its own schemas.
+ *
+ * @param {IdField} [idField] - The id configuration, integer by default.
+ * @return {TObject} The primary key schema of the model.
+ */
+export function idSchema(idField?: IdField): TObject {
+  return Type.Object({ id: idValueSchema(idField) });
+}
+
+/**
+ * Builds the audit field schema of a model. The `createdById` field references
+ * the authentication model, so it follows that model's id type.
+ *
+ * @param {IdField} [authIdField] - The auth model id configuration, integer by default.
+ * @return {TObject} The schema holding all supported audit fields.
+ */
+export function auditSchema(authIdField?: IdField): TObject {
+  return Type.Object({
+    updatedAt: StringDate(),
+    createdAt: StringDate(),
+    createdById: Nullable(idValueSchema(authIdField))
+  });
 }

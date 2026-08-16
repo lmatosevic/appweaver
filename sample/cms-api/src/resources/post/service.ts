@@ -1,12 +1,13 @@
 import { createService } from '@appweaver/core';
+import { ResourceId, logger } from '@appweaver/common';
 
 export default createService({
   modelName: 'Post',
-  beforeFind: (id: number) => {
-    console.log('Finding post with ID:', id);
+  beforeFind: (id: ResourceId) => {
+    logger.info({ id }, 'Finding post with ID:');
   },
   afterFind: (resource: any) => {
-    console.log('Found resource:', resource);
+    logger.info({ resource }, 'Found post resource:');
   },
   textSearch: {
     OR: {

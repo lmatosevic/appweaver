@@ -1,5 +1,7 @@
+import { ResourceId } from './resource';
+
 export type AuthUser = {
-  id: number;
+  id: ResourceId;
   email: string;
   passwordHash?: string | null;
   verifiedEmail?: boolean;
@@ -9,19 +11,19 @@ export type AuthUser = {
   logoutAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
-  createdById?: number | null;
+  createdById?: ResourceId | null;
 };
 
 export type Role = {
-  id: number;
+  id: ResourceId;
   name: string;
   permissions: Array<Permission>;
   updatedAt: Date;
   createdAt: Date;
-  createdById?: number | null;
+  createdById?: ResourceId | null;
 };
 
 export type Permission = {
-  id: number;
+  id: ResourceId;
   name: string;
 };

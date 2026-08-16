@@ -52,6 +52,7 @@ export type PostMinAggregateOutputType = {
   tags: string | null
   lastActivity: Date | null
   authorId: number | null
+  pinnedCommentId: string | null
   coverImageId: number | null
   updatedAt: Date | null
   createdAt: Date | null
@@ -68,6 +69,7 @@ export type PostMaxAggregateOutputType = {
   tags: string | null
   lastActivity: Date | null
   authorId: number | null
+  pinnedCommentId: string | null
   coverImageId: number | null
   updatedAt: Date | null
   createdAt: Date | null
@@ -85,6 +87,7 @@ export type PostCountAggregateOutputType = {
   jsonLd: number
   lastActivity: number
   authorId: number
+  pinnedCommentId: number
   coverImageId: number
   updatedAt: number
   createdAt: number
@@ -119,6 +122,7 @@ export type PostMinAggregateInputType = {
   tags?: true
   lastActivity?: true
   authorId?: true
+  pinnedCommentId?: true
   coverImageId?: true
   updatedAt?: true
   createdAt?: true
@@ -135,6 +139,7 @@ export type PostMaxAggregateInputType = {
   tags?: true
   lastActivity?: true
   authorId?: true
+  pinnedCommentId?: true
   coverImageId?: true
   updatedAt?: true
   createdAt?: true
@@ -152,6 +157,7 @@ export type PostCountAggregateInputType = {
   jsonLd?: true
   lastActivity?: true
   authorId?: true
+  pinnedCommentId?: true
   coverImageId?: true
   updatedAt?: true
   createdAt?: true
@@ -256,6 +262,7 @@ export type PostGroupByOutputType = {
   jsonLd: runtime.JsonValue | null
   lastActivity: Date | null
   authorId: number | null
+  pinnedCommentId: string | null
   coverImageId: number | null
   updatedAt: Date
   createdAt: Date
@@ -296,11 +303,14 @@ export type PostWhereInput = {
   jsonLd?: Prisma.JsonNullableFilter<"Post">
   lastActivity?: Prisma.DateTimeNullableFilter<"Post"> | Date | string | null
   authorId?: Prisma.IntNullableFilter<"Post"> | number | null
+  pinnedCommentId?: Prisma.StringNullableFilter<"Post"> | string | null
   coverImageId?: Prisma.IntNullableFilter<"Post"> | number | null
   updatedAt?: Prisma.DateTimeFilter<"Post"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Post"> | Date | string
   createdById?: Prisma.IntNullableFilter<"Post"> | number | null
   author?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  comments?: Prisma.CommentListRelationFilter
+  pinnedComment?: Prisma.XOR<Prisma.CommentNullableScalarRelationFilter, Prisma.CommentWhereInput> | null
   coverImage?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   galleryImages?: Prisma.FileListRelationFilter
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -317,11 +327,14 @@ export type PostOrderByWithRelationInput = {
   jsonLd?: Prisma.SortOrderInput | Prisma.SortOrder
   lastActivity?: Prisma.SortOrderInput | Prisma.SortOrder
   authorId?: Prisma.SortOrderInput | Prisma.SortOrder
+  pinnedCommentId?: Prisma.SortOrderInput | Prisma.SortOrder
   coverImageId?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrderInput | Prisma.SortOrder
   author?: Prisma.UserOrderByWithRelationInput
+  comments?: Prisma.CommentOrderByRelationAggregateInput
+  pinnedComment?: Prisma.CommentOrderByWithRelationInput
   coverImage?: Prisma.FileOrderByWithRelationInput
   galleryImages?: Prisma.FileOrderByRelationAggregateInput
   createdBy?: Prisma.UserOrderByWithRelationInput
@@ -330,6 +343,7 @@ export type PostOrderByWithRelationInput = {
 export type PostWhereUniqueInput = Prisma.AtLeast<{
   id?: number
   slug?: string
+  pinnedCommentId?: string
   coverImageId?: number
   AND?: Prisma.PostWhereInput | Prisma.PostWhereInput[]
   OR?: Prisma.PostWhereInput[]
@@ -346,10 +360,12 @@ export type PostWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Post"> | Date | string
   createdById?: Prisma.IntNullableFilter<"Post"> | number | null
   author?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  comments?: Prisma.CommentListRelationFilter
+  pinnedComment?: Prisma.XOR<Prisma.CommentNullableScalarRelationFilter, Prisma.CommentWhereInput> | null
   coverImage?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   galleryImages?: Prisma.FileListRelationFilter
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
-}, "id" | "slug" | "coverImageId">
+}, "id" | "slug" | "pinnedCommentId" | "coverImageId">
 
 export type PostOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -362,6 +378,7 @@ export type PostOrderByWithAggregationInput = {
   jsonLd?: Prisma.SortOrderInput | Prisma.SortOrder
   lastActivity?: Prisma.SortOrderInput | Prisma.SortOrder
   authorId?: Prisma.SortOrderInput | Prisma.SortOrder
+  pinnedCommentId?: Prisma.SortOrderInput | Prisma.SortOrder
   coverImageId?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -387,6 +404,7 @@ export type PostScalarWhereWithAggregatesInput = {
   jsonLd?: Prisma.JsonNullableWithAggregatesFilter<"Post">
   lastActivity?: Prisma.DateTimeNullableWithAggregatesFilter<"Post"> | Date | string | null
   authorId?: Prisma.IntNullableWithAggregatesFilter<"Post"> | number | null
+  pinnedCommentId?: Prisma.StringNullableWithAggregatesFilter<"Post"> | string | null
   coverImageId?: Prisma.IntNullableWithAggregatesFilter<"Post"> | number | null
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Post"> | Date | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Post"> | Date | string
@@ -405,6 +423,8 @@ export type PostCreateInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   author?: Prisma.UserCreateNestedOneWithoutPostsInput
+  comments?: Prisma.CommentCreateNestedManyWithoutPostInput
+  pinnedComment?: Prisma.CommentCreateNestedOneWithoutPinnedInInput
   coverImage?: Prisma.FileCreateNestedOneWithoutCoverImagePostsInput
   galleryImages?: Prisma.FileCreateNestedManyWithoutGalleryImagesPostsInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedPostsInput
@@ -421,10 +441,12 @@ export type PostUncheckedCreateInput = {
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Date | string | null
   authorId?: number | null
+  pinnedCommentId?: string | null
   coverImageId?: number | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
+  comments?: Prisma.CommentUncheckedCreateNestedManyWithoutPostInput
   galleryImages?: Prisma.FileUncheckedCreateNestedManyWithoutGalleryImagesPostsInput
 }
 
@@ -440,6 +462,8 @@ export type PostUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   author?: Prisma.UserUpdateOneWithoutPostsNestedInput
+  comments?: Prisma.CommentUpdateManyWithoutPostNestedInput
+  pinnedComment?: Prisma.CommentUpdateOneWithoutPinnedInNestedInput
   coverImage?: Prisma.FileUpdateOneWithoutCoverImagePostsNestedInput
   galleryImages?: Prisma.FileUpdateManyWithoutGalleryImagesPostsNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedPostsNestedInput
@@ -456,10 +480,12 @@ export type PostUncheckedUpdateInput = {
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pinnedCommentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  comments?: Prisma.CommentUncheckedUpdateManyWithoutPostNestedInput
   galleryImages?: Prisma.FileUncheckedUpdateManyWithoutGalleryImagesPostsNestedInput
 }
 
@@ -474,6 +500,7 @@ export type PostCreateManyInput = {
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Date | string | null
   authorId?: number | null
+  pinnedCommentId?: string | null
   coverImageId?: number | null
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -504,10 +531,21 @@ export type PostUncheckedUpdateManyInput = {
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pinnedCommentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type PostScalarRelationFilter = {
+  is?: Prisma.PostWhereInput
+  isNot?: Prisma.PostWhereInput
+}
+
+export type PostNullableScalarRelationFilter = {
+  is?: Prisma.PostWhereInput | null
+  isNot?: Prisma.PostWhereInput | null
 }
 
 export type PostCountOrderByAggregateInput = {
@@ -521,6 +559,7 @@ export type PostCountOrderByAggregateInput = {
   jsonLd?: Prisma.SortOrder
   lastActivity?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
+  pinnedCommentId?: Prisma.SortOrder
   coverImageId?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -545,6 +584,7 @@ export type PostMaxOrderByAggregateInput = {
   tags?: Prisma.SortOrder
   lastActivity?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
+  pinnedCommentId?: Prisma.SortOrder
   coverImageId?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -561,6 +601,7 @@ export type PostMinOrderByAggregateInput = {
   tags?: Prisma.SortOrder
   lastActivity?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
+  pinnedCommentId?: Prisma.SortOrder
   coverImageId?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -585,20 +626,50 @@ export type PostOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type StringFieldUpdateOperationsInput = {
-  set?: string
+export type PostCreateNestedOneWithoutCommentsInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutCommentsInput, Prisma.PostUncheckedCreateWithoutCommentsInput>
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutCommentsInput
+  connect?: Prisma.PostWhereUniqueInput
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
+export type PostCreateNestedOneWithoutPinnedCommentInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutPinnedCommentInput, Prisma.PostUncheckedCreateWithoutPinnedCommentInput>
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutPinnedCommentInput
+  connect?: Prisma.PostWhereUniqueInput
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
+export type PostUncheckedCreateNestedOneWithoutPinnedCommentInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutPinnedCommentInput, Prisma.PostUncheckedCreateWithoutPinnedCommentInput>
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutPinnedCommentInput
+  connect?: Prisma.PostWhereUniqueInput
+}
+
+export type PostUpdateOneRequiredWithoutCommentsNestedInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutCommentsInput, Prisma.PostUncheckedCreateWithoutCommentsInput>
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutCommentsInput
+  upsert?: Prisma.PostUpsertWithoutCommentsInput
+  connect?: Prisma.PostWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PostUpdateToOneWithWhereWithoutCommentsInput, Prisma.PostUpdateWithoutCommentsInput>, Prisma.PostUncheckedUpdateWithoutCommentsInput>
+}
+
+export type PostUpdateOneWithoutPinnedCommentNestedInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutPinnedCommentInput, Prisma.PostUncheckedCreateWithoutPinnedCommentInput>
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutPinnedCommentInput
+  upsert?: Prisma.PostUpsertWithoutPinnedCommentInput
+  disconnect?: Prisma.PostWhereInput | boolean
+  delete?: Prisma.PostWhereInput | boolean
+  connect?: Prisma.PostWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PostUpdateToOneWithWhereWithoutPinnedCommentInput, Prisma.PostUpdateWithoutPinnedCommentInput>, Prisma.PostUncheckedUpdateWithoutPinnedCommentInput>
+}
+
+export type PostUncheckedUpdateOneWithoutPinnedCommentNestedInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutPinnedCommentInput, Prisma.PostUncheckedCreateWithoutPinnedCommentInput>
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutPinnedCommentInput
+  upsert?: Prisma.PostUpsertWithoutPinnedCommentInput
+  disconnect?: Prisma.PostWhereInput | boolean
+  delete?: Prisma.PostWhereInput | boolean
+  connect?: Prisma.PostWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PostUpdateToOneWithWhereWithoutPinnedCommentInput, Prisma.PostUpdateWithoutPinnedCommentInput>, Prisma.PostUncheckedUpdateWithoutPinnedCommentInput>
 }
 
 export type NullableEnumPostStatusFieldUpdateOperationsInput = {
@@ -607,18 +678,6 @@ export type NullableEnumPostStatusFieldUpdateOperationsInput = {
 
 export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
-}
-
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
-}
-
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
 }
 
 export type PostCreateNestedManyWithoutAuthorInput = {
@@ -785,6 +844,186 @@ export type PostUncheckedUpdateManyWithoutGalleryImagesNestedInput = {
   deleteMany?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
 }
 
+export type PostCreateWithoutCommentsInput = {
+  title?: string
+  slug: string
+  content?: string | null
+  counter?: number
+  status?: $Enums.PostStatus | null
+  tags?: string
+  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastActivity?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  author?: Prisma.UserCreateNestedOneWithoutPostsInput
+  pinnedComment?: Prisma.CommentCreateNestedOneWithoutPinnedInInput
+  coverImage?: Prisma.FileCreateNestedOneWithoutCoverImagePostsInput
+  galleryImages?: Prisma.FileCreateNestedManyWithoutGalleryImagesPostsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedPostsInput
+}
+
+export type PostUncheckedCreateWithoutCommentsInput = {
+  id?: number
+  title?: string
+  slug: string
+  content?: string | null
+  counter?: number
+  status?: $Enums.PostStatus | null
+  tags?: string
+  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastActivity?: Date | string | null
+  authorId?: number | null
+  pinnedCommentId?: string | null
+  coverImageId?: number | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  galleryImages?: Prisma.FileUncheckedCreateNestedManyWithoutGalleryImagesPostsInput
+}
+
+export type PostCreateOrConnectWithoutCommentsInput = {
+  where: Prisma.PostWhereUniqueInput
+  create: Prisma.XOR<Prisma.PostCreateWithoutCommentsInput, Prisma.PostUncheckedCreateWithoutCommentsInput>
+}
+
+export type PostCreateWithoutPinnedCommentInput = {
+  title?: string
+  slug: string
+  content?: string | null
+  counter?: number
+  status?: $Enums.PostStatus | null
+  tags?: string
+  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastActivity?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  author?: Prisma.UserCreateNestedOneWithoutPostsInput
+  comments?: Prisma.CommentCreateNestedManyWithoutPostInput
+  coverImage?: Prisma.FileCreateNestedOneWithoutCoverImagePostsInput
+  galleryImages?: Prisma.FileCreateNestedManyWithoutGalleryImagesPostsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedPostsInput
+}
+
+export type PostUncheckedCreateWithoutPinnedCommentInput = {
+  id?: number
+  title?: string
+  slug: string
+  content?: string | null
+  counter?: number
+  status?: $Enums.PostStatus | null
+  tags?: string
+  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastActivity?: Date | string | null
+  authorId?: number | null
+  coverImageId?: number | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  comments?: Prisma.CommentUncheckedCreateNestedManyWithoutPostInput
+  galleryImages?: Prisma.FileUncheckedCreateNestedManyWithoutGalleryImagesPostsInput
+}
+
+export type PostCreateOrConnectWithoutPinnedCommentInput = {
+  where: Prisma.PostWhereUniqueInput
+  create: Prisma.XOR<Prisma.PostCreateWithoutPinnedCommentInput, Prisma.PostUncheckedCreateWithoutPinnedCommentInput>
+}
+
+export type PostUpsertWithoutCommentsInput = {
+  update: Prisma.XOR<Prisma.PostUpdateWithoutCommentsInput, Prisma.PostUncheckedUpdateWithoutCommentsInput>
+  create: Prisma.XOR<Prisma.PostCreateWithoutCommentsInput, Prisma.PostUncheckedCreateWithoutCommentsInput>
+  where?: Prisma.PostWhereInput
+}
+
+export type PostUpdateToOneWithWhereWithoutCommentsInput = {
+  where?: Prisma.PostWhereInput
+  data: Prisma.XOR<Prisma.PostUpdateWithoutCommentsInput, Prisma.PostUncheckedUpdateWithoutCommentsInput>
+}
+
+export type PostUpdateWithoutCommentsInput = {
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  counter?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.NullableEnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus | null
+  tags?: Prisma.StringFieldUpdateOperationsInput | string
+  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  author?: Prisma.UserUpdateOneWithoutPostsNestedInput
+  pinnedComment?: Prisma.CommentUpdateOneWithoutPinnedInNestedInput
+  coverImage?: Prisma.FileUpdateOneWithoutCoverImagePostsNestedInput
+  galleryImages?: Prisma.FileUpdateManyWithoutGalleryImagesPostsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedPostsNestedInput
+}
+
+export type PostUncheckedUpdateWithoutCommentsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  counter?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.NullableEnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus | null
+  tags?: Prisma.StringFieldUpdateOperationsInput | string
+  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pinnedCommentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  galleryImages?: Prisma.FileUncheckedUpdateManyWithoutGalleryImagesPostsNestedInput
+}
+
+export type PostUpsertWithoutPinnedCommentInput = {
+  update: Prisma.XOR<Prisma.PostUpdateWithoutPinnedCommentInput, Prisma.PostUncheckedUpdateWithoutPinnedCommentInput>
+  create: Prisma.XOR<Prisma.PostCreateWithoutPinnedCommentInput, Prisma.PostUncheckedCreateWithoutPinnedCommentInput>
+  where?: Prisma.PostWhereInput
+}
+
+export type PostUpdateToOneWithWhereWithoutPinnedCommentInput = {
+  where?: Prisma.PostWhereInput
+  data: Prisma.XOR<Prisma.PostUpdateWithoutPinnedCommentInput, Prisma.PostUncheckedUpdateWithoutPinnedCommentInput>
+}
+
+export type PostUpdateWithoutPinnedCommentInput = {
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  counter?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.NullableEnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus | null
+  tags?: Prisma.StringFieldUpdateOperationsInput | string
+  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  author?: Prisma.UserUpdateOneWithoutPostsNestedInput
+  comments?: Prisma.CommentUpdateManyWithoutPostNestedInput
+  coverImage?: Prisma.FileUpdateOneWithoutCoverImagePostsNestedInput
+  galleryImages?: Prisma.FileUpdateManyWithoutGalleryImagesPostsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedPostsNestedInput
+}
+
+export type PostUncheckedUpdateWithoutPinnedCommentInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  counter?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.NullableEnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus | null
+  tags?: Prisma.StringFieldUpdateOperationsInput | string
+  jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  coverImageId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  comments?: Prisma.CommentUncheckedUpdateManyWithoutPostNestedInput
+  galleryImages?: Prisma.FileUncheckedUpdateManyWithoutGalleryImagesPostsNestedInput
+}
+
 export type PostCreateWithoutAuthorInput = {
   title?: string
   slug: string
@@ -796,6 +1035,8 @@ export type PostCreateWithoutAuthorInput = {
   lastActivity?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
+  comments?: Prisma.CommentCreateNestedManyWithoutPostInput
+  pinnedComment?: Prisma.CommentCreateNestedOneWithoutPinnedInInput
   coverImage?: Prisma.FileCreateNestedOneWithoutCoverImagePostsInput
   galleryImages?: Prisma.FileCreateNestedManyWithoutGalleryImagesPostsInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedPostsInput
@@ -811,10 +1052,12 @@ export type PostUncheckedCreateWithoutAuthorInput = {
   tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Date | string | null
+  pinnedCommentId?: string | null
   coverImageId?: number | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
+  comments?: Prisma.CommentUncheckedCreateNestedManyWithoutPostInput
   galleryImages?: Prisma.FileUncheckedCreateNestedManyWithoutGalleryImagesPostsInput
 }
 
@@ -839,6 +1082,8 @@ export type PostCreateWithoutCreatedByInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   author?: Prisma.UserCreateNestedOneWithoutPostsInput
+  comments?: Prisma.CommentCreateNestedManyWithoutPostInput
+  pinnedComment?: Prisma.CommentCreateNestedOneWithoutPinnedInInput
   coverImage?: Prisma.FileCreateNestedOneWithoutCoverImagePostsInput
   galleryImages?: Prisma.FileCreateNestedManyWithoutGalleryImagesPostsInput
 }
@@ -854,9 +1099,11 @@ export type PostUncheckedCreateWithoutCreatedByInput = {
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Date | string | null
   authorId?: number | null
+  pinnedCommentId?: string | null
   coverImageId?: number | null
   updatedAt?: Date | string
   createdAt?: Date | string
+  comments?: Prisma.CommentUncheckedCreateNestedManyWithoutPostInput
   galleryImages?: Prisma.FileUncheckedCreateNestedManyWithoutGalleryImagesPostsInput
 }
 
@@ -899,6 +1146,7 @@ export type PostScalarWhereInput = {
   jsonLd?: Prisma.JsonNullableFilter<"Post">
   lastActivity?: Prisma.DateTimeNullableFilter<"Post"> | Date | string | null
   authorId?: Prisma.IntNullableFilter<"Post"> | number | null
+  pinnedCommentId?: Prisma.StringNullableFilter<"Post"> | string | null
   coverImageId?: Prisma.IntNullableFilter<"Post"> | number | null
   updatedAt?: Prisma.DateTimeFilter<"Post"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Post"> | Date | string
@@ -933,6 +1181,8 @@ export type PostCreateWithoutCoverImageInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   author?: Prisma.UserCreateNestedOneWithoutPostsInput
+  comments?: Prisma.CommentCreateNestedManyWithoutPostInput
+  pinnedComment?: Prisma.CommentCreateNestedOneWithoutPinnedInInput
   galleryImages?: Prisma.FileCreateNestedManyWithoutGalleryImagesPostsInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedPostsInput
 }
@@ -948,9 +1198,11 @@ export type PostUncheckedCreateWithoutCoverImageInput = {
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Date | string | null
   authorId?: number | null
+  pinnedCommentId?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
+  comments?: Prisma.CommentUncheckedCreateNestedManyWithoutPostInput
   galleryImages?: Prisma.FileUncheckedCreateNestedManyWithoutGalleryImagesPostsInput
 }
 
@@ -975,6 +1227,8 @@ export type PostCreateWithoutGalleryImagesInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   author?: Prisma.UserCreateNestedOneWithoutPostsInput
+  comments?: Prisma.CommentCreateNestedManyWithoutPostInput
+  pinnedComment?: Prisma.CommentCreateNestedOneWithoutPinnedInInput
   coverImage?: Prisma.FileCreateNestedOneWithoutCoverImagePostsInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedPostsInput
 }
@@ -990,10 +1244,12 @@ export type PostUncheckedCreateWithoutGalleryImagesInput = {
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Date | string | null
   authorId?: number | null
+  pinnedCommentId?: string | null
   coverImageId?: number | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
+  comments?: Prisma.CommentUncheckedCreateNestedManyWithoutPostInput
 }
 
 export type PostCreateOrConnectWithoutGalleryImagesInput = {
@@ -1043,6 +1299,7 @@ export type PostCreateManyAuthorInput = {
   tags?: string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Date | string | null
+  pinnedCommentId?: string | null
   coverImageId?: number | null
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -1060,6 +1317,7 @@ export type PostCreateManyCreatedByInput = {
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Date | string | null
   authorId?: number | null
+  pinnedCommentId?: string | null
   coverImageId?: number | null
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -1076,6 +1334,8 @@ export type PostUpdateWithoutAuthorInput = {
   lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  comments?: Prisma.CommentUpdateManyWithoutPostNestedInput
+  pinnedComment?: Prisma.CommentUpdateOneWithoutPinnedInNestedInput
   coverImage?: Prisma.FileUpdateOneWithoutCoverImagePostsNestedInput
   galleryImages?: Prisma.FileUpdateManyWithoutGalleryImagesPostsNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedPostsNestedInput
@@ -1091,10 +1351,12 @@ export type PostUncheckedUpdateWithoutAuthorInput = {
   tags?: Prisma.StringFieldUpdateOperationsInput | string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedCommentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  comments?: Prisma.CommentUncheckedUpdateManyWithoutPostNestedInput
   galleryImages?: Prisma.FileUncheckedUpdateManyWithoutGalleryImagesPostsNestedInput
 }
 
@@ -1108,6 +1370,7 @@ export type PostUncheckedUpdateManyWithoutAuthorInput = {
   tags?: Prisma.StringFieldUpdateOperationsInput | string
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedCommentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1126,6 +1389,8 @@ export type PostUpdateWithoutCreatedByInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   author?: Prisma.UserUpdateOneWithoutPostsNestedInput
+  comments?: Prisma.CommentUpdateManyWithoutPostNestedInput
+  pinnedComment?: Prisma.CommentUpdateOneWithoutPinnedInNestedInput
   coverImage?: Prisma.FileUpdateOneWithoutCoverImagePostsNestedInput
   galleryImages?: Prisma.FileUpdateManyWithoutGalleryImagesPostsNestedInput
 }
@@ -1141,9 +1406,11 @@ export type PostUncheckedUpdateWithoutCreatedByInput = {
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pinnedCommentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  comments?: Prisma.CommentUncheckedUpdateManyWithoutPostNestedInput
   galleryImages?: Prisma.FileUncheckedUpdateManyWithoutGalleryImagesPostsNestedInput
 }
 
@@ -1158,6 +1425,7 @@ export type PostUncheckedUpdateManyWithoutCreatedByInput = {
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pinnedCommentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1174,6 +1442,7 @@ export type PostCreateManyCoverImageInput = {
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Date | string | null
   authorId?: number | null
+  pinnedCommentId?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
@@ -1191,6 +1460,8 @@ export type PostUpdateWithoutCoverImageInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   author?: Prisma.UserUpdateOneWithoutPostsNestedInput
+  comments?: Prisma.CommentUpdateManyWithoutPostNestedInput
+  pinnedComment?: Prisma.CommentUpdateOneWithoutPinnedInNestedInput
   galleryImages?: Prisma.FileUpdateManyWithoutGalleryImagesPostsNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedPostsNestedInput
 }
@@ -1206,9 +1477,11 @@ export type PostUncheckedUpdateWithoutCoverImageInput = {
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pinnedCommentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  comments?: Prisma.CommentUncheckedUpdateManyWithoutPostNestedInput
   galleryImages?: Prisma.FileUncheckedUpdateManyWithoutGalleryImagesPostsNestedInput
 }
 
@@ -1223,6 +1496,7 @@ export type PostUncheckedUpdateManyWithoutCoverImageInput = {
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pinnedCommentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1240,6 +1514,8 @@ export type PostUpdateWithoutGalleryImagesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   author?: Prisma.UserUpdateOneWithoutPostsNestedInput
+  comments?: Prisma.CommentUpdateManyWithoutPostNestedInput
+  pinnedComment?: Prisma.CommentUpdateOneWithoutPinnedInNestedInput
   coverImage?: Prisma.FileUpdateOneWithoutCoverImagePostsNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedPostsNestedInput
 }
@@ -1255,10 +1531,12 @@ export type PostUncheckedUpdateWithoutGalleryImagesInput = {
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pinnedCommentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  comments?: Prisma.CommentUncheckedUpdateManyWithoutPostNestedInput
 }
 
 export type PostUncheckedUpdateManyWithoutGalleryImagesInput = {
@@ -1272,6 +1550,7 @@ export type PostUncheckedUpdateManyWithoutGalleryImagesInput = {
   jsonLd?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lastActivity?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pinnedCommentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1284,10 +1563,12 @@ export type PostUncheckedUpdateManyWithoutGalleryImagesInput = {
  */
 
 export type PostCountOutputType = {
+  comments: number
   galleryImages: number
 }
 
 export type PostCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  comments?: boolean | PostCountOutputTypeCountCommentsArgs
   galleryImages?: boolean | PostCountOutputTypeCountGalleryImagesArgs
 }
 
@@ -1299,6 +1580,13 @@ export type PostCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
    * Select specific fields to fetch from the PostCountOutputType
    */
   select?: Prisma.PostCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * PostCountOutputType without action
+ */
+export type PostCountOutputTypeCountCommentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CommentWhereInput
 }
 
 /**
@@ -1320,11 +1608,14 @@ export type PostSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   jsonLd?: boolean
   lastActivity?: boolean
   authorId?: boolean
+  pinnedCommentId?: boolean
   coverImageId?: boolean
   updatedAt?: boolean
   createdAt?: boolean
   createdById?: boolean
   author?: boolean | Prisma.Post$authorArgs<ExtArgs>
+  comments?: boolean | Prisma.Post$commentsArgs<ExtArgs>
+  pinnedComment?: boolean | Prisma.Post$pinnedCommentArgs<ExtArgs>
   coverImage?: boolean | Prisma.Post$coverImageArgs<ExtArgs>
   galleryImages?: boolean | Prisma.Post$galleryImagesArgs<ExtArgs>
   createdBy?: boolean | Prisma.Post$createdByArgs<ExtArgs>
@@ -1342,11 +1633,13 @@ export type PostSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   jsonLd?: boolean
   lastActivity?: boolean
   authorId?: boolean
+  pinnedCommentId?: boolean
   coverImageId?: boolean
   updatedAt?: boolean
   createdAt?: boolean
   createdById?: boolean
   author?: boolean | Prisma.Post$authorArgs<ExtArgs>
+  pinnedComment?: boolean | Prisma.Post$pinnedCommentArgs<ExtArgs>
   coverImage?: boolean | Prisma.Post$coverImageArgs<ExtArgs>
   createdBy?: boolean | Prisma.Post$createdByArgs<ExtArgs>
 }, ExtArgs["result"]["post"]>
@@ -1362,11 +1655,13 @@ export type PostSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   jsonLd?: boolean
   lastActivity?: boolean
   authorId?: boolean
+  pinnedCommentId?: boolean
   coverImageId?: boolean
   updatedAt?: boolean
   createdAt?: boolean
   createdById?: boolean
   author?: boolean | Prisma.Post$authorArgs<ExtArgs>
+  pinnedComment?: boolean | Prisma.Post$pinnedCommentArgs<ExtArgs>
   coverImage?: boolean | Prisma.Post$coverImageArgs<ExtArgs>
   createdBy?: boolean | Prisma.Post$createdByArgs<ExtArgs>
 }, ExtArgs["result"]["post"]>
@@ -1382,15 +1677,18 @@ export type PostSelectScalar = {
   jsonLd?: boolean
   lastActivity?: boolean
   authorId?: boolean
+  pinnedCommentId?: boolean
   coverImageId?: boolean
   updatedAt?: boolean
   createdAt?: boolean
   createdById?: boolean
 }
 
-export type PostOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "slug" | "content" | "counter" | "status" | "tags" | "jsonLd" | "lastActivity" | "authorId" | "coverImageId" | "updatedAt" | "createdAt" | "createdById", ExtArgs["result"]["post"]>
+export type PostOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "slug" | "content" | "counter" | "status" | "tags" | "jsonLd" | "lastActivity" | "authorId" | "pinnedCommentId" | "coverImageId" | "updatedAt" | "createdAt" | "createdById", ExtArgs["result"]["post"]>
 export type PostInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   author?: boolean | Prisma.Post$authorArgs<ExtArgs>
+  comments?: boolean | Prisma.Post$commentsArgs<ExtArgs>
+  pinnedComment?: boolean | Prisma.Post$pinnedCommentArgs<ExtArgs>
   coverImage?: boolean | Prisma.Post$coverImageArgs<ExtArgs>
   galleryImages?: boolean | Prisma.Post$galleryImagesArgs<ExtArgs>
   createdBy?: boolean | Prisma.Post$createdByArgs<ExtArgs>
@@ -1398,11 +1696,13 @@ export type PostInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 }
 export type PostIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   author?: boolean | Prisma.Post$authorArgs<ExtArgs>
+  pinnedComment?: boolean | Prisma.Post$pinnedCommentArgs<ExtArgs>
   coverImage?: boolean | Prisma.Post$coverImageArgs<ExtArgs>
   createdBy?: boolean | Prisma.Post$createdByArgs<ExtArgs>
 }
 export type PostIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   author?: boolean | Prisma.Post$authorArgs<ExtArgs>
+  pinnedComment?: boolean | Prisma.Post$pinnedCommentArgs<ExtArgs>
   coverImage?: boolean | Prisma.Post$coverImageArgs<ExtArgs>
   createdBy?: boolean | Prisma.Post$createdByArgs<ExtArgs>
 }
@@ -1414,6 +1714,8 @@ export type $PostPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
      * Related columns
      */
     author: Prisma.$UserPayload<ExtArgs> | null
+    comments: Prisma.$CommentPayload<ExtArgs>[]
+    pinnedComment: Prisma.$CommentPayload<ExtArgs> | null
     /**
      * File columns
      */
@@ -1432,6 +1734,7 @@ export type $PostPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     jsonLd: runtime.JsonValue | null
     lastActivity: Date | null
     authorId: number | null
+    pinnedCommentId: string | null
     coverImageId: number | null
     /**
      * Audit columns
@@ -1834,6 +2137,8 @@ readonly fields: PostFieldRefs;
 export interface Prisma__PostClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   author<T extends Prisma.Post$authorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$authorArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  comments<T extends Prisma.Post$commentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$commentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CommentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  pinnedComment<T extends Prisma.Post$pinnedCommentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$pinnedCommentArgs<ExtArgs>>): Prisma.Prisma__CommentClient<runtime.Types.Result.GetResult<Prisma.$CommentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   coverImage<T extends Prisma.Post$coverImageArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$coverImageArgs<ExtArgs>>): Prisma.Prisma__FileClient<runtime.Types.Result.GetResult<Prisma.$FilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   galleryImages<T extends Prisma.Post$galleryImagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$galleryImagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdBy<T extends Prisma.Post$createdByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$createdByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -1876,6 +2181,7 @@ export interface PostFieldRefs {
   readonly jsonLd: Prisma.FieldRef<"Post", 'Json'>
   readonly lastActivity: Prisma.FieldRef<"Post", 'DateTime'>
   readonly authorId: Prisma.FieldRef<"Post", 'Int'>
+  readonly pinnedCommentId: Prisma.FieldRef<"Post", 'String'>
   readonly coverImageId: Prisma.FieldRef<"Post", 'Int'>
   readonly updatedAt: Prisma.FieldRef<"Post", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Post", 'DateTime'>
@@ -2295,6 +2601,49 @@ export type Post$authorArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    */
   include?: Prisma.UserInclude<ExtArgs> | null
   where?: Prisma.UserWhereInput
+}
+
+/**
+ * Post.comments
+ */
+export type Post$commentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Comment
+   */
+  select?: Prisma.CommentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Comment
+   */
+  omit?: Prisma.CommentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CommentInclude<ExtArgs> | null
+  where?: Prisma.CommentWhereInput
+  orderBy?: Prisma.CommentOrderByWithRelationInput | Prisma.CommentOrderByWithRelationInput[]
+  cursor?: Prisma.CommentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CommentScalarFieldEnum | Prisma.CommentScalarFieldEnum[]
+}
+
+/**
+ * Post.pinnedComment
+ */
+export type Post$pinnedCommentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Comment
+   */
+  select?: Prisma.CommentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Comment
+   */
+  omit?: Prisma.CommentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CommentInclude<ExtArgs> | null
+  where?: Prisma.CommentWhereInput
 }
 
 /**

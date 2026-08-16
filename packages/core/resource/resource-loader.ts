@@ -12,9 +12,10 @@ import {
   ResourceModel,
   resourceModelProps,
   ResourcePolicyConfig,
-  ResourceRoutes
+  ResourceRoutes,
+  relinkResourceModels
 } from '@appweaver/common';
-import { validateFileNamePatterns } from '../utils';
+import { validateFileNamePatterns, validateScalarDefaults } from '../utils';
 import { ResourceContext } from '../types';
 
 export type LoadResourcePaths = {
@@ -86,6 +87,14 @@ async function loadModels(
       }
     }
   }
+
+  // Resolve the schemas referencing the primary key of another model, now that
+  // every model is registered
+  relinkResourceModels(models);
+
+  // Reject a default value that its own field constraints would reject, since
+  // the records it produces cannot be serialized by the routes of their model
+  validateScalarDefaults(models);
 
   // Reject file name patterns writing into a reserved storage path before any
   // upload can reach the storage layer.

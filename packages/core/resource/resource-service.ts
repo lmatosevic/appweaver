@@ -16,6 +16,7 @@ import {
   QuerySort,
   removeUndefined,
   Resource,
+  ResourceId,
   ResourceClient,
   ResourceData,
   uncapitalize
@@ -89,14 +90,14 @@ export abstract class ResourceService<
    * configured for output on the find action. A resource event is emitted after
    * a successful lookup.
    *
-   * @param {number} id The id of the resource to find.
+   * @param {ResourceId} id The id of the resource to find.
    * @returns {Promise<Object>} The found resource with its virtual fields and
    * relation counts projected.
    * @throws {@link HttpError} 404 if the resource does not exist or is filtered
    * out by the read restrictions, 403 if the access check denies it, and 500 on
    * a database error.
    */
-  public async find(id: number): Promise<ReadOne> {
+  public async find(id: ResourceId): Promise<ReadOne> {
     const restrictions = await this.readRestrictions('find', id);
     const includeRelations = mapRelationInclusions(this._client.name, 'find');
 
@@ -393,7 +394,7 @@ export abstract class ResourceService<
    * and a resource event carrying both the previous and the current state is
    * emitted after a successful update.
    *
-   * @param {number} id The id of the resource to update.
+   * @param {ResourceId} id The id of the resource to update.
    * @param {Object} data The partial data to update the resource with, including
    * any inline relation and file payloads.
    * @returns {Promise<Object>} The updated resource with its virtual fields and
@@ -403,7 +404,7 @@ export abstract class ResourceService<
    * if an inline relation payload is missing required fields or the relation
    * does not accept new records, and 500 on a database error.
    */
-  public async update(id: number, data: Update): Promise<ReadOne> {
+  public async update(id: ResourceId, data: Update): Promise<ReadOne> {
     const readRestrictions = await this.readRestrictions('update', {
       id,
       ...data
@@ -485,14 +486,14 @@ export abstract class ResourceService<
    * inside a single transaction. The resource cache is invalidated and a
    * resource event is emitted after a successful delete.
    *
-   * @param {number} id The id of the resource to delete.
+   * @param {ResourceId} id The id of the resource to delete.
    * @returns {Promise<Object>} The deleted resource with its virtual fields and
    * relation counts projected.
    * @throws {@link HttpError} 404 if the resource does not exist or is filtered
    * out by the read restrictions, 403 if the access check denies the action, and
    * 500 on a database error.
    */
-  public async delete(id: number): Promise<ReadOne> {
+  public async delete(id: ResourceId): Promise<ReadOne> {
     const restrictions = await this.readRestrictions('delete', id);
 
     let resource: ReadOne;
@@ -552,7 +553,7 @@ export abstract class ResourceService<
    *
    * @param {ActionType} action The called action method on this service (find,
    * query, aggregate, update, or delete)
-   * @param {Object|number} data The passed data to the called function can be
+   * @param {Object|ResourceId} data The passed data to the called function can be
    * number or object. If the data is a type of number, then it represents the
    * resource id, otherwise it depends on the action and can be one of the
    * following:
