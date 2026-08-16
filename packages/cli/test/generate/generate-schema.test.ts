@@ -11,6 +11,21 @@ import {
 
 const runProcess = jest.fn<Promise<number>, any[]>();
 
+let databaseType: string | undefined;
+
+// The config is frozen at import time, so the database type is swapped through a
+// getter instead of by mutating it
+jest.mock('@appweaver/common', () => {
+  const actual = jest.requireActual('@appweaver/common');
+  return {
+    __esModule: true,
+    ...actual,
+    get config() {
+      return { ...actual.config, DATABASE_TYPE: databaseType };
+    }
+  };
+});
+
 // Only the process spawning is stubbed, the path helpers stay real. The utils
 // barrel is mocked directly to keep `fkill` (ESM only) out of the test runtime.
 jest.mock('../../utils', () => {
@@ -61,6 +76,7 @@ describe('generate-schema', () => {
     originalCwd = process.cwd();
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'appweaver-schema-'));
     process.chdir(tempDir);
+    databaseType = undefined;
     runProcess.mockReset();
     runProcess.mockResolvedValue(0);
     jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -232,6 +248,115 @@ describe('generate-schema', () => {
       expect(schema).toContain('enum PostStatus {');
       expect(schema).toContain('  draft');
       expect(schema).toContain('  published');
+    });
+
+    test.each([
+      ['uuid()', '@db.Uuid'],
+      ['uuid(7)', '@db.Uuid'],
+      ['cuid()', '@db.VarChar(25)'],
+      ['cuid(2)', '@db.VarChar(24)'],
+      ['nanoid()', '@db.VarChar(21)']
+    ] as const)(
+      'sizes a PostgreSQL string id after its %s generator',
+      async (generator, nativeType) => {
+        databaseType = 'postgresql';
+
+        const { schema } = await generate({
+          Post: model('Post', { id: { type: 'string', generator } })
+        });
+
+        expect(schema).toContain(`@id @default(${generator}) ${nativeType}`);
+      }
+    );
+
+    test('maps the uuid id to the native type of each database', async () => {
+      const uuidModel = {
+        Post: model('Post', { id: { type: 'string', generator: 'uuid()' } })
+      };
+
+      databaseType = 'mysql';
+      expect((await generate(uuidModel)).schema).toContain('@db.Char(36)');
+
+      databaseType = 'sqlserver';
+      expect((await generate(uuidModel)).schema).toContain(
+        '@db.UniqueIdentifier'
+      );
+    });
+
+    test('leaves a generated string id untyped on SQLite', async () => {
+      const { schema } = await generate({
+        Post: model('Post', { id: { type: 'string', generator: 'cuid()' } })
+      });
+
+      expect(schema).toMatch(/id\s+String\s+@id @default\(cuid\(\)\)$/m);
+      expect(schema).not.toContain('@db.');
+    });
+
+    test('keeps an auto increment id free of a native type', async () => {
+      databaseType = 'postgresql';
+
+      const { schema } = await generate({ Post: model('Post', {}) });
+
+      expect(schema).toMatch(/id\s+Int\s+@id @default\(autoincrement\(\)\)$/m);
+    });
+
+    test('sizes a generated scalar after its generator', async () => {
+      databaseType = 'postgresql';
+
+      const { schema } = await generate({
+        Post: model('Post', {
+          scalars: {
+            uid: { type: 'string', defaultGenerator: 'uuid()' },
+            token: { type: 'string', defaultGenerator: 'nanoid()' }
+          }
+        })
+      });
+
+      expect(schema).toMatch(/uid\s+String\s+@default\(uuid\(\)\) @db\.Uuid/);
+      expect(schema).toMatch(
+        /token\s+String\s+@default\(nanoid\(\)\) @db\.VarChar\(21\)/
+      );
+    });
+
+    test('prefers the generator width over an explicit maxLength', async () => {
+      databaseType = 'postgresql';
+
+      const { schema } = await generate({
+        Post: model('Post', {
+          scalars: {
+            uid: { type: 'string', defaultGenerator: 'uuid()', maxLength: 255 }
+          }
+        })
+      });
+
+      expect(schema).toContain('@db.Uuid');
+      expect(schema).not.toContain('@db.VarChar(255)');
+    });
+
+    test('keeps the maxLength column for scalars without a generator', async () => {
+      databaseType = 'postgresql';
+
+      const { schema } = await generate({
+        Post: model('Post', {
+          scalars: { title: { type: 'string', maxLength: 120 } }
+        })
+      });
+
+      expect(schema).toContain('@db.VarChar(120)');
+    });
+
+    test('ignores generators that produce no string value', async () => {
+      databaseType = 'postgresql';
+
+      const { schema } = await generate({
+        Post: model('Post', {
+          scalars: {
+            createdOn: { type: 'dateTime', defaultGenerator: 'now()' }
+          }
+        })
+      });
+
+      expect(schema).toMatch(/createdOn\s+DateTime\s+@default\(now\(\)\)$/m);
     });
 
     test('omits the VarChar attribute for SQLite', async () => {
@@ -729,6 +854,61 @@ describe('generate-schema', () => {
       expect(schema).toMatch(/createdById\s+String\?/);
     });
 
+    test('gives the owning foreign key the native type of the referenced id', async () => {
+      databaseType = 'postgresql';
+
+      const { schema } = await generate({
+        User: model('User', { id: { type: 'string' } }),
+        Post: model('Post', {
+          relations: {
+            author: { model: 'User', type: 'oneToMany', owner: true },
+            editor: { model: 'User', type: 'oneToOne', owner: true }
+          }
+        })
+      });
+
+      const postModel = schema.slice(schema.indexOf('model Post {'));
+      expect(postModel).toMatch(/authorId\s+String\s+@db\.Uuid/);
+      expect(postModel).toMatch(/editorId\s+String\s+@unique @db\.Uuid/);
+    });
+
+    test('gives the generated back reference foreign key the native type of the owner id', async () => {
+      databaseType = 'postgresql';
+
+      const { schema } = await generate({
+        User: model('User', {
+          id: { generator: 'cuid(2)' },
+          relations: { posts: { model: 'Post', type: 'oneToMany' } }
+        }),
+        Post: model('Post', {})
+      });
+
+      const postModel = schema.slice(schema.indexOf('model Post {'));
+      expect(postModel).toMatch(/userId\s+String\?\s+@db\.VarChar\(24\)/);
+    });
+
+    test('gives the file foreign key the native type of the file id', async () => {
+      databaseType = 'postgresql';
+
+      const { schema } = await generate({
+        File: model('File', { id: { type: 'string' } }),
+        Post: model('Post', { files: { image: {} } })
+      });
+
+      expect(schema).toMatch(/imageId\s+String\?\s+@unique @db\.Uuid/);
+    });
+
+    test('gives the ownership column the native type of the auth model id', async () => {
+      databaseType = 'postgresql';
+
+      const { schema } = await generate({
+        User: model('User', { id: { generator: 'nanoid()' } }, true),
+        Post: model('Post', {})
+      });
+
+      expect(schema).toMatch(/createdById\s+String\?\s+@db\.VarChar\(21\)/);
+    });
+
     test('adds single and composite indexes', async () => {
       const { schema } = await generate({
         Post: model('Post', {
@@ -748,7 +928,7 @@ describe('generate-schema', () => {
           scalars: {
             title: { type: 'string' },
             slug: { type: 'string' },
-            views: { type: 'number' }
+            views: { type: 'int' }
           },
           index: ['-title', '+slug', ['-title', 'slug', '+views']]
         })

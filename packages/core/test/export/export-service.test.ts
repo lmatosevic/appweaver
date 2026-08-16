@@ -1,6 +1,7 @@
 import { Readable } from 'node:stream';
 import {
   config,
+  logger,
   RESOURCE_SERVICE_TYPE,
   RESOURCE_TYPE
 } from '@appweaver/common';
@@ -22,14 +23,42 @@ const readStream = async (stream: Readable): Promise<string> => {
 describe('export-service', () => {
   let service: ExportService;
 
-  const defineService = (items: any[], totalCount: number = items.length) => {
+  /**
+   * Stubs the Post service, paging the given items with cursors. The cursor is
+   * the index the next batch starts at, and is only returned while records
+   * follow the batch, matching what the resource service emits.
+   */
+  const defineService = (
+    items: any[],
+    batchSize?: number,
+    delayMs: number = 0
+  ) => {
     const query = jest
       .fn()
-      .mockImplementation(async (_filter, page: number, size: number) => ({
-        items: size === 0 ? [] : items,
-        resultCount: size === 0 ? 0 : items.length,
-        totalCount
-      }));
+      .mockImplementation(
+        async (
+          _filter: any,
+          _page: number,
+          size: number,
+          _sort: any,
+          cursor?: string
+        ) => {
+          if (delayMs > 0) {
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+          }
+
+          const take = batchSize ?? size;
+          const start = cursor ? Number(cursor) : 0;
+          const batch = items.slice(start, start + take);
+          const end = start + batch.length;
+
+          return {
+            items: batch,
+            resultCount: batch.length,
+            nextCursor: end < items.length ? String(end) : undefined
+          };
+        }
+      );
 
     define(
       { modelName: 'Post', query, [RESOURCE_TYPE]: RESOURCE_SERVICE_TYPE },
@@ -42,6 +71,10 @@ describe('export-service', () => {
   beforeEach(() => {
     resetContext();
     service = new ExportService();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   afterAll(() => {
@@ -93,13 +126,81 @@ describe('export-service', () => {
       );
       await readStream(stream);
 
-      expect(query).toHaveBeenCalledWith({ views: 10 }, 1, 0, 'title');
+      // The export never counts the records, it walks them batch by batch
+      expect(query).toHaveBeenCalledTimes(1);
       expect(query).toHaveBeenCalledWith(
         { views: 10 },
         1,
         config.EXPORT_BATCH_SIZE,
-        'title'
+        'title',
+        undefined,
+        false
       );
+    });
+
+    test('follows the cursor of each batch until the records run out', async () => {
+      const items = Array.from({ length: 5 }, (_, index) => ({
+        id: index + 1,
+        title: `Post ${index + 1}`
+      }));
+      const query = defineService(items, 2);
+
+      const { stream } = await service.exportCsv('Post');
+      const csv = await readStream(stream);
+
+      // Three batches of two, the last one unfilled and therefore final
+      expect(query).toHaveBeenCalledTimes(3);
+      expect(query).toHaveBeenNthCalledWith(
+        2,
+        {},
+        1,
+        config.EXPORT_BATCH_SIZE,
+        '-createdAt',
+        '2',
+        false
+      );
+      for (const item of items) {
+        expect(csv).toContain(item.title);
+      }
+    });
+
+    test('writes each batch once when the query resolves slowly', async () => {
+      // A stream may ask for more data while a batch is still being awaited, so
+      // a slow query is what exposes a batch being written twice
+      const items = Array.from({ length: 6 }, (_, index) => ({
+        id: index + 1,
+        title: `Post ${index + 1}`
+      }));
+      defineService(items, 2, 5);
+
+      const { stream } = await service.exportCsv('Post');
+      const csv = await readStream(stream);
+
+      for (const item of items) {
+        expect(csv.split(item.title)).toHaveLength(2);
+      }
+    });
+
+    test('writes the header row only for the first batch', async () => {
+      const items = Array.from({ length: 4 }, (_, index) => ({
+        id: index + 1,
+        title: `Post ${index + 1}`
+      }));
+      defineService(items, 2);
+
+      const { stream } = await service.exportCsv('Post');
+      const csv = await readStream(stream);
+
+      expect(csv.match(/title/g)).toHaveLength(1);
+    });
+
+    test('ends the stream without rows when nothing matches', async () => {
+      const query = defineService([]);
+
+      const { stream } = await service.exportCsv('Post');
+
+      await expect(readStream(stream)).resolves.toBe('');
+      expect(query).toHaveBeenCalledTimes(1);
     });
 
     test('skips fields that are not part of the model', async () => {
@@ -405,7 +506,7 @@ describe('export-service', () => {
       });
     });
 
-    test('ends the stream when a batch query fails', async () => {
+    test('ends the stream when a following batch query fails', async () => {
       let call = 0;
       define(
         {
@@ -415,16 +516,25 @@ describe('export-service', () => {
             if (call > 1) {
               throw new Error('connection lost');
             }
-            return { items: [], resultCount: 0, totalCount: 10 };
+            // The cursor makes the export ask for a second batch, which fails
+            return {
+              items: [{ id: 1, title: 'First' }],
+              resultCount: 1,
+              nextCursor: 'next'
+            };
           }),
           [RESOURCE_TYPE]: RESOURCE_SERVICE_TYPE
         },
         'Post'
       );
+      jest.spyOn(logger, 'error').mockImplementation(() => undefined);
 
       const { stream } = await service.exportCsv('Post');
+      const csv = await readStream(stream);
 
-      await expect(readStream(stream)).resolves.toBe('');
+      // The batches already written stay in the stream, which then ends early
+      expect(call).toBe(2);
+      expect(csv).toContain('First');
     });
   });
 });

@@ -229,10 +229,115 @@ describe('resource-service', () => {
     test('applies the pagination values', async () => {
       await service.query({}, 3, 20);
 
+      // One record past the page is fetched to detect a further page
       expect(db.lastQuery('findMany').args).toMatchObject({
         skip: 40,
-        take: 20
+        take: 21
       });
+    });
+
+    test('omits the total count when the query opts out of it', async () => {
+      const result = await service.query(
+        {},
+        1,
+        50,
+        undefined,
+        undefined,
+        false
+      );
+
+      expect(result.totalCount).toBeNull();
+      expect(db.queries.filter((query) => query.method === 'count')).toEqual(
+        []
+      );
+    });
+
+    test('returns null cursors when the whole result fits on one page', async () => {
+      const result = await service.query();
+
+      expect(result.nextCursor).toBeNull();
+      expect(result.prevCursor).toBeNull();
+    });
+
+    test('returns a next cursor and trims the over fetched record', async () => {
+      db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
+
+      const result = await service.query({}, 1, 2);
+
+      expect(result.resultCount).toBe(2);
+      expect(result.items.map((item: any) => item.id)).toEqual([1, 2]);
+      expect(result.nextCursor).toBeDefined();
+      expect(result.prevCursor).toBeNull();
+    });
+
+    test('returns a prev cursor for an offset page after the first', async () => {
+      const result = await service.query({}, 2, 50);
+
+      expect(result.prevCursor).toBeDefined();
+      expect(result.nextCursor).toBeNull();
+    });
+
+    test('follows a next cursor with a cursor query instead of an offset', async () => {
+      db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
+      const first = await service.query({}, 1, 2);
+
+      const second = await service.query({}, 1, 2, undefined, first.nextCursor);
+
+      expect(db.lastQuery('findMany').args).toMatchObject({
+        cursor: { id: 2 },
+        skip: 1,
+        take: 3
+      });
+      expect(second.prevCursor).toBeDefined();
+      expect(second.nextCursor).toBeDefined();
+    });
+
+    test('pages backward with a negative take and keeps the trailing records', async () => {
+      db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
+      const first = await service.query({}, 1, 2);
+
+      // The direction rides in the cursor, so the caller hands back the cursor
+      // of the page it wants without naming a direction of its own
+      const second = await service.query({}, 1, 2, undefined, first.nextCursor);
+      const back = await service.query({}, 1, 2, undefined, second.prevCursor);
+
+      // The prev cursor of a page anchors on its first record
+      expect(db.lastQuery('findMany').args).toMatchObject({
+        cursor: { id: 1 },
+        skip: 1,
+        take: -3
+      });
+      expect(back.items.map((item: any) => item.id)).toEqual([2, 3]);
+      // The page a backward cursor was followed from always exists
+      expect(back.nextCursor).toBeDefined();
+      expect(back.prevCursor).toBeDefined();
+    });
+
+    test('rejects a cursor issued for another filter', async () => {
+      db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
+      const first = await service.query({ views: 10 }, 1, 2);
+
+      await expect(
+        service.query({ views: 20 }, 1, 2, undefined, first.nextCursor)
+      ).rejects.toMatchObject({
+        statusCode: 400,
+        message: expect.stringContaining('does not match the filter and sort')
+      });
+    });
+
+    test('rejects a cursor issued for another sort order', async () => {
+      db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
+      const first = await service.query({}, 1, 2, 'title');
+
+      await expect(
+        service.query({}, 1, 2, '-title', first.nextCursor)
+      ).rejects.toMatchObject({ statusCode: 400 });
+    });
+
+    test('fetches no record for an empty page size', async () => {
+      await service.query({}, 1, 0);
+
+      expect(db.lastQuery('findMany').args).toMatchObject({ take: 0 });
     });
 
     test('sorts by the default sort value', async () => {
@@ -249,7 +354,8 @@ describe('resource-service', () => {
 
       expect(db.lastQuery('findMany').args.orderBy).toEqual([
         { title: 'asc' },
-        { views: 'desc' }
+        { views: 'desc' },
+        { id: 'asc' }
       ]);
     });
 
@@ -257,7 +363,8 @@ describe('resource-service', () => {
       await service.query({}, 1, 50, '-author.email');
 
       expect(db.lastQuery('findMany').args.orderBy).toEqual([
-        { author: { email: 'desc' } }
+        { author: { email: 'desc' } },
+        { id: 'asc' }
       ]);
     });
 
@@ -265,7 +372,8 @@ describe('resource-service', () => {
       await service.query({}, 1, 50, '-tagsCount');
 
       expect(db.lastQuery('findMany').args.orderBy).toEqual([
-        { tags: { _count: 'desc' } }
+        { tags: { _count: 'desc' } },
+        { id: 'asc' }
       ]);
     });
 
@@ -274,7 +382,8 @@ describe('resource-service', () => {
 
       expect(db.lastQuery('findMany').args.orderBy).toEqual([
         { title: 'asc' },
-        { views: 'desc' }
+        { views: 'desc' },
+        { id: 'asc' }
       ]);
     });
 

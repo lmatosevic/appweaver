@@ -73,6 +73,30 @@ export function mapSortValues(
 }
 
 /**
+ * Maps a sort input the same way {@link mapSortValues} does, and terminates it with the primary key when no entry
+ * orders by it. Without a total order, records sharing every sort value can be skipped or repeated across pages.
+ *
+ * @param {QuerySort} sort - The sort input to map, as a comma-separated field list or a sort object.
+ * @param {string} resourceName - The name of the model the sort is applied on.
+ * @param {ActionType} [action] - The action the sort is applied on. Defaults to the query action.
+ * @return {Object[]} The `orderBy` entries, ending in a unique one.
+ * @throws {HttpError} 400 under the same conditions as {@link mapSortValues}.
+ */
+export function mapStableSortValues(
+  sort: QuerySort,
+  resourceName: string,
+  action: ActionType = 'query'
+): any[] {
+  const orderBy = mapSortValues(sort, resourceName, action);
+
+  if (!orderBy.some((entry) => 'id' in entry)) {
+    orderBy.push({ id: 'asc' });
+  }
+
+  return orderBy;
+}
+
+/**
  * Flattens a sort input into the list of its field paths and directions, keeping the order the fields were declared
  * in. String inputs are split on commas, with a `-` or `+` prefix selecting the direction, and object inputs are
  * walked recursively, joining the nested keys with a dot.

@@ -424,7 +424,7 @@ const filter: UserQuery = {
   roles: { _some: { name: { _contains: 'Admin' } } }
 };
 
-const users = await injectService('User').query(filter, 1, 50, '-createdAt,id');
+const users = await injectService('User').query(filter, 1, 50, '-createdAt');
 ```
 
 Filters are typed by `QueryFilter<T>` from `@appweaver/common`, and `weaver generate` emits a
@@ -449,7 +449,7 @@ await injectService('Post').query({}, 1, 50, {
 A hidden, virtual, or array scalar field, a field of a to-many relation, or a relation the action does not include is
 rejected with a `400` error. Sort inputs are typed by `QuerySort<T>` from `@appweaver/common`, with a `<Model>Sort`
 alias emitted per model and validated over HTTP against a generated `<Model>QuerySort` JSON schema. The default is
-`-createdAt,id`.
+`-createdAt`, and every sort is terminated with the primary key so paging stays deterministic.
 
 ### Aggregating
 

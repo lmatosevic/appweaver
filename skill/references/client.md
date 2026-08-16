@@ -361,12 +361,22 @@ Exposes CRUD and file operations for a single resource endpoint.
 const post = await client.post.find(1);
 
 // Query with filters, sorting and pagination. The sort accepts a comma-separated
-// field list ('-createdAt,id') or an object of field directions
+// field list ('-createdAt,title') or an object of field directions
 const result = await client.post.query({
   filter: { published: true },
   sort: { author: { lastName: 'asc' }, createdAt: 'desc' },
   page: 1,
   size: 20
+});
+
+// Page by cursor instead of by offset, sending back the cursor of the response
+// and skipping the count the first page already returned
+const next = await client.post.query({
+  filter: { published: true },
+  sort: { author: { lastName: 'asc' }, createdAt: 'desc' },
+  size: 20,
+  cursor: result.nextCursor,
+  totalCount: false
 });
 
 // Aggregate. The select holds the operators to apply per numeric or date field

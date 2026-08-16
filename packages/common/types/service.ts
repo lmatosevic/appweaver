@@ -5,8 +5,12 @@ import { ResourceId } from './resource';
 export type QueryResponse<T> = {
   /** Number of items returned on this page */
   resultCount: number;
-  /** Total number of matching items */
-  totalCount: number;
+  /** Total number of matching items, null when the query opted out of counting */
+  totalCount: number | null;
+  /** Cursor fetching the page after this one, null on the last page */
+  nextCursor: string | null;
+  /** Cursor fetching the page before this one, null on the first page */
+  prevCursor: string | null;
   /** Paginated result items */
   items: T[];
 };
@@ -23,7 +27,9 @@ export type ResourceServiceConfig<T = any, C = any, U = any> = {
     filter: any,
     page: number,
     size: number,
-    sort: QuerySort<T>
+    sort: QuerySort<T>,
+    cursor: string | null | undefined,
+    totalCount: boolean
   ) => ServiceHookResponse;
   /** Hook called before an aggregate query */
   beforeAggregate?: (

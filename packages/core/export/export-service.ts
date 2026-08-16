@@ -11,6 +11,7 @@ import {
   isString,
   logger,
   plural,
+  QueryResponse,
   QuerySort
 } from '@appweaver/common';
 import { injectModel, injectService } from '../context';
@@ -26,60 +27,73 @@ export type ExportStream = {
 export class ExportService {
   /**
    * Exports data as a CSV stream based on the provided filter and sort parameters.
-   * The method retrieves the data in batches and streams it in CSV format.
+   * The records are read batch by batch, each following the cursor of the
+   * previous one, so the export never counts the records up front.
    *
    * @param {string} modelName - The resource name for which to export data.
    * @param {Object} [filter={}] - The filter conditions to apply when retrieving the data. Default is an empty object.
-   * @param {QuerySort} [sort='-createdAt,id'] - The sorting criteria for the data, given either as a comma-separated
-   * field list or as an object of field directions. Default is `-createdAt, id`.
+   * @param {QuerySort} [sort='-createdAt'] - The sorting criteria for the data, given either as a comma-separated
+   * field list or as an object of field directions.
    * @return {Promise<ExportStream>} A promise resolving to the export stream object, which includes the readable
    * stream, MIME type, and file name for the CSV.
    */
   public async exportCsv(
     modelName: string,
     filter: any = {},
-    sort: QuerySort = '-createdAt,id'
+    sort: QuerySort = '-createdAt'
   ): Promise<ExportStream> {
     const service = injectService(modelName);
 
     let exportStream: Readable;
     try {
-      // Initial query is also useful to expose any errors before stream start.
-      const checkResult = await service.query(filter, 1, 0, sort);
-      const totalCount = checkResult.totalCount;
-
       const batchSize = config.EXPORT_BATCH_SIZE;
-      let page = 0;
 
       const mapValues = (items: any[]) => this.mapProperties(modelName, items);
+      const readBatch = (cursor?: string | null) =>
+        service.query(filter, 1, batchSize, sort, cursor, false);
 
-      exportStream = new Readable({
-        async read() {
-          page++;
+      // Read before the stream is handed out, so a failing query becomes an
+      // error response instead of a truncated download
+      const firstBatch = await readBatch();
+
+      // A generator rather than a `read` callback, which the stream may re-enter
+      // while an awaited batch is pending and would then write it twice
+      async function* rows(): AsyncGenerator<string> {
+        if (config.EXPORT_CSV_ADD_SEP_ROW) {
+          yield `SEP=${config.EXPORT_CSV_DELIMITER}\n`;
+        }
+
+        let batch: QueryResponse<any> | undefined = firstBatch;
+        let addHeaders = config.EXPORT_CSV_ADD_HEADERS;
+
+        while (batch) {
+          let chunk: string | undefined;
+          let next: QueryResponse<any> | undefined;
 
           try {
-            const result = await service.query(filter, page, batchSize, sort);
-            if (result.resultCount > 0) {
-              const data = mapValues(result.items);
-              this.push(
-                toCsv(data, config.EXPORT_CSV_ADD_HEADERS ? page === 1 : false)
-              );
+            if (batch.resultCount > 0) {
+              chunk = toCsv(mapValues(batch.items), addHeaders);
+              addHeaders = false;
             }
+
+            // A next cursor is returned only while further records match
+            next = batch.nextCursor
+              ? await readBatch(batch.nextCursor)
+              : undefined;
           } catch (e) {
+            // End early rather than fail a download already in flight
             logger.error(e, `${modelName} export error`);
-            this.push(null);
-            return;
+            next = undefined;
           }
 
-          if (page * batchSize >= totalCount) {
-            this.push(null);
+          if (chunk !== undefined) {
+            yield chunk;
           }
+          batch = next;
         }
-      });
-
-      if (config.EXPORT_CSV_ADD_SEP_ROW) {
-        exportStream.push(`SEP=${config.EXPORT_CSV_DELIMITER}\n`);
       }
+
+      exportStream = Readable.from(rows(), { objectMode: false });
     } catch (e) {
       throw new HttpError(`${modelName} export error`, 500, e);
     }

@@ -92,6 +92,20 @@ across models in the same project, and the choice flows through everywhere the p
 | `createdById` audit column     | `Int?`                   | `String?` (follows the auth model)      |
 | Service methods                | `find(12)`               | `find('k4pcxi0t5vs8rl65')`              |
 
+#### Generated column types
+
+Generated string columns are sized after the value they hold, on the primary key, the foreign keys referencing it, and
+any string scalar with a `defaultGenerator`. SQLite keeps the plain column.
+
+| Generator           | PostgreSQL        | MySQL             | SQL Server             |
+|---------------------|-------------------|-------------------|------------------------|
+| `uuid()`, `uuid(7)` | `@db.Uuid`        | `@db.Char(36)`    | `@db.UniqueIdentifier` |
+| `cuid()`            | `@db.VarChar(25)` | `@db.VarChar(25)` | `@db.VarChar(25)`      |
+| `cuid(2)`           | `@db.VarChar(24)` | `@db.VarChar(24)` | `@db.VarChar(24)`      |
+| `nanoid()`          | `@db.VarChar(21)` | `@db.VarChar(21)` | `@db.VarChar(21)`      |
+
+The generator width wins over an explicit `maxLength`, which only bounds what the API accepts.
+
 Service and hook signatures take `ResourceId` (`number | string`), so they work with either ID type:
 
 ```ts
@@ -183,7 +197,8 @@ const config = {
 | `format`    | `'email'` \| `'hostname'` \| `'ipv4'` \| `'ipv6'` \| `'uri'` \| `'uuid'` \| `'regex'` | Built-in format validation.          |
 | `pattern`   | string                                                                                | Custom regex pattern for validation. |
 
-String defaults can also be ID generators: `'uuid()'`, `'uuid(7)'`, `'cuid()'`, `'cuid(2)'`.
+String defaults can also be ID generators: `'uuid()'`, `'uuid(7)'`, `'cuid()'`, `'cuid(2)'`, `'nanoid()'`, which also
+size the column (see [Generated column types](#generated-column-types)).
 
 #### Number (int, bigInt, float)
 
@@ -798,7 +813,7 @@ function createService(config: ResourceServiceConfig, override ?: Partial<Resour
 |-------------------|--------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
 | `modelName`       | string                                                                   | Model name to bind this service to (required).                                                                                  |
 | `beforeFind`      | `(id) => void`                                                           | Hook called before finding a single resource.                                                                                   |
-| `beforeQuery`     | `(filter, page, size, sort) => void`                                     | Hook called before querying resources. `sort` is a field list string or a sort object.                                          |
+| `beforeQuery`     | `(filter, page, size, sort, cursor, totalCount) => void`                 | Hook called before querying resources. `sort` is a field list string or a sort object.                                          |
 | `beforeAggregate` | `(filter, select, dateField, from?, to?, step?, safeIncrement?) => void` | Hook called before aggregation.                                                                                                 |
 | `beforeCreate`    | `(data) => void`                                                         | Hook called before creating a resource. Mutate `data` to modify input.                                                          |
 | `beforeUpdate`    | `(id, data) => void`                                                     | Hook called before updating a resource.                                                                                         |
@@ -817,15 +832,15 @@ All hooks can be synchronous or return a `Promise`.
 
 The created service exposes the following methods:
 
-| Method      | Signature                                                                                         | Description                                                                                      |
-|-------------|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
-| `find`      | `(id) => Promise<ReadOne>`                                                                        | Find a single resource by ID.                                                                    |
-| `query`     | `(filter?, page?, size?, sort?) => Promise<QueryResponse>`                                        | Query resources with filtering, pagination, and sorting (see [Query sorting](#query-sorting)).   |
-| `aggregate` | `(filter?, select?, dateField?, from?, to?, step?, safeIncrement?) => Promise<AggregateResponse>` | Aggregate resources with time-series grouping (see [Aggregate selection](#aggregate-selection)). |
-| `create`    | `(data) => Promise<ReadOne>`                                                                      | Create a new resource.                                                                           |
-| `update`    | `(id, data) => Promise<ReadOne>`                                                                  | Update an existing resource.                                                                     |
-| `delete`    | `(id) => Promise<ReadOne>`                                                                        | Delete a resource.                                                                               |
-| `client`    | `ResourceClient` (property)                                                                       | Database client of the model, for operations outside the model contract.                         |
+| Method      | Signature                                                                                         | Description                                                                                                                                |
+|-------------|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| `find`      | `(id) => Promise<ReadOne>`                                                                        | Find a single resource by ID.                                                                                                              |
+| `query`     | `(filter?, page?, size?, sort?, cursor?, totalCount?) => Promise<QueryResponse>`                  | Query resources with filtering, pagination, and sorting (see [Query sorting](#query-sorting) and [Cursor pagination](#cursor-pagination)). |
+| `aggregate` | `(filter?, select?, dateField?, from?, to?, step?, safeIncrement?) => Promise<AggregateResponse>` | Aggregate resources with time-series grouping (see [Aggregate selection](#aggregate-selection)).                                           |
+| `create`    | `(data) => Promise<ReadOne>`                                                                      | Create a new resource.                                                                                                                     |
+| `update`    | `(id, data) => Promise<ReadOne>`                                                                  | Update an existing resource.                                                                                                               |
+| `delete`    | `(id) => Promise<ReadOne>`                                                                        | Delete a resource.                                                                                                                         |
+| `client`    | `ResourceClient` (property)                                                                       | Database client of the model, for operations outside the model contract.                                                                   |
 
 ### Typed service injection
 
@@ -926,7 +941,8 @@ matches missing values or related records.
   },
   "page": 1,
   "size": 50,
-  "sort": "-createdAt,id"
+  "sort": "-createdAt",
+  "totalCount": true
 }
 ```
 
@@ -984,7 +1000,8 @@ unknown sort direction — is rejected with a `400` error naming the offending f
 Over HTTP the sort object is additionally validated against a generated per-model `<Model>QuerySort` schema, which
 strips unknown fields the same way the query filter schema does.
 
-The default sort is `-createdAt,id`, and its `createdAt` part is dropped for models configured with
+The default sort is `-createdAt`. Every sort is terminated with the primary key when it does not already order by one,
+so paging stays deterministic, and the `createdAt` entry is dropped for models configured with
 `audit: { createdAt: false }`.
 
 Sort inputs are typed by `QuerySort<T>` from `@appweaver/common`, and `weaver generate` emits a
@@ -1002,11 +1019,47 @@ const posts = await postService.query({}, 1, 50, sort);
 
 ```ts
 const config = {
-  resultCount: 123, // Items in this page
-  totalCount: 123,  // Total items matching filter
-  items: []         // Page data
+  resultCount: 50,   // Items in this page
+  totalCount: 123,   // Total items matching filter, omitted when totalCount is false
+  nextCursor: '...', // Cursor of the following page, absent on the last page
+  prevCursor: '...', // Cursor of the preceding page, absent on the first page
+  items: []          // Page data
 };
 ```
+
+### Cursor pagination
+
+The response returns a `nextCursor` and a `prevCursor`; send one back as `cursor` to get that page. The direction is
+part of the cursor, so a request never names one. A cursor takes precedence over `page` and does not slow down on the
+later pages.
+
+```ts
+// First page counted, the following ones skipping the count
+let result = await postService.query({}, 1, 50);
+
+while (result.nextCursor) {
+  result = await postService.query({}, 1, 50, undefined, result.nextCursor, false);
+}
+```
+
+```json5
+// POST /posts/query
+{
+  "filter": {
+    "enabled": true
+  },
+  "size": 50,
+  "sort": "-createdAt",
+  "cursor": "eyJpIjo0MiwiZiI6IkhkQjVfa2VMTVlyNyJ9",
+  "totalCount": false
+}
+```
+
+`totalCount` defaults to `true` and scans every matching record, so count once and send `false` afterward, which
+returns it as `null`.
+
+A cursor is opaque and bound to the query that issued it: reusing one under a different resource, filter, or sort is
+rejected with a 400.
 
 ### Aggregate selection
 

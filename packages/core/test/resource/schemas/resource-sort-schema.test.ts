@@ -98,10 +98,10 @@ describe('sort schema', () => {
   });
 
   test('keeps a comma-separated field list string', async () => {
-    const { status, body } = await validated(app!, '-author.createdAt,id');
+    const { status, body } = await validated(app!, '-author.createdAt,title');
 
     expect(status).toBe(200);
-    expect(body.sort).toBe('-author.createdAt,id');
+    expect(body.sort).toBe('-author.createdAt,title');
   });
 
   test('keeps the scalar, id and audit fields of a sort object', async () => {
@@ -133,11 +133,11 @@ describe('sort schema', () => {
   test('keeps a nested relation sort object', async () => {
     const { status, body } = await validated(app!, {
       author: { firstName: 'desc' },
-      id: 'asc'
+      title: 'asc'
     });
 
     expect(status).toBe(200);
-    expect(body.sort).toEqual({ author: { firstName: 'desc' }, id: 'asc' });
+    expect(body.sort).toEqual({ author: { firstName: 'desc' }, title: 'asc' });
   });
 
   test('keeps a list relation and its count field', async () => {

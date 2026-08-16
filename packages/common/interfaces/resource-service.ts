@@ -43,13 +43,18 @@ export interface IResourceService<
    * @param {number} [size] - The number of items per page (optional).
    * @param {QuerySort} [sort] - The sorting criteria, given either as a comma-separated field list or as an object of
    * field directions (optional).
+   * @param {string} [cursor] - The cursor of the page to retrieve, as issued in the `nextCursor` or `prevCursor` of an
+   * earlier response. Takes precedence over `page` (optional).
+   * @param {boolean} [totalCount] - Whether to count all matching records (optional, defaults to true).
    * @return {Promise<QueryResponse<Object>>} A promise that resolves to the query response containing the results.
    */
   query(
     filter: Query,
     page?: number,
     size?: number,
-    sort?: QuerySort<ReadMany>
+    sort?: QuerySort<ReadMany>,
+    cursor?: string | null,
+    totalCount?: boolean
   ): Promise<QueryResponse<ReadMany>>;
 
   /**

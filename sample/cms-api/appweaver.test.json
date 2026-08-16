@@ -25,6 +25,9 @@
     },
     "scheduler": {
       "autoStartJob": false
+    },
+    "export": {
+      "batchSize": 2
     }
   }
 }

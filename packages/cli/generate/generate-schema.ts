@@ -36,6 +36,21 @@ const INDEX_SORT_PREFIXES: Record<string, string> = {
   '+': 'Asc'
 };
 
+const UUID_LENGTH = 36;
+
+const CUID_LENGTHS: Record<string, number> = {
+  '': 25,
+  '2': 24
+};
+
+const NANOID_LENGTH = 21;
+
+const UUID_NATIVE_TYPES: Partial<Record<DatabaseType, string>> = {
+  [DatabaseType.PostgresSQL]: '@db.Uuid',
+  [DatabaseType.SQLServer]: '@db.UniqueIdentifier',
+  [DatabaseType.MySQL]: `@db.Char(${UUID_LENGTH})`
+};
+
 type PrismaSchemaField = {
   name: string;
   type: string;
@@ -43,6 +58,15 @@ type PrismaSchemaField = {
   /** Marks a generated foreign key column rather than a relation field */
   foreignKey?: boolean;
 };
+
+type IdColumn = {
+  type: string;
+  nativeType?: string;
+};
+
+type IdColumnResolver = (modelName: string) => IdColumn;
+
+const defaultIdColumn = (): IdColumn => ({ type: 'Int' });
 
 type PrismaSchemaModel = {
   id: PrismaSchemaField;
@@ -119,9 +143,12 @@ export async function generateSchema(
       }
     }
 
-    // A foreign key column has to match the primary key type it references
-    const idTypeOf = (modelName: string): string =>
-      prismaIdType(models[capitalize(modelName)]?.config?.id);
+    // A foreign key column has to match the primary key column it references,
+    // native type included, or the database rejects the constraint
+    const idColumnOf: IdColumnResolver = (modelName) => {
+      const id = models[capitalize(modelName)]?.config?.id;
+      return { type: prismaIdType(id), nativeType: idNativeType(id) };
+    };
 
     // Create Prisma models and enums from resource model config
     for (const [name, schema] of Object.entries(models)) {
@@ -135,9 +162,9 @@ export async function generateSchema(
         relations: createRelationsSchema(
           name,
           schema.config.relations,
-          idTypeOf
+          idColumnOf
         ),
-        files: createFilesSchema(name, schema.config.files, idTypeOf('File')),
+        files: createFilesSchema(name, schema.config.files, idColumnOf('File')),
         audit: createAuditSchema(name, authModel, schema.config.audit),
         index: createIndexSchema(schema.config.index),
         tableName: schema.config.tableName
@@ -218,6 +245,7 @@ export async function generateSchema(
             const refName = uncapitalize(name);
             const refFieldName = `${refName}Id`;
             if (!referencedModel.relations.some((r) => r.name === refName)) {
+              const idColumn = idColumnOf(name);
               referencedModel.relations.push({
                 name: refName,
                 type: `${name}?`,
@@ -227,9 +255,11 @@ export async function generateSchema(
               });
               referencedModel.relations.push({
                 name: refFieldName,
-                type: `${idTypeOf(name)}?`,
-                attributes:
-                  relationConfig.type === 'oneToOne' ? ['@unique'] : [],
+                type: `${idColumn.type}?`,
+                attributes: [
+                  ...(relationConfig.type === 'oneToOne' ? ['@unique'] : []),
+                  ...nativeTypeAttributes(idColumn.nativeType)
+                ],
                 foreignKey: true
               });
             }
@@ -431,12 +461,68 @@ function prismaIdType(id?: IdField): string {
   }
 }
 
+function parseGenerator(
+  generator?: string
+): { name: string; arg: string } | undefined {
+  const match = generator?.match(/^(\w+)\(([^)]*)\)$/);
+  return match ? { name: match[1], arg: match[2].trim() } : undefined;
+}
+
+function generatorNativeType(
+  generator?: string,
+  dbType: DatabaseType = databaseType()
+): string | undefined {
+  if (dbType === DatabaseType.Sqlite) {
+    return undefined;
+  }
+
+  const parsed = parseGenerator(generator);
+  if (!parsed) {
+    return undefined;
+  }
+
+  // The argument of `uuid()` and `cuid()` selects the version, the one of
+  // `nanoid()` the length of the generated value
+  switch (parsed.name) {
+    case 'uuid':
+      return UUID_NATIVE_TYPES[dbType] ?? `@db.VarChar(${UUID_LENGTH})`;
+    case 'cuid':
+      return varCharType(CUID_LENGTHS[parsed.arg]);
+    case 'nanoid':
+      return varCharType(
+        parsed.arg ? Number(parsed.arg) : NANOID_LENGTH,
+        NANOID_LENGTH
+      );
+    default:
+      return undefined;
+  }
+}
+
+function varCharType(length?: number, fallback?: number): string | undefined {
+  const size = Number.isFinite(length) ? length : fallback;
+  return size ? `@db.VarChar(${size})` : undefined;
+}
+
+function idNativeType(id?: IdField): string | undefined {
+  return idFieldType(id) === 'string'
+    ? generatorNativeType(idFieldGenerator(id))
+    : undefined;
+}
+
 function createIdSchema(id?: IdField): PrismaSchemaField {
   return {
     name: 'id',
     type: prismaIdType(id),
-    attributes: ['@id', `@default(${idFieldGenerator(id)})`]
+    attributes: [
+      '@id',
+      `@default(${idFieldGenerator(id)})`,
+      ...nativeTypeAttributes(idNativeType(id))
+    ]
   };
+}
+
+function nativeTypeAttributes(nativeType?: string): string[] {
+  return nativeType ? [nativeType] : [];
 }
 
 function createScalarsSchema(
@@ -515,8 +601,14 @@ function createScalarSchema(
     attributes.push(defaultAttribute);
   }
 
-  if (scalar.type === 'string' && scalar.maxLength && !isSqlite) {
-    attributes.push(`@db.VarChar(${scalar.maxLength})`);
+  if (scalar.type === 'string' && !isSqlite) {
+    // The generator width wins over `maxLength`, which only bounds the API input
+    const nativeType =
+      generatorNativeType(scalar.defaultGenerator) ??
+      varCharType(scalar.maxLength);
+    if (nativeType) {
+      attributes.push(nativeType);
+    }
   }
 
   return {
@@ -600,7 +692,7 @@ function validateRelations(models: Record<string, ResourceModel>): string[] {
 function createRelationsSchema(
   modelName: string,
   relations: RelationConfig = {},
-  idTypeOf: (modelName: string) => string = () => 'Int'
+  idColumnOf: IdColumnResolver = defaultIdColumn
 ): PrismaSchemaField[] {
   const fields: PrismaSchemaField[] = [];
 
@@ -610,7 +702,7 @@ function createRelationsSchema(
         name,
         modelName,
         relation,
-        idTypeOf(relation.model)
+        idColumnOf(relation.model)
       )
     );
   }
@@ -622,7 +714,7 @@ function createRelationSchema(
   name: string,
   modelName: string,
   relation: RelationField,
-  relationIdType: string = 'Int'
+  relationIdColumn: IdColumn = defaultIdColumn()
 ): PrismaSchemaField[] {
   const attributes: string[] = [];
   const relationName = `${modelName}${capitalize(name)}${relation.model}`;
@@ -669,8 +761,11 @@ function createRelationSchema(
   if (owner) {
     relationFields.push({
       name: relationFieldName,
-      type: `${relationIdType}${relationSuffix}`,
-      attributes: relation.type === 'oneToOne' ? ['@unique'] : [],
+      type: `${relationIdColumn.type}${relationSuffix}`,
+      attributes: [
+        ...(relation.type === 'oneToOne' ? ['@unique'] : []),
+        ...nativeTypeAttributes(relationIdColumn.nativeType)
+      ],
       foreignKey: true
     });
   }
@@ -681,12 +776,12 @@ function createRelationSchema(
 function createFilesSchema(
   modelName: string,
   files: FilesConfig = {},
-  fileIdType: string = 'Int'
+  fileIdColumn: IdColumn = defaultIdColumn()
 ): PrismaSchemaField[] {
   const fields: PrismaSchemaField[] = [];
 
   for (const [name, file] of Object.entries(files)) {
-    fields.push(...createFileSchema(name, modelName, file, fileIdType));
+    fields.push(...createFileSchema(name, modelName, file, fileIdColumn));
   }
 
   return fields;
@@ -696,7 +791,7 @@ function createFileSchema(
   name: string,
   modelName: string,
   file: FileField,
-  fileIdType: string = 'Int'
+  fileIdColumn: IdColumn = defaultIdColumn()
 ): PrismaSchemaField[] {
   const attributes: string[] = [];
   const type = file.array ? 'File[]' : 'File?';
@@ -722,8 +817,8 @@ function createFileSchema(
   if (!file.array) {
     fileFields.push({
       name: fileRelationFieldName,
-      type: `${fileIdType}?`,
-      attributes: ['@unique'],
+      type: `${fileIdColumn.type}?`,
+      attributes: ['@unique', ...nativeTypeAttributes(fileIdColumn.nativeType)],
       foreignKey: true
     });
   }
@@ -774,6 +869,7 @@ function createAuditSchema(
     fields.push({
       name: 'createdById',
       type: `${prismaIdType(authModel?.config.id)}?`,
+      attributes: nativeTypeAttributes(idNativeType(authModel?.config.id)),
       foreignKey: true
     });
   }

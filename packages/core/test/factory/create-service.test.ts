@@ -126,11 +126,40 @@ describe('create-service', () => {
         { title: 'First' },
         2,
         10,
-        'title'
+        'title',
+        undefined,
+        true
       );
       expect(afterQuery).toHaveBeenCalledWith(
         expect.objectContaining({ totalCount: 1 })
       );
+    });
+
+    test('forwards the cursor and the count flag to the query', async () => {
+      const beforeQuery = jest.fn();
+      const Service = createService({ modelName: 'Post', beforeQuery });
+      const service = new Service();
+      db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
+
+      const first = await service.query({}, 1, 2);
+      const result = await service.query(
+        {},
+        1,
+        2,
+        '-createdAt',
+        first.nextCursor,
+        false
+      );
+
+      expect(beforeQuery).toHaveBeenLastCalledWith(
+        {},
+        1,
+        2,
+        '-createdAt',
+        first.nextCursor,
+        false
+      );
+      expect(result.totalCount).toBeNull();
     });
 
     test('calls the create hooks', async () => {
@@ -215,6 +244,29 @@ describe('create-service', () => {
       expect(db.lastQuery('findMany').args.where.AND).toContainEqual({
         title: { contains: '{input}' }
       });
+    });
+
+    test('binds a cursor to the text search rather than to the filter', async () => {
+      // The search term is stripped off the filter before the query is built,
+      // so a cursor bound to the filter alone would carry over between searches
+      const Service = createService({
+        modelName: 'Post',
+        textSearch: (input: string) => ({ title: { contains: input } })
+      });
+      const service = new Service();
+      db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
+
+      const first = await service.query({ searchText: 'news' }, 1, 2);
+
+      await expect(
+        service.query(
+          { searchText: 'other' },
+          1,
+          2,
+          undefined,
+          first.nextCursor
+        )
+      ).rejects.toMatchObject({ statusCode: 400 });
     });
 
     test('uses a configured text search function', async () => {

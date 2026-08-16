@@ -1,5 +1,8 @@
 import { createModel } from '../../../factory/create-model';
-import { mapSortValues } from '../../../resource/utils/sort-util';
+import {
+  mapSortValues,
+  mapStableSortValues
+} from '../../../resource/utils/sort-util';
 import { resetContext } from '../../fixtures/context-fixture';
 import { linkModels } from '../../fixtures/model-fixture';
 
@@ -72,10 +75,10 @@ describe('sort-util', () => {
 
     describe('string input', () => {
       test('maps ascending and descending fields in the declared order', () => {
-        expect(map('title,-views,id')).toEqual([
+        expect(map('title,-views,updatedAt')).toEqual([
           { title: 'asc' },
           { views: 'desc' },
-          { id: 'asc' }
+          { updatedAt: 'asc' }
         ]);
       });
 
@@ -114,17 +117,17 @@ describe('sort-util', () => {
       });
 
       test('keeps the declared order across the fields of a relation', () => {
-        expect(map('author.email,id,-author.age')).toEqual([
+        expect(map('author.email,title,-author.age')).toEqual([
           { author: { email: 'asc' } },
-          { id: 'asc' },
+          { title: 'asc' },
           { author: { age: 'desc' } }
         ]);
       });
 
       test('drops a field that is listed twice', () => {
-        expect(map('title,-title,id')).toEqual([
+        expect(map('title,-title,views')).toEqual([
           { title: 'asc' },
-          { id: 'asc' }
+          { views: 'asc' }
         ]);
       });
 
@@ -137,9 +140,9 @@ describe('sort-util', () => {
       });
 
       test('skips empty and sign only parts', () => {
-        expect(map('title,,-, +,id')).toEqual([
+        expect(map('title,,-, +,views')).toEqual([
           { title: 'asc' },
-          { id: 'asc' }
+          { views: 'asc' }
         ]);
       });
     });
@@ -162,9 +165,9 @@ describe('sort-util', () => {
       });
 
       test('maps a nested relation object', () => {
-        expect(map({ author: { createdAt: 'desc' }, id: 'asc' })).toEqual([
+        expect(map({ author: { createdAt: 'desc' }, title: 'asc' })).toEqual([
           { author: { createdAt: 'desc' } },
-          { id: 'asc' }
+          { title: 'asc' }
         ]);
       });
 
@@ -176,11 +179,11 @@ describe('sort-util', () => {
 
       test('gives the fields of the same relation an entry each', () => {
         expect(
-          map({ author: { createdAt: 'asc', email: 'desc' }, id: 'asc' })
+          map({ author: { createdAt: 'asc', email: 'desc' }, title: 'asc' })
         ).toEqual([
           { author: { createdAt: 'asc' } },
           { author: { email: 'desc' } },
-          { id: 'asc' }
+          { title: 'asc' }
         ]);
       });
 
@@ -195,9 +198,9 @@ describe('sort-util', () => {
       });
 
       test('skips the null and undefined values', () => {
-        expect(map({ title: null, views: undefined, id: 'asc' })).toEqual([
-          { id: 'asc' }
-        ]);
+        expect(
+          map({ title: null, views: undefined, updatedAt: 'asc' })
+        ).toEqual([{ updatedAt: 'asc' }]);
       });
 
       test('throws for an unknown sort direction', () => {
@@ -321,8 +324,10 @@ describe('sort-util', () => {
       });
 
       test('drops the default createdAt sort when the field is not audited', () => {
-        expect(map('-createdAt,id')).toEqual([{ id: 'asc' }]);
-        expect(map({ createdAt: 'desc', id: 'asc' })).toEqual([{ id: 'asc' }]);
+        expect(map('-createdAt,title')).toEqual([{ title: 'asc' }]);
+        expect(map({ createdAt: 'desc', title: 'asc' })).toEqual([
+          { title: 'asc' }
+        ]);
       });
 
       test('throws for a disabled audit field other than createdAt', () => {
@@ -340,6 +345,45 @@ describe('sort-util', () => {
           /'updatedAt' is not a sortable field of the Post model/
         );
       });
+    });
+  });
+
+  describe('mapStableSortValues', () => {
+    const mapStable = (sort: any): any => mapStableSortValues(sort, 'Post');
+
+    test('terminates a sort that does not order by the primary key', () => {
+      expect(mapStable('title,-views')).toEqual([
+        { title: 'asc' },
+        { views: 'desc' },
+        { id: 'asc' }
+      ]);
+    });
+
+    test('orders an empty sort by the primary key alone', () => {
+      expect(mapStable('')).toEqual([{ id: 'asc' }]);
+    });
+
+    test('maps the default sort the same with and without a trailing id', () => {
+      expect(mapStable('-createdAt')).toEqual(mapStable('-createdAt,id'));
+      expect(mapStable('-createdAt')).toEqual([
+        { createdAt: 'desc' },
+        { id: 'asc' }
+      ]);
+    });
+
+    test('keeps a sort that already orders by the primary key', () => {
+      expect(mapStable('-createdAt,id')).toEqual([
+        { createdAt: 'desc' },
+        { id: 'asc' }
+      ]);
+      expect(mapStable('-id')).toEqual([{ id: 'desc' }]);
+    });
+
+    test('does not mistake the primary key of a relation for the one of the model', () => {
+      expect(mapStable('author.id')).toEqual([
+        { author: { id: 'asc' } },
+        { id: 'asc' }
+      ]);
     });
   });
 });

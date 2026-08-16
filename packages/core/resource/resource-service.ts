@@ -32,13 +32,16 @@ import {
   buildAggregationPeriods,
   checkAggregationDateField,
   createdByConnect,
+  decodeCursor,
   mapAggregationResult,
   mapAggregationSelect,
   mapQueryFilter,
   readAggregationBoundaries,
   mapRelationActions,
   mapRelationInclusions,
-  mapSortValues
+  mapStableSortValues,
+  pageCursors,
+  queryFingerprint
 } from './utils';
 
 export abstract class ResourceService<
@@ -143,25 +146,34 @@ export abstract class ResourceService<
    * as plain field values. Its `searchText` property, if present, is passed to
    * {@link ResourceService.textSearchQuery} instead of being matched as a
    * field.
-   * @param {number} [page] The one-based page number of results to return.
+   * @param {number} [page] The one-based page number of results to return,
+   * ignored when a cursor is given.
    * @param {number} [size] The maximum number of results per page.
    * @param {QuerySort} [sort] The fields to sort by, either as a comma-separated
    * list where a field prefixed with `-` is sorted in descending order
-   * (i.e. `-createdAt,id`), or as an object of field directions
+   * (i.e. `-createdAt,title`), or as an object of field directions
    * (i.e. `{ createdAt: 'desc', id: 'asc' }`). Both forms support the fields of
    * the included to-one relations, given with a dot notation (`author.createdAt`)
    * or as a nested object (`{ author: { createdAt: 'desc' } }`).
+   * @param {string} [cursor] The cursor of the page to return, as issued in the
+   * `nextCursor` or `prevCursor` of an earlier response, which also carries the
+   * direction the page runs in. Takes precedence over `page`.
+   * @param {boolean} [totalCount] Whether to count all matching resources, which
+   * costs a scan of every one of them.
    * @returns {Promise<QueryResponse<Object>>} The paged query response containing
-   * the returned resources, the count of the returned items and the total count
-   * of matching resources.
+   * the returned resources, the count of the returned items, the cursors of the
+   * adjacent pages, and the total count unless it was opted out of.
    * @throws {@link HttpError} 400 if the sort input names a field that cannot be
-   * sorted by, and 500 on a database error.
+   * sorted by or the cursor was issued for another filter or sort order, and 500
+   * on a database error.
    */
   public async query(
     filter: Query = {} as any,
     page: number = 1,
     size: number = 50,
-    sort: QuerySort<ReadMany> = '-createdAt,id'
+    sort: QuerySort<ReadMany> = '-createdAt',
+    cursor?: string | null,
+    totalCount: boolean = true
   ): Promise<QueryResponse<ReadMany>> {
     const restrictions = await this.readRestrictions('query', filter);
     const textSearch = this.extractTextSearchQuery(filter);
@@ -169,26 +181,55 @@ export abstract class ResourceService<
 
     const query = { AND: [mappedFilter, textSearch, restrictions] };
     const includeRelations = mapRelationInclusions(this._client.name, 'query');
-    const orderBy = mapSortValues(sort, this._client.name, 'query');
+    const orderBy = mapStableSortValues(sort, this._client.name, 'query');
+
+    // Binding to the mapped query rather than the filter also invalidates a
+    // cursor on a changed text search or read restriction
+    const fingerprint = queryFingerprint(this._client.name, query, orderBy);
+    const decodedCursor = decodeCursor(cursor, fingerprint);
+
+    // One record past the page tells whether a further page exists
+    const backward = decodedCursor?.backward === true;
+    const take = size > 0 ? size + 1 : 0;
+
+    const findMany = this._client.findMany({
+      where: { ...query },
+      include: includeRelations,
+      // A cursor skips the record it addresses, an offset the pages before it
+      cursor: decodedCursor ? { id: decodedCursor.id } : undefined,
+      skip: decodedCursor ? 1 : (page - 1) * size,
+      take: backward ? -take : take,
+      orderBy
+    });
 
     let resources: ReadMany[];
-    let totalCount: number;
+    let count: number | undefined;
     try {
-      [resources, totalCount] = await this._db.client().$transaction([
-        this._client.findMany({
-          where: { ...query },
-          include: includeRelations,
-          skip: (page - 1) * size,
-          take: size,
-          orderBy
-        }),
-        this._client.count({
-          where: { ...query }
-        })
-      ]);
+      if (totalCount) {
+        [resources, count] = await this._db
+          .client()
+          .$transaction([
+            findMany,
+            this._client.count({ where: { ...query } })
+          ]);
+      } else {
+        resources = await findMany;
+      }
     } catch (e) {
       throw new HttpError(`${this._client.name} query error`, 500, e);
     }
+
+    // The over-fetched record leads a backward page and trails a forward one
+    const hasMore = resources.length > size;
+    if (hasMore) {
+      resources = backward
+        ? resources.slice(resources.length - size)
+        : resources.slice(0, size);
+    }
+
+    // The page a cursor was followed from always exists
+    const hasNext = backward || hasMore;
+    const hasPrev = backward ? hasMore : !!decodedCursor || page > 1;
 
     this._events.emitResourceEvent(this._client.name, 'query', {
       current: resources
@@ -196,7 +237,8 @@ export abstract class ResourceService<
 
     return {
       resultCount: resources.length,
-      totalCount,
+      totalCount: count ?? null,
+      ...pageCursors(resources, fingerprint, hasNext, hasPrev),
       items: resources.map((resource) => this.projectResource(resource))
     };
   }

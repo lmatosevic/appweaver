@@ -55,11 +55,20 @@ export function createService<T = any, C = any, U = any>(
       filter: any = {} as any,
       page: number = 1,
       size: number = 50,
-      sort: QuerySort<T> = '-createdAt,id'
+      sort: QuerySort<T> = '-createdAt',
+      cursor?: string | null,
+      totalCount: boolean = true
     ): Promise<QueryResponse<any>> {
-      await config.beforeQuery?.(filter, page, size, sort);
+      await config.beforeQuery?.(filter, page, size, sort, cursor, totalCount);
 
-      const result = await super.query(filter, page, size, sort);
+      const result = await super.query(
+        filter,
+        page,
+        size,
+        sort,
+        cursor,
+        totalCount
+      );
 
       await config.afterQuery?.(result);
 

@@ -115,8 +115,16 @@ export function resourceRoutes(
           config: queryConfig
         },
         async (request, reply) => {
-          const { page, size, sort, ...body } = request.body as any;
-          const response = await service.query(body.filter, page, size, sort);
+          const { page, size, sort, cursor, totalCount, ...body } =
+            request.body as any;
+          const response = await service.query(
+            body.filter,
+            page,
+            size,
+            sort,
+            cursor,
+            totalCount
+          );
 
           return reply.send(response);
         }

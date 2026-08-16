@@ -39,16 +39,24 @@ export const IdString = Type.Object({
   id: Type.String({ maxLength: ID_STRING_MAX_LENGTH, example: 'a1b2c3d4' })
 });
 
+const CURSOR_EXAMPLE = 'eyJpIjo0MiwiZiI6IkhkQjVfa2VMTVlyNyJ9';
+
 // The sort property is declared per model instead, since its object form
 // references the sortable fields of the queried resource
 export const QueryRequestData = Type.Object({
   page: Type.Optional(Type.Number({ minimum: 1, example: 1 })),
-  size: Type.Optional(Type.Number({ minimum: 0, maximum: 1000, example: 50 }))
+  size: Type.Optional(Type.Number({ minimum: 0, maximum: 2000, example: 50 })),
+  cursor: Nullable(Type.String({ example: CURSOR_EXAMPLE })),
+  totalCount: Type.Optional(Type.Boolean({ default: true, example: true }))
 });
 
+// The absent values are returned as null rather than omitted, so a client reads
+// "no further page" and "not counted" off the response instead of a missing key
 export const QueryResponseData = Type.Object({
   resultCount: Type.Number({ example: 10 }),
-  totalCount: Type.Number({ example: 100 })
+  totalCount: Nullable(Type.Number({ example: 100 })),
+  nextCursor: Nullable(Type.String({ example: CURSOR_EXAMPLE })),
+  prevCursor: Nullable(Type.String({ example: CURSOR_EXAMPLE }))
 });
 
 // The select and dateField properties are declared per model instead, since
@@ -270,7 +278,7 @@ export function idValueSchema(idField?: IdField): TSchema {
 
 /**
  * Builds the primary key schema of a model, used as the route path parameter
- * and as the connect shape of the relation inputs pointing at the model. A
+ * and as the connection shape of the relation inputs pointing at the model. A
  * fresh object per call, since each model annotates its own schemas.
  *
  * @param {IdField} [idField] - The id configuration, integer by default.

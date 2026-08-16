@@ -123,11 +123,11 @@ export function querySortSchema(modelName: string): TSchema {
     Type.Union(
       [
         Type.String({
-          example: '-createdAt,id',
+          example: '-createdAt,title',
           description:
             'Comma-separated list of fields to sort by, where a field prefixed ' +
             'with `-` is sorted in descending order and a dot notation path ' +
-            'targets a field of an included relation (i.e. `-author.createdAt,id`)'
+            'targets a field of an included relation'
         }),
         Type.Ref(querySortName(modelName))
       ],
