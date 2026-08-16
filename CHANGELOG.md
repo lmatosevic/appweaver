@@ -1,3 +1,13 @@
+## [1.4.0](https://github.com/lmatosevic/appweaver/compare/v1.3.1...v1.4.0) (2026-08-16)
+
+### Features
+
+* add cursor-based pagination and string generator default constraints ([5769dee](https://github.com/lmatosevic/appweaver/commit/5769dee45c324de3e6eb873abaea53509566fed7))
+* add index ordering support ([48afc55](https://github.com/lmatosevic/appweaver/commit/48afc555be83eb4bec9038c97cc9fc21b6d895e0))
+* enable support for string primary ID type ([137f4e1](https://github.com/lmatosevic/appweaver/commit/137f4e1c1761e57ef3cd12477978154f837e37af))
+* generate types for model resource service ([6d8f30e](https://github.com/lmatosevic/appweaver/commit/6d8f30efd3592b8bcc452bf39d6f89382478c3e6))
+* implement file storage support on new auth user registration ([6d1127e](https://github.com/lmatosevic/appweaver/commit/6d1127ec7ea1a782a4448777e2dd1e4cf5729c71))
+
 ## [1.3.1](https://github.com/lmatosevic/appweaver/compare/v1.3.0...v1.3.1) (2026-08-15)
 
 ### Bug Fixes
