@@ -338,7 +338,12 @@ export type VirtualConfig = FieldConfig<VirtualField>;
 
 export type ExportConfig = FieldConfig<ExportField | ExportRelations>;
 
-export type IndexConfig = (string | string[])[];
+/** Indexed field name, optionally prefixed with `-` for descending or `+` for
+ * ascending sort order (e.g. `-createdAt`). Without a prefix, the database
+ * default order is used. */
+export type IndexField = string;
+
+export type IndexConfig = (IndexField | IndexField[])[];
 
 export type Model = {
   /** Custom model name */

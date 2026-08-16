@@ -84,6 +84,9 @@ export default createModel({
 });
 ```
 
+Index entries are field names, nested in an array for a composite index (`[['status', 'createdAt']]`). Prefix a name
+with `-` for a descending index or `+` for an ascending one (`['-createdAt']`); unprefixed uses the database default.
+
 ### Service
 
 ```ts

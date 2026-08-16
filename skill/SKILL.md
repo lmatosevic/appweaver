@@ -250,6 +250,13 @@ export default createModel({
 The choice flows through the Prisma column, the generated TypeScript type, the `:id` route path parameter, and the
 relation inputs and foreign keys of every model pointing at it. Both ID types can be mixed across models.
 
+Index entries are field names, nested in an array for a composite index. Prefix a name with `-` for a descending index
+or `+` for an ascending one; without a prefix, the database default order is used:
+
+```ts
+index: ['-createdAt', ['status', '-createdAt']]
+```
+
 #### Creating a resource service
 
 Resource service defines the business logic layer for a resource: lifecycle hooks (before/after create, update, delete),

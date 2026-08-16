@@ -742,6 +742,37 @@ describe('generate-schema', () => {
       expect(schema.match(/@@index\(title\)/g)).toHaveLength(1);
     });
 
+    test('adds the sort order for signed index fields', async () => {
+      const { schema } = await generate({
+        Post: model('Post', {
+          scalars: {
+            title: { type: 'string' },
+            slug: { type: 'string' },
+            views: { type: 'number' }
+          },
+          index: ['-title', '+slug', ['-title', 'slug', '+views']]
+        })
+      });
+
+      expect(schema).toContain('@@index(title(sort: Desc))');
+      expect(schema).toContain('@@index(slug(sort: Asc))');
+      expect(schema).toContain(
+        '@@index([title(sort: Desc), slug, views(sort: Asc)])'
+      );
+    });
+
+    test('keeps the same field indexed in both sort orders', async () => {
+      const { schema } = await generate({
+        Post: model('Post', {
+          scalars: { title: { type: 'string' } },
+          index: ['title', '-title', '-title']
+        })
+      });
+
+      expect(schema).toContain('@@index(title)');
+      expect(schema.match(/@@index\(title\(sort: Desc\)\)/g)).toHaveLength(1);
+    });
+
     test('maps the model to a custom table name', async () => {
       const { schema } = await generate({
         Post: model('Post', { tableName: 'blog_posts' })

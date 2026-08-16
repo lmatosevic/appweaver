@@ -180,6 +180,9 @@ CREATE UNIQUE INDEX "Post_coverImageId_key" ON "Post"("coverImageId");
 CREATE INDEX "Post_slug_idx" ON "Post"("slug");
 
 -- CreateIndex
+CREATE INDEX "Post_createdAt_id_idx" ON "Post"("createdAt" DESC, "id" ASC);
+
+-- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex

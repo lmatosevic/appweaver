@@ -50,7 +50,7 @@ function createModel(config: ResourceModelConfig, override ?: Partial<ResourceMo
 | `create`         | OperationConfig                | no       | -                     | Pick/omit fields for the create DTO.                                |
 | `update`         | OperationConfig                | no       | -                     | Pick/omit fields for the update DTO.                                |
 | `export`         | Record\<string, ExportField>   | no       | -                     | CSV export field configuration.                                     |
-| `index`          | string[] \| string[][]         | no       | -                     | Database index definitions.                                         |
+| `index`          | string[] \| string[][]         | no       | -                     | Database index definitions (`-field` desc, `+field` asc).           |
 
 ### ID field
 
@@ -735,6 +735,17 @@ index: ['title']                          // Single-field index on title
 index: [['status', 'categoryId']]         // Composite index on status + categoryId
 index: ['email', ['status', 'createdAt']] // Both single and composite
 ```
+
+Prefix a field name with `-` for a descending index or `+` for an ascending one. Without a prefix the database default
+order is used:
+
+```ts
+index: ['-createdAt']                       // @@index(createdAt(sort: Desc))
+index: ['+title']                           // @@index(title(sort: Asc))
+index: [['status', '-createdAt']]           // @@index([status, createdAt(sort: Desc)])
+```
+
+The prefix is part of the index identity, so `['createdAt', '-createdAt']` emits two separate indexes.
 
 ### Generated models
 

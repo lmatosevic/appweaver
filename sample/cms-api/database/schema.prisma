@@ -66,6 +66,7 @@ model Post {
   createdById Int?
 
   @@index(slug)
+  @@index([createdAt(sort: Desc), id(sort: Asc)])
 }
 
 model User {

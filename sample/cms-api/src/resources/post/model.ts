@@ -153,5 +153,5 @@ export default createModel({
       }
     }
   },
-  index: ['slug']
+  index: ['slug', ['-createdAt', '+id']]
 });

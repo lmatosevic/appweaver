@@ -31,6 +31,11 @@ import {
 } from '@appweaver/common';
 import { ensureDirExists, relativePathFrom, runProcess } from '../utils';
 
+const INDEX_SORT_PREFIXES: Record<string, string> = {
+  '-': 'Desc',
+  '+': 'Asc'
+};
+
 type PrismaSchemaField = {
   name: string;
   type: string;
@@ -784,7 +789,9 @@ function createIndexSchema(index?: IndexConfig): string[] {
   }
 
   for (const idx of index) {
-    const indexValue = isArray(idx) ? `[${idx.join(', ')}]` : idx;
+    const indexValue = isArray(idx)
+      ? `[${idx.map(indexFieldSchema).join(', ')}]`
+      : indexFieldSchema(idx);
     const indexExpression = `@@index(${indexValue})`;
     if (!indexes.includes(indexExpression)) {
       indexes.push(indexExpression);
@@ -792,6 +799,14 @@ function createIndexSchema(index?: IndexConfig): string[] {
   }
 
   return indexes;
+}
+
+function indexFieldSchema(field: string): string {
+  const sort = INDEX_SORT_PREFIXES[field.charAt(0)];
+  if (!sort || field.length < 2) {
+    return field;
+  }
+  return `${field.slice(1)}(sort: ${sort})`;
 }
 
 function databaseType(): DatabaseType {
