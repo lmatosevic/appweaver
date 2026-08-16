@@ -12,5 +12,6 @@ export default createAuthService<UserCreate>({
       twoFactorAuth: 'None',
       roles: [{ id: 1 }]
     };
-  }
+  },
+  registrationFiles: (_, data) => ({ avatar: data?.avatarFile })
 });

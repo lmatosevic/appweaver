@@ -14,6 +14,7 @@ import {
 } from '@appweaver/common';
 import { context, define } from '../../context';
 import { CacheService } from '../../cache';
+import { FileService } from '../../storage/file-service';
 import { HttpError } from '../../errors';
 import { AuthService } from '../../security/auth-service';
 import { OAuth2Service } from '../../security/oauth2/oauth2-service';
@@ -25,6 +26,7 @@ describe('auth-service', () => {
   let securityStore: any;
   let connectedAccountService: any;
   let cacheService: any;
+  let fileService: any;
   let signedTokens: any[];
   let service: AuthService;
 
@@ -42,6 +44,7 @@ describe('auth-service', () => {
 
     authUserService = {
       modelName: 'User',
+      client: { name: 'User' },
       find: jest.fn(),
       query: jest.fn().mockResolvedValue({ items: [] }),
       create: jest.fn(),
@@ -82,6 +85,11 @@ describe('auth-service', () => {
       removeCachedValue: jest.fn().mockResolvedValue(true)
     };
     define(cacheService, CacheService);
+
+    fileService = {
+      saveBuffer: jest.fn().mockResolvedValue({ id: 1 })
+    };
+    define(fileService, FileService);
 
     // exchangeToken delegates the OAuth2 account linking to it
     define(new OAuth2Service(), OAuth2Service);
@@ -622,6 +630,69 @@ describe('auth-service', () => {
       await expect(
         service.registerAuthUser(AuthSource.Password, 'new@test.com')
       ).rejects.toMatchObject({ statusCode: 500 });
+    });
+
+    test('saves the selected registration files once the user exists', async () => {
+      const avatarFile = {
+        name: 'avatar.png',
+        mimeType: 'image/png',
+        size: 3,
+        data: Buffer.from('png')
+      };
+
+      authUserService[CONFIG] = {
+        registrationData: (_source: AuthSource, email: string) => ({ email }),
+        registrationFiles: (_source: AuthSource, data: any) => ({
+          avatar: data?.avatarFile,
+          banner: undefined
+        })
+      };
+      authUserService.create.mockResolvedValue({ id: 2 });
+
+      await service.registerAuthUser(
+        AuthSource.OAuth2Google,
+        'new@test.com',
+        undefined,
+        { avatarFile }
+      );
+
+      expect(fileService.saveBuffer).toHaveBeenCalledTimes(1);
+      expect(fileService.saveBuffer).toHaveBeenCalledWith(
+        'avatar',
+        avatarFile,
+        { id: 2 },
+        authUserService.client
+      );
+    });
+
+    test('registers the user without files when none are configured', async () => {
+      authUserService[CONFIG] = {
+        registrationData: (_source: AuthSource, email: string) => ({ email })
+      };
+      authUserService.create.mockResolvedValue({ id: 2 });
+
+      await service.registerAuthUser(AuthSource.Password, 'new@test.com');
+
+      expect(fileService.saveBuffer).not.toHaveBeenCalled();
+    });
+
+    test('completes the registration when a file cannot be saved', async () => {
+      authUserService[CONFIG] = {
+        registrationData: (_source: AuthSource, email: string) => ({ email }),
+        registrationFiles: () => ({
+          avatar: {
+            name: 'avatar.png',
+            mimeType: 'image/png',
+            data: Buffer.from('png')
+          }
+        })
+      };
+      authUserService.create.mockResolvedValue({ id: 2 });
+      fileService.saveBuffer.mockRejectedValue(new Error('unsupported type'));
+
+      await expect(
+        service.registerAuthUser(AuthSource.OAuth2Google, 'new@test.com')
+      ).resolves.toMatchObject({ id: 2 });
     });
   });
 

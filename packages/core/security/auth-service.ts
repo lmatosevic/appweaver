@@ -22,12 +22,15 @@ import {
 import { OAuth2Service } from './oauth2/oauth2-service';
 import { context, inject } from '../context';
 import { CacheService } from '../cache';
+import { FileService } from '../storage';
 import { HttpError } from '../errors';
 import {
   AuthOTTData,
   AuthTokens,
   JwtPayload,
   RegistrationDataFn,
+  RegistrationFiles,
+  RegistrationFilesFn,
   UserAdditionalData
 } from '../types';
 
@@ -158,23 +161,83 @@ export class AuthService {
     password?: string,
     data?: Partial<UserAdditionalData>
   ): Promise<AuthUser> {
+    let authUser: AuthUser;
+
     try {
       const serviceConfig: { registrationData: RegistrationDataFn } =
         this._authUserService[CONFIG];
 
-      const registrationData = serviceConfig.registrationData(
+      const registrationData = await serviceConfig.registrationData(
         source,
         email,
         password,
         data
       );
 
-      return this._authUserService.create({
+      authUser = await this._authUserService.create({
         ...registrationData,
         verifiedEmail: source !== AuthSource.Password
       });
     } catch (e) {
       throw new HttpError('Auth user registration error', 500, e);
+    }
+
+    await this.saveRegistrationFiles(authUser, source, data);
+
+    return authUser;
+  }
+
+  /**
+   * Saves the files the `registrationFiles` service configuration selects for a newly registered user, each one to the
+   * file field of the auth model it is keyed by. The files are stored only after the user exists, since a file record
+   * is linked to the resource that owns it. Storing a file is best-effort, so a rejected file, such as an avatar the
+   * provider served in an unsupported format, is logged and never fails the registration.
+   *
+   * @internal
+   */
+  private async saveRegistrationFiles(
+    authUser: AuthUser,
+    source: AuthSource,
+    data?: Partial<UserAdditionalData>
+  ): Promise<void> {
+    const serviceConfig: { registrationFiles?: RegistrationFilesFn } =
+      this._authUserService[CONFIG];
+
+    if (!serviceConfig.registrationFiles) {
+      return;
+    }
+
+    let files: RegistrationFiles;
+    try {
+      files = (await serviceConfig.registrationFiles(source, data)) ?? {};
+    } catch (e) {
+      logger.error(
+        { id: authUser.id, err: e },
+        'Registration files selection error'
+      );
+      return;
+    }
+
+    const fileService = inject(FileService);
+
+    for (const [field, file] of Object.entries(files)) {
+      if (!file) {
+        continue;
+      }
+
+      try {
+        await fileService.saveBuffer(
+          field,
+          file,
+          authUser,
+          this._authUserService.client
+        );
+      } catch (e) {
+        logger.error(
+          { id: authUser.id, field, err: e },
+          'Registration file save error'
+        );
+      }
     }
   }
 

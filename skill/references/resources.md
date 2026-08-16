@@ -370,6 +370,11 @@ const config = {
 
 **ReferentialAction values**: `'cascade'`, `'restrict'`, `'noAction'`, `'setNull'`, `'setDefault'`
 
+Without an explicit `onDelete`, a **required** owning relation falls back to `restrict`, so deleting the referenced
+record fails with a foreign key violation while any child row still exists. Set `onDelete: 'cascade'` on relations whose
+rows are owned by the parent and meaningless without it. Optional owning relations (`required: false`) fall back to
+`setNull`, which already lets the referenced record be deleted.
+
 #### Relationship types
 
 The `type` property declares the relation cardinality explicitly, and `owner` marks the side that holds the foreign key

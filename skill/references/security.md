@@ -321,11 +321,35 @@ export default createAuthService({
 });
 ```
 
-**User avatar** — the provider's avatar/picture URL is passed to `registrationData` as `additionalData.avatarUrl`. When
-`SECURITY_OAUTH2_FETCH_AVATAR_ENABLED=true` (JSON: `security.oauth2.fetchAvatarEnabled`), the avatar image is also
-downloaded during registration and passed as `additionalData.avatarFile`
-(`{ name, mimeType, size, data: Buffer }`), so it can be mapped to a model field or stored via the file service. The
-download is best-effort: failures are logged and registration proceeds without the file.
+**User avatar** — `registrationData` and `registrationFiles` receive the provider's picture URL as
+`additionalData.avatarUrl` and the downloaded image as `additionalData.avatarFile`
+(`{ name, mimeType, size, data: Buffer }`). `SECURITY_OAUTH2_FETCH_AVATAR_ENABLED=false` (JSON:
+`security.oauth2.fetchAvatarEnabled`) skips the download, leaving `avatarFile` `undefined`. The download is best-effort:
+failures are logged and registration proceeds without the file.
+
+**`registrationFiles` callback** — an optional callback on `createAuthService` that attaches the avatar (or any other
+file) to a newly registered user. A file must be linked to an existing resource, so it cannot be part of the
+registration payload and is stored right after the user record is created. Return a map of the model's **file fields**
+to the files to store; nullish values are skipped, so nothing is stored unless the callback asks for it:
+
+```ts
+// src/resources/user/service.ts
+export default createAuthService({
+  modelName: 'User',
+  registrationData: (source, email, password, additionalData) => ({
+    email,
+    password,
+    firstName: additionalData?.firstName ?? ''
+  }),
+  registrationFiles: (source, additionalData) => ({
+    avatar: additionalData?.avatarFile
+  })
+});
+```
+
+The file is validated against the `files.avatar` config of the model (media type, size limit, name pattern, image
+processing). Storing it is the best effort: a rejected file is logged and never fails the registration. Outside
+registration, use [`FileService.saveBuffer()`](./storage.md#saving-an-in-memory-file).
 
 ### Client-side OAuth2 integration example
 

@@ -5,7 +5,6 @@ import {
   AuthOTTPurpose,
   AuthSource,
   config,
-  logger,
   pickProperties,
   SecurityStore
 } from '@appweaver/common';
@@ -16,7 +15,6 @@ import { OAuth2Service } from './oauth2-service';
 import { validateRedirectUrl } from '../helper';
 import {
   AuthOTTData,
-  AvatarFile,
   OAuth2StateData,
   OAuth2TokenSet,
   OAuth2UserInfoContext,
@@ -27,6 +25,7 @@ import {
   createOAuth2CallbackSchema,
   createOAuth2RedirectSchema
 } from './oauth2-schema';
+import { fetchAvatarFile } from './oauth2-util';
 
 export type { UserInfo, OAuth2TokenSet, OAuth2UserInfoContext };
 
@@ -191,7 +190,9 @@ export function createOAuth2Plugin(
           undefined,
           {
             ...pickProperties(userInfo, ['firstName', 'lastName', 'avatarUrl']),
-            avatarFile: userInfo.avatarFile ?? (await fetchAvatarFile(userInfo))
+            avatarFile:
+              userInfo.avatarFile ??
+              (await fetchAvatarFile(userInfo.avatarUrl, userInfo.id))
           }
         );
       }
@@ -254,48 +255,4 @@ export function createOAuth2Plugin(
       );
     });
   });
-}
-
-/**
- * Downloads the user's avatar image from the OAuth2 provider so it can be passed to the `registrationData` callback.
- * Fetching is best-effort: any failure is logged and `undefined` is returned so the registration flow is not blocked.
- *
- * @param {UserInfo} userInfo - The user info extracted from the OAuth2 provider, including the optional avatar URL.
- * @return {Promise<AvatarFile | undefined>} A promise resolving to the downloaded avatar file, or `undefined` when
- * avatar fetching is disabled, no avatar URL is available, or the download fails.
- */
-async function fetchAvatarFile(
-  userInfo: UserInfo
-): Promise<AvatarFile | undefined> {
-  if (!config.SECURITY_OAUTH2_FETCH_AVATAR_ENABLED || !userInfo.avatarUrl) {
-    return undefined;
-  }
-
-  try {
-    const resp = await fetch(userInfo.avatarUrl, { method: 'GET' });
-    if (!resp.ok) {
-      logger.debug(
-        { url: userInfo.avatarUrl, status: resp.status },
-        'OAuth2 avatar fetch failed'
-      );
-      return undefined;
-    }
-
-    const mimeType = resp.headers.get('content-type') ?? 'image/jpeg';
-    const data = Buffer.from(await resp.arrayBuffer());
-    const extension = mimeType.split('/')[1]?.split(';')[0] ?? 'jpg';
-
-    return {
-      name: `avatar-${userInfo.id}.${extension}`,
-      mimeType,
-      size: data.length,
-      data
-    };
-  } catch (e) {
-    logger.debug(
-      { url: userInfo.avatarUrl, err: e },
-      'OAuth2 avatar fetch error'
-    );
-    return undefined;
-  }
 }

@@ -18,5 +18,8 @@ export default createAuthService<UserCreate>({
       phone: '',
       roles: [{ id: 1 }]
     };
+  },
+  registrationFiles: (_, data) => {
+    return { avatar: data?.avatarFile };
   }
 });

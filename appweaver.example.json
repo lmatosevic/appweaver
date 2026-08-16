@@ -147,7 +147,7 @@
       "oauth2": {
         "stateTtl": 600000,
         "registrationEnabled": true,
-        "fetchAvatarEnabled": false,
+        "fetchAvatarEnabled": true,
         "connectedAccountsKeepDatabaseTable": false,
         "google": {
           "enabled": true,

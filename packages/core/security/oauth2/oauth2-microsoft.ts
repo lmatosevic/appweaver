@@ -2,7 +2,7 @@ import { AuthSource, config } from '@appweaver/common';
 import { UserInfo } from '../../types';
 import { createOAuth2Plugin } from './create-oauth2-plugin';
 import {
-  fetchAuthenticatedAvatar,
+  fetchAvatarFile,
   fetchUserInfo,
   requireEmail,
   splitFullName
@@ -54,10 +54,10 @@ export async function fetchMicrosoftUser(
     firstName: data.givenName ?? firstName,
     lastName: data.surname ?? lastName,
     // Microsoft Graph serves the photo as authenticated binary content, so it has to be downloaded here.
-    avatarFile: await fetchAuthenticatedAvatar(
+    avatarFile: await fetchAvatarFile(
       `${userInfoUrl}/photo/$value`,
-      accessToken,
-      data.id
+      data.id,
+      accessToken
     )
   };
 }

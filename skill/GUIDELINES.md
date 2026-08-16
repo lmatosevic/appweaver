@@ -153,9 +153,10 @@ Use `createAuthModel` and `createAuthService` for authenticatable users. They mu
 `createAuthModel` adds: `email`, `passwordHash`, `verifiedEmail`, `twoFactorAuth`, `enabled`, `logoutAt` scalars; a
 virtual `password` field; a `roles` relation; and optional `apiKeys` relation.
 
-`createAuthService` supports an optional `registrationData` callback to customize the registration payload and an
-optional `checkOAuth2User` callback to allow or reject OAuth2 registrations/logins (return nothing to proceed, or a
-string/`Error` to abort).
+`createAuthService` supports an optional `registrationData` callback to customize the registration payload, an optional
+`registrationFiles` callback that stores files on the model's file fields right after the user is created (used to keep
+the avatar an OAuth2 provider serves), and an optional `checkOAuth2User` callback to allow or reject OAuth2
+registrations/logins (return nothing to proceed, or a string/`Error` to abort).
 
 ```ts
 // src/resources/user/model.ts
@@ -174,7 +175,8 @@ import { createAuthService } from '@appweaver/core';
 
 export default createAuthService({
   modelName: 'User',
-  registrationData: (_, email, password) => ({ email, password, roles: [1, 2] })
+  registrationData: (_, email, password) => ({ email, password, roles: [1, 2] }),
+  registrationFiles: (_, data) => ({ avatar: data?.avatarFile })
 });
 ```
 

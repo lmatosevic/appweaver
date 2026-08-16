@@ -9,7 +9,7 @@ export type Resource = {
   id: ResourceId;
   updatedAt?: Date;
   createdAt?: Date;
-  createdById?: ResourceId;
+  createdById?: ResourceId | null;
 };
 
 export type ResourceData<T> = Omit<T, keyof Resource>;

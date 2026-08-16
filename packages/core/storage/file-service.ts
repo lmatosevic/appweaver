@@ -1,4 +1,4 @@
-import { PassThrough, Readable } from 'node:stream';
+import { PassThrough, Readable, Transform } from 'node:stream';
 import { Multipart, MultipartFile } from '@fastify/multipart';
 import {
   config,
@@ -32,7 +32,7 @@ import {
   processImage,
   sizeInBytes
 } from '../utils';
-import { File } from '../types';
+import { File, FileBuffer } from '../types';
 
 export type FileStream = {
   content: ContentStream;
@@ -40,6 +40,22 @@ export type FileStream = {
   mimeType: string;
   start: number;
   end: number;
+};
+
+/**
+ * The content of a file to save, normalized from a multipart upload or an in-memory buffer. The size and the truncation
+ * flag are read as functions, since a multipart stream only knows both after it has been fully consumed.
+ *
+ * @internal
+ */
+type FileContent = {
+  fieldName: string;
+  fileName: string;
+  mimeType: string;
+  encoding: string;
+  stream: Readable;
+  bytesRead: () => number;
+  truncated: () => boolean;
 };
 
 export class FileService {
@@ -164,191 +180,56 @@ export class FileService {
     resource: Resource,
     client: ResourceClient
   ): Promise<File> {
-    const identity = currentAuthUser();
+    return this.saveContent(
+      {
+        fieldName: data.fieldname,
+        fileName: data.filename,
+        mimeType: data.mimetype,
+        encoding: data.encoding,
+        stream: data.file,
+        bytesRead: () => data.file.bytesRead,
+        truncated: () => data.file.truncated
+      },
+      resource,
+      client
+    );
+  }
 
-    if (!(data.fieldname in resource)) {
-      throw new HttpError(
-        `File field '${data.fieldname}' does not exist on resource '${client.name}'`,
-        400
-      );
-    }
+  /**
+   * Saves an in-memory file to storage and associates it with a file field of a specific resource. Behaves exactly like
+   * {@link saveFile}, except the content is taken from a buffer instead of a multipart upload, which makes it usable
+   * outside a file upload request, for an avatar downloaded from an OAuth2 provider or an image the application
+   * generates itself.
+   *
+   * @param {string} fieldName The file field of the resource the file is saved to.
+   * @param {FileBuffer} file The file content, along with its original name and media type.
+   * @param {Resource} resource The resource object with which the file is being associated.
+   * @param {ResourceClient} client The database client responsible for handling the resource.
+   * @return {Promise<File>} A promise that resolves to the saved file object or rejects with an error if the operation
+   * fails.
+   * @throws {HttpError} Throws an error if file validation, storage, or resource association fails.
+   */
+  public async saveBuffer(
+    fieldName: string,
+    file: FileBuffer,
+    resource: Resource,
+    client: ResourceClient
+  ): Promise<File> {
+    const size = file.size ?? file.data.length;
 
-    const fileConfig = this.getFileConfig(client.name, data.fieldname);
-    const policy = this.getFilePolicy(client.name, data.fieldname);
-
-    if (!isValidMimeType(data.mimetype, fileConfig.mimeType)) {
-      throw new HttpError(`Unsupported media file type: ${data.mimetype}`, 400);
-    }
-
-    if (fileConfig.array) {
-      const fileCount = await this.fileCount(
-        data.fieldname,
-        client.name,
-        String(resource.id)
-      );
-      if (fileConfig.maxCount && fileConfig.maxCount < fileCount + 1) {
-        throw new HttpError(
-          `Maximum number of files allowed: ${fileConfig.maxCount}`,
-          400
-        );
-      }
-    }
-
-    let pattern: string | undefined;
-    if (isFunction(fileConfig.namePattern)) {
-      pattern = fileConfig.namePattern(
-        {
-          fieldName: data.fieldname,
-          fileName: data.filename,
-          encoding: data.encoding,
-          mimeType: data.mimetype,
-          bytesRead: data.file.bytesRead,
-          truncated: data.file.truncated
-        },
-        resource
-      );
-    } else {
-      pattern = fileConfig.namePattern;
-    }
-
-    let generatedName = generateFileName(data.filename, pattern, {
-      resourceField: data.fieldname,
-      resourceName: client.name,
-      resourceId: resource.id,
-      userId: identity?.id,
-      userEmail: identity?.email
-    });
-
-    // The generated name may come from a name pattern configured as a function,
-    // which cannot be validated on startup, so it is checked here as well.
-    this.assertPathNotReserved(generatedName);
-
-    let nameRegenCount = 0;
-    while (await this._storage.exists(generatedName)) {
-      nameRegenCount++;
-
-      if (nameRegenCount === 10) {
-        throw new HttpError('Unable to generate unique file name', 500);
-      }
-
-      const hash = generateToken('bytes');
-      const nameParts = generatedName.split('.');
-
-      if (nameParts.length > 1) {
-        const ext = nameParts.pop();
-        const base = nameParts.join('.');
-        generatedName = `${base}-${hash}.${ext}`;
-      } else {
-        generatedName = `${nameParts[0]}-${hash}`;
-      }
-    }
-
-    const createFile = {
-      name: generatedName,
-      originalName: data.filename,
-      mimeType: data.mimetype,
-      sizeBytes: data.file.bytesRead,
-      resourceField: data.fieldname,
-      resourceName: client.name,
-      resourceId: String(resource.id),
-      createdById: identity?.id
-    } as File;
-
-    if (
-      identity &&
-      policy.canCreate?.(identity, resource, createFile) === false
-    ) {
-      throw new HttpError('Creating file is forbidden', 403);
-    }
-
-    let fileStream: Readable = data.file;
-    if (isProcessableImage(data.mimetype)) {
-      fileStream = processImage(data.file, data.mimetype, fileConfig.image);
-    }
-
-    // Tee the stream so the checksum is calculated over the exact bytes
-    // written to storage in a single pass, without buffering the file.
-    const storageStream = new PassThrough();
-    const checksumStream = new PassThrough();
-
-    fileStream.pipe(storageStream);
-    fileStream.pipe(checksumStream);
-
-    // pipe() does not forward source errors to destinations, so both branches
-    // must be destroyed manually to avoid hanging on a failed upload stream.
-    fileStream.on('error', (e) => {
-      logger.error(e, 'Error calculating file checksum');
-      storageStream.destroy(e);
-      checksumStream.destroy(e);
-    });
-
-    const [fileName, checksum] = await Promise.all([
-      this._storage.store(generatedName, storageStream),
-      makeHash(checksumStream)
-    ]);
-    if (!fileName) {
-      throw new HttpError('Error saving file to storage', 500);
-    }
-
-    createFile.name = fileName;
-    createFile.checksum = checksum;
-
-    // File size checks must come after storing a file due to bytesRead and
-    // truncated fields being set only after reading the full file stream.
-    const maxSizeBytes = sizeInBytes(fileConfig.maxSize);
-    if (
-      data.file.truncated ||
-      (maxSizeBytes > 0 && data.file.bytesRead > maxSizeBytes)
-    ) {
-      await this._storage.delete(fileName);
-      throw new HttpError(
-        `File size exceeded limit of ${maxSizeBytes} bytes`,
-        400
-      );
-    }
-
-    try {
-      // Check if a resource already has a file for a single file property and
-      // delete it after successfully creating the new one.
-      let existingFile: File | null = null;
-      if (!fileConfig.array) {
-        const resourceWithFile = await client.findFirst({
-          where: { id: resource.id },
-          include: { [data.fieldname]: true }
-        });
-        existingFile = resourceWithFile[data.fieldname];
-      }
-
-      const result = await client.update({
-        where: { id: resource.id },
-        data: {
-          [data.fieldname]: {
-            create: createFile
-          }
-        },
-        include: { [data.fieldname]: true }
-      });
-
-      if (existingFile !== null) {
-        await this.deleteSafe(existingFile.name);
-      }
-
-      let file: File = result[data.fieldname];
-      if (isArray(result[data.fieldname])) {
-        file = result[data.fieldname].find(
-          (f: File) => f.name === createFile.name
-        );
-      }
-
-      file.url = buildFileUrl(file);
-
-      logger.debug({ file }, 'File saved');
-
-      return file;
-    } catch (e) {
-      await this.deleteSafe(fileName);
-      throw new HttpError(`File create error`, 500, e);
-    }
+    return this.saveContent(
+      {
+        fieldName,
+        fileName: file.name,
+        mimeType: file.mimeType,
+        encoding: file.encoding ?? '7bit',
+        stream: Readable.from(file.data),
+        bytesRead: () => size,
+        truncated: () => false
+      },
+      resource,
+      client
+    );
   }
 
   /**
@@ -581,6 +462,209 @@ export class FileService {
   }
 
   /** @internal */
+  private async saveContent(
+    data: FileContent,
+    resource: Resource,
+    client: ResourceClient
+  ): Promise<File> {
+    const identity = currentAuthUser();
+
+    // Checked against the model rather than the resource object, so a file field
+    // kept out of the resource output is still writable
+    const fileConfig = this.getFileConfig(client.name, data.fieldName);
+    if (!fileConfig) {
+      throw new HttpError(
+        `File field '${data.fieldName}' does not exist on resource '${client.name}'`,
+        400
+      );
+    }
+
+    const policy = this.getFilePolicy(client.name, data.fieldName);
+
+    if (!isValidMimeType(data.mimeType, fileConfig.mimeType)) {
+      throw new HttpError(`Unsupported media file type: ${data.mimeType}`, 400);
+    }
+
+    if (fileConfig.array) {
+      const fileCount = await this.fileCount(
+        data.fieldName,
+        client.name,
+        String(resource.id)
+      );
+      if (fileConfig.maxCount && fileConfig.maxCount < fileCount + 1) {
+        throw new HttpError(
+          `Maximum number of files allowed: ${fileConfig.maxCount}`,
+          400
+        );
+      }
+    }
+
+    let pattern: string | undefined;
+    if (isFunction(fileConfig.namePattern)) {
+      pattern = fileConfig.namePattern(
+        {
+          fieldName: data.fieldName,
+          fileName: data.fileName,
+          encoding: data.encoding,
+          mimeType: data.mimeType,
+          bytesRead: data.bytesRead(),
+          truncated: data.truncated()
+        },
+        resource
+      );
+    } else {
+      pattern = fileConfig.namePattern;
+    }
+
+    let generatedName = generateFileName(data.fileName, pattern, {
+      resourceField: data.fieldName,
+      resourceName: client.name,
+      resourceId: resource.id,
+      userId: identity?.id,
+      userEmail: identity?.email
+    });
+
+    // The generated name may come from a name pattern configured as a function,
+    // which cannot be validated on startup, so it is checked here as well.
+    this.assertPathNotReserved(generatedName);
+
+    let nameRegenCount = 0;
+    while (await this._storage.exists(generatedName)) {
+      nameRegenCount++;
+
+      if (nameRegenCount === 10) {
+        throw new HttpError('Unable to generate unique file name', 500);
+      }
+
+      const hash = generateToken('bytes');
+      const nameParts = generatedName.split('.');
+
+      if (nameParts.length > 1) {
+        const ext = nameParts.pop();
+        const base = nameParts.join('.');
+        generatedName = `${base}-${hash}.${ext}`;
+      } else {
+        generatedName = `${nameParts[0]}-${hash}`;
+      }
+    }
+
+    const createFile = {
+      name: generatedName,
+      originalName: data.fileName,
+      mimeType: data.mimeType,
+      sizeBytes: data.bytesRead(),
+      resourceField: data.fieldName,
+      resourceName: client.name,
+      resourceId: String(resource.id),
+      createdById: identity?.id
+    } as File;
+
+    if (
+      identity &&
+      policy.canCreate?.(identity, resource, createFile) === false
+    ) {
+      throw new HttpError('Creating file is forbidden', 403);
+    }
+
+    let fileStream: Readable = data.stream;
+    if (isProcessableImage(data.mimeType)) {
+      fileStream = processImage(data.stream, data.mimeType, fileConfig.image);
+    }
+
+    // Tee the stream so the checksum and the stored size are calculated over the
+    // exact bytes written to storage in a single pass, without buffering the file.
+    let storedBytes = 0;
+    const storageStream = new Transform({
+      transform(chunk, _encoding, callback) {
+        storedBytes += chunk.length;
+        callback(null, chunk);
+      }
+    });
+    const checksumStream = new PassThrough();
+
+    fileStream.pipe(storageStream);
+    fileStream.pipe(checksumStream);
+
+    // pipe() does not forward source errors to destinations, so both branches
+    // must be destroyed manually to avoid hanging on a failed upload stream.
+    fileStream.on('error', (e) => {
+      logger.error(e, 'Error calculating file checksum');
+      storageStream.destroy(e);
+      checksumStream.destroy(e);
+    });
+
+    const [fileName, checksum] = await Promise.all([
+      this._storage.store(generatedName, storageStream),
+      makeHash(checksumStream)
+    ]);
+    if (!fileName) {
+      throw new HttpError('Error saving file to storage', 500);
+    }
+
+    createFile.name = fileName;
+    createFile.checksum = checksum;
+    // The size of the content in storage, which is the processed one for images
+    createFile.sizeBytes = storedBytes;
+
+    // The size limit applies to the received content, whose read size and
+    // truncation flag are only known once the stream has been consumed.
+    const maxSizeBytes = sizeInBytes(fileConfig.maxSize);
+    if (
+      data.truncated() ||
+      (maxSizeBytes > 0 && data.bytesRead() > maxSizeBytes)
+    ) {
+      await this._storage.delete(fileName);
+      throw new HttpError(
+        `File size exceeded limit of ${maxSizeBytes} bytes`,
+        400
+      );
+    }
+
+    try {
+      // Check if a resource already has a file for a single file property and
+      // delete it after successfully creating the new one.
+      let existingFile: File | null = null;
+      if (!fileConfig.array) {
+        const resourceWithFile = await client.findFirst({
+          where: { id: resource.id },
+          include: { [data.fieldName]: true }
+        });
+        existingFile = resourceWithFile[data.fieldName];
+      }
+
+      const result = await client.update({
+        where: { id: resource.id },
+        data: {
+          [data.fieldName]: {
+            create: createFile
+          }
+        },
+        include: { [data.fieldName]: true }
+      });
+
+      if (existingFile !== null) {
+        await this.deleteSafe(existingFile.name);
+      }
+
+      let file: File = result[data.fieldName];
+      if (isArray(result[data.fieldName])) {
+        file = result[data.fieldName].find(
+          (f: File) => f.name === createFile.name
+        );
+      }
+
+      file.url = buildFileUrl(file);
+
+      logger.debug({ file }, 'File saved');
+
+      return file;
+    } catch (e) {
+      await this.deleteSafe(fileName);
+      throw new HttpError(`File create error`, 500, e);
+    }
+  }
+
+  /** @internal */
   private assertPathNotReserved(fileName: string): void {
     const reservedPath = findReservedStoragePath(
       fileName,
@@ -631,19 +715,21 @@ export class FileService {
     }
   }
 
-  /** @internal */
+  /** Returns undefined when the model has no such file field configured.
+   * @internal */
   private getFileConfig(
     resourceName?: string | null,
     resourceField?: string | null
-  ): FileField {
+  ): FileField | undefined {
     if (!resourceName || !resourceField) {
-      return {};
+      return undefined;
     }
 
-    const config =
-      injectModel(resourceName, false)?.config.files?.[resourceField] ?? {};
+    const config = injectModel(resourceName, false)?.config.files?.[
+      resourceField
+    ];
 
-    return { ...config };
+    return config ? { ...config } : undefined;
   }
 
   /** @internal */

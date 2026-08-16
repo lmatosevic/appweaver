@@ -26,7 +26,7 @@
   },
   "scripts": {
     "generate": "weaver generate --modelPattern ./**/model.ts --typesPath ./types/generated.ts --schemaPath ./prisma/schema.prisma --clientPath ./prisma/client",
-    "db:recreate": "rimraf dev.db && rimraf prisma/migrations --glob \"*_init\" && weaver migration new init"
+    "db:recreate": "rimraf dev.db && rimraf prisma/migrations && weaver migration new init"
   },
   "dependencies": {
     "@fastify/auth": "5.0.4",

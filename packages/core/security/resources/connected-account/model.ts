@@ -39,6 +39,8 @@ export default shouldCreateModel
                 type: 'oneToMany',
                 mappedBy: 'connectedAccounts',
                 owner: true,
+                // Connected accounts are meaningless without their user
+                onDelete: 'cascade',
                 input: {
                   type: 'none'
                 },

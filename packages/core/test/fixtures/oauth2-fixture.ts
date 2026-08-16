@@ -16,7 +16,8 @@ export function mockUserInfoResponse(...bodies: unknown[]) {
   const fetchMock = jest.spyOn(globalThis, 'fetch');
 
   if (bodies.length === 1) {
-    fetchMock.mockResolvedValue(jsonResponse(bodies[0]));
+    // A `Response` body can only be read once, so build a fresh one per call
+    fetchMock.mockImplementation(async () => jsonResponse(bodies[0]));
   } else {
     for (const body of bodies) {
       fetchMock.mockResolvedValueOnce(jsonResponse(body));

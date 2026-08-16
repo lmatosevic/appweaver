@@ -15,7 +15,8 @@
     "test": "jest --forceExit --detectOpenHandles --coverage",
     "e2e": "jest --forceExit --detectOpenHandles --config ./test/e2e/jest.e2e-config.json",
     "format": "prettier --write \"./**/*.ts\"",
-    "lint": "eslint \"./**/*.ts\""
+    "lint": "eslint \"./**/*.ts\"",
+    "regenerate-db": "rimraf database/migrations && prisma migrate reset --force && weaver migration new init"
   },
   "dependencies": {
     "@appweaver/cli": "^1.0.0",

@@ -1,5 +1,6 @@
 import { FastifyRequest } from 'fastify';
 import { AuthScope, AuthSource, AuthUser, ResourceId } from '@appweaver/common';
+import { FileBuffer } from './storage';
 
 export type JwtPayload = {
   scope: AuthScope;
@@ -34,11 +35,8 @@ export type OAuth2StateData = {
   redirectToUrl: string;
 };
 
-export type AvatarFile = {
-  name: string;
-  mimeType: string;
+export type AvatarFile = FileBuffer & {
   size: number;
-  data: Buffer;
 };
 
 export type UserInfo = {
@@ -78,6 +76,13 @@ export type RegistrationDataFn<T = any> = (
   password?: string,
   additionalData?: Partial<UserAdditionalData>
 ) => T | Promise<T>;
+
+export type RegistrationFilesFn = (
+  source: AuthSource,
+  additionalData?: Partial<UserAdditionalData>
+) => RegistrationFiles | Promise<RegistrationFiles>;
+
+export type RegistrationFiles = Record<string, FileBuffer | null | undefined>;
 
 export type CheckOAuth2UserFn = (
   source: AuthSource,

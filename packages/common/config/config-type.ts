@@ -229,7 +229,8 @@ export type Config = {
    * log in via OAuth2. Default: `true`. */
   SECURITY_OAUTH2_REGISTRATION_ENABLED: boolean;
   /** Download the user's avatar image from the OAuth2 provider during registration and pass it as `avatarFile` to the
-   * `registrationData` callback. Default: `false`. */
+   * `registrationData` and `registrationFiles` callbacks. When disabled, only `avatarUrl` is passed on and
+   * `avatarFile` stays `undefined`. Default: `true`. */
   SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: boolean;
   /** Keep the `ConnectedAccount` database table even when every OAuth2 provider is disabled. Default: `false`. */
   SECURITY_OAUTH2_CONNECTED_ACCOUNTS_KEEP_DATABASE_TABLE: boolean;

@@ -161,7 +161,7 @@ const configSchema = Type.Object({
   SECURITY_JWT_REFRESH_EXPIRES_IN: Type.Integer({ default: 5184000 }),
   SECURITY_OAUTH2_STATE_TTL: Type.Integer({ default: 600000 }),
   SECURITY_OAUTH2_REGISTRATION_ENABLED: Type.Boolean({ default: true }),
-  SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: Type.Boolean({ default: false }),
+  SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: Type.Boolean({ default: true }),
   SECURITY_OAUTH2_CONNECTED_ACCOUNTS_KEEP_DATABASE_TABLE: Type.Boolean({
     default: false
   }),

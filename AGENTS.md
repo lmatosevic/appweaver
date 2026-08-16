@@ -46,6 +46,8 @@ describe('Feature Verification', () => {
     - **Linting**: The project uses **ESLint**. Run `npm run lint` to check for issues and `npm run lint -- --fix` to
       automatically fix what's possible.
     - **Comments**: Keep code comments short and to the point. Explain only what the code itself cannot show.
+    - **Class member order**: fields first, then all public methods, then the private ones.
+    - **Type member order**: in an interface or type, required properties come first, optional ones after them.
 - **Dependency Management**: Packages are linked locally in `node_modules/@appweaver` after the build. Ensure you run
   `npm run build` after making changes to shared packages if they are used by other packages or the sample application.
 

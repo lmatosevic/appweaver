@@ -13,8 +13,17 @@ import {
   createOAuth2Plugin,
   OAuth2Config
 } from '../../../security/oauth2/create-oauth2-plugin';
+import { fetchAvatarFile } from '../../../security/oauth2/oauth2-util';
 import { Server, UserInfo } from '../../../types';
 import { resetContext } from '../../fixtures/context-fixture';
+
+// The avatar download reads its configuration when the module is loaded, so it is replaced rather than reconfigured
+jest.mock('../../../security/oauth2/oauth2-util', () => ({
+  ...jest.requireActual('../../../security/oauth2/oauth2-util'),
+  fetchAvatarFile: jest.fn().mockResolvedValue(undefined)
+}));
+
+const fetchAvatarFileMock = fetchAvatarFile as jest.Mock;
 
 const REDIRECT_TO = 'https://app.example.com/login/handler';
 
@@ -88,6 +97,7 @@ async function startServer(
 beforeEach(() => {
   resetContext();
 
+  fetchAvatarFileMock.mockReset().mockResolvedValue(undefined);
   findByUsername = jest.fn().mockResolvedValue(authUser);
   registerAuthUser = jest.fn().mockResolvedValue(authUser);
   useOneTimeToken = jest.fn().mockResolvedValue({ redirectToUrl: REDIRECT_TO });
@@ -277,6 +287,40 @@ describe('createOAuth2Plugin', () => {
       'ada@example.com',
       undefined,
       expect.objectContaining({ avatarFile })
+    );
+    await server.close();
+  });
+
+  // Providers such as Google only report a public avatar URL, so the image has to be downloaded here before the
+  // registration callbacks can receive it as `avatarFile`
+  test('should download the avatar from the URL the provider reported', async () => {
+    findByUsername.mockResolvedValue(null);
+
+    const avatarFile = {
+      name: 'avatar-42.jpeg',
+      mimeType: 'image/jpeg',
+      size: 3,
+      data: Buffer.from('jpg')
+    };
+    fetchAvatarFileMock.mockResolvedValue(avatarFile);
+
+    const avatarUrl = 'https://lh3.googleusercontent.com/a/photo=s96-c';
+    const server = await startServer(AuthSource.OAuth2Google, {
+      extractUserInfo: async () => ({ ...userInfo, avatarUrl })
+    });
+
+    const callback = await server.inject({
+      method: 'GET',
+      url: '/auth/login/google/callback?code=auth-code&state=oauth2state-token'
+    });
+
+    expect(callback.statusCode).toBe(302);
+    expect(fetchAvatarFileMock).toHaveBeenCalledWith(avatarUrl, '42');
+    expect(registerAuthUser).toHaveBeenCalledWith(
+      AuthSource.OAuth2Google,
+      'ada@example.com',
+      undefined,
+      expect.objectContaining({ avatarUrl, avatarFile })
     );
     await server.close();
   });

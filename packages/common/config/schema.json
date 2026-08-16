@@ -602,7 +602,7 @@
                 },
                 "fetchAvatarEnabled": {
                   "type": "boolean",
-                  "default": false
+                  "default": true
                 },
                 "connectedAccountsKeepDatabaseTable": {
                   "type": "boolean",

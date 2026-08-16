@@ -85,26 +85,62 @@ describe('fetchUserInfo', () => {
   });
 });
 
-describe('fetchAuthenticatedAvatar', () => {
+describe('fetchAvatarFile', () => {
   afterEach(() => {
     jest.restoreAllMocks();
     restoreEnv();
   });
 
   test('should return undefined when avatar fetching is disabled', async () => {
-    const { fetchAuthenticatedAvatar } = await loadUtil({
+    const { fetchAvatarFile } = await loadUtil({
       SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: 'false'
     });
     const fetchMock = jest.spyOn(globalThis, 'fetch');
 
     await expect(
-      fetchAuthenticatedAvatar('https://example.com/photo', 'token-value', '42')
+      fetchAvatarFile('https://example.com/photo', '42')
     ).resolves.toBeUndefined();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  test('should download the avatar with the access token when enabled', async () => {
-    const { fetchAuthenticatedAvatar } = await loadUtil({
+  test('should return undefined when the provider reported no avatar URL', async () => {
+    const { fetchAvatarFile } = await loadUtil({
+      SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: 'true'
+    });
+    const fetchMock = jest.spyOn(globalThis, 'fetch');
+
+    await expect(fetchAvatarFile(undefined, '42')).resolves.toBeUndefined();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  // Public avatar URLs, such as the one Google reports, must not carry the access token
+  test('should download a public avatar without an authorization header', async () => {
+    const { fetchAvatarFile } = await loadUtil({
+      SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: 'true'
+    });
+    const fetchMock = jest.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(Buffer.from('image-bytes'), {
+        status: 200,
+        headers: { 'content-type': 'image/jpeg' }
+      })
+    );
+
+    await expect(
+      fetchAvatarFile('https://lh3.googleusercontent.com/a/photo=s96-c', '42')
+    ).resolves.toEqual({
+      name: 'avatar-42.jpeg',
+      mimeType: 'image/jpeg',
+      size: 11,
+      data: Buffer.from('image-bytes')
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://lh3.googleusercontent.com/a/photo=s96-c',
+      { method: 'GET', headers: {} }
+    );
+  });
+
+  test('should download the avatar with the access token when one is given', async () => {
+    const { fetchAvatarFile } = await loadUtil({
       SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: 'true'
     });
     const fetchMock = jest.spyOn(globalThis, 'fetch').mockResolvedValue(
@@ -115,7 +151,7 @@ describe('fetchAuthenticatedAvatar', () => {
     );
 
     await expect(
-      fetchAuthenticatedAvatar('https://example.com/photo', 'token-value', '42')
+      fetchAvatarFile('https://example.com/photo', '42', 'token-value')
     ).resolves.toEqual({
       name: 'avatar-42.png',
       mimeType: 'image/png',
@@ -128,8 +164,21 @@ describe('fetchAuthenticatedAvatar', () => {
     });
   });
 
+  test('should return undefined when the provider answers with an error status', async () => {
+    const { fetchAvatarFile } = await loadUtil({
+      SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: 'true'
+    });
+    jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('', { status: 404 }));
+
+    await expect(
+      fetchAvatarFile('https://example.com/photo', '42')
+    ).resolves.toBeUndefined();
+  });
+
   test('should return undefined when the download fails', async () => {
-    const { fetchAuthenticatedAvatar } = await loadUtil({
+    const { fetchAvatarFile } = await loadUtil({
       SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: 'true'
     });
     jest
@@ -137,7 +186,7 @@ describe('fetchAuthenticatedAvatar', () => {
       .mockRejectedValue(new Error('connection reset'));
 
     await expect(
-      fetchAuthenticatedAvatar('https://example.com/photo', 'token', '42')
+      fetchAvatarFile('https://example.com/photo', '42', 'token')
     ).resolves.toBeUndefined();
   });
 });

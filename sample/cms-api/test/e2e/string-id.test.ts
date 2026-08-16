@@ -281,6 +281,10 @@ describe('String primary key resources', () => {
       });
       expect(stored.attachment.resourceId).toBe(comment.id);
       expect(stored.attachment.resourceName).toBe('Comment');
+      // Read from the upload stream once it was fully consumed
+      expect(stored.attachment.sizeBytes).toBe(
+        Buffer.byteLength('attachment content')
+      );
     });
 
     test('deletes the files of a removed string id resource', async () => {

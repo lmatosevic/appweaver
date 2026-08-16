@@ -360,9 +360,11 @@ authenticatable user. They cannot be used independently! If an auth model is cre
 
 `createAuthService` extends the config with automatic password hashing on create/update, an optional
 `registrationData` callback to customize registration payload (for OAuth2 logins its `additionalData` argument includes
-`firstName`, `lastName`, `avatarUrl`, and — when `SECURITY_OAUTH2_FETCH_AVATAR_ENABLED` is set — a downloaded
-`avatarFile`), and an optional `checkOAuth2User` callback invoked before a user is registered or authenticated via
-OAuth2 (return nothing to proceed, or a string/`Error`/`HttpError` to abort the login with an error).
+`firstName`, `lastName`, `avatarUrl`, and a downloaded `avatarFile` unless `SECURITY_OAUTH2_FETCH_AVATAR_ENABLED` is
+turned off), an optional `registrationFiles` callback that maps the model's file fields to files stored right after
+the user is created (the avatar included, since a file must be linked to an existing resource), and an optional
+`checkOAuth2User` callback invoked before a user is registered or authenticated via OAuth2 (return nothing to proceed,
+or a string/`Error`/`HttpError` to abort the login with an error).
 
 ```ts
 // src/resources/user/model.ts
@@ -392,7 +394,8 @@ import { createAuthService } from '@appweaver/core';
 
 export default createAuthService({
   modelName: 'User',
-  registrationData: (_, email, password) => ({ email, password, roles: [1, 2] })
+  registrationData: (_, email, password) => ({ email, password, roles: [1, 2] }),
+  registrationFiles: (_, data) => ({ avatar: data?.avatarFile })
 });
 ```
 

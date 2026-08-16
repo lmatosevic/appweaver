@@ -1,5 +1,8 @@
 import { fetchMicrosoftUser } from '../../../security/oauth2/oauth2-microsoft';
-import { mockUserInfoResponse } from '../../fixtures/oauth2-fixture';
+import {
+  jsonResponse,
+  mockUserInfoResponse
+} from '../../fixtures/oauth2-fixture';
 
 describe('fetchMicrosoftUser', () => {
   afterEach(() => {
@@ -7,25 +10,43 @@ describe('fetchMicrosoftUser', () => {
   });
 
   test('should map a work account profile from Microsoft Graph', async () => {
-    const fetchMock = mockUserInfoResponse({
-      id: '9f4e-1234',
-      displayName: 'Ada Lovelace',
-      givenName: 'Ada',
-      surname: 'Lovelace',
-      mail: 'ada@contoso.com',
-      userPrincipalName: 'ada@contoso.onmicrosoft.com'
-    });
+    // Graph serves the profile first and the photo as authenticated binary content on a second request
+    const fetchMock = jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(
+        jsonResponse({
+          id: '9f4e-1234',
+          displayName: 'Ada Lovelace',
+          givenName: 'Ada',
+          surname: 'Lovelace',
+          mail: 'ada@contoso.com',
+          userPrincipalName: 'ada@contoso.onmicrosoft.com'
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(Buffer.from('image-bytes'), {
+          status: 200,
+          headers: { 'content-type': 'image/png' }
+        })
+      );
 
     await expect(fetchMicrosoftUser('token-value')).resolves.toEqual({
       id: '9f4e-1234',
       email: 'ada@contoso.com',
       firstName: 'Ada',
       lastName: 'Lovelace',
-      // Avatar downloads stay disabled unless SECURITY_OAUTH2_FETCH_AVATAR_ENABLED is set.
-      avatarFile: undefined
+      avatarFile: {
+        name: 'avatar-9f4e-1234.png',
+        mimeType: 'image/png',
+        size: 11,
+        data: Buffer.from('image-bytes')
+      }
     });
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://graph.microsoft.com/v1.0/me'
+    );
+    expect(fetchMock.mock.calls[1][0]).toBe(
+      'https://graph.microsoft.com/v1.0/me/photo/$value'
     );
   });
 

@@ -46,6 +46,8 @@ export default shouldCreateModel
                 type: 'oneToMany',
                 mappedBy: 'apiKeys',
                 owner: true,
+                // API keys are meaningless without their user
+                onDelete: 'cascade',
                 input: {
                   type: 'none'
                 },

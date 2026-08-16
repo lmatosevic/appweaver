@@ -220,25 +220,53 @@ When saving a file via `FileService`, you must provide the multipart data, the r
 `ResourceClient`.
 
 ```ts
-import { inject, injectService, injectModel } from '@appweaver/core';
+import { inject, injectService } from '@appweaver/core';
 import { FileService } from '@appweaver/core/storage';
 
 export class PostService {
   private readonly _fileService = inject(FileService);
   private readonly _postService = injectService('Post');
-  private readonly _postClient = injectModel('Post');
 
   async uploadImage(postId: number, data: MultipartFile) {
     const post = await this._postService.find(postId);
 
     // saveFile stores the file in Storage AND creates a File record in the DB
-    // linked to the 'image' field of the 'post' resource.
-    const file = await this._fileService.saveFile(data, post, this._postClient);
+    // linked to the file field named by the multipart field of the 'post' resource.
+    const file = await this._fileService.saveFile(
+      data,
+      post,
+      this._postService.client
+    );
 
     return file;
   }
 }
 ```
+
+### Saving an in-memory file
+
+`saveBuffer()` stores a file that did not arrive as a multipart upload — a downloaded avatar, a generated report, a
+thumbnail. It behaves exactly like `saveFile()` (media type check, size limit, name pattern, image processing,
+checksum, `File` record), except the content comes from a buffer and the target file field is named explicitly:
+
+```ts
+import { inject, injectService } from '@appweaver/core';
+import { FileService } from '@appweaver/core/storage';
+
+const users = injectService('User');
+const user = await users.find(userId);
+
+const file = await inject(FileService).saveBuffer(
+  'avatar', // the file field of the User model
+  { name: 'avatar.png', mimeType: 'image/png', data: buffer },
+  user,
+  users.client
+);
+```
+
+The optional `size` (defaults to the buffer length) is what the size limit is checked against, and `encoding` defaults
+to `7bit`. The owning resource must already exist — to attach files while a user is registering, use the
+[`registrationFiles`](./security.md) callback of `createAuthService`.
 
 ### File integrity (checksum)
 

@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import * as crypto from 'node:crypto';
-import { config } from '@appweaver/common';
+import { config, logger } from '@appweaver/common';
 import { HttpError } from '../../errors';
 import { AvatarFile } from '../../types';
 
@@ -13,7 +13,7 @@ const APPLE_TOKEN_AUDIENCE = 'https://appleid.apple.com';
  * @param {string} url - The user info endpoint to call.
  * @param {string} accessToken - The access token obtained from the authorization code flow.
  * @param {Record<string, string>} [headers] - Extra request headers required by the provider.
- * @return {Promise<T>} A promise resolving to the parsed response body.
+ * @return {Promise<Object>} A promise resolving to the parsed response body.
  * @throws {HttpError} If the provider responds with a non-2xx status.
  */
 export async function fetchUserInfo<T>(
@@ -34,33 +34,40 @@ export async function fetchUserInfo<T>(
     );
   }
 
-  return resp.json() as Promise<T>;
+  return resp.json();
 }
 
 /**
- * Downloads an avatar image that is only reachable with the provider's access token, so it cannot be resolved later
- * from a plain URL. Fetching is best-effort and returns `undefined` on any failure.
+ * Downloads the user's avatar image so it can be passed to the `registrationData` and `registrationFiles` callbacks as
+ * `avatarFile`. Fetching is opt-in through `SECURITY_OAUTH2_FETCH_AVATAR_ENABLED` and best-effort: every reason the
+ * image does not arrive is logged and `undefined` is returned, so the registration flow is never blocked by it.
  *
- * @param {string} url - The avatar endpoint to call.
- * @param {string} accessToken - The access token obtained from the authorization code flow.
+ * @param {string | undefined} url - The avatar endpoint to call.
  * @param {string} id - The provider's user identifier, used to name the file.
- * @return {Promise<AvatarFile | undefined>} A promise resolving to the downloaded avatar, or `undefined`.
+ * @param {string} [accessToken] - Access token, for providers whose avatar endpoint requires authentication.
+ * @return {Promise<AvatarFile | undefined>} A promise resolving to the downloaded avatar, or `undefined` when
+ * fetching is disabled, no avatar URL is available, or the download fails.
  */
-export async function fetchAuthenticatedAvatar(
-  url: string,
-  accessToken: string,
-  id: string
+export async function fetchAvatarFile(
+  url: string | undefined,
+  id: string,
+  accessToken?: string
 ): Promise<AvatarFile | undefined> {
   if (!config.SECURITY_OAUTH2_FETCH_AVATAR_ENABLED) {
+    return undefined;
+  }
+
+  if (!url) {
     return undefined;
   }
 
   try {
     const resp = await fetch(url, {
       method: 'GET',
-      headers: { authorization: `Bearer ${accessToken}` }
+      headers: accessToken ? { authorization: `Bearer ${accessToken}` } : {}
     });
     if (!resp.ok) {
+      logger.error({ url, status: resp.status }, 'OAuth2 avatar fetch failed');
       return undefined;
     }
 
@@ -74,7 +81,8 @@ export async function fetchAuthenticatedAvatar(
       size: data.length,
       data
     };
-  } catch {
+  } catch (e) {
+    logger.error({ url, err: e }, 'OAuth2 avatar fetch error');
     return undefined;
   }
 }
