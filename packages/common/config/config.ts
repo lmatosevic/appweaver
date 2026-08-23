@@ -49,6 +49,7 @@ const configSchema = Type.Object({
   LOG_ROTATE_INTERVAL: Type.String({ default: '1d' }),
   LOG_ROTATE_COMPRESS: Type.Boolean({ default: true }),
   LOG_PRETTY: Type.Boolean({ default: false }),
+  LOG_SYNC: Type.Boolean({ default: false }),
 
   SERVER_PORT: Type.Integer({ default: 5000 }),
   SERVER_HOST: Type.String({ default: '0.0.0.0' }),
@@ -102,7 +103,6 @@ const configSchema = Type.Object({
   RESOURCE_GENERATED_TYPES_PATH: Type.String({
     default: '<srcPath>/types/generated.ts'
   }),
-  RESOURCE_RELATION_OUTPUT_MAX_DEPTH: Type.Integer({ default: 10, minimum: 1 }),
 
   EXPORT_BATCH_SIZE: Type.Integer({ default: 1000 }),
   EXPORT_CSV_DELIMITER: Type.String({ default: ';' }),

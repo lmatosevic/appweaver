@@ -4,7 +4,6 @@ import {
   AnyJson,
   AuditFields,
   capitalize,
-  config as appConfig,
   countFieldName,
   FileField,
   IdField,
@@ -18,7 +17,6 @@ import {
   OutputType,
   pickProperties,
   RelationField,
-  RelationOutput,
   RESOURCE_MODEL_RELINK,
   RESOURCE_MODEL_TYPE,
   RESOURCE_NAME,
@@ -112,8 +110,13 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
     config.update
   );
 
-  const { readOneModel, readManyModel, relationOutputModel } =
-    buildOutputModels(baseReadModel, relationsModel, filesModel, config);
+  const { readOneModel, readManyModel } = buildOutputModels(
+    baseReadModel,
+    relationsModel,
+    filesModel,
+    config
+  );
+  const readOneNullableModel = buildNullableOutputModel(name);
   const {
     createOneModel,
     updateOneModel,
@@ -141,7 +144,7 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
     virtualModel,
     readOneModel,
     readManyModel,
-    relationOutputModel,
+    readOneNullableModel,
     createOneModel,
     updateOneModel,
     relationCreateModel,
@@ -344,21 +347,12 @@ function buildOutputModels(
 ): {
   readOneModel: TObject;
   readManyModel: TObject;
-  relationOutputModel: TObject;
 } {
   const virtualConfig = config.virtual;
   const relationsConfig = config.relations;
   const filesConfig = config.files;
 
   const adjustedReadModel = removeHiddenFields(readModel);
-
-  // A nested record is read with a plain inclusion, so it carries no relations
-  // of its own. That also keeps the response models acyclic, as the serializer
-  // requires.
-  const relationOutputModel = Type.Composite(
-    [resolveOutputVirtualFields(adjustedReadModel, virtualConfig)],
-    { $id: `${config.name}RelationOutput` }
-  );
 
   const readOneModel = Type.Composite(
     [
@@ -378,7 +372,19 @@ function buildOutputModels(
     { $id: `${config.name}Multiple` }
   );
 
-  return { readOneModel, readManyModel, relationOutputModel };
+  return { readOneModel, readManyModel };
+}
+
+function buildNullableOutputModel(name: string): TSchema {
+  // Builds the nullable variant of the single read model, registered under its own
+  // name so a nullable relation can reference it instead of inlining the union.
+  // The response serializer cannot compile an inline `anyOf` union that cycles
+  // back to a model it is already writing, since it expands every union branch
+  // into a fresh schema. A union behind a name is expanded once and reused, which
+  // keeps a self-referencing relation (a category and its parent) serializable.
+  return Type.Union([Type.Ref(`${name}Single`), Type.Null()], {
+    $id: `${name}SingleNullable`
+  });
 }
 
 function buildInputModels(
@@ -580,76 +586,11 @@ function relationInputProperties<T extends TObject>(
   });
 }
 
-function nestedOutputSchema(
-  modelName: string,
-  include?: Record<string, Omit<RelationOutput, 'count'>>,
-  outputType?: OutputType,
-  depth: number = 0
-): TSchema {
-  const name = capitalize(modelName);
-  const nestedRef = Type.Ref(`${name}RelationOutput`);
-
-  // The depth also stops an include configuration referencing itself
-  const includeEntries = Object.entries(include ?? {});
-  if (
-    includeEntries.length === 0 ||
-    depth >= appConfig.RESOURCE_RELATION_OUTPUT_MAX_DEPTH
-  ) {
-    return nestedRef;
-  }
-
-  // Written out rather than referenced, since the shape depends on the include
-  const model = context.resource.models.get(name);
-  if (!model) {
-    return nestedRef;
-  }
-
-  const properties: Record<string, TSchema> = {
-    ...model.relationOutputModel.properties
-  };
-
-  for (const [key, nestedOutput] of includeEntries) {
-    if (shouldSkipOutputField(nestedOutput?.type, outputType)) {
-      continue;
-    }
-
-    const relation = model.config.relations?.[key];
-    const file = model.config.files?.[key];
-    if (!relation && !file) {
-      continue;
-    }
-
-    let schema: TSchema = relation
-      ? nestedOutputSchema(
-          relation.model,
-          nestedOutput?.include,
-          outputType,
-          depth + 1
-        )
-      : Type.Ref('FileRelationOutput');
-
-    if (relation ? isRelationArray(relation) : file?.array === true) {
-      schema = Type.Array(schema);
-    } else if (!relation || relation.required === false) {
-      schema = Nullable(schema);
-    }
-
-    properties[key] = Type.Optional(schema);
-  }
-
-  return Type.Object(properties);
-}
-
 function relationOutputProperties<T extends TObject>(
   object: T,
   relationConfig?: Record<
     string,
-    {
-      model?: string; // Set on the relation fields only
-      required?: boolean;
-      input?: RelationField['input'];
-      output?: RelationOutput;
-    }
+    Pick<RelationField, 'required' | 'input' | 'output'>
   >,
   outputType?: OutputType
 ): TObject {
@@ -662,22 +603,8 @@ function relationOutputProperties<T extends TObject>(
         return undefined;
       }
 
-      // A relation carries the nested output model of the related model. File
-      // fields keep the file model, which holds no relations of its own.
-      if (config.model) {
-        const nested = nestedOutputSchema(
-          config.model,
-          config.output?.include,
-          outputType
-        );
-        schema =
-          schema.type === 'array'
-            ? Type.Array(nested, pickProperties(schema, ['minItems']))
-            : nested;
-      }
-
       if (config.required === false && schema.type !== 'array') {
-        schema = Nullable(schema);
+        schema = nullableOutputSchema(schema);
       }
     }
 
@@ -711,6 +638,11 @@ function relationOutputProperties<T extends TObject>(
       return acc;
     }, {})
   });
+}
+
+function nullableOutputSchema(schema: TSchema): TSchema {
+  const modelRef = schema.$ref;
+  return modelRef ? Type.Ref(`${modelRef}Nullable`) : Nullable(schema);
 }
 
 function removeHiddenFields(schema: TObject): TObject {

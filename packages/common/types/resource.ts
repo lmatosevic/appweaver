@@ -1,4 +1,4 @@
-import { TObject } from '@sinclair/typebox';
+import { TObject, TSchema } from '@sinclair/typebox';
 import { ResourceModelConfig } from './model';
 import { ResourceRoutesConfig } from './routes';
 
@@ -68,9 +68,9 @@ export type ResourceModel = {
   readOneModel: TObject;
   /** Response for query route */
   readManyModel: TObject;
-  /** Shape of this model nested in another model's response: its own columns
-   * without its relations */
-  relationOutputModel: TObject;
+  /** Union of the single read model and null, referenced wherever a nullable
+   * relation points at this model */
+  readOneNullableModel: TSchema;
   /** Request for create route */
   createOneModel: TObject;
   /** Request for update route */

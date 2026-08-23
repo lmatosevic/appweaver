@@ -25,7 +25,6 @@ function model(name: string, readModel: any, config: any = {}): ResourceModel {
     readModel,
     readOneModel: Type.Object({ id: Type.Integer() }),
     readManyModel: Type.Object({ items: Type.Array(Type.Integer()) }),
-    relationOutputModel: Type.Object({ id: Type.Integer() }),
     createOneModel: Type.Object({ title: Type.String() }),
     updateOneModel: Type.Object({ title: Type.Optional(Type.String()) }),
     relationCreateModel: Type.Object({ title: Type.String() }),
@@ -90,7 +89,6 @@ describe('generate-types', () => {
       expect(types).toContain('export type Post = {');
       expect(types).toContain('export type PostSingle = {');
       expect(types).toContain('export type PostMultiple = {');
-      expect(types).toContain('export type PostRelationOutput = {');
       expect(types).toContain('export type PostCreate = {');
       expect(types).toContain('export type PostUpdate = {');
       expect(types).toContain('export type PostRelationCreate = {');
@@ -117,6 +115,22 @@ describe('generate-types', () => {
       expect(types).toContain('enabled: boolean');
       expect(types).toContain('tags: Array<string>');
       expect(types).toContain('summary?: string');
+    });
+
+    test('writes a nullable model reference as a union with null', async () => {
+      const { types } = await generate({
+        Post: model(
+          'Post',
+          Type.Object({
+            id: Type.Integer(),
+            author: Type.Optional(Type.Ref('UserSingleNullable'))
+          })
+        ),
+        User: model('User', Type.Object({ id: Type.Integer() }))
+      });
+
+      expect(types).toContain('author?: (UserSingle | null)');
+      expect(types).not.toContain('UserSingleNullable');
     });
 
     test('converts string enums into union types', async () => {

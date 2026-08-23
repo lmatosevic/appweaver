@@ -82,7 +82,8 @@ export default createModel({
         type: 'always',
         include: {
           parent: {
-            type: 'always'
+            type: 'always',
+            maxDepth: 3
           }
         }
       }

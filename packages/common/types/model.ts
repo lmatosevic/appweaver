@@ -195,6 +195,10 @@ export type RelationOutput = {
   type: OutputType;
   /** Nested relations to include */
   include?: { [key: string]: Omit<RelationOutput, 'count'> };
+  /** Levels of a relation pointing back at its own model, counting the relation
+   * itself as the first one: `maxDepth: 3` on a category `parent` carries three
+   * ancestors. Default: `1`. */
+  maxDepth?: number;
   /** Include count of related records */
   count?: boolean;
 };
@@ -264,7 +268,7 @@ export type FileField<T = any> = {
   /** Maximum number of files */
   maxCount?: number;
   /** Output configuration for the file relation */
-  output?: Omit<RelationOutput, 'include'>;
+  output?: Omit<RelationOutput, 'include' | 'maxDepth'>;
   /** Action to take on associated files when the owning resource is deleted.
    * `'delete'` (default) removes files from storage, `'keep'` leaves them. */
   onResourceDeleted?: 'delete' | 'keep';

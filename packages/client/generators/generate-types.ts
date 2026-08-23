@@ -43,6 +43,7 @@ export async function generateTypes(
     emptyObjectsUnknown: true,
     enum: true,
     enumValues: true,
+    defaultNonNullable: false,
     transformProperty: (property, schemaObject) => {
       const validationTags: string[] = [];
 

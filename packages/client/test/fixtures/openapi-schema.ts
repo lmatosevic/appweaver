@@ -103,6 +103,7 @@ const SCHEMA: any = {
         properties: {
           page: { type: 'integer', minimum: 1, maximum: 1000 },
           size: { type: 'integer' },
+          totalCount: { type: 'boolean', default: true, example: true },
           sort: { $ref: '#/components/schemas/def-20' },
           filter: { $ref: '#/components/schemas/def-23' }
         }

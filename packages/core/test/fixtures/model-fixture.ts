@@ -1,4 +1,4 @@
-import { TObject, TSchema, Type } from '@sinclair/typebox';
+import { TSchema, Type } from '@sinclair/typebox';
 import { relinkResourceModels, resourceModelProps } from '@appweaver/common';
 import { context } from '../../context';
 
@@ -24,9 +24,9 @@ export function linkModels(): void {
 
   for (const model of models) {
     for (const [suffix, property] of Object.entries(resourceModelProps)) {
-      model[property] = module.Import(
+      (model as unknown as Record<string, TSchema>)[property] = module.Import(
         `${model.name}${suffix}`
-      ) as unknown as TObject;
+      );
     }
   }
 }

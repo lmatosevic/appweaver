@@ -116,7 +116,7 @@ async function loadModels(
     for (const [suffix, property] of Object.entries(resourceModelProps)) {
       const schemaKey = `${model.name}${suffix}`;
       const importedModel = module.Import(schemaKey);
-      model[property] = importedModel as unknown as TObject;
+      (model as unknown as Record<string, TSchema>)[property] = importedModel;
     }
   }
 

@@ -16,6 +16,7 @@ registerRoute(
           summary: 'Publish the scheduled posts',
           description:
             'Promotes every draft whose publish date has passed, and optionally the drafts that carry no date at all.',
+          headers: Type.Object({ 'x-my-custom-header': Type.String() }),
           body: Type.Object({
             publishAllDrafts: Type.Optional(Type.Boolean({ default: false }))
           }),

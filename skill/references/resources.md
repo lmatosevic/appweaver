@@ -529,14 +529,61 @@ record by that field before creating a new one, so the inline create becomes a c
 
 #### Relation output
 
-| Property  | Type                                                 | Description                                                                                                                            |
-|-----------|------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
-| `type`    | `'always'` \| `'single'` \| `'multiple'` \| `'none'` | When to include the relation in output. `always` = all reads, `single` = single record reads, `multiple` = list reads, `none` = never. |
-| `include` | Record\<string, RelationOutput>                      | Nested relation output configuration.                                                                                                  |
-| `count`   | boolean                                              | Include a count of related records.                                                                                                    |
+| Property   | Type                                                 | Description                                                                                                                            |
+|------------|------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| `type`     | `'always'` \| `'single'` \| `'multiple'` \| `'none'` | When to include the relation in output. `always` = all reads, `single` = single record reads, `multiple` = list reads, `none` = never. |
+| `include`  | Record\<string, RelationOutput>                      | Nested relation output configuration.                                                                                                  |
+| `maxDepth` | number                                               | Levels of a relation pointing back at its own model. Default `1`.                                                                      |
+| `count`    | boolean                                              | Include a count of related records.                                                                                                    |
 
-A nested relation object is typed `<Model>RelationOutput`: the related model's own columns without its relations, plus
-the relations named by `include`, nested up to `RESOURCE_RELATION_OUTPUT_MAX_DEPTH` levels.
+A relation is typed as the related model's `<Model>Single`, so a nested record carries its own relations again and a
+self-reference recurses. The schema says what a response can hold, the config how deep one is read.
+
+A relation pointing back at its own model is read one level deep like any other, and `maxDepth` repeats it down the
+tree, counting the relation itself as the first level. An `include` naming that same relation replaces the repetition;
+any other `include` is applied at every level. Each level is a database join, cheap on a to-one relation such as
+`parent` and expensive on a list one such as `children`.
+
+```ts
+const config = {
+  relations: {
+    // A category response carries three levels of ancestors
+    parent: {
+      model: 'Category',
+      type: 'oneToMany',
+      mappedBy: 'children',
+      owner: true,
+      required: false,
+      output: { type: 'always', maxDepth: 3 }
+    },
+    // Kept out of the response, counted as childrenCount instead
+    children: {
+      model: 'Category',
+      type: 'oneToMany',
+      mappedBy: 'parent',
+      output: { type: 'none', count: true }
+    }
+  }
+}
+```
+
+A nested `include` entry carries its own `maxDepth`, applied to the model that entry belongs to:
+
+```ts
+// A post reads its category with the breadcrumb above it
+const config = {
+  category: {
+    model: 'Category',
+    type: 'oneToMany',
+    mappedBy: 'posts',
+    owner: true,
+    output: {
+      type: 'always',
+      include: { parent: { type: 'always', maxDepth: 3 } }
+    }
+  }
+}
+```
 
 ### File fields
 
@@ -570,7 +617,7 @@ const config = {
 | `array`             | boolean                | Allow multiple files.                                                                                       |
 | `maxSize`           | number \| string       | Maximum file size (e.g. `'2 MB'`, `5242880`).                                                               |
 | `maxCount`          | number                 | Maximum number of files (for array fields).                                                                 |
-| `output`            | RelationOutput         | When to include file info in output.                                                                        |
+| `output`            | RelationOutput         | When to include file info in output, and its count. Takes no `include` or `maxDepth`.                       |
 | `onResourceDeleted` | `'delete'` \| `'keep'` | When the owning resource is deleted. `'delete'` (default) removes files from storage, `'keep'` leaves them. |
 | `image`             | ImageConfig            | Image compression and resize settings. Only applies to image MIME types (excluding GIF).                    |
 
@@ -777,21 +824,21 @@ The prefix is part of the index identity, so `['createdAt', '-createdAt']` emits
 
 `createModel` produces the following TypeBox schema models used internally by routes and services:
 
-| Model                 | Purpose                                  |
-|-----------------------|------------------------------------------|
-| `readModel`           | Full model with all visible fields       |
-| `createModel`         | Request body for create operations       |
-| `updateModel`         | Request body for update operations       |
-| `relationsModel`      | Relations-only subset                    |
-| `virtualModel`        | Virtual fields-only subset               |
-| `filesModel`          | File fields-only subset                  |
-| `readOneModel`        | Response for single-item reads           |
-| `readManyModel`       | Response for list reads                  |
-| `relationOutputModel` | Shape nested in another model's response |
-| `createOneModel`      | Request for create endpoint              |
-| `updateOneModel`      | Request for update endpoint              |
-| `fileUploadModel`     | Request for file upload endpoint         |
-| `fileDeleteModel`     | Request for file delete endpoint         |
+| Model                  | Purpose                                        |
+|------------------------|------------------------------------------------|
+| `readModel`            | Full model with all visible fields             |
+| `createModel`          | Request body for create operations             |
+| `updateModel`          | Request body for update operations             |
+| `relationsModel`       | Relations-only subset                          |
+| `virtualModel`         | Virtual fields-only subset                     |
+| `filesModel`           | File fields-only subset                        |
+| `readOneModel`         | Response for single-item reads                 |
+| `readManyModel`        | Response for list reads                        |
+| `readOneNullableModel` | `readOneModel` or null, for optional relations |
+| `createOneModel`       | Request for create endpoint                    |
+| `updateOneModel`       | Request for update endpoint                    |
+| `fileUploadModel`      | Request for file upload endpoint               |
+| `fileDeleteModel`      | Request for file delete endpoint               |
 
 ---
 

@@ -37,7 +37,8 @@
       "rotateMaxFiles": 1000,
       "rotateInterval": "1d",
       "rotateCompress": true,
-      "pretty": false
+      "pretty": false,
+      "sync": false
     },
     "rateLimit": {
       "enabled": true,
@@ -72,8 +73,7 @@
       "servicePattern": "<srcPath>/resources/*/*service.ts",
       "policyPattern": "<srcPath>/resources/*/*policy.ts",
       "routesPattern": "<srcPath>/resources/*/*route.ts",
-      "generatedTypesPath": "<srcPath>/types/generated.ts",
-      "relationOutputMaxDepth": 10
+      "generatedTypesPath": "<srcPath>/types/generated.ts"
     },
     "export": {
       "csv": {

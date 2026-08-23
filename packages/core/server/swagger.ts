@@ -1,7 +1,7 @@
 import fastifyPlugin from 'fastify-plugin';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
-import { config, CONFIG_NAME } from '@appweaver/common';
+import { config, CONFIG_NAME, isArray } from '@appweaver/common';
 import { context } from '../context';
 import { Server } from '../types';
 
@@ -9,7 +9,9 @@ export default fastifyPlugin((server: Server) => {
   server.register(fastifySwagger, {
     hideUntagged: config.SWAGGER_HIDE_UNTAGGED,
     transformObject: (document) =>
-      addConfig(normalizeUnionTypes(pruneUnusedSchemas(document))),
+      addConfig(
+        normalizeUnionTypes(pruneUnusedSchemas(inlineNullableRefs(document)))
+      ),
     openapi: {
       info: {
         title: config.APP_NAME,
@@ -63,6 +65,62 @@ export default fastifyPlugin((server: Server) => {
     });
   }
 });
+
+/**
+ * Replaces every reference to a nullable model variant with the union it stands
+ * for. Each model registers a `<Model>SingleNullable` schema the response
+ * serializer needs as a name of its own, since it cannot compile an inline
+ * union that cycles back to a model it is already writing. The document says
+ * the same thing without that indirection, leaving the variants unreferenced
+ * for {@link pruneUnusedSchemas} to drop.
+ *
+ * @param {Object} document The transform argument of the Swagger plugin,
+ * wrapping the OpenAPI document in its `openapiObject` property.
+ * @returns {Object} The same argument, with every reference to a nullable model
+ * variant replaced in place.
+ */
+function inlineNullableRefs(document: any): any {
+  const schemas = document.openapiObject?.components?.schemas ?? {};
+
+  // The schemas are registered under generated names, so the variants are
+  // recognized by the title carrying the name they were declared with
+  const variants = new Map<string, any>();
+  for (const [name, schema] of Object.entries<any>(schemas)) {
+    if (/SingleNullable$/.test(schema?.title ?? '') && isArray(schema?.anyOf)) {
+      variants.set(`#/components/schemas/${name}`, schema.anyOf);
+    }
+  }
+
+  if (variants.size === 0) {
+    return document;
+  }
+
+  const visit = (node: any): void => {
+    if (!node || typeof node !== 'object') {
+      return;
+    }
+
+    if (isArray(node)) {
+      for (const item of node) visit(item);
+      return;
+    }
+
+    for (const value of Object.values(node)) {
+      visit(value);
+    }
+
+    const union = variants.get(node.$ref);
+    if (union) {
+      delete node.$ref;
+      node.anyOf = structuredClone(union);
+    }
+  };
+
+  visit(document.openapiObject?.paths);
+  visit(schemas);
+
+  return document;
+}
 
 /**
  * Rewrites the JSON Schema type lists of the document into the equivalent

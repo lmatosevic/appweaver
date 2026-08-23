@@ -16,6 +16,10 @@ const logName = config.APP_NAME
   ? config.APP_NAME.toLowerCase().replace(/\s+/g, '_')
   : 'app';
 
+// A synchronous destination writes each record before the next statement
+// runs and registers no exit hook to flush what it buffered
+const sync = config.LOG_SYNC;
+
 const streams: DestinationStream[] = [];
 
 if (config.LOG_PRETTY) {
@@ -23,11 +27,12 @@ if (config.LOG_PRETTY) {
     pretty({
       colorize: true,
       translateTime: 'SYS:yyyy-mm-dd HH:MM:ss.l Z',
-      ignore: 'pid,hostname'
+      ignore: 'pid,hostname',
+      sync
     })
   );
 } else {
-  streams.push(destination(1));
+  streams.push(destination({ dest: 1, sync }));
 }
 
 if (config.LOG_PATH && level !== LogLevel.Silent) {
@@ -43,7 +48,9 @@ if (config.LOG_PATH && level !== LogLevel.Silent) {
       })
     );
   } else {
-    streams.push(destination(`${config.LOG_PATH}/${logName}.log`));
+    streams.push(
+      destination({ dest: `${config.LOG_PATH}/${logName}.log`, sync })
+    );
   }
 }
 

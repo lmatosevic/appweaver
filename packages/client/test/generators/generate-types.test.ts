@@ -54,6 +54,11 @@ describe('generate-types', () => {
       expect(types).toContain('@format email');
     });
 
+    test('keeps a property carrying a schema default optional', () => {
+      expect(types).toContain('totalCount?: boolean;');
+      expect(types).not.toContain('totalCount: boolean;');
+    });
+
     test('names generated enums after the extracted type', () => {
       expect(types).toContain('export const PostSingleStatus = {');
       expect(types).toContain('status?: PostSingleStatus;');

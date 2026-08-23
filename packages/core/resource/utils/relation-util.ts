@@ -1,5 +1,6 @@
 import {
   ActionType,
+  capitalize,
   extractSchemaProperties,
   FileField,
   isArray,
@@ -8,11 +9,16 @@ import {
   OutputType,
   pickProperties,
   RelationField,
-  ResourceId
+  ResourceId,
+  ResourceModel
 } from '@appweaver/common';
 import { injectModel } from '../../context';
 import { currentAuthUser } from '../../security';
 import { HttpError } from '../../errors';
+
+/** Levels of a self referencing relation read when the relation configures no
+ * `maxDepth`, i.e. the relation itself and nothing below it. */
+const DEFAULT_RELATION_MAX_DEPTH = 1;
 
 /** The nested write actions a single relation field can be mapped to. */
 export type RelationActions = Record<
@@ -72,6 +78,7 @@ export function mapRelationInclusions(
     if (shouldIncludeRelation(relationField?.output?.type, action)) {
       inclusion[key] = buildNestedInclusion(
         relationField as RelationField,
+        key,
         action
       );
     }
@@ -383,43 +390,95 @@ export function createdByConnect(
 }
 
 /**
- * Resolves the inclusion value of a single relation field by walking its configured nested output includes
- * recursively. Returns `true` when the relation has no nested includes to apply for the given action, or a nested
- * `include` clause otherwise.
+ * Resolves the inclusion value of a single relation field, walking both the levels a self referencing relation
+ * repeats itself for and the nested includes it configures. Returns `true` when the relation reads no further than
+ * itself for the given action, or a nested `include` clause otherwise.
+ *
+ * A relation whose related model holds the same relation again points back at its own model, so it repeats itself
+ * down the tree up to its configured `output.maxDepth`, letting a category carry its ancestors without every level
+ * being spelled out. An `output.include` entry naming that same relation configures the level itself and replaces
+ * the repetition.
  *
  * @param {RelationField} relationField - The configuration of the relation whose inclusion value is resolved, read
- * from its `output.include` property.
+ * from its `output.include` and `output.maxDepth` properties.
+ * @param {string} key - The field name the relation is declared under, matched against the related model to detect a
+ * relation pointing back at its own model.
  * @param {ActionType} [action] - The action the inclusions are built for, matched against the configured output type
  * of every nested relation.
- * @return {boolean|Object} True if the relation has no nested relations to include for the given action, or the
- * nested `include` clause otherwise.
+ * @param {number} [depth=1] - The level of the relation being resolved, counting the relation itself as the first.
+ * @return {boolean|Object} True if the relation reads no further than itself, or the nested `include` clause
+ * otherwise.
  */
 function buildNestedInclusion(
   relationField: RelationField,
-  action?: ActionType
+  key: string,
+  action?: ActionType,
+  depth: number = 1
 ): boolean | { include: Record<string, any> } {
   const nestedIncludeConfig = relationField?.output?.include;
-
-  if (!nestedIncludeConfig || Object.keys(nestedIncludeConfig).length === 0) {
-    return true;
-  }
-
   const nestedInclusion: Record<string, any> = {};
 
-  for (const [nestedKey, nestedOutput] of Object.entries(nestedIncludeConfig)) {
+  // A file field carries no related model, so it reads no further than itself
+  const relatedModel = relationField?.model
+    ? injectModel(capitalize(relationField.model), false)
+    : undefined;
+
+  const selfRelation = selfReferencingRelation(relatedModel, key);
+  const maxDepth =
+    relationField?.output?.maxDepth ?? DEFAULT_RELATION_MAX_DEPTH;
+
+  if (selfRelation && depth < maxDepth && !nestedIncludeConfig?.[key]) {
+    nestedInclusion[key] = buildNestedInclusion(
+      { ...selfRelation, output: relationField.output },
+      key,
+      action,
+      depth + 1
+    );
+  }
+
+  for (const [nestedKey, nestedOutput] of Object.entries(
+    nestedIncludeConfig ?? {}
+  )) {
     // Check if the nested relation should be included
-    if (shouldIncludeRelation(nestedOutput?.type, action)) {
-      // Recursively build nested inclusions
-      nestedInclusion[nestedKey] = buildNestedInclusion(
-        { output: nestedOutput } as RelationField,
-        action
-      );
+    if (!shouldIncludeRelation(nestedOutput?.type, action)) {
+      continue;
     }
+
+    // The related model carries the field the nested include names, so each
+    // level is resolved against the model it actually belongs to
+    const nestedRelation =
+      relatedModel?.config?.relations?.[nestedKey] ??
+      relatedModel?.config?.files?.[nestedKey];
+
+    nestedInclusion[nestedKey] = buildNestedInclusion(
+      { ...nestedRelation, output: nestedOutput } as RelationField,
+      nestedKey,
+      action
+    );
   }
 
   return Object.keys(nestedInclusion).length > 0
     ? { include: nestedInclusion }
     : true;
+}
+
+/**
+ * Reads the relation a related model holds under the given field name, when it points back at that same model. It is
+ * the relation a self referencing field repeats itself through, i.e. the `parent` of the parent of a category.
+ *
+ * @param {ResourceModel} [model] - The related model the field is looked up on.
+ * @param {string} key - The field name of the relation.
+ * @return {RelationField | undefined} The relation of the model under that name when it references the model itself,
+ * undefined otherwise.
+ */
+function selfReferencingRelation(
+  model?: ResourceModel,
+  key?: string
+): RelationField | undefined {
+  const relation = key ? model?.config?.relations?.[key] : undefined;
+  return relation && capitalize(relation.model) === model?.name
+    ? relation
+    : undefined;
 }
 
 /**

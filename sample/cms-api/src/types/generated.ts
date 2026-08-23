@@ -30,8 +30,7 @@ export type CategorySingle = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  parent?: CategoryRelationOutput | null;
-  children?: Array<CategoryRelationOutput>;
+  parent?: CategorySingle | null;
   childrenCount?: number;
   postsCount?: number;
 };
@@ -45,20 +44,9 @@ export type CategoryMultiple = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  parent?: CategoryRelationOutput | null;
+  parent?: CategorySingle | null;
   childrenCount?: number;
   postsCount?: number;
-};
-
-export type CategoryRelationOutput = {
-  id: number;
-  name: string;
-  slug: string;
-  description?: string | null;
-  position: number;
-  updatedAt: Date;
-  createdAt: Date;
-  createdById?: number | null;
 };
 
 export type CategoryCreate = {
@@ -145,8 +133,8 @@ export type CommentSingle = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  post?: PostRelationOutput;
-  pinnedIn?: PostRelationOutput | null;
+  post?: PostSingle;
+  pinnedIn?: PostSingle | null;
   attachment?: FileSingle | null;
 };
 
@@ -160,17 +148,6 @@ export type CommentMultiple = {
   createdAt: Date;
   createdById?: number | null;
   attachment?: FileSingle | null;
-};
-
-export type CommentRelationOutput = {
-  id: string;
-  body: string;
-  guestName?: string | null;
-  guestEmail?: string | null;
-  status?: ('Pending' | 'Approved' | 'Spam') | null;
-  updatedAt: Date;
-  createdAt: Date;
-  createdById?: number | null;
 };
 
 export type CommentCreate = {
@@ -262,7 +239,7 @@ export type PageSingle = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  author?: UserRelationOutput | null;
+  author?: UserSingle | null;
   heroImage?: FileSingle | null;
 };
 
@@ -279,23 +256,8 @@ export type PageMultiple = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  author?: UserRelationOutput | null;
+  author?: UserSingle | null;
   heroImage?: FileSingle | null;
-};
-
-export type PageRelationOutput = {
-  id: number;
-  title: string;
-  slug: string;
-  content: string;
-  status?: ('Draft' | 'Published' | 'Archived') | null;
-  publishedAt?: Date | null;
-  showInMenu: boolean;
-  menuPosition: number;
-  seo?: any | null;
-  updatedAt: Date;
-  createdAt: Date;
-  createdById?: number | null;
 };
 
 export type PageCreate = {
@@ -408,22 +370,12 @@ export type PostSingle = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  author?: UserRelationOutput | null;
-  category?: {
-    id: number;
-    name: string;
-    slug: string;
-    description?: string;
-    position: number;
-    updatedAt: string;
-    createdAt: string;
-    createdById?: number;
-    parent?: CategoryRelationOutput | null;
-  } | null;
-  tags?: Array<TagRelationOutput>;
-  comments?: Array<CommentRelationOutput>;
+  author?: UserSingle | null;
+  category?: CategorySingle | null;
+  tags?: Array<TagSingle>;
+  comments?: Array<CommentSingle>;
   commentsCount?: number;
-  pinnedComment?: CommentRelationOutput | null;
+  pinnedComment?: CommentSingle | null;
   coverImage?: FileSingle | null;
   galleryImages?: Array<FileSingle>;
   galleryImagesCount?: number;
@@ -444,39 +396,12 @@ export type PostMultiple = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  author?: UserRelationOutput | null;
-  category?: {
-    id: number;
-    name: string;
-    slug: string;
-    description?: string;
-    position: number;
-    updatedAt: string;
-    createdAt: string;
-    createdById?: number;
-    parent?: CategoryRelationOutput | null;
-  } | null;
-  tags?: Array<TagRelationOutput>;
+  author?: UserSingle | null;
+  category?: CategorySingle | null;
+  tags?: Array<TagSingle>;
   commentsCount?: number;
   coverImage?: FileSingle | null;
   galleryImagesCount?: number;
-};
-
-export type PostRelationOutput = {
-  id: number;
-  uid: string;
-  title: string;
-  slug: string;
-  excerpt?: string | null;
-  content?: string | null;
-  status?: ('Draft' | 'Published' | 'Archived') | null;
-  publishedAt?: Date | null;
-  featured: boolean;
-  viewCount: number;
-  seo?: any | null;
-  updatedAt: Date;
-  createdAt: Date;
-  createdById?: number | null;
 };
 
 export type PostCreate = {
@@ -602,15 +527,6 @@ export type TagMultiple = {
   postsCount?: number;
 };
 
-export type TagRelationOutput = {
-  id: number;
-  name: string;
-  slug: string;
-  updatedAt: Date;
-  createdAt: Date;
-  createdById?: number | null;
-};
-
 export type TagCreate = {
   name: string;
   slug: string;
@@ -699,11 +615,7 @@ export type UserSingle = {
   createdById?: number | null;
   postsCount?: number;
   pagesCount?: number;
-  roles?: Array<{
-    id: number;
-    name: string;
-    permissions?: Array<PermissionRelationOutput>;
-  }>;
+  roles?: Array<RoleSingle>;
   avatar?: FileSingle | null;
 };
 
@@ -726,31 +638,8 @@ export type UserMultiple = {
   createdById?: number | null;
   postsCount?: number;
   pagesCount?: number;
-  roles?: Array<{
-    id: number;
-    name: string;
-    permissions?: Array<PermissionRelationOutput>;
-  }>;
+  roles?: Array<RoleSingle>;
   avatar?: FileSingle | null;
-};
-
-export type UserRelationOutput = {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone?: string | null;
-  displayName?: string | null;
-  bio?: string | null;
-  website?: string | null;
-  verifiedEmail: boolean;
-  twoFactorAuth: 'None' | 'Email';
-  enabled: boolean;
-  logoutAt?: Date | null;
-  byline: string;
-  updatedAt: Date;
-  createdAt: Date;
-  createdById?: number | null;
 };
 
 export type UserCreate = {
@@ -884,18 +773,6 @@ export type ApiKeyMultiple = {
   createdById?: number | null;
 };
 
-export type ApiKeyRelationOutput = {
-  id: number;
-  key: string;
-  name?: string | null;
-  description?: string | null;
-  enabled: boolean;
-  expiresAt?: Date | null;
-  updatedAt: Date;
-  createdAt: Date;
-  createdById?: number | null;
-};
-
 export type ApiKeyCreate = {
   name?: string | null;
   description?: string | null;
@@ -976,16 +853,6 @@ export type ConnectedAccountMultiple = {
   createdAt: Date;
 };
 
-export type ConnectedAccountRelationOutput = {
-  id: number;
-  provider: string;
-  providerAccountId: string;
-  scope?: string | null;
-  lastLoginAt: Date;
-  updatedAt: Date;
-  createdAt: Date;
-};
-
 export type ConnectedAccountCreate = {
   provider: string;
   providerAccountId: string;
@@ -1049,18 +916,13 @@ export type Role = {
 export type RoleSingle = {
   id: number;
   name: string;
-  permissions?: Array<PermissionRelationOutput>;
+  permissions?: Array<PermissionSingle>;
 };
 
 export type RoleMultiple = {
   id: number;
   name: string;
-  permissions?: Array<PermissionRelationOutput>;
-};
-
-export type RoleRelationOutput = {
-  id: number;
-  name: string;
+  permissions?: Array<PermissionSingle>;
 };
 
 export type RoleCreate = {
@@ -1125,11 +987,6 @@ export type PermissionSingle = {
 };
 
 export type PermissionMultiple = {
-  id: number;
-  name: string;
-};
-
-export type PermissionRelationOutput = {
   id: number;
   name: string;
 };
@@ -1204,21 +1061,6 @@ export type FileSingle = {
 };
 
 export type FileMultiple = {
-  id: number;
-  name: string;
-  originalName: string;
-  mimeType: string;
-  sizeBytes: number;
-  checksum: string;
-  title?: string | null;
-  description?: string | null;
-  url: string;
-  updatedAt: Date;
-  createdAt: Date;
-  createdById?: number | null;
-};
-
-export type FileRelationOutput = {
   id: number;
   name: string;
   originalName: string;

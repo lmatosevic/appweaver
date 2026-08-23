@@ -35,7 +35,7 @@ export const resourceModelProps: Record<
   '': 'readModel',
   Single: 'readOneModel',
   Multiple: 'readManyModel',
-  RelationOutput: 'relationOutputModel',
+  SingleNullable: 'readOneNullableModel',
   Create: 'createOneModel',
   Update: 'updateOneModel',
   RelationCreate: 'relationCreateModel',

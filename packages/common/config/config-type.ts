@@ -51,6 +51,10 @@ export type Config = {
   LOG_ROTATE_COMPRESS: boolean;
   /** Enable pretty-printed JSON logs. Default: `false`. */
   LOG_PRETTY: boolean;
+  /** Write every log record before the next statement runs, instead of
+   * buffering it. Costs throughput, and keeps the output flushed and in order
+   * where it must not be lost, such as tests. Default: `false`. */
+  LOG_SYNC: boolean;
 
   /** HTTP server listening port. Default: `5000`. */
   SERVER_PORT: number;
@@ -131,9 +135,6 @@ export type Config = {
   RESOURCE_ROUTES_PATTERN: string;
   /** Output path for generated TypeScript types. Default: `'<srcPath>/types/generated.ts'`. */
   RESOURCE_GENERATED_TYPES_PATH: string;
-  /** Levels of nested relations a response schema is written for, following
-   * the relation `output.include`. Minimum: `1`. Default: `10`. */
-  RESOURCE_RELATION_OUTPUT_MAX_DEPTH: number;
 
   /** Number of records per batch during export. Default: `1000`. */
   EXPORT_BATCH_SIZE: number;

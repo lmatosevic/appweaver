@@ -1,7 +1,7 @@
 import { config } from '@appweaver/common';
 import { db } from '@db/client';
 
-/** A category tree, the tags, two pages and the posts. */
+/** A category tree, the tags, two pages, the posts, and their comments. */
 export async function createSampleContent(): Promise<string> {
   const author = await db.user.findFirst({
     where: { email: config.SYSTEM_ADMIN_INITIAL_EMAIL }
@@ -94,7 +94,7 @@ export async function createSampleContent(): Promise<string> {
     ]
   });
 
-  await db.post.create({
+  const trails = await db.post.create({
     data: {
       title: 'Ten trails worth the walk',
       slug: 'ten-trails-worth-the-walk',
@@ -117,7 +117,7 @@ export async function createSampleContent(): Promise<string> {
     }
   });
 
-  await db.post.create({
+  const deer = await db.post.create({
     data: {
       title: 'Photographing deer at first light',
       slug: 'photographing-deer-at-first-light',
@@ -155,5 +155,54 @@ export async function createSampleContent(): Promise<string> {
     }
   });
 
-  return 'Seeded 4 categories, 3 tags, 2 pages and 3 posts';
+  // Readers signed in are attributed through createdById, guests by name, and
+  // the moderation queue is seeded with one of each status
+  const pinned = await db.comment.create({
+    data: {
+      body: 'The ridge above the bay is worth it in the rain as well. Take poles.',
+      status: 'Approved',
+      postId: trails.id,
+      createdById: author?.id
+    }
+  });
+
+  await db.comment.createMany({
+    data: [
+      {
+        body: 'Walked the ridge last weekend, the way down is longer than it looks.',
+        status: 'Approved',
+        guestName: 'Marta',
+        guestEmail: 'marta@example.com',
+        postId: trails.id
+      },
+      {
+        body: 'Any chance of a map for the ridge route?',
+        guestName: 'Ivan',
+        guestEmail: 'ivan@example.com',
+        postId: trails.id
+      },
+      {
+        body: 'Which lens did you use for the second photograph?',
+        status: 'Approved',
+        guestName: 'Petra',
+        guestEmail: 'petra@example.com',
+        postId: deer.id
+      },
+      {
+        body: 'CHEAP LENSES, CLICK HERE',
+        status: 'Spam',
+        guestName: 'Lens deals',
+        guestEmail: 'noreply@example.com',
+        postId: deer.id
+      }
+    ]
+  });
+
+  // The post carries the pinned comment, so the relation is seeded from its side
+  await db.post.update({
+    where: { id: trails.id },
+    data: { pinnedCommentId: pinned.id }
+  });
+
+  return 'Seeded 4 categories, 3 tags, 2 pages, 3 posts and 5 comments';
 }

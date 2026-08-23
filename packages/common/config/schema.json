@@ -117,6 +117,10 @@
             "pretty": {
               "type": "boolean",
               "default": false
+            },
+            "sync": {
+              "type": "boolean",
+              "default": false
             }
           }
         },
@@ -342,11 +346,6 @@
             "generatedTypesPath": {
               "type": "string",
               "default": "<srcPath>/types/generated.ts"
-            },
-            "relationOutputMaxDepth": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 10
             }
           }
         },

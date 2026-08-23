@@ -27,14 +27,18 @@ export default createModel({
     }
   },
   relations: {
-    // Self-reference building the category tree
+    // Self-reference building the category tree.
     parent: {
       model: 'Category',
       type: 'oneToMany',
       mappedBy: 'children',
       owner: true,
       required: false,
-      onDelete: 'setNull'
+      onDelete: 'setNull',
+      output: {
+        type: 'always',
+        maxDepth: 3
+      }
     },
     children: {
       model: 'Category',
@@ -45,7 +49,7 @@ export default createModel({
         type: 'none'
       },
       output: {
-        type: 'single',
+        type: 'none',
         count: true
       }
     },

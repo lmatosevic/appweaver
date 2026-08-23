@@ -44,7 +44,6 @@ export async function generateTypes(
         [name, schema.readModel],
         [`${name}Single`, schema.readOneModel],
         [`${name}Multiple`, schema.readManyModel],
-        [`${name}RelationOutput`, schema.relationOutputModel],
         [`${name}Create`, schema.createOneModel],
         [`${name}Update`, schema.updateOneModel],
         [`${name}RelationCreate`, schema.relationCreateModel],
@@ -147,6 +146,14 @@ function transformUnsafeTypes(schema: TObject): TObject {
 
     if (field.nullable === true) {
       properties[name] = NullType(properties[name]);
+    }
+
+    // A nullable model reference points at the nullable variant of that model,
+    // a schema of its own the response serializer can expand once. The type is
+    // written as the union it stands for instead.
+    const nullableRef = field.$ref?.match(/^(.+Single)Nullable$/)?.[1];
+    if (nullableRef) {
+      properties[name] = NullType(Type.Ref(nullableRef));
     }
   }
 

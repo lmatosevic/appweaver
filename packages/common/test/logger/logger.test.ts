@@ -30,7 +30,8 @@ const defaultConfig: Partial<Config> = {
   LOG_ROTATE_MAX_SIZE: '5G',
   LOG_ROTATE_MAX_FILES: 1000,
   LOG_ROTATE_INTERVAL: '1d',
-  LOG_ROTATE_COMPRESS: true
+  LOG_ROTATE_COMPRESS: true,
+  LOG_SYNC: false
 };
 
 describe('logger', () => {
@@ -130,9 +131,15 @@ describe('logger', () => {
     test('writes to the standard output by default', () => {
       const { loggerConfig } = loadLogger();
 
-      expect(destination).toHaveBeenCalledWith(1);
+      expect(destination).toHaveBeenCalledWith({ dest: 1, sync: false });
       expect(pretty).not.toHaveBeenCalled();
       expect(activeConfig(loggerConfig).stream.streams).toHaveLength(1);
+    });
+
+    test('writes synchronously when LOG_SYNC is enabled', () => {
+      loadLogger({ LOG_SYNC: true });
+
+      expect(destination).toHaveBeenCalledWith({ dest: 1, sync: true });
     });
 
     test('uses the pretty printer when LOG_PRETTY is enabled', () => {
@@ -141,7 +148,8 @@ describe('logger', () => {
       expect(pretty).toHaveBeenCalledWith({
         colorize: true,
         translateTime: 'SYS:yyyy-mm-dd HH:MM:ss.l Z',
-        ignore: 'pid,hostname'
+        ignore: 'pid,hostname',
+        sync: false
       });
       expect(destination).not.toHaveBeenCalled();
     });
@@ -195,7 +203,10 @@ describe('logger', () => {
       loadLogger({ LOG_PATH, LOG_ROTATE: false });
 
       expect(createStream).not.toHaveBeenCalled();
-      expect(destination).toHaveBeenCalledWith(`${LOG_PATH}/appweaver.log`);
+      expect(destination).toHaveBeenCalledWith({
+        dest: `${LOG_PATH}/appweaver.log`,
+        sync: false
+      });
     });
 
     test('derives the file name from the application name', () => {

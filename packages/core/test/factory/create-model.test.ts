@@ -1,6 +1,5 @@
 import { TObject } from '@sinclair/typebox';
 import {
-  config,
   relinkResourceModels,
   RESOURCE_AUTH,
   RESOURCE_MODEL_TYPE,
@@ -685,7 +684,7 @@ describe('create-model', () => {
       expect(required).not.toContain('image');
     });
 
-    test('makes an optional relation nullable in the output', () => {
+    test('references the nullable variant of an optional relation model', () => {
       const model = createModel({
         name: 'Post',
         relations: {
@@ -698,61 +697,31 @@ describe('create-model', () => {
         }
       });
 
-      expect(properties(model.readOneModel).author).toHaveProperty('anyOf');
-    });
-
-    test('keeps the input models unchanged without relations', () => {
-      const model = createModel({
-        name: 'Post',
-        scalars: { title: { type: 'string' } }
-      });
-
-      expect(keys(model.createOneModel)).toEqual(['title']);
-    });
-  });
-
-  describe('nested relation output', () => {
-    test('holds the columns of the model without its relations', () => {
-      createModel({ name: 'User', scalars: { name: { type: 'string' } } });
-      const model = createModel({
-        name: 'Post',
-        scalars: { title: { type: 'string' } },
-        relations: { author: { model: 'User', type: 'oneToMany', owner: true } }
-      });
-
-      expect(model.relationOutputModel.$id).toBe('PostRelationOutput');
-      expect(keys(model.relationOutputModel)).toContain('title');
-      expect(keys(model.relationOutputModel)).not.toContain('author');
-    });
-
-    test('references the relation output model of the related model', () => {
-      const model = createModel({
-        name: 'Post',
-        relations: { author: { model: 'User', type: 'oneToMany', owner: true } }
-      });
-
       expect(properties(model.readOneModel).author.$ref).toBe(
-        'UserRelationOutput'
+        'UserSingleNullable'
       );
       expect(properties(model.readManyModel).author.$ref).toBe(
-        'UserRelationOutput'
+        'UserSingleNullable'
       );
-      // The read model keeps the full reference, which a query filter follows
+      // The read model keeps the plain reference, which a query filter follows
       expect(properties(model.readModel).author.$ref).toBe('UserSingle');
     });
 
-    test('references the relation output model of every item of a list', () => {
-      const model = createModel({
-        name: 'User',
-        relations: { posts: { model: 'Post', type: 'oneToMany' } }
-      });
+    test('builds the nullable variant as a union of the model and null', () => {
+      const model = createModel({ name: 'Post' });
 
-      expect(properties(model.readOneModel).posts.items.$ref).toBe(
-        'PostRelationOutput'
+      expect(model.readOneNullableModel.$id).toBe('PostSingleNullable');
+      expect(model.readOneNullableModel).toEqual(
+        expect.objectContaining({
+          anyOf: [
+            expect.objectContaining({ $ref: 'PostSingle' }),
+            expect.objectContaining({ type: 'null' })
+          ]
+        })
       );
     });
 
-    test('resolves a self reference without recursing into itself', () => {
+    test('references the nullable variant of a self relation', () => {
       const model = createModel({
         name: 'Category',
         scalars: { name: { type: 'string' } },
@@ -772,85 +741,21 @@ describe('create-model', () => {
         }
       });
 
-      expect(keys(model.relationOutputModel)).toContain('name');
-      expect(keys(model.relationOutputModel)).not.toContain('parent');
-      expect(keys(model.relationOutputModel)).not.toContain('children');
+      expect(properties(model.readOneModel).parent.$ref).toBe(
+        'CategorySingleNullable'
+      );
       expect(properties(model.readOneModel).children.items.$ref).toBe(
-        'CategoryRelationOutput'
+        'CategorySingle'
       );
     });
 
-    test('stops writing the nested schemas at the configured depth', () => {
-      const maxDepth = config.RESOURCE_RELATION_OUTPUT_MAX_DEPTH;
-
-      // A model chain, and an include reaching past the configured depth
-      for (let level = maxDepth + 3; level >= 1; level--) {
-        createModel({
-          name: `Level${level}`,
-          scalars: { name: { type: 'string' } },
-          relations:
-            level === maxDepth + 3
-              ? undefined
-              : {
-                  next: {
-                    model: `Level${level + 1}`,
-                    type: 'oneToMany',
-                    owner: true
-                  }
-                }
-        });
-      }
-
-      let include: any = { next: { type: 'always' } };
-      for (let level = 0; level <= maxDepth; level++) {
-        include = { next: { type: 'always', include } };
-      }
-
-      const root = createModel({
-        name: 'Root',
-        relations: {
-          next: {
-            model: 'Level1',
-            type: 'oneToMany',
-            owner: true,
-            output: { type: 'always', include }
-          }
-        }
-      });
-
-      // Levels past the configured depth fall back to the plain reference
-      let schema = properties(root.readOneModel).next;
-      for (let level = 0; level < maxDepth; level++) {
-        expect(schema.$ref).toBeUndefined();
-        schema = schema.properties.next;
-      }
-
-      expect(schema.$ref).toBe(`Level${maxDepth + 1}RelationOutput`);
-    });
-
-    test('writes the relations named by an include into the nested schema', () => {
-      createModel({ name: 'Tag', scalars: { name: { type: 'string' } } });
-      createModel({
-        name: 'Category',
-        scalars: { name: { type: 'string' } },
-        relations: { tags: { model: 'Tag', type: 'manyToMany' } }
-      });
+    test('keeps the input models unchanged without relations', () => {
       const model = createModel({
         name: 'Post',
-        relations: {
-          category: {
-            model: 'Category',
-            type: 'oneToMany',
-            owner: true,
-            output: { type: 'single', include: { tags: { type: 'always' } } }
-          }
-        }
+        scalars: { title: { type: 'string' } }
       });
 
-      const category = properties(model.readOneModel).category;
-      expect(category.$ref).toBeUndefined();
-      expect(Object.keys(category.properties)).toContain('name');
-      expect(category.properties.tags.items.$ref).toBe('TagRelationOutput');
+      expect(keys(model.createOneModel)).toEqual(['title']);
     });
   });
 
