@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/lmatosevic/appweaver/compare/v1.4.0...v1.4.1) (2026-08-23)
+
+### Bug Fixes
+
+* enable nested relation output support and remove hidden properties from export ([c3e9800](https://github.com/lmatosevic/appweaver/commit/c3e9800da8f0ea3d4afb4b131b4f199c9cd66d05))
+* refactor the relation models for circular dependency support, fix client optional type generation, add logger sync config ([c48c16f](https://github.com/lmatosevic/appweaver/commit/c48c16f5f7960bfd126d55fd7b61945bddba3514))
+
 ## [1.4.0](https://github.com/lmatosevic/appweaver/compare/v1.3.1...v1.4.0) (2026-08-16)
 
 ### Features
