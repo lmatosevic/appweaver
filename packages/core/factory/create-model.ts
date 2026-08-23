@@ -4,6 +4,7 @@ import {
   AnyJson,
   AuditFields,
   capitalize,
+  config as appConfig,
   countFieldName,
   FileField,
   IdField,
@@ -17,6 +18,7 @@ import {
   OutputType,
   pickProperties,
   RelationField,
+  RelationOutput,
   RESOURCE_MODEL_RELINK,
   RESOURCE_MODEL_TYPE,
   RESOURCE_NAME,
@@ -110,12 +112,8 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
     config.update
   );
 
-  const { readOneModel, readManyModel } = buildOutputModels(
-    baseReadModel,
-    relationsModel,
-    filesModel,
-    config
-  );
+  const { readOneModel, readManyModel, relationOutputModel } =
+    buildOutputModels(baseReadModel, relationsModel, filesModel, config);
   const {
     createOneModel,
     updateOneModel,
@@ -143,6 +141,7 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
     virtualModel,
     readOneModel,
     readManyModel,
+    relationOutputModel,
     createOneModel,
     updateOneModel,
     relationCreateModel,
@@ -345,12 +344,21 @@ function buildOutputModels(
 ): {
   readOneModel: TObject;
   readManyModel: TObject;
+  relationOutputModel: TObject;
 } {
   const virtualConfig = config.virtual;
   const relationsConfig = config.relations;
   const filesConfig = config.files;
 
   const adjustedReadModel = removeHiddenFields(readModel);
+
+  // A nested record is read with a plain inclusion, so it carries no relations
+  // of its own. That also keeps the response models acyclic, as the serializer
+  // requires.
+  const relationOutputModel = Type.Composite(
+    [resolveOutputVirtualFields(adjustedReadModel, virtualConfig)],
+    { $id: `${config.name}RelationOutput` }
+  );
 
   const readOneModel = Type.Composite(
     [
@@ -370,7 +378,7 @@ function buildOutputModels(
     { $id: `${config.name}Multiple` }
   );
 
-  return { readOneModel, readManyModel };
+  return { readOneModel, readManyModel, relationOutputModel };
 }
 
 function buildInputModels(
@@ -572,11 +580,76 @@ function relationInputProperties<T extends TObject>(
   });
 }
 
+function nestedOutputSchema(
+  modelName: string,
+  include?: Record<string, Omit<RelationOutput, 'count'>>,
+  outputType?: OutputType,
+  depth: number = 0
+): TSchema {
+  const name = capitalize(modelName);
+  const nestedRef = Type.Ref(`${name}RelationOutput`);
+
+  // The depth also stops an include configuration referencing itself
+  const includeEntries = Object.entries(include ?? {});
+  if (
+    includeEntries.length === 0 ||
+    depth >= appConfig.RESOURCE_RELATION_OUTPUT_MAX_DEPTH
+  ) {
+    return nestedRef;
+  }
+
+  // Written out rather than referenced, since the shape depends on the include
+  const model = context.resource.models.get(name);
+  if (!model) {
+    return nestedRef;
+  }
+
+  const properties: Record<string, TSchema> = {
+    ...model.relationOutputModel.properties
+  };
+
+  for (const [key, nestedOutput] of includeEntries) {
+    if (shouldSkipOutputField(nestedOutput?.type, outputType)) {
+      continue;
+    }
+
+    const relation = model.config.relations?.[key];
+    const file = model.config.files?.[key];
+    if (!relation && !file) {
+      continue;
+    }
+
+    let schema: TSchema = relation
+      ? nestedOutputSchema(
+          relation.model,
+          nestedOutput?.include,
+          outputType,
+          depth + 1
+        )
+      : Type.Ref('FileRelationOutput');
+
+    if (relation ? isRelationArray(relation) : file?.array === true) {
+      schema = Type.Array(schema);
+    } else if (!relation || relation.required === false) {
+      schema = Nullable(schema);
+    }
+
+    properties[key] = Type.Optional(schema);
+  }
+
+  return Type.Object(properties);
+}
+
 function relationOutputProperties<T extends TObject>(
   object: T,
   relationConfig?: Record<
     string,
-    Pick<RelationField, 'required' | 'input' | 'output'>
+    {
+      model?: string; // Set on the relation fields only
+      required?: boolean;
+      input?: RelationField['input'];
+      output?: RelationOutput;
+    }
   >,
   outputType?: OutputType
 ): TObject {
@@ -587,6 +660,20 @@ function relationOutputProperties<T extends TObject>(
     if (config) {
       if (shouldSkipOutputField(config.output?.type, outputType)) {
         return undefined;
+      }
+
+      // A relation carries the nested output model of the related model. File
+      // fields keep the file model, which holds no relations of its own.
+      if (config.model) {
+        const nested = nestedOutputSchema(
+          config.model,
+          config.output?.include,
+          outputType
+        );
+        schema =
+          schema.type === 'array'
+            ? Type.Array(nested, pickProperties(schema, ['minItems']))
+            : nested;
       }
 
       if (config.required === false && schema.type !== 'array') {

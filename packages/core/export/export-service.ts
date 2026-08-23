@@ -148,6 +148,15 @@ export class ExportService {
         continue;
       }
 
+      // The records are read from the database rather than through a response
+      // schema, so the fields no response carries are dropped here instead.
+      if (
+        modelSchema?.['hidden'] === true ||
+        resourceModel.config.virtual?.[key]?.output?.type === 'none'
+      ) {
+        continue;
+      }
+
       let header = parentKey ? `${parentKey}.${key}` : key;
 
       const isArrayValue = isArray(value);

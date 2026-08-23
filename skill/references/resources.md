@@ -535,6 +535,9 @@ record by that field before creating a new one, so the inline create becomes a c
 | `include` | Record\<string, RelationOutput>                      | Nested relation output configuration.                                                                                                  |
 | `count`   | boolean                                              | Include a count of related records.                                                                                                    |
 
+A nested relation object is typed `<Model>RelationOutput`: the related model's own columns without its relations, plus
+the relations named by `include`, nested up to `RESOURCE_RELATION_OUTPUT_MAX_DEPTH` levels.
+
 ### File fields
 
 ```ts
@@ -717,7 +720,7 @@ const config = {
       headerName: 'Product Price',
       mapValue: 'price'
     },
-    passwordHash: {
+    internalNotes: {
       exclude: true
     },
     status: {
@@ -746,6 +749,9 @@ related record (and off every item for array relations, joined with `,`); on a s
 record itself. A function `mapValue` receives the field value (or each item of an array field) and returns the column
 value.
 
+Hidden fields and virtual fields with `output: { type: 'none' }` are never exported, nested in a relation either. A
+relation without a `mapValue` writes one column per field of the related record.
+
 ### Index config
 
 Define database indexes as a flat array (single-field indexes) or nested arrays (composite indexes):
@@ -771,20 +777,21 @@ The prefix is part of the index identity, so `['createdAt', '-createdAt']` emits
 
 `createModel` produces the following TypeBox schema models used internally by routes and services:
 
-| Model             | Purpose                            |
-|-------------------|------------------------------------|
-| `readModel`       | Full model with all visible fields |
-| `createModel`     | Request body for create operations |
-| `updateModel`     | Request body for update operations |
-| `relationsModel`  | Relations-only subset              |
-| `virtualModel`    | Virtual fields-only subset         |
-| `filesModel`      | File fields-only subset            |
-| `readOneModel`    | Response for single-item reads     |
-| `readManyModel`   | Response for list reads            |
-| `createOneModel`  | Request for create endpoint        |
-| `updateOneModel`  | Request for update endpoint        |
-| `fileUploadModel` | Request for file upload endpoint   |
-| `fileDeleteModel` | Request for file delete endpoint   |
+| Model                 | Purpose                                  |
+|-----------------------|------------------------------------------|
+| `readModel`           | Full model with all visible fields       |
+| `createModel`         | Request body for create operations       |
+| `updateModel`         | Request body for update operations       |
+| `relationsModel`      | Relations-only subset                    |
+| `virtualModel`        | Virtual fields-only subset               |
+| `filesModel`          | File fields-only subset                  |
+| `readOneModel`        | Response for single-item reads           |
+| `readManyModel`       | Response for list reads                  |
+| `relationOutputModel` | Shape nested in another model's response |
+| `createOneModel`      | Request for create endpoint              |
+| `updateOneModel`      | Request for update endpoint              |
+| `fileUploadModel`     | Request for file upload endpoint         |
+| `fileDeleteModel`     | Request for file delete endpoint         |
 
 ---
 
@@ -1060,8 +1067,8 @@ while (result.nextCursor) {
 }
 ```
 
-`totalCount` defaults to `true` and scans every matching record, so count once and send `false` afterward, which
-returns it as `null`.
+`totalCount` defaults to `true` and scans every matching record, so count once and send `false` afterward, which returns
+it as `null`.
 
 A cursor is opaque and bound to the query that issued it: reusing one under a different resource, filter, or sort is
 rejected with a 400.

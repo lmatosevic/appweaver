@@ -131,6 +131,9 @@ export type Config = {
   RESOURCE_ROUTES_PATTERN: string;
   /** Output path for generated TypeScript types. Default: `'<srcPath>/types/generated.ts'`. */
   RESOURCE_GENERATED_TYPES_PATH: string;
+  /** Levels of nested relations a response schema is written for, following
+   * the relation `output.include`. Minimum: `1`. Default: `10`. */
+  RESOURCE_RELATION_OUTPUT_MAX_DEPTH: number;
 
   /** Number of records per batch during export. Default: `1000`. */
   EXPORT_BATCH_SIZE: number;

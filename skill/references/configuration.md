@@ -159,13 +159,14 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 ### Resources (RESOURCE\_\*)
 
-| Property                        | Type   | Default                              | Description                                 |
-|---------------------------------|--------|--------------------------------------|---------------------------------------------|
-| `RESOURCE_MODEL_PATTERN`        | string | `'<srcPath>/resources/*/model.ts'`   | Glob pattern for resource model files.      |
-| `RESOURCE_SERVICE_PATTERN`      | string | `'<srcPath>/resources/*/service.ts'` | Glob pattern for resource service files.    |
-| `RESOURCE_POLICY_PATTERN`       | string | `'<srcPath>/resources/*/policy.ts'`  | Glob pattern for resource policy files.     |
-| `RESOURCE_ROUTES_PATTERN`       | string | `'<srcPath>/resources/*/routes.ts'`  | Glob pattern for resource routes files.     |
-| `RESOURCE_GENERATED_TYPES_PATH` | string | `'<srcPath>/types/generated.ts'`     | Output path for generated TypeScript types. |
+| Property                             | Type    | Default                              | Description                                                                 |
+|--------------------------------------|---------|--------------------------------------|-----------------------------------------------------------------------------|
+| `RESOURCE_MODEL_PATTERN`             | string  | `'<srcPath>/resources/*/model.ts'`   | Glob pattern for resource model files.                                      |
+| `RESOURCE_SERVICE_PATTERN`           | string  | `'<srcPath>/resources/*/service.ts'` | Glob pattern for resource service files.                                    |
+| `RESOURCE_POLICY_PATTERN`            | string  | `'<srcPath>/resources/*/policy.ts'`  | Glob pattern for resource policy files.                                     |
+| `RESOURCE_ROUTES_PATTERN`            | string  | `'<srcPath>/resources/*/routes.ts'`  | Glob pattern for resource routes files.                                     |
+| `RESOURCE_GENERATED_TYPES_PATH`      | string  | `'<srcPath>/types/generated.ts'`     | Output path for generated TypeScript types.                                 |
+| `RESOURCE_RELATION_OUTPUT_MAX_DEPTH` | integer | `10`                                 | Nesting levels a response schema follows `output.include` for. Minimum `1`. |
 
 ### Data export (EXPORT\_\*)
 

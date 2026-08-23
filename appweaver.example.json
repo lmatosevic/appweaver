@@ -72,7 +72,8 @@
       "servicePattern": "<srcPath>/resources/*/*service.ts",
       "policyPattern": "<srcPath>/resources/*/*policy.ts",
       "routesPattern": "<srcPath>/resources/*/*route.ts",
-      "generatedTypesPath": "<srcPath>/types/generated.ts"
+      "generatedTypesPath": "<srcPath>/types/generated.ts",
+      "relationOutputMaxDepth": 10
     },
     "export": {
       "csv": {

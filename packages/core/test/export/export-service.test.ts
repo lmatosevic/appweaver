@@ -468,6 +468,85 @@ describe('export-service', () => {
       expect(csv).toContain(`News${config.EXPORT_CSV_JOIN_DELIMITER}Tech`);
     });
 
+    test('leaves the hidden fields of the record out of the file', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: {
+            title: { type: 'string' },
+            secret: { type: 'string', required: false, hidden: true }
+          }
+        },
+        true
+      );
+      linkModels();
+      defineService([{ id: 1, title: 'First', secret: 'token' }]);
+
+      const { stream } = await service.exportCsv('Post');
+      const csv = await readStream(stream);
+
+      expect(csv).toContain('title');
+      expect(csv).not.toContain('secret');
+      expect(csv).not.toContain('token');
+    });
+
+    test('leaves a virtual field kept out of the output out of the file', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          virtual: {
+            password: { type: 'string', output: { type: 'none' } }
+          }
+        },
+        true
+      );
+      linkModels();
+      defineService([{ id: 1, title: 'First', password: 'plain' }]);
+
+      const { stream } = await service.exportCsv('Post');
+      const csv = await readStream(stream);
+
+      expect(csv).toContain('title');
+      expect(csv).not.toContain('password');
+      expect(csv).not.toContain('plain');
+    });
+
+    test('leaves the hidden fields of a relation out of the file', async () => {
+      createModel({
+        name: 'User',
+        scalars: {
+          email: { type: 'string' },
+          passwordHash: { type: 'string', required: false, hidden: true }
+        }
+      });
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            author: { model: 'User', type: 'oneToMany', owner: true }
+          }
+        },
+        true
+      );
+      linkModels();
+      defineService([
+        {
+          id: 1,
+          title: 'First',
+          author: { id: 7, email: 'ada@mail.com', passwordHash: 'hashed' }
+        }
+      ]);
+
+      const { stream } = await service.exportCsv('Post');
+      const csv = await readStream(stream);
+
+      expect(csv).toContain('author.email');
+      expect(csv).not.toContain('passwordHash');
+      expect(csv).not.toContain('hashed');
+    });
+
     test('flattens a single file relation into prefixed columns', async () => {
       createModel({ name: 'File', scalars: { name: { type: 'string' } } });
       createModel(

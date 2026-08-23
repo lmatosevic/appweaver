@@ -25,6 +25,7 @@ function model(name: string, readModel: any, config: any = {}): ResourceModel {
     readModel,
     readOneModel: Type.Object({ id: Type.Integer() }),
     readManyModel: Type.Object({ items: Type.Array(Type.Integer()) }),
+    relationOutputModel: Type.Object({ id: Type.Integer() }),
     createOneModel: Type.Object({ title: Type.String() }),
     updateOneModel: Type.Object({ title: Type.Optional(Type.String()) }),
     relationCreateModel: Type.Object({ title: Type.String() }),
@@ -89,6 +90,7 @@ describe('generate-types', () => {
       expect(types).toContain('export type Post = {');
       expect(types).toContain('export type PostSingle = {');
       expect(types).toContain('export type PostMultiple = {');
+      expect(types).toContain('export type PostRelationOutput = {');
       expect(types).toContain('export type PostCreate = {');
       expect(types).toContain('export type PostUpdate = {');
       expect(types).toContain('export type PostRelationCreate = {');

@@ -68,6 +68,9 @@ export type ResourceModel = {
   readOneModel: TObject;
   /** Response for query route */
   readManyModel: TObject;
+  /** Shape of this model nested in another model's response: its own columns
+   * without its relations */
+  relationOutputModel: TObject;
   /** Request for create route */
   createOneModel: TObject;
   /** Request for update route */

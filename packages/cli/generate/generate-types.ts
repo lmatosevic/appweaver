@@ -44,6 +44,7 @@ export async function generateTypes(
         [name, schema.readModel],
         [`${name}Single`, schema.readOneModel],
         [`${name}Multiple`, schema.readManyModel],
+        [`${name}RelationOutput`, schema.relationOutputModel],
         [`${name}Create`, schema.createOneModel],
         [`${name}Update`, schema.updateOneModel],
         [`${name}RelationCreate`, schema.relationCreateModel],
