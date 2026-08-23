@@ -1,7 +1,10 @@
 import { Type } from '@sinclair/typebox';
 import { registerModel, registerRoute } from '@appweaver/core';
 import { Nullable } from '@appweaver/common';
-import { publishPosts } from '@/features/publisher/publish';
+import {
+  latestPublishedPost,
+  publishScheduledPosts
+} from '@/features/publisher/publish';
 
 registerRoute(
   (router) => {
@@ -10,27 +13,26 @@ registerRoute(
       {
         schema: {
           tags: ['Posts'],
-          summary: 'Publish all posts',
-          description: 'Publish all posts',
-          headers: Type.Object({ 'x-my-custom-header': Type.String() }),
-          body: Type.Object({ now: Type.Boolean() }),
+          summary: 'Publish the scheduled posts',
+          description:
+            'Promotes every draft whose publish date has passed, and optionally the drafts that carry no date at all.',
+          body: Type.Object({
+            publishAllDrafts: Type.Optional(Type.Boolean({ default: false }))
+          }),
           response: {
             200: Type.Ref('PostPublishResponse')
           }
         }
       },
       async (req, reply) => {
-        const count = await publishPosts();
-        return reply.send({
-          text: `Posts published: ${count}, now: ${req.body.now}`,
-          post: null
-        });
+        const published = await publishScheduledPosts(
+          req.body.publishAllDrafts
+        );
+        return reply.send({ published, latest: await latestPublishedPost() });
       }
     );
   },
   {
-    public: false,
-    recaptcha: true,
     roles: ['Admin'],
     rateLimit: { max: 5 }
   }
@@ -39,8 +41,8 @@ registerRoute(
 registerModel(
   Type.Object(
     {
-      text: Type.String(),
-      post: Nullable(Type.Ref('PostSingle'))
+      published: Type.Integer(),
+      latest: Nullable(Type.Ref('PostSingle'))
     },
     { $id: 'PostPublishResponse' }
   )

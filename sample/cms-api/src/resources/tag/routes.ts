@@ -1,8 +1,8 @@
 import { createRoutes } from '@appweaver/core';
 
 export default createRoutes({
-  modelName: 'Post',
-  path: '/posts',
+  modelName: 'Tag',
+  path: '/tags',
   find: {
     public: true,
     cacheTTL: 60
@@ -12,26 +12,18 @@ export default createRoutes({
     cacheTTL: 60
   },
   aggregate: {
-    roles: ['Admin']
+    exclude: true
   },
   create: {
     roles: ['Admin', 'User']
   },
   update: {
-    roles: ['Admin', 'User']
+    roles: ['Admin']
   },
   delete: {
     roles: ['Admin']
   },
   export: {
-    roles: ['Admin']
-  },
-  fileUpload: {
-    roles: ['Admin', 'User']
-  },
-  fileDelete: {
-    roles: ['Admin', 'User'],
-    recaptcha: true,
-    recaptchaAction: 'delete-post-file'
+    exclude: true
   }
 });

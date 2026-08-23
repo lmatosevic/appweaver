@@ -47,7 +47,7 @@ describe('CSV export', () => {
       await posts.create({
         title: `Post ${index}`,
         slug: `post-${index}`,
-        counter: index,
+        viewCount: index,
         author: author.id
       });
     }
@@ -85,7 +85,7 @@ describe('CSV export', () => {
   test('writes the records in the requested order', async () => {
     await seed(5);
 
-    const { stream } = await exportService.exportCsv('Post', {}, '-counter');
+    const { stream } = await exportService.exportCsv('Post', {}, '-viewCount');
     const csv = await readStream(stream);
 
     const slugs = csv
@@ -101,7 +101,7 @@ describe('CSV export', () => {
 
     const { stream } = await exportService.exportCsv(
       'Post',
-      { counter: { _gt: 3 } },
+      { viewCount: { _gt: 3 } },
       'id'
     );
     const csv = await readStream(stream);
@@ -116,7 +116,7 @@ describe('CSV export', () => {
 
     const { stream } = await exportService.exportCsv(
       'Post',
-      { counter: { _gt: 100 } },
+      { viewCount: { _gt: 100 } },
       'id'
     );
 

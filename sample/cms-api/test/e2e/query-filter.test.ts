@@ -26,20 +26,20 @@ describe('Query filter operators', () => {
         slug: 'first-post',
         content: 'Alpha content',
         status: 'Published',
-        tags: 'Nature'
+        featured: true
       }),
       posts.create({
         title: 'Second post',
         slug: 'second-post',
         content: 'Beta content',
         status: 'Draft',
-        tags: 'Animals'
+        featured: false
       }),
       posts.create({
         title: 'Third entry',
         slug: 'third-entry',
         status: 'Archived',
-        tags: 'Nature'
+        featured: true
       })
     ]);
 
@@ -161,7 +161,7 @@ describe('Query filter operators', () => {
     await expect(
       slugs({
         _and: {
-          tags: 'Nature',
+          featured: true,
           status: { _eq: 'Published' }
         }
       })
@@ -177,7 +177,7 @@ describe('Query filter operators', () => {
   });
 
   test('excludes conditions with the not operator', async () => {
-    await expect(slugs({ _not: { tags: 'Nature' } })).resolves.toEqual([
+    await expect(slugs({ _not: { featured: true } })).resolves.toEqual([
       'second-post'
     ]);
   });

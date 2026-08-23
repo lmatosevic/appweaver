@@ -56,7 +56,7 @@ describe('String primary key resources', () => {
     posts = injectService('Post');
     users = injectService('User');
     auth = await signIn();
-  });
+  }, 30_000);
 
   afterAll(async () => {
     await app.stop();

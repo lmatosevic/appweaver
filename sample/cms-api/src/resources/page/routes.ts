@@ -1,24 +1,24 @@
 import { createRoutes } from '@appweaver/core';
 
 export default createRoutes({
-  modelName: 'Post',
-  path: '/posts',
+  modelName: 'Page',
+  path: '/pages',
   find: {
     public: true,
-    cacheTTL: 60
+    cacheTTL: 300
   },
   query: {
     public: true,
-    cacheTTL: 60
+    cacheTTL: 300
   },
   aggregate: {
-    roles: ['Admin']
+    exclude: true
   },
   create: {
-    roles: ['Admin', 'User']
+    roles: ['Admin']
   },
   update: {
-    roles: ['Admin', 'User']
+    roles: ['Admin']
   },
   delete: {
     roles: ['Admin']
@@ -27,11 +27,9 @@ export default createRoutes({
     roles: ['Admin']
   },
   fileUpload: {
-    roles: ['Admin', 'User']
+    roles: ['Admin']
   },
   fileDelete: {
-    roles: ['Admin', 'User'],
-    recaptcha: true,
-    recaptchaAction: 'delete-post-file'
+    roles: ['Admin']
   }
 });

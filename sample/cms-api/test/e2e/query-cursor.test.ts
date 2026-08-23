@@ -27,14 +27,14 @@ describe('Query cursor pagination', () => {
       }
     });
 
-    // Two records share a counter value, so a sort that is not terminated by a
+    // Two records share a viewCount value, so a sort that is not terminated by a
     // unique field would order them arbitrarily between pages
-    const counters = [5, 4, 4, 3, 2, 1];
-    for (const [index, counter] of counters.entries()) {
+    const viewCounts = [5, 4, 4, 3, 2, 1];
+    for (const [index, viewCount] of viewCounts.entries()) {
       await posts.create({
         title: `Post ${index + 1}`,
         slug: `post-${index + 1}`,
-        counter,
+        viewCount,
         author: author.id
       });
     }
@@ -42,7 +42,7 @@ describe('Query cursor pagination', () => {
 
   /** Reads a page and returns its slugs together with its cursors. */
   const page = async (
-    cursor?: string,
+    cursor?: string | null,
     sort: PostSort = 'id',
     size: number = 2
   ) => {
@@ -109,13 +109,13 @@ describe('Query cursor pagination', () => {
   });
 
   test('pages a sort with duplicate values without skipping a record', async () => {
-    // post-2 and post-3 share the counter 4, so only the appended primary key
+    // post-2 and post-3 share the viewCount 4, so only the appended primary key
     // keeps them on stable sides of the page boundary
     const seen: string[] = [];
     let cursor: string | null = null;
 
     do {
-      const result = await page(cursor, 'counter');
+      const result = await page(cursor, 'viewCount');
       seen.push(...result.slugs);
       cursor = result.next;
     } while (cursor);
@@ -153,7 +153,7 @@ describe('Query cursor pagination', () => {
     const first = await posts.query({}, 1, 2);
 
     await expect(
-      posts.query({ counter: 4 }, 1, 2, '-createdAt', first.nextCursor)
+      posts.query({ viewCount: 4 }, 1, 2, '-createdAt', first.nextCursor)
     ).rejects.toMatchObject({ statusCode: 400 });
   });
 });

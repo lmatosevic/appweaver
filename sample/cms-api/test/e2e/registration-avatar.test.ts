@@ -83,7 +83,7 @@ describe('Registration files', () => {
 
     // The size of the file in storage, which is the resized image and not the
     // smaller source it was processed from
-    const content = await inject(Storage).stream(stored.avatar.name);
+    const content = await inject(Storage).stream(stored.avatar.name, 0);
     expect(stored.avatar.sizeBytes).toBe(content?.size);
     expect(stored.avatar.sizeBytes).toBeGreaterThan(avatarData.length);
     content?.stream.destroy();

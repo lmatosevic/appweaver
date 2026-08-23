@@ -3,28 +3,33 @@ import { createModel } from '@appweaver/core';
 export default createModel({
   name: 'Comment',
   id: {
-    type: 'string',
     generator: 'cuid(2)'
-  },
-  audit: {
-    updatedAt: true,
-    createdAt: true,
-    createdById: true
   },
   scalars: {
     body: {
       type: 'string',
+      minLength: 2,
       maxLength: 4095,
       example: 'Great read, thanks!'
     },
-    authorName: {
+    // Signed-in readers are attributed through createdById instead
+    guestName: {
       type: 'string',
-      maxLength: 255,
-      required: false
+      required: false,
+      maxLength: 255
     },
-    approved: {
-      type: 'boolean',
-      default: false
+    guestEmail: {
+      type: 'string',
+      required: false,
+      format: 'email',
+      maxLength: 255,
+      example: 'reader@example.com'
+    },
+    status: {
+      type: 'enum',
+      values: ['Pending', 'Approved', 'Spam'],
+      default: 'Pending',
+      required: false
     }
   },
   relations: {
@@ -43,6 +48,9 @@ export default createModel({
       type: 'oneToOne',
       mappedBy: 'pinnedComment',
       required: false,
+      input: {
+        type: 'none'
+      },
       output: {
         type: 'single'
       }
@@ -51,9 +59,11 @@ export default createModel({
   files: {
     attachment: {
       mimeType: 'text/*',
-      maxSize: '1 MB',
-      onResourceDeleted: 'delete'
+      maxSize: '1 MB'
     }
   },
-  index: ['approved']
+  create: {
+    omit: ['status']
+  },
+  index: [['status', '-createdAt']]
 });

@@ -12,11 +12,34 @@ generator client {
   output   = "./client"
 }
 
+model Category {
+  id          Int     @id @default(autoincrement())
+  name        String
+  slug        String  @unique
+  description String?
+  position    Int     @default(0)
+
+  /// Related columns
+  parent   Category?  @relation("CategoryParentCategory", fields: [parentId], references: [id], onDelete: SetNull)
+  parentId Int?
+  children Category[] @relation("CategoryParentCategory")
+  posts    Post[]     @relation("CategoryPostsPost")
+
+  /// Audit columns
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  createdBy   User?    @relation("CategoryCreatedByUser", fields: [createdById], references: [id])
+  createdById Int?
+
+  @@index([parentId, position(sort: Asc)])
+}
+
 model Comment {
-  id         String  @id @default(cuid(2))
+  id         String         @id @default(cuid(2))
   body       String
-  authorName String?
-  approved   Boolean @default(false)
+  guestName  String?
+  guestEmail String?
+  status     CommentStatus? @default(Pending)
 
   /// Related columns
   post     Post  @relation("CommentPostPost", fields: [postId], references: [id], onDelete: Cascade)
@@ -33,23 +56,56 @@ model Comment {
   createdBy   User?    @relation("CommentCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
 
-  @@index(approved)
+  @@index([status, createdAt(sort: Desc)])
+}
+
+model Page {
+  id           Int         @id @default(autoincrement())
+  title        String
+  slug         String      @unique
+  content      String
+  status       PageStatus? @default(Draft)
+  publishedAt  DateTime?
+  showInMenu   Boolean     @default(false)
+  menuPosition Int         @default(0)
+  seo          Json?
+
+  /// Related columns
+  author   User? @relation("PageAuthorUser", fields: [authorId], references: [id], onDelete: SetNull)
+  authorId Int?
+
+  /// File columns
+  heroImage   File? @relation("PageHeroImageFile", fields: [heroImageId], references: [id])
+  heroImageId Int?  @unique
+
+  /// Audit columns
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  createdBy   User?    @relation("PageCreatedByUser", fields: [createdById], references: [id])
+  createdById Int?
+
+  @@index([status, menuPosition(sort: Asc)])
 }
 
 model Post {
-  id           Int         @id @default(autoincrement())
-  title        String      @default("something...")
-  slug         String      @unique
-  content      String?
-  counter      Int         @default(0)
-  status       PostStatus? @default(Draft)
-  tags         String      @default("Nature,Animals")
-  jsonLd       Json?
-  lastActivity DateTime?   @default(now())
+  id          Int         @id @default(autoincrement())
+  uid         String      @unique @default(uuid(7))
+  title       String
+  slug        String      @unique
+  excerpt     String?
+  content     String?
+  status      PostStatus? @default(Draft)
+  publishedAt DateTime?
+  featured    Boolean     @default(false)
+  viewCount   Int         @default(0)
+  seo         Json?
 
   /// Related columns
   author          User?     @relation("PostAuthorUser", fields: [authorId], references: [id], onDelete: SetNull)
   authorId        Int?
+  category        Category? @relation("CategoryPostsPost", fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryId      Int?
+  tags            Tag[]     @relation("PostTagsTag")
   comments        Comment[] @relation("CommentPostPost")
   pinnedComment   Comment?  @relation("CommentPinnedInPost", fields: [pinnedCommentId], references: [id], onDelete: SetNull)
   pinnedCommentId String?   @unique
@@ -65,8 +121,24 @@ model Post {
   createdBy   User?    @relation("PostCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
 
-  @@index(slug)
+  @@index([status, publishedAt(sort: Desc)])
+  @@index([categoryId, publishedAt(sort: Desc)])
   @@index([createdAt(sort: Desc), id(sort: Asc)])
+}
+
+model Tag {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  slug String @unique
+
+  /// Related columns
+  posts Post[] @relation("PostTagsTag")
+
+  /// Audit columns
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  createdBy   User?    @relation("TagCreatedByUser", fields: [createdById], references: [id])
+  createdById Int?
 }
 
 model User {
@@ -74,8 +146,11 @@ model User {
   firstName     String
   lastName      String
   email         String            @unique
-  phone         String
-  secret        String?
+  phone         String?
+  displayName   String?
+  bio           String?
+  website       String?
+  internalNotes String?
   passwordHash  String?
   verifiedEmail Boolean           @default(false)
   twoFactorAuth UserTwoFactorAuth @default(None)
@@ -84,6 +159,7 @@ model User {
 
   /// Related columns
   posts             Post[]             @relation("PostAuthorUser")
+  pages             Page[]             @relation("PageAuthorUser")
   roles             Role[]             @relation("UserRolesRole")
   apiKeys           ApiKey[]           @relation("UserApiKeysApiKey")
   connectedAccounts ConnectedAccount[] @relation("UserConnectedAccountsConnectedAccount")
@@ -93,8 +169,11 @@ model User {
   avatarId Int?  @unique
 
   /// Ownership models referenced with createdById column
+  createdCategories  Category[]   @relation("CategoryCreatedByUser")
   createdComments    Comment[]    @relation("CommentCreatedByUser")
+  createdPages       Page[]       @relation("PageCreatedByUser")
   createdPosts       Post[]       @relation("PostCreatedByUser")
+  createdTags        Tag[]        @relation("TagCreatedByUser")
   createdUsers       User[]       @relation("UserCreatedByUser")
   createdApiKeys     ApiKey[]     @relation("ApiKeyCreatedByUser")
   createdRoles       Role[]       @relation("RoleCreatedByUser")
@@ -106,8 +185,6 @@ model User {
   createdAt   DateTime @default(now())
   createdBy   User?    @relation("UserCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
-
-  @@index(email)
 }
 
 model ApiKey {
@@ -203,6 +280,7 @@ model File {
 
   /// Related models with file columns
   attachmentComments Comment[] @relation("CommentAttachmentFile")
+  heroImagePages     Page[]    @relation("PageHeroImageFile")
   coverImagePosts    Post[]    @relation("PostCoverImageFile")
   galleryImagesPosts Post[]    @relation("PostGalleryImagesFile")
   avatarUsers        User[]    @relation("UserAvatarFile")
@@ -214,6 +292,18 @@ model File {
   createdById Int?
 
   @@index([resourceField, resourceName, resourceId])
+}
+
+enum CommentStatus {
+  Pending
+  Approved
+  Spam
+}
+
+enum PageStatus {
+  Draft
+  Published
+  Archived
 }
 
 enum PostStatus {

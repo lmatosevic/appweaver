@@ -1,9 +1,9 @@
 import { createService } from '@appweaver/core';
 
 export default createService({
-  modelName: 'Comment',
+  modelName: 'Tag',
   textSearch: {
-    body: {
+    name: {
       contains: '{input}',
       mode: 'insensitive'
     }

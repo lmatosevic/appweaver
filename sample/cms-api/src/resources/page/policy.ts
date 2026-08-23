@@ -1,9 +1,10 @@
 import { createPolicy } from '@appweaver/core';
 
 export default createPolicy({
-  modelName: 'Comment',
+  modelName: 'Page',
+  // Rendered on the public site
   files: {
-    attachment: {
+    heroImage: {
       accessType: 'public'
     }
   }

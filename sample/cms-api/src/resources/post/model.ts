@@ -1,56 +1,60 @@
 import { createModel } from '@appweaver/core';
+import { UserSingle } from '@/types';
 
 export default createModel({
   name: 'Post',
-  id: {
-    type: 'int',
-    generator: 'autoincrement()'
-  },
-  audit: {
-    updatedAt: true,
-    createdAt: true,
-    createdById: true
-  },
   scalars: {
+    uid: {
+      type: 'string',
+      unique: true,
+      defaultGenerator: 'uuid(7)',
+      example: '01a029ee-814e-77ec-bc66-ff36c9966a64'
+    },
     title: {
       type: 'string',
-      default: 'something...',
-      minLength: 0,
-      maxLength: 255
+      minLength: 3,
+      maxLength: 255,
+      example: 'Ten trails worth the walk'
     },
     slug: {
       type: 'string',
       unique: true,
       pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
-      example: 'title-of-post'
+      maxLength: 255,
+      example: 'ten-trails-worth-the-walk'
+    },
+    excerpt: {
+      type: 'string',
+      required: false,
+      maxLength: 511
     },
     content: {
       type: 'string',
-      required: false
-    },
-    counter: {
-      type: 'int',
-      minimum: 0,
-      maximum: 1023,
-      default: 0
+      required: false,
+      maxLength: 65535
     },
     status: {
       type: 'enum',
-      required: false,
+      values: ['Draft', 'Published', 'Archived'],
       default: 'Draft',
-      values: ['Draft', 'Published', 'Archived']
-    },
-    tags: {
-      type: 'string',
-      default: 'Nature,Animals'
-    },
-    jsonLd: {
-      type: 'json',
       required: false
     },
-    lastActivity: {
+    // A future date schedules the draft for the publisher job
+    publishedAt: {
       type: 'dateTime',
-      defaultGenerator: 'now()',
+      required: false
+    },
+    featured: {
+      type: 'boolean',
+      default: false
+    },
+    viewCount: {
+      type: 'int',
+      default: 0,
+      minimum: 0
+    },
+    seo: {
+      type: 'json',
       required: false
     }
   },
@@ -60,22 +64,50 @@ export default createModel({
       type: 'oneToMany',
       mappedBy: 'posts',
       owner: true,
+      required: false,
+      onDelete: 'setNull',
       input: {
         type: 'none'
-      },
-      output: {
-        type: 'always'
-      },
-      minItems: 1,
+      }
+    },
+    // The included parent gives the full breadcrumb: Travel > Trail guides
+    category: {
+      model: 'Category',
+      type: 'oneToMany',
+      mappedBy: 'posts',
+      owner: true,
       required: false,
-      orphanRemoval: true,
-      onDelete: 'setNull'
+      onDelete: 'setNull',
+      output: {
+        type: 'always',
+        include: {
+          parent: {
+            type: 'always'
+          }
+        }
+      }
+    },
+    // Matched by slug, so an existing tag is reused instead of duplicated
+    tags: {
+      model: 'Tag',
+      type: 'manyToMany',
+      mappedBy: 'posts',
+      required: false,
+      input: {
+        type: 'all',
+        uniqueKey: 'slug',
+        allowCreate: true,
+        allowUpdate: true
+      }
     },
     comments: {
       model: 'Comment',
       type: 'oneToMany',
       mappedBy: 'post',
       required: false,
+      input: {
+        type: 'none'
+      },
       output: {
         type: 'single',
         count: true
@@ -95,9 +127,13 @@ export default createModel({
   },
   files: {
     coverImage: {
-      mimeType: 'image/(jpg|png|gif)',
+      mimeType: 'image/(jpeg|png|webp)',
       namePattern: 'covers/{name}-{hash}.{extension}',
-      onResourceDeleted: 'delete'
+      maxSize: '5 MB',
+      image: {
+        quality: 80,
+        maxWidth: 1920
+      }
     },
     galleryImages: {
       output: {
@@ -111,47 +147,55 @@ export default createModel({
     }
   },
   create: {
-    omit: ['counter']
+    omit: ['uid', 'viewCount']
   },
   update: {
-    pick: ['title', 'slug', 'content', 'counter', 'tags', 'jsonLd']
-  },
-  virtual: {
-    randomNumbers: {
-      type: 'float',
-      example: 12.24,
-      array: true,
-      input: {
-        type: 'none'
-      },
-      output: {
-        type: 'always',
-        value: [321.23, 432.54]
-      }
-    }
+    omit: ['uid', 'viewCount']
   },
   export: {
     title: {
-      headerName: 'My Title',
-      mapValue: (val: string) => `Title is ${val}`
+      headerName: 'Title'
+    },
+    excerpt: {
+      exclude: true
     },
     content: {
       exclude: true
     },
+    seo: {
+      exclude: true
+    },
+    publishedAt: {
+      headerName: 'Published',
+      mapValue: (value: Date) =>
+        value ? new Date(value).toISOString().slice(0, 10) : ''
+    },
+    category: {
+      headerName: 'Category',
+      mapValue: 'name'
+    },
+    tags: {
+      headerName: 'Tags',
+      mapValue: 'name'
+    },
     coverImage: {
+      headerName: 'Cover Image',
       mapValue: 'originalName'
     },
     galleryImages: {
+      headerName: 'Gallery',
       mapValue: 'originalName'
     },
+    // One column, rather than one per field of the related user
     author: {
-      firstName: {
-        headerName: 'Given Name'
-      },
-      lastName: {
-        headerName: 'Family Name'
-      }
+      headerName: 'Author',
+      mapValue: (user: UserSingle | null) =>
+        user ? user.displayName || `${user.firstName} ${user.lastName}` : ''
     }
   },
-  index: ['slug', ['-createdAt', '+id']]
+  index: [
+    ['status', '-publishedAt'],
+    ['categoryId', '-publishedAt'],
+    ['-createdAt', '+id']
+  ]
 });

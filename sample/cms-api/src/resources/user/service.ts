@@ -15,7 +15,6 @@ export default createAuthService<UserCreate>({
       firstName: data?.firstName ?? '',
       lastName: data?.lastName ?? '',
       twoFactorAuth: 'None',
-      phone: '',
       roles: [{ id: 1 }]
     };
   },

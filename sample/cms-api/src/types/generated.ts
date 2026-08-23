@@ -7,11 +7,127 @@ import {
   QuerySort
 } from '@appweaver/common';
 
+export type Category = {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string | null;
+  position: number;
+  parent?: CategorySingle;
+  children?: Array<CategorySingle>;
+  posts?: Array<PostSingle>;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type CategorySingle = {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string | null;
+  position: number;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+  parent?: CategoryRelationOutput | null;
+  children?: Array<CategoryRelationOutput>;
+  childrenCount?: number;
+  postsCount?: number;
+};
+
+export type CategoryMultiple = {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string | null;
+  position: number;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+  parent?: CategoryRelationOutput | null;
+  childrenCount?: number;
+  postsCount?: number;
+};
+
+export type CategoryRelationOutput = {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string | null;
+  position: number;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type CategoryCreate = {
+  name: string;
+  slug: string;
+  description?: string | null;
+  position?: number;
+  parent?:
+    | {
+        id: number;
+      }
+    | number;
+};
+
+export type CategoryUpdate = {
+  name?: string;
+  slug?: string;
+  description?: string | null;
+  position?: number;
+  parent?:
+    | {
+        id: number;
+      }
+    | number;
+};
+
+export type CategoryRelationCreate = {
+  name: string;
+  slug: string;
+  description?: string | null;
+  position?: number;
+};
+
+export type CategoryRelationUpdate = {
+  id: number;
+  name?: string;
+  slug?: string;
+  description?: string | null;
+  position?: number;
+};
+
+export type CategoryRelationInput = {
+  id?: number;
+  name?: string;
+  slug?: string;
+  description?: string | null;
+  position?: number;
+};
+
+export type CategoryQuery = QueryFilter<Category>;
+
+export type CategorySort = QuerySort<CategoryMultiple>;
+
+export type CategoryAggregate = AggregateSelect<Category>;
+
+export type CategoryResourceService = IResourceService<
+  Category,
+  CategoryMultiple,
+  CategoryCreate,
+  CategoryUpdate,
+  CategoryQuery
+>;
+
 export type Comment = {
   id: string;
   body: string;
-  authorName?: string | null;
-  approved: boolean;
+  guestName?: string | null;
+  guestEmail?: string | null;
+  status?: ('Pending' | 'Approved' | 'Spam') | null;
   post: PostSingle;
   pinnedIn?: PostSingle;
   attachment?: FileSingle | null;
@@ -23,37 +139,45 @@ export type Comment = {
 export type CommentSingle = {
   id: string;
   body: string;
-  authorName?: string | null;
-  approved: boolean;
+  guestName?: string | null;
+  guestEmail?: string | null;
+  status?: ('Pending' | 'Approved' | 'Spam') | null;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  post?: PostSingle;
-  pinnedIn?: PostSingle | null;
+  post?: PostRelationOutput;
+  pinnedIn?: PostRelationOutput | null;
   attachment?: FileSingle | null;
 };
 
 export type CommentMultiple = {
   id: string;
   body: string;
-  authorName?: string | null;
-  approved: boolean;
+  guestName?: string | null;
+  guestEmail?: string | null;
+  status?: ('Pending' | 'Approved' | 'Spam') | null;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
   attachment?: FileSingle | null;
 };
 
+export type CommentRelationOutput = {
+  id: string;
+  body: string;
+  guestName?: string | null;
+  guestEmail?: string | null;
+  status?: ('Pending' | 'Approved' | 'Spam') | null;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
 export type CommentCreate = {
   body: string;
-  authorName?: string | null;
-  approved?: boolean;
+  guestName?: string | null;
+  guestEmail?: string | null;
   post:
-    | {
-        id: number;
-      }
-    | number;
-  pinnedIn?:
     | {
         id: number;
       }
@@ -62,14 +186,10 @@ export type CommentCreate = {
 
 export type CommentUpdate = {
   body?: string;
-  authorName?: string | null;
-  approved?: boolean;
+  guestName?: string | null;
+  guestEmail?: string | null;
+  status?: ('Pending' | 'Approved' | 'Spam') | null;
   post?:
-    | {
-        id: number;
-      }
-    | number;
-  pinnedIn?:
     | {
         id: number;
       }
@@ -78,22 +198,24 @@ export type CommentUpdate = {
 
 export type CommentRelationCreate = {
   body: string;
-  authorName?: string | null;
-  approved?: boolean;
+  guestName?: string | null;
+  guestEmail?: string | null;
 };
 
 export type CommentRelationUpdate = {
   id: string;
   body?: string;
-  authorName?: string | null;
-  approved?: boolean;
+  guestName?: string | null;
+  guestEmail?: string | null;
+  status?: ('Pending' | 'Approved' | 'Spam') | null;
 };
 
 export type CommentRelationInput = {
   id?: string;
   body?: string;
-  authorName?: string | null;
-  approved?: boolean;
+  guestName?: string | null;
+  guestEmail?: string | null;
+  status?: ('Pending' | 'Approved' | 'Spam') | null;
 };
 
 export type CommentQuery = QueryFilter<Comment>;
@@ -110,18 +232,158 @@ export type CommentResourceService = IResourceService<
   CommentQuery
 >;
 
-export type Post = {
+export type Page = {
   id: number;
   title: string;
   slug: string;
-  content?: string | null;
-  counter: number;
+  content: string;
   status?: ('Draft' | 'Published' | 'Archived') | null;
-  tags: string;
-  jsonLd?: any | null;
-  lastActivity?: Date | null;
-  randomNumbers: Array<number>;
+  publishedAt?: Date | null;
+  showInMenu: boolean;
+  menuPosition: number;
+  seo?: any | null;
   author?: UserSingle;
+  heroImage?: FileSingle | null;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type PageSingle = {
+  id: number;
+  title: string;
+  slug: string;
+  content: string;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  publishedAt?: Date | null;
+  showInMenu: boolean;
+  menuPosition: number;
+  seo?: any | null;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+  author?: UserRelationOutput | null;
+  heroImage?: FileSingle | null;
+};
+
+export type PageMultiple = {
+  id: number;
+  title: string;
+  slug: string;
+  content: string;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  publishedAt?: Date | null;
+  showInMenu: boolean;
+  menuPosition: number;
+  seo?: any | null;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+  author?: UserRelationOutput | null;
+  heroImage?: FileSingle | null;
+};
+
+export type PageRelationOutput = {
+  id: number;
+  title: string;
+  slug: string;
+  content: string;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  publishedAt?: Date | null;
+  showInMenu: boolean;
+  menuPosition: number;
+  seo?: any | null;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type PageCreate = {
+  title: string;
+  slug: string;
+  content: string;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  publishedAt?: Date | null;
+  showInMenu?: boolean;
+  menuPosition?: number;
+  seo?: any | null;
+};
+
+export type PageUpdate = {
+  title?: string;
+  slug?: string;
+  content?: string;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  publishedAt?: Date | null;
+  showInMenu?: boolean;
+  menuPosition?: number;
+  seo?: any | null;
+};
+
+export type PageRelationCreate = {
+  title: string;
+  slug: string;
+  content: string;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  publishedAt?: Date | null;
+  showInMenu?: boolean;
+  menuPosition?: number;
+  seo?: any | null;
+};
+
+export type PageRelationUpdate = {
+  id: number;
+  title?: string;
+  slug?: string;
+  content?: string;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  publishedAt?: Date | null;
+  showInMenu?: boolean;
+  menuPosition?: number;
+  seo?: any | null;
+};
+
+export type PageRelationInput = {
+  id?: number;
+  title?: string;
+  slug?: string;
+  content?: string;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  publishedAt?: Date | null;
+  showInMenu?: boolean;
+  menuPosition?: number;
+  seo?: any | null;
+};
+
+export type PageQuery = QueryFilter<Page>;
+
+export type PageSort = QuerySort<PageMultiple>;
+
+export type PageAggregate = AggregateSelect<Page>;
+
+export type PageResourceService = IResourceService<
+  Page,
+  PageMultiple,
+  PageCreate,
+  PageUpdate,
+  PageQuery
+>;
+
+export type Post = {
+  id: number;
+  uid: string;
+  title: string;
+  slug: string;
+  excerpt?: string | null;
+  content?: string | null;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  publishedAt?: Date | null;
+  featured: boolean;
+  viewCount: number;
+  seo?: any | null;
+  author?: UserSingle;
+  category?: CategorySingle;
+  tags?: Array<TagSingle>;
   comments?: Array<CommentSingle>;
   pinnedComment?: CommentSingle;
   coverImage?: FileSingle | null;
@@ -133,22 +395,35 @@ export type Post = {
 
 export type PostSingle = {
   id: number;
+  uid: string;
   title: string;
   slug: string;
+  excerpt?: string | null;
   content?: string | null;
-  counter: number;
   status?: ('Draft' | 'Published' | 'Archived') | null;
-  tags: string;
-  jsonLd?: any | null;
-  lastActivity?: Date | null;
-  randomNumbers: Array<number>;
+  publishedAt?: Date | null;
+  featured: boolean;
+  viewCount: number;
+  seo?: any | null;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  author?: UserSingle | null;
-  comments?: Array<CommentSingle>;
+  author?: UserRelationOutput | null;
+  category?: {
+    id: number;
+    name: string;
+    slug: string;
+    description?: string;
+    position: number;
+    updatedAt: string;
+    createdAt: string;
+    createdById?: number;
+    parent?: CategoryRelationOutput | null;
+  } | null;
+  tags?: Array<TagRelationOutput>;
+  comments?: Array<CommentRelationOutput>;
   commentsCount?: number;
-  pinnedComment?: CommentSingle | null;
+  pinnedComment?: CommentRelationOutput | null;
   coverImage?: FileSingle | null;
   galleryImages?: Array<FileSingle>;
   galleryImagesCount?: number;
@@ -156,38 +431,69 @@ export type PostSingle = {
 
 export type PostMultiple = {
   id: number;
+  uid: string;
   title: string;
   slug: string;
+  excerpt?: string | null;
   content?: string | null;
-  counter: number;
   status?: ('Draft' | 'Published' | 'Archived') | null;
-  tags: string;
-  jsonLd?: any | null;
-  lastActivity?: Date | null;
-  randomNumbers: Array<number>;
+  publishedAt?: Date | null;
+  featured: boolean;
+  viewCount: number;
+  seo?: any | null;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  author?: UserSingle | null;
+  author?: UserRelationOutput | null;
+  category?: {
+    id: number;
+    name: string;
+    slug: string;
+    description?: string;
+    position: number;
+    updatedAt: string;
+    createdAt: string;
+    createdById?: number;
+    parent?: CategoryRelationOutput | null;
+  } | null;
+  tags?: Array<TagRelationOutput>;
   commentsCount?: number;
   coverImage?: FileSingle | null;
   galleryImagesCount?: number;
 };
 
-export type PostCreate = {
-  title?: string;
+export type PostRelationOutput = {
+  id: number;
+  uid: string;
+  title: string;
   slug: string;
+  excerpt?: string | null;
   content?: string | null;
   status?: ('Draft' | 'Published' | 'Archived') | null;
-  tags?: string;
-  jsonLd?: any | null;
-  lastActivity?: Date | null;
-  comments?: Array<
+  publishedAt?: Date | null;
+  featured: boolean;
+  viewCount: number;
+  seo?: any | null;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type PostCreate = {
+  title: string;
+  slug: string;
+  excerpt?: string | null;
+  content?: string | null;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  publishedAt?: Date | null;
+  featured?: boolean;
+  seo?: any | null;
+  category?:
     | {
-        id: string;
+        id: number;
       }
-    | string
-  > | null;
+    | number;
+  tags?: Array<TagRelationInput | number> | null;
   pinnedComment?:
     | {
         id: string;
@@ -198,16 +504,18 @@ export type PostCreate = {
 export type PostUpdate = {
   title?: string;
   slug?: string;
+  excerpt?: string | null;
   content?: string | null;
-  counter?: number;
-  tags?: string;
-  jsonLd?: any | null;
-  comments?: Array<
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  publishedAt?: Date | null;
+  featured?: boolean;
+  seo?: any | null;
+  category?:
     | {
-        id: string;
+        id: number;
       }
-    | string
-  > | null;
+    | number;
+  tags?: Array<TagRelationInput | number> | null;
   pinnedComment?:
     | {
         id: string;
@@ -216,35 +524,38 @@ export type PostUpdate = {
 };
 
 export type PostRelationCreate = {
-  title?: string;
+  title: string;
   slug: string;
+  excerpt?: string | null;
   content?: string | null;
   status?: ('Draft' | 'Published' | 'Archived') | null;
-  tags?: string;
-  jsonLd?: any | null;
-  lastActivity?: Date | null;
+  publishedAt?: Date | null;
+  featured?: boolean;
+  seo?: any | null;
 };
 
 export type PostRelationUpdate = {
   id: number;
   title?: string;
   slug?: string;
+  excerpt?: string | null;
   content?: string | null;
-  counter?: number;
-  tags?: string;
-  jsonLd?: any | null;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  publishedAt?: Date | null;
+  featured?: boolean;
+  seo?: any | null;
 };
 
 export type PostRelationInput = {
   id?: number;
   title?: string;
   slug?: string;
+  excerpt?: string | null;
   content?: string | null;
   status?: ('Draft' | 'Published' | 'Archived') | null;
-  tags?: string;
-  jsonLd?: any | null;
-  lastActivity?: Date | null;
-  counter?: number;
+  publishedAt?: Date | null;
+  featured?: boolean;
+  seo?: any | null;
 };
 
 export type PostQuery = QueryFilter<Post>;
@@ -261,21 +572,105 @@ export type PostResourceService = IResourceService<
   PostQuery
 >;
 
+export type Tag = {
+  id: number;
+  name: string;
+  slug: string;
+  posts?: Array<PostSingle>;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type TagSingle = {
+  id: number;
+  name: string;
+  slug: string;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+  postsCount?: number;
+};
+
+export type TagMultiple = {
+  id: number;
+  name: string;
+  slug: string;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+  postsCount?: number;
+};
+
+export type TagRelationOutput = {
+  id: number;
+  name: string;
+  slug: string;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type TagCreate = {
+  name: string;
+  slug: string;
+};
+
+export type TagUpdate = {
+  name?: string;
+  slug?: string;
+};
+
+export type TagRelationCreate = {
+  name: string;
+  slug: string;
+};
+
+export type TagRelationUpdate = {
+  id: number;
+  name?: string;
+  slug?: string;
+};
+
+export type TagRelationInput = {
+  id?: number;
+  name?: string;
+  slug?: string;
+};
+
+export type TagQuery = QueryFilter<Tag>;
+
+export type TagSort = QuerySort<TagMultiple>;
+
+export type TagAggregate = AggregateSelect<Tag>;
+
+export type TagResourceService = IResourceService<
+  Tag,
+  TagMultiple,
+  TagCreate,
+  TagUpdate,
+  TagQuery
+>;
+
 export type User = {
   id: number;
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
-  secret?: string | null;
+  phone?: string | null;
+  displayName?: string | null;
+  bio?: string | null;
+  website?: string | null;
+  internalNotes?: string | null;
   passwordHash?: string | null;
   verifiedEmail: boolean;
   twoFactorAuth: 'None' | 'Email';
   enabled: boolean;
   logoutAt?: Date | null;
-  active: boolean;
+  byline: string;
   password: string;
   posts?: Array<PostSingle>;
+  pages?: Array<PageSingle>;
   roles: Array<RoleSingle>;
   apiKeys: Array<ApiKeySingle>;
   connectedAccounts: Array<ConnectedAccountSingle>;
@@ -290,17 +685,25 @@ export type UserSingle = {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
+  phone?: string | null;
+  displayName?: string | null;
+  bio?: string | null;
+  website?: string | null;
   verifiedEmail: boolean;
   twoFactorAuth: 'None' | 'Email';
   enabled: boolean;
   logoutAt?: Date | null;
-  active: boolean;
+  byline: string;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  posts?: Array<PostSingle>;
-  roles?: Array<RoleSingle>;
+  postsCount?: number;
+  pagesCount?: number;
+  roles?: Array<{
+    id: number;
+    name: string;
+    permissions?: Array<PermissionRelationOutput>;
+  }>;
   avatar?: FileSingle | null;
 };
 
@@ -309,30 +712,58 @@ export type UserMultiple = {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
+  phone?: string | null;
+  displayName?: string | null;
+  bio?: string | null;
+  website?: string | null;
   verifiedEmail: boolean;
   twoFactorAuth: 'None' | 'Email';
   enabled: boolean;
   logoutAt?: Date | null;
-  active: boolean;
+  byline: string;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  posts?: Array<PostSingle>;
-  roles?: Array<RoleSingle>;
+  postsCount?: number;
+  pagesCount?: number;
+  roles?: Array<{
+    id: number;
+    name: string;
+    permissions?: Array<PermissionRelationOutput>;
+  }>;
   avatar?: FileSingle | null;
+};
+
+export type UserRelationOutput = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string | null;
+  displayName?: string | null;
+  bio?: string | null;
+  website?: string | null;
+  verifiedEmail: boolean;
+  twoFactorAuth: 'None' | 'Email';
+  enabled: boolean;
+  logoutAt?: Date | null;
+  byline: string;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
 };
 
 export type UserCreate = {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
+  phone?: string | null;
+  displayName?: string | null;
+  bio?: string | null;
+  website?: string | null;
   twoFactorAuth: 'None' | 'Email';
   enabled?: boolean;
-  active?: boolean;
   password: string;
-  posts?: Array<PostRelationInput | number> | null;
   roles: Array<
     | {
         id: number;
@@ -345,12 +776,13 @@ export type UserUpdate = {
   firstName?: string;
   lastName?: string;
   email?: string;
-  phone?: string;
+  phone?: string | null;
+  displayName?: string | null;
+  bio?: string | null;
+  website?: string | null;
   twoFactorAuth: 'None' | 'Email';
   enabled?: boolean;
-  active?: boolean;
   password?: string;
-  posts?: Array<PostRelationInput | number> | null;
   roles?: Array<
     | {
         id: number;
@@ -363,10 +795,12 @@ export type UserRelationCreate = {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
+  phone?: string | null;
+  displayName?: string | null;
+  bio?: string | null;
+  website?: string | null;
   twoFactorAuth: 'None' | 'Email';
   enabled?: boolean;
-  active?: boolean;
   password: string;
 };
 
@@ -375,10 +809,12 @@ export type UserRelationUpdate = {
   firstName?: string;
   lastName?: string;
   email?: string;
-  phone?: string;
+  phone?: string | null;
+  displayName?: string | null;
+  bio?: string | null;
+  website?: string | null;
   twoFactorAuth: 'None' | 'Email';
   enabled?: boolean;
-  active?: boolean;
   password?: string;
 };
 
@@ -387,10 +823,12 @@ export type UserRelationInput = {
   firstName?: string;
   lastName?: string;
   email?: string;
-  phone?: string;
+  phone?: string | null;
+  displayName?: string | null;
+  bio?: string | null;
+  website?: string | null;
   twoFactorAuth: 'None' | 'Email';
   enabled?: boolean;
-  active?: boolean;
   password?: string;
 };
 
@@ -435,6 +873,18 @@ export type ApiKeySingle = {
 };
 
 export type ApiKeyMultiple = {
+  id: number;
+  key: string;
+  name?: string | null;
+  description?: string | null;
+  enabled: boolean;
+  expiresAt?: Date | null;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type ApiKeyRelationOutput = {
   id: number;
   key: string;
   name?: string | null;
@@ -526,6 +976,16 @@ export type ConnectedAccountMultiple = {
   createdAt: Date;
 };
 
+export type ConnectedAccountRelationOutput = {
+  id: number;
+  provider: string;
+  providerAccountId: string;
+  scope?: string | null;
+  lastLoginAt: Date;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
 export type ConnectedAccountCreate = {
   provider: string;
   providerAccountId: string;
@@ -589,13 +1049,18 @@ export type Role = {
 export type RoleSingle = {
   id: number;
   name: string;
-  permissions?: Array<PermissionSingle>;
+  permissions?: Array<PermissionRelationOutput>;
 };
 
 export type RoleMultiple = {
   id: number;
   name: string;
-  permissions?: Array<PermissionSingle>;
+  permissions?: Array<PermissionRelationOutput>;
+};
+
+export type RoleRelationOutput = {
+  id: number;
+  name: string;
 };
 
 export type RoleCreate = {
@@ -660,6 +1125,11 @@ export type PermissionSingle = {
 };
 
 export type PermissionMultiple = {
+  id: number;
+  name: string;
+};
+
+export type PermissionRelationOutput = {
   id: number;
   name: string;
 };
@@ -734,6 +1204,21 @@ export type FileSingle = {
 };
 
 export type FileMultiple = {
+  id: number;
+  name: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  checksum: string;
+  title?: string | null;
+  description?: string | null;
+  url: string;
+  updatedAt: Date;
+  createdAt: Date;
+  createdById?: number | null;
+};
+
+export type FileRelationOutput = {
   id: number;
   name: string;
   originalName: string;

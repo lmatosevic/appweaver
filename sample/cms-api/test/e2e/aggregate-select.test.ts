@@ -24,15 +24,13 @@ describe('Aggregate selection', () => {
         {
           title: 'First post',
           slug: 'first-post',
-          counter: 3,
-          tags: 'Nature',
+          viewCount: 3,
           createdAt: new Date('2026-01-01T10:00:00.000Z')
         },
         {
           title: 'Second post',
           slug: 'second-post',
-          counter: 7,
-          tags: 'Animals',
+          viewCount: 7,
           createdAt: new Date('2026-01-02T10:00:00.000Z')
         }
       ]
@@ -60,10 +58,10 @@ describe('Aggregate selection', () => {
 
   test('aggregates a numeric field with every operator', async () => {
     const result = await aggregate({
-      counter: { count: true, sum: true, avg: true, min: true, max: true }
+      viewCount: { count: true, sum: true, avg: true, min: true, max: true }
     });
 
-    expect(result.total.counter).toEqual({
+    expect(result.total.viewCount).toEqual({
       count: 2,
       sum: 10,
       avg: 5,
@@ -84,27 +82,27 @@ describe('Aggregate selection', () => {
   test('aggregates several fields at once', async () => {
     const result = await aggregate({
       id: { count: true },
-      counter: { sum: true }
+      viewCount: { sum: true }
     });
 
-    expect(result.total).toEqual({ id: { count: 2 }, counter: { sum: 10 } });
+    expect(result.total).toEqual({ id: { count: 2 }, viewCount: { sum: 10 } });
   });
 
   test('splits the range into periods', async () => {
-    const result = await aggregate({ counter: { sum: true } });
+    const result = await aggregate({ viewCount: { sum: true } });
 
     expect(result.items).toHaveLength(2);
-    expect(result.items[0].result.counter.sum).toBe(3);
-    expect(result.items[1].result.counter.sum).toBe(7);
+    expect(result.items[0].result.viewCount.sum).toBe(3);
+    expect(result.items[1].result.viewCount.sum).toBe(7);
   });
 
   test('takes the values of the boundary records of the range', async () => {
     const result = await aggregate({
-      counter: { first: true, last: true },
+      viewCount: { first: true, last: true },
       createdAt: { first: true, last: true }
     });
 
-    expect(result.total.counter).toEqual({ first: 3, last: 7 });
+    expect(result.total.viewCount).toEqual({ first: 3, last: 7 });
     expect(new Date(result.total.createdAt.first).toISOString()).toBe(
       '2026-01-01T10:00:00.000Z'
     );
@@ -114,19 +112,19 @@ describe('Aggregate selection', () => {
   });
 
   test('takes the boundary values of every period on its own', async () => {
-    const result = await aggregate({ counter: { first: true, last: true } });
+    const result = await aggregate({ viewCount: { first: true, last: true } });
 
-    expect(result.items[0].result.counter).toEqual({ first: 3, last: 3 });
-    expect(result.items[1].result.counter).toEqual({ first: 7, last: 7 });
+    expect(result.items[0].result.viewCount).toEqual({ first: 3, last: 3 });
+    expect(result.items[1].result.viewCount).toEqual({ first: 7, last: 7 });
   });
 
   test('resolves the boundary values of an empty period to null', async () => {
     await posts.client.deleteMany({});
 
-    const result = await aggregate({ counter: { sum: true, first: true } });
+    const result = await aggregate({ viewCount: { sum: true, first: true } });
 
-    expect(result.total.counter).toEqual({ sum: null, first: null });
-    expect(result.items[0].result.counter.first).toBeNull();
+    expect(result.total.viewCount).toEqual({ sum: null, first: null });
+    expect(result.items[0].result.viewCount.first).toBeNull();
   });
 
   test('breaks the ties of the records sharing a date by their id', async () => {
@@ -137,31 +135,29 @@ describe('Aggregate selection', () => {
         {
           title: 'A',
           slug: 'a',
-          counter: 1,
-          tags: 'Nature',
+          viewCount: 1,
           createdAt: sameDate
         },
         {
           title: 'B',
           slug: 'b',
-          counter: 2,
-          tags: 'Nature',
+          viewCount: 2,
           createdAt: sameDate
         }
       ]
     });
 
-    const result = await aggregate({ counter: { first: true, last: true } });
+    const result = await aggregate({ viewCount: { first: true, last: true } });
 
-    expect(result.total.counter).toEqual({ first: 1, last: 2 });
+    expect(result.total.viewCount).toEqual({ first: 1, last: 2 });
   });
 
   test('aggregates the boundary values alongside the database operators', async () => {
     const result = await aggregate({
-      counter: { count: true, sum: true, min: true, first: true, last: true }
+      viewCount: { count: true, sum: true, min: true, first: true, last: true }
     });
 
-    expect(result.total.counter).toEqual({
+    expect(result.total.viewCount).toEqual({
       count: 2,
       sum: 10,
       min: 3,

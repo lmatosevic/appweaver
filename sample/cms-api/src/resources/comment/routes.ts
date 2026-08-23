@@ -8,5 +8,19 @@ export default createRoutes({
   },
   query: {
     public: true
+  },
+  aggregate: {
+    exclude: true
+  },
+  // Open to readers who are not signed in, so rate limited by IP
+  create: {
+    public: true,
+    rateLimit: {
+      max: 5,
+      timeWindow: '1 minute'
+    }
+  },
+  export: {
+    roles: ['Admin']
   }
 });

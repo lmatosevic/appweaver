@@ -2,15 +2,6 @@ import { createAuthModel } from '@appweaver/core';
 
 export default createAuthModel({
   name: 'User',
-  id: {
-    type: 'int',
-    generator: 'autoincrement()'
-  },
-  audit: {
-    updatedAt: true,
-    createdAt: true,
-    createdById: true
-  },
   scalars: {
     firstName: {
       type: 'string',
@@ -29,12 +20,32 @@ export default createAuthModel({
     },
     phone: {
       type: 'string',
+      required: false,
       maxLength: 32,
-      example: '+37534567890'
+      example: '+385991234567'
     },
-    secret: {
+    displayName: {
       type: 'string',
       required: false,
+      maxLength: 255,
+      example: 'Ana A.'
+    },
+    bio: {
+      type: 'string',
+      required: false,
+      maxLength: 1023
+    },
+    website: {
+      type: 'string',
+      required: false,
+      format: 'uri',
+      maxLength: 255,
+      example: 'https://example.com'
+    },
+    internalNotes: {
+      type: 'string',
+      required: false,
+      maxLength: 1023,
       hidden: true
     }
   },
@@ -45,9 +56,24 @@ export default createAuthModel({
       mappedBy: 'author',
       required: false,
       input: {
-        type: 'all',
-        allowCreate: true,
-        allowUpdate: true
+        type: 'none'
+      },
+      output: {
+        type: 'none',
+        count: true
+      }
+    },
+    pages: {
+      model: 'Page',
+      type: 'oneToMany',
+      mappedBy: 'author',
+      required: false,
+      input: {
+        type: 'none'
+      },
+      output: {
+        type: 'none',
+        count: true
       }
     }
   },
@@ -65,13 +91,19 @@ export default createAuthModel({
     }
   },
   virtual: {
-    active: {
-      type: 'boolean',
-      default: true,
+    byline: {
+      type: 'string',
+      example: 'Ana Anic',
+      input: {
+        type: 'none'
+      },
       output: {
-        value: () => Math.random() > 0.5
+        value: (user: {
+          displayName?: string;
+          firstName: string;
+          lastName: string;
+        }) => user.displayName || `${user.firstName} ${user.lastName}`
       }
     }
-  },
-  index: ['email']
+  }
 });

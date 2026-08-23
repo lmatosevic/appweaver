@@ -1,17 +1,32 @@
-import { createService } from '@appweaver/core';
-import { ResourceId, logger } from '@appweaver/common';
+import { createService, injectService } from '@appweaver/core';
+import { logger } from '@appweaver/common';
+import { Post, PostCreate, PostResourceService, PostUpdate } from '@/types';
 
-export default createService({
+export default createService<Post, PostCreate, PostUpdate>({
   modelName: 'Post',
-  beforeFind: (id: ResourceId) => {
-    logger.info({ id }, 'Finding post with ID:');
+  beforeUpdate: (_, data: PostUpdate) => {
+    if (data.status === 'Published' && !data.publishedAt) {
+      data.publishedAt = new Date();
+    }
   },
-  afterFind: (resource: any) => {
-    logger.info({ resource }, 'Found post resource:');
+  // Not part of the update input, so raised through the client
+  afterFind: async (post: Post) => {
+    try {
+      await injectService<PostResourceService>('Post').client.update({
+        where: { id: post.id },
+        data: { viewCount: { increment: 1 } }
+      });
+    } catch (e) {
+      logger.warn(e, 'Post view count was not raised');
+    }
   },
   textSearch: {
     OR: {
       title: {
+        contains: '{input}',
+        mode: 'insensitive'
+      },
+      excerpt: {
         contains: '{input}',
         mode: 'insensitive'
       },

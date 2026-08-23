@@ -40,19 +40,19 @@ describe('Query sort input', () => {
     await posts.create({
       title: 'First post',
       slug: 'first-post',
-      counter: 3,
+      viewCount: 3,
       author: bob.id
     });
     await posts.create({
       title: 'Second post',
       slug: 'second-post',
-      counter: 1,
+      viewCount: 1,
       author: ana.id
     });
     await posts.create({
       title: 'Third entry',
       slug: 'third-entry',
-      counter: 2,
+      viewCount: 2,
       author: bob.id
     });
   };
@@ -80,7 +80,7 @@ describe('Query sort input', () => {
   });
 
   test('sorts by a field list string', async () => {
-    await expect(slugs('-counter')).resolves.toEqual([
+    await expect(slugs('-viewCount')).resolves.toEqual([
       'first-post',
       'third-entry',
       'second-post'
@@ -88,7 +88,7 @@ describe('Query sort input', () => {
   });
 
   test('sorts by a sort object', async () => {
-    await expect(slugs({ counter: 'asc' })).resolves.toEqual([
+    await expect(slugs({ viewCount: 'asc' })).resolves.toEqual([
       'second-post',
       'third-entry',
       'first-post'
@@ -96,7 +96,7 @@ describe('Query sort input', () => {
   });
 
   test('sorts by a relation field given with a dot notation', async () => {
-    await expect(slugs('author.firstName,-counter')).resolves.toEqual([
+    await expect(slugs('author.firstName,-viewCount')).resolves.toEqual([
       'second-post',
       'first-post',
       'third-entry'
@@ -113,7 +113,7 @@ describe('Query sort input', () => {
 
   test('sorts by a relation field given as a nested object', async () => {
     await expect(
-      slugs({ author: { firstName: 'desc' }, counter: 'asc' })
+      slugs({ author: { firstName: 'desc' }, viewCount: 'asc' })
     ).resolves.toEqual(['third-entry', 'first-post', 'second-post']);
   });
 

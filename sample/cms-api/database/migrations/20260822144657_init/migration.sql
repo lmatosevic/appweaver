@@ -19,6 +19,7 @@ CREATE TABLE "Post" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "title" TEXT NOT NULL DEFAULT 'something...',
     "slug" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
     "content" TEXT,
     "counter" INTEGER NOT NULL DEFAULT 0,
     "status" TEXT DEFAULT 'Draft',
@@ -169,6 +170,9 @@ CREATE INDEX "Comment_approved_idx" ON "Comment"("approved");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Post_slug_key" ON "Post"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Post_code_key" ON "Post"("code");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Post_pinnedCommentId_key" ON "Post"("pinnedCommentId");
