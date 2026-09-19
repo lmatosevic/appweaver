@@ -27,6 +27,8 @@ import {
   Runtime,
   ScalarConfig,
   ScalarField,
+  hasSoftDelete,
+  softDeleteCascadeErrors,
   uncapitalize
 } from '@appweaver/common';
 import { ensureDirExists, relativePathFrom, runProcess } from '../utils';
@@ -165,7 +167,12 @@ export async function generateSchema(
           idColumnOf
         ),
         files: createFilesSchema(name, schema.config.files, idColumnOf('File')),
-        audit: createAuditSchema(name, authModel, schema.config.audit),
+        audit: createAuditSchema(
+          name,
+          authModel,
+          schema.config.audit,
+          hasSoftDelete(schema.config)
+        ),
         index: createIndexSchema(schema.config.index),
         tableName: schema.config.tableName
       };
@@ -181,6 +188,7 @@ export async function generateSchema(
 
     // Resolve model relations to match Prisma schema relationship convention
     const createdByAuthUser: PrismaSchemaField[] = [];
+    const deletedByAuthUser: PrismaSchemaField[] = [];
     const fileFields: PrismaSchemaField[] = [];
     for (const [name, model] of Object.entries(prismaModels)) {
       const modelSchema = Object.entries(models).find(
@@ -276,6 +284,14 @@ export async function generateSchema(
             attributes: [`@relation("${referenceName}")`]
           });
         }
+        if (auditField.name === 'deletedBy') {
+          const referenceName = auditField.attributes?.[0].split('"')[1];
+          deletedByAuthUser.push({
+            name: `deleted${plural(name)}`,
+            type: `${name}[]`,
+            attributes: [`@relation("${referenceName}")`]
+          });
+        }
       }
 
       for (const fileField of model.files) {
@@ -294,7 +310,10 @@ export async function generateSchema(
     const authUserModel = prismaModels[authModel?.name ?? ''];
     if (authUserModel) {
       authUserModel.extra = {
-        'Ownership models referenced with createdById column': createdByAuthUser
+        'Ownership models referenced with createdById column':
+          createdByAuthUser,
+        'Soft deleted models referenced with deletedById column':
+          deletedByAuthUser
       };
     }
 
@@ -686,6 +705,8 @@ function validateRelations(models: Record<string, ResourceModel>): string[] {
     }
   }
 
+  errors.push(...softDeleteCascadeErrors(models));
+
   return errors;
 }
 
@@ -829,7 +850,8 @@ function createFileSchema(
 function createAuditSchema(
   modelName: string,
   authModel?: ResourceModel,
-  audit: AuditFields = {}
+  audit: AuditFields = {},
+  softDelete: boolean = false
 ): PrismaSchemaField[] {
   const defaultAudit: AuditFields = {
     updatedAt: true,
@@ -872,6 +894,29 @@ function createAuditSchema(
       attributes: nativeTypeAttributes(idNativeType(authModel?.config.id)),
       foreignKey: true
     });
+  }
+
+  if (softDelete) {
+    fields.push({
+      name: 'deletedAt',
+      type: 'DateTime?'
+    });
+
+    if (authModelName) {
+      fields.push({
+        name: 'deletedBy',
+        type: `${authModelName}?`,
+        attributes: [
+          `@relation("${modelName}DeletedBy${authModelName}", fields: [deletedById], references: [id])`
+        ]
+      });
+      fields.push({
+        name: 'deletedById',
+        type: `${prismaIdType(authModel?.config.id)}?`,
+        attributes: nativeTypeAttributes(idNativeType(authModel?.config.id)),
+        foreignKey: true
+      });
+    }
   }
 
   return fields;

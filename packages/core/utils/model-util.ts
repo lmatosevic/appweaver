@@ -1,11 +1,62 @@
 import {
+  capitalize,
+  hasSoftDelete,
   isArray,
   isBoolean,
   isNumber,
   isString,
   ResourceModel,
-  ScalarField
+  ScalarField,
+  softDeleteCascadeErrors
 } from '@appweaver/common';
+import { injectModel } from '../context';
+
+/**
+ * Checks whether the model with the given name soft deletes its records.
+ *
+ * @param {string} [resourceName] - The name of the model to check.
+ * @return {boolean} True if the model is loaded and has `softDelete` enabled.
+ */
+export function isSoftDeleteModel(resourceName?: string): boolean {
+  if (!resourceName) {
+    return false;
+  }
+  const model = injectModel(capitalize(resourceName), false);
+  return hasSoftDelete(model?.config);
+}
+
+/**
+ * Builds the condition matching only the records of a model that are not soft
+ * deleted, for the queries reading its records outside the resource service.
+ *
+ * @param {string} resourceName - The name of the model the condition is built for.
+ * @return {Object} The `deletedAt: null` condition for a soft deleted model, or
+ * an empty object otherwise.
+ */
+export function liveRecordFilter(resourceName: string): Record<string, any> {
+  return isSoftDeleteModel(resourceName) ? { deletedAt: null } : {};
+}
+
+/**
+ * Validates that every relation cascading on delete from a model with
+ * `softDelete` enabled belongs to a model that soft deletes its records too.
+ *
+ * @param {Record<string, ResourceModel>} models - All loaded models keyed by name.
+ * @throws {Error} When a soft deleted model cascades into a model without soft delete.
+ */
+export function validateSoftDeleteCascades(
+  models: Record<string, ResourceModel>
+): void {
+  const errors = softDeleteCascadeErrors(models);
+
+  if (errors.length > 0) {
+    throw new Error(
+      `Invalid resource model soft delete cascades:\n${errors
+        .map((error) => `  - ${error}`)
+        .join('\n')}`
+    );
+  }
+}
 
 /**
  * Validates that the default value of every scalar and virtual field satisfies

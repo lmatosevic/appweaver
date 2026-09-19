@@ -3,6 +3,7 @@ import {
   countFieldName,
   defaultScalarValue,
   extractResourceName,
+  hasSoftDelete,
   extractSchemaProperties,
   isCountField,
   isResourceAuthModel,
@@ -11,7 +12,9 @@ import {
   isResourcePolicy,
   isResourceRoutes,
   isResourceService,
-  resourceModelProps
+  referencingRelations,
+  resourceModelProps,
+  softDeleteCascadeErrors
 } from '../../utils/resource-util';
 import {
   RESOURCE_AUTH,
@@ -22,7 +25,7 @@ import {
   RESOURCE_SERVICE_TYPE,
   RESOURCE_TYPE
 } from '../../constants';
-import { ScalarField } from '../../types';
+import { ResourceModel, ResourceModelConfig, ScalarField } from '../../types';
 
 describe('resource-util', () => {
   describe('resourceModelProps', () => {
@@ -336,6 +339,191 @@ describe('resource-util', () => {
 
     test('returns undefined for an unknown type', () => {
       expect(defaultScalarValue({ type: 'unknown' } as any)).toBeUndefined();
+    });
+  });
+
+  describe('hasSoftDelete', () => {
+    test('detects a model with soft delete enabled', () => {
+      expect(hasSoftDelete({ softDelete: true })).toBe(true);
+    });
+
+    test('returns false for a model without soft delete', () => {
+      expect(hasSoftDelete({})).toBe(false);
+      expect(hasSoftDelete({ softDelete: false })).toBe(false);
+      expect(hasSoftDelete(undefined)).toBe(false);
+    });
+  });
+
+  describe('referencingRelations', () => {
+    const models = (
+      configs: ResourceModelConfig[]
+    ): Record<string, ResourceModel> =>
+      Object.fromEntries(
+        configs.map((config) => [
+          config.name,
+          { name: config.name, config } as unknown as ResourceModel
+        ])
+      );
+
+    test('lists the owning relations referencing the model', () => {
+      const result = referencingRelations(
+        models([
+          { name: 'Post' },
+          {
+            name: 'Comment',
+            relations: {
+              post: {
+                model: 'Post',
+                type: 'oneToMany',
+                owner: true,
+                onDelete: 'cascade'
+              }
+            }
+          }
+        ]),
+        'Post'
+      );
+
+      expect(result).toEqual([
+        {
+          modelName: 'Comment',
+          field: 'post',
+          foreignKey: 'postId',
+          onDelete: 'cascade'
+        }
+      ]);
+    });
+
+    test('resolves the database default of an omitted onDelete', () => {
+      const result = referencingRelations(
+        models([
+          { name: 'Post' },
+          {
+            name: 'Review',
+            relations: {
+              post: { model: 'Post', type: 'oneToMany', owner: true },
+              draft: {
+                model: 'Post',
+                type: 'oneToOne',
+                owner: true,
+                required: false
+              }
+            }
+          }
+        ]),
+        'Post'
+      );
+
+      expect(result.map((relation) => relation.onDelete)).toEqual([
+        'restrict',
+        'setNull'
+      ]);
+    });
+
+    test('skips the inverse, many to many and unrelated relations', () => {
+      const result = referencingRelations(
+        models([
+          {
+            name: 'Post',
+            relations: {
+              comments: { model: 'Comment', type: 'oneToMany' },
+              tags: { model: 'Tag', type: 'manyToMany' }
+            }
+          },
+          {
+            name: 'Tag',
+            relations: { posts: { model: 'Post', type: 'manyToMany' } }
+          },
+          {
+            name: 'Comment',
+            relations: {
+              author: { model: 'User', type: 'oneToMany', owner: true }
+            }
+          }
+        ]),
+        'Post'
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    test('skips the models without a generated schema', () => {
+      const result = referencingRelations(
+        models([
+          { name: 'Post' },
+          {
+            name: 'Comment',
+            generateSchema: false,
+            relations: {
+              post: { model: 'Post', type: 'oneToMany', owner: true }
+            }
+          }
+        ]),
+        'Post'
+      );
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('softDeleteCascadeErrors', () => {
+    const models = (
+      commentConfig: Partial<ResourceModelConfig>,
+      postConfig: Partial<ResourceModelConfig> = { softDelete: true }
+    ): Record<string, ResourceModel> => ({
+      Post: {
+        name: 'Post',
+        config: { name: 'Post', ...postConfig }
+      } as unknown as ResourceModel,
+      Comment: {
+        name: 'Comment',
+        config: {
+          name: 'Comment',
+          relations: {
+            post: {
+              model: 'Post',
+              type: 'oneToMany',
+              owner: true,
+              onDelete: 'cascade'
+            }
+          },
+          ...commentConfig
+        }
+      } as unknown as ResourceModel
+    });
+
+    test('reports a cascade into a model without soft delete', () => {
+      expect(softDeleteCascadeErrors(models({}))).toEqual([
+        expect.stringContaining(
+          "Model 'Comment' must enable 'softDelete', since its relation 'Comment.post' cascades"
+        )
+      ]);
+    });
+
+    test('accepts a cascade into a soft deleted model', () => {
+      expect(softDeleteCascadeErrors(models({ softDelete: true }))).toEqual([]);
+    });
+
+    test('accepts a cascade from a model without soft delete', () => {
+      expect(softDeleteCascadeErrors(models({}, {}))).toEqual([]);
+    });
+
+    test('accepts the relations that do not cascade', () => {
+      const errors = softDeleteCascadeErrors(
+        models({
+          relations: {
+            post: {
+              model: 'Post',
+              type: 'oneToMany',
+              owner: true,
+              required: false,
+              onDelete: 'setNull'
+            }
+          }
+        })
+      );
+
+      expect(errors).toEqual([]);
     });
   });
 });

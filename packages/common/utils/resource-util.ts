@@ -12,15 +12,18 @@ import {
 import {
   FieldDefault,
   IdField,
+  ReferentialAction,
   RelationField,
   ResourceId,
   ResourceModel,
+  ResourceModelConfig,
   ResourcePolicyConfig,
   ResourceRoutes,
   ScalarField
 } from '../types';
 import { IResourceService } from '../interfaces';
 import { isArray, isConstructor, isPlainObject } from './type-util';
+import { capitalize } from './string-util';
 
 /**
  * Maps every resource model schema name suffix to the {@link ResourceModel}
@@ -283,6 +286,108 @@ export function isRelationOwner(
   relation: Pick<RelationField, 'type' | 'owner'>
 ): boolean {
   return relation.type !== 'manyToMany' && relation.owner === true;
+}
+
+/** A relation of another model holding a foreign key to the referenced model. */
+export type ReferencingRelation = {
+  /** Name of the model holding the foreign key column */
+  modelName: string;
+  /** Relation field name on that model */
+  field: string;
+  /** Foreign key column name on that model */
+  foreignKey: string;
+  /** The effective action on delete, with the database default resolved */
+  onDelete: ReferentialAction;
+};
+
+/**
+ * Checks whether a model soft deletes its records instead of removing them.
+ *
+ * @param {ResourceModelConfig} [config] - The model configuration.
+ * @return {boolean} True when the model has `softDelete` enabled.
+ */
+export function hasSoftDelete(
+  config?: Pick<ResourceModelConfig, 'softDelete'>
+): boolean {
+  return config?.softDelete === true;
+}
+
+/**
+ * Lists the owning relations of every model that hold a foreign key to the
+ * given model, i.e. the records affected when one of its records is deleted.
+ * An omitted `onDelete` resolves to the database default: `restrict` for a
+ * required relation and `setNull` for an optional one.
+ *
+ * @param {Record<string, ResourceModel>} models - All loaded models keyed by name.
+ * @param {string} modelName - The name of the referenced model.
+ * @return {ReferencingRelation[]} The relations referencing the model.
+ */
+export function referencingRelations(
+  models: Record<string, ResourceModel>,
+  modelName: string
+): ReferencingRelation[] {
+  const relations: ReferencingRelation[] = [];
+
+  for (const model of Object.values(models)) {
+    if (model.config.generateSchema === false) {
+      continue;
+    }
+
+    for (const [field, relation] of Object.entries(
+      model.config.relations ?? {}
+    )) {
+      if (
+        capitalize(relation.model) !== modelName ||
+        !isRelationOwner(relation)
+      ) {
+        continue;
+      }
+
+      relations.push({
+        modelName: model.name,
+        field,
+        foreignKey: `${field}Id`,
+        onDelete:
+          relation.onDelete ??
+          (relation.required === false ? 'setNull' : 'restrict')
+      });
+    }
+  }
+
+  return relations;
+}
+
+/**
+ * Validates that every relation cascading from a soft deleted model belongs to
+ * a model that is soft deleted as well. A soft delete keeps the record in the
+ * database, so the database cascade never runs, and the cascaded records can
+ * only be kept consistent by soft deleting them too.
+ *
+ * @param {Record<string, ResourceModel>} models - All loaded models keyed by name.
+ * @return {string[]} A list of human-readable error messages, empty when every
+ * cascade of a soft deleted model is soft deleted too.
+ */
+export function softDeleteCascadeErrors(
+  models: Record<string, ResourceModel>
+): string[] {
+  const errors: string[] = [];
+
+  for (const model of Object.values(models)) {
+    if (!hasSoftDelete(model.config)) {
+      continue;
+    }
+
+    for (const relation of referencingRelations(models, model.name)) {
+      const related = models[relation.modelName];
+      if (relation.onDelete === 'cascade' && !hasSoftDelete(related.config)) {
+        errors.push(
+          `Model '${relation.modelName}' must enable 'softDelete', since its relation '${relation.modelName}.${relation.field}' cascades on delete from the soft deleted model '${model.name}'.`
+        );
+      }
+    }
+  }
+
+  return errors;
 }
 
 /**

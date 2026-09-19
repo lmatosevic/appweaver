@@ -122,6 +122,8 @@ export type Comment = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
+  deletedAt?: Date | null;
+  deletedById?: number | null;
 };
 
 export type CommentSingle = {
@@ -353,6 +355,8 @@ export type Post = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
+  deletedAt?: Date | null;
+  deletedById?: number | null;
 };
 
 export type PostSingle = {
@@ -1043,6 +1047,8 @@ export type File = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
+  deletedAt?: Date | null;
+  deletedById?: number | null;
 };
 
 export type FileSingle = {

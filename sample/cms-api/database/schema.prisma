@@ -51,10 +51,13 @@ model Comment {
   attachmentId Int?  @unique
 
   /// Audit columns
-  updatedAt   DateTime @updatedAt
-  createdAt   DateTime @default(now())
-  createdBy   User?    @relation("CommentCreatedByUser", fields: [createdById], references: [id])
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
+  createdBy   User?     @relation("CommentCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
+  deletedAt   DateTime?
+  deletedBy   User?     @relation("CommentDeletedByUser", fields: [deletedById], references: [id])
+  deletedById Int?
 
   @@index([status, createdAt(sort: Desc)])
 }
@@ -116,10 +119,13 @@ model Post {
   galleryImages File[] @relation("PostGalleryImagesFile")
 
   /// Audit columns
-  updatedAt   DateTime @updatedAt
-  createdAt   DateTime @default(now())
-  createdBy   User?    @relation("PostCreatedByUser", fields: [createdById], references: [id])
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
+  createdBy   User?     @relation("PostCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
+  deletedAt   DateTime?
+  deletedBy   User?     @relation("PostDeletedByUser", fields: [deletedById], references: [id])
+  deletedById Int?
 
   @@index([status, publishedAt(sort: Desc)])
   @@index([categoryId, publishedAt(sort: Desc)])
@@ -179,6 +185,11 @@ model User {
   createdRoles       Role[]       @relation("RoleCreatedByUser")
   createdPermissions Permission[] @relation("PermissionCreatedByUser")
   createdFiles       File[]       @relation("FileCreatedByUser")
+
+  /// Soft deleted models referenced with deletedById column
+  deletedComments Comment[] @relation("CommentDeletedByUser")
+  deletedPosts    Post[]    @relation("PostDeletedByUser")
+  deletedFiles    File[]    @relation("FileDeletedByUser")
 
   /// Audit columns
   updatedAt   DateTime @updatedAt
@@ -286,10 +297,13 @@ model File {
   avatarUsers        User[]    @relation("UserAvatarFile")
 
   /// Audit columns
-  updatedAt   DateTime @updatedAt
-  createdAt   DateTime @default(now())
-  createdBy   User?    @relation("FileCreatedByUser", fields: [createdById], references: [id])
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
+  createdBy   User?     @relation("FileCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
+  deletedAt   DateTime?
+  deletedBy   User?     @relation("FileDeletedByUser", fields: [deletedById], references: [id])
+  deletedById Int?
 
   @@index([resourceField, resourceName, resourceId])
 }

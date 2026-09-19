@@ -269,9 +269,10 @@ export type FileField<T = any> = {
   maxCount?: number;
   /** Output configuration for the file relation */
   output?: Omit<RelationOutput, 'include' | 'maxDepth'>;
-  /** Action to take on associated files when the owning resource is deleted.
-   * `'delete'` (default) removes files from storage, `'keep'` leaves them. */
+  /** Files on resource delete: `'delete'` (default) or `'keep'` unserved */
   onResourceDeleted?: 'delete' | 'keep';
+  /** Files on resource soft delete: `'keep'` (default) unserved or `'delete'` */
+  onResourceSoftDeleted?: 'delete' | 'keep';
   /** Image compression and resizing configuration. Only applies to image files
    * (JPEG, PNG, WebP, AVIF, TIFF). GIF files are passed through unchanged. */
   image?: ImageConfig;
@@ -388,4 +389,9 @@ export type ResourceModelConfig = {
   export?: ExportConfig;
   /** Database index definitions */
   index?: IndexConfig;
+  /** Mark deleted records with the `deletedAt` and `deletedById` columns
+   * instead of removing them. Soft deleted records are hidden from every read,
+   * and the relations cascading on delete are soft deleted with them. Their
+   * files follow the `onResourceSoftDeleted` option of each file field. */
+  softDelete?: boolean;
 };

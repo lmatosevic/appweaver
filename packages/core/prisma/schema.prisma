@@ -103,8 +103,9 @@ model File {
   resourceId    String?
 
   /// Audit columns
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
+  updatedAt DateTime  @updatedAt
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
 
   @@index([resourceField, resourceName, resourceId])
 }

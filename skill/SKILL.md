@@ -257,6 +257,14 @@ or `+` for an ascending one; without a prefix, the database default order is use
 index: ['-createdAt', ['status', '-createdAt']]
 ```
 
+Set `softDelete: true` to keep deleted records in the database, marked by the `deletedAt` and `deletedById` columns,
+instead of removing them. Soft deleted records are hidden from every read, so the API behaves exactly as after a real
+delete, and a record can only be restored manually in the database. The relations cascading on delete are soft deleted
+with the record, so every model a soft deleted model cascades into must enable `softDelete` too, or the application
+fails to start. Stored files are removed on a regular delete but kept on a soft delete by default, configurable per
+file field with `onResourceDeleted` and `onResourceSoftDeleted`. A kept file stays in the storage, e.g. for audit, but
+is never served again.
+
 #### Creating a resource service
 
 Resource service defines the business logic layer for a resource: lifecycle hooks (before/after create, update, delete),

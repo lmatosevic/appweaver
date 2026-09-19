@@ -6,6 +6,7 @@ export type DelegateMethod =
   | 'count'
   | 'create'
   | 'update'
+  | 'updateMany'
   | 'delete'
   | 'aggregate';
 
@@ -21,6 +22,7 @@ const METHODS: DelegateMethod[] = [
   'count',
   'create',
   'update',
+  'updateMany',
   'delete',
   'aggregate'
 ];

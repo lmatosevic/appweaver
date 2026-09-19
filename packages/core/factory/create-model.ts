@@ -6,6 +6,7 @@ import {
   capitalize,
   countFieldName,
   FileField,
+  hasSoftDelete,
   IdField,
   InputType,
   isPlainObject,
@@ -61,7 +62,7 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
   );
 
   const idSchema = buildIdSchema(config?.id);
-  const auditSchema = buildAuditSchema(config?.audit);
+  const auditSchema = buildAuditSchema(config?.audit, hasSoftDelete(config));
   const scalarsSchema = buildScalarsSchema(config?.scalars);
   const virtualSchema = buildScalarsSchema(config?.virtual);
   const filesSchema = buildFilesSchema(config?.files);
@@ -173,15 +174,22 @@ function referencedIdField(modelName?: string): IdField | undefined {
   return context.resource.models.get(capitalize(modelName))?.config?.id;
 }
 
-function authIdField(): IdField | undefined {
+function authModel(): ResourceModel | undefined {
   for (const model of context.resource.models.values()) {
     if (isResourceAuthModel(model)) {
-      return model.config?.id;
+      return model;
     }
   }
 }
 
-function buildAuditSchema(audit: AuditFields = {}): TObject {
+function authIdField(): IdField | undefined {
+  return authModel()?.config?.id;
+}
+
+function buildAuditSchema(
+  audit: AuditFields = {},
+  softDelete: boolean = false
+): TObject {
   const defaultAudit: AuditFields = {
     updatedAt: true,
     createdAt: true,
@@ -197,7 +205,25 @@ function buildAuditSchema(audit: AuditFields = {}): TObject {
     }
   }
 
-  return Type.Pick(buildAuditFieldsSchema(authIdField()), fields);
+  const auditSchema = Type.Pick(buildAuditFieldsSchema(authIdField()), fields);
+  if (!softDelete) {
+    return auditSchema;
+  }
+
+  // The soft delete columns are typed on the model, but hidden like any hidden
+  // field, so no request or response carries them
+  return Type.Object({
+    ...auditSchema.properties,
+    deletedAt: Nullable(StringDate({ hidden: true })),
+    ...(authModel()
+      ? {
+          deletedById: Nullable({
+            ...idValueSchema(authIdField()),
+            hidden: true
+          })
+        }
+      : {})
+  });
 }
 
 function buildScalarsSchema(fields: Record<string, ScalarField> = {}): TObject {

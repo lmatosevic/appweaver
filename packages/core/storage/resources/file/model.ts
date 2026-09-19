@@ -4,6 +4,9 @@ import { File } from '../../../types';
 
 export default createModel({
   name: 'File',
+  // The files a deleted resource keeps are retained for audit, but no longer
+  // served, by marking their rows deleted together with the resource
+  softDelete: true,
   scalars: {
     name: {
       type: 'string',

@@ -51,6 +51,7 @@ function createModel(config: ResourceModelConfig, override ?: Partial<ResourceMo
 | `update`         | OperationConfig                | no       | -                     | Pick/omit fields for the update DTO.                                |
 | `export`         | Record\<string, ExportField>   | no       | -                     | CSV export field configuration.                                     |
 | `index`          | string[] \| string[][]         | no       | -                     | Database index definitions (`-field` desc, `+field` asc).           |
+| `softDelete`     | boolean                        | no       | `false`               | Mark deleted records instead of removing them.                      |
 
 ### ID field
 
@@ -144,6 +145,75 @@ const config = {
 | `createdAt`   | boolean | `true`  | Add `createdAt` timestamp field.                |
 | `updatedAt`   | boolean | `true`  | Add `updatedAt` timestamp field.                |
 | `createdById` | boolean | `true`  | Add `createdById` foreign key to the auth user. |
+
+### Soft delete
+
+A model with `softDelete` enabled keeps its deleted records in the database instead of removing them. The delete marks
+the record with two extra columns. They are hidden fields: typed on the full generated model type (i.e. `Post`), so
+server code can read them, but never part of any API request or response, nor of the OpenAPI document:
+
+| Column        | Type                | Description                                                            |
+|---------------|---------------------|------------------------------------------------------------------------|
+| `deletedAt`   | `DateTime?`         | When the record was deleted, `null` for a live record.                 |
+| `deletedById` | auth model id (`?`) | The user who deleted the record. Only added when an auth model exists. |
+
+No index is added for them. Every read filters on `deletedAt IS NULL`, so add the column to the indexes matching the
+queries of the model where it helps, i.e. `index: [['deletedAt', '-createdAt', 'id']]` for the default listing.
+
+```ts
+const config = {
+  softDelete: true
+};
+```
+
+The stored files of a soft deleted record are **kept** by default, so a manual restore loses nothing, while a record
+removed from the database loses them by default. Each file field decides for itself with `onResourceSoftDeleted` and
+`onResourceDeleted` (see [File fields](#file-fields)). A kept file is never served again, see
+[Files of deleted resources](./storage.md#deleting-all-files-on-resource-deletion).
+
+```ts
+const config = {
+  softDelete: true,
+  files: {
+    avatar: {}, // kept on soft delete, removed on a database delete
+    idScan: { onResourceSoftDeleted: 'delete' } // removed on both
+  }
+};
+```
+
+Soft deleted records are hidden from every read, so for API users a soft delete is indistinguishable from a real one:
+
+- `find`, `update` and `delete` respond with 404, `query`, `aggregate` and `export` leave the record out.
+- List relations and relation counts skip it, a single relation pointing at it reads as `null`.
+- Relation filters never match through it: `_some`, `_none`, `_every` and `_exists` only consider live records, and a
+  `null` filter on a single relation matches a deleted related record.
+- Connecting or inline updating it through a relation input is rejected with 400.
+- Its files are served as missing, whether they were kept or removed.
+
+Restoring a record, or reading the deleted ones, is not part of the API: set `deletedAt` and `deletedById` back to
+`null` in the database, on the record, on the records soft deleted with it and on the `File` rows of its kept files,
+which all share the same `deletedAt` value. Unique values of a deleted record stay taken until the row is removed.
+
+The delete follows the `onDelete` action of every relation referencing the record, mirroring a database delete:
+
+| `onDelete` of the referencing relation        | On soft delete                                                                      |
+|-----------------------------------------------|-------------------------------------------------------------------------------------|
+| `cascade`                                     | The referencing records are soft deleted with the same `deletedAt`, level by level. |
+| `restrict`, `noAction` (default if required)  | The delete fails with 409 while a live record references it.                        |
+| `setNull`, `setDefault` (default if optional) | The reference is kept, so a manual restore brings the link back.                    |
+
+A soft delete never runs the database cascade, so every model a soft deleted model cascades into must enable
+`softDelete` too. The application refuses to start and `weaver generate` fails otherwise:
+
+```
+Model 'Comment' must enable 'softDelete', since its relation 'Comment.post' cascades on delete from the soft deleted model 'Post'.
+```
+
+The framework owned `ApiKey` and `ConnectedAccount` models cascade from the auth model, so they enable `softDelete`
+automatically when the auth model does.
+
+After enabling `softDelete` on a model, regenerate the schema and create a migration (`weaver generate`, then
+`weaver migration new <name>`).
 
 ### Scalar field types
 
@@ -362,7 +432,7 @@ const config = {
 | `mappedBy`      | string                                          | -            | Name of the inverse relation on the target model.                        |
 | `required`      | boolean                                         | `true`       | Whether the relation is required (nullable foreign key if not required). |
 | `minItems`      | number                                          | -            | Minimum items for list relations.                                        |
-| `orphanRemoval` | boolean                                         | `false`      | Delete orphaned records when parent is deleted.                          |
+| `orphanRemoval` | boolean                                         | `false`      | Delete the related records an update removes from the relation.          |
 | `onDelete`      | ReferentialAction                               | -            | Foreign key action on delete.                                            |
 | `onUpdate`      | ReferentialAction                               | -            | Foreign key action on update.                                            |
 | `input`         | RelationInput                                   | -            | Input DTO configuration.                                                 |
@@ -374,6 +444,15 @@ Without an explicit `onDelete`, a **required** owning relation falls back to `re
 record fails with a foreign key violation while any child row still exists. Set `onDelete: 'cascade'` on relations whose
 rows are owned by the parent and meaningless without it. Optional owning relations (`required: false`) fall back to
 `setNull`, which already lets the referenced record be deleted.
+
+The stored files of the records a `cascade` removes are cleaned up together with the files of the deleted record. A
+model with soft delete applies the same actions itself, see its section.
+
+With `orphanRemoval: true`, an update deletes the related records it removes from the relation instead of only
+disconnecting them. The orphans are deleted like any other record: their stored files are removed following
+`onResourceDeleted` and the records cascading from them are removed too. Orphans of a model with `softDelete` enabled
+are soft deleted instead, keep their
+references for a manual restore, and keep their files unless a field sets `onResourceSoftDeleted: 'delete'`.
 
 #### Relationship types
 
@@ -610,16 +689,17 @@ const config = {
 };
 ```
 
-| Property            | Type                   | Description                                                                                                 |
-|---------------------|------------------------|-------------------------------------------------------------------------------------------------------------|
-| `mimeType`          | string \| RegExp       | Allowed MIME types (glob patterns like `'image/*'` supported).                                              |
-| `namePattern`       | string \| function     | File naming pattern or function (available variables are listed below).                                     |
-| `array`             | boolean                | Allow multiple files.                                                                                       |
-| `maxSize`           | number \| string       | Maximum file size (e.g. `'2 MB'`, `5242880`).                                                               |
-| `maxCount`          | number                 | Maximum number of files (for array fields).                                                                 |
-| `output`            | RelationOutput         | When to include file info in output, and its count. Takes no `include` or `maxDepth`.                       |
-| `onResourceDeleted` | `'delete'` \| `'keep'` | When the owning resource is deleted. `'delete'` (default) removes files from storage, `'keep'` leaves them. |
-| `image`             | ImageConfig            | Image compression and resize settings. Only applies to image MIME types (excluding GIF).                    |
+| Property                | Type                   | Description                                                                                                                                                                                 |
+|-------------------------|------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `mimeType`              | string \| RegExp       | Allowed MIME types (glob patterns like `'image/*'` supported).                                                                                                                              |
+| `namePattern`           | string \| function     | File naming pattern or function (available variables are listed below).                                                                                                                     |
+| `array`                 | boolean                | Allow multiple files.                                                                                                                                                                       |
+| `maxSize`               | number \| string       | Maximum file size (e.g. `'2 MB'`, `5242880`).                                                                                                                                               |
+| `maxCount`              | number                 | Maximum number of files (for array fields).                                                                                                                                                 |
+| `output`                | RelationOutput         | When to include file info in output, and its count. Takes no `include` or `maxDepth`.                                                                                                       |
+| `onResourceDeleted`     | `'delete'` \| `'keep'` | When the owning resource is removed from the database, also by a cascade or an orphan removal. `'delete'` (default) removes files from storage, `'keep'` retains them without serving them. |
+| `onResourceSoftDeleted` | `'delete'` \| `'keep'` | When the owning resource is soft deleted (see `softDelete`). `'keep'` (default) retains files for a manual restore without serving them, `'delete'` removes them from storage.              |
+| `image`                 | ImageConfig            | Image compression and resize settings. Only applies to image MIME types (excluding GIF).                                                                                                    |
 
 #### Available namePattern variables
 

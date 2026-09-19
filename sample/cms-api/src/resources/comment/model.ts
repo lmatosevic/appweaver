@@ -2,6 +2,7 @@ import { createModel } from '@appweaver/core';
 
 export default createModel({
   name: 'Comment',
+  softDelete: true,
   id: {
     generator: 'cuid(2)'
   },

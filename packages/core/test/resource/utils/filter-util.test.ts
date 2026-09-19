@@ -334,5 +334,67 @@ describe('filter-util', () => {
         });
       });
     });
+
+    describe('soft deleted relations', () => {
+      const LIVE = { deletedAt: null };
+
+      beforeEach(() => {
+        createModel(
+          {
+            name: 'User',
+            softDelete: true,
+            scalars: { email: { type: 'string' } }
+          },
+          true
+        );
+        createModel(
+          {
+            name: 'Tag',
+            softDelete: true,
+            scalars: { name: { type: 'string' } }
+          },
+          true
+        );
+        linkModels();
+      });
+
+      test('restricts the list quantifiers to the live records', () => {
+        expect(map({ tags: { _some: { name: 'news' } } })).toEqual({
+          tags: { some: { AND: [{ name: 'news' }, LIVE] } }
+        });
+        expect(map({ tags: { _exists: false } })).toEqual({
+          tags: { none: { AND: [{}, LIVE] } }
+        });
+      });
+
+      test('matches the id shorthand against the live records', () => {
+        expect(map({ tags: [1, 2] })).toEqual({
+          tags: { some: { AND: [{ id: { in: [1, 2] } }, LIVE] } }
+        });
+        expect(map({ author: 3 })).toEqual({
+          author: { is: { AND: [{ id: 3 }, LIVE] } }
+        });
+      });
+
+      test('matches a live single related record', () => {
+        expect(map({ author: { email: 'a@b.c' } })).toEqual({
+          author: { is: { AND: [{ email: 'a@b.c' }, LIVE] } }
+        });
+        expect(map({ author: { _exists: true } })).toEqual({
+          author: { is: { AND: [{}, LIVE] } }
+        });
+      });
+
+      test('treats a soft deleted single related record as missing', () => {
+        expect(map({ author: null })).toEqual({ author: { isNot: LIVE } });
+        expect(map({ author: { _exists: false } })).toEqual({
+          author: { isNot: LIVE }
+        });
+      });
+
+      test('leaves the scalar null checks unchanged', () => {
+        expect(map({ title: null })).toEqual({ title: null });
+      });
+    });
   });
 });

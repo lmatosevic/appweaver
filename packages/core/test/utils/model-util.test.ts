@@ -1,5 +1,12 @@
 import { ResourceModel, ScalarField, VirtualField } from '@appweaver/common';
-import { validateScalarDefaults } from '../../utils/model-util';
+import { context } from '../../context';
+import {
+  isSoftDeleteModel,
+  liveRecordFilter,
+  validateScalarDefaults,
+  validateSoftDeleteCascades
+} from '../../utils/model-util';
+import { resetContext } from '../fixtures/context-fixture';
 
 function models(
   scalars: Record<string, ScalarField>,
@@ -150,6 +157,91 @@ describe('model-util', () => {
 
       expect(message).toContain("'Post.counter'");
       expect(message).toContain("'Post.title'");
+    });
+  });
+
+  describe('isSoftDeleteModel', () => {
+    beforeEach(() => {
+      resetContext();
+      context.resource.models.set('Post', {
+        name: 'Post',
+        config: { name: 'Post', softDelete: true }
+      } as unknown as ResourceModel);
+      context.resource.models.set('Tag', {
+        name: 'Tag',
+        config: { name: 'Tag' }
+      } as unknown as ResourceModel);
+    });
+
+    afterAll(() => {
+      resetContext();
+    });
+
+    test('detects a model with soft delete enabled', () => {
+      expect(isSoftDeleteModel('Post')).toBe(true);
+      expect(isSoftDeleteModel('post')).toBe(true);
+    });
+
+    test('returns false for other and unknown models', () => {
+      expect(isSoftDeleteModel('Tag')).toBe(false);
+      expect(isSoftDeleteModel('Missing')).toBe(false);
+      expect(isSoftDeleteModel()).toBe(false);
+    });
+  });
+
+  describe('liveRecordFilter', () => {
+    beforeEach(() => {
+      resetContext();
+      context.resource.models.set('Post', {
+        name: 'Post',
+        config: { name: 'Post', softDelete: true }
+      } as unknown as ResourceModel);
+    });
+
+    afterAll(() => {
+      resetContext();
+    });
+
+    test('matches the records that are not soft deleted', () => {
+      expect(liveRecordFilter('Post')).toEqual({ deletedAt: null });
+    });
+
+    test('returns no condition for a model without soft delete', () => {
+      expect(liveRecordFilter('Missing')).toEqual({});
+    });
+  });
+
+  describe('validateSoftDeleteCascades', () => {
+    const cascadeModels = (commentSoftDelete: boolean) =>
+      ({
+        Post: { name: 'Post', config: { name: 'Post', softDelete: true } },
+        Comment: {
+          name: 'Comment',
+          config: {
+            name: 'Comment',
+            softDelete: commentSoftDelete,
+            relations: {
+              post: {
+                model: 'Post',
+                type: 'oneToMany',
+                owner: true,
+                onDelete: 'cascade'
+              }
+            }
+          }
+        }
+      }) as unknown as Record<string, ResourceModel>;
+
+    test('accepts a cascade into a soft deleted model', () => {
+      expect(() =>
+        validateSoftDeleteCascades(cascadeModels(true))
+      ).not.toThrow();
+    });
+
+    test('rejects a cascade into a model without soft delete', () => {
+      expect(() => validateSoftDeleteCascades(cascadeModels(false))).toThrow(
+        /Invalid resource model soft delete cascades:\n {2}- Model 'Comment' must enable 'softDelete'/
+      );
     });
   });
 });

@@ -5,6 +5,7 @@ import {
   isPlainObject
 } from '@appweaver/common';
 import { injectModel } from '../../context';
+import { liveRelationFilter } from './delete-util';
 
 /**
  * Logical filter operators mapped to their database query connectives. Both
@@ -146,10 +147,17 @@ export function mapQueryFilter(filter: any, resourceName: string): any {
 
     const isArrayValue = isArray(value);
 
-    // Null values are passed through untouched, matching records without a
-    // value or, for relations, without a related record.
+    // A soft deleted related record is matched as if it did not exist
+    const relationName = extractResourceName(relationSchema);
+    const liveRelation = (condition: any) =>
+      relationName
+        ? liveRelationFilter(condition, relationName, isArrayType)
+        : condition;
+
+    // Null values match records without a value or, for relations, without a
+    // related record, a soft deleted one included
     if (value === null) {
-      queryFilter[key] = null;
+      queryFilter[key] = liveRelation(null);
       continue;
     }
 
@@ -160,7 +168,7 @@ export function mapQueryFilter(filter: any, resourceName: string): any {
       if (relatedName) {
         queryFilter[key] = isArrayValue
           ? value.map((item: any) => mapQueryFilter(item, relatedName))
-          : mapRelationFilter(value, relatedName, isArrayType);
+          : liveRelation(mapRelationFilter(value, relatedName, isArrayType));
       } else {
         // Objects that match no relation have their field operators
         // translated and everything else passed through unchanged
@@ -170,7 +178,9 @@ export function mapQueryFilter(filter: any, resourceName: string): any {
     // Map ID values for both single and array types of relationships
     else if (relationSchema || fileSchema) {
       const queryId = { id: isArrayValue ? { in: value } : value };
-      queryFilter[key] = isArrayType ? { some: queryId } : queryId;
+      queryFilter[key] = liveRelation(
+        isArrayType ? { some: queryId } : queryId
+      );
     }
     // Map fields without relationships, supporting array types
     else if (readSchema) {

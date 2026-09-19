@@ -394,6 +394,7 @@ export type File = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
+  deletedAt?: Date | null;
 };
 
 export type FileSingle = {

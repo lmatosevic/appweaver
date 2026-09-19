@@ -35,6 +35,32 @@ export function buildFileUrl(file: File): string {
 }
 
 /**
+ * Splits the file fields of a deleted resource by what happens to their files. On a delete removing the resource from
+ * the database each field follows its `onResourceDeleted` option, which defaults to `'delete'`, while on a soft delete
+ * it follows its `onResourceSoftDeleted` option, which defaults to `'keep'`.
+ *
+ * @param {FilesConfig} [files] - The file fields of the deleted resource's model.
+ * @param {boolean} softDeleted - Whether the resource was soft deleted.
+ * @return {{deleted: string[], kept: string[]}} The fields whose files are removed from storage, and the fields whose
+ * files are retained, but no longer served.
+ */
+export function deletedResourceFileFields(
+  files: FilesConfig = {},
+  softDeleted: boolean
+): { deleted: string[]; kept: string[] } {
+  const fields = { deleted: [] as string[], kept: [] as string[] };
+
+  for (const [field, fileField] of Object.entries(files)) {
+    const action = softDeleted
+      ? (fileField.onResourceSoftDeleted ?? 'keep')
+      : (fileField.onResourceDeleted ?? 'delete');
+    fields[action === 'delete' ? 'deleted' : 'kept'].push(field);
+  }
+
+  return fields;
+}
+
+/**
  * Parses a range string and converts it into an object with start and end values.
  *
  * @param {string} [range] - The range string to parse, typically in the format "bytes=start-end".

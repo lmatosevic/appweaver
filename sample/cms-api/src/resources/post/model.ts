@@ -3,6 +3,7 @@ import { UserSingle } from '@/types';
 
 export default createModel({
   name: 'Post',
+  softDelete: true,
   scalars: {
     uid: {
       type: 'string',

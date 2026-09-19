@@ -25,9 +25,11 @@ import { PrismaDatabase } from '../database';
 import { CacheService } from '../cache';
 import {
   buildFileUrl,
+  deletedResourceFileFields,
   generateFileName,
   isProcessableImage,
   isValidMimeType,
+  liveRecordFilter,
   parseRange,
   processImage,
   sizeInBytes
@@ -80,8 +82,9 @@ export class FileService {
     let file: File | null;
 
     try {
+      // The files a deleted resource keeps are retained, but no longer served
       file = (await this._db.client().file.findFirst({
-        where: { name: fileName }
+        where: { name: fileName, ...liveRecordFilter('File') }
       })) as File;
     } catch (e) {
       throw new HttpError(`File read error`, 500, e);
@@ -392,9 +395,8 @@ export class FileService {
   }
 
   /**
-   * Deletes all files associated with a resource for file fields configured
-   * with `onResourceDeleted: 'delete'`. Files belonging to fields without this
-   * setting (or set to `'keep'`) are left untouched.
+   * Deletes all files associated with a resource removed from the database,
+   * for the file fields not set to `onResourceDeleted: 'keep'`.
    *
    * @param {string} resourceName - The resource model name.
    * @param {ResourceId} id - The ID of the deleted resource.
@@ -404,18 +406,36 @@ export class FileService {
     resourceName: string,
     id: ResourceId
   ): Promise<File[]> {
+    return this.deleteResourcesFiles(resourceName, [id]);
+  }
+
+  /**
+   * Deletes all files associated with the given deleted resources of one model from the storage and the database. A
+   * resource removed from the database loses the files of every field not set to `onResourceDeleted: 'keep'`, while a
+   * soft deleted resource only loses the files of the fields set to `onResourceSoftDeleted: 'delete'`.
+   *
+   * @param {string} resourceName - The resource model name.
+   * @param {ResourceId[]} ids - The IDs of the deleted resources.
+   * @param {boolean} [softDeleted=false] - Whether the resources were soft deleted.
+   * @return {Promise<File[]>} A promise that resolves to the list of successfully deleted files.
+   */
+  public async deleteResourcesFiles(
+    resourceName: string,
+    ids: ResourceId[],
+    softDeleted: boolean = false
+  ): Promise<File[]> {
     // Owning ids are stored as text, whatever the model primary key type is
-    const resourceId = String(id);
+    const resourceIds = ids.map(String);
 
     const resourceModel = injectModel(resourceName, false);
-    if (!resourceModel) {
+    if (!resourceModel || resourceIds.length === 0) {
       return [];
     }
 
-    const filesConfig = resourceModel.config.files ?? {};
-    const deleteFields = Object.entries(filesConfig)
-      .filter(([_, config]) => config.onResourceDeleted !== 'keep')
-      .map(([field]) => field);
+    const { deleted: deleteFields } = deletedResourceFileFields(
+      resourceModel.config.files,
+      softDeleted
+    );
 
     if (deleteFields.length === 0) {
       return [];
@@ -426,13 +446,13 @@ export class FileService {
       files = (await this._db.client().file.findMany({
         where: {
           resourceName,
-          resourceId,
+          resourceId: { in: resourceIds },
           resourceField: { in: deleteFields }
         }
       })) as File[];
     } catch (e) {
       logger.error(
-        { resourceName, resourceId, error: e },
+        { resourceName, resourceIds, error: e },
         'Error finding resource files for deletion'
       );
       return [];
@@ -445,7 +465,7 @@ export class FileService {
         deletedFiles.push(file);
       } else {
         logger.error(
-          { resourceName, resourceId, fileName: file.name },
+          { resourceName, resourceId: file.resourceId, fileName: file.name },
           'Failed to delete file'
         );
       }
@@ -453,7 +473,7 @@ export class FileService {
 
     if (deletedFiles.length > 0) {
       logger.debug(
-        { resourceName, resourceId, deletedCount: deletedFiles.length },
+        { resourceName, resourceIds, deletedCount: deletedFiles.length },
         'Resource files deleted'
       );
     }

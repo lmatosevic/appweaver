@@ -773,6 +773,75 @@ describe('generate-schema', () => {
       expect(schema).not.toContain('createdById');
     });
 
+    test('adds the soft delete columns linked to the auth model', async () => {
+      const { schema } = await generate({
+        User: model('User', {}, true),
+        Post: model('Post', { softDelete: true })
+      });
+
+      const postModel = schema.slice(
+        schema.indexOf('model Post {'),
+        schema.indexOf('}', schema.indexOf('model Post {'))
+      );
+      expect(postModel).toMatch(/deletedAt\s+DateTime\?/);
+      expect(postModel).toContain(
+        '@relation("PostDeletedByUser", fields: [deletedById], references: [id])'
+      );
+      expect(postModel).toMatch(/deletedById\s+Int\?/);
+      // Indexes on the soft delete columns are left to the model config
+      expect(postModel).not.toContain('@@index');
+
+      const userModel = schema.slice(schema.indexOf('model User {'));
+      expect(userModel).toContain(
+        '/// Soft deleted models referenced with deletedById column'
+      );
+      expect(userModel).toMatch(
+        /deletedPosts\s+Post\[]\s+@relation\("PostDeletedByUser"\)/
+      );
+    });
+
+    test('adds only the deletion time without an auth model', async () => {
+      const { schema } = await generate({
+        Post: model('Post', { softDelete: true })
+      });
+
+      expect(schema).toMatch(/deletedAt\s+DateTime\?/);
+      expect(schema).not.toContain('deletedById');
+    });
+
+    test('skips the soft delete columns of the other models', async () => {
+      const { schema } = await generate({
+        User: model('User', {}, true),
+        Post: model('Post', {})
+      });
+
+      expect(schema).not.toContain('deletedAt');
+      expect(schema).not.toContain('deletedById');
+    });
+
+    test('fails when a soft deleted model cascades into one without soft delete', async () => {
+      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const { status } = await generate({
+        Post: model('Post', { softDelete: true }),
+        Comment: model('Comment', {
+          relations: {
+            post: {
+              model: 'Post',
+              type: 'oneToMany',
+              owner: true,
+              onDelete: 'cascade'
+            }
+          }
+        })
+      });
+
+      expect(status).toBe(2);
+      expect(error).toHaveBeenCalledWith(
+        "Model 'Comment' must enable 'softDelete', since its relation 'Comment.post' cascades on delete from the soft deleted model 'Post'."
+      );
+    });
+
     test('types the owning foreign key after the string id of the referenced model', async () => {
       const { schema } = await generate({
         User: model('User', { id: { type: 'string' } }),

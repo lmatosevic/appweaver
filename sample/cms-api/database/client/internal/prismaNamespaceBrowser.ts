@@ -103,7 +103,9 @@ export const CommentScalarFieldEnum = {
   attachmentId: 'attachmentId',
   updatedAt: 'updatedAt',
   createdAt: 'createdAt',
-  createdById: 'createdById'
+  createdById: 'createdById',
+  deletedAt: 'deletedAt',
+  deletedById: 'deletedById'
 } as const
 
 export type CommentScalarFieldEnum = (typeof CommentScalarFieldEnum)[keyof typeof CommentScalarFieldEnum]
@@ -147,7 +149,9 @@ export const PostScalarFieldEnum = {
   coverImageId: 'coverImageId',
   updatedAt: 'updatedAt',
   createdAt: 'createdAt',
-  createdById: 'createdById'
+  createdById: 'createdById',
+  deletedAt: 'deletedAt',
+  deletedById: 'deletedById'
 } as const
 
 export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum]
@@ -268,7 +272,9 @@ export const FileScalarFieldEnum = {
   resourceId: 'resourceId',
   updatedAt: 'updatedAt',
   createdAt: 'createdAt',
-  createdById: 'createdById'
+  createdById: 'createdById',
+  deletedAt: 'deletedAt',
+  deletedById: 'deletedById'
 } as const
 
 export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]

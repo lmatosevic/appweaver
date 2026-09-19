@@ -582,10 +582,6 @@ export type NullableEnumPageStatusFieldUpdateOperationsInput = {
   set?: $Enums.PageStatus | null
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
 }

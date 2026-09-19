@@ -6,6 +6,7 @@ import {
   isArray,
   isObject,
   isPlainObject,
+  isRelationArray,
   OutputType,
   pickProperties,
   RelationField,
@@ -15,6 +16,7 @@ import {
 import { injectModel } from '../../context';
 import { currentAuthUser } from '../../security';
 import { HttpError } from '../../errors';
+import { liveInclusionFilter } from './delete-util';
 
 /** Levels of a self referencing relation read when the relation configures no
  * `maxDepth`, i.e. the relation itself and nothing below it. */
@@ -71,7 +73,9 @@ export function mapRelationInclusions(
 
     if (relationField?.output?.count) {
       inclusion._count = inclusion._count ?? { select: {} };
-      inclusion._count.select[key] = true;
+      // Soft deleted related records are not counted
+      inclusion._count.select[key] =
+        liveInclusionFilter((relationField as RelationField).model) ?? true;
     }
 
     // Check if the relation should be included based on the output type
@@ -406,15 +410,15 @@ export function createdByConnect(
  * @param {ActionType} [action] - The action the inclusions are built for, matched against the configured output type
  * of every nested relation.
  * @param {number} [depth=1] - The level of the relation being resolved, counting the relation itself as the first.
- * @return {boolean|Object} True if the relation reads no further than itself, or the nested `include` clause
- * otherwise.
+ * @return {boolean|Object} True if the relation reads no further than itself, or its nested `include` clause, and
+ * for a list relation of a soft deleted model, the `where` clause skipping the deleted records.
  */
 function buildNestedInclusion(
   relationField: RelationField,
   key: string,
   action?: ActionType,
   depth: number = 1
-): boolean | { include: Record<string, any> } {
+): boolean | { include?: Record<string, any>; where?: Record<string, any> } {
   const nestedIncludeConfig = relationField?.output?.include;
   const nestedInclusion: Record<string, any> = {};
 
@@ -457,9 +461,22 @@ function buildNestedInclusion(
     );
   }
 
-  return Object.keys(nestedInclusion).length > 0
-    ? { include: nestedInclusion }
-    : true;
+  // A list relation reads only the related records that are not soft deleted,
+  // while a single relation is cleared of them after it is read
+  const liveFilter =
+    relatedModel && isRelationArray(relationField)
+      ? liveInclusionFilter(relatedModel.name)
+      : undefined;
+
+  const hasNested = Object.keys(nestedInclusion).length > 0;
+  if (!hasNested && !liveFilter) {
+    return true;
+  }
+
+  return {
+    ...(liveFilter ?? {}),
+    ...(hasNested ? { include: nestedInclusion } : {})
+  };
 }
 
 /**

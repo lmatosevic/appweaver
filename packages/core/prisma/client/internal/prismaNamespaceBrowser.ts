@@ -159,7 +159,8 @@ export const FileScalarFieldEnum = {
   resourceName: 'resourceName',
   resourceId: 'resourceId',
   updatedAt: 'updatedAt',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  deletedAt: 'deletedAt'
 } as const
 
 export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]

@@ -5,6 +5,7 @@ import { NodeEvents } from '../../events/node-events';
 import { HttpError } from '../../errors';
 import { createModel } from '../../factory/create-model';
 import { ResourceService } from '../../resource/resource-service';
+import { FileService } from '../../storage/file-service';
 import { resetContext } from '../fixtures/context-fixture';
 import { linkModels } from '../fixtures/model-fixture';
 import { createDatabaseStub, DatabaseStub } from '../fixtures/database-fixture';
@@ -1323,6 +1324,325 @@ describe('resource-service', () => {
       await service.delete(1);
 
       expect(handler).toHaveBeenCalled();
+    });
+  });
+
+  describe('soft delete', () => {
+    let deleteResourcesFiles: jest.Mock;
+
+    const defineSoftDeleteModels = (postSoftDelete: boolean) => {
+      createModel({ name: 'File', softDelete: true });
+      createModel({ name: 'User', scalars: { email: { type: 'string' } } });
+      createModel({ name: 'Tag', softDelete: true });
+      createModel(
+        {
+          name: 'Post',
+          softDelete: postSoftDelete,
+          scalars: { title: { type: 'string' } },
+          files: { cover: {} },
+          relations: {
+            author: {
+              model: 'User',
+              type: 'oneToMany',
+              owner: true,
+              required: false
+            },
+            tags: { model: 'Tag', type: 'manyToMany' },
+            comments: {
+              model: 'Comment',
+              type: 'oneToMany',
+              mappedBy: 'post',
+              orphanRemoval: true,
+              output: { type: 'none' }
+            }
+          }
+        },
+        true
+      );
+      createModel({
+        name: 'Comment',
+        softDelete: postSoftDelete,
+        files: { attachment: {} },
+        relations: {
+          post: {
+            model: 'Post',
+            type: 'oneToMany',
+            owner: true,
+            mappedBy: 'comments',
+            onDelete: 'cascade'
+          }
+        }
+      });
+      linkModels();
+    };
+
+    const setup = (postSoftDelete: boolean = true) => {
+      resetContext();
+
+      db = createDatabaseStub(['Post', 'User', 'Tag', 'Comment', 'File']);
+      define(db.database, Database as any);
+      define(events, Events as any);
+      define({ invalidateCache }, CacheService);
+
+      deleteResourcesFiles = jest.fn().mockResolvedValue([]);
+      define({ deleteResourcesFiles }, FileService);
+
+      defineSoftDeleteModels(postSoftDelete);
+
+      service = new PostService();
+
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+      db.setResult('Post', 'update', ({ data }: any) => ({
+        id: 1,
+        title: 'First',
+        ...data
+      }));
+      db.setResult('Post', 'delete', { id: 1, title: 'First' });
+      db.setResult('Comment', 'findMany', [{ id: 10 }, { id: 11 }]);
+    };
+
+    beforeEach(() => {
+      setup();
+    });
+
+    test('finds only a record that is not soft deleted', async () => {
+      await service.find(1);
+
+      expect(db.lastQuery('findFirst').args.where).toEqual({
+        id: 1,
+        deletedAt: null
+      });
+    });
+
+    test('queries only the records that are not soft deleted', async () => {
+      db.setResult('Post', 'findMany', []);
+      db.setResult('Post', 'count', 0);
+
+      await service.query({ title: 'First' });
+
+      expect(db.lastQuery('findMany').args.where.AND).toEqual([
+        { title: 'First' },
+        {},
+        {},
+        { deletedAt: null }
+      ]);
+    });
+
+    test('aggregates only the records that are not soft deleted', async () => {
+      db.setResult('Post', 'aggregate', { _count: { id: 1 } });
+
+      await service.aggregate({}, { id: { count: true } } as any);
+
+      expect(db.lastQuery('aggregate').args.where.AND[0].AND).toContainEqual({
+        deletedAt: null
+      });
+    });
+
+    test('updates only a record that is not soft deleted', async () => {
+      await service.update(1, { title: 'Second' });
+
+      expect(db.lastQuery('findFirst').args.where).toEqual({
+        id: 1,
+        deletedAt: null
+      });
+    });
+
+    test('marks the record deleted instead of removing it', async () => {
+      const post = await service.delete(1);
+
+      expect(db.queries.some((query) => query.method === 'delete')).toBe(false);
+      expect(db.lastQuery('update').args).toEqual({
+        where: { id: 1 },
+        data: { deletedAt: expect.any(Date) }
+      });
+      expect(post).toMatchObject({ id: 1, title: 'First' });
+    });
+
+    test('loads the record with its relations before marking it', async () => {
+      await service.delete(1);
+
+      expect(db.queries[0].args).toEqual({
+        where: { id: 1, deletedAt: null },
+        include: expect.objectContaining({ author: true })
+      });
+    });
+
+    test('soft deletes the cascading records with the same values', async () => {
+      await service.delete(1);
+
+      const { data } = db.lastQuery('update').args;
+      expect(
+        db.queries.find(
+          (query) => query.method === 'updateMany' && query.model === 'Comment'
+        )
+      ).toEqual({
+        model: 'Comment',
+        method: 'updateMany',
+        args: { where: { id: { in: [10, 11] } }, data }
+      });
+    });
+
+    test('invalidates the cache of every affected model', async () => {
+      await service.delete(1);
+
+      expect(invalidateCache).toHaveBeenCalledWith('Post', 'delete');
+      expect(invalidateCache).toHaveBeenCalledWith('Comment', 'delete');
+    });
+
+    test('retains the files of the soft deleted records with the same values', async () => {
+      await service.delete(1);
+
+      const { data } = db.lastQuery('update').args;
+      const retained = db.queries
+        .filter((query) => query.model === 'File')
+        .map((query) => query.args);
+      expect(retained).toHaveLength(2);
+      expect(retained).toEqual(
+        expect.arrayContaining([
+          {
+            where: expect.objectContaining({
+              resourceName: 'Post',
+              resourceId: { in: ['1'] },
+              resourceField: { in: ['cover'] }
+            }),
+            data
+          },
+          {
+            where: expect.objectContaining({
+              resourceName: 'Comment',
+              resourceId: { in: ['10', '11'] },
+              resourceField: { in: ['attachment'] }
+            }),
+            data
+          }
+        ])
+      );
+    });
+
+    test('keeps the deleted record when its model cascades into itself', async () => {
+      createModel(
+        {
+          name: 'Post',
+          softDelete: true,
+          files: { cover: {} },
+          relations: {
+            parent: {
+              model: 'Post',
+              type: 'oneToMany',
+              owner: true,
+              required: false,
+              onDelete: 'cascade'
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+      db.setResult('Post', 'findMany', ({ where }: any) =>
+        where.parentId.in.includes(1) ? [{ id: 2 }] : []
+      );
+
+      await service.delete(1);
+
+      const retained = db.queries.find(
+        (query) =>
+          query.model === 'File' && query.args.where.resourceName === 'Post'
+      );
+      expect(retained?.args.where.resourceId.in.sort()).toEqual(['1', '2']);
+    });
+
+    test('retains no files a database delete removes', async () => {
+      setup(false);
+
+      await service.delete(1);
+
+      expect(db.queries.some((query) => query.model === 'File')).toBe(false);
+    });
+
+    test('cleans up the files of the soft deleted records', async () => {
+      await service.delete(1);
+
+      // Each file field decides on its own whether a soft delete removes it
+      expect(deleteResourcesFiles).toHaveBeenCalledWith('Post', [1], true);
+      expect(deleteResourcesFiles).toHaveBeenCalledWith(
+        'Comment',
+        [10, 11],
+        true
+      );
+    });
+
+    test('removes the files of the records a database delete cascades to', async () => {
+      setup(false);
+
+      await service.delete(1);
+
+      expect(db.lastQuery('delete').args.where).toEqual({ id: 1 });
+      expect(deleteResourcesFiles).toHaveBeenCalledWith('Post', [1], false);
+      expect(deleteResourcesFiles).toHaveBeenCalledWith(
+        'Comment',
+        [10, 11],
+        false
+      );
+      expect(invalidateCache).toHaveBeenCalledWith('Comment', 'delete');
+    });
+
+    test('soft deletes the orphans of a soft deleted model on update', async () => {
+      db.setResult('Post', 'findFirst', { id: 1, comments: [{ id: 10 }] });
+      db.setResult('Comment', 'findMany', [{ id: 10 }]);
+
+      await service.update(1, { comments: [] });
+
+      expect(
+        db.queries.find(
+          (query) => query.method === 'updateMany' && query.model === 'Comment'
+        )
+      ).toMatchObject({ args: { where: { id: { in: [10] } } } });
+      expect(db.lastQuery('update').args.data.comments).toBeUndefined();
+      expect(invalidateCache).toHaveBeenCalledWith('Comment', 'delete');
+      expect(deleteResourcesFiles).toHaveBeenCalledWith('Comment', [10], true);
+    });
+
+    test('removes the files of the orphans an update deletes', async () => {
+      setup(false);
+      db.setResult('Post', 'findFirst', { id: 1, comments: [{ id: 10 }] });
+      db.setResult('Comment', 'findMany', [{ id: 10 }]);
+
+      await service.update(1, { comments: [] });
+
+      expect(db.lastQuery('update').args.data.comments).toEqual({
+        delete: [{ id: 10 }]
+      });
+      expect(deleteResourcesFiles).toHaveBeenCalledWith('Comment', [10], false);
+      expect(invalidateCache).toHaveBeenCalledWith('Comment', 'delete');
+    });
+
+    test('hides a soft deleted single relation from the output', async () => {
+      createModel(
+        {
+          name: 'User',
+          softDelete: true,
+          scalars: { email: { type: 'string' } }
+        },
+        true
+      );
+      linkModels();
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        author: { id: 2, deletedAt: new Date() }
+      });
+
+      const post = await service.find(1);
+
+      expect(post.author).toBeNull();
+    });
+
+    test('rejects a connect to a soft deleted related record', async () => {
+      db.setResult('Tag', 'count', 1);
+
+      await expect(
+        service.create({ title: 'New', tags: [5] })
+      ).rejects.toMatchObject({ statusCode: 400 });
+      expect(db.queries.some((query) => query.method === 'create')).toBe(false);
     });
   });
 

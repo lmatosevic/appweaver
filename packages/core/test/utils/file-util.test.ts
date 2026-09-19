@@ -1,5 +1,6 @@
 import { ResourceModel } from '@appweaver/common';
 import {
+  deletedResourceFileFields,
   generateFileName,
   sanitizeFilename,
   sanitizeFileSegment,
@@ -143,6 +144,35 @@ describe('file-util', () => {
         } as unknown as Record<string, ResourceModel>)
       ).not.toThrow();
       expect(() => validateFileNamePatterns({})).not.toThrow();
+    });
+  });
+
+  describe('deletedResourceFileFields', () => {
+    const files = {
+      avatar: {},
+      contract: { onResourceDeleted: 'keep' as const },
+      idScan: { onResourceSoftDeleted: 'delete' as const }
+    };
+
+    test('removes the files by default on a database delete', () => {
+      expect(deletedResourceFileFields(files, false)).toEqual({
+        deleted: ['avatar', 'idScan'],
+        kept: ['contract']
+      });
+    });
+
+    test('keeps the files by default on a soft delete', () => {
+      expect(deletedResourceFileFields(files, true)).toEqual({
+        deleted: ['idScan'],
+        kept: ['avatar', 'contract']
+      });
+    });
+
+    test('returns no fields for a model without files', () => {
+      expect(deletedResourceFileFields(undefined, true)).toEqual({
+        deleted: [],
+        kept: []
+      });
     });
   });
 });

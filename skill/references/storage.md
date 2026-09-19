@@ -328,11 +328,30 @@ await fileService.deleteFile(
 
 ### Deleting all files on resource deletion
 
-When a resource is deleted, files belonging to file fields configured with `onResourceDeleted: 'delete'` can be
-automatically cleaned up. This is handled by `deleteResourceFiles()`, which is called automatically by the framework's
-delete route handler.
+When a resource is deleted, its stored files are cleaned up automatically, as configured per file field:
 
-To enable automatic file cleanup, set `onResourceDeleted: 'delete'` on the file field in your model config:
+| Option                  | Applies to                                   | Default    |
+|-------------------------|----------------------------------------------|------------|
+| `onResourceDeleted`     | A resource removed from the database         | `'delete'` |
+| `onResourceSoftDeleted` | A soft deleted resource (model `softDelete`) | `'keep'`   |
+
+Both options behave the same way:
+
+- `'delete'` removes the file from the storage and its `File` row from the database.
+- `'keep'` retains the file in the storage and its `File` row in the database, e.g. for audit, but never serves it
+  again: the row is soft deleted with the same `deletedAt` and `deletedById` values as its resource, and downloads
+  respond with 404 whatever the file access type is.
+
+The resource service `delete` method removes them once the delete commits, whether it is called by the delete route or
+directly from code, together with the files of every record deleted with it through an `onDelete: 'cascade'` relation.
+The same happens to the orphans an `update` deletes through a relation with `orphanRemoval: true`.
+
+The kept files are marked in the same transaction as the delete, while the removed ones leave the storage once it
+commits. A model with `softDelete` enabled keeps the files of its deleted records by default, so a manual restore loses
+nothing; set `onResourceSoftDeleted: 'delete'` on a field to remove its files on a soft delete too.
+
+The framework never removes kept files by itself. Purging them after a retention period is up to the application, e.g.
+with a scheduled job removing the `File` rows with an old `deletedAt` and their stored files.
 
 ```ts
 const config = {
@@ -343,16 +362,20 @@ const config = {
     },
     documents: {
       array: true,
-      onResourceDeleted: 'keep' // opt out: files are kept
+      onResourceDeleted: 'keep' // opt out: files are retained, but no longer served
+    },
+    idScan: {
+      onResourceSoftDeleted: 'delete' // also removed when the resource is soft deleted
     }
   }
 };
 ```
 
-You can also call `deleteResourceFiles` manually if needed:
+You can also call `deleteResourceFiles` manually if needed, or `deleteResourcesFiles` for many records of one model:
 
 ```ts
 await fileService.deleteResourceFiles('Post', postId);
+await fileService.deleteResourcesFiles('Post', [firstId, secondId]);
 ```
 
 ### Owning resource reference

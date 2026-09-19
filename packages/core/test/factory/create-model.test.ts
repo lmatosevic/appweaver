@@ -324,6 +324,54 @@ describe('create-model', () => {
     });
   });
 
+  describe('soft delete fields', () => {
+    test('types the soft delete columns on the model as hidden fields', () => {
+      authModel({ type: 'int' });
+      const model = createModel({ name: 'Post', softDelete: true });
+
+      expect(properties(model.readModel).deletedAt).toMatchObject({
+        format: 'date-time',
+        nullable: true,
+        hidden: true
+      });
+      expect(properties(model.readModel).deletedById).toMatchObject({
+        type: 'integer',
+        nullable: true,
+        hidden: true
+      });
+    });
+
+    test('keeps the soft delete columns out of every request and response', () => {
+      authModel({ type: 'int' });
+      const model = createModel({ name: 'Post', softDelete: true });
+
+      for (const schema of [
+        model.readOneModel,
+        model.readManyModel,
+        model.createOneModel,
+        model.updateOneModel
+      ]) {
+        expect(keys(schema)).not.toContain('deletedAt');
+        expect(keys(schema)).not.toContain('deletedById');
+      }
+    });
+
+    test('types only the deletion time without an auth model', () => {
+      const model = createModel({ name: 'Post', softDelete: true });
+
+      expect(keys(model.readModel)).toContain('deletedAt');
+      expect(keys(model.readModel)).not.toContain('deletedById');
+    });
+
+    test('adds no soft delete columns to the other models', () => {
+      authModel({ type: 'int' });
+      const model = createModel({ name: 'Post' });
+
+      expect(keys(model.readModel)).not.toContain('deletedAt');
+      expect(keys(model.readModel)).not.toContain('deletedById');
+    });
+  });
+
   describe('operation restrictions', () => {
     test('picks only the configured read fields', () => {
       const model = createModel({

@@ -9,6 +9,7 @@ import {
   Events,
   extractResourceName,
   extractSchemaProperties,
+  hasSoftDelete,
   IResourceService,
   isArray,
   isPlainObject,
@@ -23,16 +24,22 @@ import {
   uncapitalize
 } from '@appweaver/common';
 import { inject, injectModel } from '../context';
-import { projectVirtualFields } from '../utils';
+import { liveRecordFilter, projectVirtualFields } from '../utils';
 import { PrismaDatabase } from '../database';
 import { CacheService } from '../cache';
 import { HttpError } from '../errors';
+import { FileService } from '../storage';
 import {
+  AffectedRecords,
   aggregationRecordCount,
+  assertLiveRelationTargets,
   buildAggregationPeriods,
+  cascadedRecords,
   checkAggregationDateField,
   createdByConnect,
   decodeCursor,
+  DeletedRecords,
+  hideDeletedRelations,
   mapAggregationResult,
   mapAggregationSelect,
   mapQueryFilter,
@@ -40,8 +47,13 @@ import {
   mapRelationActions,
   mapRelationInclusions,
   mapStableSortValues,
+  mergeAffectedRecords,
   pageCursors,
-  queryFingerprint
+  queryFingerprint,
+  removeOrphans,
+  retainDeletedFiles,
+  softDeleteCascade,
+  softDeleteData
 } from './utils';
 
 export abstract class ResourceService<
@@ -108,7 +120,7 @@ export abstract class ResourceService<
     let resource: ReadOne;
     try {
       resource = await this._client.findFirst({
-        where: { id, ...restrictions },
+        where: { id, ...restrictions, ...liveRecordFilter(this._client.name) },
         include: includeRelations
       });
     } catch (e) {
@@ -178,8 +190,9 @@ export abstract class ResourceService<
     const restrictions = await this.readRestrictions('query', filter);
     const textSearch = this.extractTextSearchQuery(filter);
     const mappedFilter = mapQueryFilter(filter, this._client.name);
-
-    const query = { AND: [mappedFilter, textSearch, restrictions] };
+    const query = {
+      AND: [mappedFilter, textSearch, restrictions, ...this.liveFilters()]
+    };
     const includeRelations = mapRelationInclusions(this._client.name, 'query');
     const orderBy = mapStableSortValues(sort, this._client.name, 'query');
 
@@ -300,8 +313,9 @@ export abstract class ResourceService<
     const restrictions = await this.readRestrictions('aggregate', filter);
     const textSearch = this.extractTextSearchQuery(filter);
     const mappedFilter = mapQueryFilter(filter, this._client.name);
-
-    const query = { AND: [mappedFilter, textSearch, restrictions] };
+    const query = {
+      AND: [mappedFilter, textSearch, restrictions, ...this.liveFilters()]
+    };
 
     const rangeQuery = (rangeFrom: Date, rangeTo: Date) => ({
       AND: [query, { [dateField]: { gte: rangeFrom, lt: rangeTo } }]
@@ -407,6 +421,12 @@ export abstract class ResourceService<
     );
     const includeRelations = mapRelationInclusions(this._client.name, 'create');
 
+    await assertLiveRelationTargets(
+      this._db.client(),
+      this._client.name,
+      connectRelations
+    );
+
     let resource: ReadOne;
     try {
       resource = await this._client.create({
@@ -435,9 +455,9 @@ export abstract class ResourceService<
    * the read restrictions applied and checked for access, then updated with the
    * data merged with the write restrictions inside a single transaction.
    * Relations missing from the new value are disconnected, or deleted when
-   * `orphanRemoval` is configured for them. The resource cache is invalidated
-   * and a resource event carrying both the previous and the current state is
-   * emitted after a successful update.
+   * `orphanRemoval` is configured for them, the same way a delete does. The resource cache is invalidated and a
+   * resource event carrying both the previous and the current state is emitted
+   * after a successful update.
    *
    * @param {ResourceId} id The id of the resource to update.
    * @param {Object} data The partial data to update the resource with, including
@@ -447,7 +467,8 @@ export abstract class ResourceService<
    * @throws {@link HttpError} 404 if the resource does not exist or is filtered
    * out by the read restrictions, 403 if the access check denies the action, 400
    * if an inline relation payload is missing required fields or the relation
-   * does not accept new records, and 500 on a database error.
+   * does not accept new records, 409 if a live record references a soft
+   * deleted orphan through a restricting relation, and 500 on a database error.
    */
   public async update(id: ResourceId, data: Update): Promise<ReadOne> {
     const readRestrictions = await this.readRestrictions('update', {
@@ -471,14 +492,19 @@ export abstract class ResourceService<
 
     let updateResource: ReadOne;
     let resource: ReadOne;
+    let orphans: DeletedRecords;
     try {
-      [updateResource, resource] = await this._db
+      [updateResource, resource, orphans] = await this._db
         .client()
         .$transaction(async (tx) => {
           const txModel = tx[this._client.name];
 
           const current = await txModel.findFirst({
-            where: { id, ...readRestrictions },
+            where: {
+              id,
+              ...readRestrictions,
+              ...liveRecordFilter(this._client.name)
+            },
             include: includeRelations
           });
           if (!current || current.id !== id) {
@@ -500,13 +526,26 @@ export abstract class ResourceService<
             current
           );
 
+          await assertLiveRelationTargets(tx, this._client.name, setRelations);
+
+          // Soft deleted orphans are marked before the update reads the
+          // relations back, so the response no longer holds them
+          const deleteData = softDeleteData();
+          const removed = await removeOrphans(
+            tx,
+            this._client.name,
+            setRelations,
+            deleteData
+          );
+          await retainDeletedFiles(tx, removed, deleteData);
+
           const updated = await txModel.update({
             where: { id },
             include: includeRelations,
             data: { ...sanitizedData, ...setRelations }
           });
 
-          return [current, updated];
+          return [current, updated, removed];
         });
     } catch (e) {
       if (e instanceof HttpError) {
@@ -516,6 +555,7 @@ export abstract class ResourceService<
     }
 
     await this._cacheService.invalidateCache(this._client.name, 'update');
+    await this.cleanupDeletedRecords(orphans);
 
     this._events.emitResourceEvent(this._client.name, 'update', {
       previous: updateResource,
@@ -528,26 +568,45 @@ export abstract class ResourceService<
   /**
    * Deletes an existing resource by its id. The current record is loaded with
    * the read restrictions applied and checked for access before it is deleted
-   * inside a single transaction. The resource cache is invalidated and a
-   * resource event is emitted after a successful delete.
+   * inside a single transaction.
+   *
+   * A model with `softDelete` enabled marks the record with the `deletedAt`
+   * and `deletedById` columns instead, soft deleting its cascade as well.
+   *
+   * The stored files of the deleted records follow the `onResourceDeleted`, or
+   * for soft deleted records the `onResourceSoftDeleted`, option of each file
+   * field: kept files are marked deleted in the transaction and no longer
+   * served, the others are removed once it commits. The cache of every affected
+   * model is invalidated and a resource event is emitted.
    *
    * @param {ResourceId} id The id of the resource to delete.
    * @returns {Promise<Object>} The deleted resource with its virtual fields and
    * relation counts projected.
    * @throws {@link HttpError} 404 if the resource does not exist or is filtered
-   * out by the read restrictions, 403 if the access check denies the action, and
-   * 500 on a database error.
+   * out by the read restrictions, 403 if the access check denies it, 409 if a
+   * restricting relation still references a soft deleted resource, and 500 on a
+   * database error, a restricting relation of a removed resource included.
    */
   public async delete(id: ResourceId): Promise<ReadOne> {
     const restrictions = await this.readRestrictions('delete', id);
+    const softDelete = hasSoftDelete(injectModel(this._client.name).config);
+    const includeRelations = mapRelationInclusions(this._client.name, 'delete');
 
     let resource: ReadOne;
+    let deleted: DeletedRecords;
     try {
-      resource = await this._db.client().$transaction(async (tx) => {
+      [resource, deleted] = await this._db.client().$transaction(async (tx) => {
         const txModel = tx[this._client.name];
 
+        // A soft deleted record is read with its relations up front, as a
+        // database delete returns them before the cascade removes them
         const current = await txModel.findFirst({
-          where: { id, ...restrictions }
+          where: {
+            id,
+            ...restrictions,
+            ...liveRecordFilter(this._client.name)
+          },
+          include: softDelete ? includeRelations : undefined
         });
         if (!current || current.id !== id) {
           throw new HttpError(`${this._client.name} data not found`, 404);
@@ -561,15 +620,30 @@ export abstract class ResourceService<
           );
         }
 
-        const includeRelations = mapRelationInclusions(
-          this._client.name,
-          'delete'
-        );
+        const data = softDeleteData();
 
-        return await txModel.delete({
-          where: { id },
-          include: includeRelations
-        });
+        let result: ReadOne;
+        let records: AffectedRecords;
+        if (softDelete) {
+          records = await softDeleteCascade(tx, this._client.name, [id], data);
+          const updated = await txModel.update({ where: { id }, data });
+          result = { ...current, ...updated };
+        } else {
+          records = await cascadedRecords(tx, this._client.name, [id]);
+          result = await txModel.delete({
+            where: { id },
+            include: includeRelations
+          });
+        }
+
+        // Merged rather than spread, since a self cascade holds the same model
+        mergeAffectedRecords(records, { [this._client.name]: [id] });
+        const removed: DeletedRecords = softDelete
+          ? { soft: records, hard: {} }
+          : { soft: {}, hard: records };
+
+        await retainDeletedFiles(tx, removed, data);
+        return [result, removed];
       });
     } catch (e) {
       if (e instanceof HttpError) {
@@ -578,7 +652,7 @@ export abstract class ResourceService<
       throw new HttpError(`${this._client.name} delete error`, 500, e);
     }
 
-    await this._cacheService.invalidateCache(this._client.name, 'delete');
+    await this.cleanupDeletedRecords(deleted);
 
     this._events.emitResourceEvent(this._client.name, 'delete', {
       current: resource
@@ -710,7 +784,10 @@ export abstract class ResourceService<
    * and the `_count` property removed.
    */
   private projectResource<T>(resource: T): T {
-    const projectedResource = projectVirtualFields(resource, this._client.name);
+    const projectedResource = projectVirtualFields(
+      hideDeletedRelations(resource, this._client.name),
+      this._client.name
+    );
 
     if (!isPlainObject(projectedResource['_count'])) {
       return projectedResource;
@@ -724,6 +801,41 @@ export abstract class ResourceService<
     delete projectedResource['_count'];
 
     return projectedResource;
+  }
+
+  /**
+   * Lists the conditions hiding the soft deleted resources from a query. It is
+   * empty for a model that deletes its records, so its query and the cursors
+   * bound to it stay the same.
+   *
+   * @returns {Object[]} The `deletedAt: null` condition, or no condition.
+   */
+  private liveFilters(): Record<string, any>[] {
+    const liveFilter = liveRecordFilter(this._client.name);
+    return Object.keys(liveFilter).length > 0 ? [liveFilter] : [];
+  }
+
+  /**
+   * Cleans up after records were deleted, once the deleting transaction
+   * commits: removes the stored files their fields do not keep, since the
+   * storage cannot take part in the transaction, and invalidates the cache of
+   * every model they belong to.
+   *
+   * @param {DeletedRecords} deleted The soft deleted and the removed records.
+   */
+  private async cleanupDeletedRecords(deleted: DeletedRecords): Promise<void> {
+    const fileService = inject(FileService, false);
+    const groups: [boolean, AffectedRecords][] = [
+      [true, deleted.soft],
+      [false, deleted.hard]
+    ];
+
+    for (const [softDeleted, records] of groups) {
+      for (const [modelName, ids] of Object.entries(records)) {
+        await fileService?.deleteResourcesFiles(modelName, ids, softDeleted);
+        await this._cacheService.invalidateCache(modelName, 'delete');
+      }
+    }
   }
 
   /**

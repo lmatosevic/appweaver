@@ -125,6 +125,10 @@ npm run db:recreate   # drop dev.db, remove the *_init migration and recreate it
 A stale `prisma/client` makes Prisma reject writes with a misleading "Unknown argument" naming an *unrelated* field
 (usually `createdById`) — suspect regeneration before the calling code.
 
+`weaver generate` loads the core models from the built `node_modules/@appweaver/core`, not from source, so run
+`npm run build` before `npm run generate` (if the build fails on the stale types, it still emits: run
+`node tools/copy-packages.js`, generate, then build again).
+
 Downstream sample projects need the same refresh; in `sample/cms-api` use `npm run generate` then
 `weaver migration new <name>`, since it keeps a real migration history.
 

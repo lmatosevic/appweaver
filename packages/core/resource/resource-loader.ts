@@ -15,7 +15,11 @@ import {
   ResourceRoutes,
   relinkResourceModels
 } from '@appweaver/common';
-import { validateFileNamePatterns, validateScalarDefaults } from '../utils';
+import {
+  validateFileNamePatterns,
+  validateScalarDefaults,
+  validateSoftDeleteCascades
+} from '../utils';
 import { ResourceContext } from '../types';
 
 export type LoadResourcePaths = {
@@ -99,6 +103,10 @@ async function loadModels(
   // Reject file name patterns writing into a reserved storage path before any
   // upload can reach the storage layer.
   validateFileNamePatterns(models);
+
+  // Reject a cascade from a soft deleted model into one that removes its
+  // records, since the database cascade never runs on a soft delete
+  validateSoftDeleteCascades(models);
 
   // Map model variants to schemas using their corresponding suffixes
   const resourceModels: Record<string, TSchema> = {};

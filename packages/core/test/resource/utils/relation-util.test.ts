@@ -172,5 +172,61 @@ describe('relation-util', () => {
         coverImage: true
       });
     });
+
+    describe('soft deleted relations', () => {
+      beforeEach(() => {
+        createModel({ name: 'User', softDelete: true });
+        createModel({ name: 'Tag', softDelete: true });
+        createModel({
+          name: 'Comment',
+          softDelete: true,
+          relations: {
+            post: {
+              model: 'Post',
+              type: 'oneToMany',
+              owner: true,
+              mappedBy: 'comments'
+            },
+            tags: { model: 'Tag', type: 'manyToMany' }
+          }
+        });
+        createModel({
+          name: 'Post',
+          relations: {
+            author: { model: 'User', type: 'oneToMany', owner: true },
+            comments: {
+              model: 'Comment',
+              type: 'oneToMany',
+              mappedBy: 'post',
+              output: {
+                type: 'always',
+                count: true,
+                include: { tags: { type: 'always' } }
+              }
+            }
+          }
+        });
+        linkModels();
+      });
+
+      test('reads only the live records of a list relation', () => {
+        expect(mapRelationInclusions('Post', 'find')).toMatchObject({
+          comments: {
+            where: { deletedAt: null },
+            include: { tags: { where: { deletedAt: null } } }
+          }
+        });
+      });
+
+      test('counts only the live related records', () => {
+        expect(mapRelationInclusions('Post', 'find')._count).toEqual({
+          select: { comments: { where: { deletedAt: null } } }
+        });
+      });
+
+      test('includes a single relation unfiltered', () => {
+        expect(mapRelationInclusions('Post', 'find').author).toBe(true);
+      });
+    });
   });
 });

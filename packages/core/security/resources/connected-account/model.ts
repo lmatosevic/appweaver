@@ -11,6 +11,8 @@ const shouldCreateModel =
 export default shouldCreateModel
   ? createModel({
       name: 'ConnectedAccount',
+      // Cascades from the auth model, so it is soft deleted together with it
+      softDelete: !!authModel?.config.softDelete,
       audit: {
         createdById: false
       },

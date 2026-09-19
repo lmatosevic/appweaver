@@ -73,7 +73,8 @@ CREATE TABLE "File" (
     "resourceName" TEXT,
     "resourceId" TEXT,
     "updatedAt" DATETIME NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deletedAt" DATETIME
 );
 
 -- CreateTable

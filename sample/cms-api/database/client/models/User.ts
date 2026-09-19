@@ -344,6 +344,9 @@ export type UserWhereInput = {
   createdRoles?: Prisma.RoleListRelationFilter
   createdPermissions?: Prisma.PermissionListRelationFilter
   createdFiles?: Prisma.FileListRelationFilter
+  deletedComments?: Prisma.CommentListRelationFilter
+  deletedPosts?: Prisma.PostListRelationFilter
+  deletedFiles?: Prisma.FileListRelationFilter
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
@@ -382,6 +385,9 @@ export type UserOrderByWithRelationInput = {
   createdRoles?: Prisma.RoleOrderByRelationAggregateInput
   createdPermissions?: Prisma.PermissionOrderByRelationAggregateInput
   createdFiles?: Prisma.FileOrderByRelationAggregateInput
+  deletedComments?: Prisma.CommentOrderByRelationAggregateInput
+  deletedPosts?: Prisma.PostOrderByRelationAggregateInput
+  deletedFiles?: Prisma.FileOrderByRelationAggregateInput
   createdBy?: Prisma.UserOrderByWithRelationInput
 }
 
@@ -423,6 +429,9 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   createdRoles?: Prisma.RoleListRelationFilter
   createdPermissions?: Prisma.PermissionListRelationFilter
   createdFiles?: Prisma.FileListRelationFilter
+  deletedComments?: Prisma.CommentListRelationFilter
+  deletedPosts?: Prisma.PostListRelationFilter
+  deletedFiles?: Prisma.FileListRelationFilter
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id" | "email" | "avatarId">
 
@@ -508,6 +517,9 @@ export type UserCreateInput = {
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -545,6 +557,9 @@ export type UserUncheckedCreateInput = {
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserUpdateInput = {
@@ -579,6 +594,9 @@ export type UserUpdateInput = {
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -616,6 +634,9 @@ export type UserUncheckedUpdateInput = {
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -795,6 +816,12 @@ export type UserCreateNestedOneWithoutCreatedCommentsInput = {
   connect?: Prisma.UserWhereUniqueInput
 }
 
+export type UserCreateNestedOneWithoutDeletedCommentsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeletedCommentsInput, Prisma.UserUncheckedCreateWithoutDeletedCommentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeletedCommentsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
 export type UserUpdateOneWithoutCreatedCommentsNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedCommentsInput, Prisma.UserUncheckedCreateWithoutCreatedCommentsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedCommentsInput
@@ -803,6 +830,16 @@ export type UserUpdateOneWithoutCreatedCommentsNestedInput = {
   delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreatedCommentsInput, Prisma.UserUpdateWithoutCreatedCommentsInput>, Prisma.UserUncheckedUpdateWithoutCreatedCommentsInput>
+}
+
+export type UserUpdateOneWithoutDeletedCommentsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeletedCommentsInput, Prisma.UserUncheckedCreateWithoutDeletedCommentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeletedCommentsInput
+  upsert?: Prisma.UserUpsertWithoutDeletedCommentsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDeletedCommentsInput, Prisma.UserUpdateWithoutDeletedCommentsInput>, Prisma.UserUncheckedUpdateWithoutDeletedCommentsInput>
 }
 
 export type UserCreateNestedOneWithoutPagesInput = {
@@ -849,6 +886,12 @@ export type UserCreateNestedOneWithoutCreatedPostsInput = {
   connect?: Prisma.UserWhereUniqueInput
 }
 
+export type UserCreateNestedOneWithoutDeletedPostsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeletedPostsInput, Prisma.UserUncheckedCreateWithoutDeletedPostsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeletedPostsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
 export type UserUpdateOneWithoutPostsNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutPostsInput, Prisma.UserUncheckedCreateWithoutPostsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutPostsInput
@@ -867,6 +910,16 @@ export type UserUpdateOneWithoutCreatedPostsNestedInput = {
   delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreatedPostsInput, Prisma.UserUpdateWithoutCreatedPostsInput>, Prisma.UserUncheckedUpdateWithoutCreatedPostsInput>
+}
+
+export type UserUpdateOneWithoutDeletedPostsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeletedPostsInput, Prisma.UserUncheckedCreateWithoutDeletedPostsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeletedPostsInput
+  upsert?: Prisma.UserUpsertWithoutDeletedPostsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDeletedPostsInput, Prisma.UserUpdateWithoutDeletedPostsInput>, Prisma.UserUncheckedUpdateWithoutDeletedPostsInput>
 }
 
 export type UserCreateNestedOneWithoutCreatedTagsInput = {
@@ -1074,6 +1127,12 @@ export type UserCreateNestedOneWithoutCreatedFilesInput = {
   connect?: Prisma.UserWhereUniqueInput
 }
 
+export type UserCreateNestedOneWithoutDeletedFilesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeletedFilesInput, Prisma.UserUncheckedCreateWithoutDeletedFilesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeletedFilesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
 export type UserUncheckedCreateNestedManyWithoutAvatarInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutAvatarInput, Prisma.UserUncheckedCreateWithoutAvatarInput> | Prisma.UserCreateWithoutAvatarInput[] | Prisma.UserUncheckedCreateWithoutAvatarInput[]
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutAvatarInput | Prisma.UserCreateOrConnectWithoutAvatarInput[]
@@ -1103,6 +1162,16 @@ export type UserUpdateOneWithoutCreatedFilesNestedInput = {
   delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreatedFilesInput, Prisma.UserUpdateWithoutCreatedFilesInput>, Prisma.UserUncheckedUpdateWithoutCreatedFilesInput>
+}
+
+export type UserUpdateOneWithoutDeletedFilesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeletedFilesInput, Prisma.UserUncheckedCreateWithoutDeletedFilesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeletedFilesInput
+  upsert?: Prisma.UserUpsertWithoutDeletedFilesInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDeletedFilesInput, Prisma.UserUpdateWithoutDeletedFilesInput>, Prisma.UserUncheckedUpdateWithoutDeletedFilesInput>
 }
 
 export type UserUncheckedUpdateManyWithoutAvatarNestedInput = {
@@ -1150,6 +1219,9 @@ export type UserCreateWithoutCreatedCategoriesInput = {
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -1186,6 +1258,9 @@ export type UserUncheckedCreateWithoutCreatedCategoriesInput = {
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedCategoriesInput = {
@@ -1235,6 +1310,9 @@ export type UserUpdateWithoutCreatedCategoriesInput = {
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -1271,6 +1349,9 @@ export type UserUncheckedUpdateWithoutCreatedCategoriesInput = {
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserCreateWithoutCreatedCommentsInput = {
@@ -1304,6 +1385,9 @@ export type UserCreateWithoutCreatedCommentsInput = {
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -1340,11 +1424,94 @@ export type UserUncheckedCreateWithoutCreatedCommentsInput = {
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedCommentsInput = {
   where: Prisma.UserWhereUniqueInput
   create: Prisma.XOR<Prisma.UserCreateWithoutCreatedCommentsInput, Prisma.UserUncheckedCreateWithoutCreatedCommentsInput>
+}
+
+export type UserCreateWithoutDeletedCommentsInput = {
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string | null
+  displayName?: string | null
+  bio?: string | null
+  website?: string | null
+  internalNotes?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
+  pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
+  avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
+  createdComments?: Prisma.CommentCreateNestedManyWithoutCreatedByInput
+  createdPages?: Prisma.PageCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
+  createdTags?: Prisma.TagCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
+}
+
+export type UserUncheckedCreateWithoutDeletedCommentsInput = {
+  id?: number
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string | null
+  displayName?: string | null
+  bio?: string | null
+  website?: string | null
+  internalNotes?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  avatarId?: number | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
+  pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
+  createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
+  createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPages?: Prisma.PageUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
+  createdTags?: Prisma.TagUncheckedCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
+}
+
+export type UserCreateOrConnectWithoutDeletedCommentsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeletedCommentsInput, Prisma.UserUncheckedCreateWithoutDeletedCommentsInput>
 }
 
 export type UserUpsertWithoutCreatedCommentsInput = {
@@ -1389,6 +1556,9 @@ export type UserUpdateWithoutCreatedCommentsInput = {
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -1425,6 +1595,95 @@ export type UserUncheckedUpdateWithoutCreatedCommentsInput = {
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
+}
+
+export type UserUpsertWithoutDeletedCommentsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDeletedCommentsInput, Prisma.UserUncheckedUpdateWithoutDeletedCommentsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeletedCommentsInput, Prisma.UserUncheckedCreateWithoutDeletedCommentsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDeletedCommentsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDeletedCommentsInput, Prisma.UserUncheckedUpdateWithoutDeletedCommentsInput>
+}
+
+export type UserUpdateWithoutDeletedCommentsInput = {
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
+  pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
+  avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
+  createdComments?: Prisma.CommentUpdateManyWithoutCreatedByNestedInput
+  createdPages?: Prisma.PageUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
+  createdTags?: Prisma.TagUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDeletedCommentsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
+  pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
+  createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPages?: Prisma.PageUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdTags?: Prisma.TagUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserCreateWithoutPagesInput = {
@@ -1458,6 +1717,9 @@ export type UserCreateWithoutPagesInput = {
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -1494,6 +1756,9 @@ export type UserUncheckedCreateWithoutPagesInput = {
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserCreateOrConnectWithoutPagesInput = {
@@ -1532,6 +1797,9 @@ export type UserCreateWithoutCreatedPagesInput = {
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -1568,6 +1836,9 @@ export type UserUncheckedCreateWithoutCreatedPagesInput = {
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedPagesInput = {
@@ -1617,6 +1888,9 @@ export type UserUpdateWithoutPagesInput = {
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -1653,6 +1927,9 @@ export type UserUncheckedUpdateWithoutPagesInput = {
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserUpsertWithoutCreatedPagesInput = {
@@ -1697,6 +1974,9 @@ export type UserUpdateWithoutCreatedPagesInput = {
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -1733,6 +2013,9 @@ export type UserUncheckedUpdateWithoutCreatedPagesInput = {
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserCreateWithoutPostsInput = {
@@ -1766,6 +2049,9 @@ export type UserCreateWithoutPostsInput = {
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -1802,6 +2088,9 @@ export type UserUncheckedCreateWithoutPostsInput = {
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserCreateOrConnectWithoutPostsInput = {
@@ -1840,6 +2129,9 @@ export type UserCreateWithoutCreatedPostsInput = {
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -1876,11 +2168,94 @@ export type UserUncheckedCreateWithoutCreatedPostsInput = {
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedPostsInput = {
   where: Prisma.UserWhereUniqueInput
   create: Prisma.XOR<Prisma.UserCreateWithoutCreatedPostsInput, Prisma.UserUncheckedCreateWithoutCreatedPostsInput>
+}
+
+export type UserCreateWithoutDeletedPostsInput = {
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string | null
+  displayName?: string | null
+  bio?: string | null
+  website?: string | null
+  internalNotes?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
+  pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
+  avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
+  createdComments?: Prisma.CommentCreateNestedManyWithoutCreatedByInput
+  createdPages?: Prisma.PageCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
+  createdTags?: Prisma.TagCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
+}
+
+export type UserUncheckedCreateWithoutDeletedPostsInput = {
+  id?: number
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string | null
+  displayName?: string | null
+  bio?: string | null
+  website?: string | null
+  internalNotes?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  avatarId?: number | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
+  pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
+  createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
+  createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPages?: Prisma.PageUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
+  createdTags?: Prisma.TagUncheckedCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
+}
+
+export type UserCreateOrConnectWithoutDeletedPostsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeletedPostsInput, Prisma.UserUncheckedCreateWithoutDeletedPostsInput>
 }
 
 export type UserUpsertWithoutPostsInput = {
@@ -1925,6 +2300,9 @@ export type UserUpdateWithoutPostsInput = {
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -1961,6 +2339,9 @@ export type UserUncheckedUpdateWithoutPostsInput = {
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserUpsertWithoutCreatedPostsInput = {
@@ -2005,6 +2386,9 @@ export type UserUpdateWithoutCreatedPostsInput = {
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -2041,6 +2425,95 @@ export type UserUncheckedUpdateWithoutCreatedPostsInput = {
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
+}
+
+export type UserUpsertWithoutDeletedPostsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDeletedPostsInput, Prisma.UserUncheckedUpdateWithoutDeletedPostsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeletedPostsInput, Prisma.UserUncheckedCreateWithoutDeletedPostsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDeletedPostsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDeletedPostsInput, Prisma.UserUncheckedUpdateWithoutDeletedPostsInput>
+}
+
+export type UserUpdateWithoutDeletedPostsInput = {
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
+  pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
+  avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
+  createdComments?: Prisma.CommentUpdateManyWithoutCreatedByNestedInput
+  createdPages?: Prisma.PageUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
+  createdTags?: Prisma.TagUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDeletedPostsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
+  pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
+  createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPages?: Prisma.PageUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdTags?: Prisma.TagUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserCreateWithoutCreatedTagsInput = {
@@ -2074,6 +2547,9 @@ export type UserCreateWithoutCreatedTagsInput = {
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -2110,6 +2586,9 @@ export type UserUncheckedCreateWithoutCreatedTagsInput = {
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedTagsInput = {
@@ -2159,6 +2638,9 @@ export type UserUpdateWithoutCreatedTagsInput = {
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -2195,6 +2677,9 @@ export type UserUncheckedUpdateWithoutCreatedTagsInput = {
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserCreateWithoutCreatedByInput = {
@@ -2229,6 +2714,9 @@ export type UserCreateWithoutCreatedByInput = {
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserUncheckedCreateWithoutCreatedByInput = {
@@ -2264,6 +2752,9 @@ export type UserUncheckedCreateWithoutCreatedByInput = {
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedByInput = {
@@ -2306,6 +2797,9 @@ export type UserCreateWithoutCreatedUsersInput = {
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -2342,6 +2836,9 @@ export type UserUncheckedCreateWithoutCreatedUsersInput = {
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedUsersInput = {
@@ -2431,6 +2928,9 @@ export type UserUpdateWithoutCreatedUsersInput = {
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -2467,6 +2967,9 @@ export type UserUncheckedUpdateWithoutCreatedUsersInput = {
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserCreateWithoutApiKeysInput = {
@@ -2500,6 +3003,9 @@ export type UserCreateWithoutApiKeysInput = {
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -2536,6 +3042,9 @@ export type UserUncheckedCreateWithoutApiKeysInput = {
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserCreateOrConnectWithoutApiKeysInput = {
@@ -2574,6 +3083,9 @@ export type UserCreateWithoutCreatedApiKeysInput = {
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -2610,6 +3122,9 @@ export type UserUncheckedCreateWithoutCreatedApiKeysInput = {
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedApiKeysInput = {
@@ -2659,6 +3174,9 @@ export type UserUpdateWithoutApiKeysInput = {
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -2695,6 +3213,9 @@ export type UserUncheckedUpdateWithoutApiKeysInput = {
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserUpsertWithoutCreatedApiKeysInput = {
@@ -2739,6 +3260,9 @@ export type UserUpdateWithoutCreatedApiKeysInput = {
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -2775,6 +3299,9 @@ export type UserUncheckedUpdateWithoutCreatedApiKeysInput = {
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserCreateWithoutConnectedAccountsInput = {
@@ -2808,6 +3335,9 @@ export type UserCreateWithoutConnectedAccountsInput = {
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -2844,6 +3374,9 @@ export type UserUncheckedCreateWithoutConnectedAccountsInput = {
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserCreateOrConnectWithoutConnectedAccountsInput = {
@@ -2893,6 +3426,9 @@ export type UserUpdateWithoutConnectedAccountsInput = {
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -2929,6 +3465,9 @@ export type UserUncheckedUpdateWithoutConnectedAccountsInput = {
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserCreateWithoutRolesInput = {
@@ -2962,6 +3501,9 @@ export type UserCreateWithoutRolesInput = {
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -2998,6 +3540,9 @@ export type UserUncheckedCreateWithoutRolesInput = {
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserCreateOrConnectWithoutRolesInput = {
@@ -3036,6 +3581,9 @@ export type UserCreateWithoutCreatedRolesInput = {
   createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -3072,6 +3620,9 @@ export type UserUncheckedCreateWithoutCreatedRolesInput = {
   createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedRolesInput = {
@@ -3137,6 +3688,9 @@ export type UserUpdateWithoutCreatedRolesInput = {
   createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -3173,6 +3727,9 @@ export type UserUncheckedUpdateWithoutCreatedRolesInput = {
   createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserCreateWithoutCreatedPermissionsInput = {
@@ -3206,6 +3763,9 @@ export type UserCreateWithoutCreatedPermissionsInput = {
   createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -3242,6 +3802,9 @@ export type UserUncheckedCreateWithoutCreatedPermissionsInput = {
   createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedPermissionsInput = {
@@ -3291,6 +3854,9 @@ export type UserUpdateWithoutCreatedPermissionsInput = {
   createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -3327,6 +3893,9 @@ export type UserUncheckedUpdateWithoutCreatedPermissionsInput = {
   createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserCreateWithoutAvatarInput = {
@@ -3360,6 +3929,9 @@ export type UserCreateWithoutAvatarInput = {
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -3396,6 +3968,9 @@ export type UserUncheckedCreateWithoutAvatarInput = {
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
   createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserCreateOrConnectWithoutAvatarInput = {
@@ -3438,6 +4013,9 @@ export type UserCreateWithoutCreatedFilesInput = {
   createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
 }
 
@@ -3474,11 +4052,94 @@ export type UserUncheckedCreateWithoutCreatedFilesInput = {
   createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedFilesInput = {
   where: Prisma.UserWhereUniqueInput
   create: Prisma.XOR<Prisma.UserCreateWithoutCreatedFilesInput, Prisma.UserUncheckedCreateWithoutCreatedFilesInput>
+}
+
+export type UserCreateWithoutDeletedFilesInput = {
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string | null
+  displayName?: string | null
+  bio?: string | null
+  website?: string | null
+  internalNotes?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
+  pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
+  avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
+  createdComments?: Prisma.CommentCreateNestedManyWithoutCreatedByInput
+  createdPages?: Prisma.PageCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
+  createdTags?: Prisma.TagCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
+}
+
+export type UserUncheckedCreateWithoutDeletedFilesInput = {
+  id?: number
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string | null
+  displayName?: string | null
+  bio?: string | null
+  website?: string | null
+  internalNotes?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  avatarId?: number | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
+  pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
+  createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
+  createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPages?: Prisma.PageUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
+  createdTags?: Prisma.TagUncheckedCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+}
+
+export type UserCreateOrConnectWithoutDeletedFilesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeletedFilesInput, Prisma.UserUncheckedCreateWithoutDeletedFilesInput>
 }
 
 export type UserUpsertWithWhereUniqueWithoutAvatarInput = {
@@ -3539,6 +4200,9 @@ export type UserUpdateWithoutCreatedFilesInput = {
   createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -3575,6 +4239,95 @@ export type UserUncheckedUpdateWithoutCreatedFilesInput = {
   createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
+}
+
+export type UserUpsertWithoutDeletedFilesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDeletedFilesInput, Prisma.UserUncheckedUpdateWithoutDeletedFilesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeletedFilesInput, Prisma.UserUncheckedCreateWithoutDeletedFilesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDeletedFilesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDeletedFilesInput, Prisma.UserUncheckedUpdateWithoutDeletedFilesInput>
+}
+
+export type UserUpdateWithoutDeletedFilesInput = {
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
+  pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
+  avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
+  createdComments?: Prisma.CommentUpdateManyWithoutCreatedByNestedInput
+  createdPages?: Prisma.PageUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
+  createdTags?: Prisma.TagUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDeletedFilesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
+  pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
+  createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPages?: Prisma.PageUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdTags?: Prisma.TagUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserCreateManyCreatedByInput = {
@@ -3629,6 +4382,9 @@ export type UserUpdateWithoutCreatedByInput = {
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedByInput = {
@@ -3664,6 +4420,9 @@ export type UserUncheckedUpdateWithoutCreatedByInput = {
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutCreatedByInput = {
@@ -3717,6 +4476,9 @@ export type UserUpdateWithoutRolesInput = {
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -3753,6 +4515,9 @@ export type UserUncheckedUpdateWithoutRolesInput = {
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutRolesInput = {
@@ -3827,6 +4592,9 @@ export type UserUpdateWithoutAvatarInput = {
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
 }
 
@@ -3863,6 +4631,9 @@ export type UserUncheckedUpdateWithoutAvatarInput = {
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutAvatarInput = {
@@ -3906,6 +4677,9 @@ export type UserCountOutputType = {
   createdRoles: number
   createdPermissions: number
   createdFiles: number
+  deletedComments: number
+  deletedPosts: number
+  deletedFiles: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3924,6 +4698,9 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   createdRoles?: boolean | UserCountOutputTypeCountCreatedRolesArgs
   createdPermissions?: boolean | UserCountOutputTypeCountCreatedPermissionsArgs
   createdFiles?: boolean | UserCountOutputTypeCountCreatedFilesArgs
+  deletedComments?: boolean | UserCountOutputTypeCountDeletedCommentsArgs
+  deletedPosts?: boolean | UserCountOutputTypeCountDeletedPostsArgs
+  deletedFiles?: boolean | UserCountOutputTypeCountDeletedFilesArgs
 }
 
 /**
@@ -4041,6 +4818,27 @@ export type UserCountOutputTypeCountCreatedFilesArgs<ExtArgs extends runtime.Typ
   where?: Prisma.FileWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountDeletedCommentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CommentWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountDeletedPostsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PostWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountDeletedFilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FileWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -4077,6 +4875,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdRoles?: boolean | Prisma.User$createdRolesArgs<ExtArgs>
   createdPermissions?: boolean | Prisma.User$createdPermissionsArgs<ExtArgs>
   createdFiles?: boolean | Prisma.User$createdFilesArgs<ExtArgs>
+  deletedComments?: boolean | Prisma.User$deletedCommentsArgs<ExtArgs>
+  deletedPosts?: boolean | Prisma.User$deletedPostsArgs<ExtArgs>
+  deletedFiles?: boolean | Prisma.User$deletedFilesArgs<ExtArgs>
   createdBy?: boolean | Prisma.User$createdByArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -4166,6 +4967,9 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   createdRoles?: boolean | Prisma.User$createdRolesArgs<ExtArgs>
   createdPermissions?: boolean | Prisma.User$createdPermissionsArgs<ExtArgs>
   createdFiles?: boolean | Prisma.User$createdFilesArgs<ExtArgs>
+  deletedComments?: boolean | Prisma.User$deletedCommentsArgs<ExtArgs>
+  deletedPosts?: boolean | Prisma.User$deletedPostsArgs<ExtArgs>
+  deletedFiles?: boolean | Prisma.User$deletedFilesArgs<ExtArgs>
   createdBy?: boolean | Prisma.User$createdByArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -4206,6 +5010,12 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     createdRoles: Prisma.$RolePayload<ExtArgs>[]
     createdPermissions: Prisma.$PermissionPayload<ExtArgs>[]
     createdFiles: Prisma.$FilePayload<ExtArgs>[]
+    /**
+     * Soft deleted models referenced with deletedById column
+     */
+    deletedComments: Prisma.$CommentPayload<ExtArgs>[]
+    deletedPosts: Prisma.$PostPayload<ExtArgs>[]
+    deletedFiles: Prisma.$FilePayload<ExtArgs>[]
     createdBy: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -4640,6 +5450,9 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   createdRoles<T extends Prisma.User$createdRolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdRolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdPermissions<T extends Prisma.User$createdPermissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdPermissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdFiles<T extends Prisma.User$createdFilesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdFilesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  deletedComments<T extends Prisma.User$deletedCommentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$deletedCommentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CommentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  deletedPosts<T extends Prisma.User$deletedPostsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$deletedPostsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  deletedFiles<T extends Prisma.User$deletedFilesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$deletedFilesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdBy<T extends Prisma.User$createdByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -5445,6 +6258,78 @@ export type User$createdPermissionsArgs<ExtArgs extends runtime.Types.Extensions
  * User.createdFiles
  */
 export type User$createdFilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the File
+   */
+  select?: Prisma.FileSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the File
+   */
+  omit?: Prisma.FileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FileInclude<ExtArgs> | null
+  where?: Prisma.FileWhereInput
+  orderBy?: Prisma.FileOrderByWithRelationInput | Prisma.FileOrderByWithRelationInput[]
+  cursor?: Prisma.FileWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FileScalarFieldEnum | Prisma.FileScalarFieldEnum[]
+}
+
+/**
+ * User.deletedComments
+ */
+export type User$deletedCommentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Comment
+   */
+  select?: Prisma.CommentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Comment
+   */
+  omit?: Prisma.CommentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CommentInclude<ExtArgs> | null
+  where?: Prisma.CommentWhereInput
+  orderBy?: Prisma.CommentOrderByWithRelationInput | Prisma.CommentOrderByWithRelationInput[]
+  cursor?: Prisma.CommentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CommentScalarFieldEnum | Prisma.CommentScalarFieldEnum[]
+}
+
+/**
+ * User.deletedPosts
+ */
+export type User$deletedPostsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Post
+   */
+  select?: Prisma.PostSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Post
+   */
+  omit?: Prisma.PostOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PostInclude<ExtArgs> | null
+  where?: Prisma.PostWhereInput
+  orderBy?: Prisma.PostOrderByWithRelationInput | Prisma.PostOrderByWithRelationInput[]
+  cursor?: Prisma.PostWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PostScalarFieldEnum | Prisma.PostScalarFieldEnum[]
+}
+
+/**
+ * User.deletedFiles
+ */
+export type User$deletedFilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the File
    */

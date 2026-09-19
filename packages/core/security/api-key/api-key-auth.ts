@@ -11,6 +11,7 @@ import {
   uncapitalize
 } from '@appweaver/common';
 import { inject, injectModel } from '../../context';
+import { liveRecordFilter } from '../../utils';
 import { resourceAuthModel } from '../helper';
 import { AuthService } from '../auth-service';
 import { HttpError } from '../../errors';
@@ -57,9 +58,9 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
     if (!apiKey) {
       try {
         // The generated client types the id after the configured primary key
-        apiKey = await db
-          .client()
-          .apiKey.findFirst({ where: { id: apiKeyId as any } });
+        apiKey = await db.client().apiKey.findFirst({
+          where: { id: apiKeyId as any, ...liveRecordFilter('ApiKey') }
+        });
       } catch (e) {
         throw new HttpError(`Invalid API key format`, 401);
       }

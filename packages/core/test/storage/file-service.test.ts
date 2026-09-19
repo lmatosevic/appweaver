@@ -230,4 +230,123 @@ describe('file-service', () => {
       expect(client.update).not.toHaveBeenCalled();
     });
   });
+
+  describe('stream', () => {
+    const file = {
+      name: 'avatar-1.pdf',
+      mimeType: 'application/pdf',
+      sizeBytes: 3,
+      resourceName: 'User',
+      resourceField: 'avatar',
+      resourceId: '1'
+    };
+
+    beforeEach(() => {
+      context.resource.models.set('File', {
+        name: 'File',
+        config: { name: 'File', softDelete: true },
+        [RESOURCE_TYPE]: RESOURCE_MODEL_TYPE
+      } as any);
+      context.resource.policies.set('User', {
+        modelName: 'User',
+        files: { avatar: { accessType: 'public' } }
+      } as any);
+
+      storage.stream = jest.fn().mockResolvedValue({ size: 3 });
+      dbClient.file.findFirst = jest.fn().mockResolvedValue(file);
+      dbClient.user = { count: jest.fn() };
+    });
+
+    test('streams a public file without looking up its resource', async () => {
+      await expect(service.stream(file.name)).resolves.toMatchObject({
+        mimeType: 'application/pdf'
+      });
+      expect(dbClient.user.count).not.toHaveBeenCalled();
+    });
+
+    test('serves only a file that is not retained for a deleted resource', async () => {
+      await service.stream(file.name);
+
+      expect(dbClient.file.findFirst).toHaveBeenCalledWith({
+        where: { name: file.name, deletedAt: null }
+      });
+    });
+
+    test('responds to a retained file as to a missing one', async () => {
+      dbClient.file.findFirst.mockResolvedValue(null);
+
+      await expect(service.stream(file.name)).rejects.toMatchObject({
+        statusCode: 404
+      });
+      expect(storage.stream).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('deleteResourcesFiles', () => {
+    test('deletes the files of every given resource', async () => {
+      dbClient.file.findMany = jest
+        .fn()
+        .mockResolvedValue([{ name: 'a.pdf', resourceId: '1' }]);
+
+      const files = await service.deleteResourcesFiles('User', [1, 2]);
+
+      expect(dbClient.file.findMany).toHaveBeenCalledWith({
+        where: {
+          resourceName: 'User',
+          resourceId: { in: ['1', '2'] },
+          resourceField: { in: ['avatar'] }
+        }
+      });
+      expect(storage.delete).toHaveBeenCalledWith('a.pdf');
+      expect(files).toEqual([{ name: 'a.pdf', resourceId: '1' }]);
+    });
+
+    test('deletes only the files a soft delete removes', async () => {
+      context.resource.models.set(
+        'User',
+        model({
+          avatar: {},
+          document: { onResourceSoftDeleted: 'delete' },
+          badge: { onResourceDeleted: 'keep', onResourceSoftDeleted: 'delete' }
+        }) as any
+      );
+      dbClient.file.findMany = jest.fn().mockResolvedValue([]);
+
+      await service.deleteResourcesFiles('User', [1], true);
+
+      expect(dbClient.file.findMany).toHaveBeenCalledWith({
+        where: {
+          resourceName: 'User',
+          resourceId: { in: ['1'] },
+          resourceField: { in: ['document', 'badge'] }
+        }
+      });
+    });
+
+    test('keeps the files of a field that opts out of a delete', async () => {
+      context.resource.models.set(
+        'User',
+        model({
+          avatar: {},
+          badge: { onResourceDeleted: 'keep', onResourceSoftDeleted: 'delete' }
+        }) as any
+      );
+      dbClient.file.findMany = jest.fn().mockResolvedValue([]);
+
+      await service.deleteResourcesFiles('User', [1]);
+
+      expect(
+        dbClient.file.findMany.mock.calls[0][0].where.resourceField
+      ).toEqual({ in: ['avatar'] });
+    });
+
+    test('skips the lookup without resources to clean up', async () => {
+      dbClient.file.findMany = jest.fn();
+
+      await expect(service.deleteResourcesFiles('User', [])).resolves.toEqual(
+        []
+      );
+      expect(dbClient.file.findMany).not.toHaveBeenCalled();
+    });
+  });
 });
