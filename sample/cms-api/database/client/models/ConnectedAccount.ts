@@ -261,6 +261,7 @@ export type ConnectedAccountOrderByWithRelationInput = {
 
 export type ConnectedAccountWhereUniqueInput = Prisma.AtLeast<{
   id?: number
+  provider_providerAccountId?: Prisma.ConnectedAccountProviderProviderAccountIdCompoundUniqueInput
   AND?: Prisma.ConnectedAccountWhereInput | Prisma.ConnectedAccountWhereInput[]
   OR?: Prisma.ConnectedAccountWhereInput[]
   NOT?: Prisma.ConnectedAccountWhereInput | Prisma.ConnectedAccountWhereInput[]
@@ -272,7 +273,7 @@ export type ConnectedAccountWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"ConnectedAccount"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"ConnectedAccount"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-}, "id">
+}, "id" | "provider_providerAccountId">
 
 export type ConnectedAccountOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -385,6 +386,11 @@ export type ConnectedAccountListRelationFilter = {
 
 export type ConnectedAccountOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type ConnectedAccountProviderProviderAccountIdCompoundUniqueInput = {
+  provider: string
+  providerAccountId: string
 }
 
 export type ConnectedAccountCountOrderByAggregateInput = {

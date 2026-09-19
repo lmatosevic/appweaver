@@ -280,8 +280,9 @@ exchange succeeds.
 ### Connected accounts
 
 `ConnectedAccount` pairs a provider account with a local user: `provider`, `providerAccountId`, `scope`, `lastLoginAt`
-(`createdAt` holds the link date) and a relation to the auth model, indexed on `[provider, providerAccountId]`. A
-provider account belongs to one user only — relinking it elsewhere fails with a 403.
+(`createdAt` holds the link date) and a relation to the auth model, unique on `[provider, providerAccountId]`. A
+provider account belongs to one user only — relinking it elsewhere fails with a 403, also when two first sign-ins race
+to create the link.
 
 The table exists when any OAuth2 provider is enabled; `SECURITY_OAUTH2_CONNECTED_ACCOUNTS_KEEP_DATABASE_TABLE=true`
 keeps it after disabling OAuth2, like `SECURITY_API_KEY_KEEP_DATABASE_TABLE` does for API keys.

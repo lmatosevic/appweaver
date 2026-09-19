@@ -24,6 +24,7 @@ import {
   RelationField,
   resolveDatabaseType,
   ResourceModel,
+  ResourceModelConfig,
   Runtime,
   ScalarConfig,
   ScalarField,
@@ -59,6 +60,8 @@ type PrismaSchemaField = {
   attributes?: string[];
   /** Marks a generated foreign key column rather than a relation field */
   foreignKey?: boolean;
+  /** Leaves a foreign key column out of the automatic indexing */
+  skipIndex?: boolean;
 };
 
 type IdColumn = {
@@ -173,7 +176,10 @@ export async function generateSchema(
           schema.config.audit,
           hasSoftDelete(schema.config)
         ),
-        index: createIndexSchema(schema.config.index),
+        index: [
+          ...createIndexSchema(schema.config.index),
+          ...createIndexSchema(schema.config.unique, '@@unique')
+        ],
         tableName: schema.config.tableName
       };
 
@@ -268,7 +274,8 @@ export async function generateSchema(
                   ...(relationConfig.type === 'oneToOne' ? ['@unique'] : []),
                   ...nativeTypeAttributes(idColumn.nativeType)
                 ],
-                foreignKey: true
+                foreignKey: true,
+                skipIndex: relationConfig.index === false
               });
             }
           }
@@ -302,6 +309,23 @@ export async function generateSchema(
             type: `${name}[]`,
             attributes: [`@relation("${referenceName}")`]
           });
+        }
+      }
+    }
+
+    // Index the foreign key columns, which PostgreSQL and SQLite leave
+    // unindexed, so relation lookups and referential actions avoid table scans
+    for (const [name, model] of Object.entries(prismaModels)) {
+      const indexed = leadingIndexFields(models[name].config);
+      for (const field of [...model.relations, ...model.audit]) {
+        if (
+          field.foreignKey &&
+          !field.skipIndex &&
+          !field.attributes?.includes('@unique') &&
+          !indexed.has(field.name)
+        ) {
+          indexed.add(field.name);
+          model.index.push(`@@index([${field.name}])`);
         }
       }
     }
@@ -787,7 +811,8 @@ function createRelationSchema(
         ...(relation.type === 'oneToOne' ? ['@unique'] : []),
         ...nativeTypeAttributes(relationIdColumn.nativeType)
       ],
-      foreignKey: true
+      foreignKey: true,
+      skipIndex: relation.index === false
     });
   }
 
@@ -922,7 +947,10 @@ function createAuditSchema(
   return fields;
 }
 
-function createIndexSchema(index?: IndexConfig): string[] {
+function createIndexSchema(
+  index?: IndexConfig,
+  attribute: '@@index' | '@@unique' = '@@index'
+): string[] {
   const indexes: string[] = [];
 
   if (!index || index.length === 0) {
@@ -933,13 +961,24 @@ function createIndexSchema(index?: IndexConfig): string[] {
     const indexValue = isArray(idx)
       ? `[${idx.map(indexFieldSchema).join(', ')}]`
       : indexFieldSchema(idx);
-    const indexExpression = `@@index(${indexValue})`;
+    const indexExpression = `${attribute}(${indexValue})`;
     if (!indexes.includes(indexExpression)) {
       indexes.push(indexExpression);
     }
   }
 
   return indexes;
+}
+
+function leadingIndexFields(config: ResourceModelConfig): Set<string> {
+  const fields = new Set<string>();
+  for (const idx of [...(config.index ?? []), ...(config.unique ?? [])]) {
+    const field = isArray(idx) ? idx[0] : idx;
+    if (field) {
+      fields.add(INDEX_SORT_PREFIXES[field.charAt(0)] ? field.slice(1) : field);
+    }
+  }
+  return fields;
 }
 
 function indexFieldSchema(field: string): string {

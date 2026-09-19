@@ -32,6 +32,7 @@ model Category {
   createdById Int?
 
   @@index([parentId, position(sort: Asc)])
+  @@index([createdById])
 }
 
 model Comment {
@@ -60,6 +61,8 @@ model Comment {
   deletedById Int?
 
   @@index([status, createdAt(sort: Desc)])
+  @@index([createdById])
+  @@index([deletedById])
 }
 
 model Page {
@@ -88,6 +91,8 @@ model Page {
   createdById Int?
 
   @@index([status, menuPosition(sort: Asc)])
+  @@index([authorId])
+  @@index([createdById])
 }
 
 model Post {
@@ -130,6 +135,9 @@ model Post {
   @@index([status, publishedAt(sort: Desc)])
   @@index([categoryId, publishedAt(sort: Desc)])
   @@index([createdAt(sort: Desc), id(sort: Asc)])
+  @@index([authorId])
+  @@index([createdById])
+  @@index([deletedById])
 }
 
 model Tag {
@@ -145,6 +153,8 @@ model Tag {
   createdAt   DateTime @default(now())
   createdBy   User?    @relation("TagCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
+
+  @@index([createdById])
 }
 
 model User {
@@ -196,6 +206,8 @@ model User {
   createdAt   DateTime @default(now())
   createdBy   User?    @relation("UserCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
+
+  @@index([createdById])
 }
 
 model ApiKey {
@@ -216,6 +228,9 @@ model ApiKey {
   createdAt   DateTime @default(now())
   createdBy   User?    @relation("ApiKeyCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
+
+  @@index([userId])
+  @@index([createdById])
 }
 
 model ConnectedAccount {
@@ -233,7 +248,8 @@ model ConnectedAccount {
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 
-  @@index([provider, providerAccountId])
+  @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Role {
@@ -249,6 +265,8 @@ model Role {
   createdAt   DateTime @default(now())
   createdBy   User?    @relation("RoleCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
+
+  @@index([createdById])
 }
 
 model Permission {
@@ -263,6 +281,8 @@ model Permission {
   createdAt   DateTime @default(now())
   createdBy   User?    @relation("PermissionCreatedByUser", fields: [createdById], references: [id])
   createdById Int?
+
+  @@index([createdById])
 }
 
 model Seeder {
@@ -305,7 +325,9 @@ model File {
   deletedBy   User?     @relation("FileDeletedByUser", fields: [deletedById], references: [id])
   deletedById Int?
 
-  @@index([resourceField, resourceName, resourceId])
+  @@index([resourceName, resourceId, resourceField])
+  @@index([createdById])
+  @@index([deletedById])
 }
 
 enum CommentStatus {

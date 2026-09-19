@@ -76,5 +76,6 @@ export default createModel({
       }
     }
   },
-  index: [['resourceField', 'resourceName', 'resourceId']]
+  // Leads with the exact match columns, so the prefix also serves lookups
+  index: [['resourceName', 'resourceId', 'resourceField']]
 });

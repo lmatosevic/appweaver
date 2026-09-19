@@ -89,7 +89,7 @@ CREATE TABLE "_RolePermissionsPermission" (
 CREATE UNIQUE INDEX "ApiKey_keyHash_key" ON "ApiKey"("keyHash");
 
 -- CreateIndex
-CREATE INDEX "ConnectedAccount_provider_providerAccountId_idx" ON "ConnectedAccount"("provider", "providerAccountId");
+CREATE UNIQUE INDEX "ConnectedAccount_provider_providerAccountId_key" ON "ConnectedAccount"("provider", "providerAccountId");
 
 -- CreateIndex
 CREATE INDEX "OneTimeToken_tokenHash_purpose_idx" ON "OneTimeToken"("tokenHash", "purpose");
@@ -107,7 +107,7 @@ CREATE UNIQUE INDEX "_seeders_seederName_key" ON "_seeders"("seederName");
 CREATE UNIQUE INDEX "File_name_key" ON "File"("name");
 
 -- CreateIndex
-CREATE INDEX "File_resourceField_resourceName_resourceId_idx" ON "File"("resourceField", "resourceName", "resourceId");
+CREATE INDEX "File_resourceName_resourceId_resourceField_idx" ON "File"("resourceName", "resourceId", "resourceField");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_RolePermissionsPermission_AB_unique" ON "_RolePermissionsPermission"("A", "B");

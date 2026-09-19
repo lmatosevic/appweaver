@@ -240,10 +240,19 @@ CREATE UNIQUE INDEX "Category_slug_key" ON "Category"("slug");
 CREATE INDEX "Category_parentId_position_idx" ON "Category"("parentId", "position" ASC);
 
 -- CreateIndex
+CREATE INDEX "Category_createdById_idx" ON "Category"("createdById");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Comment_attachmentId_key" ON "Comment"("attachmentId");
 
 -- CreateIndex
 CREATE INDEX "Comment_status_createdAt_idx" ON "Comment"("status", "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "Comment_createdById_idx" ON "Comment"("createdById");
+
+-- CreateIndex
+CREATE INDEX "Comment_deletedById_idx" ON "Comment"("deletedById");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Page_slug_key" ON "Page"("slug");
@@ -253,6 +262,12 @@ CREATE UNIQUE INDEX "Page_heroImageId_key" ON "Page"("heroImageId");
 
 -- CreateIndex
 CREATE INDEX "Page_status_menuPosition_idx" ON "Page"("status", "menuPosition" ASC);
+
+-- CreateIndex
+CREATE INDEX "Page_authorId_idx" ON "Page"("authorId");
+
+-- CreateIndex
+CREATE INDEX "Page_createdById_idx" ON "Page"("createdById");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Post_uid_key" ON "Post"("uid");
@@ -276,10 +291,22 @@ CREATE INDEX "Post_categoryId_publishedAt_idx" ON "Post"("categoryId", "publishe
 CREATE INDEX "Post_createdAt_id_idx" ON "Post"("createdAt" DESC, "id" ASC);
 
 -- CreateIndex
+CREATE INDEX "Post_authorId_idx" ON "Post"("authorId");
+
+-- CreateIndex
+CREATE INDEX "Post_createdById_idx" ON "Post"("createdById");
+
+-- CreateIndex
+CREATE INDEX "Post_deletedById_idx" ON "Post"("deletedById");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Tag_name_key" ON "Tag"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Tag_slug_key" ON "Tag"("slug");
+
+-- CreateIndex
+CREATE INDEX "Tag_createdById_idx" ON "Tag"("createdById");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
@@ -288,16 +315,34 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX "User_avatarId_key" ON "User"("avatarId");
 
 -- CreateIndex
+CREATE INDEX "User_createdById_idx" ON "User"("createdById");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "ApiKey_keyHash_key" ON "ApiKey"("keyHash");
 
 -- CreateIndex
-CREATE INDEX "ConnectedAccount_provider_providerAccountId_idx" ON "ConnectedAccount"("provider", "providerAccountId");
+CREATE INDEX "ApiKey_userId_idx" ON "ApiKey"("userId");
+
+-- CreateIndex
+CREATE INDEX "ApiKey_createdById_idx" ON "ApiKey"("createdById");
+
+-- CreateIndex
+CREATE INDEX "ConnectedAccount_userId_idx" ON "ConnectedAccount"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ConnectedAccount_provider_providerAccountId_key" ON "ConnectedAccount"("provider", "providerAccountId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
 
 -- CreateIndex
+CREATE INDEX "Role_createdById_idx" ON "Role"("createdById");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Permission_name_key" ON "Permission"("name");
+
+-- CreateIndex
+CREATE INDEX "Permission_createdById_idx" ON "Permission"("createdById");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_seeders_seederName_key" ON "_seeders"("seederName");
@@ -306,7 +351,13 @@ CREATE UNIQUE INDEX "_seeders_seederName_key" ON "_seeders"("seederName");
 CREATE UNIQUE INDEX "File_name_key" ON "File"("name");
 
 -- CreateIndex
-CREATE INDEX "File_resourceField_resourceName_resourceId_idx" ON "File"("resourceField", "resourceName", "resourceId");
+CREATE INDEX "File_resourceName_resourceId_resourceField_idx" ON "File"("resourceName", "resourceId", "resourceField");
+
+-- CreateIndex
+CREATE INDEX "File_createdById_idx" ON "File"("createdById");
+
+-- CreateIndex
+CREATE INDEX "File_deletedById_idx" ON "File"("deletedById");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_PostTagsTag_AB_unique" ON "_PostTagsTag"("A", "B");

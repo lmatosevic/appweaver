@@ -234,6 +234,10 @@ export type RelationField = {
   onDelete?: ReferentialAction;
   /** Referential action on update */
   onUpdate?: ReferentialAction;
+  /** Index the foreign key column of this relation (default `true`). Set to
+   * `false` to leave it unindexed, i.e. for a rarely queried relation of a
+   * write-heavy model. */
+  index?: boolean;
 };
 
 export type ImageFit = 'contain' | 'cover' | 'fill' | 'inside' | 'outside';
@@ -387,8 +391,13 @@ export type ResourceModelConfig = {
   virtual?: VirtualConfig;
   /** Export field definitions */
   export?: ExportConfig;
-  /** Database index definitions */
+  /** Database index definitions. Foreign key columns are indexed
+   * automatically unless an index or unique constraint already leads with
+   * them. */
   index?: IndexConfig;
+  /** Unique constraint definitions, in the same shape as `index`. Use the
+   * `unique` option of a scalar for a single-field constraint. */
+  unique?: IndexConfig;
   /** Mark deleted records with the `deletedAt` and `deletedById` columns
    * instead of removing them. Soft deleted records are hidden from every read,
    * and the relations cascading on delete are soft deleted with them. Their

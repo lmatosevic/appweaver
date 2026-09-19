@@ -54,6 +54,6 @@ export default shouldCreateModel
           }
         : {}),
       // A provider account may only ever be linked to a single user
-      index: [['provider', 'providerAccountId']]
+      unique: [['provider', 'providerAccountId']]
     })
   : undefined;

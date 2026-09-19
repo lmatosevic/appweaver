@@ -266,5 +266,39 @@ describe('oauth2-service', () => {
       expect(connectedAccountService.create).not.toHaveBeenCalled();
       expect(connectedAccountService.update).not.toHaveBeenCalled();
     });
+
+    test('accepts a link a concurrent sign-in of the same user created first', async () => {
+      connectedAccountService.query
+        .mockResolvedValueOnce({ items: [] })
+        .mockResolvedValueOnce({ items: [{ id: 3, userId: 1 }] });
+      connectedAccountService.create.mockRejectedValue(
+        new HttpError('ConnectedAccount create error', 500)
+      );
+
+      await expect(
+        service.linkConnectedAccount(user(), AuthSource.OAuth2Google, '42')
+      ).resolves.toBeUndefined();
+    });
+
+    test('refuses a link a concurrent sign-in of another user created first', async () => {
+      connectedAccountService.query
+        .mockResolvedValueOnce({ items: [] })
+        .mockResolvedValueOnce({ items: [{ id: 3, userId: 99 }] });
+      connectedAccountService.create.mockRejectedValue(
+        new HttpError('ConnectedAccount create error', 500)
+      );
+
+      await expect(
+        service.linkConnectedAccount(user(), AuthSource.OAuth2Google, '42')
+      ).rejects.toMatchObject({ statusCode: 403 });
+    });
+
+    test('fails when the link cannot be created and none exists', async () => {
+      connectedAccountService.create.mockRejectedValue(new Error('db down'));
+
+      await expect(
+        service.linkConnectedAccount(user(), AuthSource.OAuth2Google, '42')
+      ).rejects.toMatchObject({ statusCode: 500 });
+    });
   });
 });

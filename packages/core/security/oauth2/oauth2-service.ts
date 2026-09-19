@@ -168,12 +168,16 @@ export class OAuth2Service {
       );
     }
 
-    try {
-      if (account) {
+    if (account) {
+      try {
         await service.update(account.id, { scope, lastLoginAt: new Date() });
-        return;
+      } catch (e) {
+        throw new HttpError('Connected account link error', 500, e);
       }
+      return;
+    }
 
+    try {
       await service.create({
         provider: source,
         providerAccountId,
@@ -181,14 +185,26 @@ export class OAuth2Service {
         lastLoginAt: new Date(),
         [uncapitalize(this._authUserService.modelName)]: { id: authUser.id }
       });
-
-      logger.debug(
-        { id: authUser.id, source },
-        'OAuth2 provider account linked'
-      );
     } catch (e) {
-      throw new HttpError('Connected account link error', 500, e);
+      // A concurrent sign-in may have created the link first, which the unique
+      // constraint on the provider account rejects this one for
+      const linked = await this.findConnectedAccount(
+        source,
+        providerAccountId
+      ).catch(() => null);
+      if (!linked) {
+        throw new HttpError('Connected account link error', 500, e);
+      }
+      if (this.connectedAccountOwnerId(linked) !== authUser.id) {
+        throw new HttpError(
+          'This provider account is already linked to another user',
+          403
+        );
+      }
+      return;
     }
+
+    logger.debug({ id: authUser.id, source }, 'OAuth2 provider account linked');
   }
 
   /**

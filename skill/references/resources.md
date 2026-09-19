@@ -51,6 +51,7 @@ function createModel(config: ResourceModelConfig, override ?: Partial<ResourceMo
 | `update`         | OperationConfig                | no       | -                     | Pick/omit fields for the update DTO.                                |
 | `export`         | Record\<string, ExportField>   | no       | -                     | CSV export field configuration.                                     |
 | `index`          | string[] \| string[][]         | no       | -                     | Database index definitions (`-field` desc, `+field` asc).           |
+| `unique`         | string[] \| string[][]         | no       | -                     | Composite unique constraints, in the same shape as `index`.         |
 | `softDelete`     | boolean                        | no       | `false`               | Mark deleted records instead of removing them.                      |
 
 ### ID field
@@ -157,8 +158,9 @@ server code can read them, but never part of any API request or response, nor of
 | `deletedAt`   | `DateTime?`         | When the record was deleted, `null` for a live record.                 |
 | `deletedById` | auth model id (`?`) | The user who deleted the record. Only added when an auth model exists. |
 
-No index is added for them. Every read filters on `deletedAt IS NULL`, so add the column to the indexes matching the
-queries of the model where it helps, i.e. `index: [['deletedAt', '-createdAt', 'id']]` for the default listing.
+`deletedById` is indexed like any other foreign key, but `deletedAt` is not. Every read filters on `deletedAt IS NULL`,
+so add the column to the indexes matching the queries of the model where it helps, i.e.
+`index: [['deletedAt', '-createdAt', 'id']]` for the default listing.
 
 ```ts
 const config = {
@@ -435,6 +437,7 @@ const config = {
 | `orphanRemoval` | boolean                                         | `false`      | Delete the related records an update removes from the relation.          |
 | `onDelete`      | ReferentialAction                               | -            | Foreign key action on delete.                                            |
 | `onUpdate`      | ReferentialAction                               | -            | Foreign key action on update.                                            |
+| `index`         | boolean                                         | `true`       | Index the foreign key column; `false` leaves it unindexed.               |
 | `input`         | RelationInput                                   | -            | Input DTO configuration.                                                 |
 | `output`        | RelationOutput                                  | -            | Output DTO configuration.                                                |
 
@@ -899,6 +902,32 @@ index: [['status', '-createdAt']]           // @@index([status, createdAt(sort: 
 ```
 
 The prefix is part of the index identity, so `['createdAt', '-createdAt']` emits two separate indexes.
+
+Every foreign key column (relation `<name>Id` columns, `createdById` and `deletedById`) is indexed automatically, since
+PostgreSQL and SQLite do not index them on their own. A foreign key is skipped when it is already unique (`oneToOne`
+relations and file fields) or when an explicit `index` or `unique` entry leads with it, so
+`index: [['categoryId', '-publishedAt']]` replaces the automatic `@@index([categoryId])`. Set `index: false` on a
+relation to leave its foreign key unindexed, i.e. for a rarely queried relation of a write-heavy model:
+
+```ts
+relations: {
+  author: { model: 'User', type: 'oneToMany', owner: true, index: false }
+}
+```
+
+The audit columns `createdById` and `deletedById` are always indexed.
+
+### Unique config
+
+`unique` takes the same shape as `index` and emits `@@unique` constraints. Use it for a combination of columns that must
+be unique together; a single column is better marked with the scalar's own `unique: true`:
+
+```ts
+unique: [['provider', 'providerAccountId']] // @@unique([provider, providerAccountId])
+```
+
+A create or update breaking the constraint fails in the database, so handle the conflict where concurrent writes can
+race to insert the same combination.
 
 ### Generated models
 

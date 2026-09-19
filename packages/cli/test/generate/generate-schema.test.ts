@@ -788,8 +788,9 @@ describe('generate-schema', () => {
         '@relation("PostDeletedByUser", fields: [deletedById], references: [id])'
       );
       expect(postModel).toMatch(/deletedById\s+Int\?/);
-      // Indexes on the soft delete columns are left to the model config
-      expect(postModel).not.toContain('@@index');
+      // Only the foreign key is indexed, the deletedAt one is left to the model
+      expect(postModel).toContain('@@index([deletedById])');
+      expect(postModel).not.toContain('deletedAt])');
 
       const userModel = schema.slice(schema.indexOf('model User {'));
       expect(userModel).toContain(
@@ -1020,6 +1021,101 @@ describe('generate-schema', () => {
 
       expect(schema).toContain('@@index(title)');
       expect(schema.match(/@@index\(title\(sort: Desc\)\)/g)).toHaveLength(1);
+    });
+
+    test('adds single and composite unique constraints', async () => {
+      const { schema } = await generate({
+        Post: model('Post', {
+          scalars: { title: { type: 'string' }, slug: { type: 'string' } },
+          unique: ['slug', ['title', '-slug'], 'slug']
+        })
+      });
+
+      expect(schema).toContain('@@unique(slug)');
+      expect(schema).toContain('@@unique([title, slug(sort: Desc)])');
+      expect(schema.match(/@@unique\(slug\)/g)).toHaveLength(1);
+    });
+
+    test('indexes the foreign key columns', async () => {
+      const { schema } = await generate({
+        User: model('User', {}, true),
+        Post: model('Post', {
+          relations: {
+            author: { model: 'User', type: 'oneToMany', owner: true },
+            editor: { model: 'User', type: 'oneToOne', owner: true }
+          }
+        })
+      });
+
+      const postModel = schema.slice(
+        schema.indexOf('model Post {'),
+        schema.indexOf('}', schema.indexOf('model Post {'))
+      );
+      expect(postModel).toContain('@@index([authorId])');
+      expect(postModel).toContain('@@index([createdById])');
+      // A unique foreign key is already indexed by its constraint
+      expect(postModel).not.toContain('@@index([editorId])');
+    });
+
+    test('indexes the foreign key a lone list side adds to the referenced model', async () => {
+      const { schema } = await generate({
+        User: model('User', {
+          relations: { posts: { model: 'Post', type: 'oneToMany' } }
+        }),
+        Post: model('Post', {})
+      });
+
+      expect(schema.slice(schema.indexOf('model Post {'))).toContain(
+        '@@index([userId])'
+      );
+    });
+
+    test('skips the foreign key of a relation opting out of indexing', async () => {
+      const { schema } = await generate({
+        User: model('User', {
+          relations: {
+            drafts: { model: 'Draft', type: 'oneToMany', index: false }
+          }
+        }),
+        Post: model('Post', {
+          relations: {
+            author: {
+              model: 'User',
+              type: 'oneToMany',
+              owner: true,
+              index: false
+            }
+          }
+        }),
+        Draft: model('Draft', {})
+      });
+
+      expect(schema).toMatch(/authorId\s+Int/);
+      expect(schema).not.toContain('@@index([authorId])');
+      // The opt-out also covers the foreign key added to the referenced model
+      expect(schema).toMatch(/userId\s+Int\?/);
+      expect(schema).not.toContain('@@index([userId])');
+    });
+
+    test('skips foreign keys an explicit index or unique constraint leads with', async () => {
+      const { schema } = await generate({
+        User: model('User', {}),
+        Tag: model('Tag', {}),
+        Post: model('Post', {
+          scalars: { slug: { type: 'string' } },
+          relations: {
+            user: { model: 'User', type: 'oneToMany', owner: true },
+            tag: { model: 'Tag', type: 'oneToMany', owner: true }
+          },
+          index: [['-userId', 'slug']],
+          unique: [['tagId', 'slug']]
+        })
+      });
+
+      expect(schema).not.toContain('@@index([userId])');
+      expect(schema).not.toContain('@@index([tagId])');
+      expect(schema).toContain('@@index([userId(sort: Desc), slug])');
+      expect(schema).toContain('@@unique([tagId, slug])');
     });
 
     test('maps the model to a custom table name', async () => {

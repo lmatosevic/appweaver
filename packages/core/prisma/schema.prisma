@@ -37,7 +37,7 @@ model ConnectedAccount {
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 
-  @@index([provider, providerAccountId])
+  @@unique([provider, providerAccountId])
 }
 
 model OneTimeToken {
@@ -107,5 +107,5 @@ model File {
   createdAt DateTime  @default(now())
   deletedAt DateTime?
 
-  @@index([resourceField, resourceName, resourceId])
+  @@index([resourceName, resourceId, resourceField])
 }

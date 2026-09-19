@@ -40,6 +40,8 @@ export default createModel({
       mappedBy: 'comments',
       owner: true,
       onDelete: 'cascade',
+      // Opting out of the automatic foreign key index
+      index: false,
       output: {
         type: 'single'
       }

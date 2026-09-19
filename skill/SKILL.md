@@ -257,6 +257,9 @@ or `+` for an ascending one; without a prefix, the database default order is use
 index: ['-createdAt', ['status', '-createdAt']]
 ```
 
+Foreign key columns are indexed automatically, unless an explicit index already leads with them. `unique` takes the
+same shape as `index` for composite unique constraints, i.e. `unique: [['provider', 'providerAccountId']]`.
+
 Set `softDelete: true` to keep deleted records in the database, marked by the `deletedAt` and `deletedById` columns,
 instead of removing them. Soft deleted records are hidden from every read, so the API behaves exactly as after a real
 delete, and a record can only be restored manually in the database. The relations cascading on delete are soft deleted
