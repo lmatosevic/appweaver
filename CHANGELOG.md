@@ -1,3 +1,10 @@
+## [1.5.0](https://github.com/lmatosevic/appweaver/compare/v1.4.1...v1.5.0) (2026-09-19)
+
+### Features
+
+* add database indexes for common resource use-cases ([a604409](https://github.com/lmatosevic/appweaver/commit/a60440940f5f01b2f42cec529d622cf62fd10103))
+* add soft delete feature for resource models ([ffa90c1](https://github.com/lmatosevic/appweaver/commit/ffa90c110da2401486316f4eb5d851d6173da8d6))
+
 ## [1.4.1](https://github.com/lmatosevic/appweaver/compare/v1.4.0...v1.4.1) (2026-08-23)
 
 ### Bug Fixes
