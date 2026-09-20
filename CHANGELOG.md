@@ -1,3 +1,9 @@
+## [1.5.1](https://github.com/lmatosevic/appweaver/compare/v1.5.0...v1.5.1) (2026-09-20)
+
+### Bug Fixes
+
+* correct cli skill content ([9e54a19](https://github.com/lmatosevic/appweaver/commit/9e54a19883a74ca3a5cc6a2722625a8bc39236e4))
+
 ## [1.5.0](https://github.com/lmatosevic/appweaver/compare/v1.4.1...v1.5.0) (2026-09-19)
 
 ### Features
