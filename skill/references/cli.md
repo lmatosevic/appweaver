@@ -46,10 +46,13 @@ weaver openapi|oa [options]
 
 Generate application OpenAPI specification schema.
 
-| Option                    | Description                                                      | Default         |
-|---------------------------|------------------------------------------------------------------|-----------------|
-| `-o, --outputPath [path]` | Output path for generated OpenAPI specification                  | `./schema.json` |
-| `-f, --format [format]`   | Output format for generated OpenAPI specification (json or yaml) | `json`          |
+| Option                    | Description                                                      | Default          |
+|---------------------------|------------------------------------------------------------------|------------------|
+| `-o, --outputPath [path]` | Output path for generated OpenAPI specification                  | `./openapi.json` |
+| `-f, --format [format]`   | Output format for generated OpenAPI specification (json or yaml) | `json`           |
+
+When `--format yaml` is used and `--outputPath` is left at its default, the output path becomes `./openapi.yaml`.
+Missing output directories are created automatically.
 
 ---
 
@@ -80,8 +83,11 @@ Per model, the type file holds `<Model>`, `<Model>Single`, `<Model>Multiple`, `<
 ## `weaver migrate`
 
 ```
-weaver migrate|mge [options]
+weaver migrate|mge
 ```
+
+Apply all pending database migrations (`prisma migrate deploy`). Takes no options, creates nothing, and never
+prompts, which makes it the command to run in CI, in containers, and in production.
 
 ---
 
@@ -102,10 +108,15 @@ Database migration commands.
 
 ### `weaver migration reset`
 
-| Option        | Description                                  | Default |
-|---------------|----------------------------------------------|---------|
-| `-f, --force` | Force reset for non-development environments | `false` |
-| `-y, --yes`   | Skip confirmation prompt                     | `false` |
+Drops the database, recreates it, and re-applies every migration (`prisma migrate reset`). **All data is lost.**
+
+| Option        | Description                                               | Default |
+|---------------|-----------------------------------------------------------|---------|
+| `-f, --force` | Allow the reset outside the `dev` and `test` environments | `false` |
+| `-y, --yes`   | Skip confirmation prompt                                  | `false` |
+
+Without `--force` the command runs only when `NODE_ENV` resolves to `dev` or `test`, and aborts otherwise. Either
+`--force` or `--yes` skips the Prisma confirmation prompt.
 
 ---
 
@@ -117,13 +128,13 @@ weaver seed|sd [options]
 
 Seed the database.
 
-| Option                  | Description                                                         | Default               |
-|-------------------------|---------------------------------------------------------------------|-----------------------|
-| `--seedersPath [path]`  | Seeders directory path                                              | `config.SEEDERS_PATH` |
-| `-b, --buildProject`    | Build the project before seeding                                    | `false`               |
-| `-p, --project`         | TypeScript project build config file (used when `-b` is set)        | `tsconfig.build.json` |
-| `-c, --continueOnError` | Continue seeder execution if error is thrown                        | `false`               |
-| `-f, --fixWarnings`     | Fix all seeder warnings like wrong checksum or deleted seeder files | `false`               |
+| Option                  | Description                                                         | Default                            |
+|-------------------------|---------------------------------------------------------------------|------------------------------------|
+| `--seedersPath [path]`  | Seeders directory path                                              | `config.DATABASE_SEEDERS_DIR_PATH` |
+| `-b, --buildProject`    | Build the project before seeding                                    | `false`                            |
+| `-p, --project`         | TypeScript project build config file (used when `-b` is set)        | `tsconfig.build.json`              |
+| `-c, --continueOnError` | Continue seeder execution if error is thrown                        | `false`                            |
+| `-f, --fixWarnings`     | Fix all seeder warnings like wrong checksum or deleted seeder files | `false`                            |
 
 ---
 
@@ -135,10 +146,10 @@ weaver start|s [options]
 
 Start the application.
 
-| Option          | Description                                                 | Default         |
-|-----------------|-------------------------------------------------------------|-----------------|
-| `-p, --project` | TypeScript project config file                              | `tsconfig.json` |
-| `-w, --watch`   | Run in watch mode (recompiles and restarts on file changes) | `false`         |
+| Option          | Description                                                 | Default               |
+|-----------------|-------------------------------------------------------------|-----------------------|
+| `-p, --project` | TypeScript project config file                              | `tsconfig.build.json` |
+| `-w, --watch`   | Run in watch mode (recompiles and restarts on file changes) | `false`               |
 
 ---
 
@@ -170,6 +181,9 @@ Requires `NODE_ENV=test`.
 | `--clientPath [path]`      | Output path for generated Prisma client | `config.DATABASE_CLIENT_OUTPUT_DIR_PATH` |
 | `--migrationName [name]`   | Name for the initial migration          | `init_test`                              |
 | `--verbose`                | Print verbose output                    | `false`                                  |
+
+Aborts unless the storage, schema and client paths all resolve inside `--dir`, so a misconfigured test run cannot
+touch the development database or uploads.
 
 ### `weaver test reset`
 
