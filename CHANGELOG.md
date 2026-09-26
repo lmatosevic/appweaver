@@ -1,3 +1,15 @@
+## [1.6.0](https://github.com/lmatosevic/appweaver/compare/v1.5.1...v1.6.0) (2026-09-26)
+
+### Features
+
+* implement Redis fallbacks for cache and rate limiting ([306ced9](https://github.com/lmatosevic/appweaver/commit/306ced9263cb3b67cdfa503b8460b9ba55171960))
+
+### Bug Fixes
+
+* fix stale auth user cache and health check message hiding ([4c350e2](https://github.com/lmatosevic/appweaver/commit/4c350e219839c0b745e8a357b98b91a47e798cc6))
+* make create-weaver-app configuration generation based on disabled service flags ([32b8283](https://github.com/lmatosevic/appweaver/commit/32b8283df0763c2436d6dcb93d364bf168e23555))
+* use seconds to compare JWT token issue times ([f157a80](https://github.com/lmatosevic/appweaver/commit/f157a80af32512813cabeff2c8b75182d1370669))
+
 ## [1.5.1](https://github.com/lmatosevic/appweaver/compare/v1.5.0...v1.5.1) (2026-09-20)
 
 ### Bug Fixes
