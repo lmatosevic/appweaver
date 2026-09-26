@@ -120,13 +120,14 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 ### Rate limiting (RATE_LIMIT_\*)
 
-| Property                | Type      | Default   | Description                                                      |
-|-------------------------|-----------|-----------|------------------------------------------------------------------|
-| `RATE_LIMIT_ENABLED`    | boolean   | `true`    | Enable global rate limiting middleware.                          |
-| `RATE_LIMIT_MAX`        | integer   | `1000`    | Maximum requests allowed per time window.                        |
-| `RATE_LIMIT_WINDOW`     | integer   | `60000`   | Rate limit window in milliseconds.                               |
-| `RATE_LIMIT_ALLOW_LIST` | string[]? | -         | IP addresses/patterns exempt from rate limiting.                 |
-| `RATE_LIMIT_STORE`      | enum      | `'redis'` | Store backend for tracking limits. Values: `redis`, `in-memory`. |
+| Property                   | Type      | Default   | Description                                                                                                |
+|----------------------------|-----------|-----------|------------------------------------------------------------------------------------------------------------|
+| `RATE_LIMIT_ENABLED`       | boolean   | `true`    | Enable global rate limiting middleware.                                                                    |
+| `RATE_LIMIT_MAX`           | integer   | `1000`    | Maximum requests allowed per time window.                                                                  |
+| `RATE_LIMIT_WINDOW`        | integer   | `60000`   | Rate limit window in milliseconds.                                                                         |
+| `RATE_LIMIT_ALLOW_LIST`    | string[]? | -         | IP addresses/patterns exempt from rate limiting.                                                           |
+| `RATE_LIMIT_STORE`         | enum      | `'redis'` | Store backend for tracking limits. Values: `redis`, `in-memory`.                                           |
+| `RATE_LIMIT_SKIP_ON_ERROR` | boolean   | `true`    | Skip rate limiting instead of failing requests with `500` when the store errors, e.g. while Redis is down. |
 
 ### Swagger / OpenAPI (SWAGGER\_\*)
 
@@ -390,6 +391,11 @@ you generated yourself, or provide the team ID, key ID and `.p8` private key and
 | `REDIS_URL`      | string | `'redis://localhost:6379/0'`     | Redis connection URL.               |
 | `REDIS_PROVIDER` | string | `'@appweaver/core/memory/redis'` | Redis provider implementation path. |
 
+The application starts and keeps running while Redis is unreachable. Connections reconnect in the background, each
+outage and recovery is logged once, and commands fail right away instead of waiting for the reconnection, so by default the
+cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting is skipped (see
+`RATE_LIMIT_SKIP_ON_ERROR`) and queues throw (see `queue.md`).
+
 ### In-memory store (MEMORY\_\*)
 
 | Property          | Type    | Default                              | Description                             |
@@ -412,6 +418,7 @@ you generated yourself, or provide the team ID, key ID and `.p8` private key and
 | `CACHE_EVICTION_DEFERRED`     | boolean | `false`                               | Defer eviction to a background process.                                |
 | `CACHE_INVALIDATION_STRATEGY` | enum    | `'expire-related'`                    | Invalidation strategy. Values: `expire-related`, `expire-all`, `none`. |
 | `CACHE_INVALIDATION_DEFERRED` | boolean | `false`                               | Defer invalidation to a background process.                            |
+| `CACHE_SKIP_ON_ERROR`         | boolean | `true`                                | Return empty results instead of failing when the cache backend errors. |
 | `CACHE_PROVIDER`              | string  | `'@appweaver/core/cache/redis-cache'` | Cache provider implementation path.                                    |
 
 ### Job queue (QUEUE\_\*)

@@ -45,7 +45,8 @@
       "max": 1000,
       "window": 60000,
       "allowList": ["127.0.0.1", "192.168.5.1"],
-      "store": "redis"
+      "store": "redis",
+      "skipOnError": true
     },
     "swagger": {
       "enabled": true,
@@ -250,6 +251,7 @@
       "evictionDeferred": false,
       "invalidationStrategy": "expire-related",
       "invalidationDeferred": false,
+      "skipOnError": true,
       "provider": "@appweaver/core/cache/redis-cache"
     },
     "queue": {

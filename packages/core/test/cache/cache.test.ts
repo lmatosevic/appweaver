@@ -1,4 +1,4 @@
-import { config, Memory } from '@appweaver/common';
+import { config, logger, Memory } from '@appweaver/common';
 import { Cache } from '../../cache/cache';
 import { InMemory } from '../../memory/in-memory';
 
@@ -220,6 +220,142 @@ describe('cache', () => {
       const keys = await limited.keys();
       expect(keys).toContain(`${PREFIX}a`);
       expect(keys).not.toContain(`${PREFIX}b`);
+    });
+  });
+
+  describe('unavailable memory', () => {
+    class FlakyMemory extends InMemory {
+      available = true;
+      failing = false;
+
+      public isAvailable(): boolean {
+        return this.available;
+      }
+
+      public async getValue<T = any>(key: string): Promise<T | null> {
+        if (this.failing) {
+          throw new Error('Connection lost');
+        }
+        return super.getValue<T>(key);
+      }
+    }
+
+    let flaky: FlakyMemory;
+    let flakyCache: TestCache;
+    let errorSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      flaky = new FlakyMemory();
+      flakyCache = new TestCache(flaky);
+      errorSpy = jest
+        .spyOn(logger, 'error')
+        .mockImplementation(() => undefined);
+      jest.spyOn(logger, 'info').mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    test('falls back to empty results while the memory is unavailable', async () => {
+      await flakyCache.set('posts:1', { id: 1 });
+      flaky.available = false;
+
+      await expect(flakyCache.get('posts:1')).resolves.toBeNull();
+      await expect(flakyCache.has('posts:1')).resolves.toBe(false);
+      await expect(flakyCache.set('posts:2', { id: 2 })).resolves.toBe(false);
+      await expect(flakyCache.evict('posts:1')).resolves.toBe(false);
+      await expect(flakyCache.expire()).resolves.toBe(0);
+      await expect(flakyCache.keys()).resolves.toEqual([]);
+    });
+
+    test('falls back to an empty result when the memory action fails', async () => {
+      await flakyCache.set('posts:1', { id: 1 });
+      flaky.failing = true;
+
+      await expect(flakyCache.get('posts:1')).resolves.toBeNull();
+    });
+
+    test('logs the error only once per outage', async () => {
+      flaky.available = false;
+
+      await flakyCache.get('posts:1');
+      await flakyCache.get('posts:2');
+
+      expect(errorSpy).toHaveBeenCalledTimes(1);
+    });
+
+    test('clears entries written before the outage once available again', async () => {
+      await flakyCache.set('posts:1', { id: 1 });
+      flaky.available = false;
+      await flakyCache.get('posts:1');
+      flaky.available = true;
+
+      await expect(flakyCache.get('posts:1')).resolves.toBeNull();
+      await expect(flakyCache.set('posts:1', { id: 2 })).resolves.toBe(true);
+      await expect(flakyCache.get('posts:1')).resolves.toEqual({ id: 2 });
+    });
+
+    test('defers the clean start until the memory is available', async () => {
+      process.env.CACHE_CLEAN_START = 'true';
+      jest.resetModules();
+
+      try {
+        const common = await import('@appweaver/common');
+        const cacheModule = await import('../../cache/cache');
+        const memoryModule = await import('../../memory/in-memory');
+        const freshErrorSpy = jest
+          .spyOn(common.logger, 'error')
+          .mockImplementation(() => undefined);
+
+        const memory = new memoryModule.InMemory();
+        let available = false;
+        jest.spyOn(memory, 'isAvailable').mockImplementation(() => available);
+
+        class CleanStartCache extends cacheModule.Cache {
+          constructor() {
+            super(memory);
+          }
+        }
+        const clean = new CleanStartCache();
+
+        await memory.putValue(`${PREFIX}posts:1`, { id: 1 });
+        await clean.onInit();
+        available = true;
+
+        await expect(clean.get('posts:1')).resolves.toBeNull();
+        expect(freshErrorSpy).not.toHaveBeenCalled();
+      } finally {
+        delete process.env.CACHE_CLEAN_START;
+        jest.resetModules();
+      }
+    });
+
+    test('throws the memory error when skipping errors is disabled', async () => {
+      process.env.CACHE_SKIP_ON_ERROR = 'false';
+      jest.resetModules();
+
+      try {
+        const cacheModule = await import('../../cache/cache');
+        const memoryModule = await import('../../memory/in-memory');
+
+        const memory = new memoryModule.InMemory();
+        jest
+          .spyOn(memory, 'getValue')
+          .mockRejectedValue(new Error('Connection lost'));
+
+        class StrictCache extends cacheModule.Cache {
+          constructor() {
+            super(memory);
+          }
+        }
+        const strict = new StrictCache();
+
+        await expect(strict.get('posts:1')).rejects.toThrow('Connection lost');
+      } finally {
+        delete process.env.CACHE_SKIP_ON_ERROR;
+        jest.resetModules();
+      }
     });
   });
 });

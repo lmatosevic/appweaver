@@ -110,6 +110,17 @@ export abstract class Memory implements IHealthCheck, OnInit, OnDestroy {
 
   abstract checkHealth(): Promise<HealthCheckResult>;
 
+  /**
+   * Reports whether the memory can currently serve requests. Implementations
+   * backed by a remote connection return `false` while it is down, so callers
+   * can skip it instead of waiting for a failure.
+   *
+   * @return {boolean} `true` if the memory is available, `false` otherwise.
+   */
+  public isAvailable(): boolean {
+    return true;
+  }
+
   public checkHealthConfig(): HealthCheckConfig {
     return { name: 'memory' };
   }

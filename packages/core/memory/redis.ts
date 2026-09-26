@@ -4,6 +4,7 @@ import { parse, stringify } from 'flatted';
 import {
   config,
   HealthCheckResult,
+  logger,
   Redis as CommonRedis,
   uuid
 } from '@appweaver/common';
@@ -17,11 +18,22 @@ export class Redis extends CommonRedis<RedisOptions, RedisClient> {
   constructor() {
     super();
     this._options = this.parseConnectionUrl(config.REDIS_URL);
-    this._client = this.createClient({ lazyConnect: true });
+    // Commands fail right away while disconnected instead of queueing, so the
+    // callers can fall back without waiting for the reconnection
+    this._client = this.createClient({
+      connectionName: 'appweaver',
+      lazyConnect: true,
+      enableOfflineQueue: false,
+      maxRetriesPerRequest: 1
+    });
   }
 
   public async onInit(): Promise<void> {
-    await this.connect();
+    try {
+      await this.connect();
+    } catch {
+      // Logged by the connection monitor, the client keeps reconnecting
+    }
   }
 
   public async onDestroy(): Promise<void> {
@@ -29,10 +41,12 @@ export class Redis extends CommonRedis<RedisOptions, RedisClient> {
   }
 
   public createClient(options: RedisOptions = {}): RedisClient {
-    return new RedisClient({
+    const client = new RedisClient({
       ...this._options,
       ...options
     });
+    this.monitorConnection(client);
+    return client;
   }
 
   public async connect(): Promise<void> {
@@ -43,7 +57,8 @@ export class Redis extends CommonRedis<RedisOptions, RedisClient> {
     try {
       await this._client.quit();
     } catch {
-      // Ignore already closed connection error
+      // Stops the reconnection of a connection that is down
+      this._client.disconnect();
     }
   }
 
@@ -83,7 +98,7 @@ export class Redis extends CommonRedis<RedisOptions, RedisClient> {
   }
 
   public async findKeys(pattern: string = '*'): Promise<Set<string>> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const stream = this._client.scanStream({
         match: pattern,
         count: 10000
@@ -100,6 +115,8 @@ export class Redis extends CommonRedis<RedisOptions, RedisClient> {
       stream.on('end', () => {
         resolve(keysSet);
       });
+
+      stream.on('error', reject);
     });
   }
 
@@ -134,6 +151,36 @@ export class Redis extends CommonRedis<RedisOptions, RedisClient> {
     }
   }
 
+  public isAvailable(): boolean {
+    return this._client.status === 'ready';
+  }
+
+  /** @internal */
+  private monitorConnection(client: RedisClient): void {
+    const name = client.options.connectionName ?? 'redis';
+    let lost = false;
+
+    // Logs only the first error of an outage, the client emits one on every
+    // failed reconnection attempt
+    client.on('error', (error) => {
+      if (!lost) {
+        lost = true;
+        logger.error(
+          error,
+          `Redis connection '${name}' is down, reconnecting in background`
+        );
+      }
+    });
+
+    client.on('ready', () => {
+      if (lost) {
+        lost = false;
+        logger.info(`Redis connection '${name}' is restored`);
+      }
+    });
+  }
+
+  /** @internal */
   private parseConnectionUrl(url: string): RedisOptions {
     const urlPattern =
       /redis:\/\/(?:(.*?)(?::(.*?))?@)?(.*?):(\d+)(?:\/(\d+))?/;

@@ -6,6 +6,7 @@ import {
   WorkerListener,
   WorkerOptions
 } from 'bullmq';
+import { EventEmitter } from 'node:events';
 import { Redis as RedisClient, RedisOptions } from 'ioredis';
 import { JobsOptions } from 'bullmq/dist/esm/types';
 import {
@@ -28,9 +29,12 @@ type IoRedis = Redis<RedisOptions, RedisClient>;
 export class BullQueue extends CommonQueue {
   /** @internal */
   private readonly _queues: Map<string, BullQueueProcessor> = new Map();
+  /** @internal */
+  private _healthCheckQueue?: BullQueueProcessor;
 
   public async onDestroy(): Promise<void> {
     await this.closeAll();
+    await this._healthCheckQueue?.close();
   }
 
   public get<Data = any, Response = any>(
@@ -61,9 +65,10 @@ export class BullQueue extends CommonQueue {
   }
 
   public async checkHealth(): Promise<HealthCheckResult> {
+    // Reused, so an outage is logged once and not on every check
+    this._healthCheckQueue ??= new BullQueueProcessor('health-check');
     try {
-      const queue = new BullQueueProcessor('health-check');
-      await queue.close();
+      await this._healthCheckQueue.ensureConnected();
       return { success: true };
     } catch (e) {
       return { success: false, message: (e as Error).message };
@@ -80,9 +85,7 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
   WorkerOptions
 > {
   /** @internal */
-  private readonly _connection = inject<IoRedis>(Redis).createClient({
-    maxRetriesPerRequest: null
-  });
+  private readonly _connection: RedisClient;
   /** @internal */
   private readonly _queue: Queue;
   /** @internal */
@@ -95,6 +98,10 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
 
   constructor(public readonly name: string) {
     super();
+    this._connection = inject<IoRedis>(Redis).createClient({
+      connectionName: `queue:${name}`,
+      maxRetriesPerRequest: null
+    });
     this._queue = new Queue(name, {
       connection: this._connection as any, // Needed because of different ioredis types
       skipVersionCheck: true,
@@ -114,6 +121,12 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
         }
       }
     });
+
+    // Without a listener BullMQ prints every reconnection error, the outage
+    // itself is logged once by the Redis connection monitor
+    this._queue.on('error', (error) => {
+      logger.debug(error, `Queue '${name}' error`);
+    });
   }
 
   public async sendJob(
@@ -121,6 +134,7 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     name?: string,
     options: JobsOptions = {}
   ): Promise<Job<Data, Response>> {
+    await this.ensureConnected();
     return await this._queue.add(name ?? 'defaultJob', data, options);
   }
 
@@ -131,6 +145,7 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       options?: Omit<JobsOptions, 'repeat'>;
     }>
   ): Promise<Array<Job<Data, Response>>> {
+    await this.ensureConnected();
     return await this._queue.addBulk(
       jobs.map(({ data, name, options }) => ({
         data,
@@ -281,9 +296,50 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
   }
 
   public async close(): Promise<void> {
+    const connected = this._connection.status === 'ready';
+
     await this._queue.close();
+    this.ignoreLateErrors(this._queue);
+
     for (const worker of this._workers) {
-      await worker.close();
+      // Running jobs cannot finish while Redis is down
+      await worker.close(!connected);
+      this.ignoreLateErrors(worker);
+    }
+
+    // BullMQ does not close a connection it was given
+    if (connected) {
+      await this._connection.quit();
+    } else {
+      this._connection.disconnect();
+    }
+  }
+
+  /**
+   * Fails fast while Redis is down, the queue would otherwise wait for the
+   * reconnection. Waits only for a connection that is still being established.
+   *
+   * @internal
+   */
+  public async ensureConnected(): Promise<void> {
+    const connection = this._connection;
+
+    if (['wait', 'connecting', 'connect'].includes(connection.status)) {
+      await new Promise<void>((resolve) => {
+        const done = () => {
+          connection.off('ready', done);
+          connection.off('error', done);
+          resolve();
+        };
+        connection.once('ready', done);
+        connection.once('error', done);
+      });
+    }
+
+    if (connection.status !== 'ready') {
+      throw new Error(
+        `Queue '${this.name}' is unavailable, Redis connection is not ready`
+      );
     }
   }
 
@@ -306,5 +362,22 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     }
 
     await Promise.allSettled(handlerActions);
+  }
+
+  /**
+   * BullMQ removes the listeners of its connections on close, but one still
+   * connecting fails afterward and emits an unhandled error that crashes the
+   * process.
+   *
+   * @internal
+   */
+  private ignoreLateErrors(target: Queue | Worker): void {
+    const internal = target as unknown as Record<
+      string,
+      EventEmitter | undefined
+    >;
+    for (const key of ['connection', 'blockingConnection']) {
+      internal[key]?.on('error', () => undefined);
+    }
   }
 }

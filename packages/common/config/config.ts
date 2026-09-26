@@ -69,6 +69,7 @@ const configSchema = Type.Object({
   RATE_LIMIT_WINDOW: Type.Integer({ default: 60000 }),
   RATE_LIMIT_ALLOW_LIST: Type.Optional(Type.Array(Type.String())),
   RATE_LIMIT_STORE: Type.Enum(MemoryType, { default: MemoryType.Redis }),
+  RATE_LIMIT_SKIP_ON_ERROR: Type.Boolean({ default: true }),
 
   SWAGGER_ENABLED: Type.Boolean({ default: true }),
   SWAGGER_PATH: Type.String({ default: '/swagger' }),
@@ -280,6 +281,7 @@ const configSchema = Type.Object({
     default: CacheInvalidationStrategy.ExpireRelated
   }),
   CACHE_INVALIDATION_DEFERRED: Type.Boolean({ default: false }),
+  CACHE_SKIP_ON_ERROR: Type.Boolean({ default: true }),
   CACHE_PROVIDER: Type.String({ default: '@appweaver/core/cache/redis-cache' }),
 
   QUEUE_KEEP_COMPLETED_COUNT: Type.Integer({ default: 0 }),

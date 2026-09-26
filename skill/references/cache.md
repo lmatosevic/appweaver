@@ -15,6 +15,18 @@ import { Cache } from '@appweaver/common';
 const cache = inject(Cache);
 ```
 
+### Unavailable backend
+
+With `CACHE_SKIP_ON_ERROR` enabled (the default) the cache never fails its callers. While the backing memory (e.g.
+Redis) is down or a command fails, every method returns its empty result (`get` → `null`, `has`/`set`/`evict` →
+`false`, `expire` → `0`, `keys` → `[]`), so the callers fall back to the database. The outage is logged once with an
+error, and the recovery once with info. Entries written before an outage may have missed invalidations made during it,
+so the whole cache is cleared once the memory is available again. Calling code does not need its own `try`/`catch`
+around cache access.
+
+Set `CACHE_SKIP_ON_ERROR` to `false` to make every method throw the memory error instead, so requests that read or
+write the cache fail while its backend is down. Resource cache invalidation still only logs its errors.
+
 #### `cache.get<T>(key)`
 
 Retrieves a cached value. Returns `null` if the key does not exist.
@@ -167,6 +179,7 @@ const key = cacheService.buildCacheKey({
 | `CACHE_EVICTION_STRATEGY`     | `enum`   | `'lru'`                               | `lru`, `lfu`, or `fifo`                            |
 | `CACHE_INVALIDATION_STRATEGY` | `enum`   | `'expire-related'`                    | `expire-related`, `expire-all`, or `none`          |
 | `CACHE_INVALIDATION_DEFERRED` | `bool`   | `false`                               | Fire invalidation in the background (non-blocking) |
+| `CACHE_SKIP_ON_ERROR`         | `bool`   | `true`                                | Return empty results instead of failing on errors  |
 
 Switch to the in-memory implementation for local development or tests:
 

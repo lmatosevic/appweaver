@@ -5,11 +5,11 @@ export default createRoutes({
   path: '/pages',
   find: {
     public: true,
-    cacheTTL: 300
+    cacheTTL: 300_000
   },
   query: {
     public: true,
-    cacheTTL: 300
+    cacheTTL: 300_000
   },
   aggregate: {
     exclude: true

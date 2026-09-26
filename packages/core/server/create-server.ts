@@ -6,6 +6,7 @@ import fastifyHelmet from '@fastify/helmet';
 import fastifyStatic from '@fastify/static';
 import fastifyRateLimit from '@fastify/rate-limit';
 import fastifyMultipart from '@fastify/multipart';
+import { Redis as RedisClient, RedisOptions } from 'ioredis';
 import { fastifyRequestContext } from '@fastify/request-context';
 import {
   config,
@@ -113,19 +114,27 @@ export function createServer(): Server {
 
   // Register global request rate limiter
   if (config.RATE_LIMIT_ENABLED) {
+    const redisClient =
+      config.RATE_LIMIT_STORE === MemoryType.Redis
+        ? inject<Redis<RedisOptions, RedisClient>>(Redis).createClient({
+            connectionName: 'rate-limit',
+            connectTimeout: 500,
+            maxRetriesPerRequest: 1,
+            enableOfflineQueue: false
+          })
+        : undefined;
+
+    if (redisClient) {
+      server.addHook('onClose', async () => redisClient.disconnect());
+    }
+
     server.register(fastifyRateLimit, {
       max: config.RATE_LIMIT_MAX,
       timeWindow: config.RATE_LIMIT_WINDOW,
       allowList: config.RATE_LIMIT_ALLOW_LIST,
+      skipOnError: config.RATE_LIMIT_SKIP_ON_ERROR,
       nameSpace: 'rate-limit:',
-      redis:
-        config.RATE_LIMIT_STORE === MemoryType.Redis
-          ? inject<Redis>(Redis).createClient({
-              connectTimeout: 500,
-              maxRetriesPerRequest: 1,
-              lazyConnect: true
-            })
-          : null
+      redis: redisClient
     });
   }
 

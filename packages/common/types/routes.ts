@@ -64,7 +64,7 @@ export type RouteCacheConfig = {
   cache?: boolean;
   /** Custom cache key or factory */
   cacheKey?: string | ((req: any, user: any) => string);
-  /** Cache TTL in seconds */
+  /** Cache TTL in milliseconds */
   cacheTTL?: number;
   /** Skip automatic cache invalidation */
   cacheSkipInvalidation?: boolean;

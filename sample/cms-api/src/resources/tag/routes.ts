@@ -5,11 +5,11 @@ export default createRoutes({
   path: '/tags',
   find: {
     public: true,
-    cacheTTL: 60
+    cacheTTL: 60_000
   },
   query: {
     public: true,
-    cacheTTL: 60
+    cacheTTL: 60_000
   },
   aggregate: {
     exclude: true

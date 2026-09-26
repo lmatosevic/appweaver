@@ -91,6 +91,8 @@ export type Config = {
   RATE_LIMIT_ALLOW_LIST?: string[];
   /** Store backend for tracking limits. Values: `redis`, `in-memory`. Default: `'redis'`. */
   RATE_LIMIT_STORE: MemoryType;
+  /** Skip rate limiting instead of failing requests when the store errors, e.g. while Redis is down. Default: `true`. */
+  RATE_LIMIT_SKIP_ON_ERROR: boolean;
 
   /** Enable Swagger/OpenAPI documentation UI. Default: `true`. */
   SWAGGER_ENABLED: boolean;
@@ -395,6 +397,8 @@ export type Config = {
   CACHE_INVALIDATION_STRATEGY: CacheInvalidationStrategy;
   /** Defer invalidation to a background process. Default: `false`. */
   CACHE_INVALIDATION_DEFERRED: boolean;
+  /** Return empty results instead of failing when the cache backend errors, e.g. while Redis is down. Default: `true`. */
+  CACHE_SKIP_ON_ERROR: boolean;
   /** Cache provider implementation path. Default: `'@appweaver/core/cache/redis-cache'`. */
   CACHE_PROVIDER: string;
 

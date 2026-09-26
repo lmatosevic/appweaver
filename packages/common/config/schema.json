@@ -204,6 +204,10 @@
               "type": "string",
               "enum": ["redis", "in-memory"],
               "default": "redis"
+            },
+            "skipOnError": {
+              "type": "boolean",
+              "default": true
             }
           }
         },
@@ -972,6 +976,10 @@
             "invalidationDeferred": {
               "type": "boolean",
               "default": false
+            },
+            "skipOnError": {
+              "type": "boolean",
+              "default": true
             },
             "provider": {
               "type": "string",
