@@ -42,6 +42,7 @@ export class RedisSecurityStore extends SecurityStore {
       throw new HttpError('Invalid or expired token provided', 401);
     }
 
+    // A token failing the validation is kept, so it can be used again
     if (validateContent) {
       const result = validateContent(value);
       if (!result.valid) {
@@ -49,7 +50,11 @@ export class RedisSecurityStore extends SecurityStore {
       }
     }
 
-    await this._redis.removeValue(tokenKey);
+    // Only the one of concurrent uses that removes the token gets its data
+    const removed = await this._redis.removeValue(tokenKey);
+    if (!removed) {
+      throw new HttpError('Invalid or expired token provided', 401);
+    }
 
     return value;
   }

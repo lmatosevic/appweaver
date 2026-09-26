@@ -183,14 +183,14 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 #### General
 
-| Property                             | Type     | Default                                                 | Description                                      |
-|--------------------------------------|----------|---------------------------------------------------------|--------------------------------------------------|
-| `SECURITY_ROUTE_PREFIX`              | string   | `'/auth'`                                               | Base path for authentication routes.             |
-| `SECURITY_CACHE_TTL`                 | integer  | `300000`                                                | Security cache TTL in milliseconds.              |
-| `SECURITY_AUTH_OTT_TTL`              | integer  | `120000`                                                | One-time token TTL for authentication (ms).      |
-| `SECURITY_ALLOWED_REDIRECT_HOSTS`    | string[] | `['*']`                                                 | Allowed hosts for post-authentication redirects. |
-| `SECURITY_STORE_PROVIDER`            | string   | `'@appweaver/core/security/store/redis-security-store'` | Security store implementation path.              |
-| `SECURITY_STORE_KEEP_DATABASE_TABLE` | boolean  | `false`                                                 | Keep database table after migrations.            |
+| Property                             | Type     | Default                                                    | Description                                               |
+|--------------------------------------|----------|------------------------------------------------------------|-----------------------------------------------------------|
+| `SECURITY_ROUTE_PREFIX`              | string   | `'/auth'`                                                  | Base path for authentication routes.                      |
+| `SECURITY_CACHE_TTL`                 | integer  | `300000`                                                   | Security cache TTL in milliseconds.                       |
+| `SECURITY_AUTH_OTT_TTL`              | integer  | `120000`                                                   | One-time token TTL for authentication (ms).               |
+| `SECURITY_ALLOWED_REDIRECT_HOSTS`    | string[] | `['*']`                                                    | Allowed hosts for post-authentication redirects.          |
+| `SECURITY_STORE_PROVIDER`            | string   | `'@appweaver/core/security/store/database-security-store'` | Security store implementation path.                       |
+| `SECURITY_STORE_KEEP_DATABASE_TABLE` | boolean  | `false`                                                    | Keep the one-time token table when another store is used. |
 
 #### Password policy
 
@@ -392,7 +392,8 @@ you generated yourself, or provide the team ID, key ID and `.p8` private key and
 | `REDIS_PROVIDER` | string | `'@appweaver/core/memory/redis'` | Redis provider implementation path. |
 
 The application starts and keeps running while Redis is unreachable. Connections reconnect in the background, each
-outage and recovery is logged once, and commands fail right away instead of waiting for the reconnection, so by default the
+outage and recovery is logged once, and commands fail right away instead of waiting for the reconnection, so by default
+the
 cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting is skipped (see
 `RATE_LIMIT_SKIP_ON_ERROR`) and queues throw (see `queue.md`).
 
@@ -436,10 +437,11 @@ cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting is s
 
 ### Scheduler (SCHEDULER\_\*)
 
-| Property                   | Type    | Default                                      | Description                                       |
-|----------------------------|---------|----------------------------------------------|---------------------------------------------------|
-| `SCHEDULER_AUTO_START_JOB` | boolean | `true`                                       | Auto-start scheduled jobs on application startup. |
-| `SCHEDULER_PROVIDER`       | string  | `'@appweaver/core/scheduler/cron-scheduler'` | Scheduler provider implementation path.           |
+| Property                   | Type    | Default                                      | Description                                                                |
+|----------------------------|---------|----------------------------------------------|----------------------------------------------------------------------------|
+| `SCHEDULER_ENABLED`        | boolean | `true`                                       | Enable the scheduler. Disable it when the `cron` package is not installed. |
+| `SCHEDULER_AUTO_START_JOB` | boolean | `true`                                       | Auto-start scheduled jobs on application startup.                          |
+| `SCHEDULER_PROVIDER`       | string  | `'@appweaver/core/scheduler/cron-scheduler'` | Scheduler provider implementation path.                                    |
 
 ### Events (EVENTS\_\*)
 
@@ -450,16 +452,17 @@ cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting is s
 
 ### Mailer (MAILER\_\*)
 
-| Property                | Type    | Default                                | Description                              |
-|-------------------------|---------|----------------------------------------|------------------------------------------|
-| `MAILER_SENDER_NAME`    | string? | -                                      | Default sender name for outgoing emails. |
-| `MAILER_SENDER_ADDRESS` | string? | -                                      | Default sender email address.            |
-| `MAILER_PROVIDER`       | string  | `'@appweaver/core/mailer/smtp-mailer'` | Mailer provider implementation path.     |
-| `MAILER_SMTP_HOST`      | string  | `'127.0.0.1'`                          | SMTP server hostname.                    |
-| `MAILER_SMTP_PORT`      | integer | `587`                                  | SMTP server port.                        |
-| `MAILER_SMTP_SECURE`    | boolean | `false`                                | Use TLS/SSL for SMTP connections.        |
-| `MAILER_SMTP_USER`      | string? | -                                      | SMTP authentication username.            |
-| `MAILER_SMTP_PASSWORD`  | string? | -                                      | SMTP authentication password.            |
+| Property                | Type    | Default                                | Description                                                                                                                                                               |
+|-------------------------|---------|----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `MAILER_ENABLED`        | boolean | `true`                                 | Enable the mailer. Disable it when the `nodemailer` package is not installed. Without it the email features (email verification, password reset, 2FA) respond with `501`. |
+| `MAILER_SENDER_NAME`    | string? | -                                      | Default sender name for outgoing emails.                                                                                                                                  |
+| `MAILER_SENDER_ADDRESS` | string? | -                                      | Default sender email address.                                                                                                                                             |
+| `MAILER_PROVIDER`       | string  | `'@appweaver/core/mailer/smtp-mailer'` | Mailer provider implementation path.                                                                                                                                      |
+| `MAILER_SMTP_HOST`      | string  | `'127.0.0.1'`                          | SMTP server hostname.                                                                                                                                                     |
+| `MAILER_SMTP_PORT`      | integer | `587`                                  | SMTP server port.                                                                                                                                                         |
+| `MAILER_SMTP_SECURE`    | boolean | `false`                                | Use TLS/SSL for SMTP connections.                                                                                                                                         |
+| `MAILER_SMTP_USER`      | string? | -                                      | SMTP authentication username.                                                                                                                                             |
+| `MAILER_SMTP_PASSWORD`  | string? | -                                      | SMTP authentication password.                                                                                                                                             |
 
 ### System (SYSTEM\_\*)
 

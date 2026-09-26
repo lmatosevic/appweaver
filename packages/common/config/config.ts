@@ -118,7 +118,7 @@ const configSchema = Type.Object({
     default: ['*']
   }),
   SECURITY_STORE_PROVIDER: Type.String({
-    default: '@appweaver/core/security/store/redis-security-store'
+    default: '@appweaver/core/security/store/database-security-store'
   }),
   SECURITY_STORE_KEEP_DATABASE_TABLE: Type.Boolean({ default: false }),
   SECURITY_PASSWORD_ENABLED: Type.Boolean({ default: true }),
@@ -298,6 +298,7 @@ const configSchema = Type.Object({
   ),
   QUEUE_PROVIDER: Type.String({ default: '@appweaver/core/queue/bull-queue' }),
 
+  SCHEDULER_ENABLED: Type.Boolean({ default: true }),
   SCHEDULER_AUTO_START_JOB: Type.Boolean({ default: true }),
   SCHEDULER_PROVIDER: Type.String({
     default: '@appweaver/core/scheduler/cron-scheduler'
@@ -308,6 +309,7 @@ const configSchema = Type.Object({
     default: '@appweaver/core/events/node-events'
   }),
 
+  MAILER_ENABLED: Type.Boolean({ default: true }),
   MAILER_SENDER_NAME: Type.Optional(Type.String()),
   MAILER_SENDER_ADDRESS: Type.Optional(Type.String()),
   MAILER_PROVIDER: Type.String({

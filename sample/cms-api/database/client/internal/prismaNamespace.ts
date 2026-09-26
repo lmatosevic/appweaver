@@ -405,6 +405,7 @@ export const ModelName = {
   User: 'User',
   ApiKey: 'ApiKey',
   ConnectedAccount: 'ConnectedAccount',
+  OneTimeToken: 'OneTimeToken',
   Role: 'Role',
   Permission: 'Permission',
   Seeder: 'Seeder',
@@ -424,7 +425,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "category" | "comment" | "page" | "post" | "tag" | "user" | "apiKey" | "connectedAccount" | "role" | "permission" | "seeder" | "file"
+    modelProps: "category" | "comment" | "page" | "post" | "tag" | "user" | "apiKey" | "connectedAccount" | "oneTimeToken" | "role" | "permission" | "seeder" | "file"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1020,6 +1021,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    OneTimeToken: {
+      payload: Prisma.$OneTimeTokenPayload<ExtArgs>
+      fields: Prisma.OneTimeTokenFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OneTimeTokenFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OneTimeTokenFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
+        }
+        findFirst: {
+          args: Prisma.OneTimeTokenFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OneTimeTokenFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
+        }
+        findMany: {
+          args: Prisma.OneTimeTokenFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>[]
+        }
+        create: {
+          args: Prisma.OneTimeTokenCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
+        }
+        createMany: {
+          args: Prisma.OneTimeTokenCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OneTimeTokenCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>[]
+        }
+        delete: {
+          args: Prisma.OneTimeTokenDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
+        }
+        update: {
+          args: Prisma.OneTimeTokenUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
+        }
+        deleteMany: {
+          args: Prisma.OneTimeTokenDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OneTimeTokenUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OneTimeTokenUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>[]
+        }
+        upsert: {
+          args: Prisma.OneTimeTokenUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OneTimeTokenPayload>
+        }
+        aggregate: {
+          args: Prisma.OneTimeTokenAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOneTimeToken>
+        }
+        groupBy: {
+          args: Prisma.OneTimeTokenGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OneTimeTokenGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OneTimeTokenCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OneTimeTokenCountAggregateOutputType> | number
+        }
+      }
+    }
     Role: {
       payload: Prisma.$RolePayload<ExtArgs>
       fields: Prisma.RoleFieldRefs
@@ -1498,6 +1573,18 @@ export const ConnectedAccountScalarFieldEnum = {
 export type ConnectedAccountScalarFieldEnum = (typeof ConnectedAccountScalarFieldEnum)[keyof typeof ConnectedAccountScalarFieldEnum]
 
 
+export const OneTimeTokenScalarFieldEnum = {
+  id: 'id',
+  tokenHash: 'tokenHash',
+  purpose: 'purpose',
+  data: 'data',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt'
+} as const
+
+export type OneTimeTokenScalarFieldEnum = (typeof OneTimeTokenScalarFieldEnum)[keyof typeof OneTimeTokenScalarFieldEnum]
+
+
 export const RoleScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -1568,6 +1655,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const NullsOrder = {
@@ -1836,6 +1930,7 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   apiKey?: Prisma.ApiKeyOmit
   connectedAccount?: Prisma.ConnectedAccountOmit
+  oneTimeToken?: Prisma.OneTimeTokenOmit
   role?: Prisma.RoleOmit
   permission?: Prisma.PermissionOmit
   seeder?: Prisma.SeederOmit

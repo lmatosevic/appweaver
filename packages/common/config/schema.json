@@ -413,7 +413,7 @@
             "store": {
               "provider": {
                 "type": "string",
-                "default": "@appweaver/core/security/store/redis-security-store"
+                "default": "@appweaver/core/security/store/database-security-store"
               },
               "keepDatabaseTable": {
                 "type": "boolean",
@@ -1026,6 +1026,10 @@
         "scheduler": {
           "type": "object",
           "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
             "autoStartJob": {
               "type": "boolean",
               "default": true
@@ -1052,6 +1056,10 @@
         "mailer": {
           "type": "object",
           "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
             "senderName": {
               "type": ["string", "null"]
             },

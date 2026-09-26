@@ -58,6 +58,11 @@ export type ApiKey = Prisma.ApiKeyModel
  */
 export type ConnectedAccount = Prisma.ConnectedAccountModel
 /**
+ * Model OneTimeToken
+ * 
+ */
+export type OneTimeToken = Prisma.OneTimeTokenModel
+/**
  * Model Role
  * 
  */

@@ -908,6 +908,84 @@ export type ConnectedAccountResourceService = IResourceService<
   ConnectedAccountQuery
 >;
 
+export type OneTimeToken = {
+  id: number;
+  tokenHash: string;
+  purpose: string;
+  data: any;
+  expiresAt: Date;
+  createdAt: Date;
+};
+
+export type OneTimeTokenSingle = {
+  id: number;
+  tokenHash: string;
+  purpose: string;
+  data: any;
+  expiresAt: Date;
+  createdAt: Date;
+};
+
+export type OneTimeTokenMultiple = {
+  id: number;
+  tokenHash: string;
+  purpose: string;
+  data: any;
+  expiresAt: Date;
+  createdAt: Date;
+};
+
+export type OneTimeTokenCreate = {
+  tokenHash: string;
+  purpose: string;
+  data: any;
+  expiresAt: Date;
+};
+
+export type OneTimeTokenUpdate = {
+  tokenHash?: string;
+  purpose?: string;
+  data?: any;
+  expiresAt?: Date;
+};
+
+export type OneTimeTokenRelationCreate = {
+  tokenHash: string;
+  purpose: string;
+  data: any;
+  expiresAt: Date;
+};
+
+export type OneTimeTokenRelationUpdate = {
+  id: number;
+  tokenHash?: string;
+  purpose?: string;
+  data?: any;
+  expiresAt?: Date;
+};
+
+export type OneTimeTokenRelationInput = {
+  id?: number;
+  tokenHash?: string;
+  purpose?: string;
+  data?: any;
+  expiresAt?: Date;
+};
+
+export type OneTimeTokenQuery = QueryFilter<OneTimeToken>;
+
+export type OneTimeTokenSort = QuerySort<OneTimeTokenMultiple>;
+
+export type OneTimeTokenAggregate = AggregateSelect<OneTimeToken>;
+
+export type OneTimeTokenResourceService = IResourceService<
+  OneTimeToken,
+  OneTimeTokenMultiple,
+  OneTimeTokenCreate,
+  OneTimeTokenUpdate,
+  OneTimeTokenQuery
+>;
+
 export type Role = {
   id: number;
   name: string;

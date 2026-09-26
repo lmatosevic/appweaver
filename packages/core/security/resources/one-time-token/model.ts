@@ -9,25 +9,29 @@ const shouldCreateModel =
 export default shouldCreateModel
   ? createModel({
       name: 'OneTimeToken',
+      // Tokens are only created and deleted, never updated
       audit: {
+        updatedAt: false,
         createdById: false
       },
       scalars: {
         tokenHash: {
           type: 'string',
-          maxLength: 511
+          maxLength: 128,
+          unique: true
         },
         purpose: {
           type: 'string',
-          maxLength: 255
-        },
-        expiresAt: {
-          type: 'dateTime'
+          maxLength: 64
         },
         data: {
           type: 'json'
+        },
+        expiresAt: {
+          type: 'dateTime'
         }
       },
-      index: [['tokenHash', 'purpose']]
+      // Deleting the expired tokens filters by the expiration
+      index: [['expiresAt']]
     })
   : undefined;

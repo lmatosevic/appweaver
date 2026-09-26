@@ -66,10 +66,10 @@ create-weaver-app <name> [description] [options]
 | `--bun`           | Use Bun as application runtime. (default is node and npm)      | false        |
 | `--skipInstall`   | Skip all dependencies installation.                            | false        |
 | `--noDocker`      | Skip Dockerfile, Dockerfile.bun and docker-compose.yml files   | false        |
-| `--noRedis`       | Skip ioredis                                                   | false        |
-| `--noQueue`       | Skip bullmq                                                    | false        |
-| `--noMailer`      | Skip nodemailer                                                | false        |
-| `--noCron`        | Skip cron                                                      | false        |
+| `--noRedis`       | Skip ioredis, use in-memory cache, rate limit and queue        | false        |
+| `--noQueue`       | Skip bullmq, use in-memory queue                               | false        |
+| `--noMailer`      | Skip nodemailer, disable mailer (email features respond 501)   | false        |
+| `--noCron`        | Skip cron, disable scheduler                                   | false        |
 
 **Example — PostgreSQL project without queue:**
 

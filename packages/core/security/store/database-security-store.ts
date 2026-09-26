@@ -2,7 +2,6 @@ import {
   Database,
   generateToken,
   makeHash,
-  ResourceId,
   SecurityStore,
   ValidationResult
 } from '@appweaver/common';
@@ -20,13 +19,19 @@ export class DatabaseSecurityStore extends SecurityStore {
     ttl: number
   ): Promise<string> {
     const token = generateToken('bytes', 64);
+    const oneTimeTokens = this._db.client().oneTimeToken;
 
-    await this._db.client().oneTimeToken.create({
+    // Expired tokens are removed here, so they need no scheduled cleanup
+    await oneTimeTokens.deleteMany({
+      where: { expiresAt: { lt: new Date() } }
+    });
+
+    await oneTimeTokens.create({
       data: {
         tokenHash: makeHash(token),
         purpose,
-        expiresAt: new Date(Date.now() + ttl),
-        data: data as any
+        data: data as any,
+        expiresAt: new Date(Date.now() + ttl)
       }
     });
 
@@ -38,25 +43,23 @@ export class DatabaseSecurityStore extends SecurityStore {
     purpose: string,
     validateContent?: (value: T) => ValidationResult
   ): Promise<T> {
-    const oneTimeToken = await this._db.client().oneTimeToken.findFirst({
-      where: {
-        purpose,
-        tokenHash: makeHash(token)
-      }
+    const oneTimeTokens = this._db.client().oneTimeToken;
+
+    const oneTimeToken = await oneTimeTokens.findUnique({
+      where: { tokenHash: makeHash(token) }
     });
 
     if (
       oneTimeToken === null ||
+      oneTimeToken.purpose !== purpose ||
       oneTimeToken.expiresAt.getTime() < Date.now()
     ) {
-      if (oneTimeToken) {
-        await this.removeOneTimeToken(oneTimeToken.id);
-      }
       throw new HttpError('Invalid or expired token provided', 401);
     }
 
     const data = oneTimeToken.data as T;
 
+    // A token failing the validation is kept, so it can be used again
     if (validateContent) {
       const result = validateContent(data);
       if (!result.valid) {
@@ -64,14 +67,14 @@ export class DatabaseSecurityStore extends SecurityStore {
       }
     }
 
-    await this.removeOneTimeToken(oneTimeToken.id);
+    // Only the one of concurrent uses that removes the token gets its data
+    const { count } = await oneTimeTokens.deleteMany({
+      where: { id: oneTimeToken.id }
+    });
+    if (count === 0) {
+      throw new HttpError('Invalid or expired token provided', 401);
+    }
 
     return data;
-  }
-
-  /** @internal */
-  private async removeOneTimeToken(id: ResourceId): Promise<void> {
-    // The generated client types the id after the configured primary key
-    await this._db.client().oneTimeToken.delete({ where: { id: id as any } });
   }
 }

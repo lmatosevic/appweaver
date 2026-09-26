@@ -178,9 +178,8 @@ export type OneTimeToken = {
   id: number;
   tokenHash: string;
   purpose: string;
-  expiresAt: Date;
   data: any;
-  updatedAt: Date;
+  expiresAt: Date;
   createdAt: Date;
 };
 
@@ -188,9 +187,8 @@ export type OneTimeTokenSingle = {
   id: number;
   tokenHash: string;
   purpose: string;
-  expiresAt: Date;
   data: any;
-  updatedAt: Date;
+  expiresAt: Date;
   createdAt: Date;
 };
 
@@ -198,47 +196,46 @@ export type OneTimeTokenMultiple = {
   id: number;
   tokenHash: string;
   purpose: string;
-  expiresAt: Date;
   data: any;
-  updatedAt: Date;
+  expiresAt: Date;
   createdAt: Date;
 };
 
 export type OneTimeTokenCreate = {
   tokenHash: string;
   purpose: string;
-  expiresAt: Date;
   data: any;
+  expiresAt: Date;
 };
 
 export type OneTimeTokenUpdate = {
   tokenHash?: string;
   purpose?: string;
-  expiresAt?: Date;
   data?: any;
+  expiresAt?: Date;
 };
 
 export type OneTimeTokenRelationCreate = {
   tokenHash: string;
   purpose: string;
-  expiresAt: Date;
   data: any;
+  expiresAt: Date;
 };
 
 export type OneTimeTokenRelationUpdate = {
   id: number;
   tokenHash?: string;
   purpose?: string;
-  expiresAt?: Date;
   data?: any;
+  expiresAt?: Date;
 };
 
 export type OneTimeTokenRelationInput = {
   id?: number;
   tokenHash?: string;
   purpose?: string;
-  expiresAt?: Date;
   data?: any;
+  expiresAt?: Date;
 };
 
 export type OneTimeTokenQuery = QueryFilter<OneTimeToken>;

@@ -324,6 +324,84 @@ describe('create-weaver-app', () => {
       expect(dependencies).toHaveProperty('@prisma/client');
     });
 
+    test('uses the in-memory queue with the noQueue flag', async () => {
+      await run('MyApp', '--skipInstall', '--agent', 'none', '--noQueue');
+
+      const { config } = readJson('my-app', 'appweaver.json');
+      expect(config.queue.provider).toBe('@appweaver/core/queue/memory-queue');
+      expect(config).not.toHaveProperty('cache');
+    });
+
+    test('disables the scheduler with the noCron flag', async () => {
+      await run('MyApp', '--skipInstall', '--agent', 'none', '--noCron');
+
+      const { config } = readJson('my-app', 'appweaver.json');
+      expect(config.scheduler).toEqual({ enabled: false });
+    });
+
+    test('disables the mailer with the noMailer flag', async () => {
+      await run('MyApp', '--skipInstall', '--agent', 'none', '--noMailer');
+
+      const { config } = readJson('my-app', 'appweaver.json');
+      expect(config.mailer).toEqual({ enabled: false });
+    });
+
+    test('leaves the module defaults without a skip flag', async () => {
+      await run('MyApp', '--skipInstall', '--agent', 'none');
+
+      const { config } = readJson('my-app', 'appweaver.json');
+      expect(Object.keys(config)).toEqual(['app', 'server', 'database']);
+    });
+
+    test('uses Redis for the modules that default to it', async () => {
+      await run('MyApp', '--skipInstall', '--agent', 'none');
+
+      const { config } = readJson('my-app', 'appweaver.json');
+      expect(config).not.toHaveProperty('redis');
+      expect(config).not.toHaveProperty('cache');
+      expect(config).not.toHaveProperty('rateLimit');
+      expect(config).not.toHaveProperty('queue');
+
+      const compose = read('my-app', 'docker-compose.yml');
+      expect(compose).toContain('image: redis:7.4.9');
+      expect(compose).toContain(
+        '      redis:\n        condition: service_healthy'
+      );
+      expect(compose).toContain('  redis-data:');
+    });
+
+    test('switches to in-memory modules with the noRedis flag', async () => {
+      await run('MyApp', '--skipInstall', '--agent', 'none', '--noRedis');
+
+      const { config } = readJson('my-app', 'appweaver.json');
+      expect(config.redis.provider).toBe('@appweaver/core/memory/in-memory');
+      expect(config.cache.provider).toBe('@appweaver/core/cache/memory-cache');
+      expect(config.rateLimit.store).toBe('in-memory');
+      expect(config.queue.provider).toBe('@appweaver/core/queue/memory-queue');
+      expect(config.app.name).toBe('MyApp');
+      expect(typeof config.server.port).toBe('number');
+
+      const compose = read('my-app', 'docker-compose.yml');
+      expect(compose).not.toContain('redis');
+      expect(compose).toContain('  my-app.migrations:');
+      expect(compose).toContain('  sqlite-data:');
+    });
+
+    test('switches to in-memory modules for the Bun runtime', async () => {
+      await run(
+        'MyApp',
+        '--skipInstall',
+        '--agent',
+        'none',
+        '--bun',
+        '--noRedis'
+      );
+
+      const { config } = readJson('my-app', 'appweaver.json');
+      expect(config.app.runtime).toBe('bun');
+      expect(config.cache.provider).toBe('@appweaver/core/cache/memory-cache');
+    });
+
     test('removes the Docker files with the noDocker flag', async () => {
       await run('MyApp', '--skipInstall', '--agent', 'none', '--noDocker');
 

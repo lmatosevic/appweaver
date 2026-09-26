@@ -29,12 +29,23 @@ export function loadProviders(baseDir: string): void {
   loadProvider(baseDir, config.EVENTS_PROVIDER, Events);
   loadProvider(baseDir, config.SECURITY_STORE_PROVIDER, SecurityStore);
   loadProvider(baseDir, config.REDIS_PROVIDER, Redis, false);
-  loadProvider(baseDir, config.QUEUE_PROVIDER, Queue, false);
-  loadProvider(baseDir, config.MAILER_PROVIDER, Mailer, false);
-  loadProvider(baseDir, config.SCHEDULER_PROVIDER, Scheduler, false);
+  const queueLoaded = loadProvider(
+    baseDir,
+    config.QUEUE_PROVIDER,
+    Queue,
+    false
+  );
+  const mailerLoaded =
+    config.MAILER_ENABLED &&
+    loadProvider(baseDir, config.MAILER_PROVIDER, Mailer, false);
+  if (config.SCHEDULER_ENABLED) {
+    loadProvider(baseDir, config.SCHEDULER_PROVIDER, Scheduler, false);
+  }
 
   // Core feature services
-  loadProvider(__dirname, '../mailer/email-service', undefined, false);
+  if (mailerLoaded && queueLoaded) {
+    loadProvider(__dirname, '../mailer/email-service', undefined, false);
+  }
   loadProvider(__dirname, '../cache/cache-service');
   loadProvider(__dirname, '../storage/file-service');
   loadProvider(__dirname, '../security/auth-service');

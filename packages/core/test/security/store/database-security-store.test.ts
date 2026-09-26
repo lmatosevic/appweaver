@@ -57,6 +57,20 @@ describe('database-security-store', () => {
       expect(expiresAt.getTime()).toBeLessThanOrEqual(Date.now() + 60_000);
     });
 
+    test('deletes the expired tokens before storing a new one', async () => {
+      const before = Date.now();
+
+      await store.generateOneTimeToken('verifyEmail', {}, 1000);
+
+      const methods = db.queries.map((query) => query.method);
+      expect(methods).toEqual(['deleteMany', 'create']);
+
+      const expiredBefore = db.lastQuery('deleteMany').args.where.expiresAt
+        .lt as Date;
+      expect(expiredBefore.getTime()).toBeGreaterThanOrEqual(before);
+      expect(expiredBefore.getTime()).toBeLessThanOrEqual(Date.now());
+    });
+
     test('generates a different token on every call', async () => {
       const first = await store.generateOneTimeToken('verifyEmail', {}, 1000);
       const second = await store.generateOneTimeToken('verifyEmail', {}, 1000);
@@ -68,56 +82,62 @@ describe('database-security-store', () => {
   describe('useOneTimeToken', () => {
     const validToken = {
       id: 10,
+      purpose: 'verifyEmail',
       data: { userId: 7 },
       expiresAt: new Date(Date.now() + 60_000)
     };
 
-    test('returns the stored payload and consumes the token', async () => {
-      db.setResult('OneTimeToken', 'findFirst', validToken);
+    beforeEach(() => {
+      db.setResult('OneTimeToken', 'findUnique', validToken);
+      db.setResult('OneTimeToken', 'deleteMany', { count: 1 });
+    });
 
+    test('returns the stored payload and consumes the token', async () => {
       await expect(
         store.useOneTimeToken('token', 'verifyEmail')
       ).resolves.toEqual({ userId: 7 });
 
-      expect(db.lastQuery('delete').args.where).toEqual({ id: 10 });
+      expect(db.lastQuery('deleteMany').args.where).toEqual({ id: 10 });
     });
 
-    test('looks the token up by its hash and purpose', async () => {
-      db.setResult('OneTimeToken', 'findFirst', validToken);
-
+    test('looks the token up by its hash', async () => {
       await store.useOneTimeToken('token', 'verifyEmail');
 
-      expect(db.queries[0].args.where).toEqual({
-        purpose: 'verifyEmail',
+      expect(db.lastQuery('findUnique').args.where).toEqual({
         tokenHash: makeHash('token')
       });
     });
 
     test('rejects an unknown token', async () => {
-      db.setResult('OneTimeToken', 'findFirst', null);
+      db.setResult('OneTimeToken', 'findUnique', null);
 
       await expect(
         store.useOneTimeToken('token', 'verifyEmail')
       ).rejects.toThrow('Invalid or expired token provided');
     });
 
-    test('rejects and removes an expired token', async () => {
-      db.setResult('OneTimeToken', 'findFirst', {
-        id: 11,
-        data: {},
+    test('rejects a token issued for another purpose and keeps it', async () => {
+      await expect(
+        store.useOneTimeToken('token', 'passwordReset')
+      ).rejects.toThrow('Invalid or expired token provided');
+
+      expect(db.queries.some((query) => query.method === 'deleteMany')).toBe(
+        false
+      );
+    });
+
+    test('rejects an expired token', async () => {
+      db.setResult('OneTimeToken', 'findUnique', {
+        ...validToken,
         expiresAt: new Date(Date.now() - 1000)
       });
 
       await expect(
         store.useOneTimeToken('token', 'verifyEmail')
       ).rejects.toBeInstanceOf(HttpError);
-
-      expect(db.lastQuery('delete').args.where).toEqual({ id: 11 });
     });
 
     test('rejects a token whose content fails validation', async () => {
-      db.setResult('OneTimeToken', 'findFirst', validToken);
-
       await expect(
         store.useOneTimeToken('token', 'verifyEmail', () => ({
           valid: false,
@@ -126,9 +146,7 @@ describe('database-security-store', () => {
       ).rejects.toThrow('Token content mismatch');
     });
 
-    test('keeps a token that fails validation unconsumed', async () => {
-      db.setResult('OneTimeToken', 'findFirst', validToken);
-
+    test('keeps a token that fails validation for another attempt', async () => {
       await expect(
         store.useOneTimeToken('token', 'verifyEmail', () => ({
           valid: false,
@@ -136,12 +154,12 @@ describe('database-security-store', () => {
         }))
       ).rejects.toThrow();
 
-      expect(db.queries.some((query) => query.method === 'delete')).toBe(false);
+      expect(db.queries.some((query) => query.method === 'deleteMany')).toBe(
+        false
+      );
     });
 
     test('consumes a token that passes validation', async () => {
-      db.setResult('OneTimeToken', 'findFirst', validToken);
-
       await expect(
         store.useOneTimeToken('token', 'verifyEmail', () => ({
           valid: true,
@@ -149,7 +167,18 @@ describe('database-security-store', () => {
         }))
       ).resolves.toEqual({ userId: 7 });
 
-      expect(db.lastQuery('delete')).toBeDefined();
+      expect(db.lastQuery('deleteMany')).toBeDefined();
+    });
+
+    test('rejects a token already consumed by a concurrent use', async () => {
+      db.setResult('OneTimeToken', 'deleteMany', { count: 0 });
+
+      await expect(
+        store.useOneTimeToken('token', 'verifyEmail')
+      ).rejects.toMatchObject({
+        statusCode: 401,
+        message: 'Invalid or expired token provided'
+      });
     });
   });
 });

@@ -100,14 +100,14 @@ export function define<T = DefinitionValue, S extends T = T>(
  * @param {DefinitionClass} [definition] - An optional definition object used to define the loaded module.
  * @param {boolean} [required=true] - Indicates whether the module is required. If true, an error is thrown on failure;
  *                                    otherwise, a warning is logged.
- * @return This function does not return a value. It loads a module and defines it if successful.
+ * @return {boolean} `true` if the module was loaded and defined, `false` otherwise.
  */
 export function loadProvider(
   baseDir: string,
   classPath: string,
   definition?: DefinitionClass,
   required: boolean = true
-): void {
+): boolean {
   const { value, error } = loadModule<Record<string, Ctor>>(baseDir, classPath);
 
   // Handle errors or missing values for both required and optional modules
@@ -118,7 +118,7 @@ export function loadProvider(
       throw error ?? new Error(msg);
     }
     logger.warn(error, msg);
-    return;
+    return false;
   }
 
   // Extract class constructor from the exported value and add it to definitions
@@ -128,6 +128,7 @@ export function loadProvider(
   // Define the first found class constructor, if no constructor found then
   // define anything that was first exported from this file
   define(ctor ?? Object.values(value)[0], definition);
+  return true;
 }
 
 /**

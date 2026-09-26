@@ -14,6 +14,7 @@ const pkg = JSON.parse(
 const prismaVersion = '7.9.1';
 
 const dbTypes = ['sqlite', 'postgresql', 'mysql', 'sqlserver'];
+
 const agentTypes = [
   'claude',
   'codex',
@@ -71,10 +72,22 @@ program
   .option('--bun', 'Use Bun as application runtime.')
   .option('--skipInstall', 'Skip all dependencies installation.')
   .option('--noDocker', 'Skip copying Dockerfile and docker-compose.yml files.')
-  .option('--noRedis', 'Skip IoRedis package installation.')
-  .option('--noQueue', 'Skip BullQueue package installation.')
-  .option('--noMailer', 'Skip Nodemailer package installation.')
-  .option('--noCron', 'Skip Cron package installation.')
+  .option(
+    '--noRedis',
+    'Skip IoRedis package installation and use in-memory cache, rate limit and queue.'
+  )
+  .option(
+    '--noQueue',
+    'Skip BullQueue package installation and use in-memory queue.'
+  )
+  .option(
+    '--noMailer',
+    'Skip Nodemailer package installation and disable the mailer.'
+  )
+  .option(
+    '--noCron',
+    'Skip Cron package installation and disable the scheduler.'
+  )
   .action(async (name: string, description: string, _, command: Command) => {
     const directory = command.getOptionValue('outputDir');
     const runtime = command.getOptionValue('bun') ? 'bun' : 'node';
@@ -128,6 +141,7 @@ program
 
     // Build database-specific docker-compose service blocks
     const dockerDb = getDatabaseDockerConfig(command, sanitizedName);
+    const dockerRedis = getRedisDockerConfig(command, sanitizedName);
 
     // Define all variables used in template files with .tpl extension
     const variables: Record<string, string> = {
@@ -143,6 +157,9 @@ program
       DATABASE_DOCKER_MIGRATE_DEPENDS: dockerDb.migrateDepends,
       DATABASE_DOCKER_APP_VOLUME: dockerDb.appVolume,
       DATABASE_DOCKER_NAMED_VOLUME: dockerDb.namedVolume,
+      REDIS_DOCKER_SERVICE: dockerRedis.service,
+      REDIS_DOCKER_APP_DEPENDS: dockerRedis.appDepends,
+      REDIS_DOCKER_NAMED_VOLUME: dockerRedis.namedVolume,
       VERSION: pkg.version
     };
 
@@ -180,6 +197,20 @@ program
         await fsp.cp(runtimeFile, outputFile);
       }
       await fsp.unlink(runtimeFile);
+    }
+
+    // Configure the modules whose packages are skipped
+    const modulesConfig = getModulesConfig(command);
+    if (Object.keys(modulesConfig).length > 0) {
+      const configFile = path.join(destDir, 'appweaver.json');
+      const appConfig = JSON.parse(await fsp.readFile(configFile, 'utf8'));
+      Object.assign(appConfig.config, modulesConfig);
+      await fsp.writeFile(
+        configFile,
+        `${JSON.stringify(appConfig, null, 2)}
+`,
+        'utf8'
+      );
     }
 
     // Create test reports directory
@@ -330,6 +361,71 @@ function getDatabaseUrl(
   }
 
   return databaseUrl;
+}
+
+/**
+ * Returns the configuration of the modules whose packages are skipped. The ones
+ * with an in-memory implementation switch to it, the others are disabled.
+ */
+function getModulesConfig(command: Command): Record<string, object> {
+  const modulesConfig: Record<string, object> = {};
+
+  if (command.getOptionValue('noRedis')) {
+    modulesConfig.redis = { provider: '@appweaver/core/memory/in-memory' };
+    modulesConfig.cache = { provider: '@appweaver/core/cache/memory-cache' };
+    modulesConfig.rateLimit = { store: 'in-memory' };
+  }
+
+  // BullMQ also needs Redis
+  if (command.getOptionValue('noRedis') || command.getOptionValue('noQueue')) {
+    modulesConfig.queue = { provider: '@appweaver/core/queue/memory-queue' };
+  }
+
+  if (command.getOptionValue('noCron')) {
+    modulesConfig.scheduler = { enabled: false };
+  }
+
+  if (command.getOptionValue('noMailer')) {
+    modulesConfig.mailer = { enabled: false };
+  }
+
+  return modulesConfig;
+}
+
+function getRedisDockerConfig(
+  command: Command,
+  name: string
+): { service: string; appDepends: string; namedVolume: string } {
+  if (command.getOptionValue('noRedis')) {
+    return { service: '', appDepends: '', namedVolume: '' };
+  }
+
+  return {
+    service: `  redis:
+    image: redis:7.4.9
+    container_name: ${name}-redis
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 5s
+      start_interval: 5s
+    ports:
+      - "127.0.0.1:6378:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - ${name}
+
+`,
+    appDepends: `      redis:
+        condition: service_healthy
+`,
+    namedVolume: `  redis-data:
+`
+  };
 }
 
 function getDatabaseDockerConfig(

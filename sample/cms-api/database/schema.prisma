@@ -252,6 +252,19 @@ model ConnectedAccount {
   @@index([userId])
 }
 
+model OneTimeToken {
+  id        Int      @id @default(autoincrement())
+  tokenHash String   @unique
+  purpose   String
+  data      Json
+  expiresAt DateTime
+
+  /// Audit columns
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+}
+
 model Role {
   id   Int    @id @default(autoincrement())
   name String @unique

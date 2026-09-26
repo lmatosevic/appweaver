@@ -91,7 +91,7 @@
       "authOttTtl": 120000,
       "allowedRedirectHosts": "*",
       "store": {
-        "provider": "@appweaver/core/security/store/redis-security-store",
+        "provider": "@appweaver/core/security/store/database-security-store",
         "keepDatabaseTable": false
       },
       "password": {
@@ -265,6 +265,7 @@
       "provider": "@appweaver/core/queue/bull-queue"
     },
     "scheduler": {
+      "enabled": true,
       "autoStartJob": true,
       "provider": "@appweaver/core/scheduler/cron-scheduler"
     },
@@ -273,6 +274,7 @@
       "provider": "@appweaver/core/events/node-events"
     },
     "mailer": {
+      "enabled": true,
       "senderName": "John Doe",
       "senderAddress": "no-reply@appweaver.co",
       "provider": "@appweaver/core/mailer/smtp-mailer",

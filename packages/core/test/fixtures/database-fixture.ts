@@ -2,12 +2,14 @@ import { uncapitalize } from '@appweaver/common';
 
 export type DelegateMethod =
   | 'findFirst'
+  | 'findUnique'
   | 'findMany'
   | 'count'
   | 'create'
   | 'update'
   | 'updateMany'
   | 'delete'
+  | 'deleteMany'
   | 'aggregate';
 
 export type RecordedQuery = {
@@ -18,12 +20,14 @@ export type RecordedQuery = {
 
 const METHODS: DelegateMethod[] = [
   'findFirst',
+  'findUnique',
   'findMany',
   'count',
   'create',
   'update',
   'updateMany',
   'delete',
+  'deleteMany',
   'aggregate'
 ];
 

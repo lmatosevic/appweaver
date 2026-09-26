@@ -105,9 +105,8 @@ export const OneTimeTokenScalarFieldEnum = {
   id: 'id',
   tokenHash: 'tokenHash',
   purpose: 'purpose',
-  expiresAt: 'expiresAt',
   data: 'data',
-  updatedAt: 'updatedAt',
+  expiresAt: 'expiresAt',
   createdAt: 'createdAt'
 } as const
 

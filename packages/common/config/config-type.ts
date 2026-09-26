@@ -157,9 +157,9 @@ export type Config = {
   SECURITY_AUTH_OTT_TTL: number;
   /** Allowed hosts for post-authentication redirects. Default: `['*']`. */
   SECURITY_ALLOWED_REDIRECT_HOSTS: string[];
-  /** Security store implementation path. Default: `'@appweaver/core/security/store/redis-security-store'`. */
+  /** Security store implementation path. Default: `'@appweaver/core/security/store/database-security-store'`. */
   SECURITY_STORE_PROVIDER: string;
-  /** Keep a database table after migrations. Default: `false`. */
+  /** Keep the one-time token table when another security store is used. Default: `false`. */
   SECURITY_STORE_KEEP_DATABASE_TABLE: boolean;
   /** Enable password-based authentication. Default: `true`. */
   SECURITY_PASSWORD_ENABLED: boolean;
@@ -419,6 +419,8 @@ export type Config = {
   /** Job queue provider implementation path. Default: `'@appweaver/core/queue/bull-queue'`. */
   QUEUE_PROVIDER: string;
 
+  /** Enable the scheduler, disable it when the `cron` package is not installed. Default: `true`. */
+  SCHEDULER_ENABLED: boolean;
   /** Auto-start scheduled jobs on application startup. Default: `true`. */
   SCHEDULER_AUTO_START_JOB: boolean;
   /** Scheduler provider implementation path. Default: `'@appweaver/core/scheduler/cron-scheduler'`. */
@@ -429,6 +431,8 @@ export type Config = {
   /** Event emitter provider implementation path. Default: `'@appweaver/core/events/node-events'`. */
   EVENTS_PROVIDER: string;
 
+  /** Enable the mailer and the email features, disable it when the `nodemailer` package is not installed. Default: `true`. */
+  MAILER_ENABLED: boolean;
   /** Default sender name for outgoing emails. */
   MAILER_SENDER_NAME?: string;
   /** Default sender email address. */

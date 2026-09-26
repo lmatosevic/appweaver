@@ -150,6 +150,16 @@ CREATE TABLE "ConnectedAccount" (
 );
 
 -- CreateTable
+CREATE TABLE "OneTimeToken" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "tokenHash" TEXT NOT NULL,
+    "purpose" TEXT NOT NULL,
+    "data" JSONB NOT NULL,
+    "expiresAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
 CREATE TABLE "Role" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "name" TEXT NOT NULL,
@@ -331,6 +341,12 @@ CREATE INDEX "ConnectedAccount_userId_idx" ON "ConnectedAccount"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ConnectedAccount_provider_providerAccountId_key" ON "ConnectedAccount"("provider", "providerAccountId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "OneTimeToken_tokenHash_key" ON "OneTimeToken"("tokenHash");
+
+-- CreateIndex
+CREATE INDEX "OneTimeToken_expiresAt_idx" ON "OneTimeToken"("expiresAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");

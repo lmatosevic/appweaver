@@ -1,4 +1,6 @@
 import {
+  logger,
+  Memory,
   RESOURCE_AUTH,
   RESOURCE_MODEL_TYPE,
   RESOURCE_POLICY_TYPE,
@@ -15,7 +17,8 @@ import {
   injectModel,
   injectPolicy,
   injectRoutes,
-  injectService
+  injectService,
+  loadProvider
 } from '../../context/dependency-injection';
 import { resetContext } from '../fixtures/context-fixture';
 
@@ -346,6 +349,38 @@ describe('dependency-injection', () => {
 
     test('returns undefined for a missing optional policy', () => {
       expect(injectPolicy('Post', false)).toBeUndefined();
+    });
+  });
+
+  describe('loadProvider', () => {
+    const hasDefinition = (name: string) =>
+      context.definitions.some((def) => def.name === name);
+
+    test('defines the loaded module and reports it as loaded', () => {
+      expect(loadProvider(__dirname, '../../memory/in-memory', Memory)).toBe(
+        true
+      );
+      expect(hasDefinition('Memory')).toBe(true);
+    });
+
+    test('warns and reports a missing optional module as not loaded', () => {
+      const warnSpy = jest
+        .spyOn(logger, 'warn')
+        .mockImplementation(() => undefined);
+
+      expect(
+        loadProvider(__dirname, '../../memory/missing', Memory, false)
+      ).toBe(false);
+      expect(hasDefinition('Memory')).toBe(false);
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+    });
+
+    test('throws for a missing required module', () => {
+      jest.spyOn(logger, 'error').mockImplementation(() => undefined);
+
+      expect(() =>
+        loadProvider(__dirname, '../../memory/missing', Memory)
+      ).toThrow();
     });
   });
 });

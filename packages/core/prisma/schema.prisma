@@ -42,16 +42,15 @@ model ConnectedAccount {
 
 model OneTimeToken {
   id        Int      @id @default(autoincrement())
-  tokenHash String
+  tokenHash String   @unique
   purpose   String
-  expiresAt DateTime
   data      Json
+  expiresAt DateTime
 
   /// Audit columns
-  updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 
-  @@index([tokenHash, purpose])
+  @@index([expiresAt])
 }
 
 model Permission {

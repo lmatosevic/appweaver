@@ -59,6 +59,7 @@ export const ModelName = {
   User: 'User',
   ApiKey: 'ApiKey',
   ConnectedAccount: 'ConnectedAccount',
+  OneTimeToken: 'OneTimeToken',
   Role: 'Role',
   Permission: 'Permission',
   Seeder: 'Seeder',
@@ -224,6 +225,18 @@ export const ConnectedAccountScalarFieldEnum = {
 export type ConnectedAccountScalarFieldEnum = (typeof ConnectedAccountScalarFieldEnum)[keyof typeof ConnectedAccountScalarFieldEnum]
 
 
+export const OneTimeTokenScalarFieldEnum = {
+  id: 'id',
+  tokenHash: 'tokenHash',
+  purpose: 'purpose',
+  data: 'data',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt'
+} as const
+
+export type OneTimeTokenScalarFieldEnum = (typeof OneTimeTokenScalarFieldEnum)[keyof typeof OneTimeTokenScalarFieldEnum]
+
+
 export const RoleScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -294,6 +307,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const NullsOrder = {

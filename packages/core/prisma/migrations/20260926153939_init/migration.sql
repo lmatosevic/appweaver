@@ -27,9 +27,8 @@ CREATE TABLE "OneTimeToken" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "tokenHash" TEXT NOT NULL,
     "purpose" TEXT NOT NULL,
-    "expiresAt" DATETIME NOT NULL,
     "data" JSONB NOT NULL,
-    "updatedAt" DATETIME NOT NULL,
+    "expiresAt" DATETIME NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -92,7 +91,10 @@ CREATE UNIQUE INDEX "ApiKey_keyHash_key" ON "ApiKey"("keyHash");
 CREATE UNIQUE INDEX "ConnectedAccount_provider_providerAccountId_key" ON "ConnectedAccount"("provider", "providerAccountId");
 
 -- CreateIndex
-CREATE INDEX "OneTimeToken_tokenHash_purpose_idx" ON "OneTimeToken"("tokenHash", "purpose");
+CREATE UNIQUE INDEX "OneTimeToken_tokenHash_key" ON "OneTimeToken"("tokenHash");
+
+-- CreateIndex
+CREATE INDEX "OneTimeToken_expiresAt_idx" ON "OneTimeToken"("expiresAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Permission_name_key" ON "Permission"("name");

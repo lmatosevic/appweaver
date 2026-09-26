@@ -632,10 +632,24 @@ time-limited.
 
 ### Storage
 
-OTTs are stored in the configured security store:
+OTTs are stored in the security store set by `SECURITY_STORE_PROVIDER`. Only a hash of each token is stored.
 
-- **Redis** (default): `@appweaver/core/security/store/redis-security-store`
-- **Database**: `@appweaver/core/security/store/database-security-store`
+- **Database** (default): `@appweaver/core/security/store/database-security-store`. Stores the tokens in the
+  `OneTimeToken` model, which is added to the schema only while this store is configured (or
+  `SECURITY_STORE_KEEP_DATABASE_TABLE` is set). The model has no routes.
+- **Redis**: `@appweaver/core/security/store/redis-security-store`. Stores the tokens as Redis keys with a TTL, so the
+  one-time token flows (OAuth2 login, 2FA, email verification, password reset) fail while Redis is unavailable.
+
+Switching the store adds or removes the `OneTimeToken` model, so run `weaver generate` and create a migration
+afterwards.
+
+Both stores behave the same way:
+
+- A token is consumed by its first successful use. Of concurrent uses of the same token only one succeeds, the others
+  are rejected with `401`.
+- A token failing the content validation (e.g. a mistyped 2FA code) is kept, so it can be used again until it expires.
+- Expired tokens are rejected. The database store deletes them whenever a new token is created, Redis expires them on
+  its own.
 
 ---
 
