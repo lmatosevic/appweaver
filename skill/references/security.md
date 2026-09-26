@@ -76,7 +76,8 @@ if `SECURITY_JWT_SECRET` is set.
   "source": "password | apiKey | basic | oauth2Google | oauth2Facebook | oauth2X | oauth2Github | oauth2Gitlab | oauth2Linkedin | oauth2Apple | oauth2Microsoft | oauth2Custom",
   "username": "User email (e.g. admin@example.com)",
   "sub": "User ID (e.g. 123)",
-  "iat": "Issued at timestamp (e.g. 1774623924234)"
+  "iat": "Issued at, in seconds (e.g. 1774623924)",
+  "exp": "Expiration, in seconds (e.g. 1777215924)"
 }
 ```
 
@@ -85,9 +86,10 @@ if `SECURITY_JWT_SECRET` is set.
 On every authenticated request, the server:
 
 1. Verifies the JWT signature
-2. Loads the user from the database by `sub` (user ID)
+2. Loads the user by `sub` (user ID), from the cache when possible. Updates made through the auth service (logout,
+   password change or reset) evict the cached user right away
 3. Checks that the user is enabled
-4. Validates `logoutAt` is before the token's `iat` (tokens issued before logout are rejected)
+4. Rejects tokens issued before the user's `logoutAt` (compared in whole seconds)
 5. Checks that the token scope allows access to the requested URL
 
 ### Auth routes
@@ -428,7 +430,7 @@ update: {
 On every authenticated request:
 
 1. Verify user exists and is enabled
-2. Verify `logoutAt` is before token `iat`
+2. Verify the token was not issued before `logoutAt`
 3. Verify JWT scope allows access to the URL
 4. Verify the user has required roles (if configured)
 5. Verify the user has required permissions (if configured)

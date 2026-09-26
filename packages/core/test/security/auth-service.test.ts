@@ -79,7 +79,10 @@ describe('auth-service', () => {
     define(securityStore, SecurityStore as any);
 
     cacheService = {
-      buildCacheKey: jest.fn().mockImplementation((data: any) => data.baseKey),
+      // Suffixed like the real key, so a key built by hand does not match it
+      buildCacheKey: jest
+        .fn()
+        .mockImplementation((data: any) => `${data.baseKey}:inv`),
       getCachedValue: jest.fn().mockResolvedValue(null),
       addToCache: jest.fn().mockResolvedValue(true),
       removeCachedValue: jest.fn().mockResolvedValue(true)
@@ -126,7 +129,7 @@ describe('auth-service', () => {
 
       expect(authUserService.find).toHaveBeenCalledWith(1);
       expect(cacheService.addToCache).toHaveBeenCalledWith(
-        'auth:1',
+        'auth:1:inv',
         expect.objectContaining({ id: 1 }),
         config.SECURITY_CACHE_TTL
       );
@@ -248,24 +251,37 @@ describe('auth-service', () => {
       ).toThrow('Unauthorized access');
     });
 
+    const seconds = (date: Date) => Math.floor(date.getTime() / 1000);
+
     test('rejects a token issued before the last logout', () => {
       const logoutAt = new Date();
 
       expect(() =>
         service.authorize(user({ logoutAt }), '/api/posts', {}, {
           scope: AuthScope.Auth,
-          iat: logoutAt.getTime() - 1000
+          iat: seconds(logoutAt) - 1
         } as any)
       ).toThrow('Unauthorized access');
     });
 
     test('accepts a token issued after the last logout', () => {
+      const logoutAt = new Date(Date.now() - 5000);
+
+      expect(() =>
+        service.authorize(user({ logoutAt }), '/api/posts', {}, {
+          scope: AuthScope.Auth,
+          iat: seconds(logoutAt) + 1
+        } as any)
+      ).not.toThrow();
+    });
+
+    test('accepts a token issued within the same second as the logout', () => {
       const logoutAt = new Date();
 
       expect(() =>
         service.authorize(user({ logoutAt }), '/api/posts', {}, {
           scope: AuthScope.Auth,
-          iat: logoutAt.getTime() + 1000
+          iat: seconds(logoutAt)
         } as any)
       ).not.toThrow();
     });
@@ -274,7 +290,7 @@ describe('auth-service', () => {
       expect(() =>
         service.authorize(user(), '/auth/refresh', {}, {
           scope: AuthScope.Auth,
-          iat: Date.now()
+          iat: Math.floor(Date.now() / 1000)
         } as any)
       ).toThrow('not authorized to access requested URL');
     });
@@ -349,6 +365,13 @@ describe('auth-service', () => {
   });
 
   describe('generateAuthTokens', () => {
+    test('leaves the issue time to the signer', async () => {
+      await service.generateAuthTokens(user());
+
+      expect(signedTokens[0].payload).not.toHaveProperty('iat');
+      expect(signedTokens[1].payload).not.toHaveProperty('iat');
+    });
+
     test('keeps the given scope and source', async () => {
       await service.generateAuthTokens(
         user(),
@@ -573,7 +596,7 @@ describe('auth-service', () => {
     test('sets the logout timestamp and clears the cached user', async () => {
       await expect(service.logout(1)).resolves.toBe(true);
 
-      expect(cacheService.removeCachedValue).toHaveBeenCalledWith('auth:1');
+      expect(cacheService.removeCachedValue).toHaveBeenCalledWith('auth:1:inv');
       expect(authUserService.update).toHaveBeenCalledWith(
         1,
         expect.objectContaining({ logoutAt: expect.any(Date) })
@@ -703,6 +726,25 @@ describe('auth-service', () => {
       expect(authUserService.update).toHaveBeenCalledWith(1, {
         email: 'new@test.com'
       });
+    });
+
+    test('evicts the cached user by id and email after the update', async () => {
+      await service.updateAuthUser(1, { email: 'new@test.com' });
+
+      expect(cacheService.removeCachedValue).toHaveBeenCalledWith('auth:1:inv');
+      expect(cacheService.removeCachedValue).toHaveBeenCalledWith(
+        'auth:new@test.com:inv'
+      );
+      expect(authUserService.update.mock.invocationCallOrder[0]).toBeLessThan(
+        cacheService.removeCachedValue.mock.invocationCallOrder[0]
+      );
+    });
+
+    test('keeps the cached user when the update fails', async () => {
+      authUserService.update.mockRejectedValue(new Error('db down'));
+
+      await expect(service.updateAuthUser(1, {})).rejects.toThrow();
+      expect(cacheService.removeCachedValue).not.toHaveBeenCalled();
     });
 
     test('wraps an update failure into a server error', async () => {

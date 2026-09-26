@@ -60,10 +60,7 @@ export class AuthService {
         return this._authUserService.find(id);
       }
 
-      const cacheKey = this._cacheService.buildCacheKey({
-        baseKey: `${AUTH_KEY}:${id}`,
-        modelName: this._authUserService.modelName
-      });
+      const cacheKey = this.authCacheKey(id);
 
       const value = await this._cacheService.getCachedValue<AuthUser>(cacheKey);
       if (value) {
@@ -97,10 +94,7 @@ export class AuthService {
         return result.items[0] ?? null;
       }
 
-      const cacheKey = this._cacheService.buildCacheKey({
-        baseKey: `${AUTH_KEY}:${username}`,
-        modelName: this._authUserService.modelName
-      });
+      const cacheKey = this.authCacheKey(username);
 
       const value = await this._cacheService.getCachedValue<AuthUser>(cacheKey);
       if (value) {
@@ -136,11 +130,21 @@ export class AuthService {
     id: ResourceId,
     data: Partial<AuthUser> & { password?: string }
   ): Promise<AuthUser> {
+    let authUser: AuthUser;
     try {
-      return await this._authUserService.update(id, data);
+      authUser = await this._authUserService.update(id, data);
     } catch (e) {
       throw new HttpError('Auth user update error', 500, e);
     }
+
+    // Evicted after the update, so a concurrent request cannot cache the
+    // previous state, and regardless of the cache invalidation strategy
+    await this._cacheService.removeCachedValue(this.authCacheKey(id));
+    await this._cacheService.removeCachedValue(
+      this.authCacheKey(authUser.email)
+    );
+
+    return authUser;
   }
 
   /**
@@ -327,9 +331,12 @@ export class AuthService {
     if (
       !authUser ||
       !authUser.enabled ||
+      // `iat` has a whole second precision, so a token issued within the same
+      // second as the logout is still accepted
       (authUser.logoutAt &&
         jwtPayload &&
-        new Date(authUser.logoutAt).getTime() > jwtPayload?.iat)
+        Math.floor(new Date(authUser.logoutAt).getTime() / 1000) >
+          jwtPayload.iat)
     ) {
       throw new HttpError('Unauthorized access', 401);
     }
@@ -477,17 +484,17 @@ export class AuthService {
       throw new HttpError('Server instance not initialized');
     }
 
-    const jwtPayload: JwtPayload = {
+    const jwtPayload: Omit<JwtPayload, 'iat'> = {
       scope,
       source,
       username: authUser.email,
-      sub: authUser.id,
-      iat: new Date().getTime()
+      sub: authUser.id
     };
 
     const expiresIn = config.SECURITY_JWT_EXPIRES_IN;
     const refreshExpiresIn = config.SECURITY_JWT_REFRESH_EXPIRES_IN;
 
+    // The signer sets the `iat` claim, in seconds like the expiration
     const accessToken = server.jwt.sign(jwtPayload, { expiresIn });
     const refreshToken = server.jwt.sign(
       { ...jwtPayload, scope: AuthScope.Refresh },
@@ -507,10 +514,16 @@ export class AuthService {
    * successful.
    */
   public async logout(id: ResourceId): Promise<boolean> {
-    await this._cacheService.removeCachedValue(`${AUTH_KEY}:${id}`);
-
     logger.debug({ id }, 'User logout');
 
     return !!(await this.updateAuthUser(id, { logoutAt: new Date() }));
+  }
+
+  /** @internal */
+  private authCacheKey(idOrUsername: ResourceId): string {
+    return this._cacheService.buildCacheKey({
+      baseKey: `${AUTH_KEY}:${idOrUsername}`,
+      modelName: this._authUserService.modelName
+    });
   }
 }
