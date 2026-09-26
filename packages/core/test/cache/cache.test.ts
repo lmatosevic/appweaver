@@ -73,6 +73,16 @@ describe('cache', () => {
     });
   });
 
+  describe('get', () => {
+    test('drops the entry metadata of a value the memory already expired', async () => {
+      await cache.set('posts:1', { id: 1 });
+      await memory.removeValue(`${PREFIX}posts:1`);
+
+      await expect(cache.get('posts:1')).resolves.toBeNull();
+      expect((cache as any)._entryMeta.has(`${PREFIX}posts:1`)).toBe(false);
+    });
+  });
+
   describe('has', () => {
     test('reports whether a key is cached', async () => {
       await cache.set('posts:1', { id: 1 });

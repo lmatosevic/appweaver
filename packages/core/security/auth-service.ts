@@ -5,6 +5,7 @@ import {
   AuthUser,
   CONFIG,
   config,
+  Events,
   logger,
   ResourceId,
   RouteConfig,
@@ -46,6 +47,22 @@ export class AuthService {
   /** Optional, since an application with no OAuth2 provider never registers it.
    * @internal */
   private readonly _oauth2Service = inject(OAuth2Service, false);
+  /** @internal */
+  private readonly _events = inject(Events);
+
+  constructor() {
+    // Evicts the users changed outside of this service as well, e.g. through
+    // the resource routes, regardless of the cache invalidation strategy
+    const modelName = this._authUserService.modelName;
+    this._events.onResourceEvent<AuthUser>(
+      modelName,
+      'update',
+      ({ previous, current }) => this.evictCachedUsers(previous, current)
+    );
+    this._events.onResourceEvent<AuthUser>(modelName, 'delete', ({ current }) =>
+      this.evictCachedUsers(current)
+    );
+  }
 
   /**
    * Finds an authenticated user by their unique identifier.
@@ -137,12 +154,9 @@ export class AuthService {
       throw new HttpError('Auth user update error', 500, e);
     }
 
-    // Evicted after the update, so a concurrent request cannot cache the
-    // previous state, and regardless of the cache invalidation strategy
-    await this._cacheService.removeCachedValue(this.authCacheKey(id));
-    await this._cacheService.removeCachedValue(
-      this.authCacheKey(authUser.email)
-    );
+    // Awaited unlike the update event eviction, so the next request, e.g. with
+    // a token revoked by a logout, cannot read the previous state
+    await this.evictCachedUsers(authUser);
 
     return authUser;
   }
@@ -517,6 +531,23 @@ export class AuthService {
     logger.debug({ id }, 'User logout');
 
     return !!(await this.updateAuthUser(id, { logoutAt: new Date() }));
+  }
+
+  /** @internal */
+  private async evictCachedUsers(
+    ...authUsers: (AuthUser | undefined)[]
+  ): Promise<void> {
+    const keys = new Set<string>();
+    for (const authUser of authUsers) {
+      if (authUser) {
+        keys.add(this.authCacheKey(authUser.id));
+        keys.add(this.authCacheKey(authUser.email));
+      }
+    }
+
+    for (const key of keys) {
+      await this._cacheService.removeCachedValue(key);
+    }
   }
 
   /** @internal */

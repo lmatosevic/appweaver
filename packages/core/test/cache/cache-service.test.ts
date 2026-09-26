@@ -35,6 +35,16 @@ describe('cache-service', () => {
   });
 
   describe('addToCache / getCachedValue', () => {
+    test('reads a cached value with a single lookup', async () => {
+      await service.addToCache('posts:1', { id: 1 });
+      const hasSpy = jest.spyOn(cache, 'has');
+
+      await expect(service.getCachedValue('posts:1')).resolves.toEqual({
+        id: 1
+      });
+      expect(hasSpy).not.toHaveBeenCalled();
+    });
+
     test('adds a value and reads it back', async () => {
       await expect(service.addToCache('posts:1', { id: 1 })).resolves.toBe(
         true

@@ -157,7 +157,7 @@ export abstract class Cache extends CommonCache {
       };
       this._entryMeta.set(prefixedKey, updatedMeta);
       this._evictionIndex.touch(prefixedKey, updatedMeta);
-    } else if (prefixedKey in this._entryMeta) {
+    } else if (this._entryMeta.has(prefixedKey)) {
       // Remove key from meta and index storage if it does not exist memory
       this._entryMeta.delete(prefixedKey);
       this._evictionIndex.remove(prefixedKey);

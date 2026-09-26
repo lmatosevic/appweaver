@@ -111,6 +111,21 @@ describe('health-service', () => {
       });
     });
 
+    test('hides the message of a check configured not to show it', async () => {
+      define(
+        healthCheck(
+          'Mailer',
+          { success: false, message: 'smtp credentials rejected' },
+          { name: 'mailer', showMessage: false }
+        ),
+        'Mailer'
+      );
+
+      await expect(service.checkHealth()).resolves.toEqual({
+        mailer: { status: HealthCheckStatus.Down, message: undefined }
+      });
+    });
+
     test('checks every registered instance', async () => {
       const database = healthCheck(
         'Database',

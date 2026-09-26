@@ -86,8 +86,9 @@ if `SECURITY_JWT_SECRET` is set.
 On every authenticated request, the server:
 
 1. Verifies the JWT signature
-2. Loads the user by `sub` (user ID), from the cache when possible. Updates made through the auth service (logout,
-   password change or reset) evict the cached user right away
+2. Loads the user by `sub` (user ID), from the cache when possible. Every update or delete of the auth user, through
+   the auth service (logout, password change or reset) or the resource routes, evicts the cached user regardless of
+   the cache invalidation strategy
 3. Checks that the user is enabled
 4. Rejects tokens issued before the user's `logoutAt` (compared in whole seconds)
 5. Checks that the token scope allows access to the requested URL

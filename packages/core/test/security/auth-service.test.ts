@@ -4,6 +4,7 @@ import {
   AuthSource,
   AuthUser,
   CONFIG,
+  Events,
   RESOURCE_AUTH,
   RESOURCE_MODEL_TYPE,
   RESOURCE_NAME,
@@ -28,6 +29,7 @@ describe('auth-service', () => {
   let cacheService: any;
   let fileService: any;
   let signedTokens: any[];
+  let eventListeners: Record<string, (data: any) => Promise<void>>;
   let service: AuthService;
 
   const user = (overrides: Partial<AuthUser> = {}): AuthUser => ({
@@ -88,6 +90,17 @@ describe('auth-service', () => {
       removeCachedValue: jest.fn().mockResolvedValue(true)
     };
     define(cacheService, CacheService);
+
+    eventListeners = {};
+    define(
+      {
+        onResourceEvent: jest.fn((model, event, listener) => {
+          eventListeners[`${model}.${event}`] = listener;
+          return `${model}.${event}`;
+        })
+      },
+      Events as any
+    );
 
     fileService = {
       saveBuffer: jest.fn().mockResolvedValue({ id: 1 })
@@ -601,6 +614,30 @@ describe('auth-service', () => {
         1,
         expect.objectContaining({ logoutAt: expect.any(Date) })
       );
+    });
+  });
+
+  describe('auth user events', () => {
+    test('evicts the previous and current user on an update', async () => {
+      await eventListeners['User.update']({
+        previous: user({ email: 'old@test.com' }),
+        current: user({ email: 'new@test.com' })
+      });
+
+      expect(cacheService.removeCachedValue.mock.calls.flat()).toEqual([
+        'auth:1:inv',
+        'auth:old@test.com:inv',
+        'auth:new@test.com:inv'
+      ]);
+    });
+
+    test('evicts a deleted user', async () => {
+      await eventListeners['User.delete']({ current: user() });
+
+      expect(cacheService.removeCachedValue.mock.calls.flat()).toEqual([
+        'auth:1:inv',
+        'auth:user@test.com:inv'
+      ]);
     });
   });
 

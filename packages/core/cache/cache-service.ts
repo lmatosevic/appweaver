@@ -32,12 +32,11 @@ export class CacheService {
    * @return A promise that resolves to the cached value if the key exists, or null if the key is not found.
    */
   public async getCachedValue<T>(key: string): Promise<T | null> {
-    const exists = await this._cache.has(key);
-    if (exists) {
+    const value = await this._cache.get<T>(key);
+    if (value !== null) {
       logger.debug({ key }, 'Retrieved value from cache');
-      return this._cache.get<T>(key);
     }
-    return null;
+    return value;
   }
 
   /**

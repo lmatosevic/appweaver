@@ -49,7 +49,9 @@ export class HealthService {
           status: checkResults[index].success
             ? HealthCheckStatus.Up
             : HealthCheckStatus.Down,
-          message: !hideMessages[key] ? checkResults[index].message : undefined
+          message: !hideMessages.includes(key)
+            ? checkResults[index].message
+            : undefined
         };
         return acc;
       },
