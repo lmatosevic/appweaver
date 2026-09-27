@@ -5,12 +5,10 @@ export default createService({
   textSearch: {
     OR: {
       title: {
-        contains: '{input}',
-        mode: 'insensitive'
+        contains: '{input}'
       },
       content: {
-        contains: '{input}',
-        mode: 'insensitive'
+        contains: '{input}'
       }
     }
   }

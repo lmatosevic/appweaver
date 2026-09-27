@@ -54,6 +54,16 @@ const UUID_NATIVE_TYPES: Partial<Record<DatabaseType, string>> = {
   [DatabaseType.MySQL]: `@db.Char(${UUID_LENGTH})`
 };
 
+// The longest VARCHAR of each database in characters (utf8mb4 on MySQL), and
+// the text type holding a longer value
+const STRING_NATIVE_TYPES: Partial<
+  Record<DatabaseType, { maxVarChar: number; text: string }>
+> = {
+  [DatabaseType.PostgresSQL]: { maxVarChar: 10_485_760, text: '@db.Text' },
+  [DatabaseType.MySQL]: { maxVarChar: 16_383, text: '@db.MediumText' },
+  [DatabaseType.SQLServer]: { maxVarChar: 8_000, text: '@db.VarChar(Max)' }
+};
+
 type PrismaSchemaField = {
   name: string;
   type: string;
@@ -546,6 +556,23 @@ function varCharType(length?: number, fallback?: number): string | undefined {
   return size ? `@db.VarChar(${size})` : undefined;
 }
 
+/**
+ * The column type of a string holding up to the given number of characters: a
+ * VARCHAR of that length, or the text type of the database for a length its
+ * VARCHAR cannot hold.
+ */
+function stringNativeType(
+  maxLength?: number,
+  dbType: DatabaseType = databaseType()
+): string | undefined {
+  const limits = STRING_NATIVE_TYPES[dbType];
+  if (maxLength !== undefined && limits && maxLength > limits.maxVarChar) {
+    return limits.text;
+  }
+
+  return varCharType(maxLength);
+}
+
 function idNativeType(id?: IdField): string | undefined {
   return idFieldType(id) === 'string'
     ? generatorNativeType(idFieldGenerator(id))
@@ -648,7 +675,7 @@ function createScalarSchema(
     // The generator width wins over `maxLength`, which only bounds the API input
     const nativeType =
       generatorNativeType(scalar.defaultGenerator) ??
-      varCharType(scalar.maxLength);
+      stringNativeType(scalar.maxLength);
     if (nativeType) {
       attributes.push(nativeType);
     }

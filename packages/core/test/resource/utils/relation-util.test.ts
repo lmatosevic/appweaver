@@ -1,5 +1,8 @@
 import { createModel } from '../../../factory/create-model';
-import { mapRelationInclusions } from '../../../resource/utils/relation-util';
+import {
+  mapRelationActions,
+  mapRelationInclusions
+} from '../../../resource/utils/relation-util';
 import { resetContext } from '../../fixtures/context-fixture';
 import { linkModels } from '../../fixtures/model-fixture';
 
@@ -227,6 +230,63 @@ describe('relation-util', () => {
       test('includes a single relation unfiltered', () => {
         expect(mapRelationInclusions('Post', 'find').author).toBe(true);
       });
+    });
+  });
+
+  describe('mapRelationActions', () => {
+    beforeEach(() => {
+      createModel({
+        name: 'Post',
+        scalars: { title: { type: 'string' } },
+        relations: {
+          tags: { model: 'Tag', type: 'manyToMany', mappedBy: 'posts' }
+        }
+      });
+      createModel({
+        name: 'Tag',
+        scalars: { name: { type: 'string' } },
+        relations: {
+          posts: { model: 'Post', type: 'manyToMany', mappedBy: 'tags' }
+        }
+      });
+      linkModels();
+    });
+
+    test('connects the related records of a list', () => {
+      const relations = mapRelationActions('Post', 'create', { tags: [1, 2] });
+
+      expect(relations.tags).toEqual({ connect: [{ id: 1 }, { id: 2 }] });
+    });
+
+    test('maps an empty list of a create to no action', () => {
+      const relations = mapRelationActions('Post', 'create', { tags: [] });
+
+      // Present, so it replaces the raw list in the write data
+      expect(relations).toHaveProperty('tags');
+      expect(relations.tags).toBeUndefined();
+    });
+
+    test('disconnects every related record for an empty list of an update', () => {
+      const relations = mapRelationActions(
+        'Post',
+        'update',
+        { tags: [] },
+        { tags: [{ id: 1 }, { id: 2 }] }
+      );
+
+      expect(relations.tags).toEqual({ disconnect: [{ id: 1 }, { id: 2 }] });
+    });
+
+    test('maps an empty list of an update without related records to no action', () => {
+      const relations = mapRelationActions(
+        'Post',
+        'update',
+        { tags: [] },
+        { tags: [] }
+      );
+
+      expect(relations).toHaveProperty('tags');
+      expect(relations.tags).toBeUndefined();
     });
   });
 });

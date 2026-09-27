@@ -764,6 +764,8 @@ export class FileService {
     const policy =
       injectPolicy(resourceName, false)?.files?.[resourceField] ?? {};
 
-    return { ...policy };
+    // Without an access type, a file is protected, which also runs the custom
+    // access check and the read restrictions of the owning resource
+    return { accessType: 'protected', ...policy };
   }
 }

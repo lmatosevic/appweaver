@@ -272,6 +272,10 @@ const config = {
 String defaults can also be ID generators: `'uuid()'`, `'uuid(7)'`, `'cuid()'`, `'cuid(2)'`, `'nanoid()'`, which also
 size the column (see [Generated column types](#generated-column-types)).
 
+`maxLength` sizes the `VARCHAR` column on PostgreSQL, MySQL, and SQL Server. A length beyond the longest `VARCHAR` of
+the database is stored in its text type instead: `MEDIUMTEXT` above 16,383 characters on MySQL, `VARCHAR(MAX)` above
+8,000 on SQL Server, and `TEXT` above 10,485,760 on PostgreSQL. SQLite keeps the plain column.
+
 #### Number (int, bigInt, float)
 
 ```ts
@@ -1323,18 +1327,34 @@ const result = {
 
 ### Text search example
 
-Object form with placeholder:
+Object form with placeholder, replaced by the searched text wherever it appears in a string value:
 
 ```ts
 const config = {
   textSearch: {
     title: {
-      contains: '{input}', mode:
-        'insensitive'
+      contains: '{input}',
+      mode: 'insensitive'
     }
   }
 };
 ```
+
+An `OR` given as an object is turned into a list, each entry becoming one condition, as the `_or` filter operator does:
+
+```ts
+const config = {
+  textSearch: {
+    OR: {
+      title: { contains: '{input}' },
+      excerpt: { contains: '{input}' }
+    }
+  }
+};
+```
+
+`mode: 'insensitive'` is supported on PostgreSQL and MongoDB only, the database rejects it on SQLite, MySQL, and SQL
+Server, where `contains` already ignores the case with the default collation (ASCII letters only on SQLite).
 
 Function form for complex queries:
 

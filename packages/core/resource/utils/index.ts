@@ -4,3 +4,4 @@ export * from './filter-util';
 export * from './relation-util';
 export * from './sort-util';
 export * from './delete-util';
+export * from './text-search-util';

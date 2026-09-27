@@ -73,6 +73,12 @@ export type RelationFilterOperators<T> = {
 };
 
 /**
+ * The primary key type of a related model, matched by the id shorthand of a
+ * relation filter.
+ */
+export type RelationId<T> = T extends { id: infer I } ? I : number;
+
+/**
  * The filter value accepted for a single field of the filtered model. Besides
  * the operator objects, plain values are still supported: a bare value matches
  * by equality, a list of values by inclusion (or as an inclusive `[min, max]`
@@ -86,8 +92,8 @@ export type FilterValue<V> =
           | QueryFilter<NonNullable<E>>
           | QueryFilter<NonNullable<E>>[]
           | RelationFilterOperators<NonNullable<E>>
-          | number
-          | number[]
+          | RelationId<NonNullable<E>>
+          | RelationId<NonNullable<E>>[]
           | null
       : ArrayFilterOperators<NonNullable<E>> | E | E[] | null
     : NonNullable<V> extends Date
@@ -101,8 +107,8 @@ export type FilterValue<V> =
         ?
             | QueryFilter<NonNullable<V>>
             | FilterOperators<never>
-            | number
-            | number[]
+            | RelationId<NonNullable<V>>
+            | RelationId<NonNullable<V>>[]
             | null
         : V | NonNullable<V>[] | FilterOperators<NonNullable<V>> | null;
 

@@ -1,6 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import Fastify, { FastifyInstance } from 'fastify';
 import {
+  AggregateResponseData,
   QueryRequestData,
   QueryResponseData
 } from '../../resource/resource-schema';
@@ -28,6 +29,15 @@ async function server(): Promise<FastifyInstance> {
   app.post(
     '/response',
     { schema: { response: { 200: queryResponse } } },
+    async (request) => request.body as any
+  );
+
+  // Composed as the aggregate route composes it
+  const aggregateResponse = Type.Composite([AggregateResponseData]);
+
+  app.post(
+    '/aggregate-response',
+    { schema: { response: { 200: aggregateResponse } } },
     async (request) => request.body as any
   );
 
@@ -101,6 +111,23 @@ describe('resource-schema', () => {
 
       expect(body).toHaveProperty('totalCount', null);
       expect(body.nextCursor).toBe('next-cursor');
+    });
+  });
+
+  describe('AggregateResponseData', () => {
+    test('serializes the total and the result of every period', async () => {
+      const result = { price: { sum: 30, avg: 15 }, createdAt: { max: null } };
+
+      const { status, body } = await post('/aggregate-response', {
+        total: result,
+        items: [{ date: '2026-01-01T12:00:00.000Z', result }]
+      });
+
+      expect(status).toBe(200);
+      expect(body).toEqual({
+        total: result,
+        items: [{ date: '2026-01-01T12:00:00.000Z', result }]
+      });
     });
   });
 

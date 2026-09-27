@@ -4,8 +4,7 @@ export default createService({
   modelName: 'Comment',
   textSearch: {
     body: {
-      contains: '{input}',
-      mode: 'insensitive'
+      contains: '{input}'
     }
   }
 });

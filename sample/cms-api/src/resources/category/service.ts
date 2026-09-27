@@ -15,12 +15,10 @@ export default createService<any, CategoryCreate, CategoryUpdate>({
   textSearch: {
     OR: {
       name: {
-        contains: '{input}',
-        mode: 'insensitive'
+        contains: '{input}'
       },
       description: {
-        contains: '{input}',
-        mode: 'insensitive'
+        contains: '{input}'
       }
     }
   }

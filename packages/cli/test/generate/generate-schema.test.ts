@@ -345,6 +345,32 @@ describe('generate-schema', () => {
       expect(schema).toContain('@db.VarChar(120)');
     });
 
+    test.each([
+      ['postgresql', 20_000, '@db.VarChar(20000)'],
+      ['mysql', 16_383, '@db.VarChar(16383)'],
+      ['mysql', 20_000, '@db.MediumText'],
+      ['sqlserver', 8_000, '@db.VarChar(8000)'],
+      ['sqlserver', 8_001, '@db.VarChar(Max)']
+    ] as const)(
+      'stores a %s string of %d characters as %s',
+      async (database, maxLength, nativeType) => {
+        databaseType = database;
+
+        const { schema } = await generate({
+          Post: model('Post', {
+            scalars: { body: { type: 'string', maxLength } }
+          })
+        });
+
+        const body = schema
+          .split('\n')
+          .find((line) => /^\s*body\s/.test(line))
+          ?.trim()
+          .split(/\s+/);
+        expect(body).toEqual(['body', 'String', nativeType]);
+      }
+    );
+
     test('ignores generators that produce no string value', async () => {
       databaseType = 'postgresql';
 

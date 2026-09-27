@@ -22,6 +22,7 @@ import {
 } from '@appweaver/common';
 import { define, injectPolicy } from '../context';
 import { ResourceService } from '../resource';
+import { bindTextSearch } from '../resource/utils';
 import { currentAuthUser } from '../security';
 
 export function createService<T = any, C = any, U = any>(
@@ -147,7 +148,7 @@ export function createService<T = any, C = any, U = any>(
       }
 
       if (isPlainObject(config.textSearch)) {
-        return config.textSearch;
+        return bindTextSearch(config.textSearch, searchText);
       }
 
       return super.textSearchQuery(searchText);

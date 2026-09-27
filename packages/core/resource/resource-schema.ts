@@ -68,9 +68,21 @@ export const AggregateRequestData = Type.Object({
   safeIncrement: Type.Optional(Type.Boolean({ example: true }))
 });
 
-export const AggregateResponseData = Type.Optional(
-  AnyJson({ example: { field: 'value' } })
-);
+// The fields of a result follow the selection of the request, so they are left
+// open, while the response must still declare its properties to serialize them
+const AggregateResult = AnyJson({
+  example: { price: { sum: 1250, avg: 62.5 } }
+});
+
+export const AggregateResponseData = Type.Object({
+  total: AggregateResult,
+  items: Type.Array(
+    Type.Object({
+      date: StringDate(),
+      result: AggregateResult
+    })
+  )
+});
 
 export function createSchema(
   name: string,

@@ -574,6 +574,28 @@ start.sh migrations   # Apply database migrations
 start.sh seed         # Seed the database
 ```
 
+### Other samples
+
+Scaffolded with `create-weaver-app`, each showcases a different part of the framework and documents it in its own
+`README.md`. They follow the `cms-api` workflow above, with the differences listed here.
+
+| Sample                 | Runtime | Database           | Showcases                                                                                            |
+|------------------------|---------|--------------------|------------------------------------------------------------------------------------------------------|
+| `sample/webshop-api`   | Node    | PostgreSQL + Redis | Transactional checkout, BullMQ payment worker on a resource event, API key partner, sales aggregates |
+| `sample/hr-api`        | Node    | SQLite             | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades  |
+| `sample/helpdesk-api`  | Node    | MySQL (MariaDB)    | Non-auth customers connected by email, auto-assignment, SLA escalation job, cursor pagination        |
+| `sample/movies-db-bun` | Bun     | SQLite (libsql)    | Public cached catalog, join model with payload, OAuth2 sign-up, generated typed client               |
+
+- The PostgreSQL and MySQL samples start their database with `docker compose up -d postgres redis` (or `mysql`); their
+  end-to-end tests run against a `-test` database of the same container.
+- The driver adapters of all the samples are root dev dependencies, so the samples run on the root `node_modules`.
+- The Node samples build before their end-to-end tests (`pree2e`), since the application loads the compiled `dist/src`.
+- The Bun sample runs its scripts with `bun run`. Bun runs every test file in one process, where the application
+  context is frozen once an application starts, so its end-to-end files share one application instead of resetting the
+  database in between. `tools/copy-packages.js` writes an empty `tsconfig.json` into every package copied to
+  `node_modules/@appweaver`, otherwise Bun would resolve their imports through the root `paths` to the package sources
+  and load every package twice.
+
 ---
 
 ## 8. Releasing New Versions

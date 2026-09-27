@@ -256,9 +256,10 @@ export function mapRelationActions(
         }
       }
 
-      if (Object.keys(relationActions).length > 0) {
-        relations[key] = relationActions;
-      }
+      // An empty list maps to no action, rather than leaving the raw list in
+      // the write data, where the database rejects it
+      relations[key] =
+        Object.keys(relationActions).length > 0 ? relationActions : undefined;
     }
 
     // Map relation disconnects if keys are no longer present or the new

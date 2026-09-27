@@ -112,4 +112,9 @@ for (const pkgName of fs.readdirSync(packagesDir)) {
     recursive: true,
     force: true
   });
+
+  // Bun resolves imports with the paths of the nearest tsconfig, which would
+  // be the root one mapping the packages to their sources, so a Bun sample
+  // would load a second copy of every package next to the one it imports
+  fs.writeFileSync(path.join(fileDestPath, 'tsconfig.json'), '{}\n');
 }

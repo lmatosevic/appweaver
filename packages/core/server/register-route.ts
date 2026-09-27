@@ -24,6 +24,9 @@ export function registerRoute(
   const routes: RouteOptions[] = [];
   const tempServer = Fastify({
     logger: false,
+    // The server the routes are copied to adds the HEAD route of a GET route
+    // itself, a captured one would be declared twice
+    exposeHeadRoutes: false,
     ajv: {
       customOptions: { allowUnionTypes: true },
       plugins: [(ajv): any => ajv.addKeyword('example')]

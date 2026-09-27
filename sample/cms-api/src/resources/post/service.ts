@@ -23,16 +23,13 @@ export default createService<Post, PostCreate, PostUpdate>({
   textSearch: {
     OR: {
       title: {
-        contains: '{input}',
-        mode: 'insensitive'
+        contains: '{input}'
       },
       excerpt: {
-        contains: '{input}',
-        mode: 'insensitive'
+        contains: '{input}'
       },
       content: {
-        contains: '{input}',
-        mode: 'insensitive'
+        contains: '{input}'
       }
     }
   }

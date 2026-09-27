@@ -242,7 +242,25 @@ describe('create-service', () => {
       await new Service().query({ searchText: 'news' });
 
       expect(db.lastQuery('findMany').args.where.AND).toContainEqual({
-        title: { contains: '{input}' }
+        title: { contains: 'news' }
+      });
+    });
+
+    test('turns an OR object of a text search object into a list', async () => {
+      const Service = createService({
+        modelName: 'Post',
+        textSearch: {
+          OR: {
+            title: { contains: '{input}' },
+            excerpt: { contains: '{input}' }
+          }
+        }
+      });
+
+      await new Service().query({ searchText: 'news' });
+
+      expect(db.lastQuery('findMany').args.where.AND).toContainEqual({
+        OR: [{ title: { contains: 'news' } }, { excerpt: { contains: 'news' } }]
       });
     });
 

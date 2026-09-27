@@ -7,7 +7,13 @@ import {
 import { context, define } from '../../context';
 import { CacheService } from '../../cache';
 import { FileService } from '../../storage/file-service';
+import { currentAuthUser } from '../../security';
 import { resetContext } from '../fixtures/context-fixture';
+
+jest.mock('../../security', () => ({
+  ...jest.requireActual('../../security'),
+  currentAuthUser: jest.fn()
+}));
 
 describe('file-service', () => {
   let storage: any;
@@ -269,6 +275,60 @@ describe('file-service', () => {
 
       expect(dbClient.file.findFirst).toHaveBeenCalledWith({
         where: { name: file.name, deletedAt: null }
+      });
+    });
+
+    describe('protected file', () => {
+      const canAccess = jest.fn();
+
+      beforeEach(() => {
+        jest.mocked(currentAuthUser).mockReturnValue({
+          id: 2,
+          email: 'reader@test.com',
+          roles: []
+        });
+        context.resource.services.set('User', {
+          find: jest.fn().mockResolvedValue(resource)
+        } as any);
+        // No access type declared, so the default one applies
+        context.resource.policies.set('User', {
+          modelName: 'User',
+          files: { avatar: { canAccess } }
+        });
+      });
+
+      afterEach(() => {
+        jest.mocked(currentAuthUser).mockReset();
+        canAccess.mockReset();
+      });
+
+      test('applies the custom access check by default', async () => {
+        canAccess.mockReturnValue(false);
+
+        await expect(service.stream(file.name)).rejects.toMatchObject({
+          statusCode: 403
+        });
+        expect(canAccess).toHaveBeenCalledWith(
+          expect.objectContaining({ id: 2 }),
+          resource,
+          file
+        );
+      });
+
+      test('streams the file the custom access check allows', async () => {
+        canAccess.mockReturnValue(true);
+
+        await expect(service.stream(file.name)).resolves.toMatchObject({
+          mimeType: 'application/pdf'
+        });
+      });
+
+      test('denies an anonymous request', async () => {
+        jest.mocked(currentAuthUser).mockReturnValue(undefined);
+
+        await expect(service.stream(file.name)).rejects.toMatchObject({
+          statusCode: 403
+        });
       });
     });
 

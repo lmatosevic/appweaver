@@ -1,4 +1,5 @@
 export * from './app';
+export * from './cache/cache-service';
 export * from './context/dependency-injection';
 export * from './errors';
 export * from './export/export-service';
