@@ -1,3 +1,13 @@
+## [1.6.1](https://github.com/lmatosevic/appweaver/compare/v1.6.0...v1.6.1) (2026-09-27)
+
+### Bug Fixes
+
+* add graceful exit handler to dev mode ([b9810b8](https://github.com/lmatosevic/appweaver/commit/b9810b895c834a5784c3ae9ffba917f3788db6e6))
+* keep docker-compose escapes and Bun test files in create-weaver-app templates ([33a8100](https://github.com/lmatosevic/appweaver/commit/33a8100a937d4c152b05379822b4d01922de08c8))
+* limit the Bun test coverage of create-weaver-app projects to the sources ([88767f7](https://github.com/lmatosevic/appweaver/commit/88767f7529ce1f2b015dd163e40f6c4111236d38))
+* update schema generation logic, constraint checks and skill files to reflect correct behavior ([793e15b](https://github.com/lmatosevic/appweaver/commit/793e15bf2c15edd6861a4124c6e14257fe9ff676))
+* wire create-weaver-app database and Redis connections to docker-compose ([d4d9db8](https://github.com/lmatosevic/appweaver/commit/d4d9db89dd1f0d3a7f50432fa1ae1fab9c928246))
+
 ## [1.6.0](https://github.com/lmatosevic/appweaver/compare/v1.5.1...v1.6.0) (2026-09-26)
 
 ### Features
