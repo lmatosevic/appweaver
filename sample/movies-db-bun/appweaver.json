@@ -11,7 +11,7 @@
       "port": 5005
     },
     "database": {
-      "url": "file:./data/movies-db-bun.db"
+      "url": "file:./movies-db-bun.db"
     },
     "redis": {
       "provider": "@appweaver/core/memory/in-memory"

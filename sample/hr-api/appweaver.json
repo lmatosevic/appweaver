@@ -10,7 +10,7 @@
       "port": 5003
     },
     "database": {
-      "url": "file:./data/hr-api.db"
+      "url": "file:./hr-api.db"
     },
     "redis": {
       "provider": "@appweaver/core/memory/in-memory"

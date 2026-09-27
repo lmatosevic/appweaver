@@ -13,7 +13,7 @@
       "url": "postgresql://webshop-api:webshop-api@localhost:5432/webshop-api?schema=public"
     },
     "redis": {
-      "url": "redis://localhost:6378/0"
+      "url": "redis://localhost:6379/0"
     },
     "mailer": {
       "senderName": "Webshop",
