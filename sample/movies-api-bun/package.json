@@ -1,5 +1,5 @@
 {
-  "name": "sample-movies-db-bun",
+  "name": "sample-movies-api-bun",
   "version": "1.0.0",
   "description": "Appweaver sample - Movies database API running on Bun",
   "author": "Luka Matosevic",

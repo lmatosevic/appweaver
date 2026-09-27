@@ -1,7 +1,7 @@
 services:
-  movies-db-bun.migrations:
-    image: movies-db-bun:latest
-    container_name: movies-db-bun-migrations
+  movies-api-bun.migrations:
+    image: movies-api-bun:latest
+    container_name: movies-api-bun-migrations
     restart: no
     build:
       context: .
@@ -13,16 +13,16 @@ services:
       - ./logs:/usr/app/logs
       - sqlite-data:/usr/app/data
     networks:
-      - movies-db-bun
+      - movies-api-bun
 
-  movies-db-bun.seed:
-    image: movies-db-bun:latest
-    container_name: movies-db-bun-seed
+  movies-api-bun.seed:
+    image: movies-api-bun:latest
+    container_name: movies-api-bun-seed
     restart: no
     build:
       context: .
     depends_on:
-      movies-db-bun.migrations:
+      movies-api-bun.migrations:
         condition: service_completed_successfully
     env_file:
       - .env
@@ -32,11 +32,11 @@ services:
       - ./logs:/usr/app/logs
       - sqlite-data:/usr/app/data
     networks:
-      - movies-db-bun
+      - movies-api-bun
 
-  movies-db-bun:
-    image: movies-db-bun:latest
-    container_name: movies-db-bun
+  movies-api-bun:
+    image: movies-api-bun:latest
+    container_name: movies-api-bun
     restart: unless-stopped
     build:
       context: .
@@ -48,7 +48,7 @@ services:
       start_period: 5s
       start_interval: 5s
     depends_on:
-      movies-db-bun.seed:
+      movies-api-bun.seed:
         condition: service_completed_successfully
     ports:
       - "127.0.0.1:5005:5005"
@@ -59,12 +59,12 @@ services:
     env_file:
       - .env
     networks:
-      - movies-db-bun
+      - movies-api-bun
 
 networks:
-  movies-db-bun:
+  movies-api-bun:
     driver: bridge
-    name: movies-db-bun-network
+    name: movies-api-bun-network
 
 volumes:
   sqlite-data:

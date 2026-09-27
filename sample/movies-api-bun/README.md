@@ -1,4 +1,4 @@
-# Movies DB Bun
+# Movies API Bun
 
 > Appweaver sample - Movies database API running on Bun
 
