@@ -268,6 +268,10 @@ describe('create-weaver-app', () => {
       expect(compose).toContain(
         'DATABASE_URL: "postgresql://my-app:my-app@postgres:5432/my-app?schema=public"'
       );
+      // Escaped from docker-compose, so the container reads its own variables
+      expect(compose).toContain(
+        'PGPASSWORD=$$POSTGRES_PASSWORD psql -U $$POSTGRES_USER -d $$POSTGRES_DB'
+      );
 
       expect(read('my-app', '.env')).toBe(
         'NODE_ENV=dev\nDB_NAME=my-app\nDB_USER=my-app\nDB_PASSWORD=my-app\n'
@@ -461,6 +465,15 @@ describe('create-weaver-app', () => {
       const { config } = readJson('my-app', 'appweaver.json');
       expect(config.app.runtime).toBe('bun');
       expect(config.cache.provider).toBe('@appweaver/core/cache/memory-cache');
+    });
+
+    test('runs only the test files with the Bun unit tests', async () => {
+      await run('MyApp', '--skipInstall', '--agent', 'none', '--bun');
+
+      // A path given after --coverage would be run as a test file
+      expect(readJson('my-app', 'package.json').scripts.test).toBe(
+        'bun test ./test/unit --coverage --reporter=junit --reporter-outfile=./reports/junit.xml'
+      );
     });
 
     test('removes the Docker files with the noDocker flag', async () => {

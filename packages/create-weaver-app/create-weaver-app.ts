@@ -175,9 +175,13 @@ program
     for (const templateFile of templateFiles) {
       let content = await fsp.readFile(templateFile, 'utf8');
 
-      // Replace variables with values
+      // Replace variables with values, inserted as they are, since a replacement
+      // string would read the '$$' escapes of docker-compose as a pattern
       for (const [key, value] of Object.entries(variables)) {
-        content = content.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value);
+        content = content.replace(
+          new RegExp(`\\{\\{${key}\\}\\}`, 'g'),
+          () => value
+        );
       }
 
       // Save output to new file and remove template file
