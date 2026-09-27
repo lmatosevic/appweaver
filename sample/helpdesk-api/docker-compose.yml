@@ -1,0 +1,99 @@
+services:
+  mysql:
+    image: mariadb:11.4
+    container_name: helpdesk-api-mysql
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 5s
+      start_interval: 5s
+    ports:
+      - "127.0.0.1:3307:3306"
+    environment:
+      MARIADB_DATABASE: "${DB_NAME}"
+      MARIADB_USER: "${DB_USER}"
+      MARIADB_PASSWORD: "${DB_PASSWORD}"
+      MARIADB_ROOT_PASSWORD: "${DB_PASSWORD}"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - helpdesk-api
+
+  helpdesk-api.migrations:
+    image: helpdesk-api:latest
+    container_name: helpdesk-api-migrations
+    restart: no
+    build:
+      context: .
+    depends_on:
+      mysql:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "mysql://root:helpdesk-api@mysql:3306/helpdesk-api"
+    command: [ "migrations" ]
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+    networks:
+      - helpdesk-api
+
+  helpdesk-api.seed:
+    image: helpdesk-api:latest
+    container_name: helpdesk-api-seed
+    restart: no
+    build:
+      context: .
+    depends_on:
+      helpdesk-api.migrations:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "mysql://root:helpdesk-api@mysql:3306/helpdesk-api"
+    command: [ "seed" ]
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+    networks:
+      - helpdesk-api
+
+  helpdesk-api:
+    image: helpdesk-api:latest
+    container_name: helpdesk-api
+    restart: unless-stopped
+    build:
+      context: .
+    healthcheck:
+      test: "wget -qO - http://127.0.0.1:5004/health/ready || exit 1"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+      start_interval: 5s
+    depends_on:
+      helpdesk-api.seed:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:5004:5004"
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "mysql://root:helpdesk-api@mysql:3306/helpdesk-api"
+    networks:
+      - helpdesk-api
+
+networks:
+  helpdesk-api:
+    driver: bridge
+    name: helpdesk-api-network
+
+volumes:
+  mysql-data:

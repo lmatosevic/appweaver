@@ -1,0 +1,35 @@
+{
+  "$schema": "../../node_modules/@appweaver/common/config/schema.json",
+  "config": {
+    "app": {
+      "name": "HR API",
+      "description": "Appweaver sample - Human Resources API with employees, leave requests and documents"
+    },
+    "server": {
+      "host": "0.0.0.0",
+      "port": 5003
+    },
+    "database": {
+      "url": "file:./data/hr-api.db"
+    },
+    "redis": {
+      "provider": "@appweaver/core/memory/in-memory"
+    },
+    "cache": {
+      "provider": "@appweaver/core/cache/memory-cache"
+    },
+    "rateLimit": {
+      "store": "in-memory"
+    },
+    "queue": {
+      "provider": "@appweaver/core/queue/memory-queue"
+    },
+    "mailer": {
+      "senderName": "HR Team",
+      "senderAddress": "hr@example.com"
+    },
+    "system": {
+      "adminInitialEmail": "admin@hr.example.com"
+    }
+  }
+}

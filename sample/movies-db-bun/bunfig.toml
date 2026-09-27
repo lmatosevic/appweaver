@@ -1,0 +1,10 @@
+[install]
+linker = "isolated"
+
+[test]
+root = "test"
+coverageReporter = ["text", "lcov"]
+coverageSkipTestFiles = true
+coverageDir = "./reports"
+# Coverage of the application sources only
+coveragePathIgnorePatterns = ["database/**", "temp/**", "test/**"]

@@ -1,0 +1,33 @@
+{
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
+  "rootDir": "../../",
+  "testEnvironment": "node",
+  "testMatch": [
+    "**/test/e2e/**/*.test.ts"
+  ],
+  "transform": {
+    "^.+\\.(t|j)s$": [
+      "@swc/jest"
+    ]
+  },
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^@db/(.*)$": "<rootDir>/database/$1"
+  },
+  "reporters": [
+    "default",
+    [
+      "jest-junit",
+      {
+        "outputDirectory": "./reports",
+        "outputName": "e2e.xml"
+      }
+    ]
+  ],
+  "globalSetup": "<rootDir>/test/e2e/support/setup.ts",
+  "globalTeardown": "<rootDir>/test/e2e/support/teardown.ts"
+}

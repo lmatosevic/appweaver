@@ -1,0 +1,31 @@
+{
+  "$schema": "../../node_modules/@appweaver/common/config/schema.json",
+  "config": {
+    "app": {
+      "name": "Webshop API",
+      "description": "Appweaver sample - Webshop API with catalog, cart checkout and order fulfillment"
+    },
+    "server": {
+      "host": "0.0.0.0",
+      "port": 5002
+    },
+    "database": {
+      "url": "postgresql://webshop-api:webshop-api@localhost:5432/webshop-api?schema=public"
+    },
+    "redis": {
+      "url": "redis://localhost:6378/0"
+    },
+    "mailer": {
+      "senderName": "Webshop",
+      "senderAddress": "orders@webshop.example.com"
+    },
+    "security": {
+      "apiKey": {
+        "enabled": true
+      }
+    },
+    "system": {
+      "adminInitialEmail": "admin@webshop.example.com"
+    }
+  }
+}

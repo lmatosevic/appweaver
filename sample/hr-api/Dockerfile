@@ -1,0 +1,59 @@
+## 1. Install dependencies and build the application
+FROM node:24.18.1-alpine AS build
+
+# Install tools for building libraries on other platforms
+RUN apk add build-base python3 py3-pip make gcc
+
+# Create app directory
+WORKDIR /usr/app
+
+# Copy project files
+COPY ../.. .
+
+# Install NPM dependencies
+RUN npm ci
+
+# Build project
+RUN npm run build
+
+
+## 2. Setup server environment, copy build output and start the application script
+FROM node:24.18.1-alpine AS deploy
+
+# Install tools for building libraries on other platforms
+RUN apk add build-base python3 py3-pip make gcc
+
+# Create app directory
+WORKDIR /usr/app
+
+# Copy NPM package
+COPY --from=build /usr/app/package*.json /usr/app/
+
+# Install production NPM dependencies
+RUN npm ci --omit=dev
+
+# Copy build files
+COPY --from=build /usr/app/dist /usr/app/dist
+
+# Copy public static files
+COPY --from=build /usr/app/public /usr/app/public
+
+# Copy Prisma config, database migrations, and schema file
+COPY --from=build /usr/app/prisma.config.ts /usr/app/prisma.config.ts
+COPY --from=build /usr/app/database/migrations /usr/app/database/migrations
+COPY --from=build /usr/app/database/schema.prisma /usr/app/database/schema.prisma
+
+# Copy config file/s
+COPY --from=build /usr/app/appweaver*.json /usr/app/
+
+# Copy start script
+COPY --from=build /usr/app/start.sh /usr/app/start.sh
+
+# Make start script executable
+RUN chmod +x /usr/app/start.sh
+
+# Create storage, logs, and data directories
+RUN mkdir storage logs data
+
+# Start container
+ENTRYPOINT ["/usr/app/start.sh"]

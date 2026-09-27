@@ -1,0 +1,40 @@
+{
+  "$schema": "../../node_modules/@appweaver/common/config/schema.json",
+  "config": {
+    "app": {
+      "name": "Helpdesk API",
+      "description": "Appweaver sample - Helpdesk API with support tickets, SLAs and integrations"
+    },
+    "server": {
+      "host": "0.0.0.0",
+      "port": 5004
+    },
+    "database": {
+      "url": "mysql://helpdesk-api:helpdesk-api@localhost:3306/helpdesk-api"
+    },
+    "redis": {
+      "provider": "@appweaver/core/memory/in-memory"
+    },
+    "cache": {
+      "provider": "@appweaver/core/cache/memory-cache"
+    },
+    "rateLimit": {
+      "store": "in-memory"
+    },
+    "queue": {
+      "provider": "@appweaver/core/queue/memory-queue"
+    },
+    "mailer": {
+      "senderName": "Support",
+      "senderAddress": "support@helpdesk.example.com"
+    },
+    "security": {
+      "apiKey": {
+        "enabled": true
+      }
+    },
+    "system": {
+      "adminInitialEmail": "admin@helpdesk.example.com"
+    }
+  }
+}

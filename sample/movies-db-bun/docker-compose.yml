@@ -1,0 +1,70 @@
+services:
+  movies-db-bun.migrations:
+    image: movies-db-bun:latest
+    container_name: movies-db-bun-migrations
+    restart: no
+    build:
+      context: .
+    env_file:
+      - .env
+    command: [ "migrations" ]
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+      - sqlite-data:/usr/app/data
+    networks:
+      - movies-db-bun
+
+  movies-db-bun.seed:
+    image: movies-db-bun:latest
+    container_name: movies-db-bun-seed
+    restart: no
+    build:
+      context: .
+    depends_on:
+      movies-db-bun.migrations:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    command: [ "seed" ]
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+      - sqlite-data:/usr/app/data
+    networks:
+      - movies-db-bun
+
+  movies-db-bun:
+    image: movies-db-bun:latest
+    container_name: movies-db-bun
+    restart: unless-stopped
+    build:
+      context: .
+    healthcheck:
+      test: "wget -qO - http://127.0.0.1:5005/health/ready || exit 1"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+      start_interval: 5s
+    depends_on:
+      movies-db-bun.seed:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:5005:5005"
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+      - sqlite-data:/usr/app/data
+    env_file:
+      - .env
+    networks:
+      - movies-db-bun
+
+networks:
+  movies-db-bun:
+    driver: bridge
+    name: movies-db-bun-network
+
+volumes:
+  sqlite-data:

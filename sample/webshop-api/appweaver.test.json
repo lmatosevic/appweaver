@@ -1,0 +1,30 @@
+{
+  "$schema": "../../node_modules/@appweaver/common/config/schema.json",
+  "config": {
+    "log": {
+      "level": "silent",
+      "sync": true
+    },
+    "database": {
+      "url": "postgresql://webshop-api:webshop-api@localhost:5433/webshop-api-test?schema=public",
+      "schemaPath": "./temp/database/schema.prisma",
+      "migrationsDirPath": "./temp/database/migrations",
+      "clientOutputDirPath": "./temp/database/client"
+    },
+    "storage": {
+      "path": "./temp/storage"
+    },
+    "redis": {
+      "provider": "@appweaver/core/memory/in-memory"
+    },
+    "queue": {
+      "provider": "@appweaver/core/queue/memory-queue"
+    },
+    "mailer": {
+      "provider": "@appweaver/core/mailer/json-mailer"
+    },
+    "scheduler": {
+      "autoStartJob": false
+    }
+  }
+}

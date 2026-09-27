@@ -1,0 +1,70 @@
+services:
+  hr-api.migrations:
+    image: hr-api:latest
+    container_name: hr-api-migrations
+    restart: no
+    build:
+      context: .
+    env_file:
+      - .env
+    command: [ "migrations" ]
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+      - sqlite-data:/usr/app/data
+    networks:
+      - hr-api
+
+  hr-api.seed:
+    image: hr-api:latest
+    container_name: hr-api-seed
+    restart: no
+    build:
+      context: .
+    depends_on:
+      hr-api.migrations:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    command: [ "seed" ]
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+      - sqlite-data:/usr/app/data
+    networks:
+      - hr-api
+
+  hr-api:
+    image: hr-api:latest
+    container_name: hr-api
+    restart: unless-stopped
+    build:
+      context: .
+    healthcheck:
+      test: "wget -qO - http://127.0.0.1:5003/health/ready || exit 1"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+      start_interval: 5s
+    depends_on:
+      hr-api.seed:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:5003:5003"
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+      - sqlite-data:/usr/app/data
+    env_file:
+      - .env
+    networks:
+      - hr-api
+
+networks:
+  hr-api:
+    driver: bridge
+    name: hr-api-network
+
+volumes:
+  sqlite-data:

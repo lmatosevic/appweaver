@@ -1,0 +1,42 @@
+{
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testMatch": [
+    "**/*.test.ts"
+  ],
+  "testPathIgnorePatterns": [
+    "/test/e2e/"
+  ],
+  "transform": {
+    "^.+\\.(t|j)s$": [
+      "@swc/jest"
+    ]
+  },
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^@db/(.*)$": "<rootDir>/database/$1"
+  },
+  "reporters": [
+    "default",
+    [
+      "jest-junit",
+      {
+        "outputDirectory": "./reports",
+        "outputName": "junit.xml"
+      }
+    ]
+  ],
+  "coverageReporters": [
+    "cobertura",
+    "text"
+  ],
+  "collectCoverageFrom": [
+    "./src/**/*.(t|j)s"
+  ],
+  "coverageDirectory": "./reports"
+}
