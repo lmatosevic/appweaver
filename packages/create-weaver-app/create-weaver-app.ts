@@ -153,6 +153,8 @@ program
       DEPENDENCIES: getNodeDependencies(command, runtime).join(',\n'),
       DATABASE_URL: getDatabaseUrl(command, sanitizedName, 'dev'),
       DATABASE_TEST_URL: getDatabaseUrl(command, sanitizedName, 'test'),
+      DATABASE_ENV: getDatabaseEnv(command, sanitizedName),
+      DOCKER_APP_ENVIRONMENT: getDockerAppEnvironment(command, sanitizedName),
       DATABASE_DOCKER_SERVICE: dockerDb.service,
       DATABASE_DOCKER_MIGRATE_DEPENDS: dockerDb.migrateDepends,
       DATABASE_DOCKER_APP_VOLUME: dockerDb.appVolume,
@@ -340,32 +342,127 @@ function getNodeDependencies(command: Command, runtime: string): string[] {
   return dependencies.sort().map((d) => `    ${d}`);
 }
 
+/** Database server ports: inside the Docker network and published on the host. */
+const databasePorts: Record<string, { internal: number; published: number }> = {
+  postgresql: { internal: 5432, published: 5433 },
+  mysql: { internal: 3306, published: 3307 },
+  sqlserver: { internal: 1433, published: 1434 }
+};
+
+/** Hostnames of the docker-compose database services. */
+const databaseDockerHosts: Record<string, string> = {
+  postgresql: 'postgres',
+  mysql: 'mysql',
+  sqlserver: 'sqlserver'
+};
+
+/**
+ * Returns the local development credentials of the database server, shared by
+ * the connection URLs and the docker-compose database service.
+ */
+function getDatabaseCredentials(
+  database: string,
+  name: string
+): { user: string; password: string; connectUser: string } {
+  if (database === 'sqlserver') {
+    // SQL Server rejects an SA password failing its complexity policy
+    return { user: 'sa', password: `${name}-Passw0rd`, connectUser: 'sa' };
+  }
+
+  // The MariaDB user is granted its own database only, while Prisma Migrate
+  // creates the shadow and the test databases, so connect as root
+  const connectUser = database === 'mysql' ? 'root' : name;
+
+  return { user: name, password: name, connectUser };
+}
+
 function getDatabaseUrl(
   command: Command,
   name: string,
-  mode: 'dev' | 'test'
+  mode: 'dev' | 'test',
+  target: 'host' | 'docker' = 'host'
 ): string {
+  const database = command.getOptionValue('database').toLowerCase();
   const dbName = mode === 'test' ? `${name}-test` : name;
-  const urls = {
-    sqlite: `file:./${mode === 'test' ? 'temp/' : 'data/'}${dbName}.db`,
-    postgresql: `postgresql://${name}:${name}@localhost:5432/${dbName}?schema=public`,
-    mysql: `mysql://${name}:${name}@localhost:3306/${dbName}`,
-    sqlserver: `sqlserver://localhost:1433;database=${dbName};user=${name};password=${name};trustServerCertificate=true`
-  };
 
-  const database = command.getOptionValue('database');
-  const databaseUrl = urls[database.toLowerCase()];
-  if (!databaseUrl) {
+  if (database === 'sqlite') {
+    return `file:./${mode === 'test' ? 'temp/' : 'data/'}${dbName}.db`;
+  }
+
+  const ports = databasePorts[database];
+  if (!ports) {
     console.error(`Invalid database type: ${database}`);
     process.exit(1);
   }
 
-  return databaseUrl;
+  // The host connects to the port docker-compose publishes, unless there is no
+  // docker-compose file and the database server runs on its standard port
+  let host = 'localhost';
+  let port = command.getOptionValue('noDocker')
+    ? ports.internal
+    : ports.published;
+  if (target === 'docker') {
+    host = databaseDockerHosts[database];
+    port = ports.internal;
+  }
+
+  const { connectUser: user, password } = getDatabaseCredentials(
+    database,
+    name
+  );
+
+  const urls = {
+    postgresql: `postgresql://${user}:${password}@${host}:${port}/${dbName}?schema=public`,
+    mysql: `mysql://${user}:${password}@${host}:${port}/${dbName}`,
+    sqlserver: `sqlserver://${host}:${port};database=${dbName};user=${user};password=${password};trustServerCertificate=true`
+  };
+
+  return urls[database];
+}
+
+/**
+ * Returns the .env variables configuring the docker-compose database service,
+ * or nothing when there is no such service.
+ */
+function getDatabaseEnv(command: Command, name: string): string {
+  const database = command.getOptionValue('database').toLowerCase();
+  if (database === 'sqlite' || command.getOptionValue('noDocker')) {
+    return '';
+  }
+
+  const { user, password } = getDatabaseCredentials(database, name);
+
+  return `DB_NAME=${name}\nDB_USER=${user}\nDB_PASSWORD=${password}\n`;
+}
+
+/**
+ * Returns the environment block of the docker-compose application services,
+ * pointing the database and Redis connections at the other containers.
+ */
+function getDockerAppEnvironment(command: Command, name: string): string {
+  const variables: string[] = [];
+
+  if (command.getOptionValue('database').toLowerCase() !== 'sqlite') {
+    variables.push(
+      `DATABASE_URL: "${getDatabaseUrl(command, name, 'dev', 'docker')}"`
+    );
+  }
+
+  if (!command.getOptionValue('noRedis')) {
+    variables.push('REDIS_URL: "redis://redis:6379/0"');
+  }
+
+  if (variables.length === 0) {
+    return '';
+  }
+
+  return `    environment:\n${variables.map((v) => `      ${v}\n`).join('')}`;
 }
 
 /**
  * Returns the configuration of the modules whose packages are skipped. The ones
- * with an in-memory implementation switch to it, the others are disabled.
+ * with an in-memory implementation switch to it, the others are disabled. Redis
+ * otherwise connects to the server docker-compose publishes.
  */
 function getModulesConfig(command: Command): Record<string, object> {
   const modulesConfig: Record<string, object> = {};
@@ -374,6 +471,9 @@ function getModulesConfig(command: Command): Record<string, object> {
     modulesConfig.redis = { provider: '@appweaver/core/memory/in-memory' };
     modulesConfig.cache = { provider: '@appweaver/core/cache/memory-cache' };
     modulesConfig.rateLimit = { store: 'in-memory' };
+  } else if (!command.getOptionValue('noDocker')) {
+    // The port docker-compose publishes the Redis server on
+    modulesConfig.redis = { url: 'redis://localhost:6378/0' };
   }
 
   // BullMQ also needs Redis

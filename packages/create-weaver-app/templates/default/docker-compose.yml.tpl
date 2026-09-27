@@ -7,7 +7,7 @@ services:
       context: .
 {{DATABASE_DOCKER_MIGRATE_DEPENDS}}    env_file:
       - .env
-    command: [ "migrations" ]
+{{DOCKER_APP_ENVIRONMENT}}    command: [ "migrations" ]
     volumes:
       - ./storage:/usr/app/storage
       - ./logs:/usr/app/logs{{DATABASE_DOCKER_APP_VOLUME}}
@@ -25,7 +25,7 @@ services:
         condition: service_completed_successfully
     env_file:
       - .env
-    command: [ "seed" ]
+{{DOCKER_APP_ENVIRONMENT}}    command: [ "seed" ]
     volumes:
       - ./storage:/usr/app/storage
       - ./logs:/usr/app/logs{{DATABASE_DOCKER_APP_VOLUME}}
@@ -55,7 +55,7 @@ services:
       - ./logs:/usr/app/logs{{DATABASE_DOCKER_APP_VOLUME}}
     env_file:
       - .env
-    networks:
+{{DOCKER_APP_ENVIRONMENT}}    networks:
       - {{LOWER_NAME}}
 
 networks:

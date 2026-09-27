@@ -248,7 +248,10 @@ describe('create-weaver-app', () => {
 
       const config = readJson('my-app', 'appweaver.json');
       expect(config.config.database.url).toBe(
-        'postgresql://my-app:my-app@localhost:5432/my-app?schema=public'
+        'postgresql://my-app:my-app@localhost:5433/my-app?schema=public'
+      );
+      expect(read('my-app', 'appweaver.test.json')).toContain(
+        'postgresql://my-app:my-app@localhost:5433/my-app-test?schema=public'
       );
 
       const pkg = readJson('my-app', 'package.json');
@@ -262,6 +265,13 @@ describe('create-weaver-app', () => {
       expect(compose).toContain('postgres:18.4');
       expect(compose).toContain('container_name: my-app-postgres');
       expect(compose).toContain('condition: service_healthy');
+      expect(compose).toContain(
+        'DATABASE_URL: "postgresql://my-app:my-app@postgres:5432/my-app?schema=public"'
+      );
+
+      expect(read('my-app', '.env')).toBe(
+        'NODE_ENV=dev\nDB_NAME=my-app\nDB_USER=my-app\nDB_PASSWORD=my-app\n'
+      );
     });
 
     test('configures MySQL', async () => {
@@ -276,12 +286,54 @@ describe('create-weaver-app', () => {
 
       const config = readJson('my-app', 'appweaver.json');
       expect(config.config.database.url).toBe(
-        'mysql://my-app:my-app@localhost:3306/my-app'
+        'mysql://root:my-app@localhost:3307/my-app'
       );
       expect(readJson('my-app', 'package.json').dependencies).toHaveProperty(
         '@prisma/adapter-mariadb'
       );
-      expect(read('my-app', 'docker-compose.yml')).toContain('mariadb:11.4');
+
+      const compose = read('my-app', 'docker-compose.yml');
+      expect(compose).toContain('mariadb:11.4');
+      expect(compose).toContain(
+        'DATABASE_URL: "mysql://root:my-app@mysql:3306/my-app"'
+      );
+      expect(read('my-app', '.env')).toContain('DB_USER=my-app\n');
+    });
+
+    test('configures SQL Server', async () => {
+      await run(
+        'MyApp',
+        '--skipInstall',
+        '--agent',
+        'none',
+        '--database',
+        'sqlserver'
+      );
+
+      const config = readJson('my-app', 'appweaver.json');
+      expect(config.config.database.url).toBe(
+        'sqlserver://localhost:1434;database=my-app;user=sa;password=my-app-Passw0rd;trustServerCertificate=true'
+      );
+      expect(read('my-app', '.env')).toContain('DB_PASSWORD=my-app-Passw0rd\n');
+    });
+
+    test('uses the standard database port without Docker', async () => {
+      await run(
+        'MyApp',
+        '--skipInstall',
+        '--agent',
+        'none',
+        '--database',
+        'postgresql',
+        '--noDocker'
+      );
+
+      const config = readJson('my-app', 'appweaver.json');
+      expect(config.config.database.url).toBe(
+        'postgresql://my-app:my-app@localhost:5432/my-app?schema=public'
+      );
+      expect(config.config).not.toHaveProperty('redis');
+      expect(read('my-app', '.env')).toBe('NODE_ENV=dev\n');
     });
 
     test('adds a named volume for the embedded SQLite database', async () => {
@@ -290,6 +342,8 @@ describe('create-weaver-app', () => {
       const compose = read('my-app', 'docker-compose.yml');
       expect(compose).toContain('sqlite-data:/usr/app/data');
       expect(compose).not.toContain('image: postgres');
+      expect(compose).not.toContain('DATABASE_URL');
+      expect(read('my-app', '.env')).toBe('NODE_ENV=dev\n');
     });
   });
 
@@ -350,14 +404,20 @@ describe('create-weaver-app', () => {
       await run('MyApp', '--skipInstall', '--agent', 'none');
 
       const { config } = readJson('my-app', 'appweaver.json');
-      expect(Object.keys(config)).toEqual(['app', 'server', 'database']);
+      expect(Object.keys(config)).toEqual([
+        'app',
+        'server',
+        'database',
+        'redis'
+      ]);
+      expect(Object.keys(config.redis)).toEqual(['url']);
     });
 
     test('uses Redis for the modules that default to it', async () => {
       await run('MyApp', '--skipInstall', '--agent', 'none');
 
       const { config } = readJson('my-app', 'appweaver.json');
-      expect(config).not.toHaveProperty('redis');
+      expect(config.redis).toEqual({ url: 'redis://localhost:6378/0' });
       expect(config).not.toHaveProperty('cache');
       expect(config).not.toHaveProperty('rateLimit');
       expect(config).not.toHaveProperty('queue');
@@ -368,6 +428,7 @@ describe('create-weaver-app', () => {
         '      redis:\n        condition: service_healthy'
       );
       expect(compose).toContain('  redis-data:');
+      expect(compose).toContain('REDIS_URL: "redis://redis:6379/0"');
     });
 
     test('switches to in-memory modules with the noRedis flag', async () => {

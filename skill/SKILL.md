@@ -80,6 +80,12 @@ create-weaver-app MyBlogAPI "My own CMS for blogging" --database postgresql --no
 This creates a `./my-blog-api` directory, installs all dependencies, and runs the initial schema and type generation.
 The default test runner is `jest` with `swc` transpiler.
 
+For a PostgreSQL, MySQL, or SQL Server project, the generated `docker-compose.yml` runs the database server (and Redis)
+on non-standard host ports (`5433`, `3307`, `1434`, and `6378` for Redis), which the development `DATABASE_URL` and
+`REDIS_URL` point at, so `docker compose up -d postgres redis` is enough to run the app locally. Its credentials are
+stored in `.env` (`DB_NAME`, `DB_USER`, `DB_PASSWORD`), and the application containers override the connection URLs
+to reach the other containers. With `--noDocker`, the URLs use the standard ports instead.
+
 **Example — Bun project with Sqlite:**
 
 ```sh
