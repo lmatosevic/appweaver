@@ -31,31 +31,50 @@ export function runProcess(
     });
 
     let aborted = false;
+    let exited = false;
 
-    if (signal) {
-      const abortHandler = async () => {
-        if (child.pid) {
-          aborted = true;
-          try {
-            await fkill(child.pid, { force: true, tree: true });
-          } catch (e) {
-            console.error('Failed to kill process:', e);
-          }
-          resolve(0);
+    // Ctrl+C in a terminal reaches the child as well, so it may already be
+    // gone, or be exiting, by the time the abort kills it
+    const abortHandler = async () => {
+      if (!child.pid || exited) {
+        return;
+      }
+
+      aborted = true;
+      try {
+        await fkill(child.pid, { force: true, tree: true });
+      } catch (e) {
+        if (!isProcessGoneError(e)) {
+          console.error('Failed to kill process:', e);
         }
-      };
+      }
+      resolve(0);
+    };
 
-      signal.addEventListener('abort', abortHandler, { once: true });
-    }
+    signal?.addEventListener('abort', abortHandler, { once: true });
 
     child.on('error', reject);
 
     child.on('close', (code) => {
+      exited = true;
+      signal?.removeEventListener('abort', abortHandler);
       if (!aborted) {
         resolve(code ?? 99);
       }
     });
   });
+}
+
+/**
+ * Whether killing failed only because the processes had already exited, which
+ * leaves them exactly as the kill intended.
+ */
+function isProcessGoneError(error: unknown): boolean {
+  return (
+    error instanceof AggregateError &&
+    error.errors.length > 0 &&
+    error.errors.every((message) => /doesn't exist/.test(String(message)))
+  );
 }
 
 /**

@@ -73,6 +73,69 @@ describe('process-util', () => {
         tree: true
       });
     }, 30000);
+
+    describe('when the abort races the exit of the process', () => {
+      const running = (controller: AbortController) =>
+        runProcess(
+          'node',
+          ['-e', '"setTimeout(() => process.exit(7), 1000)"'],
+          {
+            quiet: true,
+            signal: controller.signal
+          }
+        );
+
+      const failKill = (reason: string) =>
+        jest
+          .mocked(fkill)
+          .mockRejectedValueOnce(
+            new AggregateError(
+              [`Killing process 1 failed: ${reason}`],
+              'Failed to kill processes'
+            )
+          );
+
+      test('stays quiet when the process is already gone', async () => {
+        // As on Windows, where Ctrl+C also stops the child itself
+        failKill("Process doesn't exist");
+        const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const controller = new AbortController();
+
+        const promise = running(controller);
+        setTimeout(() => controller.abort(), 200);
+
+        await expect(promise).resolves.toBe(0);
+        expect(error).not.toHaveBeenCalled();
+      }, 30000);
+
+      test('still reports a process it failed to kill', async () => {
+        failKill('Access is denied');
+        const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const controller = new AbortController();
+
+        const promise = running(controller);
+        setTimeout(() => controller.abort(), 200);
+
+        await expect(promise).resolves.toBe(0);
+        expect(error).toHaveBeenCalledWith(
+          'Failed to kill process:',
+          expect.any(AggregateError)
+        );
+      }, 30000);
+
+      test('kills nothing once the process has exited', async () => {
+        const controller = new AbortController();
+
+        await runProcess('node', ['-e', '"process.exit(0)"'], {
+          quiet: true,
+          signal: controller.signal
+        });
+        jest.mocked(fkill).mockClear();
+        controller.abort();
+
+        expect(fkill).not.toHaveBeenCalled();
+      }, 30000);
+    });
   });
 
   describe('assertEnv', () => {
