@@ -33,7 +33,7 @@ const packageVersions: Record<string, string> = {
   '@eslint/js': '9.39.2',
   '@swc/core': '1.15.41',
   '@swc/jest': '0.2.39',
-  '@types/bun': '1.3.14',
+  '@types/bun': '1.4.2',
   '@types/jest': '30.0.0',
   '@types/node': '26.0.0',
   '@typescript-eslint/eslint-plugin': '8.61.1',
