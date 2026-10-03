@@ -28,7 +28,7 @@
     "access": "public"
   },
   "engines": {
-    "node": ">= 22"
+    "node": ">= 24"
   },
   "scripts": {
     "weaver": "node ./dist/weaver.js"
