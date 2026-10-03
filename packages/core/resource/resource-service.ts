@@ -163,7 +163,7 @@ export abstract class ResourceService<
    * @param {number} [size] The maximum number of results per page.
    * @param {QuerySort} [sort] The fields to sort by, either as a comma-separated
    * list where a field prefixed with `-` is sorted in descending order
-   * (i.e. `-createdAt,title`), or as an object of field directions
+   * (i.e. `-createdAt,id`), or as an object of field directions
    * (i.e. `{ createdAt: 'desc', id: 'asc' }`). Both forms support the fields of
    * the included to-one relations, given with a dot notation (`author.createdAt`)
    * or as a nested object (`{ author: { createdAt: 'desc' } }`).

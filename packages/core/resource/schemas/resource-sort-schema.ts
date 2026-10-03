@@ -123,7 +123,7 @@ export function querySortSchema(modelName: string): TSchema {
     Type.Union(
       [
         Type.String({
-          example: '-createdAt,title',
+          example: '-createdAt,id',
           description:
             'Comma-separated list of fields to sort by, where a field prefixed ' +
             'with `-` is sorted in descending order and a dot notation path ' +
