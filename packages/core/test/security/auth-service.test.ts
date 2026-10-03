@@ -13,13 +13,14 @@ import {
   SecurityStore,
   config
 } from '@appweaver/common';
-import { context, define } from '../../context';
+import { context, define, inject } from '../../context';
 import { CacheService } from '../../cache';
 import { FileService } from '../../storage/file-service';
 import { HttpError } from '../../errors';
 import { AuthService } from '../../security/auth-service';
 import { OAuth2Service } from '../../security/oauth2/oauth2-service';
 import { hashPassword } from '../../security/helper';
+import { arePoliciesSkipped } from '../../utils';
 import { resetContext } from '../fixtures/context-fixture';
 
 describe('auth-service', () => {
@@ -209,7 +210,7 @@ describe('auth-service', () => {
         service.authenticate('missing@test.com', 'Str0ng!Pass')
       ).rejects.toMatchObject({
         statusCode: 400,
-        message: expect.stringContaining('does not exist or is disabled')
+        message: expect.stringContaining('Invalid user credentials')
       });
     });
 
@@ -241,9 +242,27 @@ describe('auth-service', () => {
       await expect(
         service.authenticate('user@test.com', 'wrong')
       ).rejects.toMatchObject({
-        statusCode: 401,
+        statusCode: 400,
         message: expect.stringContaining('Invalid user credentials')
       });
+    });
+
+    test('rejects an unknown user and an invalid password alike', async () => {
+      const passwordHash = await hashPassword('Str0ng!Pass');
+      authUserService.query.mockResolvedValue({
+        items: [user({ passwordHash })]
+      });
+      const invalidPassword = await service
+        .authenticate('user@test.com', 'wrong')
+        .catch((e) => e);
+
+      authUserService.query.mockResolvedValue({ items: [] });
+      const unknownUser = await service
+        .authenticate('missing@test.com', 'wrong')
+        .catch((e) => e);
+
+      expect(unknownUser.statusCode).toBe(invalidPassword.statusCode);
+      expect(unknownUser.message).toBe(invalidPassword.message);
     });
   });
 
@@ -791,6 +810,73 @@ describe('auth-service', () => {
         statusCode: 500,
         message: expect.stringContaining('update error')
       });
+    });
+  });
+
+  describe('internal access', () => {
+    // Records whether each service call ran without the policies
+    const recorded = (result: any) =>
+      jest.fn().mockImplementation(async () => {
+        skipped.push(arePoliciesSkipped());
+        return result;
+      });
+
+    let skipped: boolean[];
+
+    beforeEach(() => {
+      skipped = [];
+    });
+
+    test('finds the user without the policies', async () => {
+      authUserService.find = recorded(user());
+      authUserService.query = recorded({ items: [user()] });
+
+      await service.findById(1);
+      await service.findByUsername('user@test.com');
+
+      expect(skipped).toEqual([true, true]);
+    });
+
+    test('updates the user without the policies', async () => {
+      authUserService.update = recorded(user());
+
+      await service.updateAuthUser(1, { logoutAt: new Date() });
+
+      expect(skipped).toEqual([true]);
+    });
+
+    test('registers the user and their files without the policies', async () => {
+      authUserService[CONFIG] = {
+        registrationData: (_source: AuthSource, email: string) => ({ email }),
+        registrationFiles: () => ({ avatar: { name: 'avatar.png' } })
+      };
+      authUserService.create = recorded(user({ id: 2 }));
+      fileService.saveBuffer = recorded({ id: 1 });
+
+      await service.registerAuthUser(AuthSource.OAuth2Google, 'new@test.com');
+
+      expect(skipped).toEqual([true, true]);
+    });
+
+    test('links the connected account without the policies', async () => {
+      connectedAccountService.query = recorded({ items: [] });
+      connectedAccountService.create = recorded({ id: 1 });
+
+      await inject(OAuth2Service).linkConnectedAccount(
+        user(),
+        AuthSource.OAuth2Google,
+        'provider-1'
+      );
+
+      expect(skipped).toEqual([true, true]);
+    });
+
+    test('applies the policies again after the call', async () => {
+      authUserService.find = recorded(user());
+
+      await service.findById(1);
+
+      expect(arePoliciesSkipped()).toBe(false);
     });
   });
 });

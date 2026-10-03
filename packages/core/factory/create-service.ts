@@ -162,7 +162,7 @@ export function createService<T = any, C = any, U = any>(
 
       if (policy?.readRestrictions) {
         const user = currentAuthUser() ?? null;
-        return policy.readRestrictions(user, data, action) ?? {};
+        return (await policy.readRestrictions(user, data, action)) ?? {};
       }
 
       return super.readRestrictions(action, data);
@@ -178,7 +178,7 @@ export function createService<T = any, C = any, U = any>(
 
       if (policy?.writeRestrictions) {
         const user = currentAuthUser() ?? null;
-        return policy.writeRestrictions(user, data, action) ?? {};
+        return (await policy.writeRestrictions(user, data, action)) ?? {};
       }
 
       return super.writeRestrictions(action, data);

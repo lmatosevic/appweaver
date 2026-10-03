@@ -3,7 +3,12 @@ import * as path from 'node:path';
 import { config as dotenvConfig } from 'dotenv';
 import { expand as dotenvExpand } from 'dotenv-expand';
 import { TObject } from '@sinclair/typebox';
-import { camelToSnakeCase, isPlainObject, parseArray } from '../utils';
+import {
+  camelToSnakeCase,
+  isPlainObject,
+  parseArray,
+  resolveEnvironment
+} from '../utils';
 import { CONFIG_NAME } from '../constants';
 
 export type ConfigEntry = {
@@ -32,7 +37,7 @@ export function loadConfigFromEnv(schema: TObject): ConfigEntry {
   }
 
   // Load and override variables from the environment-specific .env.* file.
-  const envFilePath = `.env.${process.env.NODE_ENV ?? 'dev'}`;
+  const envFilePath = `.env.${resolveEnvironment(process.env.NODE_ENV)}`;
   if (
     !dotenvConfig({
       path: envFilePath,
@@ -114,7 +119,7 @@ export function loadConfigFromFiles(schema: TObject): ConfigEntry {
   }
 
   // Load config from the environment-specific JSON file
-  const envConfigPath = `./${CONFIG_NAME}.${process.env.NODE_ENV}.json`;
+  const envConfigPath = `./${CONFIG_NAME}.${resolveEnvironment(process.env.NODE_ENV)}.json`;
   const envConfig = loadConfigFromFile(schema, envConfigPath);
   if (envConfig) {
     files.push(envConfigPath);

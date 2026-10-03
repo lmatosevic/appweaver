@@ -110,7 +110,7 @@ function isProcessGoneError(error: unknown): boolean {
  * Verifies that the application's runtime environment matches the specified environment.
  * Terminates the process with an error message if the environments do not match.
  *
- * @param {string} env - The expected environment (e.g., 'production', 'development').
+ * @param {string} env - The expected environment (e.g., 'prod', 'dev').
  * @param {string} message - The error message to display if the environment does not match.
  */
 export function assertEnv(env: string, message: string): void {

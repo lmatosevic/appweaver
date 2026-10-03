@@ -24,6 +24,7 @@ import { currentAuthUser } from '../security';
 import { PrismaDatabase } from '../database';
 import { CacheService } from '../cache';
 import {
+  arePoliciesSkipped,
   buildFileUrl,
   deletedResourceFileFields,
   generateFileName,
@@ -141,7 +142,10 @@ export class FileService {
         )
       );
 
-      if (identity && policy.canAccess?.(identity, resource, file) === false) {
+      if (
+        !arePoliciesSkipped() &&
+        (await policy.canAccess?.(identity ?? null, resource, file)) === false
+      ) {
         throw new HttpError('File access is forbidden', 403);
       }
     }
@@ -320,8 +324,8 @@ export class FileService {
     const policy = this.getFilePolicy(file.resourceName, file.resourceField);
 
     if (
-      currentUser &&
-      policy.canDelete?.(currentUser, resource, file) === false
+      !arePoliciesSkipped() &&
+      (await policy.canDelete?.(currentUser ?? null, resource, file)) === false
     ) {
       throw new HttpError('Deleting file is forbidden', 403);
     }
@@ -580,8 +584,9 @@ export class FileService {
     } as File;
 
     if (
-      identity &&
-      policy.canCreate?.(identity, resource, createFile) === false
+      !arePoliciesSkipped() &&
+      (await policy.canCreate?.(identity ?? null, resource, createFile)) ===
+        false
     ) {
       throw new HttpError('Creating file is forbidden', 403);
     }

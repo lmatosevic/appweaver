@@ -41,7 +41,8 @@ The basic file structure of the Appweaver project:
 - `Dockerfile` - the dockerfile used for building a docker image for deploying the application
 
 **IMPORTANT:** `{env}` is controlled by `NODE_ENV` environment variable set before any command is executed (can also be
-set in the `.env` file).
+set in the `.env` file). The environment names are `test`, `local`, `dev`, `staging`, `qa`, and `prod`; `development`
+resolves to `dev`, and `production` or an unset `NODE_ENV` to `prod`.
 
 ## Core patterns
 
@@ -369,6 +370,10 @@ export default createPolicy({
 });
 ```
 
+Policy and file policy callbacks may be `async`, and receive a `null` user for an unauthenticated request. Wrap trusted
+system code (jobs, seeders, custom flows) in `withoutPolicies(() => ...)` to call the resource services without the
+policies; see [resources.md](references/resources.md#skipping-the-policies).
+
 #### Creating an authentication model and service
 
 Use `createAuthModel` and `createAuthService` instead of `createModel`/`createService` when the resource represents an
@@ -418,6 +423,11 @@ export default createAuthService({
   registrationFiles: (_, data) => ({ avatar: data?.avatarFile })
 });
 ```
+
+The create and update inputs of an auth model include its `roles`, `password`, and `enabled` fields, so a scaffolded
+project lets only the `Admin` role create, update, delete, and change the files of users through the `User` routes, and
+signs new users up with the `User` role. A policy on the auth model applies only to the API routes: the framework's own
+sign-up, logout, password change, and 2FA flows run with `withoutPolicies`, so a policy never blocks them.
 
 #### Querying resources with filters
 
@@ -638,8 +648,8 @@ export async function createAdminUser(): Promise<void> {
               name: 'Admin',
               permissions: {
                 connectOrCreate: [
-                  { where: { name: '*.read' }, create: { name: '*.read' } },
-                  { where: { name: '*.write' }, create: { name: '*.write' } }
+                  { where: { name: 'manage' }, create: { name: 'manage' } },
+                  { where: { name: 'view' }, create: { name: 'view' } }
                 ]
               }
             }

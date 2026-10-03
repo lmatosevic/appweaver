@@ -7,14 +7,10 @@ import { Role } from '@/features/access/roles';
 const DEMO_PASSWORD = 'Passw0rd!';
 
 /**
- * The roles, two teams with their agents, the admin, and the status page
- * integration with the API key it opens tickets with.
+ * Two teams with their agents, and the status page integration with the API
+ * key it opens tickets with.
  */
 export async function createStaff(): Promise<string> {
-  for (const name of Object.values(Role)) {
-    await db.role.create({ data: { name } });
-  }
-
   const billing = await db.team.create({
     data: {
       name: 'Billing',
@@ -27,22 +23,6 @@ export async function createStaff(): Promise<string> {
       name: 'Technical',
       slug: 'technical',
       email: 'technical@helpdesk.example.com'
-    }
-  });
-
-  let password = config.SYSTEM_ADMIN_INITIAL_PASSWORD;
-  if (!password) {
-    password = randomString(16, { extra: false });
-    console.log(`Generated admin password: ${password}`);
-  }
-
-  await db.user.create({
-    data: {
-      name: 'Helpdesk Admin',
-      email: config.SYSTEM_ADMIN_INITIAL_EMAIL,
-      passwordHash: await hashPassword(password),
-      verifiedEmail: true,
-      roles: { connect: [{ name: Role.Admin }] }
     }
   });
 

@@ -11,10 +11,11 @@ import {
   isPlainObject,
   isString,
   isSymbol,
-  resolveDatabaseType
+  resolveDatabaseType,
+  resolveEnvironment
 } from '../../utils/type-util';
 import { HEALTH_CHECK, LIFECYCLE } from '../../constants';
-import { DatabaseType } from '../../enums';
+import { DatabaseType, Environment } from '../../enums';
 
 class HealthyService {
   static [HEALTH_CHECK] = true;
@@ -284,6 +285,24 @@ describe('type-util', () => {
       expect(resolveDatabaseType(undefined, 'unknown://host')).toBe(
         DatabaseType.Sqlite
       );
+    });
+  });
+
+  describe('resolveEnvironment', () => {
+    test('maps the long names to the short ones', () => {
+      expect(resolveEnvironment('production')).toBe(Environment.Production);
+      expect(resolveEnvironment('Development')).toBe(Environment.Development);
+    });
+
+    test('falls back to prod when the name is missing', () => {
+      expect(resolveEnvironment()).toBe(Environment.Production);
+      expect(resolveEnvironment(' ')).toBe(Environment.Production);
+    });
+
+    test('keeps any other name', () => {
+      expect(resolveEnvironment('dev')).toBe(Environment.Development);
+      expect(resolveEnvironment('staging')).toBe(Environment.Staging);
+      expect(resolveEnvironment('preview')).toBe('preview');
     });
   });
 });

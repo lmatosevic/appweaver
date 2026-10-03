@@ -589,7 +589,7 @@
                 },
                 "expiresIn": {
                   "type": "integer",
-                  "default": 2592000
+                  "default": 604800
                 },
                 "refreshExpiresIn": {
                   "type": "integer",

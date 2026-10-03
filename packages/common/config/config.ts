@@ -17,6 +17,7 @@ import {
 } from './config-loader';
 import { addHelpers } from './config-helper';
 import { Config } from './config-type';
+import { resolveEnvironment } from '../utils';
 
 const configSchema = Type.Object({
   APP_ENV: Type.Union([Type.Enum(Environment), Type.String()], {
@@ -159,7 +160,7 @@ const configSchema = Type.Object({
     default: './storage/keys/private.key'
   }),
   SECURITY_JWT_AUTO_GENERATE_KEYS: Type.Boolean({ default: true }),
-  SECURITY_JWT_EXPIRES_IN: Type.Integer({ default: 2592000 }),
+  SECURITY_JWT_EXPIRES_IN: Type.Integer({ default: 604800 }),
   SECURITY_JWT_REFRESH_EXPIRES_IN: Type.Integer({ default: 5184000 }),
   SECURITY_OAUTH2_STATE_TTL: Type.Integer({ default: 600000 }),
   SECURITY_OAUTH2_REGISTRATION_ENABLED: Type.Boolean({ default: true }),
@@ -332,6 +333,8 @@ const { config: jsonConfig, files: jsonFiles } =
 const configFiles = envFiles.concat(jsonFiles);
 
 const parsedConfig = Value.Parse(configSchema, { ...jsonConfig, ...envConfig });
+
+parsedConfig.APP_ENV = resolveEnvironment(parsedConfig.APP_ENV);
 
 // If application version is not set, try to load it from the local package.json
 if (parsedConfig.APP_VERSION === 'unknown') {

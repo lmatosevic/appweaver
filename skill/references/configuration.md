@@ -13,6 +13,10 @@ Configuration is loaded and merged in the following order (later sources overrid
 4. **Default .env file** `.env`
 5. **Environment-specific .env file** `.env.{NODE_ENV}` (overrides all above)
 
+The environment names are `test`, `local`, `dev`, `staging`, `qa`, and `prod`. `NODE_ENV=development` resolves to `dev`
+and `NODE_ENV=production` to `prod`, both for `APP_ENV` and for the environment-specific file names, and an unset
+`NODE_ENV` resolves to `prod`.
+
 `.env` values support `${VAR_NAME}` expansion referencing any other environment variable; escape as `\${VAR_NAME}` to
 keep it literal.
 
@@ -253,7 +257,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `SECURITY_JWT_PUBLIC_KEY_PATH`    | string  | `'./storage/keys/public.key'`  | Path to RSA public key for JWT verification (RS256).                          |
 | `SECURITY_JWT_PRIVATE_KEY_PATH`   | string  | `'./storage/keys/private.key'` | Path to RSA private key for JWT signing (RS256).                              |
 | `SECURITY_JWT_AUTO_GENERATE_KEYS` | boolean | `true`                         | Auto-generate RSA 2048-bit key pair if missing.                               |
-| `SECURITY_JWT_EXPIRES_IN`         | integer | `2592000`                      | Access token expiration in seconds (default 30 days).                         |
+| `SECURITY_JWT_EXPIRES_IN`         | integer | `604800`                       | Access token expiration in seconds (default 7 days).                          |
 | `SECURITY_JWT_REFRESH_EXPIRES_IN` | integer | `5184000`                      | Refresh token expiration in seconds (default 60 days).                        |
 
 #### OAuth2 general

@@ -25,6 +25,7 @@ import { context, inject } from '../context';
 import { CacheService } from '../cache';
 import { FileService } from '../storage';
 import { HttpError } from '../errors';
+import { withoutPolicies } from '../utils';
 import {
   AuthOTTData,
   AuthTokens,
@@ -36,6 +37,10 @@ import {
 } from '../types';
 
 const AUTH_KEY = 'auth';
+
+/** Checked when the user has no password hash, so the response time does not reveal which users exist */
+const TIMING_GUARD_HASH =
+  '$2b$10$oqzdcdLy7UMCSsqwyWv2muoEzKdcqb9g.ra.g/kRus25d8UYxPCQa';
 
 export class AuthService {
   /** @internal */
@@ -74,7 +79,7 @@ export class AuthService {
   public async findById(id: ResourceId): Promise<AuthUser | null> {
     try {
       if (!config.CACHE_ENABLED || config.SECURITY_CACHE_TTL < 0) {
-        return this._authUserService.find(id);
+        return withoutPolicies(() => this._authUserService.find(id));
       }
 
       const cacheKey = this.authCacheKey(id);
@@ -84,7 +89,9 @@ export class AuthService {
         return value;
       }
 
-      const authUser = await this._authUserService.find(id);
+      const authUser = await withoutPolicies(() =>
+        this._authUserService.find(id)
+      );
 
       await this._cacheService.addToCache(
         cacheKey,
@@ -107,7 +114,9 @@ export class AuthService {
   public async findByUsername(username: string): Promise<AuthUser | null> {
     try {
       if (!config.CACHE_ENABLED || config.SECURITY_CACHE_TTL < 0) {
-        const result = await this._authUserService.query({ email: username });
+        const result = await withoutPolicies(() =>
+          this._authUserService.query({ email: username })
+        );
         return result.items[0] ?? null;
       }
 
@@ -118,7 +127,9 @@ export class AuthService {
         return value;
       }
 
-      const result = await this._authUserService.query({ email: username });
+      const result = await withoutPolicies(() =>
+        this._authUserService.query({ email: username })
+      );
       const authUser = result.items[0] ?? null;
 
       if (authUser) {
@@ -149,7 +160,9 @@ export class AuthService {
   ): Promise<AuthUser> {
     let authUser: AuthUser;
     try {
-      authUser = await this._authUserService.update(id, data);
+      authUser = await withoutPolicies(() =>
+        this._authUserService.update(id, data)
+      );
     } catch (e) {
       throw new HttpError('Auth user update error', 500, e);
     }
@@ -192,10 +205,12 @@ export class AuthService {
         data
       );
 
-      authUser = await this._authUserService.create({
-        ...registrationData,
-        verifiedEmail: source !== AuthSource.Password
-      });
+      authUser = await withoutPolicies(() =>
+        this._authUserService.create({
+          ...registrationData,
+          verifiedEmail: source !== AuthSource.Password
+        })
+      );
     } catch (e) {
       throw new HttpError('Auth user registration error', 500, e);
     }
@@ -244,11 +259,13 @@ export class AuthService {
       }
 
       try {
-        await fileService.saveBuffer(
-          field,
-          file,
-          authUser,
-          this._authUserService.client
+        await withoutPolicies(() =>
+          fileService.saveBuffer(
+            field,
+            file,
+            authUser,
+            this._authUserService.client
+          )
         );
       } catch (e) {
         logger.error(
@@ -306,19 +323,30 @@ export class AuthService {
    * @param {string} username - The username of the user attempting to authenticate.
    * @param {string} password - The password of the user attempting to authenticate.
    * @return {Promise<AuthUser>} A promise that resolves to an authenticated user object if the credentials are valid.
-   * @throws {HttpError} If the user does not exist, is disabled, or if the provided credentials are invalid.
+   * @throws {HttpError} If the user does not exist, is disabled, or if the provided credentials are invalid. All three
+   * cases throw the same error, so the response does not reveal which users exist.
    */
   public async authenticate(
     username: string,
     password: string
   ): Promise<AuthUser> {
     const authUser = await this.findByUsername(username);
-    if (!authUser || !authUser.enabled || !authUser.passwordHash) {
-      throw new HttpError('Auth user does not exist or is disabled', 400);
-    }
 
-    if (!(await checkPassword(password, authUser.passwordHash))) {
-      throw new HttpError('Invalid user credentials', 401);
+    const passwordValid = await checkPassword(
+      password,
+      authUser?.passwordHash ?? TIMING_GUARD_HASH
+    );
+
+    if (
+      !authUser ||
+      !authUser.enabled ||
+      !authUser.passwordHash ||
+      !passwordValid
+    ) {
+      throw new HttpError(
+        'Invalid user credentials: wrong username or password, or the user is disabled',
+        400
+      );
     }
 
     logger.debug({ id: authUser.id }, 'User authenticated');

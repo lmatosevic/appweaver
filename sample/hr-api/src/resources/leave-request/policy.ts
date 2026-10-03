@@ -6,8 +6,10 @@ import { teamRestriction } from '@/features/access/team-restriction';
 // Policies receive the database record, which holds the foreign key columns
 type LeaveRequestRecord = { employeeId: string | null; status: string };
 
-const ownerOrLeaveManager = (user: AuthUser, request: LeaveRequestRecord) =>
-  request.employeeId === user?.id || can(user, Permission.LeaveManage);
+const ownerOrLeaveManager = (
+  user: AuthUser | null,
+  request: LeaveRequestRecord
+) => request.employeeId === user?.id || can(user, Permission.LeaveManage);
 
 export default createPolicy<LeaveRequestRecord>({
   modelName: 'LeaveRequest',

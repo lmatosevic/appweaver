@@ -10,7 +10,7 @@ import {
 } from '../enums';
 
 export type Config = {
-  /** Application environment. Values: `test`, `local`, `dev`, `staging`, `qa`, `prod`. Mapped from `NODE_ENV`. Default: `'prod'`. */
+  /** Application environment. Values: `test`, `local`, `dev`, `staging`, `qa`, `prod`. Mapped from `NODE_ENV`, where `development` resolves to `dev` and `production` to `prod`. Default: `'prod'`. */
   APP_ENV: Environment | string;
   /** Application name. Default: `'Appweaver'`. */
   APP_NAME: string;
@@ -225,7 +225,7 @@ export type Config = {
   SECURITY_JWT_PRIVATE_KEY_PATH: string;
   /** Auto-generate RSA 2048-bit key pair if missing. Default: `true`. */
   SECURITY_JWT_AUTO_GENERATE_KEYS: boolean;
-  /** Access token expiration in seconds. Default: `2592000` (30 days). */
+  /** Access token expiration in seconds. Default: `604800` (7 days). */
   SECURITY_JWT_EXPIRES_IN: number;
   /** Refresh token expiration in seconds. Default: `5184000` (60 days). */
   SECURITY_JWT_REFRESH_EXPIRES_IN: number;

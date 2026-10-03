@@ -1493,6 +1493,9 @@ function createPolicy(config: ResourcePolicyConfig, override ?: Partial<Resource
 
 **Action types**: `'find'`, `'query'`, `'aggregate'`, `'create'`, `'update'`, `'delete'`
 
+Every policy callback may be `async` (return a promise), e.g. to look up a team membership in the database. The
+`user` is `null` for an unauthenticated request.
+
 ### File policy
 
 | Property     | Type                                       | Default       | Description                                                                                      |
@@ -1501,6 +1504,29 @@ function createPolicy(config: ResourcePolicyConfig, override ?: Partial<Resource
 | `canAccess`  | `(user, resource, file) => boolean`        | -             | Custom access check for reading files.                                                           |
 | `canCreate`  | `(user, resource, file) => boolean`        | -             | Custom access check for uploading files.                                                         |
 | `canDelete`  | `(user, resource, file) => boolean`        | -             | Custom access check for deleting files.                                                          |
+
+The file checks may be `async` too, and run with a `null` user when the upload or delete route is public, so a policy
+can allow unauthenticated uploads. They are separate from the resource policy: changing a file does not run the
+`checkAccess` of the resource for the `update` action.
+
+### Skipping the policies
+
+Code acting on behalf of the system rather than the requesting user, such as a job, a seeder, or a custom flow, can
+run resource and file service calls with `withoutPolicies`. Inside it, the access checks, the read and write
+restrictions, and the file checks are skipped, while the service hooks, validation, events, and cache invalidation
+still run. The framework's own authentication flows (login, sign-up, logout, password change, 2FA, email verification,
+and OAuth2 account linking) use it, so a policy on the auth model never blocks them.
+
+```ts
+import { injectService, withoutPolicies } from '@appweaver/core';
+
+const pending = await withoutPolicies(() =>
+  injectService('Order').query({ status: 'Pending' })
+);
+```
+
+The internal access covers every call made while the function runs, including the calls made by the service hooks.
+`arePoliciesSkipped()` tells whether the current call runs with it.
 
 ---
 

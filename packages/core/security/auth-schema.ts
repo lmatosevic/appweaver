@@ -24,7 +24,7 @@ export const AuthenticationResponse = Type.Object(
     refreshToken: Type.String({
       example: 'eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJkNTBl'
     }),
-    expiresIn: Type.Number({ example: 2592000 }),
+    expiresIn: Type.Number({ example: 604800 }),
     refreshExpiresIn: Type.Number({ example: 5184000 })
   },
   { $id: 'AuthenticationResponse' }

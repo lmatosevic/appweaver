@@ -553,11 +553,12 @@ weaver start --watch      # or: npm run dev
 Configuration is loaded from `appweaver.json` files in the project root. The framework loads a **base** config and then
 deep-merges an **environment-specific** overlay based on the `NODE_ENV` environment variable:
 
-| File                  | Loaded when                     |
-|-----------------------|---------------------------------|
-| `appweaver.json`      | Always (base configuration)     |
-| `appweaver.dev.json`  | `NODE_ENV=dev` or `development` |
-| `appweaver.test.json` | `NODE_ENV=test`                 |
+| File                  | Loaded when                                 |
+|-----------------------|---------------------------------------------|
+| `appweaver.json`      | Always (base configuration)                 |
+| `appweaver.dev.json`  | `NODE_ENV=dev` or `development`             |
+| `appweaver.test.json` | `NODE_ENV=test`                             |
+| `appweaver.prod.json` | `NODE_ENV=prod` or `production`, or not set |
 
 For example, the base `appweaver.json` sets the server port, database URL, and app metadata. The dev overlay enables
 debug logging with pretty-printing, while the test overlay redirects the database to a temporary path, swaps Redis and

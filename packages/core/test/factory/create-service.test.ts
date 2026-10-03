@@ -13,6 +13,7 @@ import { CacheService } from '../../cache';
 import { NodeEvents } from '../../events/node-events';
 import { createModel } from '../../factory/create-model';
 import { createService } from '../../factory/create-service';
+import { withoutPolicies } from '../../utils';
 import { resetContext } from '../fixtures/context-fixture';
 import { linkModels } from '../fixtures/model-fixture';
 import { createDatabaseStub, DatabaseStub } from '../fixtures/database-fixture';
@@ -363,6 +364,74 @@ describe('create-service', () => {
       const Service = createService({ modelName: 'Post' });
 
       await expect(new Service().find(1)).resolves.toMatchObject({ id: 1 });
+    });
+
+    test('awaits an async policy check', async () => {
+      define(policy({ checkAccess: async () => false }), 'Post', 'override');
+      const Service = createService({ modelName: 'Post' });
+
+      await expect(new Service().find(1)).rejects.toMatchObject({
+        statusCode: 403
+      });
+    });
+
+    test('awaits async restrictions', async () => {
+      define(
+        policy({
+          readRestrictions: async () => ({ authorId: 7 }),
+          writeRestrictions: async () => null
+        }),
+        'Post',
+        'override'
+      );
+      const Service = createService({ modelName: 'Post' });
+      const service = new Service();
+
+      await service.find(1);
+      expect(db.lastQuery('findFirst').args.where).toEqual({
+        id: 1,
+        authorId: 7
+      });
+
+      // A restriction resolving to nothing restricts nothing
+      await service.create({ title: 'First' } as any);
+      expect(db.lastQuery('create').args.data.title).toBe('First');
+    });
+
+    test('skips the policy with internal access', async () => {
+      const readRestrictions = jest.fn().mockReturnValue({ authorId: 7 });
+      const writeRestrictions = jest.fn().mockReturnValue({ authorId: 7 });
+      const checkAccess = jest.fn().mockReturnValue(false);
+      define(
+        policy({ readRestrictions, writeRestrictions, checkAccess }),
+        'Post',
+        'override'
+      );
+      const Service = createService({ modelName: 'Post' });
+      const service = new Service();
+
+      await expect(
+        withoutPolicies(() => service.find(1))
+      ).resolves.toMatchObject({ id: 1 });
+      await withoutPolicies(() => service.create({ title: 'First' } as any));
+
+      expect(db.lastQuery('findFirst').args.where).toEqual({ id: 1 });
+      expect(db.lastQuery('create').args.data.authorId).toBeUndefined();
+      expect(readRestrictions).not.toHaveBeenCalled();
+      expect(writeRestrictions).not.toHaveBeenCalled();
+      expect(checkAccess).not.toHaveBeenCalled();
+    });
+
+    test('applies the policy again after the internal access ends', async () => {
+      define(policy({ checkAccess: () => false }), 'Post', 'override');
+      const Service = createService({ modelName: 'Post' });
+      const service = new Service();
+
+      await withoutPolicies(() => service.find(1));
+
+      await expect(service.find(1)).rejects.toMatchObject({
+        statusCode: 403
+      });
     });
 
     test('works for a resource that has no policy at all', async () => {

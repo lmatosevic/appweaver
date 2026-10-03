@@ -1,4 +1,4 @@
-import { DatabaseType } from '../enums';
+import { DatabaseType, Environment } from '../enums';
 import { IHealthCheck, OnDestroy, OnInit } from '../interfaces';
 import { HEALTH_CHECK, LIFECYCLE } from '../constants';
 
@@ -187,6 +187,28 @@ export function resolveDatabaseType(
   }
 
   return DatabaseType.Sqlite;
+}
+
+/**
+ * Resolves the application environment from the given name, usually the `NODE_ENV` variable. The long `development`
+ * and `production` names are mapped to their short `dev` and `prod` values, and a missing name resolves to `prod`.
+ * Any other name is returned as it is.
+ *
+ * @param {string} [env] - The environment name to resolve.
+ * @return {string} The resolved environment name.
+ */
+export function resolveEnvironment(env?: string): Environment | string {
+  const name = env?.trim();
+
+  if (!name || name.toLowerCase() === 'production') {
+    return Environment.Production;
+  }
+
+  if (name.toLowerCase() === 'development') {
+    return Environment.Development;
+  }
+
+  return name;
 }
 
 function hasTagAndFunction(

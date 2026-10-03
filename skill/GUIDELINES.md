@@ -18,7 +18,8 @@ provides factory methods for creating resource models, services, policies, and r
 - `appweaver.json` / `appweaver.{env}.json` - central configuration
 - `Dockerfile` - Docker image definition
 
-**IMPORTANT:** `{env}` is controlled by `NODE_ENV` environment variable.
+**IMPORTANT:** `{env}` is controlled by `NODE_ENV` environment variable. The environment names are `test`, `local`,
+`dev`, `staging`, `qa`, and `prod` (`development` resolves to `dev`, `production` or an unset `NODE_ENV` to `prod`).
 
 ## Application entrypoint
 
@@ -268,8 +269,8 @@ export async function createAdminUser(): Promise<void> {
               name: 'Admin',
               permissions: {
                 connectOrCreate: [
-                  { where: { name: '*.read' }, create: { name: '*.read' } },
-                  { where: { name: '*.write' }, create: { name: '*.write' } }
+                  { where: { name: 'manage' }, create: { name: 'manage' } },
+                  { where: { name: 'view' }, create: { name: 'view' } }
                 ]
               }
             }

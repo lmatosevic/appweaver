@@ -9,6 +9,7 @@ import {
 import { injectService } from '../../context';
 import { HttpError } from '../../errors';
 import { resourceAuthService } from '../helper';
+import { withoutPolicies } from '../../utils';
 import {
   CheckOAuth2UserFn,
   ConnectedAccount,
@@ -127,10 +128,9 @@ export class OAuth2Service {
     }
 
     try {
-      const result = await service.query({
-        provider: source,
-        providerAccountId
-      });
+      const result = await withoutPolicies(() =>
+        service.query({ provider: source, providerAccountId })
+      );
       return result.items[0] ?? null;
     } catch (e) {
       throw new HttpError('Connected account find error', 500, e);
@@ -170,7 +170,9 @@ export class OAuth2Service {
 
     if (account) {
       try {
-        await service.update(account.id, { scope, lastLoginAt: new Date() });
+        await withoutPolicies(() =>
+          service.update(account.id, { scope, lastLoginAt: new Date() })
+        );
       } catch (e) {
         throw new HttpError('Connected account link error', 500, e);
       }
@@ -178,13 +180,15 @@ export class OAuth2Service {
     }
 
     try {
-      await service.create({
-        provider: source,
-        providerAccountId,
-        scope,
-        lastLoginAt: new Date(),
-        [uncapitalize(this._authUserService.modelName)]: { id: authUser.id }
-      });
+      await withoutPolicies(() =>
+        service.create({
+          provider: source,
+          providerAccountId,
+          scope,
+          lastLoginAt: new Date(),
+          [uncapitalize(this._authUserService.modelName)]: { id: authUser.id }
+        })
+      );
     } catch (e) {
       // A concurrent sign-in may have created the link first, which the unique
       // constraint on the provider account rejects this one for

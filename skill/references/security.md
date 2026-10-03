@@ -104,6 +104,10 @@ On every authenticated request, the server:
 | `POST` | `/auth/change-password` | Any                 | Change password. Requires current password + new password. Invalidates all tokens. Rate limited: 12/window. |
 | `POST` | `/auth/exchange-token`  | Public              | Exchange a one-time token (OTT) for JWT access + refresh tokens. Rate limited: 12/window.                   |
 
+A failed login responds with the same `400` "Invalid user credentials" error whether the user does not exist, is
+disabled, or gave a wrong password, so the response does not reveal which accounts exist. HTTP Basic authentication
+answers the same failures with its `401` challenge instead.
+
 ---
 
 ## HTTP Basic authentication

@@ -97,11 +97,12 @@ npm run start         # production
 Appweaver is configured through `appweaver.json` files at the project root, with environment-specific overlays loaded
 automatically based on `NODE_ENV`:
 
-| File                  | Loaded when            |
-|-----------------------|------------------------|
-| `appweaver.json`      | Always (base config)   |
-| `appweaver.dev.json`  | `NODE_ENV=development` |
-| `appweaver.test.json` | `NODE_ENV=test`        |
+| File                  | Loaded when                                 |
+|-----------------------|---------------------------------------------|
+| `appweaver.json`      | Always (base config)                        |
+| `appweaver.dev.json`  | `NODE_ENV=dev` or `development`             |
+| `appweaver.test.json` | `NODE_ENV=test`                             |
+| `appweaver.prod.json` | `NODE_ENV=prod` or `production`, or not set |
 
 Every option can also be set via an environment variable which useful for secrets and CI/CD. The full list of options
 is documented in [`skill/references/configuration.md`](./skill/references/configuration.md) and available
@@ -118,8 +119,8 @@ source code on every task.
 ### How it works
 
 When you scaffold a new project with `create-weaver-app`, the generated `AGENTS.md` (or `CLAUDE.md`) at the project
-root automatically references the skill files. Any agent harness that supports project-level instruction files
-(Claude Code, Cursor, Codex, etc.) will load these as context, giving the agent accurate, up-to-date guidance.
+root automatically references the skill files. Any agent harness that supports project-level instruction files (Claude
+Code, Cursor, Codex, etc.) will load these as context, giving the agent accurate, up-to-date guidance.
 
 ### Skill file index
 

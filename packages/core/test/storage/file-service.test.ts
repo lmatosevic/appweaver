@@ -8,6 +8,7 @@ import { context, define } from '../../context';
 import { CacheService } from '../../cache';
 import { FileService } from '../../storage/file-service';
 import { currentAuthUser } from '../../security';
+import { withoutPolicies } from '../../utils';
 import { resetContext } from '../fixtures/context-fixture';
 
 jest.mock('../../security', () => ({
@@ -234,6 +235,111 @@ describe('file-service', () => {
 
       expect(storage.delete).toHaveBeenCalled();
       expect(client.update).not.toHaveBeenCalled();
+    });
+
+    describe('upload check', () => {
+      const canCreate = jest.fn();
+
+      const save = () =>
+        service.saveBuffer(
+          'avatar',
+          {
+            name: 'avatar.pdf',
+            mimeType: 'application/pdf',
+            data: Buffer.from('avatar content')
+          },
+          resource,
+          client
+        );
+
+      beforeEach(() => {
+        context.resource.policies.set('User', {
+          modelName: 'User',
+          files: { avatar: { canCreate } }
+        });
+      });
+
+      afterEach(() => {
+        canCreate.mockReset();
+      });
+
+      test('runs with a null user for an anonymous request', async () => {
+        canCreate.mockReturnValue(true);
+
+        await save();
+
+        expect(canCreate).toHaveBeenCalledWith(
+          null,
+          resource,
+          expect.objectContaining({ resourceField: 'avatar' })
+        );
+      });
+
+      test('denies the upload an async check rejects', async () => {
+        canCreate.mockResolvedValue(false);
+
+        await expect(save()).rejects.toMatchObject({ statusCode: 403 });
+        expect(storage.store).not.toHaveBeenCalled();
+      });
+
+      test('is skipped with internal access', async () => {
+        canCreate.mockResolvedValue(false);
+
+        await expect(withoutPolicies(save)).resolves.toMatchObject({
+          resourceField: 'avatar'
+        });
+        expect(canCreate).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('deleteFile', () => {
+    const canDelete = jest.fn();
+    const file = {
+      name: 'avatar-1.pdf',
+      resourceName: 'User',
+      resourceField: 'avatar',
+      resourceId: '1'
+    };
+
+    const deleteFile = () =>
+      service.deleteFile(file.name, 'avatar', resource, client);
+
+    beforeEach(() => {
+      dbClient.file.findFirst = jest.fn().mockResolvedValue(file);
+      context.resource.policies.set('User', {
+        modelName: 'User',
+        files: { avatar: { canDelete } }
+      });
+    });
+
+    afterEach(() => {
+      canDelete.mockReset();
+    });
+
+    test('runs the delete check with a null user for an anonymous request', async () => {
+      canDelete.mockReturnValue(true);
+
+      await deleteFile();
+
+      expect(canDelete).toHaveBeenCalledWith(null, resource, file);
+      expect(storage.delete).toHaveBeenCalledWith(file.name);
+    });
+
+    test('denies the delete an async check rejects', async () => {
+      canDelete.mockResolvedValue(false);
+
+      await expect(deleteFile()).rejects.toMatchObject({ statusCode: 403 });
+      expect(storage.delete).not.toHaveBeenCalled();
+    });
+
+    test('skips the delete check with internal access', async () => {
+      canDelete.mockResolvedValue(false);
+
+      await withoutPolicies(deleteFile);
+
+      expect(canDelete).not.toHaveBeenCalled();
+      expect(storage.delete).toHaveBeenCalledWith(file.name);
     });
   });
 

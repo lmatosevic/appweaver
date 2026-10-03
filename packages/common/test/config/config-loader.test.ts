@@ -110,8 +110,18 @@ describe('config-loader', () => {
       expect(loadConfigFromEnv(schema).files).toEqual([]);
     });
 
-    test('falls back to the dev .env file when NODE_ENV is not set', () => {
+    test('falls back to the prod .env file when NODE_ENV is not set', () => {
       delete process.env.NODE_ENV;
+      fs.writeFileSync(path.join(tempDir, '.env.prod'), 'DOTENV_PROD=prod\n');
+
+      const { config, files } = loadConfigFromEnv(schema);
+
+      expect(files).toEqual(['.env.prod']);
+      expect(config[`_${CONFIG_NAME}_DOTENV_PROD`]).toBe('prod');
+    });
+
+    test('loads the dev .env file for the development environment', () => {
+      process.env.NODE_ENV = 'development';
       fs.writeFileSync(path.join(tempDir, '.env.dev'), 'DOTENV_DEV=dev\n');
 
       const { config, files } = loadConfigFromEnv(schema);
@@ -263,6 +273,31 @@ describe('config-loader', () => {
       ]);
       expect(config['APP_NAME']).toBe('Global');
       expect(config['LOG_LEVEL']).toBe('debug');
+    });
+
+    test('loads the prod file for the production environment', () => {
+      process.env.NODE_ENV = 'production';
+      fs.writeFileSync(
+        path.join(tempDir, `${CONFIG_NAME}.prod.json`),
+        JSON.stringify({ config: { logLevel: 'warn' } })
+      );
+
+      const { config, files } = loadConfigFromFiles(schema);
+
+      expect(files).toEqual([`./${CONFIG_NAME}.prod.json`]);
+      expect(config['LOG_LEVEL']).toBe('warn');
+    });
+
+    test('loads the prod file when NODE_ENV is not set', () => {
+      delete process.env.NODE_ENV;
+      fs.writeFileSync(
+        path.join(tempDir, `${CONFIG_NAME}.prod.json`),
+        JSON.stringify({ config: { logLevel: 'warn' } })
+      );
+
+      const { files } = loadConfigFromFiles(schema);
+
+      expect(files).toEqual([`./${CONFIG_NAME}.prod.json`]);
     });
   });
 

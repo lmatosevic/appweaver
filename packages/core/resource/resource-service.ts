@@ -24,7 +24,11 @@ import {
   uncapitalize
 } from '@appweaver/common';
 import { inject, injectModel } from '../context';
-import { liveRecordFilter, projectVirtualFields } from '../utils';
+import {
+  arePoliciesSkipped,
+  liveRecordFilter,
+  projectVirtualFields
+} from '../utils';
 import { PrismaDatabase } from '../database';
 import { CacheService } from '../cache';
 import { HttpError } from '../errors';
@@ -114,7 +118,7 @@ export abstract class ResourceService<
    * a database error.
    */
   public async find(id: ResourceId): Promise<ReadOne> {
-    const restrictions = await this.readRestrictions('find', id);
+    const restrictions = await this.applyReadRestrictions('find', id);
     const includeRelations = mapRelationInclusions(this._client.name, 'find');
 
     let resource: ReadOne;
@@ -131,7 +135,7 @@ export abstract class ResourceService<
       throw new HttpError(`${this._client.name} data not found`, 404);
     }
 
-    const access = await this.checkAccess('find', resource);
+    const access = await this.applyAccessCheck('find', resource);
     if (!access) {
       throw new HttpError(`${this._client.name} data access is forbidden`, 403);
     }
@@ -187,7 +191,7 @@ export abstract class ResourceService<
     cursor?: string | null,
     totalCount: boolean = true
   ): Promise<QueryResponse<ReadMany>> {
-    const restrictions = await this.readRestrictions('query', filter);
+    const restrictions = await this.applyReadRestrictions('query', filter);
     const textSearch = this.extractTextSearchQuery(filter);
     const mappedFilter = mapQueryFilter(filter, this._client.name);
     const query = {
@@ -310,7 +314,7 @@ export abstract class ResourceService<
     const operations = mapAggregationSelect(select, this._client.name);
     checkAggregationDateField(dateField, this._client.name);
 
-    const restrictions = await this.readRestrictions('aggregate', filter);
+    const restrictions = await this.applyReadRestrictions('aggregate', filter);
     const textSearch = this.extractTextSearchQuery(filter);
     const mappedFilter = mapQueryFilter(filter, this._client.name);
     const query = {
@@ -397,14 +401,14 @@ export abstract class ResourceService<
   public async create(data: Create): Promise<ReadOne> {
     const createdBy = createdByConnect(this._client.name);
 
-    const restrictions = await this.writeRestrictions('create', data);
+    const restrictions = await this.applyWriteRestrictions('create', data);
 
     const createData = removeUndefined({
       ...data,
       ...restrictions
     });
 
-    const access = await this.checkAccess('create', createData as ReadOne);
+    const access = await this.applyAccessCheck('create', createData as ReadOne);
     if (!access) {
       throw new HttpError(
         `${this._client.name} create action is forbidden`,
@@ -471,12 +475,12 @@ export abstract class ResourceService<
    * deleted orphan through a restricting relation, and 500 on a database error.
    */
   public async update(id: ResourceId, data: Update): Promise<ReadOne> {
-    const readRestrictions = await this.readRestrictions('update', {
+    const readRestrictions = await this.applyReadRestrictions('update', {
       id,
       ...data
     });
 
-    const writeRestrictions = await this.writeRestrictions('update', {
+    const writeRestrictions = await this.applyWriteRestrictions('update', {
       id,
       ...data
     });
@@ -511,7 +515,7 @@ export abstract class ResourceService<
             throw new HttpError(`${this._client.name} data not found`, 404);
           }
 
-          const access = await this.checkAccess('update', current);
+          const access = await this.applyAccessCheck('update', current);
           if (!access) {
             throw new HttpError(
               `${this._client.name} update action is forbidden`,
@@ -588,7 +592,7 @@ export abstract class ResourceService<
    * database error, a restricting relation of a removed resource included.
    */
   public async delete(id: ResourceId): Promise<ReadOne> {
-    const restrictions = await this.readRestrictions('delete', id);
+    const restrictions = await this.applyReadRestrictions('delete', id);
     const softDelete = hasSoftDelete(injectModel(this._client.name).config);
     const includeRelations = mapRelationInclusions(this._client.name, 'delete');
 
@@ -612,7 +616,7 @@ export abstract class ResourceService<
           throw new HttpError(`${this._client.name} data not found`, 404);
         }
 
-        const access = await this.checkAccess('delete', current);
+        const access = await this.applyAccessCheck('delete', current);
         if (!access) {
           throw new HttpError(
             `${this._client.name} delete action is forbidden`,
@@ -670,6 +674,8 @@ export abstract class ResourceService<
    * throwing an error, recommended is {@link HttpError } with appropriate HTTP
    * error code.
    *
+   * Not called for the calls run with internal access (see `withoutPolicies`).
+   *
    * @param {ActionType} action The called action method on this service (find,
    * query, aggregate, update, or delete)
    * @param {Object|ResourceId} data The passed data to the called function can be
@@ -701,6 +707,8 @@ export abstract class ResourceService<
    * current action by throwing an error, with the recommended type being
    * {@link HttpError} with the appropriate HTTP error code.
    *
+   * Not called for the calls run with internal access (see `withoutPolicies`).
+   *
    * @param {'create'|'update'} action The called action method on this service
    * (create or update)
    * @param {Object} data The passed data to the called function, which should be
@@ -723,6 +731,8 @@ export abstract class ResourceService<
    * the provided resource object. If the resource should not be accessible by
    *  a currently authenticated user or other logic, this method should return
    * false. Otherwise, it returns true and continues with the request execution.
+   *
+   * Not called for the calls run with internal access (see `withoutPolicies`).
    *
    * @param {ActionType} action The called action method on this service (find,
    * query, aggregate, create, update, or delete)
@@ -750,6 +760,46 @@ export abstract class ResourceService<
    */
   protected textSearchQuery(searchText: string): any {
     return {};
+  }
+
+  /**
+   * Returns the read restrictions of {@link ResourceService.readRestrictions},
+   * or none when the call runs with internal access (see `withoutPolicies`).
+   *
+   * @internal
+   */
+  private async applyReadRestrictions(
+    action: Exclude<ActionType, 'create'>,
+    data: any
+  ): Promise<any> {
+    return arePoliciesSkipped() ? {} : this.readRestrictions(action, data);
+  }
+
+  /**
+   * Returns the write restrictions of {@link ResourceService.writeRestrictions},
+   * or none when the call runs with internal access (see `withoutPolicies`).
+   *
+   * @internal
+   */
+  private async applyWriteRestrictions(
+    action: 'create' | 'update',
+    data: any
+  ): Promise<Partial<Create & Update>> {
+    return arePoliciesSkipped() ? {} : this.writeRestrictions(action, data);
+  }
+
+  /**
+   * Runs the access check of {@link ResourceService.checkAccess}, which always
+   * grants the access when the call runs with internal access (see
+   * `withoutPolicies`).
+   *
+   * @internal
+   */
+  private async applyAccessCheck(
+    action: ActionType,
+    resource: ReadOne
+  ): Promise<boolean> {
+    return arePoliciesSkipped() || this.checkAccess(action, resource);
   }
 
   /**

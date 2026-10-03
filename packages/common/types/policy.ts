@@ -11,11 +11,12 @@ export type ActionType =
 
 export type FileAccessType = 'protected' | 'private' | 'public';
 
+/** Returns false to deny the file action. Called with a null user when the request is not authenticated. */
 export type FileAccessFn<T = any, U = AuthUser> = (
-  user: U,
+  user: U | null,
   resource: T,
   file: File
-) => boolean;
+) => boolean | Promise<boolean>;
 
 export type FilePolicy<T = any> = {
   /**
@@ -38,14 +39,18 @@ export type ResourcePolicyConfig<T = any, U = AuthUser> = {
   /** Resource model name */
   modelName: string;
   /** Return false to deny the action for the given resource */
-  checkAccess?: (user: U | null, resource: T, action: ActionType) => boolean;
-  /** Returns additional filter constraints for read operations */
+  checkAccess?: (
+    user: U | null,
+    resource: T,
+    action: ActionType
+  ) => boolean | Promise<boolean>;
+  /** Returns additional filter constraints for read operations, directly or as a promise */
   readRestrictions?: (
     user: U | null,
     resource: T,
     action: Exclude<ActionType, 'create'>
   ) => any;
-  /** Returns field restrictions applied during write operations */
+  /** Returns field restrictions applied during write operations, directly or as a promise */
   writeRestrictions?: (
     user: U | null,
     resource: T,

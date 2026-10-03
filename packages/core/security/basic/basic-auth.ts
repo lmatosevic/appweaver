@@ -2,8 +2,9 @@ import { FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import fastifyBasicAuth from '@fastify/basic-auth';
 import { requestContext } from '@fastify/request-context';
-import { AuthSource, AuthType, config } from '@appweaver/common';
+import { AuthSource, AuthType, AuthUser, config } from '@appweaver/common';
 import { inject } from '../../context';
+import { HttpError } from '../../errors';
 import { AuthService } from '../auth-service';
 import { Server } from '../../types';
 
@@ -20,7 +21,17 @@ export const basicAuth = fastifyPlugin(async (server: Server) => {
       password: string,
       request: FastifyRequest
     ) => {
-      const authUser = await authService.authenticate(username, password);
+      let authUser: AuthUser;
+      try {
+        authUser = await authService.authenticate(username, password);
+      } catch (e) {
+        // The plugin sends its challenge header only with this status, which a
+        // Basic auth client expects for bad credentials
+        throw new HttpError(
+          (e as Error).message,
+          config.SECURITY_BASIC_PROXY_MODE ? 407 : 401
+        );
+      }
 
       authService.authorize(authUser, request.url, request.routeOptions.config);
 

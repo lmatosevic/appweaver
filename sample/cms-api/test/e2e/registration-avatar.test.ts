@@ -43,13 +43,13 @@ describe('Registration files', () => {
     app = await createApp({ autoStartServer: false });
     users = injectService('User');
 
-    // The registration data of the sample connects the role with id 1
+    // The registration data of the sample connects the User role
     await inject<any>(Database)
       .client()
       .role.upsert({
-        where: { id: 1 },
+        where: { name: 'User' },
         update: {},
-        create: { id: 1, name: 'RegistrationUser' }
+        create: { name: 'User' }
       });
   });
 
