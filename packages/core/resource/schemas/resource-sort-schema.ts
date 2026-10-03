@@ -116,9 +116,14 @@ export function registerQuerySortSchemas(): void {
  * comma-separated field list or the query sort object of the model.
  *
  * @param {string} modelName The resource model name the sort property belongs to.
+ * @param {string} [description] The description of the property, replacing the default one.
  * @returns {TSchema} The optional sort property schema.
  */
-export function querySortSchema(modelName: string): TSchema {
+export function querySortSchema(
+  modelName: string,
+  description: string = 'Fields to sort the results by, given as a comma-separated field list ' +
+    'or as an object of field directions'
+): TSchema {
   return Type.Optional(
     Type.Union(
       [
@@ -131,11 +136,7 @@ export function querySortSchema(modelName: string): TSchema {
         }),
         Type.Ref(querySortName(modelName))
       ],
-      {
-        description:
-          'Fields to sort the results by, given as a comma-separated field list ' +
-          'or as an object of field directions'
-      }
+      { description }
     )
   );
 }

@@ -20,6 +20,7 @@ import {
 
 type SchemaRoutes = {
   resource: Record<string, string[]>;
+  resourceMethods: Record<string, Record<string, HttpMethod[]>>;
   auth: string[];
   account: string[];
   health: string[];
@@ -74,6 +75,7 @@ export async function generateClient(
 
   const schemaRoutes: SchemaRoutes = {
     resource: {},
+    resourceMethods: {},
     auth: [],
     account: [],
     health: [],
@@ -109,7 +111,13 @@ export async function generateClient(
           continue;
         }
         schemaRoutes.resource[resourceName] ??= [];
-        schemaRoutes.resource[resourceName].push(operationName);
+        if (!schemaRoutes.resource[resourceName].includes(operationName)) {
+          schemaRoutes.resource[resourceName].push(operationName);
+        }
+        schemaRoutes.resourceMethods[resourceName] ??= {};
+        (schemaRoutes.resourceMethods[resourceName][operationName] ??= []).push(
+          method
+        );
       } else if (type === 'custom') {
         if (path.startsWith(`${config.routePrefixes.auth}/login/`)) {
           continue;
@@ -225,9 +233,11 @@ export async function generateClient(
       operations
     );
 
+    const methods = resourceMethods(schemaRoutes.resourceMethods[name]);
+
     clientMethods.push({
       name: lowerName,
-      expression: `this.resourceClient${genericTypes}('${resourcePath}')`
+      expression: `this.resourceClient${genericTypes}('${resourcePath}'${methods ? `, ${methods}` : ''})`
     });
   }
 
@@ -529,7 +539,9 @@ function resourceOperation(
     Record<string, keyof typeof RESOURCE_OPERATIONS>
   > = {
     get: {
-      '{id}': 'find'
+      '{id}': 'find',
+      query: 'query',
+      aggregate: 'aggregate'
     },
     post: {
       query: 'query',
@@ -548,6 +560,27 @@ function resourceOperation(
   };
 
   return operationMap[method]?.[pathSuffix.replace(/^\//, '')];
+}
+
+/**
+ * Builds the methods argument of a resource client, listing the operations
+ * exposed only as GET routes. Those exposed with both methods use POST.
+ *
+ * @param {Record<string, HttpMethod[]>} [operationMethods] - The HTTP methods of every resource operation.
+ * @return {string | undefined} The methods object literal, or `undefined` when every operation is sent as POST.
+ */
+function resourceMethods(
+  operationMethods: Record<string, HttpMethod[]> = {}
+): string | undefined {
+  const getOnly = ['query', 'aggregate'].filter(
+    (operation) =>
+      operationMethods[operation]?.includes('get') &&
+      !operationMethods[operation].includes('post')
+  );
+
+  return getOnly.length > 0
+    ? `{ ${getOnly.map((operation) => `${operation}: 'get'`).join(', ')} }`
+    : undefined;
 }
 
 /**

@@ -41,6 +41,15 @@ export const IdString = Type.Object({
 
 const CURSOR_EXAMPLE = 'eyJpIjo0MiwiZiI6IkhkQjVfa2VMTVlyNyJ9';
 
+// A JSON-encoded query parameter. The reference is wrapped, since the OpenAPI
+// document drops the siblings of a $ref
+const JsonParam = (ref: string, description: string): TSchema =>
+  Type.Unsafe({
+    allOf: [Type.Ref(ref)],
+    description,
+    'x-consume': 'application/json'
+  });
+
 // The sort property is declared per model instead, since its object form
 // references the sortable fields of the queried resource
 export const QueryRequestData = Type.Object({
@@ -147,6 +156,39 @@ export function createSchema(
     $id: `${name}ExportRequest`
   });
 
+  // Inline, since the OpenAPI document derives the query parameters from them
+  const filterParam = Type.Object({
+    filter: Type.Optional(
+      JsonParam(queryFilterName(name), 'The query filter, encoded as JSON')
+    )
+  });
+
+  const sortParam = Type.Object({
+    sort: querySortSchema(
+      name,
+      'Fields to sort the results by, given as a comma-separated field list ' +
+        'or as a JSON-encoded object of field directions'
+    )
+  });
+
+  const queryParams = Type.Composite([
+    filterParam,
+    sortParam,
+    QueryRequestData
+  ]);
+
+  const aggregateParams = Type.Composite([
+    filterParam,
+    Type.Object({
+      select: JsonParam(
+        aggregateSelectName(name),
+        'The aggregate selection, encoded as JSON'
+      ),
+      dateField: aggregateDateFieldSchema(resourceModel)
+    }),
+    AggregateRequestData
+  ]);
+
   const resourceSchemaConfig = {
     findSchema: {
       tags: [tag],
@@ -183,6 +225,32 @@ export function createSchema(
         ...AllErrorResponses
       },
       body: createSchemaModel(aggregateRequest)
+    },
+    queryGetSchema: {
+      tags: [tag],
+      security: authSchema(routeAuthTypes['query']),
+      headers: recaptchaHeaderSchema(routeRecaptcha['query']),
+      summary: `Query ${resourceName} data with query parameters`,
+      description: `Query ${resourceName} data with query parameters`,
+      response: {
+        200: createSchemaModel(queryResponse),
+        ...AllErrorResponses
+      },
+      querystring: queryParams,
+      [`x-${CONFIG_NAME}-request`]: `${name}QueryRequest`
+    },
+    aggregateGetSchema: {
+      tags: [tag],
+      security: authSchema(routeAuthTypes['aggregate']),
+      headers: recaptchaHeaderSchema(routeRecaptcha['aggregate']),
+      summary: `Aggregate ${resourceName} data with query parameters`,
+      description: `Aggregate ${resourceName} data with query parameters`,
+      response: {
+        200: createSchemaModel(aggregateResponse),
+        ...AllErrorResponses
+      },
+      querystring: aggregateParams,
+      [`x-${CONFIG_NAME}-request`]: `${name}AggregateRequest`
     },
     createSchema: {
       tags: [tag],

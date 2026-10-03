@@ -6,6 +6,7 @@ import {
   Environment,
   LogLevel,
   MemoryType,
+  QueryMethod,
   Runtime
 } from '../enums';
 
@@ -137,6 +138,10 @@ export type Config = {
   RESOURCE_ROUTES_PATTERN: string;
   /** Output path for generated TypeScript types. Default: `'<srcPath>/types/generated.ts'`. */
   RESOURCE_GENERATED_TYPES_PATH: string;
+  /** HTTP methods of the resource query routes. Values: `post`, `get`, `get-post`. Default: `'post'`. */
+  RESOURCE_QUERY_METHOD: QueryMethod;
+  /** HTTP methods of the resource aggregate routes. Values: `post`, `get`, `get-post`. Default: `'post'`. */
+  RESOURCE_AGGREGATE_METHOD: QueryMethod;
 
   /** Number of records per batch during export. Default: `1000`. */
   EXPORT_BATCH_SIZE: number;

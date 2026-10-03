@@ -6,6 +6,7 @@ export default createRoutes({
     cacheTTL: 30000
   },
   query: {
-    cache: true
+    cache: true,
+    method: 'get-post'
   }
 });

@@ -223,6 +223,13 @@ The generated second type argument to `resourceClient` (e.g., `['aggregate', 'ex
 removes those methods from the returned `ResourceClient` at the TypeScript level, preventing accidental calls to
 operations not exposed by the API.
 
+When a `query` or `aggregate` route is GET-only, the generator passes `{ query: 'get' }` (or `aggregate`), and the
+client sends the request as query parameters. With both methods available, it uses POST.
+
+```ts
+public tag = this.resourceClient<Type.TagResourceModuleType>('/api/tags', { query: 'get' });
+```
+
 ### Angular client (`--framework angular`)
 
 Passing `--framework angular` generates a client class extending `AngularClient` instead of `FetchClient`. The generated

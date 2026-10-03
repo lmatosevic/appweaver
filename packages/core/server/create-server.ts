@@ -57,7 +57,7 @@ export function createServer(): Server {
         // primitive types, so the validator does not coerce them
         allowUnionTypes: true
       },
-      plugins: [(ajv): any => ajv.addKeyword('example')]
+      plugins: [(ajv): any => ajv.addKeyword('example').addKeyword('x-consume')]
     },
     routerOptions: {
       maxParamLength: 512,

@@ -6,6 +6,12 @@ import { ResourceId } from '../../types';
 
 export type ResourceType = Record<(typeof RESOURCE_TYPES)[number], unknown>;
 
+/** The HTTP methods of the query and aggregate requests. */
+export type ResourceMethods = {
+  query?: 'get' | 'post';
+  aggregate?: 'get' | 'post';
+};
+
 export type ResourceInterface = {
   [K in keyof typeof RESOURCE_OPERATIONS]: (...args: any[]) => Promise<any>;
 };
@@ -16,7 +22,8 @@ export class ResourceClient<Resource extends ResourceType>
 {
   constructor(
     client: BaseClientInterface,
-    public readonly basePath: string
+    public readonly basePath: string,
+    public readonly methods: ResourceMethods = {}
   ) {
     super(client);
   }
@@ -54,10 +61,12 @@ export class ResourceClient<Resource extends ResourceType>
     request: Resource['queryRequest'],
     options: RequestOptions = {}
   ): Promise<Resource['queryResponse']> {
-    return this.sendRequest('post', `${this.basePath}/query`, {
-      ...options,
-      body: request
-    });
+    return this.sendCriteriaRequest(
+      this.methods.query,
+      `${this.basePath}/query`,
+      request,
+      options
+    );
   }
 
   /**
@@ -71,10 +80,12 @@ export class ResourceClient<Resource extends ResourceType>
     request: Resource['aggregateRequest'],
     options: RequestOptions = {}
   ): Promise<Resource['aggregateResponse']> {
-    return this.sendRequest('post', `${this.basePath}/aggregate`, {
-      ...options,
-      body: request
-    });
+    return this.sendCriteriaRequest(
+      this.methods.aggregate,
+      `${this.basePath}/aggregate`,
+      request,
+      options
+    );
   }
 
   /**
@@ -229,6 +240,36 @@ export class ResourceClient<Resource extends ResourceType>
         path: {
           id
         }
+      }
+    });
+  }
+
+  /** Sends the request as a POST body, or as GET query parameters with the objects JSON-encoded. */
+  private async sendCriteriaRequest(
+    method: 'get' | 'post' = 'post',
+    path: string,
+    request: unknown,
+    options: RequestOptions
+  ): Promise<any> {
+    if (method === 'post') {
+      return this.sendRequest('post', path, { ...options, body: request });
+    }
+
+    const query: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(request ?? {}) as [
+      string,
+      unknown
+    ][]) {
+      if (value !== undefined && value !== null) {
+        query[key] = typeof value === 'object' ? JSON.stringify(value) : value;
+      }
+    }
+
+    return this.sendRequest('get', path, {
+      ...options,
+      params: {
+        ...(options.params ?? {}),
+        query: { ...(options.params?.query ?? {}), ...query }
       }
     });
   }

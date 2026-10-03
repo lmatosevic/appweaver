@@ -1017,7 +1017,7 @@ The created service exposes the following methods:
 `query` takes the options `filter`, `page` (default `1`), `size` (default `50`), `sort` (default `-createdAt`),
 `cursor`, and `totalCount` (default `true`), and `aggregate` the options `select` (required), `filter`, `dateField`
 (default `createdAt`), `from`, `to`, `step`, and `safeIncrement` (default `true`). Both are the same shape as the bodies
-of the `POST /query` and `POST /aggregate` routes:
+of the `POST /query` and `POST /aggregate` routes, and as the query parameters of their GET variants:
 
 ```ts
 const posts = injectService('Post');
@@ -1421,19 +1421,19 @@ function createRoutes(config: ResourceRoutesConfig, override ?: Partial<Resource
 }
 ```
 
-| Property     | Type            | Description                                              |
-|--------------|-----------------|----------------------------------------------------------|
-| `modelName`  | string          | Model name to bind routes to (required).                 |
-| `path`       | string          | Custom base URL path (default: derived from model name). |
-| `find`       | ReadRouteConfig | `GET /:id` - Find single resource by ID.                 |
-| `query`      | ReadRouteConfig | `POST /query` - Query resources with filters.            |
-| `aggregate`  | ReadRouteConfig | `POST /aggregate` - Aggregate resources.                 |
-| `create`     | RouteConfig     | `POST /` - Create a new resource.                        |
-| `update`     | RouteConfig     | `PUT /:id` - Update a resource.                          |
-| `delete`     | RouteConfig     | `DELETE /:id` - Delete a resource.                       |
-| `export`     | RouteConfig     | `POST /export` - Export resources to CSV.                |
-| `fileUpload` | RouteConfig     | `POST /:id/files` - Upload files to a resource.          |
-| `fileDelete` | RouteConfig     | `POST /:id/delete-files` - Delete files from a resource. |
+| Property     | Type             | Description                                              |
+|--------------|------------------|----------------------------------------------------------|
+| `modelName`  | string           | Model name to bind routes to (required).                 |
+| `path`       | string           | Custom base URL path (default: derived from model name). |
+| `find`       | ReadRouteConfig  | `GET /:id` - Find single resource by ID.                 |
+| `query`      | QueryRouteConfig | `POST /query` - Query resources with filters.            |
+| `aggregate`  | QueryRouteConfig | `POST /aggregate` - Aggregate resources.                 |
+| `create`     | RouteConfig      | `POST /` - Create a new resource.                        |
+| `update`     | RouteConfig      | `PUT /:id` - Update a resource.                          |
+| `delete`     | RouteConfig      | `DELETE /:id` - Delete a resource.                       |
+| `export`     | RouteConfig      | `POST /export` - Export resources to CSV.                |
+| `fileUpload` | RouteConfig      | `POST /:id/files` - Upload files to a resource.          |
+| `fileDelete` | RouteConfig      | `POST /:id/delete-files` - Delete files from a resource. |
 
 ### Route config (all operations)
 
@@ -1458,6 +1458,24 @@ Extends RouteConfig with caching options:
 | `cacheKey`              | string \| function | -       | Custom cache key. Function signature: `(req, user) => string`. |
 | `cacheTTL`              | number             | -       | Cache TTL in milliseconds (overrides global default).          |
 | `cacheSkipInvalidation` | boolean            | `false` | Skip automatic cache invalidation on writes.                   |
+
+### Query route config (query, aggregate)
+
+Extends ReadRouteConfig with the HTTP methods of the route:
+
+| Property | Type        | Default                                               | Description                                                   |
+|----------|-------------|-------------------------------------------------------|---------------------------------------------------------------|
+| `method` | QueryMethod | `RESOURCE_QUERY_METHOD` / `RESOURCE_AGGREGATE_METHOD` | `'post'` (config default), `'get'`, or `'get-post'` for both. |
+
+The GET route takes the request body properties as query parameters: `filter` and `select` JSON-encoded, `sort` as a
+field list or JSON object, the rest as plain values. It shares the settings and validation of the POST route.
+
+```
+GET /api/posts/query?filter={"viewCount":{"_gte":5}}&sort=-createdAt&size=20
+```
+
+Keep POST for large filters, since Node.js limits the request headers to 16 KB. With a string primary key, the id
+`query` or `aggregate` can no longer be read through `GET /:id`.
 
 ### Rate limit config
 

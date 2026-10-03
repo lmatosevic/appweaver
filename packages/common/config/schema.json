@@ -350,6 +350,16 @@
             "generatedTypesPath": {
               "type": "string",
               "default": "<srcPath>/types/generated.ts"
+            },
+            "queryMethod": {
+              "type": "string",
+              "enum": ["post", "get", "get-post"],
+              "default": "post"
+            },
+            "aggregateMethod": {
+              "type": "string",
+              "enum": ["post", "get", "get-post"],
+              "default": "post"
             }
           }
         },

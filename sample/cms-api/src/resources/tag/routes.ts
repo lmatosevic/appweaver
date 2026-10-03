@@ -9,7 +9,8 @@ export default createRoutes({
   },
   query: {
     public: true,
-    cacheTTL: 60_000
+    cacheTTL: 60_000,
+    method: 'get'
   },
   aggregate: {
     exclude: true

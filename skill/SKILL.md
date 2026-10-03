@@ -363,7 +363,9 @@ export default createRoutes({
     }
   },
   query: {
-    cacheTTL: 5000
+    cacheTTL: 5000,
+    // Also serve GET /products/query
+    method: 'get-post'
   },
   create: {
     permissions: ['product:create']
@@ -373,6 +375,10 @@ export default createRoutes({
   }
 });
 ```
+
+The `method` option of `query` and `aggregate` (`post` by default, `get`, or `get-post`) registers a GET route taking
+the criteria as query parameters. The defaults come from the `RESOURCE_QUERY_METHOD` and `RESOURCE_AGGREGATE_METHOD`
+config (see `references/resources.md`).
 
 #### Creating a resource policy
 

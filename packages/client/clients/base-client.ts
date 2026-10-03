@@ -29,6 +29,7 @@ import {
   HealthType,
   ResourceClient,
   ResourceInterface,
+  ResourceMethods,
   ResourceType
 } from './modules';
 import { ClientError } from '../errors';
@@ -429,6 +430,7 @@ export abstract class BaseClient<
    * Creates and returns a new instance of a ResourceClient for managing a specific resource type.
    *
    * @param {string} resourcePath - The API path or endpoint for the resource.
+   * @param {ResourceMethods} [methods] - The query and aggregate HTTP methods (default: POST).
    * @template Resource - The type of the resource being managed.
    * @template OmitFields - An optional array of resource interface fields to omit.
    * @return {ResourceClient} A ResourceClient instance for interacting with the specified resource.
@@ -437,12 +439,17 @@ export abstract class BaseClient<
     Resource extends ResourceType,
     OmitFields extends readonly (keyof ResourceInterface)[] = []
   >(
-    resourcePath: string
+    resourcePath: string,
+    methods?: ResourceMethods
   ): ClientResultMethods<
     ClientResult<ResourceClient<Resource>, ResourceInterface, OmitFields>,
     UseObservable
   > {
-    const resource = new ResourceClient<Resource>(this as any, resourcePath);
+    const resource = new ResourceClient<Resource>(
+      this as any,
+      resourcePath,
+      methods
+    );
     this._modules.resources.push(resource);
     return resource as any;
   }

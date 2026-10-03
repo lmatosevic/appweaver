@@ -1,4 +1,4 @@
-import { AuthType } from '../enums';
+import { AuthType, QueryMethod } from '../enums';
 import { ModelName } from './registry';
 
 export type RouteSchema = {
@@ -78,6 +78,12 @@ export type RouteCacheConfig = {
 export type ReadRouteConfig = RouteConfig &
   Omit<RouteCacheConfig, 'cacheKey' | 'cacheModelName' | 'cacheRelations'>;
 
+export type QueryRouteConfig = ReadRouteConfig & {
+  /** HTTP methods the route is registered for (default: `RESOURCE_QUERY_METHOD`
+   * or `RESOURCE_AGGREGATE_METHOD` config) */
+  method?: QueryMethod | `${QueryMethod}`;
+};
+
 export type ResourceRoutesConfig = {
   /** Resource model name */
   modelName: ModelName;
@@ -86,9 +92,9 @@ export type ResourceRoutesConfig = {
   /** Config for the find-by-ID route */
   find?: ReadRouteConfig;
   /** Config for the list/query route */
-  query?: ReadRouteConfig;
+  query?: QueryRouteConfig;
   /** Config for the aggregate route */
-  aggregate?: ReadRouteConfig;
+  aggregate?: QueryRouteConfig;
   /** Config for the create route */
   create?: RouteConfig;
   /** Config for the update route */
@@ -110,6 +116,10 @@ export type ResourceSchemaConfig = {
   querySchema: RouteSchema;
   /** Schema for aggregation operations on resources */
   aggregateSchema: RouteSchema;
+  /** Schema for querying resources with query parameters */
+  queryGetSchema: RouteSchema;
+  /** Schema for aggregation operations with query parameters */
+  aggregateGetSchema: RouteSchema;
   /** Schema for creating a new resource */
   createSchema: RouteSchema;
   /** Schema for updating an existing resource */

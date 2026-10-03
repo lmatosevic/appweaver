@@ -156,6 +156,79 @@ describe('generate-client', () => {
       expect(generated).not.toContain('export function createClient');
     });
 
+    describe('GET query routes', () => {
+      const getOperation = () => ({
+        get: {
+          'x-appweaver-resource': 'Post',
+          parameters: [],
+          responses: (createOpenApiSchema().paths as any)['/api/posts/query']
+            .post.responses
+        }
+      });
+
+      const postLine = (generated: string): string =>
+        generated.split('\n').find((line) => line.includes('public post ='))!;
+
+      test('sends the query and aggregate exposed only as GET with the GET method', async () => {
+        const schema = createOpenApiSchema();
+        const paths = schema.paths as any;
+        paths['/api/posts/query'] = getOperation();
+        paths['/api/posts/aggregate'] = getOperation();
+
+        const generated = await generateClient(schema);
+
+        expect(postLine(generated)).toContain(
+          `('/api/posts', { query: 'get', aggregate: 'get' })`
+        );
+        expect(postLine(generated)).not.toContain(`'aggregate'`);
+        expect(generated).not.toContain('getApiPostsQuery');
+        expect(generated).not.toContain('getApiPostsAggregate');
+      });
+
+      test('sends a query exposed with both methods as POST', async () => {
+        const schema = createOpenApiSchema();
+        const paths = schema.paths as any;
+        paths['/api/posts/query'] = {
+          ...paths['/api/posts/query'],
+          ...getOperation()
+        };
+
+        const generated = await generateClient(schema);
+
+        expect(postLine(generated)).toContain(`>('/api/posts')`);
+        expect(postLine(generated)).not.toContain(`'query'`);
+      });
+
+      test('lists only the GET-only operations in the methods argument', async () => {
+        const schema = createOpenApiSchema();
+        const paths = schema.paths as any;
+        paths['/api/posts/aggregate'] = getOperation();
+
+        const generated = await generateClient(schema);
+
+        expect(postLine(generated)).toContain(
+          `('/api/posts', { aggregate: 'get' })`
+        );
+      });
+
+      test('passes the methods argument to an untyped client', async () => {
+        const schema = createOpenApiSchema();
+        (schema.paths as any)['/api/posts/query'] = getOperation();
+
+        const generated = await generateClient(
+          schema,
+          undefined,
+          'fetch',
+          undefined,
+          true
+        );
+
+        expect(generated).toContain(
+          `public post = this.resourceClient('/api/posts', { query: 'get' })`
+        );
+      });
+    });
+
     test('accepts the schema as a JSON string', async () => {
       const generated = await generateClient(
         JSON.stringify(createOpenApiSchema())

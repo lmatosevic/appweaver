@@ -4,18 +4,22 @@ import {
   QueryOptions,
   RecaptchaConfig,
   ResourceId,
+  QueryRouteConfig,
   ResourceRoutesConfig,
   RouteCacheConfig,
   RouteConfig
 } from '@appweaver/common';
 import { createSchema } from './resource-schema';
+import { parseJsonParams, queryRouteMethods } from './utils';
 import { inject, injectModel, injectService } from '../context';
 import { FileService } from '../storage';
 import { ExportService } from '../export';
 import { aggregateFiles, maxFileSize } from '../utils';
 import { Server } from '../types';
 
-type FullRouteConfig = RouteConfig & RouteCacheConfig;
+type FullRouteConfig = RouteConfig &
+  RouteCacheConfig &
+  Pick<QueryRouteConfig, 'method'>;
 
 /** The `:id` path parameter, validated against the primary key schema of the
  * resource, so it arrives typed after the model id */
@@ -108,7 +112,8 @@ export function resourceRoutes(
     }
 
     const queryConfig = routeConfig('query');
-    if (!queryConfig?.exclude) {
+    const queryMethods = queryRouteMethods('query', queryConfig?.method);
+    if (!queryConfig?.exclude && queryMethods.post) {
       server.post(
         '/query',
         {
@@ -125,8 +130,30 @@ export function resourceRoutes(
       );
     }
 
+    if (!queryConfig?.exclude && queryMethods.get) {
+      server.get<{ Querystring: Record<string, unknown> }>(
+        '/query',
+        {
+          schema: schema.queryGetSchema,
+          onRequest: routeAuth(queryConfig),
+          preValidation: async (request) =>
+            parseJsonParams(request.query, ['filter'], ['sort']),
+          config: queryConfig
+        },
+        async (request, reply) => {
+          const response = await service.query(request.query);
+
+          return reply.send(response);
+        }
+      );
+    }
+
     const aggregateConfig = routeConfig('aggregate');
-    if (!aggregateConfig?.exclude) {
+    const aggregateMethods = queryRouteMethods(
+      'aggregate',
+      aggregateConfig?.method
+    );
+    if (!aggregateConfig?.exclude && aggregateMethods.post) {
       server.post(
         '/aggregate',
         {
@@ -138,6 +165,26 @@ export function resourceRoutes(
           // The body holds the aggregation options: select, filter, and range
           const response = await service.aggregate(
             request.body as AggregateOptions
+          );
+
+          return reply.send(response);
+        }
+      );
+    }
+
+    if (!aggregateConfig?.exclude && aggregateMethods.get) {
+      server.get<{ Querystring: Record<string, unknown> }>(
+        '/aggregate',
+        {
+          schema: schema.aggregateGetSchema,
+          onRequest: routeAuth(aggregateConfig),
+          preValidation: async (request) =>
+            parseJsonParams(request.query, ['filter', 'select']),
+          config: aggregateConfig
+        },
+        async (request, reply) => {
+          const response = await service.aggregate(
+            request.query as unknown as AggregateOptions
           );
 
           return reply.send(response);

@@ -29,7 +29,7 @@ export function registerRoute(
     exposeHeadRoutes: false,
     ajv: {
       customOptions: { allowUnionTypes: true },
-      plugins: [(ajv): any => ajv.addKeyword('example')]
+      plugins: [(ajv): any => ajv.addKeyword('example').addKeyword('x-consume')]
     }
   });
 

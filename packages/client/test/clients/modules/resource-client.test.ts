@@ -71,6 +71,111 @@ describe('resource-client', () => {
     });
   });
 
+  describe('GET methods', () => {
+    const createGetResource = () => {
+      const stub = createStubClient({ data: { items: [] } });
+      return {
+        stub,
+        resource: new ResourceClient<TestResource>(stub.client, basePath, {
+          query: 'get',
+          aggregate: 'get'
+        })
+      };
+    };
+
+    test('sends the query criteria as query parameters', async () => {
+      const { stub, resource } = createGetResource();
+
+      await resource.query({
+        filter: { views: { _gte: 10 } },
+        page: 2,
+        size: 20,
+        sort: '-createdAt,id',
+        totalCount: false
+      });
+
+      expect(stub.lastCall()).toMatchObject({
+        method: 'get',
+        path: '/api/posts/query'
+      });
+      expect(stub.lastCall().params.body).toBeUndefined();
+      expect(stub.lastCall().params.params.query).toEqual({
+        filter: '{"views":{"_gte":10}}',
+        page: 2,
+        size: 20,
+        sort: '-createdAt,id',
+        totalCount: false
+      });
+    });
+
+    test('encodes a sort object as JSON', async () => {
+      const { stub, resource } = createGetResource();
+
+      await resource.query({ sort: { views: 'desc' } });
+
+      expect(stub.lastCall().params.params.query).toEqual({
+        sort: '{"views":"desc"}'
+      });
+    });
+
+    test('leaves out the missing and null criteria', async () => {
+      const { stub, resource } = createGetResource();
+
+      await resource.query({ filter: undefined, cursor: null, size: 5 });
+
+      expect(stub.lastCall().params.params.query).toEqual({ size: 5 });
+    });
+
+    test('keeps additional request options and query params', async () => {
+      const { stub, resource } = createGetResource();
+
+      await resource.query(
+        { size: 5 },
+        { params: { query: { trace: '1' } }, headers: { 'x-test': '1' } }
+      );
+
+      expect(stub.lastCall().params.params.query).toEqual({
+        trace: '1',
+        size: 5
+      });
+      expect(stub.lastCall().params.headers).toEqual({ 'x-test': '1' });
+    });
+
+    test('sends the aggregation criteria as query parameters', async () => {
+      const { stub, resource } = createGetResource();
+
+      await resource.aggregate({
+        select: { views: { sum: true } },
+        dateField: 'createdAt',
+        step: 2
+      });
+
+      expect(stub.lastCall()).toMatchObject({
+        method: 'get',
+        path: '/api/posts/aggregate'
+      });
+      expect(stub.lastCall().params.params.query).toEqual({
+        select: '{"views":{"sum":true}}',
+        dateField: 'createdAt',
+        step: 2
+      });
+    });
+
+    test('configures the query and aggregate methods independently', async () => {
+      const stub = createStubClient();
+      const resource = new ResourceClient<TestResource>(stub.client, basePath, {
+        aggregate: 'get'
+      });
+
+      await resource.query({ size: 5 });
+      expect(stub.lastCall().method).toBe('post');
+      expect(stub.lastCall().params.body).toEqual({ size: 5 });
+
+      await resource.aggregate({ select: {} });
+      expect(stub.lastCall().method).toBe('get');
+    });
+  });
+
   describe('create', () => {
     test('posts the record to the base path', async () => {
       const { stub, resource } = createResource();

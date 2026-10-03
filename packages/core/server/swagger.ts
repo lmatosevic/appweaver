@@ -5,6 +5,9 @@ import { config, CONFIG_NAME, isArray } from '@appweaver/common';
 import { context } from '../context';
 import { Server } from '../types';
 
+/** Names the request model of a route taking its request as query parameters. */
+export const REQUEST_EXTENSION = `x-${CONFIG_NAME}-request`;
+
 export default fastifyPlugin((server: Server) => {
   server.register(fastifySwagger, {
     hideUntagged: config.SWAGGER_HIDE_UNTAGGED,
@@ -210,7 +213,8 @@ function addConfig(document: any): any {
  * is collected by walking the paths for `#/components/schemas/` references and
  * following each one into the schema it points at, so the schemas referenced
  * only by another schema (i.e. a nested relation model, or a query filter
- * referring to itself) are kept as well.
+ * referring to itself) are kept as well, and so is the request model an
+ * operation names in its `x-appweaver-request` extension.
  *
  * @param {Object} document The transform argument of the Swagger plugin,
  * wrapping the OpenAPI document in its `openapiObject` property.
@@ -218,9 +222,22 @@ function addConfig(document: any): any {
  * schemas removed and the remaining ones ordered by their title, falling back
  * to the name they are registered under.
  */
-function pruneUnusedSchemas(document: any): any {
+export function pruneUnusedSchemas(document: any): any {
   const schemas = document.openapiObject.components?.schemas ?? {};
   const used = new Set<string>();
+
+  // Registered under generated names, so found by their title
+  const requestRefs = Object.values<any>(document.openapiObject.paths ?? {})
+    .flatMap((item) => Object.values<any>(item ?? {}))
+    .map((operation) => operation?.[REQUEST_EXTENSION])
+    .filter((title): title is string => typeof title === 'string')
+    .map((title) =>
+      Object.keys(schemas).find(
+        (name) => (schemas[name]?.title ?? name) === title
+      )
+    )
+    .filter((name) => name !== undefined)
+    .map((name) => ({ $ref: `#/components/schemas/${name}` }));
 
   const visit = (node: any) => {
     if (!node || typeof node !== 'object') return;
@@ -247,6 +264,7 @@ function pruneUnusedSchemas(document: any): any {
   };
 
   visit(document.openapiObject.paths);
+  visit(requestRefs);
 
   if (document.openapiObject.components?.schemas) {
     document.openapiObject.components.schemas = Object.fromEntries(

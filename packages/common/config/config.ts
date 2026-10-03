@@ -8,6 +8,7 @@ import {
   Environment,
   LogLevel,
   MemoryType,
+  QueryMethod,
   Runtime
 } from '../enums';
 import {
@@ -104,6 +105,12 @@ const configSchema = Type.Object({
   }),
   RESOURCE_GENERATED_TYPES_PATH: Type.String({
     default: '<srcPath>/types/generated.ts'
+  }),
+  RESOURCE_QUERY_METHOD: Type.Enum(QueryMethod, {
+    default: QueryMethod.Post
+  }),
+  RESOURCE_AGGREGATE_METHOD: Type.Enum(QueryMethod, {
+    default: QueryMethod.Post
   }),
 
   EXPORT_BATCH_SIZE: Type.Integer({ default: 1000 }),

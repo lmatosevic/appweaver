@@ -12,7 +12,8 @@ export default createRoutes({
     cacheTTL: 60_000
   },
   aggregate: {
-    roles: ['Admin']
+    roles: ['Admin'],
+    method: 'get-post'
   },
   create: {
     roles: ['Admin', 'User']
