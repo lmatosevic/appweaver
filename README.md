@@ -8,9 +8,8 @@
 
 <p align="center">
 <a href="https://www.npmjs.com/@appweaver/core" target="_blank"><img src="https://img.shields.io/npm/v/@appweaver/core.svg" alt="NPM Version" /></a>
-<a href="https://github.com/lmatosevic/appweaver/blob/master/LICENSE" target="_blank"><img src="https://img.shields.io/npm/l/@appweaver/core.svg" alt="Package License" /></a>
+<a href="https://github.com/lmatosevic/appweaver/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/npm/l/@appweaver/core.svg" alt="Package License" /></a>
 <a href="https://www.npmjs.com/@appweaver/core" target="_blank"><img src="https://img.shields.io/npm/dw/@appweaver/core.svg" alt="NPM Downloads" /></a>
-<a href="https://www.npmjs.com/@appweaver/core" target="_blank"><img src="https://img.shields.io/badge/build-passing-brightgreen.svg" alt="Build Status" /></a>
 
 </p>
 
@@ -67,14 +66,15 @@ This creates a `./my-app` directory, installs all dependencies, and runs the ini
 
 Common options:
 
-| Flag          | Description                                                    | Default      |
-|---------------|----------------------------------------------------------------|--------------|
-| `--outputDir` | Output directory (use ./ for current working directory)        | project name |
-| `--database`  | `sqlite`, `postgresql`, `mysql`, `sqlserver`                   | `sqlite`     |
-| `--host`      | Hostname or IP address where the application server will bind. | 0.0.0.0      |
-| `--port`      | Port number where the application server will listen.          | 5000         |
-| `--agent`     | The AI agent for which to configure guidelines and skill files | `claude`     |
-| `--bun`       | Use Bun as application runtime.                                | false        |
+| Flag               | Description                                                    | Default      |
+|--------------------|----------------------------------------------------------------|--------------|
+| `-o, --output-dir` | Output directory (use ./ for current working directory)        | project name |
+| `--database`       | `sqlite`, `postgresql`, `mysql`, `sqlserver`                   | `sqlite`     |
+| `--host`           | Hostname or IP address where the application server will bind. | 0.0.0.0      |
+| `--port`           | Port number where the application server will listen.          | 5000         |
+| `--agent`          | The AI agent for which to configure guidelines and skill files | `claude`     |
+| `--bun`            | Use Bun as application runtime.                                | false        |
+| `--no-install`     | Skip all dependencies installation.                            | installs     |
 
 ### 2. Run the initial migration and seed
 
@@ -156,12 +156,12 @@ export default createModel({
     title: { type: 'string', minLength: 1, maxLength: 200 },
     slug: { type: 'string', unique: true },
     body: { type: 'string' },
-    views: { type: 'int', min: 0 },
+    views: { type: 'int', minimum: 0 },
     status: { type: 'enum', values: ['Draft', 'Published', 'Archived'], default: 'Draft' },
     published: { type: 'boolean', default: false }
   },
   relations: {
-    author: { model: 'User', mappedBy: 'posts', required: false }
+    author: { model: 'User', type: 'manyToOne', mappedBy: 'posts', required: false }
   },
   files: {
     gallery: { array: true, mimeType: 'image/*', maxSize: '5 MB', maxCount: 25 }
@@ -195,14 +195,14 @@ export default createRoutes({
 });
 ```
 
-**policy.ts** – row-level access control:
+**policy.ts** – row-level access control (the user is `null` for an unauthenticated request):
 
 ```ts
 import { createPolicy } from '@appweaver/core';
 
 export default createPolicy({
   modelName: 'Post',
-  readRestrictions: (user) => ({ author: { id: user.id } })
+  readRestrictions: (user) => (user ? { author: { id: user.id } } : { published: true })
 });
 ```
 
@@ -236,9 +236,9 @@ import { createApp } from '@appweaver/core';
 createApp().catch(console.error);
 ```
 
-Resources follow a simple dependency chain: **model → service → routes → policy**. Define each in its own file under
-`src/resources/<name>/` and the framework autoloads them on startup. They can also be created and exported from a single
-file.
+Only the model is required: a service needs the model, routes need the service, and an optional policy needs only
+the model. Define each in its own file under `src/resources/<name>/` and the framework autoloads them on startup. They
+can also be created and exported from a single file.
 
 ### `@appweaver/common`
 
@@ -272,10 +272,10 @@ built-in JWT, API key, and HTTP Basic auth support.
 
 ```sh
 # generate OpenAPI specification from the current project
-weaver openapi --outputPath ./openapi.json
+weaver openapi --output-path ./openapi.json
 
 # generate a typed client class for interacting with the API
-weaver-client generate ./openapi.json --outputPath ./src/generated/client.ts
+weaver-client generate ./openapi.json --output-path ./src/generated/client.ts
 ```
 
 ```ts
@@ -323,13 +323,8 @@ npm run build
 ```
 
 `npm run build` performs three steps: removes `dist/` folders from all packages, runs `tsc -b` to compile everything,
-then copies the built packages into `node_modules/@appweaver` so packages can reference each other locally.
-
-For active development, use watch mode to rebuild automatically on file changes:
-
-```sh
-npm run build:dev
-```
+then copies the built packages into `node_modules/@appweaver` so packages can reference each other locally. Rerun it
+after changing a package that other packages or the samples use.
 
 ### Testing
 

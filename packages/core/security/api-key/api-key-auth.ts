@@ -65,19 +65,22 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
         throw new HttpError(`Invalid API key format`, 401);
       }
 
-      if (
-        !apiKey ||
-        !apiKey.enabled ||
-        apiKey.keyHash !== makeHash(apiKeyValue)
-      ) {
-        throw new HttpError(`Invalid API key`, 401);
+      if (apiKey) {
+        await cacheService.addToCache(
+          cacheKey,
+          apiKey,
+          config.SECURITY_CACHE_TTL
+        );
       }
+    }
 
-      await cacheService.addToCache(
-        cacheKey,
-        apiKey,
-        config.SECURITY_CACHE_TTL
-      );
+    // Checked on every request, since the cache is keyed by the id prefix alone
+    if (
+      !apiKey ||
+      !apiKey.enabled ||
+      apiKey.keyHash !== makeHash(apiKeyValue)
+    ) {
+      throw new HttpError(`Invalid API key`, 401);
     }
 
     if (apiKey.expiresAt && new Date(apiKey.expiresAt).getTime() < Date.now()) {

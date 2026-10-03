@@ -22,20 +22,20 @@ export function generateCommand(program: Command): void {
       parseSchema
     )
     .option(
-      '--outputPath [path]',
+      '--output-path [path]',
       'Output path for both generated types and client class.',
       './generated/client.ts'
     )
     .option(
-      '--typesPath [path]',
+      '--types-path [path]',
       'Output path for generated types. (default: output path)'
     )
     .option(
-      '--clientPath [path]',
+      '--client-path [path]',
       'Output path for generated client class. (default: output path)'
     )
     .option(
-      '--clientName [name]',
+      '--client-name [name]',
       'Name for generated client class. (default: OpenAPI schema title)'
     )
     .option(
@@ -45,15 +45,15 @@ export function generateCommand(program: Command): void {
       'fetch'
     )
     .option(
-      '--typesOnly',
+      '--types-only',
       'Generate TypeScript types only (without client class).'
     )
     .option(
-      '--clientOnly',
+      '--client-only',
       'Generate only client class (without TypeScript types).'
     )
     .option(
-      '--noTypes',
+      '--no-types',
       'Generate client class without TypeScript type support.'
     )
     .action(async (schemaPath: string, _, command: Command) => {
@@ -64,7 +64,7 @@ export function generateCommand(program: Command): void {
       const framework = command.getOptionValue('framework');
       const typesOnly = command.getOptionValue('typesOnly');
       const clientOnly = command.getOptionValue('clientOnly');
-      const noTypes = command.getOptionValue('noTypes');
+      const noTypes = !command.getOptionValue('types');
       const cwd = process.cwd();
 
       const schemaContent = await readSchemaContent(schemaPath);

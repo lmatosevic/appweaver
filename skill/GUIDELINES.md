@@ -36,10 +36,10 @@ createApp().catch((err) => logger.error(err));
 Resources are the core building blocks. There are four types: **model**, **service**, **routes**, and **policy**.
 Exported resources are loaded automatically on application start.
 
-Dependency chain: **model** → **service** → **routes** → **policy**
+Dependencies: **model** ← **service** ← **routes**, and **model** ← **policy** (optional)
 
-Only a model is required. If a service exists, a model must exist. If routes exist, a service must exist. Policy is
-independent.
+Only a model is required. If a service exists, a model must exist. If routes exist, a service must exist. A policy
+needs only the model.
 
 **DOS:**
 
@@ -142,10 +142,8 @@ import { createPolicy } from '@appweaver/core';
 
 export default createPolicy({
   modelName: 'Product',
-  checkAccess: (user, resource, action) => resource.status === 'Draft',
-  readRestrictions: (user, resource, action) => {
-    enabled: true;
-  },
+  checkAccess: (user, resource, action) => action !== 'delete' || resource.status === 'Draft',
+  readRestrictions: (user) => (user ? undefined : { enabled: true }), // anonymous users see enabled products only
   files: {
     photo: { accessType: 'public' }
   }

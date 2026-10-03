@@ -44,7 +44,7 @@ program
     'Appweaver project'
   )
   .option(
-    '-o, --outputDir [outputDir]',
+    '-o, --output-dir [outputDir]',
     'Directory where to generate new project. (default: name of project)'
   )
   .option(
@@ -72,22 +72,25 @@ program
     'claude'
   )
   .option('--bun', 'Use Bun as application runtime.')
-  .option('--skipInstall', 'Skip all dependencies installation.')
-  .option('--noDocker', 'Skip copying Dockerfile and docker-compose.yml files.')
+  .option('--no-install', 'Skip all dependencies installation.')
   .option(
-    '--noRedis',
+    '--no-docker',
+    'Skip copying Dockerfile and docker-compose.yml files.'
+  )
+  .option(
+    '--no-redis',
     'Skip IoRedis package installation and use in-memory cache, rate limit and queue.'
   )
   .option(
-    '--noQueue',
+    '--no-queue',
     'Skip BullQueue package installation and use in-memory queue.'
   )
   .option(
-    '--noMailer',
+    '--no-mailer',
     'Skip Nodemailer package installation and disable the mailer.'
   )
   .option(
-    '--noCron',
+    '--no-cron',
     'Skip Cron package installation and disable the scheduler.'
   )
   .action(async (name: string, description: string, _, command: Command) => {
@@ -129,8 +132,8 @@ program
     const templateDir = path.join(__dirname, './templates/default');
     await fsp.cp(templateDir, destDir, { recursive: true });
 
-    // Remove Docker-related files if --noDocker flag is set
-    if (command.getOptionValue('noDocker')) {
+    // Remove Docker-related files if --no-docker flag is set
+    if (!command.getOptionValue('docker')) {
       const dockerFiles = [
         'Dockerfile',
         'Dockerfile.bun',
@@ -283,7 +286,7 @@ program
 
     console.log(`Done\n`);
 
-    if (command.getOptionValue('skipInstall')) {
+    if (!command.getOptionValue('install')) {
       console.log(`${name} created successfully!`);
       return;
     }
@@ -348,19 +351,19 @@ function getNodeDependencies(command: Command, runtime: string): string[] {
     'prisma'
   ];
 
-  if (!command.getOptionValue('noQueue')) {
+  if (command.getOptionValue('queue')) {
     dependencies.push('bullmq');
   }
 
-  if (!command.getOptionValue('noCron')) {
+  if (command.getOptionValue('cron')) {
     dependencies.push('cron');
   }
 
-  if (!command.getOptionValue('noRedis')) {
+  if (command.getOptionValue('redis')) {
     dependencies.push('ioredis');
   }
 
-  if (!command.getOptionValue('noMailer')) {
+  if (command.getOptionValue('mailer')) {
     dependencies.push('nodemailer');
   }
 
@@ -488,7 +491,7 @@ function getDatabaseUrl(
  */
 function getDatabaseEnv(command: Command, name: string): string {
   const database = command.getOptionValue('database').toLowerCase();
-  if (database === 'sqlite' || command.getOptionValue('noDocker')) {
+  if (database === 'sqlite' || !command.getOptionValue('docker')) {
     return '';
   }
 
@@ -520,7 +523,7 @@ function getDockerAppEnvironment(command: Command, name: string): string {
     );
   }
 
-  if (!command.getOptionValue('noRedis')) {
+  if (command.getOptionValue('redis')) {
     variables.push('REDIS_URL: "redis://redis:6379/0"');
   }
 
@@ -538,22 +541,22 @@ function getDockerAppEnvironment(command: Command, name: string): string {
 function getModulesConfig(command: Command): Record<string, object> {
   const modulesConfig: Record<string, object> = {};
 
-  if (command.getOptionValue('noRedis')) {
+  if (!command.getOptionValue('redis')) {
     modulesConfig.redis = { provider: '@appweaver/core/memory/in-memory' };
     modulesConfig.cache = { provider: '@appweaver/core/cache/memory-cache' };
     modulesConfig.rateLimit = { store: 'in-memory' };
   }
 
   // BullMQ also needs Redis
-  if (command.getOptionValue('noRedis') || command.getOptionValue('noQueue')) {
+  if (!command.getOptionValue('redis') || !command.getOptionValue('queue')) {
     modulesConfig.queue = { provider: '@appweaver/core/queue/memory-queue' };
   }
 
-  if (command.getOptionValue('noCron')) {
+  if (!command.getOptionValue('cron')) {
     modulesConfig.scheduler = { enabled: false };
   }
 
-  if (command.getOptionValue('noMailer')) {
+  if (!command.getOptionValue('mailer')) {
     modulesConfig.mailer = { enabled: false };
   }
 
@@ -564,7 +567,7 @@ function getRedisDockerConfig(
   command: Command,
   name: string
 ): { service: string; appDepends: string; namedVolume: string } {
-  if (command.getOptionValue('noRedis')) {
+  if (!command.getOptionValue('redis')) {
     return { service: '', appDepends: '', namedVolume: '' };
   }
 

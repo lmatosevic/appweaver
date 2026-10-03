@@ -9,9 +9,48 @@ jest.mock('prettier', () => ({
   default: { format: jest.fn(), resolveConfig: jest.fn() }
 }));
 
-import { parseSchema, relativePathFrom } from '../../commands/generate-command';
+import { Command } from 'commander';
+import {
+  generateCommand,
+  parseSchema,
+  relativePathFrom
+} from '../../commands/generate-command';
 
 describe('generate-command', () => {
+  describe('generateCommand', () => {
+    const generate = () => {
+      const program = new Command('weaver-client');
+      generateCommand(program);
+      return program.commands[0];
+    };
+
+    test('uses kebab-case long flags', () => {
+      for (const option of generate().options) {
+        expect(option.long).toMatch(/^--[a-z0-9]+(-[a-z0-9]+)*$/);
+      }
+    });
+
+    test('declares --no-types as a negation of the types option', () => {
+      const option = generate().options.find((o) => o.long === '--no-types');
+
+      expect(option?.negate).toBe(true);
+      expect(option?.attributeName()).toBe('types');
+    });
+
+    test.each([
+      ['--output-path', 'outputPath'],
+      ['--types-path', 'typesPath'],
+      ['--client-path', 'clientPath'],
+      ['--client-name', 'clientName'],
+      ['--types-only', 'typesOnly'],
+      ['--client-only', 'clientOnly']
+    ])('reads %s as the %s option', (flag, attribute) => {
+      const option = generate().options.find((o) => o.long === flag);
+
+      expect(option?.attributeName()).toBe(attribute);
+    });
+  });
+
   describe('parseSchema', () => {
     let tempDir: string;
     let schemaFile: string;

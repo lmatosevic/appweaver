@@ -6,11 +6,21 @@ The project is a TypeScript monorepo using `tsc -b` for builds.
 
 - **Initial Setup**: Run `npm install` to install all dependencies.
 - **Building**: Run `npm run build` from the root. This performs:
-    - `clean:packages`: Removes `dist` folders from all packages.
-    - `tsc -b`: Incremental build of all packages.
-    - `postbuild`: Cleans `node_modules/@appweaver` and copies built packages there via `tools/copy-packages.js` to
-      allow packages to reference each other during development.
-- **Development Mode**: Run `npm run build:dev` to watch for changes and rebuild automatically.
+    - `prebuild`: Removes the `dist` folders of all packages (`clean:packages`).
+    - `tsc -b -v packages`: Incremental build of all packages.
+    - `postbuild`: Resolves the path aliases of the client's ESM output (`resolve:esm`), cleans
+      `node_modules/@appweaver` (`clean:modules`), and copies the built packages there via `tools/copy-packages.js` to
+      allow packages and samples to reference each other during development.
+- **Rebuilding**: there is no watch script. Rerun `npm run build`, or run `node tools/copy-packages.js` after a manual
+  `tsc -b packages/<name>` to refresh `node_modules/@appweaver`.
+
+### CLI conventions
+
+Every CLI (`weaver`, `weaver-client`, `create-weaver-app`) uses **kebab-case** long flags (`--dry-run`,
+`--model-pattern`). A flag that turns something off is declared as a Commander negation (`--no-install`,
+`--no-skill`), which the action reads as the positive option (`command.getOptionValue('install')`, `true` unless the
+flag is passed). Never add `--skipX` or camelCase flags. `-v` is reserved for `--version` on the program level, so
+`--verbose` has no short form.
 
 ## 2. Testing
 
@@ -145,7 +155,7 @@ A type-safe HTTP client generator and runtime library for consuming Appweaver-co
 - **Code generator** — reads an OpenAPI v3 schema (JSON or YAML, from a file or URL) and emits typed TypeScript
   interfaces and a client class tailored to the API's resources, auth, account, health, and file routes.
 - **Runtime library** — provides `FetchClient` and a set of module clients (`ResourceClient`, `AuthClient`,
-  `AccountClient`, `HealthClient`, `FileClient`) that wrap `openapi-fetch` with built-in authentication strategies (JWT
+  `AccountClient`, `HealthClient`, `FilesClient`) that wrap `openapi-fetch` with built-in authentication strategies (JWT
   Bearer, API key, HTTP Basic), timeout handling, and middleware support.
 
 The package exposes a `weaver-client` CLI binary. See **Section 6** for the full command reference.
@@ -198,7 +208,8 @@ way it handles `files`, so the published manifests carry them. Running from the 
 
 ## 5. CLI Command Reference (`weaver`)
 
-All commands are available via `weaver <command>`.
+All commands are available via `weaver <command>`. Every command takes `-h, --help`, and the program takes
+`-v, --version`. Defaults marked "from config" come from `appweaver.json` or the matching environment variable.
 
 ---
 
@@ -207,11 +218,15 @@ All commands are available via `weaver <command>`.
 Build the application in the current project.
 
 ```
-weaver build
+weaver build [options]
 ```
 
-1. Removes the `dist/` directory.
-2. Runs `tsc -p tsconfig.build.json`.
+| Option                 | Description                     | Default               |
+|------------------------|---------------------------------|-----------------------|
+| `-p, --project [path]` | TypeScript project config file. | `tsconfig.build.json` |
+
+1. Removes the build directory (`APP_BUILD_PATH`, `./dist` by default).
+2. Runs `tsc -p <project>`.
 3. Runs `tsc-alias` to resolve path aliases in emitted JS.
 
 ---
@@ -222,23 +237,22 @@ Generate TypeScript types and/or a Prisma schema from resource model files.
 
 ```
 weaver generate [options]
-weaver g [options]
 ```
 
-| Option                     | Description                     | Default     |
-|----------------------------|---------------------------------|-------------|
-| `-t, --types`              | Generate TypeScript types only  | —           |
-| `-s, --schema`             | Generate Prisma schema only     | —           |
-| `--modelPattern <pattern>` | Glob for model files            | from config |
-| `--typesPath <path>`       | Output path for generated types | from config |
-| `--schemaPath <path>`      | Output path for Prisma schema   | from config |
-| `--clientPath <path>`      | Output path for Prisma client   | from config |
-| `--noRegistry`             | Skip the model type registry    | false       |
-| `-v, --verbose`            | Verbose output                  | false       |
+| Option                      | Description                              | Default     |
+|-----------------------------|------------------------------------------|-------------|
+| `-t, --types`               | Generate TypeScript types only           | —           |
+| `-s, --schema`              | Generate Prisma schema (and client) only | —           |
+| `--model-pattern [pattern]` | Glob for model files                     | from config |
+| `--types-path [path]`       | Output path for generated types          | from config |
+| `--schema-path [path]`      | Output path for Prisma schema            | from config |
+| `--client-path [path]`      | Output path for Prisma client            | from config |
+| `--no-registry`             | Skip registering the model types         | registered  |
+| `--verbose`                 | Verbose output                           | false       |
 
 Running with no flags generates **both** types and schema. The generated types register every model in the
 `ResourceRegistry` of `@appweaver/common`, so the factories and `injectService` infer the model types from a model
-name. Core's own `npm run generate` passes `--noRegistry`, since the registry belongs to the application.
+name. Core's own `npm run generate` passes `--no-registry`, since the registry belongs to the application.
 
 ---
 
@@ -270,7 +284,8 @@ Executes `prisma migrate dev --name <name>`.
 
 #### `weaver migration reset`
 
-Reset the database (drops all data and re-applies migrations).
+Reset the database (drops all data and re-applies migrations). Allowed only in the `dev` and `test` environments
+unless `--force` is passed.
 
 ```
 weaver migration reset [options]
@@ -281,22 +296,24 @@ weaver migration reset [options]
 | `-f, --force` | Force reset for non-development environments | false   |
 | `-y, --yes`   | Skip confirmation prompt                     | false   |
 
-Executes `prisma migrate reset` (with `--force` when `-y` is passed).
+Executes `prisma migrate reset` (with `--force` when `-y` or `-f` is passed).
 
 ---
 
 ### `weaver openapi` (alias: `oa`)
 
-Generate the application's OpenAPI specification schema.
+Generate the application's OpenAPI specification schema. Creates the application without starting it.
 
 ```
 weaver openapi [options]
 ```
 
-| Option                    | Description                                            | Default          |
-|---------------------------|--------------------------------------------------------|------------------|
-| `-o, --outputPath [path]` | Output path for the generated OpenAPI specification    | `./openapi.json` |
-| `-f, --format [format]`   | Output format for the specification (`json` or `yaml`) | `json`           |
+| Option                     | Description                                            | Default          |
+|----------------------------|--------------------------------------------------------|------------------|
+| `-o, --output-path [path]` | Output path for the generated OpenAPI specification    | `./openapi.json` |
+| `-f, --format [format]`    | Output format for the specification (`json` or `yaml`) | `json`           |
+
+With `--format yaml` and the default output path, the specification is written to `./openapi.yaml`.
 
 ---
 
@@ -308,11 +325,13 @@ Seed the database with initial data.
 weaver seed [options]
 ```
 
-| Option                  | Description               | Default     |
-|-------------------------|---------------------------|-------------|
-| `--seedersPath <path>`  | Seeders directory         | from config |
-| `-b, --buildProject`    | Build before seeding      | false       |
-| `-c, --continueOnError` | Continue on seeder errors | false       |
+| Option                    | Description                                                | Default               |
+|---------------------------|------------------------------------------------------------|-----------------------|
+| `--seeders-path [path]`   | Seeders directory                                          | from config           |
+| `-b, --build-project`     | Build the project before seeding                           | false                 |
+| `-p, --project [path]`    | TypeScript project config file used by `--build-project`   | `tsconfig.build.json` |
+| `-c, --continue-on-error` | Continue on seeder errors                                  | false                 |
+| `-f, --fix-warnings`      | Fix seeder warnings (wrong checksum, deleted seeder files) | false                 |
 
 ---
 
@@ -324,41 +343,44 @@ Start the application.
 weaver start [options]
 ```
 
-| Option        | Description                                          | Default |
-|---------------|------------------------------------------------------|---------|
-| `-w, --watch` | Watch mode — recompiles and restarts on file changes | false   |
+| Option                 | Description                                          | Default               |
+|------------------------|------------------------------------------------------|-----------------------|
+| `-p, --project [path]` | TypeScript project config file used in watch mode    | `tsconfig.build.json` |
+| `-w, --watch`          | Watch mode — recompiles and restarts on file changes | false                 |
 
-- **Normal mode**: `node ./dist/src/main.js`
-- **Watch mode**: `tsc-watch` with alias resolution and server restart on each successful build.
+- **Normal mode**: `node <APP_BUILD_PATH>/<APP_MAIN_FILE_PATH>` (`./dist/src/main.js` by default), or `bun` for the Bun
+  runtime.
+- **Watch mode**: `tsc-watch` with alias resolution and server restart on each successful build. The Bun runtime runs
+  the TypeScript sources directly and restarts on every change in `APP_SOURCE_PATH`.
 
 ---
 
 ### `weaver test` (alias: `t`)
 
-Has following subcommands for setting up the test environment: `setup`, `reset`, and `teardown`.
+Has following subcommands for setting up the test environment: `setup`, `reset`, and `teardown`. All of them must be
+run with `NODE_ENV=test`.
 
-### `weaver test setup`
+#### `weaver test setup`
 
-Set up a temporary test database and storage directory. Must be run with `NODE_ENV=test`.
+Set up a temporary test database and storage directory.
 
 ```
 weaver test setup [options]
 ```
 
-| Option                     | Description               | Default     |
-|----------------------------|---------------------------|-------------|
-| `-d, --dir <tempDir>`      | Temporary directory       | `./temp`    |
-| `--modelPattern <pattern>` | Glob for model files      | from config |
-| `--schemaPath <path>`      | Prisma schema output path | from config |
-| `--clientPath <path>`      | Prisma client output path | from config |
-| `--migrationName <name>`   | Initial migration name    | `init_test` |
-| `-v, --verbose`            | Verbose output            | false       |
+| Option                      | Description               | Default     |
+|-----------------------------|---------------------------|-------------|
+| `-d, --dir [tempDir]`       | Temporary directory       | `./temp`    |
+| `--model-pattern [pattern]` | Glob for model files      | from config |
+| `--schema-path [path]`      | Prisma schema output path | from config |
+| `--client-path [path]`      | Prisma client output path | from config |
+| `--migration-name [name]`   | Initial migration name    | `init_test` |
+| `--verbose`                 | Verbose output            | false       |
 
-Steps: removes temp dir → creates storage dir → generates schema → runs initial migration.
+Steps: removes temp dir → creates storage dir → generates schema → runs initial migration. The storage, schema, and
+client paths must lie inside the temporary directory.
 
----
-
-### `weaver test reset`
+#### `weaver test reset`
 
 Reset test database contents and/or file storage without tearing down the directory.
 
@@ -368,16 +390,14 @@ weaver test reset [options]
 
 | Option                | Description         | Default  |
 |-----------------------|---------------------|----------|
-| `-d, --dir <tempDir>` | Temporary directory | `./temp` |
+| `-d, --dir [tempDir]` | Temporary directory | `./temp` |
 | `--database`          | Reset database      | —        |
 | `--storage`           | Reset file storage  | —        |
-| `-v, --verbose`       | Verbose output      | false    |
+| `--verbose`           | Verbose output      | false    |
 
 With no flags, resets **both** database and storage.
 
----
-
-### `weaver test teardown`
+#### `weaver test teardown`
 
 Remove the temporary test directory entirely.
 
@@ -387,8 +407,8 @@ weaver test teardown [options]
 
 | Option                | Description         | Default  |
 |-----------------------|---------------------|----------|
-| `-d, --dir <tempDir>` | Temporary directory | `./temp` |
-| `-v, --verbose`       | Verbose output      | false    |
+| `-d, --dir [tempDir]` | Temporary directory | `./temp` |
+| `--verbose`           | Verbose output      | false    |
 
 ---
 
@@ -404,15 +424,15 @@ weaver update [packages...] [options]
 |---------------|------------------------------------------------------------------------------------------------------------------------|---------------------------------------|
 | `[packages…]` | One or more package names to update (e.g. `@appweaver/core @appweaver/cli`). Only `@appweaver/*` packages are updated. | All installed `@appweaver/*` packages |
 
-| Option                      | Description                                                                        | Default  |
-|-----------------------------|------------------------------------------------------------------------------------|----------|
-| `--targetVersion [version]` | The version to update the packages to.                                             | `latest` |
-| `--noSkill`                 | Skip updating AI agent skill files in agent directories (`.claude`, `.agents`, …). | false    |
-| `--noCompanions`            | Skip updating the companion packages (Prisma, BullMQ, Cron, IoRedis, Nodemailer…). | false    |
-| `--tooling`                 | Also update the tooling packages (ESLint, Jest, SWC, Prettier…).                   | false    |
-| `--dryRun`                  | Print the packages that would be updated without installing them.                  | false    |
-| `-f, --force`               | Force update despite `peerDependency` version mismatches.                          | false    |
-| `--verbose`                 | Print verbose output.                                                              | false    |
+| Option                       | Description                                                                        | Default  |
+|------------------------------|------------------------------------------------------------------------------------|----------|
+| `--target-version [version]` | The version to update the packages to.                                             | `latest` |
+| `--no-skill`                 | Skip updating AI agent skill files in agent directories (`.claude`, `.agents`, …). | updated  |
+| `--no-companions`            | Skip updating the companion packages (Prisma, BullMQ, Cron, IoRedis, Nodemailer…). | updated  |
+| `--tooling`                  | Also update the tooling packages (ESLint, Jest, SWC, Prettier…).                   | false    |
+| `--dry-run`                  | Print the packages that would be updated without installing them.                  | false    |
+| `-f, --force`                | Force update despite `peerDependency` version mismatches.                          | false    |
+| `--verbose`                  | Print verbose output.                                                              | false    |
 
 The companion packages the project already has are bumped to the exact versions in the `scaffoldDependencies` of the
 target `@appweaver/cli` release (`npm view` / `bun info`), in the same install as the `@appweaver/*` packages so the
@@ -423,7 +443,7 @@ back to updating only the `@appweaver/*` packages.
 
 ## 6. Client Command Reference (`weaver-client`)
 
-All commands are available via `weaver-client <command>`.
+All commands are available via `weaver-client <command>`. The program takes `-v, --version` and `-h, --help`.
 
 ---
 
@@ -438,42 +458,45 @@ weaver-client generate <schemaPath> [options]
 `<schemaPath>` accepts a local file path, relative or absolute (including a Windows drive path such as
 `C:\api\openapi.json`), or a URL (`http://`, `https://`, `file://`). The schema may be JSON or YAML.
 
-| Option                | Description                                                                                | Default                   |
-|-----------------------|--------------------------------------------------------------------------------------------|---------------------------|
-| `--outputPath [path]` | Output path for both types and client (used when `--typesPath`/`--clientPath` are omitted) | `./generated/client.ts`   |
-| `--typesPath [path]`  | Output path for generated TypeScript types only                                            | same as `outputPath`      |
-| `--clientPath [path]` | Output path for generated client class only                                                | same as `outputPath`      |
-| `--clientName [name]` | Custom name for the generated client class                                                 | derived from schema title |
-| `--framework [name]`  | Framework for the generated client class (`fetch` or `angular`)                            | `fetch`                   |
-| `--typesOnly`         | Generate TypeScript types only, skip client class generation                               | false                     |
-| `-v, --version`       | Output package version                                                                     | —                         |
+| Option                 | Description                                                                                  | Default                   |
+|------------------------|----------------------------------------------------------------------------------------------|---------------------------|
+| `--output-path [path]` | Output path for both types and client (used when `--types-path`/`--client-path` are omitted) | `./generated/client.ts`   |
+| `--types-path [path]`  | Output path for generated TypeScript types only                                              | same as `--output-path`   |
+| `--client-path [path]` | Output path for generated client class only                                                  | same as `--output-path`   |
+| `--client-name [name]` | Custom name for the generated client class                                                   | derived from schema title |
+| `--framework [name]`   | Framework for the generated client class (`fetch` or `angular`)                              | `fetch`                   |
+| `--types-only`         | Generate TypeScript types only, skip client class generation                                 | false                     |
+| `--client-only`        | Generate the client class only, skip TypeScript types generation                             | false                     |
+| `--no-types`           | Generate an untyped client class, without the TypeScript types                               | typed                     |
 
 **Example:**
 
 ```bash
 # Generate types + client from a local OpenAPI file
-weaver-client generate ./openapi.json --outputPath ./src/generated/client.ts
+weaver-client generate ./openapi.json --output-path ./src/generated/client.ts
 
 # Generate types only from a running server
-weaver-client generate http://localhost:3000/openapi.json --typesOnly --outputPath ./src/types/api.ts
+weaver-client generate http://localhost:3000/openapi.json --types-only --output-path ./src/types/api.ts
 
 # Separate output paths with a custom class name
 weaver-client generate ./openapi.json \
-  --typesPath ./src/types/api.ts \
-  --clientPath ./src/client.ts \
-  --clientName CmsApiClient
+  --types-path ./src/types/api.ts \
+  --client-path ./src/client.ts \
+  --client-name CmsApiClient
 ```
 
 **Typical workflow with an Appweaver API:**
 
 ```bash
-# 1. Start the API and export its OpenAPI spec
-weaver openapi --outputPath ./openapi.json
+# 1. Export the API's OpenAPI spec
+weaver openapi --output-path ./openapi.json
 
 # 2. Generate the typed client
-weaver-client generate ./openapi.json --outputPath ./generated/client.ts
+weaver-client generate ./openapi.json --output-path ./generated/client.ts
+```
 
-# 3. Use the generated client
+```ts
+// 3. Use the generated client
 import { createClient } from './generated/client';
 
 const client = createClient({ baseUrl: 'http://localhost:5000', auth: { apiKey: 'myApiKey' } });
@@ -490,13 +513,13 @@ const users = await client.user.query({ filter: { enabled: true } });
 
 **Generated module clients and their operations:**
 
-| Client           | Key operations                                                                                         |
-|------------------|--------------------------------------------------------------------------------------------------------|
-| `ResourceClient` | `find`, `query`, `aggregate`, `create`, `update`, `delete`, `export`, `uploadFiles`, `deleteFiles`     |
-| `AuthClient`     | `login`, `logout`, `refresh`, `changePassword`, `exchangeToken`, `me`                                  |
-| `AccountClient`  | `sendVerifyEmail`, `verifyEmail`, `sendResetPassword`, `resetPassword`, `send2FACode`, `verify2FACode` |
-| `HealthClient`   | `check`, `ready`                                                                                       |
-| `FileClient`     | `public`, `protected`                                                                                  |
+| Client           | Key operations                                                                                                                |
+|------------------|-------------------------------------------------------------------------------------------------------------------------------|
+| `ResourceClient` | `find`, `query`, `aggregate`, `create`, `update`, `delete`, `export`, `uploadFiles`, `deleteFiles`                            |
+| `AuthClient`     | `login`, `logout`, `refresh`, `changePassword`, `exchangeToken`, `me`                                                         |
+| `AccountClient`  | `sendVerifyEmail`, `verifyEmail`, `verifyEmailRedirect`, `sendResetPassword`, `resetPassword`, `send2FACode`, `verify2FACode` |
+| `HealthClient`   | `check`, `ready`                                                                                                              |
+| `FilesClient`    | `public`, `protected`                                                                                                         |
 
 ---
 

@@ -21,16 +21,16 @@ export function updateCommand(program: Command): void {
         'Defaults to all currently installed @appweaver/* packages.'
     )
     .option(
-      '--targetVersion [targetVersion]',
+      '--target-version [version]',
       'The version to update the packages.',
       'latest'
     )
     .option(
-      '--noSkill',
+      '--no-skill',
       'Skip updating AI agents skill files in the agent directories (e.g. .claude, .agents) of the current project.'
     )
     .option(
-      '--noCompanions',
+      '--no-companions',
       'Skip updating the installed companion packages (e.g. prisma, bullmq, nodemailer) to the versions of the target release.'
     )
     .option(
@@ -38,7 +38,7 @@ export function updateCommand(program: Command): void {
       'Also update the installed tooling packages (e.g. eslint, jest, prettier) to the versions of the target release.'
     )
     .option(
-      '--dryRun',
+      '--dry-run',
       'Print the packages that would be updated without installing them.'
     )
     .option(
@@ -49,8 +49,8 @@ export function updateCommand(program: Command): void {
     .action(async (packages: string[], _, command: Command) => {
       const quiet = !command.getOptionValue('verbose');
       const force = command.getOptionValue('force');
-      const updateSkill = !command.getOptionValue('noSkill');
-      const updateCompanions = !command.getOptionValue('noCompanions');
+      const updateSkill = command.getOptionValue('skill');
+      const updateCompanions = command.getOptionValue('companions');
       const updateTooling = !!command.getOptionValue('tooling');
       const dryRun = !!command.getOptionValue('dryRun');
       const targetVersion = command.getOptionValue('targetVersion');

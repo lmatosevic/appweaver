@@ -115,7 +115,7 @@ describe('create-weaver-app', () => {
       await run(
         'MyCoolApp',
         'My description',
-        '--skipInstall',
+        '--no-install',
         '--agent',
         'none'
       );
@@ -125,7 +125,7 @@ describe('create-weaver-app', () => {
     });
 
     test('replaces whitespace in the project name', async () => {
-      await run('My App', '--skipInstall', '--agent', 'none');
+      await run('My App', '--no-install', '--agent', 'none');
 
       expect(exists('my-app')).toBe(true);
     });
@@ -133,10 +133,10 @@ describe('create-weaver-app', () => {
     test('uses an explicit output directory', async () => {
       await run(
         'MyApp',
-        '--skipInstall',
+        '--no-install',
         '--agent',
         'none',
-        '--outputDir',
+        '--output-dir',
         'custom-dir'
       );
 
@@ -147,7 +147,7 @@ describe('create-weaver-app', () => {
     test('reuses an existing directory', async () => {
       fs.mkdirSync(path.join(tempDir, 'my-app'));
 
-      const logs = await run('MyApp', '--skipInstall', '--agent', 'none');
+      const logs = await run('MyApp', '--no-install', '--agent', 'none');
 
       expect(logs.join('\n')).toContain('Using existing directory');
       expect(exists('my-app', 'package.json')).toBe(true);
@@ -156,7 +156,7 @@ describe('create-weaver-app', () => {
 
   describe('template processing', () => {
     beforeEach(async () => {
-      await run('MyApp', 'My description', '--skipInstall', '--agent', 'none');
+      await run('MyApp', 'My description', '--no-install', '--agent', 'none');
     });
 
     test('replaces the template variables', () => {
@@ -229,7 +229,7 @@ describe('create-weaver-app', () => {
 
   describe('server options', () => {
     test('uses the default host and port', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none');
+      await run('MyApp', '--no-install', '--agent', 'none');
 
       const config = readJson('my-app', 'appweaver.json');
       expect(config.config.server.host).toBe('0.0.0.0');
@@ -239,7 +239,7 @@ describe('create-weaver-app', () => {
     test('applies a custom host and port', async () => {
       await run(
         'MyApp',
-        '--skipInstall',
+        '--no-install',
         '--agent',
         'none',
         '--host',
@@ -256,7 +256,7 @@ describe('create-weaver-app', () => {
 
   describe('database options', () => {
     test('configures SQLite by default', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none');
+      await run('MyApp', '--no-install', '--agent', 'none');
 
       const config = readJson('my-app', 'appweaver.json');
       expect(config.config.database.url).toBe('file:./data/my-app.db');
@@ -270,7 +270,7 @@ describe('create-weaver-app', () => {
     });
 
     test('uses a separate test database url', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none');
+      await run('MyApp', '--no-install', '--agent', 'none');
 
       expect(read('my-app', 'appweaver.test.json')).toContain('my-app-test.db');
     });
@@ -278,7 +278,7 @@ describe('create-weaver-app', () => {
     test('configures PostgreSQL', async () => {
       await run(
         'MyApp',
-        '--skipInstall',
+        '--no-install',
         '--agent',
         'none',
         '--database',
@@ -322,7 +322,7 @@ describe('create-weaver-app', () => {
     test('configures MySQL', async () => {
       await run(
         'MyApp',
-        '--skipInstall',
+        '--no-install',
         '--agent',
         'none',
         '--database',
@@ -348,7 +348,7 @@ describe('create-weaver-app', () => {
     test('configures SQL Server', async () => {
       await run(
         'MyApp',
-        '--skipInstall',
+        '--no-install',
         '--agent',
         'none',
         '--database',
@@ -365,12 +365,12 @@ describe('create-weaver-app', () => {
     test('uses the standard database port without Docker', async () => {
       await run(
         'MyApp',
-        '--skipInstall',
+        '--no-install',
         '--agent',
         'none',
         '--database',
         'postgresql',
-        '--noDocker'
+        '--no-docker'
       );
 
       const config = readJson('my-app', 'appweaver.json');
@@ -382,7 +382,7 @@ describe('create-weaver-app', () => {
     });
 
     test('adds a named volume for the embedded SQLite database', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none');
+      await run('MyApp', '--no-install', '--agent', 'none');
 
       const compose = read('my-app', 'docker-compose.yml');
       expect(compose).toContain('sqlite-data:/usr/app/data');
@@ -394,7 +394,7 @@ describe('create-weaver-app', () => {
 
   describe('optional modules', () => {
     test('installs every optional dependency by default', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none');
+      await run('MyApp', '--no-install', '--agent', 'none');
 
       const { dependencies } = readJson('my-app', 'package.json');
       expect(dependencies).toHaveProperty('bullmq');
@@ -406,13 +406,13 @@ describe('create-weaver-app', () => {
     test('skips the dependencies of the disabled modules', async () => {
       await run(
         'MyApp',
-        '--skipInstall',
+        '--no-install',
         '--agent',
         'none',
-        '--noQueue',
-        '--noCron',
-        '--noRedis',
-        '--noMailer'
+        '--no-queue',
+        '--no-cron',
+        '--no-redis',
+        '--no-mailer'
       );
 
       const { dependencies } = readJson('my-app', 'package.json');
@@ -423,37 +423,37 @@ describe('create-weaver-app', () => {
       expect(dependencies).toHaveProperty('@prisma/client');
     });
 
-    test('uses the in-memory queue with the noQueue flag', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none', '--noQueue');
+    test('uses the in-memory queue with the no-queue flag', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--no-queue');
 
       const { config } = readJson('my-app', 'appweaver.json');
       expect(config.queue.provider).toBe('@appweaver/core/queue/memory-queue');
       expect(config).not.toHaveProperty('cache');
     });
 
-    test('disables the scheduler with the noCron flag', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none', '--noCron');
+    test('disables the scheduler with the no-cron flag', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--no-cron');
 
       const { config } = readJson('my-app', 'appweaver.json');
       expect(config.scheduler).toEqual({ enabled: false });
     });
 
-    test('disables the mailer with the noMailer flag', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none', '--noMailer');
+    test('disables the mailer with the no-mailer flag', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--no-mailer');
 
       const { config } = readJson('my-app', 'appweaver.json');
       expect(config.mailer).toEqual({ enabled: false });
     });
 
     test('leaves the module defaults without a skip flag', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none');
+      await run('MyApp', '--no-install', '--agent', 'none');
 
       const { config } = readJson('my-app', 'appweaver.json');
       expect(Object.keys(config)).toEqual(['app', 'server', 'database']);
     });
 
     test('uses Redis for the modules that default to it', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none');
+      await run('MyApp', '--no-install', '--agent', 'none');
 
       const { config } = readJson('my-app', 'appweaver.json');
       expect(config).not.toHaveProperty('redis');
@@ -471,8 +471,8 @@ describe('create-weaver-app', () => {
       expect(compose).toContain('REDIS_URL: "redis://redis:6379/0"');
     });
 
-    test('switches to in-memory modules with the noRedis flag', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none', '--noRedis');
+    test('switches to in-memory modules with the no-redis flag', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--no-redis');
 
       const { config } = readJson('my-app', 'appweaver.json');
       expect(config.redis.provider).toBe('@appweaver/core/memory/in-memory');
@@ -491,11 +491,11 @@ describe('create-weaver-app', () => {
     test('switches to in-memory modules for the Bun runtime', async () => {
       await run(
         'MyApp',
-        '--skipInstall',
+        '--no-install',
         '--agent',
         'none',
         '--bun',
-        '--noRedis'
+        '--no-redis'
       );
 
       const { config } = readJson('my-app', 'appweaver.json');
@@ -504,7 +504,7 @@ describe('create-weaver-app', () => {
     });
 
     test('runs only the test files with the Bun unit tests', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none', '--bun');
+      await run('MyApp', '--no-install', '--agent', 'none', '--bun');
 
       // A path given after --coverage would be run as a test file
       expect(readJson('my-app', 'package.json').scripts.test).toBe(
@@ -513,7 +513,7 @@ describe('create-weaver-app', () => {
     });
 
     test('installs the Jest tooling for the Node runtime', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none');
+      await run('MyApp', '--no-install', '--agent', 'none');
 
       const { devDependencies } = readJson('my-app', 'package.json');
       expect(devDependencies).toHaveProperty('jest');
@@ -523,7 +523,7 @@ describe('create-weaver-app', () => {
     });
 
     test('installs the Bun types instead of Jest for the Bun runtime', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none', '--bun');
+      await run('MyApp', '--no-install', '--agent', 'none', '--bun');
 
       const { devDependencies } = readJson('my-app', 'package.json');
       expect(devDependencies).toHaveProperty('@types/bun');
@@ -532,15 +532,15 @@ describe('create-weaver-app', () => {
       expect(devDependencies).not.toHaveProperty('@swc/jest');
     });
 
-    test('removes the Docker files with the noDocker flag', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none', '--noDocker');
+    test('removes the Docker files with the no-docker flag', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--no-docker');
 
       expect(exists('my-app', 'Dockerfile')).toBe(false);
       expect(exists('my-app', 'docker-compose.yml')).toBe(false);
     });
 
     test('generates the Docker files by default', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none');
+      await run('MyApp', '--no-install', '--agent', 'none');
 
       expect(exists('my-app', 'Dockerfile')).toBe(true);
       expect(exists('my-app', 'docker-compose.yml')).toBe(true);
@@ -548,7 +548,7 @@ describe('create-weaver-app', () => {
     });
 
     test('generates the Node Dockerfile running as an unprivileged user', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none');
+      await run('MyApp', '--no-install', '--agent', 'none');
 
       const dockerfile = read('my-app', 'Dockerfile');
       expect(dockerfile).toContain('FROM node:');
@@ -556,7 +556,7 @@ describe('create-weaver-app', () => {
     });
 
     test('generates the Bun Dockerfile for the Bun runtime', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none', '--bun');
+      await run('MyApp', '--no-install', '--agent', 'none', '--bun');
 
       const dockerfile = read('my-app', 'Dockerfile');
       expect(dockerfile).toContain('FROM oven/bun:');
@@ -569,13 +569,7 @@ describe('create-weaver-app', () => {
     test('creates the Claude guidelines and the skill files', async () => {
       createSkillDir();
 
-      await run(
-        'MyApp',
-        'My description',
-        '--skipInstall',
-        '--agent',
-        'claude'
-      );
+      await run('MyApp', 'My description', '--no-install', '--agent', 'claude');
 
       expect(
         exists('my-app', '.claude', 'skills', 'appweaver', 'SKILL.md')
@@ -596,7 +590,7 @@ describe('create-weaver-app', () => {
     test('creates a markdown reference for the other agents', async () => {
       createSkillDir();
 
-      await run('MyApp', '--skipInstall', '--agent', 'codex');
+      await run('MyApp', '--no-install', '--agent', 'codex');
 
       expect(
         exists('my-app', '.agents', 'skills', 'appweaver', 'SKILL.md')
@@ -610,7 +604,7 @@ describe('create-weaver-app', () => {
     test('uses the .github directory for Copilot', async () => {
       createSkillDir();
 
-      await run('MyApp', '--skipInstall', '--agent', 'copilot');
+      await run('MyApp', '--no-install', '--agent', 'copilot');
 
       expect(
         exists('my-app', '.github', 'skills', 'appweaver', 'SKILL.md')
@@ -621,7 +615,7 @@ describe('create-weaver-app', () => {
     });
 
     test('creates no agent files for the none agent', async () => {
-      await run('MyApp', '--skipInstall', '--agent', 'none');
+      await run('MyApp', '--no-install', '--agent', 'none');
 
       expect(exists('my-app', 'CLAUDE.md')).toBe(false);
       expect(exists('my-app', 'AGENTS.md')).toBe(false);
@@ -685,7 +679,7 @@ describe('create-weaver-app', () => {
     test('accepts an uppercase database type', async () => {
       await run(
         'MyApp',
-        '--skipInstall',
+        '--no-install',
         '--agent',
         'none',
         '--database',

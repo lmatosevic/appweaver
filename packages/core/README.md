@@ -3,37 +3,67 @@
 </p>
 
 <p align="center">
-  The AI-first <a href="https://nodejs.org" target="_blank">Node.js</a> framework for quick scaffolding, extending, and shipping backends with agents.
+  The core of Appweaver, the AI-first <a href="https://nodejs.org" target="_blank">Node.js</a> framework for backends built with agents.
 </p>
 
 <p align="center">
-<a href="https://www.npmjs.com/@appweaver/core" target="_blank"><img src="https://img.shields.io/npm/v/@appweaver/core.svg" alt="NPM Version" /></a>
-<a href="https://github.com/lmatosevic/appweaver/blob/master/LICENSE" target="_blank"><img src="https://img.shields.io/npm/l/@appweaver/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/@appweaver/core" target="_blank"><img src="https://img.shields.io/npm/dw/@appweaver/core.svg" alt="NPM Downloads" /></a>
-<a href="https://www.npmjs.com/@appweaver/core" target="_blank"><img src="https://img.shields.io/badge/build-passing-brightgreen.svg" alt="Build Status" /></a>
-
+<a href="https://www.npmjs.com/package/@appweaver/core" target="_blank"><img src="https://img.shields.io/npm/v/@appweaver/core.svg" alt="NPM Version" /></a>
+<a href="https://github.com/lmatosevic/appweaver/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/npm/l/@appweaver/core.svg" alt="Package License" /></a>
+<a href="https://www.npmjs.com/package/@appweaver/core" target="_blank"><img src="https://img.shields.io/npm/dw/@appweaver/core.svg" alt="NPM Downloads" /></a>
 </p>
 
 ## Description
 
-Appweaver is a batteries-included framework built on top of [Fastify](https://fastify.dev) and
-[Prisma](https://prisma.io), designed from the ground up to be developed with AI agents. Instead of writing backend
-boilerplate from scratch, you describe resources using concise factory functions and let the framework handle routing,
-validation, database, auth, migrations, so you can focus on business logic instead of boilerplate.
+`@appweaver/core` is the runtime of an Appweaver application. It builds a [Fastify](https://fastify.dev) server and a
+[Prisma](https://prisma.io) data layer from declarative resource definitions, and provides:
 
-### Built for agents
+- **Resources** – `createModel`, `createService`, `createRoutes`, and `createPolicy` factories for validated CRUD
+  routes with filtering, sorting, cursor pagination, aggregation, export, and an OpenAPI specification.
+- **Security** – JWT, API key, HTTP Basic, and OAuth2 authentication, roles and permissions, row-level policies, 2FA,
+  email verification, password reset, and reCAPTCHA.
+- **Infrastructure** – file storage with image processing, Redis or in-memory caching and rate limiting, BullMQ or
+  in-memory queues, a cron scheduler, an SMTP mailer, events, health checks, and database seeders.
+- **Dependency injection** – `define`, `inject`, `injectService`, and `loadProvider` for wiring providers by token.
 
-- **80% fewer tokens** → Appweaver's conventions and factory API eliminate the boilerplate that dominates most backend
-  codebases. Your agent reads and writes only the code that matters, not hundreds of lines of scaffolding.
-- **Zero-code configuration** → every framework behavior like HTTP server, database, auth, queues, mailer, cache,
-  storage is controlled through `appweaver.json` config files or environment variables. No code changes are needed to
-  reconfigure the app for a different environment.
-- **Agent-first conventions** → a consistent, predictable project structure means agents always know where to find and
-  place code: models, services, routes, and policies each live in their own file under `src/resources/<name>/`.
-- **Built-in skill files** → every scaffolded project ships with agent-readable skill files that give your agent harness
-  a complete map of the framework's API, conventions, and CLI, which means no hallucination, and no trial-and-error.
-- **Works with any agent harness** → Claude Code, Cursor, Codex, Copilot Workspace, or any coding assistant that can
-  read project files. Point your agent at the skill files, and it has everything it needs to quickly build applications.
+## Installation
+
+New projects are best created with [`create-weaver-app`](https://www.npmjs.com/package/@appweaver/create-weaver-app),
+which installs this package along with the `weaver` CLI. To add it by hand:
+
+```sh
+npm install @appweaver/core @appweaver/common @prisma/client
+npm install -D @appweaver/cli prisma typescript
+```
+
+## Usage
+
+```ts
+// src/main.ts
+import { createApp } from '@appweaver/core';
+import { logger } from '@appweaver/common';
+
+createApp().catch((err) => logger.error(err));
+```
+
+```ts
+// src/resources/post/model.ts
+import { createModel } from '@appweaver/core';
+
+export default createModel({
+  name: 'Post',
+  scalars: {
+    title: { type: 'string', minLength: 1, maxLength: 200 },
+    body: { type: 'string' }
+  }
+});
+```
+
+Run `weaver generate` after changing a model to refresh the generated types and the Prisma schema.
+
+## Documentation
+
+- [Appweaver README](https://github.com/lmatosevic/appweaver#readme) – getting started, configuration, and the overview of every package
+- [Agent skill](https://github.com/lmatosevic/appweaver/blob/main/skill/SKILL.md) – the complete framework reference shipped to every scaffolded project
 
 ## License
 

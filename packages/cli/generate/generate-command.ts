@@ -12,23 +12,23 @@ export function generateCommand(program: Command): void {
     .option('-t, --types', 'Generate TypeScript types.')
     .option('-s, --schema', 'Generate Prisma schema.')
     .option(
-      '--modelPattern [pattern]',
+      '--model-pattern [pattern]',
       'Glob pattern for finding model files. (default: from config or env).'
     )
     .option(
-      '--typesPath [path]',
+      '--types-path [path]',
       'Output path for generated types. (default: from config or env).'
     )
     .option(
-      '--schemaPath [path]',
+      '--schema-path [path]',
       'Output path for generated Prisma schema. (default: from config or env).'
     )
     .option(
-      '--clientPath [path]',
+      '--client-path [path]',
       'Output path for generated Prisma client (default: from config or env).'
     )
     .option(
-      '--noRegistry',
+      '--no-registry',
       'Skip registering the generated types of every model in the resource registry of @appweaver/common.'
     )
     .option('--verbose', 'Print verbose output.')
@@ -49,7 +49,7 @@ export function generateCommand(program: Command): void {
           command.getOptionValue('typesPath') ??
             config.RESOURCE_GENERATED_TYPES_PATH,
           quiet,
-          !command.getOptionValue('noRegistry')
+          command.getOptionValue('registry')
         );
       }
 

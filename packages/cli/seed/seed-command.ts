@@ -8,21 +8,21 @@ export function seedCommand(program: Command): void {
     .alias('sd')
     .description('Seed the database.')
     .option(
-      '--seedersPath [path]',
+      '--seeders-path [path]',
       'Seeders directory path. (default: from config or env).'
     )
-    .option('-b, --buildProject', 'Build the project before seeding.')
+    .option('-b, --build-project', 'Build the project before seeding.')
     .option(
       '-p, --project [path]',
       'TypeScript project config file.',
       'tsconfig.build.json'
     )
     .option(
-      '-c, --continueOnError',
+      '-c, --continue-on-error',
       'Continue seeder execution if error is thrown.'
     )
     .option(
-      '-f, --fixWarnings',
+      '-f, --fix-warnings',
       'Fix all seeder warnings like wrong checksum or deleted seeder files.'
     )
     .action(async (_, command: Command) => {

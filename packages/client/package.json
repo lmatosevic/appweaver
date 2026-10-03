@@ -52,8 +52,8 @@
     "node": ">= 24"
   },
   "scripts": {
-    "generate-client": "node ./dist/cjs/weaver-client.js generate ./generated/openapi.json --outputPath ./generated/client.ts",
-    "generate-client-schema": "node ./dist/cjs/weaver-client.js generate ./generated/openapi.json --typesPath ./generated/schema.d.ts --clientPath ./generated/client.ts"
+    "generate-client": "node ./dist/cjs/weaver-client.js generate ./generated/openapi.json --output-path ./generated/client.ts",
+    "generate-client-schema": "node ./dist/cjs/weaver-client.js generate ./generated/openapi.json --types-path ./generated/schema.d.ts --client-path ./generated/client.ts"
   },
   "dependencies": {
     "commander": "15.0.0",

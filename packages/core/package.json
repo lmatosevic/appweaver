@@ -25,7 +25,7 @@
     "node": ">= 24"
   },
   "scripts": {
-    "generate": "weaver generate --noRegistry --modelPattern ./**/model.ts --typesPath ./types/generated.ts --schemaPath ./prisma/schema.prisma --clientPath ./prisma/client",
+    "generate": "weaver generate --no-registry --model-pattern ./**/model.ts --types-path ./types/generated.ts --schema-path ./prisma/schema.prisma --client-path ./prisma/client",
     "db:recreate": "rimraf dev.db && rimraf prisma/migrations && weaver migration new init"
   },
   "dependencies": {

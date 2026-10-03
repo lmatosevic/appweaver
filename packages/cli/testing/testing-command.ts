@@ -25,19 +25,19 @@ export function testingCommand(program: Command): void {
       './temp'
     )
     .option(
-      '--modelPattern [pattern]',
+      '--model-pattern [pattern]',
       'Glob pattern for finding model files. (default: from config or env).'
     )
     .option(
-      '--schemaPath [path]',
+      '--schema-path [path]',
       'Output path for generated Prisma schema. (default: from config or env).'
     )
     .option(
-      '--clientPath [path]',
+      '--client-path [path]',
       'Output path for generated Prisma client (default: from config or env).'
     )
     .option(
-      '--migrationName [name]',
+      '--migration-name [name]',
       'Name for the new migration.',
       'init_test'
     )

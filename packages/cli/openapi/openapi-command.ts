@@ -12,7 +12,7 @@ export function openapiCommand(program: Command): void {
     .alias('oa')
     .description("Generate application's OpenAPI specification schema.")
     .option(
-      '-o, --outputPath [path]',
+      '-o, --output-path [path]',
       'Output path for generated OpenAPI specification.',
       './openapi.json'
     )

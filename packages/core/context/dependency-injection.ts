@@ -38,9 +38,12 @@ import {
  * @param {DefinitionValue} value The resource or definition value to be registered.
  * @param {string | symbol | DefinitionClass | FunctionType | undefined} nameOrClass Optional name or class reference
  * for the definition. If not provided, the name is inferred from the resource or its constructor.
- * @param mode Determines how the definition should be treated:
- *             'ignore' - Adds only if the definition doesn’t already exist.
- *             'override' - Replaces an existing definition if it matches the name.
+ * @param mode Determines how the definition should be treated when one with the same name exists:
+ *             'ignore' - Keeps the existing definition and logs a warning.
+ *             'append' - Adds another definition under the same name, resolved by `injectAll`. Resources have a
+ *                        single definition per name, so it replaces the existing one.
+ *             'override' - Replaces the existing definition.
+ *             'fail' - Throws an error.
  *             Defaults to 'ignore'.
  * @return void
  */

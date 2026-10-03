@@ -1,9 +1,10 @@
 # Resources
 
-Resources are the core building blocks of an Appweaver application. There are four resource types that form a dependency
-chain: **model** → **service** → **routes** → **policy**. Each resource type is created using a corresponding factory
-function and autoloaded from `src/resources/*/` on application start. Source directory and resources pattern could be
-changed with `APP_SOURCE_PATH` and `RESOURCE_{MODEL,SERVICE,...}_PATTERN` config variables.
+Resources are the core building blocks of an Appweaver application. There are four resource types: **model**,
+**service**, **routes**, and **policy**. A service depends on the model, routes on the service, and a policy only on the
+model. Each resource type is created using a corresponding factory function and autoloaded from `src/resources/*/` on
+application start. Source directory and resources pattern could be changed with `APP_SOURCE_PATH` and
+`RESOURCE_{MODEL,SERVICE,...}_PATTERN` config variables.
 
 - A **model** is always required.
 - A **service** requires a model.
@@ -428,20 +429,20 @@ const config = {
 };
 ```
 
-| Property        | Type                                            | Default      | Description                                                              |
-|-----------------|-------------------------------------------------|--------------|--------------------------------------------------------------------------|
-| `model`         | string                                          | **required** | Target model name.                                                       |
-| `type`          | RelationType                                    | **required** | `'oneToOne'`, `'oneToMany'`, `'manyToOne'`, or `'manyToMany'`.           |
-| `owner`         | boolean                                         | `false`      | This side owns the foreign key column (implied by `manyToOne`).          |
-| `mappedBy`      | string                                          | -            | Name of the inverse relation on the target model.                        |
-| `required`      | boolean                                         | `true`       | Whether the relation is required (nullable foreign key if not required). |
-| `minItems`      | number                                          | -            | Minimum items for list relations.                                        |
-| `orphanRemoval` | boolean                                         | `false`      | Delete the related records an update removes from the relation.          |
-| `onDelete`      | ReferentialAction                               | -            | Foreign key action on delete.                                            |
-| `onUpdate`      | ReferentialAction                               | -            | Foreign key action on update.                                            |
-| `index`         | boolean                                         | `true`       | Index the foreign key column; `false` leaves it unindexed.               |
-| `input`         | RelationInput                                   | -            | Input DTO configuration.                                                 |
-| `output`        | RelationOutput                                  | -            | Output DTO configuration.                                                |
+| Property        | Type              | Default      | Description                                                              |
+|-----------------|-------------------|--------------|--------------------------------------------------------------------------|
+| `model`         | string            | **required** | Target model name.                                                       |
+| `type`          | RelationType      | **required** | `'oneToOne'`, `'oneToMany'`, `'manyToOne'`, or `'manyToMany'`.           |
+| `owner`         | boolean           | `false`      | This side owns the foreign key column (implied by `manyToOne`).          |
+| `mappedBy`      | string            | -            | Name of the inverse relation on the target model.                        |
+| `required`      | boolean           | `true`       | Whether the relation is required (nullable foreign key if not required). |
+| `minItems`      | number            | -            | Minimum items for list relations.                                        |
+| `orphanRemoval` | boolean           | `false`      | Delete the related records an update removes from the relation.          |
+| `onDelete`      | ReferentialAction | -            | Foreign key action on delete.                                            |
+| `onUpdate`      | ReferentialAction | -            | Foreign key action on update.                                            |
+| `index`         | boolean           | `true`       | Index the foreign key column; `false` leaves it unindexed.               |
+| `input`         | RelationInput     | -            | Input DTO configuration.                                                 |
+| `output`        | RelationOutput    | -            | Output DTO configuration.                                                |
 
 **ReferentialAction values**: `'cascade'`, `'restrict'`, `'noAction'`, `'setNull'`, `'setDefault'`
 
@@ -977,22 +978,22 @@ function createService(config: ResourceServiceConfig, override ?: Partial<Resour
 }
 ```
 
-| Property          | Type                                                                     | Description                                                                                                                     |
-|-------------------|--------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
-| `modelName`       | string                                                                   | Model name to bind this service to (required).                                                                                  |
-| `beforeFind`      | `(id) => void`                                                           | Hook called before finding a single resource.                                                                                   |
-| `beforeQuery`     | `(options) => void`                                                      | Hook called before querying resources, with the query options as given. Mutate `options` to change the query.                   |
-| `beforeAggregate` | `(options) => void`                                                      | Hook called before aggregation, with the aggregation options as given. Mutate `options` to change the aggregation.              |
-| `beforeCreate`    | `(data) => void`                                                         | Hook called before creating a resource. Mutate `data` to modify input.                                                          |
-| `beforeUpdate`    | `(id, data) => void`                                                     | Hook called before updating a resource.                                                                                         |
-| `beforeDelete`    | `(id) => void`                                                           | Hook called before deleting a resource.                                                                                         |
-| `afterFind`       | `(resource) => void`                                                     | Hook called after finding a resource.                                                                                           |
-| `afterQuery`      | `(response) => void`                                                     | Hook called after querying resources.                                                                                           |
-| `afterAggregate`  | `(response) => void`                                                     | Hook called after aggregation.                                                                                                  |
-| `afterCreate`     | `(resource) => void`                                                     | Hook called after creating a resource.                                                                                          |
-| `afterUpdate`     | `(resource, previous) => void`                                           | Hook called after updating a resource, with the state the resource had before the update.                                       |
-| `afterDelete`     | `(resource) => void`                                                     | Hook called after deleting a resource.                                                                                          |
-| `textSearch`      | object \| function                                                       | Prisma filter object or function `(input: string) => filter` for text search. Use `'{input}'` as placeholder in filter objects. |
+| Property          | Type                           | Description                                                                                                                     |
+|-------------------|--------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| `modelName`       | string                         | Model name to bind this service to (required).                                                                                  |
+| `beforeFind`      | `(id) => void`                 | Hook called before finding a single resource.                                                                                   |
+| `beforeQuery`     | `(options) => void`            | Hook called before querying resources, with the query options as given. Mutate `options` to change the query.                   |
+| `beforeAggregate` | `(options) => void`            | Hook called before aggregation, with the aggregation options as given. Mutate `options` to change the aggregation.              |
+| `beforeCreate`    | `(data) => void`               | Hook called before creating a resource. Mutate `data` to modify input.                                                          |
+| `beforeUpdate`    | `(id, data) => void`           | Hook called before updating a resource.                                                                                         |
+| `beforeDelete`    | `(id) => void`                 | Hook called before deleting a resource.                                                                                         |
+| `afterFind`       | `(resource) => void`           | Hook called after finding a resource.                                                                                           |
+| `afterQuery`      | `(response) => void`           | Hook called after querying resources.                                                                                           |
+| `afterAggregate`  | `(response) => void`           | Hook called after aggregation.                                                                                                  |
+| `afterCreate`     | `(resource) => void`           | Hook called after creating a resource.                                                                                          |
+| `afterUpdate`     | `(resource, previous) => void` | Hook called after updating a resource, with the state the resource had before the update.                                       |
+| `afterDelete`     | `(resource) => void`           | Hook called after deleting a resource.                                                                                          |
+| `textSearch`      | object \| function             | Prisma filter object or function `(input: string) => filter` for text search. Use `'{input}'` as placeholder in filter objects. |
 
 All hooks can be synchronous or return a `Promise`.
 
@@ -1000,18 +1001,18 @@ All hooks can be synchronous or return a `Promise`.
 
 The created service exposes the following methods:
 
-| Method      | Signature                                                                                         | Description                                                                                                                                |
-|-------------|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
-| `find`      | `(id) => Promise<ReadOne>`                                                                        | Find a single resource by ID.                                                                                                              |
-| `single`    | `(filter?, sort?) => Promise<ReadOne \| null>`                                                    | Find the first resource matching the filter, ordered by `sort` (default `-createdAt`), or `null` when none matches.                        |
-| `query`     | `(options?) => Promise<QueryResponse>`                                                            | Query resources with filtering, pagination, and sorting (see [Query sorting](#query-sorting) and [Cursor pagination](#cursor-pagination)). |
-| `count`     | `(filter?) => Promise<number>`                                                                    | Count the resources matching the filter.                                                                                                   |
-| `exists`    | `(filter?) => Promise<boolean>`                                                                   | Check whether any resource matches the filter.                                                                                             |
-| `aggregate` | `(options) => Promise<AggregateResponse>`                                                         | Aggregate resources with time-series grouping (see [Aggregate selection](#aggregate-selection)).                                           |
-| `create`    | `(data) => Promise<ReadOne>`                                                                      | Create a new resource.                                                                                                                     |
-| `update`    | `(id, data) => Promise<ReadOne>`                                                                  | Update an existing resource.                                                                                                               |
-| `delete`    | `(id) => Promise<ReadOne>`                                                                        | Delete a resource.                                                                                                                         |
-| `client`    | `ResourceClient` (property)                                                                       | Database client of the model, for operations outside the model contract.                                                                   |
+| Method      | Signature                                      | Description                                                                                                                                |
+|-------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| `find`      | `(id) => Promise<ReadOne>`                     | Find a single resource by ID.                                                                                                              |
+| `single`    | `(filter?, sort?) => Promise<ReadOne \| null>` | Find the first resource matching the filter, ordered by `sort` (default `-createdAt`), or `null` when none matches.                        |
+| `query`     | `(options?) => Promise<QueryResponse>`         | Query resources with filtering, pagination, and sorting (see [Query sorting](#query-sorting) and [Cursor pagination](#cursor-pagination)). |
+| `count`     | `(filter?) => Promise<number>`                 | Count the resources matching the filter.                                                                                                   |
+| `exists`    | `(filter?) => Promise<boolean>`                | Check whether any resource matches the filter.                                                                                             |
+| `aggregate` | `(options) => Promise<AggregateResponse>`      | Aggregate resources with time-series grouping (see [Aggregate selection](#aggregate-selection)).                                           |
+| `create`    | `(data) => Promise<ReadOne>`                   | Create a new resource.                                                                                                                     |
+| `update`    | `(id, data) => Promise<ReadOne>`               | Update an existing resource.                                                                                                               |
+| `delete`    | `(id) => Promise<ReadOne>`                     | Delete a resource.                                                                                                                         |
+| `client`    | `ResourceClient` (property)                    | Database client of the model, for operations outside the model contract.                                                                   |
 
 `query` takes the options `filter`, `page` (default `1`), `size` (default `50`), `sort` (default `-createdAt`),
 `cursor`, and `totalCount` (default `true`), and `aggregate` the options `select` (required), `filter`, `dateField`
@@ -1045,7 +1046,7 @@ const posts = injectService('Post'); // PostResourceService
 ```
 
 Never pass the model types as generic arguments. A model added since the last `weaver generate` is not registered
-yet, so run `weaver generate` after adding or renaming a model or a relation. The `--noRegistry` flag of
+yet, so run `weaver generate` after adding or renaming a model or a relation. The `--no-registry` flag of
 `weaver generate` skips the registration.
 
 The `PostResourceService` alias is `IResourceService<Post, PostMultiple, PostCreate, PostUpdate, PostQuery>`, so the

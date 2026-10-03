@@ -220,62 +220,6 @@ export class AuthService {
   }
 
   /**
-   * Saves the files the `registrationFiles` service configuration selects for a newly registered user, each one to the
-   * file field of the auth model it is keyed by. The files are stored only after the user exists, since a file record
-   * is linked to the resource that owns it. Storing a file is best-effort, so a rejected file, such as an avatar the
-   * provider served in an unsupported format, is logged and never fails the registration.
-   *
-   * @internal
-   */
-  private async saveRegistrationFiles(
-    authUser: AuthUser,
-    source: AuthSource,
-    data?: Partial<UserAdditionalData>
-  ): Promise<void> {
-    const serviceConfig: { registrationFiles?: RegistrationFilesFn } =
-      this._authUserService[CONFIG];
-
-    if (!serviceConfig.registrationFiles) {
-      return;
-    }
-
-    let files: RegistrationFiles;
-    try {
-      files = (await serviceConfig.registrationFiles(source, data)) ?? {};
-    } catch (e) {
-      logger.error(
-        { id: authUser.id, err: e },
-        'Registration files selection error'
-      );
-      return;
-    }
-
-    const fileService = inject(FileService);
-
-    for (const [field, file] of Object.entries(files)) {
-      if (!file) {
-        continue;
-      }
-
-      try {
-        await withoutPolicies(() =>
-          fileService.saveBuffer(
-            field,
-            file,
-            authUser,
-            this._authUserService.client
-          )
-        );
-      } catch (e) {
-        logger.error(
-          { id: authUser.id, field, err: e },
-          'Registration file save error'
-        );
-      }
-    }
-  }
-
-  /**
    * Changes the password for the authenticated user.
    *
    * @param {AuthUser} authUser - The authenticated user object containing user details.
@@ -477,34 +421,6 @@ export class AuthService {
   }
 
   /**
-   * Verifies the account password supplied to confirm linking an OAuth2 provider.
-   *
-   * @internal
-   */
-  private async confirmPassword(
-    authUser: AuthUser,
-    password?: string
-  ): Promise<void> {
-    if (!password) {
-      throw new HttpError(
-        'Password confirmation is required to link this provider account',
-        401
-      );
-    }
-
-    if (
-      !authUser.passwordHash ||
-      !(await checkPassword(password, authUser.passwordHash))
-    ) {
-      logger.debug(
-        { id: authUser.id },
-        'OAuth2 password confirmation rejected'
-      );
-      throw new HttpError('Invalid user credentials', 401);
-    }
-  }
-
-  /**
    * Generates authentication tokens (access and refresh tokens) for a given authenticated user.
    *
    * @param {AuthUser} authUser - The authenticated user for whom the tokens are to be generated.
@@ -561,6 +477,90 @@ export class AuthService {
     logger.debug({ id }, 'User logout');
 
     return !!(await this.updateAuthUser(id, { logoutAt: new Date() }));
+  }
+
+  /**
+   * Saves the files the `registrationFiles` service configuration selects for a newly registered user, each one to the
+   * file field of the auth model it is keyed by. The files are stored only after the user exists, since a file record
+   * is linked to the resource that owns it. Storing a file is best-effort, so a rejected file, such as an avatar the
+   * provider served in an unsupported format, is logged and never fails the registration.
+   *
+   * @internal
+   */
+  private async saveRegistrationFiles(
+    authUser: AuthUser,
+    source: AuthSource,
+    data?: Partial<UserAdditionalData>
+  ): Promise<void> {
+    const serviceConfig: { registrationFiles?: RegistrationFilesFn } =
+      this._authUserService[CONFIG];
+
+    if (!serviceConfig.registrationFiles) {
+      return;
+    }
+
+    let files: RegistrationFiles;
+    try {
+      files = (await serviceConfig.registrationFiles(source, data)) ?? {};
+    } catch (e) {
+      logger.error(
+        { id: authUser.id, err: e },
+        'Registration files selection error'
+      );
+      return;
+    }
+
+    const fileService = inject(FileService);
+
+    for (const [field, file] of Object.entries(files)) {
+      if (!file) {
+        continue;
+      }
+
+      try {
+        await withoutPolicies(() =>
+          fileService.saveBuffer(
+            field,
+            file,
+            authUser,
+            this._authUserService.client
+          )
+        );
+      } catch (e) {
+        logger.error(
+          { id: authUser.id, field, err: e },
+          'Registration file save error'
+        );
+      }
+    }
+  }
+
+  /**
+   * Verifies the account password supplied to confirm linking an OAuth2 provider.
+   *
+   * @internal
+   */
+  private async confirmPassword(
+    authUser: AuthUser,
+    password?: string
+  ): Promise<void> {
+    if (!password) {
+      throw new HttpError(
+        'Password confirmation is required to link this provider account',
+        401
+      );
+    }
+
+    if (
+      !authUser.passwordHash ||
+      !(await checkPassword(password, authUser.passwordHash))
+    ) {
+      logger.debug(
+        { id: authUser.id },
+        'OAuth2 password confirmation rejected'
+      );
+      throw new HttpError('Invalid user credentials', 401);
+    }
   }
 
   /** @internal */

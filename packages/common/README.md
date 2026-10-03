@@ -3,37 +3,50 @@
 </p>
 
 <p align="center">
-  The AI-first <a href="https://nodejs.org" target="_blank">Node.js</a> framework for quick scaffolding, extending, and shipping backends with agents.
+  Shared configuration, logger, types, and utilities of <a href="https://appweaver.co" target="_blank">Appweaver</a>.
 </p>
 
 <p align="center">
-<a href="https://www.npmjs.com/@appweaver/common" target="_blank"><img src="https://img.shields.io/npm/v/@appweaver/common.svg" alt="NPM Version" /></a>
-<a href="https://github.com/lmatosevic/appweaver/blob/master/LICENSE" target="_blank"><img src="https://img.shields.io/npm/l/@appweaver/common.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/@appweaver/common" target="_blank"><img src="https://img.shields.io/npm/dw/@appweaver/common.svg" alt="NPM Downloads" /></a>
-<a href="https://www.npmjs.com/@appweaver/common" target="_blank"><img src="https://img.shields.io/badge/build-passing-brightgreen.svg" alt="Build Status" /></a>
-
+<a href="https://www.npmjs.com/package/@appweaver/common" target="_blank"><img src="https://img.shields.io/npm/v/@appweaver/common.svg" alt="NPM Version" /></a>
+<a href="https://github.com/lmatosevic/appweaver/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/npm/l/@appweaver/common.svg" alt="Package License" /></a>
+<a href="https://www.npmjs.com/package/@appweaver/common" target="_blank"><img src="https://img.shields.io/npm/dw/@appweaver/common.svg" alt="NPM Downloads" /></a>
 </p>
 
 ## Description
 
-Appweaver is a batteries-included framework built on top of [Fastify](https://fastify.dev) and
-[Prisma](https://prisma.io), designed from the ground up to be developed with AI agents. Instead of writing backend
-boilerplate from scratch, you describe resources using concise factory functions and let the framework handle routing,
-validation, database, auth, migrations, so you can focus on business logic instead of boilerplate.
+`@appweaver/common` holds what every other Appweaver package builds on:
 
-### Built for agents
+- **Configuration** – the `config` object, loaded from `appweaver.json`, its `appweaver.<env>.json` overlay, `.env`
+  files, and environment variables, validated against a schema.
+- **Logger** – the `logger` instance, a configured [Pino](https://getpino.io) logger.
+- **Types** – the resource model, query filter, sort, aggregate, policy, and route types, and the `ResourceRegistry`
+  that `weaver generate` fills so the factories infer the model types from a model name.
+- **Infrastructure contracts** – the abstract `Database`, `Cache`, `Memory`, `Queue`, `Storage`, `Mailer`, `Events`,
+  and `SecurityStore` classes the providers of `@appweaver/core` implement.
+- **Utilities** – string, object, date, and version helpers such as `randomString` and `compareVersions`.
 
-- **80% fewer tokens** → Appweaver's conventions and factory API eliminate the boilerplate that dominates most backend
-  codebases. Your agent reads and writes only the code that matters, not hundreds of lines of scaffolding.
-- **Zero-code configuration** → every framework behavior like HTTP server, database, auth, queues, mailer, cache,
-  storage is controlled through `appweaver.json` config files or environment variables. No code changes are needed to
-  reconfigure the app for a different environment.
-- **Agent-first conventions** → a consistent, predictable project structure means agents always know where to find and
-  place code: models, services, routes, and policies each live in their own file under `src/resources/<name>/`.
-- **Built-in skill files** → every scaffolded project ships with agent-readable skill files that give your agent harness
-  a complete map of the framework's API, conventions, and CLI, which means no hallucination, and no trial-and-error.
-- **Works with any agent harness** → Claude Code, Cursor, Codex, Copilot Workspace, or any coding assistant that can
-  read project files. Point your agent at the skill files, and it has everything it needs to quickly build applications.
+## Installation
+
+It is installed with `@appweaver/core`, and is rarely added on its own:
+
+```sh
+npm install @appweaver/common
+```
+
+## Usage
+
+```ts
+import { config, logger, randomString } from '@appweaver/common';
+
+logger.info({ port: config.SERVER_PORT }, 'Starting the server');
+
+const token = randomString(32);
+```
+
+## Documentation
+
+- [Appweaver README](https://github.com/lmatosevic/appweaver#readme) – getting started, configuration, and the overview of every package
+- [Agent skill](https://github.com/lmatosevic/appweaver/blob/main/skill/SKILL.md) – the complete framework reference shipped to every scaffolded project
 
 ## License
 

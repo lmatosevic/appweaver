@@ -14,11 +14,12 @@ description: >
 
 ## Purpose
 
-Appweaver is a library for building web applications with TypeScript and Node.js (or Bun). It provides a set of tools
-and conventions to simplify the development process, including file-based routing, reusable UI components, and
-centralized configuration. It is based mainly on Fastify for web server and Prisma for database ORM. The library
-provides a series of factory methods used for creating resource models, services, policies, and routes with predefined
-defaults. It provides a CLI tool for building the application, starting a server, generating schema and types, executing
+Appweaver is a library for building backend REST APIs with TypeScript and Node.js (or Bun). From a declarative
+resource model it derives the database schema, the TypeScript types, and validated CRUD routes with an OpenAPI
+specification, and it adds authentication, authorization, file storage, caching, queues, scheduling, and mailing on top,
+all driven by a centralized configuration. It is built on Fastify for the web server and Prisma for the database ORM.
+The library provides factory functions for creating resource models, services, policies, and routes with predefined
+defaults, and a CLI tool for building the application, starting a server, generating schema and types, executing
 migrations, running seeders, testing, and more.
 
 ## Project structure
@@ -57,25 +58,25 @@ create-weaver-app <name> [description] [options]
 
 **Options:**
 
-| Flag              | Description                                                    | Default      |
-|-------------------|----------------------------------------------------------------|--------------|
-| `-o, --outputDir` | Output directory (use ./ for current working directory)        | project name |
-| `--database`      | Database type: `sqlite`, `postgresql`, `mysql`, `sqlserver`    | `sqlite`     |
-| `--host`          | Hostname or IP address where the application server will bind. | 0.0.0.0      |
-| `--port`          | Port number where the application server will listen.          | 5000         |
-| `--agent`         | The AI agent for which to configure guidelines and skill files | `claude`     |
-| `--bun`           | Use Bun as application runtime. (default is node and npm)      | false        |
-| `--skipInstall`   | Skip all dependencies installation.                            | false        |
-| `--noDocker`      | Skip Dockerfile, Dockerfile.bun and docker-compose.yml files   | false        |
-| `--noRedis`       | Skip ioredis, use in-memory cache, rate limit and queue        | false        |
-| `--noQueue`       | Skip bullmq, use in-memory queue                               | false        |
-| `--noMailer`      | Skip nodemailer, disable mailer (email features respond 501)   | false        |
-| `--noCron`        | Skip cron, disable scheduler                                   | false        |
+| Flag               | Description                                                    | Default      |
+|--------------------|----------------------------------------------------------------|--------------|
+| `-o, --output-dir` | Output directory (use ./ for current working directory)        | project name |
+| `--database`       | Database type: `sqlite`, `postgresql`, `mysql`, `sqlserver`    | `sqlite`     |
+| `--host`           | Hostname or IP address where the application server will bind. | 0.0.0.0      |
+| `--port`           | Port number where the application server will listen.          | 5000         |
+| `--agent`          | The AI agent for which to configure guidelines and skill files | `claude`     |
+| `--bun`            | Use Bun as application runtime. (default is node and npm)      | false        |
+| `--no-install`     | Skip all dependencies installation.                            | installs     |
+| `--no-docker`      | Skip Dockerfile, Dockerfile.bun and docker-compose.yml files   | copied       |
+| `--no-redis`       | Skip ioredis, use in-memory cache, rate limit and queue        | installed    |
+| `--no-queue`       | Skip bullmq, use in-memory queue                               | installed    |
+| `--no-mailer`      | Skip nodemailer, disable mailer (email features respond 501)   | installed    |
+| `--no-cron`        | Skip cron, disable scheduler                                   | installed    |
 
 **Example — PostgreSQL project without queue:**
 
 ```sh
-create-weaver-app MyBlogAPI "My own CMS for blogging" --database postgresql --noQueue
+create-weaver-app MyBlogAPI "My own CMS for blogging" --database postgresql --no-queue
 ```
 
 This creates a `./my-blog-api` directory, installs all dependencies, and runs the initial schema and type generation.
@@ -160,24 +161,22 @@ Manually starting an application:
 import { createApp } from '@appweaver/core';
 import { logger } from '@appweaver/common';
 
-const app = createApp({ autoStart: false, scanPath: './dist/my/app/path' });
+const app = await createApp({ autoStart: false, scanPath: './dist/my/app/path' });
 
 // custom init logic...
 
-app.start().then((address) => {
-  logger.info(address);
-});
+const address = await app.start();
+logger.info(address);
 ```
 
 ### Creating resources
 
 Resources are the core building blocks for a web application. There are four resource types: **model**, **service**,
 **routes**, and **policy**. Created and exported resources are loaded automatically on application start. Except for a
-resource model, other resource types are optional and do not need to be created. If a service is created, then a model
-must be also created. If routes are created, then service must be created. Only policy is not required for other
-resources.
+resource model, other resource types are optional and do not need to be created. A service requires the model, and
+routes require the service. A policy only requires the model and applies to the service whether routes exist or not.
 
-Dependency chain: **model** → **service** → **routes** → **policy**
+Dependencies: **model** ← **service** ← **routes**, and **model** ← **policy** (optional)
 
 **DOS:**
 
@@ -388,10 +387,8 @@ import { createPolicy } from '@appweaver/core';
 
 export default createPolicy({
   modelName: 'Product',
-  checkAccess: (user, resource, action) => resource.status === 'Draft',
-  readRestrictions: (user, resource, action) => {
-    enabled: true;
-  },
+  checkAccess: (user, resource, action) => action !== 'delete' || resource.status === 'Draft',
+  readRestrictions: (user) => (user ? undefined : { enabled: true }), // anonymous users see enabled products only
   files: {
     photo: {
       accessType: 'public'
@@ -399,6 +396,9 @@ export default createPolicy({
   }
 });
 ```
+
+`checkAccess` denies the action by returning `false`, `readRestrictions` returns extra filter conditions for the reads
+(or nothing to restrict none), and `writeRestrictions` returns data merged into the created or updated record.
 
 Policy and file policy callbacks may be `async`, and receive a `null` user for an unauthenticated request. Wrap trusted
 system code (jobs, seeders, custom flows) in `withoutPolicies(() => ...)` to call the resource services without the
@@ -680,12 +680,14 @@ import { config, randomString } from '@appweaver/common';
 import { db } from '@db/client';
 
 export async function createAdminUser(): Promise<void> {
+  const password = config.SYSTEM_ADMIN_INITIAL_PASSWORD || randomString(16, { extra: false });
+
   await db.user.create({
     data: {
       firstName: 'Admin',
       lastName: 'Admin',
-      email: 'admin@appweaver.co',
-      phone: '01234435',
+      email: config.SYSTEM_ADMIN_INITIAL_EMAIL,
+      passwordHash: await hashPassword(password),
       roles: {
         connectOrCreate: [
           {
@@ -744,19 +746,19 @@ weaver migration reset --force --yes  # force reset, skip confirmation
 ### Seed the database
 
 ```sh
-weaver seed                                # run seeders
-weaver seed --buildProject                 # build project first, then run seeders
-weaver seed --continueOnError              # continue if a seeder throws error
-weaver seed --fixWarnings                  # fix all warnings like invalid checksum or missing seeder
-weaver seed --project tsconfig.build.json  # path to tsconfig build file
+weaver seed                                                # run seeders
+weaver seed --build-project                                # build project first, then run seeders
+weaver seed --build-project --project tsconfig.build.json  # tsconfig file used for the build
+weaver seed --continue-on-error                            # continue if a seeder throws error
+weaver seed --fix-warnings                                 # fix all warnings like invalid checksum or missing seeder
 ```
 
 ### Generate OpenAPI specification
 
 ```sh
-weaver openapi                                        # generate schema to ./openapi.json
-weaver openapi --outputPath ./generated/openapi.json  # generate schema to a custom path
-weaver openapi --format yaml                          # generate schema in yaml format
+weaver openapi                                         # generate schema to ./openapi.json
+weaver openapi --output-path ./generated/openapi.json  # generate schema to a custom path
+weaver openapi --format yaml                           # generate schema in yaml format (./openapi.yaml)
 ```
 
 ### Update Appweaver packages
@@ -764,12 +766,12 @@ weaver openapi --format yaml                          # generate schema in yaml 
 ```sh
 weaver update                                 # update all @appweaver/* packages to latest
 weaver update @appweaver/core @appweaver/cli  # update specific packages
-weaver update --targetVersion 1.2.3           # update to a specific version
-weaver update --noSkill                       # skip updating AI agent skill files (.claude, .agents, …)
+weaver update --target-version 1.2.3          # update to a specific version
+weaver update --no-skill                      # skip updating AI agent skill files (.claude, .agents, …)
 weaver update --force                         # force update despite peerDependency mismatches
-weaver update --noCompanions                  # skip the companion packages (prisma, bullmq, nodemailer, …)
+weaver update --no-companions                 # skip the companion packages (prisma, bullmq, nodemailer, …)
 weaver update --tooling                       # also update the tooling packages (eslint, jest, prettier, …)
-weaver update --dryRun                        # print the updates without installing them
+weaver update --dry-run                       # print the updates without installing them
 ```
 
 Besides the `@appweaver/*` packages, `weaver update` bumps the companion packages the project already has (Prisma

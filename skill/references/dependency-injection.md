@@ -13,6 +13,14 @@ Registers a value or class constructor in the application context.
 | `nameOrClass` | `string \| symbol \| Class \| Function`        | Token used to look up this definition. Defaults to the value's class name or `RESOURCE_NAME` property |
 | `mode`        | `'ignore' \| 'override' \| 'append' \| 'fail'` | How to handle duplicates. Defaults to `'ignore'`                                                      |
 
+The `mode` decides what happens when a definition with the same name exists:
+
+- `'ignore'` (default) – keeps the existing definition and logs a warning.
+- `'append'` – adds another definition under the same name, all of them resolved by `injectAll`. A resource (model,
+  service, routes, or policy) has one definition per name, so it replaces the existing one.
+- `'override'` – replaces the existing definition.
+- `'fail'` – throws an error.
+
 **Register a plain value with a string token:**
 
 ```ts
@@ -111,7 +119,7 @@ import { Mailer } from '@appweaver/common';
 
 const mailer = inject(Mailer, false); // undefined if not registered
 if (mailer) {
-  await mailer.send(message);
+  await mailer.sendEmail({ to: 'jane@example.com', subject: 'Welcome', text: 'Hello!' });
 }
 ```
 
@@ -119,18 +127,17 @@ if (mailer) {
 
 ```ts
 // src/features/notifications/notification-service.ts
-import { inject } from '@appweaver/core';
-import { Mailer, Cache } from '@appweaver/common';
-import { CacheService } from '@appweaver/core';
+import { CacheService, inject } from '@appweaver/core';
+import { Mailer } from '@appweaver/common';
 
 export class NotificationService {
   private readonly _mailer = inject(Mailer);
   private readonly _cache = inject(CacheService);
 
-  async notify(userId: number, message: string) {
-    const key = `notification:${userId}`;
+  public async notify(email: string, message: string): Promise<void> {
+    const key = `notification:${email}`;
     if (await this._cache.getCachedValue(key)) return;
-    await this._mailer.send({ to: userId, body: message });
+    await this._mailer.sendEmail({ to: email, subject: 'Notification', text: message });
     await this._cache.addToCache(key, true, 60_000);
   }
 }
@@ -145,6 +152,21 @@ import { NotificationService } from './notification-service';
 define(NotificationService);
 // or define the instance directly:
 define(new NotificationService(), NotificationService);
+```
+
+#### `injectAll(nameOrClass)` and `injectAllWhere(predicate)`
+
+Resolve every definition registered under a name (see the `'append'` mode of `define`), or every definition matching a
+predicate, instantiating the class constructors as `inject` does. Both return an empty array when nothing matches.
+
+```ts
+import { define, injectAll, injectAllWhere } from '@appweaver/core';
+
+define(new SlackNotifier(), 'Notifier', 'append');
+define(new EmailNotifier(), 'Notifier', 'append');
+
+const notifiers = injectAll<Notifier>('Notifier'); // [SlackNotifier, EmailNotifier]
+const lifecycle = injectAllWhere((def) => typeof def.value?.onInit === 'function');
 ```
 
 #### `loadProvider(baseDir, classPath, definition?, required?)`

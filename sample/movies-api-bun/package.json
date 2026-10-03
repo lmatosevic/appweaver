@@ -16,8 +16,8 @@
     "e2e": "bun test ./test/e2e --reporter=junit --reporter-outfile=./reports/e2e.xml --preload ./test/e2e/support/preload.ts",
     "format": "prettier --write \"./**/*.ts\"",
     "lint": "eslint \"./**/*.ts\"",
-    "openapi": "weaver openapi --outputPath ./client/openapi.json",
-    "client:generate": "weaver-client generate ./client/openapi.json --outputPath ./client/generated/movies-client.ts --clientName MoviesClient",
+    "openapi": "weaver openapi --output-path ./client/openapi.json",
+    "client:generate": "weaver-client generate ./client/openapi.json --output-path ./client/generated/movies-client.ts --client-name MoviesClient",
     "client:example": "bun run ./client/example.ts"
   },
   "dependencies": {

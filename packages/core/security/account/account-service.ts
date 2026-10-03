@@ -79,7 +79,7 @@ export class AccountService {
     const separator = redirectToUrl.includes('?') ? '&' : '?';
     const verifyLink =
       verificationType === VerificationType.Auto
-        ? `${config.APP_HOSTNAME}${accountPath}/verify-email-redirect?token=${token}}`
+        ? `${config.APP_HOSTNAME}${accountPath}/verify-email-redirect?token=${token}`
         : `${redirectToUrl}${separator}token=${token}`;
 
     await this._emailService.sendEmail({
