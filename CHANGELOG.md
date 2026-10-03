@@ -1,3 +1,9 @@
+## [1.6.3](https://github.com/lmatosevic/appweaver/compare/v1.6.2...v1.6.3) (2026-10-03)
+
+### Bug Fixes
+
+* enable updating of companion and tooling packages using weaver CLI ([b314767](https://github.com/lmatosevic/appweaver/commit/b3147678ced026e21c8b6ecb811f06834ed85452))
+
 ## [1.6.2](https://github.com/lmatosevic/appweaver/compare/v1.6.1...v1.6.2) (2026-10-03)
 
 ### Bug Fixes
