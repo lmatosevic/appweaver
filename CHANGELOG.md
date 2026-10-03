@@ -1,3 +1,9 @@
+## [1.6.2](https://github.com/lmatosevic/appweaver/compare/v1.6.1...v1.6.2) (2026-10-03)
+
+### Bug Fixes
+
+* security update for npm packages ([86936e6](https://github.com/lmatosevic/appweaver/commit/86936e6ea929ec0d2a76900a5c148d2305199966))
+
 ## [1.6.1](https://github.com/lmatosevic/appweaver/compare/v1.6.0...v1.6.1) (2026-09-27)
 
 ### Bug Fixes
