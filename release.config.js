@@ -94,7 +94,7 @@ module.exports = {
       '@semantic-release/exec',
       {
         successCmd:
-          'node ./tools/lock-samples.js --commit ${nextRelease.version}'
+          'node ./tools/lock-samples.js ${nextRelease.version} --commit'
       }
     ]
   ]

@@ -686,9 +686,11 @@ This runs the following steps automatically:
     ```
 8. **Git commit** (`@semantic-release/git`) — commits the updated `package.json` files and `CHANGELOG.md` with a chore
    commit, then tags the release.
-9. **Sample lockfiles** (`@semantic-release/exec`) — once the packages are on the registry, runs
-   `node ./tools/lock-samples.js --commit <version>`, which regenerates the lockfiles of the samples and commits them
-   separately, since the release commit is made before the packages are published.
+9. **Sample lockfiles** (`@semantic-release/exec`) — once the packages are published, runs
+   `node ./tools/lock-samples.js <version> --commit`, which pins the `@appweaver/*` entries of the sample lockfiles to
+   the built `dist` manifests and their `npm pack` integrity (the exact published tarballs), lets npm and Bun resolve
+   the rest of the tree, and commits them separately, since the release commit is made before the packages are
+   published. The registry is never asked for the new release, so there is no wait for it to propagate.
 10. **`postrelease`** — runs `git push --follow-tags` to push the commits and tag to the remote.
 
 ### Registry

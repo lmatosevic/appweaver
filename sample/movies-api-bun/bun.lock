@@ -36,13 +36,13 @@
     "prisma",
   ],
   "packages": {
-    "@appweaver/cli": ["@appweaver/cli@1.6.4", "", { "dependencies": { "@sinclair/typebox": "0.34.49", "@sinclair/typebox-codegen": "0.11.1", "commander": "15.0.0", "fkill": "10.0.3", "glob": "13.0.6", "prettier": "3.8.4", "rimraf": "6.1.3", "ts-node": "10.9.2", "tsc-alias": "1.8.17", "tsc-watch": "7.2.0" }, "peerDependencies": { "@appweaver/common": "^1.0.0", "@appweaver/core": "^1.0.0", "prisma": "^7.9.0", "typescript": "^5.9.0" }, "bin": { "weaver": "weaver.js" } }, "sha512-BCsj3q8fBh4hcX1e+M+R93XnxfIIFy2Hc6kEklOAeauXmor17wC+EnWKYupPNxf+5uJyy45czz86GY99PHEAyQ=="],
+    "@appweaver/cli": ["@appweaver/cli@1.7.0", "", { "dependencies": { "@sinclair/typebox": "0.34.49", "@sinclair/typebox-codegen": "0.11.1", "commander": "15.0.0", "fkill": "10.0.3", "glob": "13.0.6", "prettier": "3.8.4", "rimraf": "6.1.3", "ts-node": "10.9.2", "tsc-alias": "1.8.17", "tsc-watch": "7.2.0" }, "peerDependencies": { "@appweaver/common": "^1.7.0", "@appweaver/core": "^1.7.0", "prisma": "^7.9.0", "typescript": "^5.9.0" }, "bin": { "weaver": "weaver.js" } }, "sha512-SRHS4DpivAE8PzxCO+Mf9QffGimVco4CelgL7AosipYj4mW7lEfDbVVS+tB0xXBdywsr5Vl2Ra3o8xJJ4FI3gA=="],
 
-    "@appweaver/client": ["@appweaver/client@1.6.4", "", { "dependencies": { "commander": "15.0.0", "js-yaml": "5.2.3", "openapi-fetch": "0.17.0", "openapi-typescript": "7.13.0", "openapi-typescript-helpers": "0.1.0", "prettier": "3.8.4", "typescript": "5.9.3" }, "peerDependencies": { "rxjs": "^7.8.0" }, "optionalPeers": ["rxjs"], "bin": { "weaver-client": "cjs/weaver-client.js" } }, "sha512-TgxTCGC7sX0q3DVAE5fQ1EfTEnHMmaOTWee60OwEZqTtDj6DmxA0TU03T/HU1kqlOZaGeX7i6pg9no8Xq2e7DA=="],
+    "@appweaver/client": ["@appweaver/client@1.7.0", "", { "dependencies": { "commander": "15.0.0", "js-yaml": "5.2.3", "openapi-fetch": "0.17.0", "openapi-typescript": "7.13.0", "openapi-typescript-helpers": "0.1.0", "prettier": "3.8.4", "typescript": "5.9.3" }, "peerDependencies": { "rxjs": "^7.8.0" }, "optionalPeers": ["rxjs"], "bin": { "weaver-client": "cjs/weaver-client.js" } }, "sha512-vhFf+qetnvmyXKx4fUaIJl0JzFF2h2FyUaNxsCSN6Vq0ZPS5eGHYg+tKQfYRTJtiQ9NBKXpa0fMCc3Gi59x9dg=="],
 
-    "@appweaver/common": ["@appweaver/common@1.6.4", "", { "dependencies": { "@sinclair/typebox": "0.34.49", "date-fns": "4.4.0", "dotenv": "17.4.2", "dotenv-expand": "13.0.0", "generate-api-key": "1.0.2", "glob": "13.0.6", "pino": "10.3.1", "pino-pretty": "13.1.3", "pluralize": "8.0.0", "rotating-file-stream": "3.2.9" } }, "sha512-zP9xAKUz5mynTwWN4guD60TFsGX7qXDwQQqt64OtC88Huhl6eW/Xa6MlFqzN42QFjWYi9Kayy632pfFmPIBL5w=="],
+    "@appweaver/common": ["@appweaver/common@1.7.0", "", { "dependencies": { "@sinclair/typebox": "0.34.49", "date-fns": "4.4.0", "dotenv": "17.4.2", "dotenv-expand": "13.0.0", "generate-api-key": "1.0.2", "glob": "13.0.6", "pino": "10.3.1", "pino-pretty": "13.1.3", "pluralize": "8.0.0", "rotating-file-stream": "3.2.9" } }, "sha512-UWI37pbxAQldAPMiMoPJLzpTubGmvXFrLXvibU7i5c9TBoyiieUruj2EkJgT3JSi7I8K+Y0sDgq9WLQsuWiE3w=="],
 
-    "@appweaver/core": ["@appweaver/core@1.6.4", "", { "dependencies": { "@fastify/auth": "5.1.1", "@fastify/basic-auth": "6.3.0", "@fastify/cors": "11.3.0", "@fastify/helmet": "13.1.1", "@fastify/jwt": "10.2.2", "@fastify/multipart": "10.1.2", "@fastify/oauth2": "8.3.0", "@fastify/rate-limit": "11.2.0", "@fastify/request-context": "7.0.0", "@fastify/static": "10.1.5", "@fastify/swagger": "9.9.1", "@fastify/swagger-ui": "6.1.1", "@fastify/type-provider-typebox": "6.1.0", "@sinclair/typebox": "0.34.49", "bcrypt": "6.0.0", "csv-stringify": "6.8.0", "date-fns": "4.4.0", "fastify": "5.12.5", "fastify-plugin": "6.0.0", "flatted": "3.4.2", "sharp": "0.35.5" }, "peerDependencies": { "@appweaver/common": "^1.0.0", "@prisma/client": "^7.9.0" } }, "sha512-VJr16fWjTRLcf5RuYTCMUrio0mVld3x8RQmQ69jEIp5sKtDon2jBYOA+A3kaULx2IUTe0SyRjIY/1qREz8BqZA=="],
+    "@appweaver/core": ["@appweaver/core@1.7.0", "", { "dependencies": { "@fastify/auth": "5.1.1", "@fastify/basic-auth": "6.3.0", "@fastify/cors": "11.3.0", "@fastify/helmet": "13.1.1", "@fastify/jwt": "10.2.2", "@fastify/multipart": "10.1.2", "@fastify/oauth2": "8.3.0", "@fastify/rate-limit": "11.2.0", "@fastify/request-context": "7.0.0", "@fastify/static": "10.1.5", "@fastify/swagger": "9.9.1", "@fastify/swagger-ui": "6.1.1", "@fastify/type-provider-typebox": "6.1.0", "@sinclair/typebox": "0.34.49", "csv-stringify": "6.8.0", "date-fns": "4.4.0", "fastify": "5.12.5", "fastify-plugin": "6.0.0", "flatted": "3.4.2", "sharp": "0.35.5" }, "peerDependencies": { "@appweaver/common": "^1.7.0", "@prisma/client": "^7.9.0" } }, "sha512-EgVlBIh3tZPtxTB/aAH/md+W+0YPwDtyjXtkoygm2TU0q7JniFPXL/W8UEtTYJGo3uPdlLCPpJ/24LJwATWJGw=="],
 
     "@babel/code-frame": ["@babel/code-frame@7.29.7", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.29.7", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw=="],
 
@@ -436,8 +436,6 @@
 
     "base-x": ["base-x@4.0.1", "", {}, "sha512-uAZ8x6r6S3aUM9rbHGVOIsR15U/ZSc82b3ymnCPsT45Gk1DDvhDPdIgB5MrhirZWt+5K0EEPQH985kNqZgNPFw=="],
 
-    "bcrypt": ["bcrypt@6.0.0", "", { "dependencies": { "node-addon-api": "^8.3.0", "node-gyp-build": "^4.8.4" } }, "sha512-cU8v/EGSrnH+HnxV2z0J7/blxH8gq7Xh2JFT6Aroax7UohdmiJJlxApMxtKfuI7z68NvvVcmR78k2LbT6efhRg=="],
-
     "better-result": ["better-result@2.10.0", "", {}, "sha512-oQhh0y1qo2/ZKdAAEvHZAqKKiHOFU5k/bW96fE2ScgQOVkJRiHwB+nOS1SgFsYqRlxMDWvefXi9Q3px7QvgNDw=="],
 
     "binary-extensions": ["binary-extensions@2.3.0", "", {}, "sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw=="],
@@ -804,11 +802,7 @@
 
     "natural-compare": ["natural-compare@1.4.0", "", {}, "sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw=="],
 
-    "node-addon-api": ["node-addon-api@8.9.2", "", {}, "sha512-VijLXbi3UACN69I0JVXJsX4tjACjNoQDgv2gTF6sx2wWEi8tkSg2eX8p5gSIFi8z2+DL3oHmY6OyKce38SDolg=="],
-
     "node-cleanup": ["node-cleanup@2.1.2", "", {}, "sha512-qN8v/s2PAJwGUtr1/hYTpNKlD6Y9rc4p8KSmJXyGdYGZsDGKXrGThikLFP9OCHFeLeEpQzPwiAtdIvBLqm//Hw=="],
-
-    "node-gyp-build": ["node-gyp-build@4.8.4", "", { "bin": { "node-gyp-build": "bin.js", "node-gyp-build-optional": "optional.js", "node-gyp-build-test": "build-test.js" } }, "sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ=="],
 
     "normalize-path": ["normalize-path@3.0.0", "", {}, "sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA=="],
 
