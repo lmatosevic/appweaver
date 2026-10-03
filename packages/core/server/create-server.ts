@@ -1,5 +1,5 @@
 import path from 'node:path';
-import Fastify, { FastifyPluginCallback, LogController } from 'fastify';
+import Fastify, { LogController } from 'fastify';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import fastifyCors from '@fastify/cors';
 import fastifyHelmet from '@fastify/helmet';
@@ -25,6 +25,7 @@ import auth from '../security/auth';
 import caching from '../cache/caching';
 import { Router, Server } from '../types';
 import { info } from './info-route';
+import { PluginEntry } from './register-plugin';
 import schemas from './schemas';
 import swagger from './swagger';
 
@@ -152,8 +153,7 @@ export function createServer(): Server {
   });
 
   // Register all defined plugins
-  const plugins = injectAll<FastifyPluginCallback>(PLUGIN);
-  for (const plugin of plugins) {
+  for (const { plugin } of injectAll<PluginEntry>(PLUGIN)) {
     server.register(plugin);
   }
 

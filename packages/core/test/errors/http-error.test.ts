@@ -26,8 +26,7 @@ describe('http-error', () => {
     test('appends the cause message outside of production', () => {
       const error = new HttpError('Create failed', 500, new Error('db down'));
 
-      expect(error.message).toContain('Create failed');
-      expect(error.message).toContain('db down');
+      expect(error.message).toBe('Create failed (db down)');
     });
 
     test('stringifies a non error cause', () => {

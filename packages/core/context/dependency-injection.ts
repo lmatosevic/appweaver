@@ -154,17 +154,9 @@ export function inject<T = DefinitionValue, R extends boolean = true>(
 
   if (isString(nameOrClass)) {
     name = nameOrClass;
-    if (name.endsWith('Model')) {
-      definition = context.resource.models.get(name.replace(/Model$/, ''));
-    } else if (name.endsWith('Service')) {
-      definition = context.resource.services.get(name.replace(/Service$/, ''));
-    } else if (name.endsWith('Routes')) {
-      definition = context.resource.routes.get(name.replace(/Routes$/, ''));
-    } else if (name.endsWith('Policy')) {
-      definition = context.resource.policies.get(name.replace(/Policy$/, ''));
-    } else {
-      definition = findFirstDefinition(name);
-    }
+    // A definition registered under the exact name wins over a resource whose
+    // name only ends with one of the resource suffixes
+    definition = findFirstDefinition(name) ?? findResourceDefinition(name);
   } else {
     name = isSymbol(nameOrClass) ? nameOrClass : nameOrClass.name;
     definition = findFirstDefinition(name);
@@ -345,7 +337,31 @@ function findFirstDefinition(
 }
 
 /**
- * Checks the provided class or definition and initializes it if necessary.
+ * Finds a resource model, service, routes, or policy by a name suffixed with the resource type, i.e. `PostService`
+ * for the service of the `Post` model.
+ *
+ * @param {string} name - The suffixed name of the resource definition.
+ * @return {DefinitionValue|undefined} The matching resource definition if found, otherwise undefined.
+ */
+function findResourceDefinition(name: string): DefinitionValue | undefined {
+  if (name.endsWith('Model')) {
+    return context.resource.models.get(name.replace(/Model$/, ''));
+  }
+  if (name.endsWith('Service')) {
+    return context.resource.services.get(name.replace(/Service$/, ''));
+  }
+  if (name.endsWith('Routes')) {
+    return context.resource.routes.get(name.replace(/Routes$/, ''));
+  }
+  if (name.endsWith('Policy')) {
+    return context.resource.policies.get(name.replace(/Policy$/, ''));
+  }
+  return undefined;
+}
+
+/**
+ * Checks the provided class or definition and initializes it if necessary. The instance replaces the class in the
+ * very definition it was stored in, so every class appended under a shared name keeps its own single instance.
  *
  * @param {string | symbol | DefinitionClass | FunctionType} nameOrClass - The name or class to evaluate and potentially initialize.
  * @param {DefinitionValue} [value] - The value to check and initialize if it is a constructor.
@@ -358,7 +374,18 @@ function checkClassAndInit(
   if (value && isConstructor(value)) {
     const instance = new value();
     if (instance) {
-      define(instance, nameOrClass, 'override');
+      const name =
+        isString(nameOrClass) || isSymbol(nameOrClass)
+          ? nameOrClass
+          : nameOrClass.name;
+      const entry = context.definitions.find(
+        (def) => def.name === name && def.value === value
+      );
+      if (entry) {
+        entry.value = instance;
+      } else {
+        define(instance, nameOrClass, 'override');
+      }
       return instance;
     }
   }

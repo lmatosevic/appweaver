@@ -175,7 +175,7 @@ export class CacheService {
           }
         }
       }
-    } else if (data.relations && data.relations.length > 1) {
+    } else if (data.relations && data.relations.length > 0) {
       allRelations.push(...data.relations);
     }
 

@@ -1,4 +1,3 @@
-import path from 'node:path';
 import {
   camelToSnakeCase,
   capitalize,
@@ -17,9 +16,7 @@ export function createRoutes(
   config: ResourceRoutesConfig,
   override: boolean = false
 ): ResourceRoutes {
-  const name = capitalize(
-    config.modelName || path.basename(path.dirname(__dirname))
-  );
+  const name = capitalize(config.modelName);
 
   const basePath =
     config.path || camelToSnakeCase(plural(name), '-').toLowerCase();

@@ -1,7 +1,7 @@
 import path from 'node:path';
 import fsp from 'node:fs/promises';
 import prettier from 'prettier';
-import { TModule, TObject, TSchema, Type } from '@sinclair/typebox';
+import { KindGuard, TModule, TObject, TSchema, Type } from '@sinclair/typebox';
 import { ModelToTypeScript } from '@sinclair/typebox-codegen';
 import {
   DateType,
@@ -134,7 +134,11 @@ function transformUnsafeTypes(schema: TObject): TObject {
 
   for (const [name, field] of Object.entries(schema.properties)) {
     if (field.type === 'string' && isArray(field.enum)) {
-      properties[name] = EnumType(field.enum);
+      // A new schema, which has to be marked optional again like the field
+      const enumType = EnumType(field.enum);
+      properties[name] = KindGuard.IsOptional(field)
+        ? Type.Optional(enumType)
+        : enumType;
     } else if (
       field.type === 'string' &&
       ['date-time', 'date'].includes(field.format)

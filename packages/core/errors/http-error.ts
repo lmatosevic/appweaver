@@ -24,7 +24,7 @@ export class HttpError extends Error {
   ) {
     super(
       (config.APP_ENV as Environment) !== Environment.Production && error
-        ? ` ${text} (${errorMessage(error)})`
+        ? `${text} (${errorMessage(error)})`
         : text
     );
   }

@@ -654,7 +654,7 @@ export type UserCreate = {
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
   roles: Array<
@@ -673,7 +673,7 @@ export type UserUpdate = {
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
   roles?: Array<
@@ -692,7 +692,7 @@ export type UserRelationCreate = {
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
 };
@@ -706,7 +706,7 @@ export type UserRelationUpdate = {
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
 };
@@ -720,7 +720,7 @@ export type UserRelationInput = {
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
 };

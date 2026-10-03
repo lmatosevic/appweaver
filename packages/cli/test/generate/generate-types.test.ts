@@ -146,6 +146,36 @@ describe('generate-types', () => {
       expect(types).toContain(`status: ('draft' | 'published')`);
     });
 
+    test('keeps an optional enum optional', async () => {
+      const { types } = await generate({
+        Post: model(
+          'Post',
+          Type.Object({
+            status: Type.Optional(
+              Type.String({ enum: ['draft', 'published'] })
+            ),
+            kind: Type.String({ enum: ['news', 'blog'] })
+          })
+        )
+      });
+
+      expect(types).toContain(`status?: ('draft' | 'published')`);
+      expect(types).toContain(`kind: ('news' | 'blog')`);
+    });
+
+    test('keeps an optional date optional', async () => {
+      const { types } = await generate({
+        Post: model(
+          'Post',
+          Type.Object({
+            publishedAt: Type.Optional(Type.String({ format: 'date-time' }))
+          })
+        )
+      });
+
+      expect(types).toContain('publishedAt?: Date');
+    });
+
     test('converts date formats into Date types', async () => {
       const { types } = await generate({
         Post: model(

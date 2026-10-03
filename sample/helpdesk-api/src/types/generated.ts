@@ -212,7 +212,7 @@ export type SlaPolicyCreate = {
 };
 
 export type SlaPolicyUpdate = {
-  priority: 'Low' | 'Normal' | 'High' | 'Urgent';
+  priority?: 'Low' | 'Normal' | 'High' | 'Urgent';
   firstResponseMinutes?: number;
   resolutionMinutes?: number;
 };
@@ -225,14 +225,14 @@ export type SlaPolicyRelationCreate = {
 
 export type SlaPolicyRelationUpdate = {
   id: number;
-  priority: 'Low' | 'Normal' | 'High' | 'Urgent';
+  priority?: 'Low' | 'Normal' | 'High' | 'Urgent';
   firstResponseMinutes?: number;
   resolutionMinutes?: number;
 };
 
 export type SlaPolicyRelationInput = {
   id?: number;
-  priority: 'Low' | 'Normal' | 'High' | 'Urgent';
+  priority?: 'Low' | 'Normal' | 'High' | 'Urgent';
   firstResponseMinutes?: number;
   resolutionMinutes?: number;
 };
@@ -566,8 +566,8 @@ export type TicketMultiple = {
 
 export type TicketCreate = {
   subject: string;
-  priority: 'Low' | 'Normal' | 'High' | 'Urgent';
-  channel: 'Web' | 'Email' | 'Api';
+  priority?: 'Low' | 'Normal' | 'High' | 'Urgent';
+  channel?: 'Web' | 'Email' | 'Api';
   description: string;
   customer: CustomerRelationInput | number;
   team?:
@@ -585,8 +585,8 @@ export type TicketCreate = {
 
 export type TicketUpdate = {
   subject?: string;
-  status: 'New' | 'Open' | 'Pending' | 'Resolved' | 'Closed';
-  priority: 'Low' | 'Normal' | 'High' | 'Urgent';
+  status?: 'New' | 'Open' | 'Pending' | 'Resolved' | 'Closed';
+  priority?: 'Low' | 'Normal' | 'High' | 'Urgent';
   team?:
     | {
         id: number;
@@ -602,25 +602,25 @@ export type TicketUpdate = {
 
 export type TicketRelationCreate = {
   subject: string;
-  priority: 'Low' | 'Normal' | 'High' | 'Urgent';
-  channel: 'Web' | 'Email' | 'Api';
+  priority?: 'Low' | 'Normal' | 'High' | 'Urgent';
+  channel?: 'Web' | 'Email' | 'Api';
   description: string;
 };
 
 export type TicketRelationUpdate = {
   id: string;
   subject?: string;
-  status: 'New' | 'Open' | 'Pending' | 'Resolved' | 'Closed';
-  priority: 'Low' | 'Normal' | 'High' | 'Urgent';
+  status?: 'New' | 'Open' | 'Pending' | 'Resolved' | 'Closed';
+  priority?: 'Low' | 'Normal' | 'High' | 'Urgent';
 };
 
 export type TicketRelationInput = {
   id?: string;
   subject?: string;
-  priority: 'Low' | 'Normal' | 'High' | 'Urgent';
-  channel: 'Web' | 'Email' | 'Api';
+  priority?: 'Low' | 'Normal' | 'High' | 'Urgent';
+  channel?: 'Web' | 'Email' | 'Api';
   description?: string;
-  status: 'New' | 'Open' | 'Pending' | 'Resolved' | 'Closed';
+  status?: 'New' | 'Open' | 'Pending' | 'Resolved' | 'Closed';
 };
 
 export type TicketQuery = QueryFilter<Ticket>;
@@ -696,7 +696,7 @@ export type UserCreate = {
   name: string;
   email: string;
   available?: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
   team?:
@@ -716,7 +716,7 @@ export type UserUpdate = {
   name?: string;
   email?: string;
   available?: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
   team?:
@@ -736,7 +736,7 @@ export type UserRelationCreate = {
   name: string;
   email: string;
   available?: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
 };
@@ -746,7 +746,7 @@ export type UserRelationUpdate = {
   name?: string;
   email?: string;
   available?: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
 };
@@ -756,7 +756,7 @@ export type UserRelationInput = {
   name?: string;
   email?: string;
   available?: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
 };

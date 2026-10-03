@@ -9,6 +9,8 @@ import { LifecycleManager } from './lifecycle-manager';
  */
 export class Application extends LifecycleManager {
   private _started = false;
+  /** The process handlers added on start, removed again on stop */
+  private _processHandlers: [string, (...args: any[]) => void][] = [];
 
   constructor(private readonly _server: Server) {
     super();
@@ -46,35 +48,7 @@ export class Application extends LifecycleManager {
 
     Object.freeze(context);
 
-    // Add a termination handler for gracefully stopping the application
-    const shutdown = async () => {
-      await this.stop();
-      process.exit(0);
-    };
-    process.on('SIGTERM', shutdown);
-    process.on('SIGINT', shutdown);
-
-    // Add unhandled rejection handler
-    process.on('unhandledRejection', async (err) => {
-      logger.fatal(err, 'Unhandled rejection');
-      try {
-        await this.stop();
-      } catch (e) {
-        logger.error(e, `Error while trying to stop application`);
-      }
-      process.exit(1);
-    });
-
-    // Add uncaught exception handler
-    process.on('uncaughtException', async (err) => {
-      logger.fatal(err, 'Uncaught exception');
-      try {
-        await this.stop();
-      } catch (e) {
-        logger.error(e, `Error while trying to stop application`);
-      }
-      process.exit(2);
-    });
+    this.addProcessHandlers();
 
     if (startServer) {
       return this._server.listen({
@@ -99,13 +73,17 @@ export class Application extends LifecycleManager {
       return;
     }
 
-    logger.info('Application stopped');
-
     this._started = false;
+
+    this.removeProcessHandlers();
+
+    // The server stops accepting requests and waits for the in-flight ones
+    // first, so none of them reaches an already destroyed service
+    await this._server.close();
 
     await this.destroy();
 
-    await this._server.close();
+    logger.info('Application stopped');
   }
 
   /**
@@ -125,5 +103,52 @@ export class Application extends LifecycleManager {
     }
 
     return JSON.stringify(document, null, 4);
+  }
+
+  /**
+   * Adds the process handlers that stop the application gracefully on a termination signal, an unhandled rejection,
+   * or an uncaught exception, and then exit the process.
+   *
+   * @internal
+   */
+  private addProcessHandlers(): void {
+    const shutdown = async () => {
+      await this.stop();
+      process.exit(0);
+    };
+
+    const fail =
+      (message: string, exitCode: number) => async (err: unknown) => {
+        logger.fatal(err, message);
+        try {
+          await this.stop();
+        } catch (e) {
+          logger.error(e, `Error while trying to stop application`);
+        }
+        process.exit(exitCode);
+      };
+
+    this._processHandlers = [
+      ['SIGTERM', shutdown],
+      ['SIGINT', shutdown],
+      ['unhandledRejection', fail('Unhandled rejection', 1)],
+      ['uncaughtException', fail('Uncaught exception', 2)]
+    ];
+
+    for (const [event, handler] of this._processHandlers) {
+      process.on(event, handler);
+    }
+  }
+
+  /**
+   * Removes the process handlers added on start, so a stopped application no longer reacts to the process events.
+   *
+   * @internal
+   */
+  private removeProcessHandlers(): void {
+    for (const [event, handler] of this._processHandlers) {
+      process.off(event, handler);
+    }
+    this._processHandlers = [];
   }
 }

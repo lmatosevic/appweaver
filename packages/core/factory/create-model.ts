@@ -1,4 +1,3 @@
-import path from 'node:path';
 import { Kind, TObject, TSchema, Type } from '@sinclair/typebox';
 import {
   AnyJson,
@@ -57,9 +56,7 @@ export function createModel(
 }
 
 function buildModel(config: ResourceModelConfig): ResourceModel {
-  const name = capitalize(
-    config.name || path.basename(path.dirname(__dirname))
-  );
+  const name = capitalize(config.name);
 
   const idSchema = buildIdSchema(config?.id);
   const auditSchema = buildAuditSchema(config?.audit, hasSoftDelete(config));

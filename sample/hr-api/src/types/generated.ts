@@ -53,9 +53,9 @@ export type CompensationMultiple = {
 
 export type CompensationCreate = {
   baseSalary: number;
-  currency: 'EUR' | 'USD' | 'GBP';
+  currency?: 'EUR' | 'USD' | 'GBP';
   bonusTargetPercent?: number;
-  reason: 'Hire' | 'Promotion' | 'Adjustment' | 'Market';
+  reason?: 'Hire' | 'Promotion' | 'Adjustment' | 'Market';
   effectiveFrom: Date;
   notes?: string | null;
   employee:
@@ -67,9 +67,9 @@ export type CompensationCreate = {
 
 export type CompensationUpdate = {
   baseSalary?: number;
-  currency: 'EUR' | 'USD' | 'GBP';
+  currency?: 'EUR' | 'USD' | 'GBP';
   bonusTargetPercent?: number;
-  reason: 'Hire' | 'Promotion' | 'Adjustment' | 'Market';
+  reason?: 'Hire' | 'Promotion' | 'Adjustment' | 'Market';
   effectiveFrom?: Date;
   notes?: string | null;
   employee?:
@@ -81,9 +81,9 @@ export type CompensationUpdate = {
 
 export type CompensationRelationCreate = {
   baseSalary: number;
-  currency: 'EUR' | 'USD' | 'GBP';
+  currency?: 'EUR' | 'USD' | 'GBP';
   bonusTargetPercent?: number;
-  reason: 'Hire' | 'Promotion' | 'Adjustment' | 'Market';
+  reason?: 'Hire' | 'Promotion' | 'Adjustment' | 'Market';
   effectiveFrom: Date;
   notes?: string | null;
 };
@@ -91,9 +91,9 @@ export type CompensationRelationCreate = {
 export type CompensationRelationUpdate = {
   id: number;
   baseSalary?: number;
-  currency: 'EUR' | 'USD' | 'GBP';
+  currency?: 'EUR' | 'USD' | 'GBP';
   bonusTargetPercent?: number;
-  reason: 'Hire' | 'Promotion' | 'Adjustment' | 'Market';
+  reason?: 'Hire' | 'Promotion' | 'Adjustment' | 'Market';
   effectiveFrom?: Date;
   notes?: string | null;
 };
@@ -101,9 +101,9 @@ export type CompensationRelationUpdate = {
 export type CompensationRelationInput = {
   id?: number;
   baseSalary?: number;
-  currency: 'EUR' | 'USD' | 'GBP';
+  currency?: 'EUR' | 'USD' | 'GBP';
   bonusTargetPercent?: number;
-  reason: 'Hire' | 'Promotion' | 'Adjustment' | 'Market';
+  reason?: 'Hire' | 'Promotion' | 'Adjustment' | 'Market';
   effectiveFrom?: Date;
   notes?: string | null;
 };
@@ -264,7 +264,7 @@ export type EmployeeDocumentMultiple = {
 
 export type EmployeeDocumentCreate = {
   title: string;
-  category: 'Contract' | 'Payslip' | 'Certificate' | 'Policy' | 'Other';
+  category?: 'Contract' | 'Payslip' | 'Certificate' | 'Policy' | 'Other';
   validUntil?: Date | null;
   employee:
     | {
@@ -275,7 +275,7 @@ export type EmployeeDocumentCreate = {
 
 export type EmployeeDocumentUpdate = {
   title?: string;
-  category: 'Contract' | 'Payslip' | 'Certificate' | 'Policy' | 'Other';
+  category?: 'Contract' | 'Payslip' | 'Certificate' | 'Policy' | 'Other';
   validUntil?: Date | null;
   employee?:
     | {
@@ -286,21 +286,21 @@ export type EmployeeDocumentUpdate = {
 
 export type EmployeeDocumentRelationCreate = {
   title: string;
-  category: 'Contract' | 'Payslip' | 'Certificate' | 'Policy' | 'Other';
+  category?: 'Contract' | 'Payslip' | 'Certificate' | 'Policy' | 'Other';
   validUntil?: Date | null;
 };
 
 export type EmployeeDocumentRelationUpdate = {
   id: number;
   title?: string;
-  category: 'Contract' | 'Payslip' | 'Certificate' | 'Policy' | 'Other';
+  category?: 'Contract' | 'Payslip' | 'Certificate' | 'Policy' | 'Other';
   validUntil?: Date | null;
 };
 
 export type EmployeeDocumentRelationInput = {
   id?: number;
   title?: string;
-  category: 'Contract' | 'Payslip' | 'Certificate' | 'Policy' | 'Other';
+  category?: 'Contract' | 'Payslip' | 'Certificate' | 'Policy' | 'Other';
   validUntil?: Date | null;
 };
 
@@ -424,9 +424,9 @@ export type EmployeeCreate = {
   lastName: string;
   email: string;
   phone?: string | null;
-  employmentType: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
+  employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   hireDate: Date;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
   department?:
@@ -457,10 +457,10 @@ export type EmployeeUpdate = {
   lastName?: string;
   email?: string;
   phone?: string | null;
-  employmentType: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
-  status: 'Active' | 'OnLeave' | 'Terminated';
+  employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
+  status?: 'Active' | 'OnLeave' | 'Terminated';
   hireDate?: Date;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
   department?:
@@ -491,9 +491,9 @@ export type EmployeeRelationCreate = {
   lastName: string;
   email: string;
   phone?: string | null;
-  employmentType: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
+  employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   hireDate: Date;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
 };
@@ -504,10 +504,10 @@ export type EmployeeRelationUpdate = {
   lastName?: string;
   email?: string;
   phone?: string | null;
-  employmentType: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
-  status: 'Active' | 'OnLeave' | 'Terminated';
+  employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
+  status?: 'Active' | 'OnLeave' | 'Terminated';
   hireDate?: Date;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
 };
@@ -518,12 +518,12 @@ export type EmployeeRelationInput = {
   lastName?: string;
   email?: string;
   phone?: string | null;
-  employmentType: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
+  employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   hireDate?: Date;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
-  status: 'Active' | 'OnLeave' | 'Terminated';
+  status?: 'Active' | 'OnLeave' | 'Terminated';
 };
 
 export type EmployeeQuery = QueryFilter<Employee>;
@@ -692,7 +692,7 @@ export type LeaveRequestMultiple = {
 };
 
 export type LeaveRequestCreate = {
-  type: 'Annual' | 'Sick' | 'Parental' | 'Unpaid';
+  type?: 'Annual' | 'Sick' | 'Parental' | 'Unpaid';
   startDate: Date;
   endDate: Date;
   reason?: string | null;
@@ -704,7 +704,7 @@ export type LeaveRequestCreate = {
 };
 
 export type LeaveRequestUpdate = {
-  type: 'Annual' | 'Sick' | 'Parental' | 'Unpaid';
+  type?: 'Annual' | 'Sick' | 'Parental' | 'Unpaid';
   startDate?: Date;
   endDate?: Date;
   reason?: string | null;
@@ -716,7 +716,7 @@ export type LeaveRequestUpdate = {
 };
 
 export type LeaveRequestRelationCreate = {
-  type: 'Annual' | 'Sick' | 'Parental' | 'Unpaid';
+  type?: 'Annual' | 'Sick' | 'Parental' | 'Unpaid';
   startDate: Date;
   endDate: Date;
   reason?: string | null;
@@ -724,7 +724,7 @@ export type LeaveRequestRelationCreate = {
 
 export type LeaveRequestRelationUpdate = {
   id: number;
-  type: 'Annual' | 'Sick' | 'Parental' | 'Unpaid';
+  type?: 'Annual' | 'Sick' | 'Parental' | 'Unpaid';
   startDate?: Date;
   endDate?: Date;
   reason?: string | null;
@@ -732,7 +732,7 @@ export type LeaveRequestRelationUpdate = {
 
 export type LeaveRequestRelationInput = {
   id?: number;
-  type: 'Annual' | 'Sick' | 'Parental' | 'Unpaid';
+  type?: 'Annual' | 'Sick' | 'Parental' | 'Unpaid';
   startDate?: Date;
   endDate?: Date;
   reason?: string | null;
@@ -805,7 +805,7 @@ export type PerformanceReviewCreate = {
   strengths?: string | null;
   improvements?: string | null;
   goals?: any | null;
-  status: 'Draft' | 'Shared';
+  status?: 'Draft' | 'Shared';
   employee:
     | {
         id: string;
@@ -819,7 +819,7 @@ export type PerformanceReviewUpdate = {
   strengths?: string | null;
   improvements?: string | null;
   goals?: any | null;
-  status: 'Draft' | 'Shared';
+  status?: 'Draft' | 'Shared';
   employee?:
     | {
         id: string;
@@ -833,7 +833,7 @@ export type PerformanceReviewRelationCreate = {
   strengths?: string | null;
   improvements?: string | null;
   goals?: any | null;
-  status: 'Draft' | 'Shared';
+  status?: 'Draft' | 'Shared';
 };
 
 export type PerformanceReviewRelationUpdate = {
@@ -843,7 +843,7 @@ export type PerformanceReviewRelationUpdate = {
   strengths?: string | null;
   improvements?: string | null;
   goals?: any | null;
-  status: 'Draft' | 'Shared';
+  status?: 'Draft' | 'Shared';
 };
 
 export type PerformanceReviewRelationInput = {
@@ -853,7 +853,7 @@ export type PerformanceReviewRelationInput = {
   strengths?: string | null;
   improvements?: string | null;
   goals?: any | null;
-  status: 'Draft' | 'Shared';
+  status?: 'Draft' | 'Shared';
 };
 
 export type PerformanceReviewQuery = QueryFilter<PerformanceReview>;
@@ -914,7 +914,7 @@ export type PositionMultiple = {
 
 export type PositionCreate = {
   title: string;
-  level: 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Principal';
+  level?: 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Principal';
   salaryMin: number;
   salaryMax: number;
   openings?: number;
@@ -927,7 +927,7 @@ export type PositionCreate = {
 
 export type PositionUpdate = {
   title?: string;
-  level: 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Principal';
+  level?: 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Principal';
   salaryMin?: number;
   salaryMax?: number;
   openings?: number;
@@ -940,7 +940,7 @@ export type PositionUpdate = {
 
 export type PositionRelationCreate = {
   title: string;
-  level: 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Principal';
+  level?: 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Principal';
   salaryMin: number;
   salaryMax: number;
   openings?: number;
@@ -949,7 +949,7 @@ export type PositionRelationCreate = {
 export type PositionRelationUpdate = {
   id: number;
   title?: string;
-  level: 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Principal';
+  level?: 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Principal';
   salaryMin?: number;
   salaryMax?: number;
   openings?: number;
@@ -958,7 +958,7 @@ export type PositionRelationUpdate = {
 export type PositionRelationInput = {
   id?: number;
   title?: string;
-  level: 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Principal';
+  level?: 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Principal';
   salaryMin?: number;
   salaryMax?: number;
   openings?: number;

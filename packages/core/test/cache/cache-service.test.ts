@@ -200,14 +200,14 @@ describe('cache-service', () => {
       expect(key).toContain('!Post!User!');
     });
 
-    test('ignores a single explicit relation', () => {
+    test('uses a single explicit relation', () => {
       const key = service.buildCacheKey({
         baseKey: 'route',
         url: '/api/posts',
         relations: ['Post']
       });
 
-      expect(key).not.toContain('!Post!');
+      expect(key).toContain('!Post!');
     });
 
     test('collects the model relations for a model based key', () => {

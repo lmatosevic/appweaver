@@ -1,4 +1,3 @@
-import path from 'node:path';
 import {
   ActionType,
   AggregateResponse,
@@ -29,9 +28,7 @@ export function createService<T = any, C = any, U = any>(
   config: ResourceServiceConfig<T, C, U>,
   override: boolean = false
 ): Ctor<ResourceService<T, T, C, U>> {
-  const name = capitalize(
-    config.modelName || path.basename(path.dirname(__dirname))
-  );
+  const name = capitalize(config.modelName);
 
   class Service extends ResourceService<T, T, C, U> {
     [CONFIG] = config;

@@ -338,7 +338,7 @@ export type CouponMultiple = {
 
 export type CouponCreate = {
   code: string;
-  type: 'Percentage' | 'Fixed';
+  type?: 'Percentage' | 'Fixed';
   value: number;
   minOrderTotal?: number;
   validFrom?: Date | null;
@@ -349,7 +349,7 @@ export type CouponCreate = {
 
 export type CouponUpdate = {
   code?: string;
-  type: 'Percentage' | 'Fixed';
+  type?: 'Percentage' | 'Fixed';
   value?: number;
   minOrderTotal?: number;
   validFrom?: Date | null;
@@ -360,7 +360,7 @@ export type CouponUpdate = {
 
 export type CouponRelationCreate = {
   code: string;
-  type: 'Percentage' | 'Fixed';
+  type?: 'Percentage' | 'Fixed';
   value: number;
   minOrderTotal?: number;
   validFrom?: Date | null;
@@ -372,7 +372,7 @@ export type CouponRelationCreate = {
 export type CouponRelationUpdate = {
   id: number;
   code?: string;
-  type: 'Percentage' | 'Fixed';
+  type?: 'Percentage' | 'Fixed';
   value?: number;
   minOrderTotal?: number;
   validFrom?: Date | null;
@@ -384,7 +384,7 @@ export type CouponRelationUpdate = {
 export type CouponRelationInput = {
   id?: number;
   code?: string;
-  type: 'Percentage' | 'Fixed';
+  type?: 'Percentage' | 'Fixed';
   value?: number;
   minOrderTotal?: number;
   validFrom?: Date | null;
@@ -613,7 +613,7 @@ export type OrderMultiple = {
 
 export type OrderCreate = {
   number: string;
-  status:
+  status?:
     | 'Pending'
     | 'Paid'
     | 'Shipped'
@@ -660,7 +660,7 @@ export type OrderUpdate = {
 
 export type OrderRelationCreate = {
   number: string;
-  status:
+  status?:
     | 'Pending'
     | 'Paid'
     | 'Shipped'
@@ -689,7 +689,7 @@ export type OrderRelationUpdate = {
 export type OrderRelationInput = {
   id?: string;
   number?: string;
-  status:
+  status?:
     | 'Pending'
     | 'Paid'
     | 'Shipped'
@@ -804,7 +804,7 @@ export type ProductCreate = {
   price: number;
   compareAtPrice?: number | null;
   stock?: number;
-  status: 'Draft' | 'Active' | 'Archived';
+  status?: 'Draft' | 'Active' | 'Archived';
   attributes?: any | null;
   weightGrams?: number | null;
   category?:
@@ -827,7 +827,7 @@ export type ProductUpdate = {
   price?: number;
   compareAtPrice?: number | null;
   stock?: number;
-  status: 'Draft' | 'Active' | 'Archived';
+  status?: 'Draft' | 'Active' | 'Archived';
   attributes?: any | null;
   weightGrams?: number | null;
   category?:
@@ -850,7 +850,7 @@ export type ProductRelationCreate = {
   price: number;
   compareAtPrice?: number | null;
   stock?: number;
-  status: 'Draft' | 'Active' | 'Archived';
+  status?: 'Draft' | 'Active' | 'Archived';
   attributes?: any | null;
   weightGrams?: number | null;
 };
@@ -864,7 +864,7 @@ export type ProductRelationUpdate = {
   price?: number;
   compareAtPrice?: number | null;
   stock?: number;
-  status: 'Draft' | 'Active' | 'Archived';
+  status?: 'Draft' | 'Active' | 'Archived';
   attributes?: any | null;
   weightGrams?: number | null;
 };
@@ -878,7 +878,7 @@ export type ProductRelationInput = {
   price?: number;
   compareAtPrice?: number | null;
   stock?: number;
-  status: 'Draft' | 'Active' | 'Archived';
+  status?: 'Draft' | 'Active' | 'Archived';
   attributes?: any | null;
   weightGrams?: number | null;
 };
@@ -1061,7 +1061,7 @@ export type UserCreate = {
   email: string;
   phone?: string | null;
   marketingOptIn?: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
   roles: Array<
@@ -1078,7 +1078,7 @@ export type UserUpdate = {
   email?: string;
   phone?: string | null;
   marketingOptIn?: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
   roles?: Array<
@@ -1095,7 +1095,7 @@ export type UserRelationCreate = {
   email: string;
   phone?: string | null;
   marketingOptIn?: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
 };
@@ -1107,7 +1107,7 @@ export type UserRelationUpdate = {
   email?: string;
   phone?: string | null;
   marketingOptIn?: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
 };
@@ -1119,7 +1119,7 @@ export type UserRelationInput = {
   email?: string;
   phone?: string | null;
   marketingOptIn?: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
 };

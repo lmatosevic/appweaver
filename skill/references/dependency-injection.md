@@ -90,6 +90,10 @@ import { inject } from '@appweaver/core';
 const apiUrl = inject<string>('ApiBaseUrl');
 ```
 
+A string token ending with `Model`, `Service`, `Routes`, or `Policy` (e.g. `'PostService'`) also resolves the resource
+definition of that model, but only when no definition was registered under that exact name, so a value defined as
+`'PaymentService'` is always injectable by that name.
+
 **Inject by symbol token:**
 
 ```ts

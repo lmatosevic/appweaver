@@ -44,7 +44,7 @@ export type CreditMultiple = {
 };
 
 export type CreditCreate = {
-  role: 'Cast' | 'Director' | 'Writer' | 'Producer' | 'Composer';
+  role?: 'Cast' | 'Director' | 'Writer' | 'Producer' | 'Composer';
   character?: string | null;
   billingOrder?: number;
   movie:
@@ -60,7 +60,7 @@ export type CreditCreate = {
 };
 
 export type CreditUpdate = {
-  role: 'Cast' | 'Director' | 'Writer' | 'Producer' | 'Composer';
+  role?: 'Cast' | 'Director' | 'Writer' | 'Producer' | 'Composer';
   character?: string | null;
   billingOrder?: number;
   movie?:
@@ -76,21 +76,21 @@ export type CreditUpdate = {
 };
 
 export type CreditRelationCreate = {
-  role: 'Cast' | 'Director' | 'Writer' | 'Producer' | 'Composer';
+  role?: 'Cast' | 'Director' | 'Writer' | 'Producer' | 'Composer';
   character?: string | null;
   billingOrder?: number;
 };
 
 export type CreditRelationUpdate = {
   id: number;
-  role: 'Cast' | 'Director' | 'Writer' | 'Producer' | 'Composer';
+  role?: 'Cast' | 'Director' | 'Writer' | 'Producer' | 'Composer';
   character?: string | null;
   billingOrder?: number;
 };
 
 export type CreditRelationInput = {
   id?: number;
-  role: 'Cast' | 'Director' | 'Writer' | 'Producer' | 'Composer';
+  role?: 'Cast' | 'Director' | 'Writer' | 'Producer' | 'Composer';
   character?: string | null;
   billingOrder?: number;
 };
@@ -276,7 +276,7 @@ export type MovieCreate = {
   originalTitle?: string | null;
   tagline?: string | null;
   overview?: string | null;
-  status: 'Announced' | 'InProduction' | 'Released';
+  status?: 'Announced' | 'InProduction' | 'Released';
   releaseDate?: Date | null;
   runtimeMinutes?: number | null;
   language?: string;
@@ -292,7 +292,7 @@ export type MovieUpdate = {
   originalTitle?: string | null;
   tagline?: string | null;
   overview?: string | null;
-  status: 'Announced' | 'InProduction' | 'Released';
+  status?: 'Announced' | 'InProduction' | 'Released';
   releaseDate?: Date | null;
   runtimeMinutes?: number | null;
   language?: string;
@@ -308,7 +308,7 @@ export type MovieRelationCreate = {
   originalTitle?: string | null;
   tagline?: string | null;
   overview?: string | null;
-  status: 'Announced' | 'InProduction' | 'Released';
+  status?: 'Announced' | 'InProduction' | 'Released';
   releaseDate?: Date | null;
   runtimeMinutes?: number | null;
   language?: string;
@@ -324,7 +324,7 @@ export type MovieRelationUpdate = {
   originalTitle?: string | null;
   tagline?: string | null;
   overview?: string | null;
-  status: 'Announced' | 'InProduction' | 'Released';
+  status?: 'Announced' | 'InProduction' | 'Released';
   releaseDate?: Date | null;
   runtimeMinutes?: number | null;
   language?: string;
@@ -340,7 +340,7 @@ export type MovieRelationInput = {
   originalTitle?: string | null;
   tagline?: string | null;
   overview?: string | null;
-  status: 'Announced' | 'InProduction' | 'Released';
+  status?: 'Announced' | 'InProduction' | 'Released';
   releaseDate?: Date | null;
   runtimeMinutes?: number | null;
   language?: string;
@@ -417,7 +417,7 @@ export type PersonMultiple = {
 export type PersonCreate = {
   name: string;
   slug: string;
-  knownFor: 'Acting' | 'Directing' | 'Writing' | 'Producing' | 'Music';
+  knownFor?: 'Acting' | 'Directing' | 'Writing' | 'Producing' | 'Music';
   birthDate?: Date | null;
   deathDate?: Date | null;
   birthPlace?: string | null;
@@ -427,7 +427,7 @@ export type PersonCreate = {
 export type PersonUpdate = {
   name?: string;
   slug?: string;
-  knownFor: 'Acting' | 'Directing' | 'Writing' | 'Producing' | 'Music';
+  knownFor?: 'Acting' | 'Directing' | 'Writing' | 'Producing' | 'Music';
   birthDate?: Date | null;
   deathDate?: Date | null;
   birthPlace?: string | null;
@@ -437,7 +437,7 @@ export type PersonUpdate = {
 export type PersonRelationCreate = {
   name: string;
   slug: string;
-  knownFor: 'Acting' | 'Directing' | 'Writing' | 'Producing' | 'Music';
+  knownFor?: 'Acting' | 'Directing' | 'Writing' | 'Producing' | 'Music';
   birthDate?: Date | null;
   deathDate?: Date | null;
   birthPlace?: string | null;
@@ -448,7 +448,7 @@ export type PersonRelationUpdate = {
   id: number;
   name?: string;
   slug?: string;
-  knownFor: 'Acting' | 'Directing' | 'Writing' | 'Producing' | 'Music';
+  knownFor?: 'Acting' | 'Directing' | 'Writing' | 'Producing' | 'Music';
   birthDate?: Date | null;
   deathDate?: Date | null;
   birthPlace?: string | null;
@@ -459,7 +459,7 @@ export type PersonRelationInput = {
   id?: number;
   name?: string;
   slug?: string;
-  knownFor: 'Acting' | 'Directing' | 'Writing' | 'Producing' | 'Music';
+  knownFor?: 'Acting' | 'Directing' | 'Writing' | 'Producing' | 'Music';
   birthDate?: Date | null;
   deathDate?: Date | null;
   birthPlace?: string | null;
@@ -641,7 +641,7 @@ export type UserCreate = {
   displayName: string;
   email: string;
   bio?: string | null;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
   roles: Array<
@@ -656,7 +656,7 @@ export type UserUpdate = {
   displayName?: string;
   email?: string;
   bio?: string | null;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
   roles?: Array<
@@ -671,7 +671,7 @@ export type UserRelationCreate = {
   displayName: string;
   email: string;
   bio?: string | null;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
 };
@@ -681,7 +681,7 @@ export type UserRelationUpdate = {
   displayName?: string;
   email?: string;
   bio?: string | null;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
 };
@@ -691,7 +691,7 @@ export type UserRelationInput = {
   displayName?: string;
   email?: string;
   bio?: string | null;
-  twoFactorAuth: 'None' | 'Email';
+  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
 };
@@ -745,7 +745,7 @@ export type WatchlistEntryMultiple = {
 };
 
 export type WatchlistEntryCreate = {
-  status: 'Planned' | 'Watching' | 'Watched';
+  status?: 'Planned' | 'Watching' | 'Watched';
   watchedAt?: Date | null;
   notes?: string | null;
   movie:
@@ -756,7 +756,7 @@ export type WatchlistEntryCreate = {
 };
 
 export type WatchlistEntryUpdate = {
-  status: 'Planned' | 'Watching' | 'Watched';
+  status?: 'Planned' | 'Watching' | 'Watched';
   watchedAt?: Date | null;
   notes?: string | null;
   movie?:
@@ -767,21 +767,21 @@ export type WatchlistEntryUpdate = {
 };
 
 export type WatchlistEntryRelationCreate = {
-  status: 'Planned' | 'Watching' | 'Watched';
+  status?: 'Planned' | 'Watching' | 'Watched';
   watchedAt?: Date | null;
   notes?: string | null;
 };
 
 export type WatchlistEntryRelationUpdate = {
   id: number;
-  status: 'Planned' | 'Watching' | 'Watched';
+  status?: 'Planned' | 'Watching' | 'Watched';
   watchedAt?: Date | null;
   notes?: string | null;
 };
 
 export type WatchlistEntryRelationInput = {
   id?: number;
-  status: 'Planned' | 'Watching' | 'Watched';
+  status?: 'Planned' | 'Watching' | 'Watched';
   watchedAt?: Date | null;
   notes?: string | null;
 };

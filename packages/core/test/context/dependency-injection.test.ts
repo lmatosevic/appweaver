@@ -211,6 +211,21 @@ describe('dependency-injection', () => {
       expect(inject('PostPolicy')).toBe(context.resource.policies.get('Post'));
     });
 
+    test('resolves a plain definition whose name ends with a resource suffix', () => {
+      const payments = { charge: jest.fn() };
+      define(payments, 'PaymentService');
+
+      expect(inject('PaymentService')).toBe(payments);
+    });
+
+    test('prefers a plain definition over a resource of the same suffixed name', () => {
+      const custom = { custom: true };
+      define(service('Post'), 'Post');
+      define(custom, 'PostService');
+
+      expect(inject('PostService')).toBe(custom);
+    });
+
     test('throws for a missing required definition', () => {
       expect(() => inject('Missing')).toThrow(
         `Definition 'Missing' is not defined in the application context`
@@ -241,6 +256,34 @@ describe('dependency-injection', () => {
       const [instance] = injectAll('Plugin');
 
       expect(instance).toBeInstanceOf(PluginA);
+    });
+
+    test('keeps a single instance of every class registered under the name', () => {
+      class PluginA {}
+      class PluginB {}
+      define(PluginA, 'Plugin', 'append');
+      define(PluginB, 'Plugin', 'append');
+
+      const first = injectAll('Plugin');
+      const second = injectAll('Plugin');
+
+      expect(first[0]).toBeInstanceOf(PluginA);
+      expect(first[1]).toBeInstanceOf(PluginB);
+      expect(second[0]).toBe(first[0]);
+      expect(second[1]).toBe(first[1]);
+    });
+
+    test('keeps one instance per name for a class registered under two names', () => {
+      class Shared {}
+      define(Shared, 'A');
+      define(Shared, 'B');
+
+      const a = inject('A');
+      const b = inject('B');
+
+      expect(a).not.toBe(b);
+      expect(inject('A')).toBe(a);
+      expect(inject('B')).toBe(b);
     });
   });
 
