@@ -1,3 +1,10 @@
+## [1.6.4](https://github.com/lmatosevic/appweaver/compare/v1.6.3...v1.6.4) (2026-10-03)
+
+### Bug Fixes
+
+* refactor generated docker-compose.yml for scaffolded apps ([39071d9](https://github.com/lmatosevic/appweaver/commit/39071d9a33f91b89bb0e30261010123121f207b8))
+* refactor generated docker-compose.yml for scaffolded apps ([683e4ea](https://github.com/lmatosevic/appweaver/commit/683e4eaa49278439e9e3e8c264f20bcdc55107fd))
+
 ## [1.6.3](https://github.com/lmatosevic/appweaver/compare/v1.6.2...v1.6.3) (2026-10-03)
 
 ### Bug Fixes
