@@ -1,0 +1,98 @@
+services:
+  redis:
+    image: redis:7.4.9
+    container_name: cms-api-redis
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 5s
+      start_interval: 5s
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - cms-api
+
+  cms-api.migrations:
+    image: cms-api:latest
+    container_name: cms-api-migrations
+    restart: no
+    build:
+      context: .
+    env_file:
+      - .env
+    environment:
+      REDIS_URL: "redis://redis:6379/0"
+    command: [ "migrations" ]
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+      - sqlite-data:/usr/app/data
+    networks:
+      - cms-api
+
+  cms-api.seed:
+    image: cms-api:latest
+    container_name: cms-api-seed
+    restart: no
+    build:
+      context: .
+    depends_on:
+      cms-api.migrations:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    environment:
+      REDIS_URL: "redis://redis:6379/0"
+    command: [ "seed" ]
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+      - sqlite-data:/usr/app/data
+    networks:
+      - cms-api
+
+  cms-api:
+    image: cms-api:latest
+    container_name: cms-api
+    restart: unless-stopped
+    build:
+      context: .
+    healthcheck:
+      test: "wget -qO - http://127.0.0.1:5001/health/ready || exit 1"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+      start_interval: 5s
+    depends_on:
+      redis:
+        condition: service_healthy
+      cms-api.seed:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:5001:5001"
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+      - sqlite-data:/usr/app/data
+    env_file:
+      - .env
+    environment:
+      SERVER_HOST: "0.0.0.0"
+      REDIS_URL: "redis://redis:6379/0"
+    networks:
+      - cms-api
+
+networks:
+  cms-api:
+    driver: bridge
+    name: cms-api-network
+
+volumes:
+  sqlite-data:
+  redis-data:

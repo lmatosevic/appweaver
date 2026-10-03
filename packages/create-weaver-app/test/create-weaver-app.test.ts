@@ -263,7 +263,10 @@ describe('create-weaver-app', () => {
 
       const pkg = readJson('my-app', 'package.json');
       expect(pkg.dependencies).toHaveProperty('@prisma/adapter-better-sqlite3');
-      expect(exists('my-app', 'data')).toBe(true);
+      expect(exists('my-app', 'data', '.gitkeep')).toBe(true);
+      expect(read('my-app', '.gitignore')).toContain(
+        '# Local SQLite database files\n/data/*.db\n/data/*.db-*\n\n# OS'
+      );
     });
 
     test('uses a separate test database url', async () => {
@@ -296,6 +299,7 @@ describe('create-weaver-app', () => {
         '@prisma/adapter-better-sqlite3'
       );
       expect(exists('my-app', 'data')).toBe(false);
+      expect(read('my-app', '.gitignore')).not.toContain('/data/');
 
       const compose = read('my-app', 'docker-compose.yml');
       expect(compose).toContain('postgres:18.4');

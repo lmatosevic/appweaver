@@ -14,7 +14,7 @@
       "pretty": false
     },
     "database": {
-      "url": "file:./cms-api.db"
+      "url": "file:./data/cms-api.db"
     }
   }
 }

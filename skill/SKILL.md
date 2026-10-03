@@ -86,6 +86,9 @@ on their default ports (`5432`, `3306`, `1433`, and `6379` for Redis), also publ
 locally. The database credentials are stored in `.env` (`DB_NAME`, `DB_USER`, `DB_PASSWORD`), and the application
 containers override the connection URLs to reach the other containers.
 
+A SQLite project keeps its database file in the `data/` directory (`file:./data/<name>.db`), which the generated
+`docker-compose.yml` mounts as the `sqlite-data` volume shared by the migration, seed, and application containers.
+
 **Example — Bun project with Sqlite:**
 
 ```sh

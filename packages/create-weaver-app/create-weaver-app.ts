@@ -157,6 +157,7 @@ program
       DATABASE_URL: getDatabaseUrl(command, sanitizedName, 'dev'),
       DATABASE_TEST_URL: getDatabaseUrl(command, sanitizedName, 'test'),
       DATABASE_ENV: getDatabaseEnv(command, sanitizedName),
+      SQLITE_GITIGNORE: getSqliteGitignore(command),
       DOCKER_APP_ENVIRONMENT: getDockerAppEnvironment(command, sanitizedName),
       DATABASE_DOCKER_SERVICE: dockerDb.service,
       DATABASE_DOCKER_MIGRATE_DEPENDS: dockerDb.migrateDepends,
@@ -225,9 +226,11 @@ program
     // Create test reports directory
     await fsp.mkdir(path.join(destDir, 'reports'));
 
-    // Create the SQLite database data directory (matches the "data/" DATABASE_URL)
+    // Create the SQLite database directory (matches the "data/" DATABASE_URL),
+    // kept in git by an empty file since the database files are ignored
     if (command.getOptionValue('database') === 'sqlite') {
       await fsp.mkdir(path.join(destDir, 'data'), { recursive: true });
+      await fsp.writeFile(path.join(destDir, 'data', '.gitkeep'), '');
     }
 
     // Add instructions for AI Agents and skill files
@@ -487,6 +490,15 @@ function getDatabaseEnv(command: Command, name: string): string {
   return `DB_NAME=${name}\nDB_USER=${user}\nDB_PASSWORD=${password}\n`;
 }
 
+/** Returns the .gitignore rules of the SQLite database files, kept in "data/". */
+function getSqliteGitignore(command: Command): string {
+  if (command.getOptionValue('database').toLowerCase() !== 'sqlite') {
+    return '';
+  }
+
+  return '# Local SQLite database files\n/data/*.db\n/data/*.db-*\n\n';
+}
+
 /**
  * Returns the environment block of the docker-compose application services,
  * pointing the database and Redis connections at the other containers.
@@ -494,6 +506,7 @@ function getDatabaseEnv(command: Command, name: string): string {
 function getDockerAppEnvironment(command: Command, name: string): string {
   const variables: string[] = [];
 
+  // The containers find the SQLite database at the same path, in the volume
   if (command.getOptionValue('database').toLowerCase() !== 'sqlite') {
     variables.push(
       `DATABASE_URL: "${getDatabaseUrl(command, name, 'dev', 'docker')}"`
