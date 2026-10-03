@@ -28,7 +28,6 @@
   "allowScripts": {
     "@prisma/engines": true,
     "@swc/core": true,
-    "bcrypt": true,
     "better-sqlite3": true,
     "msgpackr-extract": true,
     "prisma": true,

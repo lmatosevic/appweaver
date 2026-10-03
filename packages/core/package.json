@@ -43,7 +43,6 @@
     "@fastify/swagger-ui": "6.1.1",
     "@fastify/type-provider-typebox": "6.1.0",
     "@sinclair/typebox": "0.34.49",
-    "bcrypt": "6.0.0",
     "csv-stringify": "6.8.0",
     "date-fns": "4.4.0",
     "fastify": "5.12.5",
@@ -52,7 +51,7 @@
     "sharp": "0.35.5"
   },
   "devDependencies": {
-    "@appweaver/common": "^1.0.0",
+    "@appweaver/common": "^1.6.0",
     "@prisma/adapter-better-sqlite3": "7.9.1",
     "@prisma/client": "7.9.1",
     "bullmq": "5.79.1",
@@ -63,7 +62,7 @@
     "rimraf": "6.1.3"
   },
   "peerDependencies": {
-    "@appweaver/common": "^1.0.0",
+    "@appweaver/common": "^1.6.0",
     "@prisma/client": "^7.9.0"
   }
 }

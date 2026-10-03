@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import {
   AuthOTTPurpose,
   AuthScope,
@@ -38,9 +39,9 @@ import {
 
 const AUTH_KEY = 'auth';
 
-/** Checked when the user has no password hash, so the response time does not reveal which users exist */
-const TIMING_GUARD_HASH =
-  '$2b$10$oqzdcdLy7UMCSsqwyWv2muoEzKdcqb9g.ra.g/kRus25d8UYxPCQa';
+/** Checked when the user has no password hash, so the response time does not reveal which users exist. Created on
+ * first use, with the same cost as every other password hash. */
+let timingGuardHash: Promise<string> | undefined;
 
 export class AuthService {
   /** @internal */
@@ -332,7 +333,10 @@ export class AuthService {
 
     const passwordValid = await checkPassword(
       password,
-      authUser?.passwordHash ?? TIMING_GUARD_HASH
+      authUser?.passwordHash ??
+        (await (timingGuardHash ??= hashPassword(
+          randomBytes(32).toString('hex')
+        )))
     );
 
     if (

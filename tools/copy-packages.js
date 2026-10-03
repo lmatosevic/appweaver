@@ -77,6 +77,15 @@ for (const pkgName of fs.readdirSync(packagesDir)) {
       rewritePkgJson = true;
     }
 
+    // The packages are released together, so each one requires at least the
+    // version of the other packages it is published with
+    for (const dependency of Object.keys(pkgJson.peerDependencies ?? {})) {
+      if (dependency.startsWith(`${moduleName}/`)) {
+        pkgJson.peerDependencies[dependency] = `^${pkgJson.version}`;
+        rewritePkgJson = true;
+      }
+    }
+
     if (rewritePkgJson) {
       fs.writeFileSync(
         path.join(fullPath, distDir, 'package.json'),

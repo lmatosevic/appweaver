@@ -546,6 +546,23 @@ describe('create-weaver-app', () => {
       expect(exists('my-app', 'docker-compose.yml')).toBe(true);
       expect(exists('my-app', 'Dockerfile.bun')).toBe(false);
     });
+
+    test('generates the Node Dockerfile running as an unprivileged user', async () => {
+      await run('MyApp', '--skipInstall', '--agent', 'none');
+
+      const dockerfile = read('my-app', 'Dockerfile');
+      expect(dockerfile).toContain('FROM node:');
+      expect(dockerfile).toContain('USER node');
+    });
+
+    test('generates the Bun Dockerfile for the Bun runtime', async () => {
+      await run('MyApp', '--skipInstall', '--agent', 'none', '--bun');
+
+      const dockerfile = read('my-app', 'Dockerfile');
+      expect(dockerfile).toContain('FROM oven/bun:');
+      expect(dockerfile).toContain('USER bun');
+      expect(exists('my-app', 'Dockerfile.bun')).toBe(false);
+    });
   });
 
   describe('agent files', () => {

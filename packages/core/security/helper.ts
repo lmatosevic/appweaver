@@ -1,4 +1,4 @@
-import * as bcrypt from 'bcrypt';
+import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { requestContext } from '@fastify/request-context';
 import {
   AuthScope,
@@ -15,6 +15,19 @@ import {
 } from '@appweaver/common';
 import { HttpError } from '../errors';
 import { context, injectService } from '../context';
+
+type ScryptParams = { ln: number; r: number; p: number };
+
+/** The scrypt cost of new password hashes: 2^ln iterations of r blocks, each hash stores its own */
+const SCRYPT_PARAMS: ScryptParams = { ln: 15, r: 8, p: 1 };
+
+const SCRYPT_SALT_BYTES = 16;
+
+const SCRYPT_KEY_BYTES = 64;
+
+/** A stored hash, i.e. `$scrypt$ln=15,r=8,p=1$<salt>$<key>` with base64 salt and key */
+const SCRYPT_HASH_PATTERN =
+  /^\$scrypt\$ln=(\d{1,2}),r=(\d{1,2}),p=(\d{1,2})\$([A-Za-z0-9+/]+=*)\$([A-Za-z0-9+/]+=*)$/;
 
 /**
  * Evaluates and retrieves the resource authentication model from the available resource models.
@@ -80,18 +93,23 @@ export function currentAuthSource(): AuthSource | null | undefined {
 }
 
 /**
- * Hashes a plain text password using a cryptographic salt.
+ * Hashes a plain text password with the scrypt function of the runtime and a random salt. The hash holds the scrypt
+ * parameters and the salt, in the `$scrypt$ln=15,r=8,p=1$<salt>$<key>` form.
  *
  * @param {string} password - The plain text password to be hashed.
  * @return {Promise<string>} A promise that resolves to the hashed password.
  */
 export async function hashPassword(password: string): Promise<string> {
-  const salt = await bcrypt.genSalt();
-  return bcrypt.hash(password, salt);
+  const salt = randomBytes(SCRYPT_SALT_BYTES);
+  const key = await deriveKey(password, salt, SCRYPT_PARAMS, SCRYPT_KEY_BYTES);
+
+  const { ln, r, p } = SCRYPT_PARAMS;
+  return `$scrypt$ln=${ln},r=${r},p=${p}$${salt.toString('base64')}$${key.toString('base64')}`;
 }
 
 /**
- * Validates a plain text password against a hashed password.
+ * Validates a plain text password against a hashed password, using the parameters stored in the hash. A hash not in
+ * the form {@link hashPassword} produces never matches.
  *
  * @param {string} password - The plain text password to validate.
  * @param {string} passwordHash - The hashed password to compare against.
@@ -102,7 +120,33 @@ export async function checkPassword(
   password: string,
   passwordHash: string
 ): Promise<boolean> {
-  return bcrypt.compare(password, passwordHash);
+  const match = SCRYPT_HASH_PATTERN.exec(passwordHash);
+  if (!match) {
+    return false;
+  }
+
+  const params = {
+    ln: Number(match[1]),
+    r: Number(match[2]),
+    p: Number(match[3])
+  };
+  // Bounded, so a tampered hash cannot make the check exhaust the memory or CPU
+  const bounded =
+    params.ln >= 1 &&
+    params.ln <= 20 &&
+    params.r >= 1 &&
+    params.r <= 32 &&
+    params.p >= 1 &&
+    params.p <= 16;
+  if (!bounded) {
+    return false;
+  }
+
+  const salt = Buffer.from(match[4], 'base64');
+  const expected = Buffer.from(match[5], 'base64');
+  const key = await deriveKey(password, salt, params, expected.length);
+
+  return timingSafeEqual(key, expected);
 }
 
 /**
@@ -365,4 +409,28 @@ export function hasPermissions(
   return operator === 'and'
     ? permissions.every(predicate)
     : permissions.some(predicate);
+}
+
+/**
+ * Derives the scrypt key of a password, with the memory limit raised to what the parameters need.
+ */
+function deriveKey(
+  password: string,
+  salt: Buffer,
+  params: ScryptParams,
+  keyBytes: number
+): Promise<Buffer> {
+  const N = 2 ** params.ln;
+  const options = {
+    N,
+    r: params.r,
+    p: params.p,
+    maxmem: 256 * N * params.r
+  };
+
+  return new Promise((resolve, reject) => {
+    scrypt(password, salt, keyBytes, options, (error, key) =>
+      error ? reject(error) : resolve(key)
+    );
+  });
 }

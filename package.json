@@ -33,7 +33,8 @@
     "lint:fix": "npm run lint -- --fix",
     "prerelease": "node tools/check-tokens.js && npm run build -- --sourceMap false",
     "release": "semantic-release --no-ci",
-    "postrelease": "git push --follow-tags"
+    "postrelease": "git push --follow-tags",
+    "samples:lock": "node tools/lock-samples.js"
   },
   "dependencies": {
     "@fastify/auth": "5.1.1",
@@ -52,7 +53,6 @@
     "@prisma/adapter-better-sqlite3": "7.9.1",
     "@prisma/client": "7.9.1",
     "@sinclair/typebox": "0.34.49",
-    "bcrypt": "6.0.0",
     "bullmq": "5.79.1",
     "commander": "15.0.0",
     "cron": "4.4.0",
@@ -93,7 +93,6 @@
     "@sinclair/typebox-codegen": "0.11.1",
     "@swc/core": "1.15.41",
     "@swc/jest": "0.2.39",
-    "@types/bcrypt": "6.0.0",
     "@types/bun": "1.4.2",
     "@types/jest": "30.0.0",
     "@types/js-yaml": "4.0.9",
@@ -155,7 +154,6 @@
     }
   },
   "allowScripts": {
-    "bcrypt": true,
     "better-sqlite3": true,
     "msgpackr-extract": true,
     "prisma": true,

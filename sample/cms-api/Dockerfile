@@ -1,14 +1,14 @@
-## 1. Install dependencies and build the application
+## 1. Install dependencies, build the application, and keep the production dependencies
 FROM node:24.18.1-alpine AS build
 
-# Install tools for building libraries on other platforms
-RUN apk add build-base python3 py3-pip make gcc
+# Install tools for building the native modules
+RUN apk add --no-cache build-base python3 make gcc
 
 # Create app directory
 WORKDIR /usr/app
 
 # Copy project files
-COPY ../.. .
+COPY . .
 
 # Install NPM dependencies
 RUN npm ci
@@ -16,21 +16,22 @@ RUN npm ci
 # Build project
 RUN npm run build
 
+# Remove the development dependencies, keeping the production ones built above
+RUN npm prune --omit=dev
+
 
 ## 2. Setup server environment, copy build output and start the application script
-FROM node:24.13.0-alpine AS deploy
+FROM node:24.18.1-alpine AS deploy
 
-# Install tools for building libraries on other platforms
-RUN apk add build-base python3 py3-pip make gcc
+# Run in the production environment unless the container sets NODE_ENV itself
+ENV NODE_ENV=prod
 
 # Create app directory
 WORKDIR /usr/app
 
-# Copy NPM package
+# Copy NPM package and the production dependencies
 COPY --from=build /usr/app/package*.json /usr/app/
-
-# Install production NPM dependencies
-RUN npm ci --omit=dev
+COPY --from=build /usr/app/node_modules /usr/app/node_modules
 
 # Copy build files
 COPY --from=build /usr/app/dist /usr/app/dist
@@ -52,8 +53,11 @@ COPY --from=build /usr/app/start.sh /usr/app/start.sh
 # Make start script executable
 RUN chmod +x /usr/app/start.sh
 
-# Create storage, logs, and data directories
-RUN mkdir storage logs data
+# Create storage, logs, and data directories, writable by the application user
+RUN mkdir storage logs data && chown node:node storage logs data
+
+# Run the application as an unprivileged user
+USER node
 
 # Start container
 ENTRYPOINT ["/usr/app/start.sh"]

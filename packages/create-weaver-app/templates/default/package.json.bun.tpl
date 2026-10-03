@@ -27,7 +27,6 @@
   },
   "trustedDependencies": [
     "@prisma/engines",
-    "bcrypt",
     "msgpackr-extract",
     "prisma",
     "unrs-resolver"

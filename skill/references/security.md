@@ -664,7 +664,7 @@ The security module automatically adds the following fields to the user model:
 | Field           | Type             | Default  | Description                                                  |
 |-----------------|------------------|----------|--------------------------------------------------------------|
 | `email`         | string (unique)  | -        | User's email address.                                        |
-| `passwordHash`  | string? (hidden) | -        | Bcrypt password hash (never exposed in API).                 |
+| `passwordHash`  | string? (hidden) | -        | Scrypt password hash (never exposed in API).                 |
 | `verifiedEmail` | boolean          | `false`  | Whether the user's email is verified.                        |
 | `twoFactorAuth` | enum             | `'None'` | 2FA setting. Values: `'None'`, `'Email'`.                    |
 | `enabled`       | boolean          | `true`   | Whether the account is active.                               |
@@ -683,7 +683,11 @@ The security module automatically adds the following fields to the user model:
 
 ### Hashing
 
-Passwords are hashed using bcrypt with automatic salt generation.
+Passwords are hashed with the native `scrypt` function of Node.js and Bun (`node:crypto`), so hashing needs no native
+dependency. A hash has the `$scrypt$ln=15,r=8,p=1$<salt>$<key>` form, with a random 16-byte salt and a 64-byte key
+(both base64): `ln` is the base-2 logarithm of the cost `N`, `r` the block size, and `p` the parallelization. Every
+hash keeps its own parameters, so raising them for new hashes leaves the existing ones valid. Use `hashPassword` and
+`checkPassword` from `@appweaver/core` to hash and verify passwords in seeders and custom flows.
 
 ### Complexity validation
 

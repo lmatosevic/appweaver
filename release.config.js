@@ -86,6 +86,16 @@ module.exports = {
       {
         assets: []
       }
+    ],
+
+    // 10) Lock the samples to the published packages, committed separately
+    // since the release commit is made before the packages are published
+    [
+      '@semantic-release/exec',
+      {
+        successCmd:
+          'node ./tools/lock-samples.js --commit ${nextRelease.version}'
+      }
     ]
   ]
 };

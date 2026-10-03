@@ -1,3 +1,4 @@
+import { randomBytes, scryptSync } from 'node:crypto';
 import {
   AuthScope,
   AuthSource,
@@ -98,10 +99,12 @@ describe('security-helper', () => {
   });
 
   describe('hashPassword / checkPassword', () => {
-    test('hashes a password into a bcrypt hash', async () => {
+    test('hashes a password into a scrypt hash with its parameters', async () => {
       const hash = await hashPassword('Str0ng!Pass');
 
-      expect(hash).toMatch(/^\$2[aby]\$\d{2}\$/);
+      expect(hash).toMatch(
+        /^\$scrypt\$ln=15,r=8,p=1\$[A-Za-z0-9+/=]+\$[A-Za-z0-9+/=]+$/
+      );
       expect(hash).not.toContain('Str0ng!Pass');
     });
 
@@ -124,6 +127,41 @@ describe('security-helper', () => {
       const hash = await hashPassword('Str0ng!Pass');
 
       await expect(checkPassword('wrong', hash)).resolves.toBe(false);
+    });
+
+    test('verifies a hash made with other parameters', async () => {
+      // A hash keeps verifying after the parameters of new hashes are raised
+      const salt = randomBytes(16);
+      const key = scryptSync('Str0ng!Pass', salt, 32, {
+        N: 2 ** 10,
+        r: 4,
+        p: 2
+      });
+      const hash = `$scrypt$ln=10,r=4,p=2$${salt.toString('base64')}$${key.toString('base64')}`;
+
+      await expect(checkPassword('Str0ng!Pass', hash)).resolves.toBe(true);
+      await expect(checkPassword('wrong', hash)).resolves.toBe(false);
+    });
+
+    test('rejects a hash in another format', async () => {
+      await expect(
+        checkPassword(
+          'Str0ng!Pass',
+          '$2b$10$oqzdcdLy7UMCSsqwyWv2muoEzKdcqb9g.ra.g/kRus25d8UYxPCQa'
+        )
+      ).resolves.toBe(false);
+      await expect(checkPassword('Str0ng!Pass', '')).resolves.toBe(false);
+    });
+
+    test('rejects a hash with unbounded parameters', async () => {
+      const hash = await hashPassword('Str0ng!Pass');
+
+      await expect(
+        checkPassword('Str0ng!Pass', hash.replace('ln=15', 'ln=30'))
+      ).resolves.toBe(false);
+      await expect(
+        checkPassword('Str0ng!Pass', hash.replace('r=8', 'r=64'))
+      ).resolves.toBe(false);
     });
   });
 

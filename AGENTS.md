@@ -614,6 +614,9 @@ Scaffolded with `create-weaver-app`, each showcases a different part of the fram
 - The PostgreSQL and MySQL samples start their database with `docker compose up -d postgres redis` (or `mysql`); their
   end-to-end tests run against a `-test` database of the same container.
 - The driver adapters of all the samples are root dev dependencies, so the samples run on the root `node_modules`.
+- Each sample also declares every package it needs, locked in its own `package-lock.json` (`bun.lock` for the Bun
+  sample) to the published `@appweaver/*` release, so its Docker image builds with a clean install outside the
+  monorepo. The lockfiles are regenerated after every release, or on demand with `npm run samples:lock`.
 - The Node samples build before their end-to-end tests (`pree2e`), since the application loads the compiled `dist/src`.
 - The Bun sample runs its scripts with `bun run`. Bun runs every test file in one process, where the application
   context is frozen once an application starts, so its end-to-end files share one application instead of resetting the
@@ -660,7 +663,10 @@ This runs the following steps automatically:
     ```
 8. **Git commit** (`@semantic-release/git`) — commits the updated `package.json` files and `CHANGELOG.md` with a chore
    commit, then tags the release.
-9. **`postrelease`** — runs `git push --follow-tags` to push the commit and tag to the remote.
+9. **Sample lockfiles** (`@semantic-release/exec`) — once the packages are on the registry, runs
+   `node ./tools/lock-samples.js --commit <version>`, which regenerates the lockfiles of the samples and commits them
+   separately, since the release commit is made before the packages are published.
+10. **`postrelease`** — runs `git push --follow-tags` to push the commits and tag to the remote.
 
 ### Registry
 

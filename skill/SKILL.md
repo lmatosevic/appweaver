@@ -90,6 +90,25 @@ containers override the connection URLs to reach the other containers.
 A SQLite project keeps its database file in the `data/` directory (`file:./data/<name>.db`), which the generated
 `docker-compose.yml` mounts as the `sqlite-data` volume shared by the migration, seed, and application containers.
 
+The generated `Dockerfile` builds the application and its production dependencies in a build stage, so the final image
+carries no build tools. The image runs as the unprivileged `node` user (`bun` for Bun) and defaults to `NODE_ENV=prod`.
+It declares no health check, which belongs to the orchestrator: point the Docker Compose `healthcheck` or the Kubernetes
+probes at `GET /health/ready`, which answers `{ "ready": true }` once the application can serve requests and needs no
+authentication. The `docker-compose.yml` services read `NODE_ENV` from `.env`, so the environment a container starts
+in stays up to the project. Mounted `storage`, `logs`, and `data` directories must be writable by the image user.
+
+**Linux hosts:** the `docker-compose.yml` services bind-mount the project's `./storage` and `./logs` directories, which
+on Linux keep the owner they have on the host. A directory Docker creates itself is owned by `root`, so the image user
+(uid `1000`) cannot write uploaded files, logs, or the generated JWT keys into it. Create both directories before the
+first `docker compose up` and give them to uid `1000`:
+
+```sh
+mkdir -p storage logs && sudo chown -R 1000:1000 storage logs
+```
+
+Volumes created by an image version that still ran as `root` need the same change of owner, or recreating. Docker
+Desktop on macOS and Windows maps the ownership of bind mounts itself and needs neither step.
+
 **Example — Bun project with Sqlite:**
 
 ```sh
