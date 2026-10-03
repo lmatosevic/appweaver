@@ -63,9 +63,8 @@ export default createAuthModel({
   relations: {
     department: {
       model: 'Department',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'employees',
-      owner: true,
       required: false,
       output: {
         type: 'always'
@@ -73,9 +72,8 @@ export default createAuthModel({
     },
     position: {
       model: 'Position',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'employees',
-      owner: true,
       required: false,
       output: {
         type: 'always'
@@ -84,9 +82,8 @@ export default createAuthModel({
     // The reporting line, read one level up
     manager: {
       model: 'Employee',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'reports',
-      owner: true,
       required: false,
       output: {
         type: 'always'

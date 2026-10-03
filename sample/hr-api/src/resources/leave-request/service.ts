@@ -1,16 +1,12 @@
 import { ResourceId } from '@appweaver/common';
 import { createService, currentAuthUser, HttpError } from '@appweaver/core';
 import db from '@db/client';
-import { LeaveRequest, LeaveRequestCreate, LeaveRequestUpdate } from '@/types';
+import { LeaveRequestCreate, LeaveRequestUpdate } from '@/types';
 import { countWorkingDays } from '@/features/leave/working-days';
 
 type Days = { days?: number };
 
-export default createService<
-  LeaveRequest,
-  LeaveRequestCreate,
-  LeaveRequestUpdate
->({
+export default createService({
   modelName: 'LeaveRequest',
   beforeCreate: async (data: LeaveRequestCreate & Days) => {
     const employee = data.employee ?? currentAuthUser()?.id;

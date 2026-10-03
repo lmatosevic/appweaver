@@ -1,13 +1,13 @@
 import { createService, currentAuthUser, HttpError } from '@appweaver/core';
 import db from '@db/client';
-import { Review, ReviewCreate, ReviewUpdate } from '@/types';
+import { ReviewCreate } from '@/types';
 
 type ReviewData = ReviewCreate & {
   authorName?: string;
   verifiedPurchase?: boolean;
 };
 
-export default createService<Review, ReviewCreate, ReviewUpdate>({
+export default createService({
   modelName: 'Review',
   beforeCreate: async (data: ReviewData) => {
     const user = currentAuthUser() as

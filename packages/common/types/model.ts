@@ -1,5 +1,6 @@
 import { TObject } from '@sinclair/typebox';
 import { MultipartFile } from './file';
+import { ModelName, RegisteredModel, RegistryType } from './registry';
 
 export type FieldType =
   | 'string'
@@ -203,7 +204,11 @@ export type RelationOutput = {
   count?: boolean;
 };
 
-export type RelationType = 'oneToOne' | 'oneToMany' | 'manyToMany';
+export type RelationType =
+  | 'oneToOne'
+  | 'oneToMany'
+  | 'manyToOne'
+  | 'manyToMany';
 
 export type RelationField = {
   /** Related resource model name */
@@ -213,12 +218,15 @@ export type RelationField = {
    * a unique foreign key.
    * `'oneToMany'` — the owning side (`owner: true`) holds the foreign key and
    * references a single record, the inverse side holds a list.
+   * `'manyToOne'` — the side holding the foreign key of a one-to-many relation,
+   * the same as `'oneToMany'` with `owner: true`.
    * `'manyToMany'` — both sides hold lists, joined through an implicit table. */
   type: RelationType;
   /** Inverse relation field name on the related model */
   mappedBy?: string;
   /** Whether this side owns the foreign key column in the generated table.
-   * Applies to `oneToOne` and `oneToMany` relations. */
+   * Applies to `oneToOne` and `oneToMany` relations, and is implied by
+   * `manyToOne`. */
   owner?: boolean;
   /** Input configuration for this relation */
   input?: RelationInput;
@@ -282,11 +290,19 @@ export type FileField<T = any> = {
   image?: ImageConfig;
 };
 
-export type OperationConfig = {
+/** The name of a model field: one of the fields the model declares, its id, or one of its audit fields. */
+export type ModelFieldName<F extends string = string> =
+  | F
+  | 'id'
+  | keyof AuditFields
+  | 'deletedAt'
+  | 'deletedById';
+
+export type OperationConfig<F extends string = string> = {
   /** Fields to exclude from the operation */
-  omit?: string[];
+  omit?: ModelFieldName<F>[];
   /** Fields to include exclusively */
-  pick?: string[];
+  pick?: ModelFieldName<F>[];
 };
 
 export type VirtualInput<T = any> = {
@@ -333,17 +349,42 @@ type Disallow<K extends PropertyKey> = {
   [P in K]?: never;
 };
 
-type FieldConfig<T> = {
-  [key: string]: T;
+type FieldConfig<T, K extends string = string> = {
+  [key in K]: T;
 } & Disallow<keyof AuditFields | 'id'>;
 
-export type ScalarConfig = FieldConfig<ScalarField>;
+/** A relation to a registered model, suggesting the relations of that model as its inverse field. Any other name is
+ * accepted too, naming the inverse field generated for a single-sided relation. */
+type RegisteredRelationField = {
+  [N in RegisteredModel]: Omit<RelationField, 'model' | 'mappedBy'> & {
+    model: N;
+    mappedBy?:
+      | RegistryType<N, 'relations', string>
+      | (string & Record<never, never>);
+  };
+}[RegisteredModel];
 
-export type RelationConfig = FieldConfig<RelationField>;
+/** A relation field, typed by the registered models once the types are generated. */
+export type ModelRelationField = [RegisteredModel] extends [never]
+  ? RelationField
+  : RegisteredRelationField;
 
-export type FilesConfig = FieldConfig<FileField>;
+export type ScalarConfig<K extends string = string> = FieldConfig<
+  ScalarField,
+  K
+>;
 
-export type VirtualConfig = FieldConfig<VirtualField>;
+export type RelationConfig<K extends string = string> = FieldConfig<
+  ModelRelationField,
+  K
+>;
+
+export type FilesConfig<K extends string = string> = FieldConfig<FileField, K>;
+
+export type VirtualConfig<K extends string = string> = FieldConfig<
+  VirtualField,
+  K
+>;
 
 export type ExportConfig = FieldConfig<ExportField | ExportRelations>;
 
@@ -361,7 +402,18 @@ export type Model = {
   schema: TObject;
 };
 
-export type ResourceModelConfig = {
+/**
+ * The configuration of a resource model. The type parameters are the names of its scalar, relation, file, and virtual
+ * fields, inferred from the configuration, along with the names of the fields a factory adds to them, which type the
+ * field names of the `read`, `create`, and `update` options.
+ */
+export type ResourceModelConfig<
+  S extends string = string,
+  R extends string = string,
+  F extends string = string,
+  V extends string = string,
+  E extends string = never
+> = {
   /** Resource model name used for code generation, routing, and security policy
    * rules. Should be in PascalCase (e.g., MyModel) */
   name: string;
@@ -376,19 +428,19 @@ export type ResourceModelConfig = {
   /** Audit timestamp/author fields to enable */
   audit?: AuditFields;
   /** Scalar field definitions */
-  scalars?: ScalarConfig;
+  scalars?: ScalarConfig<S>;
   /** Relation field definitions */
-  relations?: RelationConfig;
+  relations?: RelationConfig<R>;
   /** File field definitions */
-  files?: FilesConfig;
+  files?: FilesConfig<F>;
   /** Field restrictions for read operations */
-  read?: OperationConfig;
+  read?: OperationConfig<NoInfer<S | R | F | V | E>>;
   /** Field restrictions for create operations */
-  create?: OperationConfig;
+  create?: OperationConfig<NoInfer<S | R | F | V | E>>;
   /** Field restrictions for update operations */
-  update?: OperationConfig;
+  update?: OperationConfig<NoInfer<S | R | F | V | E>>;
   /** Virtual (computed) field definitions */
-  virtual?: VirtualConfig;
+  virtual?: VirtualConfig<V>;
   /** Export field definitions */
   export?: ExportConfig;
   /** Database index definitions. Foreign key columns are indexed

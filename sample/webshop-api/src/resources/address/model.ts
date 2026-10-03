@@ -48,9 +48,8 @@ export default createModel({
     // Set to the signed-in customer
     user: {
       model: 'User',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'addresses',
-      owner: true,
       required: false,
       onDelete: 'cascade',
       input: {

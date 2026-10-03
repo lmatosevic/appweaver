@@ -62,42 +62,38 @@ export class Redis extends CommonRedis<RedisOptions, RedisClient> {
     }
   }
 
-  public async getValue<T = any>(key: string): Promise<T | null> {
+  public async get<T = any>(key: string): Promise<T | null> {
     const value = await this._client.get(key);
     return value ? (parse(value) as T) : null;
   }
 
-  public async putValue(
-    key: string,
-    value: any,
-    expireMs?: number
-  ): Promise<boolean> {
+  public async set(key: string, value: any, ttl?: number): Promise<boolean> {
     const jsonValue = stringify(value);
-    const result = expireMs
-      ? await this._client.set(key, jsonValue, 'PX', expireMs)
+    const result = ttl
+      ? await this._client.set(key, jsonValue, 'PX', ttl)
       : await this._client.set(key, jsonValue);
     return result === 'OK';
   }
 
-  public async hasKey(key: string): Promise<boolean> {
+  public async has(key: string): Promise<boolean> {
     const result = await this._client.exists(key);
     return result === 1;
   }
 
-  public async removeValue(key: string): Promise<boolean> {
+  public async delete(key: string): Promise<boolean> {
     const result = await this._client.del(key);
     return result > 0;
   }
 
-  public async removeEntries(query: string): Promise<number> {
-    const keys = await this.findKeys(query);
-    if (keys.size === 0) {
+  public async deleteMatching(pattern: string = '*'): Promise<number> {
+    const keys = await this.keys(pattern);
+    if (keys.length === 0) {
       return 0;
     }
     return this._client.del(...keys);
   }
 
-  public async findKeys(pattern: string = '*'): Promise<Set<string>> {
+  public async keys(pattern: string = '*'): Promise<string[]> {
     return new Promise((resolve, reject) => {
       const stream = this._client.scanStream({
         match: pattern,
@@ -113,14 +109,14 @@ export class Redis extends CommonRedis<RedisOptions, RedisClient> {
       });
 
       stream.on('end', () => {
-        resolve(keysSet);
+        resolve([...keysSet]);
       });
 
       stream.on('error', reject);
     });
   }
 
-  public async valueSizeBytes(key: string): Promise<number | null> {
+  public async sizeBytes(key: string): Promise<number | null> {
     return this._client.memory('USAGE', key);
   }
 

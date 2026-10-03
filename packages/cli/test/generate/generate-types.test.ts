@@ -45,9 +45,10 @@ describe('generate-types', () => {
   const typesPath = './src/types/generated.ts';
 
   const generate = async (
-    models: Record<string, ResourceModel>
+    models: Record<string, ResourceModel>,
+    registry: boolean = true
   ): Promise<{ status: number; types: string }> => {
-    const status = await generateTypes(models, typesPath, true);
+    const status = await generateTypes(models, typesPath, true, registry);
     const typesFile = path.join(tempDir, typesPath);
     return {
       status,
@@ -286,11 +287,49 @@ describe('generate-types', () => {
         })
       });
 
-      expect(types).not.toContain('import { AggregateSelect, IResourceService');
       expect(types).not.toContain('export type DraftQuery');
       expect(types).not.toContain('export type DraftSort');
       expect(types).not.toContain('export type DraftAggregate');
       expect(types).not.toContain('export type DraftResourceService');
+    });
+
+    test('registers the types of every model in the resource registry', async () => {
+      const { types } = await generate({
+        Post: model('Post', Type.Object({ title: Type.String() }), {
+          relations: { author: {}, tags: {} }
+        }),
+        Tag: model('Tag', Type.Object({ name: Type.String() }))
+      });
+
+      expect(types).toContain(`declare module '@appweaver/common' {`);
+      expect(types).toContain('interface ResourceRegistry {');
+      expect(types).toContain(
+        "Post: { model: Post; single: PostSingle; multiple: PostMultiple; create: PostCreate; update: PostUpdate; query: PostQuery; service: PostResourceService; relations: 'author' | 'tags' };"
+      );
+      expect(types).toContain('relations: never };');
+    });
+
+    test('registers a model without generated types with loose types', async () => {
+      const { types } = await generate({
+        Draft: model('Draft', Type.Object({ id: Type.Integer() }), {
+          generateTypes: false
+        })
+      });
+
+      expect(types).toContain(
+        'Draft: { model: any; single: any; multiple: any; create: any; update: any; query: any; service: IResourceService; relations: string };'
+      );
+      expect(types).toContain('import { AggregateSelect, IResourceService');
+    });
+
+    test('skips the resource registry when disabled', async () => {
+      const { types } = await generate(
+        { Post: model('Post', Type.Object({ title: Type.String() })) },
+        false
+      );
+
+      expect(types).toContain('export type PostResourceService');
+      expect(types).not.toContain('ResourceRegistry');
     });
 
     test('emits the query type at the end of its own model group', async () => {

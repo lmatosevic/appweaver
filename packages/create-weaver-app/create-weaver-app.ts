@@ -339,7 +339,14 @@ function getNodeDependencies(command: Command, runtime: string): string[] {
     process.exit(1);
   }
 
-  const dependencies = [databaseDependency, '@prisma/client', 'prisma'];
+  // TypeBox defines the custom route and model schemas, at the version the
+  // framework is built with
+  const dependencies = [
+    databaseDependency,
+    '@prisma/client',
+    '@sinclair/typebox',
+    'prisma'
+  ];
 
   if (!command.getOptionValue('noQueue')) {
     dependencies.push('bullmq');

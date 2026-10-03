@@ -1,5 +1,4 @@
 import { Application, createApp, injectService } from '@appweaver/core';
-import { LeaveBalanceResourceService } from '@/types';
 import { resetTestData } from './support/reset';
 import {
   createRoles,
@@ -47,9 +46,8 @@ describe('Leave workflow', () => {
 
   const balanceOf = async (employeeId: string, date: Date) =>
     (
-      await injectService<LeaveBalanceResourceService>('LeaveBalance').query({
-        employee: employeeId,
-        year: date.getUTCFullYear()
+      await injectService('LeaveBalance').query({
+        filter: { employee: employeeId, year: date.getUTCFullYear() }
       })
     ).items[0];
 

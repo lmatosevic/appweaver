@@ -22,9 +22,8 @@ export default createModel({
     // Set to the signed-in member
     user: {
       model: 'User',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'watchlist',
-      owner: true,
       required: false,
       onDelete: 'cascade',
       input: {
@@ -36,9 +35,8 @@ export default createModel({
     },
     movie: {
       model: 'Movie',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'watchlistEntries',
-      owner: true,
       onDelete: 'cascade',
       output: {
         type: 'always'

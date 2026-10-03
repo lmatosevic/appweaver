@@ -72,11 +72,14 @@ Generate types and/or schemas. With no flags, generates both types and schema.
 | `--typesPath [path]`       | Output path for generated types         | `config.RESOURCE_GENERATED_TYPES_PATH`   |
 | `--schemaPath [path]`      | Output path for generated Prisma schema | `config.DATABASE_SCHEMA_PATH`            |
 | `--clientPath [path]`      | Output path for generated Prisma client | `config.DATABASE_CLIENT_OUTPUT_DIR_PATH` |
+| `--noRegistry`             | Skip registering the model types        | `false`                                  |
 | `--verbose`                | Print verbose output                    | `false`                                  |
 
 Per model, the type file holds `<Model>`, `<Model>Single`, `<Model>Multiple`, `<Model>Create`, `<Model>Update`,
 `<Model>RelationCreate`, `<Model>RelationUpdate`, `<Model>RelationInput`, `<Model>Query`, `<Model>Sort`,
-`<Model>Aggregate`, and last `<Model>ResourceService`, the `injectService` type of that model.
+`<Model>Aggregate`, and last `<Model>ResourceService`, the `injectService` type of that model. The file ends by
+registering the types of every model in the `ResourceRegistry` of `@appweaver/common`, which lets the factories and
+`injectService` infer them from a model name. `--noRegistry` leaves the registration out.
 
 ---
 

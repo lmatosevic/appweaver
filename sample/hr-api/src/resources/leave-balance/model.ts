@@ -33,9 +33,8 @@ export default createModel({
   relations: {
     employee: {
       model: 'Employee',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'leaveBalances',
-      owner: true,
       onDelete: 'cascade',
       output: {
         type: 'multiple'

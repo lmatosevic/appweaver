@@ -7,7 +7,7 @@ import {
   injectService
 } from '@appweaver/core';
 import db from '@db/client';
-import { OrderResourceService, OrderSingle } from '@/types';
+import { OrderSingle } from '@/types';
 import { Role } from '@/features/access/roles';
 import { sendOrderEmail } from './order-emails';
 import { releaseOrder } from './order-release';
@@ -42,8 +42,7 @@ async function transition(
   await inject(CacheService).invalidateCache('Order', 'update');
 }
 
-const findOrder = (orderId: string) =>
-  injectService<OrderResourceService>('Order').find(orderId);
+const findOrder = (orderId: string) => injectService('Order').find(orderId);
 
 /** Hands a paid order to the carrier. */
 export async function shipOrder(

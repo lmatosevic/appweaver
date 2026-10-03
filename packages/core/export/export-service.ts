@@ -50,7 +50,13 @@ export class ExportService {
 
       const mapValues = (items: any[]) => this.mapProperties(modelName, items);
       const readBatch = (cursor?: string | null) =>
-        service.query(filter, 1, batchSize, sort, cursor, false);
+        service.query({
+          filter,
+          size: batchSize,
+          sort,
+          cursor,
+          totalCount: false
+        });
 
       // Read before the stream is handed out, so a failing query becomes an
       // error response instead of a truncated download

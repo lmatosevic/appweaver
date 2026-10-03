@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { createService } from '@appweaver/core';
 import db from '@db/client';
-import { Ticket, TicketCreate, TicketUpdate } from '@/types';
+import { TicketCreate, TicketUpdate } from '@/types';
 import { sendTicketReceived } from '@/features/notifications/ticket-emails';
 import { DEFAULT_SLA, slaDeadlines } from '@/features/sla/sla';
 
@@ -15,7 +15,7 @@ type TicketData = TicketCreate & {
 // it waits here, keyed by the reference, to become the opening message
 const openingMessages = new Map<string, string>();
 
-export default createService<Ticket, TicketCreate, TicketUpdate>({
+export default createService({
   modelName: 'Ticket',
   beforeCreate: async (data: TicketData) => {
     data.reference = `HD-${randomBytes(4).toString('hex').slice(0, 6).toUpperCase()}`;
@@ -31,7 +31,7 @@ export default createService<Ticket, TicketCreate, TicketUpdate>({
       openingMessages.set(data.reference, data.description);
     }
   },
-  afterCreate: async (ticket: Ticket) => {
+  afterCreate: async (ticket) => {
     const description = openingMessages.get(ticket.reference);
     openingMessages.delete(ticket.reference);
 

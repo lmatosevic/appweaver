@@ -1,5 +1,6 @@
 import {
   ActionType,
+  AggregateOptions,
   AggregateResponse,
   AggregateSelect,
   AggregateSelected,
@@ -9,8 +10,10 @@ import {
   isFunction,
   isPlainObject,
   logger,
+  ModelName,
+  QueryOptions,
   QueryResponse,
-  QuerySort,
+  RegistryType,
   Resource,
   RESOURCE_NAME,
   RESOURCE_SERVICE_TYPE,
@@ -24,8 +27,22 @@ import { ResourceService } from '../resource';
 import { bindTextSearch } from '../resource/utils';
 import { currentAuthUser } from '../security';
 
-export function createService<T = any, C = any, U = any>(
-  config: ResourceServiceConfig<T, C, U>,
+/**
+ * Creates the resource service of a model, running the configured hooks around its operations and applying the
+ * policy of the model. Once the types are generated, the model, create, and update types of the hooks are inferred
+ * from the model name.
+ *
+ * @param {ResourceServiceConfig} config - The service configuration with the model name, hooks, and text search.
+ * @param {boolean} [override=false] - Whether to replace a service already defined for the model.
+ * @return {Ctor<ResourceService>} The created service class, defined in the application context.
+ */
+export function createService<
+  N extends ModelName,
+  T = RegistryType<N, 'model'>,
+  C = RegistryType<N, 'create'>,
+  U = RegistryType<N, 'update'>
+>(
+  config: ResourceServiceConfig<T, C, U> & { modelName: N },
   override: boolean = false
 ): Ctor<ResourceService<T, T, C, U>> {
   const name = capitalize(config.modelName);
@@ -49,24 +66,10 @@ export function createService<T = any, C = any, U = any>(
       return result;
     }
 
-    async query(
-      filter: any = {} as any,
-      page: number = 1,
-      size: number = 50,
-      sort: QuerySort<T> = '-createdAt',
-      cursor?: string | null,
-      totalCount: boolean = true
-    ): Promise<QueryResponse<any>> {
-      await config.beforeQuery?.(filter, page, size, sort, cursor, totalCount);
+    async query(options: QueryOptions<T> = {}): Promise<QueryResponse<any>> {
+      await config.beforeQuery?.(options);
 
-      const result = await super.query(
-        filter,
-        page,
-        size,
-        sort,
-        cursor,
-        totalCount
-      );
+      const result = await super.query(options);
 
       await config.afterQuery?.(result);
 
@@ -74,33 +77,11 @@ export function createService<T = any, C = any, U = any>(
     }
 
     async aggregate<S extends AggregateSelect<T>>(
-      filter: any = {} as any,
-      select: S,
-      dateField: string = 'createdAt',
-      from?: string,
-      to?: string,
-      step?: number,
-      safeIncrement: boolean = true
+      options: AggregateOptions<T, S>
     ): Promise<AggregateResponse<AggregateSelected<T, S>>> {
-      await config.beforeAggregate?.(
-        filter,
-        select,
-        dateField,
-        from,
-        to,
-        step,
-        safeIncrement
-      );
+      await config.beforeAggregate?.(options);
 
-      const result = await super.aggregate(
-        filter,
-        select,
-        dateField,
-        from,
-        to,
-        step,
-        safeIncrement
-      );
+      const result = await super.aggregate(options);
 
       // The hook is declared once for the model, so it takes the response of
       // every selection, of which this one holds a subset of the fields
@@ -122,11 +103,11 @@ export function createService<T = any, C = any, U = any>(
     async update(id: ResourceId, data: any): Promise<any> {
       await config.beforeUpdate?.(id, data);
 
-      const result = await super.update(id, data);
+      const { previous, current } = await this.updateWithPrevious(id, data);
 
-      await config.afterUpdate?.(result);
+      await config.afterUpdate?.(current, previous);
 
-      return result;
+      return current;
     }
 
     async delete(id: ResourceId): Promise<any> {

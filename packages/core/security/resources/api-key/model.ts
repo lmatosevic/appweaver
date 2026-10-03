@@ -45,9 +45,8 @@ export default shouldCreateModel
             relations: {
               [uncapitalize(authModel.name)]: {
                 model: authModel.name,
-                type: 'oneToMany',
+                type: 'manyToOne',
                 mappedBy: 'apiKeys',
-                owner: true,
                 // API keys are meaningless without their user
                 onDelete: 'cascade',
                 input: {

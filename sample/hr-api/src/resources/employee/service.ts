@@ -1,12 +1,7 @@
 import { createAuthService, injectService } from '@appweaver/core';
-import {
-  Employee,
-  EmployeeCreate,
-  EmployeeResourceService,
-  EmployeeUpdate
-} from '@/types';
+import { EmployeeCreate, EmployeeUpdate } from '@/types';
 
-export default createAuthService<Employee, EmployeeCreate, EmployeeUpdate>({
+export default createAuthService({
   modelName: 'Employee',
   // Accounts are opened by HR, so a sign-in never registers a new employee
   checkOAuth2User: (_, __, authUser) => {
@@ -46,9 +41,7 @@ export default createAuthService<Employee, EmployeeCreate, EmployeeUpdate>({
 
 /** Numbers follow the highest one given out, deleted employees included. */
 async function nextEmployeeNumber(): Promise<string> {
-  const last = await injectService<EmployeeResourceService>(
-    'Employee'
-  ).client.findFirst({
+  const last = await injectService('Employee').client.findFirst({
     orderBy: { employeeNumber: 'desc' },
     select: { employeeNumber: true }
   });

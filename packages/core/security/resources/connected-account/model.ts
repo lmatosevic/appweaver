@@ -38,9 +38,8 @@ export default shouldCreateModel
             relations: {
               [uncapitalize(authModel.name)]: {
                 model: authModel.name,
-                type: 'oneToMany',
+                type: 'manyToOne',
                 mappedBy: 'connectedAccounts',
-                owner: true,
                 // Connected accounts are meaningless without their user
                 onDelete: 'cascade',
                 input: {

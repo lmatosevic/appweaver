@@ -36,9 +36,8 @@ export default createModel({
   relations: {
     post: {
       model: 'Post',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'comments',
-      owner: true,
       onDelete: 'cascade',
       // Opting out of the automatic foreign key index
       index: false,

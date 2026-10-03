@@ -28,9 +28,8 @@ export default createModel({
   relations: {
     movie: {
       model: 'Movie',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'credits',
-      owner: true,
       onDelete: 'cascade',
       output: {
         type: 'always'
@@ -38,9 +37,8 @@ export default createModel({
     },
     person: {
       model: 'Person',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'credits',
-      owner: true,
       onDelete: 'cascade',
       output: {
         type: 'always'

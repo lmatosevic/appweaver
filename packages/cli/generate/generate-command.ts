@@ -27,6 +27,10 @@ export function generateCommand(program: Command): void {
       '--clientPath [path]',
       'Output path for generated Prisma client (default: from config or env).'
     )
+    .option(
+      '--noRegistry',
+      'Skip registering the generated types of every model in the resource registry of @appweaver/common.'
+    )
     .option('--verbose', 'Print verbose output.')
     .action(async (_, command: Command) => {
       const quiet = !command.getOptionValue('verbose');
@@ -44,7 +48,8 @@ export function generateCommand(program: Command): void {
           models,
           command.getOptionValue('typesPath') ??
             config.RESOURCE_GENERATED_TYPES_PATH,
-          quiet
+          quiet,
+          !command.getOptionValue('noRegistry')
         );
       }
 

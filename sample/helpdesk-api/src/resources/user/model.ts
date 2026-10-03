@@ -26,9 +26,8 @@ export default createAuthModel({
   relations: {
     team: {
       model: 'Team',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'members',
-      owner: true,
       required: false,
       output: {
         type: 'always'

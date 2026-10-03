@@ -1,5 +1,6 @@
 import { AuthUser } from './auth';
 import { File } from './file';
+import { ModelName } from './registry';
 
 export type ActionType =
   | 'find'
@@ -35,9 +36,16 @@ export type FilePolicy<T = any> = {
   canDelete?: FileAccessFn<T>;
 };
 
+/** The extra conditions a policy restricts the reads with, in the database filter syntax, or nothing to restrict
+ * none. */
+export type ReadRestrictions = Record<string, any> | null | undefined | void;
+
+/** The data a policy merges into the written data, or nothing to merge none. */
+export type WriteRestrictions = Record<string, any> | null | undefined | void;
+
 export type ResourcePolicyConfig<T = any, U = AuthUser> = {
   /** Resource model name */
-  modelName: string;
+  modelName: ModelName;
   /** Return false to deny the action for the given resource */
   checkAccess?: (
     user: U | null,
@@ -49,13 +57,13 @@ export type ResourcePolicyConfig<T = any, U = AuthUser> = {
     user: U | null,
     resource: T,
     action: Exclude<ActionType, 'create'>
-  ) => any;
+  ) => ReadRestrictions | Promise<ReadRestrictions>;
   /** Returns field restrictions applied during write operations, directly or as a promise */
   writeRestrictions?: (
     user: U | null,
     resource: T,
     action: Extract<ActionType, 'create' | 'update'>
-  ) => any;
+  ) => WriteRestrictions | Promise<WriteRestrictions>;
   /** Per-field file policies keyed by field name */
   files?: Record<string, FilePolicy<T>>;
 };

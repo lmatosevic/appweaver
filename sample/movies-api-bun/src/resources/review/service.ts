@@ -1,12 +1,12 @@
 import { createService, currentAuthUser, HttpError } from '@appweaver/core';
 import db from '@db/client';
-import { Review, ReviewCreate, ReviewUpdate } from '@/types';
+import { Review, ReviewCreate } from '@/types';
 import { refreshMovieRating } from '@/features/ratings/movie-rating';
 import { relationId } from '@/features/catalog/relation-id';
 
 type ReviewRecord = Review & { movieId?: string };
 
-export default createService<Review, ReviewCreate, ReviewUpdate>({
+export default createService({
   modelName: 'Review',
   beforeCreate: async (data: ReviewCreate & { authorName?: string }) => {
     const user = currentAuthUser() as

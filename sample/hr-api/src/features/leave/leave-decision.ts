@@ -1,7 +1,7 @@
 import { AuthUser } from '@appweaver/common';
 import { HttpError, injectService } from '@appweaver/core';
 import db from '@db/client';
-import { LeaveRequestResourceService, LeaveRequestSingle } from '@/types';
+import { LeaveRequestSingle } from '@/types';
 import { can, Permission } from '@/features/access/permissions';
 import { notifyLeaveDecision } from './leave-notifications';
 
@@ -82,7 +82,7 @@ export async function decideLeaveRequest(
 
   await notifyLeaveDecision(decided.employee!, decided);
 
-  return injectService<LeaveRequestResourceService>('LeaveRequest').find(id);
+  return injectService('LeaveRequest').find(id);
 }
 
 /**
@@ -131,5 +131,5 @@ export async function cancelLeaveRequest(
     });
   });
 
-  return injectService<LeaveRequestResourceService>('LeaveRequest').find(id);
+  return injectService('LeaveRequest').find(id);
 }

@@ -74,7 +74,7 @@ export default createModel({
     enabled: { type: 'boolean', default: true }
   },
   relations: {
-    category: { model: 'Category', type: 'oneToMany', mappedBy: 'products', owner: true, output: { type: 'always' } }
+    category: { model: 'Category', type: 'manyToOne', mappedBy: 'products', output: { type: 'always' } }
   },
   files: {
     photo: { mimeType: 'image/*', maxSize: '2 MB' }
@@ -87,6 +87,8 @@ export default createModel({
 
 Index entries are field names, nested in an array for a composite index (`[['status', 'createdAt']]`). Prefix a name
 with `-` for a descending index or `+` for an ascending one (`['-createdAt']`); unprefixed uses the database default.
+The side holding the foreign key of a one-to-many relation is a `manyToOne` relation, and its inverse side a
+`oneToMany` one.
 
 ### Service
 
@@ -105,13 +107,16 @@ export default createService({
 });
 ```
 
-Inject a resource service anywhere with the `<Model>ResourceService` alias `weaver generate` emits per model:
+The generated types register every model by name, so `createService`, `createAuthService`, `createPolicy`, and
+`injectService` infer the model types from the model name. Never pass the model types as generic arguments. Inject a
+resource service anywhere by its model name:
 
 ```ts
 import { injectService } from '@appweaver/core';
-import { ProductResourceService } from '@/types/generated';
 
-const products = injectService<ProductResourceService>('Product');
+const products = injectService('Product'); // ProductResourceService
+const page = await products.query({ filter: { status: 'Active' }, size: 20, sort: '-createdAt' });
+const first = await products.single({ title: 'Lamp' }); // the first match or null
 ```
 
 ### Routes

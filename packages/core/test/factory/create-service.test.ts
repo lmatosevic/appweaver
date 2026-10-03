@@ -112,7 +112,7 @@ describe('create-service', () => {
       expect(calls).toEqual(['before:1', 'after:1']);
     });
 
-    test('calls the query hooks with the query arguments', async () => {
+    test('calls the query hooks with the query options', async () => {
       const beforeQuery = jest.fn();
       const afterQuery = jest.fn();
       const Service = createService({
@@ -121,16 +121,19 @@ describe('create-service', () => {
         afterQuery
       });
 
-      await new Service().query({ title: 'First' }, 2, 10, 'title');
+      await new Service().query({
+        filter: { title: 'First' },
+        page: 2,
+        size: 10,
+        sort: 'title'
+      });
 
-      expect(beforeQuery).toHaveBeenCalledWith(
-        { title: 'First' },
-        2,
-        10,
-        'title',
-        undefined,
-        true
-      );
+      expect(beforeQuery).toHaveBeenCalledWith({
+        filter: { title: 'First' },
+        page: 2,
+        size: 10,
+        sort: 'title'
+      });
       expect(afterQuery).toHaveBeenCalledWith(
         expect.objectContaining({ totalCount: 1 })
       );
@@ -142,24 +145,22 @@ describe('create-service', () => {
       const service = new Service();
       db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
 
-      const first = await service.query({}, 1, 2);
-      const result = await service.query(
-        {},
-        1,
-        2,
-        '-createdAt',
-        first.nextCursor,
-        false
-      );
+      const first = await service.query({ page: 1, size: 2 });
+      const result = await service.query({
+        page: 1,
+        size: 2,
+        sort: '-createdAt',
+        cursor: first.nextCursor,
+        totalCount: false
+      });
 
-      expect(beforeQuery).toHaveBeenLastCalledWith(
-        {},
-        1,
-        2,
-        '-createdAt',
-        first.nextCursor,
-        false
-      );
+      expect(beforeQuery).toHaveBeenLastCalledWith({
+        page: 1,
+        size: 2,
+        sort: '-createdAt',
+        cursor: first.nextCursor,
+        totalCount: false
+      });
       expect(result.totalCount).toBeNull();
     });
 
@@ -193,8 +194,23 @@ describe('create-service', () => {
 
       expect(beforeUpdate).toHaveBeenCalledWith(1, { title: 'Updated' });
       expect(afterUpdate).toHaveBeenCalledWith(
-        expect.objectContaining({ title: 'Updated' })
+        expect.objectContaining({ title: 'Updated' }),
+        expect.objectContaining({ title: 'First' })
       );
+    });
+
+    test('lets the query hook change the query options', async () => {
+      const Service = createService({
+        modelName: 'Post',
+        beforeQuery: (options) => {
+          options.size = 5;
+        }
+      });
+
+      await new Service().query({ size: 10 });
+
+      // One record past the page is fetched to detect a further page
+      expect(db.lastQuery('findMany').args.take).toBe(6);
     });
 
     test('calls the delete hooks', async () => {
@@ -240,7 +256,7 @@ describe('create-service', () => {
         textSearch: { title: { contains: '{input}' } }
       });
 
-      await new Service().query({ searchText: 'news' });
+      await new Service().query({ filter: { searchText: 'news' } });
 
       expect(db.lastQuery('findMany').args.where.AND).toContainEqual({
         title: { contains: 'news' }
@@ -258,7 +274,7 @@ describe('create-service', () => {
         }
       });
 
-      await new Service().query({ searchText: 'news' });
+      await new Service().query({ filter: { searchText: 'news' } });
 
       expect(db.lastQuery('findMany').args.where.AND).toContainEqual({
         OR: [{ title: { contains: 'news' } }, { excerpt: { contains: 'news' } }]
@@ -275,16 +291,19 @@ describe('create-service', () => {
       const service = new Service();
       db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
 
-      const first = await service.query({ searchText: 'news' }, 1, 2);
+      const first = await service.query({
+        filter: { searchText: 'news' },
+        page: 1,
+        size: 2
+      });
 
       await expect(
-        service.query(
-          { searchText: 'other' },
-          1,
-          2,
-          undefined,
-          first.nextCursor
-        )
+        service.query({
+          filter: { searchText: 'other' },
+          page: 1,
+          size: 2,
+          cursor: first.nextCursor
+        })
       ).rejects.toMatchObject({ statusCode: 400 });
     });
 
@@ -294,7 +313,7 @@ describe('create-service', () => {
         textSearch: (input: string) => ({ title: { contains: input } })
       });
 
-      await new Service().query({ searchText: 'news' });
+      await new Service().query({ filter: { searchText: 'news' } });
 
       expect(db.lastQuery('findMany').args.where.AND).toContainEqual({
         title: { contains: 'news' }
@@ -304,7 +323,7 @@ describe('create-service', () => {
     test('adds no text search filter by default', async () => {
       const Service = createService({ modelName: 'Post' });
 
-      await new Service().query({ searchText: 'news' });
+      await new Service().query({ filter: { searchText: 'news' } });
 
       expect(db.lastQuery('findMany').args.where.AND).toEqual([{}, {}, {}]);
     });
@@ -441,7 +460,7 @@ describe('create-service', () => {
       const service = new Service();
 
       await expect(service.find(1)).resolves.toMatchObject({ id: 1 });
-      await expect(service.query({})).resolves.toMatchObject({
+      await expect(service.query()).resolves.toMatchObject({
         items: [{ id: 1 }]
       });
       await expect(

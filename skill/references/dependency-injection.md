@@ -216,3 +216,48 @@ import { Database } from '@appweaver/common';
 
 const db = inject(Database); // resolves the class loaded from config.DATABASE_PROVIDER
 ```
+
+## Lifecycle hooks
+
+A class registered in the application context can run code when the application starts and stops by implementing the
+`OnInit` and `OnDestroy` interfaces from `@appweaver/common`:
+
+- `onInit()` runs once when the application starts, before the server starts listening.
+- `onDestroy()` runs once when the application stops, after the server stopped accepting requests and finished the
+  ones in flight.
+
+The class must also set the static `[LIFECYCLE]` tag, otherwise its hooks are never called:
+
+```ts
+// src/features/rates/exchange-rates.ts
+import { LIFECYCLE, OnDestroy, OnInit } from '@appweaver/common';
+import { define } from '@appweaver/core';
+
+export class ExchangeRates implements OnInit, OnDestroy {
+  static [LIFECYCLE] = true;
+
+  private _timer?: NodeJS.Timeout;
+
+  async onInit(): Promise<void> {
+    await this.refresh();
+    this._timer = setInterval(() => this.refresh(), 60_000);
+  }
+
+  async onDestroy(): Promise<void> {
+    clearInterval(this._timer);
+  }
+
+  private async refresh(): Promise<void> {
+    // Load the current rates
+  }
+}
+
+define(ExchangeRates);
+```
+
+- The hooks of every class run in parallel, with no order between them, so a hook must not rely on the hook of
+  another class having finished.
+- Only the classes defined before the application is created are collected: the ones defined in the files the
+  application loads on start (resources and modules) or before `createApp()` is called.
+- A class defined as a constructor is instantiated when the application is created, as the single instance every
+  `inject` call then returns.

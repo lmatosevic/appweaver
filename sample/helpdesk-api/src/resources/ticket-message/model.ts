@@ -23,9 +23,8 @@ export default createModel({
   relations: {
     ticket: {
       model: 'Ticket',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'messages',
-      owner: true,
       onDelete: 'cascade',
       output: {
         type: 'none'
@@ -34,9 +33,8 @@ export default createModel({
     // The agent writing it, set to the signed-in user
     author: {
       model: 'User',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'messages',
-      owner: true,
       required: false,
       input: {
         type: 'none'

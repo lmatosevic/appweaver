@@ -185,7 +185,7 @@ chosen runtime, stripping the `.tpl`, `.node`, or `.bun` extensions from the fin
 
 The versions of every npm package a generated project installs (except the `@appweaver/*` packages, which follow the
 CLI's own version) are kept in the `scaffoldDependencies` field of the **root** `package.json`, split into `companion`
-(packages the framework uses at runtime or as a peer: Prisma, BullMQ, Cron, IoRedis, Nodemailer, TypeScript) and
+(packages the framework uses at runtime or as a peer: Prisma, TypeBox, BullMQ, Cron, IoRedis, Nodemailer, TypeScript) and
 `tooling` (lint and test setup). The templates receive them through the `{{DEPENDENCIES}}` and `{{DEV_DEPENDENCIES}}`
 variables, so bump versions there, not in the templates. Keep the versions equal to the root `dependencies` and
 `devDependencies`, which a test checks.
@@ -233,9 +233,12 @@ weaver g [options]
 | `--typesPath <path>`       | Output path for generated types | from config |
 | `--schemaPath <path>`      | Output path for Prisma schema   | from config |
 | `--clientPath <path>`      | Output path for Prisma client   | from config |
+| `--noRegistry`             | Skip the model type registry    | false       |
 | `-v, --verbose`            | Verbose output                  | false       |
 
-Running with no flags generates **both** types and schema.
+Running with no flags generates **both** types and schema. The generated types register every model in the
+`ResourceRegistry` of `@appweaver/common`, so the factories and `injectService` infer the model types from a model
+name. Core's own `npm run generate` passes `--noRegistry`, since the registry belongs to the application.
 
 ---
 

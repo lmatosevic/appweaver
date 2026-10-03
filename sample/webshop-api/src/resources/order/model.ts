@@ -86,9 +86,8 @@ export default createModel({
   relations: {
     customer: {
       model: 'User',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'orders',
-      owner: true,
       output: {
         type: 'always'
       }
@@ -108,9 +107,8 @@ export default createModel({
     },
     coupon: {
       model: 'Coupon',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'orders',
-      owner: true,
       required: false,
       output: {
         type: 'single'

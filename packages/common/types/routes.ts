@@ -1,4 +1,5 @@
 import { AuthType } from '../enums';
+import { ModelName } from './registry';
 
 export type RouteSchema = {
   tags?: string[];
@@ -79,7 +80,7 @@ export type ReadRouteConfig = RouteConfig &
 
 export type ResourceRoutesConfig = {
   /** Resource model name */
-  modelName: string;
+  modelName: ModelName;
   /** URL path prefix for this resource */
   path?: string;
   /** Config for the find-by-ID route */

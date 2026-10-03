@@ -4,6 +4,7 @@ export * from './file';
 export * from './filter';
 export * from './model';
 export * from './policy';
+export * from './registry';
 export * from './resource';
 export * from './routes';
 export * from './service';

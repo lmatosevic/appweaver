@@ -34,9 +34,8 @@ export default createModel({
   relations: {
     department: {
       model: 'Department',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'positions',
-      owner: true,
       onDelete: 'cascade',
       output: {
         type: 'always'

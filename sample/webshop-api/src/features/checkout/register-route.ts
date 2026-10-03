@@ -1,7 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { HttpError, injectService, registerRoute } from '@appweaver/core';
 import db from '@db/client';
-import { UserResourceService } from '@/types';
 import { Role } from '@/features/access/roles';
 
 // Customers open their own accounts, signing in afterwards through /auth/login
@@ -38,7 +37,7 @@ registerRoute(
           where: { name: Role.Customer }
         });
 
-        const user = await injectService<UserResourceService>('User').create({
+        const user = await injectService('User').create({
           ...req.body,
           marketingOptIn: req.body.marketingOptIn ?? false,
           twoFactorAuth: 'None',

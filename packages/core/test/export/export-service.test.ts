@@ -36,13 +36,7 @@ describe('export-service', () => {
     const query = jest
       .fn()
       .mockImplementation(
-        async (
-          _filter: any,
-          _page: number,
-          size: number,
-          _sort: any,
-          cursor?: string
-        ) => {
+        async ({ size, cursor }: { size: number; cursor?: string }) => {
           if (delayMs > 0) {
             await new Promise((resolve) => setTimeout(resolve, delayMs));
           }
@@ -128,14 +122,13 @@ describe('export-service', () => {
 
       // The export never counts the records, it walks them batch by batch
       expect(query).toHaveBeenCalledTimes(1);
-      expect(query).toHaveBeenCalledWith(
-        { views: 10 },
-        1,
-        config.EXPORT_BATCH_SIZE,
-        'title',
-        undefined,
-        false
-      );
+      expect(query).toHaveBeenCalledWith({
+        filter: { views: 10 },
+        size: config.EXPORT_BATCH_SIZE,
+        sort: 'title',
+        cursor: undefined,
+        totalCount: false
+      });
     });
 
     test('follows the cursor of each batch until the records run out', async () => {
@@ -150,15 +143,13 @@ describe('export-service', () => {
 
       // Three batches of two, the last one unfilled and therefore final
       expect(query).toHaveBeenCalledTimes(3);
-      expect(query).toHaveBeenNthCalledWith(
-        2,
-        {},
-        1,
-        config.EXPORT_BATCH_SIZE,
-        '-createdAt',
-        '2',
-        false
-      );
+      expect(query).toHaveBeenNthCalledWith(2, {
+        filter: {},
+        size: config.EXPORT_BATCH_SIZE,
+        sort: '-createdAt',
+        cursor: '2',
+        totalCount: false
+      });
       for (const item of items) {
         expect(csv).toContain(item.title);
       }

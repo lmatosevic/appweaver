@@ -48,7 +48,7 @@ describe('Query filter operators', () => {
 
   /** Queries with the given filter and returns the matched slugs, sorted. */
   const slugs = async (filter: PostQuery): Promise<string[]> => {
-    const result = await posts.query(filter, 1, 50, 'slug');
+    const result = await posts.query({ filter, sort: 'slug' });
     return result.items.map((item: any) => item.slug);
   };
 

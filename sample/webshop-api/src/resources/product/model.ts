@@ -64,9 +64,8 @@ export default createModel({
   relations: {
     category: {
       model: 'Category',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'products',
-      owner: true,
       required: false,
       output: {
         type: 'always'
@@ -74,9 +73,8 @@ export default createModel({
     },
     brand: {
       model: 'Brand',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'products',
-      owner: true,
       required: false,
       output: {
         type: 'always'

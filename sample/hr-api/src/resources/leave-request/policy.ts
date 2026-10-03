@@ -11,7 +11,7 @@ const ownerOrLeaveManager = (
   request: LeaveRequestRecord
 ) => request.employeeId === user?.id || can(user, Permission.LeaveManage);
 
-export default createPolicy<LeaveRequestRecord>({
+export default createPolicy({
   modelName: 'LeaveRequest',
   readRestrictions: (user) => teamRestriction(user),
   // Filed for the signed-in employee, only leave managers file for others

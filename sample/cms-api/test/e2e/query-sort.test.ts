@@ -59,7 +59,7 @@ describe('Query sort input', () => {
 
   /** Queries with the given sort input and returns the resulting slugs. */
   const slugs = async (sort: PostSort): Promise<string[]> => {
-    const result = await posts.query({}, 1, 50, sort);
+    const result = await posts.query({ sort });
     return result.items.map((item: any) => item.slug);
   };
 
@@ -126,14 +126,14 @@ describe('Query sort input', () => {
   });
 
   test('rejects a field of a list relation', async () => {
-    await expect(posts.query({}, 1, 50, 'galleryImages.name')).rejects.toThrow(
+    await expect(posts.query({ sort: 'galleryImages.name' })).rejects.toThrow(
       /holds a list of records/
     );
   });
 
   test('rejects an unknown sort field', async () => {
-    await expect(posts.query({}, 1, 50, { unknown: 'asc' })).rejects.toThrow(
-      /is not a sortable field/
-    );
+    await expect(
+      posts.query({ sort: { unknown: 'asc' } as any })
+    ).rejects.toThrow(/is not a sortable field/);
   });
 });

@@ -8,7 +8,7 @@ import {
 } from '@appweaver/core';
 import db from '@db/client';
 import { Coupon } from '@db/client/client';
-import { Order, OrderResourceService, OrderSingle } from '@/types';
+import { Order, OrderSingle } from '@/types';
 import { couponProblem, priceOrder } from './pricing';
 
 export type ShippingAddress = {
@@ -115,7 +115,7 @@ export async function checkout(
     current: order as unknown as Order
   });
 
-  return injectService<OrderResourceService>('Order').find(order.id);
+  return injectService('Order').find(order.id);
 }
 
 /** The quantity of every product, the same product listed twice added up. */

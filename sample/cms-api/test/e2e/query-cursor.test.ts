@@ -46,7 +46,7 @@ describe('Query cursor pagination', () => {
     sort: PostSort = 'id',
     size: number = 2
   ) => {
-    const result = await posts.query({}, 1, size, sort, cursor, false);
+    const result = await posts.query({ size, sort, cursor, totalCount: false });
     return {
       slugs: result.items.map((item: any) => item.slug),
       next: result.nextCursor,
@@ -142,18 +142,26 @@ describe('Query cursor pagination', () => {
   });
 
   test('counts the matching records only when asked to', async () => {
-    const counted = await posts.query({}, 1, 2);
+    const counted = await posts.query({ size: 2 });
     expect(counted.totalCount).toBe(6);
 
-    const uncounted = await posts.query({}, 1, 2, 'id', undefined, false);
+    const uncounted = await posts.query({
+      size: 2,
+      sort: 'id',
+      totalCount: false
+    });
     expect(uncounted.totalCount).toBeNull();
   });
 
   test('rejects a cursor issued for another filter', async () => {
-    const first = await posts.query({}, 1, 2);
+    const first = await posts.query({ size: 2 });
 
     await expect(
-      posts.query({ viewCount: 4 }, 1, 2, '-createdAt', first.nextCursor)
+      posts.query({
+        filter: { viewCount: 4 },
+        size: 2,
+        cursor: first.nextCursor
+      })
     ).rejects.toMatchObject({ statusCode: 400 });
   });
 });

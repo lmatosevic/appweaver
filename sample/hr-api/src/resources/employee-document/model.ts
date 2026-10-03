@@ -24,9 +24,8 @@ export default createModel({
   relations: {
     employee: {
       model: 'Employee',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'documents',
-      owner: true,
       onDelete: 'cascade',
       output: {
         type: 'always'

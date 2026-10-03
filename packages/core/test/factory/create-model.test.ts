@@ -486,6 +486,32 @@ describe('create-model', () => {
       expect(properties(model.relationsModel).author.$ref).toBe('UserSingle');
     });
 
+    test('treats a manyToOne relation as an owning oneToMany relation', () => {
+      const model = createModel({
+        name: 'Post',
+        relations: { author: { model: 'User', type: 'manyToOne' } }
+      });
+
+      expect(model.config.relations?.author).toMatchObject({
+        type: 'oneToMany',
+        owner: true
+      });
+      expect(properties(model.readModel).author.$ref).toBe('UserSingle');
+    });
+
+    test('rejects a manyToOne relation that does not own the foreign key', () => {
+      expect(() =>
+        createModel({
+          name: 'Post',
+          relations: {
+            author: { model: 'User', type: 'manyToOne', owner: false }
+          }
+        })
+      ).toThrow(
+        "Relation 'Post.author' of type 'manyToOne' holds the foreign key, so it cannot set 'owner: false'"
+      );
+    });
+
     test('builds an array reference for a list relation', () => {
       const model = createModel({
         name: 'User',

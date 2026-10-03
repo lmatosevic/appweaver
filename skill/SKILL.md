@@ -219,9 +219,8 @@ export default createModel({
   relations: {
     category: {
       model: 'Category',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'products',
-      owner: true,
       output: {
         type: 'always'
       }
@@ -259,6 +258,10 @@ export default createModel({
 
 The choice flows through the Prisma column, the generated TypeScript type, the `:id` route path parameter, and the
 relation inputs and foreign keys of every model pointing at it. Both ID types can be mixed across models.
+
+A relation holding the foreign key of a one-to-many relation is declared with `type: 'manyToOne'`, as `category` above,
+and the model it points at lists the inverse side with `type: 'oneToMany'`. The `omit` and `pick` lists of `read`,
+`create`, and `update` only accept the fields the model declares, its `id`, and its audit fields.
 
 Index entries are field names, nested in an array for a composite index. Prefix a name with `-` for a descending index
 or `+` for an ascending one; without a prefix, the database default order is used:
@@ -302,16 +305,24 @@ export default createService({
 });
 ```
 
-Any code can reach a resource service with `injectService`, typed by the `<Model>ResourceService` alias `weaver
-generate` emits per model, so no service type has to be written by hand:
+The types `weaver generate` emits register every model by name, so the factories and `injectService` infer the model
+types from the model name alone: the hooks of `createService({ modelName: 'Product' })` receive `Product`,
+`ProductCreate`, and `ProductUpdate` values, and a misspelled model name fails to compile. Never pass the types as
+generic arguments. Any code can reach a resource service with `injectService`, typed by the `<Model>ResourceService`
+alias of the model:
 
 ```ts
 import { injectService } from '@appweaver/core';
-import { ProductResourceService } from '@/types/generated';
 
-const products = injectService<ProductResourceService>('Product');
+const products = injectService('Product'); // ProductResourceService
 const product = await products.find(1);
+const cheapest = await products.single({ price: { _lt: 10 } }, 'price'); // the first match or null
+const count = await products.count({ status: 'Active' });
+const any = await products.exists({ status: 'Sold' });
 ```
+
+The `afterUpdate` hook receives the updated resource along with the state it had before the update, i.e.
+`afterUpdate: (product, previous) => { ... }`.
 
 #### Creating the resource routes
 
@@ -431,8 +442,9 @@ sign-up, logout, password change, and 2FA flows run with `withoutPolicies`, so a
 
 #### Querying resources with filters
 
-The `filter` argument of the `query`, `aggregate`, and `export` service methods (and of the matching `POST /query`,
-`POST /aggregate`, `POST /export` routes) mirrors the WHERE part of a database query. It combines `_`-prefixed operators
+The `filter` option of the `query` and `aggregate` service methods, the `filter` argument of `single`, `count`,
+`exists`, and `export` (and the `filter` of the matching `POST /query`, `POST /aggregate`, `POST /export` bodies)
+mirrors the WHERE part of a database query. It combines `_`-prefixed operators
 with plain value shorthands and nests through relations:
 
 - **Logical**: `_and`, `_or`, `_not`, `_nor` — take a filter object (each entry becomes one condition) or a list of
@@ -457,8 +469,11 @@ const filter: UserQuery = {
   roles: { _some: { name: { _contains: 'Admin' } } }
 };
 
-const users = await injectService('User').query(filter, 1, 50, '-createdAt');
+const users = await injectService('User').query({ filter, page: 1, size: 50, sort: '-createdAt' });
 ```
+
+`query` takes a single options object, the same shape as the `POST /query` body: `filter`, `page` (default `1`),
+`size` (default `50`), `sort` (default `-createdAt`), `cursor`, and `totalCount` (default `true`).
 
 Filters are typed by `QueryFilter<T>` from `@appweaver/common`, and `weaver generate` emits a
 `<Model>Query = QueryFilter<Model>` alias per model. Over HTTP, they are validated against a generated per-model
@@ -466,16 +481,15 @@ Filters are typed by `QueryFilter<T>` from `@appweaver/common`, and `weaver gene
 
 ### Sorting
 
-The `sort` argument of `query` and `export`, and the `sort` property of the `POST /query` and `POST /export` bodies,
-accept either a comma-separated field list, where a `-` prefix sorts descending, or an object of `asc` and `desc` field
-directions. Both sort by a field of an included to-one relation and by the record count of a to-many relation:
+The `sort` option of `query`, the `sort` argument of `single` and `export`, and the `sort` property of the `POST /query`
+and `POST /export` bodies accept either a comma-separated field list, where a `-` prefix sorts descending, or an
+object of `asc` and `desc` field directions. Both sort by a field of an included to-one relation and by the record
+count of a to-many relation:
 
 ```ts
-await injectService('Post').query({}, 1, 50, '-author.createdAt,tagsCount,id');
-await injectService('Post').query({}, 1, 50, {
-  author: { createdAt: 'desc' },
-  tagsCount: 'asc',
-  id: 'asc'
+await injectService('Post').query({ sort: '-author.createdAt,tagsCount,id' });
+await injectService('Post').query({
+  sort: { author: { createdAt: 'desc' }, tagsCount: 'asc', id: 'asc' }
 });
 ```
 
@@ -486,15 +500,21 @@ alias emitted per model and validated over HTTP against a generated `<Model>Quer
 
 ### Aggregating
 
-The required `select` argument of `aggregate` (and of the `POST /aggregate` body) holds the operators to apply per
-field. Only the numeric fields (`count`, `sum`, `avg`, `min`, `max`, `first`, `last`), the date fields (all but `sum`
+`aggregate` takes a single options object, the same shape as the `POST /aggregate` body: `select`, `filter`,
+`dateField` (default `createdAt`), `from`, `to`, `step`, and `safeIncrement`. The required `select` holds the operators
+to apply per field. Only the numeric fields (`count`, `sum`, `avg`, `min`, `max`, `first`, `last`), the date fields (all but `sum`
 and `avg`), and the numeric `id` and audit fields of the model can be aggregated:
 
 ```ts
-await injectService('Post').aggregate({}, {
-  counter: { count: true, sum: true, avg: true, first: true, last: true },
-  publishedAt: { min: true, max: true }
-}, 'createdAt', '2026-01-01T00:00:00.000Z', '2026-01-08T00:00:00.000Z');
+await injectService('Post').aggregate({
+  select: {
+    counter: { count: true, sum: true, avg: true, first: true, last: true },
+    publishedAt: { min: true, max: true }
+  },
+  dateField: 'createdAt',
+  from: '2026-01-01T00:00:00.000Z',
+  to: '2026-01-08T00:00:00.000Z'
+});
 ```
 
 `first` and `last` take the value held by the earliest and the latest record of a period, ordered by the aggregated
@@ -511,7 +531,7 @@ The response type is inferred from the selection, so a selection given as an obj
 aggregatable field of the model:
 
 ```ts
-const stats = await injectService<PostResourceService>('Post').aggregate({}, { counter: { sum: true } });
+const stats = await injectService('Post').aggregate({ select: { counter: { sum: true } } });
 stats.total.counter?.sum; // typed
 stats.total.publishedAt;  // compile error, the field was not selected
 ```
@@ -523,6 +543,9 @@ handler is a Fastify plugin function that defines one or more routes. An optiona
 caching, and reCAPTCHA behavior. When a custom route's 2xx response schema references resource output models (`<Name>`,
 `<Name>Single` or `<Name>Multiple` — directly or nested inside custom schemas), virtual field values (e.g. `File.url`)
 are projected onto the response payload automatically before serialization.
+
+Route and model schemas are written with [TypeBox](https://github.com/sinclairzx81/typebox) (`@sinclair/typebox`), a
+dependency of every scaffolded project at the version the framework uses, which `weaver update` keeps in step.
 
 ```ts
 // src/plugins/custom-route.ts
@@ -613,8 +636,12 @@ loadProvider(__dirname, config.DATABASE_PROVIDER, Database); // required provide
 loadProvider(__dirname, config.CACHE_PROVIDER, Cache);
 loadProvider(__dirname, config.MAILER_PROVIDER, Mailer, false); // optional (no error if provider cannot be loaded)
 
-const cache: Mailer | undefined = inject(Mailer, false); // optional injection
+const mailer: Mailer | undefined = inject(Mailer, false); // optional injection
 ```
+
+A registered class implementing `OnInit` or `OnDestroy` from `@appweaver/common`, and setting the static
+`[LIFECYCLE] = true` tag, has its `onInit()` called when the application starts and its `onDestroy()` when it stops;
+see [dependency-injection.md](references/dependency-injection.md#lifecycle-hooks).
 
 ### Writing a seeder
 
@@ -727,7 +754,7 @@ weaver update --dryRun                        # print the updates without instal
 ```
 
 Besides the `@appweaver/*` packages, `weaver update` bumps the companion packages the project already has (Prisma
-and its adapters, BullMQ, Cron, IoRedis, Nodemailer, TypeScript) to the exact versions the target release is built
+and its adapters, TypeBox, BullMQ, Cron, IoRedis, Nodemailer, TypeScript) to the exact versions the target release is built
 with. It never adds missing packages or downgrades newer ones. Run `weaver generate` afterwards when Prisma is updated.
 
 ### Run tests

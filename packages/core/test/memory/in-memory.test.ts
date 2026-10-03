@@ -18,204 +18,201 @@ describe('in-memory', () => {
     jest.resetModules();
   });
 
-  describe('putValue / getValue', () => {
+  describe('set / get', () => {
     test('stores and returns a value', async () => {
-      await memory.putValue('key', 'value');
+      await memory.set('key', 'value');
 
-      await expect(memory.getValue('key')).resolves.toBe('value');
+      await expect(memory.get('key')).resolves.toBe('value');
     });
 
     test('stores structured values', async () => {
       const value = { id: 1, tags: ['a', 'b'], nested: { flag: true } };
 
-      await memory.putValue('key', value);
+      await memory.set('key', value);
 
-      await expect(memory.getValue('key')).resolves.toEqual(value);
+      await expect(memory.get('key')).resolves.toEqual(value);
     });
 
     test('returns a copy of the stored value', async () => {
       const value = { id: 1 };
-      await memory.putValue('key', value);
+      await memory.set('key', value);
 
-      const stored = await memory.getValue<{ id: number }>('key');
+      const stored = await memory.get<{ id: number }>('key');
       stored!.id = 2;
 
-      await expect(memory.getValue('key')).resolves.toEqual({ id: 1 });
+      await expect(memory.get('key')).resolves.toEqual({ id: 1 });
     });
 
     test('supports circular structures', async () => {
       const value: any = { id: 1 };
       value.self = value;
 
-      await memory.putValue('key', value);
-      const stored = await memory.getValue<any>('key');
+      await memory.set('key', value);
+      const stored = await memory.get<any>('key');
 
       expect(stored.id).toBe(1);
       expect(stored.self).toBe(stored);
     });
 
     test('returns null for an unknown key', async () => {
-      await expect(memory.getValue('missing')).resolves.toBeNull();
+      await expect(memory.get('missing')).resolves.toBeNull();
     });
 
     test('overwrites an existing value', async () => {
-      await memory.putValue('key', 'first');
-      await memory.putValue('key', 'second');
+      await memory.set('key', 'first');
+      await memory.set('key', 'second');
 
-      await expect(memory.getValue('key')).resolves.toBe('second');
+      await expect(memory.get('key')).resolves.toBe('second');
     });
 
     test('returns null once the expiration has passed', async () => {
-      await memory.putValue('key', 'value', 20);
+      await memory.set('key', 'value', 20);
 
-      await expect(memory.getValue('key')).resolves.toBe('value');
+      await expect(memory.get('key')).resolves.toBe('value');
       await new Promise((resolve) => setTimeout(resolve, 40));
-      await expect(memory.getValue('key')).resolves.toBeNull();
+      await expect(memory.get('key')).resolves.toBeNull();
     });
 
     test('keeps a value without an expiration', async () => {
-      await memory.putValue('key', 'value');
+      await memory.set('key', 'value');
 
       await new Promise((resolve) => setTimeout(resolve, 20));
 
-      await expect(memory.getValue('key')).resolves.toBe('value');
+      await expect(memory.get('key')).resolves.toBe('value');
     });
   });
 
-  describe('hasKey', () => {
+  describe('has', () => {
     test('returns true for a stored key', async () => {
-      await memory.putValue('key', 'value');
+      await memory.set('key', 'value');
 
-      await expect(memory.hasKey('key')).resolves.toBe(true);
+      await expect(memory.has('key')).resolves.toBe(true);
     });
 
     test('returns false for an unknown key', async () => {
-      await expect(memory.hasKey('missing')).resolves.toBe(false);
+      await expect(memory.has('missing')).resolves.toBe(false);
     });
   });
 
-  describe('removeValue', () => {
+  describe('delete', () => {
     test('removes a stored value', async () => {
-      await memory.putValue('key', 'value');
+      await memory.set('key', 'value');
 
-      await expect(memory.removeValue('key')).resolves.toBe(true);
-      await expect(memory.getValue('key')).resolves.toBeNull();
-      await expect(memory.hasKey('key')).resolves.toBe(false);
+      await expect(memory.delete('key')).resolves.toBe(true);
+      await expect(memory.get('key')).resolves.toBeNull();
+      await expect(memory.has('key')).resolves.toBe(false);
     });
 
     test('removes an object value', async () => {
-      await memory.putValue('key', { id: 1, tags: ['a'] });
+      await memory.set('key', { id: 1, tags: ['a'] });
 
-      await expect(memory.removeValue('key')).resolves.toBe(true);
-      await expect(memory.hasKey('key')).resolves.toBe(false);
+      await expect(memory.delete('key')).resolves.toBe(true);
+      await expect(memory.has('key')).resolves.toBe(false);
     });
 
     test('removes falsy values', async () => {
-      await memory.putValue('zero', 0);
-      await memory.putValue('empty', '');
-      await memory.putValue('false', false);
+      await memory.set('zero', 0);
+      await memory.set('empty', '');
+      await memory.set('false', false);
 
-      await expect(memory.removeValue('zero')).resolves.toBe(true);
-      await expect(memory.removeValue('empty')).resolves.toBe(true);
-      await expect(memory.removeValue('false')).resolves.toBe(true);
-      await expect(memory.findKeys('*')).resolves.toEqual(new Set());
+      await expect(memory.delete('zero')).resolves.toBe(true);
+      await expect(memory.delete('empty')).resolves.toBe(true);
+      await expect(memory.delete('false')).resolves.toBe(true);
+      await expect(memory.keys('*')).resolves.toEqual([]);
     });
 
     test('returns false for an unknown key', async () => {
-      await expect(memory.removeValue('missing')).resolves.toBe(false);
+      await expect(memory.delete('missing')).resolves.toBe(false);
     });
   });
 
-  describe('findKeys', () => {
+  describe('keys', () => {
     beforeEach(async () => {
-      await memory.putValue('cache:posts:1', 'a');
-      await memory.putValue('cache:posts:2', 'b');
-      await memory.putValue('cache:users:1', 'c');
-      await memory.putValue('lock:posts', 'd');
+      await memory.set('cache:posts:1', 'a');
+      await memory.set('cache:posts:2', 'b');
+      await memory.set('cache:users:1', 'c');
+      await memory.set('lock:posts', 'd');
     });
 
     test('returns every key by default', async () => {
-      await expect(memory.findKeys()).resolves.toEqual(
-        new Set([
-          'cache:posts:1',
-          'cache:posts:2',
-          'cache:users:1',
-          'lock:posts'
-        ])
-      );
+      await expect(memory.keys()).resolves.toEqual([
+        'cache:posts:1',
+        'cache:posts:2',
+        'cache:users:1',
+        'lock:posts'
+      ]);
     });
 
     test('matches a glob prefix pattern', async () => {
-      await expect(memory.findKeys('cache:posts:*')).resolves.toEqual(
-        new Set(['cache:posts:1', 'cache:posts:2'])
-      );
+      await expect(memory.keys('cache:posts:*')).resolves.toEqual([
+        'cache:posts:1',
+        'cache:posts:2'
+      ]);
     });
 
     test('matches a single character wildcard', async () => {
-      await expect(memory.findKeys('cache:users:?')).resolves.toEqual(
-        new Set(['cache:users:1'])
-      );
+      await expect(memory.keys('cache:users:?')).resolves.toEqual([
+        'cache:users:1'
+      ]);
     });
 
     test('escapes regex characters in the pattern', async () => {
-      await memory.putValue('a.b', 'value');
+      await memory.set('a.b', 'value');
 
-      await expect(memory.findKeys('a.b')).resolves.toEqual(new Set(['a.b']));
-      await expect(memory.findKeys('axb')).resolves.toEqual(new Set());
+      await expect(memory.keys('a.b')).resolves.toEqual(['a.b']);
+      await expect(memory.keys('axb')).resolves.toEqual([]);
     });
 
     test('returns an empty set when nothing matches', async () => {
-      await expect(memory.findKeys('nothing:*')).resolves.toEqual(new Set());
+      await expect(memory.keys('nothing:*')).resolves.toEqual([]);
     });
 
     test('drops expired keys', async () => {
-      await memory.putValue('temp:1', 'value', 20);
+      await memory.set('temp:1', 'value', 20);
 
       await new Promise((resolve) => setTimeout(resolve, 40));
 
-      await expect(memory.findKeys('temp:*')).resolves.toEqual(new Set());
-      await expect(memory.hasKey('temp:1')).resolves.toBe(false);
+      await expect(memory.keys('temp:*')).resolves.toEqual([]);
+      await expect(memory.has('temp:1')).resolves.toBe(false);
     });
   });
 
-  describe('removeEntries', () => {
+  describe('deleteMatching', () => {
     test('removes every entry matching the pattern', async () => {
-      await memory.putValue('cache:posts:1', 'a');
-      await memory.putValue('cache:posts:2', 'b');
-      await memory.putValue('cache:users:1', 'c');
+      await memory.set('cache:posts:1', 'a');
+      await memory.set('cache:posts:2', 'b');
+      await memory.set('cache:users:1', 'c');
 
-      await expect(memory.removeEntries('cache:posts:*')).resolves.toBe(2);
-      await expect(memory.findKeys('*')).resolves.toEqual(
-        new Set(['cache:users:1'])
-      );
+      await expect(memory.deleteMatching('cache:posts:*')).resolves.toBe(2);
+      await expect(memory.keys('*')).resolves.toEqual(['cache:users:1']);
     });
 
     test('returns 0 when nothing matches', async () => {
-      await expect(memory.removeEntries('nothing:*')).resolves.toBe(0);
+      await expect(memory.deleteMatching('nothing:*')).resolves.toBe(0);
     });
   });
 
-  describe('valueSizeBytes', () => {
+  describe('sizeBytes', () => {
     test('returns the size of the serialized value', async () => {
-      await memory.putValue('key', 'value');
+      await memory.set('key', 'value');
 
-      const size = await memory.valueSizeBytes('key');
+      const size = await memory.sizeBytes('key');
 
       expect(size).toBeGreaterThan(0);
     });
 
     test('grows with the value size', async () => {
-      await memory.putValue('small', 'a');
-      await memory.putValue('large', 'a'.repeat(1000));
+      await memory.set('small', 'a');
+      await memory.set('large', 'a'.repeat(1000));
 
-      const small = (await memory.valueSizeBytes('small'))!;
-      const large = (await memory.valueSizeBytes('large'))!;
+      const small = (await memory.sizeBytes('small'))!;
+      const large = (await memory.sizeBytes('large'))!;
 
       expect(large).toBeGreaterThan(small);
     });
 
     test('returns null for an unknown key', async () => {
-      await expect(memory.valueSizeBytes('missing')).resolves.toBeNull();
+      await expect(memory.sizeBytes('missing')).resolves.toBeNull();
     });
   });
 
@@ -281,34 +278,34 @@ describe('in-memory', () => {
       const limited = await createLimitedMemory('200');
 
       for (let i = 1; i <= 10; i++) {
-        await limited.putValue(`key-${i}`, 'x'.repeat(50));
+        await limited.set(`key-${i}`, 'x'.repeat(50));
       }
 
-      const keys = await limited.findKeys('*');
-      expect(keys.size).toBeGreaterThan(0);
-      expect(keys.size).toBeLessThan(10);
-      expect(keys.has('key-10')).toBe(true);
-      expect(keys.has('key-1')).toBe(false);
+      const keys = await limited.keys('*');
+      expect(keys.length).toBeGreaterThan(0);
+      expect(keys.length).toBeLessThan(10);
+      expect(keys).toContain('key-10');
+      expect(keys).not.toContain('key-1');
     });
 
     test('keeps every entry when the limit is not configured', async () => {
       for (let i = 1; i <= 10; i++) {
-        await memory.putValue(`key-${i}`, 'x'.repeat(1000));
+        await memory.set(`key-${i}`, 'x'.repeat(1000));
       }
 
-      await expect(memory.findKeys('*')).resolves.toHaveProperty('size', 10);
+      await expect(memory.keys('*')).resolves.toHaveLength(10);
     });
   });
 
   describe('expired entry cleanup', () => {
     test('purges expired entries when a new value is stored', async () => {
-      await memory.putValue('temp', 'value', 20);
+      await memory.set('temp', 'value', 20);
       await new Promise((resolve) => setTimeout(resolve, 40));
 
-      await memory.putValue('other', 'value');
+      await memory.set('other', 'value');
 
-      await expect(memory.hasKey('temp')).resolves.toBe(false);
-      await expect(memory.hasKey('other')).resolves.toBe(true);
+      await expect(memory.has('temp')).resolves.toBe(false);
+      await expect(memory.has('other')).resolves.toBe(true);
     });
   });
 
@@ -326,11 +323,11 @@ describe('in-memory', () => {
     });
 
     test('keeps the stored values after init', async () => {
-      await memory.putValue('key', 'value');
+      await memory.set('key', 'value');
 
       await memory.onInit();
 
-      await expect(memory.getValue('key')).resolves.toBe('value');
+      await expect(memory.get('key')).resolves.toBe('value');
     });
   });
 });

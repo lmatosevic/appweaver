@@ -1178,3 +1178,148 @@ export type FileResourceService = IResourceService<
   FileUpdate,
   FileQuery
 >;
+
+declare module '@appweaver/common' {
+  interface ResourceRegistry {
+    CannedResponse: {
+      model: CannedResponse;
+      single: CannedResponseSingle;
+      multiple: CannedResponseMultiple;
+      create: CannedResponseCreate;
+      update: CannedResponseUpdate;
+      query: CannedResponseQuery;
+      service: CannedResponseResourceService;
+      relations: 'team';
+    };
+    Customer: {
+      model: Customer;
+      single: CustomerSingle;
+      multiple: CustomerMultiple;
+      create: CustomerCreate;
+      update: CustomerUpdate;
+      query: CustomerQuery;
+      service: CustomerResourceService;
+      relations: 'tickets';
+    };
+    SlaPolicy: {
+      model: SlaPolicy;
+      single: SlaPolicySingle;
+      multiple: SlaPolicyMultiple;
+      create: SlaPolicyCreate;
+      update: SlaPolicyUpdate;
+      query: SlaPolicyQuery;
+      service: SlaPolicyResourceService;
+      relations: never;
+    };
+    Tag: {
+      model: Tag;
+      single: TagSingle;
+      multiple: TagMultiple;
+      create: TagCreate;
+      update: TagUpdate;
+      query: TagQuery;
+      service: TagResourceService;
+      relations: 'tickets';
+    };
+    Team: {
+      model: Team;
+      single: TeamSingle;
+      multiple: TeamMultiple;
+      create: TeamCreate;
+      update: TeamUpdate;
+      query: TeamQuery;
+      service: TeamResourceService;
+      relations: 'members' | 'tickets' | 'cannedResponses';
+    };
+    TicketMessage: {
+      model: TicketMessage;
+      single: TicketMessageSingle;
+      multiple: TicketMessageMultiple;
+      create: TicketMessageCreate;
+      update: TicketMessageUpdate;
+      query: TicketMessageQuery;
+      service: TicketMessageResourceService;
+      relations: 'ticket' | 'author';
+    };
+    Ticket: {
+      model: Ticket;
+      single: TicketSingle;
+      multiple: TicketMultiple;
+      create: TicketCreate;
+      update: TicketUpdate;
+      query: TicketQuery;
+      service: TicketResourceService;
+      relations: 'customer' | 'team' | 'assignee' | 'tags' | 'messages';
+    };
+    User: {
+      model: User;
+      single: UserSingle;
+      multiple: UserMultiple;
+      create: UserCreate;
+      update: UserUpdate;
+      query: UserQuery;
+      service: UserResourceService;
+      relations: 'team' | 'assignedTickets' | 'messages' | 'roles' | 'apiKeys';
+    };
+    ApiKey: {
+      model: ApiKey;
+      single: ApiKeySingle;
+      multiple: ApiKeyMultiple;
+      create: ApiKeyCreate;
+      update: ApiKeyUpdate;
+      query: ApiKeyQuery;
+      service: ApiKeyResourceService;
+      relations: 'user';
+    };
+    OneTimeToken: {
+      model: OneTimeToken;
+      single: OneTimeTokenSingle;
+      multiple: OneTimeTokenMultiple;
+      create: OneTimeTokenCreate;
+      update: OneTimeTokenUpdate;
+      query: OneTimeTokenQuery;
+      service: OneTimeTokenResourceService;
+      relations: never;
+    };
+    Role: {
+      model: Role;
+      single: RoleSingle;
+      multiple: RoleMultiple;
+      create: RoleCreate;
+      update: RoleUpdate;
+      query: RoleQuery;
+      service: RoleResourceService;
+      relations: 'permissions';
+    };
+    Permission: {
+      model: Permission;
+      single: PermissionSingle;
+      multiple: PermissionMultiple;
+      create: PermissionCreate;
+      update: PermissionUpdate;
+      query: PermissionQuery;
+      service: PermissionResourceService;
+      relations: never;
+    };
+    Seeder: {
+      model: any;
+      single: any;
+      multiple: any;
+      create: any;
+      update: any;
+      query: any;
+      service: IResourceService;
+      relations: string;
+    };
+    File: {
+      model: File;
+      single: FileSingle;
+      multiple: FileMultiple;
+      create: FileCreate;
+      update: FileUpdate;
+      query: FileQuery;
+      service: FileResourceService;
+      relations: never;
+    };
+  }
+}

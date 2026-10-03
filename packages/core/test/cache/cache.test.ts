@@ -29,7 +29,7 @@ describe('cache', () => {
     test('prefixes the key in the underlying memory', async () => {
       await cache.set('posts:1', { id: 1 });
 
-      await expect(memory.getValue(`${PREFIX}posts:1`)).resolves.toEqual({
+      await expect(memory.get(`${PREFIX}posts:1`)).resolves.toEqual({
         id: 1
       });
     });
@@ -37,7 +37,7 @@ describe('cache', () => {
     test('does not prefix an already prefixed key twice', async () => {
       await cache.set(`${PREFIX}posts:1`, { id: 1 });
 
-      await expect(memory.getValue(`${PREFIX}posts:1`)).resolves.toEqual({
+      await expect(memory.get(`${PREFIX}posts:1`)).resolves.toEqual({
         id: 1
       });
       await expect(cache.get('posts:1')).resolves.toEqual({ id: 1 });
@@ -76,7 +76,7 @@ describe('cache', () => {
   describe('get', () => {
     test('drops the entry metadata of a value the memory already expired', async () => {
       await cache.set('posts:1', { id: 1 });
-      await memory.removeValue(`${PREFIX}posts:1`);
+      await memory.delete(`${PREFIX}posts:1`);
 
       await expect(cache.get('posts:1')).resolves.toBeNull();
       expect((cache as any)._entryMeta.has(`${PREFIX}posts:1`)).toBe(false);
@@ -96,12 +96,12 @@ describe('cache', () => {
     test('removes a cached value', async () => {
       await cache.set('posts:1', { id: 1 });
 
-      await expect(cache.evict('posts:1')).resolves.toBe(true);
+      await expect(cache.delete('posts:1')).resolves.toBe(true);
       await expect(cache.get('posts:1')).resolves.toBeNull();
     });
 
     test('returns false for a missing key', async () => {
-      await expect(cache.evict('missing')).resolves.toBe(false);
+      await expect(cache.delete('missing')).resolves.toBe(false);
     });
   });
 
@@ -111,7 +111,7 @@ describe('cache', () => {
       await cache.set('posts:2', { id: 2 });
       await cache.set('users:1', { id: 1 });
 
-      await expect(cache.expire('posts:*')).resolves.toBe(2);
+      await expect(cache.deleteMatching('posts:*')).resolves.toBe(2);
 
       await expect(cache.get('posts:1')).resolves.toBeNull();
       await expect(cache.get('users:1')).resolves.toEqual({ id: 1 });
@@ -121,12 +121,12 @@ describe('cache', () => {
       await cache.set('posts:1', { id: 1 });
       await cache.set('users:1', { id: 1 });
 
-      await expect(cache.expire()).resolves.toBe(2);
+      await expect(cache.deleteMatching()).resolves.toBe(2);
       await expect(cache.keys()).resolves.toEqual([]);
     });
 
     test('returns 0 when nothing matches', async () => {
-      await expect(cache.expire('nothing:*')).resolves.toBe(0);
+      await expect(cache.deleteMatching('nothing:*')).resolves.toBe(0);
     });
   });
 
@@ -242,11 +242,11 @@ describe('cache', () => {
         return this.available;
       }
 
-      public async getValue<T = any>(key: string): Promise<T | null> {
+      public async get<T = any>(key: string): Promise<T | null> {
         if (this.failing) {
           throw new Error('Connection lost');
         }
-        return super.getValue<T>(key);
+        return super.get<T>(key);
       }
     }
 
@@ -274,8 +274,8 @@ describe('cache', () => {
       await expect(flakyCache.get('posts:1')).resolves.toBeNull();
       await expect(flakyCache.has('posts:1')).resolves.toBe(false);
       await expect(flakyCache.set('posts:2', { id: 2 })).resolves.toBe(false);
-      await expect(flakyCache.evict('posts:1')).resolves.toBe(false);
-      await expect(flakyCache.expire()).resolves.toBe(0);
+      await expect(flakyCache.delete('posts:1')).resolves.toBe(false);
+      await expect(flakyCache.deleteMatching()).resolves.toBe(0);
       await expect(flakyCache.keys()).resolves.toEqual([]);
     });
 
@@ -329,7 +329,7 @@ describe('cache', () => {
         }
         const clean = new CleanStartCache();
 
-        await memory.putValue(`${PREFIX}posts:1`, { id: 1 });
+        await memory.set(`${PREFIX}posts:1`, { id: 1 });
         await clean.onInit();
         available = true;
 
@@ -351,7 +351,7 @@ describe('cache', () => {
 
         const memory = new memoryModule.InMemory();
         jest
-          .spyOn(memory, 'getValue')
+          .spyOn(memory, 'get')
           .mockRejectedValue(new Error('Connection lost'));
 
         class StrictCache extends cacheModule.Cache {

@@ -11,7 +11,9 @@ describe('Text search', () => {
   let posts: any;
 
   const search = async (searchText: string): Promise<string[]> =>
-    (await posts.query({ searchText })).items.map((post: any) => post.slug);
+    (await posts.query({ filter: { searchText } })).items.map(
+      (post: any) => post.slug
+    );
 
   beforeAll(async () => {
     app = await createApp({ autoStartServer: false });

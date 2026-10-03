@@ -34,28 +34,24 @@ export abstract class Memory implements IHealthCheck, OnInit, OnDestroy {
    * @param {string} key - The key to look up.
    * @returns The stored value, or `null` if not found.
    */
-  abstract getValue<T = any>(key: string): Promise<T | null>;
+  abstract get<T = any>(key: string): Promise<T | null>;
 
   /**
    * Stores a value under the given key.
    *
    * @param {string} key - The key to store under.
    * @param {Object} value - The value to store.
-   * @param {number} expireMs - Optional TTL in milliseconds.
+   * @param {number} [ttl] - Optional time-to-live in milliseconds.
    * @returns `true` if stored successfully, `false` otherwise.
    */
-  abstract putValue(
-    key: string,
-    value: any,
-    expireMs?: number
-  ): Promise<boolean>;
+  abstract set(key: string, value: any, ttl?: number): Promise<boolean>;
 
   /**
    * Checks whether a key exists.
    *
    * @param {string} key - The key to check.
    */
-  abstract hasKey(key: string): Promise<boolean>;
+  abstract has(key: string): Promise<boolean>;
 
   /**
    * Removes the value for the given key.
@@ -63,22 +59,23 @@ export abstract class Memory implements IHealthCheck, OnInit, OnDestroy {
    * @param {string} key - The key to remove.
    * @returns `true` if the key was removed, `false` otherwise.
    */
-  abstract removeValue(key: string): Promise<boolean>;
+  abstract delete(key: string): Promise<boolean>;
 
   /**
-   * Removes all entries matching the query pattern.
+   * Removes all entries matching the given key pattern.
    *
-   * @param {string} query - A pattern or query string.
+   * @param {string} [pattern] - Optional glob pattern to filter keys, matching every key by default.
    * @returns The number of entries removed.
    */
-  abstract removeEntries(query: string): Promise<number>;
+  abstract deleteMatching(pattern?: string): Promise<number>;
 
   /**
    * Returns all keys matching the given pattern.
    *
-   * @param {string} pattern - Optional glob/pattern to filter keys.
+   * @param {string} [pattern] - Optional glob pattern to filter keys, matching every key by default.
+   * @returns {Promise<string[]>} The keys matching the pattern.
    */
-  abstract findKeys(pattern?: string): Promise<Set<string>>;
+  abstract keys(pattern?: string): Promise<string[]>;
 
   /**
    * Calculates the size of a value associated with the provided key in bytes.
@@ -86,7 +83,7 @@ export abstract class Memory implements IHealthCheck, OnInit, OnDestroy {
    * @param {string} key - The key whose corresponding value's size in bytes needs to be determined.
    * @return {Promise<number>} A promise that resolves to the size of the value in bytes.
    */
-  abstract valueSizeBytes(key: string): Promise<number | null>;
+  abstract sizeBytes(key: string): Promise<number | null>;
 
   /**
    * Acquires a lock on a specified resource with optional configuration for expiration and retries.

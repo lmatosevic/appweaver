@@ -22,6 +22,7 @@ import {
   RESOURCE_NAME,
   RESOURCE_TYPE,
   ResourceModel,
+  RelationConfig,
   ResourceModelConfig,
   ScalarField,
   StringDate,
@@ -35,10 +36,25 @@ import {
   idValueSchema
 } from '../resource';
 
-export function createModel(
-  config: ResourceModelConfig,
+/**
+ * Creates a resource model from its configuration and defines it in the application context. The names of the
+ * declared fields are inferred from the configuration, so the `read`, `create`, and `update` options only accept
+ * existing fields.
+ *
+ * @param {ResourceModelConfig} config - The model configuration.
+ * @param {boolean} [override=false] - Whether to replace a model already defined under the same name.
+ * @return {ResourceModel} The created resource model.
+ */
+export function createModel<
+  S extends string,
+  R extends string,
+  F extends string,
+  V extends string
+>(
+  modelConfig: ResourceModelConfig<S, R, F, V>,
   override: boolean = false
 ): ResourceModel {
+  const config = normalizeRelations(modelConfig);
   const resourceModel = buildModel(config);
 
   logger.debug({ modelName: resourceModel.name }, 'Created resource model');
@@ -53,6 +69,36 @@ export function createModel(
   };
 
   return resourceModel;
+}
+
+/**
+ * Replaces every `manyToOne` relation with the `oneToMany` relation it stands for, owning the foreign key, so the
+ * rest of the framework handles a single form.
+ *
+ * @throws {Error} If a `manyToOne` relation is declared with `owner: false`.
+ */
+function normalizeRelations(config: ResourceModelConfig): ResourceModelConfig {
+  if (!config.relations) {
+    return config;
+  }
+
+  const relations: RelationConfig = {};
+  for (const [field, relation] of Object.entries(config.relations)) {
+    if (relation.type !== 'manyToOne') {
+      relations[field] = relation;
+      continue;
+    }
+
+    if (relation.owner === false) {
+      throw new Error(
+        `Relation '${config.name}.${field}' of type 'manyToOne' holds the foreign key, so it cannot set 'owner: false'`
+      );
+    }
+
+    relations[field] = { ...relation, type: 'oneToMany', owner: true };
+  }
+
+  return { ...config, relations };
 }
 
 function buildModel(config: ResourceModelConfig): ResourceModel {

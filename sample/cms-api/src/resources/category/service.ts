@@ -1,11 +1,9 @@
 import { createService, HttpError } from '@appweaver/core';
-import { ResourceId } from '@appweaver/common';
-import { CategoryCreate, CategoryUpdate } from '@/types';
 
-export default createService<any, CategoryCreate, CategoryUpdate>({
+export default createService({
   modelName: 'Category',
   // A category as its own parent detaches the branch it holds
-  beforeUpdate: (id: ResourceId, data: CategoryUpdate) => {
+  beforeUpdate: (id, data) => {
     const parentId =
       typeof data.parent === 'object' ? data.parent?.id : data.parent;
     if (parentId !== undefined && String(parentId) === String(id)) {

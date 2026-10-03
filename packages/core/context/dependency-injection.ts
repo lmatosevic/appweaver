@@ -12,7 +12,9 @@ import {
   isString,
   isSymbol,
   loadModule,
+  ModelName,
   logger,
+  RegistryType,
   RESOURCE_NAME,
   ResourceModel,
   ResourcePolicyConfig,
@@ -229,15 +231,17 @@ export function injectModel<T = ResourceModel, R extends boolean = true>(
 /**
  * Injects and retrieves a service instance from the application context based on the provided model name.
  *
+ * Once the types are generated, the service is typed by the `<Model>ResourceService` type of the model.
+ *
  * @param {string} modelName - The name of the model whose service needs to be injected.
  * @param {boolean} [required=true] - Indicates if the service is mandatory. If true and the service is not available, an error is thrown.
  * @return {IResourceService} The service instance corresponding to the specified model name.
  * @throws {Error} If the service cannot be found in the application context and `required` is true.
  */
-export function injectService<T = IResourceService, R extends boolean = true>(
-  modelName: string,
+export function injectService<N extends ModelName, R extends boolean = true>(
+  modelName: N,
   required: R = true as R
-): ConditionalOptional<R, T> {
+): ConditionalOptional<R, RegistryType<N, 'service', IResourceService>> {
   const service = context.resource.services.get(modelName);
 
   if (!service && required) {
@@ -246,7 +250,11 @@ export function injectService<T = IResourceService, R extends boolean = true>(
     );
   }
 
-  return checkClassAndInit(modelName, service) as T;
+  return checkClassAndInit(modelName, service) as RegistryType<
+    N,
+    'service',
+    IResourceService
+  >;
 }
 
 /**

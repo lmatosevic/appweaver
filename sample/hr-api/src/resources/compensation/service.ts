@@ -1,12 +1,7 @@
 import { createService, HttpError } from '@appweaver/core';
 import db from '@db/client';
-import { Compensation, CompensationCreate, CompensationUpdate } from '@/types';
 
-export default createService<
-  Compensation,
-  CompensationCreate,
-  CompensationUpdate
->({
+export default createService({
   modelName: 'Compensation',
   beforeCreate: async (data) => {
     const employeeId =

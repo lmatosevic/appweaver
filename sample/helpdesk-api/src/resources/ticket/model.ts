@@ -60,9 +60,8 @@ export default createModel({
     // Matched by email, created with the ticket when unknown
     customer: {
       model: 'Customer',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'tickets',
-      owner: true,
       input: {
         type: 'create',
         allowCreate: true,
@@ -74,9 +73,8 @@ export default createModel({
     },
     team: {
       model: 'Team',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'tickets',
-      owner: true,
       required: false,
       output: {
         type: 'always'
@@ -85,9 +83,8 @@ export default createModel({
     // Assigned automatically when left empty, see the assignment feature
     assignee: {
       model: 'User',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'assignedTickets',
-      owner: true,
       required: false,
       output: {
         type: 'always'

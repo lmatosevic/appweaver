@@ -3,6 +3,8 @@ import {
   config as cfg,
   Ctor,
   IResourceService,
+  ModelName,
+  RegistryType,
   RelationConfig,
   RESOURCE_AUTH,
   ResourceModel,
@@ -22,7 +24,33 @@ import {
   RegistrationFilesFn
 } from '../types';
 
-export function createAuthModel(config: ResourceModelConfig): ResourceModel {
+/** The fields an auth model adds to the configured ones. */
+type AuthFieldName =
+  | 'email'
+  | 'passwordHash'
+  | 'verifiedEmail'
+  | 'twoFactorAuth'
+  | 'enabled'
+  | 'logoutAt'
+  | 'password'
+  | 'roles'
+  | 'apiKeys';
+
+/**
+ * Creates the resource model of an authenticatable user, adding the email, password, verification, two-factor, and
+ * role fields to the configured ones.
+ *
+ * @param {ResourceModelConfig} modelConfig - The model configuration.
+ * @return {ResourceModel} The created auth resource model.
+ */
+export function createAuthModel<
+  S extends string,
+  R extends string,
+  F extends string,
+  V extends string
+>(modelConfig: ResourceModelConfig<S, R, F, V, AuthFieldName>): ResourceModel {
+  const config = modelConfig as ResourceModelConfig;
+
   const authModelScalars: ScalarConfig = {
     email: {
       type: 'string',
@@ -146,9 +174,24 @@ export function createAuthModel(config: ResourceModelConfig): ResourceModel {
   return model;
 }
 
-export function createAuthService<T = any, C = any, U = any>(
+/**
+ * Creates the resource service of an authenticatable user, hashing the password on create and update, along with the
+ * callbacks preparing the data and files of a registered user. Once the types are generated, the model, create, and
+ * update types are inferred from the model name.
+ *
+ * @param {ResourceServiceConfig} config - The service configuration with the model name, hooks, and registration
+ * callbacks.
+ * @return {Ctor<IResourceService>} The created service class, defined in the application context.
+ */
+export function createAuthService<
+  N extends ModelName,
+  T = RegistryType<N, 'model'>,
+  C = RegistryType<N, 'create'>,
+  U = RegistryType<N, 'update'>
+>(
   config: ResourceServiceConfig<T, C, U> & {
-    registrationData?: RegistrationDataFn<T>;
+    modelName: N;
+    registrationData?: RegistrationDataFn<C>;
     registrationFiles?: RegistrationFilesFn;
     checkOAuth2User?: CheckOAuth2UserFn;
   }
@@ -172,11 +215,11 @@ export function createAuthService<T = any, C = any, U = any>(
       return {
         email,
         password
-      } as T;
+      } as C;
     };
   }
 
-  const service = createService<T, C, U>(config);
+  const service = createService<N, T, C, U>(config);
 
   service[RESOURCE_AUTH] = true;
 

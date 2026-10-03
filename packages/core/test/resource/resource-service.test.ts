@@ -228,7 +228,7 @@ describe('resource-service', () => {
     });
 
     test('applies the pagination values', async () => {
-      await service.query({}, 3, 20);
+      await service.query({ page: 3, size: 20 });
 
       // One record past the page is fetched to detect a further page
       expect(db.lastQuery('findMany').args).toMatchObject({
@@ -238,14 +238,11 @@ describe('resource-service', () => {
     });
 
     test('omits the total count when the query opts out of it', async () => {
-      const result = await service.query(
-        {},
-        1,
-        50,
-        undefined,
-        undefined,
-        false
-      );
+      const result = await service.query({
+        page: 1,
+        size: 50,
+        totalCount: false
+      });
 
       expect(result.totalCount).toBeNull();
       expect(db.queries.filter((query) => query.method === 'count')).toEqual(
@@ -263,7 +260,7 @@ describe('resource-service', () => {
     test('returns a next cursor and trims the over fetched record', async () => {
       db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
 
-      const result = await service.query({}, 1, 2);
+      const result = await service.query({ page: 1, size: 2 });
 
       expect(result.resultCount).toBe(2);
       expect(result.items.map((item: any) => item.id)).toEqual([1, 2]);
@@ -272,7 +269,7 @@ describe('resource-service', () => {
     });
 
     test('returns a prev cursor for an offset page after the first', async () => {
-      const result = await service.query({}, 2, 50);
+      const result = await service.query({ page: 2, size: 50 });
 
       expect(result.prevCursor).toBeDefined();
       expect(result.nextCursor).toBeNull();
@@ -280,9 +277,13 @@ describe('resource-service', () => {
 
     test('follows a next cursor with a cursor query instead of an offset', async () => {
       db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
-      const first = await service.query({}, 1, 2);
+      const first = await service.query({ page: 1, size: 2 });
 
-      const second = await service.query({}, 1, 2, undefined, first.nextCursor);
+      const second = await service.query({
+        page: 1,
+        size: 2,
+        cursor: first.nextCursor
+      });
 
       expect(db.lastQuery('findMany').args).toMatchObject({
         cursor: { id: 2 },
@@ -295,12 +296,20 @@ describe('resource-service', () => {
 
     test('pages backward with a negative take and keeps the trailing records', async () => {
       db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
-      const first = await service.query({}, 1, 2);
+      const first = await service.query({ page: 1, size: 2 });
 
       // The direction rides in the cursor, so the caller hands back the cursor
       // of the page it wants without naming a direction of its own
-      const second = await service.query({}, 1, 2, undefined, first.nextCursor);
-      const back = await service.query({}, 1, 2, undefined, second.prevCursor);
+      const second = await service.query({
+        page: 1,
+        size: 2,
+        cursor: first.nextCursor
+      });
+      const back = await service.query({
+        page: 1,
+        size: 2,
+        cursor: second.prevCursor
+      });
 
       // The prev cursor of a page anchors on its first record
       expect(db.lastQuery('findMany').args).toMatchObject({
@@ -316,10 +325,19 @@ describe('resource-service', () => {
 
     test('rejects a cursor issued for another filter', async () => {
       db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
-      const first = await service.query({ views: 10 }, 1, 2);
+      const first = await service.query({
+        filter: { views: 10 },
+        page: 1,
+        size: 2
+      });
 
       await expect(
-        service.query({ views: 20 }, 1, 2, undefined, first.nextCursor)
+        service.query({
+          filter: { views: 20 },
+          page: 1,
+          size: 2,
+          cursor: first.nextCursor
+        })
       ).rejects.toMatchObject({
         statusCode: 400,
         message: expect.stringContaining('does not match the filter and sort')
@@ -328,15 +346,20 @@ describe('resource-service', () => {
 
     test('rejects a cursor issued for another sort order', async () => {
       db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
-      const first = await service.query({}, 1, 2, 'title');
+      const first = await service.query({ page: 1, size: 2, sort: 'title' });
 
       await expect(
-        service.query({}, 1, 2, '-title', first.nextCursor)
+        service.query({
+          page: 1,
+          size: 2,
+          sort: '-title',
+          cursor: first.nextCursor
+        })
       ).rejects.toMatchObject({ statusCode: 400 });
     });
 
     test('fetches no record for an empty page size', async () => {
-      await service.query({}, 1, 0);
+      await service.query({ page: 1, size: 0 });
 
       expect(db.lastQuery('findMany').args).toMatchObject({ take: 0 });
     });
@@ -351,7 +374,7 @@ describe('resource-service', () => {
     });
 
     test('maps ascending and descending sort fields', async () => {
-      await service.query({}, 1, 50, 'title,-views');
+      await service.query({ page: 1, size: 50, sort: 'title,-views' });
 
       expect(db.lastQuery('findMany').args.orderBy).toEqual([
         { title: 'asc' },
@@ -361,7 +384,7 @@ describe('resource-service', () => {
     });
 
     test('maps a nested relation sort field', async () => {
-      await service.query({}, 1, 50, '-author.email');
+      await service.query({ page: 1, size: 50, sort: '-author.email' });
 
       expect(db.lastQuery('findMany').args.orderBy).toEqual([
         { author: { email: 'desc' } },
@@ -370,7 +393,7 @@ describe('resource-service', () => {
     });
 
     test('maps a relation count sort field', async () => {
-      await service.query({}, 1, 50, '-tagsCount');
+      await service.query({ page: 1, size: 50, sort: '-tagsCount' });
 
       expect(db.lastQuery('findMany').args.orderBy).toEqual([
         { tags: { _count: 'desc' } },
@@ -379,7 +402,11 @@ describe('resource-service', () => {
     });
 
     test('maps a sort object in the declared field order', async () => {
-      await service.query({}, 1, 50, { title: 'asc', views: 'desc' });
+      await service.query({
+        page: 1,
+        size: 50,
+        sort: { title: 'asc', views: 'desc' }
+      });
 
       expect(db.lastQuery('findMany').args.orderBy).toEqual([
         { title: 'asc' },
@@ -390,7 +417,7 @@ describe('resource-service', () => {
 
     test('throws a bad request error for a direction that is not lower case', async () => {
       await expect(
-        service.query({}, 1, 50, { title: 'ASC' } as any)
+        service.query({ page: 1, size: 50, sort: { title: 'ASC' } as any })
       ).rejects.toMatchObject({
         statusCode: 400,
         message: expect.stringContaining("Invalid sort direction 'ASC'")
@@ -398,7 +425,11 @@ describe('resource-service', () => {
     });
 
     test('maps a nested relation sort object', async () => {
-      await service.query({}, 1, 50, { author: { email: 'desc' }, id: 'asc' });
+      await service.query({
+        page: 1,
+        size: 50,
+        sort: { author: { email: 'desc' }, id: 'asc' }
+      });
 
       expect(db.lastQuery('findMany').args.orderBy).toEqual([
         { author: { email: 'desc' } },
@@ -408,7 +439,7 @@ describe('resource-service', () => {
 
     test('throws a bad request error for a field that cannot be sorted by', async () => {
       await expect(
-        service.query({}, 1, 50, { unknown: 'asc' })
+        service.query({ page: 1, size: 50, sort: { unknown: 'asc' } })
       ).rejects.toMatchObject({
         statusCode: 400,
         message: expect.stringContaining('is not a sortable field')
@@ -416,7 +447,7 @@ describe('resource-service', () => {
     });
 
     test('maps a scalar filter value directly', async () => {
-      await service.query({ title: 'First' });
+      await service.query({ filter: { title: 'First' } });
 
       expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
         title: 'First'
@@ -424,7 +455,7 @@ describe('resource-service', () => {
     });
 
     test('maps a list of scalar values to an inclusion filter', async () => {
-      await service.query({ title: ['First', 'Second'] });
+      await service.query({ filter: { title: ['First', 'Second'] } });
 
       expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
         title: { in: ['First', 'Second'] }
@@ -432,7 +463,7 @@ describe('resource-service', () => {
     });
 
     test('maps a numeric range filter', async () => {
-      await service.query({ views: [10, 100] });
+      await service.query({ filter: { views: [10, 100] } });
 
       expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
         views: { gte: 10, lte: 100 }
@@ -441,7 +472,9 @@ describe('resource-service', () => {
 
     test('maps a date range filter', async () => {
       await service.query({
-        publishedAt: ['2026-01-01T00:00:00Z', '2026-02-01T00:00:00Z']
+        filter: {
+          publishedAt: ['2026-01-01T00:00:00Z', '2026-02-01T00:00:00Z']
+        }
       });
 
       expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
@@ -453,7 +486,7 @@ describe('resource-service', () => {
     });
 
     test('maps an array scalar filter to a contains filter', async () => {
-      await service.query({ keywords: 'news' });
+      await service.query({ filter: { keywords: 'news' } });
 
       expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
         keywords: { has: 'news' }
@@ -461,7 +494,7 @@ describe('resource-service', () => {
     });
 
     test('maps a list of array scalar values to a hasSome filter', async () => {
-      await service.query({ keywords: ['news', 'tech'] });
+      await service.query({ filter: { keywords: ['news', 'tech'] } });
 
       expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
         keywords: { hasSome: ['news', 'tech'] }
@@ -469,7 +502,7 @@ describe('resource-service', () => {
     });
 
     test('maps a single relation filter to an id filter', async () => {
-      await service.query({ author: 5 });
+      await service.query({ filter: { author: 5 } });
 
       expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
         author: { id: 5 }
@@ -477,7 +510,7 @@ describe('resource-service', () => {
     });
 
     test('maps a list relation filter to a some filter', async () => {
-      await service.query({ tags: [1, 2] });
+      await service.query({ filter: { tags: [1, 2] } });
 
       expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
         tags: { some: { id: { in: [1, 2] } } }
@@ -488,7 +521,7 @@ describe('resource-service', () => {
       createModel({ name: 'User', scalars: { age: { type: 'int' } } }, true);
       linkModels();
 
-      await new PostService().query({ author: { age: [18, 30] } });
+      await new PostService().query({ filter: { author: { age: [18, 30] } } });
 
       expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
         author: { age: { gte: 18, lte: 30 } }
@@ -496,7 +529,7 @@ describe('resource-service', () => {
     });
 
     test('maps a nested list relation filter through the related model', async () => {
-      await service.query({ tags: [{ name: ['news', 'tech'] }] });
+      await service.query({ filter: { tags: [{ name: ['news', 'tech'] }] } });
 
       expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
         tags: [{ name: { in: ['news', 'tech'] } }]
@@ -504,7 +537,7 @@ describe('resource-service', () => {
     });
 
     test('passes a null relation filter through unchanged', async () => {
-      await service.query({ author: null });
+      await service.query({ filter: { author: null } });
 
       expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
         author: null
@@ -519,7 +552,7 @@ describe('resource-service', () => {
       }
       const restricted = new RestrictedService();
 
-      await restricted.query({ title: 'First' });
+      await restricted.query({ filter: { title: 'First' } });
 
       expect(db.lastQuery('findMany').args.where.AND).toContainEqual({
         authorId: 7
@@ -533,7 +566,9 @@ describe('resource-service', () => {
         }
       }
 
-      await new SearchService().query({ searchText: 'news' } as any);
+      await new SearchService().query({
+        filter: { searchText: 'news' } as any
+      });
 
       const conditions = db.lastQuery('findMany').args.where.AND;
       expect(conditions).toContainEqual({ title: { contains: 'news' } });
@@ -609,6 +644,124 @@ describe('resource-service', () => {
       await service.query();
 
       expect(handler).toHaveBeenCalled();
+    });
+  });
+
+  describe('single', () => {
+    test('returns the first resource matching the filter', async () => {
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+
+      const post = await service.single({ title: 'First' });
+
+      expect(db.lastQuery('findFirst').args.where.AND[0]).toEqual({
+        title: 'First'
+      });
+      expect(post).toMatchObject({
+        id: 1,
+        title: 'First',
+        excerpt: 'First...'
+      });
+    });
+
+    test('includes the relations of the find action', async () => {
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+
+      await service.single();
+
+      expect(db.lastQuery('findFirst').args.include).toEqual({
+        author: true,
+        tags: true
+      });
+    });
+
+    test('orders the matches by the given sort, ending with the id', async () => {
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+
+      await service.single({}, 'title');
+
+      expect(db.lastQuery('findFirst').args.orderBy).toEqual([
+        { title: 'asc' },
+        { id: 'asc' }
+      ]);
+    });
+
+    test('returns null when nothing matches', async () => {
+      db.setResult('Post', 'findFirst', null);
+
+      await expect(service.single({ title: 'Missing' })).resolves.toBeNull();
+    });
+
+    test('applies the read restrictions of the query action', async () => {
+      const readRestrictions = jest.fn().mockResolvedValue({ authorId: 7 });
+      class RestrictedService extends PostService {
+        protected async readRestrictions(...args: any[]): Promise<any> {
+          return readRestrictions(...args);
+        }
+      }
+      db.setResult('Post', 'findFirst', null);
+
+      await new RestrictedService().single({ title: 'First' });
+
+      expect(readRestrictions).toHaveBeenCalledWith('query', {
+        title: 'First'
+      });
+      expect(db.lastQuery('findFirst').args.where.AND).toContainEqual({
+        authorId: 7
+      });
+    });
+
+    test('rejects a match the access check denies', async () => {
+      class DeniedService extends PostService {
+        protected async checkAccess(): Promise<boolean> {
+          return false;
+        }
+      }
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+
+      await expect(new DeniedService().single()).rejects.toMatchObject({
+        statusCode: 403
+      });
+    });
+  });
+
+  describe('count', () => {
+    test('counts the resources matching the filter', async () => {
+      db.setResult('Post', 'count', 4);
+
+      await expect(service.count({ title: 'First' })).resolves.toBe(4);
+      expect(db.lastQuery('count').args.where.AND[0]).toEqual({
+        title: 'First'
+      });
+    });
+
+    test('applies the read restrictions', async () => {
+      class RestrictedService extends PostService {
+        protected async readRestrictions(): Promise<any> {
+          return { authorId: 7 };
+        }
+      }
+      db.setResult('Post', 'count', 0);
+
+      await new RestrictedService().count();
+
+      expect(db.lastQuery('count').args.where.AND).toContainEqual({
+        authorId: 7
+      });
+    });
+  });
+
+  describe('exists', () => {
+    test('returns true when a resource matches', async () => {
+      db.setResult('Post', 'findFirst', { id: 1 });
+
+      await expect(service.exists({ title: 'First' })).resolves.toBe(true);
+      expect(db.lastQuery('findFirst').args.select).toEqual({ id: true });
+    });
+
+    test('returns false when nothing matches', async () => {
+      db.setResult('Post', 'findFirst', null);
+
+      await expect(service.exists({ title: 'Missing' })).resolves.toBe(false);
     });
   });
 
@@ -1418,7 +1571,7 @@ describe('resource-service', () => {
       db.setResult('Post', 'findMany', []);
       db.setResult('Post', 'count', 0);
 
-      await service.query({ title: 'First' });
+      await service.query({ filter: { title: 'First' } });
 
       expect(db.lastQuery('findMany').args.where.AND).toEqual([
         { title: 'First' },
@@ -1431,7 +1584,7 @@ describe('resource-service', () => {
     test('aggregates only the records that are not soft deleted', async () => {
       db.setResult('Post', 'aggregate', { _count: { id: 1 } });
 
-      await service.aggregate({}, { id: { count: true } } as any);
+      await service.aggregate({ select: { id: { count: true } } as any });
 
       expect(db.lastQuery('aggregate').args.where.AND[0].AND).toContainEqual({
         deletedAt: null
@@ -1655,19 +1808,18 @@ describe('resource-service', () => {
     });
 
     test('maps the selection to the Prisma aggregation operators', async () => {
-      await service.aggregate({}, { views: { sum: true } });
+      await service.aggregate({ select: { views: { sum: true } } });
 
       expect(db.lastQuery('aggregate').args._sum).toEqual({ views: true });
     });
 
     test('maps the aggregation results back to the response format', async () => {
-      const result = await service.aggregate(
-        {},
-        { views: { sum: true } },
-        'createdAt',
-        '2026-01-01T00:00:00.000Z',
-        '2026-01-08T00:00:00.000Z'
-      );
+      const result = await service.aggregate({
+        select: { views: { sum: true } },
+        dateField: 'createdAt',
+        from: '2026-01-01T00:00:00.000Z',
+        to: '2026-01-08T00:00:00.000Z'
+      });
 
       expect(result.total).toEqual({ id: { count: 4 }, views: { sum: 8 } });
       expect(result.items.length).toBeGreaterThan(0);
@@ -1690,10 +1842,9 @@ describe('resource-service', () => {
         }
       }
 
-      const result = await new TypedPostService().aggregate(
-        {},
-        { views: { sum: true } }
-      );
+      const result = await new TypedPostService().aggregate({
+        select: { views: { sum: true } }
+      });
 
       // @ts-expect-error publishedAt was not part of the selection
       const unselected = result.total.publishedAt;
@@ -1703,38 +1854,36 @@ describe('resource-service', () => {
     });
 
     test('splits the interval into periods', async () => {
-      const result = await service.aggregate(
-        {},
-        { views: { sum: true } },
-        'createdAt',
-        '2026-01-01T00:00:00.000Z',
-        '2026-01-08T00:00:00.000Z'
-      );
+      const result = await service.aggregate({
+        select: { views: { sum: true } },
+        dateField: 'createdAt',
+        from: '2026-01-01T00:00:00.000Z',
+        to: '2026-01-08T00:00:00.000Z'
+      });
 
       expect(result.items).toHaveLength(7);
       expect(result.items[0].date).toBeInstanceOf(Date);
     });
 
     test('applies the date field range to every aggregation', async () => {
-      await service.aggregate(
-        {},
-        { views: { sum: true } },
-        'publishedAt',
-        '2026-01-01T00:00:00.000Z',
-        '2026-01-08T00:00:00.000Z'
-      );
+      await service.aggregate({
+        select: { views: { sum: true } },
+        dateField: 'publishedAt',
+        from: '2026-01-01T00:00:00.000Z',
+        to: '2026-01-08T00:00:00.000Z'
+      });
 
       const conditions = db.lastQuery('aggregate').args.where.AND;
       expect(conditions[1]).toHaveProperty('publishedAt');
     });
 
     test('applies the query filter to the aggregation', async () => {
-      await service.aggregate(
-        { title: 'First' },
-        {
+      await service.aggregate({
+        filter: { title: 'First' },
+        select: {
           views: { sum: true }
         }
-      );
+      });
 
       const conditions = db.lastQuery('aggregate').args.where.AND[0].AND;
       expect(conditions[0]).toEqual({ title: 'First' });
@@ -1755,13 +1904,12 @@ describe('resource-service', () => {
           views: args.orderBy[0].createdAt === 'asc' ? 3 : 9
         }));
 
-        const result = await service.aggregate(
-          {},
-          { views: { first: true, last: true } },
-          'createdAt',
+        const result = await service.aggregate({
+          select: { views: { first: true, last: true } },
+          dateField: 'createdAt',
           from,
           to
-        );
+        });
 
         expect(result.total).toEqual({ views: { first: 3, last: 9 } });
         expect(result.items[0].result).toEqual({
@@ -1773,13 +1921,12 @@ describe('resource-service', () => {
         db.setResult('Post', 'aggregate', { _count: { _all: 2 } });
         db.setResult('Post', 'findFirst', { publishedAt: null });
 
-        await service.aggregate(
-          {},
-          { views: { first: true } },
-          'publishedAt',
+        await service.aggregate({
+          select: { views: { first: true } },
+          dateField: 'publishedAt',
           from,
           to
-        );
+        });
 
         expect(findFirstQueries()).toHaveLength(1);
         expect(findFirstQueries()[0].args).toMatchObject({
@@ -1792,13 +1939,13 @@ describe('resource-service', () => {
         db.setResult('Post', 'aggregate', { _count: { _all: 2 } });
         db.setResult('Post', 'findFirst', { views: 3 });
 
-        await service.aggregate(
-          { title: 'First' },
-          { views: { first: true } },
-          'createdAt',
+        await service.aggregate({
+          filter: { title: 'First' },
+          select: { views: { first: true } },
+          dateField: 'createdAt',
           from,
           to
-        );
+        });
 
         const conditions = findFirstQueries()[0].args.where.AND;
         expect(conditions[0].AND[0]).toEqual({ title: 'First' });
@@ -1808,13 +1955,12 @@ describe('resource-service', () => {
       test('skips the boundary lookups of an empty range', async () => {
         db.setResult('Post', 'aggregate', { _count: { _all: 0 } });
 
-        const result = await service.aggregate(
-          {},
-          { views: { first: true, last: true } },
-          'createdAt',
+        const result = await service.aggregate({
+          select: { views: { first: true, last: true } },
+          dateField: 'createdAt',
           from,
           to
-        );
+        });
 
         expect(findFirstQueries()).toHaveLength(0);
         expect(result.total).toEqual({ views: { first: null, last: null } });
@@ -1823,13 +1969,12 @@ describe('resource-service', () => {
       test('reads no boundary record when the operators are not selected', async () => {
         db.setResult('Post', 'aggregate', { _sum: { views: 8 } });
 
-        await service.aggregate(
-          {},
-          { views: { sum: true } },
-          'createdAt',
+        await service.aggregate({
+          select: { views: { sum: true } },
+          dateField: 'createdAt',
           from,
           to
-        );
+        });
 
         expect(findFirstQueries()).toHaveLength(0);
         expect(db.lastQuery('aggregate').args).not.toHaveProperty('_count');
@@ -1842,13 +1987,12 @@ describe('resource-service', () => {
         });
         db.setResult('Post', 'findFirst', { views: 3 });
 
-        const result = await service.aggregate(
-          {},
-          { views: { count: true, sum: true, first: true } },
-          'createdAt',
+        const result = await service.aggregate({
+          select: { views: { count: true, sum: true, first: true } },
+          dateField: 'createdAt',
           from,
           to
-        );
+        });
 
         expect(result.total).toEqual({
           views: { count: 2, sum: 8, first: 3 }
@@ -1857,7 +2001,9 @@ describe('resource-service', () => {
     });
 
     test('throws a bad request error for an empty selection', async () => {
-      await expect(service.aggregate({}, {} as any)).rejects.toMatchObject({
+      await expect(
+        service.aggregate({ select: {} as any })
+      ).rejects.toMatchObject({
         statusCode: 400,
         message: expect.stringContaining(
           'at least one field with a selected aggregation operator'
@@ -1867,7 +2013,7 @@ describe('resource-service', () => {
 
     test('throws a bad request error for a field that cannot be aggregated', async () => {
       await expect(
-        service.aggregate({}, { title: { count: true } } as any)
+        service.aggregate({ select: { title: { count: true } } as any })
       ).rejects.toMatchObject({
         statusCode: 400,
         message: expect.stringContaining('not a numeric or date field')
@@ -1876,7 +2022,7 @@ describe('resource-service', () => {
 
     test('throws a bad request error for an operator the field does not support', async () => {
       await expect(
-        service.aggregate({}, { publishedAt: { sum: true } } as any)
+        service.aggregate({ select: { publishedAt: { sum: true } } as any })
       ).rejects.toMatchObject({
         statusCode: 400,
         message: expect.stringContaining("Cannot apply the 'sum' operator")
@@ -1885,7 +2031,10 @@ describe('resource-service', () => {
 
     test('throws a bad request error for a date field that is not a date', async () => {
       await expect(
-        service.aggregate({}, { views: { sum: true } } as any, 'title')
+        service.aggregate({
+          select: { views: { sum: true } } as any,
+          dateField: 'title'
+        })
       ).rejects.toMatchObject({
         statusCode: 400,
         message: expect.stringContaining('not a date field')
@@ -1896,7 +2045,7 @@ describe('resource-service', () => {
       db.setResult('Post', 'aggregate', new Error('aggregation failed'));
 
       await expect(
-        service.aggregate({}, { views: { sum: true } } as any)
+        service.aggregate({ select: { views: { sum: true } } as any })
       ).rejects.toMatchObject({
         statusCode: 500,
         message: expect.stringContaining('aggregation')
@@ -1907,7 +2056,7 @@ describe('resource-service', () => {
       db.setResult('Post', 'aggregate', new Error('aggregation failed'));
 
       await expect(
-        service.aggregate({}, { views: { sum: true } } as any)
+        service.aggregate({ select: { views: { sum: true } } as any })
       ).rejects.toBeInstanceOf(HttpError);
     });
   });

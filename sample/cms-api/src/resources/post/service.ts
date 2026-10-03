@@ -1,18 +1,17 @@
 import { createService, injectService } from '@appweaver/core';
 import { logger } from '@appweaver/common';
-import { Post, PostCreate, PostResourceService, PostUpdate } from '@/types';
 
-export default createService<Post, PostCreate, PostUpdate>({
+export default createService({
   modelName: 'Post',
-  beforeUpdate: (_, data: PostUpdate) => {
+  beforeUpdate: (_, data) => {
     if (data.status === 'Published' && !data.publishedAt) {
       data.publishedAt = new Date();
     }
   },
   // Not part of the update input, so raised through the client
-  afterFind: async (post: Post) => {
+  afterFind: async (post) => {
     try {
-      await injectService<PostResourceService>('Post').client.update({
+      await injectService('Post').client.update({
         where: { id: post.id },
         data: { viewCount: { increment: 1 } }
       });

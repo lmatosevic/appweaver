@@ -35,7 +35,7 @@ export abstract class Cache extends CommonCache {
   public async onInit(): Promise<void> {
     if (config.CACHE_ENABLED && config.CACHE_CLEAN_START) {
       if (this._memory.isAvailable()) {
-        await this.expire();
+        await this.deleteMatching();
       } else {
         // Cleaned on the first use once the memory connects
         this._stale = true;
@@ -52,22 +52,22 @@ export abstract class Cache extends CommonCache {
   }
 
   public async has(key: string): Promise<boolean> {
-    return this.guard(false, () => this._memory.hasKey(this.addPrefix(key)));
+    return this.guard(false, () => this._memory.has(this.addPrefix(key)));
   }
 
-  public async evict(key: string): Promise<boolean> {
+  public async delete(key: string): Promise<boolean> {
     return this.guard(false, () => this.removeEntry(key));
   }
 
-  public async expire(pattern: string = '*'): Promise<number> {
-    return this.guard(0, () => this.expireEntries(pattern));
+  public async deleteMatching(pattern: string = '*'): Promise<number> {
+    return this.guard(0, () => this.deleteEntries(pattern));
   }
 
   public async keys(pattern: string = '*'): Promise<string[]> {
     return this.guard([], async () => {
       const prefixedPattern = this.addPrefix(pattern);
-      const prefixedKeys = await this._memory.findKeys(prefixedPattern);
-      return Array.from(prefixedKeys);
+      const prefixedKeys = await this._memory.keys(prefixedPattern);
+      return prefixedKeys;
     });
   }
 
@@ -117,7 +117,7 @@ export abstract class Cache extends CommonCache {
 
   /** @internal */
   private recover(): Promise<void> {
-    this._recovery ??= this.expireEntries('*')
+    this._recovery ??= this.deleteEntries('*')
       .then(() => {
         for (const prefixedKey of this._entryMeta.keys()) {
           this._evictionIndex.remove(prefixedKey);
@@ -140,7 +140,7 @@ export abstract class Cache extends CommonCache {
   private async readEntry<T>(key: string): Promise<T | null> {
     const prefixedKey = this.addPrefix(key);
 
-    const data = await this._memory.getValue<T>(prefixedKey);
+    const data = await this._memory.get<T>(prefixedKey);
 
     if (data) {
       const keyMeta = this._entryMeta.get(prefixedKey);
@@ -150,7 +150,7 @@ export abstract class Cache extends CommonCache {
         ...(keyMeta || {
           key,
           createdAt: now,
-          sizeBytes: await this._memory.valueSizeBytes(prefixedKey)
+          sizeBytes: await this._memory.sizeBytes(prefixedKey)
         }),
         usedCount: count + 1,
         lastUsedAt: now
@@ -177,8 +177,8 @@ export abstract class Cache extends CommonCache {
 
     await this.evictExcessEntries();
 
-    const result = await this._memory.putValue(prefixedKey, value, expireMs);
-    const sizeBytes = await this._memory.valueSizeBytes(prefixedKey);
+    const result = await this._memory.set(prefixedKey, value, expireMs);
+    const sizeBytes = await this._memory.sizeBytes(prefixedKey);
 
     const now = Date.now();
     const meta: CacheEntryMeta = {
@@ -202,7 +202,7 @@ export abstract class Cache extends CommonCache {
   private async removeEntry(key: string): Promise<boolean> {
     const prefixedKey = this.addPrefix(key);
 
-    const result = await this._memory.removeValue(prefixedKey);
+    const result = await this._memory.delete(prefixedKey);
     this._entryMeta.delete(prefixedKey);
     this._evictionIndex.remove(prefixedKey);
 
@@ -210,18 +210,18 @@ export abstract class Cache extends CommonCache {
   }
 
   /** @internal */
-  private async expireEntries(pattern: string): Promise<number> {
+  private async deleteEntries(pattern: string): Promise<number> {
     const prefixedPattern = this.addPrefix(pattern);
-    const prefixedKeys = await this._memory.findKeys(prefixedPattern);
+    const prefixedKeys = await this._memory.keys(prefixedPattern);
 
-    await this._memory.removeEntries(prefixedPattern);
+    await this._memory.deleteMatching(prefixedPattern);
 
     for (const prefixedKey of prefixedKeys) {
       this._entryMeta.delete(prefixedKey);
       this._evictionIndex.remove(prefixedKey);
     }
 
-    return prefixedKeys.size;
+    return prefixedKeys.length;
   }
 
   /** @internal */
@@ -250,7 +250,7 @@ export abstract class Cache extends CommonCache {
       config.CACHE_EVICTION_GRACE_PERIOD
     );
 
-    const evictActions = candidateKeys.map((key) => this.evict(key));
+    const evictActions = candidateKeys.map((key) => this.delete(key));
 
     if (config.CACHE_EVICTION_DEFERRED) {
       Promise.all(evictActions).catch((error) => {
@@ -314,7 +314,7 @@ export abstract class Cache extends CommonCache {
         }
       }
 
-      const evictActions = keysToEvict.map((key) => this.evict(key));
+      const evictActions = keysToEvict.map((key) => this.delete(key));
       await Promise.all(evictActions);
     }
   }

@@ -48,9 +48,8 @@ export default createModel({
     // Set to the signed-in employee unless an HR user files it for someone
     employee: {
       model: 'Employee',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'leaveRequests',
-      owner: true,
       onDelete: 'cascade',
       required: false,
       output: {
@@ -59,9 +58,8 @@ export default createModel({
     },
     decidedBy: {
       model: 'Employee',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'decidedLeaveRequests',
-      owner: true,
       required: false,
       input: {
         type: 'none'

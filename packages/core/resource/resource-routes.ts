@@ -1,5 +1,7 @@
 import {
+  AggregateOptions,
   AuthType,
+  QueryOptions,
   RecaptchaConfig,
   ResourceId,
   ResourceRoutesConfig,
@@ -115,16 +117,8 @@ export function resourceRoutes(
           config: queryConfig
         },
         async (request, reply) => {
-          const { page, size, sort, cursor, totalCount, ...body } =
-            request.body as any;
-          const response = await service.query(
-            body.filter,
-            page,
-            size,
-            sort,
-            cursor,
-            totalCount
-          );
+          // The body holds the query options: filter, paging, and sort
+          const response = await service.query(request.body as QueryOptions);
 
           return reply.send(response);
         }
@@ -141,16 +135,9 @@ export function resourceRoutes(
           config: aggregateConfig
         },
         async (request, reply) => {
-          const { dateField, from, to, step, safeIncrement, ...body } =
-            request.body as any;
+          // The body holds the aggregation options: select, filter, and range
           const response = await service.aggregate(
-            body.filter,
-            body.select,
-            dateField,
-            from,
-            to,
-            step,
-            safeIncrement
+            request.body as AggregateOptions
           );
 
           return reply.send(response);

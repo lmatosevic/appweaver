@@ -48,7 +48,7 @@ export class InMemory extends Memory {
     // no-op
   }
 
-  public async getValue<T = any>(key: string): Promise<T | null> {
+  public async get<T = any>(key: string): Promise<T | null> {
     const entry = this._storage.get(key);
 
     if (!entry) {
@@ -64,15 +64,11 @@ export class InMemory extends Memory {
     return parse(entry.value) as T;
   }
 
-  public async putValue(
-    key: string,
-    value: any,
-    expireMs?: number
-  ): Promise<boolean> {
+  public async set(key: string, value: any, ttl?: number): Promise<boolean> {
     await this.cleanupExpired();
 
     const jsonValue = stringify(value);
-    const expiresAt = expireMs ? Date.now() + expireMs : undefined;
+    const expiresAt = ttl ? Date.now() + ttl : undefined;
 
     this._storage.set(key, {
       value: jsonValue,
@@ -89,18 +85,18 @@ export class InMemory extends Memory {
         if (oldestKey === undefined) {
           break;
         }
-        await this.removeValue(oldestKey);
+        await this.delete(oldestKey);
       }
     }
 
     return true;
   }
 
-  public async hasKey(key: string): Promise<boolean> {
+  public async has(key: string): Promise<boolean> {
     return this._storage.has(key);
   }
 
-  public async removeValue(key: string): Promise<boolean> {
+  public async delete(key: string): Promise<boolean> {
     const entry = this._storage.get(key);
     if (!entry) {
       return false;
@@ -116,17 +112,17 @@ export class InMemory extends Memory {
     return deleted;
   }
 
-  public async removeEntries(query: string): Promise<number> {
-    const keys = await this.findKeys(query);
+  public async deleteMatching(pattern: string = '*'): Promise<number> {
+    const keys = await this.keys(pattern);
 
-    const removeActions = Array.from(keys).map((key) => this.removeValue(key));
+    const removeActions = keys.map((key) => this.delete(key));
     const results = await Promise.allSettled(removeActions);
 
     return results.filter((r) => r.status === 'fulfilled' && r.value).length;
   }
 
-  public async findKeys(pattern: string = '*'): Promise<Set<string>> {
-    const matchingKeys = new Set<string>();
+  public async keys(pattern: string = '*'): Promise<string[]> {
+    const matchingKeys: string[] = [];
 
     // Convert glob pattern to regex
     const regexPattern = pattern
@@ -144,14 +140,14 @@ export class InMemory extends Memory {
       }
 
       if (regex.test(key)) {
-        matchingKeys.add(key);
+        matchingKeys.push(key);
       }
     }
 
     return matchingKeys;
   }
 
-  public async valueSizeBytes(key: string): Promise<number | null> {
+  public async sizeBytes(key: string): Promise<number | null> {
     const entry = this._storage.get(key);
     return entry ? Buffer.byteLength(entry.value, 'utf8') : null;
   }
@@ -219,7 +215,7 @@ export class InMemory extends Memory {
     for (const key of Array.from(this._storage.keys())) {
       const entry = this._storage.get(key);
       if (entry && entry.expiresAt && entry.expiresAt < now) {
-        await this.removeValue(key);
+        await this.delete(key);
       }
     }
 

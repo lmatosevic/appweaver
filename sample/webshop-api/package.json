@@ -24,6 +24,7 @@
     "@appweaver/core": "^1.6.0",
     "@prisma/adapter-pg": "7.9.1",
     "@prisma/client": "7.9.1",
+    "@sinclair/typebox": "0.34.49",
     "bullmq": "5.79.1",
     "cron": "4.4.0",
     "ioredis": "5.11.1",

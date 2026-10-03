@@ -33,7 +33,7 @@ describe('oauth2-service', () => {
     authUserService = {
       modelName: 'User',
       find: jest.fn(),
-      query: jest.fn().mockResolvedValue({ items: [] }),
+      single: jest.fn().mockResolvedValue(null),
       create: jest.fn(),
       update: jest.fn(),
       [RESOURCE_TYPE]: RESOURCE_SERVICE_TYPE,
@@ -51,7 +51,7 @@ describe('oauth2-service', () => {
 
     connectedAccountService = {
       modelName: 'ConnectedAccount',
-      query: jest.fn().mockResolvedValue({ items: [] }),
+      single: jest.fn().mockResolvedValue(null),
       create: jest.fn().mockResolvedValue({ id: 1 }),
       update: jest.fn().mockResolvedValue({ id: 1 })
     };
@@ -135,9 +135,7 @@ describe('oauth2-service', () => {
     });
 
     test('is skipped once the provider account is already linked', async () => {
-      connectedAccountService.query.mockResolvedValue({
-        items: [{ id: 3, userId: 1 }]
-      });
+      connectedAccountService.single.mockResolvedValue({ id: 3, userId: 1 });
 
       await expect(
         service.requiresPasswordConfirmation(
@@ -159,9 +157,7 @@ describe('oauth2-service', () => {
     });
 
     test('is required when the provider account belongs to a different user', async () => {
-      connectedAccountService.query.mockResolvedValue({
-        items: [{ id: 3, userId: 99 }]
-      });
+      connectedAccountService.single.mockResolvedValue({ id: 3, userId: 99 });
 
       await expect(
         service.requiresPasswordConfirmation(
@@ -184,19 +180,19 @@ describe('oauth2-service', () => {
     });
 
     test('queries the resource service by provider and account id', async () => {
-      connectedAccountService.query.mockResolvedValue({ items: [{ id: 3 }] });
+      connectedAccountService.single.mockResolvedValue({ id: 3 });
 
       await expect(
         service.findConnectedAccount(AuthSource.OAuth2Google, '42')
       ).resolves.toEqual({ id: 3 });
-      expect(connectedAccountService.query).toHaveBeenCalledWith({
+      expect(connectedAccountService.single).toHaveBeenCalledWith({
         provider: AuthSource.OAuth2Google,
         providerAccountId: '42'
       });
     });
 
     test('wraps a lookup failure into a server error', async () => {
-      connectedAccountService.query.mockRejectedValue(new Error('db down'));
+      connectedAccountService.single.mockRejectedValue(new Error('db down'));
 
       await expect(
         service.findConnectedAccount(AuthSource.OAuth2Google, '42')
@@ -234,9 +230,7 @@ describe('oauth2-service', () => {
     });
 
     test('refreshes an existing link instead of duplicating it', async () => {
-      connectedAccountService.query.mockResolvedValue({
-        items: [{ id: 3, userId: 1 }]
-      });
+      connectedAccountService.single.mockResolvedValue({ id: 3, userId: 1 });
 
       await service.linkConnectedAccount(
         user(),
@@ -253,9 +247,7 @@ describe('oauth2-service', () => {
     });
 
     test('refuses to move a provider account to another user', async () => {
-      connectedAccountService.query.mockResolvedValue({
-        items: [{ id: 3, userId: 99 }]
-      });
+      connectedAccountService.single.mockResolvedValue({ id: 3, userId: 99 });
 
       await expect(
         service.linkConnectedAccount(user(), AuthSource.OAuth2Google, '42')
@@ -268,9 +260,9 @@ describe('oauth2-service', () => {
     });
 
     test('accepts a link a concurrent sign-in of the same user created first', async () => {
-      connectedAccountService.query
-        .mockResolvedValueOnce({ items: [] })
-        .mockResolvedValueOnce({ items: [{ id: 3, userId: 1 }] });
+      connectedAccountService.single
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({ id: 3, userId: 1 });
       connectedAccountService.create.mockRejectedValue(
         new HttpError('ConnectedAccount create error', 500)
       );
@@ -281,9 +273,9 @@ describe('oauth2-service', () => {
     });
 
     test('refuses a link a concurrent sign-in of another user created first', async () => {
-      connectedAccountService.query
-        .mockResolvedValueOnce({ items: [] })
-        .mockResolvedValueOnce({ items: [{ id: 3, userId: 99 }] });
+      connectedAccountService.single
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({ id: 3, userId: 99 });
       connectedAccountService.create.mockRejectedValue(
         new HttpError('ConnectedAccount create error', 500)
       );

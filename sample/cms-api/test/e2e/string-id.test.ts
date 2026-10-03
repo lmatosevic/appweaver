@@ -116,7 +116,7 @@ describe('String primary key resources', () => {
       await seedComment(post.id, 'Second');
 
       const filter: CommentQuery = { id: first.id };
-      const result = await comments.query(filter);
+      const result = await comments.query({ filter });
 
       expect(result.totalCount).toBe(1);
       expect(result.items[0].id).toBe(first.id);

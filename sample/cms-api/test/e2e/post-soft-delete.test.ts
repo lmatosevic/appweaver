@@ -64,7 +64,7 @@ describe('Soft deleting a post', () => {
       statusCode: 404
     });
 
-    const result = await posts.query({ slug: 'hidden' });
+    const result = await posts.query({ filter: { slug: 'hidden' } });
     expect(result.items).toEqual([]);
     expect(result.totalCount).toBe(0);
   });
@@ -117,11 +117,13 @@ describe('Soft deleting a post', () => {
     await comments.delete(deleted.id);
 
     const matched = await posts.query({
-      comments: { _some: { body: 'Deleted comment' } }
+      filter: { comments: { _some: { body: 'Deleted comment' } } }
     });
     expect(matched.items).toEqual([]);
 
-    const empty = await posts.query({ comments: { _exists: false } });
+    const empty = await posts.query({
+      filter: { comments: { _exists: false } }
+    });
     expect(empty.items.map((item: any) => item.slug)).toEqual(['filtered']);
   });
 
@@ -135,10 +137,12 @@ describe('Soft deleting a post', () => {
     const found = await posts.find(post.id);
     expect(found.pinnedComment).toBeNull();
 
-    const unpinned = await posts.query({ pinnedComment: null });
+    const unpinned = await posts.query({ filter: { pinnedComment: null } });
     expect(unpinned.items.map((item: any) => item.slug)).toEqual(['pinned']);
 
-    const pinned = await posts.query({ pinnedComment: { _exists: true } });
+    const pinned = await posts.query({
+      filter: { pinnedComment: { _exists: true } }
+    });
     expect(pinned.items).toEqual([]);
 
     // The reference is kept, so a restore brings the pin back as well

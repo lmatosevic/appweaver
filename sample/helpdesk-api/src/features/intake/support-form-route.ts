@@ -1,6 +1,5 @@
 import { Type } from '@sinclair/typebox';
 import { injectService, registerRoute } from '@appweaver/core';
-import { TicketResourceService } from '@/types';
 
 registerRoute(
   (router) => {
@@ -30,9 +29,7 @@ registerRoute(
         const { name, email, subject, description } = req.body;
 
         // A customer never picks the priority or the team, triage does
-        const ticket = await injectService<TicketResourceService>(
-          'Ticket'
-        ).create({
+        const ticket = await injectService('Ticket').create({
           subject,
           description,
           channel: 'Web',

@@ -1,6 +1,6 @@
 import { injectService } from '@appweaver/core';
 import db from '@db/client';
-import { Post, PostResourceService } from '@/types';
+import { Post } from '@/types';
 
 /** Promotes the drafts whose publish date has passed. Drafts without a date
  * are published as of now only when `publishAllDrafts` is set. */
@@ -38,5 +38,5 @@ export async function latestPublishedPost(): Promise<Post | null> {
     return null;
   }
 
-  return injectService<PostResourceService>('Post').find(latest.id);
+  return injectService('Post').find(latest.id);
 }

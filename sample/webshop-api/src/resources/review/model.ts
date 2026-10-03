@@ -33,9 +33,8 @@ export default createModel({
   relations: {
     product: {
       model: 'Product',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'reviews',
-      owner: true,
       onDelete: 'cascade',
       output: {
         type: 'single'
@@ -44,9 +43,8 @@ export default createModel({
     // Set to the signed-in customer, never exposed on the public reviews
     author: {
       model: 'User',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'reviews',
-      owner: true,
       required: false,
       onDelete: 'cascade',
       input: {

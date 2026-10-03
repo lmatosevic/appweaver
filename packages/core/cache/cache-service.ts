@@ -73,7 +73,7 @@ export class CacheService {
    * `false` otherwise.
    */
   public async removeCachedValue(key: string): Promise<boolean> {
-    const removed = await this._cache.evict(key);
+    const removed = await this._cache.delete(key);
     if (removed) {
       logger.debug({ key }, 'Removed value from cache');
     }
@@ -106,10 +106,10 @@ export class CacheService {
     let invalidation: Promise<number> | undefined;
     switch (strategy) {
       case CacheInvalidationStrategy.ExpireRelated:
-        invalidation = this._cache.expire(`*!${modelName}!*:inv`);
+        invalidation = this._cache.deleteMatching(`*!${modelName}!*:inv`);
         break;
       case CacheInvalidationStrategy.ExpireAll:
-        invalidation = this._cache.expire(`*:inv`);
+        invalidation = this._cache.deleteMatching(`*:inv`);
         break;
     }
 

@@ -377,9 +377,8 @@ const config = {
   relations: {
     category: {
       model: 'Category',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'products',
-      owner: true,
       output: {
         type: 'always'
       }
@@ -419,9 +418,8 @@ const config = {
   relations: {
     product: {
       model: 'Product',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'reviews',
-      owner: true,
       input: {
         type: 'none'
       }
@@ -433,8 +431,8 @@ const config = {
 | Property        | Type                                            | Default      | Description                                                              |
 |-----------------|-------------------------------------------------|--------------|--------------------------------------------------------------------------|
 | `model`         | string                                          | **required** | Target model name.                                                       |
-| `type`          | `'oneToOne'` \| `'oneToMany'` \| `'manyToMany'` | **required** | Relation cardinality between the two models.                             |
-| `owner`         | boolean                                         | `false`      | This side owns the foreign key column (only one side should be owner).   |
+| `type`          | RelationType                                    | **required** | `'oneToOne'`, `'oneToMany'`, `'manyToOne'`, or `'manyToMany'`.           |
+| `owner`         | boolean                                         | `false`      | This side owns the foreign key column (implied by `manyToOne`).          |
 | `mappedBy`      | string                                          | -            | Name of the inverse relation on the target model.                        |
 | `required`      | boolean                                         | `true`       | Whether the relation is required (nullable foreign key if not required). |
 | `minItems`      | number                                          | -            | Minimum items for list relations.                                        |
@@ -497,8 +495,9 @@ const config = {
 };
 ```
 
-**One-to-Many** (`type: 'oneToMany'`): The "many" side (which holds the foreign key) has `owner: true` and references a
-single record; the "one" side has no `owner` and holds a list of related records.
+**One-to-Many** (`type: 'oneToMany'` and `type: 'manyToOne'`): The "many" side holds the foreign key and references a
+single record, declared as `manyToOne`; the "one" side holds a list of related records, declared as `oneToMany`. A
+`manyToOne` relation is the same as a `oneToMany` relation with `owner: true`, which is still accepted.
 
 ```ts
 // Category model (one, list side)
@@ -519,9 +518,8 @@ const config = {
   relations: {
     category: {
       model: 'Category',
-      type: 'oneToMany',
-      mappedBy: 'products',
-      owner: true
+      type: 'manyToOne',
+      mappedBy: 'products'
     }
   }
 };
@@ -561,7 +559,7 @@ const config = {
 `weaver generate` validates every bidirectional relation pair linked through `mappedBy` and fails schema generation with
 a descriptive error when the two sides are inconsistent:
 
-- Both sides must declare the same relation `type`.
+- Both sides must declare the same relation `type`, where a `manyToOne` side pairs with a `oneToMany` side.
 - The mapped relation must reference the declaring model back via its `model` property.
 - For `oneToOne` and `oneToMany` relations, exactly one side must declare `owner: true` (neither or both is an error).
 
@@ -636,9 +634,8 @@ const config = {
     // A category response carries three levels of ancestors
     parent: {
       model: 'Category',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'children',
-      owner: true,
       required: false,
       output: { type: 'always', maxDepth: 3 }
     },
@@ -660,9 +657,8 @@ A nested `include` entry carries its own `maxDepth`, applied to the model that e
 const config = {
   category: {
     model: 'Category',
-    type: 'oneToMany',
+    type: 'manyToOne',
     mappedBy: 'posts',
-    owner: true,
     output: {
       type: 'always',
       include: { parent: { type: 'always', maxDepth: 3 } }
@@ -915,7 +911,7 @@ relation to leave its foreign key unindexed, i.e. for a rarely queried relation 
 
 ```ts
 relations: {
-  author: { model: 'User', type: 'oneToMany', owner: true, index: false }
+  author: { model: 'User', type: 'manyToOne', index: false }
 }
 ```
 
@@ -985,8 +981,8 @@ function createService(config: ResourceServiceConfig, override ?: Partial<Resour
 |-------------------|--------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
 | `modelName`       | string                                                                   | Model name to bind this service to (required).                                                                                  |
 | `beforeFind`      | `(id) => void`                                                           | Hook called before finding a single resource.                                                                                   |
-| `beforeQuery`     | `(filter, page, size, sort, cursor, totalCount) => void`                 | Hook called before querying resources. `sort` is a field list string or a sort object.                                          |
-| `beforeAggregate` | `(filter, select, dateField, from?, to?, step?, safeIncrement?) => void` | Hook called before aggregation.                                                                                                 |
+| `beforeQuery`     | `(options) => void`                                                      | Hook called before querying resources, with the query options as given. Mutate `options` to change the query.                   |
+| `beforeAggregate` | `(options) => void`                                                      | Hook called before aggregation, with the aggregation options as given. Mutate `options` to change the aggregation.              |
 | `beforeCreate`    | `(data) => void`                                                         | Hook called before creating a resource. Mutate `data` to modify input.                                                          |
 | `beforeUpdate`    | `(id, data) => void`                                                     | Hook called before updating a resource.                                                                                         |
 | `beforeDelete`    | `(id) => void`                                                           | Hook called before deleting a resource.                                                                                         |
@@ -994,7 +990,7 @@ function createService(config: ResourceServiceConfig, override ?: Partial<Resour
 | `afterQuery`      | `(response) => void`                                                     | Hook called after querying resources.                                                                                           |
 | `afterAggregate`  | `(response) => void`                                                     | Hook called after aggregation.                                                                                                  |
 | `afterCreate`     | `(resource) => void`                                                     | Hook called after creating a resource.                                                                                          |
-| `afterUpdate`     | `(resource) => void`                                                     | Hook called after updating a resource.                                                                                          |
+| `afterUpdate`     | `(resource, previous) => void`                                           | Hook called after updating a resource, with the state the resource had before the update.                                       |
 | `afterDelete`     | `(resource) => void`                                                     | Hook called after deleting a resource.                                                                                          |
 | `textSearch`      | object \| function                                                       | Prisma filter object or function `(input: string) => filter` for text search. Use `'{input}'` as placeholder in filter objects. |
 
@@ -1007,25 +1003,52 @@ The created service exposes the following methods:
 | Method      | Signature                                                                                         | Description                                                                                                                                |
 |-------------|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
 | `find`      | `(id) => Promise<ReadOne>`                                                                        | Find a single resource by ID.                                                                                                              |
-| `query`     | `(filter?, page?, size?, sort?, cursor?, totalCount?) => Promise<QueryResponse>`                  | Query resources with filtering, pagination, and sorting (see [Query sorting](#query-sorting) and [Cursor pagination](#cursor-pagination)). |
-| `aggregate` | `(filter?, select?, dateField?, from?, to?, step?, safeIncrement?) => Promise<AggregateResponse>` | Aggregate resources with time-series grouping (see [Aggregate selection](#aggregate-selection)).                                           |
+| `single`    | `(filter?, sort?) => Promise<ReadOne \| null>`                                                    | Find the first resource matching the filter, ordered by `sort` (default `-createdAt`), or `null` when none matches.                        |
+| `query`     | `(options?) => Promise<QueryResponse>`                                                            | Query resources with filtering, pagination, and sorting (see [Query sorting](#query-sorting) and [Cursor pagination](#cursor-pagination)). |
+| `count`     | `(filter?) => Promise<number>`                                                                    | Count the resources matching the filter.                                                                                                   |
+| `exists`    | `(filter?) => Promise<boolean>`                                                                   | Check whether any resource matches the filter.                                                                                             |
+| `aggregate` | `(options) => Promise<AggregateResponse>`                                                         | Aggregate resources with time-series grouping (see [Aggregate selection](#aggregate-selection)).                                           |
 | `create`    | `(data) => Promise<ReadOne>`                                                                      | Create a new resource.                                                                                                                     |
 | `update`    | `(id, data) => Promise<ReadOne>`                                                                  | Update an existing resource.                                                                                                               |
 | `delete`    | `(id) => Promise<ReadOne>`                                                                        | Delete a resource.                                                                                                                         |
 | `client`    | `ResourceClient` (property)                                                                       | Database client of the model, for operations outside the model contract.                                                                   |
 
-### Typed service injection
+`query` takes the options `filter`, `page` (default `1`), `size` (default `50`), `sort` (default `-createdAt`),
+`cursor`, and `totalCount` (default `true`), and `aggregate` the options `select` (required), `filter`, `dateField`
+(default `createdAt`), `from`, `to`, `step`, and `safeIncrement` (default `true`). Both are the same shape as the bodies
+of the `POST /query` and `POST /aggregate` routes:
 
-`weaver generate` emits a `<Model>ResourceService` alias per model, so `injectService` needs no hand-written type:
+```ts
+const posts = injectService('Post');
+const page = await posts.query({ filter: { status: 'Published' }, size: 20, sort: '-publishedAt' });
+const latest = await posts.single({ status: 'Published' }, '-publishedAt');
+const drafts = await posts.count({ status: 'Draft' });
+```
+
+### Typed models
+
+The types `weaver generate` emits register every model in the `ResourceRegistry` of `@appweaver/common`, so the
+factories and `injectService` infer the model types from a model name:
+
+- `createService({ modelName: 'Post' })` and `createAuthService` type their hooks with `Post`, `PostCreate`, and
+  `PostUpdate`.
+- `createPolicy({ modelName: 'Post' })` types the records its callbacks receive as `Post` along with the foreign key
+  columns of the database record.
+- `injectService('Post')` returns the `PostResourceService` alias.
+- The `modelName` of every factory, and the `model` of a relation, only accept registered model names, and the
+  `mappedBy` of a relation suggests the relations of the target model.
 
 ```ts
 import { injectService } from '@appweaver/core';
-import { PostResourceService } from '@/types/generated';
 
-const posts = injectService<PostResourceService>('Post');
+const posts = injectService('Post'); // PostResourceService
 ```
 
-The alias is `IResourceService<<Model>, <Model>Multiple, <Model>Create, <Model>Update, <Model>Query>`, so the
+Never pass the model types as generic arguments. A model added since the last `weaver generate` is not registered
+yet, so run `weaver generate` after adding or renaming a model or a relation. The `--noRegistry` flag of
+`weaver generate` skips the registration.
+
+The `PostResourceService` alias is `IResourceService<Post, PostMultiple, PostCreate, PostUpdate, PostQuery>`, so the
 `<Model>Query`, `<Model>Sort`, and `<Model>Aggregate` aliases are exactly the inputs its methods accept.
 
 The `create` and `update` inputs are the model's declared contracts, so a field an operation config omits, a hidden
@@ -1034,7 +1057,8 @@ belongs on `service.client`, the database client of the model.
 
 ### Query filters
 
-The `filter` argument of `query`, `aggregate`, and `export` mirrors the WHERE part of a database query. The matching
+The `filter` option of `query` and `aggregate`, and the `filter` argument of `single`, `count`, `exists`, and `export`
+mirror the WHERE part of a database query. The matching
 `POST /query`, `POST /aggregate`, and `POST /export` routes accept the same structure, validated against a generated
 per-model `<Model>QueryFilter` schema that strips unknown and hidden fields.
 
@@ -1131,7 +1155,7 @@ const filter: UserQuery = {
     loginAt: { _exists: true }
   }
 };
-const users = await userService.query(filter);
+const users = await userService.query({ filter });
 ```
 
 ### Query sorting
@@ -1184,7 +1208,7 @@ relations a query response includes:
 import { PostSort } from '@/types/generated';
 
 const sort: PostSort = { author: { lastName: 'asc' }, createdAt: 'desc' };
-const posts = await postService.query({}, 1, 50, sort);
+const posts = await postService.query({ sort });
 ```
 
 ### Query response
@@ -1207,10 +1231,10 @@ later pages.
 
 ```ts
 // First page counted, the following ones skipping the count
-let result = await postService.query({}, 1, 50);
+let result = await postService.query({ size: 50 });
 
 while (result.nextCursor) {
-  result = await postService.query({}, 1, 50, undefined, result.nextCursor, false);
+  result = await postService.query({ size: 50, cursor: result.nextCursor, totalCount: false });
 }
 ```
 
@@ -1280,7 +1304,7 @@ model:
 import { PostAggregate } from '@/types/generated';
 
 const select: PostAggregate = { counter: { sum: true }, createdAt: { max: true } };
-const stats = await postService.aggregate({}, select);
+const stats = await postService.aggregate({ select });
 ```
 
 `aggregate` infers the response type from the selection it is given, so a selection passed as an object literal, or
@@ -1288,7 +1312,7 @@ declared with `satisfies`, narrows the response to the fields it names, while on
 every aggregatable field of the model:
 
 ```ts
-const narrow = await postService.aggregate({}, { counter: { sum: true } });
+const narrow = await postService.aggregate({ select: { counter: { sum: true } } });
 narrow.total.counter?.sum; // typed
 narrow.total.createdAt;    // compile error, the field was not selected
 
@@ -1521,7 +1545,7 @@ and OAuth2 account linking) use it, so a policy on the auth model never blocks t
 import { injectService, withoutPolicies } from '@appweaver/core';
 
 const pending = await withoutPolicies(() =>
-  injectService('Order').query({ status: 'Pending' })
+  injectService('Order').query({ filter: { status: 'Pending' } })
 );
 ```
 

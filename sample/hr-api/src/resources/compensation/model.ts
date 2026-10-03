@@ -40,9 +40,8 @@ export default createModel({
   relations: {
     employee: {
       model: 'Employee',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'compensations',
-      owner: true,
       onDelete: 'cascade',
       output: {
         type: 'always'

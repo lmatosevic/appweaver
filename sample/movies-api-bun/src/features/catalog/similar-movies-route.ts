@@ -1,7 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { HttpError, injectService, registerRoute } from '@appweaver/core';
 import db from '@db/client';
-import { MovieResourceService } from '@/types';
 
 registerRoute(
   (router) => {
@@ -32,19 +31,15 @@ registerRoute(
         }
 
         const genreIds = movie.genres.map((genre) => genre.id);
-        const { items } = await injectService<MovieResourceService>(
-          'Movie'
-        ).query(
-          {
+        const { items } = await injectService('Movie').query({
+          filter: {
             id: { _ne: req.params.id },
             genres: { _some: { id: { _in: genreIds } } }
           },
-          1,
-          100,
-          '-rating',
-          undefined,
-          false
-        );
+          size: 100,
+          sort: '-rating',
+          totalCount: false
+        });
 
         const shared = (candidate: (typeof items)[number]) =>
           (candidate.genres ?? []).filter((genre) =>

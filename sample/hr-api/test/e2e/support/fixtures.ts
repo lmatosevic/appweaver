@@ -62,7 +62,7 @@ export async function hire(
     lastName: 'Tester',
     email: `${firstName.toLowerCase()}@test.example.com`,
     password: PASSWORD,
-    hireDate: data.hireDate ?? '2024-01-15T00:00:00.000Z',
+    hireDate: new Date(data.hireDate ?? '2024-01-15T00:00:00.000Z'),
     employmentType: data.employmentType ?? 'FullTime',
     manager: data.manager,
     roles: roles.map((role: any) => ({ id: role.id }))

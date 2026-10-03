@@ -1,10 +1,9 @@
 import { createService, HttpError } from '@appweaver/core';
-import { SlaPolicyCreate, SlaPolicyUpdate } from '@/types';
 
 export default createService({
   modelName: 'SlaPolicy',
-  beforeCreate: (data: SlaPolicyCreate) => assertTargets(data),
-  beforeUpdate: (_, data: SlaPolicyUpdate) => assertTargets(data)
+  beforeCreate: (data) => assertTargets(data),
+  beforeUpdate: (_, data) => assertTargets(data)
 });
 
 // A ticket cannot be resolved before it is answered

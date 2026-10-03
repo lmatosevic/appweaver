@@ -1,5 +1,6 @@
 import {
   ActionType,
+  AggregateOptions,
   AggregateResponse,
   AggregateSelect,
   AggregateSelected,
@@ -14,6 +15,7 @@ import {
   isArray,
   isPlainObject,
   QueryFilter,
+  QueryOptions,
   QueryResponse,
   QuerySort,
   removeUndefined,
@@ -154,28 +156,30 @@ export abstract class ResourceService<
    * together with the total count in a single transaction. A resource event is
    * emitted after a successful query.
    *
-   * @param {Object} [filter] The query filter object, supporting the logical
-   * (`_and`, `_or`, `_not`, `_nor`), comparison (`_eq`, `_ne`, `_gt`, `_gte`,
-   * `_lt`, `_lte`, `_in`, `_nin`, `_between`, `_like`, `_ilike`, `_starts`,
-   * `_ends`, `_contains`, `_exists`), list (`_has`, `_hasSome`, `_hasEvery`,
-   * `_isEmpty`), and relation (`_some`, `_every`, `_none`) operators, as well
-   * as plain field values. Its `searchText` property, if present, is passed to
-   * {@link ResourceService.textSearchQuery} instead of being matched as a
-   * field.
-   * @param {number} [page] The one-based page number of results to return,
-   * ignored when a cursor is given.
-   * @param {number} [size] The maximum number of results per page.
-   * @param {QuerySort} [sort] The fields to sort by, either as a comma-separated
-   * list where a field prefixed with `-` is sorted in descending order
-   * (i.e. `-createdAt,id`), or as an object of field directions
-   * (i.e. `{ createdAt: 'desc', id: 'asc' }`). Both forms support the fields of
-   * the included to-one relations, given with a dot notation (`author.createdAt`)
-   * or as a nested object (`{ author: { createdAt: 'desc' } }`).
-   * @param {string} [cursor] The cursor of the page to return, as issued in the
-   * `nextCursor` or `prevCursor` of an earlier response, which also carries the
-   * direction the page runs in. Takes precedence over `page`.
-   * @param {boolean} [totalCount] Whether to count all matching resources, which
-   * costs a scan of every one of them.
+   * @param {QueryOptions} [options] The query options:
+   * - `filter` The query filter object, supporting the logical (`_and`, `_or`,
+   *   `_not`, `_nor`), comparison (`_eq`, `_ne`, `_gt`, `_gte`, `_lt`, `_lte`,
+   *   `_in`, `_nin`, `_between`, `_like`, `_ilike`, `_starts`, `_ends`,
+   *   `_contains`, `_exists`), list (`_has`, `_hasSome`, `_hasEvery`,
+   *   `_isEmpty`), and relation (`_some`, `_every`, `_none`) operators, as well
+   *   as plain field values. Its `searchText` property, if present, is passed to
+   *   {@link ResourceService.textSearchQuery} instead of being matched as a
+   *   field.
+   * - `page` The one-based page number of results to return, ignored when a
+   *   cursor is given (default: `1`).
+   * - `size` The maximum number of results per page (default: `50`).
+   * - `sort` The fields to sort by, either as a comma-separated list where a
+   *   field prefixed with `-` is sorted in descending order (i.e.
+   *   `-createdAt,id`), or as an object of field directions (i.e.
+   *   `{ createdAt: 'desc', id: 'asc' }`). Both forms support the fields of the
+   *   included to-one relations, given with a dot notation (`author.createdAt`)
+   *   or as a nested object (`{ author: { createdAt: 'desc' } }`) (default:
+   *   `-createdAt`).
+   * - `cursor` The cursor of the page to return, as issued in the `nextCursor`
+   *   or `prevCursor` of an earlier response, which also carries the direction
+   *   the page runs in. Takes precedence over `page`.
+   * - `totalCount` Whether to count all matching resources, which costs a scan
+   *   of every one of them (default: `true`).
    * @returns {Promise<QueryResponse<Object>>} The paged query response containing
    * the returned resources, the count of the returned items, the cursors of the
    * adjacent pages, and the total count unless it was opted out of.
@@ -184,19 +188,18 @@ export abstract class ResourceService<
    * on a database error.
    */
   public async query(
-    filter: Query = {} as any,
-    page: number = 1,
-    size: number = 50,
-    sort: QuerySort<ReadMany> = '-createdAt',
-    cursor?: string | null,
-    totalCount: boolean = true
+    options: QueryOptions<ReadMany, Query> = {}
   ): Promise<QueryResponse<ReadMany>> {
-    const restrictions = await this.applyReadRestrictions('query', filter);
-    const textSearch = this.extractTextSearchQuery(filter);
-    const mappedFilter = mapQueryFilter(filter, this._client.name);
-    const query = {
-      AND: [mappedFilter, textSearch, restrictions, ...this.liveFilters()]
-    };
+    const {
+      filter = {} as Query,
+      page = 1,
+      size = 50,
+      sort = '-createdAt',
+      cursor,
+      totalCount = true
+    } = options;
+
+    const query = await this.queryConditions('query', filter);
     const includeRelations = mapRelationInclusions(this._client.name, 'query');
     const orderBy = mapStableSortValues(sort, this._client.name, 'query');
 
@@ -261,33 +264,129 @@ export abstract class ResourceService<
   }
 
   /**
+   * Finds the first resource matching the provided filter, applying the read
+   * restrictions of the query action and the access check of the find action,
+   * and including the relation and file fields configured for output on the
+   * find action. A resource event of the find action is emitted when a resource
+   * matches.
+   *
+   * @param {Object} [filter] The query filter object, mapped the same way as in
+   * {@link ResourceService.query}.
+   * @param {QuerySort} [sort] The fields to sort the matching resources by, of
+   * which the first one is returned, in the same form as in
+   * {@link ResourceService.query} (default: `-createdAt`).
+   * @returns {Promise<Object|null>} The first matching resource with its virtual
+   * fields and relation counts projected, or null when none matches.
+   * @throws {@link HttpError} 403 if the access check denies the matching
+   * resource, 400 if the sort input names a field that cannot be sorted by, and
+   * 500 on a database error.
+   */
+  public async single(
+    filter: Query = {} as Query,
+    sort: QuerySort<ReadOne> = '-createdAt'
+  ): Promise<ReadOne | null> {
+    const where = await this.queryConditions('query', filter);
+    const includeRelations = mapRelationInclusions(this._client.name, 'find');
+    const orderBy = mapStableSortValues(sort, this._client.name, 'find');
+
+    let resource: ReadOne | null;
+    try {
+      resource = await this._client.findFirst({
+        where,
+        include: includeRelations,
+        orderBy
+      });
+    } catch (e) {
+      throw new HttpError(`${this._client.name} find error`, 500, e);
+    }
+
+    if (!resource) {
+      return null;
+    }
+
+    const access = await this.applyAccessCheck('find', resource);
+    if (!access) {
+      throw new HttpError(`${this._client.name} data access is forbidden`, 403);
+    }
+
+    this._events.emitResourceEvent(this._client.name, 'find', {
+      current: resource
+    });
+
+    return this.projectResource(resource);
+  }
+
+  /**
+   * Counts the resources matching the provided filter, applying the read
+   * restrictions of the query action.
+   *
+   * @param {Object} [filter] The query filter object, mapped the same way as in
+   * {@link ResourceService.query}.
+   * @returns {Promise<number>} The number of matching resources.
+   * @throws {@link HttpError} 500 on a database error.
+   */
+  public async count(filter: Query = {} as Query): Promise<number> {
+    const where = await this.queryConditions('query', filter);
+
+    try {
+      return await this._client.count({ where });
+    } catch (e) {
+      throw new HttpError(`${this._client.name} count error`, 500, e);
+    }
+  }
+
+  /**
+   * Checks whether any resource matches the provided filter, applying the read
+   * restrictions of the query action.
+   *
+   * @param {Object} [filter] The query filter object, mapped the same way as in
+   * {@link ResourceService.query}.
+   * @returns {Promise<boolean>} True if at least one resource matches, otherwise
+   * false.
+   * @throws {@link HttpError} 500 on a database error.
+   */
+  public async exists(filter: Query = {} as Query): Promise<boolean> {
+    const where = await this.queryConditions('query', filter);
+
+    let resource: { id: ResourceId } | null;
+    try {
+      resource = await this._client.findFirst({ where, select: { id: true } });
+    } catch (e) {
+      throw new HttpError(`${this._client.name} exists error`, 500, e);
+    }
+
+    return resource !== null;
+  }
+
+  /**
    * Aggregates resources matching the provided filter over a date range, both
    * as a single overall result and as a series of results for the equally sized
    * periods the range is split into. All aggregations are executed in a single
    * transaction.
    *
-   * @param {Object} [filter] The query filter object, mapped the same way as in
-   * {@link ResourceService.query}.
-   * @param {AggregateSelect<Object>} select The aggregation operations to perform
-   * per field (i.e. `{ views: { count: true, sum: true } }`). Only the numeric
-   * fields of the model accept every operator, while its date fields accept
-   * `count`, `min`, `max`, `first` and `last`. The `first` and `last` operators
-   * take the value the earliest and the latest record of a period holds, which
-   * costs one additional query per period and boundary, skipped for the periods
-   * holding no record.
-   * @param {string} [dateField] The date field the range is applied on.
-   * @param {string} [from] The ISO date string of the range start. Defaults to
-   * seven days before the range end.
-   * @param {string} [to] The ISO date string of the range end. Defaults to the
-   * current date and time.
-   * @param {number} [step] The size of a single period in units of the
-   * automatically selected time unit. If not provided, one unit is used and the
-   * unit is derived from the range length (seconds up to a minute, minutes up to
-   * an hour, hours up to a day, days up to a month, months up to a year, and
-   * years beyond that).
-   * @param {boolean} [safeIncrement] Whether the period increments use the
-   * derived time unit and stay consistent across daylight saving time changes.
-   * When false, the step is interpreted in seconds.
+   * @param {AggregateOptions} options The aggregation options:
+   * - `select` The aggregation operations to perform per field (i.e.
+   *   `{ views: { count: true, sum: true } }`). Only the numeric fields of the
+   *   model accept every operator, while its date fields accept `count`, `min`,
+   *   `max`, `first` and `last`. The `first` and `last` operators take the value
+   *   the earliest and the latest record of a period holds, which costs one
+   *   additional query per period and boundary, skipped for the periods holding
+   *   no record.
+   * - `filter` The query filter object, mapped the same way as in
+   *   {@link ResourceService.query}.
+   * - `dateField` The date field the range is applied on (default:
+   *   `createdAt`).
+   * - `from` The ISO date string of the range start. Defaults to seven days
+   *   before the range end.
+   * - `to` The ISO date string of the range end. Defaults to the current date
+   *   and time.
+   * - `step` The size of a single period in units of the automatically selected
+   *   time unit. If not provided, one unit is used and the unit is derived from
+   *   the range length (seconds up to a minute, minutes up to an hour, hours up
+   *   to a day, days up to a month, months up to a year, and years beyond that).
+   * - `safeIncrement` Whether the period increments use the derived time unit
+   *   and stay consistent across daylight saving time changes. When false, the
+   *   step is interpreted in seconds (default: `true`).
    * @returns {Promise<AggregateResponse<Object>>} The aggregation response with
    * the overall total and one result per period, each labeled with the median
    * date of its period. It is typed by the fields the selection named, not by
@@ -297,14 +396,18 @@ export abstract class ResourceService<
    * operator that cannot be aggregated, and 500 on a database error.
    */
   public async aggregate<S extends AggregateSelect<ReadOne>>(
-    filter: Query = {} as any,
-    select: S,
-    dateField: string = 'createdAt',
-    from?: string,
-    to?: string,
-    step?: number,
-    safeIncrement: boolean = true
+    options: AggregateOptions<ReadOne, S, Query>
   ): Promise<AggregateResponse<AggregateSelected<ReadOne, S>>> {
+    const {
+      select,
+      filter = {} as Query,
+      dateField = 'createdAt',
+      from,
+      to,
+      step,
+      safeIncrement = true
+    } = options;
+
     const {
       fromDate,
       toDate,
@@ -314,12 +417,7 @@ export abstract class ResourceService<
     const operations = mapAggregationSelect(select, this._client.name);
     checkAggregationDateField(dateField, this._client.name);
 
-    const restrictions = await this.applyReadRestrictions('aggregate', filter);
-    const textSearch = this.extractTextSearchQuery(filter);
-    const mappedFilter = mapQueryFilter(filter, this._client.name);
-    const query = {
-      AND: [mappedFilter, textSearch, restrictions, ...this.liveFilters()]
-    };
+    const query = await this.queryConditions('aggregate', filter);
 
     const rangeQuery = (rangeFrom: Date, rangeTo: Date) => ({
       AND: [query, { [dateField]: { gte: rangeFrom, lt: rangeTo } }]
@@ -475,98 +573,9 @@ export abstract class ResourceService<
    * deleted orphan through a restricting relation, and 500 on a database error.
    */
   public async update(id: ResourceId, data: Update): Promise<ReadOne> {
-    const readRestrictions = await this.applyReadRestrictions('update', {
-      id,
-      ...data
-    });
+    const { current } = await this.updateWithPrevious(id, data);
 
-    const writeRestrictions = await this.applyWriteRestrictions('update', {
-      id,
-      ...data
-    });
-
-    const updateData = removeUndefined({
-      ...data,
-      ...writeRestrictions
-    });
-
-    const sanitizedData = this.sanitizeData('update', updateData);
-
-    const includeRelations = mapRelationInclusions(this._client.name, 'update');
-
-    let updateResource: ReadOne;
-    let resource: ReadOne;
-    let orphans: DeletedRecords;
-    try {
-      [updateResource, resource, orphans] = await this._db
-        .client()
-        .$transaction(async (tx) => {
-          const txModel = tx[this._client.name];
-
-          const current = await txModel.findFirst({
-            where: {
-              id,
-              ...readRestrictions,
-              ...liveRecordFilter(this._client.name)
-            },
-            include: includeRelations
-          });
-          if (!current || current.id !== id) {
-            throw new HttpError(`${this._client.name} data not found`, 404);
-          }
-
-          const access = await this.applyAccessCheck('update', current);
-          if (!access) {
-            throw new HttpError(
-              `${this._client.name} update action is forbidden`,
-              403
-            );
-          }
-
-          const setRelations = mapRelationActions(
-            this._client.name,
-            'update',
-            sanitizedData,
-            current
-          );
-
-          await assertLiveRelationTargets(tx, this._client.name, setRelations);
-
-          // Soft deleted orphans are marked before the update reads the
-          // relations back, so the response no longer holds them
-          const deleteData = softDeleteData();
-          const removed = await removeOrphans(
-            tx,
-            this._client.name,
-            setRelations,
-            deleteData
-          );
-          await retainDeletedFiles(tx, removed, deleteData);
-
-          const updated = await txModel.update({
-            where: { id },
-            include: includeRelations,
-            data: { ...sanitizedData, ...setRelations }
-          });
-
-          return [current, updated, removed];
-        });
-    } catch (e) {
-      if (e instanceof HttpError) {
-        throw e;
-      }
-      throw new HttpError(`${this._client.name} update error`, 500, e);
-    }
-
-    await this._cacheService.invalidateCache(this._client.name, 'update');
-    await this.cleanupDeletedRecords(orphans);
-
-    this._events.emitResourceEvent(this._client.name, 'update', {
-      previous: updateResource,
-      current: resource
-    });
-
-    return this.projectResource(resource);
+    return current;
   }
 
   /**
@@ -663,6 +672,118 @@ export abstract class ResourceService<
     });
 
     return this.projectResource(resource);
+  }
+
+  /**
+   * Updates an existing resource the same way as {@link ResourceService.update},
+   * returning the state the resource had before the update along with the
+   * updated one.
+   *
+   * @param {ResourceId} id The id of the resource to update.
+   * @param {Object} data The partial data to update the resource with.
+   * @returns {Promise<{ previous: Object, current: Object }>} The resource before
+   * and after the update, both with their virtual fields and relation counts
+   * projected.
+   */
+  protected async updateWithPrevious(
+    id: ResourceId,
+    data: Update
+  ): Promise<{ previous: ReadOne; current: ReadOne }> {
+    const readRestrictions = await this.applyReadRestrictions('update', {
+      id,
+      ...data
+    });
+
+    const writeRestrictions = await this.applyWriteRestrictions('update', {
+      id,
+      ...data
+    });
+
+    const updateData = removeUndefined({
+      ...data,
+      ...writeRestrictions
+    });
+
+    const sanitizedData = this.sanitizeData('update', updateData);
+
+    const includeRelations = mapRelationInclusions(this._client.name, 'update');
+
+    let updateResource: ReadOne;
+    let resource: ReadOne;
+    let orphans: DeletedRecords;
+    try {
+      [updateResource, resource, orphans] = await this._db
+        .client()
+        .$transaction(async (tx) => {
+          const txModel = tx[this._client.name];
+
+          const current = await txModel.findFirst({
+            where: {
+              id,
+              ...readRestrictions,
+              ...liveRecordFilter(this._client.name)
+            },
+            include: includeRelations
+          });
+          if (!current || current.id !== id) {
+            throw new HttpError(`${this._client.name} data not found`, 404);
+          }
+
+          const access = await this.applyAccessCheck('update', current);
+          if (!access) {
+            throw new HttpError(
+              `${this._client.name} update action is forbidden`,
+              403
+            );
+          }
+
+          const setRelations = mapRelationActions(
+            this._client.name,
+            'update',
+            sanitizedData,
+            current
+          );
+
+          await assertLiveRelationTargets(tx, this._client.name, setRelations);
+
+          // Soft deleted orphans are marked before the update reads the
+          // relations back, so the response no longer holds them
+          const deleteData = softDeleteData();
+          const removed = await removeOrphans(
+            tx,
+            this._client.name,
+            setRelations,
+            deleteData
+          );
+          await retainDeletedFiles(tx, removed, deleteData);
+
+          const updated = await txModel.update({
+            where: { id },
+            include: includeRelations,
+            data: { ...sanitizedData, ...setRelations }
+          });
+
+          return [current, updated, removed];
+        });
+    } catch (e) {
+      if (e instanceof HttpError) {
+        throw e;
+      }
+      throw new HttpError(`${this._client.name} update error`, 500, e);
+    }
+
+    await this._cacheService.invalidateCache(this._client.name, 'update');
+    await this.cleanupDeletedRecords(orphans);
+
+    this._events.emitResourceEvent(this._client.name, 'update', {
+      previous: updateResource,
+      current: resource
+    });
+
+    return {
+      previous: this.projectResource(updateResource),
+      current: this.projectResource(resource)
+    };
   }
 
   /**
@@ -800,6 +921,26 @@ export abstract class ResourceService<
     resource: ReadOne
   ): Promise<boolean> {
     return arePoliciesSkipped() || this.checkAccess(action, resource);
+  }
+
+  /**
+   * Builds the database conditions of a query filter: the mapped filter, its
+   * text search, the read restrictions of the action, and the conditions
+   * hiding the soft deleted records.
+   *
+   * @internal
+   */
+  private async queryConditions(
+    action: Exclude<ActionType, 'create'>,
+    filter: Query
+  ): Promise<{ AND: any[] }> {
+    const restrictions = await this.applyReadRestrictions(action, filter);
+    const textSearch = this.extractTextSearchQuery(filter);
+    const mappedFilter = mapQueryFilter(filter, this._client.name);
+
+    return {
+      AND: [mappedFilter, textSearch, restrictions, ...this.liveFilters()]
+    };
   }
 
   /**

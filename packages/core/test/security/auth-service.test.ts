@@ -49,7 +49,7 @@ describe('auth-service', () => {
       modelName: 'User',
       client: { name: 'User' },
       find: jest.fn(),
-      query: jest.fn().mockResolvedValue({ items: [] }),
+      single: jest.fn().mockResolvedValue(null),
       create: jest.fn(),
       update: jest
         .fn()
@@ -69,7 +69,7 @@ describe('auth-service', () => {
 
     connectedAccountService = {
       modelName: 'ConnectedAccount',
-      query: jest.fn().mockResolvedValue({ items: [] }),
+      single: jest.fn().mockResolvedValue(null),
       create: jest.fn().mockResolvedValue({ id: 1 }),
       update: jest.fn().mockResolvedValue({ id: 1 })
     };
@@ -161,12 +161,12 @@ describe('auth-service', () => {
 
   describe('findByUsername', () => {
     test('queries the user by email', async () => {
-      authUserService.query.mockResolvedValue({ items: [user()] });
+      authUserService.single.mockResolvedValue(user());
 
       await expect(
         service.findByUsername('user@test.com')
       ).resolves.toMatchObject({ id: 1 });
-      expect(authUserService.query).toHaveBeenCalledWith({
+      expect(authUserService.single).toHaveBeenCalledWith({
         email: 'user@test.com'
       });
     });
@@ -189,16 +189,14 @@ describe('auth-service', () => {
       await expect(
         service.findByUsername('user@test.com')
       ).resolves.toMatchObject({ id: 1 });
-      expect(authUserService.query).not.toHaveBeenCalled();
+      expect(authUserService.single).not.toHaveBeenCalled();
     });
   });
 
   describe('authenticate', () => {
     test('returns the user for valid credentials', async () => {
       const passwordHash = await hashPassword('Str0ng!Pass');
-      authUserService.query.mockResolvedValue({
-        items: [user({ passwordHash })]
-      });
+      authUserService.single.mockResolvedValue(user({ passwordHash }));
 
       await expect(
         service.authenticate('user@test.com', 'Str0ng!Pass')
@@ -216,9 +214,9 @@ describe('auth-service', () => {
 
     test('rejects a disabled user', async () => {
       const passwordHash = await hashPassword('Str0ng!Pass');
-      authUserService.query.mockResolvedValue({
-        items: [user({ passwordHash, enabled: false })]
-      });
+      authUserService.single.mockResolvedValue(
+        user({ passwordHash, enabled: false })
+      );
 
       await expect(
         service.authenticate('user@test.com', 'Str0ng!Pass')
@@ -226,7 +224,7 @@ describe('auth-service', () => {
     });
 
     test('rejects a user without a password hash', async () => {
-      authUserService.query.mockResolvedValue({ items: [user()] });
+      authUserService.single.mockResolvedValue(user());
 
       await expect(
         service.authenticate('user@test.com', 'Str0ng!Pass')
@@ -235,9 +233,7 @@ describe('auth-service', () => {
 
     test('rejects an invalid password', async () => {
       const passwordHash = await hashPassword('Str0ng!Pass');
-      authUserService.query.mockResolvedValue({
-        items: [user({ passwordHash })]
-      });
+      authUserService.single.mockResolvedValue(user({ passwordHash }));
 
       await expect(
         service.authenticate('user@test.com', 'wrong')
@@ -249,14 +245,12 @@ describe('auth-service', () => {
 
     test('rejects an unknown user and an invalid password alike', async () => {
       const passwordHash = await hashPassword('Str0ng!Pass');
-      authUserService.query.mockResolvedValue({
-        items: [user({ passwordHash })]
-      });
+      authUserService.single.mockResolvedValue(user({ passwordHash }));
       const invalidPassword = await service
         .authenticate('user@test.com', 'wrong')
         .catch((e) => e);
 
-      authUserService.query.mockResolvedValue({ items: [] });
+      authUserService.single.mockResolvedValue(null);
       const unknownUser = await service
         .authenticate('missing@test.com', 'wrong')
         .catch((e) => e);
@@ -353,9 +347,7 @@ describe('auth-service', () => {
   describe('login', () => {
     test('returns the access and refresh tokens', async () => {
       const passwordHash = await hashPassword('Str0ng!Pass');
-      authUserService.query.mockResolvedValue({
-        items: [user({ passwordHash })]
-      });
+      authUserService.single.mockResolvedValue(user({ passwordHash }));
 
       const tokens = await service.login('user@test.com', 'Str0ng!Pass');
 
@@ -369,9 +361,7 @@ describe('auth-service', () => {
 
     test('signs the access token with the auth scope', async () => {
       const passwordHash = await hashPassword('Str0ng!Pass');
-      authUserService.query.mockResolvedValue({
-        items: [user({ passwordHash })]
-      });
+      authUserService.single.mockResolvedValue(user({ passwordHash }));
 
       await service.login('user@test.com', 'Str0ng!Pass');
 
@@ -386,9 +376,9 @@ describe('auth-service', () => {
 
     test('issues a 2FA scoped token for a user with 2FA enabled', async () => {
       const passwordHash = await hashPassword('Str0ng!Pass');
-      authUserService.query.mockResolvedValue({
-        items: [user({ passwordHash, twoFactorAuth: 'Email' } as any)]
-      });
+      authUserService.single.mockResolvedValue(
+        user({ passwordHash, twoFactorAuth: 'Email' } as any)
+      );
 
       await service.login('user@test.com', 'Str0ng!Pass');
 
@@ -597,8 +587,9 @@ describe('auth-service', () => {
     test('updates the password hash and returns new tokens', async () => {
       const passwordHash = await hashPassword('Str0ng!Pass');
       const authUser = user({ passwordHash });
-      authUserService.query.mockImplementation(async () => ({
-        items: [{ ...authUser, passwordHash: authUserService.updatedHash }]
+      authUserService.single.mockImplementation(async () => ({
+        ...authUser,
+        passwordHash: authUserService.updatedHash
       }));
       authUserService.update.mockImplementation(
         async (_id: number, data: any) => {
@@ -829,7 +820,7 @@ describe('auth-service', () => {
 
     test('finds the user without the policies', async () => {
       authUserService.find = recorded(user());
-      authUserService.query = recorded({ items: [user()] });
+      authUserService.single = recorded(user());
 
       await service.findById(1);
       await service.findByUsername('user@test.com');
@@ -859,7 +850,7 @@ describe('auth-service', () => {
     });
 
     test('links the connected account without the policies', async () => {
-      connectedAccountService.query = recorded({ items: [] });
+      connectedAccountService.single = recorded(null);
       connectedAccountService.create = recorded({ id: 1 });
 
       await inject(OAuth2Service).linkConnectedAccount(

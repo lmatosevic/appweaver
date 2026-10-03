@@ -1294,3 +1294,151 @@ export type FileResourceService = IResourceService<
   FileUpdate,
   FileQuery
 >;
+
+declare module '@appweaver/common' {
+  interface ResourceRegistry {
+    Compensation: {
+      model: Compensation;
+      single: CompensationSingle;
+      multiple: CompensationMultiple;
+      create: CompensationCreate;
+      update: CompensationUpdate;
+      query: CompensationQuery;
+      service: CompensationResourceService;
+      relations: 'employee';
+    };
+    Department: {
+      model: Department;
+      single: DepartmentSingle;
+      multiple: DepartmentMultiple;
+      create: DepartmentCreate;
+      update: DepartmentUpdate;
+      query: DepartmentQuery;
+      service: DepartmentResourceService;
+      relations: 'head' | 'employees' | 'positions';
+    };
+    EmployeeDocument: {
+      model: EmployeeDocument;
+      single: EmployeeDocumentSingle;
+      multiple: EmployeeDocumentMultiple;
+      create: EmployeeDocumentCreate;
+      update: EmployeeDocumentUpdate;
+      query: EmployeeDocumentQuery;
+      service: EmployeeDocumentResourceService;
+      relations: 'employee';
+    };
+    Employee: {
+      model: Employee;
+      single: EmployeeSingle;
+      multiple: EmployeeMultiple;
+      create: EmployeeCreate;
+      update: EmployeeUpdate;
+      query: EmployeeQuery;
+      service: EmployeeResourceService;
+      relations:
+        | 'department'
+        | 'position'
+        | 'manager'
+        | 'reports'
+        | 'headOf'
+        | 'leaveBalances'
+        | 'leaveRequests'
+        | 'decidedLeaveRequests'
+        | 'documents'
+        | 'compensations'
+        | 'reviews'
+        | 'writtenReviews'
+        | 'roles';
+    };
+    LeaveBalance: {
+      model: LeaveBalance;
+      single: LeaveBalanceSingle;
+      multiple: LeaveBalanceMultiple;
+      create: LeaveBalanceCreate;
+      update: LeaveBalanceUpdate;
+      query: LeaveBalanceQuery;
+      service: LeaveBalanceResourceService;
+      relations: 'employee';
+    };
+    LeaveRequest: {
+      model: LeaveRequest;
+      single: LeaveRequestSingle;
+      multiple: LeaveRequestMultiple;
+      create: LeaveRequestCreate;
+      update: LeaveRequestUpdate;
+      query: LeaveRequestQuery;
+      service: LeaveRequestResourceService;
+      relations: 'employee' | 'decidedBy';
+    };
+    PerformanceReview: {
+      model: PerformanceReview;
+      single: PerformanceReviewSingle;
+      multiple: PerformanceReviewMultiple;
+      create: PerformanceReviewCreate;
+      update: PerformanceReviewUpdate;
+      query: PerformanceReviewQuery;
+      service: PerformanceReviewResourceService;
+      relations: 'employee' | 'reviewer';
+    };
+    Position: {
+      model: Position;
+      single: PositionSingle;
+      multiple: PositionMultiple;
+      create: PositionCreate;
+      update: PositionUpdate;
+      query: PositionQuery;
+      service: PositionResourceService;
+      relations: 'department' | 'employees';
+    };
+    OneTimeToken: {
+      model: OneTimeToken;
+      single: OneTimeTokenSingle;
+      multiple: OneTimeTokenMultiple;
+      create: OneTimeTokenCreate;
+      update: OneTimeTokenUpdate;
+      query: OneTimeTokenQuery;
+      service: OneTimeTokenResourceService;
+      relations: never;
+    };
+    Role: {
+      model: Role;
+      single: RoleSingle;
+      multiple: RoleMultiple;
+      create: RoleCreate;
+      update: RoleUpdate;
+      query: RoleQuery;
+      service: RoleResourceService;
+      relations: 'permissions';
+    };
+    Permission: {
+      model: Permission;
+      single: PermissionSingle;
+      multiple: PermissionMultiple;
+      create: PermissionCreate;
+      update: PermissionUpdate;
+      query: PermissionQuery;
+      service: PermissionResourceService;
+      relations: never;
+    };
+    Seeder: {
+      model: any;
+      single: any;
+      multiple: any;
+      create: any;
+      update: any;
+      query: any;
+      service: IResourceService;
+      relations: string;
+    };
+    File: {
+      model: File;
+      single: FileSingle;
+      multiple: FileMultiple;
+      create: FileCreate;
+      update: FileUpdate;
+      query: FileQuery;
+      service: FileResourceService;
+      relations: never;
+    };
+  }
+}

@@ -21,7 +21,8 @@
   "dependencies": {
     "@appweaver/cli": "^1.6.0",
     "@appweaver/common": "^1.6.0",
-    "@appweaver/core": "^1.6.0"
+    "@appweaver/core": "^1.6.0",
+    "@sinclair/typebox": "0.34.49"
   },
   "devDependencies": {}
 }

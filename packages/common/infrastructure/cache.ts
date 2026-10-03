@@ -43,18 +43,18 @@ export abstract class Cache implements OnInit {
   /**
    * Removes a single entry from the cache.
    *
-   * @param {string} key - The cache key to evict.
+   * @param {string} key - The cache key to remove.
    * @returns `true` if the entry was removed, `false` otherwise.
    */
-  abstract evict(key: string): Promise<boolean>;
+  abstract delete(key: string): Promise<boolean>;
 
   /**
-   * Expires (removes) all entries matching the given key pattern.
+   * Removes all entries matching the given key pattern.
    *
-   * @param {string} [pattern] - Optional glob/pattern to filter keys.
+   * @param {string} [pattern] - Optional glob pattern to filter keys, matching every key by default.
    * @returns The number of entries removed.
    */
-  abstract expire(pattern?: string): Promise<number>;
+  abstract deleteMatching(pattern?: string): Promise<number>;
 
   /**
    * Returns all cache keys matching the given pattern.

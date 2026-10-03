@@ -1,10 +1,9 @@
 import { createAuthService } from '@appweaver/core';
 import db from '@db/client';
-import { UserCreate } from '@/types';
 import { Role } from '@/features/access/roles';
 
 // Members sign up with GitHub or Google, see the README to enable them
-export default createAuthService<UserCreate>({
+export default createAuthService({
   modelName: 'User',
   registrationData: async (_, email, password, data) => {
     const member = await db.role.findUniqueOrThrow({

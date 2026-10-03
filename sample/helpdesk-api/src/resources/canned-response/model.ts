@@ -20,9 +20,8 @@ export default createModel({
     // Shared with everyone when empty
     team: {
       model: 'Team',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'cannedResponses',
-      owner: true,
       required: false,
       output: {
         type: 'always'

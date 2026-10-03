@@ -27,10 +27,10 @@ export class OAuth2Service {
   private readonly _authUserService = resourceAuthService()!;
   /** Optional, since an application with no OAuth2 provider never registers it.
    * @internal */
-  private readonly _connectedAccountService = injectService<
-    ConnectedAccountResourceService,
+  private readonly _connectedAccountService = injectService(
+    'ConnectedAccount',
     false
-  >('ConnectedAccount', false);
+  ) as ConnectedAccountResourceService | undefined;
 
   /**
    * Checks whether a user is allowed to be registered and/or authenticated via OAuth2 by invoking the optional
@@ -128,10 +128,9 @@ export class OAuth2Service {
     }
 
     try {
-      const result = await withoutPolicies(() =>
-        service.query({ provider: source, providerAccountId })
+      return await withoutPolicies(() =>
+        service.single({ provider: source, providerAccountId })
       );
-      return result.items[0] ?? null;
     } catch (e) {
       throw new HttpError('Connected account find error', 500, e);
     }

@@ -32,9 +32,9 @@ describe('redis-security-store', () => {
       );
 
       expect(token).toMatch(/^[\da-f]{64}$/);
-      await expect(
-        memory.getValue(tokenKey('verifyEmail', token))
-      ).resolves.toEqual({ userId: 7 });
+      await expect(memory.get(tokenKey('verifyEmail', token))).resolves.toEqual(
+        { userId: 7 }
+      );
     });
 
     test('expires the token after the given ttl', async () => {

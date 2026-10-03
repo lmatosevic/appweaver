@@ -39,7 +39,7 @@ describe('Catalog', () => {
       name: 'Denis Villeneuve',
       slug: 'denis-villeneuve',
       knownFor: 'Directing',
-      birthDate: '1967-10-03T00:00:00.000Z'
+      birthDate: new Date('1967-10-03T00:00:00.000Z')
     });
     const lead = await people.create({
       name: 'Amy Adams',
@@ -140,8 +140,8 @@ describe('Catalog', () => {
     ]);
 
     const genres = await injectService('Genre').query({
-      slug: 'science-fiction'
-    } as any);
+      filter: { slug: 'science-fiction' }
+    });
     expect(genres.totalCount).toBe(1);
   });
 

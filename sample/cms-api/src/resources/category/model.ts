@@ -30,9 +30,8 @@ export default createModel({
     // Self-reference building the category tree.
     parent: {
       model: 'Category',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'children',
-      owner: true,
       required: false,
       onDelete: 'setNull',
       output: {

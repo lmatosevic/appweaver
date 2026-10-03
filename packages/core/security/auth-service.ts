@@ -114,10 +114,9 @@ export class AuthService {
   public async findByUsername(username: string): Promise<AuthUser | null> {
     try {
       if (!config.CACHE_ENABLED || config.SECURITY_CACHE_TTL < 0) {
-        const result = await withoutPolicies(() =>
-          this._authUserService.query({ email: username })
+        return await withoutPolicies(() =>
+          this._authUserService.single({ email: username })
         );
-        return result.items[0] ?? null;
       }
 
       const cacheKey = this.authCacheKey(username);
@@ -127,10 +126,9 @@ export class AuthService {
         return value;
       }
 
-      const result = await withoutPolicies(() =>
-        this._authUserService.query({ email: username })
+      const authUser = await withoutPolicies(() =>
+        this._authUserService.single({ email: username })
       );
-      const authUser = result.items[0] ?? null;
 
       if (authUser) {
         await this._cacheService.addToCache(

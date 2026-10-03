@@ -41,9 +41,8 @@ export default createModel({
   relations: {
     employee: {
       model: 'Employee',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'reviews',
-      owner: true,
       onDelete: 'cascade',
       output: {
         type: 'always'
@@ -52,9 +51,8 @@ export default createModel({
     // Set to the signed-in reviewer
     reviewer: {
       model: 'Employee',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'writtenReviews',
-      owner: true,
       required: false,
       input: {
         type: 'none'

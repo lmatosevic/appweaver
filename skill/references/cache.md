@@ -18,8 +18,8 @@ const cache = inject(Cache);
 ### Unavailable backend
 
 With `CACHE_SKIP_ON_ERROR` enabled (the default) the cache never fails its callers. While the backing memory (e.g.
-Redis) is down or a command fails, every method returns its empty result (`get` → `null`, `has`/`set`/`evict` →
-`false`, `expire` → `0`, `keys` → `[]`), so the callers fall back to the database. The outage is logged once with an
+Redis) is down or a command fails, every method returns its empty result (`get` → `null`, `has`/`set`/`delete` →
+`false`, `deleteMatching` → `0`, `keys` → `[]`), so the callers fall back to the database. The outage is logged once with an
 error, and the recovery once with info. Entries written before an outage may have missed invalidations made during it,
 so the whole cache is cleared once the memory is available again. Calling code does not need its own `try`/`catch`
 around cache access.
@@ -52,21 +52,21 @@ Stores a value. `ttl` is in milliseconds; omit to use `CACHE_DEFAULT_TTL`.
 await cache.set('user:42', user, 30_000); // 30 s
 ```
 
-#### `cache.evict(key)`
+#### `cache.delete(key)`
 
 Removes a single entry. Returns `true` if the key existed.
 
 ```ts
-await cache.evict('user:42');
+await cache.delete('user:42');
 ```
 
-#### `cache.expire(pattern?)`
+#### `cache.deleteMatching(pattern?)`
 
-Removes all entries whose keys match a glob pattern. Returns the number of removed entries. Omit `pattern` to expire
+Removes all entries whose keys match a glob pattern. Returns the number of removed entries. Omit `pattern` to remove
 everything.
 
 ```ts
-const removed = await cache.expire('user:*');
+const removed = await cache.deleteMatching('user:*');
 ```
 
 #### `cache.keys(pattern?)`
@@ -76,6 +76,10 @@ Returns all keys matching a glob pattern, or all keys if omitted.
 ```ts
 const keys = await cache.keys('session:*');
 ```
+
+The `Memory` provider the cache stores its entries in (`InMemory` or `Redis`, injected with `inject(Memory)`) offers
+the same `get`, `set`, `has`, `delete`, `deleteMatching`, and `keys` methods, along with `sizeBytes(key)` and
+`lock(resource)`.
 
 ---
 

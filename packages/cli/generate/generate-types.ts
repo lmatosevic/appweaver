@@ -18,12 +18,15 @@ import { ensureDirExists } from '../utils';
  * @param {Record<string, ResourceModel>} models - A set of resource models for which TypeScript types will be generated.
  * @param {string} typesPath - The relative path to the directory where the generated types will be written.
  * @param {boolean} [quiet=false] - If true, suppresses detailed logging during the operation.
+ * @param {boolean} [registry=true] - Whether to register the types of every model in the resource registry, which
+ * lets the factories and injection functions infer them from a model name.
  * @return {Promise<number>} A promise that resolves to a status code: `0` for success, `2` for failure.
  */
 export async function generateTypes(
   models: Record<string, ResourceModel>,
   typesPath: string,
-  quiet: boolean = false
+  quiet: boolean = false,
+  registry: boolean = true
 ): Promise<number> {
   const cwd = process.cwd();
 
@@ -65,7 +68,9 @@ export async function generateTypes(
       ``
     ];
 
-    if (Object.keys(modelTypeNames).length > 0) {
+    const registered = registry && Object.keys(models).length > 0;
+
+    if (Object.keys(modelTypeNames).length > 0 || registered) {
       typesContent.push(
         `import { AggregateSelect, IResourceService, QueryFilter, QuerySort } from '@appweaver/common';`,
         ``
@@ -96,6 +101,10 @@ export async function generateTypes(
       );
     }
 
+    if (registered) {
+      typesContent.push(registryDeclaration(models, modelTypeNames), ``);
+    }
+
     const outputPath = path.join(cwd, typesPath);
 
     const prettierConfig = await prettier.resolveConfig(outputPath);
@@ -118,6 +127,37 @@ export async function generateTypes(
     }
     return 2;
   }
+}
+
+/**
+ * Builds the declaration registering the types of every model in the resource registry of `@appweaver/common`. A
+ * model without generated types is registered with loose types, so its name is still accepted.
+ */
+function registryDeclaration(
+  models: Record<string, ResourceModel>,
+  modelTypeNames: Record<string, string[]>
+): string {
+  const entries = Object.entries(models).map(([name, model]) => {
+    const relationNames = Object.keys(model.config.relations ?? {});
+    const relations =
+      relationNames.length > 0
+        ? relationNames.map((relation) => `'${relation}'`).join(' | ')
+        : 'never';
+
+    if (!modelTypeNames[name]) {
+      return `    ${name}: { model: any; single: any; multiple: any; create: any; update: any; query: any; service: IResourceService; relations: string };`;
+    }
+
+    return `    ${name}: { model: ${name}; single: ${name}Single; multiple: ${name}Multiple; create: ${name}Create; update: ${name}Update; query: ${name}Query; service: ${name}ResourceService; relations: ${relations} };`;
+  });
+
+  return [
+    `declare module '@appweaver/common' {`,
+    `  interface ResourceRegistry {`,
+    ...entries,
+    `  }`,
+    `}`
+  ].join('\n');
 }
 
 function generateTypeScriptType(

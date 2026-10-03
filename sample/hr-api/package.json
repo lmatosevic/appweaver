@@ -24,6 +24,7 @@
     "@appweaver/core": "^1.6.0",
     "@prisma/adapter-better-sqlite3": "7.9.1",
     "@prisma/client": "7.9.1",
+    "@sinclair/typebox": "0.34.49",
     "cron": "4.4.0",
     "nodemailer": "10.0.13",
     "prisma": "7.9.1"

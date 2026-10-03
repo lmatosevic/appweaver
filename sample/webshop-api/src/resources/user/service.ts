@@ -1,8 +1,7 @@
 import { createAuthService } from '@appweaver/core';
-import { UserCreate } from '@/types';
 
 // Customers register through the /register route, admins create other users
-export default createAuthService<UserCreate>({
+export default createAuthService({
   modelName: 'User',
   textSearch: {
     OR: {

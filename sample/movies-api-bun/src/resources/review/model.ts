@@ -35,9 +35,8 @@ export default createModel({
   relations: {
     movie: {
       model: 'Movie',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'reviews',
-      owner: true,
       onDelete: 'cascade',
       output: {
         type: 'always'
@@ -46,9 +45,8 @@ export default createModel({
     // Set to the signed-in member
     author: {
       model: 'User',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'reviews',
-      owner: true,
       required: false,
       onDelete: 'cascade',
       input: {

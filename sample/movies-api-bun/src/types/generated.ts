@@ -1116,3 +1116,128 @@ export type FileResourceService = IResourceService<
   FileUpdate,
   FileQuery
 >;
+
+declare module '@appweaver/common' {
+  interface ResourceRegistry {
+    Credit: {
+      model: Credit;
+      single: CreditSingle;
+      multiple: CreditMultiple;
+      create: CreditCreate;
+      update: CreditUpdate;
+      query: CreditQuery;
+      service: CreditResourceService;
+      relations: 'movie' | 'person';
+    };
+    Genre: {
+      model: Genre;
+      single: GenreSingle;
+      multiple: GenreMultiple;
+      create: GenreCreate;
+      update: GenreUpdate;
+      query: GenreQuery;
+      service: GenreResourceService;
+      relations: 'movies';
+    };
+    Movie: {
+      model: Movie;
+      single: MovieSingle;
+      multiple: MovieMultiple;
+      create: MovieCreate;
+      update: MovieUpdate;
+      query: MovieQuery;
+      service: MovieResourceService;
+      relations: 'genres' | 'credits' | 'reviews' | 'watchlistEntries';
+    };
+    Person: {
+      model: Person;
+      single: PersonSingle;
+      multiple: PersonMultiple;
+      create: PersonCreate;
+      update: PersonUpdate;
+      query: PersonQuery;
+      service: PersonResourceService;
+      relations: 'credits';
+    };
+    Review: {
+      model: Review;
+      single: ReviewSingle;
+      multiple: ReviewMultiple;
+      create: ReviewCreate;
+      update: ReviewUpdate;
+      query: ReviewQuery;
+      service: ReviewResourceService;
+      relations: 'movie' | 'author';
+    };
+    User: {
+      model: User;
+      single: UserSingle;
+      multiple: UserMultiple;
+      create: UserCreate;
+      update: UserUpdate;
+      query: UserQuery;
+      service: UserResourceService;
+      relations: 'reviews' | 'watchlist' | 'roles';
+    };
+    WatchlistEntry: {
+      model: WatchlistEntry;
+      single: WatchlistEntrySingle;
+      multiple: WatchlistEntryMultiple;
+      create: WatchlistEntryCreate;
+      update: WatchlistEntryUpdate;
+      query: WatchlistEntryQuery;
+      service: WatchlistEntryResourceService;
+      relations: 'user' | 'movie';
+    };
+    OneTimeToken: {
+      model: OneTimeToken;
+      single: OneTimeTokenSingle;
+      multiple: OneTimeTokenMultiple;
+      create: OneTimeTokenCreate;
+      update: OneTimeTokenUpdate;
+      query: OneTimeTokenQuery;
+      service: OneTimeTokenResourceService;
+      relations: never;
+    };
+    Role: {
+      model: Role;
+      single: RoleSingle;
+      multiple: RoleMultiple;
+      create: RoleCreate;
+      update: RoleUpdate;
+      query: RoleQuery;
+      service: RoleResourceService;
+      relations: 'permissions';
+    };
+    Permission: {
+      model: Permission;
+      single: PermissionSingle;
+      multiple: PermissionMultiple;
+      create: PermissionCreate;
+      update: PermissionUpdate;
+      query: PermissionQuery;
+      service: PermissionResourceService;
+      relations: never;
+    };
+    Seeder: {
+      model: any;
+      single: any;
+      multiple: any;
+      create: any;
+      update: any;
+      query: any;
+      service: IResourceService;
+      relations: string;
+    };
+    File: {
+      model: File;
+      single: FileSingle;
+      multiple: FileMultiple;
+      create: FileCreate;
+      update: FileUpdate;
+      query: FileQuery;
+      service: FileResourceService;
+      relations: never;
+    };
+  }
+}

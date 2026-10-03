@@ -39,7 +39,7 @@ describe('Aggregate selection', () => {
 
   /** Aggregates the seeded range with the given selection. */
   const aggregate = async (select: PostAggregate): Promise<any> =>
-    posts.aggregate({}, select, 'createdAt', from, to);
+    posts.aggregate({ select, dateField: 'createdAt', from, to });
 
   beforeAll(async () => {
     app = await createApp({ autoStartServer: false });
@@ -168,18 +168,18 @@ describe('Aggregate selection', () => {
 
   test('rejects a field that cannot be aggregated', async () => {
     await expect(
-      posts.aggregate({}, { title: { count: true } } as any)
+      posts.aggregate({ select: { title: { count: true } } as any })
     ).rejects.toThrow(/not a numeric or date field/);
   });
 
   test('rejects an operator the field does not support', async () => {
     await expect(
-      posts.aggregate({}, { createdAt: { sum: true } } as any)
+      posts.aggregate({ select: { createdAt: { sum: true } } as any })
     ).rejects.toThrow(/Cannot apply the 'sum' operator/);
   });
 
   test('rejects an empty selection', async () => {
-    await expect(posts.aggregate({}, {} as any)).rejects.toThrow(
+    await expect(posts.aggregate({ select: {} as any })).rejects.toThrow(
       /at least one field with a selected aggregation operator/
     );
   });

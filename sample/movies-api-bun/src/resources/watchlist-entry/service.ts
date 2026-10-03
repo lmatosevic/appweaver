@@ -1,11 +1,10 @@
 import { createService, currentAuthUser, HttpError } from '@appweaver/core';
 import db from '@db/client';
-import { WatchlistEntryCreate, WatchlistEntryUpdate } from '@/types';
 import { relationId } from '@/features/catalog/relation-id';
 
 export default createService({
   modelName: 'WatchlistEntry',
-  beforeCreate: async (data: WatchlistEntryCreate) => {
+  beforeCreate: async (data) => {
     const user = currentAuthUser();
     if (!user) {
       return;
@@ -19,7 +18,7 @@ export default createService({
       throw new HttpError('The movie is already on the watchlist', 409);
     }
   },
-  beforeUpdate: (_, data: WatchlistEntryUpdate) => {
+  beforeUpdate: (_, data) => {
     if (data.status === 'Watched' && !data.watchedAt) {
       data.watchedAt = new Date();
     }

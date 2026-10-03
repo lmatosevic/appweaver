@@ -1,8 +1,7 @@
 import { createAuthService } from '@appweaver/core';
 import { db } from '@db/client';
-import { UserCreate } from '@/types';
 
-export default createAuthService<UserCreate>({
+export default createAuthService({
   modelName: 'User',
   registrationData: async (_, email, password, data) => {
     const role = await db.role.findUniqueOrThrow({ where: { name: 'User' } });

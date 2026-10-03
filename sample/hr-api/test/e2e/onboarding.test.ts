@@ -1,5 +1,4 @@
 import { Application, createApp, injectService } from '@appweaver/core';
-import { LeaveBalanceResourceService } from '@/types';
 import { resetTestData } from './support/reset';
 import { createRoles, hire, setBalance, signIn } from './support/fixtures';
 
@@ -12,9 +11,7 @@ describe('Onboarding', () => {
   let app: Application;
 
   const balances = (employeeId: string) =>
-    injectService<LeaveBalanceResourceService>('LeaveBalance').query({
-      employee: employeeId
-    });
+    injectService('LeaveBalance').query({ filter: { employee: employeeId } });
 
   beforeAll(async () => {
     app = await createApp({ autoStartServer: false });

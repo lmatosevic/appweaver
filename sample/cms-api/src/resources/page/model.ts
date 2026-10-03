@@ -47,9 +47,8 @@ export default createModel({
   relations: {
     author: {
       model: 'User',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'pages',
-      owner: true,
       required: false,
       onDelete: 'setNull',
       input: {

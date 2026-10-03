@@ -30,9 +30,8 @@ export default createModel({
   relations: {
     order: {
       model: 'Order',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'items',
-      owner: true,
       onDelete: 'cascade',
       output: {
         type: 'none'
@@ -41,9 +40,8 @@ export default createModel({
     // Kept when the product is removed from the catalog
     product: {
       model: 'Product',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'orderItems',
-      owner: true,
       required: false,
       output: {
         type: 'none'

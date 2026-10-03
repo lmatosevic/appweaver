@@ -62,9 +62,8 @@ export default createModel({
   relations: {
     author: {
       model: 'User',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'posts',
-      owner: true,
       required: false,
       onDelete: 'setNull',
       input: {
@@ -74,9 +73,8 @@ export default createModel({
     // The included parent gives the full breadcrumb: Travel > Trail guides
     category: {
       model: 'Category',
-      type: 'oneToMany',
+      type: 'manyToOne',
       mappedBy: 'posts',
-      owner: true,
       required: false,
       onDelete: 'setNull',
       output: {

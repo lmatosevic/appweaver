@@ -21,7 +21,7 @@ export class RedisSecurityStore extends SecurityStore {
   ): Promise<string> {
     const token = generateToken('bytes', 64);
 
-    await this._redis.putValue(
+    await this._redis.set(
       `${SECURITY_OTT_KEY}:${purpose}:${makeHash(token)}`,
       data,
       ttl
@@ -36,7 +36,7 @@ export class RedisSecurityStore extends SecurityStore {
     validateContent?: (value: T) => ValidationResult
   ): Promise<T> {
     const tokenKey = `${SECURITY_OTT_KEY}:${purpose}:${makeHash(token)}`;
-    const value = await this._redis.getValue<T>(tokenKey);
+    const value = await this._redis.get<T>(tokenKey);
 
     if (value === null) {
       throw new HttpError('Invalid or expired token provided', 401);
@@ -51,7 +51,7 @@ export class RedisSecurityStore extends SecurityStore {
     }
 
     // Only the one of concurrent uses that removes the token gets its data
-    const removed = await this._redis.removeValue(tokenKey);
+    const removed = await this._redis.delete(tokenKey);
     if (!removed) {
       throw new HttpError('Invalid or expired token provided', 401);
     }

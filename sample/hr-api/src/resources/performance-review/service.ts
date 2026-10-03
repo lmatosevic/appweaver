@@ -1,17 +1,8 @@
 import { createService, currentAuthUser, HttpError } from '@appweaver/core';
 import db from '@db/client';
-import {
-  PerformanceReview,
-  PerformanceReviewCreate,
-  PerformanceReviewUpdate
-} from '@/types';
 import { can, Permission } from '@/features/access/permissions';
 
-export default createService<
-  PerformanceReview,
-  PerformanceReviewCreate,
-  PerformanceReviewUpdate
->({
+export default createService({
   modelName: 'PerformanceReview',
   // Managers review their direct reports, review managers anyone
   beforeCreate: async (data) => {

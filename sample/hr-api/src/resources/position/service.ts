@@ -1,7 +1,6 @@
 import { createService, HttpError } from '@appweaver/core';
-import { Position, PositionCreate, PositionUpdate } from '@/types';
 
-export default createService<Position, PositionCreate, PositionUpdate>({
+export default createService({
   modelName: 'Position',
   beforeCreate: (data) => assertSalaryBand(data),
   beforeUpdate: (_, data) => assertSalaryBand(data),
