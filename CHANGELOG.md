@@ -1,3 +1,16 @@
+## [1.7.0](https://github.com/lmatosevic/appweaver/compare/v1.6.4...v1.7.0) (2026-10-03)
+
+### Features
+
+* harden security defaults, resolve env names and add internal policy access ([5021d72](https://github.com/lmatosevic/appweaver/commit/5021d725edd1f7576f25dddf466f23dbe29bd6a5))
+* hash passwords with native scrypt, pin package peer ranges, and harden the Dockerfiles ([b477984](https://github.com/lmatosevic/appweaver/commit/b47798490c83a3c5945719e710e096f5c30cb36b))
+* infer model types from a registry, add service lookups, and unify key-value APIs ([7040459](https://github.com/lmatosevic/appweaver/commit/704045907f00dc60fbe0623f9d1410e792fff9eb))
+* use kebab-case CLI flags, fix API key cache bypass, and add security tests ([9617da6](https://github.com/lmatosevic/appweaver/commit/9617da6d877b6dcc4daf534415c134c5dfc92d1a))
+
+### Bug Fixes
+
+* correct generated enum types, dependency injection, and app lifecycle ([5a11697](https://github.com/lmatosevic/appweaver/commit/5a11697304550752a07cb046393d87910bc82950))
+
 ## [1.6.4](https://github.com/lmatosevic/appweaver/compare/v1.6.3...v1.6.4) (2026-10-03)
 
 ### Bug Fixes
