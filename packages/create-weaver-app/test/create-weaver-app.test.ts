@@ -7,6 +7,24 @@ const skillDir = path.join(packageRoot, 'skill');
 const cliVersion = JSON.parse(
   fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf8')
 ).version;
+const rootPkg = JSON.parse(
+  fs.readFileSync(path.join(packageRoot, '..', '..', 'package.json'), 'utf8')
+);
+
+describe('scaffoldDependencies', () => {
+  test('match the versions the monorepo is built with', () => {
+    const rootVersions = {
+      ...rootPkg.dependencies,
+      ...rootPkg.devDependencies
+    };
+    const { companion, tooling } = rootPkg.scaffoldDependencies;
+    const shared = Object.entries({ ...companion, ...tooling }).filter(
+      ([name]) => rootVersions[name]
+    );
+
+    expect(shared).toEqual(shared.map(([name]) => [name, rootVersions[name]]));
+  });
+});
 
 describe('create-weaver-app', () => {
   let tempDir: string;
@@ -157,6 +175,24 @@ describe('create-weaver-app', () => {
       expect(pkg.dependencies['@appweaver/core']).toBe(cliVersion);
       expect(pkg.dependencies['@appweaver/cli']).toBe(cliVersion);
       expect(pkg.dependencies['@appweaver/common']).toBe(cliVersion);
+    });
+
+    test('uses the scaffold dependency versions for the other dependencies', () => {
+      const pkg = readJson('my-app', 'package.json');
+      const versions = {
+        ...rootPkg.scaffoldDependencies.companion,
+        ...rootPkg.scaffoldDependencies.tooling
+      };
+
+      const thirdParty = Object.entries({
+        ...pkg.dependencies,
+        ...pkg.devDependencies
+      }).filter(([name]) => !name.startsWith('@appweaver/'));
+
+      expect(thirdParty.length).toBeGreaterThan(0);
+      expect(thirdParty).toEqual(
+        thirdParty.map(([name]) => [name, versions[name]])
+      );
     });
 
     test('removes every template file', () => {

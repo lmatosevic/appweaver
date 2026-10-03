@@ -1,6 +1,12 @@
 import { Command } from 'commander';
 import { compareVersions } from '@appweaver/common';
 import { loadLocalPackageJson } from '../utils';
+import {
+  fetchScaffoldDependencies,
+  loadInstalledVersion,
+  PackageUpdate,
+  resolveScaffoldUpdates
+} from './scaffold-dependencies';
 import { updatePackages } from './update-packages';
 import { updateSkillFiles } from './update-skill';
 
@@ -8,7 +14,7 @@ export function updateCommand(program: Command): void {
   program
     .command('update')
     .alias('u')
-    .description('Update the Appweaver packages.')
+    .description('Update the Appweaver packages and their companion packages.')
     .argument(
       '[packages...]',
       'A list of packages to update (e.g. @appweaver/core @appweaver/cli).' +
@@ -24,6 +30,18 @@ export function updateCommand(program: Command): void {
       'Skip updating AI agents skill files in the agent directories (e.g. .claude, .agents) of the current project.'
     )
     .option(
+      '--noCompanions',
+      'Skip updating the installed companion packages (e.g. prisma, bullmq, nodemailer) to the versions of the target release.'
+    )
+    .option(
+      '--tooling',
+      'Also update the installed tooling packages (e.g. eslint, jest, prettier) to the versions of the target release.'
+    )
+    .option(
+      '--dryRun',
+      'Print the packages that would be updated without installing them.'
+    )
+    .option(
       '-f, --force',
       'Force update despite peerDependency version mismatches.'
     )
@@ -32,6 +50,9 @@ export function updateCommand(program: Command): void {
       const quiet = !command.getOptionValue('verbose');
       const force = command.getOptionValue('force');
       const updateSkill = !command.getOptionValue('noSkill');
+      const updateCompanions = !command.getOptionValue('noCompanions');
+      const updateTooling = !!command.getOptionValue('tooling');
+      const dryRun = !!command.getOptionValue('dryRun');
       const targetVersion = command.getOptionValue('targetVersion');
 
       // Load all currently installed packages
@@ -66,7 +87,7 @@ export function updateCommand(program: Command): void {
         packagesToUpdate.push(...Object.keys(installedPackages));
       }
 
-      // This command should only update Appweaver packages
+      // The target version applies only to the Appweaver packages
       const appweaverPackages = packagesToUpdate.filter((p) =>
         p.startsWith('@appweaver/')
       );
@@ -78,7 +99,7 @@ export function updateCommand(program: Command): void {
 
       // Check if there are already greater versions installed for each package
       if (targetVersion !== 'latest' && !quiet) {
-        for (const packageName of packagesToUpdate) {
+        for (const packageName of appweaverPackages) {
           const installedPackageVersion = installedPackages[packageName];
           if (installedPackageVersion) {
             const cleanInstalled = installedPackageVersion.replace(
@@ -94,9 +115,41 @@ export function updateCommand(program: Command): void {
         }
       }
 
+      const updates: PackageUpdate[] = [];
+      for (const name of appweaverPackages) {
+        const from =
+          (await loadInstalledVersion(name)) ??
+          installedPackages[name] ??
+          'none';
+        updates.push({ name, from, to: targetVersion });
+      }
+
+      // Companion and tooling packages follow the versions the target release is built with
+      if (updateCompanions || updateTooling) {
+        const scaffold = await fetchScaffoldDependencies(targetVersion);
+        if (scaffold) {
+          updates.push(
+            ...(await resolveScaffoldUpdates(scaffold, installedPackages, {
+              companion: updateCompanions,
+              tooling: updateTooling
+            }))
+          );
+        } else {
+          console.warn(
+            `Unable to resolve the companion package versions of @appweaver/cli@${targetVersion}, ` +
+              'updating only the Appweaver packages.'
+          );
+        }
+      }
+
+      if (dryRun) {
+        console.log('Packages that would be updated:');
+        printUpdates(updates);
+        return;
+      }
+
       const status = await updatePackages(
-        appweaverPackages,
-        targetVersion,
+        Object.fromEntries(updates.map(({ name, to }) => [name, to])),
         force,
         quiet
       );
@@ -105,9 +158,14 @@ export function updateCommand(program: Command): void {
         if (updateSkill) {
           await updateSkillFiles(quiet);
         }
-        console.log(
-          `Successfully updated packages to ${targetVersion} version.`
-        );
+        console.log(`Successfully updated packages:`);
+        printUpdates(updates);
+
+        if (updates.some(({ name }) => isPrismaPackage(name))) {
+          console.log(
+            '\nPrisma was updated, run `weaver generate` to regenerate the Prisma client.'
+          );
+        }
       } else {
         console.error(
           'Update did not complete successfully. Use --verbose flag to see error details.'
@@ -115,4 +173,15 @@ export function updateCommand(program: Command): void {
         process.exit(1);
       }
     });
+}
+
+function printUpdates(updates: PackageUpdate[]): void {
+  const width = Math.max(...updates.map(({ name }) => name.length));
+  for (const { name, from, to } of updates) {
+    console.log(`  ${name.padEnd(width)}  ${from} -> ${to}`);
+  }
+}
+
+function isPrismaPackage(name: string): boolean {
+  return name === 'prisma' || name.startsWith('@prisma/');
 }

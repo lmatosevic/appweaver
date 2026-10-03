@@ -11,44 +11,9 @@ const pkg = JSON.parse(
   fs.readFileSync(path.join(__dirname, './package.json'), 'utf8')
 );
 
-const prismaVersion = '7.9.1';
-
 /** The versions of the npm packages a new project is generated with. The Appweaver packages are
  * left out, since they follow the version of this package. */
-const packageVersions: Record<string, string> = {
-  // Dependencies
-  '@prisma/adapter-better-sqlite3': prismaVersion,
-  '@prisma/adapter-libsql': prismaVersion,
-  '@prisma/adapter-mariadb': prismaVersion,
-  '@prisma/adapter-mssql': prismaVersion,
-  '@prisma/adapter-pg': prismaVersion,
-  '@prisma/client': prismaVersion,
-  prisma: prismaVersion,
-  bullmq: '5.79.1',
-  cron: '4.4.0',
-  ioredis: '5.11.1',
-  nodemailer: '10.0.13',
-
-  // Dev dependencies
-  '@eslint/js': '9.39.2',
-  '@swc/core': '1.15.41',
-  '@swc/jest': '0.2.39',
-  '@types/bun': '1.4.2',
-  '@types/jest': '30.0.0',
-  '@types/node': '26.0.0',
-  '@typescript-eslint/eslint-plugin': '8.61.1',
-  '@typescript-eslint/parser': '8.61.1',
-  eslint: '9.39.2',
-  'eslint-config-prettier': '10.1.8',
-  'eslint-plugin-jest': '29.15.2',
-  'eslint-plugin-prettier': '5.5.6',
-  globals: '17.6.0',
-  jest: '30.5.2',
-  'jest-junit': '17.0.0',
-  prettier: '3.8.4',
-  typescript: '5.9.3',
-  'typescript-eslint': '8.61.1'
-};
+const packageVersions = loadPackageVersions();
 
 const dbTypes = ['sqlite', 'postgresql', 'mysql', 'sqlserver'];
 
@@ -340,6 +305,19 @@ program
   })
   .parse();
 
+/**
+ * Reads the `scaffoldDependencies` the build injects into the published package.json from the
+ * root one. Running from the sources (as the tests do), they are read from the root directly.
+ */
+function loadPackageVersions(): Record<string, string> {
+  const scaffold =
+    pkg.scaffoldDependencies ??
+    JSON.parse(
+      fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8')
+    ).scaffoldDependencies;
+  return { ...scaffold.companion, ...scaffold.tooling };
+}
+
 function getNodeDependencies(command: Command, runtime: string): string[] {
   const adapters = {
     sqlite:
@@ -415,7 +393,12 @@ function getNodeDevDependencies(runtime: string): string[] {
 function formatDependencies(names: string[]): string {
   return [...names]
     .sort()
-    .map((name) => `    "${name}": "${packageVersions[name]}"`)
+    .map((name) => {
+      if (!packageVersions[name]) {
+        throw new Error(`Missing scaffold dependency version of ${name}`);
+      }
+      return `    "${name}": "${packageVersions[name]}"`;
+    })
     .join(',\n');
 }
 

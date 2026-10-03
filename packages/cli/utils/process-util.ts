@@ -66,6 +66,35 @@ export function runProcess(
 }
 
 /**
+ * Executes a shell command and collects its standard output, discarding the error output.
+ *
+ * @param {string} cmd - The command to execute.
+ * @param {string[]} [args=[]] - An array of arguments to pass to the command.
+ * @return {Promise<{ code: number; stdout: string }>} A promise that resolves with the exit code and the output.
+ */
+export function runProcessOutput(
+  cmd: string,
+  args: string[] = []
+): Promise<{ code: number; stdout: string }> {
+  return new Promise((resolve, reject) => {
+    const command = args.length > 0 ? `${cmd} ${args.join(' ')}` : cmd;
+    const child = spawn(command, {
+      stdio: ['ignore', 'pipe', 'ignore'],
+      shell: true,
+      env: { ...process.env, WEAVER_CLI: undefined }
+    });
+
+    let stdout = '';
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk;
+    });
+
+    child.on('error', reject);
+    child.on('close', (code) => resolve({ code: code ?? 99, stdout }));
+  });
+}
+
+/**
  * Whether killing failed only because the processes had already exited, which
  * leaves them exactly as the kill intended.
  */

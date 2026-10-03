@@ -213,7 +213,9 @@ Requires `NODE_ENV=test`.
 weaver update|u [options] [packages...]
 ```
 
-Update the Appweaver packages.
+Update the Appweaver packages. The companion packages installed in the project are bumped along to the exact versions
+the target release is built with, read from the `scaffoldDependencies` of `@appweaver/cli` in the registry. Missing
+packages are never added and newer ones never downgraded. Run `weaver generate` afterward when Prisma is updated.
 
 **Arguments:**
 
@@ -227,5 +229,8 @@ Update the Appweaver packages.
 |-----------------------------------|-----------------------------------------------------------------------------|------------|
 | `--targetVersion [targetVersion]` | The version to update the packages to                                       | `"latest"` |
 | `--noSkill`                       | Skip updating AI agents skill files in agent dirs (`.claude`, `.agents`, …) | `false`    |
+| `--noCompanions`                  | Skip updating the companion packages                                        | `false`    |
+| `--tooling`                       | Also update the tooling packages (`eslint`, `jest`, `prettier`, …)          | `false`    |
+| `--dryRun`                        | Print the packages that would be updated without installing them            | `false`    |
 | `-f, --force`                     | Force update despite peerDependency version mismatches                      | `false`    |
 | `--verbose`                       | Print verbose output                                                        | `false`    |

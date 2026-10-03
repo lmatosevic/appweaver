@@ -8,6 +8,8 @@ const {
   moduleName
 } = require('./constants');
 
+const rootPkgJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
+
 for (const pkgName of fs.readdirSync(packagesDir)) {
   const fullPath = path.join(packagesDir, pkgName);
 
@@ -39,6 +41,7 @@ for (const pkgName of fs.readdirSync(packagesDir)) {
 
   if (fs.existsSync(pkgJsonPath)) {
     const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'));
+    let rewritePkgJson = false;
 
     // Copy additional files into dist directory for packages with a "files" field
     if (pkgJson.files) {
@@ -56,6 +59,25 @@ for (const pkgName of fs.readdirSync(packagesDir)) {
 
       // Remove files from package.json to not interfere with publishing process
       pkgJson.files = undefined;
+      rewritePkgJson = true;
+    }
+
+    // Inject the fields a package declares in "rootFields" from the root package.json
+    if (pkgJson.rootFields) {
+      for (const field of pkgJson.rootFields) {
+        if (rootPkgJson[field] === undefined) {
+          throw new Error(
+            `Field "${field}" required by ${pkgName} is missing in the root package.json`
+          );
+        }
+        pkgJson[field] = rootPkgJson[field];
+      }
+
+      pkgJson.rootFields = undefined;
+      rewritePkgJson = true;
+    }
+
+    if (rewritePkgJson) {
       fs.writeFileSync(
         path.join(fullPath, distDir, 'package.json'),
         JSON.stringify(pkgJson, null, 2)

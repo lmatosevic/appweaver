@@ -29,10 +29,10 @@ describe('update-packages', () => {
 
   describe('updatePackages', () => {
     test('installs the packages with the requested version using npm', async () => {
-      const status = await updatePackages(
-        ['@appweaver/core', '@appweaver/cli'],
-        '1.2.3'
-      );
+      const status = await updatePackages({
+        '@appweaver/core': '1.2.3',
+        '@appweaver/cli': '1.2.3'
+      });
 
       expect(status).toBe(0);
       expect(runProcess).toHaveBeenCalledWith(
@@ -43,7 +43,7 @@ describe('update-packages', () => {
     });
 
     test('supports the latest version tag', async () => {
-      await updatePackages(['@appweaver/core'], 'latest');
+      await updatePackages({ '@appweaver/core': 'latest' });
 
       expect(runProcess).toHaveBeenCalledWith(
         'npm',
@@ -52,8 +52,23 @@ describe('update-packages', () => {
       );
     });
 
+    test('installs each package with its own version in one call', async () => {
+      await updatePackages({
+        '@appweaver/core': 'latest',
+        prisma: '7.9.1',
+        bullmq: '5.79.1'
+      });
+
+      expect(runProcess).toHaveBeenCalledTimes(1);
+      expect(runProcess).toHaveBeenCalledWith(
+        'npm',
+        ['install', '@appweaver/core@latest', 'prisma@7.9.1', 'bullmq@5.79.1'],
+        { quiet: true }
+      );
+    });
+
     test('adds the legacy peer deps flag when forced', async () => {
-      await updatePackages(['@appweaver/core'], '1.2.3', true);
+      await updatePackages({ '@appweaver/core': '1.2.3' }, true);
 
       expect(runProcess).toHaveBeenCalledWith(
         'npm',
@@ -63,7 +78,7 @@ describe('update-packages', () => {
     });
 
     test('passes the quiet flag through to the process', async () => {
-      await updatePackages(['@appweaver/core'], '1.2.3', false, false);
+      await updatePackages({ '@appweaver/core': '1.2.3' }, false, false);
 
       expect(runProcess).toHaveBeenCalledWith('npm', expect.any(Array), {
         quiet: false
@@ -73,13 +88,13 @@ describe('update-packages', () => {
     test('returns the exit code of a failed installation', async () => {
       runProcess.mockResolvedValue(1);
 
-      await expect(updatePackages(['@appweaver/core'], '1.2.3')).resolves.toBe(
-        1
-      );
+      await expect(
+        updatePackages({ '@appweaver/core': '1.2.3' })
+      ).resolves.toBe(1);
     });
 
     test('runs an install without packages', async () => {
-      await updatePackages([], 'latest');
+      await updatePackages({});
 
       expect(runProcess).toHaveBeenCalledWith('npm', ['install'], {
         quiet: true
@@ -93,7 +108,7 @@ describe('update-packages', () => {
 
       const { updatePackages: bunUpdatePackages } =
         await import('../../update/update-packages');
-      await bunUpdatePackages(['@appweaver/core'], '1.2.3', true);
+      await bunUpdatePackages({ '@appweaver/core': '1.2.3' }, true);
 
       expect(runProcess).toHaveBeenCalledWith(
         'bun',
@@ -109,7 +124,7 @@ describe('update-packages', () => {
 
       const { updatePackages: bunUpdatePackages } =
         await import('../../update/update-packages');
-      await bunUpdatePackages(['@appweaver/core'], '1.2.3');
+      await bunUpdatePackages({ '@appweaver/core': '1.2.3' });
 
       expect(runProcess).toHaveBeenCalledWith('npm', expect.any(Array), {
         quiet: true

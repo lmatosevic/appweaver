@@ -2,27 +2,36 @@ import { config, Runtime } from '@appweaver/common';
 import { isBunProcess, runProcess } from '../utils';
 
 /**
- * Updates a list of packages to the specified version.
+ * Installs the packages with the specified versions.
  *
- * @param {string[]} packages - An array of package names to be updated.
- * @param {string} version - The version to which the packages should be updated.
+ * @param {Record<string, string>} packages - The versions to install, keyed by package name.
  * @param {boolean} [force=false] - Whether to forcibly update the packages, overriding any potential constraints.
  * @param {boolean} [quiet=true] - Whether to suppress output logs during the update process.
- * @return {Promise<number>} Resolves to the number of packages successfully updated.
+ * @return {Promise<number>} A promise that resolves with the exit code of the package manager.
  */
 export async function updatePackages(
-  packages: string[],
-  version: string,
+  packages: Record<string, string>,
   force: boolean = false,
   quiet: boolean = true
 ): Promise<number> {
-  const packagesWithVersion = packages.map((p) => `${p}@${version}`);
+  const packagesWithVersion = Object.entries(packages).map(
+    ([name, version]) => `${name}@${version}`
+  );
 
-  if (isBunProcess() && config.APP_RUNTIME === Runtime.Bun) {
+  if (isBunRuntime()) {
     return updateBunPackages(packagesWithVersion, quiet);
   } else {
     return updateNodePackages(packagesWithVersion, force, quiet);
   }
+}
+
+/**
+ * Whether the project's packages are managed with Bun instead of npm.
+ *
+ * @return {boolean} `true` when running in Bun with the Bun application runtime configured.
+ */
+export function isBunRuntime(): boolean {
+  return isBunProcess() && config.APP_RUNTIME === Runtime.Bun;
 }
 
 /**
@@ -38,6 +47,7 @@ async function updateNodePackages(
   force: boolean,
   quiet: boolean
 ): Promise<number> {
+  // npm keeps an installed package in the dependencies section it is already in
   return runProcess(
     'npm',
     ['install', ...packages, ...(force ? ['--legacy-peer-deps'] : [])],

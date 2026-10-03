@@ -118,6 +118,41 @@
     "typescript": "5.9.3",
     "typescript-eslint": "8.61.1"
   },
+  "scaffoldDependencies": {
+    "companion": {
+      "@prisma/adapter-better-sqlite3": "7.9.1",
+      "@prisma/adapter-libsql": "7.9.1",
+      "@prisma/adapter-mariadb": "7.9.1",
+      "@prisma/adapter-mssql": "7.9.1",
+      "@prisma/adapter-pg": "7.9.1",
+      "@prisma/client": "7.9.1",
+      "bullmq": "5.79.1",
+      "cron": "4.4.0",
+      "ioredis": "5.11.1",
+      "nodemailer": "10.0.13",
+      "prisma": "7.9.1",
+      "typescript": "5.9.3"
+    },
+    "tooling": {
+      "@eslint/js": "9.39.2",
+      "@swc/core": "1.15.41",
+      "@swc/jest": "0.2.39",
+      "@types/bun": "1.4.2",
+      "@types/jest": "30.0.0",
+      "@types/node": "26.0.0",
+      "@typescript-eslint/eslint-plugin": "8.61.1",
+      "@typescript-eslint/parser": "8.61.1",
+      "eslint": "9.39.2",
+      "eslint-config-prettier": "10.1.8",
+      "eslint-plugin-jest": "29.15.2",
+      "eslint-plugin-prettier": "5.5.6",
+      "globals": "17.6.0",
+      "jest": "30.5.2",
+      "jest-junit": "17.0.0",
+      "prettier": "3.8.4",
+      "typescript-eslint": "8.61.1"
+    }
+  },
   "allowScripts": {
     "bcrypt": true,
     "better-sqlite3": true,

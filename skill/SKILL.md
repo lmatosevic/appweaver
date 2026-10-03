@@ -708,7 +708,14 @@ weaver update @appweaver/core @appweaver/cli  # update specific packages
 weaver update --targetVersion 1.2.3           # update to a specific version
 weaver update --noSkill                       # skip updating AI agent skill files (.claude, .agents, …)
 weaver update --force                         # force update despite peerDependency mismatches
+weaver update --noCompanions                  # skip the companion packages (prisma, bullmq, nodemailer, …)
+weaver update --tooling                       # also update the tooling packages (eslint, jest, prettier, …)
+weaver update --dryRun                        # print the updates without installing them
 ```
+
+Besides the `@appweaver/*` packages, `weaver update` bumps the companion packages the project already has (Prisma
+and its adapters, BullMQ, Cron, IoRedis, Nodemailer, TypeScript) to the exact versions the target release is built
+with. It never adds missing packages or downgrades newer ones. Run `weaver generate` afterwards when Prisma is updated.
 
 ### Run tests
 

@@ -184,8 +184,17 @@ skip installing. Then replaces the templates with defined variables, and copies 
 chosen runtime, stripping the `.tpl`, `.node`, or `.bun` extensions from the final output.
 
 The versions of every npm package a generated project installs (except the `@appweaver/*` packages, which follow the
-CLI's own version) are kept in the `packageVersions` map at the top of `create-weaver-app.ts`. The templates receive
-them through the `{{DEPENDENCIES}}` and `{{DEV_DEPENDENCIES}}` variables, so bump versions there, not in the templates.
+CLI's own version) are kept in the `scaffoldDependencies` field of the **root** `package.json`, split into `companion`
+(packages the framework uses at runtime or as a peer: Prisma, BullMQ, Cron, IoRedis, Nodemailer, TypeScript) and
+`tooling` (lint and test setup). The templates receive them through the `{{DEPENDENCIES}}` and `{{DEV_DEPENDENCIES}}`
+variables, so bump versions there, not in the templates. Keep the versions equal to the root `dependencies` and
+`devDependencies`, which a test checks.
+
+A package lists the root fields it needs in its own `rootFields` array (`cli` and `create-weaver-app` list
+`scaffoldDependencies`). `tools/copy-packages.js` copies them into `dist/package.json` and strips `rootFields`, the same
+way it handles `files`, so the published manifests carry them. Running from the sources, as the tests do,
+`create-weaver-app.ts` reads the field from the root `package.json` instead. `weaver update` reads it from the target
+`@appweaver/cli` release in the registry.
 
 ## 5. CLI Command Reference (`weaver`)
 
@@ -396,8 +405,16 @@ weaver update [packages...] [options]
 |-----------------------------|------------------------------------------------------------------------------------|----------|
 | `--targetVersion [version]` | The version to update the packages to.                                             | `latest` |
 | `--noSkill`                 | Skip updating AI agent skill files in agent directories (`.claude`, `.agents`, …). | false    |
+| `--noCompanions`            | Skip updating the companion packages (Prisma, BullMQ, Cron, IoRedis, Nodemailer…). | false    |
+| `--tooling`                 | Also update the tooling packages (ESLint, Jest, SWC, Prettier…).                   | false    |
+| `--dryRun`                  | Print the packages that would be updated without installing them.                  | false    |
 | `-f, --force`               | Force update despite `peerDependency` version mismatches.                          | false    |
 | `--verbose`                 | Print verbose output.                                                              | false    |
+
+The companion packages the project already has are bumped to the exact versions in the `scaffoldDependencies` of the
+target `@appweaver/cli` release (`npm view` / `bun info`), in the same install as the `@appweaver/*` packages so the
+peer ranges resolve together. Missing packages are never added and newer ones never downgraded. A failed lookup falls
+back to updating only the `@appweaver/*` packages.
 
 ---
 
