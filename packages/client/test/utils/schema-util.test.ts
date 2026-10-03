@@ -2,7 +2,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { OpenAPI3 } from 'openapi-typescript';
 import {
+  normalizeNullTypes,
   parseSchemaUrl,
   readSchemaContent,
   toSchemaObject
@@ -141,6 +143,46 @@ describe('schema-util', () => {
       await expect(toSchemaObject('{ this: is: not: valid }')).rejects.toThrow(
         'Unable to parse schema object in JSON or YAML format.'
       );
+    });
+  });
+
+  describe('normalizeNullTypes', () => {
+    const document = (schemas: Record<string, unknown>): OpenAPI3 => ({
+      openapi: '3.0.3',
+      info: { title: 'API', version: '1.0.0' },
+      paths: {},
+      components: { schemas: schemas as any }
+    });
+
+    test('rewrites the OpenAPI 3.0 null schemas into the null type', () => {
+      const schema = document({
+        Value: {
+          anyOf: [
+            { type: 'string' },
+            { type: 'object', nullable: true, enum: [null] },
+            { nullable: true, enum: [null] }
+          ]
+        }
+      });
+
+      normalizeNullTypes(schema);
+
+      expect(schema.components?.schemas?.['Value']).toEqual({
+        anyOf: [{ type: 'string' }, { type: 'null' }, { type: 'null' }]
+      });
+    });
+
+    test('keeps the other nullable schemas unchanged', () => {
+      const schemas = {
+        Status: { type: 'string', nullable: true, enum: ['Draft', null] },
+        Content: { type: 'string', nullable: true },
+        Meta: { type: 'object', nullable: true, enum: ['a'] }
+      };
+      const schema = document(structuredClone(schemas));
+
+      normalizeNullTypes(schema);
+
+      expect(schema.components?.schemas).toEqual(schemas);
     });
   });
 });

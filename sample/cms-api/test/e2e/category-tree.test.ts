@@ -81,7 +81,12 @@ describe('Category tree output', () => {
     expect(parent.anyOf[0].$ref).toBe(
       `#/components/schemas/${named.CategorySingle}`
     );
-    expect(parent.anyOf[1]).toEqual({ type: 'null' });
+    // OpenAPI 3.0 has no null type, so null is a nullable object holding only null
+    expect(parent.anyOf[1]).toEqual({
+      type: 'object',
+      nullable: true,
+      enum: [null]
+    });
     // The nullable variants the response serializer needs stay internal
     expect(Object.keys(named)).not.toContain('CategorySingleNullable');
   });

@@ -476,6 +476,26 @@ describe('create-weaver-app', () => {
       );
     });
 
+    test('installs the Jest tooling for the Node runtime', async () => {
+      await run('MyApp', '--skipInstall', '--agent', 'none');
+
+      const { devDependencies } = readJson('my-app', 'package.json');
+      expect(devDependencies).toHaveProperty('jest');
+      expect(devDependencies).toHaveProperty('@swc/jest');
+      expect(devDependencies).toHaveProperty('typescript');
+      expect(devDependencies).not.toHaveProperty('@types/bun');
+    });
+
+    test('installs the Bun types instead of Jest for the Bun runtime', async () => {
+      await run('MyApp', '--skipInstall', '--agent', 'none', '--bun');
+
+      const { devDependencies } = readJson('my-app', 'package.json');
+      expect(devDependencies).toHaveProperty('@types/bun');
+      expect(devDependencies).toHaveProperty('typescript');
+      expect(devDependencies).not.toHaveProperty('jest');
+      expect(devDependencies).not.toHaveProperty('@swc/jest');
+    });
+
     test('removes the Docker files with the noDocker flag', async () => {
       await run('MyApp', '--skipInstall', '--agent', 'none', '--noDocker');
 

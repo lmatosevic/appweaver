@@ -1,5 +1,5 @@
 import path from 'node:path';
-import Fastify, { FastifyPluginCallback } from 'fastify';
+import Fastify, { FastifyPluginCallback, LogController } from 'fastify';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import fastifyCors from '@fastify/cors';
 import fastifyHelmet from '@fastify/helmet';
@@ -64,7 +64,9 @@ export function createServer(): Server {
     },
     trustProxy: config.SERVER_TRUST_PROXY,
     bodyLimit: textToBytes(config.SERVER_BODY_MAX_SIZE),
-    disableRequestLogging: !config.SERVER_REQUEST_LOGGING_ENABLED,
+    logController: new LogController({
+      disableRequestLogging: !config.SERVER_REQUEST_LOGGING_ENABLED
+    }),
     logger: loggerConfig
   }).withTypeProvider<TypeBoxTypeProvider>();
 

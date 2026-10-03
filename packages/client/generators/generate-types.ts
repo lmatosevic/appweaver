@@ -2,6 +2,7 @@ import openapiTS, { astToString, OpenAPI3 } from 'openapi-typescript';
 import ts from 'typescript';
 import {
   hoistSharedTypes,
+  normalizeNullTypes,
   rewriteEnumsAsObjects,
   toSchemaObject
 } from '../utils';
@@ -36,6 +37,7 @@ export async function generateTypes(
     typeof schema === 'string'
       ? await toSchemaObject(schema)
       : structuredClone(schema);
+  normalizeNullTypes(schemaObject);
   const sharedTypes = hoistSharedTypes(schemaObject);
 
   const ast = await openapiTS(schemaObject, {

@@ -183,6 +183,10 @@ During project generation, the CLI accepts arguments for name, description, runt
 skip installing. Then replaces the templates with defined variables, and copies only the relevant files based on the
 chosen runtime, stripping the `.tpl`, `.node`, or `.bun` extensions from the final output.
 
+The versions of every npm package a generated project installs (except the `@appweaver/*` packages, which follow the
+CLI's own version) are kept in the `packageVersions` map at the top of `create-weaver-app.ts`. The templates receive
+them through the `{{DEPENDENCIES}}` and `{{DEV_DEPENDENCIES}}` variables, so bump versions there, not in the templates.
+
 ## 5. CLI Command Reference (`weaver`)
 
 All commands are available via `weaver <command>`.

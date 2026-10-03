@@ -13,6 +13,43 @@ const pkg = JSON.parse(
 
 const prismaVersion = '7.9.1';
 
+/** The versions of the npm packages a new project is generated with. The Appweaver packages are
+ * left out, since they follow the version of this package. */
+const packageVersions: Record<string, string> = {
+  // Dependencies
+  '@prisma/adapter-better-sqlite3': prismaVersion,
+  '@prisma/adapter-libsql': prismaVersion,
+  '@prisma/adapter-mariadb': prismaVersion,
+  '@prisma/adapter-mssql': prismaVersion,
+  '@prisma/adapter-pg': prismaVersion,
+  '@prisma/client': prismaVersion,
+  prisma: prismaVersion,
+  bullmq: '5.79.1',
+  cron: '4.4.0',
+  ioredis: '5.11.1',
+  nodemailer: '10.0.13',
+
+  // Dev dependencies
+  '@eslint/js': '9.39.2',
+  '@swc/core': '1.15.41',
+  '@swc/jest': '0.2.39',
+  '@types/bun': '1.3.14',
+  '@types/jest': '30.0.0',
+  '@types/node': '26.0.0',
+  '@typescript-eslint/eslint-plugin': '8.61.1',
+  '@typescript-eslint/parser': '8.61.1',
+  eslint: '9.39.2',
+  'eslint-config-prettier': '10.1.8',
+  'eslint-plugin-jest': '29.15.2',
+  'eslint-plugin-prettier': '5.5.6',
+  globals: '17.6.0',
+  jest: '30.5.2',
+  'jest-junit': '17.0.0',
+  prettier: '3.8.4',
+  typescript: '5.9.3',
+  'typescript-eslint': '8.61.1'
+};
+
 const dbTypes = ['sqlite', 'postgresql', 'mysql', 'sqlserver'];
 
 const agentTypes = [
@@ -150,7 +187,8 @@ program
       DESCRIPTION: description,
       HOST: command.getOptionValue('host'),
       PORT: command.getOptionValue('port'),
-      DEPENDENCIES: getNodeDependencies(command, runtime).join(',\n'),
+      DEPENDENCIES: formatDependencies(getNodeDependencies(command, runtime)),
+      DEV_DEPENDENCIES: formatDependencies(getNodeDevDependencies(runtime)),
       DATABASE_URL: getDatabaseUrl(command, sanitizedName, 'dev'),
       DATABASE_TEST_URL: getDatabaseUrl(command, sanitizedName, 'test'),
       DATABASE_ENV: getDatabaseEnv(command, sanitizedName),
@@ -303,16 +341,14 @@ program
   .parse();
 
 function getNodeDependencies(command: Command, runtime: string): string[] {
-  const dependencies: string[] = [];
-
   const adapters = {
     sqlite:
       runtime === 'bun'
-        ? `"@prisma/adapter-libsql": "${prismaVersion}"`
-        : `"@prisma/adapter-better-sqlite3": "${prismaVersion}"`,
-    postgresql: `"@prisma/adapter-pg": "${prismaVersion}"`,
-    mysql: `"@prisma/adapter-mariadb": "${prismaVersion}"`,
-    sqlserver: `"@prisma/adapter-mssql": "${prismaVersion}"`
+        ? '@prisma/adapter-libsql'
+        : '@prisma/adapter-better-sqlite3',
+    postgresql: '@prisma/adapter-pg',
+    mysql: '@prisma/adapter-mariadb',
+    sqlserver: '@prisma/adapter-mssql'
   };
 
   const database = command.getOptionValue('database');
@@ -322,28 +358,65 @@ function getNodeDependencies(command: Command, runtime: string): string[] {
     process.exit(1);
   }
 
-  dependencies.push(databaseDependency);
-
-  dependencies.push(`"@prisma/client": "${prismaVersion}"`);
-  dependencies.push(`"prisma": "${prismaVersion}"`);
+  const dependencies = [databaseDependency, '@prisma/client', 'prisma'];
 
   if (!command.getOptionValue('noQueue')) {
-    dependencies.push('"bullmq": "5.79.1"');
+    dependencies.push('bullmq');
   }
 
   if (!command.getOptionValue('noCron')) {
-    dependencies.push('"cron": "4.4.0"');
+    dependencies.push('cron');
   }
 
   if (!command.getOptionValue('noRedis')) {
-    dependencies.push('"ioredis": "5.11.1"');
+    dependencies.push('ioredis');
   }
 
   if (!command.getOptionValue('noMailer')) {
-    dependencies.push('"nodemailer": "9.0.1"');
+    dependencies.push('nodemailer');
   }
 
-  return dependencies.sort().map((d) => `    ${d}`);
+  return dependencies;
+}
+
+function getNodeDevDependencies(runtime: string): string[] {
+  const devDependencies = [
+    '@eslint/js',
+    '@types/node',
+    '@typescript-eslint/eslint-plugin',
+    '@typescript-eslint/parser',
+    'eslint',
+    'eslint-config-prettier',
+    'eslint-plugin-prettier',
+    'globals',
+    'prettier',
+    'typescript',
+    'typescript-eslint'
+  ];
+
+  // Bun runs the tests itself, Node runs them with Jest
+  if (runtime === 'bun') {
+    devDependencies.push('@types/bun');
+  } else {
+    devDependencies.push(
+      '@swc/core',
+      '@swc/jest',
+      '@types/jest',
+      'eslint-plugin-jest',
+      'jest',
+      'jest-junit'
+    );
+  }
+
+  return devDependencies;
+}
+
+/** Formats the packages as the sorted entries of a `package.json` dependencies object. */
+function formatDependencies(names: string[]): string {
+  return [...names]
+    .sort()
+    .map((name) => `    "${name}": "${packageVersions[name]}"`)
+    .join(',\n');
 }
 
 /** Database server ports: inside the Docker network and published on the host. */

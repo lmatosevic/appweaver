@@ -1,5 +1,5 @@
 ## 1. Install dependencies and build the application
-FROM oven/bun:1.3.11-alpine AS build
+FROM oven/bun:1.4.2-alpine AS build
 
 # Install tools for building libraries on other platforms
 RUN apk add build-base python3 py3-pip make gcc
@@ -18,7 +18,7 @@ RUN bun run build
 
 
 ## 2. Setup server environment, copy build output and start the application script
-FROM oven/bun:1.3.11-alpine AS deploy
+FROM oven/bun:1.4.2-alpine AS deploy
 
 # Install tools for building libraries on other platforms
 RUN apk add build-base python3 py3-pip make gcc

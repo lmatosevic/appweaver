@@ -28,6 +28,16 @@ export function parseSchemaUrl(schemaPath: string): URL | undefined {
   }
 }
 
+/**
+ * Reads the content of a schema, fetching it over HTTP(S) when the location is
+ * a web URL and reading it from the filesystem otherwise.
+ *
+ * @param {string} schemaPath The schema location, either a filesystem path or
+ * an `http:`, `https:` or `file:` URL.
+ * @returns {Promise<string>} The raw schema content, in JSON or YAML format.
+ * @throws {Error} When the schema URL cannot be reached or responds with an
+ * error status.
+ */
 export async function readSchemaContent(schemaPath: string): Promise<string> {
   const schemaUrl = parseSchemaUrl(schemaPath);
 
@@ -51,6 +61,55 @@ export async function readSchemaContent(schemaPath: string): Promise<string> {
   return await fsp.readFile(schemaUrl, 'utf8');
 }
 
+/**
+ * Rewrites the null schemas of an OpenAPI 3.0 document back into `{ type: 'null' }`. OpenAPI
+ * 3.0 has no null type, so a document declares it as a nullable object only `null` satisfies,
+ * which the generated types would spell out as `never | null` and the well known shapes holding
+ * it would no longer match, leaving them inline.
+ *
+ * The given schema is mutated in place.
+ *
+ * @param {OpenAPI3} schema The OpenAPI v3 schema to rewrite the null schemas of.
+ */
+export function normalizeNullTypes(schema: OpenAPI3): void {
+  const visit = (node: unknown): void => {
+    if (!node || typeof node !== 'object') {
+      return;
+    }
+
+    if (Array.isArray(node)) {
+      node.forEach(visit);
+      return;
+    }
+
+    const record = node as Record<string, unknown>;
+    if (
+      record['nullable'] === true &&
+      (record['type'] === undefined || record['type'] === 'object') &&
+      Array.isArray(record['enum']) &&
+      record['enum'].length === 1 &&
+      record['enum'][0] === null
+    ) {
+      delete record['nullable'];
+      delete record['enum'];
+      record['type'] = 'null';
+      return;
+    }
+
+    Object.values(record).forEach(visit);
+  };
+
+  visit(schema);
+}
+
+/**
+ * Parses the content of a schema into an OpenAPI document, trying JSON first
+ * and falling back to YAML.
+ *
+ * @param {string} schemaContent The raw schema content, in JSON or YAML format.
+ * @returns {Promise<OpenAPI3>} The parsed OpenAPI document.
+ * @throws {Error} When the content is neither valid JSON nor valid YAML.
+ */
 export async function toSchemaObject(schemaContent: string): Promise<OpenAPI3> {
   try {
     return JSON.parse(schemaContent);
