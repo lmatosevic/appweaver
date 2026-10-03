@@ -14,30 +14,30 @@ export default createModel({
       type: 'string',
       minLength: 2,
       maxLength: 150,
-      example: 'Iva Perić'
+      example: 'Olivia Bennett'
     },
     street: {
       type: 'string',
       minLength: 2,
       maxLength: 200,
-      example: 'Ilica 10'
+      example: '1200 Maple Avenue'
     },
     city: {
       type: 'string',
       minLength: 1,
       maxLength: 100,
-      example: 'Zagreb'
+      example: 'Portland'
     },
     postalCode: {
       type: 'string',
       maxLength: 20,
-      example: '10000'
+      example: '97205'
     },
     // ISO 3166-1 alpha-2
     country: {
       type: 'string',
       pattern: '^[A-Z]{2}$',
-      example: 'HR'
+      example: 'US'
     },
     isDefault: {
       type: 'boolean',

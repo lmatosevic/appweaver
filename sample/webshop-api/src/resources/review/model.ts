@@ -27,7 +27,7 @@ export default createModel({
     authorName: {
       type: 'string',
       maxLength: 100,
-      example: 'Iva P.'
+      example: 'Olivia B.'
     }
   },
   relations: {

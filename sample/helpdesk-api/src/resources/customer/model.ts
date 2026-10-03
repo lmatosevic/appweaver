@@ -12,19 +12,19 @@ export default createModel({
       unique: true,
       format: 'email',
       maxLength: 255,
-      example: 'petra@acme.example.com'
+      example: 'jennifer@acme.example.com'
     },
     name: {
       type: 'string',
       minLength: 1,
       maxLength: 150,
-      example: 'Petra Novak'
+      example: 'Jennifer Walsh'
     },
     company: {
       type: 'string',
       required: false,
       maxLength: 150,
-      example: 'Acme d.o.o.'
+      example: 'Acme Inc.'
     },
     vip: {
       type: 'boolean',

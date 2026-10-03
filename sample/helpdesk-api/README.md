@@ -38,7 +38,7 @@ npm run dev                  # http://localhost:5004, Swagger UI at http://local
 ```
 
 The seeder prints the generated admin password (`admin@helpdesk.example.com`) and the **status page API key**; keep
-the key, it is not shown again. The agents `nika@`, `filip@`, `lana@`, and `tin@helpdesk.example.com` (Tin is away)
+the key, it is not shown again. The agents `nicole@`, `ethan@`, `laura@`, and `tom@helpdesk.example.com` (Tom is away)
 sign in with `Passw0rd!`. The demo ticket `HD-DEMO02` is past its resolution target, so the escalation job raises it
 within five minutes of starting the server.
 
@@ -63,7 +63,7 @@ curl -s localhost:5004/api/tickets -H "x-api-key: $STATUS_PAGE_KEY" -H 'content-
 
 # An agent sees who got what, replies, and leaves an internal note
 TOKEN=$(curl -s localhost:5004/auth/login -H 'content-type: application/json' \
-  -d '{"username":"filip@helpdesk.example.com","password":"Passw0rd!"}' | jq -r .accessToken)
+  -d '{"username":"ethan@helpdesk.example.com","password":"Passw0rd!"}' | jq -r .accessToken)
 curl -s localhost:5004/api/tickets/query -H "authorization: Bearer $TOKEN" -H 'content-type: application/json' \
   -d '{"filter":{"status":["New","Open"]},"sort":"resolutionDueAt"}' | jq '.items[] | {reference, priority, assignee: .assignee.name, overdue}'
 curl -s localhost:5004/api/messages -H "authorization: Bearer $TOKEN" -H 'content-type: application/json' \

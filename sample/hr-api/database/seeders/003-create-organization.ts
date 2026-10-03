@@ -169,89 +169,89 @@ export async function createOrganization(): Promise<string> {
     return created;
   };
 
-  const maja = await employee({
-    firstName: 'Maja',
-    lastName: 'Kovač',
+  const megan = await employee({
+    firstName: 'Megan',
+    lastName: 'Clark',
     departmentId: people.id,
     position: positions.hrDirector,
     roles: ['HR'],
     hireDate: '2019-04-01'
   });
-  const ivan = await employee({
-    firstName: 'Ivan',
-    lastName: 'Horvat',
+  const michael = await employee({
+    firstName: 'Michael',
+    lastName: 'Turner',
     departmentId: engineering.id,
     position: positions.engineeringManager,
     roles: ['Manager'],
     hireDate: '2020-09-14'
   });
-  const petra = await employee({
-    firstName: 'Petra',
-    lastName: 'Babić',
+  const emily = await employee({
+    firstName: 'Emily',
+    lastName: 'Parker',
     departmentId: engineering.id,
     position: positions.seniorEngineer,
     roles: [],
     hireDate: '2021-02-01',
-    managerId: ivan.id
+    managerId: michael.id
   });
-  const luka = await employee({
-    firstName: 'Luka',
-    lastName: 'Marić',
+  const jacob = await employee({
+    firstName: 'Jacob',
+    lastName: 'Miller',
     departmentId: engineering.id,
     position: positions.engineer,
     roles: [],
     hireDate: '2023-06-12',
-    managerId: ivan.id
+    managerId: michael.id
   });
-  const tomislav = await employee({
-    firstName: 'Tomislav',
-    lastName: 'Perić',
+  const tyler = await employee({
+    firstName: 'Tyler',
+    lastName: 'Brooks',
     departmentId: engineering.id,
     position: positions.engineeringIntern,
     roles: [],
     hireDate: `${year}-03-01`,
     employmentType: 'Intern',
-    managerId: ivan.id
+    managerId: michael.id
   });
-  const ana = await employee({
-    firstName: 'Ana',
-    lastName: 'Jurić',
+  const sarah = await employee({
+    firstName: 'Sarah',
+    lastName: 'Mitchell',
     departmentId: sales.id,
     position: positions.salesManager,
     roles: ['Manager'],
     hireDate: '2021-11-02'
   });
-  const marko = await employee({
-    firstName: 'Marko',
-    lastName: 'Novak',
+  const ryan = await employee({
+    firstName: 'Ryan',
+    lastName: 'Cooper',
     departmentId: sales.id,
     position: positions.accountExecutive,
     roles: [],
     hireDate: '2024-01-08',
     employmentType: 'PartTime',
-    managerId: ana.id
+    managerId: sarah.id
   });
   await employee({
-    firstName: 'Sara',
-    lastName: 'Knežević',
+    firstName: 'Jessica',
+    lastName: 'Hayes',
     departmentId: finance.id,
     position: positions.payrollSpecialist,
     roles: ['Payroll'],
     hireDate: '2022-05-16',
-    managerId: maja.id
+    managerId: megan.id
   });
 
   await db.department.update({
     where: { id: engineering.id },
-    data: { headId: ivan.id }
+    data: { headId: michael.id }
   });
   await db.department.update({
     where: { id: people.id },
-    data: { headId: maja.id }
+    data: { headId: megan.id }
   });
   await db.department.update({
     where: { id: sales.id },
-    data: { headId: ana.id }
+    data: { headId: sarah.id }
   });
 
   const leave = async (
@@ -286,10 +286,10 @@ export async function createOrganization(): Promise<string> {
     }
   };
 
-  // Waiting for Ivan, one of them long enough for the morning reminder
-  await leave(petra.id, 'Annual', mondayIn(30), weekEnd(mondayIn(30)));
+  // Waiting for Michael, one of them long enough for the morning reminder
+  await leave(emily.id, 'Annual', mondayIn(30), weekEnd(mondayIn(30)));
   await leave(
-    tomislav.id,
+    tyler.id,
     'Annual',
     mondayIn(14),
     mondayIn(14),
@@ -297,27 +297,31 @@ export async function createOrganization(): Promise<string> {
     daysFromNow(-3)
   );
   // Already decided
-  await leave(luka.id, 'Annual', mondayIn(-60), weekEnd(mondayIn(-60)), {
+  await leave(jacob.id, 'Annual', mondayIn(-60), weekEnd(mondayIn(-60)), {
     status: 'Approved',
-    by: ivan.id
+    by: michael.id
   });
-  await leave(marko.id, 'Sick', daysFromNow(-20), daysFromNow(-18), {
+  await leave(ryan.id, 'Sick', daysFromNow(-20), daysFromNow(-18), {
     status: 'Approved',
-    by: ana.id
+    by: sarah.id
   });
   await leave(
-    luka.id,
+    jacob.id,
     'Annual',
     mondayIn(7),
     weekEnd(mondayIn(7)),
-    { status: 'Rejected', by: ivan.id, note: 'Release week, pick another one' },
+    {
+      status: 'Rejected',
+      by: michael.id,
+      note: 'Release week, pick another one'
+    },
     daysFromNow(-5)
   );
 
   await db.performanceReview.create({
     data: {
-      employeeId: petra.id,
-      reviewerId: ivan.id,
+      employeeId: emily.id,
+      reviewerId: michael.id,
       period: `${year}-H1`,
       rating: 5,
       strengths: 'Led the billing migration without a single incident.',
@@ -331,8 +335,8 @@ export async function createOrganization(): Promise<string> {
   });
   await db.performanceReview.create({
     data: {
-      employeeId: luka.id,
-      reviewerId: ivan.id,
+      employeeId: jacob.id,
+      reviewerId: michael.id,
       period: `${year}-H1`,
       rating: 3,
       strengths: 'Reliable delivery of the planned work.',

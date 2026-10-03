@@ -48,10 +48,10 @@ export async function createStaff(): Promise<string> {
 
   const passwordHash = await hashPassword(DEMO_PASSWORD);
   const agents: [string, number, boolean][] = [
-    ['Nika', billing.id, true],
-    ['Filip', technical.id, true],
-    ['Lana', technical.id, true],
-    ['Tin', technical.id, false]
+    ['Nicole', billing.id, true],
+    ['Ethan', technical.id, true],
+    ['Laura', technical.id, true],
+    ['Tom', technical.id, false]
   ];
   for (const [name, teamId, available] of agents) {
     await db.user.create({

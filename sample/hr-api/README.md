@@ -52,16 +52,16 @@ npm run dev       # http://localhost:5003, Swagger UI at http://localhost:5003/s
 The seeder prints the generated admin password (`admin@hr.example.com`). The demo employees all sign in with
 `Passw0rd!`:
 
-| Email                          | Role     | Reports to  |
-|--------------------------------|----------|-------------|
-| `maja.kovac@hr.example.com`    | HR       | -           |
-| `ivan.horvat@hr.example.com`   | Manager  | -           |
-| `petra.babic@hr.example.com`   | Employee | Ivan Horvat |
-| `luka.maric@hr.example.com`    | Employee | Ivan Horvat |
-| `tomislav.peric@hr.example.com`| Intern   | Ivan Horvat |
-| `ana.juric@hr.example.com`     | Manager  | -           |
-| `marko.novak@hr.example.com`   | Employee | Ana Jurić   |
-| `sara.knezevic@hr.example.com` | Payroll  | Maja Kovač  |
+| Email                           | Role     | Reports to     |
+|---------------------------------|----------|----------------|
+| `megan.clark@hr.example.com`    | HR       | -              |
+| `michael.turner@hr.example.com` | Manager  | -              |
+| `emily.parker@hr.example.com`   | Employee | Michael Turner |
+| `jacob.miller@hr.example.com`   | Employee | Michael Turner |
+| `tyler.brooks@hr.example.com`   | Intern   | Michael Turner |
+| `sarah.mitchell@hr.example.com` | Manager  | -              |
+| `ryan.cooper@hr.example.com`    | Employee | Sarah Mitchell |
+| `jessica.hayes@hr.example.com`  | Payroll  | Megan Clark    |
 
 ## Try it out
 
@@ -70,26 +70,26 @@ login() {
   curl -s localhost:5003/auth/login -H 'content-type: application/json' \
     -d "{\"username\":\"$1\",\"password\":\"Passw0rd!\"}" | jq -r .accessToken
 }
-PETRA=$(login petra.babic@hr.example.com)
-IVAN=$(login ivan.horvat@hr.example.com)
+EMILY=$(login emily.parker@hr.example.com)
+MICHAEL=$(login michael.turner@hr.example.com)
 
-# Petra files a week of annual leave, the working days are counted for her
-curl -s localhost:5003/api/leave-requests -H "authorization: Bearer $PETRA" -H 'content-type: application/json' \
+# Emily files a week of annual leave, the working days are counted for her
+curl -s localhost:5003/api/leave-requests -H "authorization: Bearer $EMILY" -H 'content-type: application/json' \
   -d '{"type":"Annual","startDate":"2026-12-07T00:00:00.000Z","endDate":"2026-12-11T00:00:00.000Z"}' | jq '{id, days, status}'
 
-# Ivan, her manager, sees the requests of his team and approves it
-curl -s localhost:5003/api/leave-requests/query -H "authorization: Bearer $IVAN" -H 'content-type: application/json' -d '{}' \
+# Michael, her manager, sees the requests of his team and approves it
+curl -s localhost:5003/api/leave-requests/query -H "authorization: Bearer $MICHAEL" -H 'content-type: application/json' -d '{}' \
   | jq '.items[] | {id, employee: .employee.fullName, status}'
-curl -s localhost:5003/api/leave-requests/<id>/approve -H "authorization: Bearer $IVAN" -H 'content-type: application/json' \
+curl -s localhost:5003/api/leave-requests/<id>/approve -H "authorization: Bearer $MICHAEL" -H 'content-type: application/json' \
   -d '{"note":"Enjoy!"}' | jq .status
 
-# The days are booked against Petra's balance
-curl -s localhost:5003/api/leave-balances/query -H "authorization: Bearer $PETRA" -H 'content-type: application/json' -d '{}' \
+# The days are booked against Emily's balance
+curl -s localhost:5003/api/leave-balances/query -H "authorization: Bearer $EMILY" -H 'content-type: application/json' -d '{}' \
   | jq '.items[] | {year, usedDays, remainingDays}'
 
-# Petra only sees her own salary, and cannot move herself to another department
-curl -s localhost:5003/api/compensations/query -H "authorization: Bearer $PETRA" -H 'content-type: application/json' -d '{}' | jq .totalCount
-curl -s -X PUT localhost:5003/api/employees/<petra-id> -H "authorization: Bearer $PETRA" -H 'content-type: application/json' \
+# Emily only sees her own salary, and cannot move herself to another department
+curl -s localhost:5003/api/compensations/query -H "authorization: Bearer $EMILY" -H 'content-type: application/json' -d '{}' | jq .totalCount
+curl -s -X PUT localhost:5003/api/employees/<emily-id> -H "authorization: Bearer $EMILY" -H 'content-type: application/json' \
   -d '{"department":2}' | jq .message
 ```
 

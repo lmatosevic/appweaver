@@ -40,7 +40,7 @@ npm run dev                           # http://localhost:5002, Swagger UI at htt
 ```
 
 The seeder prints the generated admin password (`admin@webshop.example.com`) and the **warehouse API key**; keep the
-key, it is not shown again. The demo customers `iva@example.com` and `marko@example.com` sign in with `Passw0rd!`.
+key, it is not shown again. The demo customers `olivia@example.com` and `daniel@example.com` sign in with `Passw0rd!`.
 The coupons are `WELCOME10` (10 %), `SAVE5` (5 EUR off from 30 EUR), `LAUNCH25` (25 %, limited), and the expired
 `SUMMER20`.
 
@@ -56,13 +56,13 @@ curl -s localhost:5002/api/products/query -H 'content-type: application/json' \
 
 # Open an account, sign in, and place an order with a coupon
 curl -s localhost:5002/api/register -H 'content-type: application/json' \
-  -d '{"firstName":"Ana","lastName":"Kovač","email":"ana@example.com","password":"Passw0rd!"}' | jq .id
+  -d '{"firstName":"Grace","lastName":"Lee","email":"grace@example.com","password":"Passw0rd!"}' | jq .id
 TOKEN=$(curl -s localhost:5002/auth/login -H 'content-type: application/json' \
-  -d '{"username":"ana@example.com","password":"Passw0rd!"}' | jq -r .accessToken)
+  -d '{"username":"grace@example.com","password":"Passw0rd!"}' | jq -r .accessToken)
 curl -s localhost:5002/api/checkout -H "authorization: Bearer $TOKEN" -H 'content-type: application/json' -d '{
   "items": [{ "product": 1, "quantity": 1 }, { "product": 6, "quantity": 2 }],
   "couponCode": "WELCOME10",
-  "shippingAddress": { "recipient": "Ana Kovač", "street": "Vukovarska 1", "city": "Zagreb", "postalCode": "10000", "country": "HR" }
+  "shippingAddress": { "recipient": "Grace Lee", "street": "250 Pine Street", "city": "Seattle", "postalCode": "98101", "country": "US" }
 }' | jq '{id, number, status, subtotal, discount, shippingCost, total}'
 
 # A moment later the payment worker has marked it paid
@@ -70,7 +70,7 @@ curl -s localhost:5002/api/orders/<id> -H "authorization: Bearer $TOKEN" | jq '{
 
 # The warehouse ships and delivers it with its API key
 curl -s localhost:5002/api/orders/<id>/ship -H "x-api-key: $WAREHOUSE_KEY" -H 'content-type: application/json' \
-  -d '{"carrier":"GLS","trackingNumber":"GLS123456789"}' | jq .status
+  -d '{"carrier":"UPS","trackingNumber":"UPS123456789"}' | jq .status
 curl -s -X POST localhost:5002/api/orders/<id>/deliver -H "x-api-key: $WAREHOUSE_KEY" | jq .status
 
 # A review of the bought product is marked as a verified purchase

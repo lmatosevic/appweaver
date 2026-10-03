@@ -39,12 +39,12 @@ registerRoute(
             carrier: Type.String({
               minLength: 2,
               maxLength: 50,
-              example: 'GLS'
+              example: 'UPS'
             }),
             trackingNumber: Type.String({
               minLength: 4,
               maxLength: 100,
-              example: 'GLS123456789'
+              example: 'UPS123456789'
             })
           }),
           response: {

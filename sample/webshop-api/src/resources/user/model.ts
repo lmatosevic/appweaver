@@ -7,26 +7,26 @@ export default createAuthModel({
       type: 'string',
       minLength: 1,
       maxLength: 100,
-      example: 'Iva'
+      example: 'Olivia'
     },
     lastName: {
       type: 'string',
       minLength: 1,
       maxLength: 100,
-      example: 'Perić'
+      example: 'Bennett'
     },
     email: {
       type: 'string',
       unique: true,
       format: 'email',
       maxLength: 255,
-      example: 'iva@example.com'
+      example: 'olivia@example.com'
     },
     phone: {
       type: 'string',
       required: false,
       maxLength: 32,
-      example: '+385911234567'
+      example: '+15035550123'
     },
     marketingOptIn: {
       type: 'boolean',

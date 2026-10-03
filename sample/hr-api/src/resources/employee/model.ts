@@ -20,26 +20,26 @@ export default createAuthModel({
       type: 'string',
       minLength: 1,
       maxLength: 100,
-      example: 'Ana'
+      example: 'Emily'
     },
     lastName: {
       type: 'string',
       minLength: 1,
       maxLength: 100,
-      example: 'Horvat'
+      example: 'Parker'
     },
     email: {
       type: 'string',
       unique: true,
       format: 'email',
       maxLength: 255,
-      example: 'ana.horvat@hr.example.com'
+      example: 'emily.parker@hr.example.com'
     },
     phone: {
       type: 'string',
       required: false,
       maxLength: 32,
-      example: '+385911234567'
+      example: '+15035550123'
     },
     employmentType: {
       type: 'enum',
@@ -220,7 +220,7 @@ export default createAuthModel({
   virtual: {
     fullName: {
       type: 'string',
-      example: 'Ana Horvat',
+      example: 'Emily Parker',
       input: {
         type: 'none'
       },

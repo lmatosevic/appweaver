@@ -22,13 +22,13 @@ export default createAuthModel({
       type: 'string',
       required: false,
       maxLength: 32,
-      example: '+385991234567'
+      example: '+15035550123'
     },
     displayName: {
       type: 'string',
       required: false,
       maxLength: 255,
-      example: 'Ana A.'
+      example: 'Emma W.'
     },
     bio: {
       type: 'string',
@@ -93,7 +93,7 @@ export default createAuthModel({
   virtual: {
     byline: {
       type: 'string',
-      example: 'Ana Anic',
+      example: 'Emma Wilson',
       input: {
         type: 'none'
       },

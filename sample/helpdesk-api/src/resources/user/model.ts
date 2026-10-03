@@ -8,14 +8,14 @@ export default createAuthModel({
       type: 'string',
       minLength: 2,
       maxLength: 100,
-      example: 'Nika Agent'
+      example: 'Nicole Agent'
     },
     email: {
       type: 'string',
       unique: true,
       format: 'email',
       maxLength: 255,
-      example: 'nika@helpdesk.example.com'
+      example: 'nicole@helpdesk.example.com'
     },
     // Agents away are left out of the automatic assignment
     available: {

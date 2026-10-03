@@ -7,7 +7,7 @@ const ShippingAddress = Type.Object({
   street: Type.String({ minLength: 2, maxLength: 200 }),
   city: Type.String({ minLength: 1, maxLength: 100 }),
   postalCode: Type.String({ minLength: 1, maxLength: 20 }),
-  country: Type.String({ pattern: '^[A-Z]{2}$', example: 'HR' })
+  country: Type.String({ pattern: '^[A-Z]{2}$', example: 'US' })
 });
 
 registerModel(

@@ -44,7 +44,7 @@ export async function createSampleContent(): Promise<string> {
     }
   });
 
-  const tags = ['Hiking', 'Photography', 'Croatia'];
+  const tags = ['Hiking', 'Photography', 'Oregon'];
   for (const name of tags) {
     await db.tag.create({
       data: { name, slug: name.toLowerCase(), createdById: author?.id }
@@ -112,7 +112,7 @@ export async function createSampleContent(): Promise<string> {
       authorId: author?.id,
       createdById: author?.id,
       tags: {
-        connect: [{ slug: 'hiking' }, { slug: 'croatia' }]
+        connect: [{ slug: 'hiking' }, { slug: 'oregon' }]
       }
     }
   });
@@ -171,21 +171,21 @@ export async function createSampleContent(): Promise<string> {
       {
         body: 'Walked the ridge last weekend, the way down is longer than it looks.',
         status: 'Approved',
-        guestName: 'Marta',
-        guestEmail: 'marta@example.com',
+        guestName: 'Rachel',
+        guestEmail: 'rachel@example.com',
         postId: trails.id
       },
       {
         body: 'Any chance of a map for the ridge route?',
-        guestName: 'Ivan',
-        guestEmail: 'ivan@example.com',
+        guestName: 'Josh',
+        guestEmail: 'josh@example.com',
         postId: trails.id
       },
       {
         body: 'Which lens did you use for the second photograph?',
         status: 'Approved',
-        guestName: 'Petra',
-        guestEmail: 'petra@example.com',
+        guestName: 'Amanda',
+        guestEmail: 'amanda@example.com',
         postId: deer.id
       },
       {

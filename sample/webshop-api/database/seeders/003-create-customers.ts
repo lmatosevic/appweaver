@@ -24,29 +24,29 @@ export async function createCustomers(): Promise<string> {
       }
     });
 
-  const iva = await customer('Iva', 'Perić');
-  const marko = await customer('Marko', 'Horvat');
+  const olivia = await customer('Olivia', 'Bennett');
+  const daniel = await customer('Daniel', 'Hughes');
 
   const address = {
-    recipient: 'Iva Perić',
-    street: 'Ilica 10',
-    city: 'Zagreb',
-    postalCode: '10000',
-    country: 'HR'
+    recipient: 'Olivia Bennett',
+    street: '1200 Maple Avenue',
+    city: 'Portland',
+    postalCode: '97205',
+    country: 'US'
   };
   await db.address.create({
-    data: { ...address, label: 'Home', isDefault: true, userId: iva.id }
+    data: { ...address, label: 'Home', isDefault: true, userId: olivia.id }
   });
   await db.address.create({
     data: {
       label: 'Home',
-      recipient: 'Marko Horvat',
-      street: 'Riva 5',
-      city: 'Split',
-      postalCode: '21000',
-      country: 'HR',
+      recipient: 'Daniel Hughes',
+      street: '48 Oak Street',
+      city: 'Austin',
+      postalCode: '78701',
+      country: 'US',
       isDefault: true,
-      userId: marko.id
+      userId: daniel.id
     }
   });
 
@@ -62,7 +62,7 @@ export async function createCustomers(): Promise<string> {
     data: {
       number: 'WS-DEMO-000001',
       status: 'Delivered',
-      customerId: iva.id,
+      customerId: olivia.id,
       subtotal: headphones.price + cable.price,
       shippingCost: 0,
       total: headphones.price + cable.price,
@@ -71,8 +71,8 @@ export async function createCustomers(): Promise<string> {
       paidAt: placedAt,
       shippedAt: new Date(placedAt.getTime() + 86_400_000),
       deliveredAt: new Date(placedAt.getTime() + 3 * 86_400_000),
-      carrier: 'GLS',
-      trackingNumber: 'GLS000000001',
+      carrier: 'UPS',
+      trackingNumber: 'UPS000000001',
       items: {
         create: [headphones, cable].map((product) => ({
           productId: product.id,
@@ -90,8 +90,8 @@ export async function createCustomers(): Promise<string> {
     data: [
       {
         productId: headphones.id,
-        authorId: iva.id,
-        authorName: 'Iva P.',
+        authorId: olivia.id,
+        authorName: 'Olivia B.',
         rating: 5,
         title: 'Silence on the train',
         body: 'The noise cancelling is excellent and the battery lasts all week.',
@@ -99,8 +99,8 @@ export async function createCustomers(): Promise<string> {
       },
       {
         productId: headphones.id,
-        authorId: marko.id,
-        authorName: 'Marko H.',
+        authorId: daniel.id,
+        authorName: 'Daniel H.',
         rating: 4,
         title: 'Great sound, tight fit',
         body: 'Sounds great, a bit tight on a larger head at first.'

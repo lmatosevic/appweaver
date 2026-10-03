@@ -16,7 +16,7 @@ export default createModel({
       type: 'string',
       minLength: 3,
       maxLength: 200,
-      example: 'Invoice shows the wrong VAT rate'
+      example: 'Invoice charges sales tax we are exempt from'
     },
     status: {
       type: 'enum',

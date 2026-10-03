@@ -27,8 +27,8 @@ export async function createTickets(): Promise<string> {
   });
   const agent = (email: string) =>
     db.user.findUniqueOrThrow({ where: { email } });
-  const nika = await agent('nika@helpdesk.example.com');
-  const filip = await agent('filip@helpdesk.example.com');
+  const nicole = await agent('nicole@helpdesk.example.com');
+  const ethan = await agent('ethan@helpdesk.example.com');
 
   await db.cannedResponse.createMany({
     data: [
@@ -51,13 +51,17 @@ export async function createTickets(): Promise<string> {
 
   const customer = (email: string, name: string, company?: string) =>
     db.customer.create({ data: { email, name, company } });
-  const petra = await customer(
-    'petra@acme.example.com',
-    'Petra Novak',
-    'Acme d.o.o.'
+  const jennifer = await customer(
+    'jennifer@acme.example.com',
+    'Jennifer Walsh',
+    'Acme Inc.'
   );
-  const ivo = await customer('ivo@example.com', 'Ivo Babić');
-  const mara = await customer('mara@globex.example.com', 'Mara Kos', 'Globex');
+  const kevin = await customer('kevin@example.com', 'Kevin Brooks');
+  const mary = await customer(
+    'mary@globex.example.com',
+    'Mary Collins',
+    'Globex'
+  );
 
   const ago = (hours: number) => new Date(Date.now() - hours * 3_600_000);
 
@@ -115,27 +119,27 @@ export async function createTickets(): Promise<string> {
 
   await ticket({
     reference: 'HD-DEMO01',
-    subject: 'Invoice shows the wrong VAT rate',
+    subject: 'Invoice charges sales tax we are exempt from',
     priority: 'Normal',
     status: 'Pending',
-    customerId: petra.id,
+    customerId: jennifer.id,
     teamId: billing.id,
-    assigneeId: nika.id,
+    assigneeId: nicole.id,
     openedHoursAgo: 20,
     tags: ['invoices'],
     messages: [
       {
-        body: 'Our September invoice charges 25 % VAT, but we are VAT exempt.',
+        body: 'Our September invoice charges 8 % sales tax, but we are tax exempt.',
         fromCustomer: true
       },
       {
         body: 'Checked the account, the exemption certificate expired in August.',
-        authorId: nika.id,
+        authorId: nicole.id,
         internal: true
       },
       {
         body: 'Could you send us the renewed exemption certificate?',
-        authorId: nika.id
+        authorId: nicole.id
       }
     ]
   });
@@ -144,9 +148,9 @@ export async function createTickets(): Promise<string> {
     subject: 'Cannot sign in after the update',
     priority: 'High',
     status: 'Open',
-    customerId: ivo.id,
+    customerId: kevin.id,
     teamId: technical.id,
-    assigneeId: filip.id,
+    assigneeId: ethan.id,
     openedHoursAgo: 30,
     tags: ['login'],
     messages: [
@@ -161,7 +165,7 @@ export async function createTickets(): Promise<string> {
     subject: 'Dashboard does not load',
     priority: 'Urgent',
     status: 'New',
-    customerId: mara.id,
+    customerId: mary.id,
     teamId: technical.id,
     openedHoursAgo: 2,
     tags: ['outage'],
@@ -177,16 +181,16 @@ export async function createTickets(): Promise<string> {
     subject: 'Export to CSV',
     priority: 'Low',
     status: 'Resolved',
-    customerId: petra.id,
+    customerId: jennifer.id,
     teamId: technical.id,
-    assigneeId: filip.id,
+    assigneeId: ethan.id,
     openedHoursAgo: 48,
     tags: ['feature-request'],
     messages: [
       { body: 'Could the reports be exported to CSV?', fromCustomer: true },
       {
         body: 'They can, use the export button above the table.',
-        authorId: filip.id
+        authorId: ethan.id
       }
     ]
   });
