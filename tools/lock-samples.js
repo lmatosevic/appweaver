@@ -4,12 +4,13 @@ const { spawnSync } = require('child_process');
 const { packagesDir, distDir } = require('./constants');
 
 // Regenerates the lockfile of every sample project, so its Docker image builds
-// with a clean install outside the monorepo. Given a version, it first pins
-// the @appweaver packages in the lockfiles to that release, taking their
-// manifests and integrity from the built packages, which are the exact
-// tarballs published. The registry is never asked for the new release, so it
-// runs right after publishing, before the registry serves it. With `--commit`
-// it then commits the changed lockfiles.
+// with a clean install outside the monorepo. Given a version, it first raises
+// the @appweaver ranges of the samples to it and pins the packages in the
+// lockfiles to that release, taking their manifests and integrity from the
+// built packages, which are the exact tarballs published. The registry is
+// never asked for the new release, so it runs right after publishing, before
+// the registry serves it. With `--commit` it then commits the changed
+// manifests and lockfiles.
 //
 //   node tools/lock-samples.js
 //   node tools/lock-samples.js 1.7.0 --commit
@@ -29,7 +30,7 @@ if (commit && !version) {
 
 const releases = version ? loadReleases(version) : undefined;
 
-const lockfiles = [];
+const changedFiles = [];
 for (const name of fs.readdirSync(samplesDir)) {
   const sampleDir = path.join(samplesDir, name);
   if (!fs.existsSync(path.join(sampleDir, 'package.json'))) {
@@ -53,29 +54,38 @@ for (const name of fs.readdirSync(samplesDir)) {
       ];
 
   const lockfilePath = path.join(sampleDir, lockfile);
-  if (releases && fs.existsSync(lockfilePath)) {
+  if (releases) {
     console.log(`Pinning ${sampleDir} to version ${version}...`);
-    const content = fs.readFileSync(lockfilePath, 'utf8');
-    fs.writeFileSync(
-      lockfilePath,
-      bun ? pinBunLock(content, releases) : pinPackageLock(content, releases)
-    );
+    const pkgJsonPath = path.join(sampleDir, 'package.json');
+    const pkgJson = fs.readFileSync(pkgJsonPath, 'utf8');
+    fs.writeFileSync(pkgJsonPath, raiseRanges(pkgJson, releases, version));
+
+    if (fs.existsSync(lockfilePath)) {
+      const content = fs.readFileSync(lockfilePath, 'utf8');
+      fs.writeFileSync(
+        lockfilePath,
+        bun ? pinBunLock(content, releases) : pinPackageLock(content, releases)
+      );
+    }
   }
 
   // Resolves the rest of the tree against the pinned packages
   console.log(`Locking ${sampleDir} with ${command}...`);
   run(command, args, sampleDir);
-  lockfiles.push(path.posix.join(samplesDir, name, lockfile));
+  changedFiles.push(
+    path.posix.join(samplesDir, name, 'package.json'),
+    path.posix.join(samplesDir, name, lockfile)
+  );
 }
 
 if (commit) {
-  run('git', ['add', ...lockfiles]);
+  run('git', ['add', ...changedFiles]);
 
   const staged = spawn('git', ['diff', '--cached', '--quiet'], {
     stdio: 'inherit'
   });
   if (staged.status === 0) {
-    console.log('The sample lockfiles are up to date');
+    console.log('The samples are up to date');
   } else {
     run('git', [
       'commit',
@@ -125,6 +135,17 @@ function loadReleases(version) {
   }
 
   return releases;
+}
+
+/**
+ * Raises the ranges of the released packages in a sample package.json to the
+ * given version, keeping the rest of the file as it is.
+ */
+function raiseRanges(content, releases, version) {
+  return content.replace(
+    /("(@[^"/]+\/[^"/]+)":\s*")[^"]*"/g,
+    (field, key, name) => (releases.has(name) ? `${key}^${version}"` : field)
+  );
 }
 
 /**

@@ -19,9 +19,9 @@
     "lint": "eslint \"./**/*.ts\""
   },
   "dependencies": {
-    "@appweaver/cli": "^1.6.0",
-    "@appweaver/common": "^1.6.0",
-    "@appweaver/core": "^1.6.0",
+    "@appweaver/cli": "^1.7.0",
+    "@appweaver/common": "^1.7.0",
+    "@appweaver/core": "^1.7.0",
     "@prisma/adapter-better-sqlite3": "7.9.1",
     "@prisma/client": "7.9.1",
     "@sinclair/typebox": "0.34.49",
