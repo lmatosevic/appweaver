@@ -11,7 +11,7 @@ services:
       start_period: 5s
       start_interval: 5s
     ports:
-      - "127.0.0.1:3307:3306"
+      - "127.0.0.1:3306:3306"
     environment:
       MARIADB_DATABASE: "${DB_NAME}"
       MARIADB_USER: "${DB_USER}"

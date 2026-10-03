@@ -33,7 +33,7 @@ Build the monorepo once from the repository root (`npm install && npm run build`
 
 ```bash
 cp .env.example .env                  # NODE_ENV=dev and the database credentials
-docker compose up -d postgres redis   # PostgreSQL on :5433, Redis on :6378
+docker compose up -d postgres redis   # PostgreSQL on :5432, Redis on :6379
 npm run migrate                       # apply the migrations
 npm run seed                          # roles, staff, the catalog, coupons, and two customers
 npm run dev                           # http://localhost:5002, Swagger UI at http://localhost:5002/swagger

@@ -31,7 +31,7 @@ Build the monorepo once from the repository root (`npm install && npm run build`
 
 ```bash
 cp .env.example .env         # NODE_ENV=dev and the database credentials
-docker compose up -d mysql   # MariaDB on :3307
+docker compose up -d mysql   # MariaDB on :3306
 npm run migrate              # apply the migrations
 npm run seed                 # roles, teams, agents, the SLA policies, and demo tickets
 npm run dev                  # http://localhost:5004, Swagger UI at http://localhost:5004/swagger

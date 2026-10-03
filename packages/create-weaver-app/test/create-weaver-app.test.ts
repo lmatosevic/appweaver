@@ -284,10 +284,10 @@ describe('create-weaver-app', () => {
 
       const config = readJson('my-app', 'appweaver.json');
       expect(config.config.database.url).toBe(
-        'postgresql://my-app:my-app@localhost:5433/my-app?schema=public'
+        'postgresql://my-app:my-app@localhost:5432/my-app?schema=public'
       );
       expect(read('my-app', 'appweaver.test.json')).toContain(
-        'postgresql://my-app:my-app@localhost:5433/my-app-test?schema=public'
+        'postgresql://my-app:my-app@localhost:5432/my-app-test?schema=public'
       );
 
       const pkg = readJson('my-app', 'package.json');
@@ -299,6 +299,7 @@ describe('create-weaver-app', () => {
 
       const compose = read('my-app', 'docker-compose.yml');
       expect(compose).toContain('postgres:18.4');
+      expect(compose).toContain('"127.0.0.1:5432:5432"');
       expect(compose).toContain('container_name: my-app-postgres');
       expect(compose).toContain('condition: service_healthy');
       expect(compose).toContain(
@@ -326,7 +327,7 @@ describe('create-weaver-app', () => {
 
       const config = readJson('my-app', 'appweaver.json');
       expect(config.config.database.url).toBe(
-        'mysql://root:my-app@localhost:3307/my-app'
+        'mysql://root:my-app@localhost:3306/my-app'
       );
       expect(readJson('my-app', 'package.json').dependencies).toHaveProperty(
         '@prisma/adapter-mariadb'
@@ -352,7 +353,7 @@ describe('create-weaver-app', () => {
 
       const config = readJson('my-app', 'appweaver.json');
       expect(config.config.database.url).toBe(
-        'sqlserver://localhost:1434;database=my-app;user=sa;password=my-app-Passw0rd;trustServerCertificate=true'
+        'sqlserver://localhost:1433;database=my-app;user=sa;password=my-app-Passw0rd;trustServerCertificate=true'
       );
       expect(read('my-app', '.env')).toContain('DB_PASSWORD=my-app-Passw0rd\n');
     });
@@ -444,26 +445,21 @@ describe('create-weaver-app', () => {
       await run('MyApp', '--skipInstall', '--agent', 'none');
 
       const { config } = readJson('my-app', 'appweaver.json');
-      expect(Object.keys(config)).toEqual([
-        'app',
-        'server',
-        'database',
-        'redis'
-      ]);
-      expect(Object.keys(config.redis)).toEqual(['url']);
+      expect(Object.keys(config)).toEqual(['app', 'server', 'database']);
     });
 
     test('uses Redis for the modules that default to it', async () => {
       await run('MyApp', '--skipInstall', '--agent', 'none');
 
       const { config } = readJson('my-app', 'appweaver.json');
-      expect(config.redis).toEqual({ url: 'redis://localhost:6378/0' });
+      expect(config).not.toHaveProperty('redis');
       expect(config).not.toHaveProperty('cache');
       expect(config).not.toHaveProperty('rateLimit');
       expect(config).not.toHaveProperty('queue');
 
       const compose = read('my-app', 'docker-compose.yml');
       expect(compose).toContain('image: redis:7.4.9');
+      expect(compose).toContain('"127.0.0.1:6379:6379"');
       expect(compose).toContain(
         '      redis:\n        condition: service_healthy'
       );

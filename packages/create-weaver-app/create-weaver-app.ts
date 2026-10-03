@@ -402,11 +402,11 @@ function formatDependencies(names: string[]): string {
     .join(',\n');
 }
 
-/** Database server ports: inside the Docker network and published on the host. */
-const databasePorts: Record<string, { internal: number; published: number }> = {
-  postgresql: { internal: 5432, published: 5433 },
-  mysql: { internal: 3306, published: 3307 },
-  sqlserver: { internal: 1433, published: 1434 }
+/** Standard database server ports, also published on the host by docker-compose. */
+const databasePorts: Record<string, number> = {
+  postgresql: 5432,
+  mysql: 3306,
+  sqlserver: 1433
 };
 
 /** Hostnames of the docker-compose database services. */
@@ -449,22 +449,14 @@ function getDatabaseUrl(
     return `file:./${mode === 'test' ? 'temp/' : 'data/'}${dbName}.db`;
   }
 
-  const ports = databasePorts[database];
-  if (!ports) {
+  const port = databasePorts[database];
+  if (!port) {
     console.error(`Invalid database type: ${database}`);
     process.exit(1);
   }
 
-  // The host connects to the port docker-compose publishes, unless there is no
-  // docker-compose file and the database server runs on its standard port
-  let host = 'localhost';
-  let port = command.getOptionValue('noDocker')
-    ? ports.internal
-    : ports.published;
-  if (target === 'docker') {
-    host = databaseDockerHosts[database];
-    port = ports.internal;
-  }
+  const host =
+    target === 'docker' ? databaseDockerHosts[database] : 'localhost';
 
   const { connectUser: user, password } = getDatabaseCredentials(
     database,
@@ -521,8 +513,7 @@ function getDockerAppEnvironment(command: Command, name: string): string {
 
 /**
  * Returns the configuration of the modules whose packages are skipped. The ones
- * with an in-memory implementation switch to it, the others are disabled. Redis
- * otherwise connects to the server docker-compose publishes.
+ * with an in-memory implementation switch to it, the others are disabled.
  */
 function getModulesConfig(command: Command): Record<string, object> {
   const modulesConfig: Record<string, object> = {};
@@ -531,9 +522,6 @@ function getModulesConfig(command: Command): Record<string, object> {
     modulesConfig.redis = { provider: '@appweaver/core/memory/in-memory' };
     modulesConfig.cache = { provider: '@appweaver/core/cache/memory-cache' };
     modulesConfig.rateLimit = { store: 'in-memory' };
-  } else if (!command.getOptionValue('noDocker')) {
-    // The port docker-compose publishes the Redis server on
-    modulesConfig.redis = { url: 'redis://localhost:6378/0' };
   }
 
   // BullMQ also needs Redis
@@ -573,7 +561,7 @@ function getRedisDockerConfig(
       start_period: 5s
       start_interval: 5s
     ports:
-      - "127.0.0.1:6378:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis-data:/data
     networks:
@@ -625,7 +613,7 @@ function getDatabaseDockerConfig(
       start_period: 5s
       start_interval: 5s
     ports:
-      - "127.0.0.1:5433:5432"
+      - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_DB: "\${DB_NAME}"
       POSTGRES_USER: "\${DB_USER}"
@@ -651,7 +639,7 @@ function getDatabaseDockerConfig(
       start_period: 5s
       start_interval: 5s
     ports:
-      - "127.0.0.1:3307:3306"
+      - "127.0.0.1:3306:3306"
     environment:
       MARIADB_DATABASE: "\${DB_NAME}"
       MARIADB_USER: "\${DB_USER}"
@@ -678,7 +666,7 @@ function getDatabaseDockerConfig(
       start_period: 10s
       start_interval: 5s
     ports:
-      - "127.0.0.1:1434:1433"
+      - "127.0.0.1:1433:1433"
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "\${DB_PASSWORD}"

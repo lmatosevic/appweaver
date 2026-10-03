@@ -11,7 +11,7 @@ services:
       start_period: 5s
       start_interval: 5s
     ports:
-      - "127.0.0.1:5433:5432"
+      - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_DB: "${DB_NAME}"
       POSTGRES_USER: "${DB_USER}"
@@ -33,7 +33,7 @@ services:
       start_period: 5s
       start_interval: 5s
     ports:
-      - "127.0.0.1:6378:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis-data:/data
     networks:

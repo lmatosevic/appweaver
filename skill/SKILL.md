@@ -81,10 +81,10 @@ This creates a `./my-blog-api` directory, installs all dependencies, and runs th
 The default test runner is `jest` with `swc` transpiler.
 
 For a PostgreSQL, MySQL, or SQL Server project, the generated `docker-compose.yml` runs the database server (and Redis)
-on non-standard host ports (`5433`, `3307`, `1434`, and `6378` for Redis), which the development `DATABASE_URL` and
-`REDIS_URL` point at, so `docker-compose up -d postgres redis` is enough to run the app locally. Its credentials are
-stored in `.env` (`DB_NAME`, `DB_USER`, `DB_PASSWORD`), and the application containers override the connection URLs
-to reach the other containers. With `--noDocker`, the URLs use the standard ports instead.
+on their default ports (`5432`, `3306`, `1433`, and `6379` for Redis), also published on the host, so the development
+`DATABASE_URL` and the default `REDIS_URL` reach them and `docker-compose up -d postgres redis` is enough to run the app
+locally. The database credentials are stored in `.env` (`DB_NAME`, `DB_USER`, `DB_PASSWORD`), and the application
+containers override the connection URLs to reach the other containers.
 
 **Example — Bun project with Sqlite:**
 
