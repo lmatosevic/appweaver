@@ -1,6 +1,6 @@
 {
   "name": "@appweaver/cli",
-  "version": "1.8.2",
+  "version": "1.9.0",
   "description": "Appweaver - the backend framework for AI-first development (@cli)",
   "author": "Luka Matosevic",
   "license": "MIT",

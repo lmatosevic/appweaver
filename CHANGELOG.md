@@ -1,3 +1,9 @@
+## [1.9.0](https://github.com/lmatosevic/appweaver/compare/v1.8.2...v1.9.0) (2026-10-04)
+
+### Features
+
+* hash passwords with Argon2ID and rehash outdated hashes on login ([e203e0e](https://github.com/lmatosevic/appweaver/commit/e203e0e087fc9ec089fe4192f99c038c4f94b95d))
+
 ## [1.8.2](https://github.com/lmatosevic/appweaver/compare/v1.8.1...v1.8.2) (2026-10-04)
 
 ### Bug Fixes
