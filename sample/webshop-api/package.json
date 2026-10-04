@@ -19,9 +19,9 @@
     "lint": "eslint \"./**/*.ts\""
   },
   "dependencies": {
-    "@appweaver/cli": "^1.8.2",
-    "@appweaver/common": "^1.8.2",
-    "@appweaver/core": "^1.8.2",
+    "@appweaver/cli": "^1.9.0",
+    "@appweaver/common": "^1.9.0",
+    "@appweaver/core": "^1.9.0",
     "@prisma/adapter-pg": "7.9.1",
     "@prisma/client": "7.9.1",
     "@sinclair/typebox": "0.34.49",
