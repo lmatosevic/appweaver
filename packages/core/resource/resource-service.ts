@@ -76,7 +76,7 @@ export abstract class ResourceService<
   /** @internal */
   private readonly _cacheService = inject(CacheService);
   /** @internal */
-  private readonly _client: ResourceClient;
+  private readonly _modelKey: string;
 
   /**
    * Creates the service for the given resource model and resolves its database
@@ -87,7 +87,7 @@ export abstract class ResourceService<
    * @throws An error if no database client exists for the provided model name.
    */
   constructor(public readonly modelName: string) {
-    this._client = this._db.client()[uncapitalize(modelName)];
+    this._modelKey = uncapitalize(modelName);
     if (!this._client) {
       throw new Error(
         `ResourceService initialized with invalid model name: ${modelName}`
@@ -100,7 +100,7 @@ export abstract class ResourceService<
    * executing custom database operations that the service methods do not cover.
    *
    * @returns {ResourceClient} The resource client of the model this service was
-   * created for.
+   * created for, bound to the current transaction (see `runTransaction`).
    */
   public get client(): ResourceClient {
     return this._client;
@@ -1104,5 +1104,15 @@ export abstract class ResourceService<
     }
 
     return sanitizedData;
+  }
+
+  /**
+   * The model delegate of the current transaction, or of the connection outside
+   * of one, resolved per call.
+   *
+   * @internal
+   */
+  private get _client(): ResourceClient {
+    return this._db.client()[this._modelKey];
   }
 }

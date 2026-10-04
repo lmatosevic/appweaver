@@ -6,6 +6,17 @@ import { Cache as CoreCache } from '../../cache/cache';
 import { InMemory } from '../../memory/in-memory';
 import { createModel } from '../../factory/create-model';
 import { resetContext } from '../fixtures/context-fixture';
+import {
+  runInTransaction,
+  settleTransaction,
+  TransactionContext
+} from '../../database/transaction-context';
+
+const transactionContext = (): TransactionContext => ({
+  tx: {} as any,
+  commitCallbacks: new Map(),
+  rollbackCallbacks: []
+});
 
 class TestCache extends CoreCache {
   constructor() {
@@ -115,6 +126,37 @@ describe('cache-service', () => {
       ).resolves.toBeNull();
       await expect(
         service.getCachedValue('users:query:!User!:inv')
+      ).resolves.toEqual({ id: 1 });
+    });
+
+    test('expires the entries once the transaction commits', async () => {
+      const context = transactionContext();
+      await service.addToCache('posts:query:!Post!:inv', { id: 1 });
+
+      await runInTransaction(context, () =>
+        service.invalidateCache('Post', 'create')
+      );
+      await expect(
+        service.getCachedValue('posts:query:!Post!:inv')
+      ).resolves.toEqual({ id: 1 });
+
+      await settleTransaction(context, true);
+      await expect(
+        service.getCachedValue('posts:query:!Post!:inv')
+      ).resolves.toBeNull();
+    });
+
+    test('keeps the entries when the transaction rolls back', async () => {
+      const context = transactionContext();
+      await service.addToCache('posts:query:!Post!:inv', { id: 1 });
+
+      await runInTransaction(context, () =>
+        service.invalidateCache('Post', 'create')
+      );
+      await settleTransaction(context, false);
+
+      await expect(
+        service.getCachedValue('posts:query:!Post!:inv')
       ).resolves.toEqual({ id: 1 });
     });
 

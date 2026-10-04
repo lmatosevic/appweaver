@@ -1,4 +1,15 @@
 import { NodeEvents } from '../../events/node-events';
+import {
+  runInTransaction,
+  settleTransaction,
+  TransactionContext
+} from '../../database/transaction-context';
+
+const transactionContext = (): TransactionContext => ({
+  tx: {} as any,
+  commitCallbacks: new Map(),
+  rollbackCallbacks: []
+});
 
 describe('node-events', () => {
   let events: NodeEvents;
@@ -22,6 +33,34 @@ describe('node-events', () => {
 
       expect(emitted).toBe(true);
       expect(listener).toHaveBeenCalledWith({ current: { id: 1 } });
+    });
+
+    test('emits the event of a transaction once it commits', async () => {
+      const listener = jest.fn();
+      const context = transactionContext();
+      events.onResourceEvent('Post', 'create', listener);
+
+      const emitted = runInTransaction(context, () =>
+        events.emitResourceEvent('Post', 'create', { current: { id: 1 } })
+      );
+
+      expect(emitted).toBe(true);
+      expect(listener).not.toHaveBeenCalled();
+      await settleTransaction(context, true);
+      expect(listener).toHaveBeenCalledWith({ current: { id: 1 } });
+    });
+
+    test('drops the event of a transaction that rolls back', async () => {
+      const listener = jest.fn();
+      const context = transactionContext();
+      events.onResourceEvent('Post', 'create', listener);
+
+      runInTransaction(context, () =>
+        events.emitResourceEvent('Post', 'create', { current: { id: 1 } })
+      );
+      await settleTransaction(context, false);
+
+      expect(listener).not.toHaveBeenCalled();
     });
 
     test('returns a listener id', () => {

@@ -18,7 +18,8 @@ export default db;
 
 #### `db.client<T>()`
 
-Returns the underlying database client cast to type `T`. For the default Prisma provider `T` is `PrismaClient`.
+Returns the underlying database client cast to type `T`. For the default Prisma provider `T` is `PrismaClient`. The
+client runs its queries in the current transaction, so a client resolved once at startup still joins one.
 
 ```ts
 const users = await client.user.findMany({ where: { active: true } });
@@ -35,6 +36,49 @@ Closes the database connection. Called automatically by the framework during `on
 #### `db.checkHealth()`
 
 Returns a `HealthCheckResult`. Executes a lightweight `SELECT 1` query to verify the connection.
+
+## Transactions
+
+`runTransaction` runs a function in one transaction. Every resource service call and client query made inside it
+commits together when it resolves, and an error thrown out of it rolls everything back and is rethrown unchanged. An
+error caught inside the function does not roll back.
+
+```ts
+import { afterCommit, injectService, runTransaction } from '@appweaver/core';
+import { Prisma } from '@db/client/client';
+
+const orders = injectService('Order');
+
+// The parameter type gives the transaction client the models of the application
+const order = await runTransaction(async (tx: Prisma.TransactionClient) => {
+  const order = await orders.create({ customer: customerId, total });
+  await tx.product.updateMany({ where: { id: productId, stock: { gte: 1 } }, data: { stock: { decrement: 1 } } });
+  afterCommit(() => sendOrderEmail(order)); // runs only once committed
+  return order;
+});
+
+await runTransaction('Serializable', async () => {
+  // Database calls...
+});
+await runTransaction({ isolationLevel: 'Serializable', timeout: 10_000, maxWait: 2_000, retries: 3 }, async () => {
+  // Database calls...
+});
+```
+
+| Option           | Default                                           | Description                                                                       |
+|------------------|---------------------------------------------------|-----------------------------------------------------------------------------------|
+| `isolationLevel` | database default, always `Serializable` on SQLite | `ReadUncommitted`, `ReadCommitted`, `RepeatableRead`, `Serializable`, `Snapshot`. |
+| `timeout`        | `DATABASE_TRANSACTION_TIMEOUT`                    | Maximum run time in milliseconds.                                                 |
+| `maxWait`        | `DATABASE_TRANSACTION_MAX_WAIT`                   | Maximum wait for a connection in milliseconds.                                    |
+| `retries`        | `0`                                               | Reruns the whole function after a write conflict (Prisma `P2034`).                |
+
+- The resource events, the cache invalidation, and the removal of stored files run after the commit and are dropped on
+  rollback. A file stored inside a rolled back transaction is removed. Wrap other side effects (emails, jobs) in
+  `afterCommit(fn)`, which runs right away outside a transaction.
+- A `runTransaction` (or `$transaction`) inside another one joins it. Asking it for another isolation level throws.
+- On PostgreSQL a failed query aborts the whole transaction, so only catch the errors thrown before a write fails (i.e.
+  a
+  404 or 403 of a service).
 
 ---
 

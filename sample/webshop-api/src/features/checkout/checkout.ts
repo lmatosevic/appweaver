@@ -4,10 +4,11 @@ import {
   CacheService,
   HttpError,
   inject,
-  injectService
+  injectService,
+  runTransaction
 } from '@appweaver/core';
 import db from '@db/client';
-import { Coupon } from '@db/client/client';
+import { Coupon, Prisma } from '@db/client/client';
 import { Order, OrderSingle } from '@/types';
 import { couponProblem, priceOrder } from './pricing';
 
@@ -31,7 +32,7 @@ export type CheckoutRequest = {
  * Places an order in one transaction: the products are checked and their
  * stock reserved, the coupon is applied and redeemed, and the prices are
  * copied onto the order lines. The order then waits for its payment, which the
- * payment worker picks up from the resource event emitted here.
+ * payment worker picks up from the resource event emitted once it commits.
  */
 export async function checkout(
   customer: AuthUser,
@@ -40,7 +41,7 @@ export async function checkout(
   const shippingAddress = await resolveAddress(customer, request);
   const quantities = mergeLines(request.items);
 
-  const order = await db.$transaction(async (tx) => {
+  return runTransaction(async (tx: Prisma.TransactionClient) => {
     const products = await tx.product.findMany({
       where: { id: { in: [...quantities.keys()] }, status: 'Active' }
     });
@@ -94,7 +95,7 @@ export async function checkout(
       });
     }
 
-    return tx.order.create({
+    const created = await tx.order.create({
       data: {
         number: orderNumber(),
         customerId: Number(customer.id),
@@ -105,17 +106,19 @@ export async function checkout(
         items: { create: lines }
       }
     });
+
+    // Both wait for the commit. The stock is written past the product service,
+    // so its cached listings are dropped here, and the payment worker picks the
+    // order up from the event, see the payments feature
+    await inject(CacheService).invalidateCache('Product', 'update');
+    inject(Events).emitResourceEvent<Order>('Order', 'create', {
+      current: created as unknown as Order
+    });
+
+    // Read before the commit, so the response shows the order as placed rather
+    // than racing the payment worker that charges it right after
+    return injectService('Order').find(created.id);
   });
-
-  // Written past the product service, so its cached listings are dropped here
-  await inject(CacheService).invalidateCache('Product', 'update');
-
-  // Picked up by the payment worker, see the payments feature
-  inject(Events).emitResourceEvent<Order>('Order', 'create', {
-    current: order as unknown as Order
-  });
-
-  return injectService('Order').find(order.id);
 }
 
 /** The quantity of every product, the same product listed twice added up. */

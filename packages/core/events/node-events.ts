@@ -7,6 +7,10 @@ import {
   logger,
   uuid
 } from '@appweaver/common';
+import {
+  afterCommit,
+  currentTransaction
+} from '../database/transaction-context';
 
 export class NodeEvents extends Events {
   /** @internal */
@@ -40,7 +44,15 @@ export class NodeEvents extends Events {
     event: ActionType,
     data: EventData<T>
   ): boolean {
-    return this.emit(this.resourceEventName(resourceName, event), data);
+    const eventName = this.resourceEventName(resourceName, event);
+
+    // Deferred to the commit, so no listener acts on a change a rollback discards
+    if (currentTransaction()) {
+      afterCommit(() => this.emit(eventName, data));
+      return this.listenerCount(eventName) > 0;
+    }
+
+    return this.emit(eventName, data);
   }
 
   public removeResourceEvent(listenerId: string): boolean {

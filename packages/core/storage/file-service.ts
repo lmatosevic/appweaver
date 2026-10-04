@@ -22,6 +22,11 @@ import { inject, injectModel, injectPolicy, injectService } from '../context';
 import { HttpError } from '../errors';
 import { currentAuthUser } from '../security';
 import { PrismaDatabase } from '../database';
+import {
+  afterCommit,
+  afterRollback,
+  currentTransaction
+} from '../database/transaction-context';
 import { CacheService } from '../cache';
 import {
   arePoliciesSkipped,
@@ -330,7 +335,7 @@ export class FileService {
       throw new HttpError('Deleting file is forbidden', 403);
     }
 
-    const result = await this._storage.delete(fileName);
+    const result = await this.deleteStored(fileName);
     if (!result) {
       throw new HttpError('Error deleting file from storage', 500);
     }
@@ -625,6 +630,7 @@ export class FileService {
     if (!fileName) {
       throw new HttpError('Error saving file to storage', 500);
     }
+    afterRollback(() => this._storage.delete(fileName));
 
     createFile.name = fileName;
     createFile.checksum = checksum;
@@ -701,12 +707,26 @@ export class FileService {
     }
   }
 
+  /**
+   * Removes a file from storage, or once the current transaction commits, so a
+   * rollback cannot leave a database row pointing at a removed file.
+   *
+   * @internal
+   */
+  private async deleteStored(fileName: string): Promise<boolean> {
+    if (currentTransaction()) {
+      afterCommit(() => this._storage.delete(fileName));
+      return true;
+    }
+    return this._storage.delete(fileName);
+  }
+
   /** @internal */
   private async deleteSafe(fileName: string): Promise<boolean> {
     let success = true;
 
     try {
-      const result = await this._storage.delete(fileName);
+      const result = await this.deleteStored(fileName);
       if (!result) {
         success = false;
       }

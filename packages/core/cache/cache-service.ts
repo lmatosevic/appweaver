@@ -11,6 +11,10 @@ import {
 } from '@appweaver/common';
 import { stringify } from 'flatted';
 import { context, inject, injectModel } from '../context';
+import {
+  afterCommit,
+  currentTransaction
+} from '../database/transaction-context';
 
 export class CacheService {
   /** @internal */
@@ -93,6 +97,15 @@ export class CacheService {
     action: 'create' | 'update' | 'delete' | 'uploadFiles' | 'deleteFiles'
   ): Promise<void> {
     if (!config.CACHE_ENABLED) {
+      return;
+    }
+
+    // Deferred to the commit, so no reader caches a change a rollback discards
+    if (currentTransaction()) {
+      afterCommit(
+        () => this.invalidateCache(modelName, action),
+        `cache:${modelName}`
+      );
       return;
     }
 

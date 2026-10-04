@@ -411,7 +411,10 @@ export default createPolicy({
 
 Policy and file policy callbacks may be `async`, and receive a `null` user for an unauthenticated request. Wrap trusted
 system code (jobs, seeders, custom flows) in `withoutPolicies(() => ...)` to call the resource services without the
-policies; see [resources.md](references/resources.md#skipping-the-policies).
+policies.
+
+Wrap several service calls in `runTransaction(async () => ...)` (optionally with an isolation level first) to commit
+or roll them back together.
 
 #### Creating an authentication model and service
 
@@ -530,8 +533,8 @@ alias emitted per model and validated over HTTP against a generated `<Model>Quer
 
 `aggregate` takes a single options object, the same shape as the `POST /aggregate` body: `select`, `filter`,
 `dateField` (default `createdAt`), `from`, `to`, `step`, and `safeIncrement`. The required `select` holds the operators
-to apply per field. Only the numeric fields (`count`, `sum`, `avg`, `min`, `max`, `first`, `last`), the date fields (all but `sum`
-and `avg`), and the numeric `id` and audit fields of the model can be aggregated:
+to apply per field. Only the numeric fields (`count`, `sum`, `avg`, `min`, `max`, `first`, `last`), the date fields (all
+but `sum` and `avg`), and the numeric `id` and audit fields of the model can be aggregated:
 
 ```ts
 await injectService('Post').aggregate({
@@ -784,8 +787,9 @@ weaver update --dry-run                       # print the updates without instal
 ```
 
 Besides the `@appweaver/*` packages, `weaver update` bumps the companion packages the project already has (Prisma
-and its adapters, TypeBox, BullMQ, Cron, IoRedis, Nodemailer, TypeScript) to the exact versions the target release is built
-with. It never adds missing packages or downgrades newer ones. Run `weaver generate` afterwards when Prisma is updated.
+and its adapters, TypeBox, BullMQ, Cron, IoRedis, Nodemailer, TypeScript) to the exact versions the target release is
+built with. It never adds missing packages or downgrades newer ones. Run `weaver generate` afterwards when Prisma is
+updated.
 
 ### Run tests
 
