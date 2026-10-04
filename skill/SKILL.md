@@ -355,9 +355,12 @@ import { createRoutes } from '@appweaver/core';
 
 export default createRoutes({
   modelName: 'Product',
+  // Applied to every route, unless the route sets the option itself
+  defaults: {
+    roles: ['Admin', 'User']
+  },
   find: {
     cache: true,
-    roles: ['Admin', 'User'],
     rateLimit: {
       max: 100
     }

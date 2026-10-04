@@ -3,27 +3,18 @@ import { createRoutes } from '@appweaver/core';
 export default createRoutes({
   modelName: 'Category',
   path: '/categories',
-  find: {
-    public: true,
+  // The cache options apply only to the read routes
+  defaults: {
+    roles: ['Admin'],
     cacheTTL: 60_000
   },
+  find: {
+    public: true
+  },
   query: {
-    public: true,
-    cacheTTL: 60_000
+    public: true
   },
   aggregate: {
     exclude: true
-  },
-  create: {
-    roles: ['Admin']
-  },
-  update: {
-    roles: ['Admin']
-  },
-  delete: {
-    roles: ['Admin']
-  },
-  export: {
-    roles: ['Admin']
   }
 });

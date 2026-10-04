@@ -9,7 +9,6 @@ import {
   Nullable,
   plural,
   RecaptchaConfig,
-  ResourceRoutesConfig,
   ResourceSchemaConfig,
   StringDate
 } from '@appweaver/common';
@@ -26,6 +25,7 @@ import {
   registerQueryFilterSchemas,
   registerQuerySortSchemas
 } from './schemas';
+import { ResourceRouteName } from './utils';
 
 // Maximum length of a string primary key, sized for the longest value the
 // supported generators produce (a 36-character UUID)
@@ -95,8 +95,8 @@ export const AggregateResponseData = Type.Object({
 
 export function createSchema(
   name: string,
-  routeAuthTypes: Record<keyof ResourceRoutesConfig, AuthType[] | undefined>,
-  routeRecaptcha: Record<keyof ResourceRoutesConfig, RecaptchaConfig>
+  routeAuthTypes: Record<ResourceRouteName, AuthType[] | undefined>,
+  routeRecaptcha: Record<ResourceRouteName, RecaptchaConfig>
 ): ResourceSchemaConfig {
   const resourceModel = injectModel(name);
 

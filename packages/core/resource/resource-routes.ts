@@ -10,7 +10,12 @@ import {
   RouteConfig
 } from '@appweaver/common';
 import { createSchema } from './resource-schema';
-import { parseJsonParams, queryRouteMethods } from './utils';
+import {
+  mergeRouteDefaults,
+  parseJsonParams,
+  queryRouteMethods,
+  ResourceRouteName
+} from './utils';
 import { inject, injectModel, injectService } from '../context';
 import { FileService } from '../storage';
 import { ExportService } from '../export';
@@ -19,7 +24,7 @@ import { Server } from '../types';
 
 type FullRouteConfig = RouteConfig &
   RouteCacheConfig &
-  Pick<QueryRouteConfig, 'method'>;
+  Pick<QueryRouteConfig, 'method'> & { resourceRouteName: ResourceRouteName };
 
 /** The `:id` path parameter, validated against the primary key schema of the
  * resource, so it arrives typed after the model id */
@@ -30,10 +35,14 @@ export function resourceRoutes(
   routesConfig: Omit<ResourceRoutesConfig, 'modelName' | 'path'> = {}
 ): (server: Server) => void {
   const routeConfig = (
-    configName: keyof ResourceRoutesConfig
+    configName: ResourceRouteName
   ): FullRouteConfig | undefined => {
     return {
-      ...(routesConfig[configName] ?? {}),
+      ...mergeRouteDefaults(
+        configName,
+        routesConfig.defaults,
+        routesConfig[configName]
+      ),
       resourceRouteName: configName,
       cacheModelName: ['find', 'query', 'aggregate'].includes(configName)
         ? name
@@ -41,7 +50,7 @@ export function resourceRoutes(
     };
   };
 
-  const routeNames: (keyof ResourceRoutesConfig)[] = [
+  const routeNames: ResourceRouteName[] = [
     'find',
     'query',
     'aggregate',
@@ -54,7 +63,7 @@ export function resourceRoutes(
   ];
 
   const routeAuthTypes = routeNames.reduce<
-    Record<keyof ResourceRoutesConfig, AuthType[] | undefined>
+    Record<ResourceRouteName, AuthType[] | undefined>
   >((acc, routeName) => {
     const config = routeConfig(routeName);
     if (config?.public || config?.auth?.length === 0) {
@@ -68,7 +77,7 @@ export function resourceRoutes(
   }, {} as any);
 
   const routeRecaptcha = routeNames.reduce<
-    Record<keyof ResourceRoutesConfig, RecaptchaConfig>
+    Record<ResourceRouteName, RecaptchaConfig>
   >((acc, routeName) => {
     const config = routeConfig(routeName);
     acc[routeName] = {

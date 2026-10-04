@@ -89,6 +89,9 @@ export type ResourceRoutesConfig = {
   modelName: ModelName;
   /** URL path prefix for this resource */
   path?: string;
+  /** Config applied to every route, unless the route sets the option itself.
+   * Options a route does not support (i.e. caching on a write route) are skipped */
+  defaults?: QueryRouteConfig;
   /** Config for the find-by-ID route */
   find?: ReadRouteConfig;
   /** Config for the list/query route */

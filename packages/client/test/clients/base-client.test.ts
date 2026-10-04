@@ -5,6 +5,10 @@ import { ClientError } from '../../errors';
 class TestClient extends FetchClient {
   public auth = this.authClient<any>('/auth');
   public post = this.resourceClient<any>('/api/posts');
+  public tag = this.resourceClient<any>('/api/tags', {
+    query: 'get',
+    aggregate: 'get'
+  });
   public files = this.filesClient('/files');
 }
 
@@ -315,6 +319,52 @@ describe('base-client', () => {
       await client.post.find(5);
 
       expect(lastRequest().url).toBe('https://api.test/api/posts/5');
+    });
+
+    test('sends a GET query with the criteria URL-encoded as query parameters', async () => {
+      const { client, lastRequest } = createClient();
+      const filter = { name: { _contains: 'a&b=c d/ž' } };
+
+      await client.tag.query({
+        filter,
+        sort: '-name,id',
+        size: 5,
+        cursor: null
+      });
+
+      const url = new URL(lastRequest().url);
+      expect(lastRequest().method).toBe('GET');
+      expect(lastRequest().body).toBeNull();
+      expect(url.pathname).toBe('/api/tags/query');
+      expect(Object.fromEntries(url.searchParams)).toEqual({
+        filter: JSON.stringify(filter),
+        sort: '-name,id',
+        size: '5'
+      });
+    });
+
+    test('sends a GET aggregate with the selection as a JSON query parameter', async () => {
+      const { client, lastRequest } = createClient();
+
+      await client.tag.aggregate({ select: { id: { count: true } }, step: 2 });
+
+      const url = new URL(lastRequest().url);
+      expect(lastRequest().method).toBe('GET');
+      expect(url.pathname).toBe('/api/tags/aggregate');
+      expect(JSON.parse(url.searchParams.get('select')!)).toEqual({
+        id: { count: true }
+      });
+      expect(url.searchParams.get('step')).toBe('2');
+    });
+
+    test('keeps sending the query of a POST resource in the body', async () => {
+      const { client, lastRequest } = createClient();
+
+      await client.post.query({ size: 5 });
+
+      expect(lastRequest().method).toBe('POST');
+      expect(lastRequest().url).toBe('https://api.test/api/posts/query');
+      expect(await lastRequest().json()).toEqual({ size: 5 });
     });
   });
 });

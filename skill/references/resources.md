@@ -1421,19 +1421,36 @@ function createRoutes(config: ResourceRoutesConfig, override ?: Partial<Resource
 }
 ```
 
-| Property     | Type             | Description                                              |
-|--------------|------------------|----------------------------------------------------------|
-| `modelName`  | string           | Model name to bind routes to (required).                 |
-| `path`       | string           | Custom base URL path (default: derived from model name). |
-| `find`       | ReadRouteConfig  | `GET /:id` - Find single resource by ID.                 |
-| `query`      | QueryRouteConfig | `POST /query` - Query resources with filters.            |
-| `aggregate`  | QueryRouteConfig | `POST /aggregate` - Aggregate resources.                 |
-| `create`     | RouteConfig      | `POST /` - Create a new resource.                        |
-| `update`     | RouteConfig      | `PUT /:id` - Update a resource.                          |
-| `delete`     | RouteConfig      | `DELETE /:id` - Delete a resource.                       |
-| `export`     | RouteConfig      | `POST /export` - Export resources to CSV.                |
-| `fileUpload` | RouteConfig      | `POST /:id/files` - Upload files to a resource.          |
-| `fileDelete` | RouteConfig      | `POST /:id/delete-files` - Delete files from a resource. |
+| Property     | Type             | Description                                                            |
+|--------------|------------------|------------------------------------------------------------------------|
+| `modelName`  | string           | Model name to bind routes to (required).                               |
+| `path`       | string           | Custom base URL path (default: derived from model name).               |
+| `defaults`   | QueryRouteConfig | Config applied to every route (see [Route defaults](#route-defaults)). |
+| `find`       | ReadRouteConfig  | `GET /:id` - Find single resource by ID.                               |
+| `query`      | QueryRouteConfig | `POST /query` - Query resources with filters.                          |
+| `aggregate`  | QueryRouteConfig | `POST /aggregate` - Aggregate resources.                               |
+| `create`     | RouteConfig      | `POST /` - Create a new resource.                                      |
+| `update`     | RouteConfig      | `PUT /:id` - Update a resource.                                        |
+| `delete`     | RouteConfig      | `DELETE /:id` - Delete a resource.                                     |
+| `export`     | RouteConfig      | `POST /export` - Export resources to CSV.                              |
+| `fileUpload` | RouteConfig      | `POST /:id/files` - Upload files to a resource.                        |
+| `fileDelete` | RouteConfig      | `POST /:id/delete-files` - Delete files from a resource.               |
+
+### Route defaults
+
+`defaults` takes any route option and applies it to every route, unless the route sets the option itself. Caching
+options reach only `find`, `query`, and `aggregate`, and `method` only `query` and `aggregate`. A route setting any of
+`public`, `roles`, `permissions`, or `auth` inherits none of them from the defaults, and the same holds for
+`recaptcha` and `recaptchaAction`.
+
+```ts
+export default createRoutes({
+  modelName: 'Product',
+  defaults: { roles: ['Admin'], cache: true, rateLimit: { max: 100 } },
+  query: { public: true, cache: false }, // public, not cached, rate limited
+  delete: { exclude: true }
+});
+```
 
 ### Route config (all operations)
 

@@ -21,6 +21,7 @@ import { resourceRoutes } from '../../resource/resource-routes';
 import {
   ClientErrorResponse,
   errorHandler,
+  HttpError,
   ServerErrorResponse
 } from '../../errors';
 import schemas from '../../server/schemas';
@@ -44,7 +45,8 @@ const aggregateResponse = { total: {}, items: [] };
  */
 async function server(
   routesConfig: Omit<ResourceRoutesConfig, 'modelName' | 'path'> = {},
-  swagger: boolean = false
+  swagger: boolean = false,
+  denyAuth: boolean = false
 ): Promise<FastifyInstance> {
   const app = Fastify({
     logger: false,
@@ -56,7 +58,12 @@ async function server(
 
   context.server = app;
 
-  app.decorate('authenticate', () => async () => {});
+  // Rejecting every request that is authenticated tells the public routes apart
+  app.decorate('authenticate', () => async () => {
+    if (denyAuth) {
+      throw new HttpError('Unauthorized', 401);
+    }
+  });
   app.decorate('recaptcha', async () => {});
   app.setErrorHandler(errorHandler);
 
@@ -104,6 +111,33 @@ describe('resource-routes', () => {
       ])
     ).toString();
 
+  /** The route names a request of every method reached, in a fixed order. */
+  const reached = async (): Promise<string[]> => {
+    const requests: [string, 'GET' | 'POST', string, any?][] = [
+      ['GET /query', 'GET', '/posts/query'],
+      ['POST /query', 'POST', '/posts/query', {}],
+      ['GET /aggregate', 'GET', '/posts/aggregate?select={}'],
+      ['POST /aggregate', 'POST', '/posts/aggregate', { select: {} }]
+    ];
+
+    const routes: string[] = [];
+    for (const [route, method, url, payload] of requests) {
+      service.query.mockClear();
+      service.aggregate.mockClear();
+
+      // A GET request missing its route falls through to GET /:id
+      await request(method, url, payload);
+
+      if (
+        service.query.mock.calls.length ||
+        service.aggregate.mock.calls.length
+      ) {
+        routes.push(route);
+      }
+    }
+    return routes;
+  };
+
   beforeEach(() => {
     resetContext();
 
@@ -133,33 +167,6 @@ describe('resource-routes', () => {
 
   describe('resourceRoutes', () => {
     describe('route methods', () => {
-      /** The route names a request of every method reached, in a fixed order. */
-      const reached = async (): Promise<string[]> => {
-        const requests: [string, 'GET' | 'POST', string, any?][] = [
-          ['GET /query', 'GET', '/posts/query'],
-          ['POST /query', 'POST', '/posts/query', {}],
-          ['GET /aggregate', 'GET', '/posts/aggregate?select={}'],
-          ['POST /aggregate', 'POST', '/posts/aggregate', { select: {} }]
-        ];
-
-        const routes: string[] = [];
-        for (const [route, method, url, payload] of requests) {
-          service.query.mockClear();
-          service.aggregate.mockClear();
-
-          // A GET request missing its route falls through to GET /:id
-          await request(method, url, payload);
-
-          if (
-            service.query.mock.calls.length ||
-            service.aggregate.mock.calls.length
-          ) {
-            routes.push(route);
-          }
-        }
-        return routes;
-      };
-
       test('registers only the POST routes by default', async () => {
         app = await server();
 
@@ -237,6 +244,56 @@ describe('resource-routes', () => {
         });
 
         expect(await reached()).toEqual([]);
+      });
+    });
+
+    describe('route defaults', () => {
+      const status = async (
+        method: 'GET' | 'POST',
+        url: string,
+        payload?: any
+      ) => (await request(method, url, payload)).status;
+
+      test('applies the default method to the query and aggregate routes', async () => {
+        app = await server({ defaults: { method: 'get' } });
+
+        expect(await reached()).toEqual(['GET /query', 'GET /aggregate']);
+      });
+
+      test('prefers the method a route sets', async () => {
+        app = await server({
+          defaults: { method: 'get-post' },
+          aggregate: { method: 'post' }
+        });
+
+        expect(await reached()).toEqual([
+          'GET /query',
+          'POST /query',
+          'POST /aggregate'
+        ]);
+      });
+
+      test('excludes every route the defaults exclude, unless included again', async () => {
+        app = await server({
+          defaults: { exclude: true },
+          query: { exclude: false }
+        });
+
+        expect(await reached()).toEqual(['POST /query']);
+        expect(await status('GET', '/posts/1')).toBe(404);
+      });
+
+      test('applies the default access, unless a route sets its own', async () => {
+        app = await server(
+          { defaults: { public: true }, query: { roles: ['Admin'] } },
+          false,
+          true
+        );
+
+        expect(await status('POST', '/posts/aggregate', { select: {} })).toBe(
+          200
+        );
+        expect(await status('POST', '/posts/query', {})).toBe(401);
       });
     });
 
