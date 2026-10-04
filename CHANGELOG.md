@@ -1,3 +1,11 @@
+## [1.8.0](https://github.com/lmatosevic/appweaver/compare/v1.7.0...v1.8.0) (2026-10-04)
+
+### Features
+
+* add database transaction runner for service methods ([be9aa5a](https://github.com/lmatosevic/appweaver/commit/be9aa5a5da81716001aa69b3c4774c320096d00e))
+* add default route configs ([b9c839d](https://github.com/lmatosevic/appweaver/commit/b9c839d55d629169076e2efd99bccd98c02a1f32))
+* add query and aggregate route support for GET and/or POST methods ([37a425f](https://github.com/lmatosevic/appweaver/commit/37a425f652b365fd3a080f4cfcb6b0bef16e1000))
+
 ## [1.7.0](https://github.com/lmatosevic/appweaver/compare/v1.6.4...v1.7.0) (2026-10-03)
 
 ### Features
