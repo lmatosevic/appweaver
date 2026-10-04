@@ -25,6 +25,7 @@ import {
   HealthType,
   ResourceClient,
   ResourceInterface,
+  ResourceMethods,
   ResourceType
 } from './modules';
 
@@ -104,11 +105,15 @@ export class AngularClient<
     Resource extends ResourceType,
     OmitFields extends readonly (keyof ResourceInterface)[] = []
   >(
-    resourcePath: string
+    resourcePath: string,
+    methods?: ResourceMethods
   ): ObservableMethods<
     ClientResult<ResourceClient<Resource>, ResourceInterface, OmitFields>
   > {
-    const instance = super.resourceClient<Resource, OmitFields>(resourcePath);
+    const instance = super.resourceClient<Resource, OmitFields>(
+      resourcePath,
+      methods
+    );
     return this.wrapWithObservables(instance);
   }
 
