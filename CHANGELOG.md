@@ -1,3 +1,9 @@
+## [1.8.2](https://github.com/lmatosevic/appweaver/compare/v1.8.1...v1.8.2) (2026-10-04)
+
+### Bug Fixes
+
+* pass resource methods through the Angular client ([cd4bb78](https://github.com/lmatosevic/appweaver/commit/cd4bb78236635551568f38e39f844d181b8b1af1))
+
 ## [1.8.1](https://github.com/lmatosevic/appweaver/compare/v1.8.0...v1.8.1) (2026-10-04)
 
 ### Bug Fixes
