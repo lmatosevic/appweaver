@@ -1,3 +1,4 @@
+import { argon2Sync, randomBytes } from 'node:crypto';
 import {
   AuthOTTPurpose,
   AuthScope,
@@ -19,7 +20,7 @@ import { FileService } from '../../storage/file-service';
 import { HttpError } from '../../errors';
 import { AuthService } from '../../security/auth-service';
 import { OAuth2Service } from '../../security/oauth2/oauth2-service';
-import { hashPassword } from '../../security/helper';
+import { checkPassword, hashPassword } from '../../security/helper';
 import { arePoliciesSkipped } from '../../utils';
 import { resetContext } from '../fixtures/context-fixture';
 
@@ -32,6 +33,22 @@ describe('auth-service', () => {
   let signedTokens: any[];
   let eventListeners: Record<string, (data: any) => Promise<void>>;
   let service: AuthService;
+
+  /** An Argon2id hash with a lower memory cost than the current one. */
+  const outdatedHash = (password: string) => {
+    const salt = randomBytes(16);
+    const key = argon2Sync('argon2id', {
+      message: password,
+      nonce: salt,
+      memory: 1024,
+      passes: 2,
+      parallelism: 1,
+      tagLength: 32
+    });
+    const encode = (bytes: Buffer) =>
+      bytes.toString('base64').replace(/=+$/, '');
+    return `$argon2id$v=19$m=1024,t=2,p=1$${encode(salt)}$${encode(key)}`;
+  };
 
   const user = (overrides: Partial<AuthUser> = {}): AuthUser => ({
     id: 1,
@@ -257,6 +274,42 @@ describe('auth-service', () => {
 
       expect(unknownUser.statusCode).toBe(invalidPassword.statusCode);
       expect(unknownUser.message).toBe(invalidPassword.message);
+    });
+
+    test('keeps a hash made with the current parameters', async () => {
+      const passwordHash = await hashPassword('Str0ng!Pass');
+      authUserService.single.mockResolvedValue(user({ passwordHash }));
+
+      await service.authenticate('user@test.com', 'Str0ng!Pass');
+
+      expect(authUserService.update).not.toHaveBeenCalled();
+    });
+
+    test('rehashes a hash made with outdated parameters', async () => {
+      const passwordHash = outdatedHash('Str0ng!Pass');
+      authUserService.single.mockResolvedValue(user({ passwordHash }));
+
+      await service.authenticate('user@test.com', 'Str0ng!Pass');
+
+      expect(authUserService.update).toHaveBeenCalledWith(1, {
+        passwordHash: expect.stringMatching(
+          /^\$argon2id\$v=19\$m=19456,t=2,p=1\$/
+        )
+      });
+      const [, data] = authUserService.update.mock.calls[0];
+      await expect(
+        checkPassword('Str0ng!Pass', data.passwordHash)
+      ).resolves.toBe(true);
+    });
+
+    test('authenticates the user when the rehash fails', async () => {
+      const passwordHash = outdatedHash('Str0ng!Pass');
+      authUserService.single.mockResolvedValue(user({ passwordHash }));
+      authUserService.update.mockRejectedValue(new Error('Database down'));
+
+      await expect(
+        service.authenticate('user@test.com', 'Str0ng!Pass')
+      ).resolves.toMatchObject({ id: 1 });
     });
   });
 

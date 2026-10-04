@@ -32,7 +32,7 @@
     "access": "public"
   },
   "engines": {
-    "node": ">= 24"
+    "node": ">= 24.7"
   },
   "scripts": {
     "create-weaver-app": "node ./dist/create-weaver-app.js"

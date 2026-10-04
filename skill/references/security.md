@@ -666,7 +666,7 @@ The security module automatically adds the following fields to the user model:
 | Field           | Type             | Default  | Description                                                  |
 |-----------------|------------------|----------|--------------------------------------------------------------|
 | `email`         | string (unique)  | -        | User's email address.                                        |
-| `passwordHash`  | string? (hidden) | -        | Scrypt password hash (never exposed in API).                 |
+| `passwordHash`  | string? (hidden) | -        | Argon2id password hash (never exposed in API).               |
 | `verifiedEmail` | boolean          | `false`  | Whether the user's email is verified.                        |
 | `twoFactorAuth` | enum             | `'None'` | 2FA setting. Values: `'None'`, `'Email'`.                    |
 | `enabled`       | boolean          | `true`   | Whether the account is active.                               |
@@ -685,11 +685,14 @@ The security module automatically adds the following fields to the user model:
 
 ### Hashing
 
-Passwords are hashed with the native `scrypt` function of Node.js and Bun (`node:crypto`), so hashing needs no native
-dependency. A hash has the `$scrypt$ln=15,r=8,p=1$<salt>$<key>` form, with a random 16-byte salt and a 64-byte key
-(both base64): `ln` is the base-2 logarithm of the cost `N`, `r` the block size, and `p` the parallelization. Every
-hash keeps its own parameters, so raising them for new hashes leaves the existing ones valid. Use `hashPassword` and
-`checkPassword` from `@appweaver/core` to hash and verify passwords in seeders and custom flows.
+Passwords are hashed with the native Argon2id function of Node.js (24.7+) and Bun (`node:crypto`), so hashing needs no
+native dependency. A hash has the standard PHC string form `$argon2id$v=19$m=19456,t=2,p=1$<salt>$<key>`, with a random
+16-byte salt and a 32-byte key (both unpadded base64): `m` is the memory in KiB, `t` the number of passes, and `p` the
+parallelism, the OWASP minimum. Other Argon2 libraries (e.g. `argon2` on npm, `argon2-cffi` in Python) read and verify
+these hashes. Every hash keeps its own parameters, so raising them for new hashes leaves the existing ones valid, and a
+successful login replaces a hash made with outdated parameters. Use `hashPassword` and `checkPassword` from
+`@appweaver/core` to hash and verify passwords in seeders and custom flows, and `needsRehash` to tell whether a hash
+uses outdated parameters.
 
 ### Complexity validation
 

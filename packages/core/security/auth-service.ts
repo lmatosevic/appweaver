@@ -18,6 +18,7 @@ import {
   hashPassword,
   hasPermissions,
   hasRoles,
+  needsRehash,
   resourceAuthService,
   validatePasswordComplexity
 } from './helper';
@@ -295,6 +296,10 @@ export class AuthService {
       );
     }
 
+    if (needsRehash(authUser.passwordHash)) {
+      await this.rehashPassword(authUser, password);
+    }
+
     logger.debug({ id: authUser.id }, 'User authenticated');
 
     return authUser;
@@ -560,6 +565,25 @@ export class AuthService {
         'OAuth2 password confirmation rejected'
       );
       throw new HttpError('Invalid user credentials', 401);
+    }
+  }
+
+  /**
+   * Replaces a password hash made with outdated parameters. A failure only logs a warning, so it never fails the login.
+   *
+   * @internal
+   */
+  private async rehashPassword(
+    authUser: AuthUser,
+    password: string
+  ): Promise<void> {
+    try {
+      await this.updateAuthUser(authUser.id, {
+        passwordHash: await hashPassword(password)
+      });
+      logger.debug({ id: authUser.id }, 'Password rehashed');
+    } catch (e) {
+      logger.warn({ id: authUser.id, err: e }, 'Password rehash failed');
     }
   }
 

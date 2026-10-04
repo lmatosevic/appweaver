@@ -1,4 +1,4 @@
-import { randomBytes, scryptSync } from 'node:crypto';
+import { argon2Sync, randomBytes } from 'node:crypto';
 import {
   AuthScope,
   AuthSource,
@@ -22,6 +22,7 @@ import {
   hasRole,
   hasRoles,
   isOAuth2Enabled,
+  needsRehash,
   resourceAuthModel,
   resourceAuthService,
   updatePasswordHash,
@@ -29,6 +30,24 @@ import {
   validateRedirectUrl
 } from '../../security/helper';
 import { resetContext } from '../fixtures/context-fixture';
+
+/** Hashes a password into a PHC string with the given Argon2id parameters. */
+const argon2Hash = (
+  password: string,
+  { m, t, p }: { m: number; t: number; p: number }
+) => {
+  const salt = randomBytes(16);
+  const key = argon2Sync('argon2id', {
+    message: password,
+    nonce: salt,
+    memory: m,
+    passes: t,
+    parallelism: p,
+    tagLength: 32
+  });
+  const encode = (bytes: Buffer) => bytes.toString('base64').replace(/=+$/, '');
+  return `$argon2id$v=19$m=${m},t=${t},p=${p}$${encode(salt)}$${encode(key)}`;
+};
 
 const authUser = (roles: any[] = []): AuthUser =>
   ({ id: 1, roles }) as AuthUser;
@@ -99,11 +118,11 @@ describe('security-helper', () => {
   });
 
   describe('hashPassword / checkPassword', () => {
-    test('hashes a password into a scrypt hash with its parameters', async () => {
+    test('hashes a password into an Argon2id PHC string with its parameters', async () => {
       const hash = await hashPassword('Str0ng!Pass');
 
       expect(hash).toMatch(
-        /^\$scrypt\$ln=15,r=8,p=1\$[A-Za-z0-9+/=]+\$[A-Za-z0-9+/=]+$/
+        /^\$argon2id\$v=19\$m=19456,t=2,p=1\$[A-Za-z0-9+/]{22}\$[A-Za-z0-9+/]{43}$/
       );
       expect(hash).not.toContain('Str0ng!Pass');
     });
@@ -131,37 +150,70 @@ describe('security-helper', () => {
 
     test('verifies a hash made with other parameters', async () => {
       // A hash keeps verifying after the parameters of new hashes are raised
-      const salt = randomBytes(16);
-      const key = scryptSync('Str0ng!Pass', salt, 32, {
-        N: 2 ** 10,
-        r: 4,
-        p: 2
-      });
-      const hash = `$scrypt$ln=10,r=4,p=2$${salt.toString('base64')}$${key.toString('base64')}`;
+      const hash = argon2Hash('Str0ng!Pass', { m: 1024, t: 3, p: 2 });
 
       await expect(checkPassword('Str0ng!Pass', hash)).resolves.toBe(true);
       await expect(checkPassword('wrong', hash)).resolves.toBe(false);
     });
 
     test('rejects a hash in another format', async () => {
+      const salt = randomBytes(16).toString('base64');
+      const key = randomBytes(64).toString('base64');
+
       await expect(
         checkPassword(
           'Str0ng!Pass',
           '$2b$10$oqzdcdLy7UMCSsqwyWv2muoEzKdcqb9g.ra.g/kRus25d8UYxPCQa'
         )
       ).resolves.toBe(false);
+      await expect(
+        checkPassword('Str0ng!Pass', `$scrypt$ln=15,r=8,p=1$${salt}$${key}`)
+      ).resolves.toBe(false);
       await expect(checkPassword('Str0ng!Pass', '')).resolves.toBe(false);
+    });
+
+    test('rejects a hash of another Argon2 version', async () => {
+      const hash = await hashPassword('Str0ng!Pass');
+
+      await expect(
+        checkPassword('Str0ng!Pass', hash.replace('v=19', 'v=16'))
+      ).resolves.toBe(false);
     });
 
     test('rejects a hash with unbounded parameters', async () => {
       const hash = await hashPassword('Str0ng!Pass');
 
       await expect(
-        checkPassword('Str0ng!Pass', hash.replace('ln=15', 'ln=30'))
+        checkPassword('Str0ng!Pass', hash.replace('m=19456', 'm=4194304'))
       ).resolves.toBe(false);
       await expect(
-        checkPassword('Str0ng!Pass', hash.replace('r=8', 'r=64'))
+        checkPassword('Str0ng!Pass', hash.replace('t=2', 't=100'))
       ).resolves.toBe(false);
+      await expect(
+        checkPassword('Str0ng!Pass', hash.replace('p=1', 'p=64'))
+      ).resolves.toBe(false);
+    });
+  });
+
+  describe('needsRehash', () => {
+    test('accepts a hash with the current parameters', async () => {
+      const hash = await hashPassword('Str0ng!Pass');
+
+      expect(needsRehash(hash)).toBe(false);
+    });
+
+    test('flags a hash with other parameters', () => {
+      expect(
+        needsRehash(argon2Hash('Str0ng!Pass', { m: 1024, t: 2, p: 1 }))
+      ).toBe(true);
+      expect(
+        needsRehash(argon2Hash('Str0ng!Pass', { m: 19456, t: 3, p: 1 }))
+      ).toBe(true);
+    });
+
+    test('flags a hash in another format', () => {
+      expect(needsRehash('$2b$10$oqzdcdLy7UMCSsqwyWv2muoEzKdcqb9g')).toBe(true);
+      expect(needsRehash('')).toBe(true);
     });
   });
 
