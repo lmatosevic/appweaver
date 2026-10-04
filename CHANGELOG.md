@@ -1,3 +1,9 @@
+## [1.8.1](https://github.com/lmatosevic/appweaver/compare/v1.8.0...v1.8.1) (2026-10-04)
+
+### Bug Fixes
+
+* correct skills and docs errors, database client injection helper, minor security fixes ([b645f21](https://github.com/lmatosevic/appweaver/commit/b645f2148191d12f3f8fd1d9262fb6b83b62a71f))
+
 ## [1.8.0](https://github.com/lmatosevic/appweaver/compare/v1.7.0...v1.8.0) (2026-10-04)
 
 ### Features
