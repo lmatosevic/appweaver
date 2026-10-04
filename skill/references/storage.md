@@ -209,7 +209,7 @@ models.
 
 ```ts
 import { inject } from '@appweaver/core';
-import { FileService } from '@appweaver/core/storage';
+import { FileService } from '@appweaver/core';
 
 const fileService = inject(FileService);
 ```
@@ -221,7 +221,7 @@ When saving a file via `FileService`, you must provide the multipart data, the r
 
 ```ts
 import { inject, injectService } from '@appweaver/core';
-import { FileService } from '@appweaver/core/storage';
+import { FileService } from '@appweaver/core';
 
 export class PostService {
   private readonly _fileService = inject(FileService);
@@ -251,7 +251,7 @@ checksum, `File` record), except the content comes from a buffer and the target 
 
 ```ts
 import { inject, injectService } from '@appweaver/core';
-import { FileService } from '@appweaver/core/storage';
+import { FileService } from '@appweaver/core';
 
 const users = injectService('User');
 const user = await users.find(userId);

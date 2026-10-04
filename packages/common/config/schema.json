@@ -279,8 +279,16 @@
           "type": "object",
           "properties": {
             "origin": {
-              "type": "string",
-              "default": "*"
+              "oneOf": [
+                { "type": "string" },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "default": ["*"]
             },
             "methods": {
               "oneOf": [
@@ -421,13 +429,16 @@
               "default": ["*"]
             },
             "store": {
-              "provider": {
-                "type": "string",
-                "default": "@appweaver/core/security/store/database-security-store"
-              },
-              "keepDatabaseTable": {
-                "type": "boolean",
-                "default": false
+              "type": "object",
+              "properties": {
+                "provider": {
+                  "type": "string",
+                  "default": "@appweaver/core/security/store/database-security-store"
+                },
+                "keepDatabaseTable": {
+                  "type": "boolean",
+                  "default": false
+                }
               }
             },
             "password": {

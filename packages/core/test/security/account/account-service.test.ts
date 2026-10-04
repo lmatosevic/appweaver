@@ -256,34 +256,37 @@ describe('account-service', () => {
       );
     });
 
-    test('rejects an unknown or disabled user', async () => {
-      authService.findByUsername.mockResolvedValue(null);
-      await expect(
-        service.sendResetPassword('nobody@test.com', 'https://app.test/reset')
-      ).rejects.toMatchObject({ statusCode: 400 });
+    test.each([
+      ['an unknown user', null],
+      ['a disabled user', authUser({ enabled: false, passwordHash: 'hash' })],
+      ['a user without a password', authUser()]
+    ])(
+      'answers %s like any other user without sending an email',
+      async (_, user) => {
+        authService.findByUsername.mockResolvedValue(user);
 
-      authService.findByUsername.mockResolvedValue(
-        authUser({ enabled: false, passwordHash: 'hash' })
-      );
-      await expect(
-        service.sendResetPassword('user@test.com', 'https://app.test/reset')
-      ).rejects.toMatchObject({ statusCode: 400 });
-      expect(sendEmail).not.toHaveBeenCalled();
-    });
+        await expect(
+          service.sendResetPassword('user@test.com', 'https://app.test/reset')
+        ).resolves.toBe('Password reset email sent');
 
-    test('rejects a user without a password', async () => {
-      authService.findByUsername.mockResolvedValue(authUser());
-
-      await expect(
-        service.sendResetPassword('user@test.com', 'https://app.test/reset')
-      ).rejects.toMatchObject({ statusCode: 403 });
-    });
+        expect(securityStore.generateOneTimeToken).not.toHaveBeenCalled();
+        expect(sendEmail).not.toHaveBeenCalled();
+      }
+    );
 
     test('rejects a redirect to a host that is not allowed', async () => {
       await expect(
         service.sendResetPassword('user@test.com', 'https://evil.test/reset')
       ).rejects.toMatchObject({ statusCode: 400 });
       expect(securityStore.generateOneTimeToken).not.toHaveBeenCalled();
+    });
+
+    test('rejects a redirect that is not allowed for an unknown user too', async () => {
+      authService.findByUsername.mockResolvedValue(null);
+
+      await expect(
+        service.sendResetPassword('nobody@test.com', 'https://evil.test/reset')
+      ).rejects.toMatchObject({ statusCode: 400 });
     });
 
     test('is not supported without the mailer', async () => {

@@ -212,6 +212,21 @@ describe('create-weaver-app', () => {
       );
     });
 
+    test('maps every TypeScript path alias in both Jest configs', () => {
+      const aliases = Object.keys(
+        readJson('my-app', 'tsconfig.json').compilerOptions.paths
+      ).map((alias) => `^${alias.replace('*', '(.*)')}$`);
+
+      for (const jestConfig of [
+        readJson('my-app', 'jest.config.json'),
+        readJson('my-app', 'test', 'e2e', 'jest.e2e-config.json')
+      ]) {
+        expect(Object.keys(jestConfig.moduleNameMapper).sort()).toEqual(
+          aliases.sort()
+        );
+      }
+    });
+
     test('generates the project sources and the dotfiles', () => {
       expect(exists('my-app', 'src', 'main.ts')).toBe(true);
       expect(exists('my-app', 'src', 'resources', 'user', 'model.ts')).toBe(

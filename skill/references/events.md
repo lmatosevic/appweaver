@@ -1,7 +1,7 @@
 # Events
 
 The events module provides a resource-scoped publish/subscribe system built on top of Node.js `EventEmitter`. It is used
-internally by the framework to broadcast resource lifecycle changes (`create`, `update`, `delete`, `get`, `list`) and
+internally by the framework to broadcast resource lifecycle changes (`create`, `update`, `delete`, `find`, `query`) and
 can be used directly to react to those events anywhere in the application.
 
 ## Injecting Events
@@ -19,11 +19,11 @@ const events = inject(Events);
 
 Registers a listener for a specific resource and action. Returns a listener ID that can be used to unsubscribe.
 
-| Parameter      | Type               | Description                                           |
-|----------------|--------------------|-------------------------------------------------------|
-| `resourceName` | `string`           | The name of the resource model (e.g. `'Product'`)     |
-| `event`        | `ActionType`       | `'create'`, `'update'`, `'delete'`, `'get'`, `'list'` |
-| `listener`     | `EventListener<T>` | Callback receiving `EventData<T>`                     |
+| Parameter      | Type               | Description                                             |
+|----------------|--------------------|---------------------------------------------------------|
+| `resourceName` | `string`           | The name of the resource model (e.g. `'Product'`)       |
+| `event`        | `ActionType`       | `'create'`, `'update'`, `'delete'`, `'find'`, `'query'` |
+| `listener`     | `EventListener<T>` | Callback receiving `EventData<T>`                       |
 
 `EventData<T>` shape:
 
@@ -85,7 +85,7 @@ events.removeResourceEvent(listenerId);
 
 | Key                    | Type     | Default                                | Description                           |
 |------------------------|----------|----------------------------------------|---------------------------------------|
-| `EVENTS_MAX_LISTENERS` | `int`    | `10`                                   | Max listeners per event (Node.js cap) |
+| `EVENTS_MAX_LISTENERS` | `int`    | `20`                                   | Max listeners per event (Node.js cap) |
 | `EVENTS_PROVIDER`      | `string` | `'@appweaver/core/events/node-events'` | Path to the Events implementation     |
 
 ## Real-world example

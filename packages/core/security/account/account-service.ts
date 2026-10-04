@@ -161,34 +161,34 @@ export class AccountService {
   }
 
   /**
-   * Sends a password reset email to the specified email address with a link for resetting the password.
+   * Sends a password reset email to the specified email address with a link for resetting the password. The same
+   * confirmation is returned whether an email was sent or not, so the response does not reveal which addresses
+   * belong to an enabled user with a password.
    *
    * @param {string} email - The email address of the user requesting a password reset.
    * @param {string} redirectToUrl - The URL to be appended with a token for the password reset link.
-   * @return {Promise<string>} A promise that resolves to a confirmation message upon successful email dispatch.
-   * @throws {HttpError} If the email service is not configured, the user does not exist or is disabled, the user has no
-   * password set, or the redirect URL is invalid.
+   * @return {Promise<string>} A promise that resolves to a confirmation message, also when no user with a password
+   * matches the email address and nothing is sent.
+   * @throws {HttpError} If the email service is not configured or the redirect URL is invalid.
    */
   public async sendResetPassword(
     email: string,
     redirectToUrl: string
   ): Promise<string> {
+    const sentMessage = 'Password reset email sent';
+
     if (!this._emailService) {
       throw new HttpError('Password reset is not supported', 501);
-    }
-
-    const authUser = await this._authService.findByUsername(email);
-    if (!authUser || !authUser.enabled) {
-      throw new HttpError('Auth user does not exist or is disabled', 400);
-    }
-
-    if (!authUser.passwordHash) {
-      throw new HttpError('Auth user does not have already set password', 403);
     }
 
     const result = validateRedirectUrl(redirectToUrl);
     if (!result.valid) {
       throw new HttpError(result.message, 400);
+    }
+
+    const authUser = await this._authService.findByUsername(email);
+    if (!authUser || !authUser.enabled || !authUser.passwordHash) {
+      return sentMessage;
     }
 
     const token = await this._securityStore.generateOneTimeToken<AuthOTTData>(
@@ -206,7 +206,7 @@ export class AccountService {
       text: `Please change your password on following link: ${changePasswordLink}`
     });
 
-    return 'Password reset email sent';
+    return sentMessage;
   }
 
   /**

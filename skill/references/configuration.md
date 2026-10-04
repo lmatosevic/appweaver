@@ -156,7 +156,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 | Property               | Type     | Default | Description                                   |
 |------------------------|----------|---------|-----------------------------------------------|
-| `CORS_ORIGIN`          | string   | `'*'`   | Allowed origin(s) for CORS requests.          |
+| `CORS_ORIGIN`          | string[] | `['*']` | Allowed origins for CORS requests.            |
 | `CORS_METHODS`         | string[] | `['*']` | Allowed HTTP methods.                         |
 | `CORS_ALLOWED_HEADERS` | string[] | `['*']` | Allowed request headers.                      |
 | `CORS_EXPOSED_HEADERS` | string[] | `['*']` | Headers exposed to the browser.               |

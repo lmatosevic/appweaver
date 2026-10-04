@@ -73,7 +73,8 @@ export function createServer(): Server {
 
   // Register CORS rules
   server.register(fastifyCors, {
-    origin: config.CORS_ORIGIN,
+    // @fastify/cors matches a '*' inside a list literally, so it goes alone
+    origin: config.CORS_ORIGIN.includes('*') ? '*' : config.CORS_ORIGIN,
     methods: config.CORS_METHODS,
     allowedHeaders: config.CORS_ALLOWED_HEADERS,
     exposedHeaders: config.CORS_EXPOSED_HEADERS,

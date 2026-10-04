@@ -84,7 +84,7 @@ const configSchema = Type.Object({
   HEALTH_CHECK_PICK_INSTANCES: Type.Optional(Type.Array(Type.String())),
   HEALTH_CHECK_OMIT_INSTANCES: Type.Optional(Type.Array(Type.String())),
 
-  CORS_ORIGIN: Type.String({ default: '*' }),
+  CORS_ORIGIN: Type.Array(Type.String(), { default: ['*'] }),
   CORS_METHODS: Type.Array(Type.String(), { default: ['*'] }),
   CORS_ALLOWED_HEADERS: Type.Array(Type.String(), { default: ['*'] }),
   CORS_EXPOSED_HEADERS: Type.Array(Type.String(), { default: ['*'] }),

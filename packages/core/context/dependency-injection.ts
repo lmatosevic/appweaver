@@ -1,6 +1,7 @@
 import {
   ConditionalOptional,
   Ctor,
+  Database,
   FunctionType,
   IResourceService,
   isArray,
@@ -304,6 +305,27 @@ export function injectPolicy<R extends boolean = true>(
   }
 
   return policy as ResourcePolicyConfig;
+}
+
+/**
+ * Returns the client of the application database, typed by the given client type (i.e. the generated `PrismaClient`).
+ * The client is resolved from the application context on every access, so it can be created before the application
+ * is, i.e. at the top level of a module, and always reaches the database of the current application.
+ *
+ * @return T - The database client, whose members are read from the client of the `Database` definition.
+ * @throws {Error} On a member access when the `Database` is not defined in the application context.
+ */
+export function injectDatabaseClient<T = unknown>(): T {
+  return new Proxy(
+    {},
+    {
+      get: (_target, property) => {
+        const client = inject(Database).client<object>();
+        const value = Reflect.get(client, property);
+        return typeof value === 'function' ? value.bind(client) : value;
+      }
+    }
+  ) as T;
 }
 
 /**

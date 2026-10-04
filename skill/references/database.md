@@ -6,14 +6,29 @@ startup and disconnects on shutdown automatically.
 
 ## Injecting the client
 
+A scaffolded project exports the typed client from `database/client.ts`, imported as `@db/client`:
+
 ```ts
-import { inject } from '@appweaver/core';
-import { Database } from '@appweaver/common';
+import { injectDatabaseClient } from '@appweaver/core';
 import { PrismaClient } from '@db/client/client';
 
-export const db = inject(Database).client<PrismaClient>();
+export const db = injectDatabaseClient<PrismaClient>();
 
 export default db;
+```
+
+#### `injectDatabaseClient<T>()`
+
+Returns the client of the `Database` definition, typed by `T` (the generated `PrismaClient`). The client is resolved
+from the application context on every member access rather than when `injectDatabaseClient` is called, so it can be
+created at the top level of a module that is imported before the application is created, i.e. by a test file, and it
+always reaches the database of the current application. Accessing a member before the application is created throws,
+as `inject(Database)` does.
+
+```ts
+import db from '@db/client';
+
+const users = await db.user.findMany({ where: { enabled: true } });
 ```
 
 #### `db.client<T>()`

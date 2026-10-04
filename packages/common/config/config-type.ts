@@ -115,8 +115,8 @@ export type Config = {
   /** List of health check instance names to exclude from response. */
   HEALTH_CHECK_OMIT_INSTANCES?: string[];
 
-  /** Allowed origin(s) for CORS requests. Default: `'*'`. */
-  CORS_ORIGIN: string;
+  /** Allowed origins for CORS requests, where `'*'` allows any origin. Default: `['*']`. */
+  CORS_ORIGIN: string[];
   /** Allowed HTTP methods. Default: `['*']`. */
   CORS_METHODS: string[];
   /** Allowed request headers. Default: `['*']`. */

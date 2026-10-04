@@ -239,6 +239,10 @@ import { Database } from '@appweaver/common';
 const db = inject(Database); // resolves the class loaded from config.DATABASE_PROVIDER
 ```
 
+`inject` resolves the definition when it is called and throws before the application has defined it. To hold the
+database client in a module-level constant, use `injectDatabaseClient<PrismaClient>()` instead, which resolves the
+client on every access.
+
 ## Lifecycle hooks
 
 A class registered in the application context can run code when the application starts and stops by implementing the

@@ -7,6 +7,10 @@
     "^.+\\.(t|j)s$": ["@swc/jest"]
   },
   "transformIgnorePatterns": ["/node_modules/(?!(content-disposition|cookie|@fastify/cookie)/)"],
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^@db/(.*)$": "<rootDir>/database/$1"
+  },
   "reporters": [
     "default",
     [

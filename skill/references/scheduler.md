@@ -134,6 +134,40 @@ await scheduler.removeJob(jobId);
 
 ---
 
+## Running on multiple instances
+
+Every application instance runs its own cron jobs, so a job registered at startup runs once per instance. When it must
+run once per tick (sending a digest, charging a subscription), guard it with a lock of the `Memory` provider configured
+for Redis (`MEMORY_PROVIDER=@appweaver/core/memory/redis`). The default in-memory provider locks within one process
+only, so it guards nothing across instances.
+
+```ts
+import { inject } from '@appweaver/core';
+import { Memory, Scheduler } from '@appweaver/common';
+
+inject(Scheduler).addJob({
+  cronTime: '0 8 * * *',
+  onTick: async () => {
+    try {
+      // One attempt, the instance that loses the race skips this tick
+      await inject(Memory).lock('job:daily-digest', {
+        expireMs: 10 * 60_000,
+        retryCount: 1
+      });
+    } catch {
+      return;
+    }
+    await sendDailyDigest();
+  }
+});
+```
+
+The lock is left to expire instead of being released, so an instance whose clock runs a little late cannot take it
+again once the job has finished. Keep `expireMs` longer than the job and the clock drift between the instances, and
+shorter than the interval between the ticks.
+
+---
+
 ## Real-world example
 
 Register all jobs at startup in a dedicated module:

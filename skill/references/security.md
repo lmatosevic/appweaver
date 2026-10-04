@@ -62,11 +62,11 @@ if `SECURITY_JWT_SECRET` is set.
 
 ### Token types and scopes
 
-| Scope     | Purpose               | Access                                                                 |
-|-----------|-----------------------|------------------------------------------------------------------------|
-| `Auth`    | Full API access       | All routes except `/refresh`, `/send-2fa-code`, `/verify-2fa-code`     |
-| `Refresh` | Token renewal only    | Only `POST /auth/refresh`                                              |
-| `TwoFA`   | 2FA verification only | Only `POST /account/send-2fa-code` and `POST /account/verify-2fa-code` |
+| Scope     | Purpose               | Access                                                                           |
+|-----------|-----------------------|----------------------------------------------------------------------------------|
+| `Auth`    | Full API access       | All routes except `/refresh`, `/send-2fa-code`, `/verify-2fa-code`               |
+| `Refresh` | Token renewal only    | Only `POST /auth/refresh`                                                        |
+| `TwoFA`   | 2FA verification only | Only `POST /auth/account/send-2fa-code` and `POST /auth/account/verify-2fa-code` |
 
 ### JWT payload
 
@@ -237,7 +237,7 @@ OpenID Connect provider. All of them are built from the same `createOAuth2Plugin
 
 Every provider is disabled by default and enabled with `SECURITY_OAUTH2_<NAME>_ENABLED` plus `_CLIENT_ID` and
 `_CLIENT_SECRET` (JSON: `security.oauth2.<name>`). Enabling one registers `GET /auth/login/<name>` and
-`/auth/login/<name>/callback`. Register the callback URL `{APP_HOSTNAME}{SERVER_API_PREFIX}/auth/login/<name>/callback`
+`/auth/login/<name>/callback`. Register the callback URL `{APP_HOSTNAME}{SECURITY_ROUTE_PREFIX}/login/<name>/callback`
 with the provider.
 
 | `<name>`    | Scopes                                    | User info source                            |
@@ -363,14 +363,14 @@ registration, use [`FileService.saveBuffer()`](./storage.md#saving-an-in-memory-
 
 ```ts
 // 1. Redirect user to OAuth2 login
-window.location.href = 'https://api.myapp.com/api/auth/login/google?redirectToUrl=https://myapp.com/auth/callback';
+window.location.href = 'https://api.myapp.com/auth/login/google?redirectToUrl=https://myapp.com/auth/callback';
 
 // 2. On the callback page, extract the token from URL params
 const params = new URLSearchParams(window.location.search);
 const token = params.get('token');
 
 // 3. Exchange the OTT for JWT tokens
-const response = await fetch('https://api.myapp.com/api/auth/exchange-token', {
+const response = await fetch('https://api.myapp.com/auth/exchange-token', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ token })
@@ -508,11 +508,11 @@ Users set their 2FA preference via the `twoFactorAuth` field on their profile:
    -> If 2FA required: returns JWT with TwoFA scope (restricted access)
    -> If 2FA not required: returns JWT with Auth scope (full access)
 
-2. POST /account/send-2fa-code
+2. POST /auth/account/send-2fa-code
    -> Generates 6-digit code, emails it to user
    -> Returns { challengeId }
 
-3. POST /account/verify-2fa-code { challengeId, code }
+3. POST /auth/account/verify-2fa-code { challengeId, code }
    -> Validates code against stored hash
    -> Returns { token } (one-time authentication token)
 
@@ -522,10 +522,10 @@ Users set their 2FA preference via the `twoFactorAuth` field on their profile:
 
 ### 2FA routes
 
-| Method | Path                       | Auth              | Rate limit | Description                                      |
-|--------|----------------------------|-------------------|------------|--------------------------------------------------|
-| `POST` | `/account/send-2fa-code`   | JWT (TwoFA scope) | 10/15min   | Send 2FA code to user's email.                   |
-| `POST` | `/account/verify-2fa-code` | JWT (TwoFA scope) | 12/window  | Verify 2FA code, returns OTT for token exchange. |
+| Method | Path                            | Auth              | Rate limit | Description                                      |
+|--------|---------------------------------|-------------------|------------|--------------------------------------------------|
+| `POST` | `/auth/account/send-2fa-code`   | JWT (TwoFA scope) | 10/15min   | Send 2FA code to user's email.                   |
+| `POST` | `/auth/account/verify-2fa-code` | JWT (TwoFA scope) | 12/window  | Verify 2FA code, returns OTT for token exchange. |
 
 ---
 
@@ -582,8 +582,8 @@ createRoutes({
 
 ### Routes with reCAPTCHA by default
 
-- `POST /account/send-reset-password` (action: `send-reset-password`)
-- `POST /account/reset-password` (action: `reset-password`)
+- `POST /auth/account/send-reset-password` (action: `send-reset-password`)
+- `POST /auth/account/reset-password` (action: `reset-password`)
 
 ---
 
@@ -591,11 +591,11 @@ createRoutes({
 
 ### Email verification
 
-| Method | Path                             | Auth   | Description                                                                                                        |
-|--------|----------------------------------|--------|--------------------------------------------------------------------------------------------------------------------|
-| `POST` | `/account/send-verify-email`     | JWT    | Send verification email. Takes `redirectUrl` and optional `type` (`'auto'` or `'manual'`). Rate limited: 10/15min. |
-| `POST` | `/account/verify-email`          | Public | Verify email with token from body. Rate limited: 12/window.                                                        |
-| `GET`  | `/account/verify-email-redirect` | Public | Auto-verify and redirect. Token from query param. Redirects to `{redirectUrl}?status=ok\|error&message=...`.       |
+| Method | Path                                  | Auth   | Description                                                                                                                      |
+|--------|---------------------------------------|--------|----------------------------------------------------------------------------------------------------------------------------------|
+| `POST` | `/auth/account/send-verify-email`     | JWT    | Send verification email. Takes `redirectToUrl` and optional `verificationType` (`'auto'` or `'manual'`). Rate limited: 10/15min. |
+| `POST` | `/auth/account/verify-email`          | Public | Verify email with token from body. Rate limited: 12/window.                                                                      |
+| `GET`  | `/auth/account/verify-email-redirect` | Public | Auto-verify and redirect. Token from query param. Redirects to `{redirectToUrl}?status=ok\|error&message=...`.                   |
 
 **Verification types:**
 
@@ -604,17 +604,19 @@ createRoutes({
 
 ### Password reset
 
-| Method | Path                           | Auth   | reCAPTCHA | Description                                                                         |
-|--------|--------------------------------|--------|-----------|-------------------------------------------------------------------------------------|
-| `POST` | `/account/send-reset-password` | Public | Yes       | Send password reset email. Takes `email` and `redirectUrl`. Rate limited: 10/15min. |
-| `POST` | `/account/reset-password`      | Public | Yes       | Reset password with token and new password. Rate limited: 12/window.                |
+| Method | Path                                | Auth   | reCAPTCHA | Description                                                                           |
+|--------|-------------------------------------|--------|-----------|---------------------------------------------------------------------------------------|
+| `POST` | `/auth/account/send-reset-password` | Public | Yes       | Send password reset email. Takes `email` and `redirectToUrl`. Rate limited: 10/15min. |
+| `POST` | `/auth/account/reset-password`      | Public | Yes       | Reset password with token and new password. Rate limited: 12/window.                  |
 
 **Reset flow:**
 
-1. User requests reset: `POST /account/send-reset-password { email, redirectUrl }`
-2. Server generates OTT, emails a link: `{redirectUrl}?token={ott}`
+1. User requests reset: `POST /auth/account/send-reset-password { email, redirectToUrl }`
+2. Server generates OTT, emails a link: `{redirectToUrl}?token={ott}`. The response is the same `200` when no enabled
+   user with a password has that email, and nothing is sent, so the route does not reveal which addresses have an
+   account. Only a redirect URL to a host that is not allowed is rejected (`400`).
 3. User clicks a link, enters a new password
-4. Client sends: `POST /account/reset-password { token, password }`
+4. Client sends: `POST /auth/account/reset-password { token, newPassword }`
 5. Server validates password complexity, updates hash, sets `logoutAt` (invalidates all sessions)
 
 ---
@@ -709,15 +711,15 @@ tokens across all devices. The `change-password` endpoint returns new tokens so 
 
 ## Rate limiting on security routes
 
-| Endpoint                            | Limit             |
-|-------------------------------------|-------------------|
-| `POST /auth/login`                  | 12 per window     |
-| `POST /auth/refresh`                | 12 per window     |
-| `POST /auth/change-password`        | 12 per window     |
-| `POST /auth/exchange-token`         | 12 per window     |
-| `POST /account/send-verify-email`   | 10 per 15 minutes |
-| `POST /account/verify-email`        | 12 per window     |
-| `POST /account/send-reset-password` | 10 per 15 minutes |
-| `POST /account/reset-password`      | 12 per window     |
-| `POST /account/send-2fa-code`       | 10 per 15 minutes |
-| `POST /account/verify-2fa-code`     | 12 per window     |
+| Endpoint                                 | Limit             |
+|------------------------------------------|-------------------|
+| `POST /auth/login`                       | 12 per window     |
+| `POST /auth/refresh`                     | 12 per window     |
+| `POST /auth/change-password`             | 12 per window     |
+| `POST /auth/exchange-token`              | 12 per window     |
+| `POST /auth/account/send-verify-email`   | 10 per 15 minutes |
+| `POST /auth/account/verify-email`        | 12 per window     |
+| `POST /auth/account/send-reset-password` | 10 per 15 minutes |
+| `POST /auth/account/reset-password`      | 12 per window     |
+| `POST /auth/account/send-2fa-code`       | 10 per 15 minutes |
+| `POST /auth/account/verify-2fa-code`     | 12 per window     |

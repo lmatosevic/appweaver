@@ -1,4 +1,5 @@
 import {
+  Database,
   logger,
   Memory,
   RESOURCE_AUTH,
@@ -14,6 +15,7 @@ import {
   inject,
   injectAll,
   injectAllWhere,
+  injectDatabaseClient,
   injectModel,
   injectPolicy,
   injectRoutes,
@@ -392,6 +394,55 @@ describe('dependency-injection', () => {
 
     test('returns undefined for a missing optional policy', () => {
       expect(injectPolicy('Post', false)).toBeUndefined();
+    });
+  });
+
+  describe('injectDatabaseClient', () => {
+    const database = (client: object) => ({ client: () => client }) as any;
+
+    test('is created before the database is defined', () => {
+      expect(() => injectDatabaseClient()).not.toThrow();
+    });
+
+    test('reads the members of the defined database client', () => {
+      const db = injectDatabaseClient<{ user: object }>();
+      const user = { findMany: jest.fn() };
+      define(database({ user }), Database);
+
+      expect(db.user).toBe(user);
+    });
+
+    test('resolves the database on every access', () => {
+      const db = injectDatabaseClient<{ name: string }>();
+
+      define(database({ name: 'first' }), Database);
+      expect(db.name).toBe('first');
+
+      resetContext();
+      define(database({ name: 'second' }), Database);
+      expect(db.name).toBe('second');
+    });
+
+    test('binds the client methods to the client', () => {
+      const client = {
+        url: 'file:test.db',
+        $connect() {
+          return this.url;
+        }
+      };
+      define(database(client), Database);
+
+      const { $connect } = injectDatabaseClient<typeof client>();
+
+      expect($connect()).toBe('file:test.db');
+    });
+
+    test('throws on access when the database is not defined', () => {
+      const db = injectDatabaseClient<{ user: object }>();
+
+      expect(() => db.user).toThrow(
+        `Definition 'Database' is not defined in the application context`
+      );
     });
   });
 
