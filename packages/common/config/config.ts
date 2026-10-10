@@ -32,6 +32,7 @@ const configSchema = Type.Object({
   }),
   APP_DESCRIPTION: Type.Optional(Type.String()),
   APP_HOSTNAME: Type.String({ default: '' }),
+  APP_TYPE_BASE: Type.String({ default: 'urn:appweaver' }),
   APP_RUNTIME: Type.Enum(Runtime, {
     default:
       typeof globalThis['Bun'] !== 'undefined' ? Runtime.Bun : Runtime.Node
@@ -65,6 +66,7 @@ const configSchema = Type.Object({
   SERVER_STATIC_ALLOWED_HOST: Type.Optional(Type.String()),
   SERVER_TRUST_PROXY: Type.Boolean({ default: true }),
   SERVER_REQUEST_LOGGING_ENABLED: Type.Boolean({ default: false }),
+  SERVER_ERROR_DATABASE_MESSAGE_ENABLED: Type.Boolean({ default: false }),
 
   RATE_LIMIT_ENABLED: Type.Boolean({ default: true }),
   RATE_LIMIT_MAX: Type.Integer({ default: 1000 }),

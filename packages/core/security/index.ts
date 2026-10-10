@@ -1,3 +1,7 @@
+export * from './account/account-error';
+export * from './auth-error';
+export * from './oauth2/oauth2-error';
+export * from './recaptcha/recaptcha-error';
 export * from './oauth2/create-oauth2-plugin';
 export * from './oauth2/oauth2-service';
 export * from './oauth2/oauth2-util';

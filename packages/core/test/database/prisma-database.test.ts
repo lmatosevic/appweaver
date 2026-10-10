@@ -16,7 +16,8 @@ jest.mock('../../database/create-client', () => ({
 }));
 
 import * as common from '@appweaver/common';
-import { HttpError } from '../../errors';
+import { ApplicationError, ErrorCode } from '@appweaver/common';
+import { DatabaseError } from '../../database/database-error';
 import { PrismaDatabase } from '../../database/prisma-database';
 import {
   afterCommit,
@@ -184,7 +185,7 @@ describe('prisma-database', () => {
     });
 
     test('rethrows the error unchanged and runs the rollback callbacks', async () => {
-      const error = new HttpError('Out of stock', 409);
+      const error = new ApplicationError('OUT_OF_STOCK', 'Out of stock');
       const onCommit = jest.fn();
       const onRollback = jest.fn();
 
@@ -232,7 +233,12 @@ describe('prisma-database', () => {
         const result = await fn(tx);
         attempts++;
         if (attempts === 1) {
-          throw new HttpError('Update error', 500, { code: 'P2034' });
+          throw new DatabaseError(
+            ErrorCode.DatabaseWriteConflict,
+            'Update error',
+            {},
+            { cause: { code: 'P2034' } }
+          );
         }
         return result;
       });

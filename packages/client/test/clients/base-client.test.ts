@@ -251,21 +251,31 @@ describe('base-client', () => {
       const client = new TestClient({
         baseUrl: 'https://api.test',
         fetch: async () =>
-          jsonResponse({ message: 'Not found', errorCode: 404 }, 404)
+          jsonResponse(
+            {
+              type: 'urn:appweaver:error:resource-not-found',
+              title: 'Resource not found',
+              status: 404,
+              code: 'RESOURCE_NOT_FOUND',
+              detail: 'Post not found'
+            },
+            404
+          )
       });
 
       await expect(
         client.sendRequestPromise('get', '/api/posts/1', {})
       ).rejects.toMatchObject({
-        message: 'Not found',
-        errorCode: 404
+        message: 'Post not found',
+        status: 404,
+        code: 'RESOURCE_NOT_FOUND'
       });
       await expect(
         client.sendRequestPromise('get', '/api/posts/1', {})
       ).rejects.toBeInstanceOf(ClientError);
     });
 
-    test('falls back to the response status when the body has no error code', async () => {
+    test('falls back to the response status when the body has no problem details', async () => {
       const client = new TestClient({
         baseUrl: 'https://api.test',
         fetch: async () =>
@@ -280,7 +290,8 @@ describe('base-client', () => {
         client.sendRequestPromise('get', '/api/posts/1', {})
       ).rejects.toMatchObject({
         message: 'Internal Server Error',
-        errorCode: 500
+        status: 500,
+        code: 'REQUEST_FAILED'
       });
     });
   });
@@ -365,6 +376,60 @@ describe('base-client', () => {
       expect(lastRequest().method).toBe('POST');
       expect(lastRequest().url).toBe('https://api.test/api/posts/query');
       expect(await lastRequest().json()).toEqual({ size: 5 });
+    });
+  });
+
+  describe('isRouteError', () => {
+    const notFound = {
+      type: 'urn:appweaver:error:resource-not-found',
+      title: 'Resource not found',
+      status: 404,
+      code: 'RESOURCE_NOT_FOUND',
+      detail: 'Post not found'
+    };
+
+    /** Returns the error a failing request of the client throws. */
+    const caught = async (client: TestClient): Promise<unknown> =>
+      client.post.find(1).catch((e) => e);
+
+    test('recognizes the error of a request of the route', async () => {
+      const client = new TestClient({
+        baseUrl: 'https://api.test',
+        fetch: async () => jsonResponse(notFound, 404)
+      });
+
+      const error = await caught(client);
+
+      expect(error).toMatchObject({
+        route: { method: 'get', path: '/api/posts/{id}' }
+      });
+      expect(
+        client.isRouteError(error, 'get', '/api/posts/{id}' as never)
+      ).toBe(true);
+    });
+
+    test('rejects the error of another route', async () => {
+      const client = new TestClient({
+        baseUrl: 'https://api.test',
+        fetch: async () => jsonResponse(notFound, 404)
+      });
+
+      const error = await caught(client);
+
+      expect(
+        client.isRouteError(error, 'delete', '/api/posts/{id}' as never)
+      ).toBe(false);
+      expect(client.isRouteError(error, 'get', '/api/tags/{id}' as never)).toBe(
+        false
+      );
+    });
+
+    test('rejects an error that is not a ClientError', () => {
+      const client = new TestClient({ baseUrl: 'https://api.test' });
+
+      expect(
+        client.isRouteError(new Error('x'), 'get', '/api/posts/{id}' as never)
+      ).toBe(false);
     });
   });
 });

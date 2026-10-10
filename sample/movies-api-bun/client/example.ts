@@ -5,8 +5,7 @@
  * Regenerate the client after changing a model or a route:
  *   bun run openapi && bun run client:generate
  */
-import { ClientError } from '@appweaver/client';
-import { createClient } from './generated/movies-client';
+import { createClient, ErrorCode, isApiError } from './generated/movies-client';
 
 const baseUrl = process.env.MOVIES_API_URL ?? 'http://localhost:5005';
 
@@ -69,9 +68,9 @@ async function main(): Promise<void> {
     await client.watchlistEntry.create({ movie: arrival.id });
     console.log(`Added ${arrival.title} to the watchlist`);
   } catch (e) {
-    // The API answers with a typed error, i.e. 409 for a movie already listed
-    if (e instanceof ClientError) {
-      console.log(`Not added (${e.errorCode}): ${e.message}`);
+    // The API answers with a typed error code, i.e. for a movie already listed
+    if (isApiError(e) && e.is(ErrorCode.AlreadyOnWatchlist)) {
+      console.log(`Already on the watchlist: ${e.message}`);
     } else {
       throw e;
     }

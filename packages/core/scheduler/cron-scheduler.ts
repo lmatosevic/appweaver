@@ -39,7 +39,7 @@ export class CronScheduler extends Scheduler<CronJob, CronJobParams> {
       start: config.SCHEDULER_AUTO_START_JOB,
       waitForCompletion: true,
       errorHandler: (e) => {
-        logger.error(e, `Job handler error`);
+        logger.error({ err: e, jobId }, 'Job handler error');
       },
       ...jobParams
     });

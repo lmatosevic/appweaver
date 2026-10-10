@@ -72,12 +72,11 @@ export abstract class BaseModule {
     });
   }
 
-  protected handleError(error: any, response: Response): void {
-    throw new ClientError(
-      error.message ?? response.statusText ?? 'Unknown error',
-      error.errorCode ?? response.status,
-      response,
-      error
-    );
+  protected handleError(
+    error: any,
+    response: Response,
+    route?: { method: HttpMethod; path: string }
+  ): void {
+    throw ClientError.fromResponse(error, response, route);
   }
 }

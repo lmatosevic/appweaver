@@ -3,11 +3,13 @@ import { Redis as RedisClient, RedisOptions } from 'ioredis';
 import { parse, stringify } from 'flatted';
 import {
   config,
+  ErrorCode,
   HealthCheckResult,
   logger,
   Redis as CommonRedis,
   uuid
 } from '@appweaver/common';
+import { LockError } from './lock-error';
 
 export class Redis extends CommonRedis<RedisOptions, RedisClient> {
   /** @internal */
@@ -237,7 +239,10 @@ class RedisLock {
       }
     } while (retries < this.retryCount);
 
-    throw new Error('Unable to acquire lock on requested resource');
+    throw new LockError(
+      ErrorCode.LockNotAcquired,
+      'Unable to acquire lock on requested resource'
+    );
   }
 
   private initReleaseLockScript(): void {

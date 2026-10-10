@@ -72,7 +72,11 @@ describe('files-client', () => {
 
     test('throws a ClientError when the file request fails', async () => {
       const stub = createStubClient({
-        error: { message: 'File not found', errorCode: 404 },
+        error: {
+          detail: 'File not found',
+          code: 'FILE_NOT_FOUND',
+          status: 404
+        },
         response: new Response(null, { status: 404 })
       });
       const files = new FilesClient(stub.client, '/files');
@@ -81,6 +85,9 @@ describe('files-client', () => {
       await expect(files.public('missing.png')).rejects.toThrow(
         'File not found'
       );
+      await expect(files.public('missing.png')).rejects.toMatchObject({
+        route: { method: 'get', path: '/files/public/{*}' }
+      });
     });
 
     test('falls back to the response status when the error has no code', async () => {
@@ -95,7 +102,7 @@ describe('files-client', () => {
 
       await expect(files.public('boom.png')).rejects.toMatchObject({
         message: 'Server Error',
-        errorCode: 500
+        status: 500
       });
     });
   });

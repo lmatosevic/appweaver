@@ -1,5 +1,7 @@
 import {
   config,
+  ConfigurationError,
+  ErrorCode,
   FilesConfig,
   findReservedStoragePath,
   generateToken,
@@ -199,7 +201,8 @@ export function validateFileNamePatterns(
     reservedPaths
   );
   if (globalReservedPath !== null) {
-    throw new Error(
+    throw new ConfigurationError(
+      ErrorCode.ConfigurationInvalid,
       `Configured STORAGE_NAME_PATTERN '${config.STORAGE_NAME_PATTERN}' is placed under the reserved ` +
         `storage path '${globalReservedPath}'`
     );
@@ -218,7 +221,8 @@ export function validateFileNamePatterns(
         reservedPaths
       );
       if (reservedPath !== null) {
-        throw new Error(
+        throw new ConfigurationError(
+          ErrorCode.ConfigurationInvalid,
           `File name pattern '${fileConfig.namePattern}' of the '${model.name}.${field}' field is placed ` +
             `under the reserved storage path '${reservedPath}'`
         );
@@ -276,7 +280,6 @@ export function sanitizeFileSegment(value?: string | null): string {
     .trim();
 }
 
-/** @internal */
 function sanitizeVariables(
   variables: Record<string, any>
 ): Record<string, any> {

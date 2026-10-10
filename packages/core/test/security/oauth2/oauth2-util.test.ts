@@ -2,7 +2,7 @@ import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { HttpError } from '../../../errors';
+import { OAuth2Error } from '../../../security/oauth2/oauth2-error';
 import {
   decodeJwtPayload,
   fetchUserInfo,
@@ -74,14 +74,14 @@ describe('fetchUserInfo', () => {
     });
   });
 
-  test('should throw an HttpError when the provider responds with an error', async () => {
+  test('should throw an OAuth2Error when the provider responds with an error', async () => {
     jest
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(jsonResponse({ message: 'nope' }, 401));
 
     await expect(
       fetchUserInfo('Example', 'https://example.com/me', 'token-value')
-    ).rejects.toThrow(HttpError);
+    ).rejects.toThrow(OAuth2Error);
   });
 });
 

@@ -1,4 +1,5 @@
 import {
+  ErrorCode,
   HealthCheckResult,
   logger,
   Queue as CommonQueue,
@@ -8,6 +9,7 @@ import {
   QueueProcessor,
   uuid
 } from '@appweaver/common';
+import { QueueError } from './queue-error';
 
 type MemoryQueueJob<Data = any, Response = any> = QueueJob<Data, Response> & {
   status: 'waiting' | 'active' | 'completed' | 'failed';
@@ -131,7 +133,11 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     options: MemoryJobOptions = {}
   ): Promise<MemoryQueueJob<Data, Response>> {
     if (this._closed) {
-      throw new Error(`Queue ${this.name} is closed`);
+      throw new QueueError(
+        ErrorCode.QueueClosed,
+        `Queue ${this.name} is closed`,
+        { queue: this.name }
+      );
     }
 
     const jobId = uuid();

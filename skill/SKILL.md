@@ -431,7 +431,7 @@ authenticatable user. They cannot be used independently! If an auth model is cre
 turned off), an optional `registrationFiles` callback that maps the model's file fields to files stored right after
 the user is created (the avatar included, since a file must be linked to an existing resource), and an optional
 `checkOAuth2User` callback invoked before a user is registered or authenticated via OAuth2 (return nothing to proceed,
-or a string/`Error`/`HttpError` to abort the login with an error).
+or a string, an `Error`, or an `AppweaverError` to abort the login, the last one thrown as it is).
 
 ```ts
 // src/resources/user/model.ts
@@ -525,7 +525,8 @@ await injectService('Post').query({
 ```
 
 A hidden, virtual, or array scalar field, a field of a to-many relation, or a relation the action does not include is
-rejected with a `400` error. Sort inputs are typed by `QuerySort<T>` from `@appweaver/common`, with a `<Model>Sort`
+rejected with a `RESOURCE_INVALID_SORT` error (400). Sort inputs are typed by `QuerySort<T>` from `@appweaver/common`,
+with a `<Model>Sort`
 alias emitted per model and validated over HTTP against a generated `<Model>QuerySort` JSON schema. The default is
 `-createdAt`, and every sort is terminated with the primary key so paging stays deterministic.
 
@@ -553,7 +554,8 @@ await injectService('Post').aggregate({
 additional queries, skipped for the periods holding no record.
 
 Any other field (string, boolean, enum, JSON, array, hidden, virtual, or a relation), an operator its type does not
-support, an empty selection, or a `dateField` that is not a date field is rejected with a `400` error. Selections are
+support, an empty selection, or a `dateField` that is not a date field is rejected with a `RESOURCE_INVALID_AGGREGATE`
+error (400). Selections are
 typed by `AggregateSelect<T>` from `@appweaver/common`, with a `<Model>Aggregate` alias emitted per model, and validated
 over HTTP against a generated `<Model>AggregateSelect` JSON schema.
 
@@ -600,6 +602,37 @@ registerRoute(
   { public: true, cacheTTL: 15000 }
 );
 ```
+
+### Handling errors
+
+Services, policies, hooks, jobs and workers throw an `AppweaverError` subclass carrying a stable `code` (the `ErrorCode`
+enum of `@appweaver/common`) and typed `details`, never an HTTP status. Only the API layer maps the code to a status and
+responds with RFC 9457 problem details (`application/problem+json`), i.e.
+`{ type, title, status, code, detail, instance, requestId, errors, details }`. A schema validation failure responds with
+`VALIDATION_FAILED` and its invalid `errors`, and a database constraint violation with a `DATABASE_*` code naming the
+violated fields, i.e. `DATABASE_UNIQUE_VIOLATION` (409) for a taken email, so there is no need to look a value up
+before creating a record.
+
+```ts
+import { ApplicationError, ErrorCode } from '@appweaver/common';
+import { defineErrors, errorResponses, ResourceError } from '@appweaver/core';
+
+// A module of its own, imported where the codes are used
+export const ShopErrors = defineErrors({
+  OutOfStock: { status: 409, title: 'Product out of stock' }
+});
+
+throw new ResourceError(ErrorCode.ResourceNotFound, 'Order not found', { model: 'Order', id });
+throw new ApplicationError(ShopErrors.OutOfStock, 'Only 2 left', { productId });
+
+// The documented errors of a custom route, see the response schema of registerRoute
+const response = { 200: Type.Ref('OrderSingle'), ...errorResponses(ShopErrors.OutOfStock) };
+```
+
+Use the framework class that fits (`ResourceError`, `RequestError` for invalid input, `AuthError`, `FileError`, ...),
+and an `ApplicationError` with a code registered by `defineErrors` for a business rule of the application. Never throw a
+plain `Error` for an expected failure, it responds with `INTERNAL_ERROR` (500). Translate the errors of a direct Prisma
+call with `toDatabaseError(e, 'Model')`.
 
 ### Registering a custom model
 
@@ -849,3 +882,4 @@ npm run lint  # eslint "./**/*.ts"
 - Scheduling jobs: [scheduler.md](references/scheduler.md)
 - Sending emails: [mailer.md](references/mailer.md)
 - Generating an HTTP client for using API: [client.md](references/client.md)
+- Errors & error responses: [errors.md](references/errors.md)

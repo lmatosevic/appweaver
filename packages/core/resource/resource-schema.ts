@@ -4,6 +4,7 @@ import {
   AuthType,
   camelToSnakeCase,
   CONFIG_NAME,
+  ErrorCode,
   IdField,
   idFieldType,
   Nullable,
@@ -13,8 +14,13 @@ import {
   StringDate
 } from '@appweaver/common';
 import { injectModel } from '../context';
-import { authSchema, recaptchaHeaderSchema } from '../security';
-import { AllErrorResponses } from '../errors';
+import {
+  authErrorCodes,
+  authSchema,
+  recaptchaErrorCodes,
+  recaptchaHeaderSchema
+} from '../security';
+import { errorResponses } from '../errors';
 import { createSchemaModel } from '../utils';
 import {
   aggregateDateFieldSchema,
@@ -107,6 +113,16 @@ export function createSchema(
   // id is neither coerced to a number nor rejected by the request validation
   const idParams = resourceModel.idModel;
 
+  // The errors of a route, along with the ones of its authentication
+  const routeErrors = (route: ResourceRouteName, ...codes: ErrorCode[]) =>
+    errorResponses(
+      ...authErrorCodes(routeAuthTypes[route]),
+      ...recaptchaErrorCodes(routeRecaptcha[route]),
+      ErrorCode.DatabaseOperationFailed,
+      ErrorCode.DatabaseUnavailable,
+      ...codes
+    );
+
   // Register the recursive query filter and sort schemas of all loaded models,
   // referenced by the query, aggregate, and export request bodies
   registerQueryFilterSchemas();
@@ -198,7 +214,11 @@ export function createSchema(
       description: `Find ${resourceName} data`,
       response: {
         200: resourceModel.readOneModel,
-        ...AllErrorResponses
+        ...routeErrors(
+          'find',
+          ErrorCode.ResourceNotFound,
+          ErrorCode.ResourceForbidden
+        )
       },
       params: idParams
     },
@@ -210,7 +230,11 @@ export function createSchema(
       description: `Query ${resourceName} data`,
       response: {
         200: createSchemaModel(queryResponse),
-        ...AllErrorResponses
+        ...routeErrors(
+          'query',
+          ErrorCode.ResourceInvalidSort,
+          ErrorCode.ResourceInvalidCursor
+        )
       },
       body: createSchemaModel(queryRequest)
     },
@@ -222,7 +246,7 @@ export function createSchema(
       description: `Aggregate ${resourceName} data`,
       response: {
         200: createSchemaModel(aggregateResponse),
-        ...AllErrorResponses
+        ...routeErrors('aggregate', ErrorCode.ResourceInvalidAggregate)
       },
       body: createSchemaModel(aggregateRequest)
     },
@@ -234,7 +258,12 @@ export function createSchema(
       description: `Query ${resourceName} data with query parameters`,
       response: {
         200: createSchemaModel(queryResponse),
-        ...AllErrorResponses
+        ...routeErrors(
+          'query',
+          ErrorCode.ResourceInvalidSort,
+          ErrorCode.ResourceInvalidCursor,
+          ErrorCode.ResourceInvalidQueryParameter
+        )
       },
       querystring: queryParams,
       [`x-${CONFIG_NAME}-request`]: `${name}QueryRequest`
@@ -247,7 +276,11 @@ export function createSchema(
       description: `Aggregate ${resourceName} data with query parameters`,
       response: {
         200: createSchemaModel(aggregateResponse),
-        ...AllErrorResponses
+        ...routeErrors(
+          'aggregate',
+          ErrorCode.ResourceInvalidAggregate,
+          ErrorCode.ResourceInvalidQueryParameter
+        )
       },
       querystring: aggregateParams,
       [`x-${CONFIG_NAME}-request`]: `${name}AggregateRequest`
@@ -260,7 +293,17 @@ export function createSchema(
       description: `Create ${resourceName} data`,
       response: {
         201: resourceModel.readOneModel,
-        ...AllErrorResponses
+        ...routeErrors(
+          'create',
+          ErrorCode.ResourceForbidden,
+          ErrorCode.ResourceInvalidRelation,
+          ErrorCode.DatabaseUniqueViolation,
+          ErrorCode.DatabaseForeignKeyViolation,
+          ErrorCode.DatabaseNullViolation,
+          ErrorCode.DatabaseValueTooLong,
+          ErrorCode.DatabaseValueOutOfRange,
+          ErrorCode.DatabaseInvalidValue
+        )
       },
       body: resourceModel.createOneModel
     },
@@ -272,7 +315,20 @@ export function createSchema(
       description: `Update ${resourceName} data`,
       response: {
         200: resourceModel.readOneModel,
-        ...AllErrorResponses
+        ...routeErrors(
+          'update',
+          ErrorCode.ResourceNotFound,
+          ErrorCode.ResourceForbidden,
+          ErrorCode.ResourceInvalidRelation,
+          ErrorCode.ResourceDeleteRestricted,
+          ErrorCode.DatabaseWriteConflict,
+          ErrorCode.DatabaseUniqueViolation,
+          ErrorCode.DatabaseForeignKeyViolation,
+          ErrorCode.DatabaseNullViolation,
+          ErrorCode.DatabaseValueTooLong,
+          ErrorCode.DatabaseValueOutOfRange,
+          ErrorCode.DatabaseInvalidValue
+        )
       },
       body: resourceModel.updateOneModel,
       params: idParams
@@ -285,7 +341,13 @@ export function createSchema(
       description: `Delete ${resourceName} data`,
       response: {
         200: resourceModel.readOneModel,
-        ...AllErrorResponses
+        ...routeErrors(
+          'delete',
+          ErrorCode.ResourceNotFound,
+          ErrorCode.ResourceForbidden,
+          ErrorCode.ResourceDeleteRestricted,
+          ErrorCode.DatabaseForeignKeyViolation
+        )
       },
       params: idParams
     },
@@ -303,7 +365,11 @@ export function createSchema(
             }
           }
         },
-        ...AllErrorResponses
+        ...routeErrors(
+          'export',
+          ErrorCode.ResourceInvalidSort,
+          ErrorCode.ExportFailed
+        )
       },
       body: createSchemaModel(exportRequest)
     },
@@ -316,7 +382,19 @@ export function createSchema(
       consumes: ['multipart/form-data'],
       response: {
         200: resourceModel.filesModel,
-        ...AllErrorResponses
+        ...routeErrors(
+          'fileUpload',
+          ErrorCode.ResourceNotFound,
+          ErrorCode.ResourceForbidden,
+          ErrorCode.FileFieldNotFound,
+          ErrorCode.FileUnsupportedType,
+          ErrorCode.FileTooLarge,
+          ErrorCode.FileLimitExceeded,
+          ErrorCode.FileInvalidPath,
+          ErrorCode.FileForbidden,
+          ErrorCode.FileUploadFailed,
+          ErrorCode.FileStorageError
+        )
       },
       body: resourceModel.fileUploadModel,
       params: idParams
@@ -329,7 +407,16 @@ export function createSchema(
       description: `Delete ${resourceName} files`,
       response: {
         200: resourceModel.filesModel,
-        ...AllErrorResponses
+        ...routeErrors(
+          'fileDelete',
+          ErrorCode.ResourceNotFound,
+          ErrorCode.ResourceForbidden,
+          ErrorCode.FileNotFound,
+          ErrorCode.FileForbidden,
+          ErrorCode.FileNoneProvided,
+          ErrorCode.FileDeleteFailed,
+          ErrorCode.FileStorageError
+        )
       },
       body: resourceModel.fileDeleteModel,
       params: idParams

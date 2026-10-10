@@ -1,3 +1,4 @@
 export * from './error-handler';
+export * from './error-http-map';
 export * from './error-schema';
-export * from './http-error';
+export * from './problem';

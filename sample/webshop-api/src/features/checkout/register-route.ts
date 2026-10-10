@@ -1,5 +1,6 @@
 import { Type } from '@sinclair/typebox';
-import { HttpError, injectService, registerRoute } from '@appweaver/core';
+import { ErrorCode } from '@appweaver/common';
+import { errorResponses, injectService, registerRoute } from '@appweaver/core';
 import db from '@db/client';
 import { Role } from '@/features/access/roles';
 
@@ -20,23 +21,18 @@ registerRoute(
             marketingOptIn: Type.Optional(Type.Boolean())
           }),
           response: {
-            201: Type.Ref('UserSingle')
+            201: Type.Ref('UserSingle'),
+            ...errorResponses(ErrorCode.DatabaseUniqueViolation)
           }
         }
       },
       async (req, reply) => {
-        const taken = await db.user.findUnique({
-          where: { email: req.body.email },
-          select: { id: true }
-        });
-        if (taken) {
-          throw new HttpError('The email is already registered', 409);
-        }
-
         const customer = await db.role.findUniqueOrThrow({
           where: { name: Role.Customer }
         });
 
+        // A taken email fails the unique constraint of the field, answered
+        // with a DATABASE_UNIQUE_VIOLATION naming it
         const user = await injectService('User').create({
           ...req.body,
           marketingOptIn: req.body.marketingOptIn ?? false,

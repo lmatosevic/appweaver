@@ -11,7 +11,7 @@ jest.mock('@appweaver/common', () => {
   };
 });
 
-import { config } from '@appweaver/common';
+import { config, ErrorCode } from '@appweaver/common';
 import { recaptchaVerify } from '../../../security/recaptcha/recaptcha-verify';
 import { jsonResponse } from '../../fixtures/oauth2-fixture';
 
@@ -64,7 +64,7 @@ describe('recaptcha-verify', () => {
       verifyResponse({ success: false, score: 0, action: '' });
 
       await expect(recaptchaVerify('token-value')).rejects.toMatchObject({
-        statusCode: 400,
+        code: ErrorCode.RecaptchaInvalid,
         message: 'reCAPTCHA invalid token'
       });
     });
@@ -74,14 +74,14 @@ describe('recaptcha-verify', () => {
 
       await expect(
         recaptchaVerify('token-value', undefined, 'login')
-      ).rejects.toMatchObject({ statusCode: 403 });
+      ).rejects.toMatchObject({ code: ErrorCode.RecaptchaActionMismatch });
     });
 
     test('rejects a score below the configured minimum', async () => {
       verifyResponse({ success: true, score: 0.4, action: 'login' });
 
       await expect(recaptchaVerify('token-value')).rejects.toMatchObject({
-        statusCode: 403,
+        code: ErrorCode.RecaptchaLowScore,
         message: 'reCAPTCHA low score'
       });
     });
@@ -96,7 +96,7 @@ describe('recaptcha-verify', () => {
       verifyResponse({}, 503);
 
       await expect(recaptchaVerify('token-value')).rejects.toMatchObject({
-        statusCode: 500
+        code: ErrorCode.RecaptchaUnavailable
       });
     });
   });

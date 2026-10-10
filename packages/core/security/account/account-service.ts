@@ -3,6 +3,7 @@ import {
   AuthSource,
   AuthUser,
   config,
+  ErrorCode,
   makeHash,
   randomString,
   ResourceId,
@@ -16,7 +17,8 @@ import {
 } from '../helper';
 import { inject } from '../../context';
 import { EmailService } from '../../mailer';
-import { HttpError } from '../../errors';
+import { AuthError } from '../auth-error';
+import { AccountError } from './account-error';
 import { AuthOTTData, TwoFactorAuthData } from '../../types';
 
 type VerifyEmailData = {
@@ -45,9 +47,9 @@ export class AccountService {
    * @param {VerificationType} [verificationType=VerificationType.Auto] - The type of verification process to use.
    * Defaults to auto verification.
    * @return {Promise<string>} A promise that resolves to a confirmation message upon successful email delivery.
-   * @throws {HttpError} Throws a 501 error if email verification is not supported.
-   * @throws {HttpError} Throws a 403 error if the user's email address is already verified.
-   * @throws {HttpError} Throws a 400 error if the provided redirect URL is invalid.
+   * @throws {AccountError} `ACCOUNT_FEATURE_UNAVAILABLE` if email verification is not supported.
+   * @throws {AccountError} `ACCOUNT_EMAIL_ALREADY_VERIFIED` if the user's email address is already verified.
+   * @throws {AuthError} `AUTH_INVALID_REDIRECT_URL` if the provided redirect URL is invalid.
    */
   public async sendEmailVerification(
     authUser: AuthUser,
@@ -55,16 +57,23 @@ export class AccountService {
     verificationType: VerificationType = VerificationType.Auto
   ): Promise<string> {
     if (!this._emailService) {
-      throw new HttpError('Email verification is not supported', 501);
+      throw new AccountError(
+        ErrorCode.AccountFeatureUnavailable,
+        'Email verification is not supported',
+        { feature: 'email-verification' }
+      );
     }
 
     if (authUser.verifiedEmail) {
-      throw new HttpError('Email address is already verified', 403);
+      throw new AccountError(
+        ErrorCode.AccountEmailAlreadyVerified,
+        'Email address is already verified'
+      );
     }
 
     const result = validateRedirectUrl(redirectToUrl);
     if (!result.valid) {
-      throw new HttpError(result.message, 400);
+      throw new AuthError(ErrorCode.AuthInvalidRedirectUrl, result.message);
     }
 
     const token =
@@ -96,7 +105,8 @@ export class AccountService {
    *
    * @param {string} token The one-time token used for email verification.
    * @return {Promise<string>} A confirmation message indicating the email address has been verified.
-   * @throws {HttpError} If the authentication user does not exist, is disabled, or the email has already been verified.
+   * @throws {AuthError} `AUTH_USER_NOT_FOUND` if the authentication user does not exist or is disabled.
+   * @throws {AccountError} `ACCOUNT_EMAIL_ALREADY_VERIFIED` if the email has already been verified.
    */
   public async verifyEmailAddress(token: string): Promise<string> {
     const { authUserId } =
@@ -107,11 +117,17 @@ export class AccountService {
 
     const authUser = await this._authService.findById(authUserId);
     if (!authUser || !authUser.enabled) {
-      throw new HttpError('Auth user does not exist or is disabled', 400);
+      throw new AuthError(
+        ErrorCode.AuthUserNotFound,
+        'Auth user does not exist or is disabled'
+      );
     }
 
     if (authUser.verifiedEmail) {
-      throw new HttpError('Email address is already verified', 403);
+      throw new AccountError(
+        ErrorCode.AccountEmailAlreadyVerified,
+        'Email address is already verified'
+      );
     }
 
     await this._authService.updateAuthUser(authUserId, { verifiedEmail: true });
@@ -169,7 +185,8 @@ export class AccountService {
    * @param {string} redirectToUrl - The URL to be appended with a token for the password reset link.
    * @return {Promise<string>} A promise that resolves to a confirmation message, also when no user with a password
    * matches the email address and nothing is sent.
-   * @throws {HttpError} If the email service is not configured or the redirect URL is invalid.
+   * @throws {AccountError} `ACCOUNT_FEATURE_UNAVAILABLE` if the email service is not configured.
+   * @throws {AuthError} `AUTH_INVALID_REDIRECT_URL` if the redirect URL is invalid.
    */
   public async sendResetPassword(
     email: string,
@@ -178,12 +195,16 @@ export class AccountService {
     const sentMessage = 'Password reset email sent';
 
     if (!this._emailService) {
-      throw new HttpError('Password reset is not supported', 501);
+      throw new AccountError(
+        ErrorCode.AccountFeatureUnavailable,
+        'Password reset is not supported',
+        { feature: 'password-reset' }
+      );
     }
 
     const result = validateRedirectUrl(redirectToUrl);
     if (!result.valid) {
-      throw new HttpError(result.message, 400);
+      throw new AuthError(ErrorCode.AuthInvalidRedirectUrl, result.message);
     }
 
     const authUser = await this._authService.findByUsername(email);
@@ -215,14 +236,16 @@ export class AccountService {
    * @param {string} token - The one-time token used for password reset.
    * @param {string} password - The new password to be set for the user.
    * @return {Promise<string>} A message indicating the success of the password reset operation.
-   * @throws {HttpError} If the password does not meet the required complexity, if the token is invalid,
+   * @throws {AuthError} If the password does not meet the required complexity, if the token is invalid,
    *                     if the user does not exist, if the user is disabled, or if the user does not have
    *                     an existing password to reset.
    */
   public async resetPassword(token: string, password: string): Promise<string> {
     const result = validatePasswordComplexity(password);
     if (!result.valid) {
-      throw new HttpError(result.message, 400);
+      throw new AuthError(ErrorCode.AuthPasswordWeak, result.message, {
+        reason: result.message
+      });
     }
 
     const { authUserId } =
@@ -233,11 +256,17 @@ export class AccountService {
 
     const authUser = await this._authService.findById(authUserId);
     if (!authUser || !authUser.enabled) {
-      throw new HttpError('Auth user does not exist or is disabled', 400);
+      throw new AuthError(
+        ErrorCode.AuthUserNotFound,
+        'Auth user does not exist or is disabled'
+      );
     }
 
     if (!authUser.passwordHash) {
-      throw new HttpError('Auth user does not have already set password', 403);
+      throw new AccountError(
+        ErrorCode.AccountPasswordNotSet,
+        'Auth user does not have already set password'
+      );
     }
 
     await this._authService.updateAuthUser(authUserId, {
@@ -256,14 +285,18 @@ export class AccountService {
    * recovery).
    * @return {Promise<{ challengeId: string; expiresIn: number }>} A promise that resolves to the unique challenge ID
    * and expiration time associated with the 2FA code.
-   * @throws {HttpError} If the email service is not available, an error with a 501 status code is thrown.
+   * @throws {AccountError} `ACCOUNT_FEATURE_UNAVAILABLE` if the email service is not available.
    */
   public async send2FACode(
     authUser: AuthUser,
     purpose: string = 'authentication'
   ): Promise<{ challengeId: string; expiresIn: number }> {
     if (!this._emailService) {
-      throw new HttpError('2FA is not supported', 501);
+      throw new AccountError(
+        ErrorCode.AccountFeatureUnavailable,
+        '2FA is not supported',
+        { feature: '2fa' }
+      );
     }
 
     const expiresIn = config.SECURITY_ACCOUNT_2FA_OTT_TTL;
@@ -291,7 +324,7 @@ export class AccountService {
    * @param {string} code The 2FA code entered by the user.
    * @return {Promise<{ token: string; expiresIn: number }>} A promise that resolves to a one-time token and expiration
    * time if the 2FA verification is successful.
-   * @throws {Error} An error if verification fails or the associated user is disabled or does not exist.
+   * @throws {AuthError} An error if verification fails or the associated user is disabled or does not exist.
    */
   public async verify2FACode(
     challengeId: string,
@@ -310,7 +343,10 @@ export class AccountService {
 
     const authUser = await this._authService.findById(data.authUserId);
     if (!authUser || !authUser.enabled) {
-      throw new HttpError('Auth user does not exist or is disabled', 400);
+      throw new AuthError(
+        ErrorCode.AuthUserNotFound,
+        'Auth user does not exist or is disabled'
+      );
     }
 
     const expiresIn = config.SECURITY_AUTH_OTT_TTL;

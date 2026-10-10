@@ -1,5 +1,5 @@
-import { AuthSource, config } from '@appweaver/common';
-import { HttpError } from '../../errors';
+import { AuthSource, config, ErrorCode } from '@appweaver/common';
+import { OAuth2Error } from './oauth2-error';
 import { UserInfo } from '../../types';
 import { createOAuth2Plugin } from './create-oauth2-plugin';
 import { fetchUserInfo, splitFullName } from './oauth2-util';
@@ -55,7 +55,7 @@ export async function fetchGithubUser(accessToken: string): Promise<UserInfo> {
  *
  * @param {string} accessToken - The access token obtained from the authorization code flow.
  * @return {Promise<string>} A promise resolving to the primary verified address, or the first verified one.
- * @throws {HttpError} If the account has no verified email address.
+ * @throws {OAuth2Error} `OAUTH2_EMAIL_UNAVAILABLE` if the account has no verified email address.
  */
 async function fetchGithubEmail(accessToken: string): Promise<string> {
   const emails = await fetchUserInfo<GithubEmail[]>(
@@ -69,7 +69,11 @@ async function fetchGithubEmail(accessToken: string): Promise<string> {
   const email = verified.find((email) => email.primary) ?? verified[0];
 
   if (!email) {
-    throw new HttpError('GitHub account has no verified email address', 403);
+    throw new OAuth2Error(
+      ErrorCode.OAuth2EmailUnavailable,
+      'GitHub account has no verified email address',
+      { provider: 'GitHub' }
+    );
   }
 
   return email.email;

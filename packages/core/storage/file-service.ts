@@ -4,6 +4,7 @@ import {
   config,
   ContentStream,
   Database,
+  ErrorCode,
   FileField,
   FilePolicy,
   findReservedStoragePath,
@@ -19,7 +20,8 @@ import {
   toResourceId
 } from '@appweaver/common';
 import { inject, injectModel, injectPolicy, injectService } from '../context';
-import { HttpError } from '../errors';
+import { toDatabaseError } from '../database/database-error';
+import { FileError } from './file-error';
 import { currentAuthUser } from '../security';
 import { PrismaDatabase } from '../database';
 import {
@@ -53,8 +55,6 @@ export type FileStream = {
 /**
  * The content of a file to save, normalized from a multipart upload or an in-memory buffer. The size and the truncation
  * flag are read as functions, since a multipart stream only knows both after it has been fully consumed.
- *
- * @internal
  */
 type FileContent = {
   fieldName: string;
@@ -79,7 +79,7 @@ export class FileService {
    *
    * @param {string} fileName - The name of the file to search for.
    * @return {Promise<File>} A promise that resolves to the file object if found.
-   * @throws {HttpError} Throws an error if the file name is placed under a reserved storage path, if a database error
+   * @throws {FileError} Throws an error if the file name is placed under a reserved storage path, if a database error
    * occurs, or if the file is not found.
    */
   public async findByName(fileName: string): Promise<File> {
@@ -93,11 +93,13 @@ export class FileService {
         where: { name: fileName, ...liveRecordFilter('File') }
       })) as File;
     } catch (e) {
-      throw new HttpError(`File read error`, 500, e);
+      throw toDatabaseError(e, 'File');
     }
 
     if (!file) {
-      throw new HttpError('File does not exist', 404);
+      throw new FileError(ErrorCode.FileNotFound, 'File does not exist', {
+        fileName
+      });
     }
 
     return file;
@@ -110,26 +112,36 @@ export class FileService {
    * @param {string} [range] - An optional range header specifying the byte range to stream.
    * @return {Promise<FileStream>} A promise that resolves to a file stream object containing the content, metadata, and
    * range details.
-   * @throws {HttpError} Throws a 404 error if the file does not exist.
-   * @throws {HttpError} Throws a 403 error if user access to the file is forbidden.
-   * @throws {HttpError} Throws a 500 error if an error occurs while reading the file from storage.
+   * @throws {FileError} `FILE_NOT_FOUND` if the file does not exist.
+   * @throws {FileError} `FILE_FORBIDDEN` if user access to the file is forbidden.
+   * @throws {FileError} `FILE_STORAGE_ERROR` if an error occurs while reading the file from storage.
    */
   public async stream(fileName: string, range?: string): Promise<FileStream> {
     const identity = currentAuthUser();
 
     const file = await this.findByName(fileName);
     if (!file) {
-      throw new HttpError('File does not exist', 404);
+      throw new FileError(ErrorCode.FileNotFound, 'File does not exist', {
+        fileName
+      });
     }
 
     const policy = this.getFilePolicy(file.resourceName, file.resourceField);
 
     if (!identity && policy.accessType !== 'public') {
-      throw new HttpError('Public file access is forbidden', 403);
+      throw new FileError(
+        ErrorCode.FileForbidden,
+        'Public file access is forbidden',
+        { fileName, action: 'read' }
+      );
     }
 
     if (policy.accessType === 'private' && identity?.id !== file.createdById) {
-      throw new HttpError('Private file access is forbidden', 403);
+      throw new FileError(
+        ErrorCode.FileForbidden,
+        'Private file access is forbidden',
+        { fileName, action: 'read' }
+      );
     }
 
     if (
@@ -151,7 +163,11 @@ export class FileService {
         !arePoliciesSkipped() &&
         (await policy.canAccess?.(identity ?? null, resource, file)) === false
       ) {
-        throw new HttpError('File access is forbidden', 403);
+        throw new FileError(
+          ErrorCode.FileForbidden,
+          'File access is forbidden',
+          { fileName, action: 'read' }
+        );
       }
     }
 
@@ -161,7 +177,10 @@ export class FileService {
 
     const fileStream = await this._storage.stream(fileName, start, end);
     if (!fileStream) {
-      throw new HttpError('Error reading file from storage', 500);
+      throw new FileError(
+        ErrorCode.FileStorageError,
+        'Error reading file from storage'
+      );
     }
 
     if (end === undefined || end >= fileStream.size || end >= file.sizeBytes) {
@@ -185,7 +204,7 @@ export class FileService {
    * @param {ResourceClient} client The database client responsible for handling the resource.
    * @return {Promise<File>} A promise that resolves to the saved file object or rejects with an error if the operation
    * fails.
-   * @throws {HttpError} Throws an error if file validation, storage, or resource association fails.
+   * @throws {FileError} Throws an error if file validation, storage, or resource association fails.
    */
   public async saveFile(
     data: MultipartFile,
@@ -219,7 +238,7 @@ export class FileService {
    * @param {ResourceClient} client The database client responsible for handling the resource.
    * @return {Promise<File>} A promise that resolves to the saved file object or rejects with an error if the operation
    * fails.
-   * @throws {HttpError} Throws an error if file validation, storage, or resource association fails.
+   * @throws {FileError} Throws an error if file validation, storage, or resource association fails.
    */
   public async saveBuffer(
     fieldName: string,
@@ -285,7 +304,11 @@ export class FileService {
       await Promise.all(deleteActions);
 
       const errorMessage = errors.join('\n');
-      throw new HttpError(`Error while saving files: ${errorMessage}`, 400);
+      throw new FileError(
+        ErrorCode.FileUploadFailed,
+        `Error while saving files: ${errorMessage}`,
+        { errors }
+      );
     }
 
     await this._cacheService.invalidateCache(client.name, 'uploadFiles');
@@ -301,7 +324,7 @@ export class FileService {
    * @param {Resource} resource - The resource that the file is associated with.
    * @param {ResourceClient} client - The client instance representing the resource's type.
    * @return {Promise<File>} A promise that resolves with the deleted file information upon successful deletion.
-   * @throws {HttpError} If the file is not associated with the provided resource or client,
+   * @throws {FileError} If the file is not associated with the provided resource or client,
    *                     if the current user does not have permission to delete the file,
    *                     if there is an error removing the file from storage,
    *                     or if there is an error deleting the file from the database.
@@ -320,9 +343,10 @@ export class FileService {
       file.resourceName !== client.name ||
       file.resourceField !== fieldName
     ) {
-      throw new HttpError(
+      throw new FileError(
+        ErrorCode.FileForbidden,
         `File does not belong to a '${client.name}' resource`,
-        403
+        { fileName, action: 'delete' }
       );
     }
 
@@ -332,12 +356,19 @@ export class FileService {
       !arePoliciesSkipped() &&
       (await policy.canDelete?.(currentUser ?? null, resource, file)) === false
     ) {
-      throw new HttpError('Deleting file is forbidden', 403);
+      throw new FileError(
+        ErrorCode.FileForbidden,
+        'Deleting file is forbidden',
+        { fileName, action: 'delete' }
+      );
     }
 
     const result = await this.deleteStored(fileName);
     if (!result) {
-      throw new HttpError('Error deleting file from storage', 500);
+      throw new FileError(
+        ErrorCode.FileStorageError,
+        'Error deleting file from storage'
+      );
     }
 
     try {
@@ -351,7 +382,7 @@ export class FileService {
 
       return deletedFile;
     } catch (e) {
-      throw new HttpError(`File delete error`, 500, e);
+      throw toDatabaseError(e, 'File');
     }
   }
 
@@ -371,7 +402,10 @@ export class FileService {
     client: ResourceClient
   ): Promise<File[]> {
     if (Object.keys(fileNames ?? {}).length === 0) {
-      throw new HttpError('No files for deletion are provided', 400);
+      throw new FileError(
+        ErrorCode.FileNoneProvided,
+        'No files for deletion are provided'
+      );
     }
 
     const deleteActions: Promise<File>[] = [];
@@ -395,7 +429,11 @@ export class FileService {
 
     if (errors.length > 0 && deletedFiles.length === 0) {
       const errorMessage = errors.join('\n');
-      throw new HttpError(`Error while deleting files: ${errorMessage}`, 400);
+      throw new FileError(
+        ErrorCode.FileDeleteFailed,
+        `Error while deleting files: ${errorMessage}`,
+        { errors }
+      );
     }
 
     await this._cacheService.invalidateCache(client.name, 'deleteFiles');
@@ -502,16 +540,21 @@ export class FileService {
     // kept out of the resource output is still writable
     const fileConfig = this.getFileConfig(client.name, data.fieldName);
     if (!fileConfig) {
-      throw new HttpError(
+      throw new FileError(
+        ErrorCode.FileFieldNotFound,
         `File field '${data.fieldName}' does not exist on resource '${client.name}'`,
-        400
+        { model: client.name, field: data.fieldName }
       );
     }
 
     const policy = this.getFilePolicy(client.name, data.fieldName);
 
     if (!isValidMimeType(data.mimeType, fileConfig.mimeType)) {
-      throw new HttpError(`Unsupported media file type: ${data.mimeType}`, 400);
+      throw new FileError(
+        ErrorCode.FileUnsupportedType,
+        `Unsupported media file type: ${data.mimeType}`,
+        { mimeType: data.mimeType }
+      );
     }
 
     if (fileConfig.array) {
@@ -521,9 +564,10 @@ export class FileService {
         String(resource.id)
       );
       if (fileConfig.maxCount && fileConfig.maxCount < fileCount + 1) {
-        throw new HttpError(
+        throw new FileError(
+          ErrorCode.FileLimitExceeded,
           `Maximum number of files allowed: ${fileConfig.maxCount}`,
-          400
+          { maxCount: fileConfig.maxCount }
         );
       }
     }
@@ -562,7 +606,10 @@ export class FileService {
       nameRegenCount++;
 
       if (nameRegenCount === 10) {
-        throw new HttpError('Unable to generate unique file name', 500);
+        throw new FileError(
+          ErrorCode.FileStorageError,
+          'Unable to generate unique file name'
+        );
       }
 
       const hash = generateToken('bytes');
@@ -593,7 +640,11 @@ export class FileService {
       (await policy.canCreate?.(identity ?? null, resource, createFile)) ===
         false
     ) {
-      throw new HttpError('Creating file is forbidden', 403);
+      throw new FileError(
+        ErrorCode.FileForbidden,
+        'Creating file is forbidden',
+        { action: 'create' }
+      );
     }
 
     let fileStream: Readable = data.stream;
@@ -628,7 +679,10 @@ export class FileService {
       makeHash(checksumStream)
     ]);
     if (!fileName) {
-      throw new HttpError('Error saving file to storage', 500);
+      throw new FileError(
+        ErrorCode.FileStorageError,
+        'Error saving file to storage'
+      );
     }
     afterRollback(() => this._storage.delete(fileName));
 
@@ -645,9 +699,10 @@ export class FileService {
       (maxSizeBytes > 0 && data.bytesRead() > maxSizeBytes)
     ) {
       await this._storage.delete(fileName);
-      throw new HttpError(
+      throw new FileError(
+        ErrorCode.FileTooLarge,
         `File size exceeded limit of ${maxSizeBytes} bytes`,
-        400
+        { maxSizeBytes }
       );
     }
 
@@ -691,7 +746,7 @@ export class FileService {
       return file;
     } catch (e) {
       await this.deleteSafe(fileName);
-      throw new HttpError(`File create error`, 500, e);
+      throw toDatabaseError(e, 'File');
     }
   }
 
@@ -703,7 +758,11 @@ export class FileService {
     );
 
     if (reservedPath !== null) {
-      throw new HttpError(`File path '${fileName}' is not allowed`, 400);
+      throw new FileError(
+        ErrorCode.FileInvalidPath,
+        `File path '${fileName}' is not allowed`,
+        { fileName }
+      );
     }
   }
 
@@ -756,7 +815,7 @@ export class FileService {
         where: { resourceField, resourceName, resourceId }
       });
     } catch (e) {
-      throw new HttpError(`File count read error`, 500, e);
+      throw toDatabaseError(e, 'File');
     }
   }
 

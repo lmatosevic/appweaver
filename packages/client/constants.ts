@@ -11,6 +11,12 @@ export const CONFIG_FIELD = 'x-appweaver-config';
 /** Custom OpenAPI extension key used for extracting resources names from schema CRUD objects. */
 export const CONFIG_RESOURCE_FIELD = 'x-appweaver-resource';
 
+/** Title of the RFC 9457 problem details schema of every Appweaver error response. */
+export const PROBLEM_DETAILS_TITLE = 'ProblemDetails';
+
+/** Name of the generated type holding the error codes of the API. */
+export const ERROR_CODE_TYPE_NAME = 'ErrorCode';
+
 /** Names given to the well-known enums an Appweaver schema repeats inline across its definitions.
  * The key is the enum values joined by a `|`; the value is the name of the shared type generated
  * for them. Enums that are not listed here are named after the definitions declaring them. */

@@ -1,6 +1,8 @@
-import { createService, currentAuthUser, HttpError } from '@appweaver/core';
+import { ApplicationError } from '@appweaver/common';
+import { createService, currentAuthUser } from '@appweaver/core';
 import db from '@db/client';
 import { relationId } from '@/features/catalog/relation-id';
+import { MovieErrors } from '@/errors';
 
 export default createService({
   modelName: 'WatchlistEntry',
@@ -15,7 +17,11 @@ export default createService({
       select: { id: true }
     });
     if (existing) {
-      throw new HttpError('The movie is already on the watchlist', 409);
+      throw new ApplicationError(
+        MovieErrors.AlreadyOnWatchlist,
+        'The movie is already on the watchlist',
+        { watchlistEntryId: existing.id }
+      );
     }
   },
   beforeUpdate: (_, data) => {

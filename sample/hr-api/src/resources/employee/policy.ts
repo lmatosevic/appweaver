@@ -1,4 +1,5 @@
-import { createPolicy, HttpError } from '@appweaver/core';
+import { ErrorCode } from '@appweaver/common';
+import { createPolicy, ResourceError } from '@appweaver/core';
 import { can, Permission } from '@/features/access/permissions';
 
 // The fields shaping the organization, changed by HR only
@@ -21,12 +22,20 @@ export default createPolicy({
     }
 
     if (action === 'update' && data.id !== user.id) {
-      throw new HttpError('Only the own profile can be changed', 403);
+      throw new ResourceError(
+        ErrorCode.ResourceForbidden,
+        'Only the own profile can be changed',
+        { model: 'Employee', action }
+      );
     }
 
     const changed = managedFields.filter((field) => data[field] !== undefined);
     if (changed.length > 0) {
-      throw new HttpError(`Only HR can change: ${changed.join(', ')}`, 403);
+      throw new ResourceError(
+        ErrorCode.ResourceForbidden,
+        `Only HR can change: ${changed.join(', ')}`,
+        { model: 'Employee', action }
+      );
     }
 
     return null;

@@ -109,3 +109,16 @@ export function createDatabaseStub(modelNames: string[]): DatabaseStub {
     }
   };
 }
+
+/** Creates an error shaped like a known request error of the Prisma client. */
+export function prismaError(
+  code: string = 'P2010',
+  message: string = 'Raw query failed',
+  meta: Record<string, unknown> = {}
+): Error {
+  return Object.assign(new Error(message), {
+    name: 'PrismaClientKnownRequestError',
+    code,
+    meta
+  });
+}

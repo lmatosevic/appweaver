@@ -1,5 +1,12 @@
 import { Type } from '@sinclair/typebox';
-import { currentAuthUser, registerModel, registerRoute } from '@appweaver/core';
+import { ErrorCode } from '@appweaver/common';
+import {
+  currentAuthUser,
+  errorResponses,
+  registerModel,
+  registerRoute
+} from '@appweaver/core';
+import { ShopErrors } from '@/errors';
 import { checkout } from './checkout';
 
 const ShippingAddress = Type.Object({
@@ -44,7 +51,13 @@ registerRoute(
             'Reserves the stock, applies the coupon, and places the order, which is paid in the background.',
           body: Type.Ref('CheckoutRequest'),
           response: {
-            201: Type.Ref('OrderSingle')
+            201: Type.Ref('OrderSingle'),
+            ...errorResponses(
+              ShopErrors.ProductUnavailable,
+              ShopErrors.OutOfStock,
+              ShopErrors.CouponInvalid,
+              ErrorCode.ResourceNotFound
+            )
           }
         }
       },

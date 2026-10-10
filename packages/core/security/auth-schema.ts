@@ -2,10 +2,11 @@ import { TObject, TSchema, Type } from '@sinclair/typebox';
 import {
   AuthType,
   config,
+  ErrorCode,
   RecaptchaConfig,
   RouteSchema
 } from '@appweaver/common';
-import { AllErrorResponses } from '../errors';
+import { errorResponses } from '../errors';
 import { createSchemaModel } from '../utils';
 
 export const LoginRequest = Type.Object(
@@ -65,7 +66,10 @@ export const loginSchema = {
   description: 'Login identity',
   response: {
     200: createSchemaModel(AuthenticationResponse),
-    ...AllErrorResponses
+    ...errorResponses(
+      ErrorCode.AuthInvalidCredentials,
+      ErrorCode.AuthPasswordDisabled
+    )
   },
   body: createSchemaModel(LoginRequest)
 };
@@ -77,7 +81,7 @@ export const refreshSchema = {
   description: 'Refresh identity token',
   response: {
     200: createSchemaModel(AuthenticationResponse),
-    ...AllErrorResponses
+    ...errorResponses(...authErrorCodes([AuthType.Jwt]))
   }
 };
 
@@ -88,7 +92,7 @@ export const logoutSchema = {
   description: 'Logout identity',
   response: {
     200: createSchemaModel(LogoutResponse),
-    ...AllErrorResponses
+    ...errorResponses(...authErrorCodes([AuthType.Jwt]))
   }
 };
 
@@ -99,7 +103,12 @@ export const changePasswordSchema = {
   description: 'Change identity password',
   response: {
     200: createSchemaModel(AuthenticationResponse),
-    ...AllErrorResponses
+    ...errorResponses(
+      ...authErrorCodes(),
+      ErrorCode.AuthPasswordDisabled,
+      ErrorCode.AuthPasswordInvalid,
+      ErrorCode.AuthPasswordWeak
+    )
   },
   body: createSchemaModel(ChangePasswordRequest)
 };
@@ -110,7 +119,13 @@ export const exchangeTokenSchema = {
   description: 'Exchange one time token for access token',
   response: {
     200: createSchemaModel(AuthenticationResponse),
-    ...AllErrorResponses
+    ...errorResponses(
+      ErrorCode.AuthInvalidToken,
+      ErrorCode.AuthUserNotFound,
+      ErrorCode.AuthPasswordRequired,
+      ErrorCode.AuthInvalidCredentials,
+      ErrorCode.OAuth2AccountConflict
+    )
   },
   body: createSchemaModel(ExchangeTokenRequest)
 };
@@ -139,6 +154,72 @@ export function authSchema(authTypes?: AuthType[]): any[] {
   return authSchemas;
 }
 
+/**
+ * Returns the error codes a route authenticated with the given types can
+ * respond with, none for a public route.
+ *
+ * @param {AuthType[]} [authTypes] The accepted authentication types, all of the
+ * enabled ones by default.
+ */
+export function authErrorCodes(authTypes?: AuthType[]): ErrorCode[] {
+  const types = (authTypes ?? Object.values(AuthType)).filter(
+    (type) =>
+      type === AuthType.Jwt ||
+      (type === AuthType.ApiKey && config.SECURITY_API_KEY_ENABLED) ||
+      (type === AuthType.Basic && config.SECURITY_BASIC_ENABLED)
+  );
+  if (types.length === 0) {
+    return [];
+  }
+
+  const codes = [
+    ErrorCode.AuthUnauthorized,
+    ErrorCode.AuthInvalidHeader,
+    ErrorCode.AuthForbidden
+  ];
+  if (types.includes(AuthType.Jwt)) {
+    codes.push(
+      ErrorCode.AuthInvalidToken,
+      ErrorCode.AuthTokenExpired,
+      ErrorCode.AuthScopeForbidden
+    );
+  }
+  if (types.includes(AuthType.ApiKey)) {
+    codes.push(
+      ErrorCode.AuthApiKeyMissing,
+      ErrorCode.AuthApiKeyInvalid,
+      ErrorCode.AuthApiKeyExpired
+    );
+  }
+  if (types.includes(AuthType.Basic)) {
+    codes.push(
+      config.SECURITY_BASIC_PROXY_MODE
+        ? ErrorCode.AuthProxyAuthenticationRequired
+        : ErrorCode.AuthInvalidCredentials
+    );
+  }
+  return codes;
+}
+
+/**
+ * Returns the error codes a route verifying a reCAPTCHA token can respond
+ * with, none when the route verifies none.
+ */
+export function recaptchaErrorCodes(
+  recaptchaConfig: RecaptchaConfig
+): ErrorCode[] {
+  return config.SECURITY_RECAPTCHA_ENABLED &&
+    (recaptchaConfig.recaptcha || recaptchaConfig.recaptchaAction)
+    ? [
+        ErrorCode.RecaptchaMissing,
+        ErrorCode.RecaptchaInvalid,
+        ErrorCode.RecaptchaActionMismatch,
+        ErrorCode.RecaptchaLowScore,
+        ErrorCode.RecaptchaUnavailable
+      ]
+    : [];
+}
+
 export function recaptchaHeaderSchema(
   recaptchaConfig: RecaptchaConfig
 ): TObject {
@@ -164,7 +245,7 @@ export function createCurrentAuthUserSchema(modelSchema: TSchema): RouteSchema {
     description: 'Return currently authorized identity',
     response: {
       200: modelSchema,
-      ...AllErrorResponses
+      ...errorResponses(...authErrorCodes())
     }
   };
 }

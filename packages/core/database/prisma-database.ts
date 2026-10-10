@@ -2,12 +2,14 @@ import {
   config,
   Database,
   DatabaseType,
+  ErrorCode,
   HealthCheckResult,
   IsolationLevel,
   resolveDatabaseType,
   TransactionOptions
 } from '@appweaver/common';
 import { createClient } from './create-client';
+import { DatabaseError } from './database-error';
 import {
   currentTransaction,
   runInTransaction,
@@ -94,7 +96,8 @@ export class PrismaDatabase extends Database {
     const current = currentTransaction();
     if (current) {
       if (options.isolationLevel && current.isolationLevel !== isolationLevel) {
-        throw new Error(
+        throw new DatabaseError(
+          ErrorCode.DatabaseInvalidTransaction,
           `Cannot run a ${isolationLevel} transaction inside a ` +
             `${current.isolationLevel ?? 'default'} isolation level transaction`
         );
@@ -193,11 +196,10 @@ export class PrismaDatabase extends Database {
   }
 }
 
-/** @internal */
 function isWriteConflict(error: unknown): boolean {
-  // Followed through the errors wrapping it, i.e. a service's HttpError
-  for (let e: any = error; e; e = e.error ?? e.cause) {
-    if (e.code === 'P2034') {
+  // Followed through the errors wrapping it, i.e. a service's DatabaseError
+  for (let e: any = error; e; e = e.cause) {
+    if (e.code === 'P2034' || e.code === ErrorCode.DatabaseWriteConflict) {
       return true;
     }
   }

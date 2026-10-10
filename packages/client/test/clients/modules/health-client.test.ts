@@ -30,7 +30,7 @@ describe('health-client', () => {
 
     test('throws a ClientError for any other error response', async () => {
       const stub = createStubClient({
-        error: { message: 'Forbidden', errorCode: 403 },
+        error: { detail: 'Forbidden', code: 'AUTH_FORBIDDEN', status: 403 },
         response: new Response(null, { status: 403 })
       });
       const health = new HealthClient<any>(stub.client, '/health');

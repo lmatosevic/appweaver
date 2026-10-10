@@ -1,7 +1,8 @@
-import { AuthUser } from '@appweaver/common';
-import { HttpError, injectService } from '@appweaver/core';
+import { ApplicationError, AuthUser, ErrorCode } from '@appweaver/common';
+import { injectService, ResourceError } from '@appweaver/core';
 import db from '@db/client';
 import { LeaveRequestSingle } from '@/types';
+import { HrErrors } from '@/errors';
 import { can, Permission } from '@/features/access/permissions';
 import { notifyLeaveDecision } from './leave-notifications';
 
@@ -24,24 +25,40 @@ export async function decideLeaveRequest(
       include: { employee: true }
     });
     if (!request?.employee) {
-      throw new HttpError('Leave request not found', 404);
+      throw new ResourceError(
+        ErrorCode.ResourceNotFound,
+        'Leave request not found',
+        {
+          model: 'LeaveRequest',
+          id: id
+        }
+      );
     }
 
     const { employee } = request;
     if (employee.id === decider.id) {
-      throw new HttpError(
+      throw new ResourceError(
+        ErrorCode.ResourceForbidden,
         'Own leave requests are decided by someone else',
-        403
+        { model: 'LeaveRequest', action: 'decide' }
       );
     }
     if (
       employee.managerId !== decider.id &&
       !can(decider, Permission.LeaveManage)
     ) {
-      throw new HttpError('Only the manager of the employee can decide', 403);
+      throw new ResourceError(
+        ErrorCode.ResourceForbidden,
+        'Only the manager of the employee can decide',
+        { model: 'LeaveRequest', action: 'decide' }
+      );
     }
     if (request.status !== 'Pending') {
-      throw new HttpError(`Leave request is already ${request.status}`, 409);
+      throw new ApplicationError(
+        HrErrors.LeaveAlreadyDecided,
+        `Leave request is already ${request.status}`,
+        { status: request.status }
+      );
     }
 
     if (decision === 'Approved' && request.type === 'Annual') {
@@ -50,15 +67,20 @@ export async function decideLeaveRequest(
         where: { employeeId: employee.id, year, deletedAt: null }
       });
       if (!balance) {
-        throw new HttpError(`No leave balance for ${year}`, 409);
+        throw new ApplicationError(
+          HrErrors.LeaveBalanceMissing,
+          `No leave balance for ${year}`,
+          { year }
+        );
       }
 
       const remaining =
         balance.allowanceDays + balance.carriedOverDays - balance.usedDays;
       if (request.days > remaining) {
-        throw new HttpError(
+        throw new ApplicationError(
+          HrErrors.LeaveBalanceExceeded,
           `Not enough leave days: ${request.days} requested, ${remaining} remaining`,
-          409
+          { requested: request.days, remaining }
         );
       }
 
@@ -98,19 +120,31 @@ export async function cancelLeaveRequest(
       where: { id, deletedAt: null }
     });
     if (!request) {
-      throw new HttpError('Leave request not found', 404);
+      throw new ResourceError(
+        ErrorCode.ResourceNotFound,
+        'Leave request not found',
+        {
+          model: 'LeaveRequest',
+          id: id
+        }
+      );
     }
     if (request.employeeId !== user.id && !can(user, Permission.LeaveManage)) {
-      throw new HttpError('Only the employee can cancel the request', 403);
+      throw new ResourceError(
+        ErrorCode.ResourceForbidden,
+        'Only the employee can cancel the request',
+        { model: 'LeaveRequest', action: 'cancel' }
+      );
     }
 
     const cancellable =
       request.status === 'Pending' ||
       (request.status === 'Approved' && request.startDate > new Date());
     if (!cancellable) {
-      throw new HttpError(
+      throw new ApplicationError(
+        HrErrors.LeaveNotCancellable,
         `A ${request.status.toLowerCase()} leave request cannot be cancelled`,
-        409
+        { status: request.status }
       );
     }
 

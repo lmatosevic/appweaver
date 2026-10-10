@@ -1,5 +1,5 @@
-import { AuthSource, config } from '@appweaver/common';
-import { HttpError } from '../../errors';
+import { AuthSource, config, ErrorCode } from '@appweaver/common';
+import { OAuth2Error } from './oauth2-error';
 import { UserInfo } from '../../types';
 import { createOAuth2Plugin } from './create-oauth2-plugin';
 import { fetchUserInfo, splitFullName } from './oauth2-util';
@@ -39,9 +39,10 @@ export async function fetchXUser(accessToken: string): Promise<UserInfo> {
   );
 
   if (!data.confirmed_email) {
-    throw new HttpError(
+    throw new OAuth2Error(
+      ErrorCode.OAuth2EmailUnavailable,
       'X did not return an email address. Enable the email permission for the app in the X developer portal',
-      403
+      { provider: 'X' }
     );
   }
 

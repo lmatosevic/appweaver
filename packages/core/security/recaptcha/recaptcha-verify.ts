@@ -1,5 +1,5 @@
-import { config, logger } from '@appweaver/common';
-import { HttpError } from '../../errors';
+import { config, ErrorCode, logger } from '@appweaver/common';
+import { RecaptchaError } from './recaptcha-error';
 
 type ReCaptchaResponse = {
   success: boolean;
@@ -27,7 +27,10 @@ export async function recaptchaVerify(
 
   if (!resp.ok) {
     logger.error(`reCAPTCHA request failed: ${resp.statusText}`);
-    throw new HttpError('reCAPTCHA request failed', 500);
+    throw new RecaptchaError(
+      ErrorCode.RecaptchaUnavailable,
+      'reCAPTCHA request failed'
+    );
   }
 
   const data: ReCaptchaResponse = await resp.json();
@@ -35,14 +38,23 @@ export async function recaptchaVerify(
   logger.debug(data, 'reCAPTCHA verified');
 
   if (!data.success) {
-    throw new HttpError('reCAPTCHA invalid token', 400);
+    throw new RecaptchaError(
+      ErrorCode.RecaptchaInvalid,
+      'reCAPTCHA invalid token'
+    );
   }
 
   if (action && data.action !== action) {
-    throw new HttpError('reCAPTCHA action mismatch', 403);
+    throw new RecaptchaError(
+      ErrorCode.RecaptchaActionMismatch,
+      'reCAPTCHA action mismatch'
+    );
   }
 
   if (data.score < config.SECURITY_RECAPTCHA_MIN_SCORE) {
-    throw new HttpError('reCAPTCHA low score', 403);
+    throw new RecaptchaError(
+      ErrorCode.RecaptchaLowScore,
+      'reCAPTCHA low score'
+    );
   }
 }

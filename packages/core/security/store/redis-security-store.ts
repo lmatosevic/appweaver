@@ -1,4 +1,5 @@
 import {
+  ErrorCode,
   generateToken,
   makeHash,
   Redis,
@@ -6,7 +7,7 @@ import {
   ValidationResult
 } from '@appweaver/common';
 import { inject } from '../../context';
-import { HttpError } from '../../errors';
+import { AuthError } from '../auth-error';
 
 const SECURITY_OTT_KEY = 'security:ott';
 
@@ -39,21 +40,27 @@ export class RedisSecurityStore extends SecurityStore {
     const value = await this._redis.get<T>(tokenKey);
 
     if (value === null) {
-      throw new HttpError('Invalid or expired token provided', 401);
+      throw new AuthError(
+        ErrorCode.AuthInvalidToken,
+        'Invalid or expired token provided'
+      );
     }
 
     // A token failing the validation is kept, so it can be used again
     if (validateContent) {
       const result = validateContent(value);
       if (!result.valid) {
-        throw new HttpError(result.message, 401);
+        throw new AuthError(ErrorCode.AuthInvalidToken, result.message);
       }
     }
 
     // Only the one of concurrent uses that removes the token gets its data
     const removed = await this._redis.delete(tokenKey);
     if (!removed) {
-      throw new HttpError('Invalid or expired token provided', 401);
+      throw new AuthError(
+        ErrorCode.AuthInvalidToken,
+        'Invalid or expired token provided'
+      );
     }
 
     return value;

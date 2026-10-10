@@ -1,4 +1,5 @@
-import { createService, currentAuthUser, HttpError } from '@appweaver/core';
+import { ErrorCode } from '@appweaver/common';
+import { createService, currentAuthUser, ResourceError } from '@appweaver/core';
 import db from '@db/client';
 import { can, Permission } from '@/features/access/permissions';
 
@@ -18,7 +19,11 @@ export default createService({
       select: { managerId: true }
     });
     if (employee?.managerId !== user.id) {
-      throw new HttpError('Only direct reports can be reviewed', 403);
+      throw new ResourceError(
+        ErrorCode.ResourceForbidden,
+        'Only direct reports can be reviewed',
+        { model: 'PerformanceReview', action: 'create' }
+      );
     }
   }
 });

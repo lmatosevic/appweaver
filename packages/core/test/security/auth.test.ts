@@ -16,14 +16,14 @@ jest.mock('@appweaver/common', () => {
 jest.mock('../../security/jwt', () => {
   const fp = jest.requireActual('fastify-plugin');
   const { requestContext } = jest.requireActual('@fastify/request-context');
-  const { HttpError } = jest.requireActual('../../errors');
+  const { AuthError } = jest.requireActual('../../security/auth-error');
   const actual = jest.requireActual('../../security/jwt/jwt-auth');
   return {
     hasBearerAuth: actual.hasBearerAuth,
     jwtAuth: fp(async (server: any) => {
       server.decorate('authenticateJWT', async (request: any) => {
         if (request.headers.authorization !== 'Bearer valid') {
-          throw new HttpError('Invalid JWT', 401);
+          throw new AuthError('AUTH_INVALID_TOKEN', 'Invalid JWT');
         }
         requestContext.set('authUser', { id: 1, via: 'jwt' });
       });
@@ -34,14 +34,14 @@ jest.mock('../../security/jwt', () => {
 jest.mock('../../security/api-key', () => {
   const fp = jest.requireActual('fastify-plugin');
   const { requestContext } = jest.requireActual('@fastify/request-context');
-  const { HttpError } = jest.requireActual('../../errors');
+  const { AuthError } = jest.requireActual('../../security/auth-error');
   const actual = jest.requireActual('../../security/api-key/api-key-auth');
   return {
     hasApiKey: actual.hasApiKey,
     apiKeyAuth: fp(async (server: any) => {
       server.decorate('authenticateApiKey', async (request: any) => {
         if (request.headers['x-api-key'] !== 'valid') {
-          throw new HttpError('Invalid API key', 401);
+          throw new AuthError('AUTH_API_KEY_INVALID', 'Invalid API key');
         }
         requestContext.set('authUser', { id: 2, via: 'apiKey' });
       });
@@ -52,7 +52,7 @@ jest.mock('../../security/api-key', () => {
 jest.mock('../../security/basic', () => {
   const fp = jest.requireActual('fastify-plugin');
   const { requestContext } = jest.requireActual('@fastify/request-context');
-  const { HttpError } = jest.requireActual('../../errors');
+  const { AuthError } = jest.requireActual('../../security/auth-error');
   const actual = jest.requireActual('../../security/basic/basic-auth');
   return {
     hasBasicAuth: actual.hasBasicAuth,
@@ -60,7 +60,9 @@ jest.mock('../../security/basic', () => {
     basicAuth: fp(async (server: any) => {
       server.decorate('basicAuth', (request: any, _: any, done: any) => {
         if (request.headers.authorization !== 'Basic valid') {
-          return done(new HttpError('Invalid credentials', 401));
+          return done(
+            new AuthError('AUTH_INVALID_CREDENTIALS', 'Invalid credentials')
+          );
         }
         requestContext.set('authUser', { id: 3, via: 'basic' });
         done();
@@ -163,7 +165,7 @@ describe('auth', () => {
       const response = await getMe();
 
       expect(response.statusCode).toBe(401);
-      expect(response.json().message).toBe('Unauthorized');
+      expect(response.json().detail).toBe('Unauthorized');
     });
 
     test('authenticates a valid JWT', async () => {
@@ -181,7 +183,7 @@ describe('auth', () => {
       const response = await getMe({ authorization: 'Bearer forged' });
 
       expect(response.statusCode).toBe(401);
-      expect(response.json().message).toBe('Invalid JWT');
+      expect(response.json().detail).toBe('Invalid JWT');
     });
 
     test('ignores an API key while the API keys are disabled', async () => {
@@ -190,7 +192,7 @@ describe('auth', () => {
       const response = await getMe({ 'x-api-key': 'valid' });
 
       expect(response.statusCode).toBe(401);
-      expect(response.json().message).toBe('Unauthorized');
+      expect(response.json().detail).toBe('Unauthorized');
     });
 
     test('authenticates a valid API key when enabled', async () => {
@@ -213,7 +215,7 @@ describe('auth', () => {
       });
 
       expect(response.statusCode).toBe(401);
-      expect(response.json().message).toBe('Invalid API key');
+      expect(response.json().detail).toBe('Invalid API key');
     });
 
     test('ignores basic credentials while basic auth is disabled', async () => {
@@ -222,7 +224,7 @@ describe('auth', () => {
       const response = await getMe({ authorization: 'Basic valid' });
 
       expect(response.statusCode).toBe(401);
-      expect(response.json().message).toBe('Unauthorized');
+      expect(response.json().detail).toBe('Unauthorized');
     });
 
     test('authenticates valid basic credentials when enabled', async () => {

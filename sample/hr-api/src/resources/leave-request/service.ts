@@ -1,8 +1,14 @@
-import { ResourceId } from '@appweaver/common';
-import { createService, currentAuthUser, HttpError } from '@appweaver/core';
+import {
+  ApplicationError,
+  ErrorCode,
+  RequestError,
+  ResourceId
+} from '@appweaver/common';
+import { createService, currentAuthUser } from '@appweaver/core';
 import db from '@db/client';
 import { LeaveRequestCreate, LeaveRequestUpdate } from '@/types';
 import { countWorkingDays } from '@/features/leave/working-days';
+import { HrErrors } from '@/errors';
 
 type Days = { days?: number };
 
@@ -56,12 +62,36 @@ async function validatePeriod(
   excludeId?: number
 ): Promise<number> {
   if (endDate < startDate) {
-    throw new HttpError('endDate cannot be before startDate', 400);
+    throw new RequestError(
+      ErrorCode.ValidationFailed,
+      'endDate cannot be before startDate',
+      {
+        errors: [
+          {
+            field: 'endDate',
+            rule: 'min',
+            message: 'cannot be before startDate'
+          }
+        ]
+      }
+    );
   }
 
   const days = countWorkingDays(startDate, endDate);
   if (days === 0) {
-    throw new HttpError('The period holds no working days', 400);
+    throw new RequestError(
+      ErrorCode.ValidationFailed,
+      'The period holds no working days',
+      {
+        errors: [
+          {
+            field: 'endDate',
+            rule: 'workingDays',
+            message: 'must close a period holding working days'
+          }
+        ]
+      }
+    );
   }
 
   const overlapping = await db.leaveRequest.findFirst({
@@ -75,9 +105,10 @@ async function validatePeriod(
     }
   });
   if (overlapping) {
-    throw new HttpError(
+    throw new ApplicationError(
+      HrErrors.LeaveOverlap,
       `Overlaps the ${overlapping.status.toLowerCase()} leave request ${overlapping.id}`,
-      409
+      { leaveRequestId: overlapping.id }
     );
   }
 

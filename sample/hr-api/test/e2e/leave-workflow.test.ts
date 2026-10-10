@@ -137,7 +137,8 @@ describe('Leave workflow', () => {
     );
 
     expect(status).toBe(409);
-    expect(body.message).toMatch(/5 requested, 2 remaining/);
+    expect(body.code).toBe('LEAVE_BALANCE_EXCEEDED');
+    expect(body.details).toEqual({ requested: 5, remaining: 2 });
   });
 
   test('lets only the manager of the employee decide', async () => {

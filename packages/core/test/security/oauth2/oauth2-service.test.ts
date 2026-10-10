@@ -1,7 +1,9 @@
 import {
+  ApplicationError,
   AuthSource,
   AuthUser,
   CONFIG,
+  ErrorCode,
   RESOURCE_AUTH,
   RESOURCE_MODEL_TYPE,
   RESOURCE_NAME,
@@ -9,9 +11,10 @@ import {
   RESOURCE_TYPE
 } from '@appweaver/common';
 import { context, define } from '../../../context';
-import { HttpError } from '../../../errors';
+import { DatabaseError } from '../../../database/database-error';
 import { OAuth2Service } from '../../../security/oauth2/oauth2-service';
 import { resetContext } from '../../fixtures/context-fixture';
+import { prismaError } from '../../fixtures/database-fixture';
 
 describe('oauth2-service', () => {
   let authUserService: any;
@@ -98,13 +101,13 @@ describe('oauth2-service', () => {
       await expect(
         service.checkUser(AuthSource.OAuth2Google, userInfo, null)
       ).rejects.toMatchObject({
-        statusCode: 403,
+        code: ErrorCode.OAuth2UserRejected,
         message: expect.stringContaining('Domain is not allowed')
       });
     });
 
-    test('rethrows a returned HttpError as is', async () => {
-      const error = new HttpError('Blocked', 409);
+    test('rethrows a returned AppweaverError as is', async () => {
+      const error = new ApplicationError('BLOCKED', 'Blocked');
       authUserService[CONFIG] = { checkOAuth2User: () => error };
 
       await expect(
@@ -192,11 +195,13 @@ describe('oauth2-service', () => {
     });
 
     test('wraps a lookup failure into a server error', async () => {
-      connectedAccountService.single.mockRejectedValue(new Error('db down'));
+      connectedAccountService.single.mockRejectedValue(
+        prismaError('P2010', 'db down')
+      );
 
       await expect(
         service.findConnectedAccount(AuthSource.OAuth2Google, '42')
-      ).rejects.toBeInstanceOf(HttpError);
+      ).rejects.toBeInstanceOf(DatabaseError);
     });
   });
 
@@ -252,7 +257,7 @@ describe('oauth2-service', () => {
       await expect(
         service.linkConnectedAccount(user(), AuthSource.OAuth2Google, '42')
       ).rejects.toMatchObject({
-        statusCode: 403,
+        code: ErrorCode.OAuth2AccountConflict,
         message: expect.stringContaining('already linked to another user')
       });
       expect(connectedAccountService.create).not.toHaveBeenCalled();
@@ -264,7 +269,11 @@ describe('oauth2-service', () => {
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce({ id: 3, userId: 1 });
       connectedAccountService.create.mockRejectedValue(
-        new HttpError('ConnectedAccount create error', 500)
+        new DatabaseError(
+          ErrorCode.DatabaseUniqueViolation,
+          'ConnectedAccount create error',
+          { fields: ['provider', 'providerAccountId'] }
+        )
       );
 
       await expect(
@@ -277,20 +286,26 @@ describe('oauth2-service', () => {
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce({ id: 3, userId: 99 });
       connectedAccountService.create.mockRejectedValue(
-        new HttpError('ConnectedAccount create error', 500)
+        new DatabaseError(
+          ErrorCode.DatabaseUniqueViolation,
+          'ConnectedAccount create error',
+          { fields: ['provider', 'providerAccountId'] }
+        )
       );
 
       await expect(
         service.linkConnectedAccount(user(), AuthSource.OAuth2Google, '42')
-      ).rejects.toMatchObject({ statusCode: 403 });
+      ).rejects.toMatchObject({ code: ErrorCode.OAuth2AccountConflict });
     });
 
     test('fails when the link cannot be created and none exists', async () => {
-      connectedAccountService.create.mockRejectedValue(new Error('db down'));
+      connectedAccountService.create.mockRejectedValue(
+        prismaError('P2010', 'db down')
+      );
 
       await expect(
         service.linkConnectedAccount(user(), AuthSource.OAuth2Google, '42')
-      ).rejects.toMatchObject({ statusCode: 500 });
+      ).rejects.toMatchObject({ code: ErrorCode.DatabaseOperationFailed });
     });
   });
 });

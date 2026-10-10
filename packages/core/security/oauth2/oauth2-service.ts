@@ -2,12 +2,15 @@ import {
   AuthSource,
   AuthUser,
   CONFIG,
+  ErrorCode,
+  isAppweaverError,
   logger,
   ResourceId,
   uncapitalize
 } from '@appweaver/common';
 import { injectService } from '../../context';
-import { HttpError } from '../../errors';
+import { toDatabaseError } from '../../database';
+import { OAuth2Error } from './oauth2-error';
 import { resourceAuthService } from '../helper';
 import { withoutPolicies } from '../../utils';
 import {
@@ -36,15 +39,15 @@ export class OAuth2Service {
    * Checks whether a user is allowed to be registered and/or authenticated via OAuth2 by invoking the optional
    * `checkOAuth2User` callback configured on the auth service. When the callback returns nothing, the OAuth2 flow
    * proceeds normally (registration of a new user or login of an existing one). When it returns a string or an error,
-   * the flow is aborted by throwing an `HttpError`.
+   * the flow is aborted by throwing an {@link OAuth2Error}.
    *
    * @param {AuthSource} source - The OAuth2 authentication source, e.g., oauth2Google, oauth2Facebook, oauth2Custom.
    * @param {UserInfo} userInfo - The user info extracted from the OAuth2 provider.
    * @param {AuthUser | null} authUser - The existing authenticated user matched by email, or null when the user does
    * not exist yet (i.e., a new user would be registered).
    * @return {Promise<void>} A promise that resolves when the user is allowed to proceed.
-   * @throws {HttpError} If the configured callback returns a string or an error (status 403 unless an `HttpError` is
-   * returned, in which case it is thrown as-is).
+   * @throws {OAuth2Error} `OAUTH2_USER_REJECTED` if the configured callback returns a string or an error, unless it
+   * returns an `AppweaverError`, i.e. an `ApplicationError`, which is thrown as-is.
    */
   public async checkUser(
     source: AuthSource,
@@ -67,14 +70,15 @@ export class OAuth2Service {
       return;
     }
 
-    if (result instanceof HttpError) {
+    if (isAppweaverError(result)) {
       throw result;
     }
 
-    throw new HttpError(
+    throw new OAuth2Error(
+      ErrorCode.OAuth2UserRejected,
       result instanceof Error ? result.message : result,
-      403,
-      result instanceof Error ? result : undefined
+      {},
+      { cause: result instanceof Error ? result : undefined }
     );
   }
 
@@ -132,7 +136,7 @@ export class OAuth2Service {
         service.single({ provider: source, providerAccountId })
       );
     } catch (e) {
-      throw new HttpError('Connected account find error', 500, e);
+      throw toDatabaseError(e);
     }
   }
 
@@ -145,7 +149,7 @@ export class OAuth2Service {
    * @param {string} providerAccountId - The user identifier reported by the provider.
    * @param {string} [scope] - The scopes granted by the provider.
    * @return {Promise<void>} A promise that resolves once the link is stored.
-   * @throws {HttpError} If the provider account is already linked to a different user.
+   * @throws {OAuth2Error} `OAUTH2_ACCOUNT_CONFLICT` if the provider account is already linked to a different user.
    */
   public async linkConnectedAccount(
     authUser: AuthUser,
@@ -161,9 +165,9 @@ export class OAuth2Service {
     const account = await this.findConnectedAccount(source, providerAccountId);
 
     if (account && this.connectedAccountOwnerId(account) !== authUser.id) {
-      throw new HttpError(
-        'This provider account is already linked to another user',
-        403
+      throw new OAuth2Error(
+        ErrorCode.OAuth2AccountConflict,
+        'This provider account is already linked to another user'
       );
     }
 
@@ -173,7 +177,7 @@ export class OAuth2Service {
           service.update(account.id, { scope, lastLoginAt: new Date() })
         );
       } catch (e) {
-        throw new HttpError('Connected account link error', 500, e);
+        throw toDatabaseError(e);
       }
       return;
     }
@@ -196,12 +200,12 @@ export class OAuth2Service {
         providerAccountId
       ).catch(() => null);
       if (!linked) {
-        throw new HttpError('Connected account link error', 500, e);
+        throw toDatabaseError(e);
       }
       if (this.connectedAccountOwnerId(linked) !== authUser.id) {
-        throw new HttpError(
-          'This provider account is already linked to another user',
-          403
+        throw new OAuth2Error(
+          ErrorCode.OAuth2AccountConflict,
+          'This provider account is already linked to another user'
         );
       }
       return;

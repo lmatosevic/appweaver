@@ -172,7 +172,10 @@ export class ResourceClient<Resource extends ResourceType>
     );
 
     if (error) {
-      this.handleError(error, response);
+      this.handleError(error, response, {
+        method: 'post',
+        path: `${this.basePath}/export`
+      });
     }
 
     return this.toFileResponse(response);

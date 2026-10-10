@@ -12,9 +12,9 @@ jest.mock('@appweaver/common', () => {
 });
 
 import * as common from '@appweaver/common';
-import { AuthSource, AuthType } from '@appweaver/common';
+import { AuthSource, AuthType, ErrorCode } from '@appweaver/common';
 import { define } from '../../../context';
-import { HttpError } from '../../../errors';
+import { AuthError } from '../../../security/auth-error';
 import { AuthService } from '../../../security/auth-service';
 import { basicAuth, hasBasicAuth } from '../../../security/basic/basic-auth';
 import { Server } from '../../../types';
@@ -53,7 +53,10 @@ describe('basic-auth', () => {
     resetContext();
     authenticate = jest.fn().mockImplementation(async (username, password) => {
       if (username !== 'user@test.com' || password !== 'secret') {
-        throw new HttpError('Invalid user credentials', 400);
+        throw new AuthError(
+          ErrorCode.AuthInvalidCredentials,
+          'Invalid user credentials'
+        );
       }
       return authUser();
     });
@@ -105,7 +108,7 @@ describe('basic-auth', () => {
 
       expect(response.statusCode).toBe(401);
       expect(response.headers['www-authenticate']).toMatch(/^Basic /);
-      expect(response.json().message).toBe('Invalid user credentials');
+      expect(response.json().detail).toBe('Invalid user credentials');
     });
 
     test('rejects a request without credentials', async () => {

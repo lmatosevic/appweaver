@@ -1,5 +1,6 @@
 import { config, QueryMethod } from '@appweaver/common';
-import { HttpError } from '../../errors';
+import { ErrorCode } from '@appweaver/common';
+import { ResourceError } from '../resource-error';
 
 /** The HTTP methods a query or aggregate route is registered for. */
 export type QueryRouteMethods = { post: boolean; get: boolean };
@@ -34,7 +35,7 @@ export function queryRouteMethods(
  * @param {Record<string, unknown>} query The parsed querystring of the request.
  * @param {string[]} jsonFields The properties always given as JSON (i.e. `filter`).
  * @param {string[]} [objectFields] The properties parsed only when given as a JSON object (i.e. `sort`).
- * @throws {HttpError} 400 if a property is repeated or holds malformed JSON.
+ * @throws {ResourceError} `RESOURCE_INVALID_QUERY_PARAMETER` if a property is repeated or holds malformed JSON.
  */
 export function parseJsonParams(
   query: Record<string, unknown>,
@@ -49,7 +50,11 @@ export function parseJsonParams(
     }
 
     if (Array.isArray(value)) {
-      throw new HttpError(`Query parameter '${field}' is repeated`, 400);
+      throw new ResourceError(
+        ErrorCode.ResourceInvalidQueryParameter,
+        `Query parameter '${field}' is repeated`,
+        { parameter: field }
+      );
     }
 
     if (
@@ -62,10 +67,11 @@ export function parseJsonParams(
     try {
       query[field] = JSON.parse(value);
     } catch (e) {
-      throw new HttpError(
+      throw new ResourceError(
+        ErrorCode.ResourceInvalidQueryParameter,
         `Query parameter '${field}' is not valid JSON`,
-        400,
-        e
+        { parameter: field },
+        { cause: e }
       );
     }
   }

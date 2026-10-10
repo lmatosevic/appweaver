@@ -227,7 +227,8 @@ When a `query` or `aggregate` route is GET-only, the generator passes `{ query: 
 client sends the request as query parameters. With both methods available, it uses POST.
 
 ```ts
-public tag = this.resourceClient<Type.TagResourceModuleType>('/api/tags', { query: 'get' });
+public
+tag = this.resourceClient<Type.TagResourceModuleType>('/api/tags', { query: 'get' });
 ```
 
 ### Angular client (`--framework angular`)
@@ -596,12 +597,54 @@ try {
   const post = await client.post.find(999);
 } catch (err) {
   if (err instanceof ClientError) {
-    console.error(err.message);        // Error message from the API response body
-    console.error(err.errorCode);      // HTTP status code (or API errorCode field)
+    console.error(err.message);        // The detail of the problem details response
+    console.error(err.status);         // HTTP status code
+    console.error(err.code);           // Error code, i.e. 'RESOURCE_NOT_FOUND' ('REQUEST_FAILED' without problem details)
+    console.error(err.errors);         // Invalid fields, i.e. [{ field: 'email', rule: 'unique', message: 'must be unique' }]
+    console.error(err.details);        // Details specific to the code
+    console.error(err.problem);        // The whole RFC 9457 problem details body
     console.error(err.response);       // Native Response object
+    console.error(err.route);          // The route of the request, i.e. { method: 'get', path: '/api/posts/{id}' }
   }
 }
 ```
+
+A plain `instanceof` check types `err.code` as `any`. The generated file exports the error types of the API to type it:
+
+| Export                         | Description                                                                                                                                          |
+|--------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `ErrorCode`                    | Constant and union of every framework and application error code of the API, its keys PascalCase as on the server, i.e. `ErrorCode.ResourceNotFound` |
+| `ApiError`                     | `ClientError<ErrorCode>`                                                                                                                             |
+| `isApiError(err)`              | Narrows a caught error to `ApiError`, so `err.is()` accepts the error codes of the API only                                                          |
+| `RouteErrorCode<Method, Path>` | The error codes a route documents, i.e. `RouteErrorCode<'get', '/api/posts/{id}'>`                                                                   |
+
+`client.isRouteError(err, method, path)` narrows a caught error further, to the codes of the route the request was sent
+to. It checks the route the error was thrown for, so it is true for the error of a request of that route only (a
+module client method or `sendRequest`):
+
+```ts
+import { ErrorCode, isApiError } from './generated/client';
+
+try {
+  await client.user.create(data);
+} catch (err) {
+  if (isApiError(err) && err.is(ErrorCode.DatabaseUniqueViolation)) {
+    showFieldErrors(err.errors); // [{ field: 'email', rule: 'unique', message: 'must be unique' }]
+  }
+}
+
+try {
+  await client.post.find(999);
+} catch (err) {
+  if (client.isRouteError(err, 'get', '/api/posts/{id}')) {
+    err.code; // 'RESOURCE_NOT_FOUND' | 'RESOURCE_FORBIDDEN' | 'VALIDATION_FAILED' | ...
+  }
+}
+```
+
+Every operation types its error responses per status, narrowing the `code` of `ProblemDetails` to the codes the route
+documents, i.e. `code: 'RESOURCE_NOT_FOUND'` for the 404 of a find. The responses the operations share are declared
+once in `components['responses']` (i.e. `ResourceNotFoundError`) and referred to by every operation.
 
 Use `sendRequestRaw` to avoid exceptions and handle errors inline:
 
@@ -610,7 +653,7 @@ const { data, error, response } = await client.sendRequestRaw('get', '/api/posts
   params: { path: { id: 999 } }
 });
 
-if (response.status === 404) {
+if (error?.code === 'RESOURCE_NOT_FOUND') {
   // handle not found
 }
 ```

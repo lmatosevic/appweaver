@@ -55,13 +55,13 @@ describe('Soft deleting a post', () => {
     await posts.delete(post.id);
 
     await expect(posts.find(post.id)).rejects.toMatchObject({
-      statusCode: 404
+      code: 'RESOURCE_NOT_FOUND'
     });
     await expect(
       posts.update(post.id, { title: 'Back' })
-    ).rejects.toMatchObject({ statusCode: 404 });
+    ).rejects.toMatchObject({ code: 'RESOURCE_NOT_FOUND' });
     await expect(posts.delete(post.id)).rejects.toMatchObject({
-      statusCode: 404
+      code: 'RESOURCE_NOT_FOUND'
     });
 
     const result = await posts.query({ filter: { slug: 'hidden' } });
@@ -92,7 +92,7 @@ describe('Soft deleting a post', () => {
     expect(commentRecord.deletedAt).toEqual(postRecord.deletedAt);
 
     await expect(comments.find(comment.id)).rejects.toMatchObject({
-      statusCode: 404
+      code: 'RESOURCE_NOT_FOUND'
     });
   });
 
@@ -174,6 +174,8 @@ describe('Soft deleting a post', () => {
 
     await expect(
       posts.update(post.id, { pinnedComment: comment.id })
-    ).rejects.toMatchObject({ statusCode: 400 });
+    ).rejects.toMatchObject({
+      code: 'RESOURCE_INVALID_RELATION'
+    });
   });
 });

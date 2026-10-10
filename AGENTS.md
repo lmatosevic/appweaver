@@ -58,6 +58,8 @@ describe('Feature Verification', () => {
     - **Comments**: Keep code comments short and to the point. Explain only what the code itself cannot show.
     - **Class member order**: fields first, then all public methods, then the private ones.
     - **Type member order**: in an interface or type, required properties come first, optional ones after them.
+    - **`@internal`**: only on class members, the private ones, or rarely a public one a class adds beside the
+      interface from `packages/common` it implements. Never on plain functions, constants or types.
 - **Dependency Management**: Packages are linked locally in `node_modules/@appweaver` after the build. Ensure you run
   `npm run build` after making changes to shared packages if they are used by other packages or the sample application.
 
@@ -78,6 +80,19 @@ When changing the config schema in `packages/common/config/config.ts`, make sure
 - **skill/references/configuration.md**: Skill for configuration usage by AI agents
 - **appweaver.example.json**: example defaults as JSON properties
 - **.env.example**: example defaults as env variables
+
+### Errors
+
+Code outside the API layer never throws an HTTP error. Every module throws a subclass of the abstract `AppweaverError`
+of `packages/common/errors` (`ResourceError`, `AuthError`, `DatabaseError`, ...), carrying a code of the
+`ErrorCode` enum and typed details. Only `core/errors` maps a code to its HTTP status (`errorHttpMap`) and responds
+with RFC 9457 problem details. Wrap the errors of Prisma calls with `toDatabaseError`, which names the violated
+constraint. When adding an error code:
+
+- add it to `ErrorCode` in `packages/common/errors/error-code.ts`, prefixed with the module raising it
+- add its details to `ErrorDetailsMap` in `packages/common/errors/error-details.ts`, unless it carries none
+- map it in `errorHttpMap` of `packages/core/errors/error-http-map.ts` (a missing code fails to compile)
+- list it in the `errorResponses` of the routes responding with it, and in `skill/references/errors.md`
 
 ### `packages/core`
 
@@ -101,7 +116,7 @@ Core application logic. Organized into the following modules:
 | `health/`    | Health check endpoint and service registration                                                                                                            |
 | `export/`    | Data export service (CSV and other formats)                                                                                                               |
 | `events/`    | Node.js event emitter integration                                                                                                                         |
-| `errors/`    | Custom application error classes                                                                                                                          |
+| `errors/`    | The API error layer: error code to HTTP status map, `defineErrors`, RFC 9457 problem details, error handler and `errorResponses` schemas                  |
 | `types/`     | TypeScript type definitions (hand-written and generated)                                                                                                  |
 | `utils/`     | Utility functions shared across modules or meant for library users (see the placement rule below)                                                         |
 
@@ -170,9 +185,10 @@ The package exposes a `weaver-client` CLI binary. See **Section 6** for the full
 | `generators/generate-client.ts` | OpenAPI → typed client class                                         |
 | `utils/hoist-util.ts`           | Hoists the schemas a document repeats inline into shared definitions |
 | `utils/enum-util.ts`            | Rewrites the generated enums into constant objects and value unions  |
+| `utils/problem-util.ts`         | Inlines the error codes of every error response, names `ErrorCode`   |
 | `clients/fetch-client.ts`       | `FetchClient` base class with auth/middleware                        |
 | `clients/modules/`              | `ResourceClient`, `AuthClient`, `AccountClient`, etc.                |
-| `errors/client-error.ts`        | `ClientError` with HTTP status code and response object              |
+| `errors/client-error.ts`        | `ClientError` with the HTTP status, error code and problem details   |
 | `constants.ts`                  | OpenAPI extension keys and operation/type mapping tables             |
 
 ---
@@ -195,7 +211,8 @@ chosen runtime, stripping the `.tpl`, `.node`, or `.bun` extensions from the fin
 
 The versions of every npm package a generated project installs (except the `@appweaver/*` packages, which follow the
 CLI's own version) are kept in the `scaffoldDependencies` field of the **root** `package.json`, split into `companion`
-(packages the framework uses at runtime or as a peer: Prisma, TypeBox, BullMQ, Cron, IoRedis, Nodemailer, TypeScript) and
+(packages the framework uses at runtime or as a peer: Prisma, TypeBox, BullMQ, Cron, IoRedis, Nodemailer, TypeScript)
+and
 `tooling` (lint and test setup). The templates receive them through the `{{DEPENDENCIES}}` and `{{DEV_DEPENDENCIES}}`
 variables, so bump versions there, not in the templates. Keep the versions equal to the root `dependencies` and
 `devDependencies`, which a test checks.

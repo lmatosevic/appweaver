@@ -1,6 +1,7 @@
 import {
   ActionType,
   capitalize,
+  ErrorCode,
   extractSchemaProperties,
   FileField,
   isArray,
@@ -15,7 +16,7 @@ import {
 } from '@appweaver/common';
 import { injectModel } from '../../context';
 import { currentAuthUser } from '../../security';
-import { HttpError } from '../../errors';
+import { ResourceError } from '../resource-error';
 import { liveInclusionFilter } from './delete-util';
 
 /** Levels of a self referencing relation read when the relation configures no
@@ -111,7 +112,7 @@ export function mapRelationInclusions(
  * @return {RelationActions} The nested write clause per relation field, mapping each one to its `connect`, `create`,
  * `update`, `connectOrCreate`, `disconnect` and `delete` actions, or to undefined for the relations no action can be
  * applied to.
- * @throws {HttpError} 400 if an inline create payload is missing required fields, or if the relation accepts no new
+ * @throws {ResourceError} `RESOURCE_INVALID_RELATION` if an inline create payload is missing required fields, or if the relation accepts no new
  * records and an id was not provided.
  */
 export function mapRelationActions(
@@ -218,9 +219,10 @@ export function mapRelationActions(
         } else if (!config?.input?.allowCreate) {
           // Without inline creation the related record must already exist,
           // so it is created through its own endpoint first
-          throw new HttpError(
+          throw new ResourceError(
+            ErrorCode.ResourceInvalidRelation,
             `${resourceName} relation '${key}' does not accept new records, an id is required`,
-            400
+            { model: resourceName, relation: key }
           );
         } else {
           const createData = relationWriteData(config?.model, 'create', item);
@@ -229,9 +231,10 @@ export function mapRelationActions(
             createData
           );
           if (missingFields.length > 0) {
-            throw new HttpError(
+            throw new ResourceError(
+              ErrorCode.ResourceInvalidRelation,
               `${resourceName} relation '${key}' is missing required fields: ${missingFields.join(', ')}`,
-              400
+              { model: resourceName, relation: key, missingFields }
             );
           }
 

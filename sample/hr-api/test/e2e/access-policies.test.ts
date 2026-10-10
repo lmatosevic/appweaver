@@ -94,7 +94,8 @@ describe('Access policies', () => {
       );
 
       expect(status).toBe(403);
-      expect(body.message).toBe('Only HR can change: manager, employmentType');
+      expect(body.code).toBe('RESOURCE_FORBIDDEN');
+      expect(body.detail).toBe('Only HR can change: manager, employmentType');
     });
 
     test('keeps other profiles for HR', async () => {
@@ -123,8 +124,9 @@ describe('Access policies', () => {
         url: '/auth/login',
         payload: { username: leaver.email, password: 'Passw0rd!' }
       });
-      expect(login.statusCode).toBe(400);
-      expect(login.json().message).toMatch(/disabled/);
+      expect(login.statusCode).toBe(401);
+      expect(login.json().code).toBe('AUTH_INVALID_CREDENTIALS');
+      expect(login.json().detail).toMatch(/disabled/);
     });
   });
 

@@ -199,11 +199,11 @@ which all share the same `deletedAt` value. Unique values of a deleted record st
 
 The delete follows the `onDelete` action of every relation referencing the record, mirroring a database delete:
 
-| `onDelete` of the referencing relation        | On soft delete                                                                      |
-|-----------------------------------------------|-------------------------------------------------------------------------------------|
-| `cascade`                                     | The referencing records are soft deleted with the same `deletedAt`, level by level. |
-| `restrict`, `noAction` (default if required)  | The delete fails with 409 while a live record references it.                        |
-| `setNull`, `setDefault` (default if optional) | The reference is kept, so a manual restore brings the link back.                    |
+| `onDelete` of the referencing relation        | On soft delete                                                                              |
+|-----------------------------------------------|---------------------------------------------------------------------------------------------|
+| `cascade`                                     | The referencing records are soft deleted with the same `deletedAt`, level by level.         |
+| `restrict`, `noAction` (default if required)  | The delete fails with `RESOURCE_DELETE_RESTRICTED` (409) while a live record references it. |
+| `setNull`, `setDefault` (default if optional) | The reference is kept, so a manual restore brings the link back.                            |
 
 A soft delete never runs the database cascade, so every model a soft deleted model cascades into must enable
 `softDelete` too. The application refuses to start and `weaver generate` fails otherwise:
@@ -912,7 +912,13 @@ relation to leave its foreign key unindexed, i.e. for a rarely queried relation 
 
 ```ts
 relations: {
-  author: { model: 'User', type: 'manyToOne', index: false }
+  author: {
+    model: 'User', type
+  :
+    'manyToOne', index
+  :
+    false
+  }
 }
 ```
 

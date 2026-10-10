@@ -1,7 +1,27 @@
 import { Type } from '@sinclair/typebox';
-import { currentAuthUser, registerRoute } from '@appweaver/core';
+import { ErrorCode } from '@appweaver/common';
+import {
+  currentAuthUser,
+  errorResponses,
+  registerRoute
+} from '@appweaver/core';
+import { HrErrors } from '@/errors';
 import { Permission } from '@/features/access/permissions';
 import { cancelLeaveRequest, decideLeaveRequest } from './leave-decision';
+
+const decisionErrors = errorResponses(
+  ErrorCode.ResourceNotFound,
+  ErrorCode.ResourceForbidden,
+  HrErrors.LeaveAlreadyDecided,
+  HrErrors.LeaveBalanceMissing,
+  HrErrors.LeaveBalanceExceeded
+);
+
+const cancelErrors = errorResponses(
+  ErrorCode.ResourceNotFound,
+  ErrorCode.ResourceForbidden,
+  HrErrors.LeaveNotCancellable
+);
 
 const params = Type.Object({ id: Type.Integer({ minimum: 1 }) });
 
@@ -22,7 +42,8 @@ registerRoute(
             note: Type.Optional(Type.String({ maxLength: 1000 }))
           }),
           response: {
-            200: Type.Ref('LeaveRequestSingle')
+            200: Type.Ref('LeaveRequestSingle'),
+            ...decisionErrors
           }
         }
       },
@@ -47,7 +68,8 @@ registerRoute(
             note: Type.String({ minLength: 3, maxLength: 1000 })
           }),
           response: {
-            200: Type.Ref('LeaveRequestSingle')
+            200: Type.Ref('LeaveRequestSingle'),
+            ...decisionErrors
           }
         }
       },
@@ -74,7 +96,8 @@ registerRoute((router) => {
           'A pending request, or an approved one that has not started yet. The booked days return to the balance.',
         params,
         response: {
-          200: Type.Ref('LeaveRequestSingle')
+          200: Type.Ref('LeaveRequestSingle'),
+          ...cancelErrors
         }
       }
     },

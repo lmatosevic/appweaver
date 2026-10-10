@@ -94,7 +94,6 @@ export async function settleTransaction(
   }
 }
 
-/** @internal */
 async function runSafe(fn: () => unknown, message: string): Promise<void> {
   try {
     await fn();

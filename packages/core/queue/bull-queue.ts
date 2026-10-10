@@ -11,6 +11,7 @@ import { Redis as RedisClient, RedisOptions } from 'ioredis';
 import { JobsOptions } from 'bullmq/dist/esm/types';
 import {
   config,
+  ErrorCode,
   HealthCheckResult,
   logger,
   Queue as CommonQueue,
@@ -21,6 +22,7 @@ import {
   uuid
 } from '@appweaver/common';
 import { inject } from '../context';
+import { QueueError } from './queue-error';
 
 type EventName = keyof WorkerListener;
 
@@ -337,8 +339,10 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     }
 
     if (connection.status !== 'ready') {
-      throw new Error(
-        `Queue '${this.name}' is unavailable, Redis connection is not ready`
+      throw new QueueError(
+        ErrorCode.QueueUnavailable,
+        `Queue '${this.name}' is unavailable, Redis connection is not ready`,
+        { queue: this.name }
       );
     }
   }

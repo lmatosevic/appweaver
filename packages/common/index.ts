@@ -1,5 +1,6 @@
 export * from './config';
 export * from './enums';
+export * from './errors';
 export * from './infrastructure';
 export * from './interfaces';
 export * from './logger';

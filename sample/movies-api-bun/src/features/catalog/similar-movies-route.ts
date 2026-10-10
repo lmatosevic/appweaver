@@ -1,5 +1,11 @@
 import { Type } from '@sinclair/typebox';
-import { HttpError, injectService, registerRoute } from '@appweaver/core';
+import { ErrorCode } from '@appweaver/common';
+import {
+  errorResponses,
+  injectService,
+  registerRoute,
+  ResourceError
+} from '@appweaver/core';
 import db from '@db/client';
 
 registerRoute(
@@ -17,7 +23,8 @@ registerRoute(
             limit: Type.Integer({ minimum: 1, maximum: 20, default: 5 })
           }),
           response: {
-            200: Type.Object({ items: Type.Array(Type.Ref('MovieMultiple')) })
+            200: Type.Object({ items: Type.Array(Type.Ref('MovieMultiple')) }),
+            ...errorResponses(ErrorCode.ResourceNotFound)
           }
         }
       },
@@ -27,7 +34,14 @@ registerRoute(
           select: { genres: { select: { id: true } } }
         });
         if (!movie) {
-          throw new HttpError('Movie not found', 404);
+          throw new ResourceError(
+            ErrorCode.ResourceNotFound,
+            'Movie not found',
+            {
+              model: 'Movie',
+              id: req.params.id
+            }
+          );
         }
 
         const genreIds = movie.genres.map((genre) => genre.id);

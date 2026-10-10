@@ -6,6 +6,7 @@ import {
   AuthUser,
   CONFIG,
   config,
+  ErrorCode,
   Events,
   logger,
   ResourceId,
@@ -26,7 +27,9 @@ import { OAuth2Service } from './oauth2/oauth2-service';
 import { context, inject } from '../context';
 import { CacheService } from '../cache';
 import { FileService } from '../storage';
-import { HttpError } from '../errors';
+import { toDatabaseError } from '../database';
+import { ContextError } from '../context/context-error';
+import { AuthError } from './auth-error';
 import { withoutPolicies } from '../utils';
 import {
   AuthOTTData,
@@ -103,7 +106,7 @@ export class AuthService {
 
       return authUser;
     } catch (e) {
-      throw new HttpError('Auth user find error', 500, e);
+      throw toDatabaseError(e);
     }
   }
 
@@ -142,7 +145,7 @@ export class AuthService {
 
       return authUser;
     } catch (e) {
-      throw new HttpError('Auth user find error', 500, e);
+      throw toDatabaseError(e);
     }
   }
 
@@ -164,7 +167,7 @@ export class AuthService {
         this._authUserService.update(id, data)
       );
     } catch (e) {
-      throw new HttpError('Auth user update error', 500, e);
+      throw toDatabaseError(e);
     }
 
     // Awaited unlike the update event eviction, so the next request, e.g. with
@@ -184,7 +187,7 @@ export class AuthService {
    * @param {Partial<UserAdditionalData>} [data] - Optional additional data related to the user to be stored during
    * registration.
    * @return {Promise<AuthUser>} A promise resolving to the registered authentication user object.
-   * @throws {HttpError} Throws an error if the registration process fails.
+   * @throws {DatabaseError} If the registration fails, i.e. `DATABASE_UNIQUE_VIOLATION` for a taken username.
    */
   public async registerAuthUser(
     source: AuthSource,
@@ -212,7 +215,7 @@ export class AuthService {
         })
       );
     } catch (e) {
-      throw new HttpError('Auth user registration error', 500, e);
+      throw toDatabaseError(e);
     }
 
     await this.saveRegistrationFiles(authUser, source, data);
@@ -228,7 +231,7 @@ export class AuthService {
    * @param {string} newPassword - The new password to be set for the authenticated user.
    * @return {Promise<AuthTokens>} A promise that resolves to the new authentication tokens after the password is
    * successfully changed.
-   * @throws {HttpError} If the current password does not match the stored password hash.
+   * @throws {AuthError} `AUTH_PASSWORD_INVALID` if the current password does not match the stored password hash.
    */
   public async changePassword(
     authUser: AuthUser,
@@ -236,19 +239,27 @@ export class AuthService {
     newPassword: string
   ): Promise<AuthTokens> {
     if (!config.SECURITY_PASSWORD_ENABLED) {
-      throw new HttpError('Password update is not supported', 403);
+      throw new AuthError(
+        ErrorCode.AuthPasswordDisabled,
+        'Password update is not supported'
+      );
     }
 
     if (
       !authUser.passwordHash ||
       !(await checkPassword(currentPassword, authUser.passwordHash))
     ) {
-      throw new HttpError('Auth user current password invalid', 403);
+      throw new AuthError(
+        ErrorCode.AuthPasswordInvalid,
+        'Auth user current password invalid'
+      );
     }
 
     const result = validatePasswordComplexity(newPassword);
     if (!result.valid) {
-      throw new HttpError(result.message, 400);
+      throw new AuthError(ErrorCode.AuthPasswordWeak, result.message, {
+        reason: result.message
+      });
     }
 
     await this.updateAuthUser(authUser.id, {
@@ -267,7 +278,7 @@ export class AuthService {
    * @param {string} username - The username of the user attempting to authenticate.
    * @param {string} password - The password of the user attempting to authenticate.
    * @return {Promise<AuthUser>} A promise that resolves to an authenticated user object if the credentials are valid.
-   * @throws {HttpError} If the user does not exist, is disabled, or if the provided credentials are invalid. All three
+   * @throws {AuthError} `AUTH_INVALID_CREDENTIALS` if the user does not exist, is disabled, or if the provided credentials are invalid. All three
    * cases throw the same error, so the response does not reveal which users exist.
    */
   public async authenticate(
@@ -290,9 +301,9 @@ export class AuthService {
       !authUser.passwordHash ||
       !passwordValid
     ) {
-      throw new HttpError(
-        'Invalid user credentials: wrong username or password, or the user is disabled',
-        400
+      throw new AuthError(
+        ErrorCode.AuthInvalidCredentials,
+        'Invalid user credentials: wrong username or password, or the user is disabled'
       );
     }
 
@@ -313,7 +324,7 @@ export class AuthService {
    * @param {string} url - The URL of the resource being accessed.
    * @param {RouteConfig} [routeConfig={}] - The route configuration object specifying required roles and permissions.
    * @param {JwtPayload} [jwtPayload] - The JWT payload containing additional authentication information.
-   * @throws {HttpError} If the user is not authorized to access url based on route config and JWT payload.
+   * @throws {AuthError} `AUTH_UNAUTHORIZED`, `AUTH_SCOPE_FORBIDDEN` or `AUTH_FORBIDDEN` if the user is not authorized to access url based on route config and JWT payload.
    */
   public authorize(
     authUser: AuthUser | null,
@@ -331,19 +342,19 @@ export class AuthService {
         Math.floor(new Date(authUser.logoutAt).getTime() / 1000) >
           jwtPayload.iat)
     ) {
-      throw new HttpError('Unauthorized access', 401);
+      throw new AuthError(ErrorCode.AuthUnauthorized, 'Unauthorized access');
     }
 
     if (jwtPayload && !checkScopeAccess(url, jwtPayload.scope)) {
-      throw new HttpError(
-        `JWT token is not authorized to access requested URL`,
-        403
+      throw new AuthError(
+        ErrorCode.AuthScopeForbidden,
+        'JWT token is not authorized to access requested URL'
       );
     }
 
     const { roles, permissions } = routeConfig;
     if (!hasRoles(authUser, roles) || !hasPermissions(authUser, permissions)) {
-      throw new HttpError('Forbidden access', 403);
+      throw new AuthError(ErrorCode.AuthForbidden, 'Forbidden access');
     }
   }
 
@@ -356,7 +367,7 @@ export class AuthService {
    * @param {string} password - The password of the user attempting to log in.
    * @return {Promise<AuthTokens>} A promise that resolves to an object containing authentication tokens if login is
    * successful.
-   * @throws {HttpError} If the user does not exist, is disabled, or provides invalid credentials.
+   * @throws {AuthError} If the user does not exist, is disabled, or provides invalid credentials.
    */
   public async login(username: string, password: string): Promise<AuthTokens> {
     const authUser = await this.authenticate(username, password);
@@ -378,7 +389,7 @@ export class AuthService {
    * @param {string} token - The token to be exchanged for new authentication tokens.
    * @param {string} [password] - The account password, required when the token was flagged for confirmation.
    * @return {Promise<AuthTokens>} A promise that resolves to a set of new authentication tokens.
-   * @throws {HttpError} If the token is invalid, expired, associated with a non-existent or disabled user, or the
+   * @throws {AuthError} If the token is invalid, expired, associated with a non-existent or disabled user, or the
    * required password confirmation is missing or wrong.
    */
   public async exchangeToken(
@@ -398,7 +409,10 @@ export class AuthService {
 
     const authUser = await this.findById(authUserId);
     if (!authUser || !authUser.enabled) {
-      throw new HttpError('Auth user does not exist or is disabled', 400);
+      throw new AuthError(
+        ErrorCode.AuthUserNotFound,
+        'Auth user does not exist or is disabled'
+      );
     }
 
     if (passwordRequired) {
@@ -437,7 +451,7 @@ export class AuthService {
    *                                - `refreshToken` (string): The refresh token for acquiring new access tokens.
    *                                - `expiresIn` (number): The expiration time (in seconds) of the access token.
    *                                - `refreshExpiresIn` (number): The expiration time (in seconds) of the refresh token.
-   * @throws {HttpError} If the server instance is not initialized.
+   * @throws {ContextError} `CONTEXT_SERVER_UNAVAILABLE` if the server instance is not initialized.
    */
   public async generateAuthTokens(
     authUser: AuthUser,
@@ -446,7 +460,10 @@ export class AuthService {
   ): Promise<AuthTokens> {
     const server = context.server;
     if (!server) {
-      throw new HttpError('Server instance not initialized');
+      throw new ContextError(
+        ErrorCode.ContextServerUnavailable,
+        'Server instance not initialized'
+      );
     }
 
     const jwtPayload: Omit<JwtPayload, 'iat'> = {
@@ -550,9 +567,9 @@ export class AuthService {
     password?: string
   ): Promise<void> {
     if (!password) {
-      throw new HttpError(
-        'Password confirmation is required to link this provider account',
-        401
+      throw new AuthError(
+        ErrorCode.AuthPasswordRequired,
+        'Password confirmation is required to link this provider account'
       );
     }
 
@@ -564,7 +581,10 @@ export class AuthService {
         { id: authUser.id },
         'OAuth2 password confirmation rejected'
       );
-      throw new HttpError('Invalid user credentials', 401);
+      throw new AuthError(
+        ErrorCode.AuthInvalidCredentials,
+        'Invalid user credentials'
+      );
     }
   }
 

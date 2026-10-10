@@ -1,7 +1,7 @@
 import Fastify, { FastifyInstance } from 'fastify';
 import { ROUTE } from '@appweaver/common';
 import { context } from '../../context';
-import { ClientErrorResponse, ServerErrorResponse } from '../../errors';
+import { ProblemDetailsSchema } from '../../errors';
 import { registerRoute } from '../../server/register-route';
 import { resetContext } from '../fixtures/context-fixture';
 
@@ -25,8 +25,7 @@ describe('register-route', () => {
     resetContext();
 
     server = Fastify({ logger: false });
-    server.addSchema(ClientErrorResponse);
-    server.addSchema(ServerErrorResponse);
+    server.addSchema(ProblemDetailsSchema);
     server.decorate('authenticate', () => async () => {});
     server.decorate('recaptcha', async () => {});
   });

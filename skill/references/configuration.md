@@ -82,6 +82,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `APP_NAME`               | string   | `'Appweaver'`                      | Application name.                                                                                         |
 | `APP_DESCRIPTION`        | string?  | -                                  | Application description.                                                                                  |
 | `APP_HOSTNAME`           | string   | `'http://localhost:{SERVER_PORT}'` | Application hostname URL.                                                                                 |
+| `APP_TYPE_BASE`          | string   | `'urn:appweaver'`                  | Base of the type URIs of the application, i.e. `urn:appweaver:error:resource-not-found`. A URL base is joined with slashes. |
 | `APP_RUNTIME`            | string   | `'node'`                           | Application runtime. Autodetects Bun global module. Values: `node`, `bun`                                 |
 | `APP_VERSION`            | string   | `'unknown'`                        | Application version. Mapped from `npm_package_version`.                                                   |
 | `APP_BUILD_PATH`         | string   | `'./dist'`                         | Path to compiled build artifacts.                                                                         |
@@ -107,20 +108,21 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 ### Server (SERVER\_\*)
 
-| Property                         | Type     | Default      | Description                                                |
-|----------------------------------|----------|--------------|------------------------------------------------------------|
-| `SERVER_PORT`                    | integer  | `5000`       | HTTP server listening port.                                |
-| `SERVER_HOST`                    | string   | `'0.0.0.0'`  | HTTP server listening host/IP.                             |
-| `SERVER_API_PREFIX`              | string   | `'/api'`     | Base path prefix for all API routes.                       |
-| `SERVER_BODY_MAX_SIZE`           | string   | `100M`       | Maximum request body size.                                 |
-| `SERVER_STATIC_ENABLED`          | boolean  | `true`       | Enable serving static files from disk.                     |
-| `SERVER_STATIC_DIR_PATH`         | string   | `'./public'` | Directory containing static files.                         |
-| `SERVER_STATIC_ROUTE_PREFIX`     | string   | `'/public'`  | URL prefix for static file routes.                         |
-| `SERVER_STATIC_RESPONSE_HEADERS` | string[] | `[]`         | HTTP headers for static files. Format: "{header}: {value}" |
-| `SERVER_STATIC_MAX_AGE`          | string   | `'30d'`      | Cache-Control max-age for static files.                    |
-| `SERVER_STATIC_ALLOWED_HOST`     | string?  | -            | Host allowed to access static files (CORS).                |
-| `SERVER_TRUST_PROXY`             | boolean  | `true`       | Trust `X-Forwarded-*` headers from reverse proxies.        |
-| `SERVER_REQUEST_LOGGING_ENABLED` | boolean  | `false`      | Enable HTTP request/response logging.                      |
+| Property                                | Type     | Default                  | Description                                                                                          |
+|-----------------------------------------|----------|--------------------------|------------------------------------------------------------------------------------------------------|
+| `SERVER_PORT`                           | integer  | `5000`                   | HTTP server listening port.                                                                          |
+| `SERVER_HOST`                           | string   | `'0.0.0.0'`              | HTTP server listening host/IP.                                                                       |
+| `SERVER_API_PREFIX`                     | string   | `'/api'`                 | Base path prefix for all API routes.                                                                 |
+| `SERVER_BODY_MAX_SIZE`                  | string   | `100M`                   | Maximum request body size.                                                                           |
+| `SERVER_STATIC_ENABLED`                 | boolean  | `true`                   | Enable serving static files from disk.                                                               |
+| `SERVER_STATIC_DIR_PATH`                | string   | `'./public'`             | Directory containing static files.                                                                   |
+| `SERVER_STATIC_ROUTE_PREFIX`            | string   | `'/public'`              | URL prefix for static file routes.                                                                   |
+| `SERVER_STATIC_RESPONSE_HEADERS`        | string[] | `[]`                     | HTTP headers for static files. Format: "{header}: {value}"                                           |
+| `SERVER_STATIC_MAX_AGE`                 | string   | `'30d'`                  | Cache-Control max-age for static files.                                                              |
+| `SERVER_STATIC_ALLOWED_HOST`            | string?  | -                        | Host allowed to access static files (CORS).                                                          |
+| `SERVER_TRUST_PROXY`                    | boolean  | `true`                   | Trust `X-Forwarded-*` headers from reverse proxies.                                                  |
+| `SERVER_REQUEST_LOGGING_ENABLED`        | boolean  | `false`                  | Enable HTTP request/response logging.                                                                |
+| `SERVER_ERROR_DATABASE_MESSAGE_ENABLED` | boolean  | `false`                  | Append the message of the database to the detail of a database error response, in every environment. |
 
 ### Rate limiting (RATE_LIMIT_\*)
 

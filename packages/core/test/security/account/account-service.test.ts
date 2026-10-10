@@ -18,11 +18,12 @@ import {
   AuthOTTPurpose,
   AuthSource,
   config,
+  ErrorCode,
   makeHash,
   SecurityStore
 } from '@appweaver/common';
 import { define } from '../../../context';
-import { HttpError } from '../../../errors';
+import { AuthError } from '../../../security/auth-error';
 import { EmailService } from '../../../mailer';
 import { AuthService } from '../../../security/auth-service';
 import {
@@ -74,7 +75,7 @@ describe('account-service', () => {
         .mockImplementation(async (_token, _purpose, validate) => {
           const result = validate?.(tokenData);
           if (result && !result.valid) {
-            throw new HttpError(result.message, 400);
+            throw new AuthError(ErrorCode.AuthInvalidToken, result.message);
           }
           return tokenData;
         })
@@ -124,21 +125,21 @@ describe('account-service', () => {
           authUser({ verifiedEmail: true }),
           'https://app.test/verified'
         )
-      ).rejects.toMatchObject({ statusCode: 403 });
+      ).rejects.toMatchObject({ code: ErrorCode.AccountEmailAlreadyVerified });
       expect(sendEmail).not.toHaveBeenCalled();
     });
 
     test('rejects a redirect to a host that is not allowed', async () => {
       await expect(
         service.sendEmailVerification(authUser(), 'https://evil.test/phish')
-      ).rejects.toMatchObject({ statusCode: 400 });
+      ).rejects.toMatchObject({ code: ErrorCode.AuthInvalidRedirectUrl });
       expect(securityStore.generateOneTimeToken).not.toHaveBeenCalled();
     });
 
     test('rejects a malformed redirect URL', async () => {
       await expect(
         service.sendEmailVerification(authUser(), 'not a url')
-      ).rejects.toMatchObject({ statusCode: 400 });
+      ).rejects.toMatchObject({ code: ErrorCode.AuthInvalidRedirectUrl });
     });
 
     test('is not supported without the mailer', async () => {
@@ -147,7 +148,7 @@ describe('account-service', () => {
           authUser(),
           'https://app.test/verified'
         )
-      ).rejects.toMatchObject({ statusCode: 501 });
+      ).rejects.toMatchObject({ code: ErrorCode.AccountFeatureUnavailable });
     });
   });
 
@@ -169,12 +170,12 @@ describe('account-service', () => {
     test('rejects a disabled or missing user', async () => {
       authService.findById.mockResolvedValue(authUser({ enabled: false }));
       await expect(service.verifyEmailAddress('ott')).rejects.toMatchObject({
-        statusCode: 400
+        code: ErrorCode.AuthUserNotFound
       });
 
       authService.findById.mockResolvedValue(null);
       await expect(service.verifyEmailAddress('ott')).rejects.toMatchObject({
-        statusCode: 400
+        code: ErrorCode.AuthUserNotFound
       });
       expect(authService.updateAuthUser).not.toHaveBeenCalled();
     });
@@ -183,13 +184,13 @@ describe('account-service', () => {
       authService.findById.mockResolvedValue(authUser({ verifiedEmail: true }));
 
       await expect(service.verifyEmailAddress('ott')).rejects.toMatchObject({
-        statusCode: 403
+        code: ErrorCode.AccountEmailAlreadyVerified
       });
     });
 
     test('propagates an invalid token', async () => {
       securityStore.useOneTimeToken.mockRejectedValue(
-        new HttpError('Invalid token', 400)
+        new AuthError(ErrorCode.AuthInvalidToken, 'Invalid token')
       );
 
       await expect(service.verifyEmailAddress('ott')).rejects.toThrow(
@@ -277,7 +278,7 @@ describe('account-service', () => {
     test('rejects a redirect to a host that is not allowed', async () => {
       await expect(
         service.sendResetPassword('user@test.com', 'https://evil.test/reset')
-      ).rejects.toMatchObject({ statusCode: 400 });
+      ).rejects.toMatchObject({ code: ErrorCode.AuthInvalidRedirectUrl });
       expect(securityStore.generateOneTimeToken).not.toHaveBeenCalled();
     });
 
@@ -286,7 +287,7 @@ describe('account-service', () => {
 
       await expect(
         service.sendResetPassword('nobody@test.com', 'https://evil.test/reset')
-      ).rejects.toMatchObject({ statusCode: 400 });
+      ).rejects.toMatchObject({ code: ErrorCode.AuthInvalidRedirectUrl });
     });
 
     test('is not supported without the mailer', async () => {
@@ -295,7 +296,7 @@ describe('account-service', () => {
           'user@test.com',
           'https://app.test/reset'
         )
-      ).rejects.toMatchObject({ statusCode: 501 });
+      ).rejects.toMatchObject({ code: ErrorCode.AccountFeatureUnavailable });
     });
   });
 
@@ -325,7 +326,7 @@ describe('account-service', () => {
 
     test('rejects a weak password without using the token', async () => {
       await expect(service.resetPassword('ott', 'weak')).rejects.toMatchObject({
-        statusCode: 400
+        code: ErrorCode.AuthPasswordWeak
       });
       expect(securityStore.useOneTimeToken).not.toHaveBeenCalled();
     });
@@ -337,7 +338,7 @@ describe('account-service', () => {
 
       await expect(
         service.resetPassword('ott', STRONG_PASSWORD)
-      ).rejects.toMatchObject({ statusCode: 400 });
+      ).rejects.toMatchObject({ code: ErrorCode.AuthUserNotFound });
       expect(authService.updateAuthUser).not.toHaveBeenCalled();
     });
 
@@ -346,7 +347,7 @@ describe('account-service', () => {
 
       await expect(
         service.resetPassword('ott', STRONG_PASSWORD)
-      ).rejects.toMatchObject({ statusCode: 403 });
+      ).rejects.toMatchObject({ code: ErrorCode.AccountPasswordNotSet });
     });
   });
 
@@ -377,7 +378,7 @@ describe('account-service', () => {
     test('is not supported without the mailer', async () => {
       await expect(
         createService(false).send2FACode(authUser())
-      ).rejects.toMatchObject({ statusCode: 501 });
+      ).rejects.toMatchObject({ code: ErrorCode.AccountFeatureUnavailable });
     });
   });
 
@@ -417,7 +418,7 @@ describe('account-service', () => {
 
       await expect(
         service.verify2FACode('challenge', '123456')
-      ).rejects.toMatchObject({ statusCode: 400 });
+      ).rejects.toMatchObject({ code: ErrorCode.AuthUserNotFound });
       expect(securityStore.generateOneTimeToken).not.toHaveBeenCalled();
     });
   });

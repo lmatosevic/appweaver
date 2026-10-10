@@ -14,6 +14,7 @@ import {
   FRAMEWORKS,
   HEALTH_MODULE_TYPE,
   HEALTH_OPERATIONS,
+  PROBLEM_DETAILS_TITLE,
   RESOURCE_MODULE_TYPE,
   RESOURCE_OPERATIONS
 } from '../constants';
@@ -70,6 +71,10 @@ export async function generateClient(
       ? `import * as ${typeName} from '${typesPath}';\n`
       : '';
   const pathsTypeGeneric = !noTypes ? `<${typePrefix}paths>` : '';
+  const errorExports = generateErrorExports(
+    noTypes ? undefined : `${typePrefix}paths`,
+    noTypes ? undefined : errorCodeType(schemaObject, typePrefix)
+  );
 
   const config: RoutePathConfig = schemaObject[CONFIG_FIELD];
 
@@ -270,13 +275,15 @@ export async function generateClient(
         pathsTypeImport,
         pathsTypeGeneric,
         className,
-        clientMethodContent
+        clientMethodContent,
+        errorExports
       )
     : generateFetchClient(
         pathsTypeImport,
         pathsTypeGeneric,
         className,
-        clientMethodContent
+        clientMethodContent,
+        errorExports
       );
 }
 
@@ -284,9 +291,10 @@ function generateFetchClient(
   pathsTypeImport: string,
   pathsTypeGeneric: string,
   className: string,
-  clientMethodContent: string
+  clientMethodContent: string,
+  errorExports: GeneratedErrorExports
 ): string {
-  return `import { ClientConfig, ClientError, FetchClient } from '@appweaver/client';
+  return `import { ClientConfig, ClientError, FetchClient${errorExports.imports} } from '@appweaver/client';
 ${pathsTypeImport}
 export class ${className} extends FetchClient${pathsTypeGeneric} {
   ${clientMethodContent}
@@ -297,16 +305,17 @@ export function createClient(config: ClientConfig): ${className} {
 }
 
 export { ClientError };
-`;
+${errorExports.content}`;
 }
 
 function generateAngularClient(
   pathsTypeImport: string,
   pathsTypeGeneric: string,
   className: string,
-  clientMethodContent: string
+  clientMethodContent: string,
+  errorExports: GeneratedErrorExports
 ): string {
-  return `import { ClientConfig, ClientError } from '@appweaver/client';
+  return `import { ClientConfig, ClientError${errorExports.imports} } from '@appweaver/client';
 import { AngularClient } from '@appweaver/client/angular';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -386,7 +395,75 @@ export class ${className} extends AngularClient${pathsTypeGeneric} {
 }
 
 export { ClientError };
-`;
+${errorExports.content}`;
+}
+
+type GeneratedErrorExports = { imports: string; content: string };
+
+/**
+ * Generates the error types and guards of the client: `ApiError`, a `ClientError` typed by the error codes of the
+ * API, the `isApiError` guard narrowing a caught error to it, and `RouteErrorCode`, the error codes a route responds
+ * with. An untyped client gets the guard only.
+ *
+ * @param {string} [pathsType] - The type of the paths of the API, unless the client is untyped.
+ * @param {string} [errorCodeType] - The type of the error codes of the API, when the schema declares them.
+ * @return {GeneratedErrorExports} The names to import from the client library, and the declarations to export.
+ */
+function generateErrorExports(
+  pathsType?: string,
+  errorCodeType?: string
+): GeneratedErrorExports {
+  const apiError = [
+    '/** An error response of the API, its `code` typed by the error codes of the API. */',
+    `export type ApiError = ClientError${errorCodeType ? `<${errorCodeType}>` : ''};`,
+    '',
+    '/** Checks whether a caught error is an error response of the API, typing its `code`. */',
+    'export function isApiError(error: unknown): error is ApiError {',
+    '  return isClientError(error);',
+    '}'
+  ].join('\n');
+
+  if (!pathsType) {
+    return { imports: ', isClientError', content: `\n${apiError}\n` };
+  }
+
+  const routeErrorCode = [
+    '/**',
+    " * The error codes a route of the API responds with, i.e. `RouteErrorCode<'get', '/api/posts/{id}'>`. Narrow a",
+    ' * caught error to them with `client.isRouteError(error, method, path)`.',
+    ' */',
+    `export type RouteErrorCode<Method extends string, Path extends keyof ${pathsType}> =`,
+    `  ClientRouteErrorCode<${pathsType}, Method, Path>;`
+  ].join('\n');
+
+  return {
+    imports: ', ClientRouteErrorCode, isClientError',
+    content: `\n${apiError}\n\n${routeErrorCode}\n`
+  };
+}
+
+/**
+ * Returns the type of the error codes of the API: the `code` of the problem details schema, referred to by the key
+ * of its definition, so it holds whatever name the generated types give its enum (`ErrorCode` unless the schema
+ * declares a type of that name itself).
+ *
+ * @param {OpenAPI3} schema - The OpenAPI schema of the API.
+ * @param {string} typePrefix - The prefix of the types imported from a separate module.
+ * @return {string | undefined} The type, or undefined when the schema declares no error codes.
+ */
+function errorCodeType(
+  schema: OpenAPI3,
+  typePrefix: string
+): string | undefined {
+  const [key] =
+    Object.entries<any>(schema.components?.schemas ?? {}).find(
+      ([, definition]) =>
+        definition?.title === PROBLEM_DETAILS_TITLE &&
+        Array.isArray(definition.properties?.code?.enum)
+    ) ?? [];
+  return key
+    ? `${typePrefix}components['schemas']['${key}']['code']`
+    : undefined;
 }
 
 /**

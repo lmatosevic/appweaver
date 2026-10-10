@@ -1,4 +1,5 @@
-import { createService, HttpError } from '@appweaver/core';
+import { ErrorCode, RequestError } from '@appweaver/common';
+import { createService } from '@appweaver/core';
 
 export default createService({
   modelName: 'Position',
@@ -17,6 +18,18 @@ function assertSalaryBand(data: { salaryMin?: number; salaryMax?: number }) {
     data.salaryMax !== undefined &&
     data.salaryMin > data.salaryMax
   ) {
-    throw new HttpError('salaryMin cannot exceed salaryMax', 400);
+    throw new RequestError(
+      ErrorCode.ValidationFailed,
+      'salaryMin cannot exceed salaryMax',
+      {
+        errors: [
+          {
+            field: 'salaryMin',
+            rule: 'max',
+            message: 'cannot exceed salaryMax'
+          }
+        ]
+      }
+    );
   }
 }

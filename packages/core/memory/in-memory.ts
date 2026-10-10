@@ -2,11 +2,13 @@ import { setTimeout } from 'node:timers/promises';
 import { parse, stringify } from 'flatted';
 import {
   config,
+  ErrorCode,
   HealthCheckResult,
   Memory,
   textToBytes,
   uuid
 } from '@appweaver/common';
+import { LockError } from './lock-error';
 
 type StorageEntry = {
   value: string;
@@ -201,7 +203,10 @@ export class InMemory extends Memory {
       retries++;
     } while (retries < retryCount);
 
-    throw new Error('Unable to acquire lock on requested resource');
+    throw new LockError(
+      ErrorCode.LockNotAcquired,
+      'Unable to acquire lock on requested resource'
+    );
   }
 
   public async checkHealth(): Promise<HealthCheckResult> {

@@ -5,11 +5,13 @@ import {
   AuthOTTPurpose,
   AuthSource,
   config,
+  ErrorCode,
   pickProperties,
   SecurityStore
 } from '@appweaver/common';
 import { inject } from '../../context';
-import { HttpError } from '../../errors';
+import { AuthError } from '../auth-error';
+import { OAuth2Error } from './oauth2-error';
 import { AuthService } from '../auth-service';
 import { OAuth2Service } from './oauth2-service';
 import { validateRedirectUrl } from '../helper';
@@ -130,7 +132,7 @@ export function createOAuth2Plugin(
         const result = validateRedirectUrl(redirectToUrl);
 
         if (!result.valid) {
-          throw new HttpError(result.message, 400);
+          throw new AuthError(ErrorCode.AuthInvalidRedirectUrl, result.message);
         }
 
         return securityStore.generateOneTimeToken<OAuth2StateData>(
@@ -178,9 +180,9 @@ export function createOAuth2Plugin(
 
       if (!authUser) {
         if (!config.SECURITY_OAUTH2_REGISTRATION_ENABLED) {
-          throw new HttpError(
-            'Auth user does not exist and OAuth2 registration is disabled',
-            403
+          throw new OAuth2Error(
+            ErrorCode.OAuth2RegistrationDisabled,
+            'Auth user does not exist and OAuth2 registration is disabled'
           );
         }
 

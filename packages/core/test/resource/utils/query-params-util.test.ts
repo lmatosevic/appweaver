@@ -13,7 +13,7 @@ jest.mock('@appweaver/common', () => {
 
 import * as common from '@appweaver/common';
 import { QueryMethod } from '@appweaver/common';
-import { HttpError } from '../../../errors';
+import { ResourceError } from '../../../resource/resource-error';
 import {
   parseJsonParams,
   queryRouteMethods
@@ -126,7 +126,7 @@ describe('query-params-util', () => {
 
     test('rejects malformed JSON', () => {
       expect(() => parseJsonParams({ filter: '{views' }, ['filter'])).toThrow(
-        HttpError
+        ResourceError
       );
       expect(() => parseJsonParams({ filter: 'views' }, ['filter'])).toThrow(
         "Query parameter 'filter' is not valid JSON"
@@ -137,15 +137,15 @@ describe('query-params-util', () => {
     });
 
     test('rejects a repeated field', () => {
-      let error: HttpError | undefined;
+      let error: ResourceError | undefined;
       try {
         parseJsonParams({ filter: ['{}', '{}'] }, ['filter']);
       } catch (e) {
-        error = e as HttpError;
+        error = e as ResourceError;
       }
 
-      expect(error).toBeInstanceOf(HttpError);
-      expect(error?.statusCode).toBe(400);
+      expect(error).toBeInstanceOf(ResourceError);
+      expect(error?.code).toBe(common.ErrorCode.ResourceInvalidQueryParameter);
       expect(error?.message).toContain("'filter' is repeated");
     });
   });

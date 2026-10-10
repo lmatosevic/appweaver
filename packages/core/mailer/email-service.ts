@@ -1,5 +1,13 @@
-import { Email, logger, Mailer, Queue, QueueJob } from '@appweaver/common';
+import {
+  Email,
+  ErrorCode,
+  logger,
+  Mailer,
+  Queue,
+  QueueJob
+} from '@appweaver/common';
 import { inject } from '../context';
+import { MailerError } from './mailer-error';
 
 export class EmailService {
   /** @internal */
@@ -71,7 +79,10 @@ export class EmailService {
     return new Promise<boolean>((resolve, reject) => {
       if (!job.id) {
         return reject(
-          new Error('Email Job not found. Email could still be sent.')
+          new MailerError(
+            ErrorCode.MailerJobNotFound,
+            'Email Job not found. Email could still be sent.'
+          )
         );
       }
       this._waitedJobs.set(job.id, { resolve, reject });
@@ -84,7 +95,16 @@ export class EmailService {
 
   /** @internal */
   private async processEmail(job: QueueJob<Email, boolean>): Promise<boolean> {
-    return this._mailer.sendEmail(job.data);
+    try {
+      return await this._mailer.sendEmail(job.data);
+    } catch (e) {
+      throw new MailerError(
+        ErrorCode.MailerSendFailed,
+        `E-mail '${job.data.subject}' sending failed`,
+        { subject: job.data.subject },
+        { cause: e }
+      );
+    }
   }
 
   /** @internal */

@@ -2,13 +2,18 @@ import { Database, Events } from '@appweaver/common';
 import { define } from '../../context';
 import { CacheService } from '../../cache';
 import { NodeEvents } from '../../events/node-events';
-import { HttpError } from '../../errors';
+import { ErrorCode } from '@appweaver/common';
+import { DatabaseError } from '../../database';
 import { createModel } from '../../factory/create-model';
 import { ResourceService } from '../../resource/resource-service';
 import { FileService } from '../../storage/file-service';
 import { resetContext } from '../fixtures/context-fixture';
 import { linkModels } from '../fixtures/model-fixture';
-import { createDatabaseStub, DatabaseStub } from '../fixtures/database-fixture';
+import {
+  createDatabaseStub,
+  DatabaseStub,
+  prismaError
+} from '../fixtures/database-fixture';
 
 class PostService extends ResourceService<any, any, any, any, any> {
   constructor() {
@@ -151,23 +156,29 @@ describe('resource-service', () => {
       db.setResult('Post', 'findFirst', null);
 
       await expect(service.find(1)).rejects.toMatchObject({
-        statusCode: 404,
-        message: expect.stringContaining('data not found')
+        code: ErrorCode.ResourceNotFound,
+        message: expect.stringContaining('Post not found')
       });
     });
 
     test('throws a not found error when the returned id differs', async () => {
       db.setResult('Post', 'findFirst', { id: 2 });
 
-      await expect(service.find(1)).rejects.toMatchObject({ statusCode: 404 });
+      await expect(service.find(1)).rejects.toMatchObject({
+        code: ErrorCode.ResourceNotFound
+      });
     });
 
-    test('wraps a database error into a server error', async () => {
-      db.setResult('Post', 'findFirst', new Error('connection lost'));
+    test('wraps a database error into a DatabaseError', async () => {
+      db.setResult(
+        'Post',
+        'findFirst',
+        prismaError('P2010', 'connection lost')
+      );
 
       await expect(service.find(1)).rejects.toMatchObject({
-        statusCode: 500,
-        message: expect.stringContaining('find error')
+        code: ErrorCode.DatabaseOperationFailed,
+        message: expect.stringContaining('operation failed')
       });
     });
 
@@ -196,7 +207,7 @@ describe('resource-service', () => {
       db.setResult('Post', 'findFirst', { id: 1 });
 
       await expect(new ForbiddenService().find(1)).rejects.toMatchObject({
-        statusCode: 403
+        code: ErrorCode.ResourceForbidden
       });
     });
 
@@ -339,7 +350,7 @@ describe('resource-service', () => {
           cursor: first.nextCursor
         })
       ).rejects.toMatchObject({
-        statusCode: 400,
+        code: ErrorCode.ResourceInvalidCursor,
         message: expect.stringContaining('does not match the filter and sort')
       });
     });
@@ -355,7 +366,7 @@ describe('resource-service', () => {
           sort: '-title',
           cursor: first.nextCursor
         })
-      ).rejects.toMatchObject({ statusCode: 400 });
+      ).rejects.toMatchObject({ code: ErrorCode.ResourceInvalidCursor });
     });
 
     test('fetches no record for an empty page size', async () => {
@@ -419,7 +430,7 @@ describe('resource-service', () => {
       await expect(
         service.query({ page: 1, size: 50, sort: { title: 'ASC' } as any })
       ).rejects.toMatchObject({
-        statusCode: 400,
+        code: ErrorCode.ResourceInvalidSort,
         message: expect.stringContaining("Invalid sort direction 'ASC'")
       });
     });
@@ -441,7 +452,7 @@ describe('resource-service', () => {
       await expect(
         service.query({ page: 1, size: 50, sort: { unknown: 'asc' } })
       ).rejects.toMatchObject({
-        statusCode: 400,
+        code: ErrorCode.ResourceInvalidSort,
         message: expect.stringContaining('is not a sortable field')
       });
     });
@@ -628,12 +639,12 @@ describe('resource-service', () => {
       });
     });
 
-    test('wraps a database error into a server error', async () => {
-      db.setResult('Post', 'findMany', new Error('connection lost'));
+    test('wraps a database error into a DatabaseError', async () => {
+      db.setResult('Post', 'findMany', prismaError('P2010', 'connection lost'));
 
       await expect(service.query()).rejects.toMatchObject({
-        statusCode: 500,
-        message: expect.stringContaining('query error')
+        code: ErrorCode.DatabaseOperationFailed,
+        message: expect.stringContaining('operation failed')
       });
     });
 
@@ -719,7 +730,7 @@ describe('resource-service', () => {
       db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
 
       await expect(new DeniedService().single()).rejects.toMatchObject({
-        statusCode: 403
+        code: ErrorCode.ResourceForbidden
       });
     });
   });
@@ -964,7 +975,7 @@ describe('resource-service', () => {
       await expect(
         new PostService().create({ title: 'First', tags: [{ name: 'fresh' }] })
       ).rejects.toMatchObject({
-        statusCode: 400,
+        code: ErrorCode.ResourceInvalidRelation,
         message: expect.stringContaining('does not accept new records')
       });
     });
@@ -996,7 +1007,7 @@ describe('resource-service', () => {
       await expect(
         new PostService().create({ title: 'First', tags: [{ name: 'fresh' }] })
       ).rejects.toMatchObject({
-        statusCode: 400,
+        code: ErrorCode.ResourceInvalidRelation,
         message: expect.stringContaining('missing required fields: color')
       });
     });
@@ -1040,7 +1051,7 @@ describe('resource-service', () => {
       await expect(
         service.create({ title: 'First', author: { email: 'ada@mail.com' } })
       ).rejects.toMatchObject({
-        statusCode: 400,
+        code: ErrorCode.ResourceInvalidRelation,
         message: expect.stringContaining("relation 'author'")
       });
     });
@@ -1066,15 +1077,19 @@ describe('resource-service', () => {
 
       await expect(
         new ForbiddenService().create({ title: 'First' })
-      ).rejects.toMatchObject({ statusCode: 403 });
+      ).rejects.toMatchObject({ code: ErrorCode.ResourceForbidden });
     });
 
-    test('wraps a database error into a server error', async () => {
-      db.setResult('Post', 'create', new Error('constraint violation'));
+    test('wraps a database error into a DatabaseError', async () => {
+      db.setResult(
+        'Post',
+        'create',
+        prismaError('P2010', 'constraint violation')
+      );
 
       await expect(service.create({ title: 'First' })).rejects.toMatchObject({
-        statusCode: 500,
-        message: expect.stringContaining('create error')
+        code: ErrorCode.DatabaseOperationFailed,
+        message: expect.stringContaining('operation failed')
       });
     });
 
@@ -1128,7 +1143,7 @@ describe('resource-service', () => {
       db.setResult('Post', 'findFirst', null);
 
       await expect(service.update(1, { title: 'x' })).rejects.toMatchObject({
-        statusCode: 404
+        code: ErrorCode.ResourceNotFound
       });
     });
 
@@ -1141,7 +1156,7 @@ describe('resource-service', () => {
 
       await expect(
         new ForbiddenService().update(1, { title: 'x' })
-      ).rejects.toMatchObject({ statusCode: 403 });
+      ).rejects.toMatchObject({ code: ErrorCode.ResourceForbidden });
     });
 
     test('connects a reassigned relation', async () => {
@@ -1380,12 +1395,26 @@ describe('resource-service', () => {
       });
     });
 
-    test('wraps a database error into a server error', async () => {
-      db.setResult('Post', 'update', new Error('constraint violation'));
+    test('wraps a database error into a DatabaseError', async () => {
+      db.setResult(
+        'Post',
+        'update',
+        prismaError('P2010', 'constraint violation')
+      );
 
       await expect(service.update(1, { title: 'x' })).rejects.toMatchObject({
-        statusCode: 500,
-        message: expect.stringContaining('update error')
+        code: ErrorCode.DatabaseOperationFailed,
+        message: expect.stringContaining('operation failed')
+      });
+    });
+
+    test('throws a not found error for a record removed after it was read', async () => {
+      db.setResult('Post', 'update', prismaError('P2025', 'No record found'));
+
+      await expect(service.update(1, { title: 'x' })).rejects.toMatchObject({
+        code: ErrorCode.ResourceNotFound,
+        message: 'Post not found',
+        details: { model: 'Post', id: 1 }
       });
     });
 
@@ -1427,7 +1456,7 @@ describe('resource-service', () => {
       db.setResult('Post', 'findFirst', null);
 
       await expect(service.delete(1)).rejects.toMatchObject({
-        statusCode: 404
+        code: ErrorCode.ResourceNotFound
       });
     });
 
@@ -1439,7 +1468,7 @@ describe('resource-service', () => {
       }
 
       await expect(new ForbiddenService().delete(1)).rejects.toMatchObject({
-        statusCode: 403
+        code: ErrorCode.ResourceForbidden
       });
     });
 
@@ -1455,12 +1484,16 @@ describe('resource-service', () => {
       expect(db.queries[0].args.where).toEqual({ id: 1, authorId: 7 });
     });
 
-    test('wraps a database error into a server error', async () => {
-      db.setResult('Post', 'delete', new Error('foreign key constraint'));
+    test('wraps a database error into a DatabaseError', async () => {
+      db.setResult(
+        'Post',
+        'delete',
+        prismaError('P2010', 'foreign key constraint')
+      );
 
       await expect(service.delete(1)).rejects.toMatchObject({
-        statusCode: 500,
-        message: expect.stringContaining('delete error')
+        code: ErrorCode.DatabaseOperationFailed,
+        message: expect.stringContaining('operation failed')
       });
     });
 
@@ -1794,7 +1827,7 @@ describe('resource-service', () => {
 
       await expect(
         service.create({ title: 'New', tags: [5] })
-      ).rejects.toMatchObject({ statusCode: 400 });
+      ).rejects.toMatchObject({ code: ErrorCode.ResourceInvalidRelation });
       expect(db.queries.some((query) => query.method === 'create')).toBe(false);
     });
   });
@@ -2004,7 +2037,7 @@ describe('resource-service', () => {
       await expect(
         service.aggregate({ select: {} as any })
       ).rejects.toMatchObject({
-        statusCode: 400,
+        code: ErrorCode.ResourceInvalidAggregate,
         message: expect.stringContaining(
           'at least one field with a selected aggregation operator'
         )
@@ -2015,7 +2048,7 @@ describe('resource-service', () => {
       await expect(
         service.aggregate({ select: { title: { count: true } } as any })
       ).rejects.toMatchObject({
-        statusCode: 400,
+        code: ErrorCode.ResourceInvalidAggregate,
         message: expect.stringContaining('not a numeric or date field')
       });
     });
@@ -2024,7 +2057,7 @@ describe('resource-service', () => {
       await expect(
         service.aggregate({ select: { publishedAt: { sum: true } } as any })
       ).rejects.toMatchObject({
-        statusCode: 400,
+        code: ErrorCode.ResourceInvalidAggregate,
         message: expect.stringContaining("Cannot apply the 'sum' operator")
       });
     });
@@ -2036,28 +2069,36 @@ describe('resource-service', () => {
           dateField: 'title'
         })
       ).rejects.toMatchObject({
-        statusCode: 400,
+        code: ErrorCode.ResourceInvalidAggregate,
         message: expect.stringContaining('not a date field')
       });
     });
 
-    test('wraps a database error into a server error', async () => {
-      db.setResult('Post', 'aggregate', new Error('aggregation failed'));
+    test('wraps a database error into a DatabaseError', async () => {
+      db.setResult(
+        'Post',
+        'aggregate',
+        prismaError('P2010', 'aggregation failed')
+      );
 
       await expect(
         service.aggregate({ select: { views: { sum: true } } as any })
       ).rejects.toMatchObject({
-        statusCode: 500,
-        message: expect.stringContaining('aggregation')
+        code: ErrorCode.DatabaseOperationFailed,
+        message: expect.stringContaining('operation failed')
       });
     });
 
-    test('throws an HttpError subclass for failures', async () => {
-      db.setResult('Post', 'aggregate', new Error('aggregation failed'));
+    test('throws a DatabaseError for failures', async () => {
+      db.setResult(
+        'Post',
+        'aggregate',
+        prismaError('P2010', 'aggregation failed')
+      );
 
       await expect(
         service.aggregate({ select: { views: { sum: true } } as any })
-      ).rejects.toBeInstanceOf(HttpError);
+      ).rejects.toBeInstanceOf(DatabaseError);
     });
   });
 });

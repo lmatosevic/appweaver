@@ -1,14 +1,15 @@
-import { AuthUser } from '@appweaver/common';
+import { ApplicationError, AuthUser, ErrorCode } from '@appweaver/common';
 import {
   CacheService,
   hasRole,
-  HttpError,
   inject,
-  injectService
+  injectService,
+  ResourceError
 } from '@appweaver/core';
 import db from '@db/client';
 import { OrderSingle } from '@/types';
 import { Role } from '@/features/access/roles';
+import { ShopErrors } from '@/errors';
 import { sendOrderEmail } from './order-emails';
 import { releaseOrder } from './order-release';
 
@@ -31,11 +32,15 @@ async function transition(
   if (moved.count === 0) {
     const order = await db.order.findUnique({ where: { id: orderId } });
     if (!order) {
-      throw new HttpError('Order not found', 404);
+      throw new ResourceError(ErrorCode.ResourceNotFound, 'Order not found', {
+        model: 'Order',
+        id: orderId
+      });
     }
-    throw new HttpError(
+    throw new ApplicationError(
+      ShopErrors.OrderStatusConflict,
       `A ${order.status} order cannot be ${data.status}`,
-      409
+      { status: order.status }
     );
   }
 
@@ -84,7 +89,10 @@ export async function cancelOrder(
   });
   const isOwner = order && user && order.customerId === Number(user.id);
   if (!order || (user && !isOwner && !hasRole(user, Role.Admin))) {
-    throw new HttpError('Order not found', 404);
+    throw new ResourceError(ErrorCode.ResourceNotFound, 'Order not found', {
+      model: 'Order',
+      id: orderId
+    });
   }
 
   await db.$transaction(async (tx) => {
@@ -93,7 +101,11 @@ export async function cancelOrder(
       data: { status: 'Cancelled', cancelledAt: new Date() }
     });
     if (cancelled.count === 0) {
-      throw new HttpError(`A ${order.status} order cannot be Cancelled`, 409);
+      throw new ApplicationError(
+        ShopErrors.OrderStatusConflict,
+        `A ${order.status} order cannot be Cancelled`,
+        { status: order.status }
+      );
     }
 
     await releaseOrder(tx, order);

@@ -1,8 +1,13 @@
 import { randomBytes } from 'node:crypto';
-import { AuthUser, Events } from '@appweaver/common';
+import {
+  ApplicationError,
+  AuthUser,
+  ErrorCode,
+  Events,
+  RequestError
+} from '@appweaver/common';
 import {
   CacheService,
-  HttpError,
   inject,
   injectService,
   runTransaction
@@ -10,6 +15,7 @@ import {
 import db from '@db/client';
 import { Coupon, Prisma } from '@db/client/client';
 import { Order, OrderSingle } from '@/types';
+import { ShopErrors } from '@/errors';
 import { couponProblem, priceOrder } from './pricing';
 
 export type ShippingAddress = {
@@ -47,7 +53,11 @@ export async function checkout(
     });
     for (const productId of quantities.keys()) {
       if (!products.some((product) => product.id === productId)) {
-        throw new HttpError(`Product ${productId} is not available`, 400);
+        throw new ApplicationError(
+          ShopErrors.ProductUnavailable,
+          `Product ${productId} is not available`,
+          { productId }
+        );
       }
     }
 
@@ -59,9 +69,10 @@ export async function checkout(
         data: { stock: { decrement: quantity } }
       });
       if (reserved.count === 0) {
-        throw new HttpError(
+        throw new ApplicationError(
+          ShopErrors.OutOfStock,
           `Only ${product.stock} left of ${product.name}`,
-          409
+          { productId: product.id, stock: product.stock }
         );
       }
     }
@@ -81,12 +92,18 @@ export async function checkout(
         where: { code: request.couponCode }
       });
       if (!coupon) {
-        throw new HttpError('Unknown coupon code', 400);
+        throw new ApplicationError(
+          ShopErrors.CouponInvalid,
+          'Unknown coupon code',
+          { couponCode: request.couponCode }
+        );
       }
 
       const problem = couponProblem(coupon, priceOrder(lines).subtotal);
       if (problem) {
-        throw new HttpError(problem, 400);
+        throw new ApplicationError(ShopErrors.CouponInvalid, problem, {
+          couponCode: request.couponCode
+        });
       }
 
       await tx.coupon.update({
@@ -145,9 +162,18 @@ async function resolveAddress(
       })
     : null;
   if (!saved) {
-    throw new HttpError(
+    throw new RequestError(
+      ErrorCode.ValidationFailed,
       'A shippingAddress or a saved addressId is required',
-      400
+      {
+        errors: [
+          {
+            field: 'shippingAddress',
+            rule: 'required',
+            message: 'is required without a saved addressId'
+          }
+        ]
+      }
     );
   }
 

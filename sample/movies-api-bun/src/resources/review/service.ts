@@ -1,8 +1,10 @@
-import { createService, currentAuthUser, HttpError } from '@appweaver/core';
+import { ApplicationError } from '@appweaver/common';
+import { createService, currentAuthUser } from '@appweaver/core';
 import db from '@db/client';
 import { Review, ReviewCreate } from '@/types';
 import { refreshMovieRating } from '@/features/ratings/movie-rating';
 import { relationId } from '@/features/catalog/relation-id';
+import { MovieErrors } from '@/errors';
 
 type ReviewRecord = Review & { movieId?: string };
 
@@ -22,9 +24,10 @@ export default createService({
       select: { id: true }
     });
     if (existing) {
-      throw new HttpError(
+      throw new ApplicationError(
+        MovieErrors.AlreadyReviewed,
         `The movie is already reviewed, update review ${existing.id} instead`,
-        409
+        { reviewId: existing.id }
       );
     }
 

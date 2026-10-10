@@ -245,8 +245,8 @@ describe('resource-client', () => {
 
     test('throws a ClientError when the export fails', async () => {
       const { resource } = createResource({
-        error: { message: 'Export failed', errorCode: 422 },
-        response: new Response(null, { status: 422 })
+        error: { detail: 'Export failed', code: 'EXPORT_FAILED', status: 500 },
+        response: new Response(null, { status: 500 })
       });
 
       await expect(resource.export({})).rejects.toThrow(ClientError);

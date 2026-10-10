@@ -162,6 +162,8 @@ describe('Query cursor pagination', () => {
         size: 2,
         cursor: first.nextCursor
       })
-    ).rejects.toMatchObject({ statusCode: 400 });
+    ).rejects.toMatchObject({
+      code: 'RESOURCE_INVALID_CURSOR'
+    });
   });
 });

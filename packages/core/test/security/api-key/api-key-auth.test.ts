@@ -127,7 +127,7 @@ describe('api-key-auth', () => {
         const response = await getMe();
 
         expect(response.statusCode).toBe(401);
-        expect(response.json().message).toBe(
+        expect(response.json().detail).toBe(
           'Missing API key header: x-api-key'
         );
       });
@@ -138,7 +138,7 @@ describe('api-key-auth', () => {
         const response = await getMe(`9AK${SECRET}`);
 
         expect(response.statusCode).toBe(401);
-        expect(response.json().message).toBe('Invalid API key');
+        expect(response.json().detail).toBe('Invalid API key');
       });
 
       test('rejects a key with a wrong secret', async () => {
@@ -170,7 +170,7 @@ describe('api-key-auth', () => {
         const response = await getMe(`5AK${SECRET}`);
 
         expect(response.statusCode).toBe(403);
-        expect(response.json().message).toBe('API key has expired');
+        expect(response.json().detail).toBe('API key has expired');
       });
 
       test('accepts a key that expires in the future', async () => {
@@ -189,7 +189,7 @@ describe('api-key-auth', () => {
         const response = await getMe(`abcAK${SECRET}`);
 
         expect(response.statusCode).toBe(401);
-        expect(response.json().message).toBe('Invalid API key format');
+        expect(response.json().detail).toBe('Invalid API key format');
       });
 
       test('rejects the key of a disabled owner', async () => {

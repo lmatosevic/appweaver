@@ -32,7 +32,7 @@ import {
   ResourceMethods,
   ResourceType
 } from './modules';
-import { ClientError } from '../errors';
+import { ClientError, ClientRouteErrorCode } from '../errors';
 
 type ClientModules = {
   resources: ResourceClient<ResourceType>[];
@@ -340,6 +340,39 @@ export abstract class BaseClient<
   }
 
   /**
+   * Checks whether an error is the error response of a route, typing its `code`
+   * as one of the codes the route documents. The error has to come from a
+   * request of the route, i.e. of a module client method or `sendRequest`.
+   *
+   * @example
+   * try {
+   *   await client.post.find(1);
+   * } catch (e) {
+   *   if (client.isRouteError(e, 'get', '/api/posts/{id}') && e.is('RESOURCE_NOT_FOUND')) {
+   *     // e.code is typed by the documented errors of the route
+   *   }
+   * }
+   *
+   * @param {unknown} error The caught error.
+   * @param {Method} method The HTTP method of the route.
+   * @param {Path} path The path of the route as the OpenAPI document declares it.
+   */
+  public isRouteError<
+    Method extends HttpMethod,
+    Path extends PathsWithMethod<Paths, Method>
+  >(
+    error: unknown,
+    method: Method,
+    path: Path
+  ): error is ClientError<ClientRouteErrorCode<Paths, Method, Path>> {
+    return (
+      error instanceof ClientError &&
+      error.route?.method === method.toLowerCase() &&
+      error.route.path === path
+    );
+  }
+
+  /**
    * Sends an HTTP request and returns the parsed response data as a Promise.
    *
    * This protected helper always returns a `Promise` and is intended to be called
@@ -367,13 +400,10 @@ export abstract class BaseClient<
     );
 
     if (error) {
-      const err = error as { message?: string; errorCode?: number };
-      throw new ClientError(
-        err.message ?? response.statusText ?? 'Unknown error',
-        err.errorCode ?? response.status,
-        response,
-        error
-      );
+      throw ClientError.fromResponse(error, response, {
+        method,
+        path: String(url)
+      });
     }
 
     return data!;

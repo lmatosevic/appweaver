@@ -2,10 +2,18 @@ import { FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import fastifyJwt from '@fastify/jwt';
 import { requestContext } from '@fastify/request-context';
-import { AuthType, AuthUser, config, logger } from '@appweaver/common';
+import {
+  AuthType,
+  AuthUser,
+  config,
+  ErrorCode,
+  isAppweaverError,
+  logger,
+  ModuleErrorCode
+} from '@appweaver/common';
 import { inject } from '../../context';
 import { AuthService } from '../auth-service';
-import { HttpError } from '../../errors';
+import { AuthError } from '../auth-error';
 import { JwtPayload, Server } from '../../types';
 import { loadSecurityKeys } from './jwt-keys';
 
@@ -50,7 +58,15 @@ export const jwtAuth = fastifyPlugin(async (server: Server) => {
       payload = await request.jwtVerify();
       authUser = await authService.findById(payload.sub);
     } catch (e) {
-      throw new HttpError('Authentication error', 401, e);
+      if (isAppweaverError(e)) {
+        throw e;
+      }
+      throw new AuthError(
+        jwtErrorCode((e as { code?: string }).code),
+        'Authentication error',
+        {},
+        { cause: e }
+      );
     }
 
     authService.authorize(
@@ -65,6 +81,17 @@ export const jwtAuth = fastifyPlugin(async (server: Server) => {
     requestContext.set('authSource', payload.source);
   });
 });
+
+function jwtErrorCode(code?: string): ModuleErrorCode<'AUTH'> {
+  switch (code) {
+    case 'FST_JWT_AUTHORIZATION_TOKEN_EXPIRED':
+      return ErrorCode.AuthTokenExpired;
+    case 'FST_JWT_NO_AUTHORIZATION_IN_HEADER':
+      return ErrorCode.AuthUnauthorized;
+    default:
+      return ErrorCode.AuthInvalidToken;
+  }
+}
 
 export function hasBearerAuth(request: FastifyRequest): boolean {
   return (

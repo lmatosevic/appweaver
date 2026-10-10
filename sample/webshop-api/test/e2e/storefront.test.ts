@@ -81,6 +81,10 @@ describe('Storefront', () => {
       Role.Customer
     ]);
     expect(second.status).toBe(409);
+    expect(second.body).toMatchObject({
+      code: 'DATABASE_UNIQUE_VIOLATION',
+      errors: [{ field: 'email', rule: 'unique' }]
+    });
   });
 
   test('marks the review of a bought product as verified', async () => {

@@ -1,16 +1,27 @@
-import { errorHandler } from '../../errors/error-handler';
-import { HttpError } from '../../errors/http-error';
+import { ErrorCode } from '@appweaver/common';
+import {
+  errorHandler,
+  notFoundHandler,
+  PROBLEM_CONTENT_TYPE
+} from '../../errors/error-handler';
+import { ResourceError } from '../../resource/resource-error';
 
 describe('error-handler', () => {
-  const createRequest = () => ({ log: { error: jest.fn() } }) as any;
+  const createRequest = () =>
+    ({ url: '/api/posts/1', id: 'req-1', log: { error: jest.fn() } }) as any;
 
   const createReply = (contentType?: string) => {
     const reply: any = {
       statusCode: undefined,
       payload: undefined,
+      contentType: undefined,
       getHeader: () => contentType,
       status(code: number) {
         reply.statusCode = code;
+        return reply;
+      },
+      type(type: string) {
+        reply.contentType = type;
         return reply;
       },
       send(payload: any) {
@@ -21,91 +32,77 @@ describe('error-handler', () => {
     return reply;
   };
 
+  const notFound = () =>
+    new ResourceError(ErrorCode.ResourceNotFound, 'Post not found', {
+      model: 'Post',
+      id: 1
+    });
+
   describe('errorHandler', () => {
-    test('sends the status code and the error body of an HttpError', () => {
+    test('sends the problem details of the error', () => {
       const reply = createReply();
 
-      errorHandler(new HttpError('Not found', 404), createRequest(), reply);
+      errorHandler(notFound(), createRequest(), reply);
 
       expect(reply.statusCode).toBe(404);
-      expect(reply.payload).toEqual({ errorCode: 404, message: 'Not found' });
-    });
-
-    test('uses the application error code when present', () => {
-      const reply = createReply();
-
-      errorHandler(
-        new HttpError('Invalid', 400, undefined, 1001),
-        createRequest(),
-        reply
-      );
-
-      expect(reply.payload).toEqual({ errorCode: 1001, message: 'Invalid' });
-    });
-
-    test('defaults to a server error for an error without a status code', () => {
-      const reply = createReply();
-
-      errorHandler(new Error('boom') as any, createRequest(), reply);
-
-      expect(reply.statusCode).toBe(500);
-      expect(reply.payload).toEqual({ errorCode: 500, message: 'boom' });
-    });
-
-    test('falls back to an unknown error message', () => {
-      const reply = createReply();
-
-      errorHandler({ statusCode: 500 } as any, createRequest(), reply);
-
-      expect(reply.payload).toEqual({
-        errorCode: 500,
-        message: 'Unknown error'
+      expect(reply.contentType).toBe(PROBLEM_CONTENT_TYPE);
+      expect(reply.payload).toMatchObject({
+        status: 404,
+        code: ErrorCode.ResourceNotFound,
+        detail: 'Post not found',
+        instance: '/api/posts/1',
+        requestId: 'req-1'
       });
     });
 
-    test('logs the stack of a server error without a cause', () => {
-      const request = createRequest();
+    test('sends the problem details for JSON responses', () => {
+      const reply = createReply('application/json; charset=utf-8');
 
-      errorHandler(new Error('boom') as any, request, createReply());
+      errorHandler(notFound(), createRequest(), reply);
 
-      expect(request.log.error).toHaveBeenCalledWith(expect.any(String));
+      expect(reply.payload).toMatchObject({ code: ErrorCode.ResourceNotFound });
     });
 
-    test('logs the cause of a server error', () => {
+    test('sends only the detail for non JSON responses', () => {
+      const reply = createReply('text/csv');
+
+      errorHandler(notFound(), createRequest(), reply);
+
+      expect(reply.statusCode).toBe(404);
+      expect(reply.payload).toBe('Post not found');
+    });
+
+    test('logs a server error', () => {
       const request = createRequest();
-      const cause = new Error('db down');
+      const error = new Error('boom');
 
-      errorHandler(
-        new HttpError('Query failed', 500, cause),
-        request,
-        createReply()
+      errorHandler(error, request, createReply());
+
+      expect(request.log.error).toHaveBeenCalledWith(
+        { err: error },
+        'Internal server error (boom)'
       );
-
-      expect(request.log.error).toHaveBeenCalledWith(cause);
     });
 
     test('does not log client errors', () => {
       const request = createRequest();
 
-      errorHandler(new HttpError('Invalid', 400), request, createReply());
+      errorHandler(notFound(), request, createReply());
 
       expect(request.log.error).not.toHaveBeenCalled();
     });
+  });
 
-    test('sends only the message for non JSON responses', () => {
-      const reply = createReply('text/csv');
-
-      errorHandler(new HttpError('Export failed', 500), createRequest(), reply);
-
-      expect(reply.payload).toBe('Export failed');
-    });
-
-    test('sends the error object for JSON responses', () => {
-      const reply = createReply('application/json');
-
-      errorHandler(new HttpError('Invalid', 400), createRequest(), reply);
-
-      expect(reply.payload).toEqual({ errorCode: 400, message: 'Invalid' });
+  describe('notFoundHandler', () => {
+    test('throws a route not found error', () => {
+      expect(() =>
+        notFoundHandler({ method: 'GET', url: '/missing?x=1' } as any)
+      ).toThrow(
+        expect.objectContaining({
+          code: ErrorCode.RouteNotFound,
+          message: 'Route GET:/missing not found'
+        })
+      );
     });
   });
 });

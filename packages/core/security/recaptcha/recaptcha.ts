@@ -1,7 +1,7 @@
 import fastifyPlugin from 'fastify-plugin';
 import { FastifyRequest } from 'fastify';
-import { config } from '@appweaver/common';
-import { HttpError } from '../../errors';
+import { config, ErrorCode } from '@appweaver/common';
+import { RecaptchaError } from './recaptcha-error';
 import { Server } from '../../types';
 import { recaptchaVerify } from './recaptcha-verify';
 
@@ -14,9 +14,10 @@ export const recaptcha = fastifyPlugin(async (server: Server) => {
     const token =
       request.headers[config.SECURITY_RECAPTCHA_HEADER_NAME.toLowerCase()];
     if (!token) {
-      throw new HttpError(
+      throw new RecaptchaError(
+        ErrorCode.RecaptchaMissing,
         `Missing reCAPTCHA header: ${config.SECURITY_RECAPTCHA_HEADER_NAME}`,
-        401
+        { header: config.SECURITY_RECAPTCHA_HEADER_NAME }
       );
     }
 

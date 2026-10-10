@@ -1,4 +1,4 @@
-import { makeHash, Redis } from '@appweaver/common';
+import { ErrorCode, makeHash, Redis } from '@appweaver/common';
 import { define } from '../../../context';
 import { InMemory } from '../../../memory/in-memory';
 import { RedisSecurityStore } from '../../../security/store/redis-security-store';
@@ -110,7 +110,9 @@ describe('redis-security-store', () => {
       const rejected = results.find(
         (result) => result.status === 'rejected'
       ) as PromiseRejectedResult;
-      expect(rejected.reason).toMatchObject({ statusCode: 401 });
+      expect(rejected.reason).toMatchObject({
+        code: ErrorCode.AuthInvalidToken
+      });
     });
   });
 });

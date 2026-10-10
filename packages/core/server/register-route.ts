@@ -9,8 +9,13 @@ import {
   RouteConfig
 } from '@appweaver/common';
 import { define } from '../context';
-import { authSchema, recaptchaHeaderSchema } from '../security';
-import { AllErrorResponses } from '../errors';
+import {
+  authErrorCodes,
+  authSchema,
+  recaptchaErrorCodes,
+  recaptchaHeaderSchema
+} from '../security';
+import { errorResponses, mergeErrorResponses } from '../errors';
 import { Router, Server } from '../types';
 import {
   buildVirtualProjectionPlan,
@@ -83,10 +88,18 @@ export function registerRoute(
                 Type.Composite([route.schema.headers as any])
               ])
             : recaptchaHeader,
-          response: {
-            ...(route.schema?.response ?? {}),
-            ...AllErrorResponses
-          }
+          response: mergeErrorResponses(
+            (route.schema?.response as Record<string, unknown>) ?? {},
+            errorResponses(
+              ...authErrorCodes(
+                config?.public ? [] : (config?.auth as AuthType[])
+              ),
+              ...recaptchaErrorCodes({
+                recaptcha: config?.recaptcha,
+                recaptchaAction: config?.recaptchaAction
+              })
+            )
+          )
         },
         onRequest: [
           config?.public ? undefined : authenticate(config?.auth as AuthType[]),

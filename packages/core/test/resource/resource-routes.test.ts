@@ -14,16 +14,16 @@ jest.mock('@appweaver/common', () => {
 import Fastify, { FastifyInstance } from 'fastify';
 import fastifySwagger from '@fastify/swagger';
 import * as common from '@appweaver/common';
-import { QueryMethod, ResourceRoutesConfig } from '@appweaver/common';
+import {
+  ErrorCode,
+  QueryMethod,
+  ResourceRoutesConfig
+} from '@appweaver/common';
 import { context } from '../../context';
 import { createModel } from '../../factory/create-model';
 import { resourceRoutes } from '../../resource/resource-routes';
-import {
-  ClientErrorResponse,
-  errorHandler,
-  HttpError,
-  ServerErrorResponse
-} from '../../errors';
+import { errorHandler, ProblemDetailsSchema } from '../../errors';
+import { AuthError } from '../../security/auth-error';
 import schemas from '../../server/schemas';
 import { resetContext } from '../fixtures/context-fixture';
 import { linkModels } from '../fixtures/model-fixture';
@@ -61,15 +61,14 @@ async function server(
   // Rejecting every request that is authenticated tells the public routes apart
   app.decorate('authenticate', () => async () => {
     if (denyAuth) {
-      throw new HttpError('Unauthorized', 401);
+      throw new AuthError(ErrorCode.AuthUnauthorized, 'Unauthorized');
     }
   });
   app.decorate('recaptcha', async () => {});
   app.setErrorHandler(errorHandler);
 
   // Registered at import time, before each test cleared the context
-  app.addSchema(ClientErrorResponse);
-  app.addSchema(ServerErrorResponse);
+  app.addSchema(ProblemDetailsSchema);
 
   if (swagger) {
     await app.register(fastifySwagger, {
@@ -373,7 +372,10 @@ describe('resource-routes', () => {
         );
 
         expect(status).toBe(400);
-        expect(body.message).toContain("'filter'");
+        expect(body).toMatchObject({
+          code: ErrorCode.ResourceInvalidQueryParameter,
+          detail: expect.stringContaining("'filter'")
+        });
         expect(service.query).not.toHaveBeenCalled();
       });
 
@@ -447,7 +449,10 @@ describe('resource-routes', () => {
         );
 
         expect(status).toBe(400);
-        expect(body.message).toContain("'select'");
+        expect(body).toMatchObject({
+          code: ErrorCode.ResourceInvalidQueryParameter,
+          detail: expect.stringContaining("'select'")
+        });
       });
 
       test('rejects a date field the model does not declare', async () => {

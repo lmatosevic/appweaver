@@ -1,4 +1,4 @@
-import { ResourceClient } from '@appweaver/common';
+import { ErrorCode, ResourceClient } from '@appweaver/common';
 import { createModel } from '../../../factory/create-model';
 import {
   aggregateFields,
@@ -161,9 +161,9 @@ describe('aggregate-util', () => {
       );
     });
 
-    test('throws with a bad request status code', () => {
+    test('throws with the invalid aggregate code', () => {
       expect(() => map({ unknown: { count: true } })).toThrow(
-        expect.objectContaining({ statusCode: 400 })
+        expect.objectContaining({ code: ErrorCode.ResourceInvalidAggregate })
       );
     });
   });

@@ -4,9 +4,11 @@ import {
   AggregateResponse,
   AggregateSelect,
   AggregateSelected,
+  ConfigurationError,
   countFieldName,
   Database,
   defaultScalarValue,
+  ErrorCode,
   Events,
   extractResourceName,
   extractSchemaProperties,
@@ -23,7 +25,8 @@ import {
   ResourceId,
   ResourceClient,
   ResourceData,
-  uncapitalize
+  uncapitalize,
+  isAppweaverError
 } from '@appweaver/common';
 import { inject, injectModel } from '../context';
 import {
@@ -31,10 +34,10 @@ import {
   liveRecordFilter,
   projectVirtualFields
 } from '../utils';
-import { PrismaDatabase } from '../database';
+import { PrismaDatabase, toDatabaseError } from '../database';
 import { CacheService } from '../cache';
-import { HttpError } from '../errors';
 import { FileService } from '../storage';
+import { ResourceError } from './resource-error';
 import {
   AffectedRecords,
   aggregationRecordCount,
@@ -89,7 +92,8 @@ export abstract class ResourceService<
   constructor(public readonly modelName: string) {
     this._modelKey = uncapitalize(modelName);
     if (!this._client) {
-      throw new Error(
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
         `ResourceService initialized with invalid model name: ${modelName}`
       );
     }
@@ -115,9 +119,9 @@ export abstract class ResourceService<
    * @param {ResourceId} id The id of the resource to find.
    * @returns {Promise<Object>} The found resource with its virtual fields and
    * relation counts projected.
-   * @throws {@link HttpError} 404 if the resource does not exist or is filtered
-   * out by the read restrictions, 403 if the access check denies it, and 500 on
-   * a database error.
+   * @throws {@link ResourceError} `RESOURCE_NOT_FOUND` if the resource does not
+   * exist or is filtered out by the read restrictions, `RESOURCE_FORBIDDEN` if
+   * the access check denies it, and a {@link DatabaseError} on a database error.
    */
   public async find(id: ResourceId): Promise<ReadOne> {
     const restrictions = await this.applyReadRestrictions('find', id);
@@ -130,16 +134,24 @@ export abstract class ResourceService<
         include: includeRelations
       });
     } catch (e) {
-      throw new HttpError(`${this._client.name} find error`, 500, e);
+      throw this.databaseError(e, id);
     }
 
     if (!resource || (resource as any).id !== id) {
-      throw new HttpError(`${this._client.name} data not found`, 404);
+      throw new ResourceError(
+        ErrorCode.ResourceNotFound,
+        `${this._client.name} not found`,
+        { model: this._client.name, id }
+      );
     }
 
     const access = await this.applyAccessCheck('find', resource);
     if (!access) {
-      throw new HttpError(`${this._client.name} data access is forbidden`, 403);
+      throw new ResourceError(
+        ErrorCode.ResourceForbidden,
+        `${this._client.name} access is forbidden`,
+        { model: this._client.name, action: 'find' }
+      );
     }
 
     this._events.emitResourceEvent(this._client.name, 'find', {
@@ -183,9 +195,10 @@ export abstract class ResourceService<
    * @returns {Promise<QueryResponse<Object>>} The paged query response containing
    * the returned resources, the count of the returned items, the cursors of the
    * adjacent pages, and the total count unless it was opted out of.
-   * @throws {@link HttpError} 400 if the sort input names a field that cannot be
-   * sorted by or the cursor was issued for another filter or sort order, and 500
-   * on a database error.
+   * @throws {@link ResourceError} `RESOURCE_INVALID_SORT` if the sort input names
+   * a field that cannot be sorted by, `RESOURCE_INVALID_CURSOR` if the cursor
+   * was issued for another filter or sort order, and a {@link DatabaseError} on
+   * a database error.
    */
   public async query(
     options: QueryOptions<ReadMany, Query> = {}
@@ -236,7 +249,7 @@ export abstract class ResourceService<
         resources = await findMany;
       }
     } catch (e) {
-      throw new HttpError(`${this._client.name} query error`, 500, e);
+      throw this.databaseError(e);
     }
 
     // The over-fetched record leads a backward page and trails a forward one
@@ -277,9 +290,10 @@ export abstract class ResourceService<
    * {@link ResourceService.query} (default: `-createdAt`).
    * @returns {Promise<Object|null>} The first matching resource with its virtual
    * fields and relation counts projected, or null when none matches.
-   * @throws {@link HttpError} 403 if the access check denies the matching
-   * resource, 400 if the sort input names a field that cannot be sorted by, and
-   * 500 on a database error.
+   * @throws {@link ResourceError} `RESOURCE_FORBIDDEN` if the access check denies
+   * the matching resource, `RESOURCE_INVALID_SORT` if the sort input names a
+   * field that cannot be sorted by, and a {@link DatabaseError} on a database
+   * error.
    */
   public async single(
     filter: Query = {} as Query,
@@ -297,7 +311,7 @@ export abstract class ResourceService<
         orderBy
       });
     } catch (e) {
-      throw new HttpError(`${this._client.name} find error`, 500, e);
+      throw this.databaseError(e);
     }
 
     if (!resource) {
@@ -306,7 +320,11 @@ export abstract class ResourceService<
 
     const access = await this.applyAccessCheck('find', resource);
     if (!access) {
-      throw new HttpError(`${this._client.name} data access is forbidden`, 403);
+      throw new ResourceError(
+        ErrorCode.ResourceForbidden,
+        `${this._client.name} access is forbidden`,
+        { model: this._client.name, action: 'find' }
+      );
     }
 
     this._events.emitResourceEvent(this._client.name, 'find', {
@@ -323,7 +341,7 @@ export abstract class ResourceService<
    * @param {Object} [filter] The query filter object, mapped the same way as in
    * {@link ResourceService.query}.
    * @returns {Promise<number>} The number of matching resources.
-   * @throws {@link HttpError} 500 on a database error.
+   * @throws {@link DatabaseError} On a database error.
    */
   public async count(filter: Query = {} as Query): Promise<number> {
     const where = await this.queryConditions('query', filter);
@@ -331,7 +349,7 @@ export abstract class ResourceService<
     try {
       return await this._client.count({ where });
     } catch (e) {
-      throw new HttpError(`${this._client.name} count error`, 500, e);
+      throw this.databaseError(e);
     }
   }
 
@@ -343,7 +361,7 @@ export abstract class ResourceService<
    * {@link ResourceService.query}.
    * @returns {Promise<boolean>} True if at least one resource matches, otherwise
    * false.
-   * @throws {@link HttpError} 500 on a database error.
+   * @throws {@link DatabaseError} On a database error.
    */
   public async exists(filter: Query = {} as Query): Promise<boolean> {
     const where = await this.queryConditions('query', filter);
@@ -352,7 +370,7 @@ export abstract class ResourceService<
     try {
       resource = await this._client.findFirst({ where, select: { id: true } });
     } catch (e) {
-      throw new HttpError(`${this._client.name} exists error`, 500, e);
+      throw this.databaseError(e);
     }
 
     return resource !== null;
@@ -392,8 +410,9 @@ export abstract class ResourceService<
    * date of its period. It is typed by the fields the selection named, not by
    * the whole model, whenever the selection is passed as an object literal or
    * annotated with `satisfies`.
-   * @throws {@link HttpError} 400 if the selection is empty or names a field or
-   * operator that cannot be aggregated, and 500 on a database error.
+   * @throws {@link ResourceError} `RESOURCE_INVALID_AGGREGATE` if the selection
+   * is empty or names a field or operator that cannot be aggregated, and a
+   * {@link DatabaseError} on a database error.
    */
   public async aggregate<S extends AggregateSelect<ReadOne>>(
     options: AggregateOptions<ReadOne, S, Query>
@@ -467,7 +486,7 @@ export abstract class ResourceService<
         return [overall, ranges];
       });
     } catch (e) {
-      throw new HttpError('Error on results aggregation', 500, e);
+      throw this.databaseError(e);
     }
 
     return {
@@ -492,9 +511,10 @@ export abstract class ResourceService<
    * relation and file payloads.
    * @returns {Promise<Object>} The created resource with its virtual fields and
    * relation counts projected.
-   * @throws {@link HttpError} 403 if the access check denies the action, 400 if
-   * an inline relation payload is missing required fields or the relation does
-   * not accept new records, and 500 on a database error.
+   * @throws {@link ResourceError} `RESOURCE_FORBIDDEN` if the access check denies
+   * the action, `RESOURCE_INVALID_RELATION` if an inline relation payload is
+   * missing required fields or the relation does not accept new records, and a
+   * {@link DatabaseError} on a database error, i.e. `DATABASE_UNIQUE_VIOLATION`.
    */
   public async create(data: Create): Promise<ReadOne> {
     const createdBy = createdByConnect(this._client.name);
@@ -508,9 +528,10 @@ export abstract class ResourceService<
 
     const access = await this.applyAccessCheck('create', createData as ReadOne);
     if (!access) {
-      throw new HttpError(
+      throw new ResourceError(
+        ErrorCode.ResourceForbidden,
         `${this._client.name} create action is forbidden`,
-        403
+        { model: this._client.name, action: 'create' }
       );
     }
 
@@ -540,7 +561,7 @@ export abstract class ResourceService<
         include: includeRelations
       });
     } catch (e) {
-      throw new HttpError(`${this._client.name} create error`, 500, e);
+      throw this.databaseError(e);
     }
 
     await this._cacheService.invalidateCache(this._client.name, 'create');
@@ -566,11 +587,13 @@ export abstract class ResourceService<
    * any inline relation and file payloads.
    * @returns {Promise<Object>} The updated resource with its virtual fields and
    * relation counts projected.
-   * @throws {@link HttpError} 404 if the resource does not exist or is filtered
-   * out by the read restrictions, 403 if the access check denies the action, 400
-   * if an inline relation payload is missing required fields or the relation
-   * does not accept new records, 409 if a live record references a soft
-   * deleted orphan through a restricting relation, and 500 on a database error.
+   * @throws {@link ResourceError} `RESOURCE_NOT_FOUND` if the resource does not
+   * exist or is filtered out by the read restrictions, `RESOURCE_FORBIDDEN` if
+   * the access check denies the action, `RESOURCE_INVALID_RELATION` if an
+   * inline relation payload is missing required fields or the relation does not
+   * accept new records, `RESOURCE_DELETE_RESTRICTED` if a live record
+   * references a soft deleted orphan through a restricting relation, and a
+   * {@link DatabaseError} on a database error, i.e. `DATABASE_UNIQUE_VIOLATION`.
    */
   public async update(id: ResourceId, data: Update): Promise<ReadOne> {
     const { current } = await this.updateWithPrevious(id, data);
@@ -595,10 +618,13 @@ export abstract class ResourceService<
    * @param {ResourceId} id The id of the resource to delete.
    * @returns {Promise<Object>} The deleted resource with its virtual fields and
    * relation counts projected.
-   * @throws {@link HttpError} 404 if the resource does not exist or is filtered
-   * out by the read restrictions, 403 if the access check denies it, 409 if a
-   * restricting relation still references a soft deleted resource, and 500 on a
-   * database error, a restricting relation of a removed resource included.
+   * @throws {@link ResourceError} `RESOURCE_NOT_FOUND` if the resource does not
+   * exist or is filtered out by the read restrictions, `RESOURCE_FORBIDDEN` if
+   * the access check denies it, `RESOURCE_DELETE_RESTRICTED` if a restricting
+   * relation still references a soft deleted resource, and a
+   * {@link DatabaseError} on a database error, i.e.
+   * `DATABASE_FOREIGN_KEY_VIOLATION` for a restricting relation of a removed
+   * resource.
    */
   public async delete(id: ResourceId): Promise<ReadOne> {
     const restrictions = await this.applyReadRestrictions('delete', id);
@@ -622,14 +648,19 @@ export abstract class ResourceService<
           include: softDelete ? includeRelations : undefined
         });
         if (!current || current.id !== id) {
-          throw new HttpError(`${this._client.name} data not found`, 404);
+          throw new ResourceError(
+            ErrorCode.ResourceNotFound,
+            `${this._client.name} not found`,
+            { model: this._client.name, id }
+          );
         }
 
         const access = await this.applyAccessCheck('delete', current);
         if (!access) {
-          throw new HttpError(
+          throw new ResourceError(
+            ErrorCode.ResourceForbidden,
             `${this._client.name} delete action is forbidden`,
-            403
+            { model: this._client.name, action: 'delete' }
           );
         }
 
@@ -659,10 +690,7 @@ export abstract class ResourceService<
         return [result, removed];
       });
     } catch (e) {
-      if (e instanceof HttpError) {
-        throw e;
-      }
-      throw new HttpError(`${this._client.name} delete error`, 500, e);
+      throw this.databaseError(e, id);
     }
 
     await this.cleanupDeletedRecords(deleted);
@@ -726,14 +754,19 @@ export abstract class ResourceService<
             include: includeRelations
           });
           if (!current || current.id !== id) {
-            throw new HttpError(`${this._client.name} data not found`, 404);
+            throw new ResourceError(
+              ErrorCode.ResourceNotFound,
+              `${this._client.name} not found`,
+              { model: this._client.name, id }
+            );
           }
 
           const access = await this.applyAccessCheck('update', current);
           if (!access) {
-            throw new HttpError(
+            throw new ResourceError(
+              ErrorCode.ResourceForbidden,
               `${this._client.name} update action is forbidden`,
-              403
+              { model: this._client.name, action: 'update' }
             );
           }
 
@@ -766,10 +799,7 @@ export abstract class ResourceService<
           return [current, updated, removed];
         });
     } catch (e) {
-      if (e instanceof HttpError) {
-        throw e;
-      }
-      throw new HttpError(`${this._client.name} update error`, 500, e);
+      throw this.databaseError(e, id);
     }
 
     await this._cacheService.invalidateCache(this._client.name, 'update');
@@ -792,8 +822,9 @@ export abstract class ResourceService<
    * authorization rules. The returned object will be applied as a filter on
    * all actions (except create action) which will prevent unwanted data access
    * and modifications. This method can also cancel the current action by
-   * throwing an error, recommended is {@link HttpError } with appropriate HTTP
-   * error code.
+   * throwing an error, i.e. a {@link ResourceError} with the
+   * `RESOURCE_FORBIDDEN` code or an `ApplicationError` with a code of the
+   * application.
    *
    * Not called for the calls run with internal access (see `withoutPolicies`).
    *
@@ -825,8 +856,9 @@ export abstract class ResourceService<
    * authorization rules. The returned object will be applied as a filter on
    * all actions (create and update) to ensure that users can only modify
    * data they are authorized to access. This method can also cancel the
-   * current action by throwing an error, with the recommended type being
-   * {@link HttpError} with the appropriate HTTP error code.
+   * current action by throwing an error, i.e. a {@link ResourceError} with the
+   * `RESOURCE_FORBIDDEN` code or an `ApplicationError` with a code of the
+   * application.
    *
    * Not called for the calls run with internal access (see `withoutPolicies`).
    *
@@ -1114,5 +1146,27 @@ export abstract class ResourceService<
    */
   private get _client(): ResourceClient {
     return this._db.client()[this._modelKey];
+  }
+
+  /**
+   * Translates the error of a database operation, a record removed after it
+   * was read, i.e. by a concurrent delete, being one not found.
+   *
+   * @internal
+   */
+  private databaseError(error: unknown, id?: ResourceId): unknown {
+    const translated = toDatabaseError(error, this._client.name);
+    if (
+      isAppweaverError(translated) &&
+      translated.is(ErrorCode.DatabaseRecordNotFound)
+    ) {
+      return new ResourceError(
+        ErrorCode.ResourceNotFound,
+        `${this._client.name} not found`,
+        { model: this._client.name, id },
+        { cause: translated.cause }
+      );
+    }
+    return translated;
   }
 }

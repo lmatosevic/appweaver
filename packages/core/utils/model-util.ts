@@ -1,5 +1,7 @@
 import {
   capitalize,
+  ConfigurationError,
+  ErrorCode,
   hasSoftDelete,
   isArray,
   isBoolean,
@@ -50,10 +52,12 @@ export function validateSoftDeleteCascades(
   const errors = softDeleteCascadeErrors(models);
 
   if (errors.length > 0) {
-    throw new Error(
+    throw new ConfigurationError(
+      ErrorCode.ConfigurationInvalid,
       `Invalid resource model soft delete cascades:\n${errors
         .map((error) => `  - ${error}`)
-        .join('\n')}`
+        .join('\n')}`,
+      { errors }
     );
   }
 }
@@ -87,15 +91,16 @@ export function validateScalarDefaults(
   }
 
   if (errors.length > 0) {
-    throw new Error(
+    throw new ConfigurationError(
+      ErrorCode.ConfigurationInvalid,
       `Invalid resource model default values:\n${errors
         .map((error) => `  - ${error}`)
-        .join('\n')}`
+        .join('\n')}`,
+      { errors }
     );
   }
 }
 
-/** @internal */
 function defaultValueErrors(field: ScalarField): string[] {
   if (field.default === undefined) {
     return [];
@@ -111,7 +116,6 @@ function defaultValueErrors(field: ScalarField): string[] {
   return values.flatMap((value: any) => defaultErrors(field, value));
 }
 
-/** @internal */
 function defaultErrors(field: ScalarField, value: any): string[] {
   const errors: string[] = [];
 
@@ -184,7 +188,7 @@ function defaultErrors(field: ScalarField, value: any): string[] {
 }
 
 /** Tests a value against a field pattern, skipping patterns that are not valid
- * regular expressions since they cannot be evaluated. @internal */
+ * regular expressions since they cannot be evaluated. */
 function matchesPattern(value: string, pattern: string): boolean {
   try {
     return new RegExp(pattern).test(value);

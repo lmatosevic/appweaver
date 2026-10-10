@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { AllErrorResponses } from '../errors';
+import { errorResponses } from '../errors';
 import { createSchemaModel } from '../utils';
 
 export const InfoResponse = Type.Object(
@@ -16,6 +16,6 @@ export const infoSchema = {
   description: 'Application info',
   response: {
     200: createSchemaModel(InfoResponse),
-    ...AllErrorResponses
+    ...errorResponses()
   }
 };

@@ -1,8 +1,8 @@
 import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import fastifyAuth from '@fastify/auth';
-import { AuthType, config } from '@appweaver/common';
-import { HttpError } from '../errors';
+import { AuthType, config, ErrorCode } from '@appweaver/common';
+import { AuthError } from './auth-error';
 import { Server } from '../types';
 import { currentAuthUser } from './helper';
 import { authRoutes } from './auth-routes';
@@ -95,7 +95,10 @@ export default fastifyPlugin((server: Server) => {
               // is using a callback-based handler
               async (req: FastifyRequest) => {
                 if (hasBasicAuth(req)) {
-                  throw new HttpError('Invalid authorization header', 401);
+                  throw new AuthError(
+                    ErrorCode.AuthInvalidHeader,
+                    'Invalid authorization header'
+                  );
                 }
               },
               basicAuth
@@ -109,7 +112,7 @@ export default fastifyPlugin((server: Server) => {
     // then throw 401 error
     authHandlers.push(async () => {
       if (!currentAuthUser()) {
-        throw new HttpError('Unauthorized', 401);
+        throw new AuthError(ErrorCode.AuthUnauthorized, 'Unauthorized');
       }
     });
 
@@ -120,7 +123,7 @@ export default fastifyPlugin((server: Server) => {
     const authUser = currentAuthUser();
 
     if (!authUser) {
-      throw new HttpError('Unauthorized', 401);
+      throw new AuthError(ErrorCode.AuthUnauthorized, 'Unauthorized');
     }
 
     return authUser;

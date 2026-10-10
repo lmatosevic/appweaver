@@ -1,6 +1,8 @@
-import { createService, currentAuthUser, HttpError } from '@appweaver/core';
+import { ApplicationError } from '@appweaver/common';
+import { createService, currentAuthUser } from '@appweaver/core';
 import db from '@db/client';
 import { ReviewCreate } from '@/types';
+import { ShopErrors } from '@/errors';
 
 type ReviewData = ReviewCreate & {
   authorName?: string;
@@ -25,9 +27,10 @@ export default createService({
       select: { id: true }
     });
     if (existing) {
-      throw new HttpError(
+      throw new ApplicationError(
+        ShopErrors.AlreadyReviewed,
         `The product is already reviewed, update review ${existing.id} instead`,
-        409
+        { reviewId: existing.id }
       );
     }
 

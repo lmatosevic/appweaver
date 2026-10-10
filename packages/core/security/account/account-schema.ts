@@ -1,7 +1,12 @@
 import { Type } from '@sinclair/typebox';
-import { AuthType, StringEnum } from '@appweaver/common';
-import { AllErrorResponses } from '../../errors';
-import { authSchema, recaptchaHeaderSchema } from '../auth-schema';
+import { AuthType, ErrorCode, StringEnum } from '@appweaver/common';
+import { errorResponses } from '../../errors';
+import {
+  authErrorCodes,
+  authSchema,
+  recaptchaErrorCodes,
+  recaptchaHeaderSchema
+} from '../auth-schema';
 import { createSchemaModel } from '../../utils';
 import { VerificationType } from './account-service';
 
@@ -137,7 +142,13 @@ export const sendEmailVerificationSchema = {
   description: 'Send verification email',
   response: {
     200: createSchemaModel(AccountStatusResponse),
-    ...AllErrorResponses
+    ...errorResponses(
+      ...authErrorCodes(),
+      ErrorCode.AccountFeatureUnavailable,
+      ErrorCode.AccountEmailAlreadyVerified,
+      ErrorCode.AuthInvalidRedirectUrl,
+      ErrorCode.QueueUnavailable
+    )
   },
   body: createSchemaModel(AccountSendEmailVerificationRequest)
 };
@@ -148,7 +159,11 @@ export const verifyEmailSchema = {
   description: 'Verify email token',
   response: {
     200: createSchemaModel(AccountStatusResponse),
-    ...AllErrorResponses
+    ...errorResponses(
+      ErrorCode.AuthInvalidToken,
+      ErrorCode.AuthUserNotFound,
+      ErrorCode.AccountEmailAlreadyVerified
+    )
   },
   body: createSchemaModel(AccountEmailVerificationRequest)
 };
@@ -164,7 +179,11 @@ export const verifyEmailRedirectSchema = {
     302: {
       description: `Redirect to URL provided in the request for sending verification email`
     },
-    ...AllErrorResponses
+    ...errorResponses(
+      ErrorCode.AuthInvalidToken,
+      ErrorCode.AuthUserNotFound,
+      ErrorCode.AccountEmailAlreadyVerified
+    )
   }
 };
 
@@ -175,7 +194,12 @@ export const sendResetPasswordSchema = {
   description: 'Send password reset link to provided email address',
   response: {
     200: createSchemaModel(AccountStatusResponse),
-    ...AllErrorResponses
+    ...errorResponses(
+      ...recaptchaErrorCodes({ recaptchaAction: 'send-reset-password' }),
+      ErrorCode.AccountFeatureUnavailable,
+      ErrorCode.AuthInvalidRedirectUrl,
+      ErrorCode.QueueUnavailable
+    )
   },
   body: createSchemaModel(AccountSendResetPasswordRequest)
 };
@@ -187,7 +211,13 @@ export const resetPasswordSchema = {
   description: 'Reset the user password to a new value',
   response: {
     200: createSchemaModel(AccountStatusResponse),
-    ...AllErrorResponses
+    ...errorResponses(
+      ...recaptchaErrorCodes({ recaptchaAction: 'reset-password' }),
+      ErrorCode.AuthInvalidToken,
+      ErrorCode.AuthUserNotFound,
+      ErrorCode.AuthPasswordWeak,
+      ErrorCode.AccountPasswordNotSet
+    )
   },
   body: createSchemaModel(AccountResetPasswordRequest)
 };
@@ -199,7 +229,11 @@ export const send2FACodeSchema = {
   description: 'Send 2FA code for currently logged-in user',
   response: {
     200: createSchemaModel(AccountSend2FAResponse),
-    ...AllErrorResponses
+    ...errorResponses(
+      ...authErrorCodes([AuthType.Jwt]),
+      ErrorCode.AccountFeatureUnavailable,
+      ErrorCode.QueueUnavailable
+    )
   },
   body: createSchemaModel(AccountSend2FACodeRequest)
 };
@@ -211,7 +245,11 @@ export const verify2FACodeSchema = {
   description: 'Verify 2FA code for currently logged-in user',
   response: {
     200: createSchemaModel(AccountVerify2FAResponse),
-    ...AllErrorResponses
+    ...errorResponses(
+      ...authErrorCodes([AuthType.Jwt]),
+      ErrorCode.AuthInvalidToken,
+      ErrorCode.AuthUserNotFound
+    )
   },
   body: createSchemaModel(AccountVerify2FARequest)
 };

@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
-import { RouteSchema } from '@appweaver/common';
-import { AllErrorResponses } from '../errors';
+import { ErrorCode, RouteSchema } from '@appweaver/common';
+import { errorResponses } from '../errors';
 
 export const FileName = Type.Object({
   '*': Type.String()
@@ -35,7 +35,13 @@ export function createFileAccessSchema(isPublic: boolean): RouteSchema {
           }
         }
       },
-      ...AllErrorResponses
+      ...errorResponses(
+        ErrorCode.AuthInvalidToken,
+        ErrorCode.AuthTokenExpired,
+        ErrorCode.FileNotFound,
+        ErrorCode.FileForbidden,
+        ErrorCode.FileStorageError
+      )
     },
     params: FileName,
     headers: FileRangeHeader

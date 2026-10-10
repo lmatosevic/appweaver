@@ -12,7 +12,7 @@ import {
 } from '@appweaver/common';
 import { define } from '../../context';
 import { createAuthService } from '../../security/create-auth-resources';
-import { HttpError } from '../../errors';
+import { AuthError } from '../../security/auth-error';
 import {
   checkPassword,
   checkScopeAccess,
@@ -256,7 +256,7 @@ describe('security-helper', () => {
     });
 
     test('throws for a password that does not satisfy the complexity rules', async () => {
-      await expect(updatePasswordHash({}, 'weak')).rejects.toThrow(HttpError);
+      await expect(updatePasswordHash({}, 'weak')).rejects.toThrow(AuthError);
       await expect(updatePasswordHash({}, 'weak')).rejects.toThrow(
         'at least 8 characters long'
       );

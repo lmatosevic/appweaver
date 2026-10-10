@@ -1,5 +1,6 @@
 import {
   Database,
+  ErrorCode,
   generateToken,
   makeHash,
   SecurityStore,
@@ -7,7 +8,7 @@ import {
 } from '@appweaver/common';
 import { inject } from '../../context';
 import { PrismaDatabase } from '../../database';
-import { HttpError } from '../../errors';
+import { AuthError } from '../auth-error';
 
 export class DatabaseSecurityStore extends SecurityStore {
   /** @internal */
@@ -54,7 +55,10 @@ export class DatabaseSecurityStore extends SecurityStore {
       oneTimeToken.purpose !== purpose ||
       oneTimeToken.expiresAt.getTime() < Date.now()
     ) {
-      throw new HttpError('Invalid or expired token provided', 401);
+      throw new AuthError(
+        ErrorCode.AuthInvalidToken,
+        'Invalid or expired token provided'
+      );
     }
 
     const data = oneTimeToken.data as T;
@@ -63,7 +67,7 @@ export class DatabaseSecurityStore extends SecurityStore {
     if (validateContent) {
       const result = validateContent(data);
       if (!result.valid) {
-        throw new HttpError(result.message, 401);
+        throw new AuthError(ErrorCode.AuthInvalidToken, result.message);
       }
     }
 
@@ -72,7 +76,10 @@ export class DatabaseSecurityStore extends SecurityStore {
       where: { id: oneTimeToken.id }
     });
     if (count === 0) {
-      throw new HttpError('Invalid or expired token provided', 401);
+      throw new AuthError(
+        ErrorCode.AuthInvalidToken,
+        'Invalid or expired token provided'
+      );
     }
 
     return data;

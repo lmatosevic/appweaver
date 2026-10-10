@@ -15,6 +15,7 @@ import {
   AggregateSelect,
   AggregateValue,
   AuditFields,
+  ErrorCode,
   isPlainObject,
   PeriodIncrementFn,
   ResourceClient,
@@ -23,7 +24,7 @@ import {
   setValue
 } from '@appweaver/common';
 import { injectModel } from '../../context';
-import { HttpError } from '../../errors';
+import { ResourceError } from '../resource-error';
 
 /** The kind of value an aggregatable field holds. */
 export type AggregateFieldType = 'numeric' | 'date';
@@ -126,7 +127,7 @@ export function buildAggregationPeriods(
  * selected fields nested inside, together with the fields read off the earliest and the latest record of the range.
  * The arguments always count the records of the range when a boundary field was selected, so the boundary queries can
  * be skipped for the empty ranges.
- * @throws {HttpError} 400 if the selection is not an object, selects no operation at all, names a field the model
+ * @throws {ResourceError} `RESOURCE_INVALID_AGGREGATE` if the selection is not an object, selects no operation at all, names a field the model
  * cannot aggregate, or applies an operator the kind of value of its field does not support.
  */
 export function mapAggregationSelect<T>(
@@ -134,9 +135,10 @@ export function mapAggregationSelect<T>(
   resourceName: string
 ): AggregationOperations {
   if (!isPlainObject(select)) {
-    throw new HttpError(
+    throw new ResourceError(
+      ErrorCode.ResourceInvalidAggregate,
       `${resourceName} aggregate select must be an object of fields to aggregate`,
-      400
+      { model: resourceName }
     );
   }
 
@@ -154,25 +156,28 @@ export function mapAggregationSelect<T>(
   for (const [field, operators] of Object.entries(select)) {
     const fieldType = fieldTypes.get(field);
     if (!fieldType) {
-      throw new HttpError(
+      throw new ResourceError(
+        ErrorCode.ResourceInvalidAggregate,
         `Cannot aggregate the '${field}' field, it is not a numeric or date field of the ${model.name} model`,
-        400
+        { model: model.name, field }
       );
     }
 
     if (!isPlainObject(operators)) {
-      throw new HttpError(
+      throw new ResourceError(
+        ErrorCode.ResourceInvalidAggregate,
         `Cannot aggregate the '${field}' field, its value must be an object of aggregation operators`,
-        400
+        { model: model.name, field }
       );
     }
 
     for (const [operator, enabled] of Object.entries(operators)) {
       if (!OPERATORS[fieldType].includes(operator)) {
-        throw new HttpError(
+        throw new ResourceError(
+          ErrorCode.ResourceInvalidAggregate,
           `Cannot apply the '${operator}' operator to the ${fieldType} field '${field}', ` +
             `expected one of: ${OPERATORS[fieldType].join(', ')}`,
-          400
+          { model: model.name, field, operator }
         );
       }
 
@@ -191,9 +196,10 @@ export function mapAggregationSelect<T>(
   const hasBoundary = operations.first.length + operations.last.length > 0;
 
   if (Object.keys(operations.aggregate).length === 0 && !hasBoundary) {
-    throw new HttpError(
+    throw new ResourceError(
+      ErrorCode.ResourceInvalidAggregate,
       `${resourceName} aggregate requires at least one field with a selected aggregation operator`,
-      400
+      { model: resourceName }
     );
   }
 
@@ -328,7 +334,7 @@ function isBoundaryOperator(operator: string): operator is 'first' | 'last' {
  * @param {string} dateField - The name of the date field to validate.
  * @param {string} resourceName - The name of the model the range is applied on.
  * @return {string} The validated date field name.
- * @throws {HttpError} 400 if the model has no date field under that name.
+ * @throws {ResourceError} `RESOURCE_INVALID_AGGREGATE` if the model has no date field under that name.
  */
 export function checkAggregationDateField(
   dateField: string,
@@ -341,12 +347,13 @@ export function checkAggregationDateField(
     .map(([field]) => field);
 
   if (!dateFields.includes(dateField)) {
-    throw new HttpError(
+    throw new ResourceError(
+      ErrorCode.ResourceInvalidAggregate,
       `Cannot aggregate over the '${dateField}' field, it is not a date field of the ${model.name} model` +
         (dateFields.length > 0
           ? `, expected one of: ${dateFields.join(', ')}`
           : ''),
-      400
+      { model: model.name, field: dateField }
     );
   }
 

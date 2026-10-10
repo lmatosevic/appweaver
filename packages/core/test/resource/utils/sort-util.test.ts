@@ -5,6 +5,7 @@ import {
 } from '../../../resource/utils/sort-util';
 import { resetContext } from '../../fixtures/context-fixture';
 import { linkModels } from '../../fixtures/model-fixture';
+import { ErrorCode } from '@appweaver/common';
 
 describe('sort-util', () => {
   /** Maps a sort input against the Post model defined below. */
@@ -303,9 +304,9 @@ describe('sort-util', () => {
         );
       });
 
-      test('throws with a bad request status code', () => {
+      test('throws with the invalid sort code', () => {
         expect(() => map('unknown')).toThrow(
-          expect.objectContaining({ statusCode: 400 })
+          expect.objectContaining({ code: ErrorCode.ResourceInvalidSort })
         );
       });
     });

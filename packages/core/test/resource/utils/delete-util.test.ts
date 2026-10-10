@@ -1,4 +1,4 @@
-import { RESOURCE_AUTH } from '@appweaver/common';
+import { ErrorCode, RESOURCE_AUTH } from '@appweaver/common';
 import { context } from '../../../context';
 import { createModel } from '../../../factory/create-model';
 import {
@@ -267,7 +267,7 @@ describe('delete-util', () => {
 
       await expect(
         softDeleteCascade(tx, 'Post', [1], data)
-      ).rejects.toMatchObject({ statusCode: 409 });
+      ).rejects.toMatchObject({ code: ErrorCode.ResourceDeleteRestricted });
     });
 
     test('continues when no record references it through a restricting relation', async () => {
@@ -499,7 +499,7 @@ describe('delete-util', () => {
         assertLiveRelationTargets(tx, 'Post', {
           tags: { connect: [{ id: 1 }, { id: 2 }] }
         })
-      ).rejects.toMatchObject({ statusCode: 400 });
+      ).rejects.toMatchObject({ code: ErrorCode.ResourceInvalidRelation });
 
       expect(db.lastQuery('count').args.where).toEqual({
         AND: [{ deletedAt: { not: null } }, { OR: [{ id: 1 }, { id: 2 }] }]

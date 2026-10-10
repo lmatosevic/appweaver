@@ -1,4 +1,5 @@
-import { createPolicy, hasRole, HttpError } from '@appweaver/core';
+import { ErrorCode } from '@appweaver/common';
+import { createPolicy, hasRole, ResourceError } from '@appweaver/core';
 import { Role } from '@/features/access/roles';
 
 export default createPolicy({
@@ -9,7 +10,11 @@ export default createPolicy({
     }
 
     if (data.id !== user.id) {
-      throw new HttpError('Only the own profile can be changed', 403);
+      throw new ResourceError(
+        ErrorCode.ResourceForbidden,
+        'Only the own profile can be changed',
+        { model: 'User', action }
+      );
     }
     // Agents set their availability, an admin their team and roles
     if (
@@ -17,7 +22,11 @@ export default createPolicy({
       data.team !== undefined ||
       data.enabled !== undefined
     ) {
-      throw new HttpError('Roles and teams are assigned by an admin', 403);
+      throw new ResourceError(
+        ErrorCode.ResourceForbidden,
+        'Roles and teams are assigned by an admin',
+        { model: 'User', action }
+      );
     }
 
     return null;

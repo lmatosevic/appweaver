@@ -1,6 +1,7 @@
 import { Readable } from 'node:stream';
 import {
   config,
+  ErrorCode,
   logger,
   RESOURCE_SERVICE_TYPE,
   RESOURCE_TYPE
@@ -8,7 +9,7 @@ import {
 import { define } from '../../context';
 import { ExportService } from '../../export/export-service';
 import { createModel } from '../../factory/create-model';
-import { HttpError } from '../../errors';
+import { ExportError } from '../../export/export-error';
 import { resetContext } from '../fixtures/context-fixture';
 import { linkModels } from '../fixtures/model-fixture';
 
@@ -570,9 +571,11 @@ describe('export-service', () => {
         'Post'
       );
 
-      await expect(service.exportCsv('Post')).rejects.toBeInstanceOf(HttpError);
+      await expect(service.exportCsv('Post')).rejects.toBeInstanceOf(
+        ExportError
+      );
       await expect(service.exportCsv('Post')).rejects.toMatchObject({
-        statusCode: 500
+        code: ErrorCode.ExportFailed
       });
     });
 

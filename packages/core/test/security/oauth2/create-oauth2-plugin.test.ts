@@ -3,10 +3,7 @@ import Wreck from '@hapi/wreck';
 import { AuthSource, SecurityStore } from '@appweaver/common';
 import { define } from '../../../context';
 import { errorHandler } from '../../../errors';
-import {
-  ClientErrorResponse,
-  ServerErrorResponse
-} from '../../../errors/error-schema';
+import { ProblemDetailsSchema } from '../../../errors/error-schema';
 import { AuthService } from '../../../security/auth-service';
 import { OAuth2Service } from '../../../security/oauth2/oauth2-service';
 import {
@@ -52,8 +49,7 @@ function createTestServer(): Server {
     }
   }) as unknown as Server;
 
-  server.addSchema(ClientErrorResponse);
-  server.addSchema(ServerErrorResponse);
+  server.addSchema(ProblemDetailsSchema);
   server.setErrorHandler(errorHandler);
 
   return server;

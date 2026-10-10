@@ -1,5 +1,6 @@
 import {
   Database,
+  ErrorCode,
   RESOURCE_MODEL_TYPE,
   RESOURCE_TYPE,
   Storage
@@ -147,7 +148,7 @@ describe('file-service', () => {
           resource,
           client
         )
-      ).rejects.toMatchObject({ statusCode: 400 });
+      ).rejects.toMatchObject({ code: ErrorCode.FileTooLarge });
     });
 
     test('applies the name pattern configured for the file field', async () => {
@@ -190,7 +191,7 @@ describe('file-service', () => {
           resource,
           client
         )
-      ).rejects.toMatchObject({ statusCode: 400 });
+      ).rejects.toMatchObject({ code: ErrorCode.FileFieldNotFound });
 
       expect(storage.store).not.toHaveBeenCalled();
     });
@@ -207,7 +208,7 @@ describe('file-service', () => {
           resource,
           client
         )
-      ).rejects.toMatchObject({ statusCode: 400 });
+      ).rejects.toMatchObject({ code: ErrorCode.FileUnsupportedType });
 
       expect(storage.store).not.toHaveBeenCalled();
     });
@@ -231,7 +232,7 @@ describe('file-service', () => {
           resource,
           client
         )
-      ).rejects.toMatchObject({ statusCode: 400 });
+      ).rejects.toMatchObject({ code: ErrorCode.FileTooLarge });
 
       expect(storage.delete).toHaveBeenCalled();
       expect(client.update).not.toHaveBeenCalled();
@@ -278,7 +279,9 @@ describe('file-service', () => {
       test('denies the upload an async check rejects', async () => {
         canCreate.mockResolvedValue(false);
 
-        await expect(save()).rejects.toMatchObject({ statusCode: 403 });
+        await expect(save()).rejects.toMatchObject({
+          code: ErrorCode.FileForbidden
+        });
         expect(storage.store).not.toHaveBeenCalled();
       });
 
@@ -329,7 +332,9 @@ describe('file-service', () => {
     test('denies the delete an async check rejects', async () => {
       canDelete.mockResolvedValue(false);
 
-      await expect(deleteFile()).rejects.toMatchObject({ statusCode: 403 });
+      await expect(deleteFile()).rejects.toMatchObject({
+        code: ErrorCode.FileForbidden
+      });
       expect(storage.delete).not.toHaveBeenCalled();
     });
 
@@ -412,7 +417,7 @@ describe('file-service', () => {
         canAccess.mockReturnValue(false);
 
         await expect(service.stream(file.name)).rejects.toMatchObject({
-          statusCode: 403
+          code: ErrorCode.FileForbidden
         });
         expect(canAccess).toHaveBeenCalledWith(
           expect.objectContaining({ id: 2 }),
@@ -433,7 +438,7 @@ describe('file-service', () => {
         jest.mocked(currentAuthUser).mockReturnValue(undefined);
 
         await expect(service.stream(file.name)).rejects.toMatchObject({
-          statusCode: 403
+          code: ErrorCode.FileForbidden
         });
       });
     });
@@ -442,7 +447,7 @@ describe('file-service', () => {
       dbClient.file.findFirst.mockResolvedValue(null);
 
       await expect(service.stream(file.name)).rejects.toMatchObject({
-        statusCode: 404
+        code: ErrorCode.FileNotFound
       });
       expect(storage.stream).not.toHaveBeenCalled();
     });

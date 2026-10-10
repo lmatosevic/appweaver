@@ -41,6 +41,10 @@
               "type": "string",
               "default": ""
             },
+            "typeBase": {
+              "type": "string",
+              "default": "urn:appweaver"
+            },
             "runtime": {
               "type": "string",
               "enum": ["node", "bun"],
@@ -174,6 +178,10 @@
               "default": true
             },
             "requestLoggingEnabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "errorDatabaseMessageEnabled": {
               "type": "boolean",
               "default": false
             }

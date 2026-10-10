@@ -2,6 +2,8 @@ import openapiTS, { astToString, OpenAPI3 } from 'openapi-typescript';
 import ts from 'typescript';
 import {
   hoistSharedTypes,
+  inlineResponseErrorCodes,
+  nameErrorCodeEnum,
   normalizeNullTypes,
   rewriteEnumsAsObjects,
   toSchemaObject
@@ -38,6 +40,7 @@ export async function generateTypes(
       ? await toSchemaObject(schema)
       : structuredClone(schema);
   normalizeNullTypes(schemaObject);
+  inlineResponseErrorCodes(schemaObject);
   const sharedTypes = hoistSharedTypes(schemaObject);
 
   const ast = await openapiTS(schemaObject, {
@@ -98,6 +101,7 @@ export async function generateTypes(
   typesContent = combineModuleTypes(typesContent, schemaObject);
   typesContent = deduplicateExportedTypes(typesContent);
   typesContent = replaceFileUploadTypes(typesContent);
+  typesContent = nameErrorCodeEnum(typesContent);
   return rewriteEnumsAsObjects(typesContent, options.declaration);
 }
 

@@ -27,7 +27,9 @@ import {
   ScalarField,
   StringDate,
   StringEnum,
-  VirtualConfig
+  VirtualConfig,
+  ConfigurationError,
+  ErrorCode
 } from '@appweaver/common';
 import { context, define } from '../context';
 import {
@@ -90,7 +92,8 @@ function normalizeRelations(config: ResourceModelConfig): ResourceModelConfig {
     }
 
     if (relation.owner === false) {
-      throw new Error(
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
         `Relation '${config.name}.${field}' of type 'manyToOne' holds the foreign key, so it cannot set 'owner: false'`
       );
     }

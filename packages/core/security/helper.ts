@@ -6,6 +6,7 @@ import {
   AuthType,
   AuthUser,
   config,
+  ErrorCode,
   IResourceService,
   isResourceAuthModel,
   isResourceAuthService,
@@ -13,7 +14,7 @@ import {
   ResourceModel,
   ValidationResult
 } from '@appweaver/common';
-import { HttpError } from '../errors';
+import { AuthError } from './auth-error';
 import { context, injectService } from '../context';
 
 type Argon2Params = { m: number; t: number; p: number };
@@ -166,7 +167,7 @@ export function needsRehash(passwordHash: string): boolean {
  * occurs.
  * @param {boolean} [logout=false] - Indicates whether to log the user out by setting the logout timestamp.
  * @return Resolves when the password hash is updated and optional logout processing is complete.
- * @throws {HttpError} If the provided password does not satisfy password complexity requirements.
+ * @throws {AuthError} `AUTH_PASSWORD_WEAK` if the provided password does not satisfy password complexity requirements.
  */
 export async function updatePasswordHash(
   authUser: Partial<AuthUser>,
@@ -175,12 +176,17 @@ export async function updatePasswordHash(
 ): Promise<void> {
   if (password) {
     if (!config.SECURITY_PASSWORD_ENABLED) {
-      throw new HttpError('Password creation is not supported', 403);
+      throw new AuthError(
+        ErrorCode.AuthPasswordDisabled,
+        'Password creation is not supported'
+      );
     }
 
     const result = validatePasswordComplexity(password);
     if (!result.valid) {
-      throw new HttpError(result.message, 400);
+      throw new AuthError(ErrorCode.AuthPasswordWeak, result.message, {
+        reason: result.message
+      });
     }
 
     authUser.passwordHash = await hashPassword(password);

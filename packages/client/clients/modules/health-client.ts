@@ -35,7 +35,10 @@ export class HealthClient<Health extends HealthType>
     );
 
     if (error && response.status !== 503) {
-      this.handleError(error, response);
+      this.handleError(error, response, {
+        method: 'get',
+        path: `${this.basePath}/check`
+      });
     }
 
     return data ?? error;

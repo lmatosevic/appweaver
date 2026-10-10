@@ -1,6 +1,6 @@
-import { Database, makeHash } from '@appweaver/common';
+import { Database, ErrorCode, makeHash } from '@appweaver/common';
 import { define } from '../../../context';
-import { HttpError } from '../../../errors';
+import { AuthError } from '../../../security/auth-error';
 import { DatabaseSecurityStore } from '../../../security/store/database-security-store';
 import { resetContext } from '../../fixtures/context-fixture';
 import {
@@ -134,7 +134,7 @@ describe('database-security-store', () => {
 
       await expect(
         store.useOneTimeToken('token', 'verifyEmail')
-      ).rejects.toBeInstanceOf(HttpError);
+      ).rejects.toBeInstanceOf(AuthError);
     });
 
     test('rejects a token whose content fails validation', async () => {
@@ -176,7 +176,7 @@ describe('database-security-store', () => {
       await expect(
         store.useOneTimeToken('token', 'verifyEmail')
       ).rejects.toMatchObject({
-        statusCode: 401,
+        code: ErrorCode.AuthInvalidToken,
         message: 'Invalid or expired token provided'
       });
     });

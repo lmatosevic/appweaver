@@ -1,12 +1,14 @@
 import { TSchema, Type } from '@sinclair/typebox';
 import {
+  AuthType,
   config,
   HealthCheckStatus,
   RouteSchema,
   StringDate,
   StringEnum
 } from '@appweaver/common';
-import { AllErrorResponses } from '../errors';
+import { errorResponses } from '../errors';
+import { authErrorCodes } from '../security/auth-schema';
 import { createSchemaModel } from '../utils';
 
 export const HealthCheckResult = Type.Object({
@@ -32,7 +34,7 @@ export const healthReadySchema = {
   description: 'Application ready status',
   response: {
     200: createSchemaModel(ReadyResponse),
-    ...AllErrorResponses
+    ...errorResponses()
   }
 };
 
@@ -65,7 +67,9 @@ export function createHealthCheckSchema(serviceNames: string[]): RouteSchema {
     response: {
       200: healthCheckResponse,
       503: healthCheckResponse,
-      ...AllErrorResponses
+      ...errorResponses(
+        ...(config.HEALTH_CHECK_AUTH ? authErrorCodes([AuthType.Jwt]) : [])
+      )
     }
   };
 }

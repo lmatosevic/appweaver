@@ -2,6 +2,7 @@ import {
   ConditionalOptional,
   Ctor,
   Database,
+  ErrorCode,
   FunctionType,
   IResourceService,
   isArray,
@@ -22,6 +23,7 @@ import {
   ResourceRoutes
 } from '@appweaver/common';
 import { context } from './context';
+import { ContextError } from './context-error';
 import {
   DefinitionClass,
   DefinitionEntry,
@@ -121,7 +123,12 @@ export function loadProvider(
     const msg = `Loading '${classPath}' module failed`;
     if (required) {
       logger.error(error, msg);
-      throw error ?? new Error(msg);
+      throw new ContextError(
+        ErrorCode.ContextDefinitionMissing,
+        msg,
+        { name: classPath, kind: 'provider' },
+        { cause: error }
+      );
     }
     logger.warn(error, msg);
     return false;
@@ -169,8 +176,10 @@ export function inject<T = DefinitionValue, R extends boolean = true>(
   }
 
   if (!definition && required) {
-    throw new Error(
-      `Definition '${String(name)}' is not defined in the application context`
+    throw new ContextError(
+      ErrorCode.ContextDefinitionMissing,
+      `Definition '${String(name)}' is not defined in the application context`,
+      { name: String(name), kind: 'definition' }
     );
   }
 
@@ -224,8 +233,10 @@ export function injectModel<T = ResourceModel, R extends boolean = true>(
   const model = context.resource.models.get(name);
 
   if (!model && required) {
-    throw new Error(
-      `Model '${name}' is not defined in the application context`
+    throw new ContextError(
+      ErrorCode.ContextDefinitionMissing,
+      `Model '${name}' is not defined in the application context`,
+      { name, kind: 'model' }
     );
   }
 
@@ -249,8 +260,10 @@ export function injectService<N extends ModelName, R extends boolean = true>(
   const service = context.resource.services.get(modelName);
 
   if (!service && required) {
-    throw new Error(
-      `Service for model '${modelName}' is not defined in the application context`
+    throw new ContextError(
+      ErrorCode.ContextDefinitionMissing,
+      `Service for model '${modelName}' is not defined in the application context`,
+      { name: modelName, kind: 'service' }
     );
   }
 
@@ -276,8 +289,10 @@ export function injectRoutes<R extends boolean = true>(
   const routes = context.resource.routes.get(modelName);
 
   if (!routes && required) {
-    throw new Error(
-      `Routes for model '${modelName}' are not defined in the application context`
+    throw new ContextError(
+      ErrorCode.ContextDefinitionMissing,
+      `Routes for model '${modelName}' are not defined in the application context`,
+      { name: modelName, kind: 'routes' }
     );
   }
 
@@ -299,8 +314,10 @@ export function injectPolicy<R extends boolean = true>(
   const policy = context.resource.policies.get(modelName);
 
   if (!policy && required) {
-    throw new Error(
-      `Policy for model '${modelName}' is not defined in the application context`
+    throw new ContextError(
+      ErrorCode.ContextDefinitionMissing,
+      `Policy for model '${modelName}' is not defined in the application context`,
+      { name: modelName, kind: 'policy' }
     );
   }
 
@@ -348,7 +365,9 @@ function shouldAddDefinition(
   ) {
     const msg = `Definition '${String(name)}' is already present in the application context.`;
     if (mode === 'fail') {
-      throw new Error(msg);
+      throw new ContextError(ErrorCode.ContextDefinitionDuplicate, msg, {
+        name: String(name)
+      });
     }
     logger.warn(`${msg} Use 'append' or 'override' to remove this warning.`);
     return false;

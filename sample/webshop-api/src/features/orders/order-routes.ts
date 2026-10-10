@@ -1,7 +1,18 @@
 import { Type } from '@sinclair/typebox';
-import { currentAuthUser, registerRoute } from '@appweaver/core';
+import { ErrorCode } from '@appweaver/common';
+import {
+  currentAuthUser,
+  errorResponses,
+  registerRoute
+} from '@appweaver/core';
+import { ShopErrors } from '@/errors';
 import { Role } from '@/features/access/roles';
 import { cancelOrder, deliverOrder, shipOrder } from './order-status';
+
+const orderErrors = errorResponses(
+  ErrorCode.ResourceNotFound,
+  ShopErrors.OrderStatusConflict
+);
 
 const params = Type.Object({ id: Type.String() });
 
@@ -16,7 +27,8 @@ registerRoute((router) => {
           'An order that has not shipped yet. The stock and the coupon are released.',
         params,
         response: {
-          200: Type.Ref('OrderSingle')
+          200: Type.Ref('OrderSingle'),
+          ...orderErrors
         }
       }
     },
@@ -48,7 +60,8 @@ registerRoute(
             })
           }),
           response: {
-            200: Type.Ref('OrderSingle')
+            200: Type.Ref('OrderSingle'),
+            ...orderErrors
           }
         }
       },
@@ -63,7 +76,8 @@ registerRoute(
           summary: 'Mark a shipped order as delivered',
           params,
           response: {
-            200: Type.Ref('OrderSingle')
+            200: Type.Ref('OrderSingle'),
+            ...orderErrors
           }
         }
       },

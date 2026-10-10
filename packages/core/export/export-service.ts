@@ -1,6 +1,7 @@
 import { Readable } from 'node:stream';
 import {
   config,
+  ErrorCode,
   ExportConfig,
   extractResourceName,
   extractSchemaProperties,
@@ -15,7 +16,7 @@ import {
   QuerySort
 } from '@appweaver/common';
 import { injectModel, injectService } from '../context';
-import { HttpError } from '../errors';
+import { ExportError } from './export-error';
 import { generateFileName, toCsv } from '../utils';
 
 export type ExportStream = {
@@ -101,7 +102,12 @@ export class ExportService {
 
       exportStream = Readable.from(rows(), { objectMode: false });
     } catch (e) {
-      throw new HttpError(`${modelName} export error`, 500, e);
+      throw new ExportError(
+        ErrorCode.ExportFailed,
+        `${modelName} export failed`,
+        { model: modelName },
+        { cause: e }
+      );
     }
 
     const fileName = this.generateExportFileName(modelName, 'csv');

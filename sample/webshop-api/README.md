@@ -8,24 +8,25 @@ It runs on PostgreSQL and Redis, the production-like setup of the samples.
 
 ## What it showcases
 
-| Feature                                                                                  | Where                                                                                    |
-|------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
-| PostgreSQL, and Redis for the cache, the rate limits, and the queue (docker-compose)    | [`docker-compose.yml`](docker-compose.yml), [`appweaver.json`](appweaver.json)           |
-| A transactional checkout: conditional stock reservation, coupon redemption, price copy  | [`features/checkout/checkout.ts`](src/features/checkout/checkout.ts)                     |
-| Pure, unit tested pricing rules (cents, discounts, free shipping)                        | [`features/checkout/pricing.ts`](src/features/checkout/pricing.ts)                       |
-| A resource event emitted by hand, feeding a **BullMQ** payment worker                   | [`features/payments/payment-worker.ts`](src/features/payments/payment-worker.ts)         |
-| **API key** authentication for a machine client (the warehouse)                          | [`features/orders/order-routes.ts`](src/features/orders/order-routes.ts)                 |
-| An order state machine with conflict-safe transitions                                    | [`features/orders/order-status.ts`](src/features/orders/order-status.ts)                 |
-| A scheduled job cancelling unpaid orders and releasing their stock                       | [`features/orders/unpaid-orders-job.ts`](src/features/orders/unpaid-orders-job.ts)       |
-| A public registration route with reCAPTCHA (when enabled) and rate limiting             | [`features/checkout/register-route.ts`](src/features/checkout/register-route.ts)         |
-| Transactional emails queued through `EmailService`                                      | [`features/orders/order-emails.ts`](src/features/orders/order-emails.ts)                 |
-| Cache invalidation after writes made past the resource services                        | checkout, payments, and order status                                                     |
-| Read restrictions: the storefront sees active products, customers their own orders      | product and order policies                                                               |
-| A `cuid(2)` string id for orders, and order lines copying the product at checkout       | order and order item models                                                              |
-| Case-insensitive text search (`mode: 'insensitive'`, PostgreSQL)                         | [`resources/product/service.ts`](src/resources/product/service.ts)                       |
-| Verified purchase reviews, and public rating aggregates                                 | [`resources/review/service.ts`](src/resources/review/service.ts)                         |
-| Sales reports through the aggregate route, CSV exports of orders and products           | order and product routes                                                                 |
-| Product image galleries with image processing                                           | [`resources/product/model.ts`](src/resources/product/model.ts)                           |
+| Feature                                                                                                             | Where                                                                                                          |
+|---------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| PostgreSQL, and Redis for the cache, the rate limits, and the queue (docker-compose)                                | [`docker-compose.yml`](docker-compose.yml), [`appweaver.json`](appweaver.json)                                 |
+| A transactional checkout: conditional stock reservation, coupon redemption, price copy                              | [`features/checkout/checkout.ts`](src/features/checkout/checkout.ts)                                           |
+| Pure, unit tested pricing rules (cents, discounts, free shipping)                                                   | [`features/checkout/pricing.ts`](src/features/checkout/pricing.ts)                                             |
+| A resource event emitted by hand, feeding a **BullMQ** payment worker                                               | [`features/payments/payment-worker.ts`](src/features/payments/payment-worker.ts)                               |
+| **API key** authentication for a machine client (the warehouse)                                                     | [`features/orders/order-routes.ts`](src/features/orders/order-routes.ts)                                       |
+| An order state machine with conflict-safe transitions                                                               | [`features/orders/order-status.ts`](src/features/orders/order-status.ts)                                       |
+| A scheduled job cancelling unpaid orders and releasing their stock                                                  | [`features/orders/unpaid-orders-job.ts`](src/features/orders/unpaid-orders-job.ts)                             |
+| A public registration route with reCAPTCHA (when enabled) and rate limiting                                         | [`features/checkout/register-route.ts`](src/features/checkout/register-route.ts)                               |
+| Transactional emails queued through `EmailService`                                                                  | [`features/orders/order-emails.ts`](src/features/orders/order-emails.ts)                                       |
+| Cache invalidation after writes made past the resource services                                                     | checkout, payments, and order status                                                                           |
+| Read restrictions: the storefront sees active products, customers their own orders                                  | product and order policies                                                                                     |
+| A `cuid(2)` string id for orders, and order lines copying the product at checkout                                   | order and order item models                                                                                    |
+| Case-insensitive text search (`mode: 'insensitive'`, PostgreSQL)                                                    | [`resources/product/service.ts`](src/resources/product/service.ts)                                             |
+| Verified purchase reviews, and public rating aggregates                                                             | [`resources/review/service.ts`](src/resources/review/service.ts)                                               |
+| Sales reports through the aggregate route, CSV exports of orders and products                                       | order and product routes                                                                                       |
+| Product image galleries with image processing                                                                       | [`resources/product/model.ts`](src/resources/product/model.ts)                                                 |
+| Application error codes (`OUT_OF_STOCK`, ...) documented per route, a taken email answered by the unique constraint | [`errors.ts`](src/errors.ts), [`features/checkout/register-route.ts`](src/features/checkout/register-route.ts) |
 
 ## Getting started
 
@@ -78,8 +79,8 @@ curl -s localhost:5002/api/reviews -H "authorization: Bearer $TOKEN" -H 'content
   -d '{"product":1,"rating":5,"title":"Silence at last"}' | jq '{authorName, verifiedPurchase}'
 ```
 
-An order above 10,000 EUR is declined by the simulated payment provider
-([`payment-gateway.ts`](src/features/payments/payment-gateway.ts)), which fails the order and releases its stock.
+An order above 10,000 EUR is declined by the simulated payment provider ([
+`payment-gateway.ts`](src/features/payments/payment-gateway.ts)), which fails the order and releases its stock.
 
 ## Tests
 
@@ -88,8 +89,8 @@ npm run test  # unit tests
 npm run e2e   # end-to-end tests, against the webshop-api-test database of the PostgreSQL container
 ```
 
-The end-to-end tests need the PostgreSQL container running, while Redis is replaced by in-memory implementations
-(see [`appweaver.test.json`](appweaver.test.json)).
+The end-to-end tests need the PostgreSQL container running, while Redis is replaced by in-memory implementations (see [
+`appweaver.test.json`](appweaver.test.json)).
 
 ## License
 

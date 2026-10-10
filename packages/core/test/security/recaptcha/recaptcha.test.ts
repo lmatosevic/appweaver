@@ -86,15 +86,17 @@ describe('recaptcha', () => {
 
       const response = await server.inject({ method: 'POST', url: '/login' });
 
-      expect(response.statusCode).toBe(401);
+      expect(response.statusCode).toBe(400);
       expect(recaptchaVerify).not.toHaveBeenCalled();
     });
 
     test('rejects the request the verification rejects', async () => {
       await startServer();
-      const { HttpError } = jest.requireActual('../../../errors');
+      const { RecaptchaError } = jest.requireActual(
+        '../../../security/recaptcha/recaptcha-error'
+      );
       (recaptchaVerify as jest.Mock).mockRejectedValueOnce(
-        new HttpError('reCAPTCHA low score', 403)
+        new RecaptchaError('RECAPTCHA_LOW_SCORE', 'reCAPTCHA low score')
       );
 
       const response = await server.inject({

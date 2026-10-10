@@ -3,6 +3,7 @@ import {
   AuditFields,
   capitalize,
   countFieldName,
+  ErrorCode,
   FileField,
   isCountField,
   isPlainObject,
@@ -14,7 +15,7 @@ import {
   setValue
 } from '@appweaver/common';
 import { injectModel } from '../../context';
-import { HttpError } from '../../errors';
+import { ResourceError } from '../resource-error';
 import { mapRelationInclusions } from './relation-util';
 
 /** A single sort entry, holding a dot notation field path and its direction. */
@@ -42,7 +43,7 @@ const defaultAuditFields: AuditFields = {
  * @return {Object[]} One `orderBy` entry per field, in the order the fields were listed, each holding the single path
  * of that field mapped to `asc` or `desc`. Two fields of the same relation get an entry each, since a database order
  * entry accepts a single field path.
- * @throws {HttpError} 400 if a field does not exist on its model, cannot be sorted by, is given an unknown sort
+ * @throws {ResourceError} `RESOURCE_INVALID_SORT` if a field does not exist on its model, cannot be sorted by, is given an unknown sort
  * direction, or targets a relation that the action does not include in its response.
  */
 export function mapSortValues(
@@ -80,7 +81,7 @@ export function mapSortValues(
  * @param {string} resourceName - The name of the model the sort is applied on.
  * @param {ActionType} [action] - The action the sort is applied on. Defaults to the query action.
  * @return {Object[]} The `orderBy` entries, ending in a unique one.
- * @throws {HttpError} 400 under the same conditions as {@link mapSortValues}.
+ * @throws {ResourceError} `RESOURCE_INVALID_SORT` under the same conditions as {@link mapSortValues}.
  */
 export function mapStableSortValues(
   sort: QuerySort,
@@ -104,7 +105,7 @@ export function mapStableSortValues(
  * @param {QuerySort} sort - The sort input to flatten.
  * @param {string} [parentPath] - The dot notation path of the object the walk descended from.
  * @return {SortEntry[]} The flattened sort entries, each holding a dot notation field path and its direction.
- * @throws {HttpError} 400 if a sort value is neither a direction nor a nested object of directions.
+ * @throws {ResourceError} `RESOURCE_INVALID_SORT` if a sort value is neither a direction nor a nested object of directions.
  */
 function sortEntries(sort: QuerySort, parentPath: string = ''): SortEntry[] {
   if (isString(sort)) {
@@ -119,10 +120,11 @@ function sortEntries(sort: QuerySort, parentPath: string = ''): SortEntry[] {
   }
 
   if (!isPlainObject(sort)) {
-    throw new HttpError(
+    throw new ResourceError(
+      ErrorCode.ResourceInvalidSort,
       `Invalid sort value${parentPath ? ` for the '${parentPath}' field` : ''}, ` +
         'expected a field list string or a sort object',
-      400
+      { field: parentPath || undefined }
     );
   }
 
@@ -141,9 +143,10 @@ function sortEntries(sort: QuerySort, parentPath: string = ''): SortEntry[] {
     }
 
     if (value !== 'asc' && value !== 'desc') {
-      throw new HttpError(
+      throw new ResourceError(
+        ErrorCode.ResourceInvalidSort,
         `Invalid sort direction '${value}' for the '${path}' field, expected 'asc' or 'desc'`,
-        400
+        { field: path }
       );
     }
 
@@ -163,7 +166,7 @@ function sortEntries(sort: QuerySort, parentPath: string = ''): SortEntry[] {
  * @param {Object} inclusions - The `include` clause of the action, as built by {@link mapRelationInclusions}.
  * @return {string|undefined} The resolved dot notation path, or undefined when the field is the `createdAt` audit
  * field of a model that does not audit it, in which case the sort entry is dropped.
- * @throws {HttpError} 400 if a segment does not exist on its model, cannot be sorted by, or targets a relation the
+ * @throws {ResourceError} `RESOURCE_INVALID_SORT` if a segment does not exist on its model, cannot be sorted by, or targets a relation the
  * action does not include in its response.
  */
 function mapSortPath(
@@ -181,9 +184,10 @@ function mapSortPath(
   for (const [index, field] of segments.entries()) {
     const model = injectModel(modelName, false);
     if (!model) {
-      throw new HttpError(
+      throw new ResourceError(
+        ErrorCode.ResourceInvalidSort,
         `Cannot sort by the '${path}' field, the '${modelName}' model is not loaded`,
-        400
+        { model: modelName, field: path }
       );
     }
 
@@ -194,9 +198,10 @@ function mapSortPath(
     // same name cannot shadow
     if (!relation && isScalarField(model, field)) {
       if (!isLast) {
-        throw new HttpError(
+        throw new ResourceError(
+          ErrorCode.ResourceInvalidSort,
           `Cannot sort by the '${path}' field, '${field}' is not a relation of the ${model.name} model`,
-          400
+          { model: model.name, field: path }
         );
       }
       // The default sort still names the createdAt field on the models that do
@@ -220,9 +225,10 @@ function mapSortPath(
     }
 
     if (!relation) {
-      throw new HttpError(
+      throw new ResourceError(
+        ErrorCode.ResourceInvalidSort,
         `Cannot sort by the '${path}' field, '${field}' is not a sortable field of the ${model.name} model`,
-        400
+        { model: model.name, field: path }
       );
     }
 
@@ -230,10 +236,11 @@ function mapSortPath(
     // the number of its related records instead
     if (isFieldArray(relation)) {
       if (!isLast) {
-        throw new HttpError(
+        throw new ResourceError(
+          ErrorCode.ResourceInvalidSort,
           `Cannot sort by the '${path}' field, the '${field}' relation holds a list of records, ` +
             `sort by the '${countFieldName(field)}' field instead`,
-          400
+          { model: model.name, field: path }
         );
       }
       mappedSegments.push(field, '_count');
@@ -241,17 +248,19 @@ function mapSortPath(
     }
 
     if (isLast) {
-      throw new HttpError(
+      throw new ResourceError(
+        ErrorCode.ResourceInvalidSort,
         `Cannot sort by the '${path}' field, the '${field}' relation requires a nested field to sort by`,
-        400
+        { model: model.name, field: path }
       );
     }
 
     const inclusion = modelInclusions?.[field];
     if (!inclusion) {
-      throw new HttpError(
+      throw new ResourceError(
+        ErrorCode.ResourceInvalidSort,
         `Cannot sort by the '${path}' field, the '${field}' relation is not included in the response`,
-        400
+        { model: model.name, field: path }
       );
     }
 

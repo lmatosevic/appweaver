@@ -21,6 +21,9 @@ export type Config = {
   APP_DESCRIPTION?: string;
   /** Application hostname URL. Defaults to `http://localhost:{SERVER_PORT}` if not set. */
   APP_HOSTNAME: string;
+  /** Base of the type URIs of the application, i.e. of the error responses (`urn:appweaver:error:resource-not-found`). A
+   * URL base, i.e. `https://docs.example.com/types`, is joined with slashes instead. Default: `'urn:appweaver'`. */
+  APP_TYPE_BASE: string;
   /** JavaScript runtime. Auto-detected as `bun` if Bun is present, otherwise `node`. */
   APP_RUNTIME: Runtime;
   /** Path to compiled build artifacts. Default: `'./dist'`. */
@@ -81,6 +84,8 @@ export type Config = {
   SERVER_TRUST_PROXY: boolean;
   /** Enable HTTP request/response logging. Default: `false`. */
   SERVER_REQUEST_LOGGING_ENABLED: boolean;
+  /** Append the message of the database to the detail of a database error response, in every environment. Default: `false`. */
+  SERVER_ERROR_DATABASE_MESSAGE_ENABLED: boolean;
 
   /** Enable global rate limiting middleware. Default: `true`. */
   RATE_LIMIT_ENABLED: boolean;

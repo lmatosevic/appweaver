@@ -1,6 +1,7 @@
 import {
   CONFIG,
   Database,
+  ErrorCode,
   Events,
   RESOURCE_NAME,
   RESOURCE_POLICY_TYPE,
@@ -304,7 +305,7 @@ describe('create-service', () => {
           size: 2,
           cursor: first.nextCursor
         })
-      ).rejects.toMatchObject({ statusCode: 400 });
+      ).rejects.toMatchObject({ code: ErrorCode.ResourceInvalidCursor });
     });
 
     test('uses a configured text search function', async () => {
@@ -374,7 +375,7 @@ describe('create-service', () => {
       const Service = createService({ modelName: 'Post' });
 
       await expect(new Service().find(1)).rejects.toMatchObject({
-        statusCode: 403
+        code: ErrorCode.ResourceForbidden
       });
     });
 
@@ -390,7 +391,7 @@ describe('create-service', () => {
       const Service = createService({ modelName: 'Post' });
 
       await expect(new Service().find(1)).rejects.toMatchObject({
-        statusCode: 403
+        code: ErrorCode.ResourceForbidden
       });
     });
 
@@ -449,7 +450,7 @@ describe('create-service', () => {
       await withoutPolicies(() => service.find(1));
 
       await expect(service.find(1)).rejects.toMatchObject({
-        statusCode: 403
+        code: ErrorCode.ResourceForbidden
       });
     });
 

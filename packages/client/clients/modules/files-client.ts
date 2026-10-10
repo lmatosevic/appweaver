@@ -36,7 +36,10 @@ export class FilesClient extends BaseModule implements FilesInterface {
     );
 
     if (error) {
-      this.handleError(error, response);
+      this.handleError(error, response, {
+        method: 'get',
+        path: `${this.basePath}/public/{*}`
+      });
     }
 
     return this.toFileResponse(response, fileName);
@@ -63,7 +66,10 @@ export class FilesClient extends BaseModule implements FilesInterface {
     );
 
     if (error) {
-      this.handleError(error, response);
+      this.handleError(error, response, {
+        method: 'get',
+        path: `${this.basePath}/protected/{*}`
+      });
     }
 
     return this.toFileResponse(response, fileName);

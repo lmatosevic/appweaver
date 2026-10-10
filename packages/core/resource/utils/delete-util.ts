@@ -1,5 +1,7 @@
 import {
   capitalize,
+  ConfigurationError,
+  ErrorCode,
   isArray,
   isPlainObject,
   ReferencingRelation,
@@ -10,7 +12,7 @@ import {
 } from '@appweaver/common';
 import { context, injectModel } from '../../context';
 import { currentAuthUser, resourceAuthModel } from '../../security';
-import { HttpError } from '../../errors';
+import { ResourceError } from '../resource-error';
 import {
   deletedResourceFileFields,
   isSoftDeleteModel,
@@ -200,7 +202,8 @@ export function softDeleteData(): SoftDeleteData {
  * @param {ResourceId[]} ids - The ids of the deleted records.
  * @param {SoftDeleteData} data - The soft delete column values applied to the cascaded records.
  * @return {Promise<AffectedRecords>} The ids of the soft deleted records per model, excluding the records themselves.
- * @throws {HttpError} 409 if a live record references a deleted record through a restricting relation.
+ * @throws {ResourceError} `RESOURCE_DELETE_RESTRICTED` if a live record references a deleted record through a
+ * restricting relation.
  */
 export async function softDeleteCascade(
   tx: any,
@@ -227,9 +230,9 @@ export async function softDeleteCascade(
     // Loading validates every cascade of a soft deleted model, so this only
     // guards the models registered after it
     if (!isSoftDeleteModel(relation.modelName)) {
-      throw new HttpError(
-        `${relation.modelName} must enable soft delete to cascade from ${relation.referencedName}`,
-        500
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `${relation.modelName} must enable soft delete to cascade from ${relation.referencedName}`
       );
     }
 
@@ -281,7 +284,8 @@ export async function cascadedRecords(
  * of the soft deleted orphans are removed.
  * @param {SoftDeleteData} data - The soft delete column values applied to the soft deleted orphans.
  * @return {Promise<DeletedRecords>} The ids of the soft deleted and the removed records per model.
- * @throws {HttpError} 409 if a live record references a soft deleted orphan through a restricting relation.
+ * @throws {ResourceError} `RESOURCE_DELETE_RESTRICTED` if a live record references a soft deleted orphan through a
+ * restricting relation.
  */
 export async function removeOrphans(
   tx: any,
@@ -403,7 +407,8 @@ export function mergeAffectedRecords(
  * @param {string} resourceName - The name of the model the relation actions belong to.
  * @param {RelationActions} relationActions - The mapped relation write actions.
  * @return {Promise<void>} Resolves when no action points at a soft deleted record.
- * @throws {HttpError} 400 if a connect, update or connect-or-create action matches a soft deleted record.
+ * @throws {ResourceError} `RESOURCE_INVALID_RELATION` if a connect, update or connect-or-create action matches a soft
+ * deleted record.
  */
 export async function assertLiveRelationTargets(
   client: any,
@@ -431,23 +436,22 @@ export async function assertLiveRelationTargets(
       where: { AND: [DELETED_RECORD, { OR: matches }] }
     });
     if (deletedCount > 0) {
-      throw new HttpError(
+      throw new ResourceError(
+        ErrorCode.ResourceInvalidRelation,
         `${resourceName} relation '${key}' references a ${capitalize(relatedName)} record that does not exist`,
-        400
+        { model: resourceName, relation: key }
       );
     }
   }
 }
 
-/** Wraps a single relation action value into a list. @internal */
+/** Wraps a single relation action value into a list. */
 function asList(value: any): any[] {
   return value === undefined ? [] : isArray(value) ? value : [value];
 }
 
 /**
  * Rejects a delete while records reference the deleted ones through a restricting relation.
- *
- * @internal
  */
 async function assertNotReferenced(
   client: any,
@@ -456,9 +460,10 @@ async function assertNotReferenced(
 ): Promise<void> {
   const count = await client.count({ where });
   if (count > 0) {
-    throw new HttpError(
+    throw new ResourceError(
+      ErrorCode.ResourceDeleteRestricted,
       `${relation.referencedName} cannot be deleted while ${relation.modelName} records reference it`,
-      409
+      { model: relation.referencedName, referencedBy: relation.modelName }
     );
   }
 }
@@ -466,8 +471,6 @@ async function assertNotReferenced(
 /**
  * Walks the records referencing the given records breadth first. The visitor gets every referencing relation with the
  * referenced ids and returns the ids of the records the walk continues from.
- *
- * @internal
  */
 async function walkReferencingRecords(
   tx: any,

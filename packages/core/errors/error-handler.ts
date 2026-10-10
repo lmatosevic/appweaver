@@ -1,33 +1,37 @@
-import { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
-import { HttpError } from './http-error';
+import { FastifyReply, FastifyRequest } from 'fastify';
+import { ErrorCode, RequestError } from '@appweaver/common';
+import { toProblem } from './problem';
 
+export const PROBLEM_CONTENT_TYPE = 'application/problem+json';
+
+/**
+ * The global error handler, responding with the problem details of the error.
+ * A response that already set a content type other than JSON, i.e. a file
+ * stream, receives the detail of the problem as plain text.
+ */
 export function errorHandler(
-  err: FastifyError | HttpError,
+  error: unknown,
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const { message, statusCode, error, errorCode } = err as HttpError;
+  const problem = toProblem(error, request);
 
-  if (!statusCode || statusCode >= 500) {
-    if (!error) {
-      request.log.error(err.stack);
-    } else {
-      request.log.error(error);
-    }
+  if (problem.status >= 500) {
+    request.log.error({ err: error }, problem.detail);
   }
 
-  const errorResponse = {
-    errorCode: errorCode || statusCode || 500,
-    message: message || 'Unknown error'
-  };
-
   const contentType = reply.getHeader('Content-Type');
+  if (contentType && !String(contentType).includes('json')) {
+    return reply.status(problem.status).send(problem.detail);
+  }
 
-  reply
-    .status(statusCode || 500)
-    .send(
-      contentType && contentType !== 'application/json'
-        ? errorResponse.message
-        : errorResponse
-    );
+  return reply.status(problem.status).type(PROBLEM_CONTENT_TYPE).send(problem);
+}
+
+/** Responds to the requests no route matches. */
+export function notFoundHandler(request: FastifyRequest): never {
+  throw new RequestError(
+    ErrorCode.RouteNotFound,
+    `Route ${request.method}:${request.url.split('?')[0]} not found`
+  );
 }

@@ -134,6 +134,71 @@ describe('generate-client', () => {
       );
     });
 
+    describe('error exports', () => {
+      /** The fixture schema declaring the problem details of an Appweaver API. */
+      const withProblemDetails = () => {
+        const schema: any = createOpenApiSchema();
+        schema.components.schemas['def-problem'] = {
+          title: 'ProblemDetails',
+          type: 'object',
+          properties: { code: { type: 'string', enum: ['RESOURCE_NOT_FOUND'] } }
+        };
+        return schema;
+      };
+
+      test('types the API error by the error codes of the schema', async () => {
+        const generated = await generateClient(withProblemDetails());
+
+        expect(generated).toContain(
+          "import { ClientConfig, ClientError, FetchClient, ClientRouteErrorCode, isClientError } from '@appweaver/client';"
+        );
+        expect(generated).toContain(
+          "export type ApiError = ClientError<components['schemas']['def-problem']['code']>;"
+        );
+        expect(generated).toContain(
+          'export function isApiError(error: unknown): error is ApiError {'
+        );
+        expect(generated).toContain(
+          'export type RouteErrorCode<Method extends string, Path extends keyof paths> ='
+        );
+        expect(generated).toContain(
+          '  ClientRouteErrorCode<paths, Method, Path>;'
+        );
+      });
+
+      test('refers to the types module when a types path is given', async () => {
+        const generated = await generateClient(
+          withProblemDetails(),
+          undefined,
+          'fetch',
+          './schema'
+        );
+
+        expect(generated).toContain(
+          "export type ApiError = ClientError<Type.components['schemas']['def-problem']['code']>;"
+        );
+        expect(generated).toContain('Path extends keyof Type.paths');
+      });
+
+      test('leaves the API error untyped without problem details', () => {
+        expect(client).toContain('export type ApiError = ClientError;');
+      });
+
+      test('generates the guard only for an untyped client', async () => {
+        const generated = await generateClient(
+          withProblemDetails(),
+          undefined,
+          'fetch',
+          undefined,
+          true
+        );
+
+        expect(generated).toContain('export type ApiError = ClientError;');
+        expect(generated).toContain('export function isApiError(');
+        expect(generated).not.toContain('RouteErrorCode');
+      });
+    });
+
     test('generates an Angular client', async () => {
       const generated = await generateClient(
         createOpenApiSchema(),

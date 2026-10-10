@@ -12,17 +12,18 @@ import {
   RESOURCE_SERVICE_TYPE,
   RESOURCE_TYPE,
   SecurityStore,
-  config
+  config,
+  ErrorCode
 } from '@appweaver/common';
 import { context, define, inject } from '../../context';
 import { CacheService } from '../../cache';
 import { FileService } from '../../storage/file-service';
-import { HttpError } from '../../errors';
 import { AuthService } from '../../security/auth-service';
 import { OAuth2Service } from '../../security/oauth2/oauth2-service';
 import { checkPassword, hashPassword } from '../../security/helper';
 import { arePoliciesSkipped } from '../../utils';
 import { resetContext } from '../fixtures/context-fixture';
+import { prismaError } from '../fixtures/database-fixture';
 
 describe('auth-service', () => {
   let authUserService: any;
@@ -167,11 +168,11 @@ describe('auth-service', () => {
     });
 
     test('wraps a lookup failure into a server error', async () => {
-      authUserService.find.mockRejectedValue(new Error('db down'));
+      authUserService.find.mockRejectedValue(prismaError('P2010', 'db down'));
 
       await expect(service.findById(1)).rejects.toMatchObject({
-        statusCode: 500,
-        message: expect.stringContaining('find error')
+        code: ErrorCode.DatabaseOperationFailed,
+        message: expect.stringContaining('operation failed')
       });
     });
   });
@@ -224,7 +225,7 @@ describe('auth-service', () => {
       await expect(
         service.authenticate('missing@test.com', 'Str0ng!Pass')
       ).rejects.toMatchObject({
-        statusCode: 400,
+        code: ErrorCode.AuthInvalidCredentials,
         message: expect.stringContaining('Invalid user credentials')
       });
     });
@@ -237,7 +238,7 @@ describe('auth-service', () => {
 
       await expect(
         service.authenticate('user@test.com', 'Str0ng!Pass')
-      ).rejects.toMatchObject({ statusCode: 400 });
+      ).rejects.toMatchObject({ code: ErrorCode.AuthInvalidCredentials });
     });
 
     test('rejects a user without a password hash', async () => {
@@ -245,7 +246,7 @@ describe('auth-service', () => {
 
       await expect(
         service.authenticate('user@test.com', 'Str0ng!Pass')
-      ).rejects.toMatchObject({ statusCode: 400 });
+      ).rejects.toMatchObject({ code: ErrorCode.AuthInvalidCredentials });
     });
 
     test('rejects an invalid password', async () => {
@@ -255,7 +256,7 @@ describe('auth-service', () => {
       await expect(
         service.authenticate('user@test.com', 'wrong')
       ).rejects.toMatchObject({
-        statusCode: 400,
+        code: ErrorCode.AuthInvalidCredentials,
         message: expect.stringContaining('Invalid user credentials')
       });
     });
@@ -272,7 +273,7 @@ describe('auth-service', () => {
         .authenticate('missing@test.com', 'wrong')
         .catch((e) => e);
 
-      expect(unknownUser.statusCode).toBe(invalidPassword.statusCode);
+      expect(unknownUser.code).toBe(invalidPassword.code);
       expect(unknownUser.message).toBe(invalidPassword.message);
     });
 
@@ -492,7 +493,7 @@ describe('auth-service', () => {
       authUserService.find.mockResolvedValue(user({ enabled: false }));
 
       await expect(service.exchangeToken('ott-token')).rejects.toMatchObject({
-        statusCode: 400
+        code: ErrorCode.AuthUserNotFound
       });
     });
 
@@ -560,7 +561,7 @@ describe('auth-service', () => {
 
       await expect(
         service.exchangeToken('ott-token', 'WrongPass1!')
-      ).rejects.toMatchObject({ statusCode: 401 });
+      ).rejects.toMatchObject({ code: ErrorCode.AuthInvalidCredentials });
       expect(authUserService.update).not.toHaveBeenCalled();
     });
 
@@ -576,7 +577,7 @@ describe('auth-service', () => {
       );
 
       await expect(service.exchangeToken('ott-token')).rejects.toMatchObject({
-        statusCode: 401,
+        code: ErrorCode.AuthPasswordRequired,
         message: expect.stringContaining('Password confirmation is required')
       });
       expect(connectedAccountService.create).not.toHaveBeenCalled();
@@ -595,7 +596,7 @@ describe('auth-service', () => {
 
       await expect(
         service.exchangeToken('ott-token', 'WrongPass1!')
-      ).rejects.toMatchObject({ statusCode: 401 });
+      ).rejects.toMatchObject({ code: ErrorCode.AuthInvalidCredentials });
       expect(connectedAccountService.create).not.toHaveBeenCalled();
     });
 
@@ -624,7 +625,7 @@ describe('auth-service', () => {
       await expect(
         service.changePassword(user({ passwordHash }), 'wrong', 'New!Pass123')
       ).rejects.toMatchObject({
-        statusCode: 403,
+        code: ErrorCode.AuthPasswordInvalid,
         message: expect.stringContaining('current password invalid')
       });
     });
@@ -634,7 +635,7 @@ describe('auth-service', () => {
 
       await expect(
         service.changePassword(user({ passwordHash }), 'Str0ng!Pass', 'weak')
-      ).rejects.toMatchObject({ statusCode: 400 });
+      ).rejects.toMatchObject({ code: ErrorCode.AuthPasswordWeak });
     });
 
     test('updates the password hash and returns new tokens', async () => {
@@ -746,13 +747,13 @@ describe('auth-service', () => {
     test('wraps a registration failure into a server error', async () => {
       authUserService[CONFIG] = {
         registrationData: () => {
-          throw new Error('invalid data');
+          throw prismaError('P2010', 'invalid data');
         }
       };
 
       await expect(
         service.registerAuthUser(AuthSource.Password, 'new@test.com')
-      ).rejects.toMatchObject({ statusCode: 500 });
+      ).rejects.toMatchObject({ code: ErrorCode.DatabaseOperationFailed });
     });
 
     test('saves the selected registration files once the user exists', async () => {
@@ -841,18 +842,18 @@ describe('auth-service', () => {
     });
 
     test('keeps the cached user when the update fails', async () => {
-      authUserService.update.mockRejectedValue(new Error('db down'));
+      authUserService.update.mockRejectedValue(prismaError('P2010', 'db down'));
 
       await expect(service.updateAuthUser(1, {})).rejects.toThrow();
       expect(cacheService.removeCachedValue).not.toHaveBeenCalled();
     });
 
     test('wraps an update failure into a server error', async () => {
-      authUserService.update.mockRejectedValue(new Error('db down'));
+      authUserService.update.mockRejectedValue(prismaError('P2010', 'db down'));
 
       await expect(service.updateAuthUser(1, {})).rejects.toMatchObject({
-        statusCode: 500,
-        message: expect.stringContaining('update error')
+        code: ErrorCode.DatabaseOperationFailed,
+        message: expect.stringContaining('operation failed')
       });
     });
   });

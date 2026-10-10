@@ -10,15 +10,17 @@ import { Redis as RedisClient, RedisOptions } from 'ioredis';
 import { fastifyRequestContext } from '@fastify/request-context';
 import {
   config,
+  ErrorCode,
   loggerConfig,
   MemoryType,
   PLUGIN,
   Redis,
+  RequestError,
   ROUTE,
   textToBytes
 } from '@appweaver/common';
 import { context, inject, injectAll } from '../context';
-import { errorHandler } from '../errors';
+import { errorHandler, notFoundHandler, stashErrorResponses } from '../errors';
 import { files } from '../storage';
 import { health } from '../health';
 import auth from '../security/auth';
@@ -35,12 +37,13 @@ import swagger from './swagger';
  * This function initializes a Fastify server with various plugins and configurations,
  * including CORS, security rules (e.g., Helmet), multipart file uploads, rate limiting,
  * static file serving, authentication, and Swagger documentation (if enabled).
- * It also sets a global error handler for all routes.
+ * It also sets the global error and not found handlers, responding with RFC 9457
+ * problem details.
  *
  * Additionally, this function:
  * - Loads and registers all user-defined plugins
  * - Registers schema models for route validation with $ref support
- * - Sets up a global error handler for all routes
+ * - Sets up the global error and not found handlers for all routes
  * - Registers built-in routes (health check, info, files)
  * - Loads and registers resource API routes generated from the resource context
  * - Loads and registers user-defined custom routes
@@ -138,7 +141,13 @@ export function createServer(): Server {
       allowList: config.RATE_LIMIT_ALLOW_LIST,
       skipOnError: config.RATE_LIMIT_SKIP_ON_ERROR,
       nameSpace: 'rate-limit:',
-      redis: redisClient
+      redis: redisClient,
+      errorResponseBuilder: (_, context) =>
+        new RequestError(
+          ErrorCode.RateLimited,
+          `Rate limit exceeded, retry in ${context.after}`,
+          { retryAfter: Math.ceil(context.ttl / 1000) }
+        )
     });
   }
 
@@ -158,8 +167,12 @@ export function createServer(): Server {
     server.register(plugin);
   }
 
-  // Set global error handler for all routes
+  // Set global error and not found handlers for all routes
   server.setErrorHandler(errorHandler);
+  server.setNotFoundHandler(notFoundHandler);
+
+  // Keep the error responses out of the compiled serializers of every route
+  server.addHook('onRoute', stashErrorResponses);
 
   // Register swagger documentation and UI. Must be registered after
   // loadResources and before any route registration

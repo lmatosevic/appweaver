@@ -1,4 +1,5 @@
-import { createService, HttpError } from '@appweaver/core';
+import { ErrorCode, RequestError } from '@appweaver/common';
+import { createService } from '@appweaver/core';
 
 export default createService({
   modelName: 'SlaPolicy',
@@ -16,9 +17,18 @@ function assertTargets(data: {
     data.resolutionMinutes !== undefined &&
     data.firstResponseMinutes > data.resolutionMinutes
   ) {
-    throw new HttpError(
+    throw new RequestError(
+      ErrorCode.ValidationFailed,
       'firstResponseMinutes cannot exceed resolutionMinutes',
-      400
+      {
+        errors: [
+          {
+            field: 'firstResponseMinutes',
+            rule: 'max',
+            message: 'cannot exceed resolutionMinutes'
+          }
+        ]
+      }
     );
   }
 }

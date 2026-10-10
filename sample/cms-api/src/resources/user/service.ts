@@ -1,11 +1,16 @@
-import { createAuthService, HttpError } from '@appweaver/core';
+import { ErrorCode } from '@appweaver/common';
+import { createAuthService, OAuth2Error } from '@appweaver/core';
 import db from '@db/client';
 
 export default createAuthService({
   modelName: 'User',
-  checkOAuth2User: async (_, user) => {
+  checkOAuth2User: async (source, user) => {
     if (!user.email) {
-      throw new HttpError('Email is required', 403);
+      throw new OAuth2Error(
+        ErrorCode.OAuth2EmailUnavailable,
+        'Email is required',
+        { provider: source }
+      );
     }
   },
   registrationData: async (_, email, password, data) => {

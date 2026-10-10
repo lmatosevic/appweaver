@@ -1,4 +1,5 @@
-import { createService, HttpError } from '@appweaver/core';
+import { ErrorCode, RequestError } from '@appweaver/common';
+import { createService } from '@appweaver/core';
 
 export default createService({
   modelName: 'Category',
@@ -7,7 +8,19 @@ export default createService({
     const parentId =
       typeof data.parent === 'object' ? data.parent?.id : data.parent;
     if (parentId !== undefined && String(parentId) === String(id)) {
-      throw new HttpError('A category cannot be its own parent', 400);
+      throw new RequestError(
+        ErrorCode.ValidationFailed,
+        'A category cannot be its own parent',
+        {
+          errors: [
+            {
+              field: 'parent',
+              rule: 'notSelf',
+              message: 'cannot be the category itself'
+            }
+          ]
+        }
+      );
     }
   },
   textSearch: {

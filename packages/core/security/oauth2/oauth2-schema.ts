@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
-import { RouteSchema } from '@appweaver/common';
-import { AllErrorResponses } from '../../errors';
+import { ErrorCode, RouteSchema } from '@appweaver/common';
+import { errorResponses } from '../../errors';
 
 export const OAuth2RedirectQuery = Type.Object({
   redirectToUrl: Type.String({
@@ -73,7 +73,14 @@ export function createOAuth2CallbackSchema(
       302: {
         description: `Redirect to 'redirectToUrl' provided when initiating OAuth2 authentication`
       },
-      ...AllErrorResponses
+      ...errorResponses(
+        ErrorCode.AuthInvalidToken,
+        ErrorCode.OAuth2ProviderError,
+        ErrorCode.OAuth2EmailUnavailable,
+        ErrorCode.OAuth2RegistrationDisabled,
+        ErrorCode.OAuth2AccountConflict,
+        ErrorCode.OAuth2UserRejected
+      )
     }
   };
 }

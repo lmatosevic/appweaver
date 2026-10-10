@@ -5,6 +5,7 @@
       "name": "Appweaver",
       "description": "Appweaver - the backend framework for AI-first development",
       "hostname": "http://localhost:5000",
+      "typeBase": "urn:appweaver",
       "runtime": "node",
       "buildPath": "./dist",
       "sourcePath": "./src",
@@ -26,7 +27,8 @@
       "staticMaxAge": "30d",
       "staticAllowedHost": null,
       "trustProxy": true,
-      "requestLoggingEnabled": false
+      "requestLoggingEnabled": false,
+      "errorDatabaseMessageEnabled": false
     },
     "log": {
       "level": "info",

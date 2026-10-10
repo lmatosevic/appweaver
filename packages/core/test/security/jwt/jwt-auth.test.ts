@@ -122,7 +122,7 @@ describe('jwt-auth', () => {
         const response = await getMe('not-a-token');
 
         expect(response.statusCode).toBe(401);
-        expect(response.json().message).toMatch(/^Authentication error/);
+        expect(response.json().detail).toMatch(/^Authentication error/);
       });
 
       test('rejects a token signed with another secret', async () => {
@@ -160,7 +160,7 @@ describe('jwt-auth', () => {
         const response = await getMe(sign());
 
         expect(response.statusCode).toBe(401);
-        expect(response.json().message).toBe('Unauthorized access');
+        expect(response.json().detail).toBe('Unauthorized access');
       });
 
       test('rejects the token of a disabled user', async () => {
@@ -223,7 +223,7 @@ describe('jwt-auth', () => {
         const response = await getMe(sign());
 
         expect(response.statusCode).toBe(403);
-        expect(response.json().message).toBe('Forbidden access');
+        expect(response.json().detail).toBe('Forbidden access');
       });
 
       test('rejects a user with the role but without the permission', async () => {

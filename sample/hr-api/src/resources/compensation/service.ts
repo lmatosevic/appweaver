@@ -1,4 +1,5 @@
-import { createService, HttpError } from '@appweaver/core';
+import { ErrorCode, RequestError } from '@appweaver/common';
+import { createService, ResourceError } from '@appweaver/core';
 import db from '@db/client';
 
 export default createService({
@@ -24,7 +25,10 @@ async function assertWithinBand(
     include: { position: true }
   });
   if (!employee) {
-    throw new HttpError('Employee not found', 404);
+    throw new ResourceError(ErrorCode.ResourceNotFound, 'Employee not found', {
+      model: 'Employee',
+      id: employeeId
+    });
   }
 
   const band = employee.position;
@@ -33,9 +37,18 @@ async function assertWithinBand(
   }
 
   if (baseSalary < band.salaryMin || baseSalary > band.salaryMax) {
-    throw new HttpError(
+    throw new RequestError(
+      ErrorCode.ValidationFailed,
       `Salary ${baseSalary} is outside the ${band.title} band (${band.salaryMin} - ${band.salaryMax})`,
-      400
+      {
+        errors: [
+          {
+            field: 'baseSalary',
+            rule: 'salaryBand',
+            message: `must be between ${band.salaryMin} and ${band.salaryMax}`
+          }
+        ]
+      }
     );
   }
 }

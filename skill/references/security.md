@@ -302,19 +302,27 @@ already exist in the database (matched by email) can then log in via OAuth2; unk
 
 **`checkOAuth2User` callback** — an optional callback on `createAuthService` invoked on every OAuth2 login, before a
 user is registered or authenticated. It receives the auth source, the user info extracted from the provider, and the
-existing auth user (or `null` when the user would be newly registered). Return nothing to proceed, or return a string,
-`Error`, or `HttpError` to abort the flow (a 403 error is thrown, or the `HttpError` as-is):
+existing auth user (or `null` when the user would be newly registered). Return nothing to proceed, or return a string
+or an `Error` to abort the flow with an `OAUTH2_USER_REJECTED` error (403), or an `AppweaverError`, i.e. an
+`ApplicationError`, which is thrown as it is:
 
 ```ts
 // src/resources/user/service.ts
-import { AuthSource } from '@appweaver/common';
-import { createAuthService, HttpError } from '@appweaver/core';
+import { ApplicationError, AuthSource } from '@appweaver/common';
+import { createAuthService, defineErrors } from '@appweaver/core';
+
+const UserErrors = defineErrors({
+  CompanyAccountRequired: { status: 403, title: 'Company account required' }
+});
 
 export default createAuthService({
   modelName: 'User',
   checkOAuth2User: (source, userInfo, authUser) => {
     if (!userInfo.email.endsWith('@mycompany.com')) {
-      return new HttpError('Only company accounts are allowed', 403);
+      return new ApplicationError(
+        UserErrors.CompanyAccountRequired,
+        'Only company accounts are allowed'
+      );
     }
     if (!authUser && source === AuthSource.OAuth2Facebook) {
       return 'New accounts cannot be created via Facebook';

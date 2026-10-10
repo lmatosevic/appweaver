@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as crypto from 'node:crypto';
-import { config, logger } from '@appweaver/common';
-import { HttpError } from '../../errors';
+import { config, ErrorCode, logger } from '@appweaver/common';
+import { OAuth2Error } from './oauth2-error';
 import { AvatarFile } from '../../types';
 
 const APPLE_TOKEN_AUDIENCE = 'https://appleid.apple.com';
@@ -14,7 +14,7 @@ const APPLE_TOKEN_AUDIENCE = 'https://appleid.apple.com';
  * @param {string} accessToken - The access token obtained from the authorization code flow.
  * @param {Record<string, string>} [headers] - Extra request headers required by the provider.
  * @return {Promise<Object>} A promise resolving to the parsed response body.
- * @throws {HttpError} If the provider responds with a non-2xx status.
+ * @throws {OAuth2Error} `OAUTH2_PROVIDER_ERROR` if the provider responds with a non-2xx status.
  */
 export async function fetchUserInfo<T>(
   providerName: string,
@@ -28,9 +28,10 @@ export async function fetchUserInfo<T>(
   });
 
   if (!resp.ok) {
-    throw new HttpError(
+    throw new OAuth2Error(
+      ErrorCode.OAuth2ProviderError,
       `${providerName} API error: ${resp.status} ${resp.statusText}`,
-      500
+      { provider: providerName, status: resp.status }
     );
   }
 
@@ -109,13 +110,14 @@ export function splitFullName(fullName?: string): {
  * @param {string} providerName - Provider name used in the error message.
  * @param {string} [email] - The email address reported by the provider.
  * @return {string} The email address.
- * @throws {HttpError} If the provider did not return an email address.
+ * @throws {OAuth2Error} `OAUTH2_EMAIL_UNAVAILABLE` if the provider did not return an email address.
  */
 export function requireEmail(providerName: string, email?: string): string {
   if (!email) {
-    throw new HttpError(
+    throw new OAuth2Error(
+      ErrorCode.OAuth2EmailUnavailable,
       `${providerName} account has no email address available`,
-      403
+      { provider: providerName }
     );
   }
 
@@ -129,18 +131,27 @@ export function requireEmail(providerName: string, email?: string): string {
  * @param {string} providerName - Provider name used in the error message.
  * @param {string} [token] - The JWT to decode.
  * @return {T} The decoded payload.
- * @throws {HttpError} If the token is missing or is not a well-formed JWT.
+ * @throws {OAuth2Error} `OAUTH2_PROVIDER_ERROR` if the token is missing or is not a well-formed JWT.
  */
 export function decodeJwtPayload<T>(providerName: string, token?: string): T {
   const payload = token?.split('.')[1];
   if (!payload) {
-    throw new HttpError(`${providerName} identity token is missing`, 500);
+    throw new OAuth2Error(
+      ErrorCode.OAuth2ProviderError,
+      `${providerName} identity token is missing`,
+      { provider: providerName }
+    );
   }
 
   try {
     return JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
   } catch (e) {
-    throw new HttpError(`${providerName} identity token is malformed`, 500, e);
+    throw new OAuth2Error(
+      ErrorCode.OAuth2ProviderError,
+      `${providerName} identity token is malformed`,
+      { provider: providerName },
+      { cause: e }
+    );
   }
 }
 

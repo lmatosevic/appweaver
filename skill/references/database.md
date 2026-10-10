@@ -92,8 +92,10 @@ await runTransaction({ isolationLevel: 'Serializable', timeout: 10_000, maxWait:
   `afterCommit(fn)`, which runs right away outside a transaction.
 - A `runTransaction` (or `$transaction`) inside another one joins it. Asking it for another isolation level throws.
 - On PostgreSQL a failed query aborts the whole transaction, so only catch the errors thrown before a write fails (i.e.
-  a
-  404 or 403 of a service).
+  a `RESOURCE_NOT_FOUND` or `RESOURCE_FORBIDDEN` of a service).
+- A failed database operation of a resource service throws a `DatabaseError` describing it, i.e.
+  `DATABASE_UNIQUE_VIOLATION` with the violated `fields` in its details. Translate the errors of a direct Prisma call
+  the same way with `toDatabaseError(e, 'Model')` (see `errors.md`).
 
 ---
 

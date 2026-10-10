@@ -6,6 +6,7 @@ import {
   AuthType,
   config,
   Database,
+  ErrorCode,
   makeHash,
   toResourceId,
   uncapitalize
@@ -14,7 +15,7 @@ import { inject, injectModel } from '../../context';
 import { liveRecordFilter } from '../../utils';
 import { resourceAuthModel } from '../helper';
 import { AuthService } from '../auth-service';
-import { HttpError } from '../../errors';
+import { AuthError } from '../auth-error';
 import { CacheService } from '../../cache';
 import { PrismaDatabase } from '../../database';
 import { ApiKey, Server } from '../../types';
@@ -28,9 +29,10 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
     const key =
       request.headers[config.SECURITY_API_KEY_HEADER_NAME.toLowerCase()];
     if (!key) {
-      throw new HttpError(
+      throw new AuthError(
+        ErrorCode.AuthApiKeyMissing,
         `Missing API key header: ${config.SECURITY_API_KEY_HEADER_NAME}`,
-        401
+        { header: config.SECURITY_API_KEY_HEADER_NAME }
       );
     }
 
@@ -62,7 +64,10 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
           where: { id: apiKeyId as any, ...liveRecordFilter('ApiKey') }
         });
       } catch (e) {
-        throw new HttpError(`Invalid API key format`, 401);
+        throw new AuthError(
+          ErrorCode.AuthApiKeyInvalid,
+          'Invalid API key format'
+        );
       }
 
       if (apiKey) {
@@ -80,11 +85,11 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
       !apiKey.enabled ||
       apiKey.keyHash !== makeHash(apiKeyValue)
     ) {
-      throw new HttpError(`Invalid API key`, 401);
+      throw new AuthError(ErrorCode.AuthApiKeyInvalid, 'Invalid API key');
     }
 
     if (apiKey.expiresAt && new Date(apiKey.expiresAt).getTime() < Date.now()) {
-      throw new HttpError(`API key has expired`, 403);
+      throw new AuthError(ErrorCode.AuthApiKeyExpired, 'API key has expired');
     }
 
     const authModelField = uncapitalize(resourceAuthModel()!.name);

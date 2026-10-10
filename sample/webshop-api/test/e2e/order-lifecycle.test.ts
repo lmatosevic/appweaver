@@ -105,17 +105,19 @@ describe('Order lifecycle', () => {
     ]);
 
     expect(status).toBe(409);
-    expect(body.message).toMatch(/^Only 0 left of/);
+    expect(body.code).toBe('OUT_OF_STOCK');
+    expect(body.detail).toMatch(/^Only 0 left of/);
   });
 
   test('refuses a product that is not for sale', async () => {
     const draft = await product('DRAFT', 5000, 10, 'Draft');
 
-    const { status } = await checkout(customer.auth, [
+    const { status, body } = await checkout(customer.auth, [
       { product: draft.id, quantity: 1 }
     ]);
 
     expect(status).toBe(400);
+    expect(body.code).toBe('PRODUCT_UNAVAILABLE');
   });
 
   test('fails a declined payment and gives the stock back', async () => {

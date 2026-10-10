@@ -14,7 +14,7 @@ const queue = inject(Queue);
 ```
 
 ---
-
+s
 ## `Queue` — manager
 
 #### `queue.get<Data, Response>(name)`
@@ -48,7 +48,7 @@ Returns a `HealthCheckResult` indicating whether the underlying queue backend is
 ### Unavailable backend
 
 `BullQueue` needs Redis and has no fallback. The application still starts while Redis is down, but `sendJob` and
-`sendBulkJobs` throw `Queue '<name>' is unavailable, Redis connection is not ready` right away instead of waiting for
+`sendBulkJobs` throw a `QueueError` with the `QUEUE_UNAVAILABLE` code right away instead of waiting for
 the reconnection, so callers that must not fail should catch it. Workers pick jobs up again once Redis reconnects.
 
 ---

@@ -1,11 +1,12 @@
 import {
+  ErrorCode,
   isArray,
   isPlainObject,
   makeHash,
   QueryResponse,
   ResourceId
 } from '@appweaver/common';
-import { HttpError } from '../../errors';
+import { ResourceError } from '../resource-error';
 
 /** The cursors a query response carries, kept in step with the response contract. */
 export type PageCursors = Pick<
@@ -119,7 +120,7 @@ export function pageCursors<T>(
  * on, as built by {@link queryFingerprint}.
  * @return {DecodedCursor | undefined} The decoded cursor, or `undefined` when the
  * request carries none.
- * @throws {HttpError} 400 if the cursor is malformed, or was issued for another
+ * @throws {ResourceError} `RESOURCE_INVALID_CURSOR` if the cursor is malformed, or was issued for another
  * resource, filter, or sort order.
  */
 export function decodeCursor(
@@ -134,17 +135,25 @@ export function decodeCursor(
   try {
     payload = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'));
   } catch (e) {
-    throw new HttpError('Invalid pagination cursor', 400, e);
+    throw new ResourceError(
+      ErrorCode.ResourceInvalidCursor,
+      'Invalid pagination cursor',
+      {},
+      { cause: e }
+    );
   }
 
   if (!isPlainObject(payload) || payload.i === undefined) {
-    throw new HttpError('Invalid pagination cursor', 400);
+    throw new ResourceError(
+      ErrorCode.ResourceInvalidCursor,
+      'Invalid pagination cursor'
+    );
   }
 
   if (payload.f !== fingerprint) {
-    throw new HttpError(
-      'Pagination cursor does not match the filter and sort of this query',
-      400
+    throw new ResourceError(
+      ErrorCode.ResourceInvalidCursor,
+      'Pagination cursor does not match the filter and sort of this query'
     );
   }
 

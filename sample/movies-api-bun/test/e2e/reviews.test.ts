@@ -76,7 +76,8 @@ describe('Reviews', () => {
     const { status, body } = await review(as.ana, reviewed.id, 3);
 
     expect(status).toBe(409);
-    expect(body.message).toMatch(/already reviewed/);
+    expect(body.code).toBe('ALREADY_REVIEWED');
+    expect(body.detail).toMatch(/already reviewed/);
   });
 
   test('requires an account to review', async () => {

@@ -198,7 +198,8 @@ describe('Query and aggregate GET routes', () => {
       );
 
       expect(status).toBe(400);
-      expect(body.message).toContain("'filter'");
+      expect(body.code).toBe('RESOURCE_INVALID_QUERY_PARAMETER');
+      expect(body.detail).toContain("'filter'");
     });
 
     test('keeps the access rules of the route', async () => {
@@ -217,7 +218,8 @@ describe('Query and aggregate GET routes', () => {
       const { status, body } = await request('GET', '/api/posts/query');
 
       expect(status).toBe(400);
-      expect(body.message).toContain('params/id');
+      expect(body.code).toBe('VALIDATION_FAILED');
+      expect(body.errors[0].pointer).toBe('#/params/id');
     });
   });
 
