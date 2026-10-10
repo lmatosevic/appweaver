@@ -13,6 +13,7 @@ import {
 import { fetchAvatarFile } from '../../../security/oauth2/oauth2-util';
 import { Server, UserInfo } from '../../../types';
 import { resetContext } from '../../fixtures/context-fixture';
+import { requestValidation } from '../../../server/request-validation';
 
 // The avatar download reads its configuration when the module is loaded, so it is replaced rather than reconfigured
 jest.mock('../../../security/oauth2/oauth2-util', () => ({
@@ -43,10 +44,7 @@ let tokenRequest: jest.Mock;
 /** Creates a bare fastify instance with the same schema setup as `createServer`. */
 function createTestServer(): Server {
   const server = fastify({
-    ajv: {
-      customOptions: { removeAdditional: 'all', allowUnionTypes: true },
-      plugins: [(ajv: any): any => ajv.addKeyword('example')]
-    }
+    ...requestValidation()
   }) as unknown as Server;
 
   server.addSchema(ProblemDetailsSchema);

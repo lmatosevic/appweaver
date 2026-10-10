@@ -12,20 +12,17 @@ import {
   buildAggregateSelectSchema
 } from '../../../resource/schemas/resource-aggregate-schema';
 import { resetContext } from '../../fixtures/context-fixture';
+import { requestValidation } from '../../../server/request-validation';
 
 /**
  * Builds a server validating a request body against a model's aggregate
- * selection schema with the same options the application server uses. The
- * `removeAdditional` option makes the validator strip every property that the
- * matched schema does not declare.
+ * selection schema with the same options the application server uses, which reject
+ * every property the matched schema does not declare.
  */
 async function server(modelName: string): Promise<FastifyInstance> {
   const app = Fastify({
     logger: false,
-    ajv: {
-      customOptions: { removeAdditional: 'all', allowUnionTypes: true },
-      plugins: [(ajv): any => ajv.addKeyword('example')]
-    }
+    ...requestValidation()
   });
 
   app.addSchema({
@@ -166,31 +163,28 @@ describe('aggregate schema', () => {
     });
   });
 
-  test('strips the sum and avg operators of a date field', async () => {
-    const { status, body } = await validated(app!, {
+  test('rejects the sum and avg operators of a date field', async () => {
+    const { status } = await validated(app!, {
       select: { publishedAt: { sum: true, avg: true, min: true } }
     });
 
-    expect(status).toBe(200);
-    expect(body.select).toEqual({ publishedAt: { min: true } });
+    expect(status).toBe(400);
   });
 
-  test('strips the fields that cannot be aggregated', async () => {
-    const { status, body } = await validated(app!, {
-      select: {
-        title: { count: true },
-        enabled: { count: true },
-        scores: { sum: true },
-        secret: { sum: true },
-        score: { avg: true },
-        author: { count: true },
-        unknown: { count: true },
-        views: { sum: true }
-      }
+  test.each([
+    ['title', { count: true }],
+    ['enabled', { count: true }],
+    ['scores', { sum: true }],
+    ['secret', { sum: true }],
+    ['score', { avg: true }],
+    ['author', { count: true }],
+    ['unknown', { count: true }]
+  ])('rejects the %s field that cannot be aggregated', async (field, op) => {
+    const { status } = await validated(app!, {
+      select: { [field]: op, views: { sum: true } }
     });
 
-    expect(status).toBe(200);
-    expect(body.select).toEqual({ views: { sum: true } });
+    expect(status).toBe(400);
   });
 
   test('rejects a missing selection', async () => {

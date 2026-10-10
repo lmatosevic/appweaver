@@ -73,9 +73,8 @@ export const AggregateDateSchema: TObject = Type.Object(
  * Builds the aggregate selection schema of a resource model. Only the fields
  * the database can aggregate are declared, which are the numeric and the date
  * scalars of the model together with its numeric id and audit fields, so the
- * request validation keeps the known fields and strips everything else
- * (including hidden fields, array scalars, and the virtual fields that have no
- * column of their own).
+ * request validation rejects every other field (including hidden fields, array
+ * scalars, and the virtual fields that have no column of their own).
  *
  * @param {ResourceModel} model The resource model to build the selection schema
  * for.

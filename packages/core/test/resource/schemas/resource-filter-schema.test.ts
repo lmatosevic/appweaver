@@ -8,20 +8,17 @@ import {
   queryFilterName
 } from '../../../resource/schemas/resource-filter-schema';
 import { resetContext } from '../../fixtures/context-fixture';
+import { requestValidation } from '../../../server/request-validation';
 
 /**
  * Builds a server validating a request body against a model's query filter
- * schema with the same options the application server uses. The
- * `removeAdditional` option makes the validator strip every property that the
- * matched schema does not declare.
+ * schema with the same options the application server uses, which reject
+ * every property the matched schema does not declare.
  */
 async function server(schemaName: string): Promise<FastifyInstance> {
   const app = Fastify({
     logger: false,
-    ajv: {
-      customOptions: { removeAdditional: 'all', allowUnionTypes: true },
-      plugins: [(ajv): any => ajv.addKeyword('example')]
-    }
+    ...requestValidation()
   });
 
   app.addSchema({
@@ -134,36 +131,36 @@ describe('filter schema', () => {
     });
   });
 
-  test('strips unknown fields', async () => {
+  test('rejects unknown fields', async () => {
     const { status, body } = await validated(app!, {
       title: 'First',
       unknownField: 'value'
     });
 
-    expect(status).toBe(200);
-    expect(body).toEqual({ title: 'First' });
+    expect(status).toBe(400);
+    expect(body.message).toBe('body must NOT have additional properties');
   });
 
-  test('strips hidden fields', async () => {
-    const { body } = await validated(app!, {
+  test('rejects hidden fields', async () => {
+    const { status } = await validated(app!, {
       title: 'First',
       secretField: 'x'
     });
 
-    expect(body).toEqual({ title: 'First' });
+    expect(status).toBe(400);
   });
 
-  test('strips hidden fields of a nested relation filter', async () => {
-    const { body } = await validated(app!, {
+  test('rejects hidden fields of a nested relation filter', async () => {
+    const { status } = await validated(app!, {
       author: { firstName: 'Ada', password: { _exists: true } }
     });
 
-    expect(body).toEqual({ author: { firstName: 'Ada' } });
+    expect(status).toBe(400);
   });
 
-  test('keeps operator conditions and strips unknown operators', async () => {
+  test('keeps operator conditions', async () => {
     const { status, body } = await validated(app!, {
-      title: { _eq: 'First', _exists: true, _bogus: 'x' },
+      title: { _eq: 'First', _exists: true },
       views: { _gte: 10, _lt: 100 }
     });
 
@@ -172,6 +169,14 @@ describe('filter schema', () => {
       title: { _eq: 'First', _exists: true },
       views: { _gte: 10, _lt: 100 }
     });
+  });
+
+  test('rejects unknown operators', async () => {
+    const { status } = await validated(app!, {
+      title: { _eq: 'First', _bogus: 'x' }
+    });
+
+    expect(status).toBe(400);
   });
 
   test('keeps the operator value types untouched', async () => {
@@ -220,12 +225,12 @@ describe('filter schema', () => {
     });
   });
 
-  test('strips unknown fields inside logical operators', async () => {
-    const { body } = await validated(app!, {
+  test('rejects unknown fields inside logical operators', async () => {
+    const { status } = await validated(app!, {
       _and: { title: 'First', unknownField: 'x' }
     });
 
-    expect(body).toEqual({ _and: { title: 'First' } });
+    expect(status).toBe(400);
   });
 
   test('keeps a nested relation filter', async () => {
@@ -260,13 +265,12 @@ describe('filter schema', () => {
     expect(body).toEqual({ author: 5, tags: [1, 2] });
   });
 
-  test('strips unknown fields inside a list of relation filters', async () => {
-    const { status, body } = await validated(app!, {
+  test('rejects unknown fields inside a list of relation filters', async () => {
+    const { status } = await validated(app!, {
       tags: [{ name: 'news', unknownField: 'x' }]
     });
 
-    expect(status).toBe(200);
-    expect(body).toEqual({ tags: [{ name: 'news' }] });
+    expect(status).toBe(400);
   });
 
   test('preserves the value types of every plain value position', async () => {

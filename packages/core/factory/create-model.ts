@@ -497,9 +497,8 @@ function buildInputModels(
   });
 
   // Wire model for nested relation writes, holding the id together with the
-  // fields of both shapes above. It stays permissive because the server
-  // strips properties the matched schema does not declare, so a union of the
-  // narrower shapes would drop the fields of the ones it rejects.
+  // fields of both shapes above. The service restricts the payload to the
+  // shape of the action it resolves to, see relationWriteData.
   const relationInputModel = Type.Object(
     {
       id: Type.Optional(idSchema.properties.id),
@@ -617,8 +616,7 @@ function relationInputProperties<T extends TObject>(
     // Existing records are connected by an id object or a bare id value, both
     // typed after the primary key of the related model. Relations accepting
     // inline writes take the permissive input model instead, which also covers
-    // a lone id. Only one object schema may join the union, since the server
-    // strips undeclared properties.
+    // a lone id.
     const relatedIdField = referencedIdField(config?.model);
     const itemSchemas: TSchema[] = [
       acceptsInlineWrite

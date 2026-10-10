@@ -589,9 +589,8 @@ either for list relations. The `allowCreate` and `allowUpdate` flags also accept
   relations only within an update action.
 
 Relations that accept inline writes document their request shape as `<Model>RelationInput`. It holds the id and the
-fields of both shapes above, all optional. The shape stays permissive on purpose, since the server strips the properties
-that the matched schema does not declare. The service applies the restrictions instead. Fields excluded by the related
-model's `create` or `update` config are dropped. A missing required create field fails with a `400` error naming the
+fields of both shapes above, all optional, and rejects any other field. The service resolves the action and applies the
+restrictions of its shape: fields excluded by the related model's `create` or `update` config are dropped. A missing required create field fails with a `400` error naming the
 field.
 
 Connect, create, and update inputs can be mixed within one list relation request:
@@ -840,6 +839,9 @@ const config = {
 | `omit`   | string[] | Fields to exclude from the DTO.                |
 | `pick`   | string[] | Fields to include in the DTO (overrides omit). |
 
+A create or update request sending a field its DTO excludes is rejected with a `400` `VALIDATION_FAILED` error naming
+the field (`rule: "additionalProperties"`).
+
 ### Export config
 
 Configure CSV export behavior per field:
@@ -1067,7 +1069,8 @@ belongs on `service.client`, the database client of the model.
 The `filter` option of `query` and `aggregate`, and the `filter` argument of `single`, `count`, `exists`, and `export`
 mirror the WHERE part of a database query. The matching
 `POST /query`, `POST /aggregate`, and `POST /export` routes accept the same structure, validated against a generated
-per-model `<Model>QueryFilter` schema that strips unknown and hidden fields.
+per-model `<Model>QueryFilter` schema that rejects unknown and hidden fields with a `400` `VALIDATION_FAILED` error
+naming the field, i.e. `{ "field": "filter.titel", "rule": "additionalProperties", "message": "is not allowed" }`.
 
 **Logical operators** (filter level) — take a single filter object (each entry becomes one condition) or a list of them:
 
@@ -1201,7 +1204,7 @@ and `desc`.
 Anything else — a relation the action does not include, a field of a to-many relation, a hidden or virtual field, an
 unknown sort direction — is rejected with a `400` error naming the offending field instead of reaching the database.
 Over HTTP the sort object is additionally validated against a generated per-model `<Model>QuerySort` schema, which
-strips unknown fields the same way the query filter schema does.
+rejects unknown fields the same way the query filter schema does.
 
 The default sort is `-createdAt`. Every sort is terminated with the primary key when it does not already order by one,
 so paging stays deterministic, and the `createdAt` entry is dropped for models configured with
@@ -1599,7 +1602,8 @@ The internal access covers every call made while the function runs, including th
 ## registerRoute
 
 Registers a custom Fastify route handler outside the resource system. Use this for endpoints that don't map to a
-standard CRUD resource.
+standard CRUD resource. Its `body`, `querystring` and `params` schemas reject undeclared properties, unless an object
+sets `additionalProperties` explicitly (see the custom route section of SKILL.md).
 
 ```ts
 import { registerRoute, Router } from '@appweaver/core';

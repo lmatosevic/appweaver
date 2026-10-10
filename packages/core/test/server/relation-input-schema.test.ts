@@ -4,21 +4,18 @@ import { context } from '../../context';
 import { createModel } from '../../factory/create-model';
 import { resetContext } from '../fixtures/context-fixture';
 import { linkModels } from '../fixtures/model-fixture';
+import { requestValidation } from '../../server/request-validation';
 
 /**
  * Builds a server validating a request body against a model schema with the
- * same options the application server uses. The `removeAdditional` option makes
- * the validator strip every property that the schema it matches does not
- * declare, which silently drops nested relation fields when the request schema
- * is built from a union of narrower object schemas.
+ * same options the application server uses, which reject every property the
+ * schema it matches does not declare. A request schema built from a union of
+ * narrower object schemas must still accept the nested relation fields.
  */
 async function server(schemaName: string): Promise<FastifyInstance> {
   const app = Fastify({
     logger: false,
-    ajv: {
-      customOptions: { removeAdditional: 'all' },
-      plugins: [(ajv): any => ajv.addKeyword('example')]
-    }
+    ...requestValidation()
   });
 
   const added = new Set<string>();
@@ -140,14 +137,14 @@ describe('relation input schema', () => {
       ]);
     });
 
-    test('strips the fields that the related model does not declare', async () => {
+    test('rejects the fields that the related model does not declare', async () => {
       app = await server('UserUpdate');
 
-      const { body } = await validated(app, {
+      const { status } = await validated(app, {
         posts: [{ id: 1, unknownField: 'x' }]
       });
 
-      expect(body.posts).toEqual([{ id: 1 }]);
+      expect(status).toBe(400);
     });
   });
 
@@ -167,14 +164,14 @@ describe('relation input schema', () => {
       expect(body.posts).toEqual([{ id: 1 }, 2]);
     });
 
-    test('strips the data of a relation that only connects records', async () => {
+    test('rejects the data of a relation that only connects records', async () => {
       app = await server('UserUpdate');
 
-      const { body } = await validated(app, {
+      const { status } = await validated(app, {
         posts: [{ id: 1, title: 'Renamed' }]
       });
 
-      expect(body.posts).toEqual([{ id: 1 }]);
+      expect(status).toBe(400);
     });
   });
 });

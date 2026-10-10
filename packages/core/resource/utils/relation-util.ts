@@ -303,9 +303,8 @@ export function mapRelationActions(
 
 /**
  * Restricts an inline relation payload to the fields the related model accepts for the given action. The request
- * schema accepts the create and the update fields together, since the properties it does not declare are stripped
- * before the request reaches the service, so the configured field restrictions of the related model are applied here
- * instead.
+ * schema accepts the create and the update fields together, since the action is only resolved by the service, so the
+ * configured field restrictions of the related model are applied here instead.
  *
  * @param {string} [resourceName] - The name of the related model whose field restrictions are applied. When omitted,
  * the payload is returned unchanged.

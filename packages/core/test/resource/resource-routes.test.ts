@@ -27,6 +27,7 @@ import { AuthError } from '../../security/auth-error';
 import schemas from '../../server/schemas';
 import { resetContext } from '../fixtures/context-fixture';
 import { linkModels } from '../fixtures/model-fixture';
+import { requestValidation } from '../../server/request-validation';
 
 const queryResponse = {
   resultCount: 0,
@@ -50,10 +51,7 @@ async function server(
 ): Promise<FastifyInstance> {
   const app = Fastify({
     logger: false,
-    ajv: {
-      customOptions: { removeAdditional: 'all', allowUnionTypes: true },
-      plugins: [(ajv): any => ajv.addKeyword('example').addKeyword('x-consume')]
-    }
+    ...requestValidation()
   });
 
   context.server = app;
@@ -350,19 +348,38 @@ describe('resource-routes', () => {
         expect(service.query.mock.calls[0][0].sort).toEqual({ views: 'desc' });
       });
 
-      test('strips the unknown filter fields and parameters', async () => {
-        await request(
+      test('rejects an unknown filter field', async () => {
+        const { status, body } = await request(
           'GET',
-          `/posts/query?${queryString({
-            filter: { views: 1, unknown: 2 },
-            other: 'x'
-          })}`
+          `/posts/query?${queryString({ filter: { views: 1, unknown: 2 } })}`
         );
 
-        expect(service.query.mock.calls[0][0]).toEqual(
-          expect.objectContaining({ filter: { views: 1 } })
+        expect(status).toBe(400);
+        expect(body).toMatchObject({
+          code: ErrorCode.ValidationFailed,
+          errors: [
+            {
+              field: 'filter.unknown',
+              rule: 'additionalProperties',
+              message: 'is not allowed',
+              pointer: '#/querystring/filter/unknown'
+            }
+          ]
+        });
+        expect(service.query).not.toHaveBeenCalled();
+      });
+
+      test('rejects an unknown query parameter', async () => {
+        const { status, body } = await request(
+          'GET',
+          `/posts/query?${queryString({ other: 'x' })}`
         );
-        expect(service.query.mock.calls[0][0]).not.toHaveProperty('other');
+
+        expect(status).toBe(400);
+        expect(body.errors).toEqual([
+          expect.objectContaining({ field: 'other', message: 'is not allowed' })
+        ]);
+        expect(service.query).not.toHaveBeenCalled();
       });
 
       test('rejects a malformed JSON filter', async () => {

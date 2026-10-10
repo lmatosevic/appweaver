@@ -116,6 +116,30 @@ describe('problem', () => {
       expect(problem.details).toBeUndefined();
     });
 
+    test('names the property a schema does not declare', () => {
+      const error = fastifyError({
+        code: 'FST_ERR_VALIDATION',
+        validationContext: 'querystring',
+        validation: [
+          {
+            instancePath: '/filter',
+            keyword: 'additionalProperties',
+            params: { additionalProperty: 'titel' },
+            message: 'must NOT have additional properties'
+          }
+        ]
+      });
+
+      expect(toProblem(error).errors).toEqual([
+        {
+          field: 'filter.titel',
+          rule: 'additionalProperties',
+          message: 'is not allowed',
+          pointer: '#/querystring/filter/titel'
+        }
+      ]);
+    });
+
     test.each([
       ['FST_ERR_CTP_INVALID_JSON_BODY', 400, ErrorCode.MalformedRequest],
       ['FST_ERR_CTP_INVALID_MEDIA_TYPE', 415, ErrorCode.UnsupportedMediaType],

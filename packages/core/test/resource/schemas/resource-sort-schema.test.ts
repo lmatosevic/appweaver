@@ -8,20 +8,17 @@ import {
   querySortSchema
 } from '../../../resource/schemas/resource-sort-schema';
 import { resetContext } from '../../fixtures/context-fixture';
+import { requestValidation } from '../../../server/request-validation';
 
 /**
  * Builds a server validating a request body against a model's query sort
- * schema with the same options the application server uses. The
- * `removeAdditional` option makes the validator strip every property that the
- * matched schema does not declare.
+ * schema with the same options the application server uses, which reject
+ * every property the matched schema does not declare.
  */
 async function server(modelName: string): Promise<FastifyInstance> {
   const app = Fastify({
     logger: false,
-    ajv: {
-      customOptions: { removeAdditional: 'all', allowUnionTypes: true },
-      plugins: [(ajv): any => ajv.addKeyword('example')]
-    }
+    ...requestValidation()
   });
 
   for (const model of context.resource.models.values()) {
@@ -150,25 +147,23 @@ describe('sort schema', () => {
     expect(body.sort).toEqual({ tags: 'desc', tagsCount: 'asc' });
   });
 
-  test('strips unknown fields', async () => {
-    const { status, body } = await validated(app!, {
+  test('rejects unknown fields', async () => {
+    const { status } = await validated(app!, {
       title: 'asc',
       unknownField: 'asc'
     });
 
-    expect(status).toBe(200);
-    expect(body.sort).toEqual({ title: 'asc' });
+    expect(status).toBe(400);
   });
 
-  test('strips the hidden, virtual and array scalar fields', async () => {
-    const { status, body } = await validated(app!, {
-      excerpt: 'asc',
-      keywords: 'asc',
-      author: { password: 'asc', firstName: 'asc' }
-    });
+  test.each([
+    ['virtual', { excerpt: 'asc' }],
+    ['array scalar', { keywords: 'asc' }],
+    ['hidden', { author: { password: 'asc', firstName: 'asc' } }]
+  ])('rejects a %s field', async (_, sort) => {
+    const { status } = await validated(app!, sort);
 
-    expect(status).toBe(200);
-    expect(body.sort).toEqual({ author: { firstName: 'asc' } });
+    expect(status).toBe(400);
   });
 
   test('rejects an unknown sort direction', async () => {

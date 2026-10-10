@@ -5,6 +5,7 @@ import {
   QueryRequestData,
   QueryResponseData
 } from '../../resource/resource-schema';
+import { requestValidation } from '../../server/request-validation';
 
 /**
  * Builds a server with the query request and response schemas the query route
@@ -14,10 +15,7 @@ import {
 async function server(): Promise<FastifyInstance> {
   const app = Fastify({
     logger: false,
-    ajv: {
-      customOptions: { removeAdditional: 'all', allowUnionTypes: true },
-      plugins: [(ajv): any => ajv.addKeyword('example')]
-    }
+    ...requestValidation()
   });
 
   const queryResponse = Type.Composite([

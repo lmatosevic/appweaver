@@ -28,7 +28,7 @@ const SortDirection = (): TSchema =>
 /**
  * Builds the query sort schema of a resource model, mirroring the ORDER BY part
  * of a database query. Every sortable field of the model is declared explicitly,
- * so the request validation keeps the known fields and strips everything else.
+ * so the request validation rejects every other field.
  * Scalar fields accept a sort direction, to-one relations accept the sort object
  * of the related model, and to-many relations accept a direction applied to
  * their related record count, both under the relation name and under its count

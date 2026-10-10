@@ -508,7 +508,7 @@ const users = await injectService('User').query({ filter, page: 1, size: 50, sor
 
 Filters are typed by `QueryFilter<T>` from `@appweaver/common`, and `weaver generate` emits a
 `<Model>Query = QueryFilter<Model>` alias per model. Over HTTP, they are validated against a generated per-model
-`<Model>QueryFilter` JSON schema, which strips unknown and hidden fields.
+`<Model>QueryFilter` JSON schema, which rejects unknown and hidden fields with a `400` `VALIDATION_FAILED` error.
 
 ### Sorting
 
@@ -579,6 +579,12 @@ are projected onto the response payload automatically before serialization.
 
 Route and model schemas are written with [TypeBox](https://github.com/sinclairzx81/typebox) (`@sinclair/typebox`), a
 dependency of every scaffolded project at the version the framework uses, which `weaver update` keeps in step.
+
+Request validation is strict: a `body`, `querystring` or `params` property the route schema does not declare is
+rejected with `VALIDATION_FAILED` (`rule: "additionalProperties"`, `message: "is not allowed"`), never silently dropped.
+Every object schema declaring `properties` is closed, unless it sets `additionalProperties` itself, so an object meant
+to accept arbitrary keys sets `additionalProperties: true`. The members of a `Type.Intersect` (an `allOf` of several
+schemas) stay open, and `headers` are never closed.
 
 ```ts
 // src/plugins/custom-route.ts

@@ -28,7 +28,7 @@ type AjvError = {
   instancePath: string;
   keyword: string;
   message?: string;
-  params?: { missingProperty?: string };
+  params?: { missingProperty?: string; additionalProperty?: string };
 };
 
 type FrameworkError = Error & {
@@ -198,6 +198,10 @@ function validationError(error: AjvError, context?: string): FieldError {
   if (error.keyword === 'required' && missing) {
     path.push(missing);
   }
+  const additional = error.params?.additionalProperty;
+  if (error.keyword === 'additionalProperties' && additional) {
+    path.push(additional);
+  }
 
   return {
     field: path.join('.'),
@@ -205,7 +209,9 @@ function validationError(error: AjvError, context?: string): FieldError {
     message:
       error.keyword === 'required'
         ? 'is required'
-        : (error.message ?? 'is invalid'),
+        : error.keyword === 'additionalProperties'
+          ? 'is not allowed'
+          : (error.message ?? 'is invalid'),
     pointer: `#/${[context, ...path].filter(Boolean).join('/')}`
   };
 }

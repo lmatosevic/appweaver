@@ -36,21 +36,23 @@ cases apart by their `code` instead of parsing messages:
 }
 ```
 
-| Member      | Description                                                                                                   |
-|-------------|---------------------------------------------------------------------------------------------------------------|
-| `type`      | URI of the problem type, the `APP_TYPE_BASE` config (`urn:appweaver`), `error` and the kebab-case code |
-| `title`     | Short summary of the error code, the same for every occurrence                                                |
-| `status`    | HTTP status code of the response                                                                              |
-| `code`      | The `ErrorCode` value (from `@appweaver/common`) or the code of an application error                          |
-| `detail`    | Explanation of this occurrence of the error                                                                   |
-| `instance`  | Path of the request, without the query string                                                                 |
-| `requestId` | Id of the request, matching the `reqId` of the server logs                                                    |
-| `errors`    | Invalid fields of the request (`field`, `rule`, `message`, optional JSON `pointer`), when the error has them  |
-| `details`   | Details specific to the error code, i.e. the `fields` of a constraint violation or the `maxCount` of files    |
+| Member      | Description                                                                                                  |
+|-------------|--------------------------------------------------------------------------------------------------------------|
+| `type`      | URI of the problem type, the `APP_TYPE_BASE` config (`urn:appweaver`), `error` and the kebab-case code       |
+| `title`     | Short summary of the error code, the same for every occurrence                                               |
+| `status`    | HTTP status code of the response                                                                             |
+| `code`      | The `ErrorCode` value (from `@appweaver/common`) or the code of an application error                         |
+| `detail`    | Explanation of this occurrence of the error                                                                  |
+| `instance`  | Path of the request, without the query string                                                                |
+| `requestId` | Id of the request, matching the `reqId` of the server logs                                                   |
+| `errors`    | Invalid fields of the request (`field`, `rule`, `message`, optional JSON `pointer`), when the error has them |
+| `details`   | Details specific to the error code, i.e. the `fields` of a constraint violation or the `maxCount` of files   |
 
 - A request failing the schema validation responds with `VALIDATION_FAILED` and an entry of `errors` per invalid field,
   i.e.
   `{ "field": "author.email", "rule": "format", "message": "must match format \"email\"", "pointer": "#/body/author/email" }`.
+  A property the schema does not declare is an error too, never dropped:
+  `{ "field": "filter.titel", "rule": "additionalProperties", "message": "is not allowed", "pointer": "#/querystring/filter/titel" }`.
 - A database constraint violation responds with a `DATABASE_*` code naming the violated fields, both in `details.fields`
   and in `errors`: unique (`409`), foreign key (`409`), not null, value too long, value out of range and invalid value
   (`400`).
@@ -269,7 +271,8 @@ throw new ApplicationError(ShopErrors.OutOfStock, `Only ${product.stock} left of
 A name not in PascalCase, a name or a code of the framework, one registered again with another mapping, or a status
 outside 400-599 is rejected with a `ConfigurationError`. The OpenAPI specification names the members of its error code
 enum after them (`x-enum-varnames`), so the generated client declares `ErrorCode.OutOfStock` the same way as
-`ErrorCode.ResourceNotFound`. An `ApplicationError` with an unregistered code responds with a 500 status and logs a warning.
+`ErrorCode.ResourceNotFound`. An `ApplicationError` with an unregistered code responds with a 500 status and logs a
+warning.
 
 ## Documenting the errors of a route
 

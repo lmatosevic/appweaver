@@ -38,8 +38,8 @@ const Operator = (schema: TSchema, description: string): TSchema =>
 /**
  * The shared schema of a field condition object, holding the comparison
  * operators applicable to a single field. Operators combined inside the same
- * object are merged into a single database condition, and unknown properties
- * are stripped by the request validation.
+ * object are merged into a single database condition, and unknown operators
+ * are rejected by the request validation.
  */
 export const QueryConditionSchema: TObject = Type.Object(
   {
@@ -118,8 +118,8 @@ export const QueryConditionSchema: TObject = Type.Object(
 /**
  * Builds the query filter schema of a resource model, mirroring the WHERE part
  * of a database query. Every filterable field of the model is declared
- * explicitly, so the request validation keeps the known fields and strips
- * everything else (including hidden fields). Scalar fields accept a plain
+ * explicitly, so the request validation rejects every other field (including
+ * hidden fields). Scalar fields accept a plain
  * value, a list of values, or a condition object, relation and file fields
  * additionally accept an id shorthand or the filter of the related model, and
  * the `_`-prefixed logical operators combine nested conditions recursively.
@@ -145,7 +145,7 @@ export function buildQueryFilterSchema(model: ResourceModel): TObject {
     );
 
   // A list of related filters is declared as its own branch, so the validator
-  // still strips the unknown properties of the filters nested inside it
+  // still rejects the unknown properties of the filters nested inside it
   const relationValue = (refName: string, description: string) =>
     Type.Optional(
       Type.Union(

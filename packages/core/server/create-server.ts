@@ -28,6 +28,7 @@ import caching from '../cache/caching';
 import { Router, Server } from '../types';
 import { info } from './info-route';
 import { PluginEntry } from './register-plugin';
+import { requestValidation } from './request-validation';
 import schemas from './schemas';
 import swagger from './swagger';
 
@@ -53,15 +54,7 @@ import swagger from './swagger';
 export function createServer(): Server {
   // Create a Fastify server instance
   const server = Fastify({
-    ajv: {
-      customOptions: {
-        removeAdditional: 'all',
-        // Query filter schemas declare plain values as a list of accepted
-        // primitive types, so the validator does not coerce them
-        allowUnionTypes: true
-      },
-      plugins: [(ajv): any => ajv.addKeyword('example').addKeyword('x-consume')]
-    },
+    ...requestValidation(),
     routerOptions: {
       maxParamLength: 512,
       caseSensitive: false

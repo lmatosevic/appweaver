@@ -154,12 +154,20 @@ describe('Catalog', () => {
     expect(status).toBe(403);
   });
 
-  test('ignores a rating sent with the movie', async () => {
-    const { body } = await request(app, 'PUT', `/movies/${arrival.id}`, {
-      auth: curator,
-      payload: { rating: 10, tagline: 'Why are they here?' }
-    });
+  test('rejects a rating sent with the movie', async () => {
+    const { status, body } = await request(
+      app,
+      'PUT',
+      `/movies/${arrival.id}`,
+      {
+        auth: curator,
+        payload: { rating: 10, tagline: 'Why are they here?' }
+      }
+    );
 
-    expect(body).toMatchObject({ rating: 0, tagline: 'Why are they here?' });
+    expect(status).toBe(400);
+    expect(body.errors).toEqual([
+      expect.objectContaining({ field: 'rating', rule: 'additionalProperties' })
+    ]);
   });
 });
