@@ -168,7 +168,7 @@ describe('String primary key resources', () => {
       const created = await seedComment(post.id, 'Before');
 
       const updateResponse = await app.server.inject({
-        method: 'PUT',
+        method: 'PATCH',
         url: `/api/comments/${created.id}`,
         headers: auth,
         payload: { body: 'After' }

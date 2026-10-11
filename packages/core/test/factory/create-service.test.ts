@@ -200,6 +200,53 @@ describe('create-service', () => {
       );
     });
 
+    test('calls the update hooks around a replacement with the reset fields', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: {
+            title: { type: 'string' },
+            summary: { type: 'string', required: false }
+          }
+        },
+        true
+      );
+      linkModels();
+      const beforeUpdate = jest.fn();
+      const afterUpdate = jest.fn();
+      const Service = createService({
+        modelName: 'Post',
+        beforeUpdate,
+        afterUpdate
+      });
+
+      await new Service().replace(1, { title: 'Updated' } as any);
+
+      expect(beforeUpdate).toHaveBeenCalledWith(1, {
+        title: 'Updated',
+        summary: null
+      });
+      expect(afterUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Updated' }),
+        expect.objectContaining({ title: 'First' })
+      );
+    });
+
+    test('lets the update hook change the data of a replacement', async () => {
+      const Service = createService({
+        modelName: 'Post',
+        beforeUpdate: (_id, data: any) => {
+          data.title = 'Hooked';
+        }
+      });
+
+      await new Service().replace(1, { title: 'Updated' } as any);
+
+      expect(db.lastQuery('update').args.data).toMatchObject({
+        title: 'Hooked'
+      });
+    });
+
     test('lets the query hook change the query options', async () => {
       const Service = createService({
         modelName: 'Post',

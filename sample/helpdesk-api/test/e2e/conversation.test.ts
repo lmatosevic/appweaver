@@ -144,7 +144,7 @@ describe('Ticket conversation', () => {
   });
 
   test('dates the resolution', async () => {
-    const { body } = await request(app, 'PUT', `/tickets/${ticket.id}`, {
+    const { body } = await request(app, 'PATCH', `/tickets/${ticket.id}`, {
       headers: staff.auth,
       payload: { status: 'Resolved' }
     });

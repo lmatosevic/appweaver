@@ -27,6 +27,7 @@ function model(name: string, readModel: any, config: any = {}): ResourceModel {
     readManyModel: Type.Object({ items: Type.Array(Type.Integer()) }),
     createOneModel: Type.Object({ title: Type.String() }),
     updateOneModel: Type.Object({ title: Type.Optional(Type.String()) }),
+    replaceOneModel: Type.Object({ title: Type.String() }),
     relationCreateModel: Type.Object({ title: Type.String() }),
     relationUpdateModel: Type.Object({
       id: Type.Integer(),
@@ -88,6 +89,7 @@ describe('generate-types', () => {
       expect(types).toContain('export type PostMultiple = {');
       expect(types).toContain('export type PostCreate = {');
       expect(types).toContain('export type PostUpdate = {');
+      expect(types).toContain('export type PostReplace = {');
       expect(types).toContain('export type PostRelationCreate = {');
       expect(types).toContain('export type PostRelationUpdate = {');
     });
@@ -268,10 +270,10 @@ describe('generate-types', () => {
       });
 
       expect(types).toContain(
-        'export type PostResourceService = IResourceService<Post, PostMultiple, PostCreate, PostUpdate, PostQuery>;'
+        'export type PostResourceService = IResourceService<Post, PostMultiple, PostCreate, PostUpdate, PostQuery, PostReplace>;'
       );
       expect(types).toContain(
-        'export type UserResourceService = IResourceService<User, UserMultiple, UserCreate, UserUpdate, UserQuery>;'
+        'export type UserResourceService = IResourceService<User, UserMultiple, UserCreate, UserUpdate, UserQuery, UserReplace>;'
       );
     });
 
@@ -299,7 +301,7 @@ describe('generate-types', () => {
       expect(types).toContain(`declare module '@appweaver/common' {`);
       expect(types).toContain('interface ResourceRegistry {');
       expect(types).toContain(
-        "Post: { model: Post; single: PostSingle; multiple: PostMultiple; create: PostCreate; update: PostUpdate; query: PostQuery; service: PostResourceService; relations: 'author' | 'tags' };"
+        "Post: { model: Post; single: PostSingle; multiple: PostMultiple; create: PostCreate; update: PostUpdate; replace: PostReplace; query: PostQuery; service: PostResourceService; relations: 'author' | 'tags' };"
       );
       expect(types).toContain('relations: never };');
     });
@@ -312,7 +314,7 @@ describe('generate-types', () => {
       });
 
       expect(types).toContain(
-        'Draft: { model: any; single: any; multiple: any; create: any; update: any; query: any; service: IResourceService; relations: string };'
+        'Draft: { model: any; single: any; multiple: any; create: any; update: any; replace: any; query: any; service: IResourceService; relations: string };'
       );
       expect(types).toContain('import { AggregateSelect, IResourceService');
     });

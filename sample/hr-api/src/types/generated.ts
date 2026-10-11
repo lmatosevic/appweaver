@@ -79,6 +79,20 @@ export type CompensationUpdate = {
     | string;
 };
 
+export type CompensationReplace = {
+  baseSalary: number;
+  currency?: 'EUR' | 'USD' | 'GBP';
+  bonusTargetPercent?: number;
+  reason?: 'Hire' | 'Promotion' | 'Adjustment' | 'Market';
+  effectiveFrom: Date;
+  notes?: string | null;
+  employee:
+    | {
+        id: string;
+      }
+    | string;
+};
+
 export type CompensationRelationCreate = {
   baseSalary: number;
   currency?: 'EUR' | 'USD' | 'GBP';
@@ -109,7 +123,8 @@ export type CompensationResourceService = IResourceService<
   CompensationMultiple,
   CompensationCreate,
   CompensationUpdate,
-  CompensationQuery
+  CompensationQuery,
+  CompensationReplace
 >;
 
 export type Department = {
@@ -177,6 +192,18 @@ export type DepartmentUpdate = {
     | string;
 };
 
+export type DepartmentReplace = {
+  name: string;
+  code: string;
+  description?: string | null;
+  costCenter?: string | null;
+  head?:
+    | {
+        id: string;
+      }
+    | string;
+};
+
 export type DepartmentRelationCreate = {
   name: string;
   code: string;
@@ -203,7 +230,8 @@ export type DepartmentResourceService = IResourceService<
   DepartmentMultiple,
   DepartmentCreate,
   DepartmentUpdate,
-  DepartmentQuery
+  DepartmentQuery,
+  DepartmentReplace
 >;
 
 export type EmployeeDocument = {
@@ -266,6 +294,17 @@ export type EmployeeDocumentUpdate = {
     | string;
 };
 
+export type EmployeeDocumentReplace = {
+  title: string;
+  category?: 'Contract' | 'Payslip' | 'Certificate' | 'Policy' | 'Other';
+  validUntil?: Date | null;
+  employee:
+    | {
+        id: string;
+      }
+    | string;
+};
+
 export type EmployeeDocumentRelationCreate = {
   title: string;
   category?: 'Contract' | 'Payslip' | 'Certificate' | 'Policy' | 'Other';
@@ -290,7 +329,8 @@ export type EmployeeDocumentResourceService = IResourceService<
   EmployeeDocumentMultiple,
   EmployeeDocumentCreate,
   EmployeeDocumentUpdate,
-  EmployeeDocumentQuery
+  EmployeeDocumentQuery,
+  EmployeeDocumentReplace
 >;
 
 export type Employee = {
@@ -461,6 +501,40 @@ export type EmployeeUpdate = {
   >;
 };
 
+export type EmployeeReplace = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string | null;
+  employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
+  status?: 'Active' | 'OnLeave' | 'Terminated';
+  hireDate: Date;
+  twoFactorAuth?: 'None' | 'Email';
+  enabled?: boolean;
+  password?: string;
+  department?:
+    | {
+        id: number;
+      }
+    | number;
+  position?:
+    | {
+        id: number;
+      }
+    | number;
+  manager?:
+    | {
+        id: string;
+      }
+    | string;
+  roles: Array<
+    | {
+        id: number;
+      }
+    | number
+  >;
+};
+
 export type EmployeeRelationCreate = {
   firstName: string;
   lastName: string;
@@ -498,7 +572,8 @@ export type EmployeeResourceService = IResourceService<
   EmployeeMultiple,
   EmployeeCreate,
   EmployeeUpdate,
-  EmployeeQuery
+  EmployeeQuery,
+  EmployeeReplace
 >;
 
 export type LeaveBalance = {
@@ -563,6 +638,17 @@ export type LeaveBalanceUpdate = {
     | string;
 };
 
+export type LeaveBalanceReplace = {
+  year: number;
+  allowanceDays: number;
+  carriedOverDays?: number;
+  employee:
+    | {
+        id: string;
+      }
+    | string;
+};
+
 export type LeaveBalanceRelationCreate = {
   year: number;
   allowanceDays: number;
@@ -587,7 +673,8 @@ export type LeaveBalanceResourceService = IResourceService<
   LeaveBalanceMultiple,
   LeaveBalanceCreate,
   LeaveBalanceUpdate,
-  LeaveBalanceQuery
+  LeaveBalanceQuery,
+  LeaveBalanceReplace
 >;
 
 export type LeaveRequest = {
@@ -669,6 +756,18 @@ export type LeaveRequestUpdate = {
     | string;
 };
 
+export type LeaveRequestReplace = {
+  type?: 'Annual' | 'Sick' | 'Parental' | 'Unpaid';
+  startDate: Date;
+  endDate: Date;
+  reason?: string | null;
+  employee?:
+    | {
+        id: string;
+      }
+    | string;
+};
+
 export type LeaveRequestRelationCreate = {
   type?: 'Annual' | 'Sick' | 'Parental' | 'Unpaid';
   startDate: Date;
@@ -695,7 +794,8 @@ export type LeaveRequestResourceService = IResourceService<
   LeaveRequestMultiple,
   LeaveRequestCreate,
   LeaveRequestUpdate,
-  LeaveRequestQuery
+  LeaveRequestQuery,
+  LeaveRequestReplace
 >;
 
 export type PerformanceReview = {
@@ -773,6 +873,20 @@ export type PerformanceReviewUpdate = {
     | string;
 };
 
+export type PerformanceReviewReplace = {
+  period: string;
+  rating: number;
+  strengths?: string | null;
+  improvements?: string | null;
+  goals?: any | null;
+  status?: 'Draft' | 'Shared';
+  employee:
+    | {
+        id: string;
+      }
+    | string;
+};
+
 export type PerformanceReviewRelationCreate = {
   period: string;
   rating: number;
@@ -803,7 +917,8 @@ export type PerformanceReviewResourceService = IResourceService<
   PerformanceReviewMultiple,
   PerformanceReviewCreate,
   PerformanceReviewUpdate,
-  PerformanceReviewQuery
+  PerformanceReviewQuery,
+  PerformanceReviewReplace
 >;
 
 export type Position = {
@@ -874,6 +989,19 @@ export type PositionUpdate = {
     | number;
 };
 
+export type PositionReplace = {
+  title: string;
+  level?: 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Principal';
+  salaryMin: number;
+  salaryMax: number;
+  openings?: number;
+  department:
+    | {
+        id: number;
+      }
+    | number;
+};
+
 export type PositionRelationCreate = {
   title: string;
   level?: 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Principal';
@@ -902,7 +1030,8 @@ export type PositionResourceService = IResourceService<
   PositionMultiple,
   PositionCreate,
   PositionUpdate,
-  PositionQuery
+  PositionQuery,
+  PositionReplace
 >;
 
 export type OneTimeToken = {
@@ -946,6 +1075,13 @@ export type OneTimeTokenUpdate = {
   expiresAt?: Date;
 };
 
+export type OneTimeTokenReplace = {
+  tokenHash: string;
+  purpose: string;
+  data: any;
+  expiresAt: Date;
+};
+
 export type OneTimeTokenRelationCreate = {
   tokenHash: string;
   purpose: string;
@@ -972,7 +1108,8 @@ export type OneTimeTokenResourceService = IResourceService<
   OneTimeTokenMultiple,
   OneTimeTokenCreate,
   OneTimeTokenUpdate,
-  OneTimeTokenQuery
+  OneTimeTokenQuery,
+  OneTimeTokenReplace
 >;
 
 export type Role = {
@@ -1016,6 +1153,16 @@ export type RoleUpdate = {
   >;
 };
 
+export type RoleReplace = {
+  name: string;
+  permissions: Array<
+    | {
+        id: number;
+      }
+    | number
+  >;
+};
+
 export type RoleRelationCreate = {
   name: string;
 };
@@ -1036,7 +1183,8 @@ export type RoleResourceService = IResourceService<
   RoleMultiple,
   RoleCreate,
   RoleUpdate,
-  RoleQuery
+  RoleQuery,
+  RoleReplace
 >;
 
 export type Permission = {
@@ -1065,6 +1213,10 @@ export type PermissionUpdate = {
   name?: string;
 };
 
+export type PermissionReplace = {
+  name: string;
+};
+
 export type PermissionRelationCreate = {
   name: string;
 };
@@ -1085,7 +1237,8 @@ export type PermissionResourceService = IResourceService<
   PermissionMultiple,
   PermissionCreate,
   PermissionUpdate,
-  PermissionQuery
+  PermissionQuery,
+  PermissionReplace
 >;
 
 export type File = {
@@ -1158,6 +1311,16 @@ export type FileUpdate = {
   description?: string | null;
 };
 
+export type FileReplace = {
+  name: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  checksum: string;
+  title?: string | null;
+  description?: string | null;
+};
+
 export type FileRelationCreate = {
   name: string;
   originalName: string;
@@ -1190,7 +1353,8 @@ export type FileResourceService = IResourceService<
   FileMultiple,
   FileCreate,
   FileUpdate,
-  FileQuery
+  FileQuery,
+  FileReplace
 >;
 
 declare module '@appweaver/common' {
@@ -1201,6 +1365,7 @@ declare module '@appweaver/common' {
       multiple: CompensationMultiple;
       create: CompensationCreate;
       update: CompensationUpdate;
+      replace: CompensationReplace;
       query: CompensationQuery;
       service: CompensationResourceService;
       relations: 'employee';
@@ -1211,6 +1376,7 @@ declare module '@appweaver/common' {
       multiple: DepartmentMultiple;
       create: DepartmentCreate;
       update: DepartmentUpdate;
+      replace: DepartmentReplace;
       query: DepartmentQuery;
       service: DepartmentResourceService;
       relations: 'head' | 'employees' | 'positions';
@@ -1221,6 +1387,7 @@ declare module '@appweaver/common' {
       multiple: EmployeeDocumentMultiple;
       create: EmployeeDocumentCreate;
       update: EmployeeDocumentUpdate;
+      replace: EmployeeDocumentReplace;
       query: EmployeeDocumentQuery;
       service: EmployeeDocumentResourceService;
       relations: 'employee';
@@ -1231,6 +1398,7 @@ declare module '@appweaver/common' {
       multiple: EmployeeMultiple;
       create: EmployeeCreate;
       update: EmployeeUpdate;
+      replace: EmployeeReplace;
       query: EmployeeQuery;
       service: EmployeeResourceService;
       relations:
@@ -1254,6 +1422,7 @@ declare module '@appweaver/common' {
       multiple: LeaveBalanceMultiple;
       create: LeaveBalanceCreate;
       update: LeaveBalanceUpdate;
+      replace: LeaveBalanceReplace;
       query: LeaveBalanceQuery;
       service: LeaveBalanceResourceService;
       relations: 'employee';
@@ -1264,6 +1433,7 @@ declare module '@appweaver/common' {
       multiple: LeaveRequestMultiple;
       create: LeaveRequestCreate;
       update: LeaveRequestUpdate;
+      replace: LeaveRequestReplace;
       query: LeaveRequestQuery;
       service: LeaveRequestResourceService;
       relations: 'employee' | 'decidedBy';
@@ -1274,6 +1444,7 @@ declare module '@appweaver/common' {
       multiple: PerformanceReviewMultiple;
       create: PerformanceReviewCreate;
       update: PerformanceReviewUpdate;
+      replace: PerformanceReviewReplace;
       query: PerformanceReviewQuery;
       service: PerformanceReviewResourceService;
       relations: 'employee' | 'reviewer';
@@ -1284,6 +1455,7 @@ declare module '@appweaver/common' {
       multiple: PositionMultiple;
       create: PositionCreate;
       update: PositionUpdate;
+      replace: PositionReplace;
       query: PositionQuery;
       service: PositionResourceService;
       relations: 'department' | 'employees';
@@ -1294,6 +1466,7 @@ declare module '@appweaver/common' {
       multiple: OneTimeTokenMultiple;
       create: OneTimeTokenCreate;
       update: OneTimeTokenUpdate;
+      replace: OneTimeTokenReplace;
       query: OneTimeTokenQuery;
       service: OneTimeTokenResourceService;
       relations: never;
@@ -1304,6 +1477,7 @@ declare module '@appweaver/common' {
       multiple: RoleMultiple;
       create: RoleCreate;
       update: RoleUpdate;
+      replace: RoleReplace;
       query: RoleQuery;
       service: RoleResourceService;
       relations: 'permissions';
@@ -1314,6 +1488,7 @@ declare module '@appweaver/common' {
       multiple: PermissionMultiple;
       create: PermissionCreate;
       update: PermissionUpdate;
+      replace: PermissionReplace;
       query: PermissionQuery;
       service: PermissionResourceService;
       relations: never;
@@ -1324,6 +1499,7 @@ declare module '@appweaver/common' {
       multiple: any;
       create: any;
       update: any;
+      replace: any;
       query: any;
       service: IResourceService;
       relations: string;
@@ -1334,6 +1510,7 @@ declare module '@appweaver/common' {
       multiple: FileMultiple;
       create: FileCreate;
       update: FileUpdate;
+      replace: FileReplace;
       query: FileQuery;
       service: FileResourceService;
       relations: never;

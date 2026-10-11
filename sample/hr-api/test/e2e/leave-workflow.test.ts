@@ -24,7 +24,7 @@ describe('Leave workflow', () => {
 
   const request = async (
     auth: Record<string, string>,
-    method: 'GET' | 'POST' | 'PUT',
+    method: 'GET' | 'POST' | 'PATCH',
     url: string,
     payload?: object
   ) => {
@@ -236,7 +236,7 @@ describe('Leave workflow', () => {
 
     const { status } = await request(
       as.employee,
-      'PUT',
+      'PATCH',
       `/leave-requests/${filed.body.id}`,
       { reason: 'Changed my mind' }
     );

@@ -40,6 +40,16 @@ const queryResponse = {
 
 const aggregateResponse = { total: {}, items: [] };
 
+const postResponse = {
+  id: 1,
+  title: 'Title',
+  views: 1,
+  publishedAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+  createdAt: '2026-01-01T00:00:00.000Z',
+  createdById: null
+};
+
 /**
  * Mounts the resource routes of the `Post` model on a server with the
  * validation options of the application server, answering from a stub service
@@ -98,7 +108,12 @@ async function server(
 
 describe('resource-routes', () => {
   let app: FastifyInstance | undefined;
-  let service: { query: jest.Mock; aggregate: jest.Mock };
+  let service: {
+    query: jest.Mock;
+    aggregate: jest.Mock;
+    update: jest.Mock;
+    replace: jest.Mock;
+  };
 
   const request = async (
     method: 'GET' | 'POST',
@@ -159,7 +174,9 @@ describe('resource-routes', () => {
 
     service = {
       query: jest.fn().mockResolvedValue(queryResponse),
-      aggregate: jest.fn().mockResolvedValue(aggregateResponse)
+      aggregate: jest.fn().mockResolvedValue(aggregateResponse),
+      update: jest.fn().mockResolvedValue(postResponse),
+      replace: jest.fn().mockResolvedValue(postResponse)
     };
     context.resource.services.set('Post', service as any);
   });
@@ -301,6 +318,97 @@ describe('resource-routes', () => {
           200
         );
         expect(await status('POST', '/posts/query', {})).toBe(401);
+      });
+    });
+
+    describe('update routes', () => {
+      const full = {
+        title: 'Title',
+        views: 1,
+        publishedAt: postResponse.publishedAt
+      };
+
+      const send = async (method: 'PUT' | 'PATCH', payload: any) => {
+        service.update.mockClear();
+        service.replace.mockClear();
+        const response = await app!.inject({
+          method,
+          url: '/posts/1',
+          payload
+        });
+        return { status: response.statusCode, body: response.json() };
+      };
+
+      /** The update routes registered, told apart by the service method they call. */
+      const updateRoutes = async (): Promise<string[]> => {
+        const routes: string[] = [];
+        if ((await send('PUT', full)).status === 200) {
+          routes.push('PUT');
+        }
+        if ((await send('PATCH', full)).status === 200) {
+          routes.push('PATCH');
+        }
+        return routes;
+      };
+
+      test('registers both routes', async () => {
+        app = await server();
+
+        expect(await updateRoutes()).toEqual(['PUT', 'PATCH']);
+      });
+
+      test('ignores the query method of the route defaults', async () => {
+        app = await server({ defaults: { method: 'get' } });
+
+        expect(await updateRoutes()).toEqual(['PUT', 'PATCH']);
+      });
+
+      test('registers no route of an excluded update route', async () => {
+        app = await server({ update: { exclude: true } });
+
+        expect(await updateRoutes()).toEqual([]);
+      });
+
+      test('updates the given fields with PATCH', async () => {
+        app = await server();
+
+        const { status } = await send('PATCH', { title: 'Patched' });
+
+        expect(status).toBe(200);
+        expect(service.update).toHaveBeenCalledWith(1, { title: 'Patched' });
+        expect(service.replace).not.toHaveBeenCalled();
+      });
+
+      test('replaces the resource with PUT', async () => {
+        app = await server();
+
+        const { status } = await send('PUT', full);
+
+        expect(status).toBe(200);
+        expect(service.replace).toHaveBeenCalledWith(1, full);
+        expect(service.update).not.toHaveBeenCalled();
+      });
+
+      test('rejects a PUT body missing a required field', async () => {
+        app = await server();
+
+        const { status, body } = await send('PUT', { title: 'Title' });
+
+        expect(status).toBe(400);
+        expect(body.code).toBe(ErrorCode.ValidationFailed);
+        expect(service.replace).not.toHaveBeenCalled();
+      });
+
+      test('documents both operations on the same path', async () => {
+        app = await server({}, true);
+        const document = (app as any).swagger();
+
+        const item = document.paths['/posts/{id}'];
+        expect(Object.keys(item)).toEqual(
+          expect.arrayContaining(['put', 'patch'])
+        );
+        expect(item.put.summary).toBe('Replace post data');
+        expect(item.patch.summary).toBe('Update post data');
       });
     });
 

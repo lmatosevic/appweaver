@@ -157,7 +157,7 @@ describe('Catalog', () => {
   test('rejects a rating sent with the movie', async () => {
     const { status, body } = await request(
       app,
-      'PUT',
+      'PATCH',
       `/movies/${arrival.id}`,
       {
         auth: curator,

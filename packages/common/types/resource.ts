@@ -73,8 +73,10 @@ export type ResourceModel = {
   readOneNullableModel: TSchema;
   /** Request for create route */
   createOneModel: TObject;
-  /** Request for update route */
+  /** Request for update (PATCH) route */
   updateOneModel: TObject;
+  /** Request for replace (PUT) route */
+  replaceOneModel: TObject;
   /** Request data for creating this model through another model's relation input */
   relationCreateModel: TObject;
   /** Request data for updating this model through another model's relation input */

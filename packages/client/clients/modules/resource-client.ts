@@ -4,7 +4,14 @@ import { FileDataResponse } from '../responses';
 import { RESOURCE_OPERATIONS, RESOURCE_TYPES } from '../../constants';
 import { ResourceId } from '../../types';
 
-export type ResourceType = Record<(typeof RESOURCE_TYPES)[number], unknown>;
+/** The resource types added after the first release, optional so that a client generated before them still compiles. */
+type OptionalResourceTypes = 'replace';
+
+export type ResourceType = Record<
+  Exclude<(typeof RESOURCE_TYPES)[number], OptionalResourceTypes>,
+  unknown
+> &
+  Partial<Record<OptionalResourceTypes, unknown>>;
 
 /** The HTTP methods of the query and aggregate requests. */
 export type ResourceMethods = {
@@ -106,7 +113,7 @@ export class ResourceClient<Resource extends ResourceType>
   }
 
   /**
-   * Updates an existing resource record identified by `id`.
+   * Updates the given fields of an existing resource record identified by `id` (PATCH).
    *
    * @param {Object} resource - The updated field values including the mandatory `id`.
    * @param {RequestOptions} options - Additional request options.
@@ -114,6 +121,30 @@ export class ResourceClient<Resource extends ResourceType>
    */
   public async update(
     resource: Resource['update'] & { id: ResourceId },
+    options: RequestOptions = {}
+  ): Promise<Resource['single']> {
+    return this.sendRequest('patch', `${this.basePath}/{id}`, {
+      ...options,
+      params: {
+        ...(options.params ?? {}),
+        path: {
+          id: resource['id']
+        }
+      },
+      body: resource
+    });
+  }
+
+  /**
+   * Replaces an existing resource record identified by `id` as a whole (PUT). The fields left out are reset to their
+   * default value, or to null.
+   *
+   * @param {Object} resource - The new state of the record including the mandatory `id`.
+   * @param {RequestOptions} options - Additional request options.
+   * @returns The replaced resource record.
+   */
+  public async replace(
+    resource: Resource['replace'] & { id: ResourceId },
     options: RequestOptions = {}
   ): Promise<Resource['single']> {
     return this.sendRequest('put', `${this.basePath}/{id}`, {

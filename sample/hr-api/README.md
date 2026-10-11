@@ -89,7 +89,7 @@ curl -s localhost:5003/api/leave-balances/query -H "authorization: Bearer $EMILY
 
 # Emily only sees her own salary, and cannot move herself to another department
 curl -s localhost:5003/api/compensations/query -H "authorization: Bearer $EMILY" -H 'content-type: application/json' -d '{}' | jq .totalCount
-curl -s -X PUT localhost:5003/api/employees/<emily-id> -H "authorization: Bearer $EMILY" -H 'content-type: application/json' \
+curl -s -X PATCH localhost:5003/api/employees/<emily-id> -H "authorization: Bearer $EMILY" -H 'content-type: application/json' \
   -d '{"department":2}' | jq .message
 ```
 

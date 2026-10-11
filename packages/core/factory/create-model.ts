@@ -157,6 +157,17 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
     config.update
   );
 
+  // The fields of an update, its scalars required the same way as on a
+  // create, since a replacement carries the whole stored state of the
+  // resource. The virtual fields are no part of it, so they stay optional
+  const replaceModel = omitOrPickScalars(
+    resolveDefaultScalars(
+      Type.Composite([scalarsSchema, Type.Partial(virtualSchema)]),
+      config
+    ),
+    config.update
+  );
+
   const { readOneModel, readManyModel } = buildOutputModels(
     baseReadModel,
     relationsModel,
@@ -167,11 +178,13 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
   const {
     createOneModel,
     updateOneModel,
+    replaceOneModel,
     relationCreateModel,
     relationUpdateModel
   } = buildInputModels(
     createModel,
     updateModel,
+    replaceModel,
     relationsModel,
     idSchema,
     config
@@ -193,6 +206,7 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
     readOneNullableModel,
     createOneModel,
     updateOneModel,
+    replaceOneModel,
     relationCreateModel,
     relationUpdateModel,
     fileUploadModel,
@@ -460,12 +474,14 @@ function buildNullableOutputModel(name: string): TSchema {
 function buildInputModels(
   createModel: TObject,
   updateModel: TObject,
+  replaceModel: TObject,
   relationsModel: TObject,
   idSchema: TObject,
   config: ResourceModelConfig
 ): {
   createOneModel: TObject;
   updateOneModel: TObject;
+  replaceOneModel: TObject;
   relationCreateModel: TObject;
   relationUpdateModel: TObject;
 } {
@@ -479,6 +495,11 @@ function buildInputModels(
   );
   const adjustedUpdateModel = resolveInputVirtualFields(
     removeHiddenFields(updateModel),
+    virtualConfig,
+    'update'
+  );
+  const adjustedReplaceModel = resolveInputVirtualFields(
+    removeHiddenFields(replaceModel),
     virtualConfig,
     'update'
   );
@@ -498,6 +519,7 @@ function buildInputModels(
     return {
       createOneModel: adjustedCreateModel,
       updateOneModel: adjustedUpdateModel,
+      replaceOneModel: adjustedReplaceModel,
       relationCreateModel,
       relationUpdateModel
     };
@@ -525,9 +547,17 @@ function buildInputModels(
     { $id: `${config.name}Update` }
   );
 
+  // The required relations are required, while the optional ones a
+  // replacement leaves out stay untouched
+  const replaceOneModel = Type.Composite(
+    [adjustedReplaceModel, relationUpdateInputs],
+    { $id: `${config.name}Replace` }
+  );
+
   return {
     createOneModel,
     updateOneModel,
+    replaceOneModel,
     relationCreateModel,
     relationUpdateModel
   };

@@ -312,7 +312,7 @@ export function createSchema(
       security: authSchema(routeAuthTypes['update']),
       headers: captchaHeaderSchema(routeCaptcha['update']),
       summary: `Update ${resourceName} data`,
-      description: `Update ${resourceName} data`,
+      description: `Update the given fields of ${resourceName} data`,
       response: {
         200: resourceModel.readOneModel,
         ...routeErrors(
@@ -331,6 +331,35 @@ export function createSchema(
         )
       },
       body: resourceModel.updateOneModel,
+      params: idParams
+    },
+    replaceSchema: {
+      tags: [tag],
+      security: authSchema(routeAuthTypes['update']),
+      headers: captchaHeaderSchema(routeCaptcha['update']),
+      summary: `Replace ${resourceName} data`,
+      description:
+        `Replace ${resourceName} data as a whole. The fields left out are ` +
+        'reset to their default value, or to null, while the optional ' +
+        'relations left out stay untouched',
+      response: {
+        200: resourceModel.readOneModel,
+        ...routeErrors(
+          'update',
+          ErrorCode.ResourceNotFound,
+          ErrorCode.ResourceForbidden,
+          ErrorCode.ResourceInvalidRelation,
+          ErrorCode.ResourceDeleteRestricted,
+          ErrorCode.DatabaseWriteConflict,
+          ErrorCode.DatabaseUniqueViolation,
+          ErrorCode.DatabaseForeignKeyViolation,
+          ErrorCode.DatabaseNullViolation,
+          ErrorCode.DatabaseValueTooLong,
+          ErrorCode.DatabaseValueOutOfRange,
+          ErrorCode.DatabaseInvalidValue
+        )
+      },
+      body: resourceModel.replaceOneModel,
       params: idParams
     },
     deleteSchema: {

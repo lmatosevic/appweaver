@@ -191,17 +191,32 @@ describe('resource-client', () => {
   });
 
   describe('update', () => {
-    test('puts the record and takes the id from the payload', async () => {
+    test('patches the record and takes the id from the payload', async () => {
       const { stub, resource } = createResource();
 
       await resource.update({ id: 3, title: 'Updated' });
 
       expect(stub.lastCall()).toMatchObject({
-        method: 'put',
+        method: 'patch',
         path: '/api/posts/{id}'
       });
       expect(stub.lastCall().params.params.path).toEqual({ id: 3 });
       expect(stub.lastCall().params.body).toEqual({ id: 3, title: 'Updated' });
+    });
+  });
+
+  describe('replace', () => {
+    test('puts the record and takes the id from the payload', async () => {
+      const { stub, resource } = createResource();
+
+      await resource.replace({ id: 4, title: 'Replaced' });
+
+      expect(stub.lastCall()).toMatchObject({
+        method: 'put',
+        path: '/api/posts/{id}'
+      });
+      expect(stub.lastCall().params.params.path).toEqual({ id: 4 });
+      expect(stub.lastCall().params.body).toEqual({ id: 4, title: 'Replaced' });
     });
   });
 

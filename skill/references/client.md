@@ -371,7 +371,8 @@ Exposes CRUD and file operations for a single resource endpoint.
 | `query(request, options?)`     | `POST /{resource}/query`             | Filter, sort, and paginate the collection                |
 | `aggregate(request, options?)` | `POST /{resource}/aggregate`         | Aggregation query (count, sum, avg, etc.)                |
 | `create(resource, options?)`   | `POST /{resource}`                   | Create a new record                                      |
-| `update(resource, options?)`   | `PUT /{resource}/{id}`               | Update an existing record (`resource` must include `id`) |
+| `update(resource, options?)`   | `PATCH /{resource}/{id}`             | Update an existing record (`resource` must include `id`) |
+| `replace(resource, options?)`  | `PUT /{resource}/{id}`               | Replace a whole record (`resource` must include `id`)    |
 | `delete(id, options?)`         | `DELETE /{resource}/{id}`            | Delete a record by ID                                    |
 | `export(request, options?)`    | `POST /{resource}/export`            | Export collection as a file; returns `FileDataResponse`  |
 | `uploadFiles(files, options?)` | `POST /{resource}/{id}/files`        | Upload files to a record                                 |
@@ -411,6 +412,9 @@ const newPost = await client.post.create({ title: 'Hello', body: '...' });
 
 // Update (id must be part of the payload)
 const updated = await client.post.update({ id: 1, title: 'Updated' });
+
+// Replace the whole record (omitted fields reset to their default or null)
+const replaced = await client.post.replace({ id: 1, title: 'Replaced', body: '...' });
 
 // Delete
 const deleted = await client.post.delete(1);

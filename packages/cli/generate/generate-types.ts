@@ -49,6 +49,7 @@ export async function generateTypes(
         [`${name}Multiple`, schema.readManyModel],
         [`${name}Create`, schema.createOneModel],
         [`${name}Update`, schema.updateOneModel],
+        [`${name}Replace`, schema.replaceOneModel],
         [`${name}RelationCreate`, schema.relationCreateModel],
         [`${name}RelationUpdate`, schema.relationUpdateModel]
       ];
@@ -95,7 +96,7 @@ export async function generateTypes(
       // Emitted last, with the arguments making the aliases above exactly the
       // inputs its methods accept
       typesContent.push(
-        `export type ${name}ResourceService = IResourceService<${name}, ${name}Multiple, ${name}Create, ${name}Update, ${name}Query>;`,
+        `export type ${name}ResourceService = IResourceService<${name}, ${name}Multiple, ${name}Create, ${name}Update, ${name}Query, ${name}Replace>;`,
         ``
       );
     }
@@ -144,10 +145,10 @@ function registryDeclaration(
         : 'never';
 
     if (!modelTypeNames[name]) {
-      return `    ${name}: { model: any; single: any; multiple: any; create: any; update: any; query: any; service: IResourceService; relations: string };`;
+      return `    ${name}: { model: any; single: any; multiple: any; create: any; update: any; replace: any; query: any; service: IResourceService; relations: string };`;
     }
 
-    return `    ${name}: { model: ${name}; single: ${name}Single; multiple: ${name}Multiple; create: ${name}Create; update: ${name}Update; query: ${name}Query; service: ${name}ResourceService; relations: ${relations} };`;
+    return `    ${name}: { model: ${name}; single: ${name}Single; multiple: ${name}Multiple; create: ${name}Create; update: ${name}Update; replace: ${name}Replace; query: ${name}Query; service: ${name}ResourceService; relations: ${relations} };`;
   });
 
   return [

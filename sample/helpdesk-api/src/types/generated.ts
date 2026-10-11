@@ -57,6 +57,16 @@ export type CannedResponseUpdate = {
     | number;
 };
 
+export type CannedResponseReplace = {
+  title: string;
+  body: string;
+  team?:
+    | {
+        id: number;
+      }
+    | number;
+};
+
 export type CannedResponseRelationCreate = {
   title: string;
   body: string;
@@ -79,7 +89,8 @@ export type CannedResponseResourceService = IResourceService<
   CannedResponseMultiple,
   CannedResponseCreate,
   CannedResponseUpdate,
-  CannedResponseQuery
+  CannedResponseQuery,
+  CannedResponseReplace
 >;
 
 export type Customer = {
@@ -132,6 +143,13 @@ export type CustomerUpdate = {
   vip?: boolean;
 };
 
+export type CustomerReplace = {
+  email: string;
+  name: string;
+  company?: string | null;
+  vip?: boolean;
+};
+
 export type CustomerRelationCreate = {
   email: string;
   name: string;
@@ -158,7 +176,8 @@ export type CustomerResourceService = IResourceService<
   CustomerMultiple,
   CustomerCreate,
   CustomerUpdate,
-  CustomerQuery
+  CustomerQuery,
+  CustomerReplace
 >;
 
 export type SlaPolicy = {
@@ -203,6 +222,12 @@ export type SlaPolicyUpdate = {
   resolutionMinutes?: number;
 };
 
+export type SlaPolicyReplace = {
+  priority: 'Low' | 'Normal' | 'High' | 'Urgent';
+  firstResponseMinutes: number;
+  resolutionMinutes: number;
+};
+
 export type SlaPolicyRelationCreate = {
   priority: 'Low' | 'Normal' | 'High' | 'Urgent';
   firstResponseMinutes: number;
@@ -227,7 +252,8 @@ export type SlaPolicyResourceService = IResourceService<
   SlaPolicyMultiple,
   SlaPolicyCreate,
   SlaPolicyUpdate,
-  SlaPolicyQuery
+  SlaPolicyQuery,
+  SlaPolicyReplace
 >;
 
 export type Tag = {
@@ -270,6 +296,11 @@ export type TagUpdate = {
   slug?: string;
 };
 
+export type TagReplace = {
+  name: string;
+  slug: string;
+};
+
 export type TagRelationCreate = {
   name: string;
   slug: string;
@@ -292,7 +323,8 @@ export type TagResourceService = IResourceService<
   TagMultiple,
   TagCreate,
   TagUpdate,
-  TagQuery
+  TagQuery,
+  TagReplace
 >;
 
 export type Team = {
@@ -345,6 +377,12 @@ export type TeamUpdate = {
   email?: string;
 };
 
+export type TeamReplace = {
+  name: string;
+  slug: string;
+  email: string;
+};
+
 export type TeamRelationCreate = {
   name: string;
   slug: string;
@@ -369,7 +407,8 @@ export type TeamResourceService = IResourceService<
   TeamMultiple,
   TeamCreate,
   TeamUpdate,
-  TeamQuery
+  TeamQuery,
+  TeamReplace
 >;
 
 export type TicketMessage = {
@@ -430,6 +469,15 @@ export type TicketMessageUpdate = {
     | string;
 };
 
+export type TicketMessageReplace = {
+  body: string;
+  ticket:
+    | {
+        id: string;
+      }
+    | string;
+};
+
 export type TicketMessageRelationCreate = {
   body: string;
   internal?: boolean;
@@ -451,7 +499,8 @@ export type TicketMessageResourceService = IResourceService<
   TicketMessageMultiple,
   TicketMessageCreate,
   TicketMessageUpdate,
-  TicketMessageQuery
+  TicketMessageQuery,
+  TicketMessageReplace
 >;
 
 export type Ticket = {
@@ -577,6 +626,29 @@ export type TicketUpdate = {
   > | null;
 };
 
+export type TicketReplace = {
+  subject: string;
+  status?: 'New' | 'Open' | 'Pending' | 'Resolved' | 'Closed';
+  priority?: 'Low' | 'Normal' | 'High' | 'Urgent';
+  team?:
+    | {
+        id: number;
+      }
+    | number;
+  assignee?:
+    | {
+        id: number;
+      }
+    | number;
+  tags?: Array<
+    | {
+        id: number;
+      }
+    | TagRelationCreate
+    | number
+  > | null;
+};
+
 export type TicketRelationCreate = {
   subject: string;
   priority?: 'Low' | 'Normal' | 'High' | 'Urgent';
@@ -602,7 +674,8 @@ export type TicketResourceService = IResourceService<
   TicketMultiple,
   TicketCreate,
   TicketUpdate,
-  TicketQuery
+  TicketQuery,
+  TicketReplace
 >;
 
 export type User = {
@@ -700,6 +773,26 @@ export type UserUpdate = {
   >;
 };
 
+export type UserReplace = {
+  name: string;
+  email: string;
+  available?: boolean;
+  twoFactorAuth?: 'None' | 'Email';
+  enabled?: boolean;
+  password?: string;
+  team?:
+    | {
+        id: number;
+      }
+    | number;
+  roles: Array<
+    | {
+        id: number;
+      }
+    | number
+  >;
+};
+
 export type UserRelationCreate = {
   name: string;
   email: string;
@@ -730,7 +823,8 @@ export type UserResourceService = IResourceService<
   UserMultiple,
   UserCreate,
   UserUpdate,
-  UserQuery
+  UserQuery,
+  UserReplace
 >;
 
 export type ApiKey = {
@@ -784,6 +878,12 @@ export type ApiKeyUpdate = {
   enabled?: boolean;
 };
 
+export type ApiKeyReplace = {
+  name?: string | null;
+  description?: string | null;
+  enabled?: boolean;
+};
+
 export type ApiKeyRelationCreate = {
   name?: string | null;
   description?: string | null;
@@ -809,7 +909,8 @@ export type ApiKeyResourceService = IResourceService<
   ApiKeyMultiple,
   ApiKeyCreate,
   ApiKeyUpdate,
-  ApiKeyQuery
+  ApiKeyQuery,
+  ApiKeyReplace
 >;
 
 export type OneTimeToken = {
@@ -853,6 +954,13 @@ export type OneTimeTokenUpdate = {
   expiresAt?: Date;
 };
 
+export type OneTimeTokenReplace = {
+  tokenHash: string;
+  purpose: string;
+  data: any;
+  expiresAt: Date;
+};
+
 export type OneTimeTokenRelationCreate = {
   tokenHash: string;
   purpose: string;
@@ -879,7 +987,8 @@ export type OneTimeTokenResourceService = IResourceService<
   OneTimeTokenMultiple,
   OneTimeTokenCreate,
   OneTimeTokenUpdate,
-  OneTimeTokenQuery
+  OneTimeTokenQuery,
+  OneTimeTokenReplace
 >;
 
 export type Role = {
@@ -923,6 +1032,16 @@ export type RoleUpdate = {
   >;
 };
 
+export type RoleReplace = {
+  name: string;
+  permissions: Array<
+    | {
+        id: number;
+      }
+    | number
+  >;
+};
+
 export type RoleRelationCreate = {
   name: string;
 };
@@ -943,7 +1062,8 @@ export type RoleResourceService = IResourceService<
   RoleMultiple,
   RoleCreate,
   RoleUpdate,
-  RoleQuery
+  RoleQuery,
+  RoleReplace
 >;
 
 export type Permission = {
@@ -972,6 +1092,10 @@ export type PermissionUpdate = {
   name?: string;
 };
 
+export type PermissionReplace = {
+  name: string;
+};
+
 export type PermissionRelationCreate = {
   name: string;
 };
@@ -992,7 +1116,8 @@ export type PermissionResourceService = IResourceService<
   PermissionMultiple,
   PermissionCreate,
   PermissionUpdate,
-  PermissionQuery
+  PermissionQuery,
+  PermissionReplace
 >;
 
 export type File = {
@@ -1065,6 +1190,16 @@ export type FileUpdate = {
   description?: string | null;
 };
 
+export type FileReplace = {
+  name: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  checksum: string;
+  title?: string | null;
+  description?: string | null;
+};
+
 export type FileRelationCreate = {
   name: string;
   originalName: string;
@@ -1097,7 +1232,8 @@ export type FileResourceService = IResourceService<
   FileMultiple,
   FileCreate,
   FileUpdate,
-  FileQuery
+  FileQuery,
+  FileReplace
 >;
 
 declare module '@appweaver/common' {
@@ -1108,6 +1244,7 @@ declare module '@appweaver/common' {
       multiple: CannedResponseMultiple;
       create: CannedResponseCreate;
       update: CannedResponseUpdate;
+      replace: CannedResponseReplace;
       query: CannedResponseQuery;
       service: CannedResponseResourceService;
       relations: 'team';
@@ -1118,6 +1255,7 @@ declare module '@appweaver/common' {
       multiple: CustomerMultiple;
       create: CustomerCreate;
       update: CustomerUpdate;
+      replace: CustomerReplace;
       query: CustomerQuery;
       service: CustomerResourceService;
       relations: 'tickets';
@@ -1128,6 +1266,7 @@ declare module '@appweaver/common' {
       multiple: SlaPolicyMultiple;
       create: SlaPolicyCreate;
       update: SlaPolicyUpdate;
+      replace: SlaPolicyReplace;
       query: SlaPolicyQuery;
       service: SlaPolicyResourceService;
       relations: never;
@@ -1138,6 +1277,7 @@ declare module '@appweaver/common' {
       multiple: TagMultiple;
       create: TagCreate;
       update: TagUpdate;
+      replace: TagReplace;
       query: TagQuery;
       service: TagResourceService;
       relations: 'tickets';
@@ -1148,6 +1288,7 @@ declare module '@appweaver/common' {
       multiple: TeamMultiple;
       create: TeamCreate;
       update: TeamUpdate;
+      replace: TeamReplace;
       query: TeamQuery;
       service: TeamResourceService;
       relations: 'members' | 'tickets' | 'cannedResponses';
@@ -1158,6 +1299,7 @@ declare module '@appweaver/common' {
       multiple: TicketMessageMultiple;
       create: TicketMessageCreate;
       update: TicketMessageUpdate;
+      replace: TicketMessageReplace;
       query: TicketMessageQuery;
       service: TicketMessageResourceService;
       relations: 'ticket' | 'author';
@@ -1168,6 +1310,7 @@ declare module '@appweaver/common' {
       multiple: TicketMultiple;
       create: TicketCreate;
       update: TicketUpdate;
+      replace: TicketReplace;
       query: TicketQuery;
       service: TicketResourceService;
       relations: 'customer' | 'team' | 'assignee' | 'tags' | 'messages';
@@ -1178,6 +1321,7 @@ declare module '@appweaver/common' {
       multiple: UserMultiple;
       create: UserCreate;
       update: UserUpdate;
+      replace: UserReplace;
       query: UserQuery;
       service: UserResourceService;
       relations: 'team' | 'assignedTickets' | 'messages' | 'roles' | 'apiKeys';
@@ -1188,6 +1332,7 @@ declare module '@appweaver/common' {
       multiple: ApiKeyMultiple;
       create: ApiKeyCreate;
       update: ApiKeyUpdate;
+      replace: ApiKeyReplace;
       query: ApiKeyQuery;
       service: ApiKeyResourceService;
       relations: 'user';
@@ -1198,6 +1343,7 @@ declare module '@appweaver/common' {
       multiple: OneTimeTokenMultiple;
       create: OneTimeTokenCreate;
       update: OneTimeTokenUpdate;
+      replace: OneTimeTokenReplace;
       query: OneTimeTokenQuery;
       service: OneTimeTokenResourceService;
       relations: never;
@@ -1208,6 +1354,7 @@ declare module '@appweaver/common' {
       multiple: RoleMultiple;
       create: RoleCreate;
       update: RoleUpdate;
+      replace: RoleReplace;
       query: RoleQuery;
       service: RoleResourceService;
       relations: 'permissions';
@@ -1218,6 +1365,7 @@ declare module '@appweaver/common' {
       multiple: PermissionMultiple;
       create: PermissionCreate;
       update: PermissionUpdate;
+      replace: PermissionReplace;
       query: PermissionQuery;
       service: PermissionResourceService;
       relations: never;
@@ -1228,6 +1376,7 @@ declare module '@appweaver/common' {
       multiple: any;
       create: any;
       update: any;
+      replace: any;
       query: any;
       service: IResourceService;
       relations: string;
@@ -1238,6 +1387,7 @@ declare module '@appweaver/common' {
       multiple: FileMultiple;
       create: FileCreate;
       update: FileUpdate;
+      replace: FileReplace;
       query: FileQuery;
       service: FileResourceService;
       relations: never;

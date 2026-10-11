@@ -57,6 +57,12 @@ export type ApiKeyUpdate = {
   enabled?: boolean;
 };
 
+export type ApiKeyReplace = {
+  name?: string | null;
+  description?: string | null;
+  enabled?: boolean;
+};
+
 export type ApiKeyRelationCreate = {
   name?: string | null;
   description?: string | null;
@@ -82,7 +88,8 @@ export type ApiKeyResourceService = IResourceService<
   ApiKeyMultiple,
   ApiKeyCreate,
   ApiKeyUpdate,
-  ApiKeyQuery
+  ApiKeyQuery,
+  ApiKeyReplace
 >;
 
 export type ConnectedAccount = {
@@ -129,6 +136,13 @@ export type ConnectedAccountUpdate = {
   lastLoginAt?: Date;
 };
 
+export type ConnectedAccountReplace = {
+  provider: string;
+  providerAccountId: string;
+  scope?: string | null;
+  lastLoginAt: Date;
+};
+
 export type ConnectedAccountRelationCreate = {
   provider: string;
   providerAccountId: string;
@@ -155,7 +169,8 @@ export type ConnectedAccountResourceService = IResourceService<
   ConnectedAccountMultiple,
   ConnectedAccountCreate,
   ConnectedAccountUpdate,
-  ConnectedAccountQuery
+  ConnectedAccountQuery,
+  ConnectedAccountReplace
 >;
 
 export type OneTimeToken = {
@@ -199,6 +214,13 @@ export type OneTimeTokenUpdate = {
   expiresAt?: Date;
 };
 
+export type OneTimeTokenReplace = {
+  tokenHash: string;
+  purpose: string;
+  data: any;
+  expiresAt: Date;
+};
+
 export type OneTimeTokenRelationCreate = {
   tokenHash: string;
   purpose: string;
@@ -225,7 +247,8 @@ export type OneTimeTokenResourceService = IResourceService<
   OneTimeTokenMultiple,
   OneTimeTokenCreate,
   OneTimeTokenUpdate,
-  OneTimeTokenQuery
+  OneTimeTokenQuery,
+  OneTimeTokenReplace
 >;
 
 export type Permission = {
@@ -254,6 +277,10 @@ export type PermissionUpdate = {
   name?: string;
 };
 
+export type PermissionReplace = {
+  name: string;
+};
+
 export type PermissionRelationCreate = {
   name: string;
 };
@@ -274,7 +301,8 @@ export type PermissionResourceService = IResourceService<
   PermissionMultiple,
   PermissionCreate,
   PermissionUpdate,
-  PermissionQuery
+  PermissionQuery,
+  PermissionReplace
 >;
 
 export type Role = {
@@ -318,6 +346,16 @@ export type RoleUpdate = {
   >;
 };
 
+export type RoleReplace = {
+  name: string;
+  permissions: Array<
+    | {
+        id: number;
+      }
+    | number
+  >;
+};
+
 export type RoleRelationCreate = {
   name: string;
 };
@@ -338,7 +376,8 @@ export type RoleResourceService = IResourceService<
   RoleMultiple,
   RoleCreate,
   RoleUpdate,
-  RoleQuery
+  RoleQuery,
+  RoleReplace
 >;
 
 export type File = {
@@ -410,6 +449,16 @@ export type FileUpdate = {
   description?: string | null;
 };
 
+export type FileReplace = {
+  name: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  checksum: string;
+  title?: string | null;
+  description?: string | null;
+};
+
 export type FileRelationCreate = {
   name: string;
   originalName: string;
@@ -442,5 +491,6 @@ export type FileResourceService = IResourceService<
   FileMultiple,
   FileCreate,
   FileUpdate,
-  FileQuery
+  FileQuery,
+  FileReplace
 >;

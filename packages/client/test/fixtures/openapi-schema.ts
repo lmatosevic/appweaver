@@ -195,6 +195,15 @@ const SCHEMA: any = {
           visibility: { type: 'string', enum: ['public', 'private'] }
         }
       },
+      'def-25': {
+        title: 'PostReplace',
+        type: 'object',
+        required: ['title'],
+        properties: {
+          title: { type: 'string', maxLength: 100 },
+          visibility: { type: 'string', enum: ['public', 'private'] }
+        }
+      },
       'def-6': {
         title: 'PostFileUpload',
         type: 'object',
@@ -322,6 +331,12 @@ const SCHEMA: any = {
         responses: response('def-1')
       },
       put: {
+        'x-appweaver-resource': 'Post',
+        parameters: idParameter,
+        requestBody: body('def-25'),
+        responses: response('def-1')
+      },
+      patch: {
         'x-appweaver-resource': 'Post',
         parameters: idParameter,
         requestBody: body('def-5'),
