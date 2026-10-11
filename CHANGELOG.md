@@ -1,3 +1,9 @@
+## [1.10.1](https://github.com/lmatosevic/appweaver/compare/v1.10.0...v1.10.1) (2026-10-11)
+
+### Bug Fixes
+
+* correctly detect bun's TypeScript runtime ([191eb62](https://github.com/lmatosevic/appweaver/commit/191eb62e2ccfaf47b1a1311c42f2c543331e3b57))
+
 ## [1.10.0](https://github.com/lmatosevic/appweaver/compare/v1.9.0...v1.10.0) (2026-10-11)
 
 ### Features
