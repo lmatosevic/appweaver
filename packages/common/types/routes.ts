@@ -95,6 +95,12 @@ export type QueryRouteConfig = ReadRouteConfig & {
   method?: QueryMethod | `${QueryMethod}`;
 };
 
+export type BulkRouteConfig = RouteConfig & {
+  /** Maximum number of items a request accepts (default:
+   * `RESOURCE_BULK_MAX_ITEMS` config) */
+  maxItems?: number;
+};
+
 export type ResourceRoutesConfig = {
   /** Resource model name */
   modelName: ModelName;
@@ -122,6 +128,15 @@ export type ResourceRoutesConfig = {
   fileUpload?: RouteConfig;
   /** Config for the file delete route */
   fileDelete?: RouteConfig;
+  /** Config for the bulk create route, excluded unless
+   * `RESOURCE_BULK_CREATE_ENABLED` is set (or `exclude: false`) */
+  bulkCreate?: BulkRouteConfig;
+  /** Config for the bulk update routes (PATCH and PUT), excluded unless
+   * `RESOURCE_BULK_UPDATE_ENABLED` is set (or `exclude: false`) */
+  bulkUpdate?: BulkRouteConfig;
+  /** Config for the bulk delete route, excluded unless
+   * `RESOURCE_BULK_DELETE_ENABLED` is set (or `exclude: false`) */
+  bulkDelete?: BulkRouteConfig;
 };
 
 export type ResourceSchemaConfig = {
@@ -149,4 +164,12 @@ export type ResourceSchemaConfig = {
   fileUploadSchema: RouteSchema;
   /** Schema for handling file deletions related to a resource */
   fileDeleteSchema: RouteSchema;
+  /** Schema for creating many resources at once */
+  bulkCreateSchema: RouteSchema;
+  /** Schema for updating the given fields of many resources at once (PATCH) */
+  bulkUpdateSchema: RouteSchema;
+  /** Schema for replacing many resources at once (PUT) */
+  bulkReplaceSchema: RouteSchema;
+  /** Schema for deleting many resources at once */
+  bulkDeleteSchema: RouteSchema;
 };

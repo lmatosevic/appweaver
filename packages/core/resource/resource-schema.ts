@@ -4,6 +4,7 @@ import {
   AuthType,
   camelToSnakeCase,
   CaptchaConfig,
+  config,
   CONFIG_NAME,
   ErrorCode,
   IdField,
@@ -99,10 +100,20 @@ export const AggregateResponseData = Type.Object({
   )
 });
 
+// Every item of a bulk request is applied, or none, so the response only counts them
+export const BulkResponse = Type.Object(
+  {
+    success: Type.Boolean({ example: true }),
+    count: Type.Integer({ minimum: 0, example: 2 })
+  },
+  { $id: 'BulkResponse' }
+);
+
 export function createSchema(
   name: string,
   routeAuthTypes: Record<ResourceRouteName, AuthType[] | undefined>,
-  routeCaptcha: Record<ResourceRouteName, CaptchaConfig>
+  routeCaptcha: Record<ResourceRouteName, CaptchaConfig>,
+  routeMaxItems: Partial<Record<ResourceRouteName, number>> = {}
 ): ResourceSchemaConfig {
   const resourceModel = injectModel(name);
 
@@ -122,6 +133,52 @@ export function createSchema(
       ErrorCode.DatabaseUnavailable,
       ...codes
     );
+
+  const createErrors = [
+    ErrorCode.ResourceForbidden,
+    ErrorCode.ResourceInvalidRelation,
+    ErrorCode.DatabaseUniqueViolation,
+    ErrorCode.DatabaseForeignKeyViolation,
+    ErrorCode.DatabaseNullViolation,
+    ErrorCode.DatabaseValueTooLong,
+    ErrorCode.DatabaseValueOutOfRange,
+    ErrorCode.DatabaseInvalidValue
+  ];
+
+  const updateErrors = [
+    ErrorCode.ResourceNotFound,
+    ErrorCode.ResourceForbidden,
+    ErrorCode.ResourceInvalidRelation,
+    ErrorCode.ResourceDeleteRestricted,
+    ErrorCode.DatabaseWriteConflict,
+    ErrorCode.DatabaseUniqueViolation,
+    ErrorCode.DatabaseForeignKeyViolation,
+    ErrorCode.DatabaseNullViolation,
+    ErrorCode.DatabaseValueTooLong,
+    ErrorCode.DatabaseValueOutOfRange,
+    ErrorCode.DatabaseInvalidValue
+  ];
+
+  const deleteErrors = [
+    ErrorCode.ResourceNotFound,
+    ErrorCode.ResourceForbidden,
+    ErrorCode.ResourceDeleteRestricted,
+    ErrorCode.DatabaseForeignKeyViolation
+  ];
+
+  // The items of a bulk request, between one and the maximum of the route
+  const bulkItems = (route: ResourceRouteName, items: TSchema) =>
+    Type.Array(items, {
+      minItems: 1,
+      maxItems: routeMaxItems[route] ?? config.RESOURCE_BULK_MAX_ITEMS
+    });
+
+  const idValue = idParams.properties.id;
+
+  const bulkItem = (data: string) =>
+    Type.Object({ id: idValue, data: Type.Ref(data) });
+
+  const bulkResponse = createSchemaModel(BulkResponse);
 
   // Register the recursive query filter and sort schemas of all loaded models,
   // referenced by the query, aggregate, and export request bodies
@@ -293,17 +350,7 @@ export function createSchema(
       description: `Create ${resourceName} data`,
       response: {
         201: resourceModel.readOneModel,
-        ...routeErrors(
-          'create',
-          ErrorCode.ResourceForbidden,
-          ErrorCode.ResourceInvalidRelation,
-          ErrorCode.DatabaseUniqueViolation,
-          ErrorCode.DatabaseForeignKeyViolation,
-          ErrorCode.DatabaseNullViolation,
-          ErrorCode.DatabaseValueTooLong,
-          ErrorCode.DatabaseValueOutOfRange,
-          ErrorCode.DatabaseInvalidValue
-        )
+        ...routeErrors('create', ...createErrors)
       },
       body: resourceModel.createOneModel
     },
@@ -315,20 +362,7 @@ export function createSchema(
       description: `Update the given fields of ${resourceName} data`,
       response: {
         200: resourceModel.readOneModel,
-        ...routeErrors(
-          'update',
-          ErrorCode.ResourceNotFound,
-          ErrorCode.ResourceForbidden,
-          ErrorCode.ResourceInvalidRelation,
-          ErrorCode.ResourceDeleteRestricted,
-          ErrorCode.DatabaseWriteConflict,
-          ErrorCode.DatabaseUniqueViolation,
-          ErrorCode.DatabaseForeignKeyViolation,
-          ErrorCode.DatabaseNullViolation,
-          ErrorCode.DatabaseValueTooLong,
-          ErrorCode.DatabaseValueOutOfRange,
-          ErrorCode.DatabaseInvalidValue
-        )
+        ...routeErrors('update', ...updateErrors)
       },
       body: resourceModel.updateOneModel,
       params: idParams
@@ -344,20 +378,7 @@ export function createSchema(
         'relations left out stay untouched',
       response: {
         200: resourceModel.readOneModel,
-        ...routeErrors(
-          'update',
-          ErrorCode.ResourceNotFound,
-          ErrorCode.ResourceForbidden,
-          ErrorCode.ResourceInvalidRelation,
-          ErrorCode.ResourceDeleteRestricted,
-          ErrorCode.DatabaseWriteConflict,
-          ErrorCode.DatabaseUniqueViolation,
-          ErrorCode.DatabaseForeignKeyViolation,
-          ErrorCode.DatabaseNullViolation,
-          ErrorCode.DatabaseValueTooLong,
-          ErrorCode.DatabaseValueOutOfRange,
-          ErrorCode.DatabaseInvalidValue
-        )
+        ...routeErrors('update', ...updateErrors)
       },
       body: resourceModel.replaceOneModel,
       params: idParams
@@ -370,13 +391,7 @@ export function createSchema(
       description: `Delete ${resourceName} data`,
       response: {
         200: resourceModel.readOneModel,
-        ...routeErrors(
-          'delete',
-          ErrorCode.ResourceNotFound,
-          ErrorCode.ResourceForbidden,
-          ErrorCode.ResourceDeleteRestricted,
-          ErrorCode.DatabaseForeignKeyViolation
-        )
+        ...routeErrors('delete', ...deleteErrors)
       },
       params: idParams
     },
@@ -449,6 +464,66 @@ export function createSchema(
       },
       body: resourceModel.fileDeleteModel,
       params: idParams
+    },
+    bulkCreateSchema: {
+      tags: [tag],
+      security: authSchema(routeAuthTypes['bulkCreate']),
+      headers: captchaHeaderSchema(routeCaptcha['bulkCreate']),
+      summary: `Create many ${resourceName} data`,
+      description:
+        `Create many ${resourceName} data in a single transaction, ` +
+        'either every item or none',
+      response: {
+        201: bulkResponse,
+        ...routeErrors('bulkCreate', ...createErrors)
+      },
+      body: bulkItems('bulkCreate', Type.Ref(`${name}Create`))
+    },
+    bulkUpdateSchema: {
+      tags: [tag],
+      security: authSchema(routeAuthTypes['bulkUpdate']),
+      headers: captchaHeaderSchema(routeCaptcha['bulkUpdate']),
+      summary: `Update many ${resourceName} data`,
+      description:
+        `Update the given fields of many ${resourceName} data in a single ` +
+        'transaction, either every item or none',
+      response: {
+        200: bulkResponse,
+        ...routeErrors('bulkUpdate', ...updateErrors)
+      },
+      body: bulkItems('bulkUpdate', bulkItem(`${name}Update`))
+    },
+    bulkReplaceSchema: {
+      tags: [tag],
+      security: authSchema(routeAuthTypes['bulkUpdate']),
+      headers: captchaHeaderSchema(routeCaptcha['bulkUpdate']),
+      summary: `Replace many ${resourceName} data`,
+      description:
+        `Replace many ${resourceName} data as a whole in a single ` +
+        'transaction, either every item or none',
+      response: {
+        200: bulkResponse,
+        ...routeErrors('bulkUpdate', ...updateErrors)
+      },
+      body: bulkItems('bulkUpdate', bulkItem(`${name}Replace`))
+    },
+    bulkDeleteSchema: {
+      tags: [tag],
+      security: authSchema(routeAuthTypes['bulkDelete']),
+      headers: captchaHeaderSchema(routeCaptcha['bulkDelete']),
+      summary: `Delete many ${resourceName} data`,
+      description:
+        `Delete many ${resourceName} data by their ids in a single ` +
+        'transaction, either every item or none',
+      response: {
+        200: bulkResponse,
+        ...routeErrors('bulkDelete', ...deleteErrors)
+      },
+      body: Type.Array(idValue, {
+        minItems: 1,
+        maxItems: routeMaxItems['bulkDelete'] ?? config.RESOURCE_BULK_MAX_ITEMS,
+        uniqueItems: true
+      })
     }
   };
 

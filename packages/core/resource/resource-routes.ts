@@ -1,6 +1,8 @@
 import {
   AggregateOptions,
   AuthType,
+  BulkItem,
+  BulkResponse,
   CaptchaConfig,
   QueryOptions,
   ResourceId,
@@ -11,6 +13,8 @@ import {
 } from '@appweaver/common';
 import { createSchema } from './resource-schema';
 import {
+  BulkRouteName,
+  bulkRouteEnabled,
   mergeRouteDefaults,
   parseJsonParams,
   queryRouteMethods,
@@ -24,7 +28,20 @@ import { Server } from '../types';
 
 type FullRouteConfig = RouteConfig &
   RouteCacheConfig &
-  Pick<QueryRouteConfig, 'method'> & { resourceRouteName: ResourceRouteName };
+  Pick<QueryRouteConfig, 'method'> & {
+    resourceRouteName: ResourceRouteName;
+    maxItems?: number;
+  };
+
+// The single route each bulk route inherits its config from
+const BULK_SINGLE_ROUTES: Record<BulkRouteName, ResourceRouteName> = {
+  bulkCreate: 'create',
+  bulkUpdate: 'update',
+  bulkDelete: 'delete'
+};
+
+const isBulkRoute = (route: ResourceRouteName): route is BulkRouteName =>
+  route in BULK_SINGLE_ROUTES;
 
 /** The `:id` path parameter, validated against the primary key schema of the
  * resource, so it arrives typed after the model id */
@@ -37,12 +54,31 @@ export function resourceRoutes(
   const routeConfig = (
     configName: ResourceRouteName
   ): FullRouteConfig | undefined => {
+    // A bulk route inherits the config of its single route, defaults included
+    const defaults = isBulkRoute(configName)
+      ? mergeRouteDefaults(
+          BULK_SINGLE_ROUTES[configName],
+          routesConfig.defaults,
+          routesConfig[BULK_SINGLE_ROUTES[configName]]
+        )
+      : routesConfig.defaults;
+
+    const config = mergeRouteDefaults(
+      configName,
+      defaults,
+      routesConfig[configName]
+    );
+
+    // A bulk route is excluded unless its config switch enables it, which the
+    // `exclude` option of the route overrides either way
+    if (isBulkRoute(configName)) {
+      config.exclude =
+        routesConfig[configName]?.exclude ??
+        (config.exclude || !bulkRouteEnabled(configName));
+    }
+
     return {
-      ...mergeRouteDefaults(
-        configName,
-        routesConfig.defaults,
-        routesConfig[configName]
-      ),
+      ...config,
       resourceRouteName: configName,
       cacheModelName: ['find', 'query', 'aggregate'].includes(configName)
         ? name
@@ -59,7 +95,10 @@ export function resourceRoutes(
     'delete',
     'export',
     'fileUpload',
-    'fileDelete'
+    'fileDelete',
+    'bulkCreate',
+    'bulkUpdate',
+    'bulkDelete'
   ];
 
   const routeAuthTypes = routeNames.reduce<
@@ -92,7 +131,11 @@ export function resourceRoutes(
   return (server: Server) => {
     const { authenticate, recaptcha, turnstile } = server;
 
-    const schema = createSchema(name, routeAuthTypes, routeCaptcha);
+    const schema = createSchema(name, routeAuthTypes, routeCaptcha, {
+      bulkCreate: routeConfig('bulkCreate')?.maxItems,
+      bulkUpdate: routeConfig('bulkUpdate')?.maxItems,
+      bulkDelete: routeConfig('bulkDelete')?.maxItems
+    });
 
     const service = injectService(name);
     const resourceModel = injectModel(name);
@@ -357,6 +400,78 @@ export function resourceRoutes(
           );
 
           return reply.send(aggregateFiles(files, config));
+        }
+      );
+    }
+
+    // Every item of a bulk request is applied in a single transaction, or none
+    const bulkResponse = (count: number): BulkResponse => ({
+      success: true,
+      count
+    });
+
+    const bulkCreateConfig = routeConfig('bulkCreate');
+    if (!bulkCreateConfig?.exclude) {
+      server.post<{ Body: any[] }>(
+        '/bulk',
+        {
+          schema: schema.bulkCreateSchema,
+          onRequest: routeAuth(bulkCreateConfig),
+          config: bulkCreateConfig
+        },
+        async (request, reply) => {
+          await service.bulkCreate(request.body);
+
+          return reply.status(201).send(bulkResponse(request.body.length));
+        }
+      );
+    }
+
+    const bulkUpdateConfig = routeConfig('bulkUpdate');
+    if (!bulkUpdateConfig?.exclude) {
+      server.patch<{ Body: BulkItem<any>[] }>(
+        '/bulk',
+        {
+          schema: schema.bulkUpdateSchema,
+          onRequest: routeAuth(bulkUpdateConfig),
+          config: bulkUpdateConfig
+        },
+        async (request, reply) => {
+          await service.bulkUpdate(request.body);
+
+          return reply.send(bulkResponse(request.body.length));
+        }
+      );
+
+      server.put<{ Body: BulkItem<any>[] }>(
+        '/bulk',
+        {
+          schema: schema.bulkReplaceSchema,
+          onRequest: routeAuth(bulkUpdateConfig),
+          config: bulkUpdateConfig
+        },
+        async (request, reply) => {
+          await service.bulkReplace(request.body);
+
+          return reply.send(bulkResponse(request.body.length));
+        }
+      );
+    }
+
+    const bulkDeleteConfig = routeConfig('bulkDelete');
+    if (!bulkDeleteConfig?.exclude) {
+      server.delete<{ Body: ResourceId[] }>(
+        '/bulk',
+        {
+          schema: schema.bulkDeleteSchema,
+          onRequest: routeAuth(bulkDeleteConfig),
+          config: bulkDeleteConfig
+        },
+        async (request, reply) => {
+          // The ids an earlier cascade removed count as deleted
+          await service.bulkDelete(request.body);
+
+          return reply.send(bulkResponse(request.body.length));
         }
       );
     }

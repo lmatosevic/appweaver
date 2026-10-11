@@ -247,6 +247,34 @@ describe('create-service', () => {
       });
     });
 
+    test('calls the hooks of every item of a bulk operation', async () => {
+      const beforeCreate = jest.fn();
+      const afterUpdate = jest.fn();
+      const beforeDelete = jest.fn();
+      const Service = createService({
+        modelName: 'Post',
+        beforeCreate,
+        afterUpdate,
+        beforeDelete
+      });
+      const service = new Service();
+
+      await service.bulkCreate([{ title: 'One' }, { title: 'Two' }] as any);
+      await service.bulkUpdate([
+        { id: 1, data: { title: 'One' } },
+        { id: 1, data: { title: 'Two' } }
+      ] as any);
+      await service.bulkReplace([{ id: 1, data: { title: 'Three' } }] as any);
+      await service.bulkDelete([1]);
+
+      expect(beforeCreate.mock.calls).toEqual([
+        [{ title: 'One' }],
+        [{ title: 'Two' }]
+      ]);
+      expect(afterUpdate).toHaveBeenCalledTimes(3);
+      expect(beforeDelete).toHaveBeenCalledWith(1);
+    });
+
     test('lets the query hook change the query options', async () => {
       const Service = createService({
         modelName: 'Post',

@@ -1448,6 +1448,9 @@ function createRoutes(config: ResourceRoutesConfig, override ?: Partial<Resource
 | `export`     | RouteConfig      | `POST /export` - Export resources to CSV.                              |
 | `fileUpload` | RouteConfig      | `POST /:id/files` - Upload files to a resource.                        |
 | `fileDelete` | RouteConfig      | `POST /:id/delete-files` - Delete files from a resource.               |
+| `bulkCreate` | BulkRouteConfig  | `POST /bulk` - Create many (disabled by default).                      |
+| `bulkUpdate` | BulkRouteConfig  | `PATCH /bulk`, `PUT /bulk` - Update many (disabled by default).        |
+| `bulkDelete` | BulkRouteConfig  | `DELETE /bulk` - Delete many (disabled by default).                    |
 
 ### Route defaults
 
@@ -1517,6 +1520,35 @@ The `update` config applies to both routes, which share the policies, hooks, cac
 - `PUT /:id` (`service.replace`) replaces the resource (`<Model>Replace`, required fields as on create). Omitted fields
   are reset to their `default`, or `null` when optional. Hidden fields, files, and omitted optional relations stay
   untouched.
+
+### Bulk routes (bulkCreate, bulkUpdate, bulkDelete)
+
+Disabled by default. `RESOURCE_BULK_CREATE_ENABLED`, `RESOURCE_BULK_UPDATE_ENABLED`, and `RESOURCE_BULK_DELETE_ENABLED`
+enable them for every resource, and the route's `exclude` overrides that per resource (`exclude: false` enables it).
+Each bulk route inherits the config of its single route (`create`, `update`, `delete`, which also excludes it) and
+takes `maxItems` (default `RESOURCE_BULK_MAX_ITEMS`, `2000`).
+
+| Route          | Body                             | Service method       |
+|----------------|----------------------------------|----------------------|
+| `POST /bulk`   | `[<Model>Create]`                | `bulkCreate(items)`  |
+| `PATCH /bulk`  | `[{ id, data: <Model>Update }]`  | `bulkUpdate(items)`  |
+| `PUT /bulk`    | `[{ id, data: <Model>Replace }]` | `bulkReplace(items)` |
+| `DELETE /bulk` | `[id]`                           | `bulkDelete(ids)`    |
+
+All items run in one transaction (`RESOURCE_BULK_TRANSACTION_TIMEOUT`, `5000` ms) through the single-item service method
+(same policies, hooks, events, and cache invalidation). Any failure rolls back everything and returns that item's error;
+success returns `{ "success": true, "count": n }`. The `after*` hooks run before the commit, so keep side effects in
+resource events. A bulk delete checks every id exists first, and skips ids removed by an earlier cascade. A request
+counts once for rate limiting.
+
+```ts
+createRoutes({
+  modelName: 'Tag',
+  delete: { roles: ['Admin'] },
+  bulkCreate: { exclude: false, roles: ['Admin'] },
+  bulkDelete: { exclude: false, maxItems: 500 } // inherits roles: ['Admin']
+});
+```
 
 ### Rate limit config
 

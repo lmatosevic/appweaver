@@ -25,6 +25,7 @@ import { resourceRoutes } from '../../resource/resource-routes';
 import { errorHandler, ProblemDetailsSchema } from '../../errors';
 import { AuthError } from '../../security/auth-error';
 import { TurnstileError } from '../../security/turnstile/turnstile-error';
+import { ResourceError } from '../../resource/resource-error';
 import schemas from '../../server/schemas';
 import { resetContext } from '../fixtures/context-fixture';
 import { linkModels } from '../fixtures/model-fixture';
@@ -113,6 +114,10 @@ describe('resource-routes', () => {
     aggregate: jest.Mock;
     update: jest.Mock;
     replace: jest.Mock;
+    bulkCreate: jest.Mock;
+    bulkUpdate: jest.Mock;
+    bulkReplace: jest.Mock;
+    bulkDelete: jest.Mock;
   };
 
   const request = async (
@@ -176,7 +181,17 @@ describe('resource-routes', () => {
       query: jest.fn().mockResolvedValue(queryResponse),
       aggregate: jest.fn().mockResolvedValue(aggregateResponse),
       update: jest.fn().mockResolvedValue(postResponse),
-      replace: jest.fn().mockResolvedValue(postResponse)
+      replace: jest.fn().mockResolvedValue(postResponse),
+      bulkCreate: jest.fn(async (items: any[]) =>
+        items.map(() => postResponse)
+      ),
+      bulkUpdate: jest.fn(async (items: any[]) =>
+        items.map(() => postResponse)
+      ),
+      bulkReplace: jest.fn(async (items: any[]) =>
+        items.map(() => postResponse)
+      ),
+      bulkDelete: jest.fn(async (ids: any[]) => ids.map(() => postResponse))
     };
     context.resource.services.set('Post', service as any);
   });
@@ -187,6 +202,10 @@ describe('resource-routes', () => {
     delete (common as any).configOverrides.RESOURCE_QUERY_METHOD;
     delete (common as any).configOverrides.RESOURCE_AGGREGATE_METHOD;
     delete (common as any).configOverrides.SECURITY_TURNSTILE_ENABLED;
+    delete (common as any).configOverrides.RESOURCE_BULK_MAX_ITEMS;
+    delete (common as any).configOverrides.RESOURCE_BULK_CREATE_ENABLED;
+    delete (common as any).configOverrides.RESOURCE_BULK_UPDATE_ENABLED;
+    delete (common as any).configOverrides.RESOURCE_BULK_DELETE_ENABLED;
   });
 
   describe('resourceRoutes', () => {
@@ -409,6 +428,243 @@ describe('resource-routes', () => {
         );
         expect(item.put.summary).toBe('Replace post data');
         expect(item.patch.summary).toBe('Update post data');
+      });
+    });
+
+    describe('bulk routes', () => {
+      const full = {
+        title: 'Title',
+        views: 1,
+        publishedAt: postResponse.publishedAt
+      };
+
+      const send = async (
+        method: 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+        payload: any
+      ) => {
+        const response = await app!.inject({
+          method,
+          url: '/posts/bulk',
+          payload
+        });
+        return { status: response.statusCode, body: response.json() };
+      };
+
+      const enabled = { exclude: false };
+      const all = {
+        bulkCreate: enabled,
+        bulkUpdate: enabled,
+        bulkDelete: enabled
+      };
+
+      test('registers no bulk route by default', async () => {
+        app = await server();
+
+        expect((await send('POST', [full])).status).toBe(404);
+        // The single routes take the path as an id, which fails validation
+        expect((await send('DELETE', [1])).status).toBe(400);
+        expect((await send('PATCH', [])).status).toBe(400);
+        expect((await send('PUT', [])).status).toBe(400);
+        expect(service.bulkCreate).not.toHaveBeenCalled();
+        expect(service.bulkDelete).not.toHaveBeenCalled();
+      });
+
+      test('registers the bulk routes the config enables', async () => {
+        (common as any).configOverrides.RESOURCE_BULK_CREATE_ENABLED = true;
+        (common as any).configOverrides.RESOURCE_BULK_DELETE_ENABLED = true;
+        app = await server();
+
+        expect((await send('POST', [full])).status).toBe(201);
+        expect((await send('DELETE', [1])).status).toBe(200);
+        // The bulk update routes stay disabled, so PATCH reaches PATCH /:id
+        expect((await send('PATCH', [{ id: 1, data: {} }])).status).toBe(400);
+        expect(service.bulkUpdate).not.toHaveBeenCalled();
+      });
+
+      test('prefers the exclude option of a bulk route over the config', async () => {
+        (common as any).configOverrides.RESOURCE_BULK_CREATE_ENABLED = true;
+        (common as any).configOverrides.RESOURCE_BULK_UPDATE_ENABLED = false;
+        app = await server({
+          bulkCreate: { exclude: true },
+          bulkUpdate: { exclude: false }
+        });
+
+        expect((await send('POST', [full])).status).toBe(404);
+        expect((await send('PATCH', [{ id: 1, data: {} }])).status).toBe(200);
+      });
+
+      test('creates every item, responding with their count', async () => {
+        app = await server({ bulkCreate: enabled });
+
+        const { status, body } = await send('POST', [full, full]);
+
+        expect(status).toBe(201);
+        expect(body).toEqual({ success: true, count: 2 });
+        expect(service.bulkCreate).toHaveBeenCalledWith([full, full]);
+      });
+
+      test('updates and replaces every item by its id', async () => {
+        app = await server({ bulkUpdate: enabled });
+
+        const patched = await send('PATCH', [
+          { id: 1, data: { title: 'One' } },
+          { id: 2, data: { views: 3 } }
+        ]);
+        const replaced = await send('PUT', [{ id: 1, data: full }]);
+
+        expect(patched.body).toEqual({ success: true, count: 2 });
+        expect(service.bulkUpdate).toHaveBeenCalledWith([
+          { id: 1, data: { title: 'One' } },
+          { id: 2, data: { views: 3 } }
+        ]);
+        expect(replaced.body).toEqual({ success: true, count: 1 });
+        expect(service.bulkReplace).toHaveBeenCalledWith([
+          { id: 1, data: full }
+        ]);
+      });
+
+      test('deletes every item by its id', async () => {
+        app = await server({ bulkDelete: enabled });
+
+        const { status, body } = await send('DELETE', [1, 2, 3]);
+
+        expect(status).toBe(200);
+        expect(body).toEqual({ success: true, count: 3 });
+        expect(service.bulkDelete).toHaveBeenCalledWith([1, 2, 3]);
+      });
+
+      test('validates every item of the request', async () => {
+        app = await server({
+          ...all
+        });
+
+        expect((await send('POST', [full, { title: 'Title' }])).status).toBe(
+          400
+        );
+        expect(
+          (await send('PUT', [{ id: 1, data: { title: 'Title' } }])).status
+        ).toBe(400);
+        expect(
+          (await send('PATCH', [{ id: 1, data: { unknown: 1 } }])).status
+        ).toBe(400);
+        expect((await send('PATCH', [{ data: { title: 'x' } }])).status).toBe(
+          400
+        );
+        expect((await send('DELETE', [1, 1])).status).toBe(400);
+        expect(service.bulkCreate).not.toHaveBeenCalled();
+        expect(service.bulkUpdate).not.toHaveBeenCalled();
+        expect(service.bulkReplace).not.toHaveBeenCalled();
+        expect(service.bulkDelete).not.toHaveBeenCalled();
+      });
+
+      test('rejects an empty request and one over the maximum items', async () => {
+        (common as any).configOverrides.RESOURCE_BULK_MAX_ITEMS = 2;
+        app = await server({
+          bulkCreate: enabled,
+          bulkDelete: { exclude: false, maxItems: 3 }
+        });
+
+        expect((await send('POST', [])).status).toBe(400);
+        expect((await send('POST', [full, full, full])).status).toBe(400);
+        expect((await send('DELETE', [1, 2, 3])).status).toBe(200);
+        expect((await send('DELETE', [1, 2, 3, 4])).status).toBe(400);
+      });
+
+      test('responds with the error of a failed bulk', async () => {
+        app = await server({ bulkDelete: enabled });
+        service.bulkDelete.mockRejectedValueOnce(
+          new ResourceError(ErrorCode.ResourceNotFound, 'Post not found', {
+            model: 'Post',
+            id: 2
+          })
+        );
+
+        const { status, body } = await send('DELETE', [1, 2]);
+
+        expect(status).toBe(404);
+        expect(body.code).toBe(ErrorCode.ResourceNotFound);
+      });
+
+      test('applies the route defaults and its own access', async () => {
+        app = await server(
+          {
+            defaults: { public: true },
+            bulkCreate: enabled,
+            bulkDelete: { exclude: false, roles: ['Admin'] }
+          },
+          false,
+          true
+        );
+
+        expect((await send('POST', [full])).status).toBe(201);
+        expect((await send('DELETE', [1])).status).toBe(401);
+      });
+
+      test('inherits the config of the single route', async () => {
+        app = await server(
+          {
+            delete: { public: true },
+            bulkCreate: enabled,
+            bulkDelete: enabled
+          },
+          false,
+          true
+        );
+
+        expect((await send('DELETE', [1])).status).toBe(200);
+        expect((await send('POST', [full])).status).toBe(401);
+      });
+
+      test('prefers its own access over the one of the single route', async () => {
+        app = await server(
+          {
+            delete: { public: true },
+            bulkDelete: { exclude: false, roles: ['Admin'] }
+          },
+          false,
+          true
+        );
+
+        expect((await send('DELETE', [1])).status).toBe(401);
+      });
+
+      test('excludes a bulk route whose single route is excluded', async () => {
+        (common as any).configOverrides.RESOURCE_BULK_CREATE_ENABLED = true;
+        app = await server({ create: { exclude: true } });
+
+        expect((await send('POST', [full])).status).toBe(404);
+      });
+
+      test('responds with the count of the deleted ids', async () => {
+        app = await server({ bulkDelete: enabled });
+        service.bulkDelete.mockResolvedValueOnce([postResponse]);
+
+        const { body } = await send('DELETE', [1, 2]);
+
+        expect(body).toEqual({ success: true, count: 2 });
+      });
+
+      test('excludes the bulk routes the route defaults exclude', async () => {
+        (common as any).configOverrides.RESOURCE_BULK_CREATE_ENABLED = true;
+        app = await server({ defaults: { exclude: true } });
+
+        expect((await send('POST', [full])).status).toBe(404);
+      });
+
+      test('documents the bulk operations', async () => {
+        app = await server(all, true);
+        const document = (app as any).swagger();
+
+        const bulk = document.paths['/posts/bulk'];
+        expect(Object.keys(bulk).sort()).toEqual([
+          'delete',
+          'patch',
+          'post',
+          'put'
+        ]);
+        expect(
+          bulk.delete.requestBody.content['application/json']
+        ).toBeDefined();
       });
     });
 

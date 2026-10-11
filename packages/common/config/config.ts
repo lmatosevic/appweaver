@@ -115,6 +115,11 @@ const configSchema = Type.Object({
   RESOURCE_AGGREGATE_METHOD: Type.Enum(QueryMethod, {
     default: QueryMethod.Post
   }),
+  RESOURCE_BULK_CREATE_ENABLED: Type.Boolean({ default: false }),
+  RESOURCE_BULK_UPDATE_ENABLED: Type.Boolean({ default: false }),
+  RESOURCE_BULK_DELETE_ENABLED: Type.Boolean({ default: false }),
+  RESOURCE_BULK_MAX_ITEMS: Type.Integer({ default: 2000, minimum: 1 }),
+  RESOURCE_BULK_TRANSACTION_TIMEOUT: Type.Integer({ default: 5000 }),
 
   EXPORT_BATCH_SIZE: Type.Integer({ default: 1000 }),
   EXPORT_CSV_DELIMITER: Type.String({ default: ';' }),

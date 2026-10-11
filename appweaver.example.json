@@ -79,7 +79,14 @@
       "routesPattern": "<srcPath>/resources/*/*route.ts",
       "generatedTypesPath": "<srcPath>/types/generated.ts",
       "queryMethod": "post",
-      "aggregateMethod": "post"
+      "aggregateMethod": "post",
+      "bulk": {
+        "createEnabled": false,
+        "updateEnabled": false,
+        "deleteEnabled": false,
+        "maxItems": 2000,
+        "transactionTimeout": 5000
+      }
     },
     "export": {
       "csv": {

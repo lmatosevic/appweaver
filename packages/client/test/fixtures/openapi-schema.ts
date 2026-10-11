@@ -362,6 +362,18 @@ const SCHEMA: any = {
         responses: response('def-1')
       }
     },
+    '/api/posts/bulk': {
+      post: {
+        'x-appweaver-resource': 'Post',
+        requestBody: body('def-4'),
+        responses: response('def-1')
+      },
+      delete: {
+        'x-appweaver-resource': 'Post',
+        requestBody: body('def-4'),
+        responses: response('def-1')
+      }
+    },
     '/api/posts/{id}/files': {
       post: {
         'x-appweaver-resource': 'Post',

@@ -73,7 +73,7 @@ describe('generate-client', () => {
 
     test('adds a resource client for every resource path', () => {
       expect(client).toContain(
-        `public post = this.resourceClient<PostResourceModuleType, ['aggregate', 'export', 'deleteFiles']>('/api/posts')`
+        `public post = this.resourceClient<PostResourceModuleType, ['aggregate', 'export', 'deleteFiles', 'bulkUpdate', 'bulkReplace']>('/api/posts')`
       );
       expect(client).toContain(`public user = this.resourceClient<`);
       expect(client).toContain(`>('/api/users')`);
@@ -86,6 +86,15 @@ describe('generate-client', () => {
       expect(userLine).toContain(`'query'`);
       expect(userLine).toContain(`'delete'`);
       expect(userLine).not.toContain(`'find'`);
+    });
+
+    test('maps the bulk routes to the bulk operations', () => {
+      const postLine = client
+        .split('\n')
+        .find((line) => line.includes('public post ='))!;
+      expect(postLine).not.toContain(`'bulkCreate'`);
+      expect(postLine).not.toContain(`'bulkDelete'`);
+      expect(client).not.toContain('postApiPostsBulk');
     });
 
     test('maps the PATCH route to update and the PUT route to replace', () => {

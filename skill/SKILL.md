@@ -415,6 +415,10 @@ config (see `references/resources.md`).
 The `update` config covers both `PATCH /:id` (partial update) and `PUT /:id` (full replace: required fields must be
 present, omitted ones reset to their `default` or `null`).
 
+The bulk routes (`POST`, `PATCH`, `PUT`, `DELETE` on `/bulk`) are disabled by default. Enable them globally with
+`RESOURCE_BULK_*_ENABLED`, or per resource with `bulkCreate`/`bulkUpdate`/`bulkDelete: { exclude: false }`. Each
+request runs all items in one transaction, all or none (see `references/resources.md`).
+
 #### Creating a resource policy
 
 Resource policy defines row-level security for a resource: dynamic access checks against individual resource instances,

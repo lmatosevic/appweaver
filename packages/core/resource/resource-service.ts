@@ -4,6 +4,8 @@ import {
   AggregateResponse,
   AggregateSelect,
   AggregateSelected,
+  BulkItem,
+  config,
   ConfigurationError,
   countFieldName,
   Database,
@@ -737,6 +739,87 @@ export abstract class ResourceService<
   }
 
   /**
+   * Creates many resources in a single transaction, one after another the same
+   * way as {@link ResourceService.create}, so every item runs through the same
+   * policies and hooks. Either every resource is created or, when any item
+   * fails, none: the error of the failed item is thrown and the transaction is
+   * rolled back. The cache invalidation and the create resource event of every
+   * item wait for the commit, and are dropped on a rollback.
+   *
+   * @param {Object[]} items The data of every resource to create.
+   * @returns {Promise<Object[]>} The created resources, in the order of the
+   * items.
+   * @throws The error of the first item that failed, the same errors as
+   * {@link ResourceService.create}.
+   */
+  public async bulkCreate(items: Create[]): Promise<ReadOne[]> {
+    return this.bulk(items, (item) => this.create(item));
+  }
+
+  /**
+   * Updates the given fields of many resources in a single transaction, one
+   * after another the same way as {@link ResourceService.update}. Either every
+   * resource is updated or none, see {@link ResourceService.bulkCreate}.
+   *
+   * @param {BulkItem[]} items The id and the partial data of every resource.
+   * @returns {Promise<Object[]>} The updated resources, in the order of the
+   * items.
+   * @throws The error of the first item that failed, the same errors as
+   * {@link ResourceService.update}.
+   */
+  public async bulkUpdate(items: BulkItem<Update>[]): Promise<ReadOne[]> {
+    return this.bulk(items, (item) => this.update(item.id, item.data));
+  }
+
+  /**
+   * Replaces many resources as a whole in a single transaction, one after
+   * another the same way as {@link ResourceService.replace}. Either every
+   * resource is replaced or none, see {@link ResourceService.bulkCreate}.
+   *
+   * @param {BulkItem[]} items The id and the new state of every resource.
+   * @returns {Promise<Object[]>} The replaced resources, in the order of the
+   * items.
+   * @throws The error of the first item that failed, the same errors as
+   * {@link ResourceService.replace}.
+   */
+  public async bulkReplace(items: BulkItem<Replace>[]): Promise<ReadOne[]> {
+    return this.bulk(items, (item) => this.replace(item.id, item.data));
+  }
+
+  /**
+   * Deletes many resources in a single transaction, one after another the same
+   * way as {@link ResourceService.delete}, cascades and stored files included.
+   * Either every resource is deleted or none, see
+   * {@link ResourceService.bulkCreate}. Every id must exist up front, while an
+   * id the cascade of an earlier one already removed is skipped.
+   *
+   * @param {ResourceId[]} ids The ids of the resources to delete.
+   * @returns {Promise<Object[]>} The resources deleted by their own id, in the
+   * order of the ids.
+   * @throws {@link ResourceError} `RESOURCE_NOT_FOUND` if an id does not exist,
+   * and otherwise the error of the first resource that failed, the same errors
+   * as {@link ResourceService.delete}.
+   */
+  public async bulkDelete(ids: ResourceId[]): Promise<ReadOne[]> {
+    return this.bulk(
+      ids,
+      async (id) =>
+        (await this.liveIds([id])).length > 0 ? this.delete(id) : undefined,
+      async () => {
+        const live = (await this.liveIds(ids)).map(String);
+        const missing = ids.find((id) => !live.includes(String(id)));
+        if (missing !== undefined) {
+          throw new ResourceError(
+            ErrorCode.ResourceNotFound,
+            `${this._client.name} not found`,
+            { model: this._client.name, id: missing }
+          );
+        }
+      }
+    );
+  }
+
+  /**
    * Updates an existing resource the same way as {@link ResourceService.update},
    * returning the state the resource had before the update along with the
    * updated one.
@@ -1204,6 +1287,54 @@ export abstract class ResourceService<
     }
 
     return sanitizedData;
+  }
+
+  /**
+   * Runs the operation of every item one after another in a single
+   * transaction, or in the current one, which rolls back on the first error.
+   *
+   * @internal
+   */
+  private async bulk<I>(
+    items: I[],
+    operation: (item: I) => Promise<ReadOne | undefined>,
+    prepare?: () => Promise<void>
+  ): Promise<ReadOne[]> {
+    try {
+      return await this._db.client().$transaction(
+        async () => {
+          await prepare?.();
+
+          const results: ReadOne[] = [];
+          for (const item of items) {
+            const result = await operation(item);
+            if (result !== undefined) {
+              results.push(result);
+            }
+          }
+          return results;
+        },
+        { timeout: config.RESOURCE_BULK_TRANSACTION_TIMEOUT }
+      );
+    } catch (e) {
+      // The errors of the items are translated already, which leaves the
+      // errors of the transaction itself, i.e. its timeout
+      throw this.databaseError(e);
+    }
+  }
+
+  /**
+   * Returns the ids of the given ones that exist and are not soft deleted,
+   * regardless of the read restrictions.
+   *
+   * @internal
+   */
+  private async liveIds(ids: ResourceId[]): Promise<ResourceId[]> {
+    const records: { id: ResourceId }[] = await this._client.findMany({
+      where: { id: { in: ids }, ...liveRecordFilter(this._client.name) },
+      select: { id: true }
+    });
+    return records.map((record) => record.id);
   }
 
   /**
