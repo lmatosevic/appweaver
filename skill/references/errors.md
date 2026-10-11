@@ -53,6 +53,11 @@ cases apart by their `code` instead of parsing messages:
   `{ "field": "author.email", "rule": "format", "message": "must match format \"email\"", "pointer": "#/body/author/email" }`.
   A property the schema does not declare is an error too, never dropped:
   `{ "field": "filter.titel", "rule": "additionalProperties", "message": "is not allowed", "pointer": "#/querystring/filter/titel" }`.
+- A failed validation reports every invalid field of the failing request part (params, body, then querystring), up to
+  `SERVER_ERROR_RESPONSE_MAX_COUNT` errors (default `20`). With a count of `1` it stops at the first one. A value
+  failing a union (a relation item that is an id, an inline update or an inline create, a filter value that is a plain
+  value or a condition object) reports the errors of the shape it matches best, not one per shape tried, and type
+  mismatches merge into one, i.e. "must be object or integer".
 - A database constraint violation responds with a `DATABASE_*` code naming the violated fields, both in `details.fields`
   and in `errors`: unique (`409`), foreign key (`409`), not null, value too long, value out of range and invalid value
   (`400`).

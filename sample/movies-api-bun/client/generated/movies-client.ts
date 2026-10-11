@@ -67,7 +67,7 @@ export function createClient(config: ClientConfig): MoviesClient {
 export { ClientError };
 
 /** An error response of the API, its `code` typed by the error codes of the API. */
-export type ApiError = ClientError<components['schemas']['def-168']['code']>;
+export type ApiError = ClientError<components['schemas']['def-156']['code']>;
 
 /** Checks whether a caught error is an error response of the API, typing its `code`. */
 export function isApiError(error: unknown): error is ApiError {
@@ -3165,37 +3165,37 @@ export type webhooks = Record<string, never>;
 export type components = {
   schemas: {
     /** AccountEmailVerificationRequest */
-    'def-177': AccountEmailVerificationRequest;
+    'def-165': AccountEmailVerificationRequest;
     /** AccountResetPasswordRequest */
-    'def-179': AccountResetPasswordRequest;
+    'def-167': AccountResetPasswordRequest;
     /** AccountSend2FACodeRequest */
-    'def-181': AccountSend2FACodeRequest;
+    'def-169': AccountSend2FACodeRequest;
     /** AccountSend2FAResponse */
-    'def-180': AccountSend2FAResponse;
+    'def-168': AccountSend2FAResponse;
     /** AccountSendEmailVerificationRequest */
-    'def-176': AccountSendEmailVerificationRequest;
+    'def-164': AccountSendEmailVerificationRequest;
     /** AccountSendResetPasswordRequest */
-    'def-178': AccountSendResetPasswordRequest;
+    'def-166': AccountSendResetPasswordRequest;
     /** AccountStatusResponse */
-    'def-175': AccountStatusResponse;
+    'def-163': AccountStatusResponse;
     /** AccountVerify2FARequest */
-    'def-183': AccountVerify2FARequest;
+    'def-171': AccountVerify2FARequest;
     /** AccountVerify2FAResponse */
-    'def-182': AccountVerify2FAResponse;
+    'def-170': AccountVerify2FAResponse;
     /**
      * AggregateDateOperators
      * @description Aggregation operators applicable to a date field
      */
-    'def-213': AggregateDateOperators;
+    'def-201': AggregateDateOperators;
     /**
      * AggregateNumericOperators
      * @description Aggregation operators applicable to a numeric field
      */
-    'def-212': AggregateNumericOperators;
+    'def-200': AggregateNumericOperators;
     /** AuthenticationResponse */
-    'def-169': AuthenticationResponse;
+    'def-157': AuthenticationResponse;
     /** ChangePasswordRequest */
-    'def-172': ChangePasswordRequest;
+    'def-160': ChangePasswordRequest;
     /** CreditCreate */
     'def-4': CreditCreate;
     /** CreditMultiple */
@@ -3204,252 +3204,252 @@ export type components = {
      * CreditQueryFilter
      * @description Query filter for the Credit resource
      */
-    'def-188': CreditQueryFilter;
+    'def-176': CreditQueryFilter;
     /** CreditQueryRequest */
-    'def-227': CreditQueryRequest;
+    'def-215': CreditQueryRequest;
     /** CreditQueryResponse */
-    'def-226': CreditQueryResponse;
+    'def-214': CreditQueryResponse;
     /**
      * CreditQuerySort
      * @description Query sort for the Credit resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-200': CreditQuerySort;
+    'def-188': CreditQuerySort;
     /** CreditSingle */
     'def-1': CreditSingle;
     /** CreditUpdate */
     'def-5': CreditUpdate;
     /** ExchangeTokenRequest */
-    'def-173': ExchangeTokenRequest;
+    'def-161': ExchangeTokenRequest;
     /**
      * FileQueryFilter
      * @description Query filter for the File resource
      */
-    'def-199': FileQueryFilter;
+    'def-187': FileQueryFilter;
     /**
      * FileQuerySort
      * @description Query sort for the File resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-211': FileQuerySort;
+    'def-199': FileQuerySort;
     /** FileSingle */
-    'def-155': FileSingle;
+    'def-144': FileSingle;
     /** GenreCreate */
-    'def-18': GenreCreate;
+    'def-17': GenreCreate;
     /** GenreMultiple */
-    'def-16': GenreMultiple;
+    'def-15': GenreMultiple;
     /**
      * GenreQueryFilter
      * @description Query filter for the Genre resource
      */
-    'def-189': GenreQueryFilter;
+    'def-177': GenreQueryFilter;
     /** GenreQueryRequest */
-    'def-232': GenreQueryRequest;
+    'def-220': GenreQueryRequest;
     /** GenreQueryResponse */
-    'def-231': GenreQueryResponse;
+    'def-219': GenreQueryResponse;
     /**
      * GenreQuerySort
      * @description Query sort for the Genre resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-201': GenreQuerySort;
-    /** GenreRelationInput */
-    'def-22': GenreRelationInput;
+    'def-189': GenreQuerySort;
+    /** GenreRelationCreate */
+    'def-19': GenreRelationCreate;
     /** GenreSingle */
-    'def-15': GenreSingle;
+    'def-14': GenreSingle;
     /** GenreUpdate */
-    'def-19': GenreUpdate;
+    'def-18': GenreUpdate;
     /** HealthCheckResponse */
-    'def-186': HealthCheckResponse;
+    'def-174': HealthCheckResponse;
     /** HealthCheckResult */
-    'def-185': HealthCheckResult;
+    'def-173': HealthCheckResult;
     /** HealthReadyResponse */
-    'def-174': HealthReadyResponse;
+    'def-162': HealthReadyResponse;
     /** InfoResponse */
-    'def-184': InfoResponse;
+    'def-172': InfoResponse;
     /** LoginRequest */
-    'def-170': LoginRequest;
+    'def-158': LoginRequest;
     /** LogoutResponse */
-    'def-171': LogoutResponse;
+    'def-159': LogoutResponse;
     /** MovieAggregateRequest */
-    'def-239': MovieAggregateRequest;
+    'def-227': MovieAggregateRequest;
     /** MovieAggregateResponse */
-    'def-238': MovieAggregateResponse;
+    'def-226': MovieAggregateResponse;
     /**
      * MovieAggregateSelect
      * @description Aggregate selection for the Movie resource, holding the operators to apply per aggregated field
      */
-    'def-216': MovieAggregateSelect;
+    'def-204': MovieAggregateSelect;
     /** MovieCreate */
-    'def-32': MovieCreate;
+    'def-30': MovieCreate;
     /** MovieExportRequest */
-    'def-240': MovieExportRequest;
+    'def-228': MovieExportRequest;
     /** MovieFileDelete */
-    'def-41': MovieFileDelete;
+    'def-38': MovieFileDelete;
     /** MovieFiles */
-    'def-39': MovieFiles;
+    'def-36': MovieFiles;
     /** MovieFileUpload */
-    'def-40': MovieFileUpload;
+    'def-37': MovieFileUpload;
     /** MovieMultiple */
-    'def-30': MovieMultiple;
+    'def-28': MovieMultiple;
     /**
      * MovieQueryFilter
      * @description Query filter for the Movie resource
      */
-    'def-190': MovieQueryFilter;
+    'def-178': MovieQueryFilter;
     /** MovieQueryRequest */
-    'def-237': MovieQueryRequest;
+    'def-225': MovieQueryRequest;
     /** MovieQueryResponse */
-    'def-236': MovieQueryResponse;
+    'def-224': MovieQueryResponse;
     /**
      * MovieQuerySort
      * @description Query sort for the Movie resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-202': MovieQuerySort;
+    'def-190': MovieQuerySort;
     /** MovieSingle */
-    'def-29': MovieSingle;
+    'def-27': MovieSingle;
     /** MovieUpdate */
-    'def-33': MovieUpdate;
+    'def-31': MovieUpdate;
     /**
      * PermissionQueryFilter
      * @description Query filter for the Permission resource
      */
-    'def-197': PermissionQueryFilter;
+    'def-185': PermissionQueryFilter;
     /** PermissionSingle */
-    'def-127': PermissionSingle;
+    'def-118': PermissionSingle;
     /** PersonCreate */
-    'def-46': PersonCreate;
+    'def-43': PersonCreate;
     /** PersonExportRequest */
-    'def-245': PersonExportRequest;
+    'def-233': PersonExportRequest;
     /** PersonFileDelete */
-    'def-55': PersonFileDelete;
+    'def-51': PersonFileDelete;
     /** PersonFiles */
-    'def-53': PersonFiles;
+    'def-49': PersonFiles;
     /** PersonFileUpload */
-    'def-54': PersonFileUpload;
+    'def-50': PersonFileUpload;
     /** PersonMultiple */
-    'def-44': PersonMultiple;
+    'def-41': PersonMultiple;
     /**
      * PersonQueryFilter
      * @description Query filter for the Person resource
      */
-    'def-191': PersonQueryFilter;
+    'def-179': PersonQueryFilter;
     /** PersonQueryRequest */
-    'def-242': PersonQueryRequest;
+    'def-230': PersonQueryRequest;
     /** PersonQueryResponse */
-    'def-241': PersonQueryResponse;
+    'def-229': PersonQueryResponse;
     /**
      * PersonQuerySort
      * @description Query sort for the Person resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-203': PersonQuerySort;
+    'def-191': PersonQuerySort;
     /** PersonSingle */
-    'def-43': PersonSingle;
+    'def-40': PersonSingle;
     /** PersonUpdate */
-    'def-47': PersonUpdate;
+    'def-44': PersonUpdate;
     /** ProblemDetails */
-    'def-168': ProblemDetails;
+    'def-156': ProblemDetails;
     /**
      * QueryCondition
      * @description Field condition object combining comparison operators on a single field
      */
-    'def-187': QueryCondition;
+    'def-175': QueryCondition;
     /** ReviewAggregateRequest */
-    'def-249': ReviewAggregateRequest;
+    'def-237': ReviewAggregateRequest;
     /** ReviewAggregateResponse */
-    'def-248': ReviewAggregateResponse;
+    'def-236': ReviewAggregateResponse;
     /**
      * ReviewAggregateSelect
      * @description Aggregate selection for the Review resource, holding the operators to apply per aggregated field
      */
-    'def-218': ReviewAggregateSelect;
+    'def-206': ReviewAggregateSelect;
     /** ReviewCreate */
-    'def-60': ReviewCreate;
+    'def-56': ReviewCreate;
     /** ReviewExportRequest */
-    'def-250': ReviewExportRequest;
+    'def-238': ReviewExportRequest;
     /** ReviewMultiple */
-    'def-58': ReviewMultiple;
+    'def-54': ReviewMultiple;
     /**
      * ReviewQueryFilter
      * @description Query filter for the Review resource
      */
-    'def-192': ReviewQueryFilter;
+    'def-180': ReviewQueryFilter;
     /** ReviewQueryRequest */
-    'def-247': ReviewQueryRequest;
+    'def-235': ReviewQueryRequest;
     /** ReviewQueryResponse */
-    'def-246': ReviewQueryResponse;
+    'def-234': ReviewQueryResponse;
     /**
      * ReviewQuerySort
      * @description Query sort for the Review resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-204': ReviewQuerySort;
+    'def-192': ReviewQuerySort;
     /** ReviewSingle */
-    'def-57': ReviewSingle;
+    'def-53': ReviewSingle;
     /** ReviewUpdate */
-    'def-61': ReviewUpdate;
+    'def-57': ReviewUpdate;
     /**
      * RoleQueryFilter
      * @description Query filter for the Role resource
      */
-    'def-196': RoleQueryFilter;
+    'def-184': RoleQueryFilter;
     /** RoleSingle */
-    'def-113': RoleSingle;
+    'def-105': RoleSingle;
     /** UserAggregateRequest */
-    'def-254': UserAggregateRequest;
+    'def-242': UserAggregateRequest;
     /** UserAggregateResponse */
-    'def-253': UserAggregateResponse;
+    'def-241': UserAggregateResponse;
     /**
      * UserAggregateSelect
      * @description Aggregate selection for the User resource, holding the operators to apply per aggregated field
      */
-    'def-219': UserAggregateSelect;
+    'def-207': UserAggregateSelect;
     /** UserCreate */
-    'def-74': UserCreate;
+    'def-69': UserCreate;
     /** UserFileDelete */
-    'def-83': UserFileDelete;
+    'def-77': UserFileDelete;
     /** UserFiles */
-    'def-81': UserFiles;
+    'def-75': UserFiles;
     /** UserFileUpload */
-    'def-82': UserFileUpload;
+    'def-76': UserFileUpload;
     /** UserMultiple */
-    'def-72': UserMultiple;
+    'def-67': UserMultiple;
     /**
      * UserQueryFilter
      * @description Query filter for the User resource
      */
-    'def-193': UserQueryFilter;
+    'def-181': UserQueryFilter;
     /** UserQueryRequest */
-    'def-252': UserQueryRequest;
+    'def-240': UserQueryRequest;
     /** UserQueryResponse */
-    'def-251': UserQueryResponse;
+    'def-239': UserQueryResponse;
     /**
      * UserQuerySort
      * @description Query sort for the User resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-205': UserQuerySort;
+    'def-193': UserQuerySort;
     /** UserSingle */
-    'def-71': UserSingle;
+    'def-66': UserSingle;
     /** UserUpdate */
-    'def-75': UserUpdate;
+    'def-70': UserUpdate;
     /** WatchlistEntryCreate */
-    'def-88': WatchlistEntryCreate;
+    'def-82': WatchlistEntryCreate;
     /** WatchlistEntryMultiple */
-    'def-86': WatchlistEntryMultiple;
+    'def-80': WatchlistEntryMultiple;
     /**
      * WatchlistEntryQueryFilter
      * @description Query filter for the WatchlistEntry resource
      */
-    'def-194': WatchlistEntryQueryFilter;
+    'def-182': WatchlistEntryQueryFilter;
     /** WatchlistEntryQueryRequest */
-    'def-257': WatchlistEntryQueryRequest;
+    'def-245': WatchlistEntryQueryRequest;
     /** WatchlistEntryQueryResponse */
-    'def-256': WatchlistEntryQueryResponse;
+    'def-244': WatchlistEntryQueryResponse;
     /**
      * WatchlistEntryQuerySort
      * @description Query sort for the WatchlistEntry resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-206': WatchlistEntryQuerySort;
+    'def-194': WatchlistEntryQuerySort;
     /** WatchlistEntrySingle */
-    'def-85': WatchlistEntrySingle;
+    'def-79': WatchlistEntrySingle;
     /** WatchlistEntryUpdate */
-    'def-89': WatchlistEntryUpdate;
+    'def-83': WatchlistEntryUpdate;
     /** QueryFilterValue */
     QueryFilterValue: QueryFilterValue;
     /** QueryFilterScalar */
@@ -4872,20 +4872,16 @@ export type GenreQuerySort = {
   moviesCount?: SortDirection;
 };
 
-export type GenreRelationInput = {
-  /**
-   * @minimum 1
-   * @example 1 */
-  id?: number;
+export type GenreRelationCreate = {
   /**
    * @minLength 2
    * @maxLength 50
    * @example Science Fiction */
-  name?: string;
+  name: string;
   /**
    * @pattern ^[a-z0-9]+(?:-[a-z0-9]+)*$
    * @example science-fiction */
-  slug?: string;
+  slug: string;
 };
 
 export type GenreSingle = {
@@ -5098,7 +5094,18 @@ export type MovieCreate = {
    * @example 203400000 */
   revenueUsd?: number | null;
   keywords?: unknown | null;
-  genres?: (GenreRelationInput | number)[] | null;
+  genres?:
+    | (
+        | {
+            /**
+             * @minimum 1
+             * @example 1 */
+            id: number;
+          }
+        | GenreRelationCreate
+        | number
+      )[]
+    | null;
 };
 
 export type MovieExportRequest = {
@@ -5563,7 +5570,18 @@ export type MovieUpdate = {
    * @example 203400000 */
   revenueUsd?: number | null;
   keywords?: unknown | null;
-  genres?: (GenreRelationInput | number)[] | null;
+  genres?:
+    | (
+        | {
+            /**
+             * @minimum 1
+             * @example 1 */
+            id: number;
+          }
+        | GenreRelationCreate
+        | number
+      )[]
+    | null;
 };
 
 export type PermissionQueryFilter = {
@@ -7016,22 +7034,6 @@ export type CreditResourceModuleType = {
   fileDelete: never;
 };
 
-export type FileResourceModuleType = {
-  single: FileSingle;
-  querySort: FileQuerySort;
-  multiple: never;
-  create: never;
-  update: never;
-  queryRequest: never;
-  queryResponse: never;
-  aggregateRequest: never;
-  aggregateResponse: never;
-  exportRequest: never;
-  files: never;
-  fileUpload: never;
-  fileDelete: never;
-};
-
 export type GenreResourceModuleType = {
   single: GenreSingle;
   multiple: GenreMultiple;
@@ -7064,22 +7066,6 @@ export type MovieResourceModuleType = {
   fileDelete: MovieFileDelete;
 };
 
-export type PermissionResourceModuleType = {
-  single: PermissionSingle;
-  multiple: never;
-  create: never;
-  update: never;
-  queryRequest: never;
-  queryResponse: never;
-  querySort: never;
-  aggregateRequest: never;
-  aggregateResponse: never;
-  exportRequest: never;
-  files: never;
-  fileUpload: never;
-  fileDelete: never;
-};
-
 export type PersonResourceModuleType = {
   single: PersonSingle;
   multiple: PersonMultiple;
@@ -7107,22 +7093,6 @@ export type ReviewResourceModuleType = {
   aggregateRequest: ReviewAggregateRequest;
   aggregateResponse: ReviewAggregateResponse;
   exportRequest: ReviewExportRequest;
-  files: never;
-  fileUpload: never;
-  fileDelete: never;
-};
-
-export type RoleResourceModuleType = {
-  single: RoleSingle;
-  multiple: never;
-  create: never;
-  update: never;
-  queryRequest: never;
-  queryResponse: never;
-  querySort: never;
-  aggregateRequest: never;
-  aggregateResponse: never;
-  exportRequest: never;
   files: never;
   fileUpload: never;
   fileDelete: never;

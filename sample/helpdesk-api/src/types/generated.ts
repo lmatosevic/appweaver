@@ -68,12 +68,6 @@ export type CannedResponseRelationUpdate = {
   body?: string;
 };
 
-export type CannedResponseRelationInput = {
-  id?: number;
-  title?: string;
-  body?: string;
-};
-
 export type CannedResponseQuery = QueryFilter<CannedResponse>;
 
 export type CannedResponseSort = QuerySort<CannedResponseMultiple>;
@@ -153,14 +147,6 @@ export type CustomerRelationUpdate = {
   vip?: boolean;
 };
 
-export type CustomerRelationInput = {
-  id?: number;
-  email?: string;
-  name?: string;
-  company?: string | null;
-  vip?: boolean;
-};
-
 export type CustomerQuery = QueryFilter<Customer>;
 
 export type CustomerSort = QuerySort<CustomerMultiple>;
@@ -230,13 +216,6 @@ export type SlaPolicyRelationUpdate = {
   resolutionMinutes?: number;
 };
 
-export type SlaPolicyRelationInput = {
-  id?: number;
-  priority?: 'Low' | 'Normal' | 'High' | 'Urgent';
-  firstResponseMinutes?: number;
-  resolutionMinutes?: number;
-};
-
 export type SlaPolicyQuery = QueryFilter<SlaPolicy>;
 
 export type SlaPolicySort = QuerySort<SlaPolicyMultiple>;
@@ -298,12 +277,6 @@ export type TagRelationCreate = {
 
 export type TagRelationUpdate = {
   id: number;
-  name?: string;
-  slug?: string;
-};
-
-export type TagRelationInput = {
-  id?: number;
   name?: string;
   slug?: string;
 };
@@ -380,13 +353,6 @@ export type TeamRelationCreate = {
 
 export type TeamRelationUpdate = {
   id: number;
-  name?: string;
-  slug?: string;
-  email?: string;
-};
-
-export type TeamRelationInput = {
-  id?: number;
   name?: string;
   slug?: string;
   email?: string;
@@ -472,12 +438,6 @@ export type TicketMessageRelationCreate = {
 export type TicketMessageRelationUpdate = {
   id: number;
   body?: string;
-};
-
-export type TicketMessageRelationInput = {
-  id?: number;
-  body?: string;
-  internal?: boolean;
 };
 
 export type TicketMessageQuery = QueryFilter<TicketMessage>;
@@ -569,7 +529,12 @@ export type TicketCreate = {
   priority?: 'Low' | 'Normal' | 'High' | 'Urgent';
   channel?: 'Web' | 'Email' | 'Api';
   description: string;
-  customer: CustomerRelationInput | number;
+  customer:
+    | {
+        id: number;
+      }
+    | CustomerRelationCreate
+    | number;
   team?:
     | {
         id: number;
@@ -580,7 +545,13 @@ export type TicketCreate = {
         id: number;
       }
     | number;
-  tags?: Array<TagRelationInput | number> | null;
+  tags?: Array<
+    | {
+        id: number;
+      }
+    | TagRelationCreate
+    | number
+  > | null;
 };
 
 export type TicketUpdate = {
@@ -597,7 +568,13 @@ export type TicketUpdate = {
         id: number;
       }
     | number;
-  tags?: Array<TagRelationInput | number> | null;
+  tags?: Array<
+    | {
+        id: number;
+      }
+    | TagRelationCreate
+    | number
+  > | null;
 };
 
 export type TicketRelationCreate = {
@@ -612,15 +589,6 @@ export type TicketRelationUpdate = {
   subject?: string;
   status?: 'New' | 'Open' | 'Pending' | 'Resolved' | 'Closed';
   priority?: 'Low' | 'Normal' | 'High' | 'Urgent';
-};
-
-export type TicketRelationInput = {
-  id?: string;
-  subject?: string;
-  priority?: 'Low' | 'Normal' | 'High' | 'Urgent';
-  channel?: 'Web' | 'Email' | 'Api';
-  description?: string;
-  status?: 'New' | 'Open' | 'Pending' | 'Resolved' | 'Closed';
 };
 
 export type TicketQuery = QueryFilter<Ticket>;
@@ -751,16 +719,6 @@ export type UserRelationUpdate = {
   password?: string;
 };
 
-export type UserRelationInput = {
-  id?: number;
-  name?: string;
-  email?: string;
-  available?: boolean;
-  twoFactorAuth?: 'None' | 'Email';
-  enabled?: boolean;
-  password?: string;
-};
-
 export type UserQuery = QueryFilter<User>;
 
 export type UserSort = QuerySort<UserMultiple>;
@@ -840,14 +798,6 @@ export type ApiKeyRelationUpdate = {
   enabled?: boolean;
 };
 
-export type ApiKeyRelationInput = {
-  id?: number;
-  name?: string | null;
-  description?: string | null;
-  enabled?: boolean;
-  expiresAt?: Date | null;
-};
-
 export type ApiKeyQuery = QueryFilter<ApiKey>;
 
 export type ApiKeySort = QuerySort<ApiKeyMultiple>;
@@ -918,14 +868,6 @@ export type OneTimeTokenRelationUpdate = {
   expiresAt?: Date;
 };
 
-export type OneTimeTokenRelationInput = {
-  id?: number;
-  tokenHash?: string;
-  purpose?: string;
-  data?: any;
-  expiresAt?: Date;
-};
-
 export type OneTimeTokenQuery = QueryFilter<OneTimeToken>;
 
 export type OneTimeTokenSort = QuerySort<OneTimeTokenMultiple>;
@@ -990,11 +932,6 @@ export type RoleRelationUpdate = {
   name?: string;
 };
 
-export type RoleRelationInput = {
-  id?: number;
-  name?: string;
-};
-
 export type RoleQuery = QueryFilter<Role>;
 
 export type RoleSort = QuerySort<RoleMultiple>;
@@ -1041,11 +978,6 @@ export type PermissionRelationCreate = {
 
 export type PermissionRelationUpdate = {
   id: number;
-  name?: string;
-};
-
-export type PermissionRelationInput = {
-  id?: number;
   name?: string;
 };
 
@@ -1145,17 +1077,6 @@ export type FileRelationCreate = {
 
 export type FileRelationUpdate = {
   id: number;
-  name?: string;
-  originalName?: string;
-  mimeType?: string;
-  sizeBytes?: number;
-  checksum?: string;
-  title?: string | null;
-  description?: string | null;
-};
-
-export type FileRelationInput = {
-  id?: number;
   name?: string;
   originalName?: string;
   mimeType?: string;

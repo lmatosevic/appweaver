@@ -91,17 +91,6 @@ export type AddressRelationUpdate = {
   isDefault?: boolean;
 };
 
-export type AddressRelationInput = {
-  id?: number;
-  label?: string;
-  recipient?: string;
-  street?: string;
-  city?: string;
-  postalCode?: string;
-  country?: string;
-  isDefault?: boolean;
-};
-
 export type AddressQuery = QueryFilter<Address>;
 
 export type AddressSort = QuerySort<AddressMultiple>;
@@ -172,13 +161,6 @@ export type BrandRelationCreate = {
 
 export type BrandRelationUpdate = {
   id: number;
-  name?: string;
-  slug?: string;
-  website?: string | null;
-};
-
-export type BrandRelationInput = {
-  id?: number;
   name?: string;
   slug?: string;
   website?: string | null;
@@ -257,14 +239,6 @@ export type CategoryRelationCreate = {
 
 export type CategoryRelationUpdate = {
   id: number;
-  name?: string;
-  slug?: string;
-  description?: string | null;
-  position?: number;
-};
-
-export type CategoryRelationInput = {
-  id?: number;
   name?: string;
   slug?: string;
   description?: string | null;
@@ -381,18 +355,6 @@ export type CouponRelationUpdate = {
   active?: boolean;
 };
 
-export type CouponRelationInput = {
-  id?: number;
-  code?: string;
-  type?: 'Percentage' | 'Fixed';
-  value?: number;
-  minOrderTotal?: number;
-  validFrom?: Date | null;
-  validUntil?: Date | null;
-  maxRedemptions?: number | null;
-  active?: boolean;
-};
-
 export type CouponQuery = QueryFilter<Coupon>;
 
 export type CouponSort = QuerySort<CouponMultiple>;
@@ -491,15 +453,6 @@ export type OrderItemRelationCreate = {
 
 export type OrderItemRelationUpdate = {
   id: number;
-  productName?: string;
-  sku?: string;
-  unitPrice?: number;
-  quantity?: number;
-  lineTotal?: number;
-};
-
-export type OrderItemRelationInput = {
-  id?: number;
   productName?: string;
   sku?: string;
   unitPrice?: number;
@@ -686,30 +639,6 @@ export type OrderRelationUpdate = {
   note?: string | null;
 };
 
-export type OrderRelationInput = {
-  id?: string;
-  number?: string;
-  status?:
-    | 'Pending'
-    | 'Paid'
-    | 'Shipped'
-    | 'Delivered'
-    | 'Cancelled'
-    | 'PaymentFailed';
-  subtotal?: number;
-  discount?: number;
-  shippingCost?: number;
-  total?: number;
-  shippingAddress?: any;
-  paidAt?: Date | null;
-  shippedAt?: Date | null;
-  deliveredAt?: Date | null;
-  cancelledAt?: Date | null;
-  carrier?: string | null;
-  trackingNumber?: string | null;
-  note?: string | null;
-};
-
 export type OrderQuery = QueryFilter<Order>;
 
 export type OrderSort = QuerySort<OrderMultiple>;
@@ -869,20 +798,6 @@ export type ProductRelationUpdate = {
   weightGrams?: number | null;
 };
 
-export type ProductRelationInput = {
-  id?: number;
-  name?: string;
-  slug?: string;
-  sku?: string;
-  description?: string | null;
-  price?: number;
-  compareAtPrice?: number | null;
-  stock?: number;
-  status?: 'Draft' | 'Active' | 'Archived';
-  attributes?: any | null;
-  weightGrams?: number | null;
-};
-
 export type ProductQuery = QueryFilter<Product>;
 
 export type ProductSort = QuerySort<ProductMultiple>;
@@ -966,13 +881,6 @@ export type ReviewRelationCreate = {
 
 export type ReviewRelationUpdate = {
   id: number;
-  rating?: number;
-  title?: string | null;
-  body?: string | null;
-};
-
-export type ReviewRelationInput = {
-  id?: number;
   rating?: number;
   title?: string | null;
   body?: string | null;
@@ -1112,18 +1020,6 @@ export type UserRelationUpdate = {
   password?: string;
 };
 
-export type UserRelationInput = {
-  id?: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string | null;
-  marketingOptIn?: boolean;
-  twoFactorAuth?: 'None' | 'Email';
-  enabled?: boolean;
-  password?: string;
-};
-
 export type UserQuery = QueryFilter<User>;
 
 export type UserSort = QuerySort<UserMultiple>;
@@ -1203,14 +1099,6 @@ export type ApiKeyRelationUpdate = {
   enabled?: boolean;
 };
 
-export type ApiKeyRelationInput = {
-  id?: number;
-  name?: string | null;
-  description?: string | null;
-  enabled?: boolean;
-  expiresAt?: Date | null;
-};
-
 export type ApiKeyQuery = QueryFilter<ApiKey>;
 
 export type ApiKeySort = QuerySort<ApiKeyMultiple>;
@@ -1281,14 +1169,6 @@ export type OneTimeTokenRelationUpdate = {
   expiresAt?: Date;
 };
 
-export type OneTimeTokenRelationInput = {
-  id?: number;
-  tokenHash?: string;
-  purpose?: string;
-  data?: any;
-  expiresAt?: Date;
-};
-
 export type OneTimeTokenQuery = QueryFilter<OneTimeToken>;
 
 export type OneTimeTokenSort = QuerySort<OneTimeTokenMultiple>;
@@ -1353,11 +1233,6 @@ export type RoleRelationUpdate = {
   name?: string;
 };
 
-export type RoleRelationInput = {
-  id?: number;
-  name?: string;
-};
-
 export type RoleQuery = QueryFilter<Role>;
 
 export type RoleSort = QuerySort<RoleMultiple>;
@@ -1404,11 +1279,6 @@ export type PermissionRelationCreate = {
 
 export type PermissionRelationUpdate = {
   id: number;
-  name?: string;
-};
-
-export type PermissionRelationInput = {
-  id?: number;
   name?: string;
 };
 
@@ -1508,17 +1378,6 @@ export type FileRelationCreate = {
 
 export type FileRelationUpdate = {
   id: number;
-  name?: string;
-  originalName?: string;
-  mimeType?: string;
-  sizeBytes?: number;
-  checksum?: string;
-  title?: string | null;
-  description?: string | null;
-};
-
-export type FileRelationInput = {
-  id?: number;
   name?: string;
   originalName?: string;
   mimeType?: string;

@@ -88,14 +88,6 @@ export type CategoryRelationUpdate = {
   position?: number;
 };
 
-export type CategoryRelationInput = {
-  id?: number;
-  name?: string;
-  slug?: string;
-  description?: string | null;
-  position?: number;
-};
-
 export type CategoryQuery = QueryFilter<Category>;
 
 export type CategorySort = QuerySort<CategoryMultiple>;
@@ -183,14 +175,6 @@ export type CommentRelationCreate = {
 
 export type CommentRelationUpdate = {
   id: string;
-  body?: string;
-  guestName?: string | null;
-  guestEmail?: string | null;
-  status?: ('Pending' | 'Approved' | 'Spam') | null;
-};
-
-export type CommentRelationInput = {
-  id?: string;
   body?: string;
   guestName?: string | null;
   guestEmail?: string | null;
@@ -307,18 +291,6 @@ export type PageRelationUpdate = {
   seo?: any | null;
 };
 
-export type PageRelationInput = {
-  id?: number;
-  title?: string;
-  slug?: string;
-  content?: string;
-  status?: ('Draft' | 'Published' | 'Archived') | null;
-  publishedAt?: Date | null;
-  showInMenu?: boolean;
-  menuPosition?: number;
-  seo?: any | null;
-};
-
 export type PageQuery = QueryFilter<Page>;
 
 export type PageSort = QuerySort<PageMultiple>;
@@ -422,7 +394,13 @@ export type PostCreate = {
         id: number;
       }
     | number;
-  tags?: Array<TagRelationInput | number> | null;
+  tags?: Array<
+    | {
+        id: number;
+      }
+    | TagRelationCreate
+    | number
+  > | null;
   pinnedComment?:
     | {
         id: string;
@@ -444,7 +422,7 @@ export type PostUpdate = {
         id: number;
       }
     | number;
-  tags?: Array<TagRelationInput | number> | null;
+  tags?: Array<TagRelationUpdate | TagRelationCreate | number> | null;
   pinnedComment?:
     | {
         id: string;
@@ -465,18 +443,6 @@ export type PostRelationCreate = {
 
 export type PostRelationUpdate = {
   id: number;
-  title?: string;
-  slug?: string;
-  excerpt?: string | null;
-  content?: string | null;
-  status?: ('Draft' | 'Published' | 'Archived') | null;
-  publishedAt?: Date | null;
-  featured?: boolean;
-  seo?: any | null;
-};
-
-export type PostRelationInput = {
-  id?: number;
   title?: string;
   slug?: string;
   excerpt?: string | null;
@@ -548,12 +514,6 @@ export type TagRelationCreate = {
 
 export type TagRelationUpdate = {
   id: number;
-  name?: string;
-  slug?: string;
-};
-
-export type TagRelationInput = {
-  id?: number;
   name?: string;
   slug?: string;
 };
@@ -711,20 +671,6 @@ export type UserRelationUpdate = {
   password?: string;
 };
 
-export type UserRelationInput = {
-  id?: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string | null;
-  displayName?: string | null;
-  bio?: string | null;
-  website?: string | null;
-  twoFactorAuth?: 'None' | 'Email';
-  enabled?: boolean;
-  password?: string;
-};
-
 export type UserQuery = QueryFilter<User>;
 
 export type UserSort = QuerySort<UserMultiple>;
@@ -804,14 +750,6 @@ export type ApiKeyRelationUpdate = {
   enabled?: boolean;
 };
 
-export type ApiKeyRelationInput = {
-  id?: number;
-  name?: string | null;
-  description?: string | null;
-  enabled?: boolean;
-  expiresAt?: Date | null;
-};
-
 export type ApiKeyQuery = QueryFilter<ApiKey>;
 
 export type ApiKeySort = QuerySort<ApiKeyMultiple>;
@@ -880,14 +818,6 @@ export type ConnectedAccountRelationCreate = {
 
 export type ConnectedAccountRelationUpdate = {
   id: number;
-  provider?: string;
-  providerAccountId?: string;
-  scope?: string | null;
-  lastLoginAt?: Date;
-};
-
-export type ConnectedAccountRelationInput = {
-  id?: number;
   provider?: string;
   providerAccountId?: string;
   scope?: string | null;
@@ -964,14 +894,6 @@ export type OneTimeTokenRelationUpdate = {
   expiresAt?: Date;
 };
 
-export type OneTimeTokenRelationInput = {
-  id?: number;
-  tokenHash?: string;
-  purpose?: string;
-  data?: any;
-  expiresAt?: Date;
-};
-
 export type OneTimeTokenQuery = QueryFilter<OneTimeToken>;
 
 export type OneTimeTokenSort = QuerySort<OneTimeTokenMultiple>;
@@ -1036,11 +958,6 @@ export type RoleRelationUpdate = {
   name?: string;
 };
 
-export type RoleRelationInput = {
-  id?: number;
-  name?: string;
-};
-
 export type RoleQuery = QueryFilter<Role>;
 
 export type RoleSort = QuerySort<RoleMultiple>;
@@ -1087,11 +1004,6 @@ export type PermissionRelationCreate = {
 
 export type PermissionRelationUpdate = {
   id: number;
-  name?: string;
-};
-
-export type PermissionRelationInput = {
-  id?: number;
   name?: string;
 };
 
@@ -1191,17 +1103,6 @@ export type FileRelationCreate = {
 
 export type FileRelationUpdate = {
   id: number;
-  name?: string;
-  originalName?: string;
-  mimeType?: string;
-  sizeBytes?: number;
-  checksum?: string;
-  title?: string | null;
-  description?: string | null;
-};
-
-export type FileRelationInput = {
-  id?: number;
   name?: string;
   originalName?: string;
   mimeType?: string;

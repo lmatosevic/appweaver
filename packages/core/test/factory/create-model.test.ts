@@ -126,7 +126,6 @@ describe('create-model', () => {
       const model = createModel({ name: 'Comment', id: { type: 'string' } });
 
       expect(properties(model.relationUpdateModel).id.type).toBe('string');
-      expect(properties(model.relationInputModel).id.type).toBe('string');
     });
   });
 
@@ -579,12 +578,12 @@ describe('create-model', () => {
         }
       });
 
-      // A single object schema takes part in the union, so that the server
-      // does not strip the fields of the shapes it does not match
+      // An item with an id connects, one without it is created inline
       const author = properties(model.createOneModel).author;
-      expect(author.anyOf).toHaveLength(2);
-      expect(author.anyOf[0].$ref).toBe('UserRelationInput');
-      expect(author.anyOf[1].type).toBe('integer');
+      expect(author.anyOf).toHaveLength(3);
+      expect(keys(author.anyOf[0])).toEqual(['id']);
+      expect(author.anyOf[1].$ref).toBe('UserRelationCreate');
+      expect(author.anyOf[2].type).toBe('integer');
     });
 
     test('adds the inline update input only to the update model', () => {
@@ -607,7 +606,9 @@ describe('create-model', () => {
       expect(keys(createAuthor.anyOf[0])).toEqual(['id']);
 
       const updateAuthor = properties(model.updateOneModel).author;
-      expect(updateAuthor.anyOf[0].$ref).toBe('UserRelationInput');
+      expect(updateAuthor.anyOf).toHaveLength(2);
+      expect(updateAuthor.anyOf[0].$ref).toBe('UserRelationUpdate');
+      expect(updateAuthor.anyOf[1].type).toBe('integer');
     });
 
     test('accepts mixed connect and inline inputs for a list relation', () => {
@@ -624,8 +625,28 @@ describe('create-model', () => {
 
       const tags = properties(model.createOneModel).tags;
       expect(tags.type).toBe('array');
-      expect(tags.items.anyOf).toHaveLength(2);
-      expect(tags.items.anyOf[0].$ref).toBe('TagRelationInput');
+      expect(tags.items.anyOf).toHaveLength(3);
+      expect(tags.items.anyOf[1].$ref).toBe('TagRelationCreate');
+    });
+
+    test('accepts both inline writes in the update model', () => {
+      const model = createModel({
+        name: 'Post',
+        relations: {
+          tags: {
+            model: 'Tag',
+            type: 'manyToMany',
+            input: { type: 'all', allowCreate: true, allowUpdate: true }
+          }
+        }
+      });
+
+      const tags = properties(model.updateOneModel).tags;
+      expect(tags.items.anyOf.map((s: any) => s.$ref ?? s.type)).toEqual([
+        'TagRelationUpdate',
+        'TagRelationCreate',
+        'integer'
+      ]);
     });
 
     test('builds the relation input data models', () => {
@@ -645,7 +666,7 @@ describe('create-model', () => {
       expect(model.relationUpdateModel.required).toEqual(['id']);
     });
 
-    test('accepts the create and the update fields in the relation input model', () => {
+    test('applies the field restrictions to the relation input data models', () => {
       const model = createModel({
         name: 'Post',
         scalars: {
@@ -657,16 +678,8 @@ describe('create-model', () => {
         update: { pick: ['title', 'views'] }
       });
 
-      // The request schema carries the fields of both actions, since the
-      // service applies the per-action restrictions itself
-      expect(model.relationInputModel.$id).toBe('PostRelationInput');
-      expect(keys(model.relationInputModel)).toEqual([
-        'id',
-        'title',
-        'slug',
-        'views'
-      ]);
-      expect(model.relationInputModel.required ?? []).toEqual([]);
+      expect(keys(model.relationCreateModel)).toEqual(['title', 'slug']);
+      expect(keys(model.relationUpdateModel)).toEqual(['id', 'title', 'views']);
     });
 
     test('excludes a relation from the inputs when configured', () => {
@@ -895,7 +908,6 @@ describe('create-model', () => {
       expect(model.readManyModel.$id).toBe('PostMultiple');
       expect(model.relationCreateModel.$id).toBe('PostRelationCreate');
       expect(model.relationUpdateModel.$id).toBe('PostRelationUpdate');
-      expect(model.relationInputModel.$id).toBe('PostRelationInput');
       expect(model.virtualModel.$id).toBe('PostVirtual');
       expect(model.relationsModel.$id).toBe('PostRelations');
       expect(model.filesModel.$id).toBe('PostFiles');

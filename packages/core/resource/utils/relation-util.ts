@@ -9,7 +9,6 @@ import {
   isPlainObject,
   isRelationArray,
   OutputType,
-  pickProperties,
   RelationField,
   ResourceId,
   ResourceModel
@@ -112,8 +111,9 @@ export function mapRelationInclusions(
  * @return {RelationActions} The nested write clause per relation field, mapping each one to its `connect`, `create`,
  * `update`, `connectOrCreate`, `disconnect` and `delete` actions, or to undefined for the relations no action can be
  * applied to.
- * @throws {ResourceError} `RESOURCE_INVALID_RELATION` if an inline create payload is missing required fields, or if the relation accepts no new
- * records and an id was not provided.
+ * @throws {ResourceError} `RESOURCE_INVALID_RELATION` if an inline payload holds fields the related model does not
+ * accept for its action, an inline create payload is missing required fields, a record with an id carries data the
+ * relation cannot update inline, or the relation accepts no new records and an id was not provided.
  */
 export function mapRelationActions(
   resourceName: string,
@@ -201,21 +201,27 @@ export function mapRelationActions(
         }
 
         if (item.id !== undefined && item.id !== null) {
-          const { id, ...itemData } = item;
-          const updateData = relationWriteData(
-            config?.model,
-            'update',
-            itemData
-          );
-          if (
-            action === 'update' &&
-            config?.input?.allowUpdate &&
-            Object.keys(updateData).length > 0
-          ) {
-            actions.update.push({ where: { id }, data: updateData });
-          } else {
+          const { id, ...updateData } = item;
+          const fields = Object.keys(updateData);
+          if (fields.length === 0) {
             actions.connect.push({ id });
+            continue;
           }
+
+          // The database updates relations only within an update action
+          if (action !== 'update' || !config?.input?.allowUpdate) {
+            throw new ResourceError(
+              ErrorCode.ResourceInvalidRelation,
+              `${resourceName} relation '${key}' does not accept inline updates, an existing record is connected by its id only`,
+              { model: resourceName, relation: key, unknownFields: fields }
+            );
+          }
+          assertKnownFields(
+            resourceName,
+            key,
+            unknownRelationFields(config?.model, 'update', updateData)
+          );
+          actions.update.push({ where: { id }, data: updateData });
         } else if (!config?.input?.allowCreate) {
           // Without inline creation the related record must already exist,
           // so it is created through its own endpoint first
@@ -225,7 +231,13 @@ export function mapRelationActions(
             { model: resourceName, relation: key }
           );
         } else {
-          const createData = relationWriteData(config?.model, 'create', item);
+          // A null id marks no existing record, it is not part of the data
+          const { id: _id, ...createData } = item;
+          assertKnownFields(
+            resourceName,
+            key,
+            unknownRelationFields(config?.model, 'create', createData)
+          );
           const missingFields = missingRelationFields(
             config?.model,
             createData
@@ -302,23 +314,22 @@ export function mapRelationActions(
 }
 
 /**
- * Restricts an inline relation payload to the fields the related model accepts for the given action. The request
- * schema accepts the create and the update fields together, since the action is only resolved by the service, so the
- * configured field restrictions of the related model are applied here instead.
+ * Lists the fields of an inline relation payload the related model does not accept for the given action, so a payload
+ * written through a service call is rejected the same way the request validation rejects it.
  *
  * @param {string} [resourceName] - The name of the related model whose field restrictions are applied. When omitted,
- * the payload is returned unchanged.
- * @param {'create'|'update'} action - The write action the payload is restricted for, selecting either the relation
+ * no fields are reported.
+ * @param {'create'|'update'} action - The write action the payload is checked for, selecting either the relation
  * create or the relation update model of the related resource.
- * @param {Object} data - The inline relation payload to restrict.
- * @return {Object} The payload reduced to the fields the related model accepts for the action, excluding the `id`
- * field, or the payload unchanged if the related model declares no fields for it.
+ * @param {Object} data - The inline relation payload to check, without its `id` field.
+ * @return {string[]} The names of the payload fields the related model does not accept for the action, or an empty
+ * list if the related model declares no fields for it.
  */
-export function relationWriteData(
+export function unknownRelationFields(
   resourceName: string | undefined,
   action: 'create' | 'update',
   data: any
-): any {
+): string[] {
   const resourceModel = resourceName
     ? injectModel(resourceName, false)
     : undefined;
@@ -330,13 +341,10 @@ export function relationWriteData(
 
   const properties = extractSchemaProperties(writeModel);
   if (!properties) {
-    return data;
+    return [];
   }
 
-  return pickProperties(
-    data,
-    Object.keys(properties).filter((name) => name !== 'id')
-  );
+  return Object.keys(data).filter((name) => !(name in properties));
 }
 
 /**
@@ -523,4 +531,18 @@ function shouldIncludeRelation(
     return false;
   }
   return !(outputType === 'multiple' && action && action !== 'query');
+}
+
+function assertKnownFields(
+  resourceName: string,
+  relation: string,
+  unknownFields: string[]
+): void {
+  if (unknownFields.length > 0) {
+    throw new ResourceError(
+      ErrorCode.ResourceInvalidRelation,
+      `${resourceName} relation '${relation}' does not accept the fields: ${unknownFields.join(', ')}`,
+      { model: resourceName, relation, unknownFields }
+    );
+  }
 }

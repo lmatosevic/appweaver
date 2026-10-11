@@ -67,6 +67,7 @@ const configSchema = Type.Object({
   SERVER_TRUST_PROXY: Type.Boolean({ default: true }),
   SERVER_REQUEST_LOGGING_ENABLED: Type.Boolean({ default: false }),
   SERVER_ERROR_DATABASE_MESSAGE_ENABLED: Type.Boolean({ default: false }),
+  SERVER_ERROR_RESPONSE_MAX_COUNT: Type.Integer({ default: 20 }),
 
   RATE_LIMIT_ENABLED: Type.Boolean({ default: true }),
   RATE_LIMIT_MAX: Type.Integer({ default: 1000 }),

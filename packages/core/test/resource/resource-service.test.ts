@@ -898,7 +898,7 @@ describe('resource-service', () => {
       });
     });
 
-    test('connects instead of updating inline on the create action', async () => {
+    test('rejects an inline update on the create action', async () => {
       createModel(
         {
           name: 'Post',
@@ -916,13 +916,15 @@ describe('resource-service', () => {
       );
       linkModels();
 
-      await new PostService().create({
-        title: 'First',
-        author: { id: 5, email: 'ada@mail.com' }
-      });
-
-      expect(db.lastQuery('create').args.data.author).toEqual({
-        connect: { id: 5 }
+      await expect(
+        new PostService().create({
+          title: 'First',
+          author: { id: 5, email: 'ada@mail.com' }
+        })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidRelation,
+        message: expect.stringContaining('does not accept inline updates'),
+        details: { relation: 'author', unknownFields: ['email'] }
       });
     });
 
@@ -1012,7 +1014,7 @@ describe('resource-service', () => {
       });
     });
 
-    test('drops the fields excluded from the related create model', async () => {
+    test('rejects the fields excluded from the related create model', async () => {
       createModel(
         {
           name: 'Tag',
@@ -1037,13 +1039,14 @@ describe('resource-service', () => {
       );
       linkModels();
 
-      await new PostService().create({
-        title: 'First',
-        tags: [{ name: 'fresh', hits: 99 }]
-      });
-
-      expect(db.lastQuery('create').args.data.tags).toEqual({
-        create: [{ name: 'fresh' }]
+      await expect(
+        new PostService().create({
+          title: 'First',
+          tags: [{ name: 'fresh', hits: 99 }]
+        })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidRelation,
+        details: { relation: 'tags', unknownFields: ['hits'] }
       });
     });
 
@@ -1287,7 +1290,7 @@ describe('resource-service', () => {
       });
     });
 
-    test('drops the fields excluded from the related update model', async () => {
+    test('rejects the fields excluded from the related update model', async () => {
       createModel(
         {
           name: 'Tag',
@@ -1317,16 +1320,17 @@ describe('resource-service', () => {
         tags: [{ id: 1 }]
       });
 
-      await new PostService().update(1, {
-        tags: [{ id: 1, name: 'renamed', hits: 99 }]
-      });
-
-      expect(db.lastQuery('update').args.data.tags).toEqual({
-        update: [{ where: { id: 1 }, data: { name: 'renamed' } }]
+      await expect(
+        new PostService().update(1, {
+          tags: [{ id: 1, name: 'renamed', hits: 99 }]
+        })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidRelation,
+        details: { relation: 'tags', unknownFields: ['hits'] }
       });
     });
 
-    test('connects when every inline field is excluded from the update model', async () => {
+    test('rejects an inline update holding only excluded fields', async () => {
       createModel(
         {
           name: 'Tag',
@@ -1356,10 +1360,11 @@ describe('resource-service', () => {
         tags: [{ id: 1 }]
       });
 
-      await new PostService().update(1, { tags: [{ id: 1, hits: 99 }] });
-
-      expect(db.lastQuery('update').args.data.tags).toEqual({
-        connect: [{ id: 1 }]
+      await expect(
+        new PostService().update(1, { tags: [{ id: 1, hits: 99 }] })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidRelation,
+        details: { relation: 'tags', unknownFields: ['hits'] }
       });
     });
 

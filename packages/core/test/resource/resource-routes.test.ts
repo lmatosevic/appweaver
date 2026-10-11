@@ -382,6 +382,25 @@ describe('resource-routes', () => {
         expect(service.query).not.toHaveBeenCalled();
       });
 
+      test('reports an invalid sort and filter together', async () => {
+        const { status, body } = await request(
+          'GET',
+          `/posts/query?${queryString({
+            sort: { titel: 'asc' },
+            filter: { _or: [{ views: 1 }, { bogus: 2 }] }
+          })}`
+        );
+
+        expect(status).toBe(400);
+        expect(body.errors).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ field: 'sort.titel' }),
+            expect.objectContaining({ field: 'filter._or.1.bogus' })
+          ])
+        );
+        expect(body.errors).toHaveLength(2);
+      });
+
       test('rejects a malformed JSON filter', async () => {
         const { status, body } = await request(
           'GET',

@@ -168,8 +168,7 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
     createOneModel,
     updateOneModel,
     relationCreateModel,
-    relationUpdateModel,
-    relationInputModel
+    relationUpdateModel
   } = buildInputModels(
     createModel,
     updateModel,
@@ -196,7 +195,6 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
     updateOneModel,
     relationCreateModel,
     relationUpdateModel,
-    relationInputModel,
     fileUploadModel,
     fileDeleteModel
   };
@@ -470,7 +468,6 @@ function buildInputModels(
   updateOneModel: TObject;
   relationCreateModel: TObject;
   relationUpdateModel: TObject;
-  relationInputModel: TObject;
 } {
   const virtualConfig = config.virtual;
   const relationsConfig = config.relations;
@@ -487,8 +484,9 @@ function buildInputModels(
   );
 
   // Data models accepted when this model is written inline through another
-  // model's relation input. Relations and files are excluded, so nested
-  // writes stay limited to the model's own columns, enforced by the service.
+  // model's relation input: created without an id, or updated by its id.
+  // Relations and files are excluded, so nested writes stay limited to the
+  // model's own columns.
   const relationCreateModel = Type.Composite([adjustedCreateModel], {
     $id: `${config.name}RelationCreate`
   });
@@ -496,25 +494,12 @@ function buildInputModels(
     $id: `${config.name}RelationUpdate`
   });
 
-  // Wire model for nested relation writes, holding the id together with the
-  // fields of both shapes above. The service restricts the payload to the
-  // shape of the action it resolves to, see relationWriteData.
-  const relationInputModel = Type.Object(
-    {
-      id: Type.Optional(idSchema.properties.id),
-      ...optionalProperties(adjustedCreateModel),
-      ...optionalProperties(adjustedUpdateModel)
-    },
-    { $id: `${config.name}RelationInput` }
-  );
-
   if (Object.keys(relationsConfig ?? {}).length === 0) {
     return {
       createOneModel: adjustedCreateModel,
       updateOneModel: adjustedUpdateModel,
       relationCreateModel,
-      relationUpdateModel,
-      relationInputModel
+      relationUpdateModel
     };
   }
 
@@ -544,19 +529,8 @@ function buildInputModels(
     createOneModel,
     updateOneModel,
     relationCreateModel,
-    relationUpdateModel,
-    relationInputModel
+    relationUpdateModel
   };
-}
-
-function optionalProperties(schema: TObject): Record<string, TSchema> {
-  const properties: Record<string, TSchema> = {};
-
-  for (const [name, field] of Object.entries(schema.properties)) {
-    properties[name] = Type.Optional(field);
-  }
-
-  return properties;
 }
 
 function buildFileInputModels(config: ResourceModelConfig): {
@@ -608,20 +582,22 @@ function relationInputProperties<T extends TObject>(
     }
 
     // Inline updates carry the related record id, so only parent update
-    // requests accept them
-    const acceptsInlineWrite =
-      config?.input?.allowCreate ||
-      (config?.input?.allowUpdate && inputType === 'update');
+    // requests accept them, since the database updates relations only within
+    // an update action
+    const acceptsUpdate = config?.input?.allowUpdate && inputType === 'update';
 
     // Existing records are connected by an id object or a bare id value, both
-    // typed after the primary key of the related model. Relations accepting
-    // inline writes take the permissive input model instead, which also covers
-    // a lone id.
+    // typed after the primary key of the related model. An item with an id is
+    // an inline update when the relation accepts them (a lone id still
+    // connects), and an item without one is an inline create
     const relatedIdField = referencedIdField(config?.model);
     const itemSchemas: TSchema[] = [
-      acceptsInlineWrite
-        ? Type.Ref(`${config.model}RelationInput`)
+      acceptsUpdate
+        ? Type.Ref(`${config.model}RelationUpdate`)
         : buildIdSchema(relatedIdField),
+      ...(config?.input?.allowCreate
+        ? [Type.Ref(`${config.model}RelationCreate`)]
+        : []),
       idValueSchema(relatedIdField)
     ];
 

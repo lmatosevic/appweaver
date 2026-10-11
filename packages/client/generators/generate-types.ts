@@ -585,6 +585,18 @@ function combineModuleTypes(typeContent: string, schema: OpenAPI3): string {
     }
   }
 
+  // A type named after the suffixes of another resource (i.e. the inline
+  // `PostRelationCreate`) is not a resource of its own
+  const config: Partial<RoutePathConfig> | undefined = schema[CONFIG_FIELD];
+  const resourceNames = config?.resourcePaths?.map((rp) => rp.name);
+  if (resourceNames) {
+    for (const resourceName of Object.keys(resourceTypes)) {
+      if (!resourceNames.includes(resourceName)) {
+        delete resourceTypes[resourceName];
+      }
+    }
+  }
+
   // Resource types that are not found in schema are set to 'never' type to
   // prevent their usage by generated client
   for (const type of RESOURCE_TYPES) {
@@ -604,7 +616,6 @@ function combineModuleTypes(typeContent: string, schema: OpenAPI3): string {
   );
 
   // Extract identity type from authentication '/me' success response
-  const config: Partial<RoutePathConfig> | undefined = schema[CONFIG_FIELD];
   authTypes['identity'] =
     extractResponseType(
       typeContent,

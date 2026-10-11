@@ -38,6 +38,7 @@ export interface ErrorDetailsMap {
   [ErrorCode.ResourceInvalidRelation]: ModelDetails & {
     relation: string;
     missingFields?: string[];
+    unknownFields?: string[];
   };
   [ErrorCode.ResourceDeleteRestricted]: ModelDetails & { referencedBy: string };
 

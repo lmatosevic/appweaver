@@ -183,6 +183,25 @@ describe('generate-types', () => {
       expect(user).toContain('create: never');
     });
 
+    test('builds no module type for the inline relation data types', async () => {
+      const schema: any = createOpenApiSchema();
+      schema.components.schemas['def-99'] = {
+        title: 'PostRelationCreate',
+        type: 'object',
+        properties: { title: { type: 'string' } }
+      };
+      schema.components.schemas['def-4'].properties.related = {
+        type: 'array',
+        items: { $ref: '#/components/schemas/def-99' }
+      };
+
+      const relationTypes = await generateTypes(schema);
+
+      expect(relationTypes).toContain('export type PostRelationCreate = {');
+      expect(relationTypes).not.toContain('PostRelationResourceModuleType');
+      expect(relationTypes).toContain('PostResourceModuleType');
+    });
+
     test('keeps the schema given by the caller unchanged', async () => {
       const schema = createOpenApiSchema();
       await generateTypes(schema);

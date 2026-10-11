@@ -585,13 +585,16 @@ either for list relations. The `allowCreate` and `allowUpdate` flags also accept
   the related model's create data, without its own relations and files (`<Model>RelationCreate`).
 - **`allowUpdate: true`** — input objects **with** an `id` and further fields update the related record inline
   (`<Model>RelationUpdate`). Objects carrying only an `id` are connected instead. This applies to parent **update**
-  requests only. On parent **create** requests every object with an `id` is connected, since the database updates
-  relations only within an update action.
+  requests only. On parent **create** requests an object with an `id` connects the record and carries no other field,
+  since the database updates relations only within an update action.
 
-Relations that accept inline writes document their request shape as `<Model>RelationInput`. It holds the id and the
-fields of both shapes above, all optional, and rejects any other field. The service resolves the action and applies the
-restrictions of its shape: fields excluded by the related model's `create` or `update` config are dropped. A missing required create field fails with a `400` error naming the
-field.
+Each relation item is validated against the exact shapes the relation accepts for the action: a bare id, an `{ id }`
+object (or `<Model>RelationUpdate` when inline updates apply), and `<Model>RelationCreate` when inline creation is
+enabled. The presence of the `id` tells an inline update from an inline create. A field the matched shape does not
+accept is rejected with a `400` `VALIDATION_FAILED` error naming it, i.e. a create-only field sent with an `id`
+(`posts.0.slug` "is not allowed"), and so is a missing required create field (`posts.0.slug` "is required"). A
+service called directly applies the same rules, throwing `RESOURCE_INVALID_RELATION` with the `unknownFields` or the
+`missingFields` of the payload.
 
 Connect, create, and update inputs can be mixed within one list relation request:
 

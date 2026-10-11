@@ -123,6 +123,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `SERVER_TRUST_PROXY`                    | boolean  | `true`                   | Trust `X-Forwarded-*` headers from reverse proxies.                                                  |
 | `SERVER_REQUEST_LOGGING_ENABLED`        | boolean  | `false`                  | Enable HTTP request/response logging.                                                                |
 | `SERVER_ERROR_DATABASE_MESSAGE_ENABLED` | boolean  | `false`                  | Append the message of the database to the detail of a database error response, in every environment. |
+| `SERVER_ERROR_RESPONSE_MAX_COUNT`       | integer  | `20`                     | Maximum validation errors per response. Above `1` every failure is reported, else only the first.    |
 
 ### Rate limiting (RATE_LIMIT_\*)
 

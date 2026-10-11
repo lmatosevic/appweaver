@@ -4,19 +4,22 @@ import { context } from '../../context';
 import { createModel } from '../../factory/create-model';
 import { resetContext } from '../fixtures/context-fixture';
 import { linkModels } from '../fixtures/model-fixture';
+import { errorHandler } from '../../errors';
 import { requestValidation } from '../../server/request-validation';
 
 /**
  * Builds a server validating a request body against a model schema with the
  * same options the application server uses, which reject every property the
- * schema it matches does not declare. A request schema built from a union of
- * narrower object schemas must still accept the nested relation fields.
+ * schema it matches does not declare, and respond with the problem details of
+ * the most relevant error. A relation item is validated against the exact
+ * shapes the relation accepts: an id, an inline update, or an inline create.
  */
 async function server(schemaName: string): Promise<FastifyInstance> {
   const app = Fastify({
     logger: false,
     ...requestValidation()
   });
+  app.setErrorHandler(errorHandler);
 
   const added = new Set<string>();
   for (const model of context.resource.models.values()) {
@@ -49,6 +52,17 @@ async function validated(app: FastifyInstance, payload: any): Promise<any> {
     payload
   });
   return { status: response.statusCode, body: response.json() };
+}
+
+/** Sends an invalid payload, returning the field errors of the response. */
+async function rejected(app: FastifyInstance, payload: any): Promise<any[]> {
+  const { status, body } = await validated(app, payload);
+  expect(status).toBe(400);
+  return body.errors.map(({ field, rule, message }: any) => ({
+    field,
+    rule,
+    message
+  }));
 }
 
 describe('relation input schema', () => {
@@ -140,11 +154,87 @@ describe('relation input schema', () => {
     test('rejects the fields that the related model does not declare', async () => {
       app = await server('UserUpdate');
 
-      const { status } = await validated(app, {
-        posts: [{ id: 1, unknownField: 'x' }]
-      });
+      expect(
+        await rejected(app, { posts: [{ id: 1, unknownField: 'x' }] })
+      ).toEqual([
+        {
+          field: 'posts.0.unknownField',
+          rule: 'additionalProperties',
+          message: 'is not allowed'
+        }
+      ]);
+    });
 
-      expect(status).toBe(400);
+    test('rejects a create field of an inline update', async () => {
+      app = await server('UserUpdate');
+
+      expect(await rejected(app, { posts: [{ id: 1, slug: 'x' }] })).toEqual([
+        {
+          field: 'posts.0.slug',
+          rule: 'additionalProperties',
+          message: 'is not allowed'
+        }
+      ]);
+    });
+
+    test('rejects an update field of an inline create', async () => {
+      app = await server('UserUpdate');
+
+      expect(
+        await rejected(app, {
+          posts: [{ title: 'Fresh', slug: 'fresh', views: 1 }]
+        })
+      ).toEqual([
+        {
+          field: 'posts.0.views',
+          rule: 'additionalProperties',
+          message: 'is not allowed'
+        }
+      ]);
+    });
+
+    test('names the missing field of an inline create', async () => {
+      app = await server('UserUpdate');
+
+      expect(await rejected(app, { posts: [{ title: 'Fresh' }] })).toEqual([
+        { field: 'posts.0.slug', rule: 'required', message: 'is required' }
+      ]);
+    });
+
+    test('names the invalid value of an inline update field', async () => {
+      app = await server('UserUpdate');
+
+      expect(
+        await rejected(app, { posts: [{ id: 1, title: { text: 'x' } }] })
+      ).toEqual([
+        { field: 'posts.0.title', rule: 'type', message: 'must be string' }
+      ]);
+    });
+
+    test('lists the accepted types of an invalid item', async () => {
+      app = await server('UserUpdate');
+
+      expect(await rejected(app, { posts: ['abc'] })).toEqual([
+        {
+          field: 'posts.0',
+          rule: 'type',
+          message: 'must be object or integer'
+        }
+      ]);
+    });
+
+    test('rejects an inline update of a parent create', async () => {
+      app = await server('UserCreate');
+
+      expect(
+        await rejected(app, { email: 'a@b.c', posts: [{ id: 1, title: 'x' }] })
+      ).toEqual([
+        {
+          field: 'posts.0.title',
+          rule: 'additionalProperties',
+          message: 'is not allowed'
+        }
+      ]);
     });
   });
 
@@ -167,11 +257,43 @@ describe('relation input schema', () => {
     test('rejects the data of a relation that only connects records', async () => {
       app = await server('UserUpdate');
 
-      const { status } = await validated(app, {
-        posts: [{ id: 1, title: 'Renamed' }]
-      });
+      expect(
+        await rejected(app, { posts: [{ id: 1, title: 'Renamed' }] })
+      ).toEqual([
+        {
+          field: 'posts.0.title',
+          rule: 'additionalProperties',
+          message: 'is not allowed'
+        }
+      ]);
+    });
 
-      expect(status).toBe(400);
+    test('requires the id of a relation that only connects records', async () => {
+      app = await server('UserUpdate');
+
+      expect(await rejected(app, { posts: [{ title: 'Fresh' }] })).toEqual([
+        { field: 'posts.0.id', rule: 'required', message: 'is required' },
+        {
+          field: 'posts.0.title',
+          rule: 'additionalProperties',
+          message: 'is not allowed'
+        }
+      ]);
+    });
+
+    test('reports every invalid item of the list', async () => {
+      app = await server('UserUpdate');
+
+      expect(
+        await rejected(app, { posts: [{ id: 1, title: 'x' }, 2, 'abc'] })
+      ).toEqual([
+        {
+          field: 'posts.0.title',
+          rule: 'additionalProperties',
+          message: 'is not allowed'
+        },
+        { field: 'posts.2', rule: 'type', message: 'must be object or integer' }
+      ]);
     });
   });
 });

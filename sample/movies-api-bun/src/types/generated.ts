@@ -88,13 +88,6 @@ export type CreditRelationUpdate = {
   billingOrder?: number;
 };
 
-export type CreditRelationInput = {
-  id?: number;
-  role?: 'Cast' | 'Director' | 'Writer' | 'Producer' | 'Composer';
-  character?: string | null;
-  billingOrder?: number;
-};
-
 export type CreditQuery = QueryFilter<Credit>;
 
 export type CreditSort = QuerySort<CreditMultiple>;
@@ -156,12 +149,6 @@ export type GenreRelationCreate = {
 
 export type GenreRelationUpdate = {
   id: number;
-  name?: string;
-  slug?: string;
-};
-
-export type GenreRelationInput = {
-  id?: number;
   name?: string;
   slug?: string;
 };
@@ -283,7 +270,13 @@ export type MovieCreate = {
   budgetUsd?: number | null;
   revenueUsd?: number | null;
   keywords?: any | null;
-  genres?: Array<GenreRelationInput | number> | null;
+  genres?: Array<
+    | {
+        id: number;
+      }
+    | GenreRelationCreate
+    | number
+  > | null;
 };
 
 export type MovieUpdate = {
@@ -299,7 +292,13 @@ export type MovieUpdate = {
   budgetUsd?: number | null;
   revenueUsd?: number | null;
   keywords?: any | null;
-  genres?: Array<GenreRelationInput | number> | null;
+  genres?: Array<
+    | {
+        id: number;
+      }
+    | GenreRelationCreate
+    | number
+  > | null;
 };
 
 export type MovieRelationCreate = {
@@ -319,22 +318,6 @@ export type MovieRelationCreate = {
 
 export type MovieRelationUpdate = {
   id: string;
-  title?: string;
-  slug?: string;
-  originalTitle?: string | null;
-  tagline?: string | null;
-  overview?: string | null;
-  status?: 'Announced' | 'InProduction' | 'Released';
-  releaseDate?: Date | null;
-  runtimeMinutes?: number | null;
-  language?: string;
-  budgetUsd?: number | null;
-  revenueUsd?: number | null;
-  keywords?: any | null;
-};
-
-export type MovieRelationInput = {
-  id?: string;
   title?: string;
   slug?: string;
   originalTitle?: string | null;
@@ -455,17 +438,6 @@ export type PersonRelationUpdate = {
   biography?: string | null;
 };
 
-export type PersonRelationInput = {
-  id?: number;
-  name?: string;
-  slug?: string;
-  knownFor?: 'Acting' | 'Directing' | 'Writing' | 'Producing' | 'Music';
-  birthDate?: Date | null;
-  deathDate?: Date | null;
-  birthPlace?: string | null;
-  biography?: string | null;
-};
-
 export type PersonQuery = QueryFilter<Person>;
 
 export type PersonSort = QuerySort<PersonMultiple>;
@@ -553,14 +525,6 @@ export type ReviewRelationCreate = {
 
 export type ReviewRelationUpdate = {
   id: number;
-  rating?: number;
-  title?: string | null;
-  body?: string | null;
-  containsSpoilers?: boolean;
-};
-
-export type ReviewRelationInput = {
-  id?: number;
   rating?: number;
   title?: string | null;
   body?: string | null;
@@ -686,16 +650,6 @@ export type UserRelationUpdate = {
   password?: string;
 };
 
-export type UserRelationInput = {
-  id?: number;
-  displayName?: string;
-  email?: string;
-  bio?: string | null;
-  twoFactorAuth?: 'None' | 'Email';
-  enabled?: boolean;
-  password?: string;
-};
-
 export type UserQuery = QueryFilter<User>;
 
 export type UserSort = QuerySort<UserMultiple>;
@@ -779,13 +733,6 @@ export type WatchlistEntryRelationUpdate = {
   notes?: string | null;
 };
 
-export type WatchlistEntryRelationInput = {
-  id?: number;
-  status?: 'Planned' | 'Watching' | 'Watched';
-  watchedAt?: Date | null;
-  notes?: string | null;
-};
-
 export type WatchlistEntryQuery = QueryFilter<WatchlistEntry>;
 
 export type WatchlistEntrySort = QuerySort<WatchlistEntryMultiple>;
@@ -856,14 +803,6 @@ export type OneTimeTokenRelationUpdate = {
   expiresAt?: Date;
 };
 
-export type OneTimeTokenRelationInput = {
-  id?: number;
-  tokenHash?: string;
-  purpose?: string;
-  data?: any;
-  expiresAt?: Date;
-};
-
 export type OneTimeTokenQuery = QueryFilter<OneTimeToken>;
 
 export type OneTimeTokenSort = QuerySort<OneTimeTokenMultiple>;
@@ -928,11 +867,6 @@ export type RoleRelationUpdate = {
   name?: string;
 };
 
-export type RoleRelationInput = {
-  id?: number;
-  name?: string;
-};
-
 export type RoleQuery = QueryFilter<Role>;
 
 export type RoleSort = QuerySort<RoleMultiple>;
@@ -979,11 +913,6 @@ export type PermissionRelationCreate = {
 
 export type PermissionRelationUpdate = {
   id: number;
-  name?: string;
-};
-
-export type PermissionRelationInput = {
-  id?: number;
   name?: string;
 };
 
@@ -1083,17 +1012,6 @@ export type FileRelationCreate = {
 
 export type FileRelationUpdate = {
   id: number;
-  name?: string;
-  originalName?: string;
-  mimeType?: string;
-  sizeBytes?: number;
-  checksum?: string;
-  title?: string | null;
-  description?: string | null;
-};
-
-export type FileRelationInput = {
-  id?: number;
   name?: string;
   originalName?: string;
   mimeType?: string;

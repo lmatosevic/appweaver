@@ -31,10 +31,6 @@ function model(name: string, readModel: any, config: any = {}): ResourceModel {
     relationUpdateModel: Type.Object({
       id: Type.Integer(),
       title: Type.Optional(Type.String())
-    }),
-    relationInputModel: Type.Object({
-      id: Type.Optional(Type.Integer()),
-      title: Type.Optional(Type.String())
     })
   } as unknown as ResourceModel;
 }
@@ -94,7 +90,6 @@ describe('generate-types', () => {
       expect(types).toContain('export type PostUpdate = {');
       expect(types).toContain('export type PostRelationCreate = {');
       expect(types).toContain('export type PostRelationUpdate = {');
-      expect(types).toContain('export type PostRelationInput = {');
     });
 
     test('maps the scalar types to TypeScript types', async () => {
@@ -340,7 +335,7 @@ describe('generate-types', () => {
 
       // The query type of a model follows the last type of that model and
       // still precedes the first type of the next model
-      expect(types.indexOf('export type PostRelationInput')).toBeLessThan(
+      expect(types.indexOf('export type PostRelationUpdate')).toBeLessThan(
         types.indexOf('export type PostQuery')
       );
       expect(types.indexOf('export type PostQuery')).toBeLessThan(
@@ -355,7 +350,7 @@ describe('generate-types', () => {
       expect(types.indexOf('export type PostResourceService')).toBeLessThan(
         types.indexOf('export type User = {')
       );
-      expect(types.indexOf('export type UserRelationInput')).toBeLessThan(
+      expect(types.indexOf('export type UserRelationUpdate')).toBeLessThan(
         types.indexOf('export type UserQuery')
       );
     });

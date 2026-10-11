@@ -184,6 +184,10 @@
             "errorDatabaseMessageEnabled": {
               "type": "boolean",
               "default": false
+            },
+            "errorResponseMaxCount": {
+              "type": "integer",
+              "default": 20
             }
           }
         },

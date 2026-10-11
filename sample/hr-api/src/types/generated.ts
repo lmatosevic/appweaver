@@ -98,16 +98,6 @@ export type CompensationRelationUpdate = {
   notes?: string | null;
 };
 
-export type CompensationRelationInput = {
-  id?: number;
-  baseSalary?: number;
-  currency?: 'EUR' | 'USD' | 'GBP';
-  bonusTargetPercent?: number;
-  reason?: 'Hire' | 'Promotion' | 'Adjustment' | 'Market';
-  effectiveFrom?: Date;
-  notes?: string | null;
-};
-
 export type CompensationQuery = QueryFilter<Compensation>;
 
 export type CompensationSort = QuerySort<CompensationMultiple>;
@@ -202,14 +192,6 @@ export type DepartmentRelationUpdate = {
   costCenter?: string | null;
 };
 
-export type DepartmentRelationInput = {
-  id?: number;
-  name?: string;
-  code?: string;
-  description?: string | null;
-  costCenter?: string | null;
-};
-
 export type DepartmentQuery = QueryFilter<Department>;
 
 export type DepartmentSort = QuerySort<DepartmentMultiple>;
@@ -292,13 +274,6 @@ export type EmployeeDocumentRelationCreate = {
 
 export type EmployeeDocumentRelationUpdate = {
   id: number;
-  title?: string;
-  category?: 'Contract' | 'Payslip' | 'Certificate' | 'Policy' | 'Other';
-  validUntil?: Date | null;
-};
-
-export type EmployeeDocumentRelationInput = {
-  id?: number;
   title?: string;
   category?: 'Contract' | 'Payslip' | 'Certificate' | 'Policy' | 'Other';
   validUntil?: Date | null;
@@ -512,20 +487,6 @@ export type EmployeeRelationUpdate = {
   password?: string;
 };
 
-export type EmployeeRelationInput = {
-  id?: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string | null;
-  employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
-  hireDate?: Date;
-  twoFactorAuth?: 'None' | 'Email';
-  enabled?: boolean;
-  password?: string;
-  status?: 'Active' | 'OnLeave' | 'Terminated';
-};
-
 export type EmployeeQuery = QueryFilter<Employee>;
 
 export type EmployeeSort = QuerySort<EmployeeMultiple>;
@@ -610,13 +571,6 @@ export type LeaveBalanceRelationCreate = {
 
 export type LeaveBalanceRelationUpdate = {
   id: number;
-  year?: number;
-  allowanceDays?: number;
-  carriedOverDays?: number;
-};
-
-export type LeaveBalanceRelationInput = {
-  id?: number;
   year?: number;
   allowanceDays?: number;
   carriedOverDays?: number;
@@ -724,14 +678,6 @@ export type LeaveRequestRelationCreate = {
 
 export type LeaveRequestRelationUpdate = {
   id: number;
-  type?: 'Annual' | 'Sick' | 'Parental' | 'Unpaid';
-  startDate?: Date;
-  endDate?: Date;
-  reason?: string | null;
-};
-
-export type LeaveRequestRelationInput = {
-  id?: number;
   type?: 'Annual' | 'Sick' | 'Parental' | 'Unpaid';
   startDate?: Date;
   endDate?: Date;
@@ -846,16 +792,6 @@ export type PerformanceReviewRelationUpdate = {
   status?: 'Draft' | 'Shared';
 };
 
-export type PerformanceReviewRelationInput = {
-  id?: number;
-  period?: string;
-  rating?: number;
-  strengths?: string | null;
-  improvements?: string | null;
-  goals?: any | null;
-  status?: 'Draft' | 'Shared';
-};
-
 export type PerformanceReviewQuery = QueryFilter<PerformanceReview>;
 
 export type PerformanceReviewSort = QuerySort<PerformanceReviewMultiple>;
@@ -955,15 +891,6 @@ export type PositionRelationUpdate = {
   openings?: number;
 };
 
-export type PositionRelationInput = {
-  id?: number;
-  title?: string;
-  level?: 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Principal';
-  salaryMin?: number;
-  salaryMax?: number;
-  openings?: number;
-};
-
 export type PositionQuery = QueryFilter<Position>;
 
 export type PositionSort = QuerySort<PositionMultiple>;
@@ -1034,14 +961,6 @@ export type OneTimeTokenRelationUpdate = {
   expiresAt?: Date;
 };
 
-export type OneTimeTokenRelationInput = {
-  id?: number;
-  tokenHash?: string;
-  purpose?: string;
-  data?: any;
-  expiresAt?: Date;
-};
-
 export type OneTimeTokenQuery = QueryFilter<OneTimeToken>;
 
 export type OneTimeTokenSort = QuerySort<OneTimeTokenMultiple>;
@@ -1106,11 +1025,6 @@ export type RoleRelationUpdate = {
   name?: string;
 };
 
-export type RoleRelationInput = {
-  id?: number;
-  name?: string;
-};
-
 export type RoleQuery = QueryFilter<Role>;
 
 export type RoleSort = QuerySort<RoleMultiple>;
@@ -1157,11 +1071,6 @@ export type PermissionRelationCreate = {
 
 export type PermissionRelationUpdate = {
   id: number;
-  name?: string;
-};
-
-export type PermissionRelationInput = {
-  id?: number;
   name?: string;
 };
 
@@ -1261,17 +1170,6 @@ export type FileRelationCreate = {
 
 export type FileRelationUpdate = {
   id: number;
-  name?: string;
-  originalName?: string;
-  mimeType?: string;
-  sizeBytes?: number;
-  checksum?: string;
-  title?: string | null;
-  description?: string | null;
-};
-
-export type FileRelationInput = {
-  id?: number;
   name?: string;
   originalName?: string;
   mimeType?: string;

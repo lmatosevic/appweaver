@@ -151,11 +151,14 @@ describe('filter schema', () => {
   });
 
   test('rejects hidden fields of a nested relation filter', async () => {
-    const { status } = await validated(app!, {
+    const { status, body } = await validated(app!, {
       author: { firstName: 'Ada', password: { _exists: true } }
     });
 
     expect(status).toBe(400);
+    expect(body.message).toBe(
+      'body/author must NOT have additional properties'
+    );
   });
 
   test('keeps operator conditions', async () => {
@@ -171,12 +174,13 @@ describe('filter schema', () => {
     });
   });
 
-  test('rejects unknown operators', async () => {
-    const { status } = await validated(app!, {
+  test('rejects unknown operators with the error of the condition object', async () => {
+    const { status, body } = await validated(app!, {
       title: { _eq: 'First', _bogus: 'x' }
     });
 
     expect(status).toBe(400);
+    expect(body.message).toBe('body/title must NOT have additional properties');
   });
 
   test('keeps the operator value types untouched', async () => {

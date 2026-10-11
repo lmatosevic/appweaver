@@ -28,7 +28,8 @@
       "staticAllowedHost": null,
       "trustProxy": true,
       "requestLoggingEnabled": false,
-      "errorDatabaseMessageEnabled": false
+      "errorDatabaseMessageEnabled": false,
+      "errorResponseMaxCount": 20
     },
     "log": {
       "level": "info",

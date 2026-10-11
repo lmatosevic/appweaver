@@ -71,14 +71,6 @@ export type ApiKeyRelationUpdate = {
   enabled?: boolean;
 };
 
-export type ApiKeyRelationInput = {
-  id?: number;
-  name?: string | null;
-  description?: string | null;
-  enabled?: boolean;
-  expiresAt?: Date | null;
-};
-
 export type ApiKeyQuery = QueryFilter<ApiKey>;
 
 export type ApiKeySort = QuerySort<ApiKeyMultiple>;
@@ -146,14 +138,6 @@ export type ConnectedAccountRelationCreate = {
 
 export type ConnectedAccountRelationUpdate = {
   id: number;
-  provider?: string;
-  providerAccountId?: string;
-  scope?: string | null;
-  lastLoginAt?: Date;
-};
-
-export type ConnectedAccountRelationInput = {
-  id?: number;
   provider?: string;
   providerAccountId?: string;
   scope?: string | null;
@@ -230,14 +214,6 @@ export type OneTimeTokenRelationUpdate = {
   expiresAt?: Date;
 };
 
-export type OneTimeTokenRelationInput = {
-  id?: number;
-  tokenHash?: string;
-  purpose?: string;
-  data?: any;
-  expiresAt?: Date;
-};
-
 export type OneTimeTokenQuery = QueryFilter<OneTimeToken>;
 
 export type OneTimeTokenSort = QuerySort<OneTimeTokenMultiple>;
@@ -284,11 +260,6 @@ export type PermissionRelationCreate = {
 
 export type PermissionRelationUpdate = {
   id: number;
-  name?: string;
-};
-
-export type PermissionRelationInput = {
-  id?: number;
   name?: string;
 };
 
@@ -353,11 +324,6 @@ export type RoleRelationCreate = {
 
 export type RoleRelationUpdate = {
   id: number;
-  name?: string;
-};
-
-export type RoleRelationInput = {
-  id?: number;
   name?: string;
 };
 
@@ -456,17 +422,6 @@ export type FileRelationCreate = {
 
 export type FileRelationUpdate = {
   id: number;
-  name?: string;
-  originalName?: string;
-  mimeType?: string;
-  sizeBytes?: number;
-  checksum?: string;
-  title?: string | null;
-  description?: string | null;
-};
-
-export type FileRelationInput = {
-  id?: number;
   name?: string;
   originalName?: string;
   mimeType?: string;

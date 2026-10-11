@@ -50,8 +50,7 @@ export async function generateTypes(
         [`${name}Create`, schema.createOneModel],
         [`${name}Update`, schema.updateOneModel],
         [`${name}RelationCreate`, schema.relationCreateModel],
-        [`${name}RelationUpdate`, schema.relationUpdateModel],
-        [`${name}RelationInput`, schema.relationInputModel]
+        [`${name}RelationUpdate`, schema.relationUpdateModel]
       ];
 
       for (const [typeName, typeSchema] of modelSchemas) {

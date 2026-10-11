@@ -79,9 +79,6 @@ export type ResourceModel = {
   relationCreateModel: TObject;
   /** Request data for updating this model through another model's relation input */
   relationUpdateModel: TObject;
-  /** Request shape accepted by another model's relation input, covering the id
-   * of an existing record as well as the inline create and update data */
-  relationInputModel: TObject;
   /** Request for file upload route */
   fileUploadModel: TObject;
   /** Request for file delete route */

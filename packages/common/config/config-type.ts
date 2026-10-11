@@ -86,6 +86,9 @@ export type Config = {
   SERVER_REQUEST_LOGGING_ENABLED: boolean;
   /** Append the message of the database to the detail of a database error response, in every environment. Default: `false`. */
   SERVER_ERROR_DATABASE_MESSAGE_ENABLED: boolean;
+  /** Maximum number of validation errors a failed request responds with. Above `1` the whole request is validated and
+   * every failure is reported, otherwise the validation stops at the first one. Default: `20`. */
+  SERVER_ERROR_RESPONSE_MAX_COUNT: number;
 
   /** Enable global rate limiting middleware. Default: `true`. */
   RATE_LIMIT_ENABLED: boolean;

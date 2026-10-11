@@ -43,7 +43,6 @@ export const resourceModelProps: Record<
   Update: 'updateOneModel',
   RelationCreate: 'relationCreateModel',
   RelationUpdate: 'relationUpdateModel',
-  RelationInput: 'relationInputModel',
   Relations: 'relationsModel',
   Virtual: 'virtualModel',
   Files: 'filesModel',
