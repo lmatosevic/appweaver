@@ -43,6 +43,17 @@ export type RecaptchaConfig = {
   recaptchaAction?: string;
 };
 
+export type TurnstileConfig = {
+  /** Enable Cloudflare Turnstile verification for this route. Turnstile for
+   * this route can also be enabled if the `turnstileAction` value is provided */
+  turnstile?: boolean;
+  /** Turnstile action name the token must have been issued for */
+  turnstileAction?: string;
+};
+
+/** The bot checks of a route: reCAPTCHA and Cloudflare Turnstile. */
+export type CaptchaConfig = RecaptchaConfig & TurnstileConfig;
+
 export type RouteConfig = {
   /** Remove this route from registration */
   exclude?: boolean;
@@ -57,7 +68,7 @@ export type RouteConfig = {
   auth?: (string | AuthType)[];
   /** Rate limit configuration for this route */
   rateLimit?: RateLimitConfig;
-} & RecaptchaConfig;
+} & CaptchaConfig;
 
 export type RouteCacheConfig = {
   /** Enable or disable response caching. Caching for this route can also be

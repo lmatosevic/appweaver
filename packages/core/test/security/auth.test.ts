@@ -77,6 +77,12 @@ jest.mock('../../security/recaptcha', () => ({
   })
 }));
 
+jest.mock('../../security/turnstile', () => ({
+  turnstile: jest.requireActual('fastify-plugin')(async (server: any) => {
+    server.decorate('turnstile', async () => undefined);
+  })
+}));
+
 jest.mock('../../security/auth-routes', () => ({
   authRoutes: async () => undefined
 }));
@@ -137,17 +143,20 @@ describe('auth', () => {
       expect(server.hasDecorator('authenticateApiKey')).toBe(false);
       expect(server.hasDecorator('basicAuth')).toBe(false);
       expect(server.hasDecorator('recaptcha')).toBe(false);
+      expect(server.hasDecorator('turnstile')).toBe(false);
     });
 
     test('registers the enabled handlers', async () => {
       configOverrides.SECURITY_API_KEY_ENABLED = true;
       configOverrides.SECURITY_BASIC_ENABLED = true;
       configOverrides.SECURITY_RECAPTCHA_ENABLED = true;
+      configOverrides.SECURITY_TURNSTILE_ENABLED = true;
       await startServer();
 
       expect(server.hasDecorator('authenticateApiKey')).toBe(true);
       expect(server.hasDecorator('basicAuth')).toBe(true);
       expect(server.hasDecorator('recaptcha')).toBe(true);
+      expect(server.hasDecorator('turnstile')).toBe(true);
     });
 
     test('registers the OAuth2 plugins but not the other exports', async () => {

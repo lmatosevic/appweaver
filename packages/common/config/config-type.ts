@@ -214,6 +214,14 @@ export type Config = {
   SECURITY_RECAPTCHA_MIN_SCORE: number;
   /** Google reCAPTCHA verification endpoint URL. Default: `'https://www.google.com/recaptcha/api/siteverify'`. */
   SECURITY_RECAPTCHA_VERIFY_URL: string;
+  /** Enable Cloudflare Turnstile verification. Default: `false`. */
+  SECURITY_TURNSTILE_ENABLED: boolean;
+  /** Cloudflare Turnstile secret key. */
+  SECURITY_TURNSTILE_SECRET?: string;
+  /** Request header name for the Turnstile token. Default: `'x-turnstile-token'`. */
+  SECURITY_TURNSTILE_HEADER_NAME: string;
+  /** Cloudflare Turnstile verification endpoint URL. Default: `'https://challenges.cloudflare.com/turnstile/v0/siteverify'`. */
+  SECURITY_TURNSTILE_VERIFY_URL: string;
   /** Enable HTTP Basic authentication. Default: `false`. */
   SECURITY_BASIC_ENABLED: boolean;
   /** HTTP Basic auth realm name. */

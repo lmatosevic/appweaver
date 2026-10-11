@@ -11,6 +11,7 @@ export type ErrorModule =
   | 'account'
   | 'oauth2'
   | 'recaptcha'
+  | 'turnstile'
   | 'file'
   | 'export'
   | 'queue'

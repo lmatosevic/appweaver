@@ -3,13 +3,13 @@ import {
   AnyJson,
   AuthType,
   camelToSnakeCase,
+  CaptchaConfig,
   CONFIG_NAME,
   ErrorCode,
   IdField,
   idFieldType,
   Nullable,
   plural,
-  RecaptchaConfig,
   ResourceSchemaConfig,
   StringDate
 } from '@appweaver/common';
@@ -17,8 +17,8 @@ import { injectModel } from '../context';
 import {
   authErrorCodes,
   authSchema,
-  recaptchaErrorCodes,
-  recaptchaHeaderSchema
+  captchaErrorCodes,
+  captchaHeaderSchema
 } from '../security';
 import { errorResponses } from '../errors';
 import { createSchemaModel } from '../utils';
@@ -102,7 +102,7 @@ export const AggregateResponseData = Type.Object({
 export function createSchema(
   name: string,
   routeAuthTypes: Record<ResourceRouteName, AuthType[] | undefined>,
-  routeRecaptcha: Record<ResourceRouteName, RecaptchaConfig>
+  routeCaptcha: Record<ResourceRouteName, CaptchaConfig>
 ): ResourceSchemaConfig {
   const resourceModel = injectModel(name);
 
@@ -117,7 +117,7 @@ export function createSchema(
   const routeErrors = (route: ResourceRouteName, ...codes: ErrorCode[]) =>
     errorResponses(
       ...authErrorCodes(routeAuthTypes[route]),
-      ...recaptchaErrorCodes(routeRecaptcha[route]),
+      ...captchaErrorCodes(routeCaptcha[route]),
       ErrorCode.DatabaseOperationFailed,
       ErrorCode.DatabaseUnavailable,
       ...codes
@@ -209,7 +209,7 @@ export function createSchema(
     findSchema: {
       tags: [tag],
       security: authSchema(routeAuthTypes['find']),
-      headers: recaptchaHeaderSchema(routeRecaptcha['find']),
+      headers: captchaHeaderSchema(routeCaptcha['find']),
       summary: `Find ${resourceName} data`,
       description: `Find ${resourceName} data`,
       response: {
@@ -225,7 +225,7 @@ export function createSchema(
     querySchema: {
       tags: [tag],
       security: authSchema(routeAuthTypes['query']),
-      headers: recaptchaHeaderSchema(routeRecaptcha['query']),
+      headers: captchaHeaderSchema(routeCaptcha['query']),
       summary: `Query ${resourceName} data`,
       description: `Query ${resourceName} data`,
       response: {
@@ -241,7 +241,7 @@ export function createSchema(
     aggregateSchema: {
       tags: [tag],
       security: authSchema(routeAuthTypes['aggregate']),
-      headers: recaptchaHeaderSchema(routeRecaptcha['aggregate']),
+      headers: captchaHeaderSchema(routeCaptcha['aggregate']),
       summary: `Aggregate ${resourceName} data`,
       description: `Aggregate ${resourceName} data`,
       response: {
@@ -253,7 +253,7 @@ export function createSchema(
     queryGetSchema: {
       tags: [tag],
       security: authSchema(routeAuthTypes['query']),
-      headers: recaptchaHeaderSchema(routeRecaptcha['query']),
+      headers: captchaHeaderSchema(routeCaptcha['query']),
       summary: `Query ${resourceName} data with query parameters`,
       description: `Query ${resourceName} data with query parameters`,
       response: {
@@ -271,7 +271,7 @@ export function createSchema(
     aggregateGetSchema: {
       tags: [tag],
       security: authSchema(routeAuthTypes['aggregate']),
-      headers: recaptchaHeaderSchema(routeRecaptcha['aggregate']),
+      headers: captchaHeaderSchema(routeCaptcha['aggregate']),
       summary: `Aggregate ${resourceName} data with query parameters`,
       description: `Aggregate ${resourceName} data with query parameters`,
       response: {
@@ -288,7 +288,7 @@ export function createSchema(
     createSchema: {
       tags: [tag],
       security: authSchema(routeAuthTypes['create']),
-      headers: recaptchaHeaderSchema(routeRecaptcha['create']),
+      headers: captchaHeaderSchema(routeCaptcha['create']),
       summary: `Create ${resourceName} data`,
       description: `Create ${resourceName} data`,
       response: {
@@ -310,7 +310,7 @@ export function createSchema(
     updateSchema: {
       tags: [tag],
       security: authSchema(routeAuthTypes['update']),
-      headers: recaptchaHeaderSchema(routeRecaptcha['update']),
+      headers: captchaHeaderSchema(routeCaptcha['update']),
       summary: `Update ${resourceName} data`,
       description: `Update ${resourceName} data`,
       response: {
@@ -336,7 +336,7 @@ export function createSchema(
     deleteSchema: {
       tags: [tag],
       security: authSchema(routeAuthTypes['delete']),
-      headers: recaptchaHeaderSchema(routeRecaptcha['delete']),
+      headers: captchaHeaderSchema(routeCaptcha['delete']),
       summary: `Delete ${resourceName} data`,
       description: `Delete ${resourceName} data`,
       response: {
@@ -354,7 +354,7 @@ export function createSchema(
     exportSchema: {
       tags: [tag],
       security: authSchema(routeAuthTypes['export']),
-      headers: recaptchaHeaderSchema(routeRecaptcha['export']),
+      headers: captchaHeaderSchema(routeCaptcha['export']),
       summary: `Export ${resourceName} data`,
       description: `Export ${resourceName} data`,
       response: {
@@ -376,7 +376,7 @@ export function createSchema(
     fileUploadSchema: {
       tags: [tag],
       security: authSchema(routeAuthTypes['fileUpload']),
-      headers: recaptchaHeaderSchema(routeRecaptcha['fileUpload']),
+      headers: captchaHeaderSchema(routeCaptcha['fileUpload']),
       summary: `Upload ${resourceName} files`,
       description: `Upload ${resourceName} files`,
       consumes: ['multipart/form-data'],
@@ -402,7 +402,7 @@ export function createSchema(
     fileDeleteSchema: {
       tags: [tag],
       security: authSchema(routeAuthTypes['fileDelete']),
-      headers: recaptchaHeaderSchema(routeRecaptcha['fileDelete']),
+      headers: captchaHeaderSchema(routeCaptcha['fileDelete']),
       summary: `Delete ${resourceName} files`,
       description: `Delete ${resourceName} files`,
       response: {

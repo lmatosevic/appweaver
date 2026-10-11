@@ -1,8 +1,8 @@
 # Security
 
 Appweaver provides a comprehensive security system with multiple authentication methods, role-based authorization,
-OAuth2 social login, two-factor authentication, reCAPTCHA, and account management. All security features are
-configurable and can be enabled/disabled independently.
+OAuth2 social login, two-factor authentication, reCAPTCHA, Cloudflare Turnstile, and account management. All security
+features are configurable and can be enabled/disabled independently.
 
 ---
 
@@ -595,6 +595,29 @@ createRoutes({
 
 ---
 
+## Cloudflare Turnstile
+
+Works like reCAPTCHA, with its own config, route options, header, and `TURNSTILE_*` error codes, so both can run side
+by side.
+
+```json
+{ "config": { "security": { "turnstile": { "enabled": true, "secret": "your-turnstile-secret-key" } } } }
+```
+
+The client sends the widget token in the `x-turnstile-token` header, and the server verifies it with Cloudflare's
+`siteverify` API. Enable it per route with `turnstile: true` or `turnstileAction` (also checks the widget's
+`data-action`):
+
+```ts
+registerRoute(handler, { turnstileAction: 'contact_form', public: true });
+createRoutes({ modelName: 'Comment', create: { turnstile: true } });
+```
+
+A rejected token fails with `TURNSTILE_INVALID` (Cloudflare `error-codes` in `details.errorCodes`), and a bad secret
+or unreachable API with `TURNSTILE_UNAVAILABLE`. The password reset routes also verify it while Turnstile is enabled.
+
+---
+
 ## Account management
 
 ### Email verification
@@ -612,10 +635,12 @@ createRoutes({
 
 ### Password reset
 
-| Method | Path                                | Auth   | reCAPTCHA | Description                                                                           |
+| Method | Path                                | Auth   | Bot check | Description                                                                           |
 |--------|-------------------------------------|--------|-----------|---------------------------------------------------------------------------------------|
 | `POST` | `/auth/account/send-reset-password` | Public | Yes       | Send password reset email. Takes `email` and `redirectToUrl`. Rate limited: 10/15min. |
 | `POST` | `/auth/account/reset-password`      | Public | Yes       | Reset password with token and new password. Rate limited: 12/window.                  |
+
+The bot check is every enabled one of reCAPTCHA and Turnstile.
 
 **Reset flow:**
 

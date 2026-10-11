@@ -20,7 +20,7 @@
 - **Resources** – `createModel`, `createService`, `createRoutes`, and `createPolicy` factories for validated CRUD
   routes with filtering, sorting, cursor pagination, aggregation, export, and an OpenAPI specification.
 - **Security** – JWT, API key, HTTP Basic, and OAuth2 authentication, roles and permissions, row-level policies, 2FA,
-  email verification, password reset, and reCAPTCHA.
+  email verification, password reset, reCAPTCHA, and Cloudflare Turnstile.
 - **Infrastructure** – file storage with image processing, Redis or in-memory caching and rate limiting, BullMQ or
   in-memory queues, a cron scheduler, an SMTP mailer, events, health checks, and database seeders.
 - **Dependency injection** – `define`, `inject`, `injectService`, and `loadProvider` for wiring providers by token.

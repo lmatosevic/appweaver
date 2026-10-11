@@ -24,6 +24,7 @@ import { createModel } from '../../factory/create-model';
 import { resourceRoutes } from '../../resource/resource-routes';
 import { errorHandler, ProblemDetailsSchema } from '../../errors';
 import { AuthError } from '../../security/auth-error';
+import { TurnstileError } from '../../security/turnstile/turnstile-error';
 import schemas from '../../server/schemas';
 import { resetContext } from '../fixtures/context-fixture';
 import { linkModels } from '../fixtures/model-fixture';
@@ -63,6 +64,14 @@ async function server(
     }
   });
   app.decorate('recaptcha', async () => {});
+  // Accepts a request carrying any token, as the verification is not tested here
+  app.decorate('turnstile', async (request: any) => {
+    if (!request.headers['x-turnstile-token']) {
+      throw new TurnstileError(ErrorCode.TurnstileMissing, 'Missing', {
+        header: 'x-turnstile-token'
+      });
+    }
+  });
   app.setErrorHandler(errorHandler);
 
   // Registered at import time, before each test cleared the context
@@ -160,6 +169,7 @@ describe('resource-routes', () => {
     app = undefined;
     delete (common as any).configOverrides.RESOURCE_QUERY_METHOD;
     delete (common as any).configOverrides.RESOURCE_AGGREGATE_METHOD;
+    delete (common as any).configOverrides.SECURITY_TURNSTILE_ENABLED;
   });
 
   describe('resourceRoutes', () => {
@@ -291,6 +301,58 @@ describe('resource-routes', () => {
           200
         );
         expect(await status('POST', '/posts/query', {})).toBe(401);
+      });
+    });
+
+    describe('bot checks', () => {
+      const status = async (
+        url: string,
+        payload: any,
+        headers: Record<string, string> = {}
+      ) =>
+        (await app!.inject({ method: 'POST', url, payload, headers }))
+          .statusCode;
+
+      test('verifies the Turnstile token of a route enabling it', async () => {
+        app = await server({ query: { turnstile: true } });
+
+        expect(await status('/posts/query', {})).toBe(400);
+        expect(
+          await status('/posts/query', {}, { 'x-turnstile-token': 'token' })
+        ).toBe(200);
+        expect(await status('/posts/aggregate', { select: {} })).toBe(200);
+      });
+
+      test('verifies the Turnstile token of a route naming its action', async () => {
+        app = await server({ query: { turnstileAction: 'search' } });
+
+        expect(await status('/posts/query', {})).toBe(400);
+      });
+
+      test('applies the default Turnstile check, unless a route disables it', async () => {
+        app = await server({
+          defaults: { turnstile: true },
+          aggregate: { turnstile: false }
+        });
+
+        expect(await status('/posts/query', {})).toBe(400);
+        expect(await status('/posts/aggregate', { select: {} })).toBe(200);
+      });
+
+      test('documents the Turnstile header of an enabled route', async () => {
+        (common as any).configOverrides.SECURITY_TURNSTILE_ENABLED = true;
+        app = await server({ query: { turnstile: true } }, true);
+        const document = (app as any).swagger();
+
+        const query = document.paths['/posts/query'].post;
+        const aggregate = document.paths['/posts/aggregate'].post;
+        const header = (operation: any) =>
+          (operation.parameters ?? []).find(
+            (p: any) => p.in === 'header' && p.name === 'x-turnstile-token'
+          );
+
+        expect(header(query)?.required).toBe(true);
+        expect(header(aggregate)).toBeUndefined();
       });
     });
 

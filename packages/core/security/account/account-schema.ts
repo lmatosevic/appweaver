@@ -4,8 +4,8 @@ import { errorResponses } from '../../errors';
 import {
   authErrorCodes,
   authSchema,
-  recaptchaErrorCodes,
-  recaptchaHeaderSchema
+  captchaErrorCodes,
+  captchaHeaderSchema
 } from '../auth-schema';
 import { createSchemaModel } from '../../utils';
 import { VerificationType } from './account-service';
@@ -189,13 +189,19 @@ export const verifyEmailRedirectSchema = {
 
 export const sendResetPasswordSchema = {
   tags: ['Account'],
-  header: recaptchaHeaderSchema({ recaptchaAction: 'send-reset-password' }),
+  headers: captchaHeaderSchema({
+    recaptchaAction: 'send-reset-password',
+    turnstileAction: 'send-reset-password'
+  }),
   summary: 'Send password reset link to provided email address',
   description: 'Send password reset link to provided email address',
   response: {
     200: createSchemaModel(AccountStatusResponse),
     ...errorResponses(
-      ...recaptchaErrorCodes({ recaptchaAction: 'send-reset-password' }),
+      ...captchaErrorCodes({
+        recaptchaAction: 'send-reset-password',
+        turnstileAction: 'send-reset-password'
+      }),
       ErrorCode.AccountFeatureUnavailable,
       ErrorCode.AuthInvalidRedirectUrl,
       ErrorCode.QueueUnavailable
@@ -206,13 +212,19 @@ export const sendResetPasswordSchema = {
 
 export const resetPasswordSchema = {
   tags: ['Account'],
-  header: recaptchaHeaderSchema({ recaptchaAction: 'reset-password' }),
+  headers: captchaHeaderSchema({
+    recaptchaAction: 'reset-password',
+    turnstileAction: 'reset-password'
+  }),
   summary: 'Reset the user password to a new value',
   description: 'Reset the user password to a new value',
   response: {
     200: createSchemaModel(AccountStatusResponse),
     ...errorResponses(
-      ...recaptchaErrorCodes({ recaptchaAction: 'reset-password' }),
+      ...captchaErrorCodes({
+        recaptchaAction: 'reset-password',
+        turnstileAction: 'reset-password'
+      }),
       ErrorCode.AuthInvalidToken,
       ErrorCode.AuthUserNotFound,
       ErrorCode.AuthPasswordWeak,

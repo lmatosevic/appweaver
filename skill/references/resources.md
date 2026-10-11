@@ -1453,7 +1453,7 @@ function createRoutes(config: ResourceRoutesConfig, override ?: Partial<Resource
 `defaults` takes any route option and applies it to every route, unless the route sets the option itself. Caching
 options reach only `find`, `query`, and `aggregate`, and `method` only `query` and `aggregate`. A route setting any of
 `public`, `roles`, `permissions`, or `auth` inherits none of them from the defaults, and the same holds for
-`recaptcha` and `recaptchaAction`.
+`recaptcha` and `recaptchaAction`, and for `turnstile` and `turnstileAction`.
 
 ```ts
 export default createRoutes({
@@ -1476,6 +1476,8 @@ export default createRoutes({
 | `rateLimit`       | RateLimitConfig \| false | -       | Per-operation rate limiting. `false` disables.                |
 | `recaptcha`       | boolean                  | `false` | Require reCAPTCHA verification.                               |
 | `recaptchaAction` | string                   | -       | Expected reCAPTCHA action name for score validation.          |
+| `turnstile`       | boolean                  | `false` | Require Cloudflare Turnstile verification.                    |
+| `turnstileAction` | string                   | -       | Expected Turnstile action name (enables the check).           |
 
 ### Read route config (find, query, aggregate)
 
@@ -1640,6 +1642,8 @@ registerRoute(
 | `rateLimit`             | RateLimitConfig \| false | Rate limiting configuration.                |
 | `recaptcha`             | boolean                  | Require reCAPTCHA verification.             |
 | `recaptchaAction`       | string                   | Expected reCAPTCHA action.                  |
+| `turnstile`             | boolean                  | Require Cloudflare Turnstile verification.  |
+| `turnstileAction`       | string                   | Expected Turnstile action.                  |
 | `cache`                 | boolean                  | Enable response caching.                    |
 | `cacheKey`              | string \| function       | Custom cache key.                           |
 | `cacheTTL`              | number                   | Cache TTL in milliseconds.                  |

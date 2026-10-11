@@ -252,6 +252,15 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `SECURITY_RECAPTCHA_MIN_SCORE`   | number  | `0.4`                                               | Minimum reCAPTCHA v3 score threshold (0-1).  |
 | `SECURITY_RECAPTCHA_VERIFY_URL`  | string  | `'https://www.google.com/recaptcha/api/siteverify'` | Google reCAPTCHA verification endpoint URL.  |
 
+#### Cloudflare Turnstile
+
+| Property                         | Type    | Default                                                       | Description                                  |
+|----------------------------------|---------|---------------------------------------------------------------|----------------------------------------------|
+| `SECURITY_TURNSTILE_ENABLED`     | boolean | `false`                                                       | Enable Cloudflare Turnstile verification.    |
+| `SECURITY_TURNSTILE_SECRET`      | string? | -                                                             | Cloudflare Turnstile secret key.             |
+| `SECURITY_TURNSTILE_HEADER_NAME` | string  | `'x-turnstile-token'`                                         | Request header name for the Turnstile token. |
+| `SECURITY_TURNSTILE_VERIFY_URL`  | string  | `'https://challenges.cloudflare.com/turnstile/v0/siteverify'` | Turnstile verification endpoint URL.         |
+
 #### HTTP Basic authentication
 
 | Property                    | Type    | Default | Description                       |

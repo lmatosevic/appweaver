@@ -19,11 +19,22 @@ export async function recaptchaVerify(
     params.set('remoteip', remoteIp);
   }
 
-  const resp = await fetch(config.SECURITY_RECAPTCHA_VERIFY_URL, {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: params.toString()
-  });
+  let resp: Response;
+  try {
+    resp = await fetch(config.SECURITY_RECAPTCHA_VERIFY_URL, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
+    });
+  } catch (e) {
+    logger.error(e, 'reCAPTCHA request failed');
+    throw new RecaptchaError(
+      ErrorCode.RecaptchaUnavailable,
+      'reCAPTCHA request failed',
+      {},
+      { cause: e }
+    );
+  }
 
   if (!resp.ok) {
     logger.error(`reCAPTCHA request failed: ${resp.statusText}`);
@@ -33,7 +44,18 @@ export async function recaptchaVerify(
     );
   }
 
-  const data: ReCaptchaResponse = await resp.json();
+  let data: ReCaptchaResponse;
+  try {
+    data = await resp.json();
+  } catch (e) {
+    logger.error(e, 'reCAPTCHA response is not valid JSON');
+    throw new RecaptchaError(
+      ErrorCode.RecaptchaUnavailable,
+      'reCAPTCHA response is not valid JSON',
+      {},
+      { cause: e }
+    );
+  }
 
   logger.debug(data, 'reCAPTCHA verified');
 

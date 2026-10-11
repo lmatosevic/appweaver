@@ -13,7 +13,10 @@ import { inject } from '../../context';
 import { Server } from '../../types';
 
 export function accountRoutes(server: Server): void {
-  const { authenticate, currentUser, recaptcha } = server;
+  const { authenticate, currentUser, recaptcha, turnstile } = server;
+
+  // The bot checks enabled in the config, verified on the password reset routes
+  const captcha = [recaptcha, turnstile].filter((hook) => hook !== undefined);
 
   const accountService = inject(AccountService);
 
@@ -88,8 +91,10 @@ export function accountRoutes(server: Server): void {
       '/send-reset-password',
       {
         schema: sendResetPasswordSchema,
-        onRequest: recaptcha,
+        onRequest: captcha,
         config: {
+          recaptchaAction: 'send-reset-password',
+          turnstileAction: 'send-reset-password',
           rateLimit: {
             max: 10,
             timeWindow: 900000 // 15 minutes
@@ -110,8 +115,10 @@ export function accountRoutes(server: Server): void {
       '/reset-password',
       {
         schema: resetPasswordSchema,
-        onRequest: recaptcha,
+        onRequest: captcha,
         config: {
+          recaptchaAction: 'reset-password',
+          turnstileAction: 'reset-password',
           rateLimit: {
             max: 12
           }

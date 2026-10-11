@@ -1,10 +1,12 @@
 import { TObject, TSchema, Type } from '@sinclair/typebox';
 import {
   AuthType,
+  CaptchaConfig,
   config,
   ErrorCode,
   RecaptchaConfig,
-  RouteSchema
+  RouteSchema,
+  TurnstileConfig
 } from '@appweaver/common';
 import { errorResponses } from '../errors';
 import { createSchemaModel } from '../utils';
@@ -233,6 +235,64 @@ export function recaptchaHeaderSchema(
           })
         }
       : {},
+    { additionalProperties: true }
+  );
+}
+
+/**
+ * Returns the error codes a route verifying a Cloudflare Turnstile token can
+ * respond with, none when the route verifies none.
+ */
+export function turnstileErrorCodes(
+  turnstileConfig: TurnstileConfig
+): ErrorCode[] {
+  return config.SECURITY_TURNSTILE_ENABLED &&
+    (turnstileConfig.turnstile || turnstileConfig.turnstileAction)
+    ? [
+        ErrorCode.TurnstileMissing,
+        ErrorCode.TurnstileInvalid,
+        ErrorCode.TurnstileActionMismatch,
+        ErrorCode.TurnstileUnavailable
+      ]
+    : [];
+}
+
+export function turnstileHeaderSchema(
+  turnstileConfig: TurnstileConfig
+): TObject {
+  return Type.Object(
+    config.SECURITY_TURNSTILE_ENABLED &&
+      (turnstileConfig.turnstile || turnstileConfig.turnstileAction)
+      ? {
+          [config.SECURITY_TURNSTILE_HEADER_NAME.toLowerCase()]: Type.String({
+            minLength: 1,
+            maxLength: 2048,
+            description: `Turnstile token for ${turnstileConfig.turnstileAction ?? 'any'} action`
+          })
+        }
+      : {},
+    { additionalProperties: true }
+  );
+}
+
+/**
+ * Returns the error codes of all the bot checks (reCAPTCHA and Turnstile) a
+ * route verifies.
+ */
+export function captchaErrorCodes(captchaConfig: CaptchaConfig): ErrorCode[] {
+  return [
+    ...recaptchaErrorCodes(captchaConfig),
+    ...turnstileErrorCodes(captchaConfig)
+  ];
+}
+
+/** Returns the headers of all the bot checks (reCAPTCHA and Turnstile) a route verifies. */
+export function captchaHeaderSchema(captchaConfig: CaptchaConfig): TObject {
+  return Type.Object(
+    {
+      ...recaptchaHeaderSchema(captchaConfig).properties,
+      ...turnstileHeaderSchema(captchaConfig).properties
+    },
     { additionalProperties: true }
   );
 }
