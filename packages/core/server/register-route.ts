@@ -12,8 +12,8 @@ import { define } from '../context';
 import {
   authErrorCodes,
   authSchema,
-  recaptchaErrorCodes,
-  recaptchaHeaderSchema
+  captchaErrorCodes,
+  captchaHeaderSchema
 } from '../security';
 import { errorResponses, mergeErrorResponses } from '../errors';
 import { Router, Server } from '../types';
@@ -45,7 +45,7 @@ export function registerRoute(
   tempServer.register(handler);
 
   const routeBuilder = async (server: Server): Promise<void> => {
-    const { authenticate, recaptcha } = server;
+    const { authenticate, recaptcha, turnstile } = server;
 
     // Add all currently configured schemas to the temporary server
     for (const [id, schema] of Object.entries(server.getSchemas())) {
@@ -58,10 +58,13 @@ export function registerRoute(
     await tempServer.ready();
 
     for (const route of routes) {
-      const recaptchaHeader = recaptchaHeaderSchema({
+      const captchaConfig = {
         recaptcha: config?.recaptcha,
-        recaptchaAction: config?.recaptchaAction
-      });
+        recaptchaAction: config?.recaptchaAction,
+        turnstile: config?.turnstile,
+        turnstileAction: config?.turnstileAction
+      };
+      const captchaHeader = captchaHeaderSchema(captchaConfig);
 
       // Automatically project virtual fields onto response payloads for routes
       // whose response schemas reference resource models
@@ -84,26 +87,24 @@ export function registerRoute(
             : authSchema(config?.auth as AuthType[]),
           headers: route.schema?.headers
             ? Type.Composite([
-                recaptchaHeader,
+                captchaHeader,
                 Type.Composite([route.schema.headers as any])
               ])
-            : recaptchaHeader,
+            : captchaHeader,
           response: mergeErrorResponses(
             (route.schema?.response as Record<string, unknown>) ?? {},
             errorResponses(
               ...authErrorCodes(
                 config?.public ? [] : (config?.auth as AuthType[])
               ),
-              ...recaptchaErrorCodes({
-                recaptcha: config?.recaptcha,
-                recaptchaAction: config?.recaptchaAction
-              })
+              ...captchaErrorCodes(captchaConfig)
             )
           )
         },
         onRequest: [
           config?.public ? undefined : authenticate(config?.auth as AuthType[]),
           config?.recaptcha || config?.recaptchaAction ? recaptcha : undefined,
+          config?.turnstile || config?.turnstileAction ? turnstile : undefined,
           ...(isArray(route.onRequest) ? route.onRequest : [route.onRequest])
         ].filter((h) => h !== undefined),
         preSerialization: [

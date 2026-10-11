@@ -154,6 +154,12 @@ const configSchema = Type.Object({
   SECURITY_RECAPTCHA_VERIFY_URL: Type.String({
     default: 'https://www.google.com/recaptcha/api/siteverify'
   }),
+  SECURITY_TURNSTILE_ENABLED: Type.Boolean({ default: false }),
+  SECURITY_TURNSTILE_SECRET: Type.Optional(Type.String()),
+  SECURITY_TURNSTILE_HEADER_NAME: Type.String({ default: 'x-turnstile-token' }),
+  SECURITY_TURNSTILE_VERIFY_URL: Type.String({
+    default: 'https://challenges.cloudflare.com/turnstile/v0/siteverify'
+  }),
   SECURITY_BASIC_ENABLED: Type.Boolean({ default: false }),
   SECURITY_BASIC_REALM: Type.Optional(Type.String()),
   SECURITY_BASIC_PROXY_MODE: Type.Boolean({ default: false }),

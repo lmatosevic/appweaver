@@ -131,6 +131,12 @@
         "minScore": 0.4,
         "verifyUrl": "https://www.google.com/recaptcha/api/siteverify"
       },
+      "turnstile": {
+        "enabled": false,
+        "secret": "0x4AAAAAAABBBBBCCCCCDDDDDEEEEEFFFFF",
+        "headerName": "x-turnstile-token",
+        "verifyUrl": "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+      },
       "basic": {
         "enabled": false,
         "realm": "example",

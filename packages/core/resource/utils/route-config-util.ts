@@ -20,7 +20,8 @@ const CACHE_OPTIONS = ['cache', 'cacheTTL', 'cacheSkipInvalidation'] as const;
 // setting any of them inherits none of the group from the defaults
 const OPTION_GROUPS: (keyof QueryRouteConfig)[][] = [
   ['public', 'roles', 'permissions', 'auth'],
-  ['recaptcha', 'recaptchaAction']
+  ['recaptcha', 'recaptchaAction'],
+  ['turnstile', 'turnstileAction']
 ];
 
 /**

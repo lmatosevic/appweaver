@@ -562,6 +562,26 @@
                 }
               }
             },
+            "turnstile": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "secret": {
+                  "type": ["string", "null"]
+                },
+                "headerName": {
+                  "type": "string",
+                  "default": "x-turnstile-token"
+                },
+                "verifyUrl": {
+                  "type": "string",
+                  "default": "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+                }
+              }
+            },
             "basic": {
               "type": "object",
               "properties": {

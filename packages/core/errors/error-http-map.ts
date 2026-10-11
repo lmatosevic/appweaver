@@ -188,6 +188,17 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     title: 'reCAPTCHA unavailable'
   },
 
+  [ErrorCode.TurnstileMissing]: { status: 400, title: 'Turnstile missing' },
+  [ErrorCode.TurnstileInvalid]: { status: 400, title: 'Invalid Turnstile' },
+  [ErrorCode.TurnstileActionMismatch]: {
+    status: 403,
+    title: 'Turnstile action mismatch'
+  },
+  [ErrorCode.TurnstileUnavailable]: {
+    status: 502,
+    title: 'Turnstile unavailable'
+  },
+
   [ErrorCode.FileNotFound]: { status: 404, title: 'File not found' },
   [ErrorCode.FileForbidden]: { status: 403, title: 'File access forbidden' },
   [ErrorCode.FileFieldNotFound]: { status: 400, title: 'File field not found' },

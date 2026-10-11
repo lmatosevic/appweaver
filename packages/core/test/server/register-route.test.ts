@@ -28,6 +28,11 @@ describe('register-route', () => {
     server.addSchema(ProblemDetailsSchema);
     server.decorate('authenticate', () => async () => {});
     server.decorate('recaptcha', async () => {});
+    server.decorate('turnstile', async (request: any) => {
+      if (!request.headers['x-turnstile-token']) {
+        throw new Error('Missing Turnstile token');
+      }
+    });
   });
 
   afterEach(async () => {
@@ -73,6 +78,41 @@ describe('register-route', () => {
 
       const del = await server.inject({ method: 'DELETE', url: '/items/1' });
       expect(del.json()).toEqual({ deleted: true });
+    });
+
+    test('verifies the Turnstile token of a route enabling it', async () => {
+      registerRoute(
+        (router) => {
+          router.post('/contact', async () => ({ sent: true }));
+        },
+        { public: true, turnstileAction: 'contact' }
+      );
+
+      await buildRoutes();
+
+      const rejected = await server.inject({ method: 'POST', url: '/contact' });
+      expect(rejected.statusCode).toBe(500);
+
+      const accepted = await server.inject({
+        method: 'POST',
+        url: '/contact',
+        headers: { 'x-turnstile-token': 'token' }
+      });
+      expect(accepted.json()).toEqual({ sent: true });
+    });
+
+    test('verifies no Turnstile token of a route not enabling it', async () => {
+      registerRoute(
+        (router) => {
+          router.post('/contact', async () => ({ sent: true }));
+        },
+        { public: true }
+      );
+
+      await buildRoutes();
+
+      const response = await server.inject({ method: 'POST', url: '/contact' });
+      expect(response.json()).toEqual({ sent: true });
     });
   });
 });

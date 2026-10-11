@@ -90,6 +90,7 @@ their prefix:
 | `AccountError`       | `@appweaver/core`   | `ACCOUNT_`       | The account service (email verification, password reset, 2FA)   |
 | `OAuth2Error`        | `@appweaver/core`   | `OAUTH2_`        | The OAuth2 sign-in                                              |
 | `RecaptchaError`     | `@appweaver/core`   | `RECAPTCHA_`     | The reCAPTCHA verification                                      |
+| `TurnstileError`     | `@appweaver/core`   | `TURNSTILE_`     | The Cloudflare Turnstile verification                           |
 | `FileError`          | `@appweaver/core`   | `FILE_`          | The file service and storage                                    |
 | `ExportError`        | `@appweaver/core`   | `EXPORT_`        | The data export                                                 |
 | `QueueError`         | `@appweaver/core`   | `QUEUE_`         | The queues                                                      |
@@ -176,6 +177,10 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `RECAPTCHA_ACTION_MISMATCH`          | 403    | reCAPTCHA action mismatch             |
 | `RECAPTCHA_LOW_SCORE`                | 403    | reCAPTCHA low score                   |
 | `RECAPTCHA_UNAVAILABLE`              | 502    | reCAPTCHA unavailable                 |
+| `TURNSTILE_MISSING`                  | 400    | Turnstile missing                     |
+| `TURNSTILE_INVALID`                  | 400    | Invalid Turnstile                     |
+| `TURNSTILE_ACTION_MISMATCH`          | 403    | Turnstile action mismatch             |
+| `TURNSTILE_UNAVAILABLE`              | 502    | Turnstile unavailable                 |
 | `FILE_NOT_FOUND`                     | 404    | File not found                        |
 | `FILE_FORBIDDEN`                     | 403    | File access forbidden                 |
 | `FILE_FIELD_NOT_FOUND`               | 400    | File field not found                  |
@@ -283,8 +288,8 @@ warning.
 
 Every route of the framework documents the errors it can respond with, one response per status narrowing the `code` of
 the `ProblemDetails` schema to the codes of that status. Custom routes do the same with `errorResponses`, which always
-adds the validation, malformed request, rate limit and internal errors, and `registerRoute` adds the authentication and
-reCAPTCHA errors of the route:
+adds the validation, malformed request, rate limit and internal errors, and `registerRoute` adds the authentication,
+reCAPTCHA and Turnstile errors of the route:
 
 ```ts
 import { ErrorCode } from '@appweaver/common';

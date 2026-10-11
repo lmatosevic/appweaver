@@ -1,8 +1,8 @@
 import {
   AggregateOptions,
   AuthType,
+  CaptchaConfig,
   QueryOptions,
-  RecaptchaConfig,
   ResourceId,
   QueryRouteConfig,
   ResourceRoutesConfig,
@@ -76,21 +76,23 @@ export function resourceRoutes(
     return acc;
   }, {} as any);
 
-  const routeRecaptcha = routeNames.reduce<
-    Record<ResourceRouteName, RecaptchaConfig>
+  const routeCaptcha = routeNames.reduce<
+    Record<ResourceRouteName, CaptchaConfig>
   >((acc, routeName) => {
     const config = routeConfig(routeName);
     acc[routeName] = {
       recaptcha: config?.recaptcha,
-      recaptchaAction: config?.recaptchaAction
+      recaptchaAction: config?.recaptchaAction,
+      turnstile: config?.turnstile,
+      turnstileAction: config?.turnstileAction
     };
     return acc;
   }, {} as any);
 
   return (server: Server) => {
-    const { authenticate, recaptcha } = server;
+    const { authenticate, recaptcha, turnstile } = server;
 
-    const schema = createSchema(name, routeAuthTypes, routeRecaptcha);
+    const schema = createSchema(name, routeAuthTypes, routeCaptcha);
 
     const service = injectService(name);
     const resourceModel = injectModel(name);
@@ -98,7 +100,8 @@ export function resourceRoutes(
     const routeAuth = (config: RouteConfig | undefined) =>
       [
         config?.public ? undefined : authenticate(config?.auth as AuthType[]),
-        config?.recaptcha || config?.recaptchaAction ? recaptcha : undefined
+        config?.recaptcha || config?.recaptchaAction ? recaptcha : undefined,
+        config?.turnstile || config?.turnstileAction ? turnstile : undefined
       ].filter((v) => v !== undefined);
 
     const hasFiles = Object.keys(resourceModel.config.files ?? {}).length > 0;

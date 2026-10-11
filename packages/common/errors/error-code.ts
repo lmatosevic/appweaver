@@ -84,6 +84,12 @@ export enum ErrorCode {
   RecaptchaLowScore = 'RECAPTCHA_LOW_SCORE',
   RecaptchaUnavailable = 'RECAPTCHA_UNAVAILABLE',
 
+  // Turnstile
+  TurnstileMissing = 'TURNSTILE_MISSING',
+  TurnstileInvalid = 'TURNSTILE_INVALID',
+  TurnstileActionMismatch = 'TURNSTILE_ACTION_MISMATCH',
+  TurnstileUnavailable = 'TURNSTILE_UNAVAILABLE',
+
   // File storage
   FileNotFound = 'FILE_NOT_FOUND',
   FileForbidden = 'FILE_FORBIDDEN',

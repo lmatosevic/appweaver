@@ -602,9 +602,10 @@ stats.total.publishedAt;  // compile error, the field was not selected
 
 Use `registerRoute` to register a custom [Fastify route](https://fastify.dev/docs/latest/Reference/Routes/) handler. The
 handler is a Fastify plugin function that defines one or more routes. An optional config object controls authentication,
-caching, and reCAPTCHA behavior. When a custom route's 2xx response schema references resource output models (`<Name>`,
-`<Name>Single` or `<Name>Multiple` — directly or nested inside custom schemas), virtual field values (e.g. `File.url`)
-are projected onto the response payload automatically before serialization.
+caching, and the bot checks (`recaptcha`/`recaptchaAction` for reCAPTCHA, `turnstile`/`turnstileAction` for Cloudflare
+Turnstile). When a custom route's 2xx response schema references resource output models (`<Name>`, `<Name>Single` or
+`<Name>Multiple` — directly or nested inside custom schemas), virtual field values (e.g. `File.url`) are projected onto
+the response payload automatically before serialization.
 
 Route and model schemas are written with [TypeBox](https://github.com/sinclairzx81/typebox) (`@sinclair/typebox`), a
 dependency of every scaffolded project at the version the framework uses, which `weaver update` keeps in step.

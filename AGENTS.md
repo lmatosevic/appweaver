@@ -98,27 +98,27 @@ constraint. When adding an error code:
 
 Core application logic. Organized into the following modules:
 
-| Module       | Purpose                                                                                                                                                   |
-|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `app/`       | Application lifecycle: bootstrapping, loading modules and providers, startup/shutdown hooks                                                               |
-| `database/`  | Database client factory and Prisma setup                                                                                                                  |
-| `server/`    | Fastify HTTP server creation, route registration, model mounting, Swagger/OpenAPI integration                                                             |
-| `security/`  | Authentication and authorization — sub-modules for JWT, OAuth2, API key, basic auth, reCAPTCHA, account management, and security token storage (`store/`) |
-| `resource/`  | CRUD resource lifecycle: loading, routing, schema validation, and service layer                                                                           |
-| `factory/`   | Factory helpers for creating models, policies, routes, and services                                                                                       |
-| `storage/`   | File upload and management — filesystem storage and file service/routes                                                                                   |
-| `queue/`     | Background job queues — Bull (Redis-backed) and in-memory implementations                                                                                 |
-| `scheduler/` | Cron job scheduling service                                                                                                                               |
-| `seeder/`    | Database seeding utilities                                                                                                                                |
-| `mailer/`    | Email service — SMTP and JSON (dev/test) mailer implementations                                                                                           |
-| `cache/`     | Caching layer abstractions and implementations                                                                                                            |
-| `context/`   | Dependency injection container and utility functions                                                                                                      |
-| `health/`    | Health check endpoint and service registration                                                                                                            |
-| `export/`    | Data export service (CSV and other formats)                                                                                                               |
-| `events/`    | Node.js event emitter integration                                                                                                                         |
-| `errors/`    | The API error layer: error code to HTTP status map, `defineErrors`, RFC 9457 problem details, error handler and `errorResponses` schemas                  |
-| `types/`     | TypeScript type definitions (hand-written and generated)                                                                                                  |
-| `utils/`     | Utility functions shared across modules or meant for library users (see the placement rule below)                                                         |
+| Module       | Purpose                                                                                                                                                              |
+|--------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `app/`       | Application lifecycle: bootstrapping, loading modules and providers, startup/shutdown hooks                                                                          |
+| `database/`  | Database client factory and Prisma setup                                                                                                                             |
+| `server/`    | Fastify HTTP server creation, route registration, model mounting, Swagger/OpenAPI integration                                                                        |
+| `security/`  | Authentication and authorization — sub-modules for JWT, OAuth2, API key, basic auth, reCAPTCHA, Turnstile, account management, and security token storage (`store/`) |
+| `resource/`  | CRUD resource lifecycle: loading, routing, schema validation, and service layer                                                                                      |
+| `factory/`   | Factory helpers for creating models, policies, routes, and services                                                                                                  |
+| `storage/`   | File upload and management — filesystem storage and file service/routes                                                                                              |
+| `queue/`     | Background job queues — Bull (Redis-backed) and in-memory implementations                                                                                            |
+| `scheduler/` | Cron job scheduling service                                                                                                                                          |
+| `seeder/`    | Database seeding utilities                                                                                                                                           |
+| `mailer/`    | Email service — SMTP and JSON (dev/test) mailer implementations                                                                                                      |
+| `cache/`     | Caching layer abstractions and implementations                                                                                                                       |
+| `context/`   | Dependency injection container and utility functions                                                                                                                 |
+| `health/`    | Health check endpoint and service registration                                                                                                                       |
+| `export/`    | Data export service (CSV and other formats)                                                                                                                          |
+| `events/`    | Node.js event emitter integration                                                                                                                                    |
+| `errors/`    | The API error layer: error code to HTTP status map, `defineErrors`, RFC 9457 problem details, error handler and `errorResponses` schemas                             |
+| `types/`     | TypeScript type definitions (hand-written and generated)                                                                                                             |
+| `utils/`     | Utility functions shared across modules or meant for library users (see the placement rule below)                                                                    |
 
 **Utility placement rule**: `core/utils` holds helpers shared by two or more modules, or ones useful to library users
 directly. Helpers internal to a single module go in that module's own `utils/` directory (i.e. `core/resource/utils`),

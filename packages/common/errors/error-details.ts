@@ -52,6 +52,9 @@ export interface ErrorDetailsMap {
 
   [ErrorCode.RecaptchaMissing]: { header: string };
 
+  [ErrorCode.TurnstileMissing]: { header: string };
+  [ErrorCode.TurnstileInvalid]: { errorCodes: string[] };
+
   [ErrorCode.FileNotFound]: FileDetails;
   [ErrorCode.FileForbidden]: { fileName?: string; action: string };
   [ErrorCode.FileFieldNotFound]: ModelDetails & { field: string };

@@ -8,6 +8,7 @@ import { currentAuthUser } from './helper';
 import { authRoutes } from './auth-routes';
 import { accountRoutes } from './account';
 import { recaptcha } from './recaptcha';
+import { turnstile } from './turnstile';
 import { basicAuth, hasBasicAuth } from './basic';
 import { apiKeyAuth, hasApiKey } from './api-key';
 import { hasBearerAuth, jwtAuth } from './jwt';
@@ -31,6 +32,10 @@ export default fastifyPlugin((server: Server) => {
 
   if (config.SECURITY_RECAPTCHA_ENABLED) {
     server.register(recaptcha);
+  }
+
+  if (config.SECURITY_TURNSTILE_ENABLED) {
+    server.register(turnstile);
   }
 
   if (config.SECURITY_BASIC_ENABLED) {

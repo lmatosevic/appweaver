@@ -99,5 +99,23 @@ describe('recaptcha-verify', () => {
         code: ErrorCode.RecaptchaUnavailable
       });
     });
+
+    test('fails when the verification response is not JSON', async () => {
+      fetchMock.mockResolvedValue(new Response('<html>Bad gateway</html>'));
+
+      await expect(recaptchaVerify('token-value')).rejects.toMatchObject({
+        code: ErrorCode.RecaptchaUnavailable
+      });
+    });
+
+    test('fails when the verify URL cannot be reached', async () => {
+      const cause = new TypeError('fetch failed');
+      fetchMock.mockRejectedValue(cause);
+
+      await expect(recaptchaVerify('token-value')).rejects.toMatchObject({
+        code: ErrorCode.RecaptchaUnavailable,
+        cause
+      });
+    });
   });
 });

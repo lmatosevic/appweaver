@@ -76,6 +76,16 @@ describe('route-config-util', () => {
       ).toEqual({ recaptcha: false });
     });
 
+    test('inherits no Turnstile default once the route sets a Turnstile option', () => {
+      expect(
+        mergeRouteDefaults(
+          'create',
+          { turnstile: true, turnstileAction: 'create', recaptcha: true },
+          { turnstileAction: 'signup' }
+        )
+      ).toEqual({ turnstileAction: 'signup', recaptcha: true });
+    });
+
     test('excludes every route the defaults exclude, unless included again', () => {
       expect(mergeRouteDefaults('delete', { exclude: true })).toEqual({
         exclude: true
