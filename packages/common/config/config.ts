@@ -120,6 +120,7 @@ const configSchema = Type.Object({
   RESOURCE_BULK_DELETE_ENABLED: Type.Boolean({ default: false }),
   RESOURCE_BULK_MAX_ITEMS: Type.Integer({ default: 2000, minimum: 1 }),
   RESOURCE_BULK_TRANSACTION_TIMEOUT: Type.Integer({ default: 5000 }),
+  RESOURCE_BULK_RETURN_RECORDS: Type.Boolean({ default: true }),
 
   EXPORT_BATCH_SIZE: Type.Integer({ default: 1000 }),
   EXPORT_CSV_DELIMITER: Type.String({ default: ';' }),

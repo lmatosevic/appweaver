@@ -161,6 +161,9 @@ export type Config = {
   RESOURCE_BULK_MAX_ITEMS: number;
   /** Timeout in milliseconds of the transaction a bulk request runs in. Default: `5000`. */
   RESOURCE_BULK_TRANSACTION_TIMEOUT: number;
+  /** Respond to a bulk request with the records it applied, the same as their single routes, or only with
+   * `{ success, count }` when `false`, unless its route sets `returnRecords`. Default: `true`. */
+  RESOURCE_BULK_RETURN_RECORDS: boolean;
 
   /** Number of records per batch during export. Default: `1000`. */
   EXPORT_BATCH_SIZE: number;

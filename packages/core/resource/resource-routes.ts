@@ -4,6 +4,7 @@ import {
   BulkItem,
   BulkResponse,
   CaptchaConfig,
+  config,
   QueryOptions,
   ResourceId,
   QueryRouteConfig,
@@ -31,6 +32,7 @@ type FullRouteConfig = RouteConfig &
   Pick<QueryRouteConfig, 'method'> & {
     resourceRouteName: ResourceRouteName;
     maxItems?: number;
+    returnRecords?: boolean;
   };
 
 // The single route each bulk route inherits its config from
@@ -132,9 +134,9 @@ export function resourceRoutes(
     const { authenticate, recaptcha, turnstile } = server;
 
     const schema = createSchema(name, routeAuthTypes, routeCaptcha, {
-      bulkCreate: routeConfig('bulkCreate')?.maxItems,
-      bulkUpdate: routeConfig('bulkUpdate')?.maxItems,
-      bulkDelete: routeConfig('bulkDelete')?.maxItems
+      bulkCreate: routeConfig('bulkCreate'),
+      bulkUpdate: routeConfig('bulkUpdate'),
+      bulkDelete: routeConfig('bulkDelete')
     });
 
     const service = injectService(name);
@@ -404,11 +406,16 @@ export function resourceRoutes(
       );
     }
 
-    // Every item of a bulk request is applied in a single transaction, or none
-    const bulkResponse = (count: number): BulkResponse => ({
-      success: true,
-      count
-    });
+    // Every item of a bulk request is applied in a single transaction, or none,
+    // so a response without the records only counts the items
+    const bulkResponse = (
+      bulkConfig: FullRouteConfig | undefined,
+      records: unknown[],
+      count = records.length
+    ): unknown[] | BulkResponse =>
+      (bulkConfig?.returnRecords ?? config.RESOURCE_BULK_RETURN_RECORDS)
+        ? records
+        : { success: true, count };
 
     const bulkCreateConfig = routeConfig('bulkCreate');
     if (!bulkCreateConfig?.exclude) {
@@ -420,9 +427,11 @@ export function resourceRoutes(
           config: bulkCreateConfig
         },
         async (request, reply) => {
-          await service.bulkCreate(request.body);
+          const records = await service.bulkCreate(request.body);
 
-          return reply.status(201).send(bulkResponse(request.body.length));
+          return reply
+            .status(201)
+            .send(bulkResponse(bulkCreateConfig, records));
         }
       );
     }
@@ -437,9 +446,9 @@ export function resourceRoutes(
           config: bulkUpdateConfig
         },
         async (request, reply) => {
-          await service.bulkUpdate(request.body);
+          const records = await service.bulkUpdate(request.body);
 
-          return reply.send(bulkResponse(request.body.length));
+          return reply.send(bulkResponse(bulkUpdateConfig, records));
         }
       );
 
@@ -451,9 +460,9 @@ export function resourceRoutes(
           config: bulkUpdateConfig
         },
         async (request, reply) => {
-          await service.bulkReplace(request.body);
+          const records = await service.bulkReplace(request.body);
 
-          return reply.send(bulkResponse(request.body.length));
+          return reply.send(bulkResponse(bulkUpdateConfig, records));
         }
       );
     }
@@ -468,10 +477,13 @@ export function resourceRoutes(
           config: bulkDeleteConfig
         },
         async (request, reply) => {
-          // The ids an earlier cascade removed count as deleted
-          await service.bulkDelete(request.body);
+          // The ids an earlier cascade removed are left out of the records,
+          // while the count includes them as deleted
+          const records = await service.bulkDelete(request.body);
 
-          return reply.send(bulkResponse(request.body.length));
+          return reply.send(
+            bulkResponse(bulkDeleteConfig, records, request.body.length)
+          );
         }
       );
     }

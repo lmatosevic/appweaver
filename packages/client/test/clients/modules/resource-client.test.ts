@@ -1,5 +1,6 @@
 import { ResourceClient } from '../../../clients/modules/resource-client';
 import { ClientError } from '../../../errors';
+import { BulkResponse } from '../../../types';
 import { createStubClient } from '../../fixtures/stub-client';
 
 type TestResource = any;
@@ -223,7 +224,10 @@ describe('resource-client', () => {
   describe('bulkCreate', () => {
     test('posts the records to the bulk path', async () => {
       const { stub, resource } = createResource({
-        data: { success: true, count: 2 }
+        data: [
+          { id: 1, title: 'One' },
+          { id: 2, title: 'Two' }
+        ]
       });
 
       const response = await resource.bulkCreate([
@@ -239,7 +243,23 @@ describe('resource-client', () => {
         { title: 'One' },
         { title: 'Two' }
       ]);
-      expect(response).toEqual({ success: true, count: 2 });
+      expect(response).toEqual([
+        { id: 1, title: 'One' },
+        { id: 2, title: 'Two' }
+      ]);
+    });
+
+    test('resolves the count of a server returning no records', async () => {
+      const { resource } = createResource({
+        data: { success: true, count: 2 }
+      });
+
+      const response = await resource.bulkCreate<BulkResponse>([
+        { title: 'One' },
+        { title: 'Two' }
+      ]);
+
+      expect(response.count).toBe(2);
     });
   });
 

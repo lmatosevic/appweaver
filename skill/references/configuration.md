@@ -198,6 +198,7 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 | `RESOURCE_BULK_DELETE_ENABLED`      | boolean | `false`                              | Register `DELETE /bulk` of every resource, unless the route sets `exclude`.             |
 | `RESOURCE_BULK_MAX_ITEMS`           | integer | `2000`                               | Maximum items of a bulk request. Overridable per route (`maxItems`).                    |
 | `RESOURCE_BULK_TRANSACTION_TIMEOUT` | integer | `5000`                               | Timeout (ms) of the transaction a bulk request runs in.                                 |
+| `RESOURCE_BULK_RETURN_RECORDS`      | boolean | `true`                               | Respond with the records, or only `{ success, count }`. Overridable per route.          |
 
 ### Data export (EXPORT\_\*)
 

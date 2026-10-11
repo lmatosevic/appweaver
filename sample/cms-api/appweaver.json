@@ -16,6 +16,29 @@
     "redis": {
       "url": "redis://${REDIS_HOST:-localhost}:6379/0"
     },
+    "security": {
+      "basic": {
+        "enabled": true
+      },
+      "apiKey": {
+        "enabled": true
+      },
+      "oauth2": {
+        "google": {
+          "enabled": true
+        }
+      },
+      "recaptcha": {
+        "enabled": true
+      }
+    },
+    "resource": {
+      "bulk": {
+        "createEnabled": true,
+        "updateEnabled": true,
+        "deleteEnabled": true
+      }
+    },
     "log": {
       "pretty": false
     }

@@ -2,6 +2,7 @@ import { TObject, TSchema, Type } from '@sinclair/typebox';
 import {
   AnyJson,
   AuthType,
+  BulkRouteConfig,
   camelToSnakeCase,
   CaptchaConfig,
   config,
@@ -100,7 +101,8 @@ export const AggregateResponseData = Type.Object({
   )
 });
 
-// Every item of a bulk request is applied, or none, so the response only counts them
+// Every item of a bulk request is applied, or none, so a response without the
+// records only counts them
 export const BulkResponse = Type.Object(
   {
     success: Type.Boolean({ example: true }),
@@ -113,7 +115,12 @@ export function createSchema(
   name: string,
   routeAuthTypes: Record<ResourceRouteName, AuthType[] | undefined>,
   routeCaptcha: Record<ResourceRouteName, CaptchaConfig>,
-  routeMaxItems: Partial<Record<ResourceRouteName, number>> = {}
+  routeBulk: Partial<
+    Record<
+      ResourceRouteName,
+      Pick<BulkRouteConfig, 'maxItems' | 'returnRecords'>
+    >
+  > = {}
 ): ResourceSchemaConfig {
   const resourceModel = injectModel(name);
 
@@ -170,7 +177,7 @@ export function createSchema(
   const bulkItems = (route: ResourceRouteName, items: TSchema) =>
     Type.Array(items, {
       minItems: 1,
-      maxItems: routeMaxItems[route] ?? config.RESOURCE_BULK_MAX_ITEMS
+      maxItems: routeBulk[route]?.maxItems ?? config.RESOURCE_BULK_MAX_ITEMS
     });
 
   const idValue = idParams.properties.id;
@@ -178,7 +185,12 @@ export function createSchema(
   const bulkItem = (data: string) =>
     Type.Object({ id: idValue, data: Type.Ref(data) });
 
-  const bulkResponse = createSchemaModel(BulkResponse);
+  // The records a bulk request applied, as its single route responds with each,
+  // or only their count
+  const bulkResponse = (route: ResourceRouteName) =>
+    (routeBulk[route]?.returnRecords ?? config.RESOURCE_BULK_RETURN_RECORDS)
+      ? Type.Array(Type.Ref(`${name}Single`))
+      : createSchemaModel(BulkResponse);
 
   // Register the recursive query filter and sort schemas of all loaded models,
   // referenced by the query, aggregate, and export request bodies
@@ -474,7 +486,7 @@ export function createSchema(
         `Create many ${resourceName} data in a single transaction, ` +
         'either every item or none',
       response: {
-        201: bulkResponse,
+        201: bulkResponse('bulkCreate'),
         ...routeErrors('bulkCreate', ...createErrors)
       },
       body: bulkItems('bulkCreate', Type.Ref(`${name}Create`))
@@ -488,7 +500,7 @@ export function createSchema(
         `Update the given fields of many ${resourceName} data in a single ` +
         'transaction, either every item or none',
       response: {
-        200: bulkResponse,
+        200: bulkResponse('bulkUpdate'),
         ...routeErrors('bulkUpdate', ...updateErrors)
       },
       body: bulkItems('bulkUpdate', bulkItem(`${name}Update`))
@@ -502,7 +514,7 @@ export function createSchema(
         `Replace many ${resourceName} data as a whole in a single ` +
         'transaction, either every item or none',
       response: {
-        200: bulkResponse,
+        200: bulkResponse('bulkUpdate'),
         ...routeErrors('bulkUpdate', ...updateErrors)
       },
       body: bulkItems('bulkUpdate', bulkItem(`${name}Replace`))
@@ -516,12 +528,13 @@ export function createSchema(
         `Delete many ${resourceName} data by their ids in a single ` +
         'transaction, either every item or none',
       response: {
-        200: bulkResponse,
+        200: bulkResponse('bulkDelete'),
         ...routeErrors('bulkDelete', ...deleteErrors)
       },
       body: Type.Array(idValue, {
         minItems: 1,
-        maxItems: routeMaxItems['bulkDelete'] ?? config.RESOURCE_BULK_MAX_ITEMS,
+        maxItems:
+          routeBulk['bulkDelete']?.maxItems ?? config.RESOURCE_BULK_MAX_ITEMS,
         uniqueItems: true
       })
     }

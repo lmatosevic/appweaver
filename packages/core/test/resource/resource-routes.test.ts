@@ -206,6 +206,7 @@ describe('resource-routes', () => {
     delete (common as any).configOverrides.RESOURCE_BULK_CREATE_ENABLED;
     delete (common as any).configOverrides.RESOURCE_BULK_UPDATE_ENABLED;
     delete (common as any).configOverrides.RESOURCE_BULK_DELETE_ENABLED;
+    delete (common as any).configOverrides.RESOURCE_BULK_RETURN_RECORDS;
   });
 
   describe('resourceRoutes', () => {
@@ -493,13 +494,13 @@ describe('resource-routes', () => {
         expect((await send('PATCH', [{ id: 1, data: {} }])).status).toBe(200);
       });
 
-      test('creates every item, responding with their count', async () => {
+      test('creates every item, responding with the created records', async () => {
         app = await server({ bulkCreate: enabled });
 
         const { status, body } = await send('POST', [full, full]);
 
         expect(status).toBe(201);
-        expect(body).toEqual({ success: true, count: 2 });
+        expect(body).toEqual([postResponse, postResponse]);
         expect(service.bulkCreate).toHaveBeenCalledWith([full, full]);
       });
 
@@ -512,12 +513,12 @@ describe('resource-routes', () => {
         ]);
         const replaced = await send('PUT', [{ id: 1, data: full }]);
 
-        expect(patched.body).toEqual({ success: true, count: 2 });
+        expect(patched.body).toEqual([postResponse, postResponse]);
         expect(service.bulkUpdate).toHaveBeenCalledWith([
           { id: 1, data: { title: 'One' } },
           { id: 2, data: { views: 3 } }
         ]);
-        expect(replaced.body).toEqual({ success: true, count: 1 });
+        expect(replaced.body).toEqual([postResponse]);
         expect(service.bulkReplace).toHaveBeenCalledWith([
           { id: 1, data: full }
         ]);
@@ -529,7 +530,7 @@ describe('resource-routes', () => {
         const { status, body } = await send('DELETE', [1, 2, 3]);
 
         expect(status).toBe(200);
-        expect(body).toEqual({ success: true, count: 3 });
+        expect(body).toEqual([postResponse, postResponse, postResponse]);
         expect(service.bulkDelete).toHaveBeenCalledWith([1, 2, 3]);
       });
 
@@ -635,13 +636,47 @@ describe('resource-routes', () => {
         expect((await send('POST', [full])).status).toBe(404);
       });
 
-      test('responds with the count of the deleted ids', async () => {
+      test('responds with the records deleted by their own id', async () => {
         app = await server({ bulkDelete: enabled });
         service.bulkDelete.mockResolvedValueOnce([postResponse]);
 
         const { body } = await send('DELETE', [1, 2]);
 
-        expect(body).toEqual({ success: true, count: 2 });
+        expect(body).toEqual([postResponse]);
+      });
+
+      test('responds with the count of the items when the config returns no records', async () => {
+        (common as any).configOverrides.RESOURCE_BULK_RETURN_RECORDS = false;
+        app = await server(all);
+        service.bulkDelete.mockResolvedValueOnce([postResponse]);
+
+        const created = await send('POST', [full, full]);
+        const patched = await send('PATCH', [{ id: 1, data: {} }]);
+        const replaced = await send('PUT', [{ id: 1, data: full }]);
+        // The ids an earlier cascade removed count as deleted
+        const deleted = await send('DELETE', [1, 2]);
+
+        expect(created).toEqual({
+          status: 201,
+          body: { success: true, count: 2 }
+        });
+        expect(patched.body).toEqual({ success: true, count: 1 });
+        expect(replaced.body).toEqual({ success: true, count: 1 });
+        expect(deleted.body).toEqual({ success: true, count: 2 });
+      });
+
+      test('prefers the returnRecords option of a bulk route over the config', async () => {
+        (common as any).configOverrides.RESOURCE_BULK_RETURN_RECORDS = false;
+        app = await server({
+          bulkCreate: { exclude: false, returnRecords: true },
+          bulkDelete: enabled
+        });
+
+        expect((await send('POST', [full])).body).toEqual([postResponse]);
+        expect((await send('DELETE', [1])).body).toEqual({
+          success: true,
+          count: 1
+        });
       });
 
       test('excludes the bulk routes the route defaults exclude', async () => {
@@ -665,6 +700,45 @@ describe('resource-routes', () => {
         expect(
           bulk.delete.requestBody.content['application/json']
         ).toBeDefined();
+        // Every bulk route responds with the records of its single route
+        const single =
+          document.paths['/posts'].post.responses['201'].content[
+            'application/json'
+          ].schema;
+        const responses = [
+          bulk.post.responses['201'],
+          bulk.patch.responses['200'],
+          bulk.put.responses['200'],
+          bulk.delete.responses['200']
+        ];
+        for (const response of responses) {
+          const schema = response.content['application/json'].schema;
+          expect(schema.type).toBe('array');
+          expect(schema.items).toEqual(single);
+        }
+      });
+
+      test('documents the count response of a route returning no records', async () => {
+        app = await server(
+          { ...all, bulkUpdate: { exclude: false, returnRecords: false } },
+          true
+        );
+        const document = (app as any).swagger();
+
+        const bulk = document.paths['/posts/bulk'];
+        const schema = (response: any) =>
+          response.content['application/json'].schema;
+        expect(schema(bulk.post.responses['201']).type).toBe('array');
+        for (const response of [
+          bulk.patch.responses['200'],
+          bulk.put.responses['200']
+        ]) {
+          expect(schema(response).type).toBe('object');
+          expect(Object.keys(schema(response).properties)).toEqual([
+            'success',
+            'count'
+          ]);
+        }
       });
     });
 

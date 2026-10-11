@@ -404,6 +404,10 @@
                 "transactionTimeout": {
                   "type": "integer",
                   "default": 5000
+                },
+                "returnRecords": {
+                  "type": "boolean",
+                  "default": true
                 }
               }
             }

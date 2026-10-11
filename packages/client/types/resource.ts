@@ -7,7 +7,8 @@ export type BulkItem<T> = {
   data: T;
 };
 
-/** The response of a bulk request, which either applies every item or none. */
+/** The response of a bulk request when the server does not return the records, which either applies every item or
+ * none. */
 export type BulkResponse = {
   /** Always true, since a failed bulk request throws a `ClientError` */
   success: boolean;

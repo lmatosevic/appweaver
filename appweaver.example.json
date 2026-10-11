@@ -85,7 +85,8 @@
         "updateEnabled": false,
         "deleteEnabled": false,
         "maxItems": 2000,
-        "transactionTimeout": 5000
+        "transactionTimeout": 5000,
+        "returnRecords": true
       }
     },
     "export": {

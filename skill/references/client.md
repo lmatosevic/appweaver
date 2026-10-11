@@ -423,8 +423,10 @@ const replaced = await client.post.replace({ id: 1, title: 'Replaced', body: '..
 // Delete
 const deleted = await client.post.delete(1);
 
-// Bulk, generated only for resources enabling the routes: { success: true, count: 2 }
-await client.post.bulkCreate([{ title: 'One' }, { title: 'Two' }]);
+// Bulk, generated only for resources enabling the routes, resolves the created records
+const posts = await client.post.bulkCreate([{ title: 'One' }, { title: 'Two' }]);
+// A route returning no records (`returnRecords: false`) is typed by the call: { success: true, count: 2 }
+const { count } = await client.post.bulkCreate<BulkResponse>([{ title: 'One' }, { title: 'Two' }]);
 
 // Export as CSV
 const file = await client.post.export({ filter: { published: true } });

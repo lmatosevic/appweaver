@@ -1526,7 +1526,8 @@ The `update` config applies to both routes, which share the policies, hooks, cac
 Disabled by default. `RESOURCE_BULK_CREATE_ENABLED`, `RESOURCE_BULK_UPDATE_ENABLED`, and `RESOURCE_BULK_DELETE_ENABLED`
 enable them for every resource, and the route's `exclude` overrides that per resource (`exclude: false` enables it).
 Each bulk route inherits the config of its single route (`create`, `update`, `delete`, which also excludes it) and
-takes `maxItems` (default `RESOURCE_BULK_MAX_ITEMS`, `2000`).
+takes `maxItems` (default `RESOURCE_BULK_MAX_ITEMS`, `2000`) and `returnRecords` (default
+`RESOURCE_BULK_RETURN_RECORDS`, `true`).
 
 | Route          | Body                             | Service method       |
 |----------------|----------------------------------|----------------------|
@@ -1537,16 +1538,18 @@ takes `maxItems` (default `RESOURCE_BULK_MAX_ITEMS`, `2000`).
 
 All items run in one transaction (`RESOURCE_BULK_TRANSACTION_TIMEOUT`, `5000` ms) through the single-item service method
 (same policies, hooks, events, and cache invalidation). Any failure rolls back everything and returns that item's error;
-success returns `{ "success": true, "count": n }`. The `after*` hooks run before the commit, so keep side effects in
-resource events. A bulk delete checks every id exists first, and skips ids removed by an earlier cascade. A request
-counts once for rate limiting.
+success returns the array of records, each the same as its single route responds with (generated ids, defaults, virtual
+fields), in the order of the items. With `returnRecords: false` it returns only `{ "success": true, "count": n }`
+instead, for callers that ignore the records or refetch them anyway. The `after*` hooks run before the commit, so keep
+side effects in resource events. A bulk delete checks every id exists first, and skips ids removed by an earlier
+cascade, leaving them out of the records (its `count` still includes them). A request counts once for rate limiting.
 
 ```ts
 createRoutes({
   modelName: 'Tag',
   delete: { roles: ['Admin'] },
   bulkCreate: { exclude: false, roles: ['Admin'] },
-  bulkDelete: { exclude: false, maxItems: 500 } // inherits roles: ['Admin']
+  bulkDelete: { exclude: false, maxItems: 500, returnRecords: false } // inherits roles: ['Admin']
 });
 ```
 

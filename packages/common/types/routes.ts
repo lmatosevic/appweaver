@@ -99,6 +99,9 @@ export type BulkRouteConfig = RouteConfig & {
   /** Maximum number of items a request accepts (default:
    * `RESOURCE_BULK_MAX_ITEMS` config) */
   maxItems?: number;
+  /** Respond with the applied records, or only with their count when `false`
+   * (default: `RESOURCE_BULK_RETURN_RECORDS` config) */
+  returnRecords?: boolean;
 };
 
 export type ResourceRoutesConfig = {

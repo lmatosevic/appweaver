@@ -58,7 +58,7 @@ export type BulkItem<T> = {
   data: T;
 };
 
-/** The response of a bulk route, which either applies every item or none. */
+/** The response of a bulk route not returning the records, which either applies every item or none. */
 export type BulkResponse = {
   /** Whether every item was applied, always true, since a failed bulk responds with an error */
   success: boolean;

@@ -13,6 +13,12 @@ export type ResourceType = Record<
 > &
   Partial<Record<OptionalResourceTypes, unknown>>;
 
+/** The response of a bulk request: the records by default, or the {@link BulkResponse} of a server configured to
+ * return only their count (`RESOURCE_BULK_RETURN_RECORDS`, or the `returnRecords` option of the route). */
+export type ResourceBulkResponse<Resource extends ResourceType> =
+  | Resource['single'][]
+  | BulkResponse;
+
 /** The HTTP methods of the query and aggregate requests. */
 export type ResourceMethods = {
   query?: 'get' | 'post';
@@ -281,14 +287,19 @@ export class ResourceClient<Resource extends ResourceType>
   /**
    * Creates many resource records in a single transaction, either all of them or none (`POST /bulk`).
    *
+   * Type the response as {@link BulkResponse} (i.e. `bulkCreate<BulkResponse>(...)`) when the route only returns the
+   * count of the records.
+   *
    * @param {Object[]} resources - The data of every record to create.
    * @param {RequestOptions} options - Additional request options.
-   * @returns The {@link BulkResponse} with the number of created records.
+   * @returns The created records, in the order of the items, or their count.
    */
-  public async bulkCreate(
+  public async bulkCreate<
+    Result extends ResourceBulkResponse<Resource> = Resource['single'][]
+  >(
     resources: Resource['create'][],
     options: RequestOptions = {}
-  ): Promise<BulkResponse> {
+  ): Promise<Result> {
     return this.sendRequest('post', `${this.basePath}/bulk`, {
       ...options,
       body: resources
@@ -299,14 +310,19 @@ export class ResourceClient<Resource extends ResourceType>
    * Updates the given fields of many resource records in a single transaction, either all of them or none
    * (`PATCH /bulk`).
    *
+   * Type the response as {@link BulkResponse} (i.e. `bulkCreate<BulkResponse>(...)`) when the route only returns the
+   * count of the records.
+   *
    * @param {BulkItem[]} items - The id and the updated field values of every record.
    * @param {RequestOptions} options - Additional request options.
-   * @returns The {@link BulkResponse} with the number of updated records.
+   * @returns The updated records, in the order of the items, or their count.
    */
-  public async bulkUpdate(
+  public async bulkUpdate<
+    Result extends ResourceBulkResponse<Resource> = Resource['single'][]
+  >(
     items: BulkItem<Resource['update']>[],
     options: RequestOptions = {}
-  ): Promise<BulkResponse> {
+  ): Promise<Result> {
     return this.sendRequest('patch', `${this.basePath}/bulk`, {
       ...options,
       body: items
@@ -316,14 +332,19 @@ export class ResourceClient<Resource extends ResourceType>
   /**
    * Replaces many resource records as a whole in a single transaction, either all of them or none (`PUT /bulk`).
    *
+   * Type the response as {@link BulkResponse} (i.e. `bulkCreate<BulkResponse>(...)`) when the route only returns the
+   * count of the records.
+   *
    * @param {BulkItem[]} items - The id and the new state of every record.
    * @param {RequestOptions} options - Additional request options.
-   * @returns The {@link BulkResponse} with the number of replaced records.
+   * @returns The replaced records, in the order of the items, or their count.
    */
-  public async bulkReplace(
+  public async bulkReplace<
+    Result extends ResourceBulkResponse<Resource> = Resource['single'][]
+  >(
     items: BulkItem<Resource['replace']>[],
     options: RequestOptions = {}
-  ): Promise<BulkResponse> {
+  ): Promise<Result> {
     return this.sendRequest('put', `${this.basePath}/bulk`, {
       ...options,
       body: items
@@ -334,14 +355,17 @@ export class ResourceClient<Resource extends ResourceType>
    * Deletes many resource records by their IDs in a single transaction, either all of them or none
    * (`DELETE /bulk`).
    *
+   * Type the response as {@link BulkResponse} (i.e. `bulkCreate<BulkResponse>(...)`) when the route only returns the
+   * count of the records.
+   *
    * @param {ResourceId[]} ids - The IDs of the records to delete.
    * @param {RequestOptions} options - Additional request options.
-   * @returns The {@link BulkResponse} with the number of deleted records.
+   * @returns The deleted records, in the order of the IDs, leaving out the ones an earlier cascade removed, or the
+   * count of the IDs.
    */
-  public async bulkDelete(
-    ids: ResourceId[],
-    options: RequestOptions = {}
-  ): Promise<BulkResponse> {
+  public async bulkDelete<
+    Result extends ResourceBulkResponse<Resource> = Resource['single'][]
+  >(ids: ResourceId[], options: RequestOptions = {}): Promise<Result> {
     return this.sendRequest('delete', `${this.basePath}/bulk`, {
       ...options,
       body: ids

@@ -17,7 +17,7 @@ export type ResourceRouteName =
 
 /** The config of any resource route. */
 export type ResourceRouteConfig = QueryRouteConfig &
-  Pick<BulkRouteConfig, 'maxItems'>;
+  Pick<BulkRouteConfig, 'maxItems' | 'returnRecords'>;
 
 const READ_ROUTES: ResourceRouteName[] = ['find', 'query', 'aggregate'];
 const QUERY_ROUTES: ResourceRouteName[] = ['query', 'aggregate'];

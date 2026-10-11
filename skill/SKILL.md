@@ -417,7 +417,9 @@ present, omitted ones reset to their `default` or `null`).
 
 The bulk routes (`POST`, `PATCH`, `PUT`, `DELETE` on `/bulk`) are disabled by default. Enable them globally with
 `RESOURCE_BULK_*_ENABLED`, or per resource with `bulkCreate`/`bulkUpdate`/`bulkDelete: { exclude: false }`. Each
-request runs all items in one transaction, all or none (see `references/resources.md`).
+request runs all items in one transaction, all or none, and responds with the array of created, updated, or deleted
+records, like its single route, or only with `{ success, count }` when `RESOURCE_BULK_RETURN_RECORDS` or the route's
+`returnRecords` is `false` (see `references/resources.md`).
 
 #### Creating a resource policy
 

@@ -115,7 +115,12 @@ describe('Bulk create, update, and delete routes', () => {
       ]);
 
       expect(status).toBe(201);
-      expect(body).toEqual({ success: true, count: 3 });
+      // The created tags, with their generated ids, in the order of the items
+      expect(body).toMatchObject([
+        { id: expect.any(Number), name: 'Nature', slug: 'nature' },
+        { id: expect.any(Number), name: 'Ocean', slug: 'ocean' },
+        { id: expect.any(Number), name: 'Forest', slug: 'forest' }
+      ]);
     });
 
     expect(await storedNames()).toEqual(['Forest', 'Nature', 'Ocean']);
@@ -159,7 +164,10 @@ describe('Bulk create, update, and delete routes', () => {
       ]);
 
       expect(status).toBe(200);
-      expect(body).toEqual({ success: true, count: 2 });
+      expect(body).toMatchObject([
+        { id: nature.id, name: 'Wildlife', slug: 'nature' },
+        { id: ocean.id, name: 'Sea', slug: 'ocean' }
+      ]);
     });
 
     expect(await storedNames()).toEqual(['Sea', 'Wildlife']);
@@ -171,11 +179,14 @@ describe('Bulk create, update, and delete routes', () => {
       data: { name: 'Nature', slug: 'nature' }
     });
 
-    const { status } = await request('PUT', '/api/tags/bulk', [
+    const { status, body } = await request('PUT', '/api/tags/bulk', [
       { id: nature.id, data: { name: 'Forest', slug: 'forest' } }
     ]);
 
     expect(status).toBe(200);
+    expect(body).toMatchObject([
+      { id: nature.id, name: 'Forest', slug: 'forest' }
+    ]);
     expect(
       await tags.client.findUnique({ where: { id: nature.id } })
     ).toMatchObject({ name: 'Forest', slug: 'forest' });
@@ -218,7 +229,10 @@ describe('Bulk create, update, and delete routes', () => {
       ]);
 
       expect(status).toBe(200);
-      expect(body).toEqual({ success: true, count: 2 });
+      expect(body).toMatchObject([
+        { id: nature, name: 'Nature' },
+        { id: ocean, name: 'Ocean' }
+      ]);
     });
 
     expect(await storedNames()).toEqual(['Forest']);
