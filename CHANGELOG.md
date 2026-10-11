@@ -1,3 +1,16 @@
+## [1.11.0](https://github.com/lmatosevic/appweaver/compare/v1.10.2...v1.11.0) (2026-10-11)
+
+### Features
+
+* add bulk create, update, and delete resource routes ([d45775f](https://github.com/lmatosevic/appweaver/commit/d45775f80e4ffbbe8e845e2ff4b664b283b43e7d))
+* add Cloudflare Turnstile bot check support ([e2e1ab1](https://github.com/lmatosevic/appweaver/commit/e2e1ab10b883d770294ca79f60f6f5d9c53c5ae3))
+* serve resource updates as PATCH and whole replacements as PUT ([9e7bdfa](https://github.com/lmatosevic/appweaver/commit/9e7bdfabd3e74a41540e56fb98a0d9e196d32e16))
+
+### Bug Fixes
+
+* add config to return full list of resources from bulk endpoints ([74875d7](https://github.com/lmatosevic/appweaver/commit/74875d776207bd43ba769717d9f1eb14a260de28))
+* update @fastify/jwt version (CVE) ([3b71328](https://github.com/lmatosevic/appweaver/commit/3b71328900aec498380f6a42a690dbc63fa9f3e5))
+
 ## [1.10.2](https://github.com/lmatosevic/appweaver/compare/v1.10.1...v1.10.2) (2026-10-11)
 
 ### Bug Fixes
