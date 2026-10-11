@@ -652,6 +652,9 @@ function resourceOperation(
       '{id}/delete-files': 'deleteFiles'
     },
     put: {
+      '{id}': 'replace'
+    },
+    patch: {
       '{id}': 'update'
     },
     delete: {

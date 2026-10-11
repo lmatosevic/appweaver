@@ -18,7 +18,8 @@ export interface IResourceService<
   ReadMany = Resource,
   Create = ResourceData<Resource>,
   Update = Partial<ResourceData<Resource>>,
-  Query = QueryFilter<ReadOne>
+  Query = QueryFilter<ReadOne>,
+  Replace = Create
 > {
   modelName: string;
 
@@ -108,6 +109,16 @@ export interface IResourceService<
    * @return {Promise<Object>} A promise that resolves to the updated record.
    */
   update(id: ResourceId, data: Update): Promise<ReadOne>;
+
+  /**
+   * Replaces an existing record as a whole with the provided data based on the given ID. The updatable fields missing
+   * from the data are reset to their default value, or to null.
+   *
+   * @param {ResourceId} id - The unique identifier of the record to be replaced.
+   * @param {Object} data - The data object containing the new state of the record.
+   * @return {Promise<Object>} A promise that resolves to the replaced record.
+   */
+  replace(id: ResourceId, data: Replace): Promise<ReadOne>;
 
   /**
    * Deletes a resource identified by the provided ID.

@@ -369,7 +369,7 @@ const any = await products.exists({ status: 'Sold' });
 ```
 
 The `afterUpdate` hook receives the updated resource along with the state it had before the update, i.e.
-`afterUpdate: (product, previous) => { ... }`.
+`afterUpdate: (product, previous) => { ... }`. The update hooks also run for `replace` (`PUT`).
 
 #### Creating the resource routes
 
@@ -411,6 +411,9 @@ export default createRoutes({
 The `method` option of `query` and `aggregate` (`post` by default, `get`, or `get-post`) registers a GET route taking
 the criteria as query parameters. The defaults come from the `RESOURCE_QUERY_METHOD` and `RESOURCE_AGGREGATE_METHOD`
 config (see `references/resources.md`).
+
+The `update` config covers both `PATCH /:id` (partial update) and `PUT /:id` (full replace: required fields must be
+present, omitted ones reset to their `default` or `null`).
 
 #### Creating a resource policy
 

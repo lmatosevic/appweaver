@@ -88,6 +88,15 @@ describe('generate-client', () => {
       expect(userLine).not.toContain(`'find'`);
     });
 
+    test('maps the PATCH route to update and the PUT route to replace', () => {
+      const userLine = client
+        .split('\n')
+        .find((line) => line.includes('public user ='))!;
+      expect(userLine).toContain(`'update'`);
+      expect(userLine).toContain(`'replace'`);
+      expect(client).not.toMatch(/public post = [^\n]*'(update|replace)'/);
+    });
+
     test('adds custom requests for unrecognized routes', () => {
       expect(client).toContain(
         `public info = this.customRequest('get', '/api/')`

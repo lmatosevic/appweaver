@@ -65,7 +65,7 @@ export type ResourceServiceConfig<T = any, C = any, U = any> = {
   ) => ServiceHookResponse;
   /** Hook called before creating a resource */
   beforeCreate?: (data: C) => ServiceHookResponse;
-  /** Hook called before updating a resource */
+  /** Hook called before updating or replacing a resource */
   beforeUpdate?: (id: ResourceId, data: U) => ServiceHookResponse;
   /** Hook called before deleting a resource */
   beforeDelete?: (id: ResourceId) => ServiceHookResponse;
@@ -77,7 +77,7 @@ export type ResourceServiceConfig<T = any, C = any, U = any> = {
   afterAggregate?: (response: AggregateResponse<T>) => ServiceHookResponse;
   /** Hook called after creating a resource */
   afterCreate?: (resource: T) => ServiceHookResponse;
-  /** Hook called after updating a resource, with the state it had before the update */
+  /** Hook called after updating or replacing a resource, with the state it had before the update */
   afterUpdate?: (resource: T, previous: T) => ServiceHookResponse;
   /** Hook called after deleting a resource */
   afterDelete?: (resource: T) => ServiceHookResponse;

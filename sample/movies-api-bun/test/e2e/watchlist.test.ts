@@ -46,10 +46,15 @@ describe('Watchlist', () => {
     const watched = await movie('Listed Parasite');
     const entry = await add(ana, watched.id);
 
-    const { body } = await request(app, 'PUT', `/watchlist/${entry.body.id}`, {
-      auth: ana,
-      payload: { status: 'Watched' }
-    });
+    const { body } = await request(
+      app,
+      'PATCH',
+      `/watchlist/${entry.body.id}`,
+      {
+        auth: ana,
+        payload: { status: 'Watched' }
+      }
+    );
 
     expect(body.status).toBe('Watched');
     expect(body.watchedAt).toBeString();

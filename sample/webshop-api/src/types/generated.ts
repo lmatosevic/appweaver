@@ -70,6 +70,16 @@ export type AddressUpdate = {
   isDefault?: boolean;
 };
 
+export type AddressReplace = {
+  label?: string;
+  recipient: string;
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  isDefault?: boolean;
+};
+
 export type AddressRelationCreate = {
   label?: string;
   recipient: string;
@@ -102,7 +112,8 @@ export type AddressResourceService = IResourceService<
   AddressMultiple,
   AddressCreate,
   AddressUpdate,
-  AddressQuery
+  AddressQuery,
+  AddressReplace
 >;
 
 export type Brand = {
@@ -153,6 +164,12 @@ export type BrandUpdate = {
   website?: string | null;
 };
 
+export type BrandReplace = {
+  name: string;
+  slug: string;
+  website?: string | null;
+};
+
 export type BrandRelationCreate = {
   name: string;
   slug: string;
@@ -177,7 +194,8 @@ export type BrandResourceService = IResourceService<
   BrandMultiple,
   BrandCreate,
   BrandUpdate,
-  BrandQuery
+  BrandQuery,
+  BrandReplace
 >;
 
 export type Category = {
@@ -230,6 +248,13 @@ export type CategoryUpdate = {
   position?: number;
 };
 
+export type CategoryReplace = {
+  name: string;
+  slug: string;
+  description?: string | null;
+  position?: number;
+};
+
 export type CategoryRelationCreate = {
   name: string;
   slug: string;
@@ -256,7 +281,8 @@ export type CategoryResourceService = IResourceService<
   CategoryMultiple,
   CategoryCreate,
   CategoryUpdate,
-  CategoryQuery
+  CategoryQuery,
+  CategoryReplace
 >;
 
 export type Coupon = {
@@ -332,6 +358,17 @@ export type CouponUpdate = {
   active?: boolean;
 };
 
+export type CouponReplace = {
+  code: string;
+  type?: 'Percentage' | 'Fixed';
+  value: number;
+  minOrderTotal?: number;
+  validFrom?: Date | null;
+  validUntil?: Date | null;
+  maxRedemptions?: number | null;
+  active?: boolean;
+};
+
 export type CouponRelationCreate = {
   code: string;
   type?: 'Percentage' | 'Fixed';
@@ -366,7 +403,8 @@ export type CouponResourceService = IResourceService<
   CouponMultiple,
   CouponCreate,
   CouponUpdate,
-  CouponQuery
+  CouponQuery,
+  CouponReplace
 >;
 
 export type OrderItem = {
@@ -443,6 +481,24 @@ export type OrderItemUpdate = {
     | number;
 };
 
+export type OrderItemReplace = {
+  productName: string;
+  sku: string;
+  unitPrice: number;
+  quantity: number;
+  lineTotal: number;
+  order:
+    | {
+        id: string;
+      }
+    | string;
+  product?:
+    | {
+        id: number;
+      }
+    | number;
+};
+
 export type OrderItemRelationCreate = {
   productName: string;
   sku: string;
@@ -471,7 +527,8 @@ export type OrderItemResourceService = IResourceService<
   OrderItemMultiple,
   OrderItemCreate,
   OrderItemUpdate,
-  OrderItemQuery
+  OrderItemQuery,
+  OrderItemReplace
 >;
 
 export type Order = {
@@ -611,6 +668,20 @@ export type OrderUpdate = {
     | number;
 };
 
+export type OrderReplace = {
+  note?: string | null;
+  customer:
+    | {
+        id: number;
+      }
+    | number;
+  coupon?:
+    | {
+        id: number;
+      }
+    | number;
+};
+
 export type OrderRelationCreate = {
   number: string;
   status?:
@@ -650,7 +721,8 @@ export type OrderResourceService = IResourceService<
   OrderMultiple,
   OrderCreate,
   OrderUpdate,
-  OrderQuery
+  OrderQuery,
+  OrderReplace
 >;
 
 export type Product = {
@@ -771,6 +843,29 @@ export type ProductUpdate = {
     | number;
 };
 
+export type ProductReplace = {
+  name: string;
+  slug: string;
+  sku: string;
+  description?: string | null;
+  price: number;
+  compareAtPrice?: number | null;
+  stock?: number;
+  status?: 'Draft' | 'Active' | 'Archived';
+  attributes?: any | null;
+  weightGrams?: number | null;
+  category?:
+    | {
+        id: number;
+      }
+    | number;
+  brand?:
+    | {
+        id: number;
+      }
+    | number;
+};
+
 export type ProductRelationCreate = {
   name: string;
   slug: string;
@@ -809,7 +904,8 @@ export type ProductResourceService = IResourceService<
   ProductMultiple,
   ProductCreate,
   ProductUpdate,
-  ProductQuery
+  ProductQuery,
+  ProductReplace
 >;
 
 export type Review = {
@@ -873,6 +969,17 @@ export type ReviewUpdate = {
     | number;
 };
 
+export type ReviewReplace = {
+  rating: number;
+  title?: string | null;
+  body?: string | null;
+  product:
+    | {
+        id: number;
+      }
+    | number;
+};
+
 export type ReviewRelationCreate = {
   rating: number;
   title?: string | null;
@@ -897,7 +1004,8 @@ export type ReviewResourceService = IResourceService<
   ReviewMultiple,
   ReviewCreate,
   ReviewUpdate,
-  ReviewQuery
+  ReviewQuery,
+  ReviewReplace
 >;
 
 export type User = {
@@ -997,6 +1105,23 @@ export type UserUpdate = {
   >;
 };
 
+export type UserReplace = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string | null;
+  marketingOptIn?: boolean;
+  twoFactorAuth?: 'None' | 'Email';
+  enabled?: boolean;
+  password?: string;
+  roles: Array<
+    | {
+        id: number;
+      }
+    | number
+  >;
+};
+
 export type UserRelationCreate = {
   firstName: string;
   lastName: string;
@@ -1031,7 +1156,8 @@ export type UserResourceService = IResourceService<
   UserMultiple,
   UserCreate,
   UserUpdate,
-  UserQuery
+  UserQuery,
+  UserReplace
 >;
 
 export type ApiKey = {
@@ -1085,6 +1211,12 @@ export type ApiKeyUpdate = {
   enabled?: boolean;
 };
 
+export type ApiKeyReplace = {
+  name?: string | null;
+  description?: string | null;
+  enabled?: boolean;
+};
+
 export type ApiKeyRelationCreate = {
   name?: string | null;
   description?: string | null;
@@ -1110,7 +1242,8 @@ export type ApiKeyResourceService = IResourceService<
   ApiKeyMultiple,
   ApiKeyCreate,
   ApiKeyUpdate,
-  ApiKeyQuery
+  ApiKeyQuery,
+  ApiKeyReplace
 >;
 
 export type OneTimeToken = {
@@ -1154,6 +1287,13 @@ export type OneTimeTokenUpdate = {
   expiresAt?: Date;
 };
 
+export type OneTimeTokenReplace = {
+  tokenHash: string;
+  purpose: string;
+  data: any;
+  expiresAt: Date;
+};
+
 export type OneTimeTokenRelationCreate = {
   tokenHash: string;
   purpose: string;
@@ -1180,7 +1320,8 @@ export type OneTimeTokenResourceService = IResourceService<
   OneTimeTokenMultiple,
   OneTimeTokenCreate,
   OneTimeTokenUpdate,
-  OneTimeTokenQuery
+  OneTimeTokenQuery,
+  OneTimeTokenReplace
 >;
 
 export type Role = {
@@ -1224,6 +1365,16 @@ export type RoleUpdate = {
   >;
 };
 
+export type RoleReplace = {
+  name: string;
+  permissions: Array<
+    | {
+        id: number;
+      }
+    | number
+  >;
+};
+
 export type RoleRelationCreate = {
   name: string;
 };
@@ -1244,7 +1395,8 @@ export type RoleResourceService = IResourceService<
   RoleMultiple,
   RoleCreate,
   RoleUpdate,
-  RoleQuery
+  RoleQuery,
+  RoleReplace
 >;
 
 export type Permission = {
@@ -1273,6 +1425,10 @@ export type PermissionUpdate = {
   name?: string;
 };
 
+export type PermissionReplace = {
+  name: string;
+};
+
 export type PermissionRelationCreate = {
   name: string;
 };
@@ -1293,7 +1449,8 @@ export type PermissionResourceService = IResourceService<
   PermissionMultiple,
   PermissionCreate,
   PermissionUpdate,
-  PermissionQuery
+  PermissionQuery,
+  PermissionReplace
 >;
 
 export type File = {
@@ -1366,6 +1523,16 @@ export type FileUpdate = {
   description?: string | null;
 };
 
+export type FileReplace = {
+  name: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  checksum: string;
+  title?: string | null;
+  description?: string | null;
+};
+
 export type FileRelationCreate = {
   name: string;
   originalName: string;
@@ -1398,7 +1565,8 @@ export type FileResourceService = IResourceService<
   FileMultiple,
   FileCreate,
   FileUpdate,
-  FileQuery
+  FileQuery,
+  FileReplace
 >;
 
 declare module '@appweaver/common' {
@@ -1409,6 +1577,7 @@ declare module '@appweaver/common' {
       multiple: AddressMultiple;
       create: AddressCreate;
       update: AddressUpdate;
+      replace: AddressReplace;
       query: AddressQuery;
       service: AddressResourceService;
       relations: 'user';
@@ -1419,6 +1588,7 @@ declare module '@appweaver/common' {
       multiple: BrandMultiple;
       create: BrandCreate;
       update: BrandUpdate;
+      replace: BrandReplace;
       query: BrandQuery;
       service: BrandResourceService;
       relations: 'products';
@@ -1429,6 +1599,7 @@ declare module '@appweaver/common' {
       multiple: CategoryMultiple;
       create: CategoryCreate;
       update: CategoryUpdate;
+      replace: CategoryReplace;
       query: CategoryQuery;
       service: CategoryResourceService;
       relations: 'products';
@@ -1439,6 +1610,7 @@ declare module '@appweaver/common' {
       multiple: CouponMultiple;
       create: CouponCreate;
       update: CouponUpdate;
+      replace: CouponReplace;
       query: CouponQuery;
       service: CouponResourceService;
       relations: 'orders';
@@ -1449,6 +1621,7 @@ declare module '@appweaver/common' {
       multiple: OrderItemMultiple;
       create: OrderItemCreate;
       update: OrderItemUpdate;
+      replace: OrderItemReplace;
       query: OrderItemQuery;
       service: OrderItemResourceService;
       relations: 'order' | 'product';
@@ -1459,6 +1632,7 @@ declare module '@appweaver/common' {
       multiple: OrderMultiple;
       create: OrderCreate;
       update: OrderUpdate;
+      replace: OrderReplace;
       query: OrderQuery;
       service: OrderResourceService;
       relations: 'customer' | 'items' | 'coupon';
@@ -1469,6 +1643,7 @@ declare module '@appweaver/common' {
       multiple: ProductMultiple;
       create: ProductCreate;
       update: ProductUpdate;
+      replace: ProductReplace;
       query: ProductQuery;
       service: ProductResourceService;
       relations: 'category' | 'brand' | 'reviews' | 'orderItems';
@@ -1479,6 +1654,7 @@ declare module '@appweaver/common' {
       multiple: ReviewMultiple;
       create: ReviewCreate;
       update: ReviewUpdate;
+      replace: ReviewReplace;
       query: ReviewQuery;
       service: ReviewResourceService;
       relations: 'product' | 'author';
@@ -1489,6 +1665,7 @@ declare module '@appweaver/common' {
       multiple: UserMultiple;
       create: UserCreate;
       update: UserUpdate;
+      replace: UserReplace;
       query: UserQuery;
       service: UserResourceService;
       relations: 'addresses' | 'orders' | 'reviews' | 'roles' | 'apiKeys';
@@ -1499,6 +1676,7 @@ declare module '@appweaver/common' {
       multiple: ApiKeyMultiple;
       create: ApiKeyCreate;
       update: ApiKeyUpdate;
+      replace: ApiKeyReplace;
       query: ApiKeyQuery;
       service: ApiKeyResourceService;
       relations: 'user';
@@ -1509,6 +1687,7 @@ declare module '@appweaver/common' {
       multiple: OneTimeTokenMultiple;
       create: OneTimeTokenCreate;
       update: OneTimeTokenUpdate;
+      replace: OneTimeTokenReplace;
       query: OneTimeTokenQuery;
       service: OneTimeTokenResourceService;
       relations: never;
@@ -1519,6 +1698,7 @@ declare module '@appweaver/common' {
       multiple: RoleMultiple;
       create: RoleCreate;
       update: RoleUpdate;
+      replace: RoleReplace;
       query: RoleQuery;
       service: RoleResourceService;
       relations: 'permissions';
@@ -1529,6 +1709,7 @@ declare module '@appweaver/common' {
       multiple: PermissionMultiple;
       create: PermissionCreate;
       update: PermissionUpdate;
+      replace: PermissionReplace;
       query: PermissionQuery;
       service: PermissionResourceService;
       relations: never;
@@ -1539,6 +1720,7 @@ declare module '@appweaver/common' {
       multiple: any;
       create: any;
       update: any;
+      replace: any;
       query: any;
       service: IResourceService;
       relations: string;
@@ -1549,6 +1731,7 @@ declare module '@appweaver/common' {
       multiple: FileMultiple;
       create: FileCreate;
       update: FileUpdate;
+      replace: FileReplace;
       query: FileQuery;
       service: FileResourceService;
       relations: never;

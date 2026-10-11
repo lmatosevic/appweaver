@@ -94,11 +94,11 @@ describe('Reviews', () => {
     const reviewed = await movie('Reviewed Mad Max: Fury Road');
     const written = await review(as.ana, reviewed.id, 7);
 
-    const other = await request(app, 'PUT', `/reviews/${written.body.id}`, {
+    const other = await request(app, 'PATCH', `/reviews/${written.body.id}`, {
       auth: as.ben,
       payload: { rating: 1 }
     });
-    const own = await request(app, 'PUT', `/reviews/${written.body.id}`, {
+    const own = await request(app, 'PATCH', `/reviews/${written.body.id}`, {
       auth: as.ana,
       payload: { rating: 9 }
     });

@@ -73,6 +73,18 @@ export type CategoryUpdate = {
     | number;
 };
 
+export type CategoryReplace = {
+  name: string;
+  slug: string;
+  description?: string | null;
+  position?: number;
+  parent?:
+    | {
+        id: number;
+      }
+    | number;
+};
+
 export type CategoryRelationCreate = {
   name: string;
   slug: string;
@@ -99,7 +111,8 @@ export type CategoryResourceService = IResourceService<
   CategoryMultiple,
   CategoryCreate,
   CategoryUpdate,
-  CategoryQuery
+  CategoryQuery,
+  CategoryReplace
 >;
 
 export type Comment = {
@@ -167,6 +180,18 @@ export type CommentUpdate = {
     | number;
 };
 
+export type CommentReplace = {
+  body: string;
+  guestName?: string | null;
+  guestEmail?: string | null;
+  status?: ('Pending' | 'Approved' | 'Spam') | null;
+  post:
+    | {
+        id: number;
+      }
+    | number;
+};
+
 export type CommentRelationCreate = {
   body: string;
   guestName?: string | null;
@@ -192,7 +217,8 @@ export type CommentResourceService = IResourceService<
   CommentMultiple,
   CommentCreate,
   CommentUpdate,
-  CommentQuery
+  CommentQuery,
+  CommentReplace
 >;
 
 export type Page = {
@@ -268,6 +294,17 @@ export type PageUpdate = {
   seo?: any | null;
 };
 
+export type PageReplace = {
+  title: string;
+  slug: string;
+  content: string;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  publishedAt?: Date | null;
+  showInMenu?: boolean;
+  menuPosition?: number;
+  seo?: any | null;
+};
+
 export type PageRelationCreate = {
   title: string;
   slug: string;
@@ -302,7 +339,8 @@ export type PageResourceService = IResourceService<
   PageMultiple,
   PageCreate,
   PageUpdate,
-  PageQuery
+  PageQuery,
+  PageReplace
 >;
 
 export type Post = {
@@ -430,6 +468,28 @@ export type PostUpdate = {
     | string;
 };
 
+export type PostReplace = {
+  title: string;
+  slug: string;
+  excerpt?: string | null;
+  content?: string | null;
+  status?: ('Draft' | 'Published' | 'Archived') | null;
+  publishedAt?: Date | null;
+  featured?: boolean;
+  seo?: any | null;
+  category?:
+    | {
+        id: number;
+      }
+    | number;
+  tags?: Array<TagRelationUpdate | TagRelationCreate | number> | null;
+  pinnedComment?:
+    | {
+        id: string;
+      }
+    | string;
+};
+
 export type PostRelationCreate = {
   title: string;
   slug: string;
@@ -464,7 +524,8 @@ export type PostResourceService = IResourceService<
   PostMultiple,
   PostCreate,
   PostUpdate,
-  PostQuery
+  PostQuery,
+  PostReplace
 >;
 
 export type Tag = {
@@ -507,6 +568,11 @@ export type TagUpdate = {
   slug?: string;
 };
 
+export type TagReplace = {
+  name: string;
+  slug: string;
+};
+
 export type TagRelationCreate = {
   name: string;
   slug: string;
@@ -529,7 +595,8 @@ export type TagResourceService = IResourceService<
   TagMultiple,
   TagCreate,
   TagUpdate,
-  TagQuery
+  TagQuery,
+  TagReplace
 >;
 
 export type User = {
@@ -644,6 +711,25 @@ export type UserUpdate = {
   >;
 };
 
+export type UserReplace = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string | null;
+  displayName?: string | null;
+  bio?: string | null;
+  website?: string | null;
+  twoFactorAuth?: 'None' | 'Email';
+  enabled?: boolean;
+  password?: string;
+  roles: Array<
+    | {
+        id: number;
+      }
+    | number
+  >;
+};
+
 export type UserRelationCreate = {
   firstName: string;
   lastName: string;
@@ -682,7 +768,8 @@ export type UserResourceService = IResourceService<
   UserMultiple,
   UserCreate,
   UserUpdate,
-  UserQuery
+  UserQuery,
+  UserReplace
 >;
 
 export type ApiKey = {
@@ -736,6 +823,12 @@ export type ApiKeyUpdate = {
   enabled?: boolean;
 };
 
+export type ApiKeyReplace = {
+  name?: string | null;
+  description?: string | null;
+  enabled?: boolean;
+};
+
 export type ApiKeyRelationCreate = {
   name?: string | null;
   description?: string | null;
@@ -761,7 +854,8 @@ export type ApiKeyResourceService = IResourceService<
   ApiKeyMultiple,
   ApiKeyCreate,
   ApiKeyUpdate,
-  ApiKeyQuery
+  ApiKeyQuery,
+  ApiKeyReplace
 >;
 
 export type ConnectedAccount = {
@@ -809,6 +903,13 @@ export type ConnectedAccountUpdate = {
   lastLoginAt?: Date;
 };
 
+export type ConnectedAccountReplace = {
+  provider: string;
+  providerAccountId: string;
+  scope?: string | null;
+  lastLoginAt: Date;
+};
+
 export type ConnectedAccountRelationCreate = {
   provider: string;
   providerAccountId: string;
@@ -835,7 +936,8 @@ export type ConnectedAccountResourceService = IResourceService<
   ConnectedAccountMultiple,
   ConnectedAccountCreate,
   ConnectedAccountUpdate,
-  ConnectedAccountQuery
+  ConnectedAccountQuery,
+  ConnectedAccountReplace
 >;
 
 export type OneTimeToken = {
@@ -879,6 +981,13 @@ export type OneTimeTokenUpdate = {
   expiresAt?: Date;
 };
 
+export type OneTimeTokenReplace = {
+  tokenHash: string;
+  purpose: string;
+  data: any;
+  expiresAt: Date;
+};
+
 export type OneTimeTokenRelationCreate = {
   tokenHash: string;
   purpose: string;
@@ -905,7 +1014,8 @@ export type OneTimeTokenResourceService = IResourceService<
   OneTimeTokenMultiple,
   OneTimeTokenCreate,
   OneTimeTokenUpdate,
-  OneTimeTokenQuery
+  OneTimeTokenQuery,
+  OneTimeTokenReplace
 >;
 
 export type Role = {
@@ -949,6 +1059,16 @@ export type RoleUpdate = {
   >;
 };
 
+export type RoleReplace = {
+  name: string;
+  permissions: Array<
+    | {
+        id: number;
+      }
+    | number
+  >;
+};
+
 export type RoleRelationCreate = {
   name: string;
 };
@@ -969,7 +1089,8 @@ export type RoleResourceService = IResourceService<
   RoleMultiple,
   RoleCreate,
   RoleUpdate,
-  RoleQuery
+  RoleQuery,
+  RoleReplace
 >;
 
 export type Permission = {
@@ -998,6 +1119,10 @@ export type PermissionUpdate = {
   name?: string;
 };
 
+export type PermissionReplace = {
+  name: string;
+};
+
 export type PermissionRelationCreate = {
   name: string;
 };
@@ -1018,7 +1143,8 @@ export type PermissionResourceService = IResourceService<
   PermissionMultiple,
   PermissionCreate,
   PermissionUpdate,
-  PermissionQuery
+  PermissionQuery,
+  PermissionReplace
 >;
 
 export type File = {
@@ -1091,6 +1217,16 @@ export type FileUpdate = {
   description?: string | null;
 };
 
+export type FileReplace = {
+  name: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  checksum: string;
+  title?: string | null;
+  description?: string | null;
+};
+
 export type FileRelationCreate = {
   name: string;
   originalName: string;
@@ -1123,7 +1259,8 @@ export type FileResourceService = IResourceService<
   FileMultiple,
   FileCreate,
   FileUpdate,
-  FileQuery
+  FileQuery,
+  FileReplace
 >;
 
 declare module '@appweaver/common' {
@@ -1134,6 +1271,7 @@ declare module '@appweaver/common' {
       multiple: CategoryMultiple;
       create: CategoryCreate;
       update: CategoryUpdate;
+      replace: CategoryReplace;
       query: CategoryQuery;
       service: CategoryResourceService;
       relations: 'parent' | 'children' | 'posts';
@@ -1144,6 +1282,7 @@ declare module '@appweaver/common' {
       multiple: CommentMultiple;
       create: CommentCreate;
       update: CommentUpdate;
+      replace: CommentReplace;
       query: CommentQuery;
       service: CommentResourceService;
       relations: 'post' | 'pinnedIn';
@@ -1154,6 +1293,7 @@ declare module '@appweaver/common' {
       multiple: PageMultiple;
       create: PageCreate;
       update: PageUpdate;
+      replace: PageReplace;
       query: PageQuery;
       service: PageResourceService;
       relations: 'author';
@@ -1164,6 +1304,7 @@ declare module '@appweaver/common' {
       multiple: PostMultiple;
       create: PostCreate;
       update: PostUpdate;
+      replace: PostReplace;
       query: PostQuery;
       service: PostResourceService;
       relations: 'author' | 'category' | 'tags' | 'comments' | 'pinnedComment';
@@ -1174,6 +1315,7 @@ declare module '@appweaver/common' {
       multiple: TagMultiple;
       create: TagCreate;
       update: TagUpdate;
+      replace: TagReplace;
       query: TagQuery;
       service: TagResourceService;
       relations: 'posts';
@@ -1184,6 +1326,7 @@ declare module '@appweaver/common' {
       multiple: UserMultiple;
       create: UserCreate;
       update: UserUpdate;
+      replace: UserReplace;
       query: UserQuery;
       service: UserResourceService;
       relations: 'posts' | 'pages' | 'roles' | 'apiKeys' | 'connectedAccounts';
@@ -1194,6 +1337,7 @@ declare module '@appweaver/common' {
       multiple: ApiKeyMultiple;
       create: ApiKeyCreate;
       update: ApiKeyUpdate;
+      replace: ApiKeyReplace;
       query: ApiKeyQuery;
       service: ApiKeyResourceService;
       relations: 'user';
@@ -1204,6 +1348,7 @@ declare module '@appweaver/common' {
       multiple: ConnectedAccountMultiple;
       create: ConnectedAccountCreate;
       update: ConnectedAccountUpdate;
+      replace: ConnectedAccountReplace;
       query: ConnectedAccountQuery;
       service: ConnectedAccountResourceService;
       relations: 'user';
@@ -1214,6 +1359,7 @@ declare module '@appweaver/common' {
       multiple: OneTimeTokenMultiple;
       create: OneTimeTokenCreate;
       update: OneTimeTokenUpdate;
+      replace: OneTimeTokenReplace;
       query: OneTimeTokenQuery;
       service: OneTimeTokenResourceService;
       relations: never;
@@ -1224,6 +1370,7 @@ declare module '@appweaver/common' {
       multiple: RoleMultiple;
       create: RoleCreate;
       update: RoleUpdate;
+      replace: RoleReplace;
       query: RoleQuery;
       service: RoleResourceService;
       relations: 'permissions';
@@ -1234,6 +1381,7 @@ declare module '@appweaver/common' {
       multiple: PermissionMultiple;
       create: PermissionCreate;
       update: PermissionUpdate;
+      replace: PermissionReplace;
       query: PermissionQuery;
       service: PermissionResourceService;
       relations: never;
@@ -1244,6 +1392,7 @@ declare module '@appweaver/common' {
       multiple: any;
       create: any;
       update: any;
+      replace: any;
       query: any;
       service: IResourceService;
       relations: string;
@@ -1254,6 +1403,7 @@ declare module '@appweaver/common' {
       multiple: FileMultiple;
       create: FileCreate;
       update: FileUpdate;
+      replace: FileReplace;
       query: FileQuery;
       service: FileResourceService;
       relations: never;

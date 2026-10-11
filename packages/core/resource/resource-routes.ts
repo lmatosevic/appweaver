@@ -221,9 +221,10 @@ export function resourceRoutes(
       );
     }
 
+    // PATCH updates the given fields, while PUT replaces the whole resource
     const updateConfig = routeConfig('update');
     if (!updateConfig?.exclude) {
-      server.put<{ Params: IdParams }>(
+      server.patch<{ Params: IdParams }>(
         '/:id',
         {
           schema: schema.updateSchema,
@@ -232,6 +233,23 @@ export function resourceRoutes(
         },
         async (request, reply) => {
           const response = await service.update(
+            request.params.id,
+            request.body as any
+          );
+
+          return reply.send(response);
+        }
+      );
+
+      server.put<{ Params: IdParams }>(
+        '/:id',
+        {
+          schema: schema.replaceSchema,
+          onRequest: routeAuth(updateConfig),
+          config: updateConfig
+        },
+        async (request, reply) => {
+          const response = await service.replace(
             request.params.id,
             request.body as any
           );

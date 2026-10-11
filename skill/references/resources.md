@@ -599,7 +599,7 @@ service called directly applies the same rules, throwing `RESOURCE_INVALID_RELAT
 Connect, create, and update inputs can be mixed within one list relation request:
 
 ```ts
-// PUT /api/users/1
+// PATCH /api/users/1
 {
   posts: [
     5,                                    // connect post 5 by id
@@ -996,13 +996,13 @@ function createService(config: ResourceServiceConfig, override ?: Partial<Resour
 | `beforeQuery`     | `(options) => void`            | Hook called before querying resources, with the query options as given. Mutate `options` to change the query.                   |
 | `beforeAggregate` | `(options) => void`            | Hook called before aggregation, with the aggregation options as given. Mutate `options` to change the aggregation.              |
 | `beforeCreate`    | `(data) => void`               | Hook called before creating a resource. Mutate `data` to modify input.                                                          |
-| `beforeUpdate`    | `(id, data) => void`           | Hook called before updating a resource.                                                                                         |
+| `beforeUpdate`    | `(id, data) => void`           | Hook called before updating or replacing a resource.                                                                            |
 | `beforeDelete`    | `(id) => void`                 | Hook called before deleting a resource.                                                                                         |
 | `afterFind`       | `(resource) => void`           | Hook called after finding a resource.                                                                                           |
 | `afterQuery`      | `(response) => void`           | Hook called after querying resources.                                                                                           |
 | `afterAggregate`  | `(response) => void`           | Hook called after aggregation.                                                                                                  |
 | `afterCreate`     | `(resource) => void`           | Hook called after creating a resource.                                                                                          |
-| `afterUpdate`     | `(resource, previous) => void` | Hook called after updating a resource, with the state the resource had before the update.                                       |
+| `afterUpdate`     | `(resource, previous) => void` | Hook called after updating or replacing a resource, with the state the resource had before the update.                          |
 | `afterDelete`     | `(resource) => void`           | Hook called after deleting a resource.                                                                                          |
 | `textSearch`      | object \| function             | Prisma filter object or function `(input: string) => filter` for text search. Use `'{input}'` as placeholder in filter objects. |
 
@@ -1021,7 +1021,8 @@ The created service exposes the following methods:
 | `exists`    | `(filter?) => Promise<boolean>`                | Check whether any resource matches the filter.                                                                                             |
 | `aggregate` | `(options) => Promise<AggregateResponse>`      | Aggregate resources with time-series grouping (see [Aggregate selection](#aggregate-selection)).                                           |
 | `create`    | `(data) => Promise<ReadOne>`                   | Create a new resource.                                                                                                                     |
-| `update`    | `(id, data) => Promise<ReadOne>`               | Update an existing resource.                                                                                                               |
+| `update`    | `(id, data) => Promise<ReadOne>`               | Update the given fields of a resource (`PATCH /:id`).                                                                                      |
+| `replace`   | `(id, data) => Promise<ReadOne>`               | Replace a resource as a whole (`PUT /:id`).                                                                                                |
 | `delete`    | `(id) => Promise<ReadOne>`                     | Delete a resource.                                                                                                                         |
 | `client`    | `ResourceClient` (property)                    | Database client of the model, for operations outside the model contract.                                                                   |
 
@@ -1043,7 +1044,7 @@ The types `weaver generate` emits register every model in the `ResourceRegistry`
 factories and `injectService` infer the model types from a model name:
 
 - `createService({ modelName: 'Post' })` and `createAuthService` type their hooks with `Post`, `PostCreate`, and
-  `PostUpdate`.
+  `PostUpdate`, and the `replace` method of the service with `PostReplace`.
 - `createPolicy({ modelName: 'Post' })` types the records its callbacks receive as `Post` along with the foreign key
   columns of the database record.
 - `injectService('Post')` returns the `PostResourceService` alias.
@@ -1442,7 +1443,7 @@ function createRoutes(config: ResourceRoutesConfig, override ?: Partial<Resource
 | `query`      | QueryRouteConfig | `POST /query` - Query resources with filters.                          |
 | `aggregate`  | QueryRouteConfig | `POST /aggregate` - Aggregate resources.                               |
 | `create`     | RouteConfig      | `POST /` - Create a new resource.                                      |
-| `update`     | RouteConfig      | `PUT /:id` - Update a resource.                                        |
+| `update`     | RouteConfig      | `PATCH /:id` and `PUT /:id` - Update or replace a resource.            |
 | `delete`     | RouteConfig      | `DELETE /:id` - Delete a resource.                                     |
 | `export`     | RouteConfig      | `POST /export` - Export resources to CSV.                              |
 | `fileUpload` | RouteConfig      | `POST /:id/files` - Upload files to a resource.                        |
@@ -1507,6 +1508,15 @@ GET /api/posts/query?filter={"viewCount":{"_gte":5}}&sort=-createdAt&size=20
 
 Keep POST for large filters, since Node.js limits the request headers to 16 KB. With a string primary key, the id
 `query` or `aggregate` can no longer be read through `GET /:id`.
+
+### Update routes (update)
+
+The `update` config applies to both routes, which share the policies, hooks, cache invalidation, and `update` event:
+
+- `PATCH /:id` (`service.update`) updates the given fields (`<Model>Update`, all optional).
+- `PUT /:id` (`service.replace`) replaces the resource (`<Model>Replace`, required fields as on create). Omitted fields
+  are reset to their `default`, or `null` when optional. Hidden fields, files, and omitted optional relations stay
+  untouched.
 
 ### Rate limit config
 

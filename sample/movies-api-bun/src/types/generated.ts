@@ -75,6 +75,22 @@ export type CreditUpdate = {
     | number;
 };
 
+export type CreditReplace = {
+  role?: 'Cast' | 'Director' | 'Writer' | 'Producer' | 'Composer';
+  character?: string | null;
+  billingOrder?: number;
+  movie:
+    | {
+        id: string;
+      }
+    | string;
+  person:
+    | {
+        id: number;
+      }
+    | number;
+};
+
 export type CreditRelationCreate = {
   role?: 'Cast' | 'Director' | 'Writer' | 'Producer' | 'Composer';
   character?: string | null;
@@ -99,7 +115,8 @@ export type CreditResourceService = IResourceService<
   CreditMultiple,
   CreditCreate,
   CreditUpdate,
-  CreditQuery
+  CreditQuery,
+  CreditReplace
 >;
 
 export type Genre = {
@@ -142,6 +159,11 @@ export type GenreUpdate = {
   slug?: string;
 };
 
+export type GenreReplace = {
+  name: string;
+  slug: string;
+};
+
 export type GenreRelationCreate = {
   name: string;
   slug: string;
@@ -164,7 +186,8 @@ export type GenreResourceService = IResourceService<
   GenreMultiple,
   GenreCreate,
   GenreUpdate,
-  GenreQuery
+  GenreQuery,
+  GenreReplace
 >;
 
 export type Movie = {
@@ -301,6 +324,28 @@ export type MovieUpdate = {
   > | null;
 };
 
+export type MovieReplace = {
+  title: string;
+  slug: string;
+  originalTitle?: string | null;
+  tagline?: string | null;
+  overview?: string | null;
+  status?: 'Announced' | 'InProduction' | 'Released';
+  releaseDate?: Date | null;
+  runtimeMinutes?: number | null;
+  language?: string;
+  budgetUsd?: number | null;
+  revenueUsd?: number | null;
+  keywords?: any | null;
+  genres?: Array<
+    | {
+        id: number;
+      }
+    | GenreRelationCreate
+    | number
+  > | null;
+};
+
 export type MovieRelationCreate = {
   title: string;
   slug: string;
@@ -343,7 +388,8 @@ export type MovieResourceService = IResourceService<
   MovieMultiple,
   MovieCreate,
   MovieUpdate,
-  MovieQuery
+  MovieQuery,
+  MovieReplace
 >;
 
 export type Person = {
@@ -417,6 +463,16 @@ export type PersonUpdate = {
   biography?: string | null;
 };
 
+export type PersonReplace = {
+  name: string;
+  slug: string;
+  knownFor?: 'Acting' | 'Directing' | 'Writing' | 'Producing' | 'Music';
+  birthDate?: Date | null;
+  deathDate?: Date | null;
+  birthPlace?: string | null;
+  biography?: string | null;
+};
+
 export type PersonRelationCreate = {
   name: string;
   slug: string;
@@ -449,7 +505,8 @@ export type PersonResourceService = IResourceService<
   PersonMultiple,
   PersonCreate,
   PersonUpdate,
-  PersonQuery
+  PersonQuery,
+  PersonReplace
 >;
 
 export type Review = {
@@ -516,6 +573,18 @@ export type ReviewUpdate = {
     | string;
 };
 
+export type ReviewReplace = {
+  rating: number;
+  title?: string | null;
+  body?: string | null;
+  containsSpoilers?: boolean;
+  movie:
+    | {
+        id: string;
+      }
+    | string;
+};
+
 export type ReviewRelationCreate = {
   rating: number;
   title?: string | null;
@@ -542,7 +611,8 @@ export type ReviewResourceService = IResourceService<
   ReviewMultiple,
   ReviewCreate,
   ReviewUpdate,
-  ReviewQuery
+  ReviewQuery,
+  ReviewReplace
 >;
 
 export type User = {
@@ -631,6 +701,21 @@ export type UserUpdate = {
   >;
 };
 
+export type UserReplace = {
+  displayName: string;
+  email: string;
+  bio?: string | null;
+  twoFactorAuth?: 'None' | 'Email';
+  enabled?: boolean;
+  password?: string;
+  roles: Array<
+    | {
+        id: number;
+      }
+    | number
+  >;
+};
+
 export type UserRelationCreate = {
   displayName: string;
   email: string;
@@ -661,7 +746,8 @@ export type UserResourceService = IResourceService<
   UserMultiple,
   UserCreate,
   UserUpdate,
-  UserQuery
+  UserQuery,
+  UserReplace
 >;
 
 export type WatchlistEntry = {
@@ -720,6 +806,17 @@ export type WatchlistEntryUpdate = {
     | string;
 };
 
+export type WatchlistEntryReplace = {
+  status?: 'Planned' | 'Watching' | 'Watched';
+  watchedAt?: Date | null;
+  notes?: string | null;
+  movie:
+    | {
+        id: string;
+      }
+    | string;
+};
+
 export type WatchlistEntryRelationCreate = {
   status?: 'Planned' | 'Watching' | 'Watched';
   watchedAt?: Date | null;
@@ -744,7 +841,8 @@ export type WatchlistEntryResourceService = IResourceService<
   WatchlistEntryMultiple,
   WatchlistEntryCreate,
   WatchlistEntryUpdate,
-  WatchlistEntryQuery
+  WatchlistEntryQuery,
+  WatchlistEntryReplace
 >;
 
 export type OneTimeToken = {
@@ -788,6 +886,13 @@ export type OneTimeTokenUpdate = {
   expiresAt?: Date;
 };
 
+export type OneTimeTokenReplace = {
+  tokenHash: string;
+  purpose: string;
+  data: any;
+  expiresAt: Date;
+};
+
 export type OneTimeTokenRelationCreate = {
   tokenHash: string;
   purpose: string;
@@ -814,7 +919,8 @@ export type OneTimeTokenResourceService = IResourceService<
   OneTimeTokenMultiple,
   OneTimeTokenCreate,
   OneTimeTokenUpdate,
-  OneTimeTokenQuery
+  OneTimeTokenQuery,
+  OneTimeTokenReplace
 >;
 
 export type Role = {
@@ -858,6 +964,16 @@ export type RoleUpdate = {
   >;
 };
 
+export type RoleReplace = {
+  name: string;
+  permissions: Array<
+    | {
+        id: number;
+      }
+    | number
+  >;
+};
+
 export type RoleRelationCreate = {
   name: string;
 };
@@ -878,7 +994,8 @@ export type RoleResourceService = IResourceService<
   RoleMultiple,
   RoleCreate,
   RoleUpdate,
-  RoleQuery
+  RoleQuery,
+  RoleReplace
 >;
 
 export type Permission = {
@@ -907,6 +1024,10 @@ export type PermissionUpdate = {
   name?: string;
 };
 
+export type PermissionReplace = {
+  name: string;
+};
+
 export type PermissionRelationCreate = {
   name: string;
 };
@@ -927,7 +1048,8 @@ export type PermissionResourceService = IResourceService<
   PermissionMultiple,
   PermissionCreate,
   PermissionUpdate,
-  PermissionQuery
+  PermissionQuery,
+  PermissionReplace
 >;
 
 export type File = {
@@ -1000,6 +1122,16 @@ export type FileUpdate = {
   description?: string | null;
 };
 
+export type FileReplace = {
+  name: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  checksum: string;
+  title?: string | null;
+  description?: string | null;
+};
+
 export type FileRelationCreate = {
   name: string;
   originalName: string;
@@ -1032,7 +1164,8 @@ export type FileResourceService = IResourceService<
   FileMultiple,
   FileCreate,
   FileUpdate,
-  FileQuery
+  FileQuery,
+  FileReplace
 >;
 
 declare module '@appweaver/common' {
@@ -1043,6 +1176,7 @@ declare module '@appweaver/common' {
       multiple: CreditMultiple;
       create: CreditCreate;
       update: CreditUpdate;
+      replace: CreditReplace;
       query: CreditQuery;
       service: CreditResourceService;
       relations: 'movie' | 'person';
@@ -1053,6 +1187,7 @@ declare module '@appweaver/common' {
       multiple: GenreMultiple;
       create: GenreCreate;
       update: GenreUpdate;
+      replace: GenreReplace;
       query: GenreQuery;
       service: GenreResourceService;
       relations: 'movies';
@@ -1063,6 +1198,7 @@ declare module '@appweaver/common' {
       multiple: MovieMultiple;
       create: MovieCreate;
       update: MovieUpdate;
+      replace: MovieReplace;
       query: MovieQuery;
       service: MovieResourceService;
       relations: 'genres' | 'credits' | 'reviews' | 'watchlistEntries';
@@ -1073,6 +1209,7 @@ declare module '@appweaver/common' {
       multiple: PersonMultiple;
       create: PersonCreate;
       update: PersonUpdate;
+      replace: PersonReplace;
       query: PersonQuery;
       service: PersonResourceService;
       relations: 'credits';
@@ -1083,6 +1220,7 @@ declare module '@appweaver/common' {
       multiple: ReviewMultiple;
       create: ReviewCreate;
       update: ReviewUpdate;
+      replace: ReviewReplace;
       query: ReviewQuery;
       service: ReviewResourceService;
       relations: 'movie' | 'author';
@@ -1093,6 +1231,7 @@ declare module '@appweaver/common' {
       multiple: UserMultiple;
       create: UserCreate;
       update: UserUpdate;
+      replace: UserReplace;
       query: UserQuery;
       service: UserResourceService;
       relations: 'reviews' | 'watchlist' | 'roles';
@@ -1103,6 +1242,7 @@ declare module '@appweaver/common' {
       multiple: WatchlistEntryMultiple;
       create: WatchlistEntryCreate;
       update: WatchlistEntryUpdate;
+      replace: WatchlistEntryReplace;
       query: WatchlistEntryQuery;
       service: WatchlistEntryResourceService;
       relations: 'user' | 'movie';
@@ -1113,6 +1253,7 @@ declare module '@appweaver/common' {
       multiple: OneTimeTokenMultiple;
       create: OneTimeTokenCreate;
       update: OneTimeTokenUpdate;
+      replace: OneTimeTokenReplace;
       query: OneTimeTokenQuery;
       service: OneTimeTokenResourceService;
       relations: never;
@@ -1123,6 +1264,7 @@ declare module '@appweaver/common' {
       multiple: RoleMultiple;
       create: RoleCreate;
       update: RoleUpdate;
+      replace: RoleReplace;
       query: RoleQuery;
       service: RoleResourceService;
       relations: 'permissions';
@@ -1133,6 +1275,7 @@ declare module '@appweaver/common' {
       multiple: PermissionMultiple;
       create: PermissionCreate;
       update: PermissionUpdate;
+      replace: PermissionReplace;
       query: PermissionQuery;
       service: PermissionResourceService;
       relations: never;
@@ -1143,6 +1286,7 @@ declare module '@appweaver/common' {
       multiple: any;
       create: any;
       update: any;
+      replace: any;
       query: any;
       service: IResourceService;
       relations: string;
@@ -1153,6 +1297,7 @@ declare module '@appweaver/common' {
       multiple: FileMultiple;
       create: FileCreate;
       update: FileUpdate;
+      replace: FileReplace;
       query: FileQuery;
       service: FileResourceService;
       relations: never;

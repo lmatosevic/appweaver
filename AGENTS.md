@@ -532,7 +532,7 @@ const users = await client.user.query({ filter: { enabled: true } });
 
 | Client           | Key operations                                                                                                                |
 |------------------|-------------------------------------------------------------------------------------------------------------------------------|
-| `ResourceClient` | `find`, `query`, `aggregate`, `create`, `update`, `delete`, `export`, `uploadFiles`, `deleteFiles`                            |
+| `ResourceClient` | `find`, `query`, `aggregate`, `create`, `update`, `replace`, `delete`, `export`, `uploadFiles`, `deleteFiles`                 |
 | `AuthClient`     | `login`, `logout`, `refresh`, `changePassword`, `exchangeToken`, `me`                                                         |
 | `AccountClient`  | `sendVerifyEmail`, `verifyEmail`, `verifyEmailRedirect`, `sendResetPassword`, `resetPassword`, `send2FACode`, `verify2FACode` |
 | `HealthClient`   | `check`, `ready`                                                                                                              |

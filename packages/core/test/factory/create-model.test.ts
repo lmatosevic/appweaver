@@ -242,6 +242,24 @@ describe('create-model', () => {
       expect(model.updateOneModel.required ?? []).toEqual([]);
     });
 
+    test('requires the scalars without a default value in the replace model', () => {
+      const model = createModel({
+        name: 'Post',
+        scalars: {
+          title: { type: 'string' },
+          status: { type: 'string', default: 'draft' },
+          summary: { type: 'string', required: false }
+        }
+      });
+
+      expect(keys(model.replaceOneModel)).toEqual([
+        'title',
+        'status',
+        'summary'
+      ]);
+      expect(model.replaceOneModel.required).toEqual(['title']);
+    });
+
     test('removes hidden scalars from the input and output models', () => {
       const model = createModel({
         name: 'User',
@@ -417,6 +435,18 @@ describe('create-model', () => {
 
       expect(keys(model.updateOneModel)).toEqual(['title']);
     });
+
+    test('takes the replace fields from the update restrictions', () => {
+      const model = createModel({
+        name: 'Post',
+        scalars: { title: { type: 'string' }, slug: { type: 'string' } },
+        create: { omit: ['title'] },
+        update: { omit: ['slug'] }
+      });
+
+      expect(keys(model.replaceOneModel)).toEqual(['title']);
+      expect(model.replaceOneModel.required).toEqual(['title']);
+    });
   });
 
   describe('virtual fields', () => {
@@ -451,6 +481,18 @@ describe('create-model', () => {
 
       expect(keys(model.createOneModel)).toContain('password');
       expect(keys(model.updateOneModel)).not.toContain('password');
+      expect(keys(model.replaceOneModel)).not.toContain('password');
+    });
+
+    test('keeps the virtual fields optional in the replace model', () => {
+      const model = createModel({
+        name: 'Post',
+        scalars: { title: { type: 'string' } },
+        virtual: { password: { type: 'string', required: true } }
+      });
+
+      expect(keys(model.replaceOneModel)).toContain('password');
+      expect(model.replaceOneModel.required).toEqual(['title']);
     });
 
     test('limits a virtual field to a single resource output', () => {
@@ -923,6 +965,25 @@ describe('create-model', () => {
 
       expect(model.createOneModel.$id).toBe('PostCreate');
       expect(model.updateOneModel.$id).toBe('PostUpdate');
+      expect(model.replaceOneModel.$id).toBe('PostReplace');
+    });
+
+    test('requires the required relations in the replace model only', () => {
+      const model = createModel({
+        name: 'Post',
+        relations: {
+          author: { model: 'User', type: 'oneToMany', owner: true },
+          editor: {
+            model: 'User',
+            type: 'oneToMany',
+            owner: true,
+            required: false
+          }
+        }
+      });
+
+      expect(model.replaceOneModel.required).toEqual(['author']);
+      expect(model.updateOneModel.required ?? []).toEqual([]);
     });
   });
 });

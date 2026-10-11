@@ -111,7 +111,8 @@ export type ResourceRoutesConfig = {
   aggregate?: QueryRouteConfig;
   /** Config for the create route */
   create?: RouteConfig;
-  /** Config for the update route */
+  /** Config for the update routes: PATCH updates the given fields, PUT
+   * replaces the whole resource */
   update?: RouteConfig;
   /** Config for the delete route */
   delete?: RouteConfig;
@@ -136,8 +137,10 @@ export type ResourceSchemaConfig = {
   aggregateGetSchema: RouteSchema;
   /** Schema for creating a new resource */
   createSchema: RouteSchema;
-  /** Schema for updating an existing resource */
+  /** Schema for updating the given fields of an existing resource (PATCH) */
   updateSchema: RouteSchema;
+  /** Schema for replacing an existing resource as a whole (PUT) */
+  replaceSchema: RouteSchema;
   /** Schema for deleting a resource */
   deleteSchema: RouteSchema;
   /** Schema for exporting resource data */

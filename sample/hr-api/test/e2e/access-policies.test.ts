@@ -23,7 +23,7 @@ describe('Access policies', () => {
 
   const request = async (
     auth: Record<string, string>,
-    method: 'GET' | 'POST' | 'PUT',
+    method: 'GET' | 'POST' | 'PATCH',
     url: string,
     payload?: object
   ) => {
@@ -76,7 +76,7 @@ describe('Access policies', () => {
     test('lets an employee change their own contact details', async () => {
       const { status, body } = await request(
         as.employee,
-        'PUT',
+        'PATCH',
         `/employees/${employee.id}`,
         { phone: '+385911234567' }
       );
@@ -88,7 +88,7 @@ describe('Access policies', () => {
     test('keeps the organization fields for HR', async () => {
       const { status, body } = await request(
         as.employee,
-        'PUT',
+        'PATCH',
         `/employees/${employee.id}`,
         { manager: null, employmentType: 'Contractor' }
       );
@@ -101,7 +101,7 @@ describe('Access policies', () => {
     test('keeps other profiles for HR', async () => {
       const { status } = await request(
         as.employee,
-        'PUT',
+        'PATCH',
         `/employees/${other.id}`,
         { phone: '+385911234567' }
       );
@@ -112,9 +112,14 @@ describe('Access policies', () => {
     test('disables the account of a terminated employee', async () => {
       const leaver = await hire('Leo');
 
-      const { body } = await request(as.hr, 'PUT', `/employees/${leaver.id}`, {
-        status: 'Terminated'
-      });
+      const { body } = await request(
+        as.hr,
+        'PATCH',
+        `/employees/${leaver.id}`,
+        {
+          status: 'Terminated'
+        }
+      );
 
       expect(body).toMatchObject({ status: 'Terminated', enabled: false });
       expect(body.terminatedAt).toBeDefined();
@@ -275,7 +280,7 @@ describe('Access policies', () => {
         'GET',
         `/performance-reviews/${reviewId}`
       );
-      await request(as.manager, 'PUT', `/performance-reviews/${reviewId}`, {
+      await request(as.manager, 'PATCH', `/performance-reviews/${reviewId}`, {
         status: 'Shared'
       });
       const shared = await request(

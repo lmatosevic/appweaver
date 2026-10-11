@@ -113,7 +113,7 @@ export async function product(
 /** Sends a request to the API, returning the status and the parsed body. */
 export async function request(
   app: Application,
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   url: string,
   options: { headers?: Record<string, string>; payload?: object } = {}
 ): Promise<{ status: number; body: any }> {

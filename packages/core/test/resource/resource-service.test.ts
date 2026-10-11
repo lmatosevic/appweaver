@@ -1444,6 +1444,161 @@ describe('resource-service', () => {
     });
   });
 
+  describe('replace', () => {
+    const defineArticle = (update?: { omit: string[] }) => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: {
+            title: { type: 'string' },
+            status: { type: 'string', default: 'draft' },
+            rating: { type: 'int', default: 3 },
+            meta: { type: 'json', default: { pinned: false } },
+            summary: { type: 'string', required: false },
+            slug: { type: 'string', required: false },
+            secret: { type: 'string', hidden: true, required: false }
+          },
+          virtual: {
+            note: { type: 'string', required: false }
+          },
+          relations: {
+            author: {
+              model: 'User',
+              type: 'oneToMany',
+              owner: true,
+              required: false
+            }
+          },
+          update
+        },
+        true
+      );
+      linkModels();
+    };
+
+    beforeEach(() => {
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        status: 'published',
+        summary: 'Old',
+        author: { id: 2 }
+      });
+      db.setResult('Post', 'update', (args: any) => ({
+        id: 1,
+        ...args.data
+      }));
+    });
+
+    test('resets the fields left out to their default value or to null', async () => {
+      defineArticle();
+
+      await service.replace(1, { title: 'Replaced' });
+
+      expect(db.lastQuery('update').args.data).toEqual({
+        title: 'Replaced',
+        status: 'draft',
+        rating: 3,
+        meta: { pinned: false },
+        summary: null,
+        slug: null
+      });
+    });
+
+    test('keeps the values the data gives, null included', async () => {
+      defineArticle();
+
+      await service.replace(1, {
+        title: 'Replaced',
+        status: 'archived',
+        rating: 5,
+        summary: 'New',
+        slug: null
+      });
+
+      expect(db.lastQuery('update').args.data).toMatchObject({
+        status: 'archived',
+        rating: 5,
+        summary: 'New',
+        slug: null
+      });
+    });
+
+    test('copies a default value, so the configuration is never shared', async () => {
+      defineArticle();
+
+      await service.replace(1, { title: 'Replaced' });
+      db.lastQuery('update').args.data.meta.pinned = true;
+      await service.replace(1, { title: 'Again' });
+
+      expect(db.lastQuery('update').args.data.meta).toEqual({ pinned: false });
+    });
+
+    test('leaves out the hidden fields and the fields excluded from an update', async () => {
+      defineArticle({ omit: ['slug', 'status'] });
+
+      await service.replace(1, { title: 'Replaced' });
+
+      const data = db.lastQuery('update').args.data;
+      expect(data).not.toHaveProperty('slug');
+      expect(data).not.toHaveProperty('status');
+      expect(data).not.toHaveProperty('secret');
+    });
+
+    test('leaves an optional relation left out untouched', async () => {
+      defineArticle();
+
+      await service.replace(1, { title: 'Replaced' });
+
+      expect(db.lastQuery('update').args.data).not.toHaveProperty('author');
+    });
+
+    test('disconnects an optional relation set to null', async () => {
+      defineArticle();
+
+      await service.replace(1, { title: 'Replaced', author: null });
+
+      expect(db.lastQuery('update').args.data.author).toEqual({
+        disconnect: { id: 2 }
+      });
+    });
+
+    test('applies the update policies, cache invalidation, and event', async () => {
+      defineArticle();
+      const writeRestrictions = jest.fn().mockResolvedValue({});
+      class RestrictedService extends PostService {
+        protected async writeRestrictions(action: any, data: any) {
+          return writeRestrictions(action, data);
+        }
+      }
+      const handler = jest.fn();
+      events.onResourceEvent('Post', 'update', handler);
+
+      await new RestrictedService().replace(1, { title: 'Replaced' });
+
+      expect(writeRestrictions).toHaveBeenCalledWith(
+        'update',
+        expect.objectContaining({ id: 1, title: 'Replaced', status: 'draft' })
+      );
+      expect(invalidateCache).toHaveBeenCalledWith('Post', 'update');
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          previous: expect.objectContaining({ status: 'published' }),
+          current: expect.objectContaining({ status: 'draft' })
+        })
+      );
+    });
+
+    test('throws a not found error for a missing record', async () => {
+      defineArticle();
+      db.setResult('Post', 'findFirst', null);
+
+      await expect(
+        service.replace(1, { title: 'Replaced' })
+      ).rejects.toMatchObject({ code: ErrorCode.ResourceNotFound });
+    });
+  });
+
   describe('delete', () => {
     beforeEach(() => {
       db.setResult('Post', 'findFirst', { id: 1, title: 'First' });

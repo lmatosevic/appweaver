@@ -11,6 +11,7 @@ import {
   isPlainObject,
   logger,
   ModelName,
+  QueryFilter,
   QueryOptions,
   QueryResponse,
   RegistryType,
@@ -29,8 +30,8 @@ import { currentAuthUser } from '../security';
 
 /**
  * Creates the resource service of a model, running the configured hooks around its operations and applying the
- * policy of the model. Once the types are generated, the model, create, and update types of the hooks are inferred
- * from the model name.
+ * policy of the model. The update hooks run around both an update and a replacement. Once the types are generated,
+ * the model, create, and update types of the hooks are inferred from the model name.
  *
  * @param {ResourceServiceConfig} config - The service configuration with the model name, hooks, and text search.
  * @param {boolean} [override=false] - Whether to replace a service already defined for the model.
@@ -40,14 +41,15 @@ export function createService<
   N extends ModelName,
   T = RegistryType<N, 'model'>,
   C = RegistryType<N, 'create'>,
-  U = RegistryType<N, 'update'>
+  U = RegistryType<N, 'update'>,
+  R = RegistryType<N, 'replace', C>
 >(
   config: ResourceServiceConfig<T, C, U> & { modelName: N },
   override: boolean = false
-): Ctor<ResourceService<T, T, C, U>> {
+): Ctor<ResourceService<T, T, C, U, QueryFilter<T>, R>> {
   const name = capitalize(config.modelName);
 
-  class Service extends ResourceService<T, T, C, U> {
+  class Service extends ResourceService<T, T, C, U, QueryFilter<T>, R> {
     [CONFIG] = config;
     [RESOURCE_NAME] = name;
     [RESOURCE_TYPE] = RESOURCE_SERVICE_TYPE;
@@ -104,6 +106,22 @@ export function createService<
       await config.beforeUpdate?.(id, data);
 
       const { previous, current } = await this.updateWithPrevious(id, data);
+
+      await config.afterUpdate?.(current, previous);
+
+      return current;
+    }
+
+    async replace(id: ResourceId, data: any): Promise<any> {
+      // The hooks receive the whole replacement, the reset fields included
+      const replacement = this.replacementData(data);
+
+      await config.beforeUpdate?.(id, replacement);
+
+      const { previous, current } = await this.updateWithPrevious(
+        id,
+        replacement
+      );
 
       await config.afterUpdate?.(current, previous);
 

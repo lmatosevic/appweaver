@@ -70,8 +70,16 @@ export abstract class ResourceService<
   ReadMany = Resource,
   Create = ResourceData<Resource>,
   Update = Partial<ResourceData<Resource>>,
-  Query = QueryFilter<ReadOne>
-> implements IResourceService<ReadOne, ReadMany, Create, Update, Query> {
+  Query = QueryFilter<ReadOne>,
+  Replace = Create
+> implements IResourceService<
+  ReadOne,
+  ReadMany,
+  Create,
+  Update,
+  Query,
+  Replace
+> {
   /** @internal */
   private readonly _db = inject<PrismaDatabase>(Database as any);
   /** @internal */
@@ -602,6 +610,32 @@ export abstract class ResourceService<
   }
 
   /**
+   * Replaces an existing resource by its id as a whole. The updatable scalar
+   * fields missing from the data are reset to their configured default value,
+   * or to null when they are optional (see
+   * {@link ResourceService.replacementData}), and the resource is then updated
+   * the same way as {@link ResourceService.update}, applying the same policies,
+   * invalidating the same cache, and emitting the same update event. The
+   * optional relations missing from the data are left untouched, and a null or
+   * an empty list clears them.
+   *
+   * @param {ResourceId} id The id of the resource to replace.
+   * @param {Object} data The new state of the resource, including any inline
+   * relation payloads.
+   * @returns {Promise<Object>} The replaced resource with its virtual fields and
+   * relation counts projected.
+   * @throws The same errors as {@link ResourceService.update}.
+   */
+  public async replace(id: ResourceId, data: Replace): Promise<ReadOne> {
+    const { current } = await this.updateWithPrevious(
+      id,
+      this.replacementData(data)
+    );
+
+    return current;
+  }
+
+  /**
    * Deletes an existing resource by its id. The current record is loaded with
    * the read restrictions applied and checked for access before it is deleted
    * inside a single transaction.
@@ -814,6 +848,40 @@ export abstract class ResourceService<
       previous: this.projectResource(updateResource),
       current: this.projectResource(resource)
     };
+  }
+
+  /**
+   * Completes the data of a replacement with the updatable scalar fields it
+   * leaves out: each one is set to the `default` value of its configuration,
+   * or to null when it is optional. A required field without a default value,
+   * which the request validation of the PUT route never lets a request leave
+   * out, is left untouched, and so are the hidden fields, the fields the
+   * `update` option of the model excludes, the virtual fields, and the
+   * relations.
+   *
+   * @param {Object} data The data of the replacement.
+   * @returns {Object} A shallow copy of the data, with the missing fields set.
+   */
+  protected replacementData(data: Replace): Update {
+    const resourceModel = injectModel(this._client.name);
+    const scalars = resourceModel.config.scalars ?? {};
+    const fields = extractSchemaProperties(resourceModel.replaceOneModel) ?? {};
+    const replacement = { ...data } as Record<string, unknown>;
+
+    for (const name of Object.keys(fields)) {
+      const scalar = scalars[name];
+      if (!scalar || replacement[name] !== undefined) {
+        continue;
+      }
+
+      if (scalar.default !== undefined) {
+        replacement[name] = structuredClone(scalar.default);
+      } else if (scalar.required === false) {
+        replacement[name] = null;
+      }
+    }
+
+    return replacement as Update;
   }
 
   /**

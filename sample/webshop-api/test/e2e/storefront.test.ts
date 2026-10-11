@@ -37,7 +37,7 @@ describe('Storefront', () => {
     const draft = await product('SECRET', 1000, 1, 'Draft');
 
     const hidden = await request(app, 'GET', `/products/${draft.id}`);
-    const published = await request(app, 'PUT', `/products/${draft.id}`, {
+    const published = await request(app, 'PATCH', `/products/${draft.id}`, {
       headers: admin,
       payload: { status: 'Active' }
     });

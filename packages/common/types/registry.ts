@@ -18,6 +18,8 @@ export type ResourceRegistryEntry = {
   create: any;
   /** The update input */
   update: any;
+  /** The replace input */
+  replace: any;
   /** The query filter */
   query: any;
   /** The resource service */
