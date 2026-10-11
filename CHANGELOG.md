@@ -1,3 +1,9 @@
+## [1.10.2](https://github.com/lmatosevic/appweaver/compare/v1.10.1...v1.10.2) (2026-10-11)
+
+### Bug Fixes
+
+* update Angular client HTTP handler to support client errors ([7309d0d](https://github.com/lmatosevic/appweaver/commit/7309d0d6418e1e5c7f1d94f8f19bdfdf88210046))
+
 ## [1.10.1](https://github.com/lmatosevic/appweaver/compare/v1.10.0...v1.10.1) (2026-10-11)
 
 ### Bug Fixes
