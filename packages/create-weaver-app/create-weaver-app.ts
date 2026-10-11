@@ -144,6 +144,14 @@ program
       }
     }
 
+    // Keep the init script of the docker-compose MariaDB service for MySQL only
+    if (
+      !command.getOptionValue('docker') ||
+      command.getOptionValue('database') !== 'mysql'
+    ) {
+      await fsp.rm(path.join(destDir, 'database', 'mariadb-init.sh'));
+    }
+
     // Build database-specific docker-compose service blocks
     const dockerDb = getDatabaseDockerConfig(command, sanitizedName);
     const dockerRedis = getRedisDockerConfig(command, sanitizedName);
@@ -159,9 +167,9 @@ program
       DEV_DEPENDENCIES: formatDependencies(getNodeDevDependencies(runtime)),
       DATABASE_URL: getDatabaseUrl(command, sanitizedName, 'dev'),
       DATABASE_TEST_URL: getDatabaseUrl(command, sanitizedName, 'test'),
-      DATABASE_ENV: getDatabaseEnv(command, sanitizedName),
+      SECRETS_ENV: getSecretsEnv(command, sanitizedName),
       SQLITE_GITIGNORE: getSqliteGitignore(command),
-      DOCKER_APP_ENVIRONMENT: getDockerAppEnvironment(command, sanitizedName),
+      DOCKER_APP_ENVIRONMENT: getDockerAppEnvironment(command),
       DATABASE_DOCKER_SERVICE: dockerDb.service,
       DATABASE_DOCKER_MIGRATE_DEPENDS: dockerDb.migrateDepends,
       DATABASE_DOCKER_APP_VOLUME: dockerDb.appVolume,
@@ -197,6 +205,12 @@ program
       await fsp.unlink(templateFile);
     }
 
+    // Keep a copy of the ignored .env file in git, for setting up a clone
+    await fsp.copyFile(
+      path.join(destDir, '.env'),
+      path.join(destDir, '.env.example')
+    );
+
     // Find all runtime-specific files and keep only those for current runtime
     const runtimeFiles = await glob(`**/*.{node,bun}`, {
       cwd: destDir,
@@ -212,8 +226,11 @@ program
       await fsp.unlink(runtimeFile);
     }
 
-    // Configure the modules whose packages are skipped
-    const modulesConfig = getModulesConfig(command);
+    // Configure the Redis connection, or the modules whose packages are skipped
+    const modulesConfig = {
+      ...getRedisConfig(command),
+      ...getModulesConfig(command)
+    };
     if (Object.keys(modulesConfig).length > 0) {
       const configFile = path.join(destDir, 'appweaver.json');
       const appConfig = JSON.parse(await fsp.readFile(configFile, 'utf8'));
@@ -436,30 +453,30 @@ const databaseDockerHosts: Record<string, string> = {
 function getDatabaseCredentials(
   database: string,
   name: string
-): { user: string; password: string; connectUser: string } {
+): { user: string; password: string } {
   if (database === 'sqlserver') {
     // SQL Server rejects an SA password failing its complexity policy
-    return { user: 'sa', password: `${name}-Passw0rd`, connectUser: 'sa' };
+    return { user: 'sa', password: `${name}-Passw0rd` };
   }
 
-  // The MariaDB user is granted its own database only, while Prisma Migrate
-  // creates the shadow and the test databases, so connect as root
-  const connectUser = database === 'mysql' ? 'root' : name;
-
-  return { user: name, password: name, connectUser };
+  return { user: name, password: name };
 }
 
+/**
+ * Returns the appweaver.json database URL. A database server URL references
+ * the credentials of the .env file, and the `DB_HOST` the containers override.
+ */
 function getDatabaseUrl(
   command: Command,
   name: string,
-  mode: 'dev' | 'test',
-  target: 'host' | 'docker' = 'host'
+  mode: 'dev' | 'test'
 ): string {
   const database = command.getOptionValue('database').toLowerCase();
-  const dbName = mode === 'test' ? `${name}-test` : name;
 
   if (database === 'sqlite') {
-    return `file:./${mode === 'test' ? 'temp/' : 'data/'}${dbName}.db`;
+    return mode === 'test'
+      ? `file:./temp/${name}-test.db`
+      : `file:./data/${name}.db`;
   }
 
   const port = databasePorts[database];
@@ -468,36 +485,45 @@ function getDatabaseUrl(
     process.exit(1);
   }
 
-  const host =
-    target === 'docker' ? databaseDockerHosts[database] : 'localhost';
+  const dbName = `\${DB_NAME:-${name}}${mode === 'test' ? '-test' : ''}`;
+  const host = '${DB_HOST:-localhost}';
 
-  const { connectUser: user, password } = getDatabaseCredentials(
-    database,
-    name
-  );
+  const user = `\${DB_USER:-${getDatabaseCredentials(database, name).user}}`;
 
   const urls = {
-    postgresql: `postgresql://${user}:${password}@${host}:${port}/${dbName}?schema=public`,
-    mysql: `mysql://${user}:${password}@${host}:${port}/${dbName}`,
-    sqlserver: `sqlserver://${host}:${port};database=${dbName};user=${user};password=${password};trustServerCertificate=true`
+    postgresql: `postgresql://${user}:\${DB_PASSWORD}@${host}:${port}/${dbName}`,
+    mysql: `mysql://${user}:\${DB_PASSWORD}@${host}:${port}/${dbName}`,
+    sqlserver: `sqlserver://${host}:${port};database=${dbName};user=${user};password=\${DB_PASSWORD};trustServerCertificate=true`
   };
 
   return urls[database];
 }
 
 /**
- * Returns the .env variables configuring the docker-compose database service,
- * or nothing when there is no such service.
+ * Returns the appweaver.json connection config of the Redis server, whose host
+ * the containers override, when the Redis packages are installed.
  */
-function getDatabaseEnv(command: Command, name: string): string {
+function getRedisConfig(command: Command): Record<string, object> {
+  if (!command.getOptionValue('redis')) {
+    return {};
+  }
+
+  return { redis: { url: 'redis://${REDIS_HOST:-localhost}:6379/0' } };
+}
+
+/**
+ * Returns the .env database password, referenced by the appweaver.json URL and
+ * shared with the docker-compose database service.
+ */
+function getSecretsEnv(command: Command, name: string): string {
   const database = command.getOptionValue('database').toLowerCase();
-  if (database === 'sqlite' || !command.getOptionValue('docker')) {
+  if (database === 'sqlite') {
     return '';
   }
 
-  const { user, password } = getDatabaseCredentials(database, name);
+  const { password } = getDatabaseCredentials(database, name);
 
-  return `DB_NAME=${name}\nDB_USER=${user}\nDB_PASSWORD=${password}\n`;
+  return `\n# Secrets referenced by the \${VAR} placeholders of the appweaver.json files\nDB_PASSWORD=${password}\n`;
 }
 
 /** Returns the .gitignore rules of the SQLite database files, kept in "data/". */
@@ -511,20 +537,20 @@ function getSqliteGitignore(command: Command): string {
 
 /**
  * Returns the environment block of the docker-compose application services,
- * pointing the database and Redis connections at the other containers.
+ * pointing the database and Redis hosts of the appweaver.json URLs at the other
+ * containers.
  */
-function getDockerAppEnvironment(command: Command, name: string): string {
+function getDockerAppEnvironment(command: Command): string {
+  const database = command.getOptionValue('database').toLowerCase();
   const variables: string[] = [];
 
   // The containers find the SQLite database at the same path, in the volume
-  if (command.getOptionValue('database').toLowerCase() !== 'sqlite') {
-    variables.push(
-      `DATABASE_URL: "${getDatabaseUrl(command, name, 'dev', 'docker')}"`
-    );
+  if (database !== 'sqlite') {
+    variables.push(`DB_HOST: "${databaseDockerHosts[database]}"`);
   }
 
   if (command.getOptionValue('redis')) {
-    variables.push('REDIS_URL: "redis://redis:6379/0"');
+    variables.push('REDIS_HOST: "redis"');
   }
 
   if (variables.length === 0) {
@@ -638,8 +664,8 @@ function getDatabaseDockerConfig(
     ports:
       - "127.0.0.1:5432:5432"
     environment:
-      POSTGRES_DB: "\${DB_NAME}"
-      POSTGRES_USER: "\${DB_USER}"
+      POSTGRES_DB: "\${DB_NAME:-${name}}"
+      POSTGRES_USER: "\${DB_USER:-${name}}"
       POSTGRES_PASSWORD: "\${DB_PASSWORD}"
     volumes:
       - postgres-data:/var/lib/postgresql
@@ -664,12 +690,13 @@ function getDatabaseDockerConfig(
     ports:
       - "127.0.0.1:3306:3306"
     environment:
-      MARIADB_DATABASE: "\${DB_NAME}"
-      MARIADB_USER: "\${DB_USER}"
+      MARIADB_DATABASE: "\${DB_NAME:-${name}}"
+      MARIADB_USER: "\${DB_USER:-${name}}"
       MARIADB_PASSWORD: "\${DB_PASSWORD}"
       MARIADB_ROOT_PASSWORD: "\${DB_PASSWORD}"
     volumes:
       - mysql-data:/var/lib/mysql
+      - ./database/mariadb-init.sh:/docker-entrypoint-initdb.d/mariadb-init.sh:ro
     networks:
       - ${name}
 

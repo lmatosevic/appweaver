@@ -23,8 +23,8 @@ keep it literal.
 ## JSON configuration format
 
 Configuration in JSON files is nested under the `config` key using camelCase property names. This is the preferred way
-for application configuration (except for passwords and secrets, then use the.env file instead). These are automatically
-mapped to their `SCREAMING_SNAKE_CASE` equivalents:
+for application configuration, committed with the project. These are automatically mapped to their
+`SCREAMING_SNAKE_CASE` equivalents:
 
 ```json
 {
@@ -38,11 +38,27 @@ mapped to their `SCREAMING_SNAKE_CASE` equivalents:
       "apiPrefix": "/api"
     },
     "database": {
-      "url": "postgresql://user:pass@localhost:5432/mydb"
+      "url": "postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME}"
     }
   }
 }
 ```
+
+### Environment variable references
+
+String values (and the strings of array values) of the JSON files expand references to the environment variables,
+which include the variables of the `.env` files. Keep passwords and other secrets in the gitignored `.env`, and
+reference them from the committed JSON files instead of writing them there:
+
+| Syntax                    | Expands to                                                     |
+|---------------------------|----------------------------------------------------------------|
+| `${VAR_NAME}`             | The variable's value, or an empty string when it is not set    |
+| `${VAR_NAME:-default}`    | The variable's value, or `default` when it is not set or empty |
+| `\\${VAR_NAME}` (in JSON) | The literal `${VAR_NAME}`                                      |
+
+Only the braced form is expanded, so a `$` elsewhere in a value stays as it is. A value expanding to an empty string is
+skipped like an empty value, so the schema default applies. Use a `:-default` for the values a deployment overrides,
+like the `DB_HOST` a docker-compose container sets to the database service name.
 
 ## Environment variable parsing
 
@@ -76,20 +92,20 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 ### Application (APP\_\*)
 
-| Property                 | Type     | Default                            | Description                                                                                               |
-|--------------------------|----------|------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| `APP_ENV`                | enum     | `'prod'`                           | Application environment. Values: `test`, `local`, `dev`, `staging`, `qa`, `prod`. Mapped from `NODE_ENV`. |
-| `APP_NAME`               | string   | `'Appweaver'`                      | Application name.                                                                                         |
-| `APP_DESCRIPTION`        | string?  | -                                  | Application description.                                                                                  |
-| `APP_HOSTNAME`           | string   | `'http://localhost:{SERVER_PORT}'` | Application hostname URL.                                                                                 |
+| Property                 | Type     | Default                            | Description                                                                                                                 |
+|--------------------------|----------|------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| `APP_ENV`                | enum     | `'prod'`                           | Application environment. Values: `test`, `local`, `dev`, `staging`, `qa`, `prod`. Mapped from `NODE_ENV`.                   |
+| `APP_NAME`               | string   | `'Appweaver'`                      | Application name.                                                                                                           |
+| `APP_DESCRIPTION`        | string?  | -                                  | Application description.                                                                                                    |
+| `APP_HOSTNAME`           | string   | `'http://localhost:{SERVER_PORT}'` | Application hostname URL.                                                                                                   |
 | `APP_TYPE_BASE`          | string   | `'urn:appweaver'`                  | Base of the type URIs of the application, i.e. `urn:appweaver:error:resource-not-found`. A URL base is joined with slashes. |
-| `APP_RUNTIME`            | string   | `'node'`                           | Application runtime. Autodetects Bun global module. Values: `node`, `bun`                                 |
-| `APP_VERSION`            | string   | `'unknown'`                        | Application version. Mapped from `npm_package_version`.                                                   |
-| `APP_BUILD_PATH`         | string   | `'./dist'`                         | Path to compiled build artifacts.                                                                         |
-| `APP_SOURCE_PATH`        | string   | `'./src'`                          | Path to the application source code. Used in other path variables with <srcPath> placeholder.             |
-| `APP_SCAN_FILES_PATTERN` | string   | `'<srcPath>/*/index.ts'`           | Glob pattern for scanning application files.                                                              |
-| `APP_MAIN_FILE_PATH`     | string   | `'<srcPath>/main.ts'`              | Path to main application entrypoint file.                                                                 |
-| `APP_AUTOLOAD_MODULES`   | string[] | `[]`                               | Module paths to auto-load on startup.                                                                     |
+| `APP_RUNTIME`            | string   | `'node'`                           | Application runtime. Autodetects Bun global module. Values: `node`, `bun`                                                   |
+| `APP_VERSION`            | string   | `'unknown'`                        | Application version. Mapped from `npm_package_version`.                                                                     |
+| `APP_BUILD_PATH`         | string   | `'./dist'`                         | Path to compiled build artifacts.                                                                                           |
+| `APP_SOURCE_PATH`        | string   | `'./src'`                          | Path to the application source code. Used in other path variables with <srcPath> placeholder.                               |
+| `APP_SCAN_FILES_PATTERN` | string   | `'<srcPath>/*/index.ts'`           | Glob pattern for scanning application files.                                                                                |
+| `APP_MAIN_FILE_PATH`     | string   | `'<srcPath>/main.ts'`              | Path to main application entrypoint file.                                                                                   |
+| `APP_AUTOLOAD_MODULES`   | string[] | `[]`                               | Module paths to auto-load on startup.                                                                                       |
 
 ### Logging (LOG\_\*)
 
@@ -108,22 +124,22 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 ### Server (SERVER\_\*)
 
-| Property                                | Type     | Default                  | Description                                                                                          |
-|-----------------------------------------|----------|--------------------------|------------------------------------------------------------------------------------------------------|
-| `SERVER_PORT`                           | integer  | `5000`                   | HTTP server listening port.                                                                          |
-| `SERVER_HOST`                           | string   | `'0.0.0.0'`              | HTTP server listening host/IP.                                                                       |
-| `SERVER_API_PREFIX`                     | string   | `'/api'`                 | Base path prefix for all API routes.                                                                 |
-| `SERVER_BODY_MAX_SIZE`                  | string   | `100M`                   | Maximum request body size.                                                                           |
-| `SERVER_STATIC_ENABLED`                 | boolean  | `true`                   | Enable serving static files from disk.                                                               |
-| `SERVER_STATIC_DIR_PATH`                | string   | `'./public'`             | Directory containing static files.                                                                   |
-| `SERVER_STATIC_ROUTE_PREFIX`            | string   | `'/public'`              | URL prefix for static file routes.                                                                   |
-| `SERVER_STATIC_RESPONSE_HEADERS`        | string[] | `[]`                     | HTTP headers for static files. Format: "{header}: {value}"                                           |
-| `SERVER_STATIC_MAX_AGE`                 | string   | `'30d'`                  | Cache-Control max-age for static files.                                                              |
-| `SERVER_STATIC_ALLOWED_HOST`            | string?  | -                        | Host allowed to access static files (CORS).                                                          |
-| `SERVER_TRUST_PROXY`                    | boolean  | `true`                   | Trust `X-Forwarded-*` headers from reverse proxies.                                                  |
-| `SERVER_REQUEST_LOGGING_ENABLED`        | boolean  | `false`                  | Enable HTTP request/response logging.                                                                |
-| `SERVER_ERROR_DATABASE_MESSAGE_ENABLED` | boolean  | `false`                  | Append the message of the database to the detail of a database error response, in every environment. |
-| `SERVER_ERROR_RESPONSE_MAX_COUNT`       | integer  | `20`                     | Maximum validation errors per response. Above `1` every failure is reported, else only the first.    |
+| Property                                | Type     | Default      | Description                                                                                          |
+|-----------------------------------------|----------|--------------|------------------------------------------------------------------------------------------------------|
+| `SERVER_PORT`                           | integer  | `5000`       | HTTP server listening port.                                                                          |
+| `SERVER_HOST`                           | string   | `'0.0.0.0'`  | HTTP server listening host/IP.                                                                       |
+| `SERVER_API_PREFIX`                     | string   | `'/api'`     | Base path prefix for all API routes.                                                                 |
+| `SERVER_BODY_MAX_SIZE`                  | string   | `100M`       | Maximum request body size.                                                                           |
+| `SERVER_STATIC_ENABLED`                 | boolean  | `true`       | Enable serving static files from disk.                                                               |
+| `SERVER_STATIC_DIR_PATH`                | string   | `'./public'` | Directory containing static files.                                                                   |
+| `SERVER_STATIC_ROUTE_PREFIX`            | string   | `'/public'`  | URL prefix for static file routes.                                                                   |
+| `SERVER_STATIC_RESPONSE_HEADERS`        | string[] | `[]`         | HTTP headers for static files. Format: "{header}: {value}"                                           |
+| `SERVER_STATIC_MAX_AGE`                 | string   | `'30d'`      | Cache-Control max-age for static files.                                                              |
+| `SERVER_STATIC_ALLOWED_HOST`            | string?  | -            | Host allowed to access static files (CORS).                                                          |
+| `SERVER_TRUST_PROXY`                    | boolean  | `true`       | Trust `X-Forwarded-*` headers from reverse proxies.                                                  |
+| `SERVER_REQUEST_LOGGING_ENABLED`        | boolean  | `false`      | Enable HTTP request/response logging.                                                                |
+| `SERVER_ERROR_DATABASE_MESSAGE_ENABLED` | boolean  | `false`      | Append the message of the database to the detail of a database error response, in every environment. |
+| `SERVER_ERROR_RESPONSE_MAX_COUNT`       | integer  | `20`         | Maximum validation errors per response. Above `1` every failure is reported, else only the first.    |
 
 ### Rate limiting (RATE_LIMIT_\*)
 

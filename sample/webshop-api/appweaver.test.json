@@ -6,7 +6,7 @@
       "sync": true
     },
     "database": {
-      "url": "postgresql://webshop-api:webshop-api@localhost:5432/webshop-api-test?schema=public",
+      "url": "postgresql://${DB_USER:-webshop-api}:${DB_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME:-webshop-api}-test",
       "schemaPath": "./temp/database/schema.prisma",
       "migrationsDirPath": "./temp/database/migrations",
       "clientOutputDirPath": "./temp/database/client"

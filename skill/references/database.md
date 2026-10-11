@@ -155,21 +155,26 @@ weaver migrate
 | `DATABASE_TRANSACTION_TIMEOUT`  | `int`    | `5000`                                       | Max time (ms) a transaction may run             |
 | `DATABASE_PROVIDER`             | `string` | `'@appweaver/core/database/prisma-database'` | Path to the Database implementation             |
 
-**`appweaver.json` example:**
+Configure the URL in `appweaver.json`, referencing the password of the gitignored `.env` (`DB_PASSWORD=myapp`), a
+`DB_HOST` a docker-compose container sets to the database service name, and a `DB_NAME` and `DB_USER` to rename the
+database or change its user. The type is resolved from the URL scheme when not set:
 
 ```json
 {
-  "DATABASE_TYPE": "postgresql",
-  "DATABASE_URL": "postgresql://user:pass@localhost:5432/myapp?schema=public"
+  "config": {
+    "database": {
+      "url": "postgresql://${DB_USER:-myapp}:${DB_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME:-myapp}"
+    }
+  }
 }
 ```
 
-**`.env` example:**
+The test database URL goes to `appweaver.test.json` (i.e. the `${DB_NAME:-myapp}-test` database of the same server).
 
-```
-DATABASE_TYPE=postgresql
-DATABASE_URL=postgresql://user:pass@localhost:5432/myapp?schema=public
-```
+PostgreSQL uses the `public` schema unless the URL selects another one with `?schema=` (i.e. `...:5432/myapp?schema=webshop`).
+Prisma Migrate creates the schema and its tables there, and the framework passes it on to the PostgreSQL adapter, so the
+queries use it as well. Existing tables are not moved from `public`. Prefer a name without hyphens (`my_app`), which
+raw SQL would otherwise have to double-quote.
 
 ---
 

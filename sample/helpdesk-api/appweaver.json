@@ -10,7 +10,7 @@
       "port": 5004
     },
     "database": {
-      "url": "mysql://helpdesk-api:helpdesk-api@localhost:3306/helpdesk-api"
+      "url": "mysql://${DB_USER:-helpdesk-api}:${DB_PASSWORD}@${DB_HOST:-localhost}:3306/${DB_NAME:-helpdesk-api}"
     },
     "redis": {
       "provider": "@appweaver/core/memory/in-memory"

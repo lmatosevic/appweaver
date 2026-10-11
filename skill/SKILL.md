@@ -82,14 +82,42 @@ create-weaver-app MyBlogAPI "My own CMS for blogging" --database postgresql --no
 This creates a `./my-blog-api` directory, installs all dependencies, and runs the initial schema and type generation.
 The default test runner is `jest` with `swc` transpiler.
 
-For a PostgreSQL, MySQL, or SQL Server project, the generated `docker-compose.yml` runs the database server (and Redis)
-on their default ports (`5432`, `3306`, `1433`, and `6379` for Redis), also published on the host, so the development
-`DATABASE_URL` and the default `REDIS_URL` reach them and `docker-compose up -d postgres redis` is enough to run the app
-locally. The database credentials are stored in `.env` (`DB_NAME`, `DB_USER`, `DB_PASSWORD`), and the application
-containers override the connection URLs to reach the other containers.
+The connections are configured in the committed `appweaver.json` (the test database in `appweaver.test.json`), whose
+`${VAR}` references are expanded from the environment. Only the database password goes to the gitignored `.env`
+(copied to a committed `.env.example`):
 
-A SQLite project keeps its database file in the `data/` directory (`file:./data/<name>.db`), which the generated
-`docker-compose.yml` mounts as the `sqlite-data` volume shared by the migration, seed, and application containers.
+```json
+{
+  "config": {
+    "database": {
+      "url": "postgresql://${DB_USER:-my-blog-api}:${DB_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME:-my-blog-api}"
+    },
+    "redis": {
+      "url": "redis://${REDIS_HOST:-localhost}:6379/0"
+    }
+  }
+}
+```
+
+```dotenv
+NODE_ENV=dev
+
+DB_PASSWORD=my-blog-api
+```
+
+For a PostgreSQL, MySQL, or SQL Server project, the generated `docker-compose.yml` runs the database server (and Redis)
+on their default ports (`5432`, `3306`, `1433`, and `6379` for Redis), also published on the host, with the `.env`
+credentials. So `docker compose up` runs the whole stack, while `docker compose up -d postgres redis` and `npm run dev`
+run the app locally against the same containers. The application containers read `.env` and set only `DB_HOST` and
+`REDIS_HOST` to the service names, which the URLs default to `localhost` without. To use another server, change the
+URL in `appweaver.json`, or set `DB_HOST` / `REDIS_HOST` in `.env`. Setting `DB_NAME` renames the database (the test
+database is `${DB_NAME}-test`), also in the docker-compose database service, and `DB_USER` changes the user. For MySQL,
+the generated `database/mariadb-init.sh` grants the user every database when the MariaDB container initializes its
+volume, since Prisma Migrate creates a shadow database and the end-to-end tests the `-test` one.
+
+A SQLite project keeps its database file in the `data/` directory (`file:./data/<name>.db`), which the
+generated `docker-compose.yml` mounts as the `sqlite-data` volume shared by the migration, seed, and application
+containers.
 
 The generated `Dockerfile` builds the application and its production dependencies in a build stage, so the final image
 carries no build tools. The image runs as the unprivileged `node` user (`bun` for Bun) and defaults to `NODE_ENV=prod`.
@@ -183,7 +211,8 @@ Dependencies: **model** ← **service** ← **routes**, and **model** ← **poli
 - Use default configuration values whenever possible
 - Rely on library defaults for `omit`/`pick`, ad `input`/`output` settings
 - Use default `mimeType` and `namePattern` patterns in file configurations unless specifically requested
-- Prefer storing configuration in JSON file (`appweaver.json`) over environment (`.env`) file, but prefer it for secrets
+- Prefer storing configuration in JSON file (`appweaver.json`) over environment (`.env`) file, but keep secrets in `.env`
+  and reference them from the JSON file as `${VAR}` (i.e. `"url": "postgresql://${DB_USER:-app}:${DB_PASSWORD}@..."`)
 - Always create all four resource configs (model, service, routes, and policy) unless specified otherwise
 
 **DON'TS:**

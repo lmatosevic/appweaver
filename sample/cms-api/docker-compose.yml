@@ -26,7 +26,7 @@ services:
     env_file:
       - .env
     environment:
-      REDIS_URL: "redis://redis:6379/0"
+      REDIS_HOST: "redis"
     command: [ "migrations" ]
     volumes:
       - ./storage:/usr/app/storage
@@ -47,7 +47,7 @@ services:
     env_file:
       - .env
     environment:
-      REDIS_URL: "redis://redis:6379/0"
+      REDIS_HOST: "redis"
     command: [ "seed" ]
     volumes:
       - ./storage:/usr/app/storage
@@ -84,7 +84,7 @@ services:
       - .env
     environment:
       SERVER_HOST: "0.0.0.0"
-      REDIS_URL: "redis://redis:6379/0"
+      REDIS_HOST: "redis"
     networks:
       - cms-api
 

@@ -33,12 +33,15 @@ It runs on PostgreSQL and Redis, the production-like setup of the samples.
 Build the monorepo once from the repository root (`npm install && npm run build`), then in this directory:
 
 ```bash
-cp .env.example .env                  # NODE_ENV=dev and the database credentials
+cp .env.example .env                  # NODE_ENV=dev and the database password
 docker compose up -d postgres redis   # PostgreSQL on :5432, Redis on :6379
 npm run migrate                       # apply the migrations
 npm run seed                          # roles, staff, the catalog, coupons, and two customers
 npm run dev                           # http://localhost:5002, Swagger UI at http://localhost:5002/swagger
 ```
+
+`docker compose up` runs the whole stack instead, its containers setting the `DB_HOST` and `REDIS_HOST` the URLs of
+`appweaver.json` reference to the `postgres` and `redis` services. The database password comes from `.env`.
 
 The seeder prints the generated admin password (`admin@webshop.example.com`) and the **warehouse API key**; keep the
 key, it is not shown again. The demo customers `olivia@example.com` and `daniel@example.com` sign in with `Passw0rd!`.

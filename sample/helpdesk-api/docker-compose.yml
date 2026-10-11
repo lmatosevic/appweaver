@@ -13,12 +13,13 @@ services:
     ports:
       - "127.0.0.1:3306:3306"
     environment:
-      MARIADB_DATABASE: "${DB_NAME}"
-      MARIADB_USER: "${DB_USER}"
+      MARIADB_DATABASE: "${DB_NAME:-helpdesk-api}"
+      MARIADB_USER: "${DB_USER:-helpdesk-api}"
       MARIADB_PASSWORD: "${DB_PASSWORD}"
       MARIADB_ROOT_PASSWORD: "${DB_PASSWORD}"
     volumes:
       - mysql-data:/var/lib/mysql
+      - ./database/mariadb-init.sh:/docker-entrypoint-initdb.d/mariadb-init.sh:ro
     networks:
       - helpdesk-api
 
@@ -34,7 +35,7 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: "mysql://root:helpdesk-api@mysql:3306/helpdesk-api"
+      DB_HOST: "mysql"
     command: [ "migrations" ]
     volumes:
       - ./storage:/usr/app/storage
@@ -54,7 +55,7 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: "mysql://root:helpdesk-api@mysql:3306/helpdesk-api"
+      DB_HOST: "mysql"
     command: [ "seed" ]
     volumes:
       - ./storage:/usr/app/storage
@@ -86,7 +87,7 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: "mysql://root:helpdesk-api@mysql:3306/helpdesk-api"
+      DB_HOST: "mysql"
     networks:
       - helpdesk-api
 

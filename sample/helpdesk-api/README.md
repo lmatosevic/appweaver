@@ -30,20 +30,24 @@ threads read page by page. It runs on MySQL (MariaDB) without Redis.
 Build the monorepo once from the repository root (`npm install && npm run build`), then in this directory:
 
 ```bash
-cp .env.example .env         # NODE_ENV=dev and the database credentials
+cp .env.example .env         # NODE_ENV=dev and the database password
 docker compose up -d mysql   # MariaDB on :3306
 npm run migrate              # apply the migrations
 npm run seed                 # roles, teams, agents, the SLA policies, and demo tickets
 npm run dev                  # http://localhost:5004, Swagger UI at http://localhost:5004/swagger
 ```
 
+`docker compose up` runs the whole stack instead, its containers setting the `DB_HOST` the URL of `appweaver.json`
+references to the `mysql` service. The database password comes from `.env`.
+
 The seeder prints the generated admin password (`admin@helpdesk.example.com`) and the **status page API key**; keep
 the key, it is not shown again. The agents `nicole@`, `ethan@`, `laura@`, and `tom@helpdesk.example.com` (Tom is away)
 sign in with `Passw0rd!`. The demo ticket `HD-DEMO02` is past its resolution target, so the escalation job raises it
 within five minutes of starting the server.
 
-The development database is accessed as `root`, since Prisma Migrate creates a shadow database next to it. In
-development the emails are written to the log by the JSON mailer (see [`appweaver.dev.json`](appweaver.dev.json)).
+The application connects as the `helpdesk-api` user, which [`database/mariadb-init.sh`](database/mariadb-init.sh)
+grants every database when the container first initializes its volume, since Prisma Migrate creates a shadow database
+next to it. In development the emails are written to the log by the JSON mailer (see [`appweaver.dev.json`](appweaver.dev.json)).
 
 ## Try it out
 

@@ -10,11 +10,14 @@
       "port": 5001,
       "host": "localhost"
     },
-    "log": {
-      "pretty": false
-    },
     "database": {
       "url": "file:./data/cms-api.db"
+    },
+    "redis": {
+      "url": "redis://${REDIS_HOST:-localhost}:6379/0"
+    },
+    "log": {
+      "pretty": false
     }
   }
 }

@@ -6,7 +6,7 @@
       "sync": true
     },
     "database": {
-      "url": "mysql://root:helpdesk-api@localhost:3306/helpdesk-api-test",
+      "url": "mysql://${DB_USER:-helpdesk-api}:${DB_PASSWORD}@${DB_HOST:-localhost}:3306/${DB_NAME:-helpdesk-api}-test",
       "schemaPath": "./temp/database/schema.prisma",
       "migrationsDirPath": "./temp/database/migrations",
       "clientOutputDirPath": "./temp/database/client"

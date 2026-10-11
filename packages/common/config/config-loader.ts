@@ -133,6 +133,8 @@ export function loadConfigFromFiles(schema: TObject): ConfigEntry {
 
 /**
  * Loads configuration data from a specified file and validates it against a given schema.
+ * Expands the `${VAR_NAME}` and `${VAR_NAME:-default}` references of the string values with
+ * the environment variables, so load the `.env` files first.
  *
  * @param {TObject} schema - The schema to validate the configuration data against.
  * @param {string} filePath - The path to the configuration file.
@@ -156,7 +158,8 @@ export function loadConfigFromFile(
 
   const variables = recurseConfig(data.config ?? {}, {});
 
-  for (const [name, value] of Object.entries(variables)) {
+  for (const [name, rawValue] of Object.entries(variables)) {
+    const value = expandValue(rawValue);
     const schemaProp = schema.properties[name];
     if (!schemaProp) {
       config[`_${CONFIG_NAME}_${name}`] = value;
@@ -184,6 +187,25 @@ export function loadPackageJson(
   const pkgPath = path.join(process.cwd(), filePath);
   const pkgContent = fs.readFileSync(pkgPath, 'utf8');
   return JSON.parse(pkgContent);
+}
+
+/** Matches an escaped `\${`, or a `${NAME}` reference with an optional `:-default` value. */
+const referencePattern = /\\\$\{|\$\{([A-Za-z_][A-Za-z0-9_]*)(?::-([^}]*))?\}/g;
+
+/**
+ * Expands the environment variable references of a JSON config value, or of each string of an
+ * array value. Like in the `.env` files, an unset reference expands to an empty string, while
+ * `:-default` also replaces an empty one, and `\${` keeps the reference literal.
+ */
+function expandValue<T>(value: T): T {
+  const expand = (item: unknown) =>
+    typeof item === 'string'
+      ? item.replace(referencePattern, (_, name?: string, fallback?: string) =>
+          name === undefined ? '${' : process.env[name] || (fallback ?? '')
+        )
+      : item;
+
+  return (Array.isArray(value) ? value.map(expand) : expand(value)) as T;
 }
 
 /**

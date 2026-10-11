@@ -46,7 +46,8 @@ needs only the model.
 - Use default configuration values whenever possible
 - Rely on library defaults for `omit`/`pick`, and `input`/`output` settings
 - Use default `mimeType` and `namePattern` patterns in file configurations unless specifically requested
-- Prefer storing configuration in JSON file (`appweaver.json`) over environment (`.env`) file, but prefer it for secrets
+- Prefer storing configuration in JSON file (`appweaver.json`) over environment (`.env`) file, but keep secrets in `.env`
+  and reference them from the JSON file as `${VAR}` (i.e. `"url": "postgresql://${DB_USER:-app}:${DB_PASSWORD}@..."`)
 - Always create all four resource configs (model, service, routes, and policy) unless specified otherwise
 
 **DON'TS:**

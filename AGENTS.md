@@ -653,6 +653,11 @@ Scaffolded with `create-weaver-app`, each showcases a different part of the fram
 
 - The PostgreSQL and MySQL samples start their database with `docker compose up -d postgres redis` (or `mysql`); their
   end-to-end tests run against a `-test` database of the same container.
+- Like a generated project, every sample configures its database and Redis URLs in `appweaver*.json`, referencing the
+  database password of `.env` (copied from `.env.example`) as `${DB_PASSWORD}`, and the hosts as
+  `${DB_HOST:-localhost}` and `${REDIS_HOST:-localhost}`, which the compose application services override. The database
+  name and user are `${DB_NAME:-<sample name>}` and `${DB_USER:-<sample name>}`, also in the compose database service.
+  The MySQL sample mounts `database/mariadb-init.sh`, granting its user the shadow and the test databases.
 - The driver adapters of all the samples are root dev dependencies, so the samples run on the root `node_modules`.
 - Each sample also declares every package it needs, locked in its own `package-lock.json` (`bun.lock` for the Bun
   sample) to the published `@appweaver/*` release, so its Docker image builds with a clean install outside the

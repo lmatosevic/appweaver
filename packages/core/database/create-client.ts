@@ -83,15 +83,22 @@ function sqliteClient(): PrismaClient {
 
 /**
  * Creates and returns an instance of PrismaClient configured with the specified options.
+ * The `schema` parameter of the database URL selects the PostgreSQL schema, `public` by default.
  *
  * @return {PrismaClient} An instance of PrismaClient used to interact with a PostgresSQL database.
  */
 function postgresClient(): PrismaClient {
   const { PrismaPg } = requireModule('@prisma/adapter-pg', true).value;
 
-  const adapter = new PrismaPg({
-    connectionString: config.DATABASE_URL
-  });
+  // Prisma Migrate reads the schema from the URL, while the adapter ignores it
+  // and would query the "public" schema, so pass it on
+  const schema =
+    new URL(config.DATABASE_URL).searchParams.get('schema') ?? undefined;
+
+  const adapter = new PrismaPg(
+    { connectionString: config.DATABASE_URL },
+    { schema }
+  );
 
   return createPrismaClient(adapter);
 }

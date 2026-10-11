@@ -13,8 +13,8 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     environment:
-      POSTGRES_DB: "${DB_NAME}"
-      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_DB: "${DB_NAME:-webshop-api}"
+      POSTGRES_USER: "${DB_USER:-webshop-api}"
       POSTGRES_PASSWORD: "${DB_PASSWORD}"
     volumes:
       - postgres-data:/var/lib/postgresql
@@ -51,8 +51,8 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: "postgresql://webshop-api:webshop-api@postgres:5432/webshop-api?schema=public"
-      REDIS_URL: "redis://redis:6379/0"
+      DB_HOST: "postgres"
+      REDIS_HOST: "redis"
     command: [ "migrations" ]
     volumes:
       - ./storage:/usr/app/storage
@@ -72,8 +72,8 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: "postgresql://webshop-api:webshop-api@postgres:5432/webshop-api?schema=public"
-      REDIS_URL: "redis://redis:6379/0"
+      DB_HOST: "postgres"
+      REDIS_HOST: "redis"
     command: [ "seed" ]
     volumes:
       - ./storage:/usr/app/storage
@@ -107,8 +107,8 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: "postgresql://webshop-api:webshop-api@postgres:5432/webshop-api?schema=public"
-      REDIS_URL: "redis://redis:6379/0"
+      DB_HOST: "postgres"
+      REDIS_HOST: "redis"
     networks:
       - webshop-api
 

@@ -1,2 +1,2 @@
 NODE_ENV=dev
-{{DATABASE_ENV}}
+{{SECRETS_ENV}}

@@ -226,6 +226,75 @@ describe('config-loader', () => {
       expect(() => loadConfigFromFile(schema, filePath)).toThrow();
     });
 
+    test('expands environment variable references in string values', () => {
+      process.env.TEST_DB_USER = 'user';
+      process.env.TEST_DB_PASSWORD = 'secret';
+      const filePath = writeConfig('appweaver.json', {
+        config: {
+          app: { name: 'postgresql://${TEST_DB_USER}:${TEST_DB_PASSWORD}@db' }
+        }
+      });
+
+      expect(loadConfigFromFile(schema, filePath)?.['APP_NAME']).toBe(
+        'postgresql://user:secret@db'
+      );
+    });
+
+    test('expands the references in each string of an array value', () => {
+      process.env.TEST_HEADER = 'b';
+      const filePath = writeConfig('appweaver.json', {
+        config: { server: { headers: ['a', '${TEST_HEADER}'] } }
+      });
+
+      expect(loadConfigFromFile(schema, filePath)?.['SERVER_HEADERS']).toEqual([
+        'a',
+        'b'
+      ]);
+    });
+
+    test('uses the default value of an unset or empty reference', () => {
+      delete process.env.TEST_UNSET_HOST;
+      process.env.TEST_EMPTY_HOST = '';
+      process.env.TEST_SET_HOST = 'postgres';
+      const filePath = writeConfig('appweaver.json', {
+        config: {
+          app: { name: '${TEST_UNSET_HOST:-localhost}' },
+          logLevel: '${TEST_EMPTY_HOST:-localhost}',
+          custom: { host: '${TEST_SET_HOST:-localhost}' }
+        }
+      });
+
+      const config = loadConfigFromFile(schema, filePath);
+
+      expect(config?.['APP_NAME']).toBe('localhost');
+      expect(config?.['LOG_LEVEL']).toBe('localhost');
+      expect(config?.[`_${CONFIG_NAME}_CUSTOM_HOST`]).toBe('postgres');
+    });
+
+    test('expands an unset reference to an empty string', () => {
+      delete process.env.TEST_UNSET;
+      const filePath = writeConfig('appweaver.json', {
+        config: { app: { name: 'a${TEST_UNSET}b' }, logLevel: '${TEST_UNSET}' }
+      });
+
+      const config = loadConfigFromFile(schema, filePath);
+
+      expect(config?.['APP_NAME']).toBe('ab');
+      // Skipped like an empty value, so the schema default applies
+      expect('LOG_LEVEL' in (config ?? {})).toBe(false);
+    });
+
+    test('keeps an escaped reference literal', () => {
+      process.env.TEST_ESCAPED = 'expanded';
+      const filePath = writeConfig('appweaver.json', {
+        config: { app: { name: '\\${TEST_ESCAPED} $TEST_ESCAPED' } }
+      });
+
+      expect(loadConfigFromFile(schema, filePath)?.['APP_NAME']).toBe(
+        '${TEST_ESCAPED} $TEST_ESCAPED'
+      );
+    });
+
     test('resolves a relative file path against the cwd', () => {
       writeConfig('relative.json', { config: { app: { name: 'Relative' } } });
       expect(loadConfigFromFile(schema, './relative.json')?.['APP_NAME']).toBe(
