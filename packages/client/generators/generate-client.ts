@@ -649,16 +649,20 @@ function resourceOperation(
       '': 'create',
       export: 'export',
       '{id}/files': 'uploadFiles',
-      '{id}/delete-files': 'deleteFiles'
+      '{id}/delete-files': 'deleteFiles',
+      bulk: 'bulkCreate'
     },
     put: {
-      '{id}': 'replace'
+      '{id}': 'replace',
+      bulk: 'bulkReplace'
     },
     patch: {
-      '{id}': 'update'
+      '{id}': 'update',
+      bulk: 'bulkUpdate'
     },
     delete: {
-      '{id}': 'delete'
+      '{id}': 'delete',
+      bulk: 'bulkDelete'
     }
   };
 

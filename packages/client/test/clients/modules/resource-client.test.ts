@@ -220,6 +220,72 @@ describe('resource-client', () => {
     });
   });
 
+  describe('bulkCreate', () => {
+    test('posts the records to the bulk path', async () => {
+      const { stub, resource } = createResource({
+        data: { success: true, count: 2 }
+      });
+
+      const response = await resource.bulkCreate([
+        { title: 'One' },
+        { title: 'Two' }
+      ]);
+
+      expect(stub.lastCall()).toMatchObject({
+        method: 'post',
+        path: '/api/posts/bulk'
+      });
+      expect(stub.lastCall().params.body).toEqual([
+        { title: 'One' },
+        { title: 'Two' }
+      ]);
+      expect(response).toEqual({ success: true, count: 2 });
+    });
+  });
+
+  describe('bulkUpdate', () => {
+    test('patches the items to the bulk path', async () => {
+      const { stub, resource } = createResource();
+
+      await resource.bulkUpdate([{ id: 1, data: { title: 'One' } }]);
+
+      expect(stub.lastCall()).toMatchObject({
+        method: 'patch',
+        path: '/api/posts/bulk'
+      });
+      expect(stub.lastCall().params.body).toEqual([
+        { id: 1, data: { title: 'One' } }
+      ]);
+    });
+  });
+
+  describe('bulkReplace', () => {
+    test('puts the items to the bulk path', async () => {
+      const { stub, resource } = createResource();
+
+      await resource.bulkReplace([{ id: 1, data: { title: 'One' } }]);
+
+      expect(stub.lastCall()).toMatchObject({
+        method: 'put',
+        path: '/api/posts/bulk'
+      });
+    });
+  });
+
+  describe('bulkDelete', () => {
+    test('deletes the ids sent in the body of the bulk path', async () => {
+      const { stub, resource } = createResource();
+
+      await resource.bulkDelete([1, 2]);
+
+      expect(stub.lastCall()).toMatchObject({
+        method: 'delete',
+        path: '/api/posts/bulk'
+      });
+      expect(stub.lastCall().params.body).toEqual([1, 2]);
+    });
+  });
+
   describe('delete', () => {
     test('deletes the record by id', async () => {
       const { stub, resource } = createResource();

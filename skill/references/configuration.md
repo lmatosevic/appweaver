@@ -184,15 +184,20 @@ The config object is frozen with `Object.freeze()` after loading to prevent runt
 
 ### Resources (RESOURCE\_\*)
 
-| Property                        | Type   | Default                              | Description                                                                             |
-|---------------------------------|--------|--------------------------------------|-----------------------------------------------------------------------------------------|
-| `RESOURCE_MODEL_PATTERN`        | string | `'<srcPath>/resources/*/model.ts'`   | Glob pattern for resource model files.                                                  |
-| `RESOURCE_SERVICE_PATTERN`      | string | `'<srcPath>/resources/*/service.ts'` | Glob pattern for resource service files.                                                |
-| `RESOURCE_POLICY_PATTERN`       | string | `'<srcPath>/resources/*/policy.ts'`  | Glob pattern for resource policy files.                                                 |
-| `RESOURCE_ROUTES_PATTERN`       | string | `'<srcPath>/resources/*/routes.ts'`  | Glob pattern for resource routes files.                                                 |
-| `RESOURCE_GENERATED_TYPES_PATH` | string | `'<srcPath>/types/generated.ts'`     | Output path for generated TypeScript types.                                             |
-| `RESOURCE_QUERY_METHOD`         | enum   | `'post'`                             | Methods of the `query` routes: `post`, `get`, or `get-post`. Overridable per route.     |
-| `RESOURCE_AGGREGATE_METHOD`     | enum   | `'post'`                             | Methods of the `aggregate` routes: `post`, `get`, or `get-post`. Overridable per route. |
+| Property                            | Type    | Default                              | Description                                                                             |
+|-------------------------------------|---------|--------------------------------------|-----------------------------------------------------------------------------------------|
+| `RESOURCE_MODEL_PATTERN`            | string  | `'<srcPath>/resources/*/model.ts'`   | Glob pattern for resource model files.                                                  |
+| `RESOURCE_SERVICE_PATTERN`          | string  | `'<srcPath>/resources/*/service.ts'` | Glob pattern for resource service files.                                                |
+| `RESOURCE_POLICY_PATTERN`           | string  | `'<srcPath>/resources/*/policy.ts'`  | Glob pattern for resource policy files.                                                 |
+| `RESOURCE_ROUTES_PATTERN`           | string  | `'<srcPath>/resources/*/routes.ts'`  | Glob pattern for resource routes files.                                                 |
+| `RESOURCE_GENERATED_TYPES_PATH`     | string  | `'<srcPath>/types/generated.ts'`     | Output path for generated TypeScript types.                                             |
+| `RESOURCE_QUERY_METHOD`             | enum    | `'post'`                             | Methods of the `query` routes: `post`, `get`, or `get-post`. Overridable per route.     |
+| `RESOURCE_AGGREGATE_METHOD`         | enum    | `'post'`                             | Methods of the `aggregate` routes: `post`, `get`, or `get-post`. Overridable per route. |
+| `RESOURCE_BULK_CREATE_ENABLED`      | boolean | `false`                              | Register `POST /bulk` of every resource, unless the route sets `exclude`.               |
+| `RESOURCE_BULK_UPDATE_ENABLED`      | boolean | `false`                              | Register `PATCH`/`PUT /bulk` of every resource, unless the route sets `exclude`.        |
+| `RESOURCE_BULK_DELETE_ENABLED`      | boolean | `false`                              | Register `DELETE /bulk` of every resource, unless the route sets `exclude`.             |
+| `RESOURCE_BULK_MAX_ITEMS`           | integer | `2000`                               | Maximum items of a bulk request. Overridable per route (`maxItems`).                    |
+| `RESOURCE_BULK_TRANSACTION_TIMEOUT` | integer | `5000`                               | Timeout (ms) of the transaction a bulk request runs in.                                 |
 
 ### Data export (EXPORT\_\*)
 

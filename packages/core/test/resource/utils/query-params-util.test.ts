@@ -15,11 +15,34 @@ import * as common from '@appweaver/common';
 import { QueryMethod } from '@appweaver/common';
 import { ResourceError } from '../../../resource/resource-error';
 import {
+  bulkRouteEnabled,
   parseJsonParams,
   queryRouteMethods
 } from '../../../resource/utils/query-params-util';
 
 describe('query-params-util', () => {
+  describe('bulkRouteEnabled', () => {
+    afterEach(() => {
+      delete (common as any).configOverrides.RESOURCE_BULK_CREATE_ENABLED;
+      delete (common as any).configOverrides.RESOURCE_BULK_UPDATE_ENABLED;
+      delete (common as any).configOverrides.RESOURCE_BULK_DELETE_ENABLED;
+    });
+
+    test('disables every bulk route by default', () => {
+      expect(bulkRouteEnabled('bulkCreate')).toBe(false);
+      expect(bulkRouteEnabled('bulkUpdate')).toBe(false);
+      expect(bulkRouteEnabled('bulkDelete')).toBe(false);
+    });
+
+    test('follows the config of the resolved route', () => {
+      (common as any).configOverrides.RESOURCE_BULK_UPDATE_ENABLED = true;
+
+      expect(bulkRouteEnabled('bulkCreate')).toBe(false);
+      expect(bulkRouteEnabled('bulkUpdate')).toBe(true);
+      expect(bulkRouteEnabled('bulkDelete')).toBe(false);
+    });
+  });
+
   describe('queryRouteMethods', () => {
     afterEach(() => {
       delete (common as any).configOverrides.RESOURCE_QUERY_METHOD;

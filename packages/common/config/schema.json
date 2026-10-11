@@ -380,6 +380,32 @@
               "type": "string",
               "enum": ["post", "get", "get-post"],
               "default": "post"
+            },
+            "bulk": {
+              "type": "object",
+              "properties": {
+                "createEnabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "updateEnabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "deleteEnabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "maxItems": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 2000
+                },
+                "transactionTimeout": {
+                  "type": "integer",
+                  "default": 5000
+                }
+              }
             }
           }
         },

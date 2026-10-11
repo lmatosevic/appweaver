@@ -50,6 +50,22 @@ export type AggregateOptions<T = any, S = AggregateSelect<T>, Q = any> = {
   safeIncrement?: boolean;
 };
 
+/** An item of a bulk update or replacement: the id of the resource and its data. */
+export type BulkItem<T> = {
+  /** The id of the resource */
+  id: ResourceId;
+  /** The data to update or replace the resource with */
+  data: T;
+};
+
+/** The response of a bulk route, which either applies every item or none. */
+export type BulkResponse = {
+  /** Whether every item was applied, always true, since a failed bulk responds with an error */
+  success: boolean;
+  /** The number of resources created, updated, or deleted */
+  count: number;
+};
+
 export type ServiceHookResponse = void | Promise<void>;
 
 export type ResourceServiceConfig<T = any, C = any, U = any> = {

@@ -67,7 +67,11 @@ export const RESOURCE_OPERATIONS = {
   delete: 'delete',
   export: 'post',
   uploadFiles: 'post',
-  deleteFiles: 'post'
+  deleteFiles: 'post',
+  bulkCreate: 'post',
+  bulkUpdate: 'patch',
+  bulkReplace: 'put',
+  bulkDelete: 'delete'
 } as const;
 
 /** Expected type keys for a resource used for type inference. */

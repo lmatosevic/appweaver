@@ -1599,6 +1599,182 @@ describe('resource-service', () => {
     });
   });
 
+  describe('bulk', () => {
+    // Every id the pre-check of a bulk delete asks for exists
+    const liveIds = (args: any) =>
+      (args.where.id.in as number[]).map((id) => ({ id }));
+
+    beforeEach(() => {
+      db.setResult('Post', 'findMany', liveIds);
+      db.setResult('Post', 'create', (args: any) => ({ id: 1, ...args.data }));
+      db.setResult('Post', 'findFirst', (args: any) => ({
+        id: args.where.id,
+        title: 'First',
+        tags: []
+      }));
+      db.setResult('Post', 'update', (args: any) => ({
+        id: args.where.id,
+        ...args.data
+      }));
+      db.setResult('Post', 'delete', (args: any) => ({
+        id: args.where.id,
+        title: 'First'
+      }));
+    });
+
+    test('creates every item in order', async () => {
+      const posts = await service.bulkCreate([
+        { title: 'First' },
+        { title: 'Second' }
+      ]);
+
+      const creates = db.queries.filter((query) => query.method === 'create');
+      expect(creates.map((query) => query.args.data.title)).toEqual([
+        'First',
+        'Second'
+      ]);
+      expect(posts.map((post: any) => post.title)).toEqual(['First', 'Second']);
+    });
+
+    test('updates every item by its id', async () => {
+      const posts = await service.bulkUpdate([
+        { id: 1, data: { title: 'One' } },
+        { id: 2, data: { title: 'Two' } }
+      ]);
+
+      const updates = db.queries.filter((query) => query.method === 'update');
+      expect(updates.map((query) => query.args.where.id)).toEqual([1, 2]);
+      expect(posts.map((post: any) => post.title)).toEqual(['One', 'Two']);
+    });
+
+    test('replaces every item, resetting the fields left out', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: {
+            title: { type: 'string' },
+            summary: { type: 'string', required: false }
+          }
+        },
+        true
+      );
+      linkModels();
+
+      await service.bulkReplace([
+        { id: 1, data: { title: 'One' } },
+        { id: 2, data: { title: 'Two', summary: 'Kept' } }
+      ]);
+
+      const updates = db.queries.filter((query) => query.method === 'update');
+      expect(updates.map((query) => query.args.data)).toEqual([
+        { title: 'One', summary: null },
+        { title: 'Two', summary: 'Kept' }
+      ]);
+    });
+
+    test('deletes every item by its id', async () => {
+      const posts = await service.bulkDelete([3, 4]);
+
+      const deletes = db.queries.filter((query) => query.method === 'delete');
+      expect(deletes.map((query) => query.args.where.id)).toEqual([3, 4]);
+      expect(posts.map((post: any) => post.id)).toEqual([3, 4]);
+    });
+
+    test('deletes none of the ids when one of them does not exist', async () => {
+      db.setResult('Post', 'findMany', (args: any) =>
+        liveIds(args).filter((record: any) => record.id !== 4)
+      );
+
+      await expect(service.bulkDelete([3, 4, 5])).rejects.toMatchObject({
+        code: ErrorCode.ResourceNotFound,
+        details: { model: 'Post', id: 4 }
+      });
+      expect(db.queries.some((query) => query.method === 'delete')).toBe(false);
+    });
+
+    test('skips an id the cascade of an earlier id removed', async () => {
+      const removed = new Set<number>();
+      db.setResult('Post', 'findMany', (args: any) =>
+        liveIds(args).filter((record: any) => !removed.has(record.id))
+      );
+      // Deleting 3 cascades into 4
+      db.setResult('Post', 'delete', (args: any) => {
+        removed.add(args.where.id);
+        if (args.where.id === 3) {
+          removed.add(4);
+        }
+        return { id: args.where.id };
+      });
+
+      const posts = await service.bulkDelete([3, 4, 5]);
+
+      const deletes = db.queries.filter((query) => query.method === 'delete');
+      expect(deletes.map((query) => query.args.where.id)).toEqual([3, 5]);
+      expect(posts.map((post: any) => post.id)).toEqual([3, 5]);
+    });
+
+    test('runs with the bulk transaction timeout', async () => {
+      const client = db.database.client();
+      const transaction = jest.spyOn(client, '$transaction');
+
+      await service.bulkCreate([{ title: 'First' }]);
+
+      expect(transaction).toHaveBeenCalledWith(expect.any(Function), {
+        timeout: 5000
+      });
+    });
+
+    test('stops at the first failed item and throws its error', async () => {
+      db.setResult('Post', 'findFirst', (args: any) =>
+        args.where.id === 2 ? null : { id: args.where.id, tags: [] }
+      );
+
+      await expect(
+        service.bulkUpdate([
+          { id: 1, data: { title: 'One' } },
+          { id: 2, data: { title: 'Two' } },
+          { id: 3, data: { title: 'Three' } }
+        ])
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceNotFound,
+        details: { model: 'Post', id: 2 }
+      });
+
+      const updates = db.queries.filter((query) => query.method === 'update');
+      expect(updates.map((query) => query.args.where.id)).toEqual([1]);
+    });
+
+    test('runs every item in a single transaction', async () => {
+      const client = db.database.client();
+      const transaction = jest.spyOn(client, '$transaction');
+
+      await service.bulkCreate([{ title: 'First' }, { title: 'Second' }]);
+
+      expect(transaction).toHaveBeenCalledTimes(1);
+    });
+
+    test('translates an error of the transaction itself', async () => {
+      const client = db.database.client();
+      jest
+        .spyOn(client, '$transaction')
+        .mockRejectedValueOnce(prismaError('P2028'));
+
+      await expect(
+        service.bulkCreate([{ title: 'First' }])
+      ).rejects.toBeInstanceOf(DatabaseError);
+    });
+
+    test('emits the resource event and invalidates the cache of every item', async () => {
+      const handler = jest.fn();
+      events.onResourceEvent('Post', 'create', handler);
+
+      await service.bulkCreate([{ title: 'First' }, { title: 'Second' }]);
+
+      expect(handler).toHaveBeenCalledTimes(2);
+      expect(invalidateCache).toHaveBeenCalledWith('Post', 'create');
+    });
+  });
+
   describe('delete', () => {
     beforeEach(() => {
       db.setResult('Post', 'findFirst', { id: 1, title: 'First' });

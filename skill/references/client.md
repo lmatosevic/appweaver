@@ -365,18 +365,22 @@ const client = createClient({
 
 Exposes CRUD and file operations for a single resource endpoint.
 
-| Method                         | HTTP                                 | Description                                              |
-|--------------------------------|--------------------------------------|----------------------------------------------------------|
-| `find(id, options?)`           | `GET /{resource}/{id}`               | Fetch a single record by ID                              |
-| `query(request, options?)`     | `POST /{resource}/query`             | Filter, sort, and paginate the collection                |
-| `aggregate(request, options?)` | `POST /{resource}/aggregate`         | Aggregation query (count, sum, avg, etc.)                |
-| `create(resource, options?)`   | `POST /{resource}`                   | Create a new record                                      |
-| `update(resource, options?)`   | `PATCH /{resource}/{id}`             | Update an existing record (`resource` must include `id`) |
-| `replace(resource, options?)`  | `PUT /{resource}/{id}`               | Replace a whole record (`resource` must include `id`)    |
-| `delete(id, options?)`         | `DELETE /{resource}/{id}`            | Delete a record by ID                                    |
-| `export(request, options?)`    | `POST /{resource}/export`            | Export collection as a file; returns `FileDataResponse`  |
-| `uploadFiles(files, options?)` | `POST /{resource}/{id}/files`        | Upload files to a record                                 |
-| `deleteFiles(files, options?)` | `POST /{resource}/{id}/delete-files` | Remove files from a record                               |
+| Method                            | HTTP                                 | Description                                              |
+|-----------------------------------|--------------------------------------|----------------------------------------------------------|
+| `find(id, options?)`              | `GET /{resource}/{id}`               | Fetch a single record by ID                              |
+| `query(request, options?)`        | `POST /{resource}/query`             | Filter, sort, and paginate the collection                |
+| `aggregate(request, options?)`    | `POST /{resource}/aggregate`         | Aggregation query (count, sum, avg, etc.)                |
+| `create(resource, options?)`      | `POST /{resource}`                   | Create a new record                                      |
+| `update(resource, options?)`      | `PATCH /{resource}/{id}`             | Update an existing record (`resource` must include `id`) |
+| `replace(resource, options?)`     | `PUT /{resource}/{id}`               | Replace a whole record (`resource` must include `id`)    |
+| `delete(id, options?)`            | `DELETE /{resource}/{id}`            | Delete a record by ID                                    |
+| `export(request, options?)`       | `POST /{resource}/export`            | Export collection as a file; returns `FileDataResponse`  |
+| `uploadFiles(files, options?)`    | `POST /{resource}/{id}/files`        | Upload files to a record                                 |
+| `deleteFiles(files, options?)`    | `POST /{resource}/{id}/delete-files` | Remove files from a record                               |
+| `bulkCreate(resources, options?)` | `POST /{resource}/bulk`              | Create many records (all or none)                        |
+| `bulkUpdate(items, options?)`     | `PATCH /{resource}/bulk`             | Update many `{ id, data }` items                         |
+| `bulkReplace(items, options?)`    | `PUT /{resource}/bulk`               | Replace many `{ id, data }` items                        |
+| `bulkDelete(ids, options?)`       | `DELETE /{resource}/bulk`            | Delete many records by ID                                |
 
 ```ts
 // Find a single record
@@ -418,6 +422,9 @@ const replaced = await client.post.replace({ id: 1, title: 'Replaced', body: '..
 
 // Delete
 const deleted = await client.post.delete(1);
+
+// Bulk, generated only for resources enabling the routes: { success: true, count: 2 }
+await client.post.bulkCreate([{ title: 'One' }, { title: 'Two' }]);
 
 // Export as CSV
 const file = await client.post.export({ filter: { published: true } });

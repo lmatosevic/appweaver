@@ -1,4 +1,4 @@
-import { QueryRouteConfig } from '@appweaver/common';
+import { BulkRouteConfig, QueryRouteConfig } from '@appweaver/common';
 
 /** The routes of a resource, each configurable on its own. */
 export type ResourceRouteName =
@@ -10,7 +10,14 @@ export type ResourceRouteName =
   | 'delete'
   | 'export'
   | 'fileUpload'
-  | 'fileDelete';
+  | 'fileDelete'
+  | 'bulkCreate'
+  | 'bulkUpdate'
+  | 'bulkDelete';
+
+/** The config of any resource route. */
+export type ResourceRouteConfig = QueryRouteConfig &
+  Pick<BulkRouteConfig, 'maxItems'>;
 
 const READ_ROUTES: ResourceRouteName[] = ['find', 'query', 'aggregate'];
 const QUERY_ROUTES: ResourceRouteName[] = ['query', 'aggregate'];
@@ -18,7 +25,7 @@ const CACHE_OPTIONS = ['cache', 'cacheTTL', 'cacheSkipInvalidation'] as const;
 
 // Options that override each other (i.e. `public` ignores `roles`), so a route
 // setting any of them inherits none of the group from the defaults
-const OPTION_GROUPS: (keyof QueryRouteConfig)[][] = [
+const OPTION_GROUPS: (keyof ResourceRouteConfig)[][] = [
   ['public', 'roles', 'permissions', 'auth'],
   ['recaptcha', 'recaptchaAction'],
   ['turnstile', 'turnstileAction']
@@ -31,18 +38,18 @@ const OPTION_GROUPS: (keyof QueryRouteConfig)[][] = [
  *
  * @param {ResourceRouteName} routeName The route to build the config for.
  * @param {QueryRouteConfig} [defaults] The default config of the resource routes.
- * @param {QueryRouteConfig} [config] The config of the route.
- * @returns {QueryRouteConfig} The merged route config.
+ * @param {ResourceRouteConfig} [config] The config of the route.
+ * @returns {ResourceRouteConfig} The merged route config.
  */
 export function mergeRouteDefaults(
   routeName: ResourceRouteName,
   defaults: QueryRouteConfig = {},
-  config: QueryRouteConfig = {}
-): QueryRouteConfig {
+  config: ResourceRouteConfig = {}
+): ResourceRouteConfig {
   const own = Object.fromEntries(
     Object.entries(config).filter(([, value]) => value !== undefined)
-  ) as QueryRouteConfig;
-  const inherited: Partial<Record<keyof QueryRouteConfig, unknown>> = {
+  ) as ResourceRouteConfig;
+  const inherited: Partial<Record<keyof ResourceRouteConfig, unknown>> = {
     ...defaults
   };
 
@@ -58,5 +65,5 @@ export function mergeRouteDefaults(
     }
   }
 
-  return { ...inherited, ...own } as QueryRouteConfig;
+  return { ...inherited, ...own } as ResourceRouteConfig;
 }

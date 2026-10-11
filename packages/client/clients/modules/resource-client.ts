@@ -2,7 +2,7 @@ import { BaseModule, RequestOptions } from './base-module';
 import { BaseClientInterface } from '../base-client-interface';
 import { FileDataResponse } from '../responses';
 import { RESOURCE_OPERATIONS, RESOURCE_TYPES } from '../../constants';
-import { ResourceId } from '../../types';
+import { BulkItem, BulkResponse, ResourceId } from '../../types';
 
 /** The resource types added after the first release, optional so that a client generated before them still compiles. */
 type OptionalResourceTypes = 'replace';
@@ -275,6 +275,76 @@ export class ResourceClient<Resource extends ResourceType>
           id
         }
       }
+    });
+  }
+
+  /**
+   * Creates many resource records in a single transaction, either all of them or none (`POST /bulk`).
+   *
+   * @param {Object[]} resources - The data of every record to create.
+   * @param {RequestOptions} options - Additional request options.
+   * @returns The {@link BulkResponse} with the number of created records.
+   */
+  public async bulkCreate(
+    resources: Resource['create'][],
+    options: RequestOptions = {}
+  ): Promise<BulkResponse> {
+    return this.sendRequest('post', `${this.basePath}/bulk`, {
+      ...options,
+      body: resources
+    });
+  }
+
+  /**
+   * Updates the given fields of many resource records in a single transaction, either all of them or none
+   * (`PATCH /bulk`).
+   *
+   * @param {BulkItem[]} items - The id and the updated field values of every record.
+   * @param {RequestOptions} options - Additional request options.
+   * @returns The {@link BulkResponse} with the number of updated records.
+   */
+  public async bulkUpdate(
+    items: BulkItem<Resource['update']>[],
+    options: RequestOptions = {}
+  ): Promise<BulkResponse> {
+    return this.sendRequest('patch', `${this.basePath}/bulk`, {
+      ...options,
+      body: items
+    });
+  }
+
+  /**
+   * Replaces many resource records as a whole in a single transaction, either all of them or none (`PUT /bulk`).
+   *
+   * @param {BulkItem[]} items - The id and the new state of every record.
+   * @param {RequestOptions} options - Additional request options.
+   * @returns The {@link BulkResponse} with the number of replaced records.
+   */
+  public async bulkReplace(
+    items: BulkItem<Resource['replace']>[],
+    options: RequestOptions = {}
+  ): Promise<BulkResponse> {
+    return this.sendRequest('put', `${this.basePath}/bulk`, {
+      ...options,
+      body: items
+    });
+  }
+
+  /**
+   * Deletes many resource records by their IDs in a single transaction, either all of them or none
+   * (`DELETE /bulk`).
+   *
+   * @param {ResourceId[]} ids - The IDs of the records to delete.
+   * @param {RequestOptions} options - Additional request options.
+   * @returns The {@link BulkResponse} with the number of deleted records.
+   */
+  public async bulkDelete(
+    ids: ResourceId[],
+    options: RequestOptions = {}
+  ): Promise<BulkResponse> {
+    return this.sendRequest('delete', `${this.basePath}/bulk`, {
+      ...options,
+      body: ids
     });
   }
 

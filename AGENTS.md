@@ -530,13 +530,13 @@ const users = await client.user.query({ filter: { enabled: true } });
 
 **Generated module clients and their operations:**
 
-| Client           | Key operations                                                                                                                |
-|------------------|-------------------------------------------------------------------------------------------------------------------------------|
-| `ResourceClient` | `find`, `query`, `aggregate`, `create`, `update`, `replace`, `delete`, `export`, `uploadFiles`, `deleteFiles`                 |
-| `AuthClient`     | `login`, `logout`, `refresh`, `changePassword`, `exchangeToken`, `me`                                                         |
-| `AccountClient`  | `sendVerifyEmail`, `verifyEmail`, `verifyEmailRedirect`, `sendResetPassword`, `resetPassword`, `send2FACode`, `verify2FACode` |
-| `HealthClient`   | `check`, `ready`                                                                                                              |
-| `FilesClient`    | `public`, `protected`                                                                                                         |
+| Client           | Key operations                                                                                                                                                         |
+|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `ResourceClient` | `find`, `query`, `aggregate`, `create`, `update`, `replace`, `delete`, `export`, `uploadFiles`, `deleteFiles`, `bulkCreate`, `bulkUpdate`, `bulkReplace`, `bulkDelete` |
+| `AuthClient`     | `login`, `logout`, `refresh`, `changePassword`, `exchangeToken`, `me`                                                                                                  |
+| `AccountClient`  | `sendVerifyEmail`, `verifyEmail`, `verifyEmailRedirect`, `sendResetPassword`, `resetPassword`, `send2FACode`, `verify2FACode`                                          |
+| `HealthClient`   | `check`, `ready`                                                                                                                                                       |
+| `FilesClient`    | `public`, `protected`                                                                                                                                                  |
 
 ---
 

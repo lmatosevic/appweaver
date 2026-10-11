@@ -1,5 +1,6 @@
 import {
   AggregateOptions,
+  BulkItem,
   AggregateResponse,
   AggregateSelect,
   AggregateSelected,
@@ -127,4 +128,36 @@ export interface IResourceService<
    * @return {Promise<Object>} A promise that resolves with the deleted resource data.
    */
   delete(id: ResourceId): Promise<ReadOne>;
+
+  /**
+   * Creates many resources in a single transaction, either all of them or none.
+   *
+   * @param {Object[]} items - The data of every resource to create.
+   * @return {Promise<Object[]>} A promise that resolves with the created resources, in the order of the items.
+   */
+  bulkCreate(items: Create[]): Promise<ReadOne[]>;
+
+  /**
+   * Updates the given fields of many resources in a single transaction, either all of them or none.
+   *
+   * @param {BulkItem[]} items - The id and the data of every resource to update.
+   * @return {Promise<Object[]>} A promise that resolves with the updated resources, in the order of the items.
+   */
+  bulkUpdate(items: BulkItem<Update>[]): Promise<ReadOne[]>;
+
+  /**
+   * Replaces many resources as a whole in a single transaction, either all of them or none.
+   *
+   * @param {BulkItem[]} items - The id and the new state of every resource to replace.
+   * @return {Promise<Object[]>} A promise that resolves with the replaced resources, in the order of the items.
+   */
+  bulkReplace(items: BulkItem<Replace>[]): Promise<ReadOne[]>;
+
+  /**
+   * Deletes many resources in a single transaction, either all of them or none.
+   *
+   * @param {ResourceId[]} ids - The ids of the resources to delete.
+   * @return {Promise<Object[]>} A promise that resolves with the deleted resources, in the order of the ids.
+   */
+  bulkDelete(ids: ResourceId[]): Promise<ReadOne[]>;
 }

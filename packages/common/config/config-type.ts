@@ -150,6 +150,17 @@ export type Config = {
   RESOURCE_QUERY_METHOD: QueryMethod;
   /** HTTP methods of the resource aggregate routes. Values: `post`, `get`, `get-post`. Default: `'post'`. */
   RESOURCE_AGGREGATE_METHOD: QueryMethod;
+  /** Register the bulk create route of every resource, unless its route sets `exclude`. Default: `false`. */
+  RESOURCE_BULK_CREATE_ENABLED: boolean;
+  /** Register the bulk update routes of every resource, unless its route sets `exclude`. Default: `false`. */
+  RESOURCE_BULK_UPDATE_ENABLED: boolean;
+  /** Register the bulk delete route of every resource, unless its route sets `exclude`. Default: `false`. */
+  RESOURCE_BULK_DELETE_ENABLED: boolean;
+  /** Maximum number of items a bulk create, update, or delete request accepts, unless its route sets `maxItems`.
+   * Default: `2000`. */
+  RESOURCE_BULK_MAX_ITEMS: number;
+  /** Timeout in milliseconds of the transaction a bulk request runs in. Default: `5000`. */
+  RESOURCE_BULK_TRANSACTION_TIMEOUT: number;
 
   /** Number of records per batch during export. Default: `1000`. */
   EXPORT_BATCH_SIZE: number;
