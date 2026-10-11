@@ -1,3 +1,15 @@
+## [1.10.0](https://github.com/lmatosevic/appweaver/compare/v1.9.0...v1.10.0) (2026-10-11)
+
+### Features
+
+* implement new RFC 9457 error system per core modules ([afbe024](https://github.com/lmatosevic/appweaver/commit/afbe024e2124f1100cf7669967ab84778a096d06))
+
+### Bug Fixes
+
+* reject unknown fields and operators on API request ([83da25a](https://github.com/lmatosevic/appweaver/commit/83da25a57d28c806f7d13caae200bdc14ab32042))
+* support JSON config variable expansions and restructure create app initial docker-compose setup ([83d9894](https://github.com/lmatosevic/appweaver/commit/83d98944b42f728ea3b38d688de2bef46849d49c))
+* use real schema for validating nested relations on create and update and allow returning multiple validation errors ([453011b](https://github.com/lmatosevic/appweaver/commit/453011b8099c643655bf51c00156ed1ecc287956))
+
 ## [1.9.0](https://github.com/lmatosevic/appweaver/compare/v1.8.2...v1.9.0) (2026-10-04)
 
 ### Features
