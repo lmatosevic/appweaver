@@ -317,7 +317,13 @@ function generateAngularClient(
 ): string {
   return `import { ClientConfig, ClientError${errorExports.imports} } from '@appweaver/client';
 import { AngularClient } from '@appweaver/client/angular';
-import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpHeaders,
+  HttpResponse,
+  HttpResponseBase
+} from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 ${pathsTypeImport}
 export class ${className} extends AngularClient${pathsTypeGeneric} {
@@ -366,31 +372,48 @@ export class ${className} extends AngularClient${pathsTypeGeneric} {
         }
       }
 
-      const angularResponse: HttpResponse<Blob> = await firstValueFrom(
-        http.request(method, url as string, {
-          body: parsedBody,
-          headers: headers,
-          observe: 'response',
-          responseType: 'blob',
-          withCredentials: init?.credentials === 'include'
-        })
-      );
-
-      const responseHeaders = new Headers();
-
-      angularResponse.headers.keys().forEach((key: string) => {
-        const value = angularResponse.headers.get(key);
-        if (value !== null) {
-          responseHeaders.set(key, value);
+      try {
+        const angularResponse: HttpResponse<Blob> = await firstValueFrom(
+          http.request(method, url as string, {
+            body: parsedBody,
+            headers: headers,
+            observe: 'response',
+            responseType: 'blob',
+            withCredentials: init?.credentials === 'include'
+          })
+        );
+        return ${className}.toResponse(angularResponse, angularResponse.body);
+      } catch (e) {
+        if (e instanceof HttpErrorResponse && e.status >= 200 && e.status <= 599) {
+          const body =
+            e.error instanceof Blob || typeof e.error === 'string' || e.error == null
+              ? e.error
+              : JSON.stringify(e.error);
+          return ${className}.toResponse(e, body);
         }
-      });
-
-      return new Response(angularResponse.body, {
-        status: angularResponse.status,
-        statusText: angularResponse.statusText,
-        headers: responseHeaders
-      });
+        throw e;
+      }
     };
+  }
+
+  private static toResponse(
+    response: HttpResponseBase,
+    body: BodyInit | null
+  ): Response {
+    const headers = new Headers();
+    response.headers.keys().forEach((key: string) => {
+      const value = response.headers.get(key);
+      if (value !== null) {
+        headers.set(key, value);
+      }
+    });
+
+    const nullBody = [101, 204, 205, 304].includes(response.status);
+    return new Response(nullBody ? null : body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers
+    });
   }
 }
 

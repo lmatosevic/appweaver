@@ -1,3 +1,10 @@
+import * as rxjs from 'rxjs';
+import { Observable } from 'rxjs';
+import * as ts from 'typescript';
+import { compileFunction } from 'vm';
+import * as clientLibrary from '../../index';
+import * as angularLibrary from '../../angular';
+import { ClientError } from '../../errors';
 import { generateClient } from '../../generators/generate-client';
 import { createOpenApiSchema } from '../fixtures/openapi-schema';
 
@@ -208,9 +215,7 @@ describe('generate-client', () => {
       expect(generated).toContain(
         `import { AngularClient } from '@appweaver/client/angular';`
       );
-      expect(generated).toContain(
-        `import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';`
-      );
+      expect(generated).toContain(`from '@angular/common/http';`);
       expect(generated).toContain(
         'export class CMSAPIClient extends AngularClient'
       );
@@ -219,6 +224,118 @@ describe('generate-client', () => {
       );
       expect(generated).toContain('public auth =');
       expect(generated).not.toContain('export function createClient');
+    });
+
+    describe('Angular fetch handler', () => {
+      class HttpHeaders {
+        private readonly map: Map<string, string>;
+
+        constructor(init: Record<string, string> = {}) {
+          this.map = new Map(
+            Object.entries(init).map(([key, value]) => [
+              key.toLowerCase(),
+              value
+            ])
+          );
+        }
+
+        public get(key: string): string | null {
+          return this.map.get(key.toLowerCase()) ?? null;
+        }
+
+        public keys(): string[] {
+          return [...this.map.keys()];
+        }
+      }
+
+      class HttpErrorResponse {
+        public readonly headers = new HttpHeaders({
+          'content-type': 'application/problem+json'
+        });
+
+        constructor(
+          public readonly status: number,
+          public readonly statusText: string,
+          public readonly error: unknown
+        ) {}
+      }
+
+      /** Compiles the generated Angular client, its HttpClient answering every request with `respond`. */
+      const createAngularClient = async (respond: () => Observable<any>) => {
+        const generated = await generateClient(
+          createOpenApiSchema(),
+          undefined,
+          'angular',
+          undefined,
+          true
+        );
+        const { outputText } = ts.transpileModule(generated, {
+          compilerOptions: {
+            module: ts.ModuleKind.CommonJS,
+            target: ts.ScriptTarget.ES2022
+          }
+        });
+        const modules: Record<string, unknown> = {
+          '@appweaver/client': clientLibrary,
+          '@appweaver/client/angular': angularLibrary,
+          '@angular/common/http': { HttpErrorResponse, HttpHeaders },
+          rxjs
+        };
+        const module = { exports: {} as any };
+        compileFunction(outputText, ['require', 'module', 'exports'])(
+          (name: string) => modules[name],
+          module,
+          module.exports
+        );
+        const http = { request: respond };
+        return new module.exports.CMSAPIClient(http, {
+          baseUrl: 'https://api.test'
+        });
+      };
+
+      test('resolves an error status as the ClientError of its problem details', async () => {
+        const problem = {
+          type: 'about:blank',
+          title: 'Not Found',
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          detail: 'Post 123 not found'
+        };
+        const client = await createAngularClient(() =>
+          rxjs.throwError(
+            () =>
+              new HttpErrorResponse(
+                404,
+                'Not Found',
+                new Blob([JSON.stringify(problem)], {
+                  type: 'application/problem+json'
+                })
+              )
+          )
+        );
+
+        const error = await rxjs
+          .firstValueFrom(client.post.find(123))
+          .catch((e: unknown) => e);
+
+        expect(error).toBeInstanceOf(ClientError);
+        expect(error).toMatchObject({
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          message: 'Post 123 not found'
+        });
+      });
+
+      test('rethrows a network error', async () => {
+        const networkError = new HttpErrorResponse(0, 'Unknown Error', null);
+        const client = await createAngularClient(() =>
+          rxjs.throwError(() => networkError)
+        );
+
+        await expect(rxjs.firstValueFrom(client.post.find(123))).rejects.toBe(
+          networkError
+        );
+      });
     });
 
     describe('GET query routes', () => {

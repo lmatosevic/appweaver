@@ -248,6 +248,19 @@ client.user.query({ filter: { enabled: true } }).subscribe((users) => {
 });
 ```
 
+An error response reaches the `error` callback as a `ClientError`, as with `FetchClient`, not as Angular's
+`HttpErrorResponse`. Only a network error (status 0) is passed on as the `HttpErrorResponse` itself:
+
+```ts
+client.user.find(123).subscribe({
+  error: (err) => {
+    if (isApiError(err) && err.is(ErrorCode.ResourceNotFound)) {
+      // the user does not exist
+    }
+  }
+});
+```
+
 **Important:** `AngularClient` is only available from the `@appweaver/client/angular` subpath — it is not exported from
 the main `@appweaver/client` entry point. This keeps `rxjs` completely out of the module graph (runtime and types) for
 `FetchClient` users. `rxjs` is an **optional peer dependency**: Angular projects already have it installed, while
