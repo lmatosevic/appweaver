@@ -9,15 +9,24 @@ import {
 } from '../../utils/path-util';
 
 /**
- * The entry point of the test run lives inside node_modules, so declaring the
- * Bun global is enough to make `isTypeScriptRuntime()` report a TS runtime.
+ * Jest makes the test file the main module, so declaring the Bun global is enough
+ * to make `isTypeScriptRuntime()` report a TS runtime. Runs in a temporary project
+ * directory, with or without its source directory.
  */
-const withBunRuntime = <T>(fn: () => T): T => {
+const withBunRuntime = <T>(fn: () => T, withSources: boolean = true): T => {
+  const cwd = process.cwd();
+  const projectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'appweaver-bun-'));
+  if (withSources) {
+    fs.mkdirSync(path.join(projectDir, 'src'));
+  }
   globalThis['Bun'] = {} as never;
+  process.chdir(projectDir);
   try {
     return fn();
   } finally {
+    process.chdir(cwd);
     delete (globalThis as any)['Bun'];
+    fs.rmSync(projectDir, { recursive: true, force: true });
   }
 };
 
@@ -30,6 +39,23 @@ describe('path-util', () => {
 
     test('is true when running TypeScript sources on the Bun runtime', () => {
       expect(withBunRuntime(() => isTypeScriptRuntime())).toBe(true);
+    });
+
+    test('is true for the CLI on the Bun runtime when the sources are present', () => {
+      const cliPath = path.resolve('node_modules/.bin/weaver');
+      expect(withBunRuntime(() => isTypeScriptRuntime(cliPath))).toBe(true);
+    });
+
+    test('is false for the CLI on the Bun runtime when only the build output is present', () => {
+      const cliPath = path.resolve('node_modules/.bin/weaver');
+      expect(withBunRuntime(() => isTypeScriptRuntime(cliPath), false)).toBe(
+        false
+      );
+    });
+
+    test('is false when running the build output on the Bun runtime', () => {
+      const mainPath = path.resolve('dist/src/main.js');
+      expect(withBunRuntime(() => isTypeScriptRuntime(mainPath))).toBe(false);
     });
   });
 
@@ -92,9 +118,11 @@ describe('path-util', () => {
     });
 
     test('resolves the target path directly on a TypeScript runtime', () => {
-      expect(withBunRuntime(() => resolveSourcePath('./dist', './src'))).toBe(
+      const [resolved, expected] = withBunRuntime(() => [
+        resolveSourcePath('./dist', './src'),
         path.resolve('./src')
-      );
+      ]);
+      expect(resolved).toBe(expected);
     });
 
     test('prefers the override path over everything else', () => {

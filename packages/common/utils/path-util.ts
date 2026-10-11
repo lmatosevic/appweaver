@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { glob } from 'glob';
 
@@ -47,20 +48,33 @@ export function sanitizePath(filePath: string): string {
 }
 
 /**
- * Checks if the current execution entry point is a TypeScript file and
- * if the application is running on the Bun runtime.
+ * Checks if the application runs its TypeScript sources on the Bun runtime: either the entry point is a TypeScript
+ * file, or it lives in node_modules (i.e. the `weaver` CLI) and the project's source directory is present.
  *
- * @return {boolean} Returns `true` if the main execution file is a TypeScript file
- * and the runtime matches the Bun configuration, otherwise `false`.
+ * @param {string} [mainPath] - The entry point of the process, the main module by default.
+ * @return {boolean} Returns `true` if the TypeScript sources are executed on the Bun runtime, otherwise `false`.
  */
-export function isTypeScriptRuntime(): boolean {
-  const mainPath = require.main?.filename || process.argv[1];
+export function isTypeScriptRuntime(
+  mainPath: string = require.main?.filename || process.argv[1]
+): boolean {
+  if (typeof globalThis['Bun'] === 'undefined') {
+    return false;
+  }
+
+  if (path.extname(mainPath) === '.ts') {
+    return true;
+  }
+
   const relativeMainPath = mainPath.replace(`${process.cwd()}${path.sep}`, '');
-  return (
-    (path.extname(mainPath) === '.ts' ||
-      relativeMainPath.includes('node_modules')) &&
-    typeof globalThis['Bun'] !== 'undefined'
-  );
+  if (!relativeMainPath.includes('node_modules')) {
+    return false;
+  }
+
+  // A deployed image ships only the build output, which the CLI must run instead
+  // Required lazily, since the config module itself imports the utils
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { config } = require('../config/config');
+  return fs.existsSync(path.resolve(config.APP_SOURCE_PATH));
 }
 
 /**
