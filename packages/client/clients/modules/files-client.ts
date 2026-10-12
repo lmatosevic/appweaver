@@ -20,7 +20,7 @@ export class FilesClient extends BaseModule implements FilesInterface {
    *
    * @param {string} fileName - The path or name of the file to retrieve from the public storage.
    * @param {RequestOptions} options - Additional request options.
-   * @returns {@link FileDataResponse} containing the readable stream and file metadata.
+   * @return {@link FileDataResponse} containing the readable stream and file metadata.
    */
   public async public(
     fileName: string,
@@ -50,7 +50,7 @@ export class FilesClient extends BaseModule implements FilesInterface {
    *
    * @param {string} fileName - The path or name of the file to retrieve from the protected storage.
    * @param {RequestOptions} options - Additional request options.
-   * @returns {@link FileDataResponse} containing the readable stream and file metadata.
+   * @return {@link FileDataResponse} containing the readable stream and file metadata.
    */
   public async protected(
     fileName: string,

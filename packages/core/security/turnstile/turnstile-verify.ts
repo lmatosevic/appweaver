@@ -16,6 +16,14 @@ const UNAVAILABLE_ERROR_CODES = [
   'internal-error'
 ];
 
+/**
+ * Verifies a Cloudflare Turnstile token with the verification endpoint.
+ *
+ * @param {string} token - The token sent by the client.
+ * @param {string} [remoteIp] - The IP address of the client.
+ * @param {string} [action] - The action the token must have been issued for.
+ * @throws {TurnstileError} If the endpoint is unavailable, or the token is invalid or issued for another action.
+ */
 export async function turnstileVerify(
   token: string,
   remoteIp?: string,

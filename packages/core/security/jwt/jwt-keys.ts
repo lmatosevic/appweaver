@@ -12,6 +12,14 @@ const PRIVATE_KEY_MODE = 0o600;
 /** Permissions of the generated public key file (owner read/write, others read). */
 const PUBLIC_KEY_MODE = 0o644;
 
+/**
+ * Checks that both security key files exist, generating them otherwise when allowed.
+ *
+ * @param {string} publicKeyPath - The path of the public key file.
+ * @param {string} privateKeyPath - The path of the private key file.
+ * @param {boolean} generateIfNotExists - Whether to generate the keys when a file is missing.
+ * @return {Promise<boolean>} `true` if both keys existed, `false` if they were generated.
+ */
 export async function ensureSecurityKeys(
   publicKeyPath: string,
   privateKeyPath: string,
@@ -30,6 +38,12 @@ export async function ensureSecurityKeys(
   }
 }
 
+/**
+ * Generates an RSA key pair and writes it to the given PEM files, readable only by the owner for the private key.
+ *
+ * @param {string} publicKeyPath - The path of the public key file.
+ * @param {string} privateKeyPath - The path of the private key file.
+ */
 export async function generateSecurityKeys(
   publicKeyPath: string,
   privateKeyPath: string
@@ -59,6 +73,14 @@ export async function generateSecurityKeys(
   });
 }
 
+/**
+ * Reads the security keys, generating them first when missing and allowed.
+ *
+ * @param {string} publicKeyPath - The path of the public key file.
+ * @param {string} privateKeyPath - The path of the private key file.
+ * @param {boolean} generateIfNotExists - Whether to generate the keys when a file is missing.
+ * @return {Promise<Object>} The PEM encoded keys, and whether they existed before.
+ */
 export async function loadSecurityKeys(
   publicKeyPath: string,
   privateKeyPath: string,

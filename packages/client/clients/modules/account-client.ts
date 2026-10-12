@@ -24,7 +24,7 @@ export class AccountClient<Account extends AccountType>
    *
    * @param {Object} request - The payload identifying the account to send the email to.
    * @param {RequestOptions} options - Additional request options.
-   * @returns A status response indicating whether the email was dispatched successfully.
+   * @return A status response indicating whether the email was dispatched successfully.
    */
   public async sendVerifyEmail(
     request: Account['sendEmailVerificationRequest'],
@@ -41,7 +41,7 @@ export class AccountClient<Account extends AccountType>
    *
    * @param {Object} request - The payload containing the verification token.
    * @param {RequestOptions} options - Additional request options.
-   * @returns A status response indicating whether the email was verified successfully.
+   * @return A status response indicating whether the email was verified successfully.
    */
   public async verifyEmail(
     request: Account['emailVerificationRequest'],
@@ -60,7 +60,7 @@ export class AccountClient<Account extends AccountType>
    *
    * @param {string} token - The email verification token from the redirect URL.
    * @param {RequestOptions} options - Additional request options.
-   * @returns The server response for the redirect verification (shape depends on the API).
+   * @return The server response for the redirect verification (shape depends on the API).
    */
   public async verifyEmailRedirect(
     token: string,
@@ -83,7 +83,7 @@ export class AccountClient<Account extends AccountType>
    *
    * @param {Object} request - The payload identifying the account (e.g., email address).
    * @param {RequestOptions} options - Additional request options.
-   * @returns A status response indicating whether the reset email was dispatched successfully.
+   * @return A status response indicating whether the reset email was dispatched successfully.
    */
   public async sendResetPassword(
     request: Account['sendResetPasswordRequest'],
@@ -100,7 +100,7 @@ export class AccountClient<Account extends AccountType>
    *
    * @param {Object} request - The payload containing the reset token and the new password.
    * @param {RequestOptions} options - Additional request options.
-   * @returns A status response indicating whether the password was reset successfully.
+   * @return A status response indicating whether the password was reset successfully.
    */
   public async resetPassword(
     request: Account['resetPasswordRequest'],
@@ -117,7 +117,7 @@ export class AccountClient<Account extends AccountType>
    *
    * @param {Object} request - The payload identifying the account to send the code to.
    * @param {RequestOptions} options - Additional request options.
-   * @returns A response confirming the 2FA code was sent.
+   * @return A response confirming the 2FA code was sent.
    */
   public async send2FACode(
     request: Account['send2FACodeRequest'],
@@ -134,7 +134,7 @@ export class AccountClient<Account extends AccountType>
    *
    * @param {Object} request - The payload containing the 2FA code to verify.
    * @param {RequestOptions} options - Additional request options.
-   * @returns A response indicating whether the 2FA verification succeeded.
+   * @return A response indicating whether the 2FA verification succeeded.
    */
   public async verify2FACode(
     request: Account['verify2FARequest'],

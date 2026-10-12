@@ -1,13 +1,13 @@
-import { ResourceId } from './resource';
+import { ResourceId } from './resource-id';
 
 export type AuthUser = {
   id: ResourceId;
   email: string;
+  roles: Role[];
   passwordHash?: string | null;
   verifiedEmail?: boolean;
   twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
-  roles: Role[];
   logoutAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;

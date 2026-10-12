@@ -12,6 +12,13 @@ export const FileRangeHeader = Type.Object({
 
 export const FileResponse = Type.String({ format: 'binary' });
 
+/**
+ * Builds the route schema of the public or protected file access route, responding with the full or a partial
+ * binary content of a file.
+ *
+ * @param {boolean} isPublic - Whether the route serves public files, without authentication.
+ * @return {RouteSchema} The route schema.
+ */
 export function createFileAccessSchema(isPublic: boolean): RouteSchema {
   return {
     tags: ['Files'],

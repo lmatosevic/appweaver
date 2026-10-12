@@ -98,7 +98,7 @@ export default fastifyPlugin((server: Server) => {
  *
  * @param {Object} document The transform argument of the Swagger plugin,
  * wrapping the OpenAPI document in its `openapiObject` property.
- * @returns {Object} The same argument, with every reference to a nullable model
+ * @return {Object} The same argument, with every reference to a nullable model
  * variant replaced in place.
  */
 function inlineNullableRefs(document: any): any {
@@ -153,7 +153,7 @@ function inlineNullableRefs(document: any): any {
  * an OpenAPI 3.0 one.
  *
  * @param {Object} document The OpenAPI document to rewrite in place.
- * @returns {Object} The same document with every type list replaced by an
+ * @return {Object} The same document with every type list replaced by an
  * `anyOf` union of the single-type schemas it listed.
  */
 function normalizeUnionTypes(document: any): any {
@@ -191,7 +191,7 @@ function normalizeUnionTypes(document: any): any {
  * document is generated from only, see `documentErrorResponses`.
  *
  * @param {Object} schema The schema of a route.
- * @returns {Object} The schema with its error responses narrowed.
+ * @return {Object} The schema with its error responses narrowed.
  */
 function documentRouteErrors(schema: any): any {
   if (!schema) {
@@ -211,7 +211,7 @@ function documentRouteErrors(schema: any): any {
  * names as the `ErrorCode` enum and `defineErrors` do.
  *
  * @param {Object} document The OpenAPI document to extend in place.
- * @returns {Object} The same document.
+ * @return {Object} The same document.
  */
 export function nameErrorCodes(document: any): any {
   const problem = Object.values<any>(document.components?.schemas ?? {}).find(
@@ -234,7 +234,7 @@ export function nameErrorCodes(document: any): any {
  * `BadRequestError_1a2b3c`, so a name depends on its own codes only.
  *
  * @param {Object} document The OpenAPI document to rewrite in place.
- * @returns {Object} The same document, its error responses shared.
+ * @return {Object} The same document, its error responses shared.
  */
 export function hoistErrorResponses(document: any): any {
   const shared = new Map<
@@ -309,7 +309,7 @@ function errorResponseName(status: string, codes: string[]): string {
  * one.
  *
  * @param {Object} document The OpenAPI document to extend in place.
- * @returns {Object} The same document, carrying the configuration extension.
+ * @return {Object} The same document, carrying the configuration extension.
  */
 function addConfig(document: any): any {
   const normalizePath = (path: string): string => {
@@ -349,7 +349,7 @@ function addConfig(document: any): any {
  *
  * @param {Object} document The transform argument of the Swagger plugin,
  * wrapping the OpenAPI document in its `openapiObject` property.
- * @returns {Object} The unwrapped OpenAPI document, with the unreferenced
+ * @return {Object} The unwrapped OpenAPI document, with the unreferenced
  * schemas removed and the remaining ones ordered by their title, falling back
  * to the name they are registered under.
  */

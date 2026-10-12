@@ -9,6 +9,7 @@ export type RequestOptions<T = any> = FetchOptions<T>;
 export abstract class BaseModule {
   protected constructor(private readonly _client: BaseClientInterface) {}
 
+  /** Sends a request through the client, resolving to the response data or throwing a `ClientError`. */
   protected async sendRequest<Resp = any>(
     method: HttpMethod,
     path: string,
@@ -17,6 +18,7 @@ export abstract class BaseModule {
     return this._client.sendRequestPromise(method, path, ...params);
   }
 
+  /** Sends a request through the client, resolving to the data, the error, and the raw response. */
   protected async sendRequestRaw<Resp = any>(
     method: HttpMethod,
     path: string,
@@ -29,6 +31,13 @@ export abstract class BaseModule {
     )) as any;
   }
 
+  /**
+   * Wraps a file download response, reading the file name, length, byte range, and cache headers.
+   *
+   * @param {Response} response - The response streaming the file content.
+   * @param {string} [defaultName='unknown'] - The file name used when the response names none.
+   * @return {FileDataResponse} The file content with its metadata.
+   */
   protected toFileResponse(
     response: Response,
     defaultName: string = 'unknown'
@@ -72,6 +81,7 @@ export abstract class BaseModule {
     });
   }
 
+  /** Throws the `ClientError` of a failed response. */
   protected handleError(
     error: any,
     response: Response,

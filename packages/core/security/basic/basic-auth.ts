@@ -55,6 +55,7 @@ export const basicAuth = fastifyPlugin(async (server: Server) => {
   });
 });
 
+/** Checks whether a request carries basic credentials in its `Authorization` header. */
 export function hasBasicAuth(request: FastifyRequest): boolean {
   return (
     request.headers.authorization?.toLowerCase().startsWith('basic') === true

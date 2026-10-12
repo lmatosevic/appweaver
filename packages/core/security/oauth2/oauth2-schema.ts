@@ -39,6 +39,12 @@ export const OAuth2CallbackRequest = Type.Object(
   { additionalProperties: true }
 );
 
+/**
+ * Builds the route schema redirecting to the authentication page of an OAuth2 provider.
+ *
+ * @param {string} providerName - The provider name shown in the documentation.
+ * @return {RouteSchema} The route schema.
+ */
 export function createOAuth2RedirectSchema(providerName: string): RouteSchema {
   return {
     tags: ['Auth'],

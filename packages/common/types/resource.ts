@@ -1,9 +1,7 @@
 import { TObject, TSchema } from '@sinclair/typebox';
 import { ResourceModelConfig } from './model';
 import { ResourceRoutesConfig } from './routes';
-
-/** Primary key value: a number for `int` and `bigInt` ids, a string for `string` ids */
-export type ResourceId = number | string;
+import { ResourceId } from './resource-id';
 
 export type Resource = {
   id: ResourceId;

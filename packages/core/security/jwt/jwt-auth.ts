@@ -93,6 +93,7 @@ function jwtErrorCode(code?: string): ModuleErrorCode<'AUTH'> {
   }
 }
 
+/** Checks whether a request carries a bearer token in its `Authorization` header. */
 export function hasBearerAuth(request: FastifyRequest): boolean {
   return (
     request.headers.authorization?.toLowerCase().startsWith('bearer') === true

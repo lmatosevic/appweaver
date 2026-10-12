@@ -25,7 +25,7 @@ import {
   RESOURCE_SERVICE_TYPE,
   RESOURCE_TYPE
 } from '../../constants';
-import { ResourceModel, ResourceModelConfig, ScalarField } from '../../types';
+import { ResourceModel, ResourceModelConfig } from '../../types';
 
 describe('resource-util', () => {
   describe('resourceModelProps', () => {

@@ -49,6 +49,14 @@ const isBulkRoute = (route: ResourceRouteName): route is BulkRouteName =>
  * resource, so it arrives typed after the model id */
 type IdParams = { id: ResourceId };
 
+/**
+ * Creates the plugin registering the CRUD, query, aggregate, export, file, and bulk routes of a model, skipping the
+ * excluded ones.
+ *
+ * @param {string} name - The model name.
+ * @param {Object} [routesConfig={}] - The config of each route.
+ * @return {Function} The plugin registering the routes.
+ */
 export function resourceRoutes(
   name: string,
   routesConfig: Omit<ResourceRoutesConfig, 'modelName' | 'path'> = {}

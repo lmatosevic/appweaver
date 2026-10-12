@@ -22,7 +22,7 @@ export abstract class Scheduler<
    * Registers a new scheduled job.
    *
    * @param {Object} jobParams - The job configuration.
-   * @returns {string} The ID of the created job.
+   * @return {string} The ID of the created job.
    */
   abstract addJob(jobParams: JobParams): string;
 
@@ -30,14 +30,14 @@ export abstract class Scheduler<
    * Retrieves a job by its ID.
    *
    * @param {string} jobId - The job ID to look up.
-   * @returns {Object | undefined} The job object, or `undefined` if not found.
+   * @return {Object | undefined} The job object, or `undefined` if not found.
    */
   abstract getJob(jobId: string): Job | undefined;
 
   /**
    * Starts a specific job by ID.
    * @param {string} jobId - The job ID to start.
-   * @returns `true` if started successfully, `false` otherwise.
+   * @return `true` if started successfully, `false` otherwise.
    */
   abstract startJob(jobId: string): boolean;
 
@@ -45,7 +45,7 @@ export abstract class Scheduler<
    * Stops a specific job by ID.
    *
    * @param {string} jobId - The job ID to stop.
-   * @returns {Promise<boolean>} A promise that resolves to `true` if stopped successfully, `false` otherwise.
+   * @return {Promise<boolean>} A promise that resolves to `true` if stopped successfully, `false` otherwise.
    */
   abstract stopJob(jobId: string): Promise<boolean>;
 
@@ -53,7 +53,7 @@ export abstract class Scheduler<
    * Removes a job by ID.
    *
    * @param {string} jobId - The job ID to remove.
-   * @returns {Promise<boolean>} A promise that resolves to `true` if removed successfully, `false` otherwise.
+   * @return {Promise<boolean>} A promise that resolves to `true` if removed successfully, `false` otherwise.
    */
   abstract removeJob(jobId: string): Promise<boolean>;
 }

@@ -16,24 +16,11 @@ import {
 import { injectModel } from '../../context';
 import { currentAuthUser } from '../../security';
 import { ResourceError } from '../resource-error';
-import { liveInclusionFilter } from './delete-util';
+import { liveInclusionFilter, RelationActions } from './delete-util';
 
 /** Levels of a self referencing relation read when the relation configures no
  * `maxDepth`, i.e. the relation itself and nothing below it. */
 const DEFAULT_RELATION_MAX_DEPTH = 1;
-
-/** The nested write actions a single relation field can be mapped to. */
-export type RelationActions = Record<
-  string,
-  Partial<{
-    connect: any;
-    create: any;
-    update: any;
-    connectOrCreate: any;
-    disconnect: any;
-    delete: any;
-  }>
->;
 
 /**
  * Builds the Prisma `include` clause for the relation and file fields of a resource model. A field is included when

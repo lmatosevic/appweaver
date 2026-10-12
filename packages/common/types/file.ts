@@ -1,4 +1,4 @@
-import { ResourceId } from './resource';
+import { ResourceId } from './resource-id';
 
 export type File = {
   id: ResourceId;
@@ -6,14 +6,14 @@ export type File = {
   originalName: string;
   mimeType: string;
   sizeBytes: number;
+  updatedAt: Date;
+  createdAt: Date;
   title?: string | null;
   description?: string | null;
   resourceField?: string | null;
   resourceName?: string | null;
   /** Id of the owning resource, stored as text so it fits either primary key type */
   resourceId?: string | null;
-  updatedAt: Date;
-  createdAt: Date;
   createdById?: ResourceId | null;
 };
 

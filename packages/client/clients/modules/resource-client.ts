@@ -46,7 +46,7 @@ export class ResourceClient<Resource extends ResourceType>
    *
    * @param {ResourceId} id - The ID of the resource to retrieve.
    * @param {RequestOptions} options - Additional request options (headers, query params, etc.).
-   * @returns The resource record matching the given ID.
+   * @return The resource record matching the given ID.
    */
   public async find(
     id: ResourceId,
@@ -68,7 +68,7 @@ export class ResourceClient<Resource extends ResourceType>
    *
    * @param {Object} request - The query payload (filters, sorting, pagination, etc.).
    * @param {RequestOptions}  options - Additional request options.
-   * @returns A paginated or filtered list of matching resource records.
+   * @return A paginated or filtered list of matching resource records.
    */
   public async query(
     request: Resource['queryRequest'],
@@ -87,7 +87,7 @@ export class ResourceClient<Resource extends ResourceType>
    *
    * @param {Object} request - The aggregation payload describing the desired computation.
    * @param {RequestOptions} options - Additional request options.
-   * @returns The aggregated result for the given query.
+   * @return The aggregated result for the given query.
    */
   public async aggregate(
     request: Resource['aggregateRequest'],
@@ -106,7 +106,7 @@ export class ResourceClient<Resource extends ResourceType>
    *
    * @param {Object} resource - The data for the resource to create.
    * @param {RequestOptions} options - Additional request options.
-   * @returns The newly created resource record.
+   * @return The newly created resource record.
    */
   public async create(
     resource: Resource['create'],
@@ -123,7 +123,7 @@ export class ResourceClient<Resource extends ResourceType>
    *
    * @param {Object} resource - The updated field values including the mandatory `id`.
    * @param {RequestOptions} options - Additional request options.
-   * @returns The updated resource record.
+   * @return The updated resource record.
    */
   public async update(
     resource: Resource['update'] & { id: ResourceId },
@@ -147,7 +147,7 @@ export class ResourceClient<Resource extends ResourceType>
    *
    * @param {Object} resource - The new state of the record including the mandatory `id`.
    * @param {RequestOptions} options - Additional request options.
-   * @returns The replaced resource record.
+   * @return The replaced resource record.
    */
   public async replace(
     resource: Resource['replace'] & { id: ResourceId },
@@ -170,7 +170,7 @@ export class ResourceClient<Resource extends ResourceType>
    *
    * @param {ResourceId} id - The ID of the resource to delete.
    * @param {RequestOptions} options - Additional request options.
-   * @returns The deleted resource record.
+   * @return The deleted resource record.
    */
   public async delete(
     id: ResourceId,
@@ -192,7 +192,7 @@ export class ResourceClient<Resource extends ResourceType>
    *
    * @param {Object} request - The export request payload (filters, format, etc.).
    * @param {RequestOptions} options - Additional request options.
-   * @returns {@link FileDataResponse} containing the readable stream and file metadata.
+   * @return {@link FileDataResponse} containing the readable stream and file metadata.
    */
   public async export(
     request: Resource['exportRequest'],
@@ -226,7 +226,7 @@ export class ResourceClient<Resource extends ResourceType>
    * @param {ResourceId} id - The ID of the resource for which to upload files.
    * @param {Object} files - A map of field names to the file(s) to upload.
    * @param {RequestOptions} options - Additional request options.
-   * @returns The updated file metadata for the resource.
+   * @return The updated file metadata for the resource.
    */
   public async uploadFiles(
     id: ResourceId,
@@ -265,7 +265,7 @@ export class ResourceClient<Resource extends ResourceType>
    * @param {ResourceId} id - The ID of the resource for which to delete files.
    * @param {Object} files - The file deletion payload identifying which files to remove.
    * @param {RequestOptions} options - Additional request options.
-   * @returns The updated file metadata for the resource after deletion.
+   * @return The updated file metadata for the resource after deletion.
    */
   public async deleteFiles(
     id: ResourceId,
@@ -292,7 +292,7 @@ export class ResourceClient<Resource extends ResourceType>
    *
    * @param {Object[]} resources - The data of every record to create.
    * @param {RequestOptions} options - Additional request options.
-   * @returns The created records, in the order of the items, or their count.
+   * @return The created records, in the order of the items, or their count.
    */
   public async bulkCreate<
     Result extends ResourceBulkResponse<Resource> = Resource['single'][]
@@ -315,7 +315,7 @@ export class ResourceClient<Resource extends ResourceType>
    *
    * @param {BulkItem[]} items - The id and the updated field values of every record.
    * @param {RequestOptions} options - Additional request options.
-   * @returns The updated records, in the order of the items, or their count.
+   * @return The updated records, in the order of the items, or their count.
    */
   public async bulkUpdate<
     Result extends ResourceBulkResponse<Resource> = Resource['single'][]
@@ -337,7 +337,7 @@ export class ResourceClient<Resource extends ResourceType>
    *
    * @param {BulkItem[]} items - The id and the new state of every record.
    * @param {RequestOptions} options - Additional request options.
-   * @returns The replaced records, in the order of the items, or their count.
+   * @return The replaced records, in the order of the items, or their count.
    */
   public async bulkReplace<
     Result extends ResourceBulkResponse<Resource> = Resource['single'][]
@@ -360,7 +360,7 @@ export class ResourceClient<Resource extends ResourceType>
    *
    * @param {ResourceId[]} ids - The IDs of the records to delete.
    * @param {RequestOptions} options - Additional request options.
-   * @returns The deleted records, in the order of the IDs, leaving out the ones an earlier cascade removed, or the
+   * @return The deleted records, in the order of the IDs, leaving out the ones an earlier cascade removed, or the
    * count of the IDs.
    */
   public async bulkDelete<

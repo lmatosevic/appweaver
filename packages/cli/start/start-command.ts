@@ -1,6 +1,11 @@
 import { Command } from 'commander';
 import { startProject } from './start-project';
 
+/**
+ * Registers the `start` command, starting the application.
+ *
+ * @param {Command} program - The program to register the command on.
+ */
 export function startCommand(program: Command): void {
   program
     .command('start')

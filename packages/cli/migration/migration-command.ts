@@ -1,6 +1,11 @@
 import { Command } from 'commander';
 import { assertEnvs, runProcess } from '../utils';
 
+/**
+ * Registers the `migration` command, creating and resetting the database migrations.
+ *
+ * @param {Command} program - The program to register the command on.
+ */
 export function migrationCommand(program: Command): void {
   const migration = program
     .command('migration')

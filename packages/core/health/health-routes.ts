@@ -4,6 +4,11 @@ import { HealthService } from './health-service';
 import { inject } from '../context';
 import { Server } from '../types';
 
+/**
+ * Registers the health check and readiness routes.
+ *
+ * @param {Server} server - The server to register the routes on.
+ */
 export function health(server: Server): void {
   const { authenticate } = server;
 

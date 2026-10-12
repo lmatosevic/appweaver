@@ -10,6 +10,11 @@ import {
 import { updatePackages } from './update-packages';
 import { updateSkillFiles } from './update-skill';
 
+/**
+ * Registers the `update` command, updating the Appweaver packages and their companion packages.
+ *
+ * @param {Command} program - The program to register the command on.
+ */
 export function updateCommand(program: Command): void {
   program
     .command('update')

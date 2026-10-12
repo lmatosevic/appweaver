@@ -39,7 +39,7 @@ const OPTION_GROUPS: (keyof ResourceRouteConfig)[][] = [
  * @param {ResourceRouteName} routeName The route to build the config for.
  * @param {QueryRouteConfig} [defaults] The default config of the resource routes.
  * @param {ResourceRouteConfig} [config] The config of the route.
- * @returns {ResourceRouteConfig} The merged route config.
+ * @return {ResourceRouteConfig} The merged route config.
  */
 export function mergeRouteDefaults(
   routeName: ResourceRouteName,

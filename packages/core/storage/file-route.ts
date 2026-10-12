@@ -6,6 +6,11 @@ import { createFileAccessSchema, FileName } from './file-schema';
 import { inject } from '../context';
 import { Server } from '../types';
 
+/**
+ * Registers the routes streaming the public and the protected files, supporting byte range requests.
+ *
+ * @param {Server} server - The server to register the routes on.
+ */
 export function files(server: Server): void {
   const { authenticate } = server;
 

@@ -10,6 +10,11 @@ import {
   runProcess
 } from '../utils';
 
+/**
+ * Registers the `test` command, setting up, resetting, and tearing down the test environment.
+ *
+ * @param {Command} program - The program to register the command on.
+ */
 export function testingCommand(program: Command): void {
   const testCommand = program
     .command('test')

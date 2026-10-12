@@ -4,6 +4,11 @@ import { generateTypes } from './generate-types';
 import { generateSchema } from './generate-schema';
 import { loadModels } from '../utils';
 
+/**
+ * Registers the `generate` command, generating the types and the Prisma schema of the models.
+ *
+ * @param {Command} program - The program to register the command on.
+ */
 export function generateCommand(program: Command): void {
   program
     .command('generate')

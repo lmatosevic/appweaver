@@ -12,7 +12,7 @@ export const TEXT_SEARCH_PLACEHOLDER = '{input}';
  *
  * @param {Object} template The text search object configured on the service.
  * @param {string} input The searched text.
- * @returns {Object} A new filter object, the template is left untouched.
+ * @return {Object} A new filter object, the template is left untouched.
  */
 export function bindTextSearch(template: any, input: string): any {
   if (isString(template)) {

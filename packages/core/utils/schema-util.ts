@@ -11,7 +11,7 @@ import { context, define } from '../context';
  * @param {string} [config.name] - The name of the schema model to be referenced by. If not provided, then
  * `schema.$id` or `schema.title` will be used by default. If both are `undefined`, then a generic name will be used.
  * @param {boolean} [config.addToServer] - Whether to add the schema to the server instance. Defaults to `true`.
- * @param {boolean} [config.skipExisting] - Whether to skip creating a schema model if it is alredy created with the
+ * @param {boolean} [config.skipExisting] - Whether to skip creating a schema model if it is already created with the
  * same name. Defaults to `true`.
  * @return {TObject} A reference to the created schema model, but returned type will be the model it references, so
  * this function can be used while building schema properties and provide type support in routes.

@@ -1716,9 +1716,9 @@ registerModel(
       description: Nullable(Type.String({ maxLength: 512 })),
       score: Type.Number({ minimum: 0, maximum: 1 })
     },
-    { $id: 'SearchResult' } // The prefered way for naming the model
+    { $id: 'SearchResult' } // The preferred way for naming the model
   ),
-  'SearchResult' // Model name can be overriden as a second optional argument
+  'SearchResult' // Model name can be overridden as a second optional argument
 );
 ```
 

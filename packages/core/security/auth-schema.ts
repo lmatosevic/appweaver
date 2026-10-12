@@ -132,6 +132,12 @@ export const exchangeTokenSchema = {
   body: createSchemaModel(ExchangeTokenRequest)
 };
 
+/**
+ * Returns the OpenAPI security requirements of a route authenticated with the given types, skipping the disabled ones.
+ *
+ * @param {AuthType[]} [authTypes] - The accepted authentication types, all of them by default.
+ * @return {Object[]} The security requirements of the route.
+ */
 export function authSchema(authTypes?: AuthType[]): any[] {
   const authSchemas: any[] = [];
 
@@ -222,6 +228,12 @@ export function recaptchaErrorCodes(
     : [];
 }
 
+/**
+ * Returns the header schema of the reCAPTCHA token a route verifies, empty when the route verifies none.
+ *
+ * @param {RecaptchaConfig} recaptchaConfig - The reCAPTCHA config of the route.
+ * @return {TObject} The header schema.
+ */
 export function recaptchaHeaderSchema(
   recaptchaConfig: RecaptchaConfig
 ): TObject {
@@ -257,6 +269,12 @@ export function turnstileErrorCodes(
     : [];
 }
 
+/**
+ * Returns the header schema of the Cloudflare Turnstile token a route verifies, empty when the route verifies none.
+ *
+ * @param {TurnstileConfig} turnstileConfig - The Turnstile config of the route.
+ * @return {TObject} The header schema.
+ */
 export function turnstileHeaderSchema(
   turnstileConfig: TurnstileConfig
 ): TObject {
@@ -297,6 +315,12 @@ export function captchaHeaderSchema(captchaConfig: CaptchaConfig): TObject {
   );
 }
 
+/**
+ * Builds the route schema responding with the currently authenticated identity.
+ *
+ * @param {TSchema} modelSchema - The response schema of the auth model.
+ * @return {RouteSchema} The route schema.
+ */
 export function createCurrentAuthUserSchema(modelSchema: TSchema): RouteSchema {
   return {
     tags: ['Auth'],

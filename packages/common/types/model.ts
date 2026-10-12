@@ -1,6 +1,6 @@
 import { TObject } from '@sinclair/typebox';
 import { MultipartFile } from './file';
-import { ModelName, RegisteredModel, RegistryType } from './registry';
+import { RegisteredModel, RegistryType } from './registry';
 
 export type FieldType =
   | 'string'

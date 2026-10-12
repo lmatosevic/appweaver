@@ -22,6 +22,13 @@ export type CreateSeederParams = {
   fixWarnings?: boolean;
 };
 
+/**
+ * Creates the database seeder, loading the providers of the project first, and runs the pending seeders unless
+ * `autoSeed` is disabled.
+ *
+ * @param {CreateSeederParams} [params={}] - The seeder parameters.
+ * @return {Promise<Seeder>} The created seeder.
+ */
 export async function createSeeder(
   params: CreateSeederParams = {}
 ): Promise<Seeder> {

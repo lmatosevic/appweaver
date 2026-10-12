@@ -1,13 +1,16 @@
 import fastifyPlugin from 'fastify-plugin';
 import { FastifyRequest } from 'fastify';
-import { config, ErrorCode } from '@appweaver/common';
+import { config, ConfigurationError, ErrorCode } from '@appweaver/common';
 import { RecaptchaError } from './recaptcha-error';
 import { Server } from '../../types';
 import { recaptchaVerify } from './recaptcha-verify';
 
 export const recaptcha = fastifyPlugin(async (server: Server) => {
   if (!config.SECURITY_RECAPTCHA_SECRET) {
-    throw Error('reCAPTCHA secret is not set');
+    throw new ConfigurationError(
+      ErrorCode.ConfigurationInvalid,
+      'reCAPTCHA secret is not set'
+    );
   }
 
   server.decorate('recaptcha', async (request: FastifyRequest) => {

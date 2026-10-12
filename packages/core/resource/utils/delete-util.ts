@@ -18,7 +18,19 @@ import {
   isSoftDeleteModel,
   liveRecordFilter
 } from '../../utils';
-import type { RelationActions } from './relation-util';
+
+/** The nested write actions a single relation field can be mapped to. */
+export type RelationActions = Record<
+  string,
+  Partial<{
+    connect: any;
+    create: any;
+    update: any;
+    connectOrCreate: any;
+    disconnect: any;
+    delete: any;
+  }>
+>;
 
 /** The records of every model affected by a delete, keyed by model name. */
 export type AffectedRecords = Record<string, ResourceId[]>;

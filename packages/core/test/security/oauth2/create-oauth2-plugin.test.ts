@@ -2,8 +2,7 @@ import fastify from 'fastify';
 import Wreck from '@hapi/wreck';
 import { AuthSource, SecurityStore } from '@appweaver/common';
 import { define } from '../../../context';
-import { errorHandler } from '../../../errors';
-import { ProblemDetailsSchema } from '../../../errors/error-schema';
+import { errorHandler, ProblemDetailsSchema } from '../../../errors';
 import { AuthService } from '../../../security/auth-service';
 import { OAuth2Service } from '../../../security/oauth2/oauth2-service';
 import {

@@ -1,6 +1,6 @@
 import { AggregateResponse, AggregateSelect } from './aggregate';
 import { QuerySort } from './sort';
-import { ResourceId } from './resource';
+import { ResourceId } from './resource-id';
 import { ModelName } from './registry';
 
 export type QueryResponse<T> = {

@@ -13,10 +13,10 @@ import { QueueError } from './queue-error';
 
 type MemoryQueueJob<Data = any, Response = any> = QueueJob<Data, Response> & {
   status: 'waiting' | 'active' | 'completed' | 'failed';
-  error?: Error;
   attempts: number;
   maxAttempts: number;
   createdAt: number;
+  error?: Error;
   processedAt?: number;
   finishedAt?: number;
 };

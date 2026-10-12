@@ -23,7 +23,7 @@ export class HealthClient<Health extends HealthType>
    * Performs a basic health check against the server.
    *
    * @param {RequestOptions} options - Additional request options.
-   * @returns The health check response indicating overall server and it's services status.
+   * @return The health check response indicating overall server and it's services status.
    */
   public async check(
     options: RequestOptions = {}
@@ -48,7 +48,7 @@ export class HealthClient<Health extends HealthType>
    * Checks whether the server is ready to accept traffic (e.g., database connected, migrations applied).
    *
    * @param {RequestOptions} options - Additional request options.
-   * @returns The readiness response indicating whether the server is fully operational.
+   * @return The readiness response indicating whether the server is fully operational.
    */
   public async ready(
     options: RequestOptions = {}

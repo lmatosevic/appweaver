@@ -11,6 +11,11 @@ import { generateClient, generateTypes } from '../generators';
 import { parseSchemaUrl, readSchemaContent, toSchemaObject } from '../utils';
 import { FRAMEWORKS } from '../constants';
 
+/**
+ * Registers the `generate` command, generating the types and the client class from an OpenAPI schema.
+ *
+ * @param {Command} program - The program to register the command on.
+ */
 export function generateCommand(program: Command): void {
   program
     .command('generate')
@@ -150,6 +155,13 @@ async function pathExists(filePath: string): Promise<boolean> {
   }
 }
 
+/**
+ * Returns the import path of a file relative to the directory of another one, without the TypeScript extension.
+ *
+ * @param {string} firstPath - The importing file.
+ * @param {string} otherPath - The imported file.
+ * @return {string} The relative import path, using forward slashes.
+ */
 export function relativePathFrom(firstPath: string, otherPath: string): string {
   const firstDir = path.dirname(path.resolve(firstPath));
   const otherAbs = path.resolve(otherPath);
@@ -169,6 +181,13 @@ export function relativePathFrom(firstPath: string, otherPath: string): string {
   return rel.replace(/\\/g, '/');
 }
 
+/**
+ * Validates the schema argument: an `http`, `https`, or `file` URL, or an existing file path.
+ *
+ * @param {string} value - The schema argument.
+ * @return {string} The unchanged argument.
+ * @throws {InvalidArgumentError} If the URL protocol is unsupported or the file does not exist.
+ */
 export function parseSchema(value: string): string {
   const schemaUrl = parseSchemaUrl(value);
 

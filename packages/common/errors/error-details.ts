@@ -2,7 +2,7 @@ import { ErrorCode } from './error-code';
 import { FieldError } from './problem-details';
 
 type ModelDetails = { model: string };
-type FieldsDetails = { model?: string; fields: string[]; constraint?: string };
+type FieldsDetails = { fields: string[]; model?: string; constraint?: string };
 type FileDetails = { fileName: string };
 
 /**
@@ -56,7 +56,7 @@ export interface ErrorDetailsMap {
   [ErrorCode.TurnstileInvalid]: { errorCodes: string[] };
 
   [ErrorCode.FileNotFound]: FileDetails;
-  [ErrorCode.FileForbidden]: { fileName?: string; action: string };
+  [ErrorCode.FileForbidden]: { action: string; fileName?: string };
   [ErrorCode.FileFieldNotFound]: ModelDetails & { field: string };
   [ErrorCode.FileUnsupportedType]: { mimeType: string };
   [ErrorCode.FileTooLarge]: { maxSizeBytes: number };

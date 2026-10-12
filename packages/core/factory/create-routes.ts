@@ -12,6 +12,14 @@ import {
 import { define } from '../context';
 import { resourceRoutes } from '../resource';
 
+/**
+ * Creates the resource routes of a model and defines them in the application context. The base path defaults to the
+ * plural kebab case of the model name.
+ *
+ * @param {ResourceRoutesConfig} config - The routes configuration with the model name.
+ * @param {boolean} [override=false] - Whether to replace routes already defined for the model.
+ * @return {ResourceRoutes} The created resource routes.
+ */
 export function createRoutes(
   config: ResourceRoutesConfig,
   override: boolean = false

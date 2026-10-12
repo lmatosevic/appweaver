@@ -53,6 +53,7 @@ export abstract class AppweaverError<C extends string = string> extends Error {
     return (this.code as string) === code;
   }
 
+  /** Serializes the error with its code, module, message, details, and cause. */
   public toJSON(): Record<string, unknown> {
     return {
       name: this.name,

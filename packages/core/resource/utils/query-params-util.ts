@@ -11,7 +11,7 @@ export type QueryRouteMethods = { post: boolean; get: boolean };
  *
  * @param {'query' | 'aggregate'} route The resource route to resolve.
  * @param {QueryMethod | string} [method] The method configured on the route.
- * @returns {QueryRouteMethods} Whether the POST and the GET route are registered.
+ * @return {QueryRouteMethods} Whether the POST and the GET route are registered.
  */
 export function queryRouteMethods(
   route: 'query' | 'aggregate',
@@ -38,7 +38,7 @@ export type BulkRouteName = 'bulkCreate' | 'bulkUpdate' | 'bulkDelete';
  * `RESOURCE_BULK_DELETE_ENABLED` config.
  *
  * @param {BulkRouteName} route The bulk route to resolve.
- * @returns {boolean} Whether the config enables the bulk route.
+ * @return {boolean} Whether the config enables the bulk route.
  */
 export function bulkRouteEnabled(route: BulkRouteName): boolean {
   switch (route) {

@@ -90,7 +90,7 @@ const UNREGISTERED_MAPPING: ErrorHttpMapping = {
  *
  * @param {unknown} error The thrown error.
  * @param {ProblemRequest} [request] The request the error occurred on.
- * @returns {ProblemDetails} The problem details of the response.
+ * @return {ProblemDetails} The problem details of the response.
  */
 export function toProblem(
   error: unknown,

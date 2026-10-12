@@ -279,7 +279,7 @@ const APPLICATION_ERROR = Symbol('ApplicationError');
  * throw new ApplicationError(ShopErrors.OutOfStock, `${product.name} is out of stock`, { productId });
  *
  * @param {Object} errors The HTTP mapping keyed by the name of the error.
- * @returns {Object} The registered codes, keyed by their names.
+ * @return {Object} The registered codes, keyed by their names.
  * @throws {ConfigurationError} If a name is not in PascalCase, a name or a code
  * is one of the framework, already registered with another mapping, or a code
  * is mapped to a status outside 400-599.
