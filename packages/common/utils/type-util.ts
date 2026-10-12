@@ -175,7 +175,7 @@ export function resolveDatabaseType(
   }
 
   if (url?.startsWith('postgresql:')) {
-    return DatabaseType.PostgresSQL;
+    return DatabaseType.PostgreSQL;
   }
 
   if (url?.startsWith('mysql:') || url?.startsWith('mariadb:')) {

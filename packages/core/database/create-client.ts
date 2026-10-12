@@ -38,7 +38,7 @@ export function createClient(): PrismaClient {
   switch (dbType) {
     case DatabaseType.Sqlite:
       return sqliteClient();
-    case DatabaseType.PostgresSQL:
+    case DatabaseType.PostgreSQL:
       return postgresClient();
     case DatabaseType.MySQL:
       return mysqlClient();

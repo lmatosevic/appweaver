@@ -57,7 +57,7 @@ describe('prisma-database', () => {
     ({ root, tx } = createRoot());
     (createClient as jest.Mock).mockReturnValue(root);
     db = new PrismaDatabase();
-    overrides.DATABASE_TYPE = common.DatabaseType.PostgresSQL;
+    overrides.DATABASE_TYPE = common.DatabaseType.PostgreSQL;
   });
 
   afterEach(() => {
