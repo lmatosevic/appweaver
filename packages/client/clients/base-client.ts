@@ -24,6 +24,7 @@ import {
   AuthInterface,
   AuthType,
   FilesClient,
+  FilesInterface,
   HealthClient,
   HealthInterface,
   HealthType,
@@ -64,7 +65,7 @@ export type ClientResultMethods<T, B extends boolean> = B extends true
  * @typeParam T - The type of authentication value to return (string, JwtAuthConfig, ApiKeyAuthConfig, or
  * BasicAuthConfig).
  * @param {Request} req - The outgoing HTTP request object.
- * @returns The authentication value, either directly or wrapped in a Promise.
+ * @return The authentication value, either directly or wrapped in a Promise.
  */
 export type AuthFn<T> = (req: Request) => T | Promise<T>;
 
@@ -131,7 +132,7 @@ export type AuthConfig =
  * @param {RequestInfo} request - The resource that you wish to fetch, either as a string URL or a Request object.
  * @param {RequestInit} [init] - Optional options object containing custom settings for the fetch request, such as
  * method, headers, body, and more.
- * @returns {Promise<Response>} A Promise that resolves to the Response to the request.
+ * @return {Promise<Response>} A Promise that resolves to the Response to the request.
  */
 export type FetchHandler = (
   request: RequestInfo,
@@ -286,7 +287,7 @@ export abstract class BaseClient<
    * @param {HttpMethod} method - The HTTP method to use.
    * @param {string} url - The API path to request.
    * @param {Object} params - Optional request parameters (body, query, headers, etc.) as defined by the schema.
-   * @returns The non-nullable `data` field from the response.
+   * @return The non-nullable `data` field from the response.
    * @throws {ClientError} When the server returns an error response.
    */
   public sendRequest<
@@ -322,7 +323,7 @@ export abstract class BaseClient<
    * @param {HttpMethod} method - The HTTP method to use.
    * @param {string} url - The API path to request.
    * @param {Object} params - Optional request parameters (body, query, headers, etc.) as defined by the schema.
-   * @returns The raw `FetchResponse` containing `data`, `error`, and the native `Response`.
+   * @return The raw `FetchResponse` containing `data`, `error`, and the native `Response`.
    */
   public sendRequestRaw<
     Method extends HttpMethod,
@@ -551,11 +552,11 @@ export abstract class BaseClient<
    * @return {FilesClient} An instance of FilesClient configured with the provided files' path.
    */
   protected filesClient<
-    OmitFields extends readonly (keyof HealthInterface)[] = []
+    OmitFields extends readonly (keyof FilesInterface)[] = []
   >(
     filesPath: string
   ): ClientResultMethods<
-    ClientResult<FilesClient, HealthInterface, OmitFields>,
+    ClientResult<FilesClient, FilesInterface, OmitFields>,
     UseObservable
   > {
     const files = new FilesClient(this as any, filesPath);
