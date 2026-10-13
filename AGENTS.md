@@ -641,9 +641,9 @@ Prisma Migrate refuses its destructive commands (`migrate reset`, `db push --for
 when it detects an AI agent (Claude Code, Codex, Cursor, ...), unless the `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION`
 environment variable holds the message in which the user consented. Under an agent this affects:
 
-- `weaver test reset`, the reset after every e2e test file, which runs `prisma migrate reset`. The samples' `reset.ts`
-  does not check its exit status, so the reset fails silently and the tests run on the data of the earlier files,
-  which they tolerate by creating uniquely named records.
+- `weaver test reset`, the reset after every e2e test file, which runs `prisma migrate reset`. The `reset.ts` of the
+  samples and the scaffolded projects fails the test file when the command exits with a non-zero status, as do
+  `setup.ts` and `teardown.ts` for the whole run.
 - `weaver test setup` on a PostgreSQL or MySQL sample, once its `-test` database keeps the schema of an earlier run
   (after a model change): `prisma migrate dev` then needs a reset and fails.
 
