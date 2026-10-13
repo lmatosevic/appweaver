@@ -94,15 +94,25 @@ npm run start         # production
 
 ## Configuration
 
-Appweaver is configured through `appweaver.json` files at the project root, with environment-specific overlays loaded
-automatically based on `NODE_ENV`:
+Appweaver is configured through the `appweaver.json` file at the project root. Its `config` holds the base
+configuration, and its `environments` the overrides of each environment, merged over it based on `NODE_ENV`
+(`development` resolves to `dev`, `production` or an unset `NODE_ENV` to `prod`):
 
-| File                  | Loaded when                                 |
-|-----------------------|---------------------------------------------|
-| `appweaver.json`      | Always (base config)                        |
-| `appweaver.dev.json`  | `NODE_ENV=dev` or `development`             |
-| `appweaver.test.json` | `NODE_ENV=test`                             |
-| `appweaver.prod.json` | `NODE_ENV=prod` or `production`, or not set |
+```json
+{
+  "config": {
+    "server": { "port": 5000 },
+    "database": { "url": "file:./data/app.db" }
+  },
+  "environments": {
+    "dev": { "log": { "level": "debug", "pretty": true } },
+    "test": { "database": { "url": "file:./temp/test.db" } }
+  }
+}
+```
+
+An environment can also keep its overrides in a separate `appweaver.<env>.json` file (i.e. `appweaver.prod.json`
+mounted into a container), under its `config` key, which is loaded over the matching `environments` section.
 
 Every option can also be set via an environment variable which useful for secrets and CI/CD. The full list of options
 is documented in [`skill/references/configuration.md`](./skill/references/configuration.md) and available

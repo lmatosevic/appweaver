@@ -593,19 +593,21 @@ weaver start --watch      # or: npm run dev
 
 #### Environment-based configuration
 
-Configuration is loaded from `appweaver.json` files in the project root. The framework loads a **base** config and then
-deep-merges an **environment-specific** overlay based on the `NODE_ENV` environment variable:
+Configuration is loaded from the `appweaver.json` file in the project root. The framework loads its **base** `config`
+and then deep-merges the **environment-specific** overrides chosen by the `NODE_ENV` environment variable, from lowest
+to highest precedence:
 
-| File                  | Loaded when                                 |
-|-----------------------|---------------------------------------------|
-| `appweaver.json`      | Always (base configuration)                 |
-| `appweaver.dev.json`  | `NODE_ENV=dev` or `development`             |
-| `appweaver.test.json` | `NODE_ENV=test`                             |
-| `appweaver.prod.json` | `NODE_ENV=prod` or `production`, or not set |
+| Source                                   | Loaded when                                                 |
+|------------------------------------------|-------------------------------------------------------------|
+| `appweaver.json` → `config`              | Always (base configuration)                                 |
+| `appweaver.json` → `environments.<env>`  | `NODE_ENV` resolves to `<env>` (`development` → `dev`, ...) |
+| `appweaver.<env>.json` → `config`        | The file exists (optional, i.e. mounted in a container)     |
+| `.env`, `.env.<env>`, process env        | Always, overriding the JSON files                           |
 
-For example, the base `appweaver.json` sets the server port, database URL, and app metadata. The dev overlay enables
-debug logging with pretty-printing, while the test overlay redirects the database to a temporary path, swaps Redis and
-queue providers for in-memory implementations, and disables the scheduler auto-start.
+The samples and the scaffolded projects keep every environment in `appweaver.json`. For example, its `config` sets the
+server port, database URL, and app metadata, the `dev` section enables debug logging with pretty-printing, while the
+`test` section redirects the database to a temporary path, swaps Redis and queue providers for in-memory
+implementations, and disables the scheduler auto-start. Only `appweaver.json` may declare `environments`.
 
 #### Seeding the database
 
@@ -653,7 +655,7 @@ Scaffolded with `create-weaver-app`, each showcases a different part of the fram
 
 - The PostgreSQL and MySQL samples start their database with `docker compose up -d postgres redis` (or `mysql`); their
   end-to-end tests run against a `-test` database of the same container.
-- Like a generated project, every sample configures its database and Redis URLs in `appweaver*.json`, referencing the
+- Like a generated project, every sample configures its database and Redis URLs in `appweaver.json`, referencing the
   database password of `.env` (copied from `.env.example`) as `${DB_PASSWORD}`, and the hosts as
   `${DB_HOST:-localhost}` and `${REDIS_HOST:-localhost}`, which the compose application services override. The database
   name and user are `${DB_NAME:-<sample name>}` and `${DB_USER:-<sample name>}`, also in the compose database service.

@@ -15,7 +15,8 @@ provides factory methods for creating resource models, services, policies, and r
 - `test/e2e/` - end-to-end tests
 - `test/unit/` - unit tests
 - `.env` / `.env.{env}` - environment variable overrides (optional)
-- `appweaver.json` / `appweaver.{env}.json` - central configuration
+- `appweaver.json` - central configuration, with the overrides of each environment under `environments`
+- `appweaver.{env}.json` - environment-specific overrides, loaded over the `environments` section (optional)
 - `Dockerfile` - Docker image definition
 
 **IMPORTANT:** `{env}` is controlled by `NODE_ENV` environment variable. The environment names are `test`, `local`,

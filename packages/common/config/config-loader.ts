@@ -10,6 +10,7 @@ import {
   resolveEnvironment
 } from '../utils';
 import { CONFIG_NAME } from '../constants';
+import { ConfigurationError, ErrorCode } from '../errors';
 
 export type ConfigEntry = {
   config: Record<string, string | string[]>;
@@ -101,32 +102,55 @@ export function loadConfigFromEnv(schema: TObject): ConfigEntry {
 }
 
 /**
- * Loads configuration from multiple JSON files based on the provided schema.
+ * Loads configuration from the JSON files based on the provided schema. Merges, from the lowest
+ * to the highest precedence, the `config` of the global file, the section of its `environments`
+ * matching the current environment, and the `config` of the environment-specific file.
  *
  * @param {TObject} schema - The schema used to validate and parse the configuration files.
  * @return {ConfigEntry} An object containing the merged configuration data from the global
- * and environment-specific JSON configuration files. Also, the list of files from which
- * configuration was loaded.
+ * and environment-specific JSON configuration files. Also, the list of files (and the inline
+ * environment sections, as `./appweaver.json#environments.<name>`) from which configuration was loaded.
  */
 export function loadConfigFromFiles(schema: TObject): ConfigEntry {
   const files: string[] = [];
+  const environment = resolveEnvironment(process.env.NODE_ENV);
 
   // Load config from the global JSON file
   const globalConfigPath = `./${CONFIG_NAME}.json`;
-  const globalConfig = loadConfigFromFile(schema, globalConfigPath);
-  if (globalConfig) {
+  const globalData = readConfigFile(globalConfigPath);
+  const globalConfig = parseConfig(schema, globalData?.config);
+  if (globalData) {
     files.push(globalConfigPath);
   }
 
+  // Load config from the global file's sections of the current environment,
+  // whose names resolve like NODE_ENV ("development" to "dev", ...)
+  let inlineEnvConfig = {};
+  for (const [name, section] of Object.entries(
+    globalData?.environments ?? {}
+  )) {
+    if (resolveEnvironment(name) === environment) {
+      inlineEnvConfig = { ...inlineEnvConfig, ...parseConfig(schema, section) };
+      files.push(`${globalConfigPath}#environments.${name}`);
+    }
+  }
+
   // Load config from the environment-specific JSON file
-  const envConfigPath = `./${CONFIG_NAME}.${resolveEnvironment(process.env.NODE_ENV)}.json`;
-  const envConfig = loadConfigFromFile(schema, envConfigPath);
-  if (envConfig) {
+  const envConfigPath = `./${CONFIG_NAME}.${environment}.json`;
+  const envData = readConfigFile(envConfigPath);
+  if (envData?.environments !== undefined) {
+    throw new ConfigurationError(
+      ErrorCode.ConfigurationInvalid,
+      `The "environments" sections are allowed only in ${globalConfigPath}, found in ${envConfigPath}`
+    );
+  }
+  const envConfig = parseConfig(schema, envData?.config);
+  if (envData) {
     files.push(envConfigPath);
   }
 
-  // Merge both configs to a single object
-  const config = { ...(globalConfig ?? {}), ...(envConfig ?? {}) };
+  // Merge all configs to a single object
+  const config = { ...globalConfig, ...inlineEnvConfig, ...envConfig };
 
   return { config, files };
 }
@@ -146,17 +170,50 @@ export function loadConfigFromFile(
   schema: TObject,
   filePath: string
 ): Record<string, string | string[]> | null {
-  const config = {};
+  const data = readConfigFile(filePath);
 
+  return data ? parseConfig(schema, data.config) : null;
+}
+
+/**
+ * Loads and parses the `package.json` file located at the specified file path.
+ *
+ * @param {string} [filePath='./package.json'] - The relative or absolute path to the `package.json` file.
+ * @return {Record<string, any>} The parsed contents of the `package.json` file as a JavaScript object.
+ */
+export function loadPackageJson(
+  filePath: string = './package.json'
+): Record<string, any> {
+  const pkgPath = path.join(process.cwd(), filePath);
+  const pkgContent = fs.readFileSync(pkgPath, 'utf8');
+  return JSON.parse(pkgContent);
+}
+
+/** Reads and parses a JSON config file, or returns `null` when it does not exist. */
+function readConfigFile(filePath: string): Record<string, any> | null {
   const absoluteFilePath = path.resolve(filePath);
   if (!fs.existsSync(absoluteFilePath)) {
     return null;
   }
 
-  const rawData = fs.readFileSync(absoluteFilePath, 'utf8');
-  const data = JSON.parse(rawData);
+  return JSON.parse(fs.readFileSync(absoluteFilePath, 'utf8'));
+}
 
-  const variables = recurseConfig(data.config ?? {}, {});
+/**
+ * Flattens a `config` or environment section of a JSON config file into the schema property
+ * names, expanding the environment variable references of its values. Unknown properties keep
+ * a prefixed name, while the empty values are omitted.
+ */
+function parseConfig(
+  schema: TObject,
+  section: unknown
+): Record<string, string | string[]> {
+  const config = {};
+
+  const variables = recurseConfig(
+    (section ?? {}) as Map<string, string | string[]>,
+    {}
+  );
 
   for (const [name, rawValue] of Object.entries(variables)) {
     const value = expandValue(rawValue);
@@ -173,20 +230,6 @@ export function loadConfigFromFile(
   }
 
   return config;
-}
-
-/**
- * Loads and parses the `package.json` file located at the specified file path.
- *
- * @param {string} [filePath='./package.json'] - The relative or absolute path to the `package.json` file.
- * @return {Record<string, any>} The parsed contents of the `package.json` file as a JavaScript object.
- */
-export function loadPackageJson(
-  filePath: string = './package.json'
-): Record<string, any> {
-  const pkgPath = path.join(process.cwd(), filePath);
-  const pkgContent = fs.readFileSync(pkgPath, 'utf8');
-  return JSON.parse(pkgContent);
 }
 
 /** Matches an escaped `\${`, or a `${NAME}` reference with an optional `:-default` value. */

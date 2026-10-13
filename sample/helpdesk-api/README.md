@@ -8,22 +8,22 @@ threads read page by page. It runs on MySQL (MariaDB) without Redis.
 
 ## What it showcases
 
-| Feature                                                                                  | Where                                                                                        |
-|------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
-| MySQL through the MariaDB adapter (docker-compose), long texts stored as `MEDIUMTEXT`    | [`docker-compose.yml`](docker-compose.yml), [`ticket-message/model.ts`](src/resources/ticket-message/model.ts) |
-| Redis-free: in-memory cache, rate limits, and queue, with the mailer and the scheduler  | [`appweaver.json`](appweaver.json)                                                           |
-| A non-auth model (customers) connected-or-created by email through a relation input     | [`resources/ticket/model.ts`](src/resources/ticket/model.ts)                                 |
-| Tags created on the fly, matched by their slug                                           | [`resources/ticket/model.ts`](src/resources/ticket/model.ts)                                 |
-| A create-only virtual input (`description`) turned into the opening message             | [`resources/ticket/service.ts`](src/resources/ticket/service.ts)                             |
-| A public form route with reCAPTCHA (when enabled) and rate limiting                     | [`features/intake/support-form-route.ts`](src/features/intake/support-form-route.ts)         |
-| **API key** integrations limited to the tickets they opened                              | [`resources/ticket/policy.ts`](src/resources/ticket/policy.ts)                               |
-| Internal notes hidden by read restrictions, and write restrictions per caller type      | [`resources/ticket-message/policy.ts`](src/resources/ticket-message/policy.ts)               |
-| Least-loaded automatic assignment on the ticket `create` event                          | [`features/assignment/auto-assign.ts`](src/features/assignment/auto-assign.ts)               |
-| SLA deadlines from a policy table, and a scheduled escalation job                        | [`features/sla/`](src/features/sla/escalation-job.ts)                                        |
-| Service hooks moving the ticket status with every reply, and emailing the customer      | [`resources/ticket-message/service.ts`](src/resources/ticket-message/service.ts)             |
-| Cursor pagination through long message threads                                          | [`test/e2e/conversation.test.ts`](test/e2e/conversation.test.ts)                             |
-| Message attachments (array files) and a computed `overdue` flag                         | message and ticket models                                                                    |
-| OAuth2 sign-in limited to existing staff (`checkOAuth2User`)                             | [`resources/user/service.ts`](src/resources/user/service.ts)                                 |
+| Feature                                                                                | Where                                                                                                          |
+|----------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| MySQL through the MariaDB adapter (docker-compose), long texts stored as `MEDIUMTEXT`  | [`docker-compose.yml`](docker-compose.yml), [`ticket-message/model.ts`](src/resources/ticket-message/model.ts) |
+| Redis-free: in-memory cache, rate limits, and queue, with the mailer and the scheduler | [`appweaver.json`](appweaver.json)                                                                             |
+| A non-auth model (customers) connected-or-created by email through a relation input    | [`resources/ticket/model.ts`](src/resources/ticket/model.ts)                                                   |
+| Tags created on the fly, matched by their slug                                         | [`resources/ticket/model.ts`](src/resources/ticket/model.ts)                                                   |
+| A create-only virtual input (`description`) turned into the opening message            | [`resources/ticket/service.ts`](src/resources/ticket/service.ts)                                               |
+| A public form route with reCAPTCHA (when enabled) and rate limiting                    | [`features/intake/support-form-route.ts`](src/features/intake/support-form-route.ts)                           |
+| **API key** integrations limited to the tickets they opened                            | [`resources/ticket/policy.ts`](src/resources/ticket/policy.ts)                                                 |
+| Internal notes hidden by read restrictions, and write restrictions per caller type     | [`resources/ticket-message/policy.ts`](src/resources/ticket-message/policy.ts)                                 |
+| Least-loaded automatic assignment on the ticket `create` event                         | [`features/assignment/auto-assign.ts`](src/features/assignment/auto-assign.ts)                                 |
+| SLA deadlines from a policy table, and a scheduled escalation job                      | [`features/sla/`](src/features/sla/escalation-job.ts)                                                          |
+| Service hooks moving the ticket status with every reply, and emailing the customer     | [`resources/ticket-message/service.ts`](src/resources/ticket-message/service.ts)                               |
+| Cursor pagination through long message threads                                         | [`test/e2e/conversation.test.ts`](test/e2e/conversation.test.ts)                                               |
+| Message attachments (array files) and a computed `overdue` flag                        | message and ticket models                                                                                      |
+| OAuth2 sign-in limited to existing staff (`checkOAuth2User`)                           | [`resources/user/service.ts`](src/resources/user/service.ts)                                                   |
 
 ## Getting started
 
@@ -47,7 +47,8 @@ within five minutes of starting the server.
 
 The application connects as the `helpdesk-api` user, which [`database/mariadb-init.sh`](database/mariadb-init.sh)
 grants every database when the container first initializes its volume, since Prisma Migrate creates a shadow database
-next to it. In development the emails are written to the log by the JSON mailer (see [`appweaver.dev.json`](appweaver.dev.json)).
+next to it. In development the emails are written to the log by the JSON mailer (see the `dev` environment of [
+`appweaver.json`](appweaver.json)).
 
 ## Try it out
 

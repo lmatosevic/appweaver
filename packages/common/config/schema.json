@@ -10,6 +10,19 @@
       "type": "string"
     },
     "config": {
+      "description": "Base configuration, applied in every environment.",
+      "$ref": "#/definitions/config"
+    },
+    "environments": {
+      "type": "object",
+      "description": "Configuration of each environment, keyed by the environment name (`dev`, `test`, `prod`, ...) and merged over `config` when NODE_ENV resolves to it. A matching appweaver.<env>.json file overrides its section.",
+      "additionalProperties": {
+        "$ref": "#/definitions/config"
+      }
+    }
+  },
+  "definitions": {
+    "config": {
       "type": "object",
       "additionalProperties": true,
       "properties": {

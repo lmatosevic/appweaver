@@ -309,5 +309,19 @@
       "adminInitialEmail": "admin@appweaver.co",
       "adminInitialPassword": "Password1!"
     }
+  },
+  "environments": {
+    "dev": {
+      "log": {
+        "level": "debug",
+        "pretty": true
+      }
+    },
+    "test": {
+      "log": {
+        "level": "silent",
+        "sync": true
+      }
+    }
   }
 }

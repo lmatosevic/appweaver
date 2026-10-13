@@ -31,5 +31,43 @@
     "system": {
       "adminInitialEmail": "admin@hr.example.com"
     }
+  },
+  "environments": {
+    "dev": {
+      "log": {
+        "level": "debug",
+        "pretty": true
+      },
+      "mailer": {
+        "provider": "@appweaver/core/mailer/json-mailer"
+      }
+    },
+    "test": {
+      "log": {
+        "level": "silent",
+        "sync": true
+      },
+      "database": {
+        "url": "file:./temp/hr-api-test.db",
+        "schemaPath": "./temp/database/schema.prisma",
+        "migrationsDirPath": "./temp/database/migrations",
+        "clientOutputDirPath": "./temp/database/client"
+      },
+      "storage": {
+        "path": "./temp/storage"
+      },
+      "redis": {
+        "provider": "@appweaver/core/memory/in-memory"
+      },
+      "queue": {
+        "provider": "@appweaver/core/queue/memory-queue"
+      },
+      "mailer": {
+        "provider": "@appweaver/core/mailer/json-mailer"
+      },
+      "scheduler": {
+        "autoStartJob": false
+      }
+    }
   }
 }

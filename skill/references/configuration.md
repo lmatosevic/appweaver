@@ -9,13 +9,16 @@ Configuration is loaded and merged in the following order (later sources overrid
 
 1. **Default values** defined in the TypeBox schema
 2. **Global JSON config** `appweaver.json` (properties under the `config` key)
-3. **Environment-specific JSON config** `appweaver.{NODE_ENV}.json`
-4. **Default .env file** `.env`
-5. **Environment-specific .env file** `.env.{NODE_ENV}` (overrides all above)
+3. **Inline environment config** `appweaver.json` (properties under the `environments.{NODE_ENV}` key)
+4. **Environment-specific JSON config** `appweaver.{NODE_ENV}.json` (properties under the `config` key)
+5. **Default .env file** `.env`
+6. **Environment-specific .env file** `.env.{NODE_ENV}` (overrides all above)
 
 The environment names are `test`, `local`, `dev`, `staging`, `qa`, and `prod`. `NODE_ENV=development` resolves to `dev`
-and `NODE_ENV=production` to `prod`, both for `APP_ENV` and for the environment-specific file names, and an unset
-`NODE_ENV` resolves to `prod`.
+and `NODE_ENV=production` to `prod`, for `APP_ENV`, the names of the `environments` sections, and the
+environment-specific file names, and an unset `NODE_ENV` resolves to `prod`.
+
+The loaded files are logged at the `debug` level on startup, an inline section as `./appweaver.json#environments.test`.
 
 `.env` values support `${VAR_NAME}` expansion referencing any other environment variable; escape as `\${VAR_NAME}` to
 keep it literal.
@@ -43,6 +46,35 @@ for application configuration, committed with the project. These are automatical
   }
 }
 ```
+
+### Environment configuration
+
+The overrides of each environment go to the `environments` key of `appweaver.json`, keyed by the environment name. The
+section matching `NODE_ENV` is merged over `config` property by property (an array value replaces the whole array),
+the other ones are ignored. This keeps the whole configuration in a single file, which is what `create-weaver-app`
+scaffolds:
+
+```json
+{
+  "config": {
+    "database": { "url": "file:./data/app.db" }
+  },
+  "environments": {
+    "dev": {
+      "log": { "level": "debug", "pretty": true }
+    },
+    "test": {
+      "log": { "level": "silent", "sync": true },
+      "database": { "url": "file:./temp/test.db" }
+    }
+  }
+}
+```
+
+An `appweaver.{env}.json` file, holding its overrides under the `config` key, is still loaded over the matching
+section. Use it when an environment's config is supplied separately from the project, i.e. mounted into a production
+container, or kept out of git. Only `appweaver.json` may declare `environments`; an `appweaver.{env}.json` declaring
+them fails the startup with a `CONFIGURATION_INVALID` error.
 
 ### Environment variable references
 
@@ -515,12 +547,12 @@ cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting is s
 
 ## Configuration files summary
 
-| File                   | Purpose                                     |
-|------------------------|---------------------------------------------|
-| `appweaver.json`       | Global configuration (all environments)     |
-| `appweaver.{env}.json` | Environment-specific overrides              |
-| `.env`                 | Environment variables (all environments)    |
-| `.env.{env}`           | Environment-specific env variable overrides |
+| File                   | Purpose                                                                            |
+|------------------------|------------------------------------------------------------------------------------|
+| `appweaver.json`       | Global configuration (`config`) and the overrides of each env (`environments`)     |
+| `appweaver.{env}.json` | Optional environment-specific overrides, loaded over the `environments` section    |
+| `.env`                 | Environment variables (all environments)                                           |
+| `.env.{env}`           | Environment-specific env variable overrides                                        |
 
 ## Environment values
 

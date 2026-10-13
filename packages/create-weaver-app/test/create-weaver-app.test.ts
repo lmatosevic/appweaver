@@ -169,6 +169,15 @@ describe('create-weaver-app', () => {
       expect(config.config.app.description).toBe('My description');
     });
 
+    test('keeps the environment configs in a single config file', () => {
+      const config = readJson('my-app', 'appweaver.json');
+      expect(config.environments.dev.log.level).toBe('debug');
+      expect(config.environments.test.log.level).toBe('silent');
+
+      expect(exists('my-app', 'appweaver.dev.json')).toBe(false);
+      expect(exists('my-app', 'appweaver.test.json')).toBe(false);
+    });
+
     test('uses the current package version for the framework dependencies', () => {
       const pkg = readJson('my-app', 'package.json');
 
@@ -290,7 +299,7 @@ describe('create-weaver-app', () => {
       await run('MyApp', '--no-install', '--agent', 'none');
 
       expect(
-        readJson('my-app', 'appweaver.test.json').config.database.url
+        readJson('my-app', 'appweaver.json').environments.test.database.url
       ).toBe('file:./temp/my-app-test.db');
     });
 
@@ -322,7 +331,7 @@ describe('create-weaver-app', () => {
         'postgresql://${DB_USER:-my-app}:${DB_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME:-my-app}'
       );
       expect(
-        readJson('my-app', 'appweaver.test.json').config.database.url
+        readJson('my-app', 'appweaver.json').environments.test.database.url
       ).toBe(
         'postgresql://${DB_USER:-my-app}:${DB_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME:-my-app}-test'
       );

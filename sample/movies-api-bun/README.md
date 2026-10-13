@@ -8,25 +8,25 @@ nightly trending score. It also shows how a frontend consumes the API through a 
 
 ## What it showcases
 
-| Feature                                                                             | Where                                                                                 |
-|-------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
-| Bun runtime: libsql SQLite adapter, `bun test`, seeders and tests run TypeScript    | [`package.json`](package.json), [`bunfig.toml`](bunfig.toml)                          |
-| Short `nanoid()` string ids for movies                                              | [`resources/movie/model.ts`](src/resources/movie/model.ts)                            |
-| A join model carrying data (`Credit`: role, character, billing order)               | [`resources/credit/model.ts`](src/resources/credit/model.ts)                          |
-| Nested relation output: a movie with its credits and people, a person with movies  | movie and person models                                                               |
-| Many-to-many connect-or-create by a unique key (genres by slug)                     | [`resources/movie/model.ts`](src/resources/movie/model.ts)                            |
-| A read heavy public API: cached routes, rate limiting, public aggregates            | [`resources/movie/routes.ts`](src/resources/movie/routes.ts)                          |
-| **Role** based access (Admin, Curator, Member)                                      | [`features/access/roles.ts`](src/features/access/roles.ts)                            |
-| Service hooks keeping a denormalized rating on the movie                            | [`resources/review/service.ts`](src/resources/review/service.ts)                      |
-| Author privacy on public data (a display name snapshot, no account relation)        | [`resources/review/model.ts`](src/resources/review/model.ts)                          |
-| Private per-user data through read and write restrictions                           | [`resources/watchlist-entry/policy.ts`](src/resources/watchlist-entry/policy.ts)      |
-| Image processing of posters, stills (array files), and profile photos               | movie and person models                                                               |
-| Virtual fields (`year`, `runtime`, `age`)                                           | movie and person models                                                               |
-| A scheduled job and its on-demand route (trending scores)                           | [`features/trending/`](src/features/trending/trending-job.ts)                         |
-| A custom public route returning resource models (similar movies)                    | [`features/catalog/similar-movies-route.ts`](src/features/catalog/similar-movies-route.ts) |
-| OAuth2 sign-up (GitHub, Google) with `registrationData` and the provider avatar      | [`resources/user/service.ts`](src/resources/user/service.ts)                          |
-| OpenAPI export and a generated typed client with an example script                  | [`client/`](client/example.ts)                                                        |
-| Redis-free setup with no queue and no mailer                                        | [`appweaver.json`](appweaver.json)                                                    |
+| Feature                                                                           | Where                                                                                      |
+|-----------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| Bun runtime: libsql SQLite adapter, `bun test`, seeders and tests run TypeScript  | [`package.json`](package.json), [`bunfig.toml`](bunfig.toml)                               |
+| Short `nanoid()` string ids for movies                                            | [`resources/movie/model.ts`](src/resources/movie/model.ts)                                 |
+| A join model carrying data (`Credit`: role, character, billing order)             | [`resources/credit/model.ts`](src/resources/credit/model.ts)                               |
+| Nested relation output: a movie with its credits and people, a person with movies | movie and person models                                                                    |
+| Many-to-many connect-or-create by a unique key (genres by slug)                   | [`resources/movie/model.ts`](src/resources/movie/model.ts)                                 |
+| A read heavy public API: cached routes, rate limiting, public aggregates          | [`resources/movie/routes.ts`](src/resources/movie/routes.ts)                               |
+| **Role** based access (Admin, Curator, Member)                                    | [`features/access/roles.ts`](src/features/access/roles.ts)                                 |
+| Service hooks keeping a denormalized rating on the movie                          | [`resources/review/service.ts`](src/resources/review/service.ts)                           |
+| Author privacy on public data (a display name snapshot, no account relation)      | [`resources/review/model.ts`](src/resources/review/model.ts)                               |
+| Private per-user data through read and write restrictions                         | [`resources/watchlist-entry/policy.ts`](src/resources/watchlist-entry/policy.ts)           |
+| Image processing of posters, stills (array files), and profile photos             | movie and person models                                                                    |
+| Virtual fields (`year`, `runtime`, `age`)                                         | movie and person models                                                                    |
+| A scheduled job and its on-demand route (trending scores)                         | [`features/trending/`](src/features/trending/trending-job.ts)                              |
+| A custom public route returning resource models (similar movies)                  | [`features/catalog/similar-movies-route.ts`](src/features/catalog/similar-movies-route.ts) |
+| OAuth2 sign-up (GitHub, Google) with `registrationData` and the provider avatar   | [`resources/user/service.ts`](src/resources/user/service.ts)                               |
+| OpenAPI export and a generated typed client with an example script                | [`client/`](client/example.ts)                                                             |
+| Redis-free setup with no queue and no mailer                                      | [`appweaver.json`](appweaver.json)                                                         |
 
 ## Getting started
 

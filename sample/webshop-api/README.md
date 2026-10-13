@@ -48,7 +48,8 @@ key, it is not shown again. The demo customers `olivia@example.com` and `daniel@
 The coupons are `WELCOME10` (10 %), `SAVE5` (5 EUR off from 30 EUR), `LAUNCH25` (25 %, limited), and the expired
 `SUMMER20`.
 
-In development the emails are written to the log by the JSON mailer (see [`appweaver.dev.json`](appweaver.dev.json)).
+In development the emails are written to the log by the JSON mailer (see the `dev` environment of [
+`appweaver.json`](appweaver.json)).
 All the amounts are in cents.
 
 ## Try it out
@@ -92,8 +93,9 @@ npm run test  # unit tests
 npm run e2e   # end-to-end tests, against the webshop-api-test database of the PostgreSQL container
 ```
 
-The end-to-end tests need the PostgreSQL container running, while Redis is replaced by in-memory implementations (see [
-`appweaver.test.json`](appweaver.test.json)).
+The end-to-end tests need the PostgreSQL container running, while Redis is replaced by in-memory implementations (see
+the `test`
+environment of [`appweaver.json`](appweaver.json)).
 
 ## License
 

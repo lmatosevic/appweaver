@@ -368,6 +368,100 @@ describe('config-loader', () => {
 
       expect(files).toEqual([`./${CONFIG_NAME}.prod.json`]);
     });
+
+    test('merges the inline environment section over the global config', () => {
+      process.env.NODE_ENV = 'test';
+      fs.writeFileSync(
+        path.join(tempDir, `${CONFIG_NAME}.json`),
+        JSON.stringify({
+          config: { app: { name: 'Global' }, log: { level: 'info' } },
+          environments: {
+            test: { log: { level: 'silent', pretty: true } },
+            dev: { log: { level: 'debug' } }
+          }
+        })
+      );
+
+      const { config, files } = loadConfigFromFiles(schema);
+
+      expect(files).toEqual([
+        `./${CONFIG_NAME}.json`,
+        `./${CONFIG_NAME}.json#environments.test`
+      ]);
+      expect(config['APP_NAME']).toBe('Global');
+      expect(config['LOG_LEVEL']).toBe('silent');
+      expect(config['LOG_PRETTY']).toBe(true);
+    });
+
+    test('resolves the names of the inline environment sections', () => {
+      process.env.NODE_ENV = 'dev';
+      fs.writeFileSync(
+        path.join(tempDir, `${CONFIG_NAME}.json`),
+        JSON.stringify({
+          environments: { development: { log: { level: 'debug' } } }
+        })
+      );
+
+      const { config, files } = loadConfigFromFiles(schema);
+
+      expect(files).toEqual([
+        `./${CONFIG_NAME}.json`,
+        `./${CONFIG_NAME}.json#environments.development`
+      ]);
+      expect(config['LOG_LEVEL']).toBe('debug');
+    });
+
+    test('expands the environment variables of the inline sections', () => {
+      process.env.NODE_ENV = 'test';
+      process.env.TEST_APP_NAME = 'Expanded';
+      fs.writeFileSync(
+        path.join(tempDir, `${CONFIG_NAME}.json`),
+        JSON.stringify({
+          environments: { test: { app: { name: '${TEST_APP_NAME}' } } }
+        })
+      );
+
+      expect(loadConfigFromFiles(schema).config['APP_NAME']).toBe('Expanded');
+    });
+
+    test('merges the environment specific file over the inline section', () => {
+      process.env.NODE_ENV = 'test';
+      fs.writeFileSync(
+        path.join(tempDir, `${CONFIG_NAME}.json`),
+        JSON.stringify({
+          config: { app: { name: 'Global' } },
+          environments: {
+            test: { app: { name: 'Inline' }, log: { level: 'silent' } }
+          }
+        })
+      );
+      fs.writeFileSync(
+        path.join(tempDir, `${CONFIG_NAME}.test.json`),
+        JSON.stringify({ config: { app: { name: 'File' } } })
+      );
+
+      const { config, files } = loadConfigFromFiles(schema);
+
+      expect(files).toEqual([
+        `./${CONFIG_NAME}.json`,
+        `./${CONFIG_NAME}.json#environments.test`,
+        `./${CONFIG_NAME}.test.json`
+      ]);
+      expect(config['APP_NAME']).toBe('File');
+      expect(config['LOG_LEVEL']).toBe('silent');
+    });
+
+    test('rejects the environments of an environment specific file', () => {
+      process.env.NODE_ENV = 'test';
+      fs.writeFileSync(
+        path.join(tempDir, `${CONFIG_NAME}.test.json`),
+        JSON.stringify({ environments: { test: {} } })
+      );
+
+      expect(() => loadConfigFromFiles(schema)).toThrow(
+        `allowed only in ./${CONFIG_NAME}.json`
+      );
+    });
   });
 
   describe('loadPackageJson', () => {

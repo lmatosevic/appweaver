@@ -37,8 +37,8 @@ The basic file structure of the Appweaver project:
 - `test/unit/` - the unit tests root directory
 - `.env` - override the central configuration (optional)
 - `.env.{env}` - override the central configuration for a specific environment (optional)
-- `appweaver.json` - central library configuration file
-- `appweaver.{env}.json` - environment specific configuration files that override the central configuration
+- `appweaver.json` - central library configuration file, with the overrides of each environment under `environments`
+- `appweaver.{env}.json` - environment specific configuration files, overriding the `environments` section (optional)
 - `Dockerfile` - the dockerfile used for building a docker image for deploying the application
 
 **IMPORTANT:** `{env}` is controlled by `NODE_ENV` environment variable set before any command is executed (can also be
@@ -82,9 +82,9 @@ create-weaver-app MyBlogAPI "My own CMS for blogging" --database postgresql --no
 This creates a `./my-blog-api` directory, installs all dependencies, and runs the initial schema and type generation.
 The default test runner is `jest` with `swc` transpiler.
 
-The connections are configured in the committed `appweaver.json` (the test database in `appweaver.test.json`), whose
-`${VAR}` references are expanded from the environment. Only the database password goes to the gitignored `.env`
-(copied to a committed `.env.example`):
+The connections are configured in the committed `appweaver.json` (the test database in its `environments.test`
+section), whose `${VAR}` references are expanded from the environment. Only the database password goes to the gitignored
+`.env` (copied to a committed `.env.example`):
 
 ```json
 {
@@ -94,6 +94,13 @@ The connections are configured in the committed `appweaver.json` (the test datab
     },
     "redis": {
       "url": "redis://${REDIS_HOST:-localhost}:6379/0"
+    }
+  },
+  "environments": {
+    "test": {
+      "database": {
+        "url": "postgresql://${DB_USER:-my-blog-api}:${DB_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME:-my-blog-api}-test"
+      }
     }
   }
 }

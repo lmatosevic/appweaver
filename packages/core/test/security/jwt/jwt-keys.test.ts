@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { createSign, createVerify } from 'node:crypto';
@@ -7,9 +8,6 @@ import {
   generateSecurityKeys,
   loadSecurityKeys
 } from '../../../security/jwt/jwt-keys';
-
-// POSIX file modes are not enforced on Windows
-const describePosix = process.platform === 'win32' ? describe.skip : describe;
 
 describe('jwt-keys', () => {
   let tempDir: string;
@@ -23,6 +21,7 @@ describe('jwt-keys', () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
@@ -54,16 +53,28 @@ describe('jwt-keys', () => {
       expect(fs.existsSync(otherPrivateKeyPath)).toBe(true);
     });
 
-    describePosix('file modes', () => {
-      test('restricts the private key to its owner', async () => {
-        await generateSecurityKeys(publicKeyPath, privateKeyPath);
+    // Asserts the requested modes rather than the applied ones, which Windows
+    // ignores, so the test runs on every platform
+    test('restricts the private key to its owner', async () => {
+      const mkdir = jest.spyOn(fsp, 'mkdir');
+      const writeFile = jest.spyOn(fsp, 'writeFile');
 
-        expect(fs.statSync(privateKeyPath).mode & 0o777).toBe(0o600);
-        expect(fs.statSync(publicKeyPath).mode & 0o777).toBe(0o644);
-        expect(fs.statSync(path.dirname(privateKeyPath)).mode & 0o777).toBe(
-          0o700
-        );
+      await generateSecurityKeys(publicKeyPath, privateKeyPath);
+
+      expect(mkdir).toHaveBeenCalledWith(path.dirname(privateKeyPath), {
+        recursive: true,
+        mode: 0o700
       });
+      expect(writeFile).toHaveBeenCalledWith(
+        publicKeyPath,
+        expect.any(String),
+        { encoding: 'utf8', mode: 0o644 }
+      );
+      expect(writeFile).toHaveBeenCalledWith(
+        privateKeyPath,
+        expect.any(String),
+        { encoding: 'utf8', mode: 0o600 }
+      );
     });
   });
 

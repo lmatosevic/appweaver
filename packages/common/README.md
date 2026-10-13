@@ -16,8 +16,8 @@
 
 `@appweaver/common` holds what every other Appweaver package builds on:
 
-- **Configuration** – the `config` object, loaded from `appweaver.json`, its `appweaver.<env>.json` overlay, `.env`
-  files, and environment variables, validated against a schema.
+- **Configuration** – the `config` object, loaded from `appweaver.json` with its `environments` sections, the
+  optional `appweaver.<env>.json` overlay, `.env` files, and environment variables, validated against a schema.
 - **Logger** – the `logger` instance, a configured [Pino](https://getpino.io) logger.
 - **Types** – the resource model, query filter, sort, aggregate, policy, and route types, and the `ResourceRegistry`
   that `weaver generate` fills so the factories infer the model types from a model name.
