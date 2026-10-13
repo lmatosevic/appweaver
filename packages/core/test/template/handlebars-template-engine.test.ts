@@ -200,16 +200,32 @@ describe('handlebars-template-engine', () => {
     });
 
     test('wraps a failing render in a template error', async () => {
-      writeFile('templates/pages/broken.html.hbs', '{{#if}}');
       writeFile('templates/pages/partial.html.hbs', '{{> partials/missing}}');
 
-      await expect(engine.render('pages/broken.html')).rejects.toMatchObject({
-        code: ErrorCode.TemplateRenderFailed,
-        details: { template: 'pages/broken.html' }
-      });
       await expect(engine.render('pages/partial.html')).rejects.toMatchObject({
-        code: ErrorCode.TemplateRenderFailed
+        code: ErrorCode.TemplateRenderFailed,
+        details: { template: 'pages/partial.html' }
       });
+    });
+
+    test('fails to load a template file with an invalid syntax', async () => {
+      writeFile('templates/pages/broken.html.hbs', '{{#if}}');
+
+      await expect(engine.onInit()).rejects.toMatchObject({
+        code: ErrorCode.TemplateLoadFailed,
+        details: {
+          path: path.join(dir, 'templates', 'pages', 'broken.html.hbs')
+        }
+      });
+    });
+
+    test('drops the line break ending a template file', async () => {
+      writeFile('templates/partials/name.txt.hbs', '{{name}}\n');
+      writeFile('templates/pages/inline.txt.hbs', '[{{> partials/name}}]\n\n');
+
+      expect(await engine.render('pages/inline.txt', { name: 'Ana' })).toBe(
+        '[Ana]\n'
+      );
     });
 
     test('caches the partials by the locales having template variants', async () => {
@@ -236,6 +252,16 @@ describe('handlebars-template-engine', () => {
       writeFile('templates/pages/legal.html.hbs', 'Changed');
 
       expect(await engine.render('pages/legal.html')).toBe('Changed');
+    });
+
+    test('reloads the changed translations with the cache disabled', async () => {
+      configOverrides.TEMPLATE_CACHE = false;
+      const source = '{{t "greeting" name="Ana"}}';
+
+      expect(await engine.renderString(source)).toBe('Hello Ana');
+      writeFile('locales/en.json', JSON.stringify({ greeting: 'Hi {name}' }));
+
+      expect(await engine.renderString(source)).toBe('Hi Ana');
     });
   });
 
@@ -322,6 +348,14 @@ describe('handlebars-template-engine', () => {
   });
 
   describe('registerTemplate', () => {
+    test('rejects a template with an invalid syntax', () => {
+      expect(() =>
+        engine.registerTemplate('pages/broken.html', '{{/if}}')
+      ).toThrow(
+        expect.objectContaining({ code: ErrorCode.TemplateLoadFailed })
+      );
+    });
+
     test('registers a template over the template file', async () => {
       engine.registerTemplate('pages/legal.html', 'Registered');
       engine.registerTemplate('pages/legal.html', 'Registriert', 'de');

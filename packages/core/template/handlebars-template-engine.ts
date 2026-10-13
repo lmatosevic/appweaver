@@ -118,6 +118,7 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
   }
 
   public registerTemplate(name: string, source: string, locale?: string): void {
+    parseTemplate(name, source);
     addTemplate(this._registered, name, source, locale);
     this.clearPartials();
   }
@@ -130,6 +131,11 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
   /** @internal */
   private load(): Promise<void> {
     if (!this._loading || !config.TEMPLATE_CACHE) {
+      // Without the cache, the changed translations of the templates are also
+      // read again
+      if (this._loading) {
+        this._localeService.reload();
+      }
       this._loading = this.loadFiles().catch((e) => {
         this._loading = undefined;
         throw e;
@@ -162,7 +168,9 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
       const filePath = path.join(dir, fileName);
       let source: string;
       try {
-        source = await fsp.readFile(filePath, 'utf8');
+        // An editor ends a file with a line break, which would otherwise be
+        // written after every included partial
+        source = (await fsp.readFile(filePath, 'utf8')).replace(/\r?\n$/, '');
       } catch (e) {
         throw new TemplateError(
           ErrorCode.TemplateLoadFailed,
@@ -172,6 +180,7 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
         );
       }
 
+      parseTemplate(filePath, source);
       const parsed = parseTemplatePath(fileName.slice(0, -extension.length));
       addTemplate(files, parsed.name, source, parsed.locale);
     }
@@ -319,6 +328,20 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
   private clearPartials(): void {
     this._partials.clear();
     this._variantLocales = undefined;
+  }
+}
+
+/** Checks the syntax of a template, so an invalid one fails when it is loaded instead of when it is rendered. */
+function parseTemplate(name: string, source: string): void {
+  try {
+    Handlebars.parse(source);
+  } catch (e) {
+    throw new TemplateError(
+      ErrorCode.TemplateLoadFailed,
+      `Template '${name}' is invalid`,
+      { path: name },
+      { cause: e }
+    );
   }
 }
 
