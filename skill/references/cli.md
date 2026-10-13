@@ -193,7 +193,10 @@ touch the development database or uploads.
 
 ### `weaver test reset`
 
-Requires `NODE_ENV=test`. With no flags, resets both database and storage.
+Requires `NODE_ENV=test`. With no flags, resets both database and storage. The database is reset with
+`prisma migrate reset`, which Prisma refuses to run for an AI agent unless the user consented through the
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` variable of the project's `.env`, see **Run tests** in
+[SKILL.md](../SKILL.md). An agent never sets it itself.
 
 | Option                | Description                       | Default  |
 |-----------------------|-----------------------------------|----------|

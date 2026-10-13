@@ -415,7 +415,8 @@ weaver test reset [options]
 | `--storage`           | Reset file storage  | —        |
 | `--verbose`           | Verbose output      | false    |
 
-With no flags, resets **both** database and storage.
+With no flags, resets **both** database and storage. The database is reset with `prisma migrate reset`, which Prisma
+refuses to run for an AI agent without the user's consent, see **AI agents and the test database** in Section 7.
 
 #### `weaver test teardown`
 
@@ -633,6 +634,34 @@ npm run e2e
 E2E tests use `weaver test setup` / `weaver test reset` / `weaver test teardown` to manage a temporary test database and
 storage directory. Setup and teardown are wired for the whole run, but each test file must register the reset itself
 with `afterAll(resetTestData, 10_000)`, declared after the hook that stops the application.
+
+#### AI agents and the test database
+
+Prisma Migrate refuses its destructive commands (`migrate reset`, `db push --force-reset`, `db push --accept-data-loss`)
+when it detects an AI agent (Claude Code, Codex, Cursor, ...), unless the `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION`
+environment variable holds the message in which the user consented. Under an agent this affects:
+
+- `weaver test reset`, the reset after every e2e test file, which runs `prisma migrate reset`. The samples' `reset.ts`
+  does not check its exit status, so the reset fails silently and the tests run on the data of the earlier files,
+  which they tolerate by creating uniquely named records.
+- `weaver test setup` on a PostgreSQL or MySQL sample, once its `-test` database keeps the schema of an earlier run
+  (after a model change): `prisma migrate dev` then needs a reset and fails.
+
+The consent belongs to the maintainer, never to the agent. To let the agents reset the test databases, the maintainer
+adds the variable to the `.env` file of each sample whose tests the agents run, set to the message they consented
+with:
+
+```bash
+PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION="<the message in which you consented>"
+```
+
+Weaver loads `.env` into the environment of the `prisma` commands it starts. The file is gitignored, so the consent
+stays with the checkout it is written in. In `.env` it also covers `weaver migration reset` of the development
+database; to limit it to the tests, put it in `.env.test` instead (loaded with `NODE_ENV=test` only), after adding
+`.env.test` to `.gitignore`. A cloud agent session gets it from the environment variables of its cloud environment.
+
+An agent never sets the variable itself. When a reset is refused, it stops and asks the maintainer to reset the
+database or to add the consent.
 
 #### Docker
 
