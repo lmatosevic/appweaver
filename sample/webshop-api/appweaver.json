@@ -36,6 +36,9 @@
       },
       "mailer": {
         "provider": "@appweaver/core/mailer/json-mailer"
+      },
+      "template": {
+        "cache": false
       }
     },
     "test": {

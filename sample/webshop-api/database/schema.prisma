@@ -143,6 +143,7 @@ model Order {
   carrier         String?     @db.VarChar(50)
   trackingNumber  String?     @db.VarChar(100)
   note            String?     @db.VarChar(500)
+  language        String      @default("en") @db.VarChar(8)
 
   /// Related columns
   customer   User        @relation("OrderCustomerUser", fields: [customerId], references: [id])
@@ -232,6 +233,7 @@ model User {
   email          String            @unique @db.VarChar(255)
   phone          String?           @db.VarChar(32)
   marketingOptIn Boolean           @default(false)
+  language       String            @default("en") @db.VarChar(8)
   passwordHash   String?
   verifiedEmail  Boolean           @default(false)
   twoFactorAuth  UserTwoFactorAuth @default(None)

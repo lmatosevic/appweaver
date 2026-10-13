@@ -1,0 +1,5 @@
+{{#> layouts/email.html title=(t "orders.paymentFailed.subject" number=order.number)}}
+  <p>{{t "orders.greeting" name=customer.firstName}}</p>
+  <p>{{t "orders.paymentFailed.message"}}</p>
+  <p>{{t "orders.signature"}}</p>
+{{/layouts/email.html}}

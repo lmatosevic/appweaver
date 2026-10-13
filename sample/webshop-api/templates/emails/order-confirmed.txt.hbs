@@ -1,0 +1,10 @@
+{{t "orders.greeting" name=customer.firstName}}
+
+{{t "orders.confirmed.message" total=(money order.total)}}
+{{t "orders.confirmed.items" count=(length order.items) number=order.number}}
+
+{{> partials/order-summary}}
+
+{{t "orders.signature"}}
+
+{{> partials/email-footer}}

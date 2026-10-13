@@ -1,50 +1,66 @@
-import { EmailService, inject } from '@appweaver/core';
+import { EmailService, inject, registerTemplateHelper } from '@appweaver/core';
 import { logger } from '@appweaver/common';
+import db from '@db/client';
 
-type OrderMail = {
-  number: string;
-  total: number;
-  customer: { email: string; firstName: string };
-  carrier?: string | null;
-  trackingNumber?: string | null;
+type OrderEmail = 'confirmed' | 'paymentFailed' | 'shipped' | 'cancelled';
+
+/** The templates of each email, `templates/emails/<name>.{html,txt,subject}.hbs`. */
+const templates: Record<OrderEmail, string> = {
+  confirmed: 'emails/order-confirmed',
+  paymentFailed: 'emails/order-payment-failed',
+  shipped: 'emails/order-shipped',
+  cancelled: 'emails/order-cancelled'
 };
 
-const euros = (cents: number) => `${(cents / 100).toFixed(2)} EUR`;
+type HelperOptions = { data?: { locale?: string } };
 
-const messages: Record<
-  'confirmed' | 'paymentFailed' | 'shipped' | 'cancelled',
-  (order: OrderMail) => { subject: string; text: string }
-> = {
-  confirmed: (order) => ({
-    subject: `Order ${order.number} confirmed`,
-    text: `we received the payment of ${euros(order.total)}, your order is being packed.`
-  }),
-  paymentFailed: (order) => ({
-    subject: `Payment for order ${order.number} failed`,
-    text: 'the payment was declined, so the order was not placed. Please try again with another card.'
-  }),
-  shipped: (order) => ({
-    subject: `Order ${order.number} is on its way`,
-    text: `your order was handed to ${order.carrier}, the tracking number is ${order.trackingNumber}.`
-  }),
-  cancelled: (order) => ({
-    subject: `Order ${order.number} cancelled`,
-    text: 'your order was cancelled. A payment already made is refunded within a few days.'
-  })
-};
+// The amounts are in cents, written in the format of the email's language,
+// i.e. `{{money order.total}}` is "€1,234.50" in English and "1.234,50 €" in German
+registerTemplateHelper('money', (cents: number, options: HelperOptions) =>
+  new Intl.NumberFormat(options.data?.locale, {
+    style: 'currency',
+    currency: 'EUR'
+  }).format(cents / 100)
+);
 
-/** Queues the email about the order, never failing the caller. */
+// The country of an address is stored as its code, i.e. `{{countryName 'DE'}}`
+// is "Germany" in English and "Njemačka" in Croatian
+registerTemplateHelper(
+  'countryName',
+  (code: string, options: HelperOptions) => {
+    try {
+      return new Intl.DisplayNames(options.data?.locale, { type: 'region' }).of(
+        code
+      );
+    } catch {
+      return code;
+    }
+  }
+);
+
+/**
+ * Queues the email about the order in the language it was placed in, never
+ * failing the caller.
+ */
 export async function sendOrderEmail(
-  kind: keyof typeof messages,
-  order: OrderMail
+  kind: OrderEmail,
+  order: { id: string }
 ): Promise<void> {
-  const { subject, text } = messages[kind](order);
-
   try {
-    await inject(EmailService).sendEmail({
-      to: order.customer.email,
-      subject,
-      text: `Hi ${order.customer.firstName},\n\n${text}`
+    const details = await db.order.findUniqueOrThrow({
+      where: { id: order.id },
+      include: {
+        customer: { select: { firstName: true, email: true } },
+        items: { orderBy: { id: 'asc' } },
+        coupon: { select: { code: true } }
+      }
+    });
+
+    await inject(EmailService).sendTemplateEmail({
+      to: details.customer.email,
+      template: templates[kind],
+      data: { order: details, customer: details.customer },
+      locale: details.language
     });
   } catch (e) {
     logger.warn(e, `Order email "${kind}" was not sent`);

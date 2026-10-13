@@ -89,8 +89,10 @@ const exists = await templates.hasTemplate('emails/welcome.html', 'de');
 | `registerTemplate(name, source, locale?)` | Registers a template in code, taking precedence over the files                      |
 | `registerHelper(name, helper)`            | Registers a helper                                                                  |
 
-The templates are loaded when the application starts. `TEMPLATE_CACHE: false` (set for the `dev` environment of a
-scaffolded project) reloads the changed files on every render.
+The templates are loaded when the application starts, failing with `TEMPLATE_LOAD_FAILED` on a template of an invalid
+syntax. The line break ending a template file is dropped, so an included partial adds none. `TEMPLATE_CACHE: false`
+(set for the `dev` environment of a scaffolded project) reloads the changed templates and translation files on every
+render.
 
 ### Returning a rendered template from a route
 
@@ -269,6 +271,36 @@ export default createService({
 });
 ```
 
+## Choosing the locale
+
+The framework never guesses the locale, the application passes it where it knows it. A common pattern, used by the
+`webshop-api` sample, is a `language` field on the auth model, the preferred language of the user, copied onto the
+records whose emails are sent later, so an email is written in the language the record was made in:
+
+```ts
+// src/resources/user/model.ts
+language: { type: 'string', default: 'en', pattern: '^[a-z]{2}(-[A-Z]{2})?$', maxLength: 8 }
+
+// At checkout: the language asked for, or the preferred one of the customer
+const order = await tx.order.create({ data: { ...data, language: request.language ?? customer.language } });
+
+// Later, i.e. in a queue worker
+await inject(EmailService).sendTemplateEmail({
+  to: order.customer.email,
+  template: 'emails/order-confirmed',
+  data: { order, customer: order.customer },
+  locale: order.language
+});
+```
+
+A custom helper reads the rendered locale from `options.data.locale`, i.e. to format amounts kept in cents:
+
+```ts
+registerTemplateHelper('money', (cents: number, options: { data?: { locale?: string } }) =>
+  new Intl.NumberFormat(options.data?.locale, { style: 'currency', currency: 'EUR' }).format(cents / 100)
+);
+```
+
 ## Configuration
 
 | Key                 | Default                                                 | Description                        |
@@ -285,7 +317,7 @@ export default createService({
 |--------------------------|---------------------------------------------------------------|
 | `TEMPLATE_NOT_FOUND`     | No template of the name exists in the locale or its fallbacks |
 | `TEMPLATE_RENDER_FAILED` | A template fails to compile or render, i.e. a missing partial |
-| `TEMPLATE_LOAD_FAILED`   | A template file cannot be read                                |
+| `TEMPLATE_LOAD_FAILED`   | A template cannot be read, or its syntax is invalid           |
 | `LOCALE_LOAD_FAILED`     | A translation file is not valid JSON or not a JSON object     |
 
 ## Custom template engine

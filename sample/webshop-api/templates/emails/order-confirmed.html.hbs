@@ -1,0 +1,7 @@
+{{#> layouts/email.html title=(t "orders.confirmed.subject" number=order.number)}}
+  <p>{{t "orders.greeting" name=customer.firstName}}</p>
+  <p>{{t "orders.confirmed.message" total=(money order.total)}}</p>
+  <p>{{t "orders.confirmed.items" count=(length order.items) number=order.number}}</p>
+  {{> partials/order-summary}}
+  <p>{{t "orders.signature"}}</p>
+{{/layouts/email.html}}

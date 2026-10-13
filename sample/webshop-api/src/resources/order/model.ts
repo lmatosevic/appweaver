@@ -81,6 +81,13 @@ export default createModel({
       type: 'string',
       required: false,
       maxLength: 500
+    },
+    // The language the order was placed in, which its emails are written in
+    language: {
+      type: 'string',
+      default: 'en',
+      maxLength: 8,
+      example: 'de'
     }
   },
   relations: {

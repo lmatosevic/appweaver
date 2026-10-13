@@ -61,6 +61,7 @@ export type OrderMinAggregateOutputType = {
   carrier: string | null
   trackingNumber: string | null
   note: string | null
+  language: string | null
   customerId: number | null
   couponId: number | null
   updatedAt: Date | null
@@ -83,6 +84,7 @@ export type OrderMaxAggregateOutputType = {
   carrier: string | null
   trackingNumber: string | null
   note: string | null
+  language: string | null
   customerId: number | null
   couponId: number | null
   updatedAt: Date | null
@@ -106,6 +108,7 @@ export type OrderCountAggregateOutputType = {
   carrier: number
   trackingNumber: number
   note: number
+  language: number
   customerId: number
   couponId: number
   updatedAt: number
@@ -150,6 +153,7 @@ export type OrderMinAggregateInputType = {
   carrier?: true
   trackingNumber?: true
   note?: true
+  language?: true
   customerId?: true
   couponId?: true
   updatedAt?: true
@@ -172,6 +176,7 @@ export type OrderMaxAggregateInputType = {
   carrier?: true
   trackingNumber?: true
   note?: true
+  language?: true
   customerId?: true
   couponId?: true
   updatedAt?: true
@@ -195,6 +200,7 @@ export type OrderCountAggregateInputType = {
   carrier?: true
   trackingNumber?: true
   note?: true
+  language?: true
   customerId?: true
   couponId?: true
   updatedAt?: true
@@ -305,6 +311,7 @@ export type OrderGroupByOutputType = {
   carrier: string | null
   trackingNumber: string | null
   note: string | null
+  language: string
   customerId: number
   couponId: number | null
   updatedAt: Date
@@ -351,6 +358,7 @@ export type OrderWhereInput = {
   carrier?: Prisma.StringNullableFilter<"Order"> | string | null
   trackingNumber?: Prisma.StringNullableFilter<"Order"> | string | null
   note?: Prisma.StringNullableFilter<"Order"> | string | null
+  language?: Prisma.StringFilter<"Order"> | string
   customerId?: Prisma.IntFilter<"Order"> | number
   couponId?: Prisma.IntNullableFilter<"Order"> | number | null
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
@@ -378,6 +386,7 @@ export type OrderOrderByWithRelationInput = {
   carrier?: Prisma.SortOrderInput | Prisma.SortOrder
   trackingNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   note?: Prisma.SortOrderInput | Prisma.SortOrder
+  language?: Prisma.SortOrder
   customerId?: Prisma.SortOrder
   couponId?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -408,6 +417,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   carrier?: Prisma.StringNullableFilter<"Order"> | string | null
   trackingNumber?: Prisma.StringNullableFilter<"Order"> | string | null
   note?: Prisma.StringNullableFilter<"Order"> | string | null
+  language?: Prisma.StringFilter<"Order"> | string
   customerId?: Prisma.IntFilter<"Order"> | number
   couponId?: Prisma.IntNullableFilter<"Order"> | number | null
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
@@ -435,6 +445,7 @@ export type OrderOrderByWithAggregationInput = {
   carrier?: Prisma.SortOrderInput | Prisma.SortOrder
   trackingNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   note?: Prisma.SortOrderInput | Prisma.SortOrder
+  language?: Prisma.SortOrder
   customerId?: Prisma.SortOrder
   couponId?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -466,6 +477,7 @@ export type OrderScalarWhereWithAggregatesInput = {
   carrier?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
   trackingNumber?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
   note?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
+  language?: Prisma.StringWithAggregatesFilter<"Order"> | string
   customerId?: Prisma.IntWithAggregatesFilter<"Order"> | number
   couponId?: Prisma.IntNullableWithAggregatesFilter<"Order"> | number | null
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Order"> | Date | string
@@ -489,6 +501,7 @@ export type OrderCreateInput = {
   carrier?: string | null
   trackingNumber?: string | null
   note?: string | null
+  language?: string
   updatedAt?: Date | string
   createdAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -513,6 +526,7 @@ export type OrderUncheckedCreateInput = {
   carrier?: string | null
   trackingNumber?: string | null
   note?: string | null
+  language?: string
   customerId: number
   couponId?: number | null
   updatedAt?: Date | string
@@ -537,6 +551,7 @@ export type OrderUpdateInput = {
   carrier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -561,6 +576,7 @@ export type OrderUncheckedUpdateInput = {
   carrier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   customerId?: Prisma.IntFieldUpdateOperationsInput | number
   couponId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -585,6 +601,7 @@ export type OrderCreateManyInput = {
   carrier?: string | null
   trackingNumber?: string | null
   note?: string | null
+  language?: string
   customerId: number
   couponId?: number | null
   updatedAt?: Date | string
@@ -608,6 +625,7 @@ export type OrderUpdateManyMutationInput = {
   carrier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -628,6 +646,7 @@ export type OrderUncheckedUpdateManyInput = {
   carrier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   customerId?: Prisma.IntFieldUpdateOperationsInput | number
   couponId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -666,6 +685,7 @@ export type OrderCountOrderByAggregateInput = {
   carrier?: Prisma.SortOrder
   trackingNumber?: Prisma.SortOrder
   note?: Prisma.SortOrder
+  language?: Prisma.SortOrder
   customerId?: Prisma.SortOrder
   couponId?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -698,6 +718,7 @@ export type OrderMaxOrderByAggregateInput = {
   carrier?: Prisma.SortOrder
   trackingNumber?: Prisma.SortOrder
   note?: Prisma.SortOrder
+  language?: Prisma.SortOrder
   customerId?: Prisma.SortOrder
   couponId?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -720,6 +741,7 @@ export type OrderMinOrderByAggregateInput = {
   carrier?: Prisma.SortOrder
   trackingNumber?: Prisma.SortOrder
   note?: Prisma.SortOrder
+  language?: Prisma.SortOrder
   customerId?: Prisma.SortOrder
   couponId?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -897,6 +919,7 @@ export type OrderCreateWithoutCouponInput = {
   carrier?: string | null
   trackingNumber?: string | null
   note?: string | null
+  language?: string
   updatedAt?: Date | string
   createdAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -920,6 +943,7 @@ export type OrderUncheckedCreateWithoutCouponInput = {
   carrier?: string | null
   trackingNumber?: string | null
   note?: string | null
+  language?: string
   customerId: number
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -972,6 +996,7 @@ export type OrderScalarWhereInput = {
   carrier?: Prisma.StringNullableFilter<"Order"> | string | null
   trackingNumber?: Prisma.StringNullableFilter<"Order"> | string | null
   note?: Prisma.StringNullableFilter<"Order"> | string | null
+  language?: Prisma.StringFilter<"Order"> | string
   customerId?: Prisma.IntFilter<"Order"> | number
   couponId?: Prisma.IntNullableFilter<"Order"> | number | null
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
@@ -995,6 +1020,7 @@ export type OrderCreateWithoutItemsInput = {
   carrier?: string | null
   trackingNumber?: string | null
   note?: string | null
+  language?: string
   updatedAt?: Date | string
   createdAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -1018,6 +1044,7 @@ export type OrderUncheckedCreateWithoutItemsInput = {
   carrier?: string | null
   trackingNumber?: string | null
   note?: string | null
+  language?: string
   customerId: number
   couponId?: number | null
   updatedAt?: Date | string
@@ -1057,6 +1084,7 @@ export type OrderUpdateWithoutItemsInput = {
   carrier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -1080,6 +1108,7 @@ export type OrderUncheckedUpdateWithoutItemsInput = {
   carrier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   customerId?: Prisma.IntFieldUpdateOperationsInput | number
   couponId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1103,6 +1132,7 @@ export type OrderCreateWithoutCustomerInput = {
   carrier?: string | null
   trackingNumber?: string | null
   note?: string | null
+  language?: string
   updatedAt?: Date | string
   createdAt?: Date | string
   items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
@@ -1126,6 +1156,7 @@ export type OrderUncheckedCreateWithoutCustomerInput = {
   carrier?: string | null
   trackingNumber?: string | null
   note?: string | null
+  language?: string
   couponId?: number | null
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -1159,6 +1190,7 @@ export type OrderCreateWithoutCreatedByInput = {
   carrier?: string | null
   trackingNumber?: string | null
   note?: string | null
+  language?: string
   updatedAt?: Date | string
   createdAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -1182,6 +1214,7 @@ export type OrderUncheckedCreateWithoutCreatedByInput = {
   carrier?: string | null
   trackingNumber?: string | null
   note?: string | null
+  language?: string
   customerId: number
   couponId?: number | null
   updatedAt?: Date | string
@@ -1247,6 +1280,7 @@ export type OrderCreateManyCouponInput = {
   carrier?: string | null
   trackingNumber?: string | null
   note?: string | null
+  language?: string
   customerId: number
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -1269,6 +1303,7 @@ export type OrderUpdateWithoutCouponInput = {
   carrier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -1292,6 +1327,7 @@ export type OrderUncheckedUpdateWithoutCouponInput = {
   carrier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   customerId?: Prisma.IntFieldUpdateOperationsInput | number
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1315,6 +1351,7 @@ export type OrderUncheckedUpdateManyWithoutCouponInput = {
   carrier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   customerId?: Prisma.IntFieldUpdateOperationsInput | number
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1337,6 +1374,7 @@ export type OrderCreateManyCustomerInput = {
   carrier?: string | null
   trackingNumber?: string | null
   note?: string | null
+  language?: string
   couponId?: number | null
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -1359,6 +1397,7 @@ export type OrderCreateManyCreatedByInput = {
   carrier?: string | null
   trackingNumber?: string | null
   note?: string | null
+  language?: string
   customerId: number
   couponId?: number | null
   updatedAt?: Date | string
@@ -1381,6 +1420,7 @@ export type OrderUpdateWithoutCustomerInput = {
   carrier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
@@ -1404,6 +1444,7 @@ export type OrderUncheckedUpdateWithoutCustomerInput = {
   carrier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   couponId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1427,6 +1468,7 @@ export type OrderUncheckedUpdateManyWithoutCustomerInput = {
   carrier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   couponId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1449,6 +1491,7 @@ export type OrderUpdateWithoutCreatedByInput = {
   carrier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -1472,6 +1515,7 @@ export type OrderUncheckedUpdateWithoutCreatedByInput = {
   carrier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   customerId?: Prisma.IntFieldUpdateOperationsInput | number
   couponId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1495,6 +1539,7 @@ export type OrderUncheckedUpdateManyWithoutCreatedByInput = {
   carrier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   customerId?: Prisma.IntFieldUpdateOperationsInput | number
   couponId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1548,6 +1593,7 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   carrier?: boolean
   trackingNumber?: boolean
   note?: boolean
+  language?: boolean
   customerId?: boolean
   couponId?: boolean
   updatedAt?: boolean
@@ -1576,6 +1622,7 @@ export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   carrier?: boolean
   trackingNumber?: boolean
   note?: boolean
+  language?: boolean
   customerId?: boolean
   couponId?: boolean
   updatedAt?: boolean
@@ -1602,6 +1649,7 @@ export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   carrier?: boolean
   trackingNumber?: boolean
   note?: boolean
+  language?: boolean
   customerId?: boolean
   couponId?: boolean
   updatedAt?: boolean
@@ -1628,6 +1676,7 @@ export type OrderSelectScalar = {
   carrier?: boolean
   trackingNumber?: boolean
   note?: boolean
+  language?: boolean
   customerId?: boolean
   couponId?: boolean
   updatedAt?: boolean
@@ -1635,7 +1684,7 @@ export type OrderSelectScalar = {
   createdById?: boolean
 }
 
-export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "number" | "status" | "subtotal" | "discount" | "shippingCost" | "total" | "shippingAddress" | "paidAt" | "shippedAt" | "deliveredAt" | "cancelledAt" | "carrier" | "trackingNumber" | "note" | "customerId" | "couponId" | "updatedAt" | "createdAt" | "createdById", ExtArgs["result"]["order"]>
+export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "number" | "status" | "subtotal" | "discount" | "shippingCost" | "total" | "shippingAddress" | "paidAt" | "shippedAt" | "deliveredAt" | "cancelledAt" | "carrier" | "trackingNumber" | "note" | "language" | "customerId" | "couponId" | "updatedAt" | "createdAt" | "createdById", ExtArgs["result"]["order"]>
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   customer?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   items?: boolean | Prisma.Order$itemsArgs<ExtArgs>
@@ -1681,6 +1730,7 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     carrier: string | null
     trackingNumber: string | null
     note: string | null
+    language: string
     customerId: number
     couponId: number | null
     /**
@@ -2131,6 +2181,7 @@ export interface OrderFieldRefs {
   readonly carrier: Prisma.FieldRef<"Order", 'String'>
   readonly trackingNumber: Prisma.FieldRef<"Order", 'String'>
   readonly note: Prisma.FieldRef<"Order", 'String'>
+  readonly language: Prisma.FieldRef<"Order", 'String'>
   readonly customerId: Prisma.FieldRef<"Order", 'Int'>
   readonly couponId: Prisma.FieldRef<"Order", 'Int'>
   readonly updatedAt: Prisma.FieldRef<"Order", 'DateTime'>

@@ -19,13 +19,20 @@ export async function createRoles(): Promise<void> {
 /** Registers a customer through the public registration route. */
 export async function registerCustomer(
   app: Application,
-  name: string
+  name: string,
+  language?: string
 ): Promise<{ id: number; email: string; auth: Record<string, string> }> {
   const email = `${name.toLowerCase()}.${RUN}@test.example.com`;
   const registered = await app.server.inject({
     method: 'POST',
     url: '/api/register',
-    payload: { firstName: name, lastName: 'Tester', email, password: PASSWORD }
+    payload: {
+      firstName: name,
+      lastName: 'Tester',
+      email,
+      password: PASSWORD,
+      language
+    }
   });
 
   return {
