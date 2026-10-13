@@ -25,7 +25,7 @@ describe('create-client', () => {
     (common.requireModule as jest.Mock).mockImplementation((name: string) => ({
       value: name === '@prisma/adapter-pg' ? { PrismaPg } : { PrismaClient }
     }));
-    overrides.DATABASE_TYPE = common.DatabaseType.PostgresSQL;
+    overrides.DATABASE_TYPE = common.DatabaseType.PostgreSQL;
   });
 
   afterEach(() => {

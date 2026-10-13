@@ -1,13 +1,16 @@
 import fastifyPlugin from 'fastify-plugin';
 import { FastifyRequest } from 'fastify';
-import { config, ErrorCode } from '@appweaver/common';
+import { config, ConfigurationError, ErrorCode } from '@appweaver/common';
 import { TurnstileError } from './turnstile-error';
 import { Server } from '../../types';
 import { turnstileVerify } from './turnstile-verify';
 
 export const turnstile = fastifyPlugin(async (server: Server) => {
   if (!config.SECURITY_TURNSTILE_SECRET) {
-    throw Error('Turnstile secret is not set');
+    throw new ConfigurationError(
+      ErrorCode.ConfigurationInvalid,
+      'Turnstile secret is not set'
+    );
   }
 
   server.decorate('turnstile', async (request: FastifyRequest) => {

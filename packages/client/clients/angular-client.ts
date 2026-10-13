@@ -20,6 +20,7 @@ import {
   AuthInterface,
   AuthType,
   FilesClient,
+  FilesInterface,
   HealthClient,
   HealthInterface,
   HealthType,
@@ -154,10 +155,10 @@ export class AngularClient<
   }
 
   protected filesClient<
-    OmitFields extends readonly (keyof HealthInterface)[] = []
+    OmitFields extends readonly (keyof FilesInterface)[] = []
   >(
     filesPath: string
-  ): ObservableMethods<ClientResult<FilesClient, HealthInterface, OmitFields>> {
+  ): ObservableMethods<ClientResult<FilesClient, FilesInterface, OmitFields>> {
     const instance = super.filesClient<OmitFields>(filesPath);
     return this.wrapWithObservables(instance);
   }

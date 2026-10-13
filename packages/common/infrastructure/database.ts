@@ -24,7 +24,7 @@ export abstract class Database implements IHealthCheck, OnInit, OnDestroy {
   /**
    * Returns the underlying database client.
    *
-   * @returns The typed client instance.
+   * @return The typed client instance.
    */
   abstract client<T>(): T;
 

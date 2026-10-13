@@ -2,6 +2,11 @@ import { Command } from 'commander';
 import { createSeeder } from '@appweaver/core';
 import { buildProject } from '../build';
 
+/**
+ * Registers the `seed` command, seeding the database.
+ *
+ * @param {Command} program - The program to register the command on.
+ */
 export function seedCommand(program: Command): void {
   program
     .command('seed')

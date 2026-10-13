@@ -113,7 +113,7 @@ export abstract class ResourceService<
    * The underlying Prisma model delegate for this resource, useful for
    * executing custom database operations that the service methods do not cover.
    *
-   * @returns {ResourceClient} The resource client of the model this service was
+   * @return {ResourceClient} The resource client of the model this service was
    * created for, bound to the current transaction (see `runTransaction`).
    */
   public get client(): ResourceClient {
@@ -127,7 +127,7 @@ export abstract class ResourceService<
    * a successful lookup.
    *
    * @param {ResourceId} id The id of the resource to find.
-   * @returns {Promise<Object>} The found resource with its virtual fields and
+   * @return {Promise<Object>} The found resource with its virtual fields and
    * relation counts projected.
    * @throws {@link ResourceError} `RESOURCE_NOT_FOUND` if the resource does not
    * exist or is filtered out by the read restrictions, `RESOURCE_FORBIDDEN` if
@@ -202,7 +202,7 @@ export abstract class ResourceService<
    *   the page runs in. Takes precedence over `page`.
    * - `totalCount` Whether to count all matching resources, which costs a scan
    *   of every one of them (default: `true`).
-   * @returns {Promise<QueryResponse<Object>>} The paged query response containing
+   * @return {Promise<QueryResponse<Object>>} The paged query response containing
    * the returned resources, the count of the returned items, the cursors of the
    * adjacent pages, and the total count unless it was opted out of.
    * @throws {@link ResourceError} `RESOURCE_INVALID_SORT` if the sort input names
@@ -298,7 +298,7 @@ export abstract class ResourceService<
    * @param {QuerySort} [sort] The fields to sort the matching resources by, of
    * which the first one is returned, in the same form as in
    * {@link ResourceService.query} (default: `-createdAt`).
-   * @returns {Promise<Object|null>} The first matching resource with its virtual
+   * @return {Promise<Object|null>} The first matching resource with its virtual
    * fields and relation counts projected, or null when none matches.
    * @throws {@link ResourceError} `RESOURCE_FORBIDDEN` if the access check denies
    * the matching resource, `RESOURCE_INVALID_SORT` if the sort input names a
@@ -350,7 +350,7 @@ export abstract class ResourceService<
    *
    * @param {Object} [filter] The query filter object, mapped the same way as in
    * {@link ResourceService.query}.
-   * @returns {Promise<number>} The number of matching resources.
+   * @return {Promise<number>} The number of matching resources.
    * @throws {@link DatabaseError} On a database error.
    */
   public async count(filter: Query = {} as Query): Promise<number> {
@@ -369,7 +369,7 @@ export abstract class ResourceService<
    *
    * @param {Object} [filter] The query filter object, mapped the same way as in
    * {@link ResourceService.query}.
-   * @returns {Promise<boolean>} True if at least one resource matches, otherwise
+   * @return {Promise<boolean>} True if at least one resource matches, otherwise
    * false.
    * @throws {@link DatabaseError} On a database error.
    */
@@ -415,7 +415,7 @@ export abstract class ResourceService<
    * - `safeIncrement` Whether the period increments use the derived time unit
    *   and stay consistent across daylight saving time changes. When false, the
    *   step is interpreted in seconds (default: `true`).
-   * @returns {Promise<AggregateResponse<Object>>} The aggregation response with
+   * @return {Promise<AggregateResponse<Object>>} The aggregation response with
    * the overall total and one result per period, each labeled with the median
    * date of its period. It is typed by the fields the selection named, not by
    * the whole model, whenever the selection is passed as an object literal or
@@ -519,7 +519,7 @@ export abstract class ResourceService<
    *
    * @param {Object} data The data of the resource to create, including any inline
    * relation and file payloads.
-   * @returns {Promise<Object>} The created resource with its virtual fields and
+   * @return {Promise<Object>} The created resource with its virtual fields and
    * relation counts projected.
    * @throws {@link ResourceError} `RESOURCE_FORBIDDEN` if the access check denies
    * the action, `RESOURCE_INVALID_RELATION` if an inline relation payload is
@@ -595,7 +595,7 @@ export abstract class ResourceService<
    * @param {ResourceId} id The id of the resource to update.
    * @param {Object} data The partial data to update the resource with, including
    * any inline relation and file payloads.
-   * @returns {Promise<Object>} The updated resource with its virtual fields and
+   * @return {Promise<Object>} The updated resource with its virtual fields and
    * relation counts projected.
    * @throws {@link ResourceError} `RESOURCE_NOT_FOUND` if the resource does not
    * exist or is filtered out by the read restrictions, `RESOURCE_FORBIDDEN` if
@@ -624,7 +624,7 @@ export abstract class ResourceService<
    * @param {ResourceId} id The id of the resource to replace.
    * @param {Object} data The new state of the resource, including any inline
    * relation payloads.
-   * @returns {Promise<Object>} The replaced resource with its virtual fields and
+   * @return {Promise<Object>} The replaced resource with its virtual fields and
    * relation counts projected.
    * @throws The same errors as {@link ResourceService.update}.
    */
@@ -652,7 +652,7 @@ export abstract class ResourceService<
    * model is invalidated and a resource event is emitted.
    *
    * @param {ResourceId} id The id of the resource to delete.
-   * @returns {Promise<Object>} The deleted resource with its virtual fields and
+   * @return {Promise<Object>} The deleted resource with its virtual fields and
    * relation counts projected.
    * @throws {@link ResourceError} `RESOURCE_NOT_FOUND` if the resource does not
    * exist or is filtered out by the read restrictions, `RESOURCE_FORBIDDEN` if
@@ -747,7 +747,7 @@ export abstract class ResourceService<
    * item wait for the commit, and are dropped on a rollback.
    *
    * @param {Object[]} items The data of every resource to create.
-   * @returns {Promise<Object[]>} The created resources, in the order of the
+   * @return {Promise<Object[]>} The created resources, in the order of the
    * items.
    * @throws The error of the first item that failed, the same errors as
    * {@link ResourceService.create}.
@@ -762,7 +762,7 @@ export abstract class ResourceService<
    * resource is updated or none, see {@link ResourceService.bulkCreate}.
    *
    * @param {BulkItem[]} items The id and the partial data of every resource.
-   * @returns {Promise<Object[]>} The updated resources, in the order of the
+   * @return {Promise<Object[]>} The updated resources, in the order of the
    * items.
    * @throws The error of the first item that failed, the same errors as
    * {@link ResourceService.update}.
@@ -777,7 +777,7 @@ export abstract class ResourceService<
    * resource is replaced or none, see {@link ResourceService.bulkCreate}.
    *
    * @param {BulkItem[]} items The id and the new state of every resource.
-   * @returns {Promise<Object[]>} The replaced resources, in the order of the
+   * @return {Promise<Object[]>} The replaced resources, in the order of the
    * items.
    * @throws The error of the first item that failed, the same errors as
    * {@link ResourceService.replace}.
@@ -794,7 +794,7 @@ export abstract class ResourceService<
    * id the cascade of an earlier one already removed is skipped.
    *
    * @param {ResourceId[]} ids The ids of the resources to delete.
-   * @returns {Promise<Object[]>} The resources deleted by their own id, in the
+   * @return {Promise<Object[]>} The resources deleted by their own id, in the
    * order of the ids.
    * @throws {@link ResourceError} `RESOURCE_NOT_FOUND` if an id does not exist,
    * and otherwise the error of the first resource that failed, the same errors
@@ -826,7 +826,7 @@ export abstract class ResourceService<
    *
    * @param {ResourceId} id The id of the resource to update.
    * @param {Object} data The partial data to update the resource with.
-   * @returns {Promise<{ previous: Object, current: Object }>} The resource before
+   * @return {Promise<{ previous: Object, current: Object }>} The resource before
    * and after the update, both with their virtual fields and relation counts
    * projected.
    */
@@ -943,7 +943,7 @@ export abstract class ResourceService<
    * relations.
    *
    * @param {Object} data The data of the replacement.
-   * @returns {Object} A shallow copy of the data, with the missing fields set.
+   * @return {Object} A shallow copy of the data, with the missing fields set.
    */
   protected replacementData(data: Replace): Update {
     const resourceModel = injectModel(this._client.name);
@@ -1041,7 +1041,7 @@ export abstract class ResourceService<
    * @param {ActionType} action The called action method on this service (find,
    * query, aggregate, create, update, or delete)
    * @param {Object} resource The resource object that is being checked for access.
-   * @returns {Promise<boolean>} True if the access for resource is granted, false
+   * @return {Promise<boolean>} True if the access for resource is granted, false
    * otherwise.
    */
   protected async checkAccess(
@@ -1058,7 +1058,7 @@ export abstract class ResourceService<
    * a query object that can be used to filter results.
    *
    * @param {string} searchText The text string used for searching resources.
-   * @returns {Object} A query object that represents the conditions for the text
+   * @return {Object} A query object that represents the conditions for the text
    * search operation, using the native Prisma filter syntax. This will be used
    * by the database query methods to retrieve matching resources.
    */
@@ -1134,7 +1134,7 @@ export abstract class ResourceService<
    *
    * @param {Object} filter The request filter object, possibly containing a
    * `searchText` property. The property is deleted from this object when present.
-   * @returns {Object} The text search query for the extracted search text, or an
+   * @return {Object} The text search query for the extracted search text, or an
    * empty object if the filter contains no search text.
    */
   private extractTextSearchQuery(filter: any): any {
@@ -1153,7 +1153,7 @@ export abstract class ResourceService<
    *
    * @param {Object} resource The resource object as returned by the database
    * client.
-   * @returns {Object} The same resource with the virtual fields resolved and, if a
+   * @return {Object} The same resource with the virtual fields resolved and, if a
    * `_count` selection was present, with a count property per counted relation
    * and the `_count` property removed.
    */
@@ -1182,7 +1182,7 @@ export abstract class ResourceService<
    * empty for a model that deletes its records, so its query and the cursors
    * bound to it stay the same.
    *
-   * @returns {Object[]} The `deletedAt: null` condition, or no condition.
+   * @return {Object[]} The `deletedAt: null` condition, or no condition.
    */
   private liveFilters(): Record<string, any>[] {
     const liveFilter = liveRecordFilter(this._client.name);
@@ -1227,7 +1227,7 @@ export abstract class ResourceService<
    * @param {string} [resourceName] The name of the model the payload belongs to.
    * Defaults to the model of this service and is set to the related model name
    * when recursing into a nested relation or file payload.
-   * @returns {Object} A shallow copy of the payload without the virtual fields,
+   * @return {Object} A shallow copy of the payload without the virtual fields,
    * with the missing hidden required scalars defaulted, and with the nested
    * payloads sanitized against their own models.
    */

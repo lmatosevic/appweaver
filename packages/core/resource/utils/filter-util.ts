@@ -103,7 +103,7 @@ const fieldOperators: Record<string, (value: any) => Record<string, any>> = {
  * @param {string} resourceName The name of the model the filter is matched
  * against. It is set to the related model name when recursing into a nested
  * relation or file filter.
- * @returns {Object} The `where` clause with every recognized field mapped to its
+ * @return {Object} The `where` clause with every recognized field mapped to its
  * database condition and the unrecognized values passed through unchanged.
  */
 export function mapQueryFilter(filter: any, resourceName: string): any {
@@ -224,7 +224,7 @@ export function mapQueryFilter(filter: any, resourceName: string): any {
  *
  * @param {Object|Object[]} value The logical operator value to normalize.
  * @param {Function} map The function mapping a single filter condition.
- * @returns {Object[]} The list of mapped filter conditions.
+ * @return {Object[]} The list of mapped filter conditions.
  */
 function mapFilterConditions(value: any, map: (item: any) => any): any[] {
   if (isArray(value)) {
@@ -248,7 +248,7 @@ function mapFilterConditions(value: any, map: (item: any) => any): any[] {
  * matched against.
  * @param {boolean} isArrayType Whether the relation is a list (to-many)
  * relation.
- * @returns {Object} The database condition of the relation field.
+ * @return {Object} The database condition of the relation field.
  */
 function mapRelationFilter(
   filter: any,
@@ -283,7 +283,7 @@ function mapRelationFilter(
  * native database conditions keep working.
  *
  * @param {*} value The field condition value to map.
- * @returns {*} The database condition with every filter operator translated.
+ * @return {*} The database condition with every filter operator translated.
  */
 function mapFieldFilter(value: any): any {
   if (isArray(value)) {
@@ -333,7 +333,7 @@ function mapFieldFilter(value: any): any {
  * comparison operator (i.e. `_eq`, `_gt`, `_like`, ...).
  *
  * @param {*} value The value to check.
- * @returns {boolean} True if the value contains a field operator.
+ * @return {boolean} True if the value contains a field operator.
  */
 function hasFieldOperators(value: any): boolean {
   return (

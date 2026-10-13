@@ -38,6 +38,12 @@ export const healthReadySchema = {
   }
 };
 
+/**
+ * Builds the route schema of the health check, responding with the result of each named service.
+ *
+ * @param {string[]} serviceNames - The names of the checked services.
+ * @return {RouteSchema} The route schema.
+ */
 export function createHealthCheckSchema(serviceNames: string[]): RouteSchema {
   const healthChecks: Record<string, TSchema> = {};
 

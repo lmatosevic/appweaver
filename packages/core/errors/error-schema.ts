@@ -96,7 +96,7 @@ export function problemDetailsSchema(): typeof ProblemDetailsSchema {
  *
  * @param {...string} codes The framework or application error codes of the
  * route, the application ones registered with `defineErrors`.
- * @returns {ErrorResponses} The error responses to spread into the `response`
+ * @return {ErrorResponses} The error responses to spread into the `response`
  * of a route schema.
  * @throws {ConfigurationError} If a code is not registered.
  */
@@ -215,7 +215,7 @@ export function stashErrorResponses(route: {
  * the route declares a response of its own for keeps it.
  *
  * @param {Object} responses The responses of a route schema.
- * @returns {Object} The documented responses.
+ * @return {Object} The documented responses.
  */
 export function documentErrorResponses(
   responses: Record<string, unknown>

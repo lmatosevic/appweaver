@@ -24,7 +24,7 @@ export abstract class Storage implements IHealthCheck, OnInit {
    * @param {string} fileName - The file name/path to stream.
    * @param {number} start - The start byte offset.
    * @param {number} [end] - Optional end byte offset.
-   * @returns {Promise<ContentStream | null>} A promise that resolves to `ContentStream` with the stream and size, or
+   * @return {Promise<ContentStream | null>} A promise that resolves to `ContentStream` with the stream and size, or
    * `null` if a file is not found.
    */
   abstract stream(
@@ -38,7 +38,7 @@ export abstract class Storage implements IHealthCheck, OnInit {
    *
    * @param {string} fileName - The target file name/path.
    * @param {Readable} data - The readable stream containing file data.
-   * @returns {Promise<string | null>} A promise that resolves to the stored file name/path, or `null` on failure.
+   * @return {Promise<string | null>} A promise that resolves to the stored file name/path, or `null` on failure.
    */
   abstract store(fileName: string, data: Readable): Promise<string | null>;
 
@@ -46,7 +46,7 @@ export abstract class Storage implements IHealthCheck, OnInit {
    * Deletes a file from storage.
    *
    * @param {string} fileName - The file name/path to delete.
-   * @returns {Promise<boolean>} A promise that resolves to `true` if file/path is deleted successfully, `false`
+   * @return {Promise<boolean>} A promise that resolves to `true` if file/path is deleted successfully, `false`
    * otherwise.
    */
   abstract delete(fileName: string): Promise<boolean>;
@@ -54,7 +54,7 @@ export abstract class Storage implements IHealthCheck, OnInit {
   /**
    * Checks whether a file exists.
    *
-   * @param {string} fileName - The file name/path to check existance.
+   * @param {string} fileName - The file name/path to check existence.
    * @return {Promise<boolean>} A promise that resolves to `true` if file/path exists, `false` otherwise.
    */
   abstract exists(fileName: string): Promise<boolean>;

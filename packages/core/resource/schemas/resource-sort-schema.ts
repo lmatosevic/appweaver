@@ -14,7 +14,7 @@ import { createSchemaModel } from '../../utils';
  * Resolves the schema name the query sort object of a model is registered under.
  *
  * @param {string} modelName The resource model name (i.e. `User`, `Post`).
- * @returns {string} The query sort schema name (i.e. `UserQuerySort`).
+ * @return {string} The query sort schema name (i.e. `UserQuerySort`).
  */
 export const querySortName = (modelName: string): string =>
   `${modelName}QuerySort`;
@@ -35,7 +35,7 @@ const SortDirection = (): TSchema =>
  * field name.
  *
  * @param {ResourceModel} model The resource model to build the sort schema for.
- * @returns {TObject} The query sort schema of the model.
+ * @return {TObject} The query sort schema of the model.
  */
 export function buildQuerySortSchema(model: ResourceModel): TObject {
   const properties: Record<string, TSchema> = {
@@ -117,7 +117,7 @@ export function registerQuerySortSchemas(): void {
  *
  * @param {string} modelName The resource model name the sort property belongs to.
  * @param {string} [description] The description of the property, replacing the default one.
- * @returns {TSchema} The optional sort property schema.
+ * @return {TSchema} The optional sort property schema.
  */
 export function querySortSchema(
   modelName: string,

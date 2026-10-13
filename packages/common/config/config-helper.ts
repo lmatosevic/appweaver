@@ -102,6 +102,13 @@ export type ConfigHelper = {
   arr<T = string>(key: string, defaultValue: T[]): T[];
 };
 
+/**
+ * Adds the typed accessor helpers (`str`, `int`, `float`, `bool`, `arr`) to a parsed config, reading a key of the config
+ * or its additional `_appweaver_` prefixed form.
+ *
+ * @param {Object} parsedConfig - The parsed config.
+ * @return {Object} The config extended with the helpers.
+ */
 export function addHelpers<C extends object>(
   parsedConfig: C
 ): C & ConfigHelper {

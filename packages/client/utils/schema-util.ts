@@ -12,7 +12,7 @@ const WINDOWS_DRIVE_PATH = /^[a-zA-Z]:[\\/]/;
  *
  * @param {string} schemaPath The schema location given on the command line,
  * either a URL or a filesystem path.
- * @returns {URL | undefined} The parsed URL, or undefined when the location is
+ * @return {URL | undefined} The parsed URL, or undefined when the location is
  * a filesystem path, including a Windows path starting with a drive letter.
  */
 export function parseSchemaUrl(schemaPath: string): URL | undefined {
@@ -34,7 +34,7 @@ export function parseSchemaUrl(schemaPath: string): URL | undefined {
  *
  * @param {string} schemaPath The schema location, either a filesystem path or
  * an `http:`, `https:` or `file:` URL.
- * @returns {Promise<string>} The raw schema content, in JSON or YAML format.
+ * @return {Promise<string>} The raw schema content, in JSON or YAML format.
  * @throws {Error} When the schema URL cannot be reached or responds with an
  * error status.
  */
@@ -107,7 +107,7 @@ export function normalizeNullTypes(schema: OpenAPI3): void {
  * and falling back to YAML.
  *
  * @param {string} schemaContent The raw schema content, in JSON or YAML format.
- * @returns {Promise<OpenAPI3>} The parsed OpenAPI document.
+ * @return {Promise<OpenAPI3>} The parsed OpenAPI document.
  * @throws {Error} When the content is neither valid JSON nor valid YAML.
  */
 export async function toSchemaObject(schemaContent: string): Promise<OpenAPI3> {

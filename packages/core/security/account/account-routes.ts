@@ -12,6 +12,11 @@ import { AccountService, VerificationType } from './account-service';
 import { inject } from '../../context';
 import { Server } from '../../types';
 
+/**
+ * Registers the account routes: email verification, password reset, and two-factor authentication.
+ *
+ * @param {Server} server - The server to register the routes on.
+ */
 export function accountRoutes(server: Server): void {
   const { authenticate, currentUser, recaptcha, turnstile } = server;
 

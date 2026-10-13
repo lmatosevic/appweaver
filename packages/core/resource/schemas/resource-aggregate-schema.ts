@@ -15,7 +15,7 @@ export const AGGREGATE_DATE_SCHEMA_NAME = 'AggregateDateOperators';
  * under.
  *
  * @param {string} modelName The resource model name (i.e. `User`, `Post`).
- * @returns {string} The aggregate selection schema name (i.e. `UserAggregateSelect`).
+ * @return {string} The aggregate selection schema name (i.e. `UserAggregateSelect`).
  */
 export const aggregateSelectName = (modelName: string): string =>
   `${modelName}AggregateSelect`;
@@ -78,7 +78,7 @@ export const AggregateDateSchema: TObject = Type.Object(
  *
  * @param {ResourceModel} model The resource model to build the selection schema
  * for.
- * @returns {TObject} The aggregate selection schema of the model.
+ * @return {TObject} The aggregate selection schema of the model.
  */
 export function buildAggregateSelectSchema(model: ResourceModel): TObject {
   const properties: Record<string, TSchema> = {};
@@ -105,7 +105,7 @@ export function buildAggregateSelectSchema(model: ResourceModel): TObject {
  * fields the aggregated range can be applied on.
  *
  * @param {ResourceModel} model The resource model the property belongs to.
- * @returns {TSchema} The optional date field property schema, restricted to the
+ * @return {TSchema} The optional date field property schema, restricted to the
  * date fields of the model when it declares any.
  */
 export function aggregateDateFieldSchema(model: ResourceModel): TSchema {

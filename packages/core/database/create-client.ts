@@ -29,7 +29,7 @@ const options: Omit<PrismaClientOptions, 'adapter'> = {
  *
  * The database type is determined by the `DATABASE_TYPE` configuration value or,
  * if unspecified, by parsing the `DATABASE_URL` configuration.
- * Supported database types include SQLite, PostgresSQL, and MySQL.
+ * Supported database types include SQLite, PostgreSQL, and MySQL.
  *
  * @return {PrismaClient} A PrismaClient instance configured for the selected database type.
  */
@@ -38,7 +38,7 @@ export function createClient(): PrismaClient {
   switch (dbType) {
     case DatabaseType.Sqlite:
       return sqliteClient();
-    case DatabaseType.PostgresSQL:
+    case DatabaseType.PostgreSQL:
       return postgresClient();
     case DatabaseType.MySQL:
       return mysqlClient();
@@ -85,7 +85,7 @@ function sqliteClient(): PrismaClient {
  * Creates and returns an instance of PrismaClient configured with the specified options.
  * The `schema` parameter of the database URL selects the PostgreSQL schema, `public` by default.
  *
- * @return {PrismaClient} An instance of PrismaClient used to interact with a PostgresSQL database.
+ * @return {PrismaClient} An instance of PrismaClient used to interact with a PostgreSQL database.
  */
 function postgresClient(): PrismaClient {
   const { PrismaPg } = requireModule('@prisma/adapter-pg', true).value;

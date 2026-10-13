@@ -20,10 +20,9 @@ import {
   toResourceId
 } from '@appweaver/common';
 import { inject, injectModel, injectPolicy, injectService } from '../context';
-import { toDatabaseError } from '../database/database-error';
 import { FileError } from './file-error';
-import { currentAuthUser } from '../security';
-import { PrismaDatabase } from '../database';
+import { currentAuthUser } from '../security/helper';
+import { PrismaDatabase, toDatabaseError } from '../database';
 import {
   afterCommit,
   afterRollback,

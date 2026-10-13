@@ -259,7 +259,7 @@ describe('type-util', () => {
     test('infers postgresql from the url', () => {
       expect(
         resolveDatabaseType(undefined, 'postgresql://user:pass@host:5432/db')
-      ).toBe(DatabaseType.PostgresSQL);
+      ).toBe(DatabaseType.PostgreSQL);
     });
 
     test('infers mysql from mysql and mariadb urls', () => {

@@ -111,6 +111,16 @@ export const BulkResponse = Type.Object(
   { $id: 'BulkResponse' }
 );
 
+/**
+ * Builds the route schemas of every resource route of a model, with the security, bot check headers, and error
+ * responses of each route.
+ *
+ * @param {string} name - The model name.
+ * @param {Object} routeAuthTypes - The authentication types accepted by each route.
+ * @param {Object} routeCaptcha - The bot check config of each route.
+ * @param {Object} [routeBulk={}] - The maximum items and the response type of each bulk route.
+ * @return {ResourceSchemaConfig} The schema of each route.
+ */
 export function createSchema(
   name: string,
   routeAuthTypes: Record<ResourceRouteName, AuthType[] | undefined>,

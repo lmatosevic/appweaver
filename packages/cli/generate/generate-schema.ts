@@ -49,7 +49,7 @@ const CUID_LENGTHS: Record<string, number> = {
 const NANOID_LENGTH = 21;
 
 const UUID_NATIVE_TYPES: Partial<Record<DatabaseType, string>> = {
-  [DatabaseType.PostgresSQL]: '@db.Uuid',
+  [DatabaseType.PostgreSQL]: '@db.Uuid',
   [DatabaseType.SQLServer]: '@db.UniqueIdentifier',
   [DatabaseType.MySQL]: `@db.Char(${UUID_LENGTH})`
 };
@@ -59,7 +59,7 @@ const UUID_NATIVE_TYPES: Partial<Record<DatabaseType, string>> = {
 const STRING_NATIVE_TYPES: Partial<
   Record<DatabaseType, { maxVarChar: number; text: string }>
 > = {
-  [DatabaseType.PostgresSQL]: { maxVarChar: 10_485_760, text: '@db.Text' },
+  [DatabaseType.PostgreSQL]: { maxVarChar: 10_485_760, text: '@db.Text' },
   [DatabaseType.MySQL]: { maxVarChar: 16_383, text: '@db.MediumText' },
   [DatabaseType.SQLServer]: { maxVarChar: 8_000, text: '@db.VarChar(Max)' }
 };

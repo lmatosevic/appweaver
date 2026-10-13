@@ -32,7 +32,7 @@ export abstract class Memory implements IHealthCheck, OnInit, OnDestroy {
    * Retrieves a value by key.
    *
    * @param {string} key - The key to look up.
-   * @returns The stored value, or `null` if not found.
+   * @return The stored value, or `null` if not found.
    */
   abstract get<T = any>(key: string): Promise<T | null>;
 
@@ -42,7 +42,7 @@ export abstract class Memory implements IHealthCheck, OnInit, OnDestroy {
    * @param {string} key - The key to store under.
    * @param {Object} value - The value to store.
    * @param {number} [ttl] - Optional time-to-live in milliseconds.
-   * @returns `true` if stored successfully, `false` otherwise.
+   * @return `true` if stored successfully, `false` otherwise.
    */
   abstract set(key: string, value: any, ttl?: number): Promise<boolean>;
 
@@ -57,7 +57,7 @@ export abstract class Memory implements IHealthCheck, OnInit, OnDestroy {
    * Removes the value for the given key.
    *
    * @param {string} key - The key to remove.
-   * @returns `true` if the key was removed, `false` otherwise.
+   * @return `true` if the key was removed, `false` otherwise.
    */
   abstract delete(key: string): Promise<boolean>;
 
@@ -65,7 +65,7 @@ export abstract class Memory implements IHealthCheck, OnInit, OnDestroy {
    * Removes all entries matching the given key pattern.
    *
    * @param {string} [pattern] - Optional glob pattern to filter keys, matching every key by default.
-   * @returns The number of entries removed.
+   * @return The number of entries removed.
    */
   abstract deleteMatching(pattern?: string): Promise<number>;
 
@@ -73,7 +73,7 @@ export abstract class Memory implements IHealthCheck, OnInit, OnDestroy {
    * Returns all keys matching the given pattern.
    *
    * @param {string} [pattern] - Optional glob pattern to filter keys, matching every key by default.
-   * @returns {Promise<string[]>} The keys matching the pattern.
+   * @return {Promise<string[]>} The keys matching the pattern.
    */
   abstract keys(pattern?: string): Promise<string[]>;
 

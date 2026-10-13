@@ -1,6 +1,5 @@
 import { AuthSource, config, ErrorCode } from '@appweaver/common';
-import { context } from '../../context';
-import { ContextError } from '../../context/context-error';
+import { context, ContextError } from '../../context';
 import { UserInfo } from '../../types';
 import { createOAuth2Plugin } from './create-oauth2-plugin';
 import { fetchUserInfo, requireEmail } from './oauth2-util';

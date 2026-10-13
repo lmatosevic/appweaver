@@ -24,7 +24,7 @@ export class AuthClient<Auth extends AuthType>
    *
    * @param {Object} request - The login payload (e.g., email and password).
    * @param {RequestOptions} options - Additional request options.
-   * @returns An authentication response containing tokens and session info.
+   * @return An authentication response containing tokens and session info.
    */
   public async login(
     request: Auth['loginRequest'],
@@ -40,7 +40,7 @@ export class AuthClient<Auth extends AuthType>
    * Logs out the currently authenticated user and invalidates the session.
    *
    * @param {RequestOptions} options - Additional request options.
-   * @returns The logout response from the server.
+   * @return The logout response from the server.
    */
   public async logout(
     options: RequestOptions = {}
@@ -52,7 +52,7 @@ export class AuthClient<Auth extends AuthType>
    * Refreshes the current authentication session and issues new tokens.
    *
    * @param {RequestOptions} options - Additional request options.
-   * @returns A fresh authentication response with updated tokens.
+   * @return A fresh authentication response with updated tokens.
    */
   public async refresh(
     options: RequestOptions = {}
@@ -65,7 +65,7 @@ export class AuthClient<Auth extends AuthType>
    *
    * @param {Object} request - The change-password payload (e.g., current and new password).
    * @param {RequestOptions} options - Additional request options.
-   * @returns An updated authentication response after the password change.
+   * @return An updated authentication response after the password change.
    */
   public async changePassword(
     request: Auth['changePasswordRequest'],
@@ -82,7 +82,7 @@ export class AuthClient<Auth extends AuthType>
    *
    * @param {Object} request - The token exchange payload (e.g., an OAuth code or external token).
    * @param {RequestOptions} options - Additional request options.
-   * @returns An authentication response containing the issued application tokens.
+   * @return An authentication response containing the issued application tokens.
    */
   public async exchangeToken(
     request: Auth['exchangeTokenRequest'],
@@ -98,7 +98,7 @@ export class AuthClient<Auth extends AuthType>
    * Retrieves the identity of the currently authenticated user.
    *
    * @param {RequestOptions} options - Additional request options.
-   * @returns The identity object for the authenticated user.
+   * @return The identity object for the authenticated user.
    */
   public async me(options: RequestOptions = {}): Promise<Auth['identity']> {
     return this.sendRequest('get', `${this.basePath}/me`, options);

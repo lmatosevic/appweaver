@@ -52,7 +52,7 @@ const MAP_KEYWORDS = [
  *
  * @param {number} [maxErrorCount] The maximum number of errors a failed request
  * reports (default: `SERVER_ERROR_RESPONSE_MAX_COUNT`).
- * @returns {Pick<FastifyServerOptions, 'schemaController' | 'ajv'>} The
+ * @return {Pick<FastifyServerOptions, 'schemaController' | 'ajv'>} The
  * validation options of a Fastify server.
  */
 export function requestValidation(
@@ -90,7 +90,7 @@ export function requestValidation(
  *
  * @param {number} [limit=1] The maximum number of errors a failed validation
  * reports.
- * @returns {BuildCompilerFromPool} The validator factory for the
+ * @return {BuildCompilerFromPool} The validator factory for the
  * `schemaController.compilersFactory.buildValidator` server option.
  */
 export function strictValidator(limit: number = 1): BuildCompilerFromPool {
@@ -149,7 +149,7 @@ export function strictValidator(limit: number = 1): BuildCompilerFromPool {
  * @param {ErrorObject[]} errors The errors of the failed validation, in the
  * order the validator reported them.
  * @param {number} [limit=1] The maximum number of errors to return.
- * @returns {ErrorObject[]} The relevant errors, at most `limit` of them.
+ * @return {ErrorObject[]} The relevant errors, at most `limit` of them.
  */
 export function relevantErrors(
   errors: ErrorObject[],
@@ -312,7 +312,7 @@ function withoutVerbose(error: ErrorObject): ErrorObject {
  * would reject the properties of the others.
  *
  * @param {T} schema The schema to close.
- * @returns {T} The closed copy of the schema, the original is left unchanged.
+ * @return {T} The closed copy of the schema, the original is left unchanged.
  */
 export function closeSchema<T>(schema: T): T {
   return close(schema, false, new WeakMap()) as T;

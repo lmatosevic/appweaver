@@ -5,6 +5,7 @@ import {
   AuthOTTPurpose,
   AuthSource,
   config,
+  ConfigurationError,
   ErrorCode,
   pickProperties,
   SecurityStore
@@ -33,11 +34,16 @@ export type { UserInfo, OAuth2TokenSet, OAuth2UserInfoContext };
 
 export type OAuth2Config = {
   enabled: boolean;
+  scope: string[];
+  /** Fetches the profile of the authenticated user from the provider. */
+  extractUserInfo: (
+    accessToken: string,
+    context: OAuth2UserInfoContext
+  ) => Promise<UserInfo>;
   clientId?: string;
   /** A function is resolved lazily, only once the provider is known to be enabled. */
   clientSecret?: string | (() => string | undefined);
   issuer?: string;
-  scope: string[];
   /** Provider endpoints. Defaults to the `@fastify/oauth2` preset matching the auth source name. */
   auth?: ProviderConfiguration;
   /** Human-readable provider name used in the generated OpenAPI schema. Defaults to the auth source name. */
@@ -51,12 +57,17 @@ export type OAuth2Config = {
   /** How client credentials are sent to the token endpoint. Defaults to `header` (HTTP Basic); providers such as
    * Apple and LinkedIn only accept them in the request body. */
   authorizationMethod?: 'header' | 'body';
-  extractUserInfo: (
-    accessToken: string,
-    context: OAuth2UserInfoContext
-  ) => Promise<UserInfo>;
 };
 
+/**
+ * Creates the plugin registering the redirect and callback routes of an OAuth2 provider. The callback signs the user
+ * in, or up, with the profile fetched by `extractUserInfo`. A disabled provider registers nothing.
+ *
+ * @param {AuthSource} authSource - The auth source of the provider, naming its routes and config.
+ * @param {OAuth2Config} oAuth2Config - The provider config.
+ * @return {Function} The plugin, rejecting its registration with a `ConfigurationError` if the client credentials are
+ * missing, the provider is already registered, or it has no endpoints.
+ */
 export function createOAuth2Plugin(
   authSource: AuthSource,
   oAuth2Config: OAuth2Config
@@ -77,17 +88,26 @@ export function createOAuth2Plugin(
         : oAuth2Config.clientSecret;
 
     if (!oAuth2Config.clientId || !clientSecret) {
-      throw Error(`${name} OAuth2 configuration is missing`);
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `${name} OAuth2 configuration is missing`
+      );
     }
 
     if (server[authSource] !== undefined) {
-      throw Error(`${name} OAuth2 provider is already registered`);
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `${name} OAuth2 provider is already registered`
+      );
     }
 
     const authConfig =
       oAuth2Config.auth ?? oauthPlugin[`${upperName}_CONFIGURATION`];
     if (!authConfig && !oAuth2Config.issuer) {
-      throw Error(`${name} OAuth2 provider is not supported`);
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `${name} OAuth2 provider is not supported`
+      );
     }
 
     const authService = inject(AuthService);

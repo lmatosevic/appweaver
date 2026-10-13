@@ -19,7 +19,7 @@ export abstract class Cache implements OnInit {
    * Retrieves a cached value by key.
    *
    * @param {string} key - The cache key.
-   * @returns The cached value, or `null` if not found.
+   * @return The cached value, or `null` if not found.
    */
   abstract get<T>(key: string): Promise<T | null>;
 
@@ -36,7 +36,7 @@ export abstract class Cache implements OnInit {
    * @param {string} key - The cache key.
    * @param {Object} value - The value to store.
    * @param {number} [ttl] - Optional time-to-live in milliseconds.
-   * @returns `true` if stored successfully.
+   * @return `true` if stored successfully.
    */
   abstract set(key: string, value: any, ttl?: number): Promise<boolean>;
 
@@ -44,7 +44,7 @@ export abstract class Cache implements OnInit {
    * Removes a single entry from the cache.
    *
    * @param {string} key - The cache key to remove.
-   * @returns `true` if the entry was removed, `false` otherwise.
+   * @return `true` if the entry was removed, `false` otherwise.
    */
   abstract delete(key: string): Promise<boolean>;
 
@@ -52,7 +52,7 @@ export abstract class Cache implements OnInit {
    * Removes all entries matching the given key pattern.
    *
    * @param {string} [pattern] - Optional glob pattern to filter keys, matching every key by default.
-   * @returns The number of entries removed.
+   * @return The number of entries removed.
    */
   abstract deleteMatching(pattern?: string): Promise<number>;
 
@@ -60,7 +60,7 @@ export abstract class Cache implements OnInit {
    * Returns all cache keys matching the given pattern.
    *
    * @param {string} [pattern] - Optional glob/pattern to filter keys.
-   * @returns {Promise<string[]>} The promise that resolves to the array of keys found matching the pattern.
+   * @return {Promise<string[]>} The promise that resolves to the array of keys found matching the pattern.
    */
   abstract keys(pattern?: string): Promise<string[]>;
 }

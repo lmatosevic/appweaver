@@ -17,7 +17,7 @@ import {
  * @param {StringOptions} [options={}] - Optional configuration options that can be passed to customize the resulting
  * string enumeration.
  *
- * @returns A type-safe string enumeration constructed from the values of the provided object.
+ * @return A type-safe string enumeration constructed from the values of the provided object.
  */
 export const StringEnum = <T extends object>(
   value: T,
@@ -42,7 +42,7 @@ export const StringEnum = <T extends object>(
  *
  * @param {object} [options={}] - Optional configuration object to extend the base type definition.
  *                                It accepts all properties that can be used with `Type.Unsafe`.
- * @returns A type definition for a string formatted as a `date-time`.
+ * @return A type definition for a string formatted as a `date-time`.
  */
 export const StringDate = (
   options: Parameters<typeof Type.Unsafe<Date>>[0] = {}
@@ -64,7 +64,7 @@ export const StringDate = (
  *
  * @param {object} [options={}] - An optional object containing additional configuration
  * for the type schema. These options are passed to `Type.Unsafe`.
- * @returns A schema representing a type that matches any valid JSON structure,
+ * @return A schema representing a type that matches any valid JSON structure,
  * extended with the specified customizations.
  */
 export const AnyJson = (options: Parameters<typeof Type.Unsafe<any>>[0] = {}) =>
@@ -82,7 +82,7 @@ export const AnyJson = (options: Parameters<typeof Type.Unsafe<any>>[0] = {}) =>
  *
  * @template T - The base schema type that the function should make nullable.
  * @param {T} schema - The schema to be extended with nullability support.
- * @returns Returns an optional schema that accepts both the original type and the `null` type.
+ * @return Returns an optional schema that accepts both the original type and the `null` type.
  */
 export const Nullable = <T extends TSchema>(schema: T) =>
   Type.Optional(
@@ -103,7 +103,7 @@ export const Nullable = <T extends TSchema>(schema: T) =>
  * @param {string[]} [values] - An optional array of strings to define the enum values.
  *                               Each string in the array becomes both the key and value
  *                               in the resulting enum definition.
- * @returns A schema object representing the constructed enum definition.
+ * @return A schema object representing the constructed enum definition.
  */
 export const EnumType = <T extends TSchema>(values?: string[]) =>
   Type.Enum(Object.fromEntries(values?.map((k) => [k, k]) ?? []));
@@ -119,7 +119,7 @@ export const EnumType = <T extends TSchema>(values?: string[]) =>
  * @param {Object} options - Configuration options for the custom date type schema.
  * @param {'date' | 'date-time'} [options.format] - Optional format of the date.
  *        Defaults to 'date-time'.
- * @returns Returns a schema object representing the date configuration.
+ * @return Returns a schema object representing the date configuration.
  */
 export const DateType = <T extends TSchema>(
   options: Parameters<typeof Type.Unsafe<Date>>[0] & {
@@ -136,7 +136,7 @@ export const DateType = <T extends TSchema>(
  *
  * @template T The base schema type to which `null` and optionality are added.
  * @param {T} schema The schema to extend with `null` and optionality.
- * @returns A new schema type combining the provided schema, nullability, and optionality.
+ * @return A new schema type combining the provided schema, nullability, and optionality.
  */
 export const NullType = <T extends TSchema>(schema: T) =>
   Type.Optional(Type.Union([schema, Type.Null()]));

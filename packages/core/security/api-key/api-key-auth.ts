@@ -104,6 +104,7 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
   });
 });
 
+/** Checks whether a request carries an API key in its configured header. */
 export function hasApiKey(request: FastifyRequest): boolean {
   return !!request.headers[config.SECURITY_API_KEY_HEADER_NAME.toLowerCase()];
 }

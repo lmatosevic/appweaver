@@ -6,6 +6,7 @@ export * from './model';
 export * from './policy';
 export * from './registry';
 export * from './resource';
+export * from './resource-id';
 export * from './routes';
 export * from './service';
 export * from './sort';

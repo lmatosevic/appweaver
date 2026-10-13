@@ -7,6 +7,15 @@ type ReCaptchaResponse = {
   action: string;
 };
 
+/**
+ * Verifies a reCAPTCHA token with the verification endpoint.
+ *
+ * @param {string} token - The token sent by the client.
+ * @param {string} [remoteIp] - The IP address of the client.
+ * @param {string} [action] - The action the token must have been issued for.
+ * @throws {RecaptchaError} If the endpoint is unavailable, the token is invalid, issued for another action, or scored
+ * below the configured threshold.
+ */
 export async function recaptchaVerify(
   token: string,
   remoteIp?: string,

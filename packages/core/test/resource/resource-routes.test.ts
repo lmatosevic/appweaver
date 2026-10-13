@@ -726,8 +726,14 @@ describe('resource-routes', () => {
         const document = (app as any).swagger();
 
         const bulk = document.paths['/posts/bulk'];
-        const schema = (response: any) =>
-          response.content['application/json'].schema;
+        // The count response is a shared model, referenced from the components
+        const schema = (response: any) => {
+          const { $ref, ...inline } =
+            response.content['application/json'].schema;
+          return $ref
+            ? document.components.schemas[$ref.split('/').pop()]
+            : inline;
+        };
         expect(schema(bulk.post.responses['201']).type).toBe('array');
         for (const response of [
           bulk.patch.responses['200'],

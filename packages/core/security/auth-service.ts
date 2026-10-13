@@ -24,11 +24,10 @@ import {
   validatePasswordComplexity
 } from './helper';
 import { OAuth2Service } from './oauth2/oauth2-service';
-import { context, inject } from '../context';
+import { context, ContextError, inject } from '../context';
 import { CacheService } from '../cache';
-import { FileService } from '../storage';
+import { FileService } from '../storage/file-service';
 import { toDatabaseError } from '../database';
-import { ContextError } from '../context/context-error';
 import { AuthError } from './auth-error';
 import { withoutPolicies } from '../utils';
 import {

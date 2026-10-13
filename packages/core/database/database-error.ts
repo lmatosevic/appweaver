@@ -93,7 +93,7 @@ export function isPrismaError(error: unknown): error is PrismaError {
  * @param {unknown} error The error the operation failed with.
  * @param {string} [model] The name of the model the operation ran on, used when
  * the error does not name one.
- * @returns {unknown} The translated error keeping the Prisma error as its
+ * @return {unknown} The translated error keeping the Prisma error as its
  * cause, or the error as it is.
  */
 export function toDatabaseError(error: unknown, model?: string): unknown {

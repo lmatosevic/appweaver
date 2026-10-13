@@ -117,6 +117,7 @@ export class Seeder extends LifecycleManager {
     }
   }
 
+  /** Destroys the services the seeder started, i.e. the database connection. */
   public async close(): Promise<void> {
     await this.destroy();
   }

@@ -1,6 +1,11 @@
 import * as fs from 'node:fs';
 import * as crypto from 'node:crypto';
-import { config, ErrorCode, logger } from '@appweaver/common';
+import {
+  config,
+  ConfigurationError,
+  ErrorCode,
+  logger
+} from '@appweaver/common';
 import { OAuth2Error } from './oauth2-error';
 import { AvatarFile } from '../../types';
 
@@ -173,7 +178,8 @@ export function createAppleClientSecret(): string {
   const privateKey = readApplePrivateKey();
 
   if (!clientId || !teamId || !keyId || !privateKey) {
-    throw Error(
+    throw new ConfigurationError(
+      ErrorCode.ConfigurationInvalid,
       'Apple OAuth2 requires either a client secret, or a client ID, team ID, key ID and private key to generate one'
     );
   }

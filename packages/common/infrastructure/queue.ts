@@ -13,10 +13,10 @@ export type QueueListener<T = void> = (
 ) => QueueHandlerResponse<T>;
 
 export type QueueJob<T = any, R = any> = {
-  id?: string;
   name: string;
   data: T;
   returnvalue: R;
+  id?: string;
 };
 
 export abstract class Queue implements IHealthCheck, OnDestroy {
@@ -38,7 +38,7 @@ export abstract class Queue implements IHealthCheck, OnDestroy {
    * Closes a specific queue by name.
    *
    * @param {string} name - The queue name to close.
-   * @returns `true` if closed successfully, `false` otherwise.
+   * @return `true` if closed successfully, `false` otherwise.
    */
   abstract close(name: string): Promise<boolean>;
 
@@ -98,7 +98,7 @@ export abstract class QueueProcessor<
    *
    * @param {(job: Object) => Promise<Response>} processor - The job processing function.
    * @param {WorkerOptions} [options] - Optional worker options.
-   * @returns {Worker} The created worker instance.
+   * @return {Worker} The created worker instance.
    */
   abstract addWorker(
     processor: (job: Job) => Promise<Response>,
@@ -109,7 +109,7 @@ export abstract class QueueProcessor<
    * Removes a registered worker by ID.
    *
    * @param {string} id - The worker ID to remove.
-   * @returns {Promise<boolean>}
+   * @return {Promise<boolean>}
    */
   abstract removeWorker(id: string): Promise<boolean>;
 
@@ -118,7 +118,7 @@ export abstract class QueueProcessor<
    *
    * @param {(job: Object, result: Response, prev: string) => QueueHandlerResponse} handler - Called with the completed
    * job, result, and previous state.
-   * @returns {string} A listener ID for later removal.
+   * @return {string} A listener ID for later removal.
    */
   abstract onCompleted(
     handler: (job: Job, result: Response, prev: string) => QueueHandlerResponse
@@ -129,7 +129,7 @@ export abstract class QueueProcessor<
    *
    * @param {(job: Object | undefined, error: Error, prev: string) => QueueHandlerResponse} handler - Called with the
    * failed job (if any), error, and previous state.
-   * @returns {string} A listener ID for later removal.
+   * @return {string} A listener ID for later removal.
    */
   abstract onFailed(
     handler: (
@@ -143,7 +143,7 @@ export abstract class QueueProcessor<
    * Registers a handler for queue-level errors.
    *
    * @param {(error: Error) => QueueHandlerResponse} handler - Called with the error.
-   * @returns {string} A listener ID for later removal.
+   * @return {string} A listener ID for later removal.
    */
   abstract onError(handler: (error: Error) => QueueHandlerResponse): string;
 
@@ -152,7 +152,7 @@ export abstract class QueueProcessor<
    *
    * @param {(job: Object, progress: string | boolean | number | object) => QueueHandlerResponse} handler - Called with
    * the job and its current progress value.
-   * @returns {string} A listener ID for later removal.
+   * @return {string} A listener ID for later removal.
    */
   abstract onProgress(
     handler: (
@@ -165,7 +165,7 @@ export abstract class QueueProcessor<
    * Registers a handler for when a job becomes active.
    *
    * @param {(job: Object, prev: string) => QueueHandlerResponse} handler - Called with the job and previous state.
-   * @returns {string} A listener ID for later removal.
+   * @return {string} A listener ID for later removal.
    */
   abstract onActive(
     handler: (job: Job, prev: string) => QueueHandlerResponse
@@ -175,7 +175,7 @@ export abstract class QueueProcessor<
    * Registers a handler for stalled job events.
    * @param {(jobId: string, prev: string) => QueueHandlerResponse} handler - Called with the stalled job ID and
    * previous state.
-   * @returns {string} A listener ID for later removal.
+   * @return {string} A listener ID for later removal.
    */
   abstract onStalled(
     handler: (jobId: string, prev: string) => QueueHandlerResponse
@@ -184,49 +184,49 @@ export abstract class QueueProcessor<
   /**
    * Registers a handler for when the queue is drained (no more jobs).
    * @param {() => QueueHandlerResponse} handler
-   * @returns {string} A listener ID for later removal.
+   * @return {string} A listener ID for later removal.
    */
   abstract onDrained(handler: () => QueueHandlerResponse): string;
 
   /**
    * Registers a handler for when the queue is ready.
    * @param {() => QueueHandlerResponse} handler
-   * @returns {string} A listener ID for later removal.
+   * @return {string} A listener ID for later removal.
    */
   abstract onReady(handler: () => QueueHandlerResponse): string;
 
   /**
    * Registers a handler for when the queue is paused.
    * @param {() => QueueHandlerResponse} handler
-   * @returns {string} A listener ID for later removal.
+   * @return {string} A listener ID for later removal.
    */
   abstract onPaused(handler: () => QueueHandlerResponse): string;
 
   /**
    * Registers a handler for when the queue is resumed.
    * @param {() => QueueHandlerResponse} handler
-   * @returns {string} A listener ID for later removal.
+   * @return {string} A listener ID for later removal.
    */
   abstract onResumed(handler: () => QueueHandlerResponse): string;
 
   /**
    * Registers a handler for when the queue begins closing.
    * @param {(msg: string) => QueueHandlerResponse} handler - Called with a closing message.
-   * @returns {string} A listener ID for later removal.
+   * @return {string} A listener ID for later removal.
    */
   abstract onClosing(handler: (msg: string) => QueueHandlerResponse): string;
 
   /**
    * Registers a handler for when the queue is fully closed.
    * @param {() => QueueHandlerResponse} handler
-   * @returns {string} A listener ID for later removal.
+   * @return {string} A listener ID for later removal.
    */
   abstract onClosed(handler: () => QueueHandlerResponse): string;
 
   /**
    * Removes a previously registered event listener.
    * @param {string} id - The listener ID to remove.
-   * @returns {boolean} `true` if the listener was found and removed.
+   * @return {boolean} `true` if the listener was found and removed.
    */
   abstract removeListener(id: string): boolean;
 

@@ -6,6 +6,11 @@ import { ensureDirExists } from '../utils';
 
 const formats = ['json', 'yaml'];
 
+/**
+ * Registers the `openapi` command, generating the OpenAPI specification of the application.
+ *
+ * @param {Command} program - The program to register the command on.
+ */
 export function openapiCommand(program: Command): void {
   program
     .command('openapi')

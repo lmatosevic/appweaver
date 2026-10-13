@@ -22,6 +22,14 @@ import {
   createVirtualProjectionHook
 } from './virtual-projection';
 
+/**
+ * Registers custom routes of the application. The routes declared by the handler are captured on a temporary server
+ * and copied to the application server once it starts, with the authentication, bot checks, error responses, and
+ * cache of the given config applied to each one.
+ *
+ * @param {Function} handler - Declares the routes on the given router.
+ * @param {RouteConfig & RouteCacheConfig} [config] - The authentication, bot check, and cache config of the routes.
+ */
 export function registerRoute(
   handler: (router: Router) => void,
   config?: RouteConfig & RouteCacheConfig

@@ -160,7 +160,7 @@ export function isLifecycleDestroy(value: any): value is OnDestroy {
 /**
  * Resolves the database type based on the given type or the database URL. If a database type is explicitly set,
  * it is returned. Otherwise, the type is inferred from the url argument prefix. Possible database types include
- * PostgresSQL, MySQL, SQLServer, and Sqlite.
+ * PostgreSQL, MySQL, SQLServer, and Sqlite.
  *
  * @param {DatabaseType} [type] - The explicit database type provided.
  * @param {string} [url] - The database connection URL used to infer the type if not explicitly set.
@@ -175,7 +175,7 @@ export function resolveDatabaseType(
   }
 
   if (url?.startsWith('postgresql:')) {
-    return DatabaseType.PostgresSQL;
+    return DatabaseType.PostgreSQL;
   }
 
   if (url?.startsWith('mysql:') || url?.startsWith('mariadb:')) {

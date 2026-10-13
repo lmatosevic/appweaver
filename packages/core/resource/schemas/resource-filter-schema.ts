@@ -10,7 +10,7 @@ export const QUERY_CONDITION_SCHEMA_NAME = 'QueryCondition';
  * Resolves the schema name the query filter of a model is registered under.
  *
  * @param {string} modelName The resource model name (i.e. `User`, `Post`).
- * @returns {string} The query filter schema name (i.e. `UserQueryFilter`).
+ * @return {string} The query filter schema name (i.e. `UserQueryFilter`).
  */
 export const queryFilterName = (modelName: string): string =>
   `${modelName}QueryFilter`;
@@ -126,7 +126,7 @@ export const QueryConditionSchema: TObject = Type.Object(
  *
  * @param {ResourceModel} model The resource model to build the filter schema
  * for.
- * @returns {TObject} The query filter schema of the model.
+ * @return {TObject} The query filter schema of the model.
  */
 export function buildQueryFilterSchema(model: ResourceModel): TObject {
   const name = queryFilterName(model.name);

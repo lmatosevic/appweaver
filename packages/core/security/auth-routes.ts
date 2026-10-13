@@ -12,6 +12,12 @@ import { currentAuthSource, resourceAuthModel } from './helper';
 import { inject } from '../context';
 import { Server } from '../types';
 
+/**
+ * Registers the authentication routes: login, logout, token refresh and exchange, password change, and the current
+ * identity.
+ *
+ * @param {Server} server - The server to register the routes on.
+ */
 export function authRoutes(server: Server): void {
   const { authenticate, currentUser } = server;
 

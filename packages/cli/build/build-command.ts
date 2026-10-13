@@ -1,6 +1,11 @@
 import { Command } from 'commander';
 import { buildProject } from './build-project';
 
+/**
+ * Registers the `build` command, building the application.
+ *
+ * @param {Command} program - The program to register the command on.
+ */
 export function buildCommand(program: Command): void {
   program
     .command('build')

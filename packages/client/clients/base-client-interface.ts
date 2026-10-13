@@ -63,7 +63,7 @@ export interface BaseClientInterface<
    * @param {HttpMethod} method - The HTTP method to use.
    * @param {string} url - The API path to request.
    * @param {Object} params - Optional request parameters (body, query, headers, etc.) as defined by the schema.
-   * @returns The non-nullable `data` field from the response.
+   * @return The non-nullable `data` field from the response.
    * @throws {ClientError} When the server returns an error response.
    */
   sendRequest<
@@ -94,7 +94,7 @@ export interface BaseClientInterface<
    * @param {HttpMethod} method - The HTTP method to use.
    * @param {string} url - The API path to request.
    * @param {Object} params - Optional request parameters (body, query, headers, etc.) as defined by the schema.
-   * @returns The raw `FetchResponse` containing `data`, `error`, and the native `Response`.
+   * @return The raw `FetchResponse` containing `data`, `error`, and the native `Response`.
    */
   sendRequestRaw<
     Method extends HttpMethod,
