@@ -67,6 +67,7 @@
     "flatted": "3.4.2",
     "generate-api-key": "1.0.2",
     "glob": "13.0.6",
+    "handlebars": "4.7.10",
     "ioredis": "5.11.1",
     "js-yaml": "5.2.3",
     "nodemailer": "10.0.13",

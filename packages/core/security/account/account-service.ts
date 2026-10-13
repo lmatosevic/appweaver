@@ -46,6 +46,8 @@ export class AccountService {
    * @param {string} redirectToUrl - The URL to which the user will be redirected after verifying their email address.
    * @param {VerificationType} [verificationType=VerificationType.Auto] - The type of verification process to use.
    * Defaults to auto verification.
+   * @param {string} [locale] - The locale of the email, rendered from the `emails/verify-email` templates. Defaults to
+   * the `LOCALE_DEFAULT` config.
    * @return {Promise<string>} A promise that resolves to a confirmation message upon successful email delivery.
    * @throws {AccountError} `ACCOUNT_FEATURE_UNAVAILABLE` if email verification is not supported.
    * @throws {AccountError} `ACCOUNT_EMAIL_ALREADY_VERIFIED` if the user's email address is already verified.
@@ -54,7 +56,8 @@ export class AccountService {
   public async sendEmailVerification(
     authUser: AuthUser,
     redirectToUrl: string,
-    verificationType: VerificationType = VerificationType.Auto
+    verificationType: VerificationType = VerificationType.Auto,
+    locale?: string
   ): Promise<string> {
     if (!this._emailService) {
       throw new AccountError(
@@ -91,10 +94,11 @@ export class AccountService {
         ? `${config.APP_HOSTNAME}${accountPath}/verify-email-redirect?token=${token}`
         : `${redirectToUrl}${separator}token=${token}`;
 
-    await this._emailService.sendEmail({
+    await this._emailService.sendTemplateEmail({
       to: authUser.email,
-      subject: 'Verify email address',
-      text: `Please verify your email address on following link: ${verifyLink}`
+      template: 'emails/verify-email',
+      data: { email: authUser.email, link: verifyLink },
+      locale
     });
 
     return 'Verification email sent';
@@ -183,6 +187,8 @@ export class AccountService {
    *
    * @param {string} email - The email address of the user requesting a password reset.
    * @param {string} redirectToUrl - The URL to be appended with a token for the password reset link.
+   * @param {string} [locale] - The locale of the email, rendered from the `emails/password-reset` templates. Defaults
+   * to the `LOCALE_DEFAULT` config.
    * @return {Promise<string>} A promise that resolves to a confirmation message, also when no user with a password
    * matches the email address and nothing is sent.
    * @throws {AccountError} `ACCOUNT_FEATURE_UNAVAILABLE` if the email service is not configured.
@@ -190,7 +196,8 @@ export class AccountService {
    */
   public async sendResetPassword(
     email: string,
-    redirectToUrl: string
+    redirectToUrl: string,
+    locale?: string
   ): Promise<string> {
     const sentMessage = 'Password reset email sent';
 
@@ -221,10 +228,11 @@ export class AccountService {
     const separator = redirectToUrl.includes('?') ? '&' : '?';
     const changePasswordLink = `${redirectToUrl}${separator}token=${token}`;
 
-    await this._emailService.sendEmail({
+    await this._emailService.sendTemplateEmail({
       to: authUser.email,
-      subject: 'Password reset request',
-      text: `Please change your password on following link: ${changePasswordLink}`
+      template: 'emails/password-reset',
+      data: { email: authUser.email, link: changePasswordLink },
+      locale
     });
 
     return sentMessage;
@@ -283,13 +291,16 @@ export class AccountService {
    * @param {AuthUser} authUser - The authenticated user to whom the 2FA code will be sent.
    * @param {string} [purpose='authentication'] - The purpose for sending the 2FA code (e.g., authentication, account
    * recovery).
+   * @param {string} [locale] - The locale of the email, rendered from the `emails/two-factor-code` templates. Defaults
+   * to the `LOCALE_DEFAULT` config.
    * @return {Promise<{ challengeId: string; expiresIn: number }>} A promise that resolves to the unique challenge ID
    * and expiration time associated with the 2FA code.
    * @throws {AccountError} `ACCOUNT_FEATURE_UNAVAILABLE` if the email service is not available.
    */
   public async send2FACode(
     authUser: AuthUser,
-    purpose: string = 'authentication'
+    purpose: string = 'authentication',
+    locale?: string
   ): Promise<{ challengeId: string; expiresIn: number }> {
     if (!this._emailService) {
       throw new AccountError(
@@ -308,10 +319,16 @@ export class AccountService {
         expiresIn
       );
 
-    await this._emailService.sendEmail({
+    await this._emailService.sendTemplateEmail({
       to: authUser.email,
-      subject: 'Verification code',
-      text: `Please enter the following code: ${code}`
+      template: 'emails/two-factor-code',
+      data: {
+        email: authUser.email,
+        code,
+        purpose,
+        expiresInMinutes: Math.ceil(expiresIn / 60)
+      },
+      locale
     });
 
     return { challengeId, expiresIn };

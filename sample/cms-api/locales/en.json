@@ -1,0 +1,13 @@
+{
+  "category.defaultDescription": "Posts about {name}.",
+  "post.page.publishedOn": "Published on {date}",
+  "post.page.by": "by {author}",
+  "post.page.category": "Category",
+  "post.page.tags": "Tags",
+  "post.page.comments_zero": "No comments yet",
+  "post.page.comments_one": "{count} comment",
+  "post.page.comments_other": "{count} comments",
+  "emails.postShare.subject": "{sender} shared a post with you: {title}",
+  "emails.postShare.message": "{sender} thinks you might enjoy reading this post:",
+  "emails.postShare.action": "Read the post"
+}

@@ -28,10 +28,12 @@ The basic file structure of the Appweaver project:
 
 - `database/` - database migrations, seeders, generated prisma client, and client used by the application
 - `dist/` - the output directory for transpiled JavaScript files
+- `locales/` - the translation files, a flat JSON file per locale (`en.json`, `de.json`)
 - `public/` - publicly exposed files if static file serving is enabled
 - `src/features/` - main application logic structured using vertical slice architecture (VSA)
 - `src/resources/` - application resources (models, services, policies, and routes)
 - `src/types/` - application types (generated and manually created)
+- `templates/` - the Handlebars templates of emails, HTML pages, XML exports or any other text (`*.<format>.hbs`)
 - `src/main.ts` - the main application entrypoint
 - `test/e2e/` - the end-to-end tests root directory
 - `test/unit/` - the unit tests root directory
@@ -657,6 +659,33 @@ registerRoute(
 );
 ```
 
+### Rendering templates and translating
+
+The `templates/` files render emails, HTML pages, XML documents or any text, and the `locales/<locale>.json` files
+translate keys anywhere in the application. The application always gives the locale (a request parameter, a user field,
+...), falling back to `LOCALE_DEFAULT`. A template named `exports/orders.xml` is the file `templates/exports/orders.xml.hbs`,
+and `exports/orders.de.xml.hbs` is its `de` variant. See [templates.md](references/templates.md).
+
+```ts
+import { TemplateEngine, templateContentType } from '@appweaver/common';
+import { EmailService, inject, LocaleService } from '@appweaver/core';
+
+// Any format, i.e. an XML document returned by a custom route
+const xml = await inject(TemplateEngine).render('exports/orders.xml', { orders }, { locale });
+reply.type(templateContentType('exports/orders.xml')).send(xml);
+
+// An email of the emails/order-shipped.{html,txt,subject}.hbs templates
+await inject(EmailService).sendTemplateEmail({ to, template: 'emails/order-shipped', data: { order }, locale });
+
+// A translated string, i.e. in a service hook
+inject(LocaleService).translate('cart.items', 'de', { count: 3 });
+```
+
+Inside the templates, `{{t "key" name=value}}` translates into the rendered locale, layouts and components are partials
+(`{{#> layouts/page.html}}...{{/layouts/page.html}}`), and `formatDate`, `formatNumber`, `formatCurrency` format in the
+locale. The framework's own emails (verification, password reset, 2FA) are overridden by a template file of the same
+name and translated by the `emails.*` keys.
+
 ### Handling errors
 
 Services, policies, hooks, jobs and workers throw an `AppweaverError` subclass carrying a stable `code` (the `ErrorCode`
@@ -935,5 +964,6 @@ npm run lint  # eslint "./**/*.ts"
 - Queue jobs: [queue.md](references/queue.md)
 - Scheduling jobs: [scheduler.md](references/scheduler.md)
 - Sending emails: [mailer.md](references/mailer.md)
+- Templates & translations: [templates.md](references/templates.md)
 - Generating an HTTP client for using API: [client.md](references/client.md)
 - Errors & error responses: [errors.md](references/errors.md)

@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { defaultTranslations } from '../../core/locale/default-translations';
+import { handlebarsTemplates } from '../../core/template/handlebars-templates';
 
 const packageRoot = path.join(__dirname, '..');
 const skillDir = path.join(packageRoot, 'skill');
@@ -245,6 +247,15 @@ describe('create-weaver-app', () => {
       expect(exists('my-app', '.env')).toBe(true);
       expect(exists('my-app', '.env.example')).toBe(true);
       expect(exists('my-app', '.gitignore')).toBe(true);
+    });
+
+    test('generates the email layout and translations of the framework', () => {
+      expect(read('my-app', 'templates', 'layouts', 'email.html.hbs')).toBe(
+        handlebarsTemplates['layouts/email.html']
+      );
+      expect(readJson('my-app', 'locales', 'en.json')).toEqual(
+        defaultTranslations
+      );
     });
 
     test('creates the reports directory', () => {

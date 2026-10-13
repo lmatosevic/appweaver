@@ -95,6 +95,8 @@ their prefix:
 | `ExportError`        | `@appweaver/core`   | `EXPORT_`        | The data export                                                 |
 | `QueueError`         | `@appweaver/core`   | `QUEUE_`         | The queues                                                      |
 | `MailerError`        | `@appweaver/core`   | `MAILER_`        | The email service, wrapping the error of the mailer             |
+| `TemplateError`      | `@appweaver/core`   | `TEMPLATE_`      | The template engine: a missing, unreadable or failing template  |
+| `LocaleError`        | `@appweaver/core`   | `LOCALE_`        | The locale service: an unreadable translation file              |
 | `LockError`          | `@appweaver/core`   | `LOCK_`          | A lock that could not be acquired                               |
 
 ```ts
@@ -197,6 +199,10 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `QUEUE_UNAVAILABLE`                  | 503    | Queue unavailable                     |
 | `MAILER_SEND_FAILED`                 | 502    | Email sending failed                  |
 | `MAILER_JOB_NOT_FOUND`               | 500    | Email job not found                   |
+| `TEMPLATE_NOT_FOUND`                 | 500    | Template not found                    |
+| `TEMPLATE_RENDER_FAILED`             | 500    | Template rendering failed             |
+| `TEMPLATE_LOAD_FAILED`               | 500    | Template loading failed               |
+| `LOCALE_LOAD_FAILED`                 | 500    | Locale loading failed                 |
 | `LOCK_NOT_ACQUIRED`                  | 503    | Resource is locked                    |
 
 `REQUEST_FAILED` keeps the 4xx status of an error a Fastify plugin raised with no code of its own.

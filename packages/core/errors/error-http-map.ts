@@ -228,6 +228,21 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     title: 'Email job not found'
   },
 
+  [ErrorCode.TemplateNotFound]: { status: 500, title: 'Template not found' },
+  [ErrorCode.TemplateRenderFailed]: {
+    status: 500,
+    title: 'Template rendering failed'
+  },
+  [ErrorCode.TemplateLoadFailed]: {
+    status: 500,
+    title: 'Template loading failed'
+  },
+
+  [ErrorCode.LocaleLoadFailed]: {
+    status: 500,
+    title: 'Locale loading failed'
+  },
+
   [ErrorCode.LockNotAcquired]: { status: 503, title: 'Resource is locked' }
 };
 

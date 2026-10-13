@@ -1191,6 +1191,36 @@
             }
           }
         },
+        "template": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "default": "./templates"
+            },
+            "cache": {
+              "type": "boolean",
+              "default": true
+            },
+            "provider": {
+              "type": "string",
+              "default": "@appweaver/core/template/handlebars-template-engine"
+            }
+          }
+        },
+        "locale": {
+          "type": "object",
+          "properties": {
+            "default": {
+              "type": "string",
+              "default": "en"
+            },
+            "path": {
+              "type": "string",
+              "default": "./locales"
+            }
+          }
+        },
         "system": {
           "type": "object",
           "properties": {

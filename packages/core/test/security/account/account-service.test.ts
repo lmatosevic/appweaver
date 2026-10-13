@@ -49,7 +49,7 @@ describe('account-service', () => {
     define(authService, AuthService);
     define(securityStore, SecurityStore as any);
     if (withEmail) {
-      define({ sendEmail }, EmailService);
+      define({ sendTemplateEmail: sendEmail }, EmailService);
     }
     return new AccountService();
   }
@@ -101,8 +101,11 @@ describe('account-service', () => {
         { authUserId: 1, redirectToUrl: 'https://app.test/verified' },
         config.SECURITY_ACCOUNT_VERIFY_EMAIL_OTT_TTL
       );
-      expect(lastEmail().to).toBe('user@test.com');
-      expect(lastEmail().text).toMatch(
+      expect(lastEmail()).toMatchObject({
+        to: 'user@test.com',
+        template: 'emails/verify-email'
+      });
+      expect(lastEmail().data.link).toMatch(
         /http:\/\/api\.test\/auth\/account\/verify-email-redirect\?token=ott$/
       );
     });
@@ -114,7 +117,7 @@ describe('account-service', () => {
         VerificationType.Manual
       );
 
-      expect(lastEmail().text).toMatch(
+      expect(lastEmail().data.link).toMatch(
         /https:\/\/app\.test\/verify\?lang=en&token=ott$/
       );
     });
@@ -252,9 +255,20 @@ describe('account-service', () => {
         { authUserId: 1, authSource: AuthSource.Password },
         config.SECURITY_ACCOUNT_RESET_PASSWORD_OTT_TTL
       );
-      expect(lastEmail().text).toMatch(
+      expect(lastEmail().template).toBe('emails/password-reset');
+      expect(lastEmail().data.link).toMatch(
         /https:\/\/app\.test\/reset\?token=ott$/
       );
+    });
+
+    test('renders the email in the given locale', async () => {
+      await service.sendResetPassword(
+        'user@test.com',
+        'https://app.test/reset',
+        'de'
+      );
+
+      expect(lastEmail().locale).toBe('de');
     });
 
     test.each([
@@ -355,7 +369,9 @@ describe('account-service', () => {
     test('emails a six digit code and stores only its hash', async () => {
       const result = await service.send2FACode(authUser());
 
-      const code = lastEmail().text.match(/(\d{6})$/)[1];
+      const code = lastEmail().data.code;
+      expect(code).toMatch(/^\d{6}$/);
+      expect(lastEmail().template).toBe('emails/two-factor-code');
       expect(securityStore.generateOneTimeToken).toHaveBeenCalledWith(
         AuthOTTPurpose.TwoFAVerification,
         { authUserId: 1, codeHash: makeHash(code), purpose: 'authentication' },

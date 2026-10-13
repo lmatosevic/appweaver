@@ -386,3 +386,25 @@ export function replacePatternVariables(
 
   return name;
 }
+
+/**
+ * Converts a value into the text it is written as, i.e. into a template or a translation. An object is written as
+ * JSON, and an absent value as an empty string.
+ *
+ * @param {unknown} value - The value to convert.
+ * @return {string} The text of the value.
+ */
+export function toText(value: unknown): string {
+  switch (typeof value) {
+    case 'string':
+      return value;
+    case 'number':
+    case 'boolean':
+    case 'bigint':
+      return value.toString();
+    case 'undefined':
+      return '';
+    default:
+      return value === null ? '' : (JSON.stringify(value) ?? '');
+  }
+}

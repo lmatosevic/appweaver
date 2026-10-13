@@ -344,6 +344,15 @@ const configSchema = Type.Object({
   MAILER_SMTP_USER: Type.Optional(Type.String()),
   MAILER_SMTP_PASSWORD: Type.Optional(Type.String()),
 
+  TEMPLATE_PATH: Type.String({ default: './templates' }),
+  TEMPLATE_CACHE: Type.Boolean({ default: true }),
+  TEMPLATE_PROVIDER: Type.String({
+    default: '@appweaver/core/template/handlebars-template-engine'
+  }),
+
+  LOCALE_DEFAULT: Type.String({ default: 'en' }),
+  LOCALE_PATH: Type.String({ default: './locales' }),
+
   SYSTEM_ADMIN_INITIAL_EMAIL: Type.String({ default: 'admin@appweaver.co' }),
   SYSTEM_ADMIN_INITIAL_PASSWORD: Type.Optional(Type.String())
 });

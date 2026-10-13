@@ -1,0 +1,231 @@
+jest.mock('@appweaver/common', () => {
+  const actual = jest.requireActual('@appweaver/common');
+  const configOverrides: Record<string, unknown> = {};
+  return {
+    __esModule: true,
+    ...actual,
+    configOverrides,
+    get config() {
+      return { ...actual.config, ...configOverrides };
+    }
+  };
+});
+
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import * as common from '@appweaver/common';
+import { ErrorCode, logger } from '@appweaver/common';
+import { LocaleService } from '../../locale';
+
+const { configOverrides } = common as unknown as {
+  configOverrides: Record<string, unknown>;
+};
+
+describe('locale-service', () => {
+  let dir: string;
+  let service: LocaleService;
+
+  const writeLocale = (locale: string, content: unknown) =>
+    fs.writeFileSync(
+      path.join(dir, `${locale}.json`),
+      typeof content === 'string' ? content : JSON.stringify(content)
+    );
+
+  beforeEach(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'appweaver-locales-'));
+    configOverrides.LOCALE_PATH = dir;
+    configOverrides.LOCALE_DEFAULT = 'en';
+    writeLocale('en', {
+      greeting: 'Hello {name}',
+      'cart.items_one': '{count} item',
+      'cart.items_other': '{count} items',
+      'cart.items_zero': 'No items',
+      onlyEnglish: 'English only'
+    });
+    writeLocale('de', {
+      greeting: 'Hallo {name}',
+      'cart.items_one': '{count} Artikel',
+      'cart.items_other': '{count} Artikel'
+    });
+    writeLocale('de-AT', { greeting: 'Servus {name}' });
+    service = new LocaleService();
+  });
+
+  afterEach(() => {
+    fs.rmSync(dir, { recursive: true, force: true });
+    jest.restoreAllMocks();
+  });
+
+  describe('translate', () => {
+    test('translates a key into the default locale', () => {
+      expect(service.translate('greeting', undefined, { name: 'Ana' })).toBe(
+        'Hello Ana'
+      );
+    });
+
+    test('translates a key into the given locale', () => {
+      expect(service.translate('greeting', 'de', { name: 'Ana' })).toBe(
+        'Hallo Ana'
+      );
+    });
+
+    test('prefers the most specific locale', () => {
+      expect(service.translate('greeting', 'de-AT', { name: 'Ana' })).toBe(
+        'Servus Ana'
+      );
+      expect(service.translate('greeting', 'de_at', { name: 'Ana' })).toBe(
+        'Servus Ana'
+      );
+    });
+
+    test('falls back to the language and the default locale', () => {
+      expect(service.translate('cart.items', 'de-AT', { count: 2 })).toBe(
+        '2 Artikel'
+      );
+      expect(service.translate('onlyEnglish', 'de-AT')).toBe('English only');
+    });
+
+    test('falls back to the default locale for an unknown locale', () => {
+      expect(service.translate('greeting', 'xx-invalid-tag-', {})).toBe(
+        'Hello {name}'
+      );
+    });
+
+    test('selects the plural form by the count', () => {
+      expect(service.translate('cart.items', 'en', { count: 1 })).toBe(
+        '1 item'
+      );
+      expect(service.translate('cart.items', 'en', { count: 5 })).toBe(
+        '5 items'
+      );
+      expect(service.translate('cart.items', 'en', { count: 0 })).toBe(
+        'No items'
+      );
+    });
+
+    test('keeps the placeholders without a value', () => {
+      expect(service.translate('greeting')).toBe('Hello {name}');
+    });
+
+    test('returns the key of a missing translation', () => {
+      expect(service.translate('missing.key', 'de')).toBe('missing.key');
+    });
+
+    test('ignores the inherited object properties', () => {
+      expect(service.translate('constructor', 'de')).toBe('constructor');
+      expect(service.hasTranslation('toString')).toBe(false);
+    });
+
+    test('falls back to the framework translations', () => {
+      expect(service.translate('emails.passwordReset.subject', 'de')).toBe(
+        'Password reset request'
+      );
+    });
+
+    test('lets a translation file override a framework translation', () => {
+      writeLocale('hr', { 'emails.passwordReset.subject': 'Nova lozinka' });
+      service.reload();
+
+      expect(service.translate('emails.passwordReset.subject', 'hr')).toBe(
+        'Nova lozinka'
+      );
+    });
+  });
+
+  describe('hasTranslation', () => {
+    test('tells whether a key is translated', () => {
+      expect(service.hasTranslation('greeting', 'de')).toBe(true);
+      expect(service.hasTranslation('missing.key', 'de')).toBe(false);
+    });
+  });
+
+  describe('getLocales', () => {
+    test('lists the locales of the files and the registered translations', () => {
+      service.addTranslations('fr', { greeting: 'Bonjour {name}' });
+
+      expect(service.getLocales()).toEqual(['de', 'de-AT', 'en', 'fr']);
+    });
+  });
+
+  describe('resolveLocales', () => {
+    test('returns the locale chain ending with the default locale', () => {
+      expect(service.resolveLocales('de-AT')).toEqual(['de-AT', 'de', 'en']);
+      expect(service.resolveLocales()).toEqual(['en']);
+    });
+
+    test('follows the default locale configured', () => {
+      configOverrides.LOCALE_DEFAULT = 'de-CH';
+
+      expect(service.resolveLocales('hr')).toEqual(['hr', 'de-CH', 'de']);
+    });
+  });
+
+  describe('addTranslations', () => {
+    test('merges the translations over the translation file', () => {
+      service.addTranslations('de', { greeting: 'Guten Tag {name}' });
+
+      expect(service.translate('greeting', 'de', { name: 'Ana' })).toBe(
+        'Guten Tag Ana'
+      );
+      expect(service.translate('cart.items', 'de', { count: 1 })).toBe(
+        '1 Artikel'
+      );
+    });
+
+    test('ignores the translations of an invalid locale', () => {
+      jest.spyOn(logger, 'warn').mockImplementation();
+
+      service.addTranslations('not a locale', { greeting: 'x' });
+
+      expect(service.getLocales()).toEqual(['de', 'de-AT', 'en']);
+    });
+  });
+
+  describe('loading', () => {
+    test('ignores the values that are not strings', () => {
+      const warn = jest.spyOn(logger, 'warn').mockImplementation();
+      writeLocale('hr', { nested: { key: 'value' }, flat: 'Ravno' });
+
+      service.reload();
+
+      expect(service.translate('flat', 'hr')).toBe('Ravno');
+      expect(service.translate('nested', 'hr')).toBe('nested');
+      expect(warn).toHaveBeenCalled();
+    });
+
+    test('ignores a file not named by a locale', () => {
+      const warn = jest.spyOn(logger, 'warn').mockImplementation();
+      writeLocale('messages', { greeting: 'x' });
+
+      service.reload();
+
+      expect(service.getLocales()).toEqual(['de', 'de-AT', 'en']);
+      expect(warn).toHaveBeenCalled();
+    });
+
+    test('fails on a file that is not valid JSON', () => {
+      writeLocale('hr', '{ invalid');
+
+      expect(() => service.reload()).toThrow(
+        expect.objectContaining({ code: ErrorCode.LocaleLoadFailed })
+      );
+    });
+
+    test('fails on a file that is not a JSON object', () => {
+      writeLocale('hr', '["a"]');
+
+      expect(() => service.onInit()).toThrow(
+        expect.objectContaining({ code: ErrorCode.LocaleLoadFailed })
+      );
+    });
+
+    test('has no translations without the locale directory', () => {
+      configOverrides.LOCALE_PATH = path.join(dir, 'missing');
+      service = new LocaleService();
+
+      expect(service.getLocales()).toEqual([]);
+      expect(service.translate('greeting')).toBe('greeting');
+    });
+  });
+});

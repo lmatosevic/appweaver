@@ -16,6 +16,8 @@ export type ErrorModule =
   | 'export'
   | 'queue'
   | 'mailer'
+  | 'template'
+  | 'locale'
   | 'lock'
   | 'application';
 

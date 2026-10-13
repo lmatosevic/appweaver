@@ -110,7 +110,9 @@ Core application logic. Organized into the following modules:
 | `queue/`     | Background job queues — Bull (Redis-backed) and in-memory implementations                                                                                            |
 | `scheduler/` | Cron job scheduling service                                                                                                                                          |
 | `seeder/`    | Database seeding utilities                                                                                                                                           |
-| `mailer/`    | Email service — SMTP and JSON (dev/test) mailer implementations                                                                                                      |
+| `mailer/`    | Email service — SMTP and JSON (dev/test) mailer implementations, rendering the template emails                                                                       |
+| `template/`  | Template engine — the Handlebars implementation of `TemplateEngine`, its helpers and the framework's own email templates                                             |
+| `locale/`    | Locale service — translating the keys of the flat JSON translation files, with the framework's own English translations                                              |
 | `cache/`     | Caching layer abstractions and implementations                                                                                                                       |
 | `context/`   | Dependency injection container and utility functions                                                                                                                 |
 | `health/`    | Health check endpoint and service registration                                                                                                                       |
@@ -545,8 +547,8 @@ const users = await client.user.query({ filter: { enabled: true } });
 ### `sample/cms-api`
 
 A reference CMS (Content Management System) API that demonstrates how to build a complete application with Appweaver. It
-includes user authentication, posts with file uploads, role-based authorization, scheduled jobs, custom routes, and
-plugins.
+includes user authentication, posts with file uploads, role-based authorization, scheduled jobs, custom routes, plugins,
+and the localized templates of its `templates/` and `locales/` directories (an HTML page, an XML export and an email).
 
 #### Model definitions and code generation
 

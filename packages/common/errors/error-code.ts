@@ -114,6 +114,14 @@ export enum ErrorCode {
   MailerSendFailed = 'MAILER_SEND_FAILED',
   MailerJobNotFound = 'MAILER_JOB_NOT_FOUND',
 
+  // Templates
+  TemplateNotFound = 'TEMPLATE_NOT_FOUND',
+  TemplateRenderFailed = 'TEMPLATE_RENDER_FAILED',
+  TemplateLoadFailed = 'TEMPLATE_LOAD_FAILED',
+
+  // Locales
+  LocaleLoadFailed = 'LOCALE_LOAD_FAILED',
+
   // Locks
   LockNotAcquired = 'LOCK_NOT_ACQUIRED'
 }

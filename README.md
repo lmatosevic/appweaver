@@ -236,8 +236,8 @@ weaver migrate                              # apply new database migration
 ### `@appweaver/core`
 
 The heart of the framework. Provides factory functions for creating resources (models, services, routes, policies),
-authentication, dependency injection, file storage, queues, cron scheduler, mailer, caching, events, and the HTTP
-server.
+authentication, dependency injection, file storage, queues, cron scheduler, mailer, templates and translations,
+caching, events, and the HTTP server.
 
 ```ts
 import { createApp } from '@appweaver/core';

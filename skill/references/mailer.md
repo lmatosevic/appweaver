@@ -201,6 +201,63 @@ for (const [i, result] of results.entries()) {
 
 ---
 
+#### `emailService.sendTemplateEmail(email)`
+
+Renders the email from the templates of the [template engine](./templates.md) in the given locale and queues it like
+`sendEmail`. The `template` is a name without the format, its templates render the parts of the email:
+
+| Template             | Renders             | Required                                    |
+|----------------------|---------------------|---------------------------------------------|
+| `<template>.html`    | The HTML body       | One of the body templates                   |
+| `<template>.txt`     | The plain text body | No, derived from the HTML body when missing |
+| `<template>.subject` | The subject         | Unless `subject` is given                   |
+
+| Field         | Type           | Required | Description                                                   |
+|---------------|----------------|----------|---------------------------------------------------------------|
+| `to`          | `string`       | Yes      | Recipient address                                             |
+| `template`    | `string`       | Yes      | Template name without the format, i.e. `emails/order-shipped` |
+| `data`        | `object`       | No       | The data the templates render                                 |
+| `locale`      | `string`       | No       | The locale to render in, `LOCALE_DEFAULT` by default          |
+| `subject`     | `string`       | No       | Used instead of the `.subject` template                       |
+| `attachments` | `Attachment[]` | No       | Provider-specific attachment objects                          |
+
+```text
+templates/emails/
+├── order-shipped.html.hbs
+├── order-shipped.txt.hbs
+└── order-shipped.subject.hbs      # {{t "emails.orderShipped.subject" number=order.number}}
+```
+
+```ts
+await emailService.sendTemplateEmail({
+  to: customer.email,
+  template: 'emails/order-shipped',
+  data: { order, trackingUrl },
+  locale: customer.language // decided by the application
+});
+```
+
+`emailService.renderTemplateEmail(email)` returns the rendered `Email` without sending it, to pass to
+`sendEmailAndWait` or `sendEmailBulk`. A missing body or subject template rejects with `TEMPLATE_NOT_FOUND`.
+
+### Built-in account emails
+
+The account features send their emails from the framework's own templates, in the `LOCALE_DEFAULT` locale unless
+`AccountService.sendEmailVerification`, `sendResetPassword` or `send2FACode` is called with a `locale`:
+
+| Template                 | Data                                           |
+|--------------------------|------------------------------------------------|
+| `emails/verify-email`    | `email`, `link`                                |
+| `emails/password-reset`  | `email`, `link`                                |
+| `emails/two-factor-code` | `email`, `code`, `purpose`, `expiresInMinutes` |
+
+They share the `layouts/email.html` layout, the `partials/email-button.html` and `partials/email-footer.txt` partials,
+and the `emails.*` translation keys. A file of the same name in `templates/` overrides any of them (a scaffolded
+project starts with `templates/layouts/email.html.hbs`), and the keys of `locales/<locale>.json` translate them (a
+scaffolded project starts with the English keys in `locales/en.json`).
+
+---
+
 ### Real-world example — post-registration flow
 
 ```ts
