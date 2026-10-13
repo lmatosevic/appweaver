@@ -50,6 +50,15 @@ describe('load-providers', () => {
       );
     });
 
+    test('skips the template engine whose package is not installed', async () => {
+      const names = await loadWithEnv({
+        TEMPLATE_PROVIDER: '@appweaver/core/template/missing'
+      });
+
+      expect(names).not.toContain('TemplateEngine');
+      expect(names).toContain('LocaleService');
+    });
+
     test('skips the scheduler when it is disabled', async () => {
       const names = await loadWithEnv({ SCHEDULER_ENABLED: 'false' });
 

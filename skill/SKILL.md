@@ -73,6 +73,7 @@ create-weaver-app <name> [description] [options]
 | `--no-redis`       | Skip ioredis, use in-memory cache, rate limit and queue        | installed    |
 | `--no-queue`       | Skip bullmq, use in-memory queue                               | installed    |
 | `--no-mailer`      | Skip nodemailer, disable mailer (email features respond 501)   | installed    |
+| `--no-templates`   | Skip handlebars and the templates and locales directories      | installed    |
 | `--no-cron`        | Skip cron, disable scheduler                                   | installed    |
 
 **Example — PostgreSQL project without queue:**
@@ -903,9 +904,9 @@ weaver update --dry-run                       # print the updates without instal
 ```
 
 Besides the `@appweaver/*` packages, `weaver update` bumps the companion packages the project already has (Prisma
-and its adapters, TypeBox, BullMQ, Cron, IoRedis, Nodemailer, TypeScript) to the exact versions the target release is
-built with. It never adds missing packages or downgrades newer ones. Run `weaver generate` afterwards when Prisma is
-updated.
+and its adapters, TypeBox, BullMQ, Cron, Handlebars, IoRedis, Nodemailer, TypeScript) to the exact versions the target
+release is built with. It never adds missing packages or downgrades newer ones. Run `weaver generate` afterwards when
+Prisma is updated.
 
 ### Run tests
 

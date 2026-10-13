@@ -29,7 +29,7 @@ export function loadProviders(baseDir: string): void {
   loadProvider(baseDir, config.CACHE_PROVIDER, Cache);
   loadProvider(baseDir, config.EVENTS_PROVIDER, Events);
   loadProvider(baseDir, config.SECURITY_STORE_PROVIDER, SecurityStore);
-  loadProvider(baseDir, config.TEMPLATE_PROVIDER, TemplateEngine);
+  loadProvider(baseDir, config.TEMPLATE_PROVIDER, TemplateEngine, false);
   loadProvider(baseDir, config.REDIS_PROVIDER, Redis, false);
   const queueLoaded = loadProvider(
     baseDir,

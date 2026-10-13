@@ -7,7 +7,9 @@ import {
   makeHash,
   randomString,
   ResourceId,
-  SecurityStore
+  SecurityStore,
+  TemplateEmail,
+  TemplateEngine
 } from '@appweaver/common';
 import { AuthService } from '../auth-service';
 import {
@@ -17,6 +19,7 @@ import {
 } from '../helper';
 import { inject } from '../../context';
 import { EmailService } from '../../mailer';
+import { LocaleService, TranslationParams } from '../../locale';
 import { AuthError } from '../auth-error';
 import { AccountError } from './account-error';
 import { AuthOTTData, TwoFactorAuthData } from '../../types';
@@ -94,12 +97,16 @@ export class AccountService {
         ? `${config.APP_HOSTNAME}${accountPath}/verify-email-redirect?token=${token}`
         : `${redirectToUrl}${separator}token=${token}`;
 
-    await this._emailService.sendTemplateEmail({
-      to: authUser.email,
-      template: 'emails/verify-email',
-      data: { email: authUser.email, link: verifyLink },
-      locale
-    });
+    await this.sendAccountEmail(
+      {
+        to: authUser.email,
+        template: 'emails/verify-email',
+        data: { email: authUser.email, link: verifyLink },
+        locale
+      },
+      'emails.verifyEmail',
+      (t) => [t('emails.verifyEmail.message'), verifyLink]
+    );
 
     return 'Verification email sent';
   }
@@ -228,12 +235,20 @@ export class AccountService {
     const separator = redirectToUrl.includes('?') ? '&' : '?';
     const changePasswordLink = `${redirectToUrl}${separator}token=${token}`;
 
-    await this._emailService.sendTemplateEmail({
-      to: authUser.email,
-      template: 'emails/password-reset',
-      data: { email: authUser.email, link: changePasswordLink },
-      locale
-    });
+    await this.sendAccountEmail(
+      {
+        to: authUser.email,
+        template: 'emails/password-reset',
+        data: { email: authUser.email, link: changePasswordLink },
+        locale
+      },
+      'emails.passwordReset',
+      (t) => [
+        t('emails.passwordReset.message'),
+        changePasswordLink,
+        t('emails.passwordReset.ignore')
+      ]
+    );
 
     return sentMessage;
   }
@@ -319,17 +334,21 @@ export class AccountService {
         expiresIn
       );
 
-    await this._emailService.sendTemplateEmail({
-      to: authUser.email,
-      template: 'emails/two-factor-code',
-      data: {
-        email: authUser.email,
-        code,
-        purpose,
-        expiresInMinutes: Math.ceil(expiresIn / 60)
+    const expiresInMinutes = Math.ceil(expiresIn / 60);
+    await this.sendAccountEmail(
+      {
+        to: authUser.email,
+        template: 'emails/two-factor-code',
+        data: { email: authUser.email, code, purpose, expiresInMinutes },
+        locale
       },
-      locale
-    });
+      'emails.twoFactorCode',
+      (t) => [
+        t('emails.twoFactorCode.message'),
+        code,
+        t('emails.twoFactorCode.expires', { count: expiresInMinutes })
+      ]
+    );
 
     return { challengeId, expiresIn };
   }
@@ -374,5 +393,35 @@ export class AccountService {
     );
 
     return { token, expiresIn };
+  }
+
+  /**
+   * Sends an email of the framework templates, or without the template engine the plain text of their translations.
+   *
+   * @internal
+   */
+  private async sendAccountEmail(
+    email: TemplateEmail,
+    key: string,
+    body: (t: (key: string, params?: TranslationParams) => string) => string[]
+  ): Promise<void> {
+    const emailService = this._emailService!;
+    if (inject(TemplateEngine, false)) {
+      return emailService.sendTemplateEmail(email);
+    }
+
+    const localeService = inject(LocaleService);
+    const t = (translationKey: string, params?: TranslationParams) =>
+      localeService.translate(translationKey, email.locale, params);
+
+    await emailService.sendEmail({
+      to: email.to,
+      subject: t(`${key}.subject`),
+      text: [
+        t('emails.greeting'),
+        ...body(t),
+        `--\n${t('emails.footer', { appName: config.APP_NAME })}`
+      ].join('\n\n')
+    });
   }
 }

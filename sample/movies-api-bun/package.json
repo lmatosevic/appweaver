@@ -29,6 +29,7 @@
     "@prisma/client": "7.9.1",
     "@sinclair/typebox": "0.34.49",
     "cron": "4.4.0",
+    "handlebars": "4.7.10",
     "prisma": "7.9.1"
   },
   "devDependencies": {

@@ -254,7 +254,8 @@ The account features send their emails from the framework's own templates, in th
 They share the `layouts/email.html` layout, the `partials/email-button.html` and `partials/email-footer.txt` partials,
 and the `emails.*` translation keys. A file of the same name in `templates/` overrides any of them (a scaffolded
 project starts with `templates/layouts/email.html.hbs`), and the keys of `locales/<locale>.json` translate them (a
-scaffolded project starts with the English keys in `locales/en.json`).
+scaffolded project starts with the English keys in `locales/en.json`). Without the `handlebars` package they are sent
+as plain text built from the same translations.
 
 ---
 

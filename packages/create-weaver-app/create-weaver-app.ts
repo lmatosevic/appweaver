@@ -90,6 +90,10 @@ program
     'Skip Nodemailer package installation and disable the mailer.'
   )
   .option(
+    '--no-templates',
+    'Skip Handlebars package installation and the template and translation files.'
+  )
+  .option(
     '--no-cron',
     'Skip Cron package installation and disable the scheduler.'
   )
@@ -243,6 +247,35 @@ program
       );
     }
 
+    // Remove the template and translation files, their copying into the Docker
+    // image, and the template config without the template engine
+    if (!command.getOptionValue('templates')) {
+      const configFile = path.join(destDir, 'appweaver.json');
+      const appConfig = JSON.parse(await fsp.readFile(configFile, 'utf8'));
+      delete appConfig.environments.dev.template;
+      await fsp.writeFile(
+        configFile,
+        `${JSON.stringify(appConfig, null, 2)}\n`,
+        'utf8'
+      );
+
+      for (const dir of ['templates', 'locales']) {
+        await fsp.rm(path.join(destDir, dir), { recursive: true, force: true });
+      }
+      const dockerfile = path.join(destDir, 'Dockerfile');
+      if (fs.existsSync(dockerfile)) {
+        const content = await fsp.readFile(dockerfile, 'utf8');
+        await fsp.writeFile(
+          dockerfile,
+          content.replace(
+            /# Copy templates and translation files\n(COPY .*\n)+\n/,
+            ''
+          ),
+          'utf8'
+        );
+      }
+    }
+
     // Create test reports directory
     await fsp.mkdir(path.join(destDir, 'reports'));
 
@@ -382,6 +415,10 @@ function getNodeDependencies(command: Command, runtime: string): string[] {
 
   if (command.getOptionValue('mailer')) {
     dependencies.push('nodemailer');
+  }
+
+  if (command.getOptionValue('templates')) {
+    dependencies.push('handlebars');
   }
 
   return dependencies;

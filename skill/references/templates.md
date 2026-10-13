@@ -5,9 +5,17 @@ external integrations, CSV or any other text. The locale service translates keys
 usable anywhere in the application and inside the templates. The locale is always given by the application (a request
 parameter, a user field, ...), falling back to `LOCALE_DEFAULT`.
 
-- `TemplateEngine` is an infrastructure provider of `@appweaver/common`, the default implementation is
-  `HandlebarsTemplateEngine` ([Handlebars](https://handlebarsjs.com/guide/)), replaceable with `TEMPLATE_PROVIDER`.
-- `LocaleService` is a core service of `@appweaver/core`.
+- `TemplateEngine` is an optional infrastructure provider of `@appweaver/common`, the default implementation is
+  `HandlebarsTemplateEngine` ([Handlebars](https://handlebarsjs.com/guide/)), replaceable with `TEMPLATE_PROVIDER`. It
+  needs the `handlebars` package, a companion package the project installs (`weaver update` keeps it in step).
+- `LocaleService` is a core service of `@appweaver/core`, always available.
+
+Like the Redis and queue providers, the template engine is loaded only when its package is installed: without
+`handlebars` the application logs that the provider failed to load and starts without it. Injecting `TemplateEngine`
+then throws `CONTEXT_DEFINITION_MISSING`, `EmailService.sendTemplateEmail` fails, and the framework emails are sent as
+plain text built from the `emails.*` translations. A project created with `create-weaver-app --no-templates` skips the
+`handlebars` package and the `templates/` and `locales/` directories. `LocaleService` keeps translating, from the
+`locales/` files when the project adds them.
 
 ## Project layout
 
