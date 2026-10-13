@@ -100,9 +100,13 @@ for (const pkgName of fs.readdirSync(packagesDir)) {
       for (const [binName, binFile] of Object.entries(pkgJson.bin)) {
         const targetPath = path.resolve(fileDestPath, binFile);
 
-        // Unix shell script
+        // Unix shell script, executable also when it replaces an existing file,
+        // whose mode a write keeps
         const shPath = path.join(binDir, binName);
-        fs.writeFileSync(shPath, `#!/bin/sh\nnode "${targetPath}" "$@"\n`);
+        fs.writeFileSync(shPath, `#!/bin/sh\nnode "${targetPath}" "$@"\n`, {
+          mode: 0o755
+        });
+        fs.chmodSync(shPath, 0o755);
 
         // Windows .cmd shim
         const cmdPath = path.join(binDir, `${binName}.cmd`);
