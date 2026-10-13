@@ -1,3 +1,11 @@
+## [1.11.1](https://github.com/lmatosevic/appweaver/compare/v1.11.0...v1.11.1) (2026-10-13)
+
+### Bug Fixes
+
+* add support for replace and bulkReplace route configs ([f03c17a](https://github.com/lmatosevic/appweaver/commit/f03c17a53badb735df3e509b4d2e96ebb8cb0989))
+* allow appweaver.json config to have per environment settings in the same file ([2f83586](https://github.com/lmatosevic/appweaver/commit/2f83586bb4ef3808fcd9dd4a6ec0000b4ae3c0d0))
+* remove circular imports and tidy code quality across packages ([6eee56b](https://github.com/lmatosevic/appweaver/commit/6eee56b6dd8fa39b9ec468eb10596b9efad8248e))
+
 ## [1.11.0](https://github.com/lmatosevic/appweaver/compare/v1.10.2...v1.11.0) (2026-10-11)
 
 ### Features
