@@ -1,4 +1,21 @@
-import { mergeRouteDefaults } from '../../../resource/utils/route-config-util';
+jest.mock('@appweaver/common', () => {
+  const actual = jest.requireActual('@appweaver/common');
+  const configOverrides: Record<string, unknown> = {};
+  return {
+    __esModule: true,
+    ...actual,
+    configOverrides,
+    get config() {
+      return { ...actual.config, ...configOverrides };
+    }
+  };
+});
+
+import * as common from '@appweaver/common';
+import {
+  mergeRouteDefaults,
+  resolveRouteConfig
+} from '../../../resource/utils/route-config-util';
 
 describe('route-config-util', () => {
   describe('mergeRouteDefaults', () => {
@@ -93,6 +110,141 @@ describe('route-config-util', () => {
       expect(
         mergeRouteDefaults('find', { exclude: true }, { exclude: false })
       ).toEqual({ exclude: false });
+    });
+  });
+
+  describe('resolveRouteConfig', () => {
+    afterEach(() => {
+      delete (common as any).configOverrides.RESOURCE_BULK_UPDATE_ENABLED;
+    });
+
+    test('applies the defaults and the own config of a route', () => {
+      expect(
+        resolveRouteConfig('create', {
+          defaults: { roles: ['User'], rateLimit: false },
+          create: { roles: ['Admin'] }
+        })
+      ).toEqual({ roles: ['Admin'], rateLimit: false });
+    });
+
+    test('inherits the update config on the replace route', () => {
+      const routesConfig = {
+        update: { roles: ['Admin'], rateLimit: { max: 5 } }
+      };
+
+      expect(resolveRouteConfig('replace', routesConfig)).toEqual(
+        routesConfig.update
+      );
+    });
+
+    test('prefers the replace config over the update one', () => {
+      const routesConfig = {
+        update: { roles: ['User'], rateLimit: { max: 5 } },
+        replace: { roles: ['Admin'] }
+      };
+
+      expect(resolveRouteConfig('replace', routesConfig)).toEqual({
+        roles: ['Admin'],
+        rateLimit: { max: 5 }
+      });
+      expect(resolveRouteConfig('update', routesConfig)).toEqual(
+        routesConfig.update
+      );
+    });
+
+    test('excludes the replace route along with the update one, unless included again', () => {
+      expect(
+        resolveRouteConfig('replace', { update: { exclude: true } }).exclude
+      ).toBe(true);
+      expect(
+        resolveRouteConfig('replace', {
+          update: { exclude: true },
+          replace: { exclude: false }
+        }).exclude
+      ).toBe(false);
+      expect(
+        resolveRouteConfig('update', { replace: { exclude: true } }).exclude
+      ).toBeUndefined();
+    });
+
+    test('inherits the update, replace and bulk update config, in that order, on the bulk replace route', () => {
+      expect(
+        resolveRouteConfig('bulkReplace', {
+          update: { roles: ['User'], rateLimit: false },
+          replace: { roles: ['Editor'], recaptcha: true },
+          bulkUpdate: { exclude: false, maxItems: 10 },
+          bulkReplace: { returnRecords: false }
+        })
+      ).toEqual({
+        roles: ['Editor'],
+        rateLimit: false,
+        recaptcha: true,
+        exclude: false,
+        maxItems: 10,
+        returnRecords: false
+      });
+      expect(
+        resolveRouteConfig('bulkReplace', {
+          replace: { roles: ['Editor'] },
+          bulkUpdate: { exclude: false, roles: ['Admin'] }
+        }).roles
+      ).toEqual(['Admin']);
+    });
+
+    test('keeps the replace config off the bulk update route', () => {
+      expect(
+        resolveRouteConfig('bulkUpdate', {
+          update: { roles: ['User'] },
+          replace: { roles: ['Admin'] },
+          bulkUpdate: { exclude: false }
+        })
+      ).toEqual({ roles: ['User'], exclude: false });
+    });
+
+    test('enables the bulk update and replace routes by the same config switch', () => {
+      expect(resolveRouteConfig('bulkUpdate').exclude).toBe(true);
+      expect(resolveRouteConfig('bulkReplace').exclude).toBe(true);
+
+      (common as any).configOverrides.RESOURCE_BULK_UPDATE_ENABLED = true;
+
+      expect(resolveRouteConfig('bulkUpdate').exclude).toBe(false);
+      expect(resolveRouteConfig('bulkReplace').exclude).toBe(false);
+    });
+
+    test('prefers the exclude option of the bulk routes over the config switch', () => {
+      expect(
+        resolveRouteConfig('bulkReplace', { bulkUpdate: { exclude: false } })
+          .exclude
+      ).toBe(false);
+
+      (common as any).configOverrides.RESOURCE_BULK_UPDATE_ENABLED = true;
+
+      expect(
+        resolveRouteConfig('bulkReplace', { bulkUpdate: { exclude: true } })
+          .exclude
+      ).toBe(true);
+      expect(
+        resolveRouteConfig('bulkReplace', {
+          bulkUpdate: { exclude: true },
+          bulkReplace: { exclude: false }
+        }).exclude
+      ).toBe(false);
+      expect(
+        resolveRouteConfig('bulkUpdate', { bulkReplace: { exclude: true } })
+          .exclude
+      ).toBe(false);
+    });
+
+    test('excludes the bulk replace route along with the replace one', () => {
+      (common as any).configOverrides.RESOURCE_BULK_UPDATE_ENABLED = true;
+
+      expect(
+        resolveRouteConfig('bulkReplace', { replace: { exclude: true } })
+          .exclude
+      ).toBe(true);
+      expect(
+        resolveRouteConfig('bulkUpdate', { replace: { exclude: true } }).exclude
+      ).toBe(false);
     });
   });
 });

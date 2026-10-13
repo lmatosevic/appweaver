@@ -29,13 +29,18 @@ export function queryRouteMethods(
   };
 }
 
-/** The bulk routes of a resource, each one enabled on its own. */
-export type BulkRouteName = 'bulkCreate' | 'bulkUpdate' | 'bulkDelete';
+/** The bulk routes of a resource. */
+export type BulkRouteName =
+  | 'bulkCreate'
+  | 'bulkUpdate'
+  | 'bulkReplace'
+  | 'bulkDelete';
 
 /**
  * Tells whether the config enables a bulk route for every resource, through
- * the `RESOURCE_BULK_CREATE_ENABLED`, `RESOURCE_BULK_UPDATE_ENABLED`, or
- * `RESOURCE_BULK_DELETE_ENABLED` config.
+ * the `RESOURCE_BULK_CREATE_ENABLED`, `RESOURCE_BULK_UPDATE_ENABLED` (enabling
+ * both the bulk update and replace routes), or `RESOURCE_BULK_DELETE_ENABLED`
+ * config.
  *
  * @param {BulkRouteName} route The bulk route to resolve.
  * @return {boolean} Whether the config enables the bulk route.
@@ -45,6 +50,7 @@ export function bulkRouteEnabled(route: BulkRouteName): boolean {
     case 'bulkCreate':
       return config.RESOURCE_BULK_CREATE_ENABLED;
     case 'bulkUpdate':
+    case 'bulkReplace':
       return config.RESOURCE_BULK_UPDATE_ENABLED;
     case 'bulkDelete':
       return config.RESOURCE_BULK_DELETE_ENABLED;

@@ -1434,23 +1434,25 @@ function createRoutes(config: ResourceRoutesConfig, override ?: Partial<Resource
 }
 ```
 
-| Property     | Type             | Description                                                            |
-|--------------|------------------|------------------------------------------------------------------------|
-| `modelName`  | string           | Model name to bind routes to (required).                               |
-| `path`       | string           | Custom base URL path (default: derived from model name).               |
-| `defaults`   | QueryRouteConfig | Config applied to every route (see [Route defaults](#route-defaults)). |
-| `find`       | ReadRouteConfig  | `GET /:id` - Find single resource by ID.                               |
-| `query`      | QueryRouteConfig | `POST /query` - Query resources with filters.                          |
-| `aggregate`  | QueryRouteConfig | `POST /aggregate` - Aggregate resources.                               |
-| `create`     | RouteConfig      | `POST /` - Create a new resource.                                      |
-| `update`     | RouteConfig      | `PATCH /:id` and `PUT /:id` - Update or replace a resource.            |
-| `delete`     | RouteConfig      | `DELETE /:id` - Delete a resource.                                     |
-| `export`     | RouteConfig      | `POST /export` - Export resources to CSV.                              |
-| `fileUpload` | RouteConfig      | `POST /:id/files` - Upload files to a resource.                        |
-| `fileDelete` | RouteConfig      | `POST /:id/delete-files` - Delete files from a resource.               |
-| `bulkCreate` | BulkRouteConfig  | `POST /bulk` - Create many (disabled by default).                      |
-| `bulkUpdate` | BulkRouteConfig  | `PATCH /bulk`, `PUT /bulk` - Update many (disabled by default).        |
-| `bulkDelete` | BulkRouteConfig  | `DELETE /bulk` - Delete many (disabled by default).                    |
+| Property      | Type             | Description                                                            |
+|---------------|------------------|------------------------------------------------------------------------|
+| `modelName`   | string           | Model name to bind routes to (required).                               |
+| `path`        | string           | Custom base URL path (default: derived from model name).               |
+| `defaults`    | QueryRouteConfig | Config applied to every route (see [Route defaults](#route-defaults)). |
+| `find`        | ReadRouteConfig  | `GET /:id` - Find single resource by ID.                               |
+| `query`       | QueryRouteConfig | `POST /query` - Query resources with filters.                          |
+| `aggregate`   | QueryRouteConfig | `POST /aggregate` - Aggregate resources.                               |
+| `create`      | RouteConfig      | `POST /` - Create a new resource.                                      |
+| `update`      | RouteConfig      | `PATCH /:id` - Update a resource (inherited by `replace`).             |
+| `replace`     | RouteConfig      | `PUT /:id` - Replace a resource (inherits `update`).                   |
+| `delete`      | RouteConfig      | `DELETE /:id` - Delete a resource.                                     |
+| `export`      | RouteConfig      | `POST /export` - Export resources to CSV.                              |
+| `fileUpload`  | RouteConfig      | `POST /:id/files` - Upload files to a resource.                        |
+| `fileDelete`  | RouteConfig      | `POST /:id/delete-files` - Delete files from a resource.               |
+| `bulkCreate`  | BulkRouteConfig  | `POST /bulk` - Create many (disabled by default).                      |
+| `bulkUpdate`  | BulkRouteConfig  | `PATCH /bulk` - Update many (disabled by default).                     |
+| `bulkReplace` | BulkRouteConfig  | `PUT /bulk` - Replace many (enabled along with `bulkUpdate`).          |
+| `bulkDelete`  | BulkRouteConfig  | `DELETE /bulk` - Delete many (disabled by default).                    |
 
 ### Route defaults
 
@@ -1512,22 +1514,41 @@ GET /api/posts/query?filter={"viewCount":{"_gte":5}}&sort=-createdAt&size=20
 Keep POST for large filters, since Node.js limits the request headers to 16 KB. With a string primary key, the id
 `query` or `aggregate` can no longer be read through `GET /:id`.
 
-### Update routes (update)
+### Update routes (update, replace)
 
-The `update` config applies to both routes, which share the policies, hooks, cache invalidation, and `update` event:
+Both routes share the policies, hooks, cache invalidation, and `update` event:
 
 - `PATCH /:id` (`service.update`) updates the given fields (`<Model>Update`, all optional).
 - `PUT /:id` (`service.replace`) replaces the resource (`<Model>Replace`, required fields as on create). Omitted fields
   are reset to their `default`, or `null` when optional. Hidden fields, files, and omitted optional relations stay
   untouched.
 
-### Bulk routes (bulkCreate, bulkUpdate, bulkDelete)
+The `update` config applies to both routes, and `replace` overrides it for `PUT /:id` only, merged the same way as the
+[route defaults](#route-defaults) (`exclude` included). Setting `replace` alone never affects `PATCH /:id`.
 
-Disabled by default. `RESOURCE_BULK_CREATE_ENABLED`, `RESOURCE_BULK_UPDATE_ENABLED`, and `RESOURCE_BULK_DELETE_ENABLED`
-enable them for every resource, and the route's `exclude` overrides that per resource (`exclude: false` enables it).
-Each bulk route inherits the config of its single route (`create`, `update`, `delete`, which also excludes it) and
-takes `maxItems` (default `RESOURCE_BULK_MAX_ITEMS`, `2000`) and `returnRecords` (default
-`RESOURCE_BULK_RETURN_RECORDS`, `true`).
+```ts
+createRoutes({
+  modelName: 'Product',
+  update: { roles: ['Admin', 'Editor'], rateLimit: { max: 50 } },
+  replace: { roles: ['Admin'] } // PUT: Admin only, same rate limit
+});
+
+createRoutes({ modelName: 'Setting', replace: { exclude: true } }); // PATCH only
+createRoutes({ modelName: 'Profile', update: { exclude: true }, replace: { exclude: false } }); // PUT only
+```
+
+### Bulk routes (bulkCreate, bulkUpdate, bulkReplace, bulkDelete)
+
+Disabled by default. `RESOURCE_BULK_CREATE_ENABLED`, `RESOURCE_BULK_UPDATE_ENABLED` (both `PATCH` and `PUT /bulk`), and
+`RESOURCE_BULK_DELETE_ENABLED` enable them for every resource, and the route's `exclude` overrides that per resource
+(`exclude: false` enables it). Each bulk route inherits the config of its single route (`create`, `update`, `replace`,
+`delete`, which also excludes it) and takes `maxItems` (default `RESOURCE_BULK_MAX_ITEMS`, `2000`) and `returnRecords`
+(default `RESOURCE_BULK_RETURN_RECORDS`, `true`).
+
+`bulkReplace` inherits `update`, `replace`, then `bulkUpdate`, each overriding the previous one, so
+`bulkUpdate: { exclude: false }` enables both `PATCH` and `PUT /bulk`, and `bulkReplace` configures `PUT /bulk` alone.
+When `replace` and `bulkUpdate` set the same option group (i.e. `roles`), `bulkUpdate` wins for `PUT /bulk`, so set it
+on `bulkReplace` to keep the replace one.
 
 | Route          | Body                             | Service method       |
 |----------------|----------------------------------|----------------------|

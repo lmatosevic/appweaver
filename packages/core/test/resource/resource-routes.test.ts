@@ -389,6 +389,31 @@ describe('resource-routes', () => {
         expect(await updateRoutes()).toEqual([]);
       });
 
+      test('excludes only the replace route, or registers it alone', async () => {
+        app = await server({ replace: { exclude: true } });
+        expect(await updateRoutes()).toEqual(['PATCH']);
+        await app.close();
+
+        app = await server({
+          update: { exclude: true },
+          replace: { exclude: false }
+        });
+        expect(await updateRoutes()).toEqual(['PUT']);
+      });
+
+      test('applies the update access to the replace route, unless it sets its own', async () => {
+        app = await server({ update: { public: true } }, false, true);
+        expect(await updateRoutes()).toEqual(['PUT', 'PATCH']);
+        await app.close();
+
+        app = await server(
+          { update: { public: true }, replace: { roles: ['Admin'] } },
+          false,
+          true
+        );
+        expect(await updateRoutes()).toEqual(['PATCH']);
+      });
+
       test('updates the given fields with PATCH', async () => {
         app = await server();
 
@@ -634,6 +659,52 @@ describe('resource-routes', () => {
         app = await server({ create: { exclude: true } });
 
         expect((await send('POST', [full])).status).toBe(404);
+      });
+
+      test('configures the bulk replace route apart from the bulk update one', async () => {
+        app = await server(
+          {
+            bulkUpdate: { exclude: false, public: true, maxItems: 3 },
+            bulkReplace: { maxItems: 1 }
+          },
+          false,
+          true
+        );
+        const items = [
+          { id: 1, data: full },
+          { id: 2, data: full }
+        ];
+
+        expect((await send('PATCH', items)).status).toBe(200);
+        expect((await send('PUT', items)).status).toBe(400);
+        expect((await send('PUT', [items[0]])).status).toBe(200);
+      });
+
+      test('excludes the bulk replace route alone', async () => {
+        app = await server({
+          bulkUpdate: enabled,
+          bulkReplace: { exclude: true }
+        });
+
+        expect((await send('PATCH', [{ id: 1, data: {} }])).status).toBe(200);
+        // PUT reaches PUT /:id, whose id fails validation
+        expect((await send('PUT', [{ id: 1, data: full }])).status).toBe(400);
+        expect(service.bulkReplace).not.toHaveBeenCalled();
+      });
+
+      test('inherits the replace access on the bulk replace route', async () => {
+        app = await server(
+          {
+            update: { public: true },
+            replace: { roles: ['Admin'] },
+            bulkUpdate: enabled
+          },
+          false,
+          true
+        );
+
+        expect((await send('PATCH', [{ id: 1, data: {} }])).status).toBe(200);
+        expect((await send('PUT', [{ id: 1, data: full }])).status).toBe(401);
       });
 
       test('responds with the records deleted by their own id', async () => {

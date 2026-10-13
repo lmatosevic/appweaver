@@ -1,4 +1,9 @@
-import { BulkRouteConfig, QueryRouteConfig } from '@appweaver/common';
+import {
+  BulkRouteConfig,
+  QueryRouteConfig,
+  ResourceRoutesConfig
+} from '@appweaver/common';
+import { BulkRouteName, bulkRouteEnabled } from './query-params-util';
 
 /** The routes of a resource, each configurable on its own. */
 export type ResourceRouteName =
@@ -7,13 +12,12 @@ export type ResourceRouteName =
   | 'aggregate'
   | 'create'
   | 'update'
+  | 'replace'
   | 'delete'
   | 'export'
   | 'fileUpload'
   | 'fileDelete'
-  | 'bulkCreate'
-  | 'bulkUpdate'
-  | 'bulkDelete';
+  | BulkRouteName;
 
 /** The config of any resource route. */
 export type ResourceRouteConfig = QueryRouteConfig &
@@ -21,7 +25,25 @@ export type ResourceRouteConfig = QueryRouteConfig &
 
 const READ_ROUTES: ResourceRouteName[] = ['find', 'query', 'aggregate'];
 const QUERY_ROUTES: ResourceRouteName[] = ['query', 'aggregate'];
+const BULK_ROUTES: ResourceRouteName[] = [
+  'bulkCreate',
+  'bulkUpdate',
+  'bulkReplace',
+  'bulkDelete'
+];
 const CACHE_OPTIONS = ['cache', 'cacheTTL', 'cacheSkipInvalidation'] as const;
+
+const isBulkRoute = (route: ResourceRouteName): route is BulkRouteName =>
+  BULK_ROUTES.includes(route);
+
+// The routes each route inherits its config from, the most generic one first
+const ROUTE_PARENTS: Partial<Record<ResourceRouteName, ResourceRouteName[]>> = {
+  replace: ['update'],
+  bulkCreate: ['create'],
+  bulkUpdate: ['update'],
+  bulkReplace: ['update', 'replace', 'bulkUpdate'],
+  bulkDelete: ['delete']
+};
 
 // Options that override each other (i.e. `public` ignores `roles`), so a route
 // setting any of them inherits none of the group from the defaults
@@ -66,4 +88,43 @@ export function mergeRouteDefaults(
   }
 
   return { ...inherited, ...own } as ResourceRouteConfig;
+}
+
+/**
+ * Resolves the config of a resource route, merging the defaults and the config
+ * of each route it inherits from, then its own. The replace route inherits the
+ * update route, a bulk route its single route, and the bulk replace route the
+ * update, replace and bulk update routes, in that order.
+ *
+ * A bulk route is excluded unless its config switch enables it, which an
+ * `exclude` option set on the bulk route, or on the bulk route it inherits,
+ * overrides either way.
+ *
+ * @param {ResourceRouteName} routeName The route to resolve the config of.
+ * @param {Object} [routesConfig={}] The config of the resource routes.
+ * @return {ResourceRouteConfig} The resolved route config.
+ */
+export function resolveRouteConfig(
+  routeName: ResourceRouteName,
+  routesConfig: Omit<ResourceRoutesConfig, 'modelName' | 'path'> = {}
+): ResourceRouteConfig {
+  const chain = [...(ROUTE_PARENTS[routeName] ?? []), routeName];
+
+  const config = chain.reduce<ResourceRouteConfig>(
+    (defaults, name) => mergeRouteDefaults(name, defaults, routesConfig[name]),
+    routesConfig.defaults ?? {}
+  );
+
+  if (isBulkRoute(routeName)) {
+    const bulkExclude = chain
+      .filter(isBulkRoute)
+      .reverse()
+      .map((name) => routesConfig[name]?.exclude)
+      .find((exclude) => exclude !== undefined);
+
+    config.exclude =
+      bulkExclude ?? (config.exclude || !bulkRouteEnabled(routeName));
+  }
+
+  return config;
 }

@@ -391,8 +391,8 @@ export function createSchema(
     },
     replaceSchema: {
       tags: [tag],
-      security: authSchema(routeAuthTypes['update']),
-      headers: captchaHeaderSchema(routeCaptcha['update']),
+      security: authSchema(routeAuthTypes['replace']),
+      headers: captchaHeaderSchema(routeCaptcha['replace']),
       summary: `Replace ${resourceName} data`,
       description:
         `Replace ${resourceName} data as a whole. The fields left out are ` +
@@ -400,7 +400,7 @@ export function createSchema(
         'relations left out stay untouched',
       response: {
         200: resourceModel.readOneModel,
-        ...routeErrors('update', ...updateErrors)
+        ...routeErrors('replace', ...updateErrors)
       },
       body: resourceModel.replaceOneModel,
       params: idParams
@@ -517,17 +517,17 @@ export function createSchema(
     },
     bulkReplaceSchema: {
       tags: [tag],
-      security: authSchema(routeAuthTypes['bulkUpdate']),
-      headers: captchaHeaderSchema(routeCaptcha['bulkUpdate']),
+      security: authSchema(routeAuthTypes['bulkReplace']),
+      headers: captchaHeaderSchema(routeCaptcha['bulkReplace']),
       summary: `Replace many ${resourceName} data`,
       description:
         `Replace many ${resourceName} data as a whole in a single ` +
         'transaction, either every item or none',
       response: {
-        200: bulkResponse('bulkUpdate'),
-        ...routeErrors('bulkUpdate', ...updateErrors)
+        200: bulkResponse('bulkReplace'),
+        ...routeErrors('bulkReplace', ...updateErrors)
       },
-      body: bulkItems('bulkUpdate', bulkItem(`${name}Replace`))
+      body: bulkItems('bulkReplace', bulkItem(`${name}Replace`))
     },
     bulkDeleteSchema: {
       tags: [tag],

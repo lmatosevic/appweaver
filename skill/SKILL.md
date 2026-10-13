@@ -413,10 +413,12 @@ the criteria as query parameters. The defaults come from the `RESOURCE_QUERY_MET
 config (see `references/resources.md`).
 
 The `update` config covers both `PATCH /:id` (partial update) and `PUT /:id` (full replace: required fields must be
-present, omitted ones reset to their `default` or `null`).
+present, omitted ones reset to their `default` or `null`). The `replace` config inherits it and overrides it for
+`PUT /:id` only (i.e. `replace: { roles: ['Admin'] }` or `replace: { exclude: true }`).
 
 The bulk routes (`POST`, `PATCH`, `PUT`, `DELETE` on `/bulk`) are disabled by default. Enable them globally with
-`RESOURCE_BULK_*_ENABLED`, or per resource with `bulkCreate`/`bulkUpdate`/`bulkDelete: { exclude: false }`. Each
+`RESOURCE_BULK_*_ENABLED`, or per resource with `bulkCreate`/`bulkUpdate`/`bulkDelete: { exclude: false }`
+(`bulkUpdate` enables `PUT /bulk` too, which `bulkReplace` configures on its own). Each
 request runs all items in one transaction, all or none, and responds with the array of created, updated, or deleted
 records, like its single route, or only with `{ success, count }` when `RESOURCE_BULK_RETURN_RECORDS` or the route's
 `returnRecords` is `false` (see `references/resources.md`).

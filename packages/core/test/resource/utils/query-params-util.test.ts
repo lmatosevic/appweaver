@@ -31,6 +31,7 @@ describe('query-params-util', () => {
     test('disables every bulk route by default', () => {
       expect(bulkRouteEnabled('bulkCreate')).toBe(false);
       expect(bulkRouteEnabled('bulkUpdate')).toBe(false);
+      expect(bulkRouteEnabled('bulkReplace')).toBe(false);
       expect(bulkRouteEnabled('bulkDelete')).toBe(false);
     });
 
@@ -39,6 +40,7 @@ describe('query-params-util', () => {
 
       expect(bulkRouteEnabled('bulkCreate')).toBe(false);
       expect(bulkRouteEnabled('bulkUpdate')).toBe(true);
+      expect(bulkRouteEnabled('bulkReplace')).toBe(true);
       expect(bulkRouteEnabled('bulkDelete')).toBe(false);
     });
   });

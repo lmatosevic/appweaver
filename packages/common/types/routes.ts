@@ -120,9 +120,12 @@ export type ResourceRoutesConfig = {
   aggregate?: QueryRouteConfig;
   /** Config for the create route */
   create?: RouteConfig;
-  /** Config for the update routes: PATCH updates the given fields, PUT
-   * replaces the whole resource */
+  /** Config for the update route (PATCH), updating the given fields. The
+   * replace routes inherit it */
   update?: RouteConfig;
+  /** Config for the replace route (PUT), replacing the whole resource.
+   * Inherits the `update` config, which it overrides */
+  replace?: RouteConfig;
   /** Config for the delete route */
   delete?: RouteConfig;
   /** Config for the export route */
@@ -134,9 +137,14 @@ export type ResourceRoutesConfig = {
   /** Config for the bulk create route, excluded unless
    * `RESOURCE_BULK_CREATE_ENABLED` is set (or `exclude: false`) */
   bulkCreate?: BulkRouteConfig;
-  /** Config for the bulk update routes (PATCH and PUT), excluded unless
-   * `RESOURCE_BULK_UPDATE_ENABLED` is set (or `exclude: false`) */
+  /** Config for the bulk update route (PATCH), excluded unless
+   * `RESOURCE_BULK_UPDATE_ENABLED` is set (or `exclude: false`). Inherits the
+   * `update` config, and the bulk replace route inherits it */
   bulkUpdate?: BulkRouteConfig;
+  /** Config for the bulk replace route (PUT), enabled along with the bulk
+   * update route. Inherits the `update`, `replace` and `bulkUpdate` config, in
+   * that order, which it overrides */
+  bulkReplace?: BulkRouteConfig;
   /** Config for the bulk delete route, excluded unless
    * `RESOURCE_BULK_DELETE_ENABLED` is set (or `exclude: false`) */
   bulkDelete?: BulkRouteConfig;
