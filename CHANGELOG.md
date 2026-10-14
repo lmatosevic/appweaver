@@ -1,3 +1,9 @@
+## [1.11.2](https://github.com/lmatosevic/appweaver/compare/v1.11.1...v1.11.2) (2026-10-14)
+
+### Bug Fixes
+
+* stop Swagger UI from inlining the nested query filters ([17d4df7](https://github.com/lmatosevic/appweaver/commit/17d4df79377d4484d03d018aee32c85e8651d50a))
+
 ## [1.11.1](https://github.com/lmatosevic/appweaver/compare/v1.11.0...v1.11.1) (2026-10-13)
 
 ### Bug Fixes
