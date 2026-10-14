@@ -1,3 +1,9 @@
+## [1.11.3](https://github.com/lmatosevic/appweaver/compare/v1.11.2...v1.11.3) (2026-10-14)
+
+### Bug Fixes
+
+* speed up server startup by reusing validators and narrowing serializer schemas ([cfd1a98](https://github.com/lmatosevic/appweaver/commit/cfd1a9800d84a42781a569e3ea88b697b23cfd96))
+
 ## [1.11.2](https://github.com/lmatosevic/appweaver/compare/v1.11.1...v1.11.2) (2026-10-14)
 
 ### Bug Fixes
