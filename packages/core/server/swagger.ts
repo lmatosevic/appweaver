@@ -13,6 +13,7 @@ import {
   PROBLEM_DETAILS_SCHEMA_NAME
 } from '../errors';
 import { Server } from '../types';
+import { swaggerUiFilterPlugin } from './swagger-ui-plugin';
 
 /** Names the request model of a route taking its request as query parameters. */
 export const REQUEST_EXTENSION = `x-${CONFIG_NAME}-request`;
@@ -83,7 +84,18 @@ export default fastifyPlugin((server: Server) => {
     server.register(fastifySwaggerUI, {
       routePrefix: config.SWAGGER_PATH,
       indexPrefix: new URL(config.APP_HOSTNAME).pathname,
-      staticCSP: false
+      staticCSP: false,
+      uiConfig: {
+        // Replaces the default plugins of @fastify/swagger-ui, so its spec
+        // download is listed again. Plugins reach the UI as source code
+        plugins: [
+          function DownloadUrl(system: any) {
+            // @ts-expect-error The global of the Swagger UI bundle
+            return SwaggerUIBundle.plugins.DownloadUrl(system);
+          },
+          swaggerUiFilterPlugin
+        ]
+      }
     });
   }
 });
