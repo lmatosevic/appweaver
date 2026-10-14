@@ -29,6 +29,7 @@ import { Router, Server } from '../types';
 import { info } from './info-route';
 import { PluginEntry } from './register-plugin';
 import { requestValidation } from './request-validation';
+import { referencedSerializer } from './response-serialization';
 import schemas from './schemas';
 import swagger from './swagger';
 
@@ -53,8 +54,15 @@ import swagger from './swagger';
  */
 export function createServer(): Server {
   // Create a Fastify server instance
+  const validation = requestValidation();
   const server = Fastify({
-    ...requestValidation(),
+    ...validation,
+    schemaController: {
+      compilersFactory: {
+        ...validation.schemaController?.compilersFactory,
+        buildSerializer: referencedSerializer()
+      }
+    },
     routerOptions: {
       maxParamLength: 512,
       caseSensitive: false

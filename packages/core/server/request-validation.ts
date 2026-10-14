@@ -95,20 +95,43 @@ export function requestValidation(
  */
 export function strictValidator(limit: number = 1): BuildCompilerFromPool {
   const buildCompiler = AjvCompiler();
+  const compilers = new Map<string, RouteCompiler>();
+  const objectIds = new WeakMap<object, number>();
+  let nextId = 0;
+  const identity = (value: unknown): string => {
+    if (!value || typeof value !== 'object') {
+      return String(value);
+    }
+    if (!objectIds.has(value)) {
+      objectIds.set(value, nextId++);
+    }
+    return `#${objectIds.get(value)}`;
+  };
 
   return ((
     externalSchemas: Parameters<BuildCompilerFromPool>[0],
     options: Parameters<BuildCompilerFromPool>[1]
   ) => {
-    const closed: Parameters<BuildCompilerFromPool>[0] = Object.fromEntries(
-      Object.entries(externalSchemas ?? {}).map(([id, schema]) => [
-        id,
-        closeSchema(schema)
-      ])
-    );
-    // The package types declare the signature of an Ajv compile, while Fastify
-    // calls the compiler with the route schema definition
-    const compile = buildCompiler(closed, options) as unknown as RouteCompiler;
+    // Every encapsulated context sets its validator up, mostly sharing the
+    // same schema objects, so the compiler is reused by their identity rather
+    // than closing and serializing all the schemas again
+    const entries = Object.entries(externalSchemas ?? {});
+    const key = [
+      identity(options),
+      ...entries.map(([id, schema]) => `${id}:${identity(schema)}`)
+    ].join(',');
+
+    const compile =
+      compilers.get(key) ??
+      // The package types declare the signature of an Ajv compile, while
+      // Fastify calls the compiler with the route schema definition
+      (buildCompiler(
+        Object.fromEntries(
+          entries.map(([id, schema]) => [id, closeSchema(schema)])
+        ),
+        options
+      ) as unknown as RouteCompiler);
+    compilers.set(key, compile);
 
     return (route: FastifyRouteSchemaDef<unknown>) =>
       withRelevantErrors(
