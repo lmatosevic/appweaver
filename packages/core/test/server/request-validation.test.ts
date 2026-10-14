@@ -1,3 +1,20 @@
+const mockBuildCompiler = jest.fn();
+
+jest.mock('@fastify/ajv-compiler', () => {
+  const actual = jest.requireActual('@fastify/ajv-compiler');
+  return {
+    ...actual,
+    __esModule: true,
+    default: () => {
+      const build = actual.default();
+      return (...args: unknown[]) => {
+        mockBuildCompiler();
+        return build(...args);
+      };
+    }
+  };
+});
+
 import Fastify, { FastifyInstance } from 'fastify';
 import { Type } from '@sinclair/typebox';
 import {
@@ -403,6 +420,51 @@ describe('request-validation', () => {
       expect(body.message).toBe(
         'querystring must NOT have additional properties'
       );
+    });
+
+    test('builds one compiler for the contexts sharing the same schemas', async () => {
+      mockBuildCompiler.mockClear();
+      app = Fastify({ logger: false, ...requestValidation() });
+      app.addSchema({
+        $id: 'Shared',
+        type: 'object',
+        properties: { name: { type: 'string' } }
+      });
+      const body = Type.Object({ shared: Type.Ref('Shared') });
+      for (const prefix of ['/a', '/b']) {
+        app.register(
+          async (child) => {
+            child.post('/', { schema: { body } }, async () => ({}));
+          },
+          { prefix }
+        );
+      }
+      app.register(
+        async (child) => {
+          child.addSchema({
+            $id: 'Own',
+            type: 'object',
+            properties: { id: { type: 'integer' } }
+          });
+          child.post(
+            '/',
+            { schema: { body: Type.Object({ own: Type.Ref('Own') }) } },
+            async () => ({})
+          );
+        },
+        { prefix: '/c' }
+      );
+      await app.ready();
+
+      const post = async (url: string, payload: unknown) =>
+        (await app!.inject({ method: 'POST', url, payload: payload as any }))
+          .statusCode;
+
+      expect(mockBuildCompiler).toHaveBeenCalledTimes(2);
+      expect(await post('/a', { shared: { name: 'x' } })).toBe(200);
+      expect(await post('/b', { shared: { name: 'x', other: 1 } })).toBe(400);
+      expect(await post('/c', { own: { id: 1 } })).toBe(200);
+      expect(await post('/c', { own: { id: 'x' } })).toBe(400);
     });
   });
 });
