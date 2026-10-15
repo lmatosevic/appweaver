@@ -679,8 +679,12 @@ reply.type(templateContentType('exports/orders.xml')).send(xml);
 await inject(EmailService).sendTemplateEmail({ to, template: 'emails/order-shipped', data: { order }, locale });
 
 // A translated string, i.e. in a service hook
-inject(LocaleService).translate('cart.items', 'de', { count: 3 });
+inject(LocaleService).translate('inbox.unread', 'de', { msg_cnt: 3 });
 ```
+
+A translation is an ICU MessageFormat message in a flat JSON file, with plural forms by the CLDR categories of the
+locale: `"inbox.unread": "You have {msg_cnt, plural, =0 {no unread messages} one {# unread message} other {# unread
+messages}}"`.
 
 Inside the templates, `{{t "key" name=value}}` translates into the rendered locale, layouts and components are partials
 (`{{#> layouts/page.html}}...{{/layouts/page.html}}`), and `formatDate`, `formatNumber`, `formatCurrency` format in the

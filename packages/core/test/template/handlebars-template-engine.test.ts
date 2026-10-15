@@ -318,6 +318,34 @@ describe('handlebars-template-engine', () => {
   });
 
   describe('renderString', () => {
+    test('translates a plural message with the arguments of the helper', async () => {
+      writeFile(
+        'locales/de.json',
+        JSON.stringify({
+          unread:
+            '{name}, Sie haben {msg_cnt, plural, one {# ungelesene Nachricht} other {# ungelesene Nachrichten}}'
+        })
+      );
+      define(LocaleService, undefined, 'override');
+      engine = new HandlebarsTemplateEngine();
+
+      const source = '{{t "unread" name=name msg_cnt=count}}';
+      expect(
+        await engine.renderString(
+          source,
+          { name: 'Ana', count: 1 },
+          { locale: 'de' }
+        )
+      ).toBe('Ana, Sie haben 1 ungelesene Nachricht');
+      expect(
+        await engine.renderString(
+          source,
+          { name: 'Ana', count: 1200 },
+          { locale: 'de' }
+        )
+      ).toBe('Ana, Sie haben 1.200 ungelesene Nachrichten');
+    });
+
     test('escapes the values as HTML by default', async () => {
       expect(
         await engine.renderString('<b>{{value}}</b>', { value: '<i>' })

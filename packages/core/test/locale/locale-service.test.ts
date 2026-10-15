@@ -117,6 +117,41 @@ describe('locale-service', () => {
       expect(service.hasTranslation('toString')).toBe(false);
     });
 
+    test('formats an ICU message with the plural form of any argument', () => {
+      writeLocale('hr', {
+        'inbox.unread':
+          'Imate {msg_cnt, plural, =0 {nijednu nepročitanu poruku} one {# nepročitanu poruku} few {# nepročitane poruke} other {# nepročitanih poruka}}'
+      });
+      service.addTranslations('en', {
+        'inbox.unread':
+          'You have {msg_cnt, plural, =0 {no unread messages} one {# unread message} other {# unread messages}}',
+        'inbox.title': '{{name}}, you have {{msg_cnt}} new messages'
+      });
+      service.reload();
+
+      const unread = (msg_cnt: number, locale = 'en') =>
+        service.translate('inbox.unread', locale, { msg_cnt });
+
+      expect(unread(0)).toBe('You have no unread messages');
+      expect(unread(1)).toBe('You have 1 unread message');
+      expect(unread(7)).toBe('You have 7 unread messages');
+      expect(unread(1, 'hr')).toBe('Imate 1 nepročitanu poruku');
+      expect(unread(3, 'hr')).toBe('Imate 3 nepročitane poruke');
+      expect(unread(5, 'hr')).toBe('Imate 5 nepročitanih poruka');
+      expect(
+        service.translate('inbox.title', 'en', { name: 'Ana', msg_cnt: 2 })
+      ).toBe('Ana, you have 2 new messages');
+    });
+
+    test('selects the plural form by the locale the translation is found in', () => {
+      service.addTranslations('en', {
+        files: '{n, plural, one {# file} few {# files (few)} other {# files}}'
+      });
+
+      // The Croatian "few" category does not exist in English
+      expect(service.translate('files', 'hr', { n: 3 })).toBe('3 files');
+    });
+
     test('falls back to the framework translations', () => {
       expect(service.translate('emails.passwordReset.subject', 'de')).toBe(
         'Password reset request'
@@ -162,6 +197,12 @@ describe('locale-service', () => {
   });
 
   describe('addTranslations', () => {
+    test('rejects a translation that is not a valid message', () => {
+      expect(() =>
+        service.addTranslations('de', { broken: 'Hallo {name' })
+      ).toThrow(expect.objectContaining({ code: ErrorCode.LocaleLoadFailed }));
+    });
+
     test('merges the translations over the translation file', () => {
       service.addTranslations('de', { greeting: 'Guten Tag {name}' });
 
@@ -202,6 +243,19 @@ describe('locale-service', () => {
 
       expect(service.getLocales()).toEqual(['de', 'de-AT', 'en']);
       expect(warn).toHaveBeenCalled();
+    });
+
+    test('fails on a translation that is not a valid message', () => {
+      writeLocale('hr', { broken: 'Imate {n, plural, one {# poruku}}' });
+
+      expect(() => service.reload()).toThrow(
+        expect.objectContaining({
+          code: ErrorCode.LocaleLoadFailed,
+          message: expect.stringContaining(
+            "Translation 'broken' of " + path.join(dir, 'hr.json')
+          )
+        })
+      );
     });
 
     test('fails on a file that is not valid JSON', () => {

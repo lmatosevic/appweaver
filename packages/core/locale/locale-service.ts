@@ -8,16 +8,17 @@ import {
   isString,
   LIFECYCLE,
   logger,
-  OnInit,
-  toText
+  OnInit
 } from '@appweaver/common';
 import { LocaleError } from './locale-error';
 import { defaultTranslations } from './default-translations';
+import { formatMessage, parseMessage } from './utils/message-format';
 
 /** The flat translations of a locale, keyed by the translation key. */
 export type Translations = Record<string, string>;
 
-/** The values a translation interpolates by name, i.e. `{name}`. A numeric `count` also selects the plural form. */
+/** The values of the arguments of a translation, i.e. `{name}` or `{count, plural, one {# item} other {# items}}`. A
+ * numeric `count` also selects the translation key of its plural form, i.e. `cart.items_one`. */
 export type TranslationParams = Record<string, unknown>;
 
 export class LocaleService implements OnInit {
@@ -45,7 +46,10 @@ export class LocaleService implements OnInit {
    * Translates a key into the given locale. The key is looked up in the locale, then in the locales it falls back
    * to (`de-AT` falls back to `de`, then to the default locale), and finally in the framework's own translations. A
    * numeric `count` parameter selects the plural form of the locale, a key suffixed with `_zero`, `_one`, `_two`,
-   * `_few`, `_many` or `_other`, before the key itself. The `{name}` placeholders are replaced by the parameters.
+   * `_few`, `_many` or `_other`, before the key itself. The translation is an ICU message: `{name}` (or `{{name}}`)
+   * writes a parameter, `{name, plural, one {# item} other {# items}}` selects by the plural category of a number,
+   * `selectordinal` by its ordinal category, `select` by a value, and `{name, number}` formats a number. An argument
+   * without a parameter is written as it is.
    *
    * @param {string} key - The translation key, i.e. `emails.passwordReset.subject`.
    * @param {string} [locale] - The locale to translate into. Defaults to the `LOCALE_DEFAULT` config.
@@ -63,7 +67,7 @@ export class LocaleService implements OnInit {
       return key;
     }
 
-    return params ? interpolate(translation, params) : translation;
+    return formatMessage(translation.value, params ?? {}, translation.locale);
   }
 
   /**
@@ -117,6 +121,7 @@ export class LocaleService implements OnInit {
    *
    * @param {string} locale - The locale, i.e. `de`.
    * @param {Translations} translations - The flat translations, keyed by the translation key.
+   * @throws {LocaleError} `LOCALE_LOAD_FAILED` if a translation is not a valid message.
    */
   public addTranslations(locale: string, translations: Translations): void {
     const tag = normalizeLocale(locale);
@@ -126,7 +131,7 @@ export class LocaleService implements OnInit {
     }
     this._registered.set(tag, {
       ...this._registered.get(tag),
-      ...flatTranslations(translations, tag)
+      ...flatTranslations(translations, tag, `registered '${tag}'`)
     });
   }
 
@@ -184,7 +189,7 @@ export class LocaleService implements OnInit {
         );
       }
 
-      files.set(locale, flatTranslations(translations, locale));
+      files.set(locale, flatTranslations(translations, locale, filePath));
     }
 
     this._files = files;
@@ -196,7 +201,7 @@ export class LocaleService implements OnInit {
     key: string,
     locale?: string,
     count?: unknown
-  ): string | undefined {
+  ): { value: string; locale: string } | undefined {
     this.load();
 
     const chain = this.resolveLocales(locale);
@@ -210,11 +215,15 @@ export class LocaleService implements OnInit {
       }
       const value = findValue(sources, this.pluralKeys(key, tag, count));
       if (value !== undefined) {
-        return value;
+        return { value, locale: tag };
       }
     }
 
-    return findValue([defaultTranslations], this.pluralKeys(key, 'en', count));
+    const value = findValue(
+      [defaultTranslations],
+      this.pluralKeys(key, 'en', count)
+    );
+    return value === undefined ? undefined : { value, locale: 'en' };
   }
 
   /** @internal */
@@ -268,14 +277,25 @@ function findValue(
   return undefined;
 }
 
-/** Keeps the string values of flat translations, warning about the rest. */
+/** Keeps the string values of flat translations, warning about the rest, and failing on an invalid message. */
 function flatTranslations(
   translations: Record<string, unknown>,
-  locale: string
+  locale: string,
+  source: string
 ): Translations {
   const result: Translations = {};
   for (const [key, value] of Object.entries(translations)) {
     if (isString(value)) {
+      try {
+        parseMessage(value);
+      } catch (e) {
+        throw new LocaleError(
+          ErrorCode.LocaleLoadFailed,
+          `Translation '${key}' of ${source} is invalid: ${(e as Error).message}`,
+          { path: source },
+          { cause: e }
+        );
+      }
       result[key] = value;
     } else {
       logger.warn(
@@ -285,12 +305,4 @@ function flatTranslations(
     }
   }
   return result;
-}
-
-/** Replaces the `{name}` placeholders with the parameters, keeping the ones without a value. */
-function interpolate(translation: string, params: TranslationParams): string {
-  return translation.replace(/\{\s*([\w.-]+)\s*\}/g, (match, name: string) => {
-    const value = params[name];
-    return value === undefined || value === null ? match : toText(value);
-  });
 }

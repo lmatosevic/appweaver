@@ -225,25 +225,49 @@ registerTemplate('emails/promo.html', source, 'de');
 ## Translations
 
 A translation file is a **flat** JSON object of string values, named by its locale (`locales/de.json`). The keys are
-plain strings, dots only group them by convention. Placeholders are `{name}`, a numeric `count` also selects the plural
-form of the locale (`_zero`, `_one`, `_two`, `_few`, `_many`, `_other` suffixes, `Intl.PluralRules`).
+plain strings, dots only group them by convention. Every translation is an
+[ICU MessageFormat](https://unicode-org.github.io/icu/userguide/format_parse/messages/) message, the syntax of FormatJS,
+Angular, vue-i18n and Symfony, with the plural categories of the Unicode CLDR (`Intl.PluralRules`):
 
 ```json
 {
-  "cart.items_zero": "Your cart is empty",
-  "cart.items_one": "{count} item",
-  "cart.items_other": "{count} items",
-  "category.defaultDescription": "Posts about {name}."
+  "inbox.greeting": "Hello {name}",
+  "inbox.unread": "You have {msg_cnt, plural, =0 {no unread messages} one {# unread message} other {# unread messages}}",
+  "race.place": "You finished {place, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}",
+  "comment.replied": "{gender, select, female {She} male {He} other {They}} replied",
+  "order.total": "Total: {total, number} items",
+  "help.braces": "Write '{name}' to insert the name, it''s easy"
 }
 ```
+
+| Syntax                                                        | Writes                                                            |
+|---------------------------------------------------------------|-------------------------------------------------------------------|
+| `{name}`, `{{name}}`                                          | The parameter as it is                                            |
+| `{n, plural, =0 {...} one {...} other {...}}`                 | The branch of the exact value, else of the plural category of `n` |
+| `#`                                                           | The number of the enclosing plural, formatted in the locale       |
+| `{n, plural, offset:1 ...}`                                   | The categories and `#` of `n - 1`, the exact values of `n`        |
+| `{n, selectordinal, one {#st} two {#nd} ... other {#th}}`     | The branch of the ordinal category                                |
+| `{value, select, a {...} b {...} other {...}}`                | The branch of the value                                           |
+| `{n, number}`, `{n, number, integer}`, `{n, number, percent}` | The number formatted in the locale                                |
+| `''`, `'{text}'`                                              | An apostrophe, the quoted text as it is (a lone `'` stays as is)  |
+
+The categories differ by language: English has `one` and `other`, Croatian adds `few` (`2`-`4`), Arabic has all six
+(`zero`, `one`, `two`, `few`, `many`, `other`). Every `plural`, `selectordinal` and `select` needs an `other` branch.
+A message is checked when its file loads, failing with `LOCALE_LOAD_FAILED` on an invalid one, and an argument without
+a parameter is written as it is, i.e. `{name}`. The plural forms follow the locale of the file the translation is found
+in.
+
+The i18next convention of a key per plural category also works, selected by a numeric `count` parameter:
+`cart.items_zero`, `cart.items_one`, `cart.items_other`, ... (the `_zero` key for `0` in any language).
 
 ```ts
 import { inject, LocaleService, registerTranslations } from '@appweaver/core';
 
 const locales = inject(LocaleService);
 
+locales.translate('inbox.unread', 'en', { msg_cnt: 1 }); // 'You have 1 unread message'
+locales.translate('inbox.unread', 'hr', { msg_cnt: 3 }); // the `few` branch of hr.json
 locales.translate('cart.items', 'de', { count: 3 }); // the `cart.items_other` key of de.json
-locales.translate('cart.items', undefined, { count: 0 }); // LOCALE_DEFAULT: 'Your cart is empty'
 locales.hasTranslation('cart.items', 'hr');
 locales.getLocales(); // ['de', 'en']
 locales.resolveLocales('de-AT'); // ['de-AT', 'de', 'en']
@@ -251,6 +275,8 @@ locales.resolveLocales('de-AT'); // ['de-AT', 'de', 'en']
 // Translations defined in code, merged over the file
 registerTranslations('de', { 'cart.checkout': 'Zur Kasse' });
 ```
+
+In a template, the hash arguments of `t` are the parameters: `{{t "inbox.unread" msg_cnt=user.unreadCount}}`.
 
 A missing key returns the key itself. The framework's own keys (`emails.*`) fall back to their English text.
 

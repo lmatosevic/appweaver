@@ -4,9 +4,7 @@
   "post.page.by": "by {author}",
   "post.page.category": "Category",
   "post.page.tags": "Tags",
-  "post.page.comments_zero": "No comments yet",
-  "post.page.comments_one": "{count} comment",
-  "post.page.comments_other": "{count} comments",
+  "post.page.comments": "{comments, plural, =0 {No comments yet} one {# comment} other {# comments}}",
   "emails.postShare.subject": "{sender} shared a post with you: {title}",
   "emails.postShare.message": "{sender} thinks you might enjoy reading this post:",
   "emails.postShare.action": "Read the post"
