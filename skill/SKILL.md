@@ -855,7 +855,7 @@ weaver build --project tsconfig.build.json  # path to tsconfig build file
 
 ```sh
 weaver start                          # production
-weaver start --watch                  # development (watch mode)
+weaver start --watch                  # development (restarts on source, template and translation changes)
 weaver start --project tsconfig.json  # path to tsconfig file
 ```
 

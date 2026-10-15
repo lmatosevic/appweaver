@@ -157,6 +157,9 @@ Start the application.
 | `-p, --project [path]` | TypeScript project config file                              | `tsconfig.build.json` |
 | `-w, --watch`          | Run in watch mode (recompiles and restarts on file changes) | `false`               |
 
+In watch mode the server also restarts when a file of the template or translation directories (`TEMPLATE_PATH`,
+`LOCALE_PATH`) changes, the Node runtime only while the last build succeeded.
+
 ---
 
 ## `weaver test`

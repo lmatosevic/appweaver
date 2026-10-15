@@ -92,7 +92,7 @@ const exists = await templates.hasTemplate('emails/welcome.html', 'de');
 The templates are loaded when the application starts, failing with `TEMPLATE_LOAD_FAILED` on a template of an invalid
 syntax. The line break ending a template file is dropped, so an included partial adds none. `TEMPLATE_CACHE: false`
 (set for the `dev` environment of a scaffolded project) reloads the changed templates and translation files on every
-render.
+render, and `weaver start --watch` restarts the server when a file of `templates/` or `locales/` changes.
 
 ### Returning a rendered template from a route
 

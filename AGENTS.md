@@ -370,8 +370,10 @@ weaver start [options]
 
 - **Normal mode**: `node <APP_BUILD_PATH>/<APP_MAIN_FILE_PATH>` (`./dist/src/main.js` by default), or `bun` for the Bun
   runtime.
-- **Watch mode**: `tsc-watch` with alias resolution and server restart on each successful build. The Bun runtime runs
-  the TypeScript sources directly and restarts on every change in `APP_SOURCE_PATH`.
+- **Watch mode**: `tsc-watch` with alias resolution and server restart on each successful build, and on every change in
+  the template and translation directories (`TEMPLATE_PATH`, `LOCALE_PATH`) while the last build succeeded. The Bun
+  runtime runs the TypeScript sources directly and restarts on every change in `APP_SOURCE_PATH`, `TEMPLATE_PATH` and
+  `LOCALE_PATH`. A burst of changes restarts the server once, and a directory that does not exist is not watched.
 
 ---
 
@@ -593,7 +595,7 @@ weaver start --watch      # or: npm run dev
 
 - **`weaver start`** runs `node ./dist/src/main.js`.
 - **`weaver start --watch`** uses `tsc-watch` to recompile on file changes, resolves path aliases with `tsc-alias`, and
-  restarts the server on each successful build.
+  restarts the server on each successful build, and on each change of a file in `templates/` or `locales/`.
 
 #### Environment-based configuration
 

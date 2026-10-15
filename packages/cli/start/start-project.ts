@@ -1,9 +1,12 @@
 import path from 'node:path';
-import { watch } from 'node:fs/promises';
 import { TscWatchClient } from 'tsc-watch/client';
 import { replaceTscAliasPaths } from 'tsc-alias';
 import { config, Runtime } from '@appweaver/common';
 import { isBunProcess, runProcess } from '../utils';
+import { watchPaths } from './watch-paths';
+
+/** The directories of the files the application reads at runtime, which the compiler does not watch. */
+const runtimePaths = () => [config.TEMPLATE_PATH, config.LOCALE_PATH];
 
 /**
  * Starts the project using the specified project file and runtime options.
@@ -68,8 +71,9 @@ async function startBunProject(
 }
 
 /**
- * Watches the specified Node.js project for changes, recompiles TypeScript files, replaces aliases in import patsh,
- * and restarts the main application process upon successful compilation.
+ * Watches the specified Node.js project for changes, recompiles TypeScript files, replaces aliases in import paths,
+ * and restarts the main application process upon successful compilation, or when a template or translation file
+ * changes while the last compilation succeeded.
  *
  * @param {string} mainFilePath - The entry point of the application that will be executed after each successful
  * compilation.
@@ -82,30 +86,49 @@ async function watchNodeProject(
 ): Promise<void> {
   let abortController: AbortController | undefined;
   let runningProcess: Promise<number> | undefined;
+  let compiled = false;
+  let restarting: Promise<void> = Promise.resolve();
   const watch = new TscWatchClient();
 
-  // Handler for every successful compilation of watched code, aborts previous
-  // process and starts a new one
-  watch.on('success', async () => {
-    abortController?.abort();
+  // Aborts the running process and starts a new one, one restart at a time,
+  // so a compilation and a file change at once never start two processes
+  const restart = (beforeStart?: () => Promise<void>) => {
+    restarting = restarting.then(async () => {
+      abortController?.abort();
 
-    // Wait for the previous process to fully terminate before starting a new one
-    await runningProcess;
+      // Wait for the previous process to fully terminate before starting a new one
+      await runningProcess;
 
-    abortController = new AbortController();
+      await beforeStart?.();
 
-    // Replace import alias paths in compiled code
-    await replaceTscAliasPaths({ configFile: projectFile });
-
-    // Start the main application process
-    runningProcess = runProcess('node', [mainFilePath], {
-      signal: abortController.signal
+      abortController = new AbortController();
+      runningProcess = runProcess('node', [mainFilePath], {
+        signal: abortController.signal
+      });
     });
+    return restarting;
+  };
+
+  // Handler for every successful compilation of watched code, replacing the
+  // import alias paths in the compiled code before starting it
+  watch.on('success', async () => {
+    compiled = true;
+    await restart(() => replaceTscAliasPaths({ configFile: projectFile }));
   });
 
   // Handler for any compilation error to abort previously started process
   watch.on('compile_errors', () => {
+    compiled = false;
     abortController?.abort();
+  });
+
+  // The templates and translations are read at runtime, so a change restarts
+  // the application compiled last
+  const fileWatcher = watchPaths(runtimePaths(), (fileName) => {
+    if (compiled) {
+      console.log(`\nFile changed: ${fileName}, restarting...`);
+      void restart();
+    }
   });
 
   // Cleanup should be done only once on process termination
@@ -115,6 +138,7 @@ async function watchNodeProject(
       return;
     }
     cleanedUp = true;
+    fileWatcher.abort();
     abortController?.abort();
     watch.kill();
   };
@@ -128,30 +152,32 @@ async function watchNodeProject(
 }
 
 /**
- * Monitors file changes in the specified directory and restarts the Bun process accordingly.
- * The function uses a debounced mechanism to prevent restarting the process too frequently.
- * Debounce threshold is 200 milliseconds.
+ * Monitors file changes in the source, template and translation directories and restarts the Bun process
+ * accordingly. A burst of changes restarts the process once, after 100 milliseconds without further changes.
  *
  * @return {Promise<void>} A promise that resolves when the watching process is stopped.
  */
 async function watchBunProcess(): Promise<void> {
   let abortController: AbortController | undefined;
   let runningProcess: Promise<number> | undefined;
-  let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+  let restarting: Promise<void> = Promise.resolve();
 
-  // Starts a new process and aborts the previous one
-  async function start() {
-    abortController?.abort();
+  // Starts a new process and aborts the previous one, one restart at a time
+  const start = () => {
+    restarting = restarting.then(async () => {
+      abortController?.abort();
 
-    // Wait for the previous process to fully terminate before starting a new one
-    await runningProcess;
+      // Wait for the previous process to fully terminate before starting a new one
+      await runningProcess;
 
-    abortController = new AbortController();
+      abortController = new AbortController();
 
-    runningProcess = runProcess('bun', [config.APP_MAIN_FILE_PATH], {
-      signal: abortController.signal
+      runningProcess = runProcess('bun', [config.APP_MAIN_FILE_PATH], {
+        signal: abortController.signal
+      });
     });
-  }
+    return restarting;
+  };
 
   // Initially start the application process
   start().catch((err) => {
@@ -162,19 +188,13 @@ async function watchBunProcess(): Promise<void> {
   // Wait before starting watcher to prevent restarts during init phase
   await new Promise((r) => setTimeout(r, 200));
 
-  // Watch for file changes and start new process using debounce timer
-  for await (const info of watch(config.APP_SOURCE_PATH, { recursive: true })) {
-    if (info.filename === null) {
-      // Skip non-file change events
-      continue;
-    }
+  // Watch for file changes and start a new process once they settle
+  const fileWatcher = watchPaths(
+    [config.APP_SOURCE_PATH, ...runtimePaths()],
+    () => void start()
+  );
 
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-    }
-
-    debounceTimer = setTimeout(async () => {
-      await start();
-    }, 100);
-  }
+  await new Promise((resolve) =>
+    fileWatcher.signal.addEventListener('abort', resolve)
+  );
 }
