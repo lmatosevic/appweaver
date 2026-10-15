@@ -376,6 +376,14 @@ describe('handlebars-template-engine', () => {
   });
 
   describe('registerTemplate', () => {
+    test('rejects a template of an invalid locale', () => {
+      expect(() =>
+        engine.registerTemplate('pages/legal.html', 'Terms', 'not a locale')
+      ).toThrow(
+        expect.objectContaining({ code: ErrorCode.TemplateLoadFailed })
+      );
+    });
+
     test('rejects a template with an invalid syntax', () => {
       expect(() =>
         engine.registerTemplate('pages/broken.html', '{{/if}}')

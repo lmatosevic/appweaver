@@ -5,6 +5,7 @@ import {
   config,
   ErrorCode,
   isEscapedTemplateFormat,
+  isLocaleTag,
   logger,
   parseTemplatePath,
   TemplateData,
@@ -118,6 +119,13 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
   }
 
   public registerTemplate(name: string, source: string, locale?: string): void {
+    if (locale !== undefined && !isLocaleTag(locale.replace(/_/g, '-'))) {
+      throw new TemplateError(
+        ErrorCode.TemplateLoadFailed,
+        `Template '${name}' has an invalid locale '${locale}'`,
+        { path: name }
+      );
+    }
     parseTemplate(name, source);
     addTemplate(this._registered, name, source, locale);
     this.clearPartials();

@@ -42,6 +42,24 @@ export function htmlToText(html: string): string {
     .trim();
 }
 
+/**
+ * Converts plain text into the HTML version of an email sent without one, escaping the markup characters so a value
+ * written into the text, i.e. a user's name, cannot add markup.
+ *
+ * @param {string} text - The plain text content.
+ * @return {string} The HTML content keeping the line breaks of the text.
+ */
+export function textToHtml(text: string): string {
+  const escaped = text.replace(
+    /[&<>"']/g,
+    (char) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
+        char
+      ]!
+  );
+  return `<p style="white-space: pre-wrap;">${escaped}</p>`;
+}
+
 function decodeEntity(entity: string, name: string): string {
   if (name[0] === '#') {
     const code =

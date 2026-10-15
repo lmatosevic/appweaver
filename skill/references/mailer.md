@@ -21,13 +21,13 @@ const mailer = inject(Mailer, false); // undefined if not registered
 
 Sends an email. Returns `true` on success.
 
-| Field         | Type           | Required | Description                               |
-|---------------|----------------|----------|-------------------------------------------|
-| `to`          | `string`       | Yes      | Recipient address                         |
-| `subject`     | `string`       | Yes      | Email subject line                        |
-| `text`        | `string`       | Yes      | Plain-text body                           |
-| `html`        | `string`       | No       | HTML body (falls back to wrapping `text`) |
-| `attachments` | `Attachment[]` | No       | Provider-specific attachment objects      |
+| Field         | Type           | Required | Description                                  |
+|---------------|----------------|----------|----------------------------------------------|
+| `to`          | `string`       | Yes      | Recipient address                            |
+| `subject`     | `string`       | Yes      | Email subject line                           |
+| `text`        | `string`       | Yes      | Plain-text body                              |
+| `html`        | `string`       | No       | HTML body (falls back to the escaped `text`) |
+| `attachments` | `Attachment[]` | No       | Provider-specific attachment objects         |
 
 ```ts
 await mailer.sendEmail({

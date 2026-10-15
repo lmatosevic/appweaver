@@ -1,6 +1,7 @@
 import { createTransport, Transporter } from 'nodemailer';
 import { Attachment } from 'nodemailer/lib/mailer';
 import { config, Email, HealthCheckResult, Mailer } from '@appweaver/common';
+import { textToHtml } from './utils/html-util';
 
 export class SmtpMailer extends Mailer<Attachment> {
   /** @internal */
@@ -27,7 +28,7 @@ export class SmtpMailer extends Mailer<Attachment> {
       to,
       subject,
       text,
-      html: html ?? `<p style="white-space: pre;">${text}</p>`,
+      html: html ?? textToHtml(text),
       attachments
     });
 

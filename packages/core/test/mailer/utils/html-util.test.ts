@@ -1,4 +1,4 @@
-import { htmlToText } from '../../../mailer/utils/html-util';
+import { htmlToText, textToHtml } from '../../../mailer/utils/html-util';
 
 describe('html-util', () => {
   describe('htmlToText', () => {
@@ -31,6 +31,14 @@ describe('html-util', () => {
           'Tom &amp; Jerry &lt;3 &#x27;a&#39; &quot;b&quot;&nbsp;&copy; &#99999999;'
         )
       ).toBe('Tom & Jerry <3 \'a\' "b" &copy; &#99999999;');
+    });
+  });
+
+  describe('textToHtml', () => {
+    test('escapes the markup of the text', () => {
+      expect(textToHtml(`Hi <b>Ana</b> & "Bo"'s\nfriends`)).toBe(
+        '<p style="white-space: pre-wrap;">Hi &lt;b&gt;Ana&lt;/b&gt; &amp; &quot;Bo&quot;&#39;s\nfriends</p>'
+      );
     });
   });
 });
