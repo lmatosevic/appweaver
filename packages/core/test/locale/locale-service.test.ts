@@ -123,7 +123,7 @@ describe('locale-service', () => {
       service.addTranslations('en', {
         'inbox.unread':
           'You have {msg_cnt, plural, =0 {no unread messages} one {# unread message} other {# unread messages}}',
-        'inbox.title': '{{name}}, you have {{msg_cnt}} new messages'
+        'inbox.title': '{name}, you have {msg_cnt} new messages'
       });
       service.reload();
 

@@ -42,7 +42,7 @@ export class LocaleService implements OnInit {
   /**
    * Translates a key into the given locale. The key is looked up in the locale, then in the locales it falls back
    * to (`de-AT` falls back to `de`, then to the default locale), and finally in the framework's own translations.
-   * The translation is an ICU message: `{name}` (or `{{name}}`)
+   * The translation is an ICU message: `{name}`
    * writes a parameter, `{name, plural, one {# item} other {# items}}` selects by the plural category of a number,
    * `selectordinal` by its ordinal category, `select` by a value, and `{name, number}` formats a number. An argument
    * without a parameter is written as it is.

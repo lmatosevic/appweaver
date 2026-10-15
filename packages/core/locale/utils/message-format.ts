@@ -3,7 +3,7 @@ import { toText } from '@appweaver/common';
 /**
  * A parsed message of the ICU MessageFormat subset the translations use:
  *
- * - `{name}` and `{{name}}` write a parameter as it is
+ * - `{name}` writes a parameter as it is
  * - `{name, number}`, `{name, number, integer}` and `{name, number, percent}` format a number in the locale
  * - `{name, plural, =0 {...} one {...} other {...}}` selects a branch by the plural category of the locale, `#` writes
  *   the number, and `offset:1` subtracts from it
@@ -33,7 +33,6 @@ export type MessagePart =
 
 const NAME = /[\w.-]+/y;
 const SELECTOR = /=-?\d+(\.\d+)?|[\w-]+/y;
-const DOUBLE_BRACE_ARGUMENT = /\{\{\s*([\w.-]+)\s*\}\}/y;
 
 const parsedMessages = new Map<string, MessagePart[]>();
 const pluralRules = new Map<string, Intl.PluralRules>();
@@ -238,13 +237,6 @@ class MessageParser {
 
   private parseArgument(inPlural: boolean): MessagePart {
     const start = this.index;
-
-    DOUBLE_BRACE_ARGUMENT.lastIndex = start;
-    const doubleBrace = DOUBLE_BRACE_ARGUMENT.exec(this.message);
-    if (doubleBrace) {
-      this.index = DOUBLE_BRACE_ARGUMENT.lastIndex;
-      return { type: 'argument', name: doubleBrace[1], raw: doubleBrace[0] };
-    }
 
     this.index++;
     this.skipSpaces();

@@ -5,10 +5,10 @@ import {
 
 describe('message-format', () => {
   describe('formatMessage', () => {
-    test('writes the arguments in single and double braces', () => {
+    test('writes the arguments', () => {
       expect(
         formatMessage(
-          'You have {msg_cnt} unread messages, {{ name }}.',
+          'You have {msg_cnt} unread messages, { name }.',
           { msg_cnt: 3, name: 'Ana' },
           'en'
         )
@@ -17,12 +17,8 @@ describe('message-format', () => {
 
     test('keeps the arguments without a value', () => {
       expect(
-        formatMessage(
-          'Hi {name}, {{other}} {n, plural, one {#} other {#}}',
-          {},
-          'en'
-        )
-      ).toBe('Hi {name}, {{other}} {n, plural, one {#} other {#}}');
+        formatMessage('Hi {name}, {n, plural, one {#} other {#}}', {}, 'en')
+      ).toBe('Hi {name}, {n, plural, one {#} other {#}}');
     });
 
     test('selects the plural form of any argument', () => {
@@ -144,6 +140,7 @@ describe('message-format', () => {
       ['{n, plural, one {#}}', "missing the 'other' option"],
       ['{n, date}', "unsupported argument type 'date'"],
       ['{, plural}', 'expected an argument name'],
+      ['Hi {{name}}', 'expected an argument name'],
       ['{n, plural, one #}', "expected '{'"]
     ])('rejects the invalid message %s', (message, reason) => {
       expect(() => parseMessage(message)).toThrow(reason);

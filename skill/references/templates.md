@@ -242,7 +242,7 @@ Angular, vue-i18n and Symfony, with the plural categories of the Unicode CLDR (`
 
 | Syntax                                                        | Writes                                                            |
 |---------------------------------------------------------------|-------------------------------------------------------------------|
-| `{name}`, `{{name}}`                                          | The parameter as it is                                            |
+| `{name}`                                                      | The parameter as it is                                            |
 | `{n, plural, =0 {...} one {...} other {...}}`                 | The branch of the exact value, else of the plural category of `n` |
 | `#`                                                           | The number of the enclosing plural, formatted in the locale       |
 | `{n, plural, offset:1 ...}`                                   | The categories and `#` of `n - 1`, the exact values of `n`        |
