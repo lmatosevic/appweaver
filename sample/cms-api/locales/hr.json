@@ -20,7 +20,5 @@
   "emails.passwordReset.ignore": "Ako niste zatražili promjenu lozinke, slobodno zanemarite ovu poruku.",
   "emails.twoFactorCode.subject": "Vaš kontrolni kod",
   "emails.twoFactorCode.message": "Za nastavak unesite sljedeći kod:",
-  "emails.twoFactorCode.expires_one": "Kod istječe za {count} minutu.",
-  "emails.twoFactorCode.expires_few": "Kod istječe za {count} minute.",
-  "emails.twoFactorCode.expires_other": "Kod istječe za {count} minuta."
+  "emails.twoFactorCode.expires": "Kod istječe za {count, plural, one {# minutu} few {# minute} other {# minuta}}."
 }

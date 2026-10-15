@@ -439,7 +439,7 @@ describe('account-service', () => {
       expect(email.to).toBe('user@test.com');
       expect(email.subject).toBe('Your verification code');
       expect(email.text).toMatch(
-        /^Hello,\n\nPlease enter the following code to continue:\n\n\d{6}\n\nThe code expires in \d+ minutes\.\n\n--\nThis email was sent by /
+        /^Hello,\n\nPlease enter the following code to continue:\n\n\d{6}\n\nThe code expires in [\d,]+ minutes\.\n\n--\nThis email was sent by /
       );
     });
 

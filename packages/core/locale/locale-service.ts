@@ -17,8 +17,7 @@ import { formatMessage, parseMessage } from './utils/message-format';
 /** The flat translations of a locale, keyed by the translation key. */
 export type Translations = Record<string, string>;
 
-/** The values of the arguments of a translation, i.e. `{name}` or `{count, plural, one {# item} other {# items}}`. A
- * numeric `count` also selects the translation key of its plural form, i.e. `cart.items_one`. */
+/** The values of the arguments of a translation, i.e. `{name}` or `{count, plural, one {# item} other {# items}}`. */
 export type TranslationParams = Record<string, unknown>;
 
 export class LocaleService implements OnInit {
@@ -28,8 +27,6 @@ export class LocaleService implements OnInit {
   private _files = new Map<string, Translations>();
   /** @internal */
   private readonly _registered = new Map<string, Translations>();
-  /** @internal */
-  private readonly _pluralRules = new Map<string, Intl.PluralRules>();
   /** @internal */
   private _loaded = false;
 
@@ -44,9 +41,8 @@ export class LocaleService implements OnInit {
 
   /**
    * Translates a key into the given locale. The key is looked up in the locale, then in the locales it falls back
-   * to (`de-AT` falls back to `de`, then to the default locale), and finally in the framework's own translations. A
-   * numeric `count` parameter selects the plural form of the locale, a key suffixed with `_zero`, `_one`, `_two`,
-   * `_few`, `_many` or `_other`, before the key itself. The translation is an ICU message: `{name}` (or `{{name}}`)
+   * to (`de-AT` falls back to `de`, then to the default locale), and finally in the framework's own translations.
+   * The translation is an ICU message: `{name}` (or `{{name}}`)
    * writes a parameter, `{name, plural, one {# item} other {# items}}` selects by the plural category of a number,
    * `selectordinal` by its ordinal category, `select` by a value, and `{name, number}` formats a number. An argument
    * without a parameter is written as it is.
@@ -61,7 +57,7 @@ export class LocaleService implements OnInit {
     locale?: string,
     params?: TranslationParams
   ): string {
-    const translation = this.findTranslation(key, locale, params?.count);
+    const translation = this.findTranslation(key, locale);
     if (translation === undefined) {
       logger.debug({ key, locale }, 'Translation missing');
       return key;
@@ -199,50 +195,24 @@ export class LocaleService implements OnInit {
   /** @internal */
   private findTranslation(
     key: string,
-    locale?: string,
-    count?: unknown
+    locale?: string
   ): { value: string; locale: string } | undefined {
     this.load();
 
-    const chain = this.resolveLocales(locale);
-
-    for (const tag of chain) {
-      const sources = [this._registered.get(tag), this._files.get(tag)];
-      // Only the locales with translations select a plural form, so the
-      // plural rules are kept for a bounded set of locales
-      if (sources.every((translations) => !translations)) {
-        continue;
-      }
-      const value = findValue(sources, this.pluralKeys(key, tag, count));
-      if (value !== undefined) {
-        return { value, locale: tag };
+    for (const tag of this.resolveLocales(locale)) {
+      for (const translations of [
+        this._registered.get(tag),
+        this._files.get(tag)
+      ]) {
+        if (translations && Object.hasOwn(translations, key)) {
+          return { value: translations[key], locale: tag };
+        }
       }
     }
 
-    const value = findValue(
-      [defaultTranslations],
-      this.pluralKeys(key, 'en', count)
-    );
-    return value === undefined ? undefined : { value, locale: 'en' };
-  }
-
-  /** @internal */
-  private pluralKeys(key: string, locale: string, count: unknown): string[] {
-    if (typeof count !== 'number') {
-      return [key];
-    }
-
-    let rules = this._pluralRules.get(locale);
-    if (!rules) {
-      rules = new Intl.PluralRules(locale);
-      this._pluralRules.set(locale, rules);
-    }
-
-    const keys = [`${key}_${rules.select(count)}`, `${key}_other`, key];
-    if (count === 0) {
-      keys.unshift(`${key}_zero`);
-    }
-    return [...new Set(keys)];
+    return Object.hasOwn(defaultTranslations, key)
+      ? { value: defaultTranslations[key], locale: 'en' }
+      : undefined;
   }
 }
 
@@ -260,21 +230,6 @@ function normalizeLocale(locale?: string): string | undefined {
     return undefined;
   }
   return Intl.getCanonicalLocales(tag)[0];
-}
-
-/** Returns the first of the keys translated by the first of the translations defining it. */
-function findValue(
-  sources: (Translations | undefined)[],
-  keys: string[]
-): string | undefined {
-  for (const translations of sources) {
-    for (const key of keys) {
-      if (translations && Object.hasOwn(translations, key)) {
-        return translations[key];
-      }
-    }
-  }
-  return undefined;
 }
 
 /** Keeps the string values of flat translations, warning about the rest, and failing on an invalid message. */

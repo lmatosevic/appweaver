@@ -38,15 +38,13 @@ describe('locale-service', () => {
     configOverrides.LOCALE_DEFAULT = 'en';
     writeLocale('en', {
       greeting: 'Hello {name}',
-      'cart.items_one': '{count} item',
-      'cart.items_other': '{count} items',
-      'cart.items_zero': 'No items',
+      'cart.items':
+        '{count, plural, =0 {No items} one {# item} other {# items}}',
       onlyEnglish: 'English only'
     });
     writeLocale('de', {
       greeting: 'Hallo {name}',
-      'cart.items_one': '{count} Artikel',
-      'cart.items_other': '{count} Artikel'
+      'cart.items': '{count, plural, one {# Artikel} other {# Artikel}}'
     });
     writeLocale('de-AT', { greeting: 'Servus {name}' });
     service = new LocaleService();

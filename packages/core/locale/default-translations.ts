@@ -21,6 +21,6 @@ export const defaultTranslations: Record<string, string> = {
   'emails.twoFactorCode.subject': 'Your verification code',
   'emails.twoFactorCode.message':
     'Please enter the following code to continue:',
-  'emails.twoFactorCode.expires_one': 'The code expires in {count} minute.',
-  'emails.twoFactorCode.expires_other': 'The code expires in {count} minutes.'
+  'emails.twoFactorCode.expires':
+    'The code expires in {count, plural, one {# minute} other {# minutes}}.'
 };

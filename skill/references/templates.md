@@ -257,9 +257,6 @@ A message is checked when its file loads, failing with `LOCALE_LOAD_FAILED` on a
 a parameter is written as it is, i.e. `{name}`. The plural forms follow the locale of the file the translation is found
 in.
 
-The i18next convention of a key per plural category also works, selected by a numeric `count` parameter:
-`cart.items_zero`, `cart.items_one`, `cart.items_other`, ... (the `_zero` key for `0` in any language).
-
 ```ts
 import { inject, LocaleService, registerTranslations } from '@appweaver/core';
 
@@ -267,8 +264,7 @@ const locales = inject(LocaleService);
 
 locales.translate('inbox.unread', 'en', { msg_cnt: 1 }); // 'You have 1 unread message'
 locales.translate('inbox.unread', 'hr', { msg_cnt: 3 }); // the `few` branch of hr.json
-locales.translate('cart.items', 'de', { count: 3 }); // the `cart.items_other` key of de.json
-locales.hasTranslation('cart.items', 'hr');
+locales.hasTranslation('inbox.unread', 'hr');
 locales.getLocales(); // ['de', 'en']
 locales.resolveLocales('de-AT'); // ['de-AT', 'de', 'en']
 
