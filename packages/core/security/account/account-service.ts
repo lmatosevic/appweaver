@@ -334,7 +334,7 @@ export class AccountService {
         expiresIn
       );
 
-    const expiresInMinutes = Math.ceil(expiresIn / 60);
+    const expiresInMinutes = Math.ceil(expiresIn / 60_000);
     await this.sendAccountEmail(
       {
         to: authUser.email,

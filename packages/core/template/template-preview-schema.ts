@@ -30,6 +30,7 @@ export const templatePreviewSchema: RouteSchema & { hide: boolean } = {
     ...errorResponses(
       ErrorCode.AuthInvalidToken,
       ErrorCode.AuthTokenExpired,
+      ErrorCode.MalformedRequest,
       ErrorCode.TemplatePreviewNotFound,
       ErrorCode.TemplateRenderFailed
     )

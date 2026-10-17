@@ -21,7 +21,5 @@
   "orders.cancelled.subject": "Bestellung {number} storniert",
   "orders.cancelled.message": "Ihre Bestellung wurde storniert.",
   "orders.cancelled.refund": "Die Zahlung über {total} wird innerhalb weniger Tage erstattet.",
-  "emails.greeting": "Hallo,",
-  "emails.linkHint": "Falls die Schaltfläche nicht funktioniert, kopieren Sie den folgenden Link in Ihren Browser:",
   "emails.footer": "Diese E-Mail wurde von {appName} gesendet."
 }

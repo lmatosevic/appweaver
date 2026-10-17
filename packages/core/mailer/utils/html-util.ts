@@ -19,8 +19,9 @@ export function htmlToText(html: string): string {
     .replace(/<!--[\s\S]*?-->/g, '')
     .replace(/<(head|style|script|title)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
     .replace(
-      /<a\b[^>]*?href\s*=\s*["']([^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi,
-      (_, href: string, label: string) => {
+      /<a\b[^>]*?href\s*=\s*(?:"([^"]*)"|'([^']*)')[^>]*>([\s\S]*?)<\/a>/gi,
+      (_, doubleQuoted?: string, singleQuoted?: string, label = '') => {
+        const href = doubleQuoted ?? singleQuoted ?? '';
         const labelText = label.replace(/<[^>]+>/g, '').trim();
         return !labelText || labelText === href
           ? href
@@ -31,6 +32,7 @@ export function htmlToText(html: string): string {
     .replace(/<li\b[^>]*>/gi, '\n- ')
     .replace(/<\/(p|div|h[1-6]|table|ul|ol|blockquote)>/gi, '\n\n')
     .replace(/<\/tr>/gi, '\n')
+    .replace(/<\/t[dh]>/gi, ' ')
     .replace(/<[^>]+>/g, '')
     .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, decodeEntity);
 
@@ -43,8 +45,7 @@ export function htmlToText(html: string): string {
 }
 
 /**
- * Converts plain text into the HTML version of an email sent without one, escaping the markup characters so a value
- * written into the text, i.e. a user's name, cannot add markup.
+ * Converts plain text into the HTML body of an email sent without one, escaping the markup characters.
  *
  * @param {string} text - The plain text content.
  * @return {string} The HTML content keeping the line breaks of the text.

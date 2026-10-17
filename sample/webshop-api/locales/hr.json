@@ -21,7 +21,5 @@
   "orders.cancelled.subject": "Narudžba {number} je otkazana",
   "orders.cancelled.message": "Vaša narudžba je otkazana.",
   "orders.cancelled.refund": "Uplata od {total} bit će vraćena u roku od nekoliko dana.",
-  "emails.greeting": "Pozdrav,",
-  "emails.linkHint": "Ako gumb ne radi, kopirajte i zalijepite sljedeću poveznicu u preglednik:",
   "emails.footer": "Ovu poruku poslala je aplikacija {appName}."
 }

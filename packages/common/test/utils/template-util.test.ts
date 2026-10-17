@@ -91,6 +91,11 @@ describe('template-util', () => {
       expect(templateMimeType('csv')).toBe('text/csv');
     });
 
+    test('ignores the inherited object properties', () => {
+      expect(templateMimeType('report.constructor')).toBe('text/plain');
+      expect(templateMimeType('toString')).toBe('text/plain');
+    });
+
     test('falls back to plain text', () => {
       expect(templateMimeType('emails/welcome.subject')).toBe('text/plain');
     });

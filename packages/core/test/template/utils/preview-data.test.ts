@@ -35,14 +35,18 @@ describe('preview-data', () => {
           phone: '+385911234567',
           id: '12345678901234567890',
           blank: ' ',
-          exponent: '1e3'
+          exponent: '1e3',
+          nan: 'NaN',
+          infinity: 'Infinity'
         })
       ).toEqual({
         zip: '01000',
         phone: '+385911234567',
         id: '12345678901234567890',
         blank: ' ',
-        exponent: '1e3'
+        exponent: '1e3',
+        nan: 'NaN',
+        infinity: 'Infinity'
       });
     });
 

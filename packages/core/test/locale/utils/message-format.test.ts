@@ -127,6 +127,17 @@ describe('message-format', () => {
         )
       ).toBe("It's {literal} and '#' # is 2, don't");
     });
+
+    test('ignores the inherited object properties', () => {
+      const message = '{g, select, male {He} other {They}} {toString}';
+
+      expect(formatMessage(message, { g: 'constructor' }, 'en')).toBe(
+        'They {toString}'
+      );
+      expect(formatMessage(message, { g: '__proto__' }, 'en')).toBe(
+        'They {toString}'
+      );
+    });
   });
 
   describe('parseMessage', () => {
@@ -139,6 +150,7 @@ describe('message-format', () => {
       ['Hello }', "unexpected '}'"],
       ['{n, plural, one {#}}', "missing the 'other' option"],
       ['{n, date}', "unsupported argument type 'date'"],
+      ['{n, number, currency}', "unsupported number style 'currency'"],
       ['{, plural}', 'expected an argument name'],
       ['Hi {{name}}', 'expected an argument name'],
       ['{n, plural, one #}', "expected '{'"]

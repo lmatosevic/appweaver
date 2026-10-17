@@ -13,9 +13,10 @@ parameter, a user field, ...), falling back to `LOCALE_DEFAULT`.
 Like the Redis and queue providers, the template engine is loaded only when its package is installed: without
 `handlebars` the application logs that the provider failed to load and starts without it. Injecting `TemplateEngine`
 then throws `CONTEXT_DEFINITION_MISSING`, `EmailService.sendTemplateEmail` fails, and the framework emails are sent as
-plain text built from the `emails.*` translations. A project created with `create-weaver-app --no-templates` skips the
-`handlebars` package and the `templates/` and `locales/` directories. `LocaleService` keeps translating, from the
-`locales/` files when the project adds them.
+plain text built from the `emails.*` translations. An empty `TEMPLATE_PROVIDER` loads no engine, without the warning.
+A project created with `create-weaver-app --no-templates` skips the `handlebars` package and the `templates/` and
+`locales/` directories, and sets the empty provider. `LocaleService` keeps translating, from the `locales/` files when
+the project adds them.
 
 ## Project layout
 
@@ -71,7 +72,7 @@ to other locales is not found in the default one.
 
 ```ts
 import { inject } from '@appweaver/core';
-import { TemplateEngine, templateContentType } from '@appweaver/common';
+import { TemplateEngine } from '@appweaver/common';
 
 const templates = inject(TemplateEngine);
 
@@ -325,8 +326,8 @@ registerTemplateHelper('money', (cents: number, options: { data?: { locale?: str
 
 ## Previewing templates
 
-The preview route renders a template the way the application would, to check it in a browser while editing it. It is
-disabled by default, so enable it only in the development environment of `appweaver.json`:
+The preview route renders a template as the application would, to check it in a browser while editing it. It is
+disabled by default; enable it only in the `dev` environment of `appweaver.json`:
 
 ```json
 {
@@ -379,7 +380,7 @@ template engine is loaded (the `handlebars` package is not installed).
 | `TEMPLATE_RENDER_FAILED`     | A template fails to compile or render, i.e. a missing partial |
 | `TEMPLATE_LOAD_FAILED`       | A template cannot be read, or its syntax is invalid           |
 | `TEMPLATE_PREVIEW_NOT_FOUND` | The preview route is asked for a template that does not exist |
-| `LOCALE_LOAD_FAILED`         | A translation file is not valid JSON or not a JSON object     |
+| `LOCALE_LOAD_FAILED`         | A translation file is not a JSON object, or a message invalid |
 
 ## Custom template engine
 

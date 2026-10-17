@@ -530,7 +530,7 @@ describe('create-weaver-app', () => {
       await run('MyApp', '--no-install', '--agent', 'none', '--no-templates');
 
       const appConfig = readJson('my-app', 'appweaver.json');
-      expect(appConfig.config).not.toHaveProperty('template');
+      expect(appConfig.config.template).toEqual({ provider: '' });
       expect(appConfig.environments.dev).not.toHaveProperty('template');
       expect(exists('my-app', 'templates')).toBe(false);
       expect(exists('my-app', 'locales')).toBe(false);

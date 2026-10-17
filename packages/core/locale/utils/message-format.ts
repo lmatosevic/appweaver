@@ -90,7 +90,9 @@ function formatParts(
       continue;
     }
 
-    const value = params[part.name];
+    const value = Object.hasOwn(params, part.name)
+      ? params[part.name]
+      : undefined;
     if (value === undefined || value === null) {
       result += part.raw;
       continue;
@@ -259,6 +261,9 @@ class MessageParser {
         if (this.consume(',')) {
           this.skipSpaces();
           style = this.match(NAME, 'a number style');
+          if (style !== 'integer' && style !== 'percent') {
+            this.fail(`unsupported number style '${style}'`);
+          }
           this.skipSpaces();
         }
         this.expect('}');
@@ -295,7 +300,7 @@ class MessageParser {
   }
 
   private parseOptions(inPlural: boolean): Record<string, MessagePart[]> {
-    const options: Record<string, MessagePart[]> = {};
+    const options: Record<string, MessagePart[]> = Object.create(null);
 
     this.skipSpaces();
     while (!this.consume('}')) {

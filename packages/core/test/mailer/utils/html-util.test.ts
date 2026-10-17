@@ -32,6 +32,21 @@ describe('html-util', () => {
         )
       ).toBe('Tom & Jerry <3 \'a\' "b" &copy; &#99999999;');
     });
+
+    test('keeps an apostrophe of a link address', () => {
+      expect(htmlToText(`<a href="https://x.io/?q=it's">Go</a>`)).toBe(
+        "Go (https://x.io/?q=it's)"
+      );
+      expect(htmlToText("<a href='https://x.io/a'>Go</a>")).toBe(
+        'Go (https://x.io/a)'
+      );
+    });
+
+    test('separates the table cells', () => {
+      expect(
+        htmlToText('<table><tr><td>Name</td><th>Value</th></tr></table>')
+      ).toBe('Name Value');
+    });
   });
 
   describe('textToHtml', () => {

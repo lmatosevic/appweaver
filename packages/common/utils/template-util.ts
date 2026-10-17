@@ -101,7 +101,9 @@ export function templateFormat(name: string): string {
  */
 export function templateMimeType(name: string): string {
   const format = templateFormat(name) || name.toLowerCase();
-  return TEMPLATE_MIME_TYPES[format] ?? 'text/plain';
+  return Object.hasOwn(TEMPLATE_MIME_TYPES, format)
+    ? TEMPLATE_MIME_TYPES[format]
+    : 'text/plain';
 }
 
 /**
@@ -115,8 +117,8 @@ export function isEscapedTemplateFormat(format: string): boolean {
 }
 
 /**
- * Returns the `Content-Type` header of the content a template renders, its MIME type in the UTF-8 charset, i.e. to
- * respond with a rendered template: `reply.type(templateContentType(name)).send(content)`.
+ * Returns the `Content-Type` of a rendered template, its MIME type with the UTF-8 charset, i.e.
+ * `reply.type(templateContentType(name)).send(content)`.
  *
  * @param {string} name - The template name or format, i.e. `pages/invoice.html`.
  * @return {string} The content type, i.e. `text/html; charset=utf-8`.

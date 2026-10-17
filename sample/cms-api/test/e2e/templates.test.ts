@@ -196,7 +196,9 @@ describe('Templates and locales', () => {
       );
       expect(email.html).toContain('<html lang="hr">');
       expect(email.html).toContain('Pročitajte objavu');
-      expect(email.text).toContain('/api/posts/trails-and-peaks/page');
+      expect(email.text).toContain(
+        '/api/posts/trails-and-peaks/page?locale=hr'
+      );
       expect(email.text).toContain('Ovu poruku poslala je aplikacija CMS API.');
     });
 

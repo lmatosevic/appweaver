@@ -5,7 +5,7 @@ import { config, Runtime } from '@appweaver/common';
 import { isBunProcess, runProcess } from '../utils';
 import { watchPaths } from './watch-paths';
 
-/** The directories of the files the application reads at runtime, which the compiler does not watch. */
+/** Directories read at runtime, which tsc does not watch. */
 const runtimePaths = () => [config.TEMPLATE_PATH, config.LOCALE_PATH];
 
 /**
@@ -88,10 +88,10 @@ async function watchNodeProject(
   let runningProcess: Promise<number> | undefined;
   let compiled = false;
   let restarting: Promise<void> = Promise.resolve();
+  let cleanedUp = false;
   const watch = new TscWatchClient();
 
-  // Aborts the running process and starts a new one, one restart at a time,
-  // so a compilation and a file change at once never start two processes
+  // Serialized, so a compilation and a file change never start two processes
   const restart = (beforeStart?: () => Promise<void>) => {
     restarting = restarting.then(async () => {
       abortController?.abort();
@@ -100,6 +100,10 @@ async function watchNodeProject(
       await runningProcess;
 
       await beforeStart?.();
+      // A compilation started or failed meanwhile
+      if (!compiled || cleanedUp) {
+        return;
+      }
 
       abortController = new AbortController();
       runningProcess = runProcess('node', [mainFilePath], {
@@ -109,8 +113,11 @@ async function watchNodeProject(
     return restarting;
   };
 
-  // Handler for every successful compilation of watched code, replacing the
-  // import alias paths in the compiled code before starting it
+  watch.on('started', () => {
+    compiled = false;
+  });
+
+  // Resolve the import aliases of each successful compilation, then restart
   watch.on('success', async () => {
     compiled = true;
     await restart(() => replaceTscAliasPaths({ configFile: projectFile }));
@@ -122,8 +129,7 @@ async function watchNodeProject(
     abortController?.abort();
   });
 
-  // The templates and translations are read at runtime, so a change restarts
-  // the application compiled last
+  // Restart on template and translation changes while the last build succeeded
   const fileWatcher = watchPaths(runtimePaths(), (fileName) => {
     if (compiled) {
       console.log(`\nFile changed: ${fileName}, restarting...`);
@@ -132,7 +138,6 @@ async function watchNodeProject(
   });
 
   // Cleanup should be done only once on process termination
-  let cleanedUp = false;
   const cleanup = () => {
     if (cleanedUp) {
       return;
@@ -153,7 +158,7 @@ async function watchNodeProject(
 
 /**
  * Monitors file changes in the source, template and translation directories and restarts the Bun process
- * accordingly. A burst of changes restarts the process once, after 100 milliseconds without further changes.
+ * accordingly, once per burst of changes.
  *
  * @return {Promise<void>} A promise that resolves when the watching process is stopped.
  */

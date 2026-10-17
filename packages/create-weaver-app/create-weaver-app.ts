@@ -247,8 +247,8 @@ program
       );
     }
 
-    // Remove the template and translation files, their copying into the Docker
-    // image, and the template config without the template engine
+    // Without Handlebars, drop the template and locale files, their Dockerfile
+    // COPY and the dev template config
     if (!command.getOptionValue('templates')) {
       const configFile = path.join(destDir, 'appweaver.json');
       const appConfig = JSON.parse(await fsp.readFile(configFile, 'utf8'));
@@ -621,6 +621,10 @@ function getModulesConfig(command: Command): Record<string, object> {
 
   if (!command.getOptionValue('mailer')) {
     modulesConfig.mailer = { enabled: false };
+  }
+
+  if (!command.getOptionValue('templates')) {
+    modulesConfig.template = { provider: '' };
   }
 
   return modulesConfig;

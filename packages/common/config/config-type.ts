@@ -497,7 +497,8 @@ export type Config = {
   TEMPLATE_PREVIEW_AUTH: boolean;
   /** URL prefix for the template preview route. Default: `'/templates'`. */
   TEMPLATE_PREVIEW_ROUTE_PREFIX: string;
-  /** Template engine provider implementation path. Default: `'@appweaver/core/template/handlebars-template-engine'`. */
+  /** Template engine provider implementation path, empty to load none. Default:
+   * `'@appweaver/core/template/handlebars-template-engine'`. */
   TEMPLATE_PROVIDER: string;
 
   /** The locale used when none is given to a translation or a template render. Default: `'en'`. */

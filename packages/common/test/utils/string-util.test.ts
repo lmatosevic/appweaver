@@ -446,6 +446,7 @@ describe('string-util', () => {
       expect(toText(false)).toBe('false');
       expect(toText(10n)).toBe('10');
       expect(toText({ a: 1 })).toBe('{"a":1}');
+      expect(toText(new Date(0))).toBe('1970-01-01T00:00:00.000Z');
     });
 
     test('converts an absent value into an empty string', () => {

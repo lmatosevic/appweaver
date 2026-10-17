@@ -102,7 +102,7 @@ function toValue(value: unknown): unknown {
     return JSON.parse(value);
   }
   const number = Number(value);
-  if (value.trim() !== '' && String(number) === value) {
+  if (Number.isFinite(number) && String(number) === value) {
     return number;
   }
   return value;

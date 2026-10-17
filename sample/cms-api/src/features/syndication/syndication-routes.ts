@@ -15,8 +15,8 @@ import {
 } from '@appweaver/core';
 import { findPublishedPost, findPublishedPosts } from './posts';
 
-// The locale is decided by the application, here a query parameter of the
-// routes, and handed to the template engine and the email service
+// The locale chosen by the application, here a request parameter, passed to
+// the template engine and the email service
 const locale = Type.Optional(
   Type.String({ description: 'Locale to render in, i.e. `hr`.' })
 );
@@ -129,13 +129,16 @@ registerRoute(
           );
         }
 
+        const query = req.body.locale
+          ? `?locale=${encodeURIComponent(req.body.locale)}`
+          : '';
         await inject(EmailService).sendTemplateEmail({
           to: req.body.email,
           template: 'emails/post-share',
           data: {
             post,
             sender: currentAuthUser()!.email,
-            link: `${config.APP_HOSTNAME}${config.SERVER_API_PREFIX}/posts/${post.slug}/page`
+            link: `${config.APP_HOSTNAME}${config.SERVER_API_PREFIX}/posts/${post.slug}/page${query}`
           },
           locale: req.body.locale
         });
