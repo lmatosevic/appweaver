@@ -49,9 +49,8 @@ key, it is not shown again. The demo customers `olivia@example.com` and `daniel@
 The coupons are `WELCOME10` (10 %), `SAVE5` (5 EUR off from 30 EUR), `LAUNCH25` (25 %, limited), and the expired
 `SUMMER20`.
 
-In development the emails are written to the log by the JSON mailer (see the `dev` environment of [
-`appweaver.json`](appweaver.json)).
-All the amounts are in cents.
+The emails are written to the log by the JSON mailer (the `mailer` of [`appweaver.json`](appweaver.json)), so the sample
+needs no SMTP server. All the amounts are in cents.
 
 ## Try it out
 

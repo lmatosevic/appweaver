@@ -68,7 +68,7 @@ curl -s localhost:5001/api/publish-posts -H "authorization: Bearer $TOKEN" -H 'c
 curl -s 'localhost:5001/api/posts/<slug>/page?locale=hr'
 curl -s localhost:5001/api/posts/export/xml -H "authorization: Bearer $TOKEN"
 
-# Email a post to a reader, in Croatian (the dev mailer logs it)
+# Email a post to a reader, in Croatian, through the SMTP server of the mailer config
 curl -s localhost:5001/api/posts/<slug>/share -H "authorization: Bearer $TOKEN" -H 'content-type: application/json' \
   -d '{"email":"reader@example.com","locale":"hr"}'
 

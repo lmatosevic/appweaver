@@ -16,6 +16,9 @@
     "redis": {
       "url": "redis://${REDIS_HOST:-localhost}:6379/0"
     },
+    "healthCheck": {
+      "omitInstances": ["mailer"]
+    },
     "security": {
       "basic": {
         "enabled": true
