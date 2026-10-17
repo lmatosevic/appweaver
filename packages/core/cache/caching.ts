@@ -9,6 +9,7 @@ import {
 } from '@appweaver/common';
 import { CacheService } from './cache-service';
 import { inject } from '../context';
+import { currentAuthUser } from '../security/helper';
 import { Server } from '../types';
 
 type FullRouteConfig = RouteConfig & RouteCacheConfig;
@@ -20,8 +21,6 @@ export type CacheEntry = {
 };
 
 export default fastifyPlugin((server: Server) => {
-  const { currentUser } = server;
-
   const cacheService = inject(CacheService);
 
   server.addHook('preHandler', async (request, reply) => {
@@ -30,7 +29,8 @@ export default fastifyPlugin((server: Server) => {
       return;
     }
 
-    const user = config.public ? undefined : currentUser();
+    // A route without authentication, i.e. the public health check, has no user
+    const user = config.public ? undefined : (currentAuthUser() ?? undefined);
     const key = buildCacheKey(request, config, cacheService, user);
 
     const entry = await cacheService.getCachedValue<CacheEntry>(key);
@@ -54,7 +54,8 @@ export default fastifyPlugin((server: Server) => {
       reply.statusCode < 300 &&
       !requestContext.get('cached')
     ) {
-      const user = config.public ? undefined : currentUser();
+      // A route without authentication, i.e. the public health check, has no user
+      const user = config.public ? undefined : (currentAuthUser() ?? undefined);
       const key = buildCacheKey(request, config, cacheService, user);
       await cacheService.addToCache(
         key,
