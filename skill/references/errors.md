@@ -96,7 +96,7 @@ their prefix:
 | `QueueError`         | `@appweaver/core`   | `QUEUE_`         | The queues                                                      |
 | `MailerError`        | `@appweaver/core`   | `MAILER_`        | The email service, wrapping the error of the mailer             |
 | `TemplateError`      | `@appweaver/core`   | `TEMPLATE_`      | The template engine: a missing, unreadable or failing template  |
-| `LocaleError`        | `@appweaver/core`   | `LOCALE_`        | The locale service: an unreadable translation file              |
+| `LocaleError`        | `@appweaver/core`   | `LOCALE_`        | The locale service: an unreadable file or an invalid message    |
 | `LockError`          | `@appweaver/core`   | `LOCK_`          | A lock that could not be acquired                               |
 
 ```ts

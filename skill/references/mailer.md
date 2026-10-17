@@ -242,8 +242,7 @@ await emailService.sendTemplateEmail({
 
 ### Built-in account emails
 
-The account features send their emails from the framework's own templates, in the `LOCALE_DEFAULT` locale unless
-`AccountService.sendEmailVerification`, `sendResetPassword` or `send2FACode` is called with a `locale`:
+The account routes send their emails from the framework's own templates, in the `LOCALE_DEFAULT` locale:
 
 | Template                 | Data                                           |
 |--------------------------|------------------------------------------------|
@@ -252,10 +251,10 @@ The account features send their emails from the framework's own templates, in th
 | `emails/two-factor-code` | `email`, `code`, `purpose`, `expiresInMinutes` |
 
 They share the `layouts/email.html` layout, the `partials/email-button.html` and `partials/email-footer.txt` partials,
-and the `emails.*` translation keys. A file of the same name in `templates/` overrides any of them (a scaffolded
-project starts with `templates/layouts/email.html.hbs`), and the keys of `locales/<locale>.json` translate them (a
-scaffolded project starts with the English keys in `locales/en.json`). Without the `handlebars` package they are sent
-as plain text built from the same translations.
+and the `emails.*` translation keys. A file of the same name in `templates/` overrides any of them, and
+`locales/<locale>.json` translates their keys; a scaffolded project starts with `templates/layouts/email.html.hbs` and
+the English keys in `locales/en.json`. Without the `handlebars` package they are sent as plain text built from the same
+translations.
 
 ---
 

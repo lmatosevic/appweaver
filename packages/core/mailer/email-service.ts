@@ -98,25 +98,24 @@ export class EmailService {
   }
 
   /**
-   * Renders the email templates and sends the email by adding it to the mail queue. The `<template>.html` template
-   * renders the HTML body, `<template>.txt` the plain text body, derived from the HTML body when missing, and
-   * `<template>.subject` the subject, unless one is given.
+   * Renders the email with {@link renderTemplateEmail} and adds it to the mail queue.
    *
    * @param {TemplateEmail} email - The recipient, template name, data and locale of the email.
    * @return A promise that resolves when the email is successfully added to the queue.
-   * @throws {TemplateError} `TEMPLATE_NOT_FOUND` if neither body template or the subject template exists,
-   * `TEMPLATE_RENDER_FAILED` if a template fails to render.
+   * @throws {TemplateError} See {@link renderTemplateEmail}.
    */
   public async sendTemplateEmail(email: TemplateEmail): Promise<void> {
     await this.sendEmail(await this.renderTemplateEmail(email));
   }
 
   /**
-   * Renders the templates of an email into the email to send, i.e. with `sendEmailAndWait` or `sendEmailBulk`.
+   * Renders the templates of an email into the email to send, i.e. with `sendEmailAndWait` or `sendEmailBulk`. The
+   * `<template>.html` template renders the HTML body, `<template>.txt` the plain text body (derived from the HTML
+   * body when missing), and `<template>.subject` the subject, unless one is given.
    *
    * @param {TemplateEmail} email - The recipient, template name, data and locale of the email.
    * @return {Promise<Email>} A promise that resolves to the rendered email.
-   * @throws {TemplateError} `TEMPLATE_NOT_FOUND` if neither body template or the subject template exists,
+   * @throws {TemplateError} `TEMPLATE_NOT_FOUND` if the email has no `.html` or `.txt` template, or no subject,
    * `TEMPLATE_RENDER_FAILED` if a template fails to render.
    */
   public async renderTemplateEmail(email: TemplateEmail): Promise<Email> {

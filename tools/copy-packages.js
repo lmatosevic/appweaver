@@ -100,8 +100,7 @@ for (const pkgName of fs.readdirSync(packagesDir)) {
       for (const [binName, binFile] of Object.entries(pkgJson.bin)) {
         const targetPath = path.resolve(fileDestPath, binFile);
 
-        // Unix shell script, executable also when it replaces an existing file,
-        // whose mode a write keeps
+        // Unix shell script; chmod as a write keeps an existing file's mode
         const shPath = path.join(binDir, binName);
         fs.writeFileSync(shPath, `#!/bin/sh\nnode "${targetPath}" "$@"\n`, {
           mode: 0o755

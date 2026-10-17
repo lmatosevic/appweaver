@@ -61,8 +61,7 @@ export abstract class TemplateEngine implements OnInit {
   ): Promise<string>;
 
   /**
-   * Tells whether a template renders in a locale, a variant of the locale or of its fallbacks, or one without a locale
-   * existing.
+   * Tells whether a template exists in the locale, one of its fallbacks, or without a locale.
    *
    * @param {string} name - The template name, i.e. `emails/password-reset.html`.
    * @param {string} [locale] - The locale to look the template up for. Defaults to the `LOCALE_DEFAULT` config.

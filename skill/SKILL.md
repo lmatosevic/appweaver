@@ -33,8 +33,8 @@ The basic file structure of the Appweaver project:
 - `src/features/` - main application logic structured using vertical slice architecture (VSA)
 - `src/resources/` - application resources (models, services, policies, and routes)
 - `src/types/` - application types (generated and manually created)
-- `templates/` - the Handlebars templates of emails, HTML pages, XML exports or any other text (`*.<format>.hbs`)
 - `src/main.ts` - the main application entrypoint
+- `templates/` - the Handlebars templates of emails, HTML pages, XML exports or any other text (`*.<format>.hbs`)
 - `test/e2e/` - the end-to-end tests root directory
 - `test/unit/` - the unit tests root directory
 - `.env` - override the central configuration (optional)
@@ -664,8 +664,8 @@ registerRoute(
 
 The `templates/` files render emails, HTML pages, XML documents or any text, and the `locales/<locale>.json` files
 translate keys anywhere in the application. The application always gives the locale (a request parameter, a user field,
-...), falling back to `LOCALE_DEFAULT`. A template named `exports/orders.xml` is the file `templates/exports/orders.xml.hbs`,
-and `exports/orders.de.xml.hbs` is its `de` variant. See [templates.md](references/templates.md).
+...), falling back to `LOCALE_DEFAULT`. A template named `exports/orders.xml` is the file
+`templates/exports/orders.xml.hbs`, and `templates/exports/orders.de.xml.hbs` is its `de` variant. See [templates.md](references/templates.md).
 
 ```ts
 import { TemplateEngine, templateContentType } from '@appweaver/common';

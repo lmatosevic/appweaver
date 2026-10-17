@@ -21,7 +21,6 @@ import { TemplateError } from './template-error';
 import { createHandlebarsHelpers } from './handlebars-helpers';
 import { handlebarsTemplates } from './handlebars-templates';
 
-/** The file extensions of the Handlebars templates. */
 const TEMPLATE_EXTENSIONS = ['.hbs', '.handlebars'];
 
 /** Whether the values a template outputs are escaped as markup, or written as they are. */
@@ -139,8 +138,7 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
   /** @internal */
   private load(): Promise<void> {
     if (!this._loading || !config.TEMPLATE_CACHE) {
-      // Without the cache, the changed translations of the templates are also
-      // read again
+      // Without the cache, reload the translations too
       if (this._loading) {
         this._localeService.reload();
       }

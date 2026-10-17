@@ -214,11 +214,9 @@ chosen runtime, stripping the `.tpl`, `.node`, or `.bun` extensions from the fin
 The versions of every npm package a generated project installs (except the `@appweaver/*` packages, which follow the
 CLI's own version) are kept in the `scaffoldDependencies` field of the **root** `package.json`, split into `companion`
 (packages the framework uses at runtime or as a peer: Prisma, TypeBox, BullMQ, Cron, Handlebars, IoRedis, Nodemailer,
-TypeScript)
-and
-`tooling` (lint and test setup). The templates receive them through the `{{DEPENDENCIES}}` and `{{DEV_DEPENDENCIES}}`
-variables, so bump versions there, not in the templates. Keep the versions equal to the root `dependencies` and
-`devDependencies`, which a test checks.
+TypeScript) and `tooling` (lint and test setup). The templates receive them through the `{{DEPENDENCIES}}` and
+`{{DEV_DEPENDENCIES}}` variables, so bump versions there, not in the templates. Keep the versions equal to the root
+`dependencies` and `devDependencies`, which a test checks.
 
 A package lists the root fields it needs in its own `rootFields` array (`cli` and `create-weaver-app` list
 `scaffoldDependencies`). `tools/copy-packages.js` copies them into `dist/package.json` and strips `rootFields`, the same
