@@ -40,7 +40,8 @@
       "template": {
         "cache": false,
         "preview": {
-          "enabled": true
+          "enabled": true,
+          "auth": false
         }
       }
     },

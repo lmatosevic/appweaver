@@ -63,10 +63,10 @@ describe('template-preview-route', () => {
     Object.assign(configOverrides, {
       TEMPLATE_PATH: path.join(dir, 'templates'),
       TEMPLATE_CACHE: true,
+      TEMPLATE_PREVIEW_AUTH: false,
       LOCALE_PATH: path.join(dir, 'locales'),
       LOCALE_DEFAULT: 'en'
     });
-    delete configOverrides.TEMPLATE_PREVIEW_AUTH;
     authenticate = jest.fn(async () => {});
 
     writeFile('locales/en.json', JSON.stringify({ greeting: 'Hello {name}' }));
@@ -185,7 +185,7 @@ describe('template-preview-route', () => {
       expect(authenticate).toHaveBeenCalledTimes(1);
     });
 
-    test('skips the authentication by default', async () => {
+    test('skips the authentication when disabled', async () => {
       await startServer();
 
       await server.inject({

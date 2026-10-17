@@ -332,7 +332,7 @@ disabled by default, so enable it only in the development environment of `appwea
 {
   "environments": {
     "dev": {
-      "template": { "cache": false, "preview": { "enabled": true } }
+      "template": { "cache": false, "preview": { "enabled": true, "auth": false } }
     }
   }
 }
@@ -354,7 +354,7 @@ and the content type of its format. The query parameters are the template data:
 ```
 
 A missing template responds with `404 TEMPLATE_PREVIEW_NOT_FOUND`, and an invalid `_data` with `400 MALFORMED_REQUEST`.
-The route is public unless `TEMPLATE_PREVIEW_AUTH` is `true`, is left out of the OpenAPI document,
+The route requires authentication unless `TEMPLATE_PREVIEW_AUTH` is `false`, is left out of the OpenAPI document,
 responds with `Content-Security-Policy: sandbox` so no script of a rendered page runs, and fails the startup when no
 template engine is loaded (the `handlebars` package is not installed).
 
@@ -365,7 +365,7 @@ template engine is loaded (the `handlebars` package is not installed).
 | `TEMPLATE_PATH`                 | `'./templates'`                                         | Directory of the template files              |
 | `TEMPLATE_CACHE`                | `true`                                                  | Keep the templates in memory                 |
 | `TEMPLATE_PREVIEW_ENABLED`      | `false`                                                 | Enable the preview route                     |
-| `TEMPLATE_PREVIEW_AUTH`         | `false`                                                 | Require authentication for the preview route |
+| `TEMPLATE_PREVIEW_AUTH`         | `true`                                                  | Require authentication for the preview route |
 | `TEMPLATE_PREVIEW_ROUTE_PREFIX` | `'/templates'`                                          | URL prefix of the preview route              |
 | `TEMPLATE_PROVIDER`             | `'@appweaver/core/template/handlebars-template-engine'` | Template engine implementation               |
 | `LOCALE_DEFAULT`                | `'en'`                                                  | Locale used when none is given               |
