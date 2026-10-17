@@ -31,6 +31,14 @@ export default createAuthModel({
     marketingOptIn: {
       type: 'boolean',
       default: false
+    },
+    // The preferred language, the default of the orders the customer places
+    language: {
+      type: 'string',
+      default: 'en',
+      pattern: '^[a-z]{2}(-[A-Z]{2})?$',
+      maxLength: 8,
+      example: 'de'
     }
   },
   relations: {

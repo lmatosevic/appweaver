@@ -485,6 +485,26 @@ export type Config = {
   /** SMTP authentication password. */
   MAILER_SMTP_PASSWORD?: string;
 
+  /** Directory of the template files, i.e. the email templates. Default: `'./templates'`. */
+  TEMPLATE_PATH: string;
+  /** Keep the loaded templates in memory, disable it to reload the changed template files on every render. Default:
+   * `true`. */
+  TEMPLATE_CACHE: boolean;
+  /** Enable the route rendering a template with the data of its query parameters, for previewing the templates during
+   * development. Default: `false`. */
+  TEMPLATE_PREVIEW_ENABLED: boolean;
+  /** Require authentication for the template preview route. Default: `true`. */
+  TEMPLATE_PREVIEW_AUTH: boolean;
+  /** URL prefix for the template preview route. Default: `'/templates'`. */
+  TEMPLATE_PREVIEW_ROUTE_PREFIX: string;
+  /** Template engine provider implementation path. Default: `'@appweaver/core/template/handlebars-template-engine'`. */
+  TEMPLATE_PROVIDER: string;
+
+  /** The locale used when none is given to a translation or a template render. Default: `'en'`. */
+  LOCALE_DEFAULT: string;
+  /** Directory of the translation files, a flat JSON file per locale, i.e. `de.json`. Default: `'./locales'`. */
+  LOCALE_PATH: string;
+
   /** Initial admin account email created on the first run. Default: `'admin@appweaver.co'`. */
   SYSTEM_ADMIN_INITIAL_EMAIL: string;
   /** Initial admin account password. */

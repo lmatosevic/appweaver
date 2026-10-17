@@ -1191,6 +1191,53 @@
             }
           }
         },
+        "template": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "default": "./templates"
+            },
+            "cache": {
+              "type": "boolean",
+              "default": true
+            },
+            "preview": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "auth": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "routePrefix": {
+                  "type": "string",
+                  "default": "/templates"
+                }
+              }
+            },
+            "provider": {
+              "type": "string",
+              "default": "@appweaver/core/template/handlebars-template-engine"
+            }
+          }
+        },
+        "locale": {
+          "type": "object",
+          "properties": {
+            "default": {
+              "type": "string",
+              "default": "en"
+            },
+            "path": {
+              "type": "string",
+              "default": "./locales"
+            }
+          }
+        },
         "system": {
           "type": "object",
           "properties": {

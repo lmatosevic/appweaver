@@ -1,0 +1,7 @@
+{{#> layouts/email.html title=(t "orders.shipped.subject" number=order.number)}}
+  <p>{{t "orders.greeting" name=customer.firstName}}</p>
+  <p>{{t "orders.shipped.message" carrier=order.carrier}}</p>
+  <p style="margin: 24px 0; font-size: 20px; font-weight: bold; letter-spacing: 2px">{{order.trackingNumber}}</p>
+  <p>{{t "orders.shipped.shippedOn" date=(formatDate order.shippedAt "long")}}</p>
+  <p>{{t "orders.signature"}}</p>
+{{/layouts/email.html}}

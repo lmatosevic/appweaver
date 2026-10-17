@@ -7,3 +7,4 @@ export * from './schema-util';
 export * from './storage-util';
 export * from './string-util';
 export * from './type-util';
+export * from './template-util';

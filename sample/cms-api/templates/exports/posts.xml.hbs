@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<posts generatedAt="{{formatDate generatedAt "iso"}}" count="{{length posts}}">
+  {{#each posts}}
+    <post id="{{id}}" uid="{{uid}}">
+      <title>{{title}}</title>
+      <slug>{{slug}}</slug>
+      <publishedAt>{{formatDate publishedAt "iso"}}</publishedAt>
+      {{#if category}}
+        <category id="{{category.id}}">{{category.name}}</category>
+      {{/if}}
+      {{#if author}}
+        <author id="{{author.id}}">{{author.email}}</author>
+      {{/if}}
+      <tags>
+        {{#each tags}}
+          <tag>{{name}}</tag>
+        {{/each}}
+      </tags>
+      <excerpt>{{cdata excerpt}}</excerpt>
+      <viewCount>{{viewCount}}</viewCount>
+    </post>
+  {{/each}}
+</posts>

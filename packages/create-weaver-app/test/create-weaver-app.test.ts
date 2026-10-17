@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { defaultTranslations } from '../../core/locale/default-translations';
+import { handlebarsTemplates } from '../../core/template/handlebars-templates';
 
 const packageRoot = path.join(__dirname, '..');
 const skillDir = path.join(packageRoot, 'skill');
@@ -247,6 +249,15 @@ describe('create-weaver-app', () => {
       expect(exists('my-app', '.gitignore')).toBe(true);
     });
 
+    test('generates the email layout and translations of the framework', () => {
+      expect(read('my-app', 'templates', 'layouts', 'email.html.hbs')).toBe(
+        handlebarsTemplates['layouts/email.html']
+      );
+      expect(readJson('my-app', 'locales', 'en.json')).toEqual(
+        defaultTranslations
+      );
+    });
+
     test('creates the reports directory', () => {
       expect(exists('my-app', 'reports')).toBe(true);
     });
@@ -468,6 +479,7 @@ describe('create-weaver-app', () => {
       expect(dependencies).toHaveProperty('cron');
       expect(dependencies).toHaveProperty('ioredis');
       expect(dependencies).toHaveProperty('nodemailer');
+      expect(dependencies).toHaveProperty('handlebars');
     });
 
     test('skips the dependencies of the disabled modules', async () => {
@@ -479,7 +491,8 @@ describe('create-weaver-app', () => {
         '--no-queue',
         '--no-cron',
         '--no-redis',
-        '--no-mailer'
+        '--no-mailer',
+        '--no-templates'
       );
 
       const { dependencies } = readJson('my-app', 'package.json');
@@ -487,6 +500,7 @@ describe('create-weaver-app', () => {
       expect(dependencies).not.toHaveProperty('cron');
       expect(dependencies).not.toHaveProperty('ioredis');
       expect(dependencies).not.toHaveProperty('nodemailer');
+      expect(dependencies).not.toHaveProperty('handlebars');
       expect(dependencies).toHaveProperty('@prisma/client');
     });
 
@@ -510,6 +524,48 @@ describe('create-weaver-app', () => {
 
       const { config } = readJson('my-app', 'appweaver.json');
       expect(config.mailer).toEqual({ enabled: false });
+    });
+
+    test('skips the template and translation files with the no-templates flag', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--no-templates');
+
+      const appConfig = readJson('my-app', 'appweaver.json');
+      expect(appConfig.config).not.toHaveProperty('template');
+      expect(appConfig.environments.dev).not.toHaveProperty('template');
+      expect(exists('my-app', 'templates')).toBe(false);
+      expect(exists('my-app', 'locales')).toBe(false);
+      expect(read('my-app', 'Dockerfile')).not.toContain('templates');
+      expect(read('my-app', 'Dockerfile')).toContain(
+        'COPY --from=build /usr/app/dist'
+      );
+    });
+
+    test('skips the template files of a Bun project', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--bun',
+        '--no-templates'
+      );
+
+      const appConfig = readJson('my-app', 'appweaver.json');
+      expect(appConfig.environments.dev).not.toHaveProperty('template');
+      expect(read('my-app', 'Dockerfile')).not.toContain('templates');
+    });
+
+    test('keeps the template and translation files by default', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none');
+
+      const appConfig = readJson('my-app', 'appweaver.json');
+      expect(appConfig.environments.dev.template).toEqual({ cache: false });
+      expect(read('my-app', 'Dockerfile')).toContain(
+        'COPY --from=build /usr/app/templates /usr/app/templates'
+      );
+      expect(read('my-app', 'Dockerfile')).toContain(
+        'COPY --from=build /usr/app/locales /usr/app/locales'
+      );
     });
 
     test('leaves the module defaults without a skip flag', async () => {

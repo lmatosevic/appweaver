@@ -45,22 +45,33 @@ export async function processPayment(orderId: string): Promise<void> {
 
   const result = await charge(order);
 
+  // Moved on only while still pending, as the customer may cancel the order
+  // while it is being charged, which already gave its stock back
   if (result.approved) {
-    await db.order.update({
-      where: { id: orderId },
+    const paid = await db.order.updateMany({
+      where: { id: orderId, status: 'Pending' },
       data: { status: 'Paid', paidAt: new Date() }
     });
+    if (paid.count === 0) {
+      return;
+    }
+    await inject(CacheService).invalidateCache('Order', 'update');
     await sendOrderEmail('confirmed', order);
   } else {
-    await db.$transaction(async (tx) => {
-      await tx.order.update({
-        where: { id: orderId },
+    const failed = await db.$transaction(async (tx) => {
+      const moved = await tx.order.updateMany({
+        where: { id: orderId, status: 'Pending' },
         data: { status: 'PaymentFailed', note: result.reason }
       });
-      await releaseOrder(tx, order);
+      if (moved.count > 0) {
+        await releaseOrder(tx, order);
+      }
+      return moved.count > 0;
     });
+    if (!failed) {
+      return;
+    }
+    await inject(CacheService).invalidateCache('Order', 'update');
     await sendOrderEmail('paymentFailed', order);
   }
-
-  await inject(CacheService).invalidateCache('Order', 'update');
 }

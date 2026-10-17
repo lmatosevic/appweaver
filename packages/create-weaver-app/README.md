@@ -40,6 +40,7 @@ npx @appweaver/create-weaver-app MyApp "My awesome API" --database postgresql --
 | `--no-redis`       | Skip IoRedis, use the in-memory cache, rate limit, and queue                      | installed    |
 | `--no-queue`       | Skip BullMQ, use the in-memory queue                                              | installed    |
 | `--no-mailer`      | Skip Nodemailer and disable the mailer                                            | installed    |
+| `--no-templates`   | Skip Handlebars and the template and translation files                            | installed    |
 | `--no-cron`        | Skip Cron and disable the scheduler                                               | installed    |
 
 Then create the first migration and seed the database:

@@ -20,7 +20,7 @@ against yearly balances, salaries only payroll can see, personal documents, and 
 | Service hooks: generated employee numbers, business day counting, overlap checks       | [`resources/leave-request/service.ts`](src/resources/leave-request/service.ts)            |
 | Resource events: a hire opens a prorated leave balance and gets a welcome email        | [`features/onboarding/`](src/features/onboarding/onboarding-listener.ts)                  |
 | Scheduled jobs: yearly leave accrual with carry-over, weekday reminders for managers   | [`features/leave/leave-scheduler.ts`](src/features/leave/leave-scheduler.ts)              |
-| Queued emails through `EmailService` (JSON mailer in development)                      | [`features/leave/leave-notifications.ts`](src/features/leave/leave-notifications.ts)      |
+| Queued emails through `EmailService`, written to the log by the JSON mailer             | [`features/leave/leave-notifications.ts`](src/features/leave/leave-notifications.ts)      |
 | A custom model and cached report route built on Prisma `groupBy`                       | [`features/reports/headcount-route.ts`](src/features/reports/headcount-route.ts)          |
 | Virtual fields (`fullName`, `yearsOfService`, `remainingDays`)                         | employee and leave balance models                                                         |
 | Composite unique constraints (one balance per employee and year)                       | [`resources/leave-balance/model.ts`](src/resources/leave-balance/model.ts)                |

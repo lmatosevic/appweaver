@@ -110,7 +110,9 @@ Core application logic. Organized into the following modules:
 | `queue/`     | Background job queues — Bull (Redis-backed) and in-memory implementations                                                                                            |
 | `scheduler/` | Cron job scheduling service                                                                                                                                          |
 | `seeder/`    | Database seeding utilities                                                                                                                                           |
-| `mailer/`    | Email service — SMTP and JSON (dev/test) mailer implementations                                                                                                      |
+| `mailer/`    | Email service — SMTP and JSON (dev/test) mailer implementations, rendering the template emails                                                                       |
+| `template/`  | Template engine — the Handlebars implementation of `TemplateEngine`, its helpers and the framework's own email templates                                             |
+| `locale/`    | Locale service — translating the keys of the flat JSON translation files, with the framework's own English translations                                              |
 | `cache/`     | Caching layer abstractions and implementations                                                                                                                       |
 | `context/`   | Dependency injection container and utility functions                                                                                                                 |
 | `health/`    | Health check endpoint and service registration                                                                                                                       |
@@ -211,7 +213,8 @@ chosen runtime, stripping the `.tpl`, `.node`, or `.bun` extensions from the fin
 
 The versions of every npm package a generated project installs (except the `@appweaver/*` packages, which follow the
 CLI's own version) are kept in the `scaffoldDependencies` field of the **root** `package.json`, split into `companion`
-(packages the framework uses at runtime or as a peer: Prisma, TypeBox, BullMQ, Cron, IoRedis, Nodemailer, TypeScript)
+(packages the framework uses at runtime or as a peer: Prisma, TypeBox, BullMQ, Cron, Handlebars, IoRedis, Nodemailer,
+TypeScript)
 and
 `tooling` (lint and test setup). The templates receive them through the `{{DEPENDENCIES}}` and `{{DEV_DEPENDENCIES}}`
 variables, so bump versions there, not in the templates. Keep the versions equal to the root `dependencies` and
@@ -367,8 +370,10 @@ weaver start [options]
 
 - **Normal mode**: `node <APP_BUILD_PATH>/<APP_MAIN_FILE_PATH>` (`./dist/src/main.js` by default), or `bun` for the Bun
   runtime.
-- **Watch mode**: `tsc-watch` with alias resolution and server restart on each successful build. The Bun runtime runs
-  the TypeScript sources directly and restarts on every change in `APP_SOURCE_PATH`.
+- **Watch mode**: `tsc-watch` with alias resolution and server restart on each successful build, and on every change in
+  the template and translation directories (`TEMPLATE_PATH`, `LOCALE_PATH`) while the last build succeeded. The Bun
+  runtime runs the TypeScript sources directly and restarts on every change in `APP_SOURCE_PATH`, `TEMPLATE_PATH` and
+  `LOCALE_PATH`. A burst of changes restarts the server once, and a directory that does not exist is not watched.
 
 ---
 
@@ -412,7 +417,8 @@ weaver test reset [options]
 | `--storage`           | Reset file storage  | —        |
 | `--verbose`           | Verbose output      | false    |
 
-With no flags, resets **both** database and storage.
+With no flags, resets **both** database and storage. The database is reset with `prisma migrate reset`, which Prisma
+refuses to run for an AI agent without the user's consent, see **AI agents and the test database** in Section 7.
 
 #### `weaver test teardown`
 
@@ -545,8 +551,8 @@ const users = await client.user.query({ filter: { enabled: true } });
 ### `sample/cms-api`
 
 A reference CMS (Content Management System) API that demonstrates how to build a complete application with Appweaver. It
-includes user authentication, posts with file uploads, role-based authorization, scheduled jobs, custom routes, and
-plugins.
+includes user authentication, posts with file uploads, role-based authorization, scheduled jobs, custom routes, plugins,
+and the localized templates of its `templates/` and `locales/` directories (an HTML page, an XML export and an email).
 
 #### Model definitions and code generation
 
@@ -589,7 +595,7 @@ weaver start --watch      # or: npm run dev
 
 - **`weaver start`** runs `node ./dist/src/main.js`.
 - **`weaver start --watch`** uses `tsc-watch` to recompile on file changes, resolves path aliases with `tsc-alias`, and
-  restarts the server on each successful build.
+  restarts the server on each successful build, and on each change of a file in `templates/` or `locales/`.
 
 #### Environment-based configuration
 
@@ -631,6 +637,34 @@ E2E tests use `weaver test setup` / `weaver test reset` / `weaver test teardown`
 storage directory. Setup and teardown are wired for the whole run, but each test file must register the reset itself
 with `afterAll(resetTestData, 10_000)`, declared after the hook that stops the application.
 
+#### AI agents and the test database
+
+Prisma Migrate refuses its destructive commands (`migrate reset`, `db push --force-reset`, `db push --accept-data-loss`)
+when it detects an AI agent (Claude Code, Codex, Cursor, ...), unless the `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION`
+environment variable holds the message in which the user consented. Under an agent this affects:
+
+- `weaver test reset`, the reset after every e2e test file, which runs `prisma migrate reset`. The `reset.ts` of the
+  samples and the scaffolded projects fails the test file when the command exits with a non-zero status, as do
+  `setup.ts` and `teardown.ts` for the whole run.
+- `weaver test setup` on a PostgreSQL or MySQL sample, once its `-test` database keeps the schema of an earlier run
+  (after a model change): `prisma migrate dev` then needs a reset and fails.
+
+The consent belongs to the maintainer, never to the agent. To let the agents reset the test databases, the maintainer
+adds the variable to the `.env` file of each sample whose tests the agents run, set to the message they consented
+with:
+
+```bash
+PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION="<the message in which you consented>"
+```
+
+Weaver loads `.env` into the environment of the `prisma` commands it starts. The file is gitignored, so the consent
+stays with the checkout it is written in. In `.env` it also covers `weaver migration reset` of the development
+database; to limit it to the tests, put it in `.env.test` instead (loaded with `NODE_ENV=test` only), after adding
+`.env.test` to `.gitignore`. A cloud agent session gets it from the environment variables of its cloud environment.
+
+An agent never sets the variable itself. When a reset is refused, it stops and asks the maintainer to reset the
+database or to add the consent.
+
 #### Docker
 
 The included `Dockerfile` and `start.sh` support multiple entry points:
@@ -646,12 +680,12 @@ start.sh seed         # Seed the database
 Scaffolded with `create-weaver-app`, each showcases a different part of the framework and documents it in its own
 `README.md`. They follow the `cms-api` workflow above, with the differences listed here.
 
-| Sample                  | Runtime | Database           | Showcases                                                                                            |
-|-------------------------|---------|--------------------|------------------------------------------------------------------------------------------------------|
-| `sample/webshop-api`    | Node    | PostgreSQL + Redis | Transactional checkout, BullMQ payment worker on a resource event, API key partner, sales aggregates |
-| `sample/hr-api`         | Node    | SQLite             | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades  |
-| `sample/helpdesk-api`   | Node    | MySQL (MariaDB)    | Non-auth customers connected by email, auto-assignment, SLA escalation job, cursor pagination        |
-| `sample/movies-api-bun` | Bun     | SQLite (libsql)    | Public cached catalog, join model with payload, OAuth2 sign-up, generated typed client               |
+| Sample                  | Runtime | Database           | Showcases                                                                                                  |
+|-------------------------|---------|--------------------|------------------------------------------------------------------------------------------------------------|
+| `sample/webshop-api`    | Node    | PostgreSQL + Redis | Transactional checkout, BullMQ payment worker on a resource event, API key partner, localized order emails |
+| `sample/hr-api`         | Node    | SQLite             | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades        |
+| `sample/helpdesk-api`   | Node    | MySQL (MariaDB)    | Non-auth customers connected by email, auto-assignment, SLA escalation job, cursor pagination              |
+| `sample/movies-api-bun` | Bun     | SQLite (libsql)    | Public cached catalog, join model with payload, OAuth2 sign-up, generated typed client                     |
 
 - The PostgreSQL and MySQL samples start their database with `docker compose up -d postgres redis` (or `mysql`); their
   end-to-end tests run against a `-test` database of the same container.

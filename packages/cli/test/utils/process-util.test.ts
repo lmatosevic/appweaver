@@ -11,6 +11,9 @@ jest.mock('fkill', () => ({
   })
 }));
 
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import fkill from 'fkill';
 import { config } from '@appweaver/common';
 import {
@@ -72,6 +75,29 @@ describe('process-util', () => {
         force: true,
         tree: true
       });
+    }, 30000);
+
+    test('kills the command itself rather than only its shell on abort', async () => {
+      const marker = path.join(
+        fs.mkdtempSync(path.join(os.tmpdir(), 'appweaver-process-')),
+        'still-running'
+      );
+      const controller = new AbortController();
+
+      const promise = runProcess(
+        'node',
+        [
+          '-e',
+          `"setTimeout(() => require('fs').writeFileSync(process.argv[1], ''), 600)"`,
+          marker
+        ],
+        { quiet: true, signal: controller.signal }
+      );
+      setTimeout(() => controller.abort(), 200);
+      await promise;
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      expect(fs.existsSync(marker)).toBe(false);
     }, 30000);
 
     describe('when the abort races the exit of the process', () => {

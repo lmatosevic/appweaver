@@ -28,10 +28,12 @@ The basic file structure of the Appweaver project:
 
 - `database/` - database migrations, seeders, generated prisma client, and client used by the application
 - `dist/` - the output directory for transpiled JavaScript files
+- `locales/` - the translation files, a flat JSON file per locale (`en.json`, `de.json`)
 - `public/` - publicly exposed files if static file serving is enabled
 - `src/features/` - main application logic structured using vertical slice architecture (VSA)
 - `src/resources/` - application resources (models, services, policies, and routes)
 - `src/types/` - application types (generated and manually created)
+- `templates/` - the Handlebars templates of emails, HTML pages, XML exports or any other text (`*.<format>.hbs`)
 - `src/main.ts` - the main application entrypoint
 - `test/e2e/` - the end-to-end tests root directory
 - `test/unit/` - the unit tests root directory
@@ -71,6 +73,7 @@ create-weaver-app <name> [description] [options]
 | `--no-redis`       | Skip ioredis, use in-memory cache, rate limit and queue        | installed    |
 | `--no-queue`       | Skip bullmq, use in-memory queue                               | installed    |
 | `--no-mailer`      | Skip nodemailer, disable mailer (email features respond 501)   | installed    |
+| `--no-templates`   | Skip handlebars and the templates and locales directories      | installed    |
 | `--no-cron`        | Skip cron, disable scheduler                                   | installed    |
 
 **Example — PostgreSQL project without queue:**
@@ -657,6 +660,41 @@ registerRoute(
 );
 ```
 
+### Rendering templates and translating
+
+The `templates/` files render emails, HTML pages, XML documents or any text, and the `locales/<locale>.json` files
+translate keys anywhere in the application. The application always gives the locale (a request parameter, a user field,
+...), falling back to `LOCALE_DEFAULT`. A template named `exports/orders.xml` is the file `templates/exports/orders.xml.hbs`,
+and `exports/orders.de.xml.hbs` is its `de` variant. See [templates.md](references/templates.md).
+
+```ts
+import { TemplateEngine, templateContentType } from '@appweaver/common';
+import { EmailService, inject, LocaleService } from '@appweaver/core';
+
+// Any format, i.e. an XML document returned by a custom route
+const xml = await inject(TemplateEngine).render('exports/orders.xml', { orders }, { locale });
+reply.type(templateContentType('exports/orders.xml')).send(xml);
+
+// An email of the emails/order-shipped.{html,txt,subject}.hbs templates
+await inject(EmailService).sendTemplateEmail({ to, template: 'emails/order-shipped', data: { order }, locale });
+
+// A translated string, i.e. in a service hook
+inject(LocaleService).translate('inbox.unread', 'de', { msg_cnt: 3 });
+```
+
+A translation is an ICU MessageFormat message in a flat JSON file, with plural forms by the CLDR categories of the
+locale: `"inbox.unread": "You have {msg_cnt, plural, =0 {no unread messages} one {# unread message} other {# unread
+messages}}"`.
+
+Inside the templates, `{{t "key" name=value}}` translates into the rendered locale, layouts and components are partials
+(`{{#> layouts/page.html}}...{{/layouts/page.html}}`), and `formatDate`, `formatNumber`, `formatCurrency` format in the
+locale. The framework's own emails (verification, password reset, 2FA) are overridden by a template file of the same
+name and translated by the `emails.*` keys.
+
+To check a template while editing it, enable `template.preview.enabled` in the `dev` environment: `GET
+/templates/emails/order-shipped.html?_locale=de&order.number=WS-1` renders it with the query parameters as its data
+(dotted names nest, `_data` takes a JSON object). See [templates.md](references/templates.md#previewing-templates).
+
 ### Handling errors
 
 Services, policies, hooks, jobs and workers throw an `AppweaverError` subclass carrying a stable `code` (the `ErrorCode`
@@ -821,7 +859,7 @@ weaver build --project tsconfig.build.json  # path to tsconfig build file
 
 ```sh
 weaver start                          # production
-weaver start --watch                  # development (watch mode)
+weaver start --watch                  # development (restarts on source, template and translation changes)
 weaver start --project tsconfig.json  # path to tsconfig file
 ```
 
@@ -874,9 +912,9 @@ weaver update --dry-run                       # print the updates without instal
 ```
 
 Besides the `@appweaver/*` packages, `weaver update` bumps the companion packages the project already has (Prisma
-and its adapters, TypeBox, BullMQ, Cron, IoRedis, Nodemailer, TypeScript) to the exact versions the target release is
-built with. It never adds missing packages or downgrades newer ones. Run `weaver generate` afterwards when Prisma is
-updated.
+and its adapters, TypeBox, BullMQ, Cron, Handlebars, IoRedis, Nodemailer, TypeScript) to the exact versions the target
+release is built with. It never adds missing packages or downgrades newer ones. Run `weaver generate` afterwards when
+Prisma is updated.
 
 ### Run tests
 
@@ -909,6 +947,20 @@ describe('My e2e test', () => {
 });
 ```
 
+**AI agents and the test database reset.** `weaver test reset` resets the database with `prisma migrate reset`, and
+`weaver test setup` needs a reset when a PostgreSQL or MySQL test database keeps the schema of an earlier run. Prisma
+refuses both when it detects an AI agent, unless the `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` environment variable
+holds the message in which the user consented. The user adds it to the gitignored `.env` file (or `.env.test`, to
+limit it to `NODE_ENV=test`), which weaver passes on to the `prisma` commands:
+
+```bash
+PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION="<the message in which you consented>"
+```
+
+**Never set this variable yourself, and never run a database reset another way to get past the refusal.** When Prisma
+refuses a reset, stop and tell the user which command failed and why, and ask them to reset the test database
+themselves or to add their consent to the project's `.env`.
+
 ### Format code
 
 ```sh
@@ -935,5 +987,6 @@ npm run lint  # eslint "./**/*.ts"
 - Queue jobs: [queue.md](references/queue.md)
 - Scheduling jobs: [scheduler.md](references/scheduler.md)
 - Sending emails: [mailer.md](references/mailer.md)
+- Templates & translations: [templates.md](references/templates.md)
 - Generating an HTTP client for using API: [client.md](references/client.md)
 - Errors & error responses: [errors.md](references/errors.md)

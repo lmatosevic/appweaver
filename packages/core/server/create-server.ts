@@ -23,6 +23,7 @@ import { context, inject, injectAll } from '../context';
 import { errorHandler, notFoundHandler, stashErrorResponses } from '../errors';
 import { files } from '../storage';
 import { health } from '../health';
+import { templatePreview } from '../template';
 import auth from '../security/auth';
 import caching from '../cache/caching';
 import { Router, Server } from '../types';
@@ -46,7 +47,7 @@ import swagger from './swagger';
  * - Loads and registers all user-defined plugins
  * - Registers schema models for route validation with $ref support
  * - Sets up the global error and not found handlers for all routes
- * - Registers built-in routes (health check, info, files)
+ * - Registers built-in routes (health check, template preview, info, files)
  * - Loads and registers resource API routes generated from the resource context
  * - Loads and registers user-defined custom routes
  *
@@ -193,6 +194,13 @@ export function createServer(): Server {
   // Register a health route
   if (config.HEALTH_CHECK_ENABLED) {
     server.register(health, { prefix: config.HEALTH_CHECK_ROUTE_PREFIX });
+  }
+
+  // Register a template preview route
+  if (config.TEMPLATE_PREVIEW_ENABLED) {
+    server.register(templatePreview, {
+      prefix: config.TEMPLATE_PREVIEW_ROUTE_PREFIX
+    });
   }
 
   // Register files route

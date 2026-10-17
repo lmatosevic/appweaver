@@ -32,6 +32,7 @@ export type CheckoutRequest = {
   addressId?: number;
   shippingAddress?: ShippingAddress;
   note?: string;
+  language?: string;
 };
 
 /**
@@ -112,10 +113,18 @@ export async function checkout(
       });
     }
 
+    // The emails of the order are written in its language, the preferred one
+    // of the customer unless the checkout asks for another
+    const { language } = await tx.user.findUniqueOrThrow({
+      where: { id: Number(customer.id) },
+      select: { language: true }
+    });
+
     const created = await tx.order.create({
       data: {
         number: orderNumber(),
         customerId: Number(customer.id),
+        language: request.language ?? language,
         couponId: coupon?.id,
         shippingAddress,
         note: request.note,

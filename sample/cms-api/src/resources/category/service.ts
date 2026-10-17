@@ -1,8 +1,16 @@
 import { ErrorCode, RequestError } from '@appweaver/common';
-import { createService } from '@appweaver/core';
+import { createService, inject, LocaleService } from '@appweaver/core';
 
 export default createService({
   modelName: 'Category',
+  // Stored in the default locale, the LOCALE_DEFAULT config
+  beforeCreate: (data) => {
+    data.description ??= inject(LocaleService).translate(
+      'category.defaultDescription',
+      undefined,
+      { name: data.name }
+    );
+  },
   // A category as its own parent detaches the branch it holds
   beforeUpdate: (id, data) => {
     const parentId =

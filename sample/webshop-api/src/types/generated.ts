@@ -553,6 +553,7 @@ export type Order = {
   carrier?: string | null;
   trackingNumber?: string | null;
   note?: string | null;
+  language: string;
   customer: UserSingle;
   items?: Array<OrderItemSingle>;
   coupon?: CouponSingle;
@@ -583,6 +584,7 @@ export type OrderSingle = {
   carrier?: string | null;
   trackingNumber?: string | null;
   note?: string | null;
+  language: string;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
@@ -614,6 +616,7 @@ export type OrderMultiple = {
   carrier?: string | null;
   trackingNumber?: string | null;
   note?: string | null;
+  language: string;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
@@ -642,6 +645,7 @@ export type OrderCreate = {
   carrier?: string | null;
   trackingNumber?: string | null;
   note?: string | null;
+  language?: string;
   customer:
     | {
         id: number;
@@ -703,6 +707,7 @@ export type OrderRelationCreate = {
   carrier?: string | null;
   trackingNumber?: string | null;
   note?: string | null;
+  language?: string;
 };
 
 export type OrderRelationUpdate = {
@@ -1015,6 +1020,7 @@ export type User = {
   email: string;
   phone?: string | null;
   marketingOptIn: boolean;
+  language: string;
   passwordHash?: string | null;
   verifiedEmail: boolean;
   twoFactorAuth: 'None' | 'Email';
@@ -1039,6 +1045,7 @@ export type UserSingle = {
   email: string;
   phone?: string | null;
   marketingOptIn: boolean;
+  language: string;
   verifiedEmail: boolean;
   twoFactorAuth: 'None' | 'Email';
   enabled: boolean;
@@ -1059,6 +1066,7 @@ export type UserMultiple = {
   email: string;
   phone?: string | null;
   marketingOptIn: boolean;
+  language: string;
   verifiedEmail: boolean;
   twoFactorAuth: 'None' | 'Email';
   enabled: boolean;
@@ -1077,6 +1085,7 @@ export type UserCreate = {
   email: string;
   phone?: string | null;
   marketingOptIn?: boolean;
+  language?: string;
   twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
@@ -1094,6 +1103,7 @@ export type UserUpdate = {
   email?: string;
   phone?: string | null;
   marketingOptIn?: boolean;
+  language?: string;
   twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
@@ -1111,6 +1121,7 @@ export type UserReplace = {
   email: string;
   phone?: string | null;
   marketingOptIn?: boolean;
+  language?: string;
   twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
@@ -1128,6 +1139,7 @@ export type UserRelationCreate = {
   email: string;
   phone?: string | null;
   marketingOptIn?: boolean;
+  language?: string;
   twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
@@ -1140,6 +1152,7 @@ export type UserRelationUpdate = {
   email?: string;
   phone?: string | null;
   marketingOptIn?: boolean;
+  language?: string;
   twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;

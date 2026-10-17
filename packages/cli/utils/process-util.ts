@@ -24,7 +24,10 @@ export function runProcess(
     }
 
     const command = args.length > 0 ? `${cmd} ${args.join(' ')}` : cmd;
-    const child = spawn(command, {
+    // A POSIX shell such as dash keeps a command as its child, which killing
+    // the shell on abort would leave running, so the shell is replaced by it
+    const abortable = signal && process.platform !== 'win32';
+    const child = spawn(abortable ? `exec ${command}` : command, {
       stdio: quiet ? 'ignore' : 'inherit',
       shell: true,
       env: { ...process.env, WEAVER_CLI: undefined }

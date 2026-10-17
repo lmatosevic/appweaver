@@ -9,7 +9,8 @@ import {
   Redis,
   Scheduler,
   SecurityStore,
-  Storage
+  Storage,
+  TemplateEngine
 } from '@appweaver/common';
 import { loadProvider } from '../context';
 
@@ -28,6 +29,7 @@ export function loadProviders(baseDir: string): void {
   loadProvider(baseDir, config.CACHE_PROVIDER, Cache);
   loadProvider(baseDir, config.EVENTS_PROVIDER, Events);
   loadProvider(baseDir, config.SECURITY_STORE_PROVIDER, SecurityStore);
+  loadProvider(baseDir, config.TEMPLATE_PROVIDER, TemplateEngine, false);
   loadProvider(baseDir, config.REDIS_PROVIDER, Redis, false);
   const queueLoaded = loadProvider(
     baseDir,
@@ -43,6 +45,7 @@ export function loadProviders(baseDir: string): void {
   }
 
   // Core feature services
+  loadProvider(__dirname, '../locale/locale-service');
   if (mailerLoaded && queueLoaded) {
     loadProvider(__dirname, '../mailer/email-service', undefined, false);
   }

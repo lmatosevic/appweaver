@@ -1,0 +1,16 @@
+{{#each order.items}}
+{{quantity}} x {{productName}} ({{sku}}): {{money lineTotal}}
+{{/each}}
+
+{{t "orders.summary.subtotal"}}: {{money order.subtotal}}
+{{#if order.discount}}
+{{t "orders.summary.discount"}}{{#if order.coupon}} ({{order.coupon.code}}){{/if}}: -{{money order.discount}}
+{{/if}}
+{{t "orders.summary.shipping"}}: {{#if order.shippingCost}}{{money order.shippingCost}}{{else}}{{t "orders.summary.freeShipping"}}{{/if}}
+{{t "orders.summary.total"}}: {{money order.total}}
+
+{{t "orders.summary.shipTo"}}
+{{order.shippingAddress.recipient}}
+{{order.shippingAddress.street}}
+{{order.shippingAddress.postalCode}} {{order.shippingAddress.city}}
+{{countryName order.shippingAddress.country}}

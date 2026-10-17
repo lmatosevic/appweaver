@@ -7,6 +7,7 @@ import {
   logger,
   Mailer
 } from '@appweaver/common';
+import { textToHtml } from './utils/html-util';
 
 export class JsonMailer extends Mailer<Attachment> {
   /** @internal */
@@ -27,7 +28,7 @@ export class JsonMailer extends Mailer<Attachment> {
       to,
       subject,
       text,
-      html: html ?? `<p style="white-space: pre;">${text}</p>`,
+      html: html ?? textToHtml(text),
       attachments
     });
 

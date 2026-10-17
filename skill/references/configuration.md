@@ -536,6 +536,24 @@ cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting is s
 | `MAILER_SMTP_USER`      | string? | -                                      | SMTP authentication username.                                                                                                                                             |
 | `MAILER_SMTP_PASSWORD`  | string? | -                                      | SMTP authentication password.                                                                                                                                             |
 
+### Template (TEMPLATE\_\*)
+
+| Property                        | Type    | Default                                                 | Description                                                                                  |
+|---------------------------------|---------|---------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| `TEMPLATE_PATH`                 | string  | `'./templates'`                                         | Directory of the template files (emails, pages, exports), see [templates](./templates.md).   |
+| `TEMPLATE_CACHE`                | boolean | `true`                                                  | Keep the loaded templates in memory. Disable it to reload the changed files on every render. |
+| `TEMPLATE_PREVIEW_ENABLED`      | boolean | `false`                                                 | Enable the route previewing a template rendered with the data of its query parameters.       |
+| `TEMPLATE_PREVIEW_AUTH`         | boolean | `true`                                                  | Require authentication for the template preview route.                                       |
+| `TEMPLATE_PREVIEW_ROUTE_PREFIX` | string  | `'/templates'`                                          | URL prefix for the template preview route.                                                   |
+| `TEMPLATE_PROVIDER`             | string  | `'@appweaver/core/template/handlebars-template-engine'` | Template engine provider implementation path.                                                |
+
+### Locale (LOCALE\_\*)
+
+| Property         | Type   | Default       | Description                                                                      |
+|------------------|--------|---------------|----------------------------------------------------------------------------------|
+| `LOCALE_DEFAULT` | string | `'en'`        | The locale used when none is given to a translation or a template render.        |
+| `LOCALE_PATH`    | string | `'./locales'` | Directory of the translation files, a flat JSON file per locale, i.e. `de.json`. |
+
 ### System (SYSTEM\_\*)
 
 | Property                        | Type    | Default                | Description                                       |
