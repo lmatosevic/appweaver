@@ -52,8 +52,7 @@
       "template": {
         "cache": false,
         "preview": {
-          "enabled": true,
-          "auth": false
+          "enabled": true
         }
       }
     },

@@ -347,7 +347,7 @@ const configSchema = Type.Object({
   TEMPLATE_PATH: Type.String({ default: './templates' }),
   TEMPLATE_CACHE: Type.Boolean({ default: true }),
   TEMPLATE_PREVIEW_ENABLED: Type.Boolean({ default: false }),
-  TEMPLATE_PREVIEW_AUTH: Type.Boolean({ default: true }),
+  TEMPLATE_PREVIEW_AUTH: Type.Boolean({ default: false }),
   TEMPLATE_PREVIEW_ROUTE_PREFIX: Type.String({ default: '/templates' }),
   TEMPLATE_PROVIDER: Type.String({
     default: '@appweaver/core/template/handlebars-template-engine'
