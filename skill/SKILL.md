@@ -691,6 +691,10 @@ Inside the templates, `{{t "key" name=value}}` translates into the rendered loca
 locale. The framework's own emails (verification, password reset, 2FA) are overridden by a template file of the same
 name and translated by the `emails.*` keys.
 
+To check a template while editing it, enable `template.preview.enabled` in the `dev` environment: `GET
+/templates/emails/order-shipped.html?_locale=de&order.number=WS-1` renders it with the query parameters as its data
+(dotted names nest, `_data` takes a JSON object). See [templates.md](references/templates.md#previewing-templates).
+
 ### Handling errors
 
 Services, policies, hooks, jobs and workers throw an `AppweaverError` subclass carrying a stable `code` (the `ErrorCode`

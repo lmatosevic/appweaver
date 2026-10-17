@@ -237,6 +237,10 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     status: 500,
     title: 'Template loading failed'
   },
+  [ErrorCode.TemplatePreviewNotFound]: {
+    status: 404,
+    title: 'Template preview not found'
+  },
 
   [ErrorCode.LocaleLoadFailed]: {
     status: 500,

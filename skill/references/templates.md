@@ -323,24 +323,63 @@ registerTemplateHelper('money', (cents: number, options: { data?: { locale?: str
 );
 ```
 
+## Previewing templates
+
+The preview route renders a template the way the application would, to check it in a browser while editing it. It is
+disabled by default, so enable it only in the development environment of `appweaver.json`:
+
+```json
+{
+  "environments": {
+    "dev": {
+      "template": { "cache": false, "preview": { "enabled": true, "auth": false } }
+    }
+  }
+}
+```
+
+`GET <TEMPLATE_PREVIEW_ROUTE_PREFIX>/<template name>` (`/templates/...` by default) responds with the rendered template
+and the content type of its format. The query parameters are the template data:
+
+- a dotted name sets a nested value, and a numeric part an item of a list: `order.number=WS-1&order.items.0.name=Book`
+- a repeated parameter sets a list of values: `tags=news&tags=sport`
+- `true`, `false`, `null` and the numbers written the way they print (`12`, `-0.5`, not `012`) get their type, every
+  other value stays a string
+- `_data` holds a JSON object the other parameters are merged over, for data the parameters cannot express
+- `_locale` selects the locale, i.e. the localized variants and the translations
+
+```
+/templates/emails/order-confirmation.html?_locale=de&order.number=WS-1&order.items.0.name=Book&order.items.0.quantity=2
+/templates/exports/posts.xml?_data={"posts":[{"title":"Hello","slug":"hello"}]}
+```
+
+A missing template responds with `404 TEMPLATE_PREVIEW_NOT_FOUND`, and an invalid `_data` with `400 MALFORMED_REQUEST`.
+The route requires authentication unless `TEMPLATE_PREVIEW_AUTH` is `false`, is left out of the OpenAPI document,
+responds with `Content-Security-Policy: sandbox` so no script of a rendered page runs, and fails the startup when no
+template engine is loaded (the `handlebars` package is not installed).
+
 ## Configuration
 
-| Key                 | Default                                                 | Description                        |
-|---------------------|---------------------------------------------------------|------------------------------------|
-| `TEMPLATE_PATH`     | `'./templates'`                                         | Directory of the template files    |
-| `TEMPLATE_CACHE`    | `true`                                                  | Keep the templates in memory       |
-| `TEMPLATE_PROVIDER` | `'@appweaver/core/template/handlebars-template-engine'` | Template engine implementation     |
-| `LOCALE_DEFAULT`    | `'en'`                                                  | Locale used when none is given     |
-| `LOCALE_PATH`       | `'./locales'`                                           | Directory of the translation files |
+| Key                             | Default                                                 | Description                                  |
+|---------------------------------|---------------------------------------------------------|----------------------------------------------|
+| `TEMPLATE_PATH`                 | `'./templates'`                                         | Directory of the template files              |
+| `TEMPLATE_CACHE`                | `true`                                                  | Keep the templates in memory                 |
+| `TEMPLATE_PREVIEW_ENABLED`      | `false`                                                 | Enable the preview route                     |
+| `TEMPLATE_PREVIEW_AUTH`         | `true`                                                  | Require authentication for the preview route |
+| `TEMPLATE_PREVIEW_ROUTE_PREFIX` | `'/templates'`                                          | URL prefix of the preview route              |
+| `TEMPLATE_PROVIDER`             | `'@appweaver/core/template/handlebars-template-engine'` | Template engine implementation               |
+| `LOCALE_DEFAULT`                | `'en'`                                                  | Locale used when none is given               |
+| `LOCALE_PATH`                   | `'./locales'`                                           | Directory of the translation files           |
 
 ## Errors
 
-| Code                     | Raised when                                                   |
-|--------------------------|---------------------------------------------------------------|
-| `TEMPLATE_NOT_FOUND`     | No template of the name exists in the locale or its fallbacks |
-| `TEMPLATE_RENDER_FAILED` | A template fails to compile or render, i.e. a missing partial |
-| `TEMPLATE_LOAD_FAILED`   | A template cannot be read, or its syntax is invalid           |
-| `LOCALE_LOAD_FAILED`     | A translation file is not valid JSON or not a JSON object     |
+| Code                         | Raised when                                                   |
+|------------------------------|---------------------------------------------------------------|
+| `TEMPLATE_NOT_FOUND`         | No template of the name exists in the locale or its fallbacks |
+| `TEMPLATE_RENDER_FAILED`     | A template fails to compile or render, i.e. a missing partial |
+| `TEMPLATE_LOAD_FAILED`       | A template cannot be read, or its syntax is invalid           |
+| `TEMPLATE_PREVIEW_NOT_FOUND` | The preview route is asked for a template that does not exist |
+| `LOCALE_LOAD_FAILED`         | A translation file is not valid JSON or not a JSON object     |
 
 ## Custom template engine
 

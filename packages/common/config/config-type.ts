@@ -490,6 +490,13 @@ export type Config = {
   /** Keep the loaded templates in memory, disable it to reload the changed template files on every render. Default:
    * `true`. */
   TEMPLATE_CACHE: boolean;
+  /** Enable the route rendering a template with the data of its query parameters, for previewing the templates during
+   * development. Default: `false`. */
+  TEMPLATE_PREVIEW_ENABLED: boolean;
+  /** Require authentication for the template preview route. Default: `true`. */
+  TEMPLATE_PREVIEW_AUTH: boolean;
+  /** URL prefix for the template preview route. Default: `'/templates'`. */
+  TEMPLATE_PREVIEW_ROUTE_PREFIX: string;
   /** Template engine provider implementation path. Default: `'@appweaver/core/template/handlebars-template-engine'`. */
   TEMPLATE_PROVIDER: string;
 

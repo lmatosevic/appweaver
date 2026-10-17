@@ -50,7 +50,11 @@
         "pretty": true
       },
       "template": {
-        "cache": false
+        "cache": false,
+        "preview": {
+          "enabled": true,
+          "auth": false
+        }
       }
     },
     "test": {

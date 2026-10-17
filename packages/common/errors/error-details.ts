@@ -75,6 +75,7 @@ export interface ErrorDetailsMap {
   [ErrorCode.TemplateNotFound]: { template: string; locale?: string };
   [ErrorCode.TemplateRenderFailed]: { template: string };
   [ErrorCode.TemplateLoadFailed]: { path: string };
+  [ErrorCode.TemplatePreviewNotFound]: { template: string; locale?: string };
 
   [ErrorCode.LocaleLoadFailed]: { path: string };
 }

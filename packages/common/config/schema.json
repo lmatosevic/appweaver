@@ -1202,6 +1202,23 @@
               "type": "boolean",
               "default": true
             },
+            "preview": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "auth": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "routePrefix": {
+                  "type": "string",
+                  "default": "/templates"
+                }
+              }
+            },
             "provider": {
               "type": "string",
               "default": "@appweaver/core/template/handlebars-template-engine"

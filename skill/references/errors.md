@@ -202,6 +202,7 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `TEMPLATE_NOT_FOUND`                 | 500    | Template not found                    |
 | `TEMPLATE_RENDER_FAILED`             | 500    | Template rendering failed             |
 | `TEMPLATE_LOAD_FAILED`               | 500    | Template loading failed               |
+| `TEMPLATE_PREVIEW_NOT_FOUND`         | 404    | Template preview not found            |
 | `LOCALE_LOAD_FAILED`                 | 500    | Locale loading failed                 |
 | `LOCK_NOT_ACQUIRED`                  | 503    | Resource is locked                    |
 

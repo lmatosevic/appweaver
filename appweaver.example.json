@@ -308,6 +308,11 @@
     "template": {
       "path": "./templates",
       "cache": true,
+      "preview": {
+        "enabled": false,
+        "auth": true,
+        "routePrefix": "/templates"
+      },
       "provider": "@appweaver/core/template/handlebars-template-engine"
     },
     "locale": {

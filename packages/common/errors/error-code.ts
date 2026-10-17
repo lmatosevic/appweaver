@@ -118,6 +118,7 @@ export enum ErrorCode {
   TemplateNotFound = 'TEMPLATE_NOT_FOUND',
   TemplateRenderFailed = 'TEMPLATE_RENDER_FAILED',
   TemplateLoadFailed = 'TEMPLATE_LOAD_FAILED',
+  TemplatePreviewNotFound = 'TEMPLATE_PREVIEW_NOT_FOUND',
 
   // Locales
   LocaleLoadFailed = 'LOCALE_LOAD_FAILED',

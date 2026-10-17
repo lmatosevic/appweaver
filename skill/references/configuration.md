@@ -538,11 +538,14 @@ cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting is s
 
 ### Template (TEMPLATE\_\*)
 
-| Property            | Type    | Default                                                 | Description                                                                                  |
-|---------------------|---------|---------------------------------------------------------|----------------------------------------------------------------------------------------------|
-| `TEMPLATE_PATH`     | string  | `'./templates'`                                         | Directory of the template files (emails, pages, exports), see [templates](./templates.md).   |
-| `TEMPLATE_CACHE`    | boolean | `true`                                                  | Keep the loaded templates in memory. Disable it to reload the changed files on every render. |
-| `TEMPLATE_PROVIDER` | string  | `'@appweaver/core/template/handlebars-template-engine'` | Template engine provider implementation path.                                                |
+| Property                        | Type    | Default                                                 | Description                                                                                  |
+|---------------------------------|---------|---------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| `TEMPLATE_PATH`                 | string  | `'./templates'`                                         | Directory of the template files (emails, pages, exports), see [templates](./templates.md).   |
+| `TEMPLATE_CACHE`                | boolean | `true`                                                  | Keep the loaded templates in memory. Disable it to reload the changed files on every render. |
+| `TEMPLATE_PREVIEW_ENABLED`      | boolean | `false`                                                 | Enable the route previewing a template rendered with the data of its query parameters.       |
+| `TEMPLATE_PREVIEW_AUTH`         | boolean | `true`                                                  | Require authentication for the template preview route.                                       |
+| `TEMPLATE_PREVIEW_ROUTE_PREFIX` | string  | `'/templates'`                                          | URL prefix for the template preview route.                                                   |
+| `TEMPLATE_PROVIDER`             | string  | `'@appweaver/core/template/handlebars-template-engine'` | Template engine provider implementation path.                                                |
 
 ### Locale (LOCALE\_\*)
 
