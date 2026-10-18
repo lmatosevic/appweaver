@@ -678,7 +678,7 @@ const xml = await inject(TemplateEngine).render('exports/orders.xml', { orders }
 reply.type(templateContentType('exports/orders.xml')).send(xml);
 
 // An email of the emails/order-shipped.{html,subject}.hbs templates, its text derived from the HTML
-await inject(EmailService).sendTemplateEmail({ to, template: 'emails/order-shipped', data: { order }, locale });
+await inject(EmailService).sendEmail({ to, template: 'emails/order-shipped', data: { order }, locale });
 
 // A translated string, i.e. in a service hook
 inject(LocaleService).translate('inbox.unread', 'de', { msg_cnt: 3 });

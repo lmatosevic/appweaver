@@ -1,3 +1,4 @@
+import { TwoFactorAuth } from '../enums';
 import { ResourceId } from './resource-id';
 
 export type AuthUser = {
@@ -6,7 +7,7 @@ export type AuthUser = {
   roles: Role[];
   passwordHash?: string | null;
   verifiedEmail?: boolean;
-  twoFactorAuth?: 'None' | 'Email';
+  twoFactorAuth?: `${TwoFactorAuth}`;
   enabled?: boolean;
   logoutAt?: Date | null;
   createdAt?: Date;

@@ -1,6 +1,6 @@
 import fastify from 'fastify';
 import { fastifyRequestContext } from '@fastify/request-context';
-import { AuthUser } from '@appweaver/common';
+import { AuthUser, TwoFactorAuth } from '@appweaver/common';
 import { errorHandler } from '../../errors';
 import {
   currentAuthSource,
@@ -55,7 +55,7 @@ export function authUser(overrides: Partial<AuthUser> = {}): AuthUser {
     email: 'user@test.com',
     enabled: true,
     roles: [],
-    twoFactorAuth: 'None',
+    twoFactorAuth: TwoFactorAuth.None,
     ...overrides
   };
 }

@@ -11,7 +11,8 @@ import {
   logger,
   ResourceId,
   RouteConfig,
-  SecurityStore
+  SecurityStore,
+  TwoFactorAuth
 } from '@appweaver/common';
 import {
   checkPassword,
@@ -373,7 +374,8 @@ export class AuthService {
 
     if (
       config.SECURITY_ACCOUNT_2FA_ENABLED &&
-      (config.SECURITY_ACCOUNT_2FA_FORCED || authUser.twoFactorAuth !== 'None')
+      (config.SECURITY_ACCOUNT_2FA_FORCED ||
+        authUser.twoFactorAuth !== TwoFactorAuth.None)
     ) {
       return this.generateAuthTokens(authUser, AuthScope.TwoFA);
     }

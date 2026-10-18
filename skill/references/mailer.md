@@ -132,6 +132,9 @@ loaded.
 import { EmailService, inject } from '@appweaver/core';
 ```
 
+Every send method takes an `Email` built by the caller or a [`TemplateEmail`](#template-emails) (one with a
+`template` field), which it renders from the templates of the application before queueing it.
+
 ---
 
 #### `emailService.sendEmail(email)`
@@ -170,7 +173,8 @@ const sent = await emailService.sendEmailAndWait({
 #### `emailService.sendEmailBulk(emails)`
 
 Queues all emails at once without waiting for any to finish. Prefer this when sending a large batch and delivery
-confirmation is not required.
+confirmation is not required. The template emails are rendered first, and one that fails to render is logged as an
+error and left out, the others are still queued.
 
 ```ts
 await emailService.sendEmailBulk(
@@ -187,7 +191,8 @@ await emailService.sendEmailBulk(
 #### `emailService.sendEmailBulkAndWait(emails)`
 
 Queues all emails and waits for every delivery attempt to settle. Returns an array of
-`{ success: boolean; error?: Error }` in the same order as the input — failed deliveries do not reject the whole call.
+`{ success: boolean; error?: Error }` in the same order as the input — failed deliveries do not reject the whole call,
+and neither does a template email that fails to render, reported as a failed result while the others are still sent.
 
 ```ts
 const results = await emailService.sendEmailBulkAndWait(emails);
@@ -201,10 +206,10 @@ for (const [i, result] of results.entries()) {
 
 ---
 
-#### `emailService.sendTemplateEmail(email)`
+#### Template emails
 
-Renders the email from the templates of the [template engine](./templates.md) in the given locale and queues it like
-`sendEmail`. The `template` is a name without the format, its templates render the parts of the email:
+A `TemplateEmail` passed to any send method is rendered from the templates of the [template engine](./templates.md) in
+the given locale. The `template` is a name without the format, its templates render the parts of the email:
 
 | Template             | Renders             | Required                                    |
 |----------------------|---------------------|---------------------------------------------|
@@ -229,7 +234,7 @@ templates/emails/
 ```
 
 ```ts
-await emailService.sendTemplateEmail({
+await emailService.sendEmail({
   to: customer.email,
   template: 'emails/order-shipped',
   data: { order, trackingUrl },
@@ -237,9 +242,9 @@ await emailService.sendTemplateEmail({
 });
 ```
 
-`emailService.renderTemplateEmail(email)` returns the rendered `Email` without sending it, to pass to
-`sendEmailAndWait` or `sendEmailBulk`. An email needs one of the body templates, without both or without a subject it
-rejects with `TEMPLATE_NOT_FOUND`.
+`emailService.renderTemplateEmail(email)` returns the rendered `Email` without sending it, i.e. to check it in a test. An
+email needs one of the body templates, without both or without a subject it rejects with `TEMPLATE_NOT_FOUND`, and
+without a loaded template engine with `CONFIGURATION_INVALID`.
 
 ### Account emails
 

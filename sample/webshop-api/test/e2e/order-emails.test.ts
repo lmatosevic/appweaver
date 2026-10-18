@@ -21,7 +21,7 @@ describe('Order emails', () => {
   let croatian: Awaited<ReturnType<typeof registerCustomer>>;
   let english: Awaited<ReturnType<typeof registerCustomer>>;
   let partner: Record<string, string>;
-  let sendEmail: jest.SpyInstance;
+  let renderEmail: jest.SpyInstance;
 
   const checkout = (
     headers: Record<string, string>,
@@ -37,12 +37,14 @@ describe('Order emails', () => {
   const emailAbout = (orderNumber: string, subject: RegExp) =>
     eventually(
       async () =>
-        sendEmail.mock.calls
-          .map(([email]) => email as Email)
-          .find(
-            (email) =>
-              email.subject.includes(orderNumber) && subject.test(email.subject)
-          ),
+        (
+          (await Promise.all(
+            renderEmail.mock.results.map((result) => result.value)
+          )) as Email[]
+        ).find(
+          (email) =>
+            email.subject.includes(orderNumber) && subject.test(email.subject)
+        ),
       (email) => email !== undefined
     ) as Promise<Email>;
 
@@ -53,7 +55,7 @@ describe('Order emails', () => {
     croatian = await registerCustomer(app, 'Ivana', 'hr');
     english = await registerCustomer(app, 'Emma');
     partner = await warehouse();
-    sendEmail = jest.spyOn(inject(EmailService), 'sendEmail');
+    renderEmail = jest.spyOn(inject(EmailService), 'renderTemplateEmail');
   }, 30_000);
 
   afterAll(async () => {

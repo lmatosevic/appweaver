@@ -179,7 +179,7 @@ describe('Templates and locales', () => {
 
   describe('Localized email', () => {
     test('emails a post in the requested locale', async () => {
-      const sendEmail = jest.spyOn(emailService, 'sendEmail');
+      const renderEmail = jest.spyOn(emailService, 'renderTemplateEmail');
 
       const response = await app.server.inject({
         method: 'POST',
@@ -189,7 +189,7 @@ describe('Templates and locales', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const email = sendEmail.mock.calls[0][0];
+      const email = await renderEmail.mock.results[0].value;
       expect(email.to).toBe('reader@example.com');
       expect(email.subject).toBe(
         'templates@example.com dijeli objavu s vama: Trails & <Peaks>'

@@ -58,8 +58,12 @@ describe('account-service', () => {
     define(securityStore, SecurityStore as any);
     define(LocaleService);
     if (withEmail) {
+      // Tells the template emails apart from the plain text ones
       define(
-        { sendTemplateEmail: sendEmail, sendEmail: sendPlainEmail },
+        {
+          sendEmail: (email: object) =>
+            'template' in email ? sendEmail(email) : sendPlainEmail(email)
+        },
         EmailService
       );
     }

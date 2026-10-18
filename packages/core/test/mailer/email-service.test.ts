@@ -141,6 +141,7 @@ describe('email-service', () => {
         render: jest.fn(async (name: string) => templates[name])
       };
       define(engine, TemplateEngine as any);
+      service = new EmailService();
     });
 
     test('renders the body and subject templates in the locale', async () => {
@@ -231,29 +232,110 @@ describe('email-service', () => {
     });
   });
 
-  describe('sendTemplateEmail', () => {
-    test('queues the rendered email', async () => {
+  describe('without a template engine', () => {
+    test('rejects a template email', async () => {
+      await expect(
+        service.sendEmail({ to: 'user@test.com', template: 'emails/welcome' })
+      ).rejects.toMatchObject({ code: ErrorCode.ConfigurationInvalid });
+      expect(processor.sendJob).not.toHaveBeenCalled();
+    });
+
+    test('sends a plain email', async () => {
+      await service.sendEmail(email);
+
+      expect(processor.sendJob).toHaveBeenCalledWith(email);
+    });
+  });
+
+  describe('with template emails', () => {
+    const rendered = {
+      to: 'user@test.com',
+      subject: 'Welcome',
+      text: 'Hi',
+      html: undefined,
+      attachments: undefined
+    };
+    const templateEmail = { to: 'user@test.com', template: 'emails/welcome' };
+
+    beforeEach(() => {
       define(
         {
-          hasTemplate: async (name: string) => !name.endsWith('.html'),
+          hasTemplate: async (name: string) =>
+            name.startsWith('emails/welcome') && !name.endsWith('.html'),
           render: async (name: string) =>
             name.endsWith('.subject') ? 'Welcome' : 'Hi'
         },
         TemplateEngine as any
       );
+      service = new EmailService();
+    });
 
-      await service.sendTemplateEmail({
-        to: 'user@test.com',
-        template: 'emails/welcome'
-      });
+    test('sendEmail queues the rendered email', async () => {
+      await service.sendEmail(templateEmail);
 
-      expect(processor.sendJob).toHaveBeenCalledWith({
-        to: 'user@test.com',
-        subject: 'Welcome',
-        text: 'Hi',
-        html: undefined,
-        attachments: undefined
-      });
+      expect(processor.sendJob).toHaveBeenCalledWith(rendered);
+    });
+
+    test('sendEmailBulk renders the template emails beside the plain ones', async () => {
+      await service.sendEmailBulk([templateEmail, email]);
+
+      expect(processor.sendBulkJobs).toHaveBeenCalledWith([
+        { data: rendered },
+        { data: email }
+      ]);
+    });
+
+    test('sendEmailBulk logs an email failing to render and queues the others', async () => {
+      await service.sendEmailBulk([
+        email,
+        { to: 'user@test.com', template: 'emails/missing' },
+        templateEmail
+      ]);
+
+      expect(processor.sendBulkJobs).toHaveBeenCalledWith([
+        { data: email },
+        { data: rendered }
+      ]);
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ code: ErrorCode.TemplateNotFound }),
+        "E-mail 'emails/missing' rendering failed"
+      );
+    });
+
+    test('sendEmailBulk queues nothing when no email renders', async () => {
+      await service.sendEmailBulk([
+        { to: 'user@test.com', template: 'emails/missing' }
+      ]);
+
+      expect(processor.sendBulkJobs).not.toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalledTimes(1);
+    });
+
+    test('sendEmailAndWait waits for the rendered email', async () => {
+      const sent = service.sendEmailAndWait(templateEmail);
+      await new Promise(setImmediate);
+
+      expect(processor.sendJob).toHaveBeenCalledWith(rendered);
+      completed({ id: '1', data: rendered });
+      await expect(sent).resolves.toBe(true);
+    });
+
+    test('sendEmailBulkAndWait reports an email failing to render', async () => {
+      const sent = service.sendEmailBulkAndWait([
+        templateEmail,
+        { to: 'user@test.com', template: 'emails/missing' }
+      ]);
+      await new Promise(setImmediate);
+
+      completed({ id: '1', data: rendered });
+
+      expect(await sent).toEqual([
+        { success: true },
+        {
+          success: false,
+          error: expect.objectContaining({ code: ErrorCode.TemplateNotFound })
+        }
+      ]);
     });
   });
 });

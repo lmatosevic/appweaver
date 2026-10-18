@@ -504,10 +504,11 @@ When enabled, 2FA adds an extra verification step after password login using ema
 
 ### User setting
 
-Users set their 2FA preference via the `twoFactorAuth` field on their profile:
+Users set their 2FA preference via the `twoFactorAuth` field on their profile, the values of the `TwoFactorAuth` enum
+of `@appweaver/common`:
 
-- `'None'` - 2FA disabled for this user
-- `'Email'` - 2FA enabled via email codes
+- `TwoFactorAuth.None` (`'None'`) - 2FA disabled for this user
+- `TwoFactorAuth.Email` (`'Email'`) - 2FA enabled via email codes
 
 ### Login flow with 2FA
 
@@ -701,7 +702,7 @@ The security module automatically adds the following fields to the user model:
 | `email`         | string (unique)  | -        | User's email address.                                        |
 | `passwordHash`  | string? (hidden) | -        | Argon2id password hash (never exposed in API).               |
 | `verifiedEmail` | boolean          | `false`  | Whether the user's email is verified.                        |
-| `twoFactorAuth` | enum             | `'None'` | 2FA setting. Values: `'None'`, `'Email'`.                    |
+| `twoFactorAuth` | enum             | `'None'` | 2FA setting, the values of the `TwoFactorAuth` enum.         |
 | `enabled`       | boolean          | `true`   | Whether the account is active.                               |
 | `logoutAt`      | dateTime?        | -        | Timestamp used to invalidate tokens issued before this time. |
 

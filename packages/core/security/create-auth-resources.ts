@@ -13,6 +13,7 @@ import {
   ResourceServiceConfig,
   ScalarConfig,
   ScalarFieldString,
+  TwoFactorAuth,
   uncapitalize,
   VirtualConfig
 } from '@appweaver/common';
@@ -69,8 +70,8 @@ export function createAuthModel<
     },
     twoFactorAuth: {
       type: 'enum',
-      values: ['None', 'Email'],
-      default: 'None'
+      values: Object.values(TwoFactorAuth),
+      default: TwoFactorAuth.None
     },
     enabled: {
       type: 'boolean',

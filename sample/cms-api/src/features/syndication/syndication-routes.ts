@@ -132,7 +132,7 @@ registerRoute(
         const query = req.body.locale
           ? `?locale=${encodeURIComponent(req.body.locale)}`
           : '';
-        await inject(EmailService).sendTemplateEmail({
+        await inject(EmailService).sendEmail({
           to: req.body.email,
           template: 'emails/post-share',
           data: {

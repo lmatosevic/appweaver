@@ -26,6 +26,11 @@ export enum AuthOTTPurpose {
   PasswordReset = 'passwordReset'
 }
 
+export enum TwoFactorAuth {
+  None = 'None',
+  Email = 'Email'
+}
+
 export enum AuthScope {
   Auth = 'auth',
   TwoFA = '2fa',
