@@ -17,6 +17,7 @@ import path from 'node:path';
 import * as common from '@appweaver/common';
 import { define } from '../../../core/context';
 import { LocaleService } from '../../../core/locale';
+import { htmlToText } from '../../../core/mailer/utils/html-util';
 import { HandlebarsTemplateEngine } from '../../../core/template/handlebars-template-engine';
 import { resetContext } from '../../../core/test/fixtures/context-fixture';
 import {
@@ -84,15 +85,25 @@ describe('email templates', () => {
     const data = { link: 'https://app.test/reset?token=1' };
 
     const html = await engine.render('emails/password-reset.html', data);
-    const text = await engine.render('emails/password-reset.txt', data);
     const subject = await engine.render('emails/password-reset.subject');
 
     expect(html).toContain('<!DOCTYPE html>');
     expect(html).toContain('href="https://app.test/reset?token&#x3D;1"');
     expect(html).toContain('This email was sent by Test App.');
-    expect(text).toContain('https://app.test/reset?token=1');
-    expect(text).toContain('--\nThis email was sent by Test App.');
     expect(subject).toBe('Password reset request');
+  });
+
+  test('derives a readable text from the HTML', async () => {
+    const html = await engine.render('emails/password-reset.html', {
+      link: 'https://app.test/reset?token=1'
+    });
+
+    const text = htmlToText(html);
+    expect(text).toContain('Reset password (https://app.test/reset?token=1)');
+    expect(text).toMatch(
+      /ignore this email\.\n\nThis email was sent by Test App\.$/
+    );
+    expect(text).not.toMatch(/[<>]|Password reset request/);
   });
 
   test('renders the email verification link', async () => {
@@ -105,13 +116,13 @@ describe('email templates', () => {
   });
 
   test('pluralizes the expiry of the 2FA code', async () => {
-    const text = await engine.render('emails/two-factor-code.txt', {
+    const html = await engine.render('emails/two-factor-code.html', {
       code: '123456',
       expiresInMinutes: 1
     });
 
-    expect(text).toContain('123456');
-    expect(text).toContain('The code expires in 1 minute.');
+    expect(html).toContain('123456');
+    expect(html).toContain('The code expires in 1 minute.');
   });
 
   test('translates the emails with the translation files', async () => {
@@ -137,7 +148,7 @@ describe('email templates', () => {
       .readdirSync(inlinedDir, { recursive: true })
       .map((file) => path.join(inlinedDir, String(file)))
       .filter((filePath) => filePath.endsWith('.hbs'));
-    expect(templateFiles).toHaveLength(12);
+    expect(templateFiles).toHaveLength(8);
 
     for (const filePath of templateFiles) {
       const inlined = inlineTranslations(
@@ -157,7 +168,7 @@ describe('email templates', () => {
     );
 
     for (const [email, data] of emails) {
-      for (const format of ['subject', 'html', 'txt']) {
+      for (const format of ['subject', 'html']) {
         const name = `${email}.${format}`;
         const expected = await engine.render(name, data);
         expect(expected).not.toBe('');

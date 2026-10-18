@@ -1211,7 +1211,7 @@
                 },
                 "auth": {
                   "type": "boolean",
-                  "default": true
+                  "default": false
                 },
                 "routePrefix": {
                   "type": "string",

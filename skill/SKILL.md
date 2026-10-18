@@ -677,7 +677,7 @@ import { EmailService, inject, LocaleService } from '@appweaver/core';
 const xml = await inject(TemplateEngine).render('exports/orders.xml', { orders }, { locale });
 reply.type(templateContentType('exports/orders.xml')).send(xml);
 
-// An email of the emails/order-shipped.{html,txt,subject}.hbs templates
+// An email of the emails/order-shipped.{html,subject}.hbs templates, its text derived from the HTML
 await inject(EmailService).sendTemplateEmail({ to, template: 'emails/order-shipped', data: { order }, locale });
 
 // A translated string, i.e. in a service hook
@@ -695,7 +695,8 @@ scaffolded by `create-weaver-app`, or without them are sent as plain text of the
 
 To check a template while editing it, enable `template.preview.enabled` in the `dev` environment: `GET
 /templates/emails/order-shipped.html?_locale=de&order.number=WS-1` renders it with the query parameters as its data
-(dotted names nest, `_data` takes a JSON object). See [templates.md](references/templates.md#previewing-templates).
+(dotted names nest, `_data` takes a JSON object). It is open without authentication unless `template.preview.auth` is
+`true`. See [templates.md](references/templates.md#previewing-templates).
 
 ### Handling errors
 

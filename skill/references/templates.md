@@ -17,12 +17,12 @@ project without translation files can still render localized templates.
 
 `create-weaver-app` scaffolds both, and skips either one with its flag:
 
-| Flags                         | `templates/`, `handlebars`                     | `locales/`  | Account emails                       |
-|-------------------------------|------------------------------------------------|-------------|--------------------------------------|
-| (none)                        | Scaffolded, the texts translated with `{{t}}`  | `en.json`   | Rendered from the localized templates |
-| `--no-locales`                | Scaffolded, the English texts written in place | —           | Rendered from the English templates  |
-| `--no-templates`              | —, `TEMPLATE_PROVIDER` is empty                | `en.json`   | Plain text of the `en.json` texts    |
-| `--no-templates --no-locales` | —, `TEMPLATE_PROVIDER` is empty                | —           | Plain text of the framework's texts  |
+| Flags                         | `templates/`, `handlebars`                     | `locales/` | Account emails                        |
+|-------------------------------|------------------------------------------------|------------|---------------------------------------|
+| (none)                        | Scaffolded, the texts translated with `{{t}}`  | `en.json`  | Rendered from the localized templates |
+| `--no-locales`                | Scaffolded, the English texts written in place | —          | Rendered from the English templates   |
+| `--no-templates`              | —, `TEMPLATE_PROVIDER` is empty                | `en.json`  | Plain text of the `en.json` texts     |
+| `--no-templates --no-locales` | —, `TEMPLATE_PROVIDER` is empty                | —          | Plain text of the framework's texts   |
 
 With `--no-locales`, every `{{t "key" param=value}}` of the scaffolded templates is replaced by the English message of
 the key, its parameters by the expressions (`{{@app.name}}`) and a plural by an `{{#if (eq count 1)}}` chain, so the
@@ -250,17 +250,25 @@ registerTemplateHelper('money', (cents: number, options: { data?: { locale?: str
 ### Previewing templates
 
 The preview route renders a template as the application would, to check it in a browser while editing it. It is
-disabled by default; enable it only in the `dev` environment of `appweaver.json`:
+disabled by default; enable it only in the `dev` environment of `appweaver.json`. It is open to anyone by default, set
+`auth` to `true` to require authentication, i.e. on a shared development server:
 
 ```json
 {
   "environments": {
     "dev": {
-      "template": { "cache": false, "preview": { "enabled": true, "auth": false } }
+      "template": {
+        "cache": false,
+        "preview": {
+          "enabled": true
+        }
+      }
     }
   }
 }
 ```
+
+The startup logs the route, i.e. `Template preview enabled on '/templates/*'`.
 
 `GET <TEMPLATE_PREVIEW_ROUTE_PREFIX>/<template name>` (`/templates/...` by default) responds with the rendered template
 and the content type of its format. The query parameters are the template data:
@@ -278,7 +286,7 @@ and the content type of its format. The query parameters are the template data:
 ```
 
 A missing template responds with `404 TEMPLATE_PREVIEW_NOT_FOUND`, and an invalid `_data` with `400 MALFORMED_REQUEST`.
-The route requires authentication unless `TEMPLATE_PREVIEW_AUTH` is `false`, is left out of the OpenAPI document,
+The route requires authentication only when `TEMPLATE_PREVIEW_AUTH` is `true`, is left out of the OpenAPI document,
 responds with `Content-Security-Policy: sandbox` so no script of a rendered page runs, and fails the startup when no
 template engine is loaded (the `handlebars` package is not installed).
 
@@ -337,10 +345,18 @@ Angular, vue-i18n and Symfony, with the plural categories of the Unicode CLDR (`
     "greeting": "Hello {name}",
     "unread": "You have {msg_cnt, plural, =0 {no unread messages} one {# unread message} other {# unread messages}}"
   },
-  "race": { "place": "You finished {place, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}" },
-  "comment": { "replied": "{gender, select, female {She} male {He} other {They}} replied" },
-  "order": { "total": "Total: {total, number} items" },
-  "help": { "braces": "Write '{name}' to insert the name, it''s easy" }
+  "race": {
+    "place": "You finished {place, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}"
+  },
+  "comment": {
+    "replied": "{gender, select, female {She} male {He} other {They}} replied"
+  },
+  "order": {
+    "total": "Total: {total, number} items"
+  },
+  "help": {
+    "braces": "Write '{name}' to insert the name, it''s easy"
+  }
 }
 ```
 
@@ -405,7 +421,14 @@ records whose emails are sent later, so an email is written in the language the 
 
 ```ts
 // src/resources/user/model.ts
-language: { type: 'string', default: 'en', pattern: '^[a-z]{2}(-[A-Z]{2})?$', maxLength: 8 }
+const config = {
+  language: {
+    type: 'string',
+    default: 'en',
+    pattern: '^[a-z]{2}(-[A-Z]{2})?$',
+    maxLength: 8
+  }
+};
 
 // At checkout: the language asked for, or the preferred one of the customer
 const order = await tx.order.create({ data: { ...data, language: request.language ?? customer.language } });

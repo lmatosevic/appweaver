@@ -84,6 +84,7 @@ describe('template-preview-route', () => {
   afterEach(async () => {
     await server.close().catch(() => undefined);
     fs.rmSync(dir, { recursive: true, force: true });
+    jest.restoreAllMocks();
   });
 
   afterAll(() => {
@@ -194,6 +195,25 @@ describe('template-preview-route', () => {
       });
 
       expect(authenticate).not.toHaveBeenCalled();
+    });
+
+    test('logs the route once registered', async () => {
+      const info = jest.spyOn(common.logger, 'info').mockImplementation();
+      await startServer();
+
+      expect(info).toHaveBeenCalledWith(
+        "Template preview enabled on '/templates/*'"
+      );
+    });
+
+    test('logs that the route requires authentication', async () => {
+      configOverrides.TEMPLATE_PREVIEW_AUTH = true;
+      const info = jest.spyOn(common.logger, 'info').mockImplementation();
+      await startServer();
+
+      expect(info).toHaveBeenCalledWith(
+        "Template preview enabled on '/templates/*', requiring authentication"
+      );
     });
 
     test('fails to register without a template engine', async () => {

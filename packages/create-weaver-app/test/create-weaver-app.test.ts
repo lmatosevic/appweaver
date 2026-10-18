@@ -254,7 +254,7 @@ describe('create-weaver-app', () => {
         'password-reset',
         'two-factor-code'
       ]) {
-        for (const format of ['subject', 'html', 'txt']) {
+        for (const format of ['subject', 'html']) {
           expect(
             exists('my-app', 'templates', 'emails', `${email}.${format}.hbs`)
           ).toBe(true);

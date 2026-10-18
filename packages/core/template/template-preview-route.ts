@@ -3,6 +3,7 @@ import {
   config,
   ConfigurationError,
   ErrorCode,
+  logger,
   TemplateEngine,
   templateContentType
 } from '@appweaver/common';
@@ -72,5 +73,9 @@ export async function templatePreview(server: Server): Promise<void> {
         .header('Cache-Control', 'no-store')
         .send(content);
     }
+  );
+
+  logger.info(
+    `Template preview enabled on '${server.prefix}/*'${config.TEMPLATE_PREVIEW_AUTH ? ', requiring authentication' : ''}`
   );
 }

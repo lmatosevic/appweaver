@@ -916,15 +916,15 @@ relations and file fields) or when an explicit `index` or `unique` entry leads w
 relation to leave its foreign key unindexed, i.e. for a rarely queried relation of a write-heavy model:
 
 ```ts
-relations: {
-  author: {
-    model: 'User', type
-  :
-    'manyToOne', index
-  :
-    false
+const config = {
+  relations: {
+    author: {
+      model: 'User',
+      type: 'manyToOne',
+      index: false
+    }
   }
-}
+};
 ```
 
 The audit columns `createdById` and `deletedById` are always indexed.

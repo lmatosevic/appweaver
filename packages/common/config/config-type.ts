@@ -493,7 +493,7 @@ export type Config = {
   /** Enable the route rendering a template with the data of its query parameters, for previewing the templates during
    * development. Default: `false`. */
   TEMPLATE_PREVIEW_ENABLED: boolean;
-  /** Require authentication for the template preview route. Default: `true`. */
+  /** Require authentication for the template preview route. Default: `false`. */
   TEMPLATE_PREVIEW_AUTH: boolean;
   /** URL prefix for the template preview route. Default: `'/templates'`. */
   TEMPLATE_PREVIEW_ROUTE_PREFIX: string;

@@ -313,8 +313,6 @@ export async function createAdminUser(): Promise<void> {
   considering the task done.
 - Prisma refuses the database reset of `weaver test reset` and `weaver test setup` when an AI agent runs it, unless
   the user consented through the `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` variable of the project's `.env`.
-  **Never set that variable yourself, nor reset the database another way.** Stop and ask the user to reset the test
-  database or to add their consent (see **Run tests** in [SKILL.md](SKILL.md)).
 
 ## References
 

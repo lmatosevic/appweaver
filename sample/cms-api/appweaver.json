@@ -41,9 +41,6 @@
         "updateEnabled": true,
         "deleteEnabled": true
       }
-    },
-    "log": {
-      "pretty": false
     }
   },
   "environments": {
@@ -52,11 +49,16 @@
         "level": "debug",
         "pretty": true
       },
+      "database": {
+        "logEvents": ["query", "warn"]
+      },
+      "cache": {
+        "cleanStart": true
+      },
       "template": {
         "cache": false,
         "preview": {
-          "enabled": true,
-          "auth": false
+          "enabled": true
         }
       }
     },

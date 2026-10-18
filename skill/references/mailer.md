@@ -208,7 +208,7 @@ Renders the email from the templates of the [template engine](./templates.md) in
 
 | Template             | Renders             | Required                                    |
 |----------------------|---------------------|---------------------------------------------|
-| `<template>.html`    | The HTML body       | One of the body templates                   |
+| `<template>.html`    | The HTML body       | No, the escaped text body when missing      |
 | `<template>.txt`     | The plain text body | No, derived from the HTML body when missing |
 | `<template>.subject` | The subject         | Unless `subject` is given                   |
 
@@ -224,7 +224,7 @@ Renders the email from the templates of the [template engine](./templates.md) in
 ```text
 templates/emails/
 ├── order-shipped.html.hbs
-├── order-shipped.txt.hbs
+├── order-shipped.txt.hbs          # optional, i.e. for a table laid out as text
 └── order-shipped.subject.hbs      # {{t "emails.orderShipped.subject" number=order.number}}
 ```
 
@@ -238,7 +238,8 @@ await emailService.sendTemplateEmail({
 ```
 
 `emailService.renderTemplateEmail(email)` returns the rendered `Email` without sending it, to pass to
-`sendEmailAndWait` or `sendEmailBulk`. A missing body or subject template rejects with `TEMPLATE_NOT_FOUND`.
+`sendEmailAndWait` or `sendEmailBulk`. An email needs one of the body templates, without both or without a subject it
+rejects with `TEMPLATE_NOT_FOUND`.
 
 ### Account emails
 
@@ -255,9 +256,10 @@ An email is rendered when its `.html` or `.txt` template exists, with the transl
 when it has no `.subject` template. Without a template, or without the `handlebars` package, it is sent as plain text
 built from the `emails.*` translations, which the framework defines in English and `locales/<locale>.json` overrides.
 
-A scaffolded project starts with all three emails in `templates/emails/`, sharing the `layouts/email.html` layout and the
-`partials/email-button.html` and `partials/email-footer.txt` partials, and with their English keys in
-`locales/en.json`. Edit them freely, or delete them to send the plain text. Created with `--no-locales`, the templates
+A scaffolded project starts with the `.html` and `.subject` templates of all three emails in `templates/emails/`,
+sharing the `layouts/email.html` layout and the `partials/email-button.html` partial, and with their English keys in
+`locales/en.json`. Their plain text is derived from the HTML, add a `.txt` template only for a text that should read
+differently. Edit them freely, or delete them to send the plain text. Created with `--no-locales`, the templates
 hold the English texts themselves and there is no `locales/` directory; created with `--no-templates`, the emails are
 sent as plain text of `locales/en.json`. See [templates.md](./templates.md).
 
