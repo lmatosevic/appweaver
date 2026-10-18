@@ -1,3 +1,9 @@
+## [1.12.2](https://github.com/lmatosevic/appweaver/compare/v1.12.1...v1.12.2) (2026-10-18)
+
+### Bug Fixes
+
+* corrected skill files ([dd9e020](https://github.com/lmatosevic/appweaver/commit/dd9e02084e07ce2d195cca384034d2ad8abcfcb2))
+
 ## [1.12.1](https://github.com/lmatosevic/appweaver/compare/v1.12.0...v1.12.1) (2026-10-18)
 
 ### Bug Fixes
