@@ -26,6 +26,7 @@
 {{DEV_DEPENDENCIES}}
   },
   "allowScripts": {
+    "@parcel/watcher": false,
     "@prisma/engines": true,
     "@swc/core": true,
     "better-sqlite3": true,

@@ -158,6 +158,7 @@
     }
   },
   "allowScripts": {
+    "@parcel/watcher": false,
     "better-sqlite3": true,
     "msgpackr-extract": true,
     "prisma": true,

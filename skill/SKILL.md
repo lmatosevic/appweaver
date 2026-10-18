@@ -174,8 +174,10 @@ bun run seed
 
 **Install scripts:** npm 12+ blocks dependency install scripts by default. The scaffolded `package.json` ships an
 `allowScripts` field (Bun: `trustedDependencies`) covering the packages Appweaver needs to build. Without it,
-`npm install` skips the native builds and `weaver generate` fails. To approve a newly added dependency, run
-`npm install-scripts approve <pkg>`; it writes the entry to the root `package.json`. Note that a `package.json`
+`npm install` skips the native builds and `weaver generate` fails. It also denies (`false`) `@parcel/watcher`, which
+Jest pulls in with prebuilt binaries, so its fallback native build is never needed. To approve a newly added
+dependency, run `npm install-scripts approve <pkg>`, or `npm deny-scripts <pkg>` to silence the warning for one that
+does not need its script; both write the entry to the root `package.json`. Note that a `package.json`
 `allowScripts` field makes npm ignore `.npmrc` `allow-scripts` entirely.
 
 ### Creating and starting the application server
@@ -222,7 +224,8 @@ Dependencies: **model** ← **service** ← **routes**, and **model** ← **poli
 - Use default configuration values whenever possible
 - Rely on library defaults for `omit`/`pick`, ad `input`/`output` settings
 - Use default `mimeType` and `namePattern` patterns in file configurations unless specifically requested
-- Prefer storing configuration in JSON file (`appweaver.json`) over environment (`.env`) file, but keep secrets in `.env`
+- Prefer storing configuration in JSON file (`appweaver.json`) over environment (`.env`) file, but keep secrets in
+  `.env`
   and reference them from the JSON file as `${VAR}` (i.e. `"url": "postgresql://${DB_USER:-app}:${DB_PASSWORD}@..."`)
 - Always create all four resource configs (model, service, routes, and policy) unless specified otherwise
 
@@ -665,9 +668,11 @@ registerRoute(
 
 The `templates/` files render emails, HTML pages, XML documents or any text, and the `locales/<locale>.json` files
 translate keys anywhere in the application. The two are independent: templates render without translation files, and
-translations work without the template engine. The application always gives the locale (a request parameter, a user field,
+translations work without the template engine. The application always gives the locale (a request parameter, a user
+field,
 ...), falling back to `LOCALE_DEFAULT`. A template named `exports/orders.xml` is the file
-`templates/exports/orders.xml.hbs`, and `templates/exports/orders.de.xml.hbs` is its `de` variant. See [templates.md](references/templates.md).
+`templates/exports/orders.xml.hbs`, and `templates/exports/orders.de.xml.hbs` is its `de` variant.
+See [templates.md](references/templates.md).
 
 ```ts
 import { TemplateEngine, templateContentType } from '@appweaver/common';
