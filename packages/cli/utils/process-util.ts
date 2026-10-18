@@ -137,6 +137,25 @@ export function assertEnvs(envs: string[], message: string): void {
 }
 
 /**
+ * Gives Prisma the consent to the dangerous actions of an AI agent, such as a database reset, or withdraws it when
+ * they are disabled. A consent the environment already holds is kept while they are enabled. Call it before every
+ * Prisma command that may lose data.
+ *
+ * @param {boolean} [enabled=config.DATABASE_AI_DANGEROUS_ACTIONS_ENABLED] - Whether an AI agent may run them.
+ */
+export function setAiDangerousActionConsent(
+  enabled: boolean = config.DATABASE_AI_DANGEROUS_ACTIONS_ENABLED
+): void {
+  if (enabled) {
+    process.env.PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION ??=
+      'Allowed by the DATABASE_AI_DANGEROUS_ACTIONS_ENABLED config';
+  } else {
+    // empty rather than deleted, so the .env loaded by prisma.config.ts cannot restore it
+    process.env.PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION = '';
+  }
+}
+
+/**
  * Checks if the current environment is a Bun.js process.
  *
  * This method determines whether the global `Bun` object is defined,

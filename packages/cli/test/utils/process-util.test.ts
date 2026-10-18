@@ -30,7 +30,8 @@ import {
   assertEnv,
   assertEnvs,
   isBunProcess,
-  runProcess
+  runProcess,
+  setAiDangerousActionConsent
 } from '../../utils/process-util';
 
 describe('process-util', () => {
@@ -233,6 +234,41 @@ describe('process-util', () => {
         'process.exit called'
       );
       expect(exit).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('setAiDangerousActionConsent', () => {
+    const consentEnv = 'PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION';
+    const initialConsent = process.env[consentEnv];
+
+    beforeEach(() => {
+      delete process.env[consentEnv];
+    });
+
+    afterAll(() => {
+      if (initialConsent === undefined) {
+        delete process.env[consentEnv];
+      } else {
+        process.env[consentEnv] = initialConsent;
+      }
+    });
+
+    test('gives the consent by default', () => {
+      expect(config.DATABASE_AI_DANGEROUS_ACTIONS_ENABLED).toBe(true);
+      setAiDangerousActionConsent();
+      expect(process.env[consentEnv]).toBeTruthy();
+    });
+
+    test('keeps a consent the environment already holds', () => {
+      process.env[consentEnv] = 'I consent';
+      setAiDangerousActionConsent(true);
+      expect(process.env[consentEnv]).toBe('I consent');
+    });
+
+    test('withdraws the consent when the reset is disabled', () => {
+      process.env[consentEnv] = 'I consent';
+      setAiDangerousActionConsent(false);
+      expect(process.env[consentEnv]).toBe('');
     });
   });
 

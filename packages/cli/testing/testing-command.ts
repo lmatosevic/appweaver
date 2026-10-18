@@ -7,7 +7,8 @@ import {
   assertPathInside,
   loadModels,
   rimrafPath,
-  runProcess
+  runProcess,
+  setAiDangerousActionConsent
 } from '../utils';
 
 /**
@@ -105,6 +106,7 @@ export function testingCommand(program: Command): void {
         process.exit(generateStatus);
       }
 
+      setAiDangerousActionConsent();
       const migrateStatus = await runProcess(
         'prisma',
         ['migrate', 'dev', '--name', command.getOptionValue('migrationName')],
@@ -152,6 +154,7 @@ export function testingCommand(program: Command): void {
         !command.getOptionValue('storage');
 
       if (command.getOptionValue('database') || resetAll) {
+        setAiDangerousActionConsent();
         const migrateStatus = await runProcess(
           'prisma',
           ['migrate', 'reset', '-f'],

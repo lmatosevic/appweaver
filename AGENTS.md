@@ -321,6 +321,10 @@ weaver migration reset [options]
 
 Executes `prisma migrate reset` (with `--force` when `-y` or `-f` is passed).
 
+Every `weaver migration` and `weaver test` command calls `setAiDangerousActionConsent` before `prisma migrate dev` or
+`prisma migrate reset`, giving Prisma the consent of `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` for an AI agent
+unless `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is `false`. Call it before any new Prisma command that may lose data.
+
 ---
 
 ### `weaver openapi` (alias: `oa`)
@@ -421,7 +425,8 @@ weaver test reset [options]
 | `--verbose`           | Verbose output      | false    |
 
 With no flags, resets **both** database and storage. The database is reset with `prisma migrate reset`, which Prisma
-refuses to run for an AI agent without the user's consent.
+refuses to run for an AI agent without the user's consent, which the command gives unless
+`DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is `false` (see `weaver migration`).
 
 #### `weaver test teardown`
 

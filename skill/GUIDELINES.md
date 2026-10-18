@@ -311,8 +311,9 @@ export async function createAdminUser(): Promise<void> {
 - Unit tests live in `test/unit/`, end-to-end tests in `test/e2e/`; name each file after the module it covers.
 - Add or update tests whenever a feature is added or existing behaviour changes, and run `npm run test` before
   considering the task done.
-- Prisma refuses the database reset of `weaver test reset` and `weaver test setup` when an AI agent runs it, unless
-  the user consented through the `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` variable of the project's `.env`.
+- Prisma refuses the dangerous database actions (`prisma migrate dev` and `reset`) of the `weaver migration` and
+  `weaver test` commands when an AI agent runs them and `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is `false`. Never
+  change that config yourself to get past the refusal.
 
 ## References
 

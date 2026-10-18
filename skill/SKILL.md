@@ -950,19 +950,9 @@ describe('My e2e test', () => {
 });
 ```
 
-**AI agents and the test database reset.** `weaver test reset` resets the database with `prisma migrate reset`, and
-`weaver test setup` needs a reset when a PostgreSQL or MySQL test database keeps the schema of an earlier run. Prisma
-refuses both when it detects an AI agent, unless the `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` environment variable
-holds the message in which the user consented. The user adds it to the gitignored `.env` file (or `.env.test`, to
-limit it to `NODE_ENV=test`), which weaver passes on to the `prisma` commands:
-
-```bash
-PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION="<the message in which you consented>"
-```
-
-**Never set this variable yourself, and never run a database reset another way to get past the refusal.** When Prisma
-refuses a reset, stop and tell the user which command failed and why, and ask them to reset the test database
-themselves or to add their consent to the project's `.env`.
+**AI agents and dangerous database actions.** Prisma refuses a database reset by an AI agent when
+`DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is `false`. **Never change it yourself or get past the refusal another way**,
+stop and ask the user to run the command.
 
 ### Format code
 

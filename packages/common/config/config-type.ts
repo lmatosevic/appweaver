@@ -381,6 +381,9 @@ export type Config = {
   DATABASE_TRANSACTION_MAX_WAIT: number;
   /** Transaction timeout in milliseconds. Default: `5000` (5 sec). */
   DATABASE_TRANSACTION_TIMEOUT: number;
+  /** Allow an AI agent to run dangerous Prisma actions, such as a database reset. Disable it in production.
+   * Default: `true`. */
+  DATABASE_AI_DANGEROUS_ACTIONS_ENABLED: boolean;
   /** Array of database events to log. Values: `query`, `info`, `warn`, `error`. Default: `[]`. */
   DATABASE_LOG_EVENTS: DatabaseEvent[];
   /** Database provider implementation path. Default: `'@appweaver/core/database/prisma-database'`. */

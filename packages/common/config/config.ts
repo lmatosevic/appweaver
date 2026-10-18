@@ -267,6 +267,7 @@ const configSchema = Type.Object({
   }),
   DATABASE_TRANSACTION_MAX_WAIT: Type.Integer({ default: 2000 }),
   DATABASE_TRANSACTION_TIMEOUT: Type.Integer({ default: 5000 }),
+  DATABASE_AI_DANGEROUS_ACTIONS_ENABLED: Type.Boolean({ default: true }),
   DATABASE_LOG_EVENTS: Type.Array(Type.Enum(DatabaseEvent), {
     default: []
   }),

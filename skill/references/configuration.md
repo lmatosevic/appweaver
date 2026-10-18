@@ -442,18 +442,19 @@ you generated yourself, or provide the team ID, key ID and `.p8` private key and
 
 ### Database (DATABASE\_\*)
 
-| Property                          | Type     | Default                                      | Description                                                              |
-|-----------------------------------|----------|----------------------------------------------|--------------------------------------------------------------------------|
-| `DATABASE_TYPE`                   | enum?    | -                                            | Database type. Values: `sqlite`, `postgresql`, `mysql`, `sqlserver`.     |
-| `DATABASE_URL`                    | string   | `''`                                         | Database connection URL/DSN.                                             |
-| `DATABASE_SCHEMA_PATH`            | string   | `'./database/schema.prisma'`                 | Path to Prisma schema file.                                              |
-| `DATABASE_MIGRATIONS_DIR_PATH`    | string   | `'./database/migrations'`                    | Path to database migrations directory.                                   |
-| `DATABASE_SEEDERS_DIR_PATH`       | string   | `'./database/seeders'`                       | Path to database seeders directory.                                      |
-| `DATABASE_CLIENT_OUTPUT_DIR_PATH` | string   | `'./database/client'`                        | Path for generated Prisma client output.                                 |
-| `DATABASE_TRANSACTION_MAX_WAIT`   | integer  | `2000`                                       | Max wait time for acquiring a transaction lock (ms).                     |
-| `DATABASE_TRANSACTION_TIMEOUT`    | integer  | `5000`                                       | Transaction timeout in milliseconds.                                     |
-| `DATABASE_LOG_EVENTS`             | string[] | `[]`                                         | List of database events to log. Values: `query`, `info`, `warn`, `error` |
-| `DATABASE_PROVIDER`               | string   | `'@appweaver/core/database/prisma-database'` | Database provider implementation path.                                   |
+| Property                                | Type     | Default                                      | Description                                                                             |
+|-----------------------------------------|----------|----------------------------------------------|-----------------------------------------------------------------------------------------|
+| `DATABASE_TYPE`                         | enum?    | -                                            | Database type. Values: `sqlite`, `postgresql`, `mysql`, `sqlserver`.                    |
+| `DATABASE_URL`                          | string   | `''`                                         | Database connection URL/DSN.                                                            |
+| `DATABASE_SCHEMA_PATH`                  | string   | `'./database/schema.prisma'`                 | Path to Prisma schema file.                                                             |
+| `DATABASE_MIGRATIONS_DIR_PATH`          | string   | `'./database/migrations'`                    | Path to database migrations directory.                                                  |
+| `DATABASE_SEEDERS_DIR_PATH`             | string   | `'./database/seeders'`                       | Path to database seeders directory.                                                     |
+| `DATABASE_CLIENT_OUTPUT_DIR_PATH`       | string   | `'./database/client'`                        | Path for generated Prisma client output.                                                |
+| `DATABASE_TRANSACTION_MAX_WAIT`         | integer  | `2000`                                       | Max wait time for acquiring a transaction lock (ms).                                    |
+| `DATABASE_TRANSACTION_TIMEOUT`          | integer  | `5000`                                       | Transaction timeout in milliseconds.                                                    |
+| `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` | boolean  | `true`                                       | Allow an AI agent to run dangerous Prisma actions, i.e. reset (disable for production). |
+| `DATABASE_LOG_EVENTS`                   | string[] | `[]`                                         | List of database events to log. Values: `query`, `info`, `warn`, `error`                |
+| `DATABASE_PROVIDER`                     | string   | `'@appweaver/core/database/prisma-database'` | Database provider implementation path.                                                  |
 
 ### File storage (STORAGE\_\*)
 

@@ -114,7 +114,9 @@ Database migration commands.
 
 ### `weaver migration reset`
 
-Drops the database, recreates it, and re-applies every migration (`prisma migrate reset`). **All data is lost.**
+Drops the database, recreates it, and re-applies every migration (`prisma migrate reset`). **All data is lost.** Prisma
+refuses the reset for an AI agent when `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is `false`, like the `prisma migrate dev`
+of `weaver migration new` and `weaver test setup`, see **Run tests** in [SKILL.md](../SKILL.md).
 
 | Option        | Description                                               | Default |
 |---------------|-----------------------------------------------------------|---------|
@@ -197,9 +199,8 @@ touch the development database or uploads.
 ### `weaver test reset`
 
 Requires `NODE_ENV=test`. With no flags, resets both database and storage. The database is reset with
-`prisma migrate reset`, which Prisma refuses to run for an AI agent unless the user consented through the
-`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` variable of the project's `.env`, see **Run tests** in
-[SKILL.md](../SKILL.md). An agent never sets it itself.
+`prisma migrate reset`, which Prisma refuses to run for an AI agent when `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is
+`false`, see **Run tests** in [SKILL.md](../SKILL.md). An agent never changes it itself.
 
 | Option                | Description                       | Default  |
 |-----------------------|-----------------------------------|----------|

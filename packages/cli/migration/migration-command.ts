@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { assertEnvs, runProcess } from '../utils';
+import { assertEnvs, runProcess, setAiDangerousActionConsent } from '../utils';
 
 /**
  * Registers the `migration` command, creating and resetting the database migrations.
@@ -16,6 +16,7 @@ export function migrationCommand(program: Command): void {
     .command('new <name>')
     .description('Create a new database migration.')
     .action(async (name: string) => {
+      setAiDangerousActionConsent();
       process.exit(
         await runProcess('prisma', ['migrate', 'dev', '--name', name])
       );
@@ -44,6 +45,7 @@ export function migrationCommand(program: Command): void {
         args.push('--force');
       }
 
+      setAiDangerousActionConsent();
       process.exit(await runProcess('prisma', args));
     });
 }
