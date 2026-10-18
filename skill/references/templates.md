@@ -36,10 +36,10 @@ server when a file of either changes, and ignores a directory that does not exis
 
 Like the Redis and queue providers, the template engine is loaded only when its package is installed: without
 `handlebars` the application logs that the provider failed to load and starts without it. Injecting `TemplateEngine`
-then throws `CONTEXT_DEFINITION_MISSING`, `EmailService.sendTemplateEmail` fails, and the account emails are sent as
-plain text built from the `emails.*` translations, as they are when the application has no template for them. An empty
-`TEMPLATE_PROVIDER` loads no engine, without the warning. `EmailService.sendEmail` sends an email the application built
-itself, i.e. of an HTML body stored in the database, with or without the engine.
+then throws `CONTEXT_DEFINITION_MISSING`, sending a template email fails with `CONFIGURATION_INVALID`, and the account
+emails are sent as plain text built from the `emails.*` translations, as they are when the application has no template
+for them. An empty `TEMPLATE_PROVIDER` loads no engine, without the warning. `EmailService.sendEmail` sends an email the
+application built itself, i.e. of an HTML body stored in the database, with or without the engine.
 
 ### Project layout
 
@@ -434,7 +434,7 @@ const config = {
 const order = await tx.order.create({ data: { ...data, language: request.language ?? customer.language } });
 
 // Later, i.e. in a queue worker
-await inject(EmailService).sendTemplateEmail({
+await inject(EmailService).sendEmail({
   to: order.customer.email,
   template: 'emails/order-confirmed',
   data: { order, customer: order.customer },

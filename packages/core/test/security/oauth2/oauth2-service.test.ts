@@ -8,7 +8,8 @@ import {
   RESOURCE_MODEL_TYPE,
   RESOURCE_NAME,
   RESOURCE_SERVICE_TYPE,
-  RESOURCE_TYPE
+  RESOURCE_TYPE,
+  TwoFactorAuth
 } from '@appweaver/common';
 import { context, define } from '../../../context';
 import { DatabaseError } from '../../../database/database-error';
@@ -26,7 +27,7 @@ describe('oauth2-service', () => {
     email: 'user@test.com',
     enabled: true,
     roles: [],
-    twoFactorAuth: 'None',
+    twoFactorAuth: TwoFactorAuth.None,
     ...overrides
   });
 

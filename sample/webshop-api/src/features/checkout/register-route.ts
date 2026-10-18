@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { ErrorCode } from '@appweaver/common';
+import { ErrorCode, TwoFactorAuth } from '@appweaver/common';
 import { errorResponses, injectService, registerRoute } from '@appweaver/core';
 import db from '@db/client';
 import { Role } from '@/features/access/roles';
@@ -39,7 +39,7 @@ registerRoute(
         const user = await injectService('User').create({
           ...req.body,
           marketingOptIn: req.body.marketingOptIn ?? false,
-          twoFactorAuth: 'None',
+          twoFactorAuth: TwoFactorAuth.None,
           enabled: true,
           roles: [{ id: customer.id }]
         });

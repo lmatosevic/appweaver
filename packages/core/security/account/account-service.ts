@@ -419,7 +419,7 @@ export class AccountService {
         )
       );
       if (html || text) {
-        return emailService.sendTemplateEmail(
+        return emailService.sendEmail(
           subject ? email : { ...email, subject: t(`${key}.subject`) }
         );
       }

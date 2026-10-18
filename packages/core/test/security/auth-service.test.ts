@@ -12,6 +12,7 @@ import {
   RESOURCE_SERVICE_TYPE,
   RESOURCE_TYPE,
   SecurityStore,
+  TwoFactorAuth,
   config,
   ErrorCode
 } from '@appweaver/common';
@@ -56,7 +57,7 @@ describe('auth-service', () => {
     email: 'user@test.com',
     enabled: true,
     roles: [],
-    twoFactorAuth: 'None',
+    twoFactorAuth: TwoFactorAuth.None,
     ...overrides
   });
 
@@ -431,7 +432,7 @@ describe('auth-service', () => {
     test('issues a 2FA scoped token for a user with 2FA enabled', async () => {
       const passwordHash = await hashPassword('Str0ng!Pass');
       authUserService.single.mockResolvedValue(
-        user({ passwordHash, twoFactorAuth: 'Email' } as any)
+        user({ passwordHash, twoFactorAuth: TwoFactorAuth.Email })
       );
 
       await service.login('user@test.com', 'Str0ng!Pass');

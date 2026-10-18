@@ -56,7 +56,7 @@ export async function sendOrderEmail(
       }
     });
 
-    await inject(EmailService).sendTemplateEmail({
+    await inject(EmailService).sendEmail({
       to: details.customer.email,
       template: templates[kind],
       data: { order: details, customer: details.customer },
