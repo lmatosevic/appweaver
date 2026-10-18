@@ -1,4 +1,5 @@
 import {
+  ConfigurationError,
   Email,
   ErrorCode,
   logger,
@@ -19,6 +20,8 @@ export class EmailService {
   /** @internal */
   private readonly _mailQueue = inject(Queue).get<Email, boolean>('email');
   /** @internal */
+  private readonly _templateEngine = inject(TemplateEngine, false);
+  /** @internal */
   private readonly _waitedJobs = new Map<
     string,
     { resolve: (success: boolean) => void; reject: (error: Error) => void }
@@ -31,34 +34,54 @@ export class EmailService {
   }
 
   /**
-   * Sends an email by adding it to the mail queue for processing.
+   * Sends an email by adding it to the mail queue for processing. A template email is rendered first, see
+   * {@link renderTemplateEmail}.
    *
-   * @param {Email} email - The email object containing the details of the email to be sent.
+   * @param {Email | TemplateEmail} email - The email to send, or the template email to render and send.
    * @return A promise that resolves when the email is successfully added to the queue.
+   * @throws {TemplateError} See {@link renderTemplateEmail}.
    */
-  public async sendEmail(email: Email): Promise<void> {
-    await this._mailQueue.sendJob(email);
+  public async sendEmail(email: Email | TemplateEmail): Promise<void> {
+    await this._mailQueue.sendJob(await this.toEmail(email));
   }
 
   /**
-   * Sends bulk emails by queuing them for asynchronous processing.
+   * Sends bulk emails by queuing them for asynchronous processing. The template emails are rendered first, one that
+   * fails to render is logged and left out, the others are still queued.
    *
-   * @param {Email[]} email - An array of email objects to be sent in bulk.
+   * @param {(Email | TemplateEmail)[]} emails - The emails to send, or the template emails to render and send.
    * @return {Promise<void>} A promise that resolves when the bulk email jobs are successfully queued.
    */
-  public async sendEmailBulk(email: Email[]): Promise<void> {
-    await this._mailQueue.sendBulkJobs(email.map((e) => ({ data: e })));
+  public async sendEmailBulk(emails: (Email | TemplateEmail)[]): Promise<void> {
+    const results = await Promise.allSettled(
+      emails.map((email) => this.toEmail(email))
+    );
+
+    const rendered: Email[] = [];
+    results.forEach((result, i) => {
+      if (result.status === 'fulfilled') {
+        rendered.push(result.value);
+      } else {
+        const { template } = emails[i] as TemplateEmail;
+        logger.error(result.reason, `E-mail '${template}' rendering failed`);
+      }
+    });
+
+    if (rendered.length) {
+      await this._mailQueue.sendBulkJobs(rendered.map((e) => ({ data: e })));
+    }
   }
 
   /**
-   * Sends bulk emails and waits for all of them to finish.
+   * Sends bulk emails and waits for all of them to finish. A template email that fails to render is reported as a
+   * failed result, the others are still sent.
    *
-   * @param {Email[]} emails - An array of email objects to be sent.
+   * @param {(Email | TemplateEmail)[]} emails - The emails to send, or the template emails to render and send.
    * @return {Promise<{ success: boolean; error?: Error }[]>} A promise that resolves with an array of results, each
    * containing `success` and an optional `error`.
    */
   public async sendEmailBulkAndWait(
-    emails: Email[]
+    emails: (Email | TemplateEmail)[]
   ): Promise<{ success: boolean; error?: Error }[]> {
     const results = await Promise.allSettled(
       emails.map((email) => this.sendEmailAndWait(email))
@@ -72,13 +95,17 @@ export class EmailService {
   }
 
   /**
-   * Sends an email and waits for the sending process to finish.
+   * Sends an email and waits for the sending process to finish. A template email is rendered first, see
+   * {@link renderTemplateEmail}.
    *
-   * @param {Email} email - The email object containing the details of the email to be sent.
+   * @param {Email | TemplateEmail} email - The email to send, or the template email to render and send.
    * @return A promise that resolves with `true` when the email is sent successfully, or rejects if sending fails.
+   * @throws {TemplateError} See {@link renderTemplateEmail}.
    */
-  public async sendEmailAndWait(email: Email): Promise<boolean> {
-    const job = await this._mailQueue.sendJob(email);
+  public async sendEmailAndWait(
+    email: Email | TemplateEmail
+  ): Promise<boolean> {
+    const job = await this._mailQueue.sendJob(await this.toEmail(email));
 
     return new Promise<boolean>((resolve, reject) => {
       if (!job.id) {
@@ -98,29 +125,25 @@ export class EmailService {
   }
 
   /**
-   * Renders the email with {@link renderTemplateEmail} and adds it to the mail queue.
-   *
-   * @param {TemplateEmail} email - The recipient, template name, data and locale of the email.
-   * @return A promise that resolves when the email is successfully added to the queue.
-   * @throws {TemplateError} See {@link renderTemplateEmail}.
-   */
-  public async sendTemplateEmail(email: TemplateEmail): Promise<void> {
-    await this.sendEmail(await this.renderTemplateEmail(email));
-  }
-
-  /**
-   * Renders the templates of an email into the email to send, i.e. with `sendEmailAndWait` or `sendEmailBulk`. The
-   * `<template>.html` template renders the HTML body, `<template>.txt` the plain text body (derived from the HTML
-   * body when missing), and `<template>.subject` the subject, unless one is given.
+   * Renders the templates of an email into the email to send, which the send methods do for a template email
+   * themselves. The `<template>.html` template renders the HTML body, `<template>.txt` the plain text body (derived
+   * from the HTML body when missing), and `<template>.subject` the subject, unless one is given.
    *
    * @param {TemplateEmail} email - The recipient, template name, data and locale of the email.
    * @return {Promise<Email>} A promise that resolves to the rendered email.
+   * @throws {ConfigurationError} `CONFIGURATION_INVALID` if no template engine is loaded.
    * @throws {TemplateError} `TEMPLATE_NOT_FOUND` if the email has no `.html` or `.txt` template, or no subject,
    * `TEMPLATE_RENDER_FAILED` if a template fails to render.
    */
   public async renderTemplateEmail(email: TemplateEmail): Promise<Email> {
     const { to, template, data = {}, locale, attachments } = email;
-    const engine = inject(TemplateEngine);
+    const engine = this._templateEngine;
+    if (!engine) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `Email template '${template}' requires a template engine`
+      );
+    }
 
     const renderIfExists = async (name: string) =>
       (await engine.hasTemplate(name, locale))
@@ -157,6 +180,11 @@ export class EmailService {
       html,
       attachments
     };
+  }
+
+  /** @internal */
+  private async toEmail(email: Email | TemplateEmail): Promise<Email> {
+    return 'template' in email ? this.renderTemplateEmail(email) : email;
   }
 
   /** @internal */
