@@ -242,14 +242,15 @@ await emailService.sendEmail({
 });
 ```
 
-`emailService.renderTemplateEmail(email)` returns the rendered `Email` without sending it, i.e. to check it in a test. An
-email needs one of the body templates, without both or without a subject it rejects with `TEMPLATE_NOT_FOUND`, and
+`emailService.renderTemplateEmail(email)` returns the rendered `Email` without sending it, i.e. to check it in a test.
+An email needs one of the body templates, without both or without a subject it rejects with `TEMPLATE_NOT_FOUND`, and
 without a loaded template engine with `CONFIGURATION_INVALID`.
 
 ### Account emails
 
-The account routes send their emails from the templates of the application, in the requested locale or
-`LOCALE_DEFAULT`. The framework ships no templates of its own:
+The account routes send their emails from the templates of the application, always in `LOCALE_DEFAULT`. To send one
+in another locale, call `AccountService` directly: `sendEmailVerification`, `sendResetPassword` and `send2FACode` take
+the locale as their last argument. The framework ships no templates of its own:
 
 | Template                 | Data                                           |
 |--------------------------|------------------------------------------------|

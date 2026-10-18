@@ -297,7 +297,7 @@ template engine is loaded (the `handlebars` package is not installed).
 | `TEMPLATE_PATH`                 | `'./templates'`                                         | Directory of the template files              |
 | `TEMPLATE_CACHE`                | `true`                                                  | Keep the templates in memory                 |
 | `TEMPLATE_PREVIEW_ENABLED`      | `false`                                                 | Enable the preview route                     |
-| `TEMPLATE_PREVIEW_AUTH`         | `true`                                                  | Require authentication for the preview route |
+| `TEMPLATE_PREVIEW_AUTH`         | `false`                                                 | Require authentication for the preview route |
 | `TEMPLATE_PREVIEW_ROUTE_PREFIX` | `'/templates'`                                          | URL prefix of the preview route              |
 | `TEMPLATE_PROVIDER`             | `'@appweaver/core/template/handlebars-template-engine'` | Template engine implementation               |
 
