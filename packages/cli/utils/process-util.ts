@@ -147,8 +147,8 @@ export function setAiDangerousActionConsent(
   enabled: boolean = config.DATABASE_AI_DANGEROUS_ACTIONS_ENABLED
 ): void {
   if (enabled) {
-    process.env.PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION ??=
-      'Allowed by the DATABASE_AI_DANGEROUS_ACTIONS_ENABLED config';
+    process.env.PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION ||=
+      'Allowed by the appweaver config';
   } else {
     // empty rather than deleted, so the .env loaded by prisma.config.ts cannot restore it
     process.env.PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION = '';

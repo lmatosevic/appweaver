@@ -265,6 +265,12 @@ describe('process-util', () => {
       expect(process.env[consentEnv]).toBe('I consent');
     });
 
+    test('replaces an empty consent', () => {
+      process.env[consentEnv] = '';
+      setAiDangerousActionConsent(true);
+      expect(process.env[consentEnv]).toBeTruthy();
+    });
+
     test('withdraws the consent when the reset is disabled', () => {
       process.env[consentEnv] = 'I consent';
       setAiDangerousActionConsent(false);
