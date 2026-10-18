@@ -1,3 +1,14 @@
+## [1.12.0](https://github.com/lmatosevic/appweaver/compare/v1.11.3...v1.12.0) (2026-10-18)
+
+### Features
+
+* add a template engine and translations for emails, pages and exports ([b02a202](https://github.com/lmatosevic/appweaver/commit/b02a202f49f8d577050e8f85de7f574f44837464))
+
+### Bug Fixes
+
+* enable AI agents to run prisma reset command in dev or test env ([3c429fd](https://github.com/lmatosevic/appweaver/commit/3c429fd4d996d64cf06177d7f984004c6fa76981))
+* enable email bulk sending with template engine and extract twoFactorAuth to enum ([67669f1](https://github.com/lmatosevic/appweaver/commit/67669f1dd2c61fd4bf5d628f3acc7ad282b82a7b))
+
 ## [1.11.3](https://github.com/lmatosevic/appweaver/compare/v1.11.2...v1.11.3) (2026-10-14)
 
 ### Bug Fixes
