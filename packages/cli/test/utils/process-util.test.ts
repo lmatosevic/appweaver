@@ -4,7 +4,17 @@ jest.mock('fkill', () => ({
   __esModule: true,
   default: jest.fn(async (pid: number) => {
     try {
-      process.kill(pid);
+      // Windows has no exec, the command runs as a child of the shell, so kill
+      // the tree the way fkill does
+      if (process.platform === 'win32') {
+        const { execSync } =
+          jest.requireActual<typeof import('node:child_process')>(
+            'node:child_process'
+          );
+        execSync(`taskkill /pid ${pid} /t /f`, { stdio: 'ignore' });
+      } else {
+        process.kill(pid);
+      }
     } catch {
       // the process already exited
     }

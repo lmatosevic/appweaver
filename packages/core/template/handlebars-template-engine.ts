@@ -19,7 +19,6 @@ import { inject } from '../context';
 import { LocaleService } from '../locale';
 import { TemplateError } from './template-error';
 import { createHandlebarsHelpers } from './handlebars-helpers';
-import { handlebarsTemplates } from './handlebars-templates';
 
 const TEMPLATE_EXTENSIONS = ['.hbs', '.handlebars'];
 
@@ -46,8 +45,6 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
   /** @internal */
   private readonly _registered: TemplateLayer = new Map();
   /** @internal */
-  private readonly _builtIn: TemplateLayer = new Map();
-  /** @internal */
   private _files: TemplateLayer = new Map();
   /** @internal */
   private _loading?: Promise<void>;
@@ -64,9 +61,6 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
     const helpers = createHandlebarsHelpers(this._localeService);
     for (const [name, helper] of Object.entries(helpers)) {
       this.registerHelper(name, helper);
-    }
-    for (const [name, source] of Object.entries(handlebarsTemplates)) {
-      addTemplate(this._builtIn, name, source);
     }
   }
 
@@ -200,7 +194,7 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
     name: string,
     locales: string[]
   ): TemplateEntry | undefined {
-    const layers = [this._registered, this._files, this._builtIn];
+    const layers = [this._registered, this._files];
     for (const locale of [...locales, '']) {
       for (const layer of layers) {
         const entry = layer.get(name)?.get(locale);
@@ -280,11 +274,7 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
       return cached;
     }
 
-    const names = new Set([
-      ...this._builtIn.keys(),
-      ...this._files.keys(),
-      ...this._registered.keys()
-    ]);
+    const names = new Set([...this._files.keys(), ...this._registered.keys()]);
 
     const partials: Record<string, TemplateDelegate> = {};
     const aliases = new Map<string, string>();
@@ -319,7 +309,7 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
   private variantLocales(): Set<string> {
     if (!this._variantLocales) {
       this._variantLocales = new Set();
-      for (const layer of [this._registered, this._files, this._builtIn]) {
+      for (const layer of [this._registered, this._files]) {
         for (const variants of layer.values()) {
           for (const locale of variants.keys()) {
             this._variantLocales.add(locale);

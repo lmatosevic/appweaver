@@ -240,9 +240,10 @@ await emailService.sendTemplateEmail({
 `emailService.renderTemplateEmail(email)` returns the rendered `Email` without sending it, to pass to
 `sendEmailAndWait` or `sendEmailBulk`. A missing body or subject template rejects with `TEMPLATE_NOT_FOUND`.
 
-### Built-in account emails
+### Account emails
 
-The account routes send their emails from the framework's own templates, in the `LOCALE_DEFAULT` locale:
+The account routes send their emails from the templates of the application, in the requested locale or
+`LOCALE_DEFAULT`. The framework ships no templates of its own:
 
 | Template                 | Data                                           |
 |--------------------------|------------------------------------------------|
@@ -250,11 +251,15 @@ The account routes send their emails from the framework's own templates, in the 
 | `emails/password-reset`  | `email`, `link`                                |
 | `emails/two-factor-code` | `email`, `code`, `purpose`, `expiresInMinutes` |
 
-They share the `layouts/email.html` layout, the `partials/email-button.html` and `partials/email-footer.txt` partials,
-and the `emails.*` translation keys. A file of the same name in `templates/` overrides any of them, and
-`locales/<locale>.json` translates their keys; a scaffolded project starts with `templates/layouts/email.html.hbs` and
-the English keys in `locales/en.json`. Without the `handlebars` package they are sent as plain text built from the same
-translations.
+An email is rendered when its `.html` or `.txt` template exists, with the translated `emails.<email>.subject` key
+when it has no `.subject` template. Without a template, or without the `handlebars` package, it is sent as plain text
+built from the `emails.*` translations, which the framework defines in English and `locales/<locale>.json` overrides.
+
+A scaffolded project starts with all three emails in `templates/emails/`, sharing the `layouts/email.html` layout and the
+`partials/email-button.html` and `partials/email-footer.txt` partials, and with their English keys in
+`locales/en.json`. Edit them freely, or delete them to send the plain text. Created with `--no-locales`, the templates
+hold the English texts themselves and there is no `locales/` directory; created with `--no-templates`, the emails are
+sent as plain text of `locales/en.json`. See [templates.md](./templates.md).
 
 ---
 

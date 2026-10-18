@@ -265,58 +265,6 @@ describe('handlebars-template-engine', () => {
     });
   });
 
-  describe('built-in templates', () => {
-    test('renders the framework emails', async () => {
-      const data = { link: 'https://app.test/reset?token=1' };
-
-      const html = await engine.render('emails/password-reset.html', data);
-      const text = await engine.render('emails/password-reset.txt', data);
-      const subject = await engine.render('emails/password-reset.subject');
-
-      expect(html).toContain('<!DOCTYPE html>');
-      expect(html).toContain('href="https://app.test/reset?token&#x3D;1"');
-      expect(html).toContain('This email was sent by Test App.');
-      expect(text).toContain('https://app.test/reset?token=1');
-      expect(subject).toBe('Password reset request');
-    });
-
-    test('pluralizes the expiry of the 2FA code', async () => {
-      const text = await engine.render('emails/two-factor-code.txt', {
-        code: '123456',
-        expiresInMinutes: 1
-      });
-
-      expect(text).toContain('123456');
-      expect(text).toContain('The code expires in 1 minute.');
-    });
-
-    test('lets a template file override the email layout', async () => {
-      writeFile(
-        'templates/layouts/email.html.hbs',
-        '<main>{{title}}|{{> @partial-block}}</main>'
-      );
-
-      const html = await engine.render('emails/verify-email.html', {
-        link: 'https://app.test'
-      });
-
-      expect(html).toMatch(/^<main>Verify your email address\|/);
-    });
-
-    test('translates the framework emails with the translation files', async () => {
-      writeFile(
-        'locales/de.json',
-        JSON.stringify({ 'emails.verifyEmail.subject': 'E-Mail bestätigen' })
-      );
-      define(LocaleService, undefined, 'override');
-      engine = new HandlebarsTemplateEngine();
-
-      expect(
-        await engine.render('emails/verify-email.subject', {}, { locale: 'de' })
-      ).toBe('E-Mail bestätigen');
-    });
-  });
-
   describe('renderString', () => {
     test('translates a plural message with the arguments of the helper', async () => {
       writeFile(
@@ -366,7 +314,6 @@ describe('handlebars-template-engine', () => {
   describe('hasTemplate', () => {
     test('tells whether a template exists for the locale', async () => {
       expect(await engine.hasTemplate('pages/legal.html')).toBe(true);
-      expect(await engine.hasTemplate('emails/verify-email.html')).toBe(true);
       expect(await engine.hasTemplate('pages/missing.html')).toBe(false);
       expect(await engine.hasTemplate('pages/only-german.html')).toBe(false);
       expect(await engine.hasTemplate('pages/only-german.html', 'de')).toBe(
@@ -441,7 +388,7 @@ describe('handlebars-template-engine', () => {
       configOverrides.TEMPLATE_PATH = path.join(dir, 'missing');
 
       await expect(engine.onInit()).resolves.toBeUndefined();
-      expect(await engine.hasTemplate('emails/password-reset.html')).toBe(true);
+      expect(await engine.hasTemplate('pages/legal.html')).toBe(false);
     });
   });
 });

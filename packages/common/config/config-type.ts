@@ -503,7 +503,7 @@ export type Config = {
 
   /** The locale used when none is given to a translation or a template render. Default: `'en'`. */
   LOCALE_DEFAULT: string;
-  /** Directory of the translation files, a flat JSON file per locale, i.e. `de.json`. Default: `'./locales'`. */
+  /** Directory of the translation files, a nested JSON file per locale, i.e. `de.json`. Default: `'./locales'`. */
   LOCALE_PATH: string;
 
   /** Initial admin account email created on the first run. Default: `'admin@appweaver.co'`. */

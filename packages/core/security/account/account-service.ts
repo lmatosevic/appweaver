@@ -396,7 +396,8 @@ export class AccountService {
   }
 
   /**
-   * Sends an email of the framework templates, or without the template engine the plain text of their translations.
+   * Sends an email rendered from the `.html` or `.txt` template of the application, or without one the plain text of
+   * the translations. A missing `.subject` template is replaced by the translated subject.
    *
    * @internal
    */
@@ -406,13 +407,23 @@ export class AccountService {
     body: (t: (key: string, params?: TranslationParams) => string) => string[]
   ): Promise<void> {
     const emailService = this._emailService!;
-    if (inject(TemplateEngine, false)) {
-      return emailService.sendTemplateEmail(email);
-    }
-
     const localeService = inject(LocaleService);
     const t = (translationKey: string, params?: TranslationParams) =>
       localeService.translate(translationKey, email.locale, params);
+
+    const engine = inject(TemplateEngine, false);
+    if (engine) {
+      const [html, text, subject] = await Promise.all(
+        ['html', 'txt', 'subject'].map((format) =>
+          engine.hasTemplate(`${email.template}.${format}`, email.locale)
+        )
+      );
+      if (html || text) {
+        return emailService.sendTemplateEmail(
+          subject ? email : { ...email, subject: t(`${key}.subject`) }
+        );
+      }
+    }
 
     await emailService.sendEmail({
       to: email.to,

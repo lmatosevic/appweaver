@@ -38,13 +38,14 @@ describe('locale-service', () => {
     configOverrides.LOCALE_DEFAULT = 'en';
     writeLocale('en', {
       greeting: 'Hello {name}',
-      'cart.items':
-        '{count, plural, =0 {No items} one {# item} other {# items}}',
+      cart: {
+        items: '{count, plural, =0 {No items} one {# item} other {# items}}'
+      },
       onlyEnglish: 'English only'
     });
     writeLocale('de', {
       greeting: 'Hallo {name}',
-      'cart.items': '{count, plural, one {# Artikel} other {# Artikel}}'
+      cart: { items: '{count, plural, one {# Artikel} other {# Artikel}}' }
     });
     writeLocale('de-AT', { greeting: 'Servus {name}' });
     service = new LocaleService();
@@ -117,13 +118,17 @@ describe('locale-service', () => {
 
     test('formats an ICU message with the plural form of any argument', () => {
       writeLocale('hr', {
-        'inbox.unread':
-          'Imate {msg_cnt, plural, =0 {nijednu nepročitanu poruku} one {# nepročitanu poruku} few {# nepročitane poruke} other {# nepročitanih poruka}}'
+        inbox: {
+          unread:
+            'Imate {msg_cnt, plural, =0 {nijednu nepročitanu poruku} one {# nepročitanu poruku} few {# nepročitane poruke} other {# nepročitanih poruka}}'
+        }
       });
       service.addTranslations('en', {
-        'inbox.unread':
-          'You have {msg_cnt, plural, =0 {no unread messages} one {# unread message} other {# unread messages}}',
-        'inbox.title': '{name}, you have {msg_cnt} new messages'
+        inbox: {
+          unread:
+            'You have {msg_cnt, plural, =0 {no unread messages} one {# unread message} other {# unread messages}}',
+          title: '{name}, you have {msg_cnt} new messages'
+        }
       });
       service.reload();
 
@@ -157,7 +162,9 @@ describe('locale-service', () => {
     });
 
     test('lets a translation file override a framework translation', () => {
-      writeLocale('hr', { 'emails.passwordReset.subject': 'Nova lozinka' });
+      writeLocale('hr', {
+        emails: { passwordReset: { subject: 'Nova lozinka' } }
+      });
       service.reload();
 
       expect(service.translate('emails.passwordReset.subject', 'hr')).toBe(
@@ -202,7 +209,10 @@ describe('locale-service', () => {
     });
 
     test('merges the translations over the translation file', () => {
-      service.addTranslations('de', { greeting: 'Guten Tag {name}' });
+      service.addTranslations('de', {
+        greeting: 'Guten Tag {name}',
+        cart: { checkout: 'Zur Kasse' }
+      });
 
       expect(service.translate('greeting', 'de', { name: 'Ana' })).toBe(
         'Guten Tag Ana'
@@ -210,6 +220,7 @@ describe('locale-service', () => {
       expect(service.translate('cart.items', 'de', { count: 1 })).toBe(
         '1 Artikel'
       );
+      expect(service.translate('cart.checkout', 'de')).toBe('Zur Kasse');
     });
 
     test('ignores the translations of an invalid locale', () => {
@@ -222,15 +233,36 @@ describe('locale-service', () => {
   });
 
   describe('loading', () => {
-    test('ignores the values that are not strings', () => {
-      const warn = jest.spyOn(logger, 'warn').mockImplementation();
-      writeLocale('hr', { nested: { key: 'value' }, flat: 'Ravno' });
+    test('flattens the nested translations into dotted keys', () => {
+      writeLocale('hr', {
+        page: { title: 'Naslov', footer: { copyright: 'Sva prava pridržana' } }
+      });
 
       service.reload();
 
-      expect(service.translate('flat', 'hr')).toBe('Ravno');
-      expect(service.translate('nested', 'hr')).toBe('nested');
-      expect(warn).toHaveBeenCalled();
+      expect(service.translate('page.title', 'hr')).toBe('Naslov');
+      expect(service.translate('page.footer.copyright', 'hr')).toBe(
+        'Sva prava pridržana'
+      );
+      expect(service.hasTranslation('page', 'hr')).toBe(false);
+    });
+
+    test('ignores the values that are neither strings nor objects', () => {
+      const warn = jest.spyOn(logger, 'warn').mockImplementation();
+      writeLocale('hr', { count: 3, list: ['a'], page: { title: 'Naslov' } });
+
+      service.reload();
+
+      expect(service.translate('page.title', 'hr')).toBe('Naslov');
+      expect(service.hasTranslation('count', 'hr')).toBe(false);
+      expect(service.hasTranslation('list', 'hr')).toBe(false);
+      expect(warn).toHaveBeenCalledTimes(2);
+    });
+
+    test('names the dotted key of an invalid nested message', () => {
+      writeLocale('hr', { page: { title: 'Naslov {name' } });
+
+      expect(() => service.reload()).toThrow(/'page\.title'/);
     });
 
     test('ignores a file not named by a locale', () => {

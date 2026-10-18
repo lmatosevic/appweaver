@@ -1,25 +1,39 @@
 {
-  "orders.greeting": "Pozdrav {name},",
-  "orders.signature": "Hvala na kupnji!",
-  "orders.confirmed.subject": "Narudžba {number} je potvrđena",
-  "orders.confirmed.message": "Primili smo vašu uplatu od {total}, vaša narudžba se pakira.",
-  "orders.confirmed.items": "Narudžba {number} sadrži {count, plural, one {# proizvod} few {# proizvoda} other {# proizvoda}}:",
-  "orders.summary.product": "Proizvod",
-  "orders.summary.quantity": "Količina",
-  "orders.summary.price": "Cijena",
-  "orders.summary.subtotal": "Međuzbroj",
-  "orders.summary.discount": "Popust",
-  "orders.summary.shipping": "Dostava",
-  "orders.summary.freeShipping": "Besplatna",
-  "orders.summary.total": "Ukupno",
-  "orders.summary.shipTo": "Adresa za dostavu:",
-  "orders.paymentFailed.subject": "Plaćanje narudžbe {number} nije uspjelo",
-  "orders.paymentFailed.message": "Plaćanje je odbijeno pa narudžba nije zaprimljena. Pokušajte ponovno s drugom karticom.",
-  "orders.shipped.subject": "Narudžba {number} je na putu",
-  "orders.shipped.message": "Vaša narudžba predana je dostavljaču {carrier}, broj za praćenje je:",
-  "orders.shipped.shippedOn": "Poslano {date}.",
-  "orders.cancelled.subject": "Narudžba {number} je otkazana",
-  "orders.cancelled.message": "Vaša narudžba je otkazana.",
-  "orders.cancelled.refund": "Uplata od {total} bit će vraćena u roku od nekoliko dana.",
-  "emails.footer": "Ovu poruku poslala je aplikacija {appName}."
+  "orders": {
+    "greeting": "Pozdrav {name},",
+    "signature": "Hvala na kupnji!",
+    "confirmed": {
+      "subject": "Narudžba {number} je potvrđena",
+      "message": "Primili smo vašu uplatu od {total}, vaša narudžba se pakira.",
+      "items": "Narudžba {number} sadrži {count, plural, one {# proizvod} few {# proizvoda} other {# proizvoda}}:"
+    },
+    "summary": {
+      "product": "Proizvod",
+      "quantity": "Količina",
+      "price": "Cijena",
+      "subtotal": "Međuzbroj",
+      "discount": "Popust",
+      "shipping": "Dostava",
+      "freeShipping": "Besplatna",
+      "total": "Ukupno",
+      "shipTo": "Adresa za dostavu:"
+    },
+    "paymentFailed": {
+      "subject": "Plaćanje narudžbe {number} nije uspjelo",
+      "message": "Plaćanje je odbijeno pa narudžba nije zaprimljena. Pokušajte ponovno s drugom karticom."
+    },
+    "shipped": {
+      "subject": "Narudžba {number} je na putu",
+      "message": "Vaša narudžba predana je dostavljaču {carrier}, broj za praćenje je:",
+      "shippedOn": "Poslano {date}."
+    },
+    "cancelled": {
+      "subject": "Narudžba {number} je otkazana",
+      "message": "Vaša narudžba je otkazana.",
+      "refund": "Uplata od {total} bit će vraćena u roku od nekoliko dana."
+    }
+  },
+  "emails": {
+    "footer": "Ovu poruku poslala je aplikacija {appName}."
+  }
 }

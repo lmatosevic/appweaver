@@ -1,47 +1,64 @@
-# Templates & Locales
+# Templates & Localization
 
-The template engine renders text of any format from template files: email bodies, HTML pages, XML documents for
-external integrations, CSV or any other text. The locale service translates keys of flat JSON files into a locale,
-usable anywhere in the application and inside the templates. The locale is always given by the application (a request
-parameter, a user field, ...), falling back to `LOCALE_DEFAULT`.
+Templates and localization are two independent features, each usable without the other:
 
-- `TemplateEngine` is an optional infrastructure provider of `@appweaver/common`, the default implementation is
-  `HandlebarsTemplateEngine` ([Handlebars](https://handlebarsjs.com/guide/)), replaceable with `TEMPLATE_PROVIDER`. It
-  needs the `handlebars` package, a companion package the project installs (`weaver update` keeps it in step).
-- `LocaleService` is a core service of `@appweaver/core`, always available.
+- **Templates**: the template engine renders text of any format from template files: email bodies, HTML pages, XML
+  documents for external integrations, CSV or any other text. `TemplateEngine` is an optional infrastructure provider of
+  `@appweaver/common`, the default implementation is `HandlebarsTemplateEngine`
+  ([Handlebars](https://handlebarsjs.com/guide/)), replaceable with `TEMPLATE_PROVIDER`. It needs the `handlebars`
+  package, a companion package the project installs (`weaver update` keeps it in step).
+- **Localization**: the locale service translates the keys of nested JSON files into a locale, anywhere in the
+  application and, with the `t` helper, inside the templates. `LocaleService` is a core service of `@appweaver/core`,
+  always available. Without a `locales/` directory it translates only the framework's own English `emails.*` keys.
+
+The locale is always given by the application (a request parameter, a user field, ...), falling back to
+`LOCALE_DEFAULT`. It also picks the localized template variants and the locale of the date and number helpers, so a
+project without translation files can still render localized templates.
+
+`create-weaver-app` scaffolds both, and skips either one with its flag:
+
+| Flags                         | `templates/`, `handlebars`                     | `locales/`  | Account emails                       |
+|-------------------------------|------------------------------------------------|-------------|--------------------------------------|
+| (none)                        | Scaffolded, the texts translated with `{{t}}`  | `en.json`   | Rendered from the localized templates |
+| `--no-locales`                | Scaffolded, the English texts written in place | —           | Rendered from the English templates  |
+| `--no-templates`              | —, `TEMPLATE_PROVIDER` is empty                | `en.json`   | Plain text of the `en.json` texts    |
+| `--no-templates --no-locales` | —, `TEMPLATE_PROVIDER` is empty                | —           | Plain text of the framework's texts  |
+
+With `--no-locales`, every `{{t "key" param=value}}` of the scaffolded templates is replaced by the English message of
+the key, its parameters by the expressions (`{{@app.name}}`) and a plural by an `{{#if (eq count 1)}}` chain, so the
+templates render the same text. Localization can be added later by creating `locales/` and calling `t` again.
+
+Both directories live in the project root next to `public/`, outside `src/`, so they are read the same way from the
+Node build and the Bun sources. A Docker image copies each of them next to `dist/`. `weaver start --watch` restarts the
+server when a file of either changes, and ignores a directory that does not exist.
+
+## Templates
 
 Like the Redis and queue providers, the template engine is loaded only when its package is installed: without
 `handlebars` the application logs that the provider failed to load and starts without it. Injecting `TemplateEngine`
-then throws `CONTEXT_DEFINITION_MISSING`, `EmailService.sendTemplateEmail` fails, and the framework emails are sent as
-plain text built from the `emails.*` translations. An empty `TEMPLATE_PROVIDER` loads no engine, without the warning.
-A project created with `create-weaver-app --no-templates` skips the `handlebars` package and the `templates/` and
-`locales/` directories, and sets the empty provider. `LocaleService` keeps translating, from the `locales/` files when
-the project adds them.
+then throws `CONTEXT_DEFINITION_MISSING`, `EmailService.sendTemplateEmail` fails, and the account emails are sent as
+plain text built from the `emails.*` translations, as they are when the application has no template for them. An empty
+`TEMPLATE_PROVIDER` loads no engine, without the warning. `EmailService.sendEmail` sends an email the application built
+itself, i.e. of an HTML body stored in the database, with or without the engine.
 
-## Project layout
-
-Both directories live in the project root next to `public/`, outside `src/`, so they are read the same way from the
-Node build and the Bun sources. A Docker image copies them next to `dist/`.
+### Project layout
 
 ```text
 templates/                         # TEMPLATE_PATH
 ├── layouts/
-│   ├── email.html.hbs             # overrides the layout of the framework emails
+│   ├── email.html.hbs             # the layout of the account emails, scaffolded
 │   └── page.html.hbs
 ├── partials/
 │   ├── tag-list.html.hbs
 │   └── signature.txt.hbs
 ├── emails/
+│   ├── password-reset.html.hbs    # an account email, see mailer.md
 │   ├── order-shipped.html.hbs
 │   ├── order-shipped.txt.hbs
 │   ├── order-shipped.subject.hbs
 │   └── order-shipped.de.html.hbs  # whole template localized for `de`
 ├── pages/invoice.html.hbs
 └── exports/orders.xml.hbs
-locales/                           # LOCALE_PATH
-├── en.json
-├── de.json
-└── de-AT.json                     # only the keys differing from de.json
 ```
 
 ### Template names
@@ -66,9 +83,9 @@ Use `{{{value}}}` to write a value unescaped in a markup template.
 
 A render in `de-AT` looks a template up in `de-AT`, `de`, the default locale (and its language), then the template
 without a locale. The same chain applies to the partials it includes and to the translations. A template only localized
-to other locales is not found in the default one.
+to other locales is not found in the default one. The variants need no translation files.
 
-## Rendering
+### Rendering
 
 ```ts
 import { inject } from '@appweaver/core';
@@ -93,7 +110,7 @@ const exists = await templates.hasTemplate('emails/welcome.html', 'de');
 The templates are loaded when the application starts, failing with `TEMPLATE_LOAD_FAILED` on a template of an invalid
 syntax. The line break ending a template file is dropped, so an included partial adds none. `TEMPLATE_CACHE: false`
 (set for the `dev` environment of a scaffolded project) reloads the changed templates and translation files on every
-render, and `weaver start --watch` restarts the server when a file of `templates/` or `locales/` changes.
+render.
 
 ### Returning a rendered template from a route
 
@@ -134,8 +151,6 @@ registerRoute(
   { roles: ['Admin'] }
 );
 ```
-
-## Handlebars templates
 
 ### Layouts and components
 
@@ -186,7 +201,8 @@ layout or a component with content wraps it with `{{> @partial-block}}`:
 
 ### Built-in helpers
 
-The locale-aware helpers use `@locale`, the options of the `Intl` helpers are given as hash arguments.
+The locale-aware helpers use `@locale`, the options of the `Intl` helpers are given as hash arguments. The `t` helper
+translates with the locale service, see [Localization](#localization).
 
 | Helper                                    | Example                                                                            |
 |-------------------------------------------|------------------------------------------------------------------------------------|
@@ -223,99 +239,6 @@ registerTemplateHelpers(myHelpers);
 registerTemplate('emails/promo.html', source, 'de');
 ```
 
-## Translations
-
-A translation file is a **flat** JSON object of string values, named by its locale (`locales/de.json`). The keys are
-plain strings, dots only group them by convention. Every translation is an
-[ICU MessageFormat](https://unicode-org.github.io/icu/userguide/format_parse/messages/) message, the syntax of FormatJS,
-Angular, vue-i18n and Symfony, with the plural categories of the Unicode CLDR (`Intl.PluralRules`):
-
-```json
-{
-  "inbox.greeting": "Hello {name}",
-  "inbox.unread": "You have {msg_cnt, plural, =0 {no unread messages} one {# unread message} other {# unread messages}}",
-  "race.place": "You finished {place, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}",
-  "comment.replied": "{gender, select, female {She} male {He} other {They}} replied",
-  "order.total": "Total: {total, number} items",
-  "help.braces": "Write '{name}' to insert the name, it''s easy"
-}
-```
-
-| Syntax                                                        | Writes                                                            |
-|---------------------------------------------------------------|-------------------------------------------------------------------|
-| `{name}`                                                      | The parameter as it is                                            |
-| `{n, plural, =0 {...} one {...} other {...}}`                 | The branch of the exact value, else of the plural category of `n` |
-| `#`                                                           | The number of the enclosing plural, formatted in the locale       |
-| `{n, plural, offset:1 ...}`                                   | The categories and `#` of `n - 1`, the exact values of `n`        |
-| `{n, selectordinal, one {#st} two {#nd} ... other {#th}}`     | The branch of the ordinal category                                |
-| `{value, select, a {...} b {...} other {...}}`                | The branch of the value                                           |
-| `{n, number}`, `{n, number, integer}`, `{n, number, percent}` | The number formatted in the locale                                |
-| `''`, `'{text}'`                                              | An apostrophe, the quoted text as it is (a lone `'` stays as is)  |
-
-The categories differ by language: English has `one` and `other`, Croatian adds `few` (`2`-`4`), Arabic has all six
-(`zero`, `one`, `two`, `few`, `many`, `other`). Every `plural`, `selectordinal` and `select` needs an `other` branch.
-A message is checked when its file loads, failing with `LOCALE_LOAD_FAILED` on an invalid one, and an argument without
-a parameter is written as it is, i.e. `{name}`. The plural forms follow the locale of the file the translation is found
-in.
-
-```ts
-import { inject, LocaleService, registerTranslations } from '@appweaver/core';
-
-const locales = inject(LocaleService);
-
-locales.translate('inbox.unread', 'en', { msg_cnt: 1 }); // 'You have 1 unread message'
-locales.translate('inbox.unread', 'hr', { msg_cnt: 3 }); // the `few` branch of hr.json
-locales.hasTranslation('inbox.unread', 'hr');
-locales.getLocales(); // ['de', 'en']
-locales.resolveLocales('de-AT'); // ['de-AT', 'de', 'en']
-
-// Translations defined in code, merged over the file
-registerTranslations('de', { 'cart.checkout': 'Zur Kasse' });
-```
-
-In a template, the hash arguments of `t` are the parameters: `{{t "inbox.unread" msg_cnt=user.unreadCount}}`.
-
-A missing key returns the key itself. The framework's own keys (`emails.*`) fall back to their English text.
-
-### Translating in a service hook
-
-```ts
-import { createService, inject, LocaleService } from '@appweaver/core';
-
-export default createService({
-  modelName: 'Category',
-  beforeCreate: (data) => {
-    data.description ??= inject(LocaleService).translate(
-      'category.defaultDescription',
-      undefined, // LOCALE_DEFAULT
-      { name: data.name }
-    );
-  }
-});
-```
-
-## Choosing the locale
-
-The framework never guesses the locale, the application passes it where it knows it. A common pattern, used by the
-`webshop-api` sample, is a `language` field on the auth model, the preferred language of the user, copied onto the
-records whose emails are sent later, so an email is written in the language the record was made in:
-
-```ts
-// src/resources/user/model.ts
-language: { type: 'string', default: 'en', pattern: '^[a-z]{2}(-[A-Z]{2})?$', maxLength: 8 }
-
-// At checkout: the language asked for, or the preferred one of the customer
-const order = await tx.order.create({ data: { ...data, language: request.language ?? customer.language } });
-
-// Later, i.e. in a queue worker
-await inject(EmailService).sendTemplateEmail({
-  to: order.customer.email,
-  template: 'emails/order-confirmed',
-  data: { order, customer: order.customer },
-  locale: order.language
-});
-```
-
 A custom helper reads the rendered locale from `options.data.locale`, i.e. to format amounts kept in cents:
 
 ```ts
@@ -324,7 +247,7 @@ registerTemplateHelper('money', (cents: number, options: { data?: { locale?: str
 );
 ```
 
-## Previewing templates
+### Previewing templates
 
 The preview route renders a template as the application would, to check it in a browser while editing it. It is
 disabled by default; enable it only in the `dev` environment of `appweaver.json`:
@@ -359,7 +282,7 @@ The route requires authentication unless `TEMPLATE_PREVIEW_AUTH` is `false`, is 
 responds with `Content-Security-Policy: sandbox` so no script of a rendered page runs, and fails the startup when no
 template engine is loaded (the `handlebars` package is not installed).
 
-## Configuration
+### Template configuration
 
 | Key                             | Default                                                 | Description                                  |
 |---------------------------------|---------------------------------------------------------|----------------------------------------------|
@@ -369,10 +292,8 @@ template engine is loaded (the `handlebars` package is not installed).
 | `TEMPLATE_PREVIEW_AUTH`         | `true`                                                  | Require authentication for the preview route |
 | `TEMPLATE_PREVIEW_ROUTE_PREFIX` | `'/templates'`                                          | URL prefix of the preview route              |
 | `TEMPLATE_PROVIDER`             | `'@appweaver/core/template/handlebars-template-engine'` | Template engine implementation               |
-| `LOCALE_DEFAULT`                | `'en'`                                                  | Locale used when none is given               |
-| `LOCALE_PATH`                   | `'./locales'`                                           | Directory of the translation files           |
 
-## Errors
+### Template errors
 
 | Code                         | Raised when                                                   |
 |------------------------------|---------------------------------------------------------------|
@@ -380,9 +301,133 @@ template engine is loaded (the `handlebars` package is not installed).
 | `TEMPLATE_RENDER_FAILED`     | A template fails to compile or render, i.e. a missing partial |
 | `TEMPLATE_LOAD_FAILED`       | A template cannot be read, or its syntax is invalid           |
 | `TEMPLATE_PREVIEW_NOT_FOUND` | The preview route is asked for a template that does not exist |
-| `LOCALE_LOAD_FAILED`         | A translation file is not a JSON object, or a message invalid |
 
-## Custom template engine
+### Custom template engine
 
-Extend `TemplateEngine` of `@appweaver/common` and point `TEMPLATE_PROVIDER` to the module. The framework emails need
-the templates listed in [mailer.md](./mailer.md#built-in-account-emails), which an engine registers itself.
+Extend `TemplateEngine` of `@appweaver/common` and point `TEMPLATE_PROVIDER` to the module. The account emails render
+the templates listed in [mailer.md](./mailer.md#account-emails) when the engine has them, otherwise they are sent as
+plain text.
+
+## Localization
+
+`LocaleService` needs no package and no template engine: it translates in services, hooks, jobs and routes as well as in
+the templates. A missing `locales/` directory leaves only the framework's own English keys (`emails.*`), which
+translate the plain text of the account emails.
+
+### Project layout
+
+```text
+locales/                           # LOCALE_PATH
+├── en.json
+├── de.json
+└── de-AT.json                     # only the keys differing from de.json
+```
+
+### Translations
+
+A translation file is a JSON object of nested objects and string messages, named by its locale (`locales/de.json`).
+A message is translated by its dotted key, the path of its object names: `inbox.unread` below. A value that is neither
+a string nor an object is ignored with a warning. Every translation is an
+[ICU MessageFormat](https://unicode-org.github.io/icu/userguide/format_parse/messages/) message, the syntax of FormatJS,
+Angular, vue-i18n and Symfony, with the plural categories of the Unicode CLDR (`Intl.PluralRules`):
+
+```json
+{
+  "inbox": {
+    "greeting": "Hello {name}",
+    "unread": "You have {msg_cnt, plural, =0 {no unread messages} one {# unread message} other {# unread messages}}"
+  },
+  "race": { "place": "You finished {place, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}" },
+  "comment": { "replied": "{gender, select, female {She} male {He} other {They}} replied" },
+  "order": { "total": "Total: {total, number} items" },
+  "help": { "braces": "Write '{name}' to insert the name, it''s easy" }
+}
+```
+
+| Syntax                                                        | Writes                                                            |
+|---------------------------------------------------------------|-------------------------------------------------------------------|
+| `{name}`                                                      | The parameter as it is                                            |
+| `{n, plural, =0 {...} one {...} other {...}}`                 | The branch of the exact value, else of the plural category of `n` |
+| `#`                                                           | The number of the enclosing plural, formatted in the locale       |
+| `{n, plural, offset:1 ...}`                                   | The categories and `#` of `n - 1`, the exact values of `n`        |
+| `{n, selectordinal, one {#st} two {#nd} ... other {#th}}`     | The branch of the ordinal category                                |
+| `{value, select, a {...} b {...} other {...}}`                | The branch of the value                                           |
+| `{n, number}`, `{n, number, integer}`, `{n, number, percent}` | The number formatted in the locale                                |
+| `''`, `'{text}'`                                              | An apostrophe, the quoted text as it is (a lone `'` stays as is)  |
+
+The categories differ by language: English has `one` and `other`, Croatian adds `few` (`2`-`4`), Arabic has all six
+(`zero`, `one`, `two`, `few`, `many`, `other`). Every `plural`, `selectordinal` and `select` needs an `other` branch.
+A message is checked when its file loads, failing with `LOCALE_LOAD_FAILED` on an invalid one, and an argument without
+a parameter is written as it is, i.e. `{name}`. The plural forms follow the locale of the file the translation is found
+in.
+
+```ts
+import { inject, LocaleService, registerTranslations } from '@appweaver/core';
+
+const locales = inject(LocaleService);
+
+locales.translate('inbox.unread', 'en', { msg_cnt: 1 }); // 'You have 1 unread message'
+locales.translate('inbox.unread', 'hr', { msg_cnt: 3 }); // the `few` branch of hr.json
+locales.hasTranslation('inbox.unread', 'hr');
+locales.getLocales(); // ['de', 'en']
+locales.resolveLocales('de-AT'); // ['de-AT', 'de', 'en']
+
+// Translations defined in code, merged key by key over the file
+registerTranslations('de', { cart: { checkout: 'Zur Kasse' } });
+```
+
+In a template, the hash arguments of `t` are the parameters: `{{t "inbox.unread" msg_cnt=user.unreadCount}}`.
+
+A missing key returns the key itself. The framework's own keys (`emails.*`) fall back to their English text.
+
+### Translating in a service hook
+
+```ts
+import { createService, inject, LocaleService } from '@appweaver/core';
+
+export default createService({
+  modelName: 'Category',
+  beforeCreate: (data) => {
+    data.description ??= inject(LocaleService).translate(
+      'category.defaultDescription',
+      undefined, // LOCALE_DEFAULT
+      { name: data.name }
+    );
+  }
+});
+```
+
+### Choosing the locale
+
+The framework never guesses the locale, the application passes it where it knows it. A common pattern, used by the
+`webshop-api` sample, is a `language` field on the auth model, the preferred language of the user, copied onto the
+records whose emails are sent later, so an email is written in the language the record was made in:
+
+```ts
+// src/resources/user/model.ts
+language: { type: 'string', default: 'en', pattern: '^[a-z]{2}(-[A-Z]{2})?$', maxLength: 8 }
+
+// At checkout: the language asked for, or the preferred one of the customer
+const order = await tx.order.create({ data: { ...data, language: request.language ?? customer.language } });
+
+// Later, i.e. in a queue worker
+await inject(EmailService).sendTemplateEmail({
+  to: order.customer.email,
+  template: 'emails/order-confirmed',
+  data: { order, customer: order.customer },
+  locale: order.language
+});
+```
+
+### Locale configuration
+
+| Key              | Default       | Description                        |
+|------------------|---------------|------------------------------------|
+| `LOCALE_DEFAULT` | `'en'`        | Locale used when none is given     |
+| `LOCALE_PATH`    | `'./locales'` | Directory of the translation files |
+
+### Locale errors
+
+| Code                 | Raised when                                                   |
+|----------------------|---------------------------------------------------------------|
+| `LOCALE_LOAD_FAILED` | A translation file is not a JSON object, or a message invalid |

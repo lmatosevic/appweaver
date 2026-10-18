@@ -6,7 +6,6 @@ export default async function teardown() {
     shell: true
   });
 
-  // A command that ran but failed sets a non-zero status, not the error
   if (error || status !== 0) {
     throw (
       error ??

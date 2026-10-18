@@ -552,7 +552,7 @@ cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting is s
 | Property         | Type   | Default       | Description                                                                      |
 |------------------|--------|---------------|----------------------------------------------------------------------------------|
 | `LOCALE_DEFAULT` | string | `'en'`        | The locale used when none is given to a translation or a template render.        |
-| `LOCALE_PATH`    | string | `'./locales'` | Directory of the translation files, a flat JSON file per locale, i.e. `de.json`. |
+| `LOCALE_PATH`    | string | `'./locales'` | Directory of the translation files, a nested JSON file per locale, i.e. `de.json`. |
 
 ### System (SYSTEM\_\*)
 

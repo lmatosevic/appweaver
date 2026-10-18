@@ -43,6 +43,7 @@ describe('account-service', () => {
   let securityStore: Record<string, jest.Mock>;
   let sendEmail: jest.Mock;
   let sendPlainEmail: jest.Mock;
+  let hasTemplate: jest.Mock;
   let tokenData: Record<string, any>;
   let service: AccountService;
 
@@ -63,7 +64,7 @@ describe('account-service', () => {
       );
     }
     if (withTemplates) {
-      define({}, TemplateEngine as any);
+      define({ hasTemplate }, TemplateEngine as any);
     }
     return new AccountService();
   }
@@ -97,6 +98,7 @@ describe('account-service', () => {
 
     sendEmail = jest.fn().mockResolvedValue(true);
     sendPlainEmail = jest.fn().mockResolvedValue(true);
+    hasTemplate = jest.fn().mockResolvedValue(true);
 
     service = createService();
   });
@@ -134,6 +136,49 @@ describe('account-service', () => {
 
       expect(lastEmail().data.link).toMatch(
         /https:\/\/app\.test\/verify\?lang=en&token=ott$/
+      );
+    });
+
+    test('renders the templates of the application in the given locale', async () => {
+      await service.sendEmailVerification(
+        authUser(),
+        'https://app.test/verified',
+        VerificationType.Auto,
+        'de'
+      );
+
+      expect(hasTemplate).toHaveBeenCalledWith(
+        'emails/verify-email.html',
+        'de'
+      );
+      expect(lastEmail().subject).toBeUndefined();
+      expect(sendPlainEmail).not.toHaveBeenCalled();
+    });
+
+    test('sends the translated subject without a subject template', async () => {
+      hasTemplate.mockImplementation(
+        async (name: string) => !name.endsWith('.subject')
+      );
+
+      await service.sendEmailVerification(
+        authUser(),
+        'https://app.test/verified'
+      );
+
+      expect(lastEmail().subject).toBe('Verify your email address');
+    });
+
+    test('sends the plain text of the translations without a template of the application', async () => {
+      hasTemplate.mockResolvedValue(false);
+
+      await service.sendEmailVerification(
+        authUser(),
+        'https://app.test/verified'
+      );
+
+      expect(sendEmail).not.toHaveBeenCalled();
+      expect(sendPlainEmail.mock.calls[0][0].subject).toBe(
+        'Verify your email address'
       );
     });
 

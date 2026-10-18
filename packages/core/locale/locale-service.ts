@@ -14,8 +14,13 @@ import { LocaleError } from './locale-error';
 import { defaultTranslations } from './default-translations';
 import { formatMessage, parseMessage } from './utils/message-format';
 
-/** The flat translations of a locale, keyed by the translation key. */
-export type Translations = Record<string, string>;
+/** The translations of a locale, nested objects of messages, i.e. `{ emails: { footer: 'Sent by {appName}.' } }`. */
+export interface Translations {
+  [key: string]: string | Translations;
+}
+
+/** The translations flattened by their dotted keys, i.e. `emails.footer`. */
+type FlatTranslations = Record<string, string>;
 
 /** The values of the arguments of a translation, i.e. `{name}` or `{count, plural, one {# item} other {# items}}`. */
 export type TranslationParams = Record<string, unknown>;
@@ -24,9 +29,15 @@ export class LocaleService implements OnInit {
   static [LIFECYCLE] = true;
 
   /** @internal */
-  private _files = new Map<string, Translations>();
+  private _files = new Map<string, FlatTranslations>();
   /** @internal */
-  private readonly _registered = new Map<string, Translations>();
+  private readonly _registered = new Map<string, FlatTranslations>();
+  /** @internal */
+  private readonly _defaults = flattenTranslations(
+    defaultTranslations,
+    'en',
+    'the framework'
+  );
   /** @internal */
   private _loaded = false;
 
@@ -113,7 +124,7 @@ export class LocaleService implements OnInit {
    * Registers the translations of a locale, merged over the translations of its file and the earlier registered ones.
    *
    * @param {string} locale - The locale, i.e. `de`.
-   * @param {Translations} translations - The flat translations, keyed by the translation key.
+   * @param {Translations} translations - The translations, nested objects of messages.
    * @throws {LocaleError} `LOCALE_LOAD_FAILED` if a translation is not a valid message.
    */
   public addTranslations(locale: string, translations: Translations): void {
@@ -124,7 +135,7 @@ export class LocaleService implements OnInit {
     }
     this._registered.set(tag, {
       ...this._registered.get(tag),
-      ...flatTranslations(translations, tag, `registered '${tag}'`)
+      ...flattenTranslations(translations, tag, `registered '${tag}'`)
     });
   }
 
@@ -145,7 +156,7 @@ export class LocaleService implements OnInit {
     }
 
     const dir = path.resolve(process.cwd(), config.LOCALE_PATH);
-    const files = new Map<string, Translations>();
+    const files = new Map<string, FlatTranslations>();
 
     let fileNames: string[] = [];
     try {
@@ -182,7 +193,7 @@ export class LocaleService implements OnInit {
         );
       }
 
-      files.set(locale, flatTranslations(translations, locale, filePath));
+      files.set(locale, flattenTranslations(translations, locale, filePath));
     }
 
     this._files = files;
@@ -207,8 +218,8 @@ export class LocaleService implements OnInit {
       }
     }
 
-    return Object.hasOwn(defaultTranslations, key)
-      ? { value: defaultTranslations[key], locale: 'en' }
+    return Object.hasOwn(this._defaults, key)
+      ? { value: this._defaults[key], locale: 'en' }
       : undefined;
   }
 }
@@ -229,15 +240,20 @@ function normalizeLocale(locale?: string): string | undefined {
   return Intl.getCanonicalLocales(tag)[0];
 }
 
-/** Keeps the string values of flat translations, warning about the rest, and failing on an invalid message. */
-function flatTranslations(
+/** Flattens nested translations into dotted keys, warning about the non-string values and failing on an invalid
+ * message. */
+function flattenTranslations(
   translations: Record<string, unknown>,
   locale: string,
-  source: string
-): Translations {
-  const result: Translations = {};
-  for (const [key, value] of Object.entries(translations)) {
-    if (isString(value)) {
+  source: string,
+  prefix = '',
+  result: FlatTranslations = {}
+): FlatTranslations {
+  for (const [name, value] of Object.entries(translations)) {
+    const key = prefix + name;
+    if (isPlainObject(value)) {
+      flattenTranslations(value, locale, source, `${key}.`, result);
+    } else if (isString(value)) {
       try {
         parseMessage(value);
       } catch (e) {
@@ -252,7 +268,7 @@ function flatTranslations(
     } else {
       logger.warn(
         { locale, key },
-        'Translation ignored, the translations must be flat string values'
+        'Translation ignored, a translation must be a string or an object of translations'
       );
     }
   }

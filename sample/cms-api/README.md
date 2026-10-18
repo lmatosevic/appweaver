@@ -24,7 +24,7 @@ scheduled for publishing, static pages for the site menu, and comments open to g
 | Custom route with its own response model                                              | [`features/publisher/publish-route.ts`](src/features/publisher/publish-route.ts)         |
 | Scheduled job publishing the posts whose publish date has passed                      | [`features/publisher/publish-scheduler.ts`](src/features/publisher/publish-scheduler.ts) |
 | Localized HTML page and an XML export for an external integration, from templates     | [`features/syndication/`](src/features/syndication/syndication-routes.ts)                |
-| Localized email sent on demand, and Croatian translations of the framework emails     | [`templates/emails/`](templates/emails), [`locales/hr.json`](locales/hr.json)            |
+| Localized email sent on demand, and the account email templates translated to Croatian | [`templates/emails/`](templates/emails), [`locales/hr.json`](locales/hr.json)            |
 | Template preview route of the development environment (`/templates/<name>?<data>`)    | `template.preview` of the `dev` environment in [`appweaver.json`](appweaver.json)        |
 | Translated default value stored by a service hook                                     | [`resources/category/service.ts`](src/resources/category/service.ts)                     |
 | Fastify plugin logging every request                                                  | [`plugins/request-logger.ts`](src/plugins/request-logger.ts)                             |

@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { defaultTranslations } from '../../core/locale/default-translations';
-import { handlebarsTemplates } from '../../core/template/handlebars-templates';
 
 const packageRoot = path.join(__dirname, '..');
 const skillDir = path.join(packageRoot, 'skill');
@@ -249,9 +248,20 @@ describe('create-weaver-app', () => {
       expect(exists('my-app', '.gitignore')).toBe(true);
     });
 
-    test('generates the email layout and translations of the framework', () => {
-      expect(read('my-app', 'templates', 'layouts', 'email.html.hbs')).toBe(
-        handlebarsTemplates['layouts/email.html']
+    test('generates the account email templates and translations', () => {
+      for (const email of [
+        'verify-email',
+        'password-reset',
+        'two-factor-code'
+      ]) {
+        for (const format of ['subject', 'html', 'txt']) {
+          expect(
+            exists('my-app', 'templates', 'emails', `${email}.${format}.hbs`)
+          ).toBe(true);
+        }
+      }
+      expect(exists('my-app', 'templates', 'layouts', 'email.html.hbs')).toBe(
+        true
       );
       expect(readJson('my-app', 'locales', 'en.json')).toEqual(
         defaultTranslations
@@ -526,17 +536,70 @@ describe('create-weaver-app', () => {
       expect(config.mailer).toEqual({ enabled: false });
     });
 
-    test('skips the template and translation files with the no-templates flag', async () => {
+    test('skips the template files with the no-templates flag', async () => {
       await run('MyApp', '--no-install', '--agent', 'none', '--no-templates');
 
       const appConfig = readJson('my-app', 'appweaver.json');
       expect(appConfig.config.template).toEqual({ provider: '' });
       expect(appConfig.environments.dev).not.toHaveProperty('template');
       expect(exists('my-app', 'templates')).toBe(false);
+      expect(readJson('my-app', 'locales', 'en.json')).toEqual(
+        defaultTranslations
+      );
+      const dockerfile = read('my-app', 'Dockerfile');
+      expect(dockerfile).not.toContain('templates');
+      expect(dockerfile).toContain(
+        '# Copy translation files\nCOPY --from=build /usr/app/locales /usr/app/locales\n'
+      );
+      expect(dockerfile).toContain('COPY --from=build /usr/app/dist');
+    });
+
+    test('writes the English texts into the templates with the no-locales flag', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--no-locales');
+
       expect(exists('my-app', 'locales')).toBe(false);
-      expect(read('my-app', 'Dockerfile')).not.toContain('templates');
-      expect(read('my-app', 'Dockerfile')).toContain(
-        'COPY --from=build /usr/app/dist'
+      const dockerfile = read('my-app', 'Dockerfile');
+      expect(dockerfile).not.toContain('locales');
+      expect(dockerfile).toContain(
+        'COPY --from=build /usr/app/templates /usr/app/templates'
+      );
+
+      const subject = read(
+        'my-app',
+        'templates',
+        'emails',
+        'password-reset.subject.hbs'
+      );
+      expect(subject.trim()).toBe('Password reset request');
+      const html = read(
+        'my-app',
+        'templates',
+        'emails',
+        'two-factor-code.html.hbs'
+      );
+      expect(html).toContain('{{#if (eq expiresInMinutes 1)}}');
+      expect(html).not.toMatch(/[{(]t "/);
+      expect(
+        read('my-app', 'templates', 'layouts', 'email.html.hbs')
+      ).toContain('This email was sent by {{@app.name}}.');
+    });
+
+    test('skips both the template and translation files', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--no-templates',
+        '--no-locales'
+      );
+
+      expect(exists('my-app', 'templates')).toBe(false);
+      expect(exists('my-app', 'locales')).toBe(false);
+      const dockerfile = read('my-app', 'Dockerfile');
+      expect(dockerfile).not.toMatch(/templates|locales|# Copy translation/);
+      expect(dockerfile).toContain(
+        '# Copy public static files\nCOPY --from=build /usr/app/public /usr/app/public\n\n# Copy Prisma'
       );
     });
 
@@ -553,6 +616,7 @@ describe('create-weaver-app', () => {
       const appConfig = readJson('my-app', 'appweaver.json');
       expect(appConfig.environments.dev).not.toHaveProperty('template');
       expect(read('my-app', 'Dockerfile')).not.toContain('templates');
+      expect(read('my-app', 'Dockerfile')).toContain('/usr/app/locales');
     });
 
     test('keeps the template and translation files by default', async () => {
@@ -560,6 +624,9 @@ describe('create-weaver-app', () => {
 
       const appConfig = readJson('my-app', 'appweaver.json');
       expect(appConfig.environments.dev.template).toEqual({ cache: false });
+      expect(
+        read('my-app', 'templates', 'emails', 'password-reset.subject.hbs')
+      ).toContain('{{t "emails.passwordReset.subject"}}');
       expect(read('my-app', 'Dockerfile')).toContain(
         'COPY --from=build /usr/app/templates /usr/app/templates'
       );

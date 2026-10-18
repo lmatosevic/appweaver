@@ -28,7 +28,7 @@ The basic file structure of the Appweaver project:
 
 - `database/` - database migrations, seeders, generated prisma client, and client used by the application
 - `dist/` - the output directory for transpiled JavaScript files
-- `locales/` - the translation files, a flat JSON file per locale (`en.json`, `de.json`)
+- `locales/` - the translation files, a nested JSON file per locale (`en.json`, `de.json`)
 - `public/` - publicly exposed files if static file serving is enabled
 - `src/features/` - main application logic structured using vertical slice architecture (VSA)
 - `src/resources/` - application resources (models, services, policies, and routes)
@@ -73,7 +73,8 @@ create-weaver-app <name> [description] [options]
 | `--no-redis`       | Skip ioredis, use in-memory cache, rate limit and queue        | installed    |
 | `--no-queue`       | Skip bullmq, use in-memory queue                               | installed    |
 | `--no-mailer`      | Skip nodemailer, disable mailer (email features respond 501)   | installed    |
-| `--no-templates`   | Skip handlebars and the templates and locales directories      | installed    |
+| `--no-templates`   | Skip handlebars and the templates directory                    | installed    |
+| `--no-locales`     | Skip the locales directory, English texts written in templates | copied       |
 | `--no-cron`        | Skip cron, disable scheduler                                   | installed    |
 
 **Example — PostgreSQL project without queue:**
@@ -663,7 +664,8 @@ registerRoute(
 ### Rendering templates and translating
 
 The `templates/` files render emails, HTML pages, XML documents or any text, and the `locales/<locale>.json` files
-translate keys anywhere in the application. The application always gives the locale (a request parameter, a user field,
+translate keys anywhere in the application. The two are independent: templates render without translation files, and
+translations work without the template engine. The application always gives the locale (a request parameter, a user field,
 ...), falling back to `LOCALE_DEFAULT`. A template named `exports/orders.xml` is the file
 `templates/exports/orders.xml.hbs`, and `templates/exports/orders.de.xml.hbs` is its `de` variant. See [templates.md](references/templates.md).
 
@@ -682,14 +684,14 @@ await inject(EmailService).sendTemplateEmail({ to, template: 'emails/order-shipp
 inject(LocaleService).translate('inbox.unread', 'de', { msg_cnt: 3 });
 ```
 
-A translation is an ICU MessageFormat message in a flat JSON file, with plural forms by the CLDR categories of the
-locale: `"inbox.unread": "You have {msg_cnt, plural, =0 {no unread messages} one {# unread message} other {# unread
-messages}}"`.
+A translation is an ICU MessageFormat message in a JSON file of nested objects, translated by its dotted key
+(`inbox.unread`), with plural forms by the CLDR categories of the locale: `{ "inbox": { "unread": "You have {msg_cnt,
+plural, =0 {no unread messages} one {# unread message} other {# unread messages}}" } }`.
 
 Inside the templates, `{{t "key" name=value}}` translates into the rendered locale, layouts and components are partials
 (`{{#> layouts/page.html}}...{{/layouts/page.html}}`), and `formatDate`, `formatNumber`, `formatCurrency` format in the
-locale. The framework's own emails (verification, password reset, 2FA) are overridden by a template file of the same
-name and translated by the `emails.*` keys.
+locale. The account emails (verification, password reset, 2FA) render the `emails/*` templates of the application,
+scaffolded by `create-weaver-app`, or without them are sent as plain text of the `emails.*` translations.
 
 To check a template while editing it, enable `template.preview.enabled` in the `dev` environment: `GET
 /templates/emails/order-shipped.html?_locale=de&order.number=WS-1` renders it with the query parameters as its data
@@ -987,6 +989,6 @@ npm run lint  # eslint "./**/*.ts"
 - Queue jobs: [queue.md](references/queue.md)
 - Scheduling jobs: [scheduler.md](references/scheduler.md)
 - Sending emails: [mailer.md](references/mailer.md)
-- Templates & translations: [templates.md](references/templates.md)
+- Templates & localization: [templates.md](references/templates.md)
 - Generating an HTTP client for using API: [client.md](references/client.md)
 - Errors & error responses: [errors.md](references/errors.md)

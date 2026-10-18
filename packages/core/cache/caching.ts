@@ -29,7 +29,7 @@ export default fastifyPlugin((server: Server) => {
       return;
     }
 
-    // No user on a route without authentication, e.g. the health check
+    // No user on a route without authentication
     const user = config.public ? undefined : (currentAuthUser() ?? undefined);
     const key = buildCacheKey(request, config, cacheService, user);
 

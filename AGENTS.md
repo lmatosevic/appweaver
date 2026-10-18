@@ -111,8 +111,8 @@ Core application logic. Organized into the following modules:
 | `scheduler/` | Cron job scheduling service                                                                                                                                          |
 | `seeder/`    | Database seeding utilities                                                                                                                                           |
 | `mailer/`    | Email service — SMTP and JSON (dev/test) mailer implementations, rendering the template emails                                                                       |
-| `template/`  | Template engine — the Handlebars implementation of `TemplateEngine`, its helpers and the framework's own email templates                                             |
-| `locale/`    | Locale service — translating the keys of the flat JSON translation files, with the framework's own English translations                                              |
+| `template/`  | Template engine — the Handlebars implementation of `TemplateEngine` and its helpers, without any templates of its own                                                |
+| `locale/`    | Locale service — translating the dotted keys of the nested JSON translation files, with the framework's own English translations                                     |
 | `cache/`     | Caching layer abstractions and implementations                                                                                                                       |
 | `context/`   | Dependency injection container and utility functions                                                                                                                 |
 | `health/`    | Health check endpoint and service registration                                                                                                                       |
@@ -210,6 +210,11 @@ The module uses a template-based generation system where each file can have runt
 During project generation, the CLI accepts arguments for name, description, runtime (Node or Bun), and what modules to
 skip installing. Then replaces the templates with defined variables, and copies only the relevant files based on the
 chosen runtime, stripping the `.tpl`, `.node`, or `.bun` extensions from the final output.
+
+Templates and localization are scaffolded independently. `--no-templates` drops `templates/` and Handlebars,
+`--no-locales` drops `locales/` and replaces every `{{t "key"}}` of the scaffolded templates with the English message of
+the key in `locales/en.json`, using `utils/translation-util.ts` (a plural becomes an `{{#if (eq count 1)}}` chain). Write
+the scaffolded templates with `t` calls only, a test checks that both variants render the same text.
 
 The versions of every npm package a generated project installs (except the `@appweaver/*` packages, which follow the
 CLI's own version) are kept in the `scaffoldDependencies` field of the **root** `package.json`, split into `companion`
@@ -416,7 +421,7 @@ weaver test reset [options]
 | `--verbose`           | Verbose output      | false    |
 
 With no flags, resets **both** database and storage. The database is reset with `prisma migrate reset`, which Prisma
-refuses to run for an AI agent without the user's consent, see **AI agents and the test database** in Section 7.
+refuses to run for an AI agent without the user's consent.
 
 #### `weaver test teardown`
 
@@ -634,34 +639,6 @@ npm run e2e
 E2E tests use `weaver test setup` / `weaver test reset` / `weaver test teardown` to manage a temporary test database and
 storage directory. Setup and teardown are wired for the whole run, but each test file must register the reset itself
 with `afterAll(resetTestData, 10_000)`, declared after the hook that stops the application.
-
-#### AI agents and the test database
-
-Prisma Migrate refuses its destructive commands (`migrate reset`, `db push --force-reset`, `db push --accept-data-loss`)
-when it detects an AI agent (Claude Code, Codex, Cursor, ...), unless the `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION`
-environment variable holds the message in which the user consented. Under an agent this affects:
-
-- `weaver test reset`, the reset after every e2e test file, which runs `prisma migrate reset`. The `reset.ts` of the
-  samples and the scaffolded projects fails the test file when the command exits with a non-zero status, as do
-  `setup.ts` and `teardown.ts` for the whole run.
-- `weaver test setup` on a PostgreSQL or MySQL sample, once its `-test` database keeps the schema of an earlier run
-  (after a model change): `prisma migrate dev` then needs a reset and fails.
-
-The consent belongs to the maintainer, never to the agent. To let the agents reset the test databases, the maintainer
-adds the variable to the `.env` file of each sample whose tests the agents run, set to the message they consented
-with:
-
-```bash
-PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION="<the message in which you consented>"
-```
-
-Weaver loads `.env` into the environment of the `prisma` commands it starts. The file is gitignored, so the consent
-stays with the checkout it is written in. In `.env` it also covers `weaver migration reset` of the development
-database; to limit it to the tests, put it in `.env.test` instead (loaded with `NODE_ENV=test` only), after adding
-`.env.test` to `.gitignore`. A cloud agent session gets it from the environment variables of its cloud environment.
-
-An agent never sets the variable itself. When a reset is refused, it stops and asks the maintainer to reset the
-database or to add the consent.
 
 #### Docker
 

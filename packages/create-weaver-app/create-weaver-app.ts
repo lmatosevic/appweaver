@@ -6,6 +6,10 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { Command, InvalidOptionArgumentError } from 'commander';
 import { glob } from 'glob';
+import {
+  flattenTranslations,
+  inlineTranslations
+} from './utils/translation-util';
 
 const pkg = JSON.parse(
   fs.readFileSync(path.join(__dirname, './package.json'), 'utf8')
@@ -91,7 +95,11 @@ program
   )
   .option(
     '--no-templates',
-    'Skip Handlebars package installation and the template and translation files.'
+    'Skip Handlebars package installation and the template files.'
+  )
+  .option(
+    '--no-locales',
+    'Skip the translation files, writing the English texts into the templates.'
   )
   .option(
     '--no-cron',
@@ -247,8 +255,8 @@ program
       );
     }
 
-    // Without Handlebars, drop the template and locale files, their Dockerfile
-    // COPY and the dev template config
+    // Without Handlebars, drop the template files, their Dockerfile COPY and
+    // the dev template config
     if (!command.getOptionValue('templates')) {
       const configFile = path.join(destDir, 'appweaver.json');
       const appConfig = JSON.parse(await fsp.readFile(configFile, 'utf8'));
@@ -259,21 +267,26 @@ program
         'utf8'
       );
 
-      for (const dir of ['templates', 'locales']) {
-        await fsp.rm(path.join(destDir, dir), { recursive: true, force: true });
-      }
-      const dockerfile = path.join(destDir, 'Dockerfile');
-      if (fs.existsSync(dockerfile)) {
-        const content = await fsp.readFile(dockerfile, 'utf8');
-        await fsp.writeFile(
-          dockerfile,
-          content.replace(
-            /# Copy templates and translation files\n(COPY .*\n)+\n/,
-            ''
-          ),
-          'utf8'
+      await fsp.rm(path.join(destDir, 'templates'), {
+        recursive: true,
+        force: true
+      });
+      await removeDockerfileBlock(destDir, 'Copy templates');
+    }
+
+    // Without the translation files, write their English texts into the
+    // templates, and drop the files with their Dockerfile COPY
+    if (!command.getOptionValue('locales')) {
+      const localesDir = path.join(destDir, 'locales');
+      if (command.getOptionValue('templates')) {
+        await inlineTemplateTranslations(
+          path.join(destDir, 'templates'),
+          path.join(localesDir, 'en.json')
         );
       }
+
+      await fsp.rm(localesDir, { recursive: true, force: true });
+      await removeDockerfileBlock(destDir, 'Copy translation files');
     }
 
     // Create test reports directory
@@ -853,4 +866,48 @@ function parseAgentType(value: string): string {
   }
 
   return lowerAgentType;
+}
+
+/** Removes a commented block of COPY instructions from the Dockerfile, if the project has one. */
+async function removeDockerfileBlock(
+  destDir: string,
+  comment: string
+): Promise<void> {
+  const dockerfile = path.join(destDir, 'Dockerfile');
+  if (!fs.existsSync(dockerfile)) {
+    return;
+  }
+  const content = await fsp.readFile(dockerfile, 'utf8');
+  await fsp.writeFile(
+    dockerfile,
+    content.replace(new RegExp(`# ${comment}\n(COPY .*\n)+\n`), ''),
+    'utf8'
+  );
+}
+
+/** Replaces the `t` helper calls of every template with the English texts of the translation file. */
+async function inlineTemplateTranslations(
+  templatesDir: string,
+  translationFile: string
+): Promise<void> {
+  const translations = flattenTranslations(
+    JSON.parse(await fsp.readFile(translationFile, 'utf8'))
+  );
+  const templateFiles = await glob('**/*.hbs', {
+    cwd: templatesDir,
+    absolute: true
+  });
+
+  for (const templateFile of templateFiles) {
+    const content = await fsp.readFile(templateFile, 'utf8');
+    await fsp.writeFile(
+      templateFile,
+      inlineTranslations(
+        content,
+        translations,
+        templateFile.endsWith('.html.hbs')
+      ),
+      'utf8'
+    );
+  }
 }
