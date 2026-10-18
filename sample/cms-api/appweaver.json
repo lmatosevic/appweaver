@@ -29,10 +29,18 @@
       "oauth2": {
         "google": {
           "enabled": true
+        },
+        "facebook": {
+          "enabled": true
         }
       },
       "recaptcha": {
         "enabled": true
+      },
+      "account": {
+        "2fa": {
+          "enabled": true
+        }
       }
     },
     "resource": {
