@@ -71,6 +71,13 @@ export interface ErrorDetailsMap {
   [ErrorCode.QueueUnavailable]: { queue: string };
 
   [ErrorCode.MailerSendFailed]: { subject?: string };
+
+  [ErrorCode.TemplateNotFound]: { template: string; locale?: string };
+  [ErrorCode.TemplateRenderFailed]: { template: string };
+  [ErrorCode.TemplateLoadFailed]: { path: string };
+  [ErrorCode.TemplatePreviewNotFound]: { template: string; locale?: string };
+
+  [ErrorCode.LocaleLoadFailed]: { path: string };
 }
 
 /** The details of an error code, see {@link ErrorDetailsMap}. */

@@ -18,7 +18,10 @@ registerRoute(
             lastName: Type.String({ minLength: 1, maxLength: 100 }),
             email: Type.String({ format: 'email', maxLength: 255 }),
             password: Type.String({ minLength: 8, maxLength: 100 }),
-            marketingOptIn: Type.Optional(Type.Boolean())
+            marketingOptIn: Type.Optional(Type.Boolean()),
+            language: Type.Optional(
+              Type.String({ pattern: '^[a-z]{2}(-[A-Z]{2})?$', example: 'de' })
+            )
           }),
           response: {
             201: Type.Ref('UserSingle'),

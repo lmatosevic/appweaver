@@ -4,10 +4,14 @@ import {
   logger,
   Mailer,
   Queue,
-  QueueJob
+  QueueJob,
+  TemplateEmail,
+  TemplateEngine
 } from '@appweaver/common';
 import { inject } from '../context';
+import { TemplateError } from '../template/template-error';
 import { MailerError } from './mailer-error';
+import { htmlToText } from './utils/html-util';
 
 export class EmailService {
   /** @internal */
@@ -91,6 +95,68 @@ export class EmailService {
         this._waitedJobs.delete(job.id);
       }
     });
+  }
+
+  /**
+   * Renders the email with {@link renderTemplateEmail} and adds it to the mail queue.
+   *
+   * @param {TemplateEmail} email - The recipient, template name, data and locale of the email.
+   * @return A promise that resolves when the email is successfully added to the queue.
+   * @throws {TemplateError} See {@link renderTemplateEmail}.
+   */
+  public async sendTemplateEmail(email: TemplateEmail): Promise<void> {
+    await this.sendEmail(await this.renderTemplateEmail(email));
+  }
+
+  /**
+   * Renders the templates of an email into the email to send, i.e. with `sendEmailAndWait` or `sendEmailBulk`. The
+   * `<template>.html` template renders the HTML body, `<template>.txt` the plain text body (derived from the HTML
+   * body when missing), and `<template>.subject` the subject, unless one is given.
+   *
+   * @param {TemplateEmail} email - The recipient, template name, data and locale of the email.
+   * @return {Promise<Email>} A promise that resolves to the rendered email.
+   * @throws {TemplateError} `TEMPLATE_NOT_FOUND` if the email has no `.html` or `.txt` template, or no subject,
+   * `TEMPLATE_RENDER_FAILED` if a template fails to render.
+   */
+  public async renderTemplateEmail(email: TemplateEmail): Promise<Email> {
+    const { to, template, data = {}, locale, attachments } = email;
+    const engine = inject(TemplateEngine);
+
+    const renderIfExists = async (name: string) =>
+      (await engine.hasTemplate(name, locale))
+        ? engine.render(name, data, { locale })
+        : undefined;
+
+    const [html, text, subject] = await Promise.all([
+      renderIfExists(`${template}.html`),
+      renderIfExists(`${template}.txt`),
+      email.subject === undefined
+        ? renderIfExists(`${template}.subject`)
+        : email.subject
+    ]);
+
+    if (html === undefined && text === undefined) {
+      throw new TemplateError(
+        ErrorCode.TemplateNotFound,
+        `Email template '${template}' has no '.html' or '.txt' template`,
+        { template: `${template}.html`, locale }
+      );
+    }
+    if (subject === undefined) {
+      throw new TemplateError(
+        ErrorCode.TemplateNotFound,
+        `Email template '${template}' has no '.subject' template`,
+        { template: `${template}.subject`, locale }
+      );
+    }
+
+    return {
+      to,
+      subject: subject.replace(/\s+/g, ' ').trim(),
+      text: text ?? htmlToText(html!),
+      html,
+      attachments
+    };
   }
 
   /** @internal */

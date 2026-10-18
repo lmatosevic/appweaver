@@ -33,7 +33,12 @@ registerModel(
       // One of the two, a saved address of the customer or a new one
       addressId: Type.Optional(Type.Integer({ minimum: 1 })),
       shippingAddress: Type.Optional(ShippingAddress),
-      note: Type.Optional(Type.String({ maxLength: 500 }))
+      note: Type.Optional(Type.String({ maxLength: 500 })),
+      // The language of the order emails, the preferred one of the customer
+      // by default
+      language: Type.Optional(
+        Type.String({ pattern: '^[a-z]{2}(-[A-Z]{2})?$', example: 'de' })
+      )
     },
     { $id: 'CheckoutRequest' }
   )

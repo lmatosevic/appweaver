@@ -1,0 +1,39 @@
+{
+  "orders": {
+    "greeting": "Hallo {name},",
+    "signature": "Vielen Dank für Ihren Einkauf!",
+    "confirmed": {
+      "subject": "Bestellung {number} bestätigt",
+      "message": "Wir haben Ihre Zahlung über {total} erhalten, Ihre Bestellung wird gerade verpackt.",
+      "items": "Die Bestellung {number} enthält {count, plural, one {# Produkt} other {# Produkte}}:"
+    },
+    "summary": {
+      "product": "Produkt",
+      "quantity": "Menge",
+      "price": "Preis",
+      "subtotal": "Zwischensumme",
+      "discount": "Rabatt",
+      "shipping": "Versand",
+      "freeShipping": "Kostenlos",
+      "total": "Gesamt",
+      "shipTo": "Lieferadresse:"
+    },
+    "paymentFailed": {
+      "subject": "Zahlung für Bestellung {number} fehlgeschlagen",
+      "message": "Die Zahlung wurde abgelehnt, daher wurde die Bestellung nicht aufgegeben. Bitte versuchen Sie es mit einer anderen Karte erneut."
+    },
+    "shipped": {
+      "subject": "Bestellung {number} ist unterwegs",
+      "message": "Ihre Bestellung wurde an {carrier} übergeben, die Sendungsnummer lautet:",
+      "shippedOn": "Versendet am {date}."
+    },
+    "cancelled": {
+      "subject": "Bestellung {number} storniert",
+      "message": "Ihre Bestellung wurde storniert.",
+      "refund": "Die Zahlung über {total} wird innerhalb weniger Tage erstattet."
+    }
+  },
+  "emails": {
+    "footer": "Diese E-Mail wurde von {appName} gesendet."
+  }
+}

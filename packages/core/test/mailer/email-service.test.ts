@@ -1,4 +1,10 @@
-import { ErrorCode, logger, Mailer, Queue } from '@appweaver/common';
+import {
+  ErrorCode,
+  logger,
+  Mailer,
+  Queue,
+  TemplateEngine
+} from '@appweaver/common';
 import { define } from '../../context';
 import { EmailService } from '../../mailer/email-service';
 import { resetContext } from '../fixtures/context-fixture';
@@ -117,6 +123,137 @@ describe('email-service', () => {
         { success: true },
         { success: false, error }
       ]);
+    });
+  });
+
+  describe('renderTemplateEmail', () => {
+    let templates: Record<string, string>;
+    let engine: { hasTemplate: jest.Mock; render: jest.Mock };
+
+    beforeEach(() => {
+      templates = {
+        'emails/welcome.html': '<p>Hi <a href="https://app.test">there</a></p>',
+        'emails/welcome.txt': 'Hi there',
+        'emails/welcome.subject': '  Welcome\n aboard '
+      };
+      engine = {
+        hasTemplate: jest.fn(async (name: string) => name in templates),
+        render: jest.fn(async (name: string) => templates[name])
+      };
+      define(engine, TemplateEngine as any);
+    });
+
+    test('renders the body and subject templates in the locale', async () => {
+      const rendered = await service.renderTemplateEmail({
+        to: 'user@test.com',
+        template: 'emails/welcome',
+        data: { name: 'Ana' },
+        locale: 'de',
+        attachments: [{ filename: 'a.txt' }]
+      });
+
+      expect(rendered).toEqual({
+        to: 'user@test.com',
+        subject: 'Welcome aboard',
+        html: templates['emails/welcome.html'],
+        text: 'Hi there',
+        attachments: [{ filename: 'a.txt' }]
+      });
+      expect(engine.render).toHaveBeenCalledWith(
+        'emails/welcome.html',
+        { name: 'Ana' },
+        { locale: 'de' }
+      );
+      expect(engine.hasTemplate).toHaveBeenCalledWith(
+        'emails/welcome.txt',
+        'de'
+      );
+    });
+
+    test('derives the text body from the HTML body', async () => {
+      delete templates['emails/welcome.txt'];
+
+      const rendered = await service.renderTemplateEmail({
+        to: 'user@test.com',
+        template: 'emails/welcome'
+      });
+
+      expect(rendered.text).toBe('Hi there (https://app.test)');
+    });
+
+    test('sends a text email without the HTML template', async () => {
+      delete templates['emails/welcome.html'];
+
+      const rendered = await service.renderTemplateEmail({
+        to: 'user@test.com',
+        template: 'emails/welcome'
+      });
+
+      expect(rendered.html).toBeUndefined();
+      expect(rendered.text).toBe('Hi there');
+    });
+
+    test('uses the given subject over the subject template', async () => {
+      const rendered = await service.renderTemplateEmail({
+        to: 'user@test.com',
+        template: 'emails/welcome',
+        subject: 'Custom'
+      });
+
+      expect(rendered.subject).toBe('Custom');
+      expect(engine.hasTemplate).not.toHaveBeenCalledWith(
+        'emails/welcome.subject',
+        undefined
+      );
+    });
+
+    test('rejects an email without a body template', async () => {
+      await expect(
+        service.renderTemplateEmail({ to: 'a@test.com', template: 'emails/x' })
+      ).rejects.toMatchObject({
+        code: ErrorCode.TemplateNotFound,
+        details: { template: 'emails/x.html' }
+      });
+    });
+
+    test('rejects an email without a subject', async () => {
+      delete templates['emails/welcome.subject'];
+
+      await expect(
+        service.renderTemplateEmail({
+          to: 'a@test.com',
+          template: 'emails/welcome'
+        })
+      ).rejects.toMatchObject({
+        code: ErrorCode.TemplateNotFound,
+        details: { template: 'emails/welcome.subject' }
+      });
+    });
+  });
+
+  describe('sendTemplateEmail', () => {
+    test('queues the rendered email', async () => {
+      define(
+        {
+          hasTemplate: async (name: string) => !name.endsWith('.html'),
+          render: async (name: string) =>
+            name.endsWith('.subject') ? 'Welcome' : 'Hi'
+        },
+        TemplateEngine as any
+      );
+
+      await service.sendTemplateEmail({
+        to: 'user@test.com',
+        template: 'emails/welcome'
+      });
+
+      expect(processor.sendJob).toHaveBeenCalledWith({
+        to: 'user@test.com',
+        subject: 'Welcome',
+        text: 'Hi',
+        html: undefined,
+        attachments: undefined
+      });
     });
   });
 });

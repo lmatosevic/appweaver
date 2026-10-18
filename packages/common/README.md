@@ -22,7 +22,7 @@
 - **Types** – the resource model, query filter, sort, aggregate, policy, and route types, and the `ResourceRegistry`
   that `weaver generate` fills so the factories infer the model types from a model name.
 - **Infrastructure contracts** – the abstract `Database`, `Cache`, `Memory`, `Queue`, `Storage`, `Mailer`, `Events`,
-  and `SecurityStore` classes the providers of `@appweaver/core` implement.
+  `TemplateEngine`, and `SecurityStore` classes the providers of `@appweaver/core` implement.
 - **Utilities** – string, object, date, and version helpers such as `randomString` and `compareVersions`.
 
 ## Installation

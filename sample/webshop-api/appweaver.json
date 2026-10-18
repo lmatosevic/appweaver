@@ -16,6 +16,7 @@
       "url": "redis://${REDIS_HOST:-localhost}:6379/0"
     },
     "mailer": {
+      "provider": "@appweaver/core/mailer/json-mailer",
       "senderName": "Webshop",
       "senderAddress": "orders@webshop.example.com"
     },
@@ -34,8 +35,11 @@
         "level": "debug",
         "pretty": true
       },
-      "mailer": {
-        "provider": "@appweaver/core/mailer/json-mailer"
+      "template": {
+        "cache": false,
+        "preview": {
+          "enabled": true
+        }
       }
     },
     "test": {
@@ -57,9 +61,6 @@
       },
       "queue": {
         "provider": "@appweaver/core/queue/memory-queue"
-      },
-      "mailer": {
-        "provider": "@appweaver/core/mailer/json-mailer"
       },
       "scheduler": {
         "autoStartJob": false

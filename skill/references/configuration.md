@@ -57,15 +57,25 @@ scaffolds:
 ```json
 {
   "config": {
-    "database": { "url": "file:./data/app.db" }
+    "database": {
+      "url": "file:./data/app.db"
+    }
   },
   "environments": {
     "dev": {
-      "log": { "level": "debug", "pretty": true }
+      "log": {
+        "level": "debug",
+        "pretty": true
+      }
     },
     "test": {
-      "log": { "level": "silent", "sync": true },
-      "database": { "url": "file:./temp/test.db" }
+      "log": {
+        "level": "silent",
+        "sync": true
+      },
+      "database": {
+        "url": "file:./temp/test.db"
+      }
     }
   }
 }
@@ -536,6 +546,24 @@ cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting is s
 | `MAILER_SMTP_USER`      | string? | -                                      | SMTP authentication username.                                                                                                                                             |
 | `MAILER_SMTP_PASSWORD`  | string? | -                                      | SMTP authentication password.                                                                                                                                             |
 
+### Template (TEMPLATE\_\*)
+
+| Property                        | Type    | Default                                                 | Description                                                                                  |
+|---------------------------------|---------|---------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| `TEMPLATE_PATH`                 | string  | `'./templates'`                                         | Directory of the template files (emails, pages, exports), see [templates](./templates.md).   |
+| `TEMPLATE_CACHE`                | boolean | `true`                                                  | Keep the loaded templates in memory. Disable it to reload the changed files on every render. |
+| `TEMPLATE_PREVIEW_ENABLED`      | boolean | `false`                                                 | Enable the route previewing a template rendered with the data of its query parameters.       |
+| `TEMPLATE_PREVIEW_AUTH`         | boolean | `false`                                                 | Require authentication for the template preview route.                                       |
+| `TEMPLATE_PREVIEW_ROUTE_PREFIX` | string  | `'/templates'`                                          | URL prefix for the template preview route.                                                   |
+| `TEMPLATE_PROVIDER`             | string  | `'@appweaver/core/template/handlebars-template-engine'` | Template engine provider implementation path, empty to load none.                            |
+
+### Locale (LOCALE\_\*)
+
+| Property         | Type   | Default       | Description                                                                        |
+|------------------|--------|---------------|------------------------------------------------------------------------------------|
+| `LOCALE_DEFAULT` | string | `'en'`        | The locale used when none is given to a translation or a template render.          |
+| `LOCALE_PATH`    | string | `'./locales'` | Directory of the translation files, a nested JSON file per locale, i.e. `de.json`. |
+
 ### System (SYSTEM\_\*)
 
 | Property                        | Type    | Default                | Description                                       |
@@ -547,12 +575,12 @@ cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting is s
 
 ## Configuration files summary
 
-| File                   | Purpose                                                                            |
-|------------------------|------------------------------------------------------------------------------------|
-| `appweaver.json`       | Global configuration (`config`) and the overrides of each env (`environments`)     |
-| `appweaver.{env}.json` | Optional environment-specific overrides, loaded over the `environments` section    |
-| `.env`                 | Environment variables (all environments)                                           |
-| `.env.{env}`           | Environment-specific env variable overrides                                        |
+| File                   | Purpose                                                                         |
+|------------------------|---------------------------------------------------------------------------------|
+| `appweaver.json`       | Global configuration (`config`) and the overrides of each env (`environments`)  |
+| `appweaver.{env}.json` | Optional environment-specific overrides, loaded over the `environments` section |
+| `.env`                 | Environment variables (all environments)                                        |
+| `.env.{env}`           | Environment-specific env variable overrides                                     |
 
 ## Environment values
 

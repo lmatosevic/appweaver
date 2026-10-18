@@ -45,10 +45,10 @@ the key, it is not shown again. The agents `nicole@`, `ethan@`, `laura@`, and `t
 sign in with `Passw0rd!`. The demo ticket `HD-DEMO02` is past its resolution target, so the escalation job raises it
 within five minutes of starting the server.
 
-The application connects as the `helpdesk-api` user, which [`database/mariadb-init.sh`](database/mariadb-init.sh)
-grants every database when the container first initializes its volume, since Prisma Migrate creates a shadow database
-next to it. In development the emails are written to the log by the JSON mailer (see the `dev` environment of [
-`appweaver.json`](appweaver.json)).
+The application connects as the `helpdesk-api` user, which [`database/mariadb-init.sh`](database/mariadb-init.sh) grants
+every database when the container first initializes its volume, since Prisma Migrate creates a shadow database next to
+it. The emails are written to the log by the JSON mailer (the `mailer` of [`appweaver.json`](appweaver.json)), so the
+sample needs no SMTP server.
 
 ## Try it out
 

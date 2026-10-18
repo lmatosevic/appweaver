@@ -305,6 +305,20 @@
         "password": ""
       }
     },
+    "template": {
+      "path": "./templates",
+      "cache": true,
+      "preview": {
+        "enabled": false,
+        "auth": false,
+        "routePrefix": "/templates"
+      },
+      "provider": "@appweaver/core/template/handlebars-template-engine"
+    },
+    "locale": {
+      "default": "en",
+      "path": "./locales"
+    },
     "system": {
       "adminInitialEmail": "admin@appweaver.co",
       "adminInitialPassword": "Password1!"

@@ -25,6 +25,7 @@
       "provider": "@appweaver/core/queue/memory-queue"
     },
     "mailer": {
+      "provider": "@appweaver/core/mailer/json-mailer",
       "senderName": "HR Team",
       "senderAddress": "hr@example.com"
     },
@@ -37,9 +38,6 @@
       "log": {
         "level": "debug",
         "pretty": true
-      },
-      "mailer": {
-        "provider": "@appweaver/core/mailer/json-mailer"
       }
     },
     "test": {
@@ -61,9 +59,6 @@
       },
       "queue": {
         "provider": "@appweaver/core/queue/memory-queue"
-      },
-      "mailer": {
-        "provider": "@appweaver/core/mailer/json-mailer"
       },
       "scheduler": {
         "autoStartJob": false

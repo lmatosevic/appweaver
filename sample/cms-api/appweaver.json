@@ -16,6 +16,9 @@
     "redis": {
       "url": "redis://${REDIS_HOST:-localhost}:6379/0"
     },
+    "healthCheck": {
+      "omitInstances": ["mailer"]
+    },
     "security": {
       "basic": {
         "enabled": true
@@ -26,10 +29,18 @@
       "oauth2": {
         "google": {
           "enabled": true
+        },
+        "facebook": {
+          "enabled": true
         }
       },
       "recaptcha": {
         "enabled": true
+      },
+      "account": {
+        "2fa": {
+          "enabled": true
+        }
       }
     },
     "resource": {
@@ -38,9 +49,6 @@
         "updateEnabled": true,
         "deleteEnabled": true
       }
-    },
-    "log": {
-      "pretty": false
     }
   },
   "environments": {
@@ -48,6 +56,18 @@
       "log": {
         "level": "debug",
         "pretty": true
+      },
+      "database": {
+        "logEvents": ["query", "warn"]
+      },
+      "cache": {
+        "cleanStart": true
+      },
+      "template": {
+        "cache": false,
+        "preview": {
+          "enabled": true
+        }
       }
     },
     "test": {

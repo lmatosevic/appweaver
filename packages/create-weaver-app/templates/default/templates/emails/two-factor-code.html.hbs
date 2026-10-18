@@ -1,0 +1,6 @@
+{{#> layouts/email.html title=(t "emails.twoFactorCode.subject")}}
+<p>{{t "emails.greeting"}}</p>
+<p>{{t "emails.twoFactorCode.message"}}</p>
+<p style="margin: 24px 0; font-size: 32px; line-height: 40px; font-weight: bold; letter-spacing: 8px">{{code}}</p>
+<p>{{t "emails.twoFactorCode.expires" count=expiresInMinutes}}</p>
+{{/layouts/email.html}}

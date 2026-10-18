@@ -21,13 +21,13 @@ const mailer = inject(Mailer, false); // undefined if not registered
 
 Sends an email. Returns `true` on success.
 
-| Field         | Type           | Required | Description                               |
-|---------------|----------------|----------|-------------------------------------------|
-| `to`          | `string`       | Yes      | Recipient address                         |
-| `subject`     | `string`       | Yes      | Email subject line                        |
-| `text`        | `string`       | Yes      | Plain-text body                           |
-| `html`        | `string`       | No       | HTML body (falls back to wrapping `text`) |
-| `attachments` | `Attachment[]` | No       | Provider-specific attachment objects      |
+| Field         | Type           | Required | Description                                  |
+|---------------|----------------|----------|----------------------------------------------|
+| `to`          | `string`       | Yes      | Recipient address                            |
+| `subject`     | `string`       | Yes      | Email subject line                           |
+| `text`        | `string`       | Yes      | Plain-text body                              |
+| `html`        | `string`       | No       | HTML body (falls back to the escaped `text`) |
+| `attachments` | `Attachment[]` | No       | Provider-specific attachment objects         |
 
 ```ts
 await mailer.sendEmail({
@@ -198,6 +198,70 @@ for (const [i, result] of results.entries()) {
   }
 }
 ```
+
+---
+
+#### `emailService.sendTemplateEmail(email)`
+
+Renders the email from the templates of the [template engine](./templates.md) in the given locale and queues it like
+`sendEmail`. The `template` is a name without the format, its templates render the parts of the email:
+
+| Template             | Renders             | Required                                    |
+|----------------------|---------------------|---------------------------------------------|
+| `<template>.html`    | The HTML body       | No, the escaped text body when missing      |
+| `<template>.txt`     | The plain text body | No, derived from the HTML body when missing |
+| `<template>.subject` | The subject         | Unless `subject` is given                   |
+
+| Field         | Type           | Required | Description                                                   |
+|---------------|----------------|----------|---------------------------------------------------------------|
+| `to`          | `string`       | Yes      | Recipient address                                             |
+| `template`    | `string`       | Yes      | Template name without the format, i.e. `emails/order-shipped` |
+| `data`        | `object`       | No       | The data the templates render                                 |
+| `locale`      | `string`       | No       | The locale to render in, `LOCALE_DEFAULT` by default          |
+| `subject`     | `string`       | No       | Used instead of the `.subject` template                       |
+| `attachments` | `Attachment[]` | No       | Provider-specific attachment objects                          |
+
+```text
+templates/emails/
+├── order-shipped.html.hbs
+├── order-shipped.txt.hbs          # optional, i.e. for a table laid out as text
+└── order-shipped.subject.hbs      # {{t "emails.orderShipped.subject" number=order.number}}
+```
+
+```ts
+await emailService.sendTemplateEmail({
+  to: customer.email,
+  template: 'emails/order-shipped',
+  data: { order, trackingUrl },
+  locale: customer.language // decided by the application
+});
+```
+
+`emailService.renderTemplateEmail(email)` returns the rendered `Email` without sending it, to pass to
+`sendEmailAndWait` or `sendEmailBulk`. An email needs one of the body templates, without both or without a subject it
+rejects with `TEMPLATE_NOT_FOUND`.
+
+### Account emails
+
+The account routes send their emails from the templates of the application, in the requested locale or
+`LOCALE_DEFAULT`. The framework ships no templates of its own:
+
+| Template                 | Data                                           |
+|--------------------------|------------------------------------------------|
+| `emails/verify-email`    | `email`, `link`                                |
+| `emails/password-reset`  | `email`, `link`                                |
+| `emails/two-factor-code` | `email`, `code`, `purpose`, `expiresInMinutes` |
+
+An email is rendered when its `.html` or `.txt` template exists, with the translated `emails.<email>.subject` key
+when it has no `.subject` template. Without a template, or without the `handlebars` package, it is sent as plain text
+built from the `emails.*` translations, which the framework defines in English and `locales/<locale>.json` overrides.
+
+A scaffolded project starts with the `.html` and `.subject` templates of all three emails in `templates/emails/`,
+sharing the `layouts/email.html` layout and the `partials/email-button.html` partial, and with their English keys in
+`locales/en.json`. Their plain text is derived from the HTML, add a `.txt` template only for a text that should read
+differently. Edit them freely, or delete them to send the plain text. Created with `--no-locales`, the templates
+hold the English texts themselves and there is no `locales/` directory; created with `--no-templates`, the emails are
+sent as plain text of `locales/en.json`. See [templates.md](./templates.md).
 
 ---
 

@@ -1,0 +1,24 @@
+{{#> layouts/page.html title=post.title}}
+  <article>
+    <header>
+      <h1>{{post.title}}</h1>
+      <p class="meta">
+        {{t "post.page.publishedOn" date=(formatDate post.publishedAt "long")}}
+        {{#if author}}· {{t "post.page.by" author=author}}{{/if}}
+      </p>
+    </header>
+    {{#if post.excerpt}}
+      <p><strong>{{post.excerpt}}</strong></p>
+    {{/if}}
+    <div>{{post.content}}</div>
+    <footer>
+      {{#if post.category}}
+        <p>{{t "post.page.category"}}: {{post.category.name}}</p>
+      {{/if}}
+      {{#if (length post.tags)}}
+        {{> partials/tag-list tags=post.tags}}
+      {{/if}}
+      <p>{{t "post.page.comments" comments=commentCount}}</p>
+    </footer>
+  </article>
+{{/layouts/page.html}}

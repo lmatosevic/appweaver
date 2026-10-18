@@ -18,6 +18,9 @@
       "log": {
         "level": "debug",
         "pretty": true
+      },
+      "template": {
+        "cache": false
       }
     },
     "test": {

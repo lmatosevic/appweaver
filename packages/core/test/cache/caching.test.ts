@@ -18,13 +18,13 @@ describe('caching', () => {
   async function server(
     config: Record<string, unknown>,
     method: 'GET' | 'POST' | 'PUT' = 'GET',
-    status: number = 200
+    status: number = 200,
+    authUser: AuthUser | null = user
   ): Promise<void> {
     app = Fastify({ logger: false });
-    app.decorate('currentUser', () => user);
     app.register(fastifyRequestContext, {
       defaultStoreValues: {
-        authUser: null,
+        authUser,
         authType: null,
         authSource: null,
         apiKey: null,
@@ -121,6 +121,17 @@ describe('caching', () => {
     expect(cacheKey).toHaveBeenCalledWith(expect.anything(), user);
     expect(store.has('posts:custom')).toBe(true);
     expect(cacheService.buildCacheKey).not.toHaveBeenCalled();
+  });
+
+  test('builds the key without the user of an unauthenticated request', async () => {
+    await server({ cache: true }, 'GET', 200, null);
+
+    const response = await send();
+
+    expect(response.status).toBe(200);
+    expect(cacheService.buildCacheKey).toHaveBeenCalledWith(
+      expect.objectContaining({ authUser: undefined })
+    );
   });
 
   test('builds the key without the user on a public route', async () => {

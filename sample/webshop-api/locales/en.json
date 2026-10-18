@@ -1,0 +1,36 @@
+{
+  "orders": {
+    "greeting": "Hi {name},",
+    "signature": "Thank you for shopping with us!",
+    "confirmed": {
+      "subject": "Order {number} confirmed",
+      "message": "We received your payment of {total}, your order is being packed.",
+      "items": "Order {number} contains {count, plural, one {# product} other {# products}}:"
+    },
+    "summary": {
+      "product": "Product",
+      "quantity": "Quantity",
+      "price": "Price",
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "shipping": "Shipping",
+      "freeShipping": "Free",
+      "total": "Total",
+      "shipTo": "Shipping to:"
+    },
+    "paymentFailed": {
+      "subject": "Payment for order {number} failed",
+      "message": "The payment was declined, so the order was not placed. Please try again with another card."
+    },
+    "shipped": {
+      "subject": "Order {number} is on its way",
+      "message": "Your order was handed to {carrier}, the tracking number is:",
+      "shippedOn": "Shipped on {date}."
+    },
+    "cancelled": {
+      "subject": "Order {number} cancelled",
+      "message": "Your order was cancelled.",
+      "refund": "The payment of {total} is refunded within a few days."
+    }
+  }
+}

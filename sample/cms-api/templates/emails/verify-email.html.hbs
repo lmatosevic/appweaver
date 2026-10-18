@@ -1,0 +1,5 @@
+{{#> layouts/email.html title=(t "emails.verifyEmail.subject")}}
+<p>{{t "emails.greeting"}}</p>
+<p>{{t "emails.verifyEmail.message"}}</p>
+{{> partials/email-button.html href=link label=(t "emails.verifyEmail.action")}}
+{{/layouts/email.html}}

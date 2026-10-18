@@ -24,7 +24,9 @@ export function runProcess(
     }
 
     const command = args.length > 0 ? `${cmd} ${args.join(' ')}` : cmd;
-    const child = spawn(command, {
+    // exec replaces the shell with the command, so the abort kills the command itself
+    const abortable = signal && process.platform !== 'win32';
+    const child = spawn(abortable ? `exec ${command}` : command, {
       stdio: quiet ? 'ignore' : 'inherit',
       shell: true,
       env: { ...process.env, WEAVER_CLI: undefined }

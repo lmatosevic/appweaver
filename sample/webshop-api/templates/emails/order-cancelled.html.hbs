@@ -1,0 +1,8 @@
+{{#> layouts/email.html title=(t "orders.cancelled.subject" number=order.number)}}
+  <p>{{t "orders.greeting" name=customer.firstName}}</p>
+  <p>{{t "orders.cancelled.message"}}</p>
+  {{#if order.paidAt}}
+    <p>{{t "orders.cancelled.refund" total=(money order.total)}}</p>
+  {{/if}}
+  <p>{{t "orders.signature"}}</p>
+{{/layouts/email.html}}

@@ -8,3 +8,4 @@ export * from './redis';
 export * from './scheduler';
 export * from './security-store';
 export * from './storage';
+export * from './template';

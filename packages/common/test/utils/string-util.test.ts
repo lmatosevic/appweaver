@@ -16,6 +16,7 @@ import {
   singular,
   snakeToCamelCase,
   textToBytes,
+  toText,
   uncapitalize,
   uuid
 } from '../../utils/string-util';
@@ -435,6 +436,23 @@ describe('string-util', () => {
 
     test('leaves unknown variables in place', () => {
       expect(replacePatternVariables('{unknown}')).toBe('{unknown}');
+    });
+  });
+
+  describe('toText', () => {
+    test('converts the values into text', () => {
+      expect(toText('a')).toBe('a');
+      expect(toText(1.5)).toBe('1.5');
+      expect(toText(false)).toBe('false');
+      expect(toText(10n)).toBe('10');
+      expect(toText({ a: 1 })).toBe('{"a":1}');
+      expect(toText(new Date(0))).toBe('1970-01-01T00:00:00.000Z');
+    });
+
+    test('converts an absent value into an empty string', () => {
+      expect(toText(undefined)).toBe('');
+      expect(toText(null)).toBe('');
+      expect(toText(() => 1)).toBe('');
     });
   });
 });

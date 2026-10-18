@@ -39,6 +39,12 @@ COPY --from=build /usr/app/dist /usr/app/dist
 # Copy public static files
 COPY --from=build /usr/app/public /usr/app/public
 
+# Copy templates
+COPY --from=build /usr/app/templates /usr/app/templates
+
+# Copy translation files
+COPY --from=build /usr/app/locales /usr/app/locales
+
 # Copy Prisma config, database migrations, and schema file
 COPY --from=build /usr/app/prisma.config.ts /usr/app/prisma.config.ts
 COPY --from=build /usr/app/database/migrations /usr/app/database/migrations

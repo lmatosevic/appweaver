@@ -386,3 +386,28 @@ export function replacePatternVariables(
 
   return name;
 }
+
+/**
+ * Converts a value into text: a date in the ISO format, another object as JSON, `null` and `undefined` as an empty
+ * string.
+ *
+ * @param {unknown} value - The value to convert.
+ * @return {string} The text of the value.
+ */
+export function toText(value: unknown): string {
+  switch (typeof value) {
+    case 'string':
+      return value;
+    case 'number':
+    case 'boolean':
+    case 'bigint':
+      return value.toString();
+    case 'undefined':
+      return '';
+    default:
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+      return value === null ? '' : (JSON.stringify(value) ?? '');
+  }
+}

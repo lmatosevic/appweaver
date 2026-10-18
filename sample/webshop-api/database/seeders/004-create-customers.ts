@@ -12,20 +12,22 @@ const DEMO_PASSWORD = 'Passw0rd!';
 export async function createCustomers(): Promise<string> {
   const passwordHash = await hashPassword(DEMO_PASSWORD);
 
-  const customer = (firstName: string, lastName: string) =>
+  const customer = (firstName: string, lastName: string, language: string) =>
     db.user.create({
       data: {
         firstName,
         lastName,
         email: `${firstName.toLowerCase()}@example.com`,
+        language,
         passwordHash,
         verifiedEmail: true,
         roles: { connect: [{ name: Role.Customer }] }
       }
     });
 
-  const olivia = await customer('Olivia', 'Bennett');
-  const daniel = await customer('Daniel', 'Hughes');
+  const olivia = await customer('Olivia', 'Bennett', 'en');
+  // Gets the emails of his orders in German
+  const daniel = await customer('Daniel', 'Hughes', 'de');
 
   const address = {
     recipient: 'Olivia Bennett',

@@ -20,11 +20,13 @@ import {
   config,
   ErrorCode,
   makeHash,
-  SecurityStore
+  SecurityStore,
+  TemplateEngine
 } from '@appweaver/common';
 import { define } from '../../../context';
 import { AuthError } from '../../../security/auth-error';
 import { EmailService } from '../../../mailer';
+import { LocaleService } from '../../../locale';
 import { AuthService } from '../../../security/auth-service';
 import {
   AccountService,
@@ -40,16 +42,29 @@ describe('account-service', () => {
   let authService: Record<string, jest.Mock>;
   let securityStore: Record<string, jest.Mock>;
   let sendEmail: jest.Mock;
+  let sendPlainEmail: jest.Mock;
+  let hasTemplate: jest.Mock;
   let tokenData: Record<string, any>;
   let service: AccountService;
 
-  /** Creates the service with the given dependencies defined, the email service included unless told otherwise. */
-  function createService(withEmail: boolean = true): AccountService {
+  /** Creates the service with the given dependencies defined, the email service and the template engine included
+   * unless told otherwise. */
+  function createService(
+    withEmail: boolean = true,
+    withTemplates: boolean = true
+  ): AccountService {
     resetContext();
     define(authService, AuthService);
     define(securityStore, SecurityStore as any);
+    define(LocaleService);
     if (withEmail) {
-      define({ sendEmail }, EmailService);
+      define(
+        { sendTemplateEmail: sendEmail, sendEmail: sendPlainEmail },
+        EmailService
+      );
+    }
+    if (withTemplates) {
+      define({ hasTemplate }, TemplateEngine as any);
     }
     return new AccountService();
   }
@@ -82,6 +97,8 @@ describe('account-service', () => {
     };
 
     sendEmail = jest.fn().mockResolvedValue(true);
+    sendPlainEmail = jest.fn().mockResolvedValue(true);
+    hasTemplate = jest.fn().mockResolvedValue(true);
 
     service = createService();
   });
@@ -101,8 +118,11 @@ describe('account-service', () => {
         { authUserId: 1, redirectToUrl: 'https://app.test/verified' },
         config.SECURITY_ACCOUNT_VERIFY_EMAIL_OTT_TTL
       );
-      expect(lastEmail().to).toBe('user@test.com');
-      expect(lastEmail().text).toMatch(
+      expect(lastEmail()).toMatchObject({
+        to: 'user@test.com',
+        template: 'emails/verify-email'
+      });
+      expect(lastEmail().data.link).toMatch(
         /http:\/\/api\.test\/auth\/account\/verify-email-redirect\?token=ott$/
       );
     });
@@ -114,8 +134,64 @@ describe('account-service', () => {
         VerificationType.Manual
       );
 
-      expect(lastEmail().text).toMatch(
+      expect(lastEmail().data.link).toMatch(
         /https:\/\/app\.test\/verify\?lang=en&token=ott$/
+      );
+    });
+
+    test('renders the templates of the application in the given locale', async () => {
+      await service.sendEmailVerification(
+        authUser(),
+        'https://app.test/verified',
+        VerificationType.Auto,
+        'de'
+      );
+
+      expect(hasTemplate).toHaveBeenCalledWith(
+        'emails/verify-email.html',
+        'de'
+      );
+      expect(lastEmail().subject).toBeUndefined();
+      expect(sendPlainEmail).not.toHaveBeenCalled();
+    });
+
+    test('sends the translated subject without a subject template', async () => {
+      hasTemplate.mockImplementation(
+        async (name: string) => !name.endsWith('.subject')
+      );
+
+      await service.sendEmailVerification(
+        authUser(),
+        'https://app.test/verified'
+      );
+
+      expect(lastEmail().subject).toBe('Verify your email address');
+    });
+
+    test('sends the plain text of the translations without a template of the application', async () => {
+      hasTemplate.mockResolvedValue(false);
+
+      await service.sendEmailVerification(
+        authUser(),
+        'https://app.test/verified'
+      );
+
+      expect(sendEmail).not.toHaveBeenCalled();
+      expect(sendPlainEmail.mock.calls[0][0].subject).toBe(
+        'Verify your email address'
+      );
+    });
+
+    test('sends the plain text of the translations without the template engine', async () => {
+      await createService(true, false).sendEmailVerification(
+        authUser(),
+        'https://app.test/verified'
+      );
+
+      const email = sendPlainEmail.mock.calls[0][0];
+      expect(email.subject).toBe('Verify your email address');
+      expect(email.text).toContain(
+        'http://api.test/auth/account/verify-email-redirect?token=ott'
       );
     });
 
@@ -252,9 +328,32 @@ describe('account-service', () => {
         { authUserId: 1, authSource: AuthSource.Password },
         config.SECURITY_ACCOUNT_RESET_PASSWORD_OTT_TTL
       );
-      expect(lastEmail().text).toMatch(
+      expect(lastEmail().template).toBe('emails/password-reset');
+      expect(lastEmail().data.link).toMatch(
         /https:\/\/app\.test\/reset\?token=ott$/
       );
+    });
+
+    test('renders the email in the given locale', async () => {
+      await service.sendResetPassword(
+        'user@test.com',
+        'https://app.test/reset',
+        'de'
+      );
+
+      expect(lastEmail().locale).toBe('de');
+    });
+
+    test('sends the plain text of the translations without the template engine', async () => {
+      await createService(true, false).sendResetPassword(
+        'user@test.com',
+        'https://app.test/reset'
+      );
+
+      const email = sendPlainEmail.mock.calls[0][0];
+      expect(email.subject).toBe('Password reset request');
+      expect(email.text).toContain('\n\nhttps://app.test/reset?token=ott\n\n');
+      expect(email.text).toContain('you can safely ignore this email.');
     });
 
     test.each([
@@ -355,7 +454,9 @@ describe('account-service', () => {
     test('emails a six digit code and stores only its hash', async () => {
       const result = await service.send2FACode(authUser());
 
-      const code = lastEmail().text.match(/(\d{6})$/)[1];
+      const code = lastEmail().data.code;
+      expect(code).toMatch(/^\d{6}$/);
+      expect(lastEmail().template).toBe('emails/two-factor-code');
       expect(securityStore.generateOneTimeToken).toHaveBeenCalledWith(
         AuthOTTPurpose.TwoFAVerification,
         { authUserId: 1, codeHash: makeHash(code), purpose: 'authentication' },
@@ -372,6 +473,18 @@ describe('account-service', () => {
 
       expect(securityStore.generateOneTimeToken.mock.calls[0][1].purpose).toBe(
         'passwordReset'
+      );
+    });
+
+    test('sends the plain text of the translations without the template engine', async () => {
+      await createService(true, false).send2FACode(authUser());
+
+      const email = sendPlainEmail.mock.calls[0][0];
+      expect(sendEmail).not.toHaveBeenCalled();
+      expect(email.to).toBe('user@test.com');
+      expect(email.subject).toBe('Your verification code');
+      expect(email.text).toMatch(
+        /^Hello,\n\nPlease enter the following code to continue:\n\n\d{6}\n\nThe code expires in 5 minutes\.\n\n--\nThis email was sent by /
       );
     });
 

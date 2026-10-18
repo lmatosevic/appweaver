@@ -110,7 +110,9 @@ Core application logic. Organized into the following modules:
 | `queue/`     | Background job queues — Bull (Redis-backed) and in-memory implementations                                                                                            |
 | `scheduler/` | Cron job scheduling service                                                                                                                                          |
 | `seeder/`    | Database seeding utilities                                                                                                                                           |
-| `mailer/`    | Email service — SMTP and JSON (dev/test) mailer implementations                                                                                                      |
+| `mailer/`    | Email service — SMTP and JSON (dev/test) mailer implementations, rendering the template emails                                                                       |
+| `template/`  | Template engine — the Handlebars implementation of `TemplateEngine` and its helpers, without any templates of its own                                                |
+| `locale/`    | Locale service — translating the dotted keys of the nested JSON translation files, with the framework's own English translations                                     |
 | `cache/`     | Caching layer abstractions and implementations                                                                                                                       |
 | `context/`   | Dependency injection container and utility functions                                                                                                                 |
 | `health/`    | Health check endpoint and service registration                                                                                                                       |
@@ -209,13 +211,17 @@ During project generation, the CLI accepts arguments for name, description, runt
 skip installing. Then replaces the templates with defined variables, and copies only the relevant files based on the
 chosen runtime, stripping the `.tpl`, `.node`, or `.bun` extensions from the final output.
 
+Templates and localization are scaffolded independently. `--no-templates` drops `templates/` and Handlebars,
+`--no-locales` drops `locales/` and replaces every `{{t "key"}}` of the scaffolded templates with the English message of
+the key in `locales/en.json`, using `utils/translation-util.ts` (a plural becomes an `{{#if (eq count 1)}}` chain). Write
+the scaffolded templates with `t` calls only, a test checks that both variants render the same text.
+
 The versions of every npm package a generated project installs (except the `@appweaver/*` packages, which follow the
 CLI's own version) are kept in the `scaffoldDependencies` field of the **root** `package.json`, split into `companion`
-(packages the framework uses at runtime or as a peer: Prisma, TypeBox, BullMQ, Cron, IoRedis, Nodemailer, TypeScript)
-and
-`tooling` (lint and test setup). The templates receive them through the `{{DEPENDENCIES}}` and `{{DEV_DEPENDENCIES}}`
-variables, so bump versions there, not in the templates. Keep the versions equal to the root `dependencies` and
-`devDependencies`, which a test checks.
+(packages the framework uses at runtime or as a peer: Prisma, TypeBox, BullMQ, Cron, Handlebars, IoRedis, Nodemailer,
+TypeScript) and `tooling` (lint and test setup). The templates receive them through the `{{DEPENDENCIES}}` and
+`{{DEV_DEPENDENCIES}}` variables, so bump versions there, not in the templates. Keep the versions equal to the root
+`dependencies` and `devDependencies`, which a test checks.
 
 A package lists the root fields it needs in its own `rootFields` array (`cli` and `create-weaver-app` list
 `scaffoldDependencies`). `tools/copy-packages.js` copies them into `dist/package.json` and strips `rootFields`, the same
@@ -367,8 +373,10 @@ weaver start [options]
 
 - **Normal mode**: `node <APP_BUILD_PATH>/<APP_MAIN_FILE_PATH>` (`./dist/src/main.js` by default), or `bun` for the Bun
   runtime.
-- **Watch mode**: `tsc-watch` with alias resolution and server restart on each successful build. The Bun runtime runs
-  the TypeScript sources directly and restarts on every change in `APP_SOURCE_PATH`.
+- **Watch mode**: `tsc-watch` with alias resolution and server restart on each successful build, and on every change in
+  the template and translation directories (`TEMPLATE_PATH`, `LOCALE_PATH`) while the last build succeeded. The Bun
+  runtime runs the TypeScript sources directly and restarts on every change in `APP_SOURCE_PATH`, `TEMPLATE_PATH` and
+  `LOCALE_PATH`. A burst of changes restarts the server once, and a directory that does not exist is not watched.
 
 ---
 
@@ -412,7 +420,8 @@ weaver test reset [options]
 | `--storage`           | Reset file storage  | —        |
 | `--verbose`           | Verbose output      | false    |
 
-With no flags, resets **both** database and storage.
+With no flags, resets **both** database and storage. The database is reset with `prisma migrate reset`, which Prisma
+refuses to run for an AI agent without the user's consent.
 
 #### `weaver test teardown`
 
@@ -545,8 +554,8 @@ const users = await client.user.query({ filter: { enabled: true } });
 ### `sample/cms-api`
 
 A reference CMS (Content Management System) API that demonstrates how to build a complete application with Appweaver. It
-includes user authentication, posts with file uploads, role-based authorization, scheduled jobs, custom routes, and
-plugins.
+includes user authentication, posts with file uploads, role-based authorization, scheduled jobs, custom routes, plugins,
+and the localized templates of its `templates/` and `locales/` directories (an HTML page, an XML export and an email).
 
 #### Model definitions and code generation
 
@@ -589,7 +598,7 @@ weaver start --watch      # or: npm run dev
 
 - **`weaver start`** runs `node ./dist/src/main.js`.
 - **`weaver start --watch`** uses `tsc-watch` to recompile on file changes, resolves path aliases with `tsc-alias`, and
-  restarts the server on each successful build.
+  restarts the server on each successful build, and on each change of a file in `templates/` or `locales/`.
 
 #### Environment-based configuration
 
@@ -646,12 +655,12 @@ start.sh seed         # Seed the database
 Scaffolded with `create-weaver-app`, each showcases a different part of the framework and documents it in its own
 `README.md`. They follow the `cms-api` workflow above, with the differences listed here.
 
-| Sample                  | Runtime | Database           | Showcases                                                                                            |
-|-------------------------|---------|--------------------|------------------------------------------------------------------------------------------------------|
-| `sample/webshop-api`    | Node    | PostgreSQL + Redis | Transactional checkout, BullMQ payment worker on a resource event, API key partner, sales aggregates |
-| `sample/hr-api`         | Node    | SQLite             | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades  |
-| `sample/helpdesk-api`   | Node    | MySQL (MariaDB)    | Non-auth customers connected by email, auto-assignment, SLA escalation job, cursor pagination        |
-| `sample/movies-api-bun` | Bun     | SQLite (libsql)    | Public cached catalog, join model with payload, OAuth2 sign-up, generated typed client               |
+| Sample                  | Runtime | Database           | Showcases                                                                                                  |
+|-------------------------|---------|--------------------|------------------------------------------------------------------------------------------------------------|
+| `sample/webshop-api`    | Node    | PostgreSQL + Redis | Transactional checkout, BullMQ payment worker on a resource event, API key partner, localized order emails |
+| `sample/hr-api`         | Node    | SQLite             | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades        |
+| `sample/helpdesk-api`   | Node    | MySQL (MariaDB)    | Non-auth customers connected by email, auto-assignment, SLA escalation job, cursor pagination              |
+| `sample/movies-api-bun` | Bun     | SQLite (libsql)    | Public cached catalog, join model with payload, OAuth2 sign-up, generated typed client                     |
 
 - The PostgreSQL and MySQL samples start their database with `docker compose up -d postgres redis` (or `mysql`); their
   end-to-end tests run against a `-test` database of the same container.
