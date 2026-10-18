@@ -1,3 +1,9 @@
+## [1.12.1](https://github.com/lmatosevic/appweaver/compare/v1.12.0...v1.12.1) (2026-10-18)
+
+### Bug Fixes
+
+* bump fastify version to 5.12.7 ([6b8e2f8](https://github.com/lmatosevic/appweaver/commit/6b8e2f8a89d0825b8b892038bf2039dbd3237a4f))
+
 ## [1.12.0](https://github.com/lmatosevic/appweaver/compare/v1.11.3...v1.12.0) (2026-10-18)
 
 ### Features
