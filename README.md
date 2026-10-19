@@ -59,22 +59,27 @@ npm install -g @appweaver/create-weaver-app
 Bootstrap the new application:
 
 ```sh
-create-weaver-app MyApp "My awesome API" --database postgresql
+create-weaver-app MyApp "My awesome API" --database postgresql --add redis mailer docker
 ```
 
-This creates a `./my-app` directory, installs all dependencies, and runs the initial schema and type generation.
+This creates a `./my-app` directory, installs all dependencies, and runs the initial schema and type generation. The
+base project has no optional module: add them with `--add`, all of them with `--all` (leaving some out with
+`--no-<module>`), or later with `weaver module add`.
 
 Common options:
 
-| Flag               | Description                                                    | Default      |
-|--------------------|----------------------------------------------------------------|--------------|
-| `-o, --output-dir` | Output directory (use ./ for current working directory)        | project name |
-| `--database`       | `sqlite`, `postgresql`, `mysql`, `sqlserver`                   | `sqlite`     |
-| `--host`           | Hostname or IP address where the application server will bind. | 0.0.0.0      |
-| `--port`           | Port number where the application server will listen.          | 5000         |
-| `--agent`          | The AI agent for which to configure guidelines and skill files | `claude`     |
-| `--bun`            | Use Bun as application runtime.                                | false        |
-| `--no-install`     | Skip all dependencies installation.                            | installs     |
+| Flag                 | Description                                                               | Default      |
+|----------------------|---------------------------------------------------------------------------|--------------|
+| `-o, --output-dir`   | Output directory (use ./ for current working directory)                   | project name |
+| `--database`         | `sqlite`, `postgresql`, `mysql`, `sqlserver`                              | `sqlite`     |
+| `--host`             | Hostname or IP address where the application server will bind.            | 0.0.0.0      |
+| `--port`             | Port number where the application server will listen.                     | 5000         |
+| `--agent`            | The AI agent for which to configure guidelines and skill files            | `claude`     |
+| `--add <modules...>` | `redis`, `queue`, `scheduler`, `mailer`, `templates`, `locales`, `docker` | none         |
+| `--all`              | Add every module                                                          | false        |
+| `--no-<module>`      | Leave a module out of `--all`                                             | —            |
+| `--bun`              | Use Bun as application runtime.                                           | false        |
+| `--no-install`       | Skip all dependencies installation.                                       | installs     |
 
 ### 2. Run the initial migration and seed
 
@@ -146,7 +151,7 @@ The `./skill` directory contains two files any agent can load to use Appweaver a
 After upgrading Appweaver packages in a project, skill files are refreshed automatically:
 
 ```sh
-weaver update     # updates packages and refreshes agent skill files
+weaver upgrade    # upgrades packages and refreshes agent skill files
 ```
 
 ---
@@ -272,7 +277,8 @@ weaver migration new <name>       # create a new database migration
 weaver migrate                    # apply pending migrations
 weaver seed                       # seed the database
 weaver openapi                    # export OpenAPI spec to openapi.json
-weaver update                     # update all @appweaver/* packages and skill files
+weaver module add redis docker    # add modules to the project (list, add, remove)
+weaver upgrade                    # upgrade all @appweaver/* packages and skill files
 ```
 
 ### `@appweaver/client` (`weaver-client`)
@@ -313,7 +319,8 @@ await client.user.delete(user.id);
 ### `@appweaver/create-weaver-app` (`create-weaver-app`)
 
 Project scaffolding tool. Generates a complete Appweaver application from a template with support for Node and Bun
-runtimes, multiple databases, and optional modules (queue, mailer, scheduler).
+runtimes, multiple databases, and optional modules (Redis, queue, scheduler, mailer, templates, locales, Docker), which
+`weaver module add` and `weaver module remove` manage later from the same templates.
 
 ```sh
 npx create-weaver-app <name> [description] [options]

@@ -5,21 +5,21 @@ import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { Command, InvalidOptionArgumentError } from 'commander';
-import { glob } from 'glob';
 import {
-  flattenTranslations,
-  inlineTranslations
-} from './utils/translation-util';
+  createProject,
+  DatabaseType,
+  databaseTypes,
+  ModuleName,
+  moduleNames,
+  modules,
+  parseModuleNames,
+  resolveModules,
+  ScaffoldError
+} from './scaffold';
 
 const pkg = JSON.parse(
   fs.readFileSync(path.join(__dirname, './package.json'), 'utf8')
 );
-
-/** The versions of the npm packages a new project is generated with. The Appweaver packages are
- * left out, since they follow the version of this package. */
-const packageVersions = loadPackageVersions();
-
-const dbTypes = ['sqlite', 'postgresql', 'mysql', 'sqlserver'];
 
 const agentTypes = [
   'claude',
@@ -53,7 +53,7 @@ program
   )
   .option(
     '--database [database]',
-    `Type of SQL database (${dbTypes.join(', ')}).`,
+    `Type of SQL database (${databaseTypes.join(', ')}).`,
     parseDatabaseType,
     'sqlite'
   )
@@ -75,730 +75,199 @@ program
     parseAgentType,
     'claude'
   )
+  .option(
+    '--add <modules...>',
+    `Modules to add, separated by spaces or commas (${moduleNames.join(', ')}).`
+  )
+  .option('--all', 'Add every module.')
   .option('--bun', 'Use Bun as application runtime.')
-  .option('--no-install', 'Skip all dependencies installation.')
-  .option(
-    '--no-docker',
-    'Skip copying Dockerfile and docker-compose.yml files.'
-  )
-  .option(
-    '--no-redis',
-    'Skip IoRedis package installation and use in-memory cache, rate limit and queue.'
-  )
-  .option(
-    '--no-queue',
-    'Skip BullQueue package installation and use in-memory queue.'
-  )
-  .option(
-    '--no-mailer',
-    'Skip Nodemailer package installation and disable the mailer.'
-  )
-  .option(
-    '--no-templates',
-    'Skip Handlebars package installation and the template files.'
-  )
-  .option(
-    '--no-locales',
-    'Skip the translation files, writing the English texts into the templates.'
-  )
-  .option(
-    '--no-cron',
-    'Skip Cron package installation and disable the scheduler.'
-  )
-  .action(async (name: string, description: string, _, command: Command) => {
-    const directory = command.getOptionValue('outputDir');
-    const runtime = command.getOptionValue('bun') ? 'bun' : 'node';
-    const packageManager = runtime === 'bun' ? 'bun' : 'npm';
+  .option('--no-install', 'Skip all dependencies installation.');
 
-    // Check if bun runtime is installed on this machine
-    if (runtime === 'bun') {
-      const status = await runProcess('bun', ['--version'], { quiet: true });
-      if (status !== 0) {
-        console.error('Bun runtime is not installed on this machine.');
-        process.exit(1);
-      }
-    }
+for (const name of moduleNames) {
+  program.option(
+    `--no-${name}`,
+    `Leave out the ${name} module: ${modules[name].description}.`
+  );
+}
 
-    // Sanitize and create a new directory
-    const sanitizedName = name
-      .replace(/\s+/g, '-')
-      .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
-      .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
-      .toLowerCase();
-
-    const projectDir = directory ?? sanitizedName;
-    const destDir = path.join(process.cwd(), projectDir);
-
-    // Initialize new project directory
+program
+  .action((name: string, description: string, _, command: Command) => {
+    // Validated before anything is created, reported as an invalid option
+    let selectedModules: ModuleName[];
     try {
-      await fsp.access(destDir, fs.constants.F_OK);
-      console.log(`Using existing directory: ${path.dirname(destDir)}\n`);
+      selectedModules = selectModules(command);
     } catch (e) {
-      await fsp.mkdir(destDir, { recursive: true });
-      console.log(`Created new directory: ${projectDir}\n`);
-    }
-
-    console.log('Generating application files...');
-
-    // Copy template contents into a new directory
-    const templateDir = path.join(__dirname, './templates/default');
-    await fsp.cp(templateDir, destDir, { recursive: true });
-
-    // Remove Docker-related files if --no-docker flag is set
-    if (!command.getOptionValue('docker')) {
-      const dockerFiles = [
-        'Dockerfile',
-        'Dockerfile.bun',
-        'docker-compose.yml.tpl'
-      ];
-      for (const dockerFile of dockerFiles) {
-        await fsp.rm(path.join(destDir, dockerFile), { force: true });
+      if (e instanceof ScaffoldError) {
+        command.error(`error: ${e.message}`);
       }
+      throw e;
     }
 
-    // Keep the init script of the docker-compose MariaDB service for MySQL only
-    if (
-      !command.getOptionValue('docker') ||
-      command.getOptionValue('database') !== 'mysql'
-    ) {
-      await fsp.rm(path.join(destDir, 'database', 'mariadb-init.sh'));
-    }
-
-    // Build database-specific docker-compose service blocks
-    const dockerDb = getDatabaseDockerConfig(command, sanitizedName);
-    const dockerRedis = getRedisDockerConfig(command, sanitizedName);
-
-    // Define all variables used in template files with .tpl extension
-    const variables: Record<string, string> = {
-      NAME: name.charAt(0).toUpperCase() + name.slice(1),
-      LOWER_NAME: sanitizedName,
-      DESCRIPTION: description,
-      HOST: command.getOptionValue('host'),
-      PORT: command.getOptionValue('port'),
-      DEPENDENCIES: formatDependencies(getNodeDependencies(command, runtime)),
-      DEV_DEPENDENCIES: formatDependencies(getNodeDevDependencies(runtime)),
-      DATABASE_URL: getDatabaseUrl(command, sanitizedName, 'dev'),
-      DATABASE_TEST_URL: getDatabaseUrl(command, sanitizedName, 'test'),
-      SECRETS_ENV: getSecretsEnv(command, sanitizedName),
-      SQLITE_GITIGNORE: getSqliteGitignore(command),
-      DOCKER_APP_ENVIRONMENT: getDockerAppEnvironment(command),
-      DATABASE_DOCKER_SERVICE: dockerDb.service,
-      DATABASE_DOCKER_MIGRATE_DEPENDS: dockerDb.migrateDepends,
-      DATABASE_DOCKER_APP_VOLUME: dockerDb.appVolume,
-      DATABASE_DOCKER_NAMED_VOLUME: dockerDb.namedVolume,
-      REDIS_DOCKER_SERVICE: dockerRedis.service,
-      REDIS_DOCKER_APP_DEPENDS: dockerRedis.appDepends,
-      REDIS_DOCKER_NAMED_VOLUME: dockerRedis.namedVolume,
-      VERSION: pkg.version
-    };
-
-    // Process .tpl files: replace variables and remove .tpl extension
-    const templateFiles = await glob('**/*.tpl', {
-      cwd: destDir,
-      absolute: true,
-      dot: true
-    });
-
-    for (const templateFile of templateFiles) {
-      let content = await fsp.readFile(templateFile, 'utf8');
-
-      // Replace variables with values, inserted as they are, since a replacement
-      // string would read the '$$' escapes of docker-compose as a pattern
-      for (const [key, value] of Object.entries(variables)) {
-        content = content.replace(
-          new RegExp(`\\{\\{${key}\\}\\}`, 'g'),
-          () => value
-        );
-      }
-
-      // Save output to new file and remove template file
-      const outputFile = templateFile.replace(/\.tpl$/, '');
-      await fsp.writeFile(outputFile, content, 'utf8');
-      await fsp.unlink(templateFile);
-    }
-
-    // Keep a copy of the ignored .env file in git, for setting up a clone
-    await fsp.copyFile(
-      path.join(destDir, '.env'),
-      path.join(destDir, '.env.example')
-    );
-
-    // Find all runtime-specific files and keep only those for current runtime
-    const runtimeFiles = await glob(`**/*.{node,bun}`, {
-      cwd: destDir,
-      absolute: true,
-      dot: true
-    });
-
-    for (const runtimeFile of runtimeFiles) {
-      if (runtimeFile.endsWith(`.${runtime}`)) {
-        const outputFile = runtimeFile.replace(`.${runtime}`, '');
-        await fsp.cp(runtimeFile, outputFile);
-      }
-      await fsp.unlink(runtimeFile);
-    }
-
-    // Configure the Redis connection, or the modules whose packages are skipped
-    const modulesConfig = {
-      ...getRedisConfig(command),
-      ...getModulesConfig(command)
-    };
-    if (Object.keys(modulesConfig).length > 0) {
-      const configFile = path.join(destDir, 'appweaver.json');
-      const appConfig = JSON.parse(await fsp.readFile(configFile, 'utf8'));
-      Object.assign(appConfig.config, modulesConfig);
-      await fsp.writeFile(
-        configFile,
-        `${JSON.stringify(appConfig, null, 2)}
-`,
-        'utf8'
-      );
-    }
-
-    // Without Handlebars, drop the template files, their Dockerfile COPY and
-    // the dev template config
-    if (!command.getOptionValue('templates')) {
-      const configFile = path.join(destDir, 'appweaver.json');
-      const appConfig = JSON.parse(await fsp.readFile(configFile, 'utf8'));
-      delete appConfig.environments.dev.template;
-      await fsp.writeFile(
-        configFile,
-        `${JSON.stringify(appConfig, null, 2)}\n`,
-        'utf8'
-      );
-
-      await fsp.rm(path.join(destDir, 'templates'), {
-        recursive: true,
-        force: true
-      });
-      await removeDockerfileBlock(destDir, 'Copy templates');
-    }
-
-    // Without the translation files, write their English texts into the
-    // templates, and drop the files with their Dockerfile COPY
-    if (!command.getOptionValue('locales')) {
-      const localesDir = path.join(destDir, 'locales');
-      if (command.getOptionValue('templates')) {
-        await inlineTemplateTranslations(
-          path.join(destDir, 'templates'),
-          path.join(localesDir, 'en.json')
-        );
-      }
-
-      await fsp.rm(localesDir, { recursive: true, force: true });
-      await removeDockerfileBlock(destDir, 'Copy translation files');
-    }
-
-    // Create test reports directory
-    await fsp.mkdir(path.join(destDir, 'reports'));
-
-    // Create the SQLite database directory (matches the "data/" DATABASE_URL),
-    // kept in git by an empty file since the database files are ignored
-    if (command.getOptionValue('database') === 'sqlite') {
-      await fsp.mkdir(path.join(destDir, 'data'), { recursive: true });
-      await fsp.writeFile(path.join(destDir, 'data', '.gitkeep'), '');
-    }
-
-    // Add instructions for AI Agents and skill files
-    const agent = command.getOptionValue('agent');
-    if (agent !== 'none') {
-      let agentsDir: string;
-      if (['claude', 'junie', 'kiro', 'pi', 'opencode'].includes(agent)) {
-        agentsDir = `.${agent}`;
-      } else if (agent === 'copilot') {
-        agentsDir = '.github';
-      } else {
-        agentsDir = '.agents';
-      }
-
-      const guidelinesFileName = agent === 'claude' ? 'CLAUDE.md' : 'AGENTS.md';
-
-      // Copy skill and referenced files. The framework guidelines
-      // (GUIDELINES.md) are preserved inside the skills directory so that
-      // `weaver update` can keep them in sync without touching the project's
-      // own root guidelines file.
-      const skillDir = path.join(__dirname, 'skill');
-      const projectSkillPath = path.join(agentsDir, 'skills', 'appweaver');
-      const projectSkillDir = path.join(destDir, projectSkillPath);
-      await fsp.cp(skillDir, projectSkillDir, {
-        recursive: true
-      });
-
-      // Create a thin root guidelines file that references the framework
-      // guidelines from the skills directory. This file is never overwritten
-      // by `weaver update`, so it can be freely extended in the project.
-      const guidelinesPath = path
-        .join(projectSkillPath, 'GUIDELINES.md')
-        .replace(/\\/g, '/');
-      const guidelinesFilePath = path.join(destDir, guidelinesFileName);
-      const guidelinesReference =
-        agent === 'claude'
-          ? `@${guidelinesPath}`
-          : `[Appweaver framework guidelines](${guidelinesPath})`;
-      const guidelinesContent =
-        `# ${variables.NAME}\n\n` +
-        `${description}\n\n` +
-        `This is an [Appweaver](https://github.com/lmatosevic/appweaver) ` +
-        `project. Follow the framework conventions, architecture,\n and ` +
-        `usage documented in the guidelines:\n\n${guidelinesReference}\n\n` +
-        `<!-- Add your own project-specific instructions below this line. -->\n`;
-      await fsp.writeFile(guidelinesFilePath, guidelinesContent, {
-        encoding: 'utf8'
-      });
-    }
-
-    console.log(`Done\n`);
-
-    if (!command.getOptionValue('install')) {
-      console.log(`${name} created successfully!`);
-      return;
-    }
-
-    console.log(`Installing dependencies...`);
-
-    await runProcess(
-      packageManager,
-      ['install', '--no-audit', '--no-fund', '--loglevel=error'],
-      { destDir }
-    );
-
-    console.log(`Done\n`);
-
-    console.log(`Configuring application...`);
-
-    await runProcess(packageManager, ['run', 'generate'], { destDir });
-
-    console.log(`Done\n`);
-
-    console.log(`${name} created successfully!`);
+    return createApp(name, description, command, selectedModules);
   })
   .parse();
 
-/**
- * Reads the `scaffoldDependencies` the build injects into the published package.json from the
- * root one. Running from the sources (as the tests do), they are read from the root directly.
- */
-function loadPackageVersions(): Record<string, string> {
-  const scaffold =
-    pkg.scaffoldDependencies ??
-    JSON.parse(
-      fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8')
-    ).scaffoldDependencies;
-  return { ...scaffold.companion, ...scaffold.tooling };
-}
+/** Creates the project with the selected modules, its agent files, and installs its dependencies. */
+async function createApp(
+  name: string,
+  description: string,
+  command: Command,
+  selectedModules: ModuleName[]
+): Promise<void> {
+  const directory = command.getOptionValue('outputDir');
+  const runtime = command.getOptionValue('bun') ? 'bun' : 'node';
+  const packageManager = runtime === 'bun' ? 'bun' : 'npm';
 
-function getNodeDependencies(command: Command, runtime: string): string[] {
-  const adapters = {
-    sqlite:
-      runtime === 'bun'
-        ? '@prisma/adapter-libsql'
-        : '@prisma/adapter-better-sqlite3',
-    postgresql: '@prisma/adapter-pg',
-    mysql: '@prisma/adapter-mariadb',
-    sqlserver: '@prisma/adapter-mssql'
-  };
-
-  const database = command.getOptionValue('database');
-  const databaseDependency = adapters[database.toLowerCase()];
-  if (!databaseDependency) {
-    console.error(`Invalid database type: ${database}`);
-    process.exit(1);
-  }
-
-  // TypeBox defines the custom route and model schemas, at the version the
-  // framework is built with
-  const dependencies = [
-    databaseDependency,
-    '@prisma/client',
-    '@sinclair/typebox',
-    'prisma'
-  ];
-
-  if (command.getOptionValue('queue')) {
-    dependencies.push('bullmq');
-  }
-
-  if (command.getOptionValue('cron')) {
-    dependencies.push('cron');
-  }
-
-  if (command.getOptionValue('redis')) {
-    dependencies.push('ioredis');
-  }
-
-  if (command.getOptionValue('mailer')) {
-    dependencies.push('nodemailer');
-  }
-
-  if (command.getOptionValue('templates')) {
-    dependencies.push('handlebars');
-  }
-
-  return dependencies;
-}
-
-function getNodeDevDependencies(runtime: string): string[] {
-  const devDependencies = [
-    '@eslint/js',
-    '@types/node',
-    '@typescript-eslint/eslint-plugin',
-    '@typescript-eslint/parser',
-    'eslint',
-    'eslint-config-prettier',
-    'eslint-plugin-prettier',
-    'globals',
-    'prettier',
-    'typescript',
-    'typescript-eslint'
-  ];
-
-  // Bun runs the tests itself, Node runs them with Jest
+  // Check if bun runtime is installed on this machine
   if (runtime === 'bun') {
-    devDependencies.push('@types/bun');
-  } else {
-    devDependencies.push(
-      '@swc/core',
-      '@swc/jest',
-      '@types/jest',
-      'eslint-plugin-jest',
-      'jest',
-      'jest-junit'
+    const status = await runProcess('bun', ['--version'], { quiet: true });
+    if (status !== 0) {
+      console.error('Bun runtime is not installed on this machine.');
+      process.exit(1);
+    }
+  }
+
+  // Sanitize and create a new directory
+  const sanitizedName = name
+    .replace(/\s+/g, '-')
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
+    .toLowerCase();
+
+  const projectDir = directory ?? sanitizedName;
+  const destDir = path.join(process.cwd(), projectDir);
+
+  // Initialize new project directory
+  try {
+    await fsp.access(destDir, fs.constants.F_OK);
+    console.log(`Using existing directory: ${path.dirname(destDir)}\n`);
+  } catch (e) {
+    await fsp.mkdir(destDir, { recursive: true });
+    console.log(`Created new directory: ${projectDir}\n`);
+  }
+
+  console.log(
+    `Generating application files${
+      selectedModules.length > 0
+        ? ` with modules: ${selectedModules.join(', ')}`
+        : ''
+    }...`
+  );
+
+  const displayName = name.charAt(0).toUpperCase() + name.slice(1);
+  const { warnings } = await createProject({
+    dir: destDir,
+    name,
+    packageName: sanitizedName,
+    description,
+    host: command.getOptionValue('host'),
+    port: command.getOptionValue('port'),
+    runtime,
+    database: command.getOptionValue('database'),
+    modules: selectedModules
+  });
+  for (const warning of warnings) {
+    console.log(`  ${warning}`);
+  }
+
+  // Add instructions for AI Agents and skill files
+  const agent = command.getOptionValue('agent');
+  if (agent !== 'none') {
+    let agentsDir: string;
+    if (['claude', 'junie', 'kiro', 'pi', 'opencode'].includes(agent)) {
+      agentsDir = `.${agent}`;
+    } else if (agent === 'copilot') {
+      agentsDir = '.github';
+    } else {
+      agentsDir = '.agents';
+    }
+
+    const guidelinesFileName = agent === 'claude' ? 'CLAUDE.md' : 'AGENTS.md';
+
+    // Copy skill and referenced files. The framework guidelines
+    // (GUIDELINES.md) are preserved inside the skills directory so that
+    // `weaver upgrade` can keep them in sync without touching the project's
+    // own root guidelines file.
+    const skillDir = path.join(__dirname, 'skill');
+    const projectSkillPath = path.join(agentsDir, 'skills', 'appweaver');
+    const projectSkillDir = path.join(destDir, projectSkillPath);
+    await fsp.cp(skillDir, projectSkillDir, {
+      recursive: true
+    });
+
+    // Create a thin root guidelines file that references the framework
+    // guidelines from the skills directory. This file is never overwritten
+    // by `weaver upgrade`, so it can be freely extended in the project.
+    const guidelinesPath = path
+      .join(projectSkillPath, 'GUIDELINES.md')
+      .replace(/\\/g, '/');
+    const guidelinesFilePath = path.join(destDir, guidelinesFileName);
+    const guidelinesReference =
+      agent === 'claude'
+        ? `@${guidelinesPath}`
+        : `[Appweaver framework guidelines](${guidelinesPath})`;
+    const guidelinesContent =
+      `# ${displayName}\n\n` +
+      `${description}\n\n` +
+      `This is an [Appweaver](https://github.com/lmatosevic/appweaver) ` +
+      `project. Follow the framework conventions, architecture,\n and ` +
+      `usage documented in the guidelines:\n\n${guidelinesReference}\n\n` +
+      `<!-- Add your own project-specific instructions below this line. -->\n`;
+    await fsp.writeFile(guidelinesFilePath, guidelinesContent, {
+      encoding: 'utf8'
+    });
+  }
+
+  console.log(`Done\n`);
+
+  if (!command.getOptionValue('install')) {
+    console.log(`${name} created successfully!`);
+    return;
+  }
+
+  console.log(`Installing dependencies...`);
+
+  await runProcess(
+    packageManager,
+    ['install', '--no-audit', '--no-fund', '--loglevel=error'],
+    { destDir }
+  );
+
+  console.log(`Done\n`);
+
+  console.log(`Configuring application...`);
+
+  await runProcess(packageManager, ['run', 'generate'], { destDir });
+
+  console.log(`Done\n`);
+
+  console.log(`${name} created successfully!`);
+}
+
+/**
+ * Selects the modules of `--all` or `--add` with the modules they require, leaving out the `--no-<module>` ones.
+ *
+ * @throws {ScaffoldError} When a module is unknown, both added and left out, or required by an added module.
+ */
+function selectModules(command: Command): ModuleName[] {
+  const excluded = moduleNames.filter(
+    (name) => command.getOptionValue(name) === false
+  );
+  const added = parseModuleNames(command.getOptionValue('add') ?? []);
+
+  const conflicts = added.filter((name) => excluded.includes(name));
+  if (conflicts.length > 0) {
+    throw new ScaffoldError(
+      `Module ${conflicts.join(', ')} cannot be both added and left out.`
     );
   }
 
-  return devDependencies;
-}
-
-/** Formats the packages as the sorted entries of a `package.json` dependencies object. */
-function formatDependencies(names: string[]): string {
-  return [...names]
-    .sort()
-    .map((name) => {
-      if (!packageVersions[name]) {
-        throw new Error(`Missing scaffold dependency version of ${name}`);
-      }
-      return `    "${name}": "${packageVersions[name]}"`;
-    })
-    .join(',\n');
-}
-
-/** Standard database server ports, also published on the host by docker-compose. */
-const databasePorts: Record<string, number> = {
-  postgresql: 5432,
-  mysql: 3306,
-  sqlserver: 1433
-};
-
-/** Hostnames of the docker-compose database services. */
-const databaseDockerHosts: Record<string, string> = {
-  postgresql: 'postgres',
-  mysql: 'mysql',
-  sqlserver: 'sqlserver'
-};
-
-/**
- * Returns the local development credentials of the database server, shared by
- * the connection URLs and the docker-compose database service.
- */
-function getDatabaseCredentials(
-  database: string,
-  name: string
-): { user: string; password: string } {
-  if (database === 'sqlserver') {
-    // SQL Server rejects an SA password failing its complexity policy
-    return { user: 'sa', password: `${name}-Passw0rd` };
+  const selected = command.getOptionValue('all') ? [...moduleNames] : added;
+  const { modules: resolved, required } = resolveModules(selected, excluded);
+  for (const [requirement, by] of required) {
+    console.log(`Adding module ${requirement}, required by ${by}.`);
   }
-
-  return { user: name, password: name };
-}
-
-/**
- * Returns the appweaver.json database URL. A database server URL references
- * the credentials of the .env file, and the `DB_HOST` the containers override.
- */
-function getDatabaseUrl(
-  command: Command,
-  name: string,
-  mode: 'dev' | 'test'
-): string {
-  const database = command.getOptionValue('database').toLowerCase();
-
-  if (database === 'sqlite') {
-    return mode === 'test'
-      ? `file:./temp/${name}-test.db`
-      : `file:./data/${name}.db`;
-  }
-
-  const port = databasePorts[database];
-  if (!port) {
-    console.error(`Invalid database type: ${database}`);
-    process.exit(1);
-  }
-
-  const dbName = `\${DB_NAME:-${name}}${mode === 'test' ? '-test' : ''}`;
-  const host = '${DB_HOST:-localhost}';
-
-  const user = `\${DB_USER:-${getDatabaseCredentials(database, name).user}}`;
-
-  const urls = {
-    postgresql: `postgresql://${user}:\${DB_PASSWORD}@${host}:${port}/${dbName}`,
-    mysql: `mysql://${user}:\${DB_PASSWORD}@${host}:${port}/${dbName}`,
-    sqlserver: `sqlserver://${host}:${port};database=${dbName};user=${user};password=\${DB_PASSWORD};trustServerCertificate=true`
-  };
-
-  return urls[database];
-}
-
-/**
- * Returns the appweaver.json connection config of the Redis server, whose host
- * the containers override, when the Redis packages are installed.
- */
-function getRedisConfig(command: Command): Record<string, object> {
-  if (!command.getOptionValue('redis')) {
-    return {};
-  }
-
-  return { redis: { url: 'redis://${REDIS_HOST:-localhost}:6379/0' } };
-}
-
-/**
- * Returns the .env database password, referenced by the appweaver.json URL and
- * shared with the docker-compose database service.
- */
-function getSecretsEnv(command: Command, name: string): string {
-  const database = command.getOptionValue('database').toLowerCase();
-  if (database === 'sqlite') {
-    return '';
-  }
-
-  const { password } = getDatabaseCredentials(database, name);
-
-  return `\n# Secrets referenced by the \${VAR} placeholders of the appweaver.json files\nDB_PASSWORD=${password}\n`;
-}
-
-/** Returns the .gitignore rules of the SQLite database files, kept in "data/". */
-function getSqliteGitignore(command: Command): string {
-  if (command.getOptionValue('database').toLowerCase() !== 'sqlite') {
-    return '';
-  }
-
-  return '# Local SQLite database files\n/data/*.db\n/data/*.db-*\n\n';
-}
-
-/**
- * Returns the environment block of the docker-compose application services,
- * pointing the database and Redis hosts of the appweaver.json URLs at the other
- * containers.
- */
-function getDockerAppEnvironment(command: Command): string {
-  const database = command.getOptionValue('database').toLowerCase();
-  const variables: string[] = [];
-
-  // The containers find the SQLite database at the same path, in the volume
-  if (database !== 'sqlite') {
-    variables.push(`DB_HOST: "${databaseDockerHosts[database]}"`);
-  }
-
-  if (command.getOptionValue('redis')) {
-    variables.push('REDIS_HOST: "redis"');
-  }
-
-  if (variables.length === 0) {
-    return '';
-  }
-
-  return `    environment:\n${variables.map((v) => `      ${v}\n`).join('')}`;
-}
-
-/**
- * Returns the configuration of the modules whose packages are skipped. The ones
- * with an in-memory implementation switch to it, the others are disabled.
- */
-function getModulesConfig(command: Command): Record<string, object> {
-  const modulesConfig: Record<string, object> = {};
-
-  if (!command.getOptionValue('redis')) {
-    modulesConfig.redis = { provider: '@appweaver/core/memory/in-memory' };
-    modulesConfig.cache = { provider: '@appweaver/core/cache/memory-cache' };
-    modulesConfig.rateLimit = { store: 'in-memory' };
-  }
-
-  // BullMQ also needs Redis
-  if (!command.getOptionValue('redis') || !command.getOptionValue('queue')) {
-    modulesConfig.queue = { provider: '@appweaver/core/queue/memory-queue' };
-  }
-
-  if (!command.getOptionValue('cron')) {
-    modulesConfig.scheduler = { enabled: false };
-  }
-
-  if (!command.getOptionValue('mailer')) {
-    modulesConfig.mailer = { enabled: false };
-  }
-
-  if (!command.getOptionValue('templates')) {
-    modulesConfig.template = { provider: '' };
-  }
-
-  return modulesConfig;
-}
-
-function getRedisDockerConfig(
-  command: Command,
-  name: string
-): { service: string; appDepends: string; namedVolume: string } {
-  if (!command.getOptionValue('redis')) {
-    return { service: '', appDepends: '', namedVolume: '' };
-  }
-
-  return {
-    service: `  redis:
-    image: redis:7.4.9
-    container_name: ${name}-redis
-    restart: unless-stopped
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 5s
-      start_interval: 5s
-    ports:
-      - "127.0.0.1:6379:6379"
-    volumes:
-      - redis-data:/data
-    networks:
-      - ${name}
-
-`,
-    appDepends: `      redis:
-        condition: service_healthy
-`,
-    namedVolume: `  redis-data:
-`
-  };
-}
-
-function getDatabaseDockerConfig(
-  command: Command,
-  name: string
-): {
-  service: string;
-  migrateDepends: string;
-  appVolume: string;
-  namedVolume: string;
-} {
-  const database = command.getOptionValue('database').toLowerCase();
-
-  // SQLite runs embedded in the application, so there is no database service.
-  // The database file is persisted in a named volume shared by the migration,
-  // seed, and application containers (see the "data/" DATABASE_URL location).
-  if (database === 'sqlite') {
-    return {
-      service: '',
-      migrateDepends: '',
-      appVolume: `\n      - sqlite-data:/usr/app/data`,
-      namedVolume: `  sqlite-data:\n`
-    };
-  }
-
-  const services: Record<string, { service: string; volume: string }> = {
-    postgresql: {
-      service: `  postgres:
-    image: postgres:18.4
-    container_name: ${name}-postgres
-    restart: unless-stopped
-    healthcheck:
-      test: "PGPASSWORD=$$POSTGRES_PASSWORD psql -U $$POSTGRES_USER -d $$POSTGRES_DB -c 'SELECT 1'"
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 5s
-      start_interval: 5s
-    ports:
-      - "127.0.0.1:5432:5432"
-    environment:
-      POSTGRES_DB: "\${DB_NAME:-${name}}"
-      POSTGRES_USER: "\${DB_USER:-${name}}"
-      POSTGRES_PASSWORD: "\${DB_PASSWORD}"
-    volumes:
-      - postgres-data:/var/lib/postgresql
-    networks:
-      - ${name}
-
-`,
-      volume: `  postgres-data:\n`
-    },
-    mysql: {
-      service: `  mysql:
-    image: mariadb:11.4
-    container_name: ${name}-mysql
-    restart: unless-stopped
-    healthcheck:
-      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 5s
-      start_interval: 5s
-    ports:
-      - "127.0.0.1:3306:3306"
-    environment:
-      MARIADB_DATABASE: "\${DB_NAME:-${name}}"
-      MARIADB_USER: "\${DB_USER:-${name}}"
-      MARIADB_PASSWORD: "\${DB_PASSWORD}"
-      MARIADB_ROOT_PASSWORD: "\${DB_PASSWORD}"
-    volumes:
-      - mysql-data:/var/lib/mysql
-      - ./database/mariadb-init.sh:/docker-entrypoint-initdb.d/mariadb-init.sh:ro
-    networks:
-      - ${name}
-
-`,
-      volume: `  mysql-data:\n`
-    },
-    sqlserver: {
-      service: `  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: ${name}-sqlserver
-    restart: unless-stopped
-    healthcheck:
-      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \\"$$MSSQL_SA_PASSWORD\\" -C -Q 'SELECT 1' || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 10s
-      start_interval: 5s
-    ports:
-      - "127.0.0.1:1433:1433"
-    environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "\${DB_PASSWORD}"
-    volumes:
-      - sqlserver-data:/var/opt/mssql
-    networks:
-      - ${name}
-
-`,
-      volume: `  sqlserver-data:\n`
-    }
-  };
-
-  const config = services[database];
-  if (!config) {
-    console.error(`Invalid database type: ${database}`);
-    process.exit(1);
-  }
-
-  return {
-    service: config.service,
-    migrateDepends: `    depends_on:
-      ${database === 'postgresql' ? 'postgres' : database}:
-        condition: service_healthy
-`,
-    appVolume: '',
-    namedVolume: config.volume
-  };
+  return resolved;
 }
 
 function runProcess(
@@ -823,11 +292,11 @@ function runProcess(
   });
 }
 
-function parseDatabaseType(value: string): string {
-  const lowerDbType = value.toLowerCase();
-  if (!dbTypes.includes(lowerDbType)) {
+function parseDatabaseType(value: string): DatabaseType {
+  const lowerDbType = value.toLowerCase() as DatabaseType;
+  if (!databaseTypes.includes(lowerDbType)) {
     throw new InvalidOptionArgumentError(
-      `Must be one of following: ${dbTypes.join(', ')}.`
+      `Must be one of following: ${databaseTypes.join(', ')}.`
     );
   }
 
@@ -866,48 +335,4 @@ function parseAgentType(value: string): string {
   }
 
   return lowerAgentType;
-}
-
-/** Removes a commented block of COPY instructions from the Dockerfile, if the project has one. */
-async function removeDockerfileBlock(
-  destDir: string,
-  comment: string
-): Promise<void> {
-  const dockerfile = path.join(destDir, 'Dockerfile');
-  if (!fs.existsSync(dockerfile)) {
-    return;
-  }
-  const content = await fsp.readFile(dockerfile, 'utf8');
-  await fsp.writeFile(
-    dockerfile,
-    content.replace(new RegExp(`# ${comment}\n(COPY .*\n)+\n`), ''),
-    'utf8'
-  );
-}
-
-/** Replaces the `t` helper calls of every template with the English texts of the translation file. */
-async function inlineTemplateTranslations(
-  templatesDir: string,
-  translationFile: string
-): Promise<void> {
-  const translations = flattenTranslations(
-    JSON.parse(await fsp.readFile(translationFile, 'utf8'))
-  );
-  const templateFiles = await glob('**/*.hbs', {
-    cwd: templatesDir,
-    absolute: true
-  });
-
-  for (const templateFile of templateFiles) {
-    const content = await fsp.readFile(templateFile, 'utf8');
-    await fsp.writeFile(
-      templateFile,
-      inlineTranslations(
-        content,
-        translations,
-        templateFile.endsWith('.html.hbs')
-      ),
-      'utf8'
-    );
-  }
 }

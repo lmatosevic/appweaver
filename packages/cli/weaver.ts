@@ -30,11 +30,12 @@ import { buildCommand } from './build';
 import { generateCommand } from './generate';
 import { migrateCommand } from './migrate';
 import { migrationCommand } from './migration';
+import { moduleCommand } from './module';
 import { openapiCommand } from './openapi';
 import { seedCommand } from './seed';
 import { startCommand } from './start';
 import { testingCommand } from './testing';
-import { updateCommand } from './update';
+import { upgradeCommand } from './upgrade';
 
 const pkg = loadCliPackageJson();
 
@@ -55,6 +56,8 @@ migrateCommand(program);
 
 migrationCommand(program);
 
+moduleCommand(program);
+
 openapiCommand(program);
 
 seedCommand(program);
@@ -63,6 +66,6 @@ startCommand(program);
 
 testingCommand(program);
 
-updateCommand(program);
+upgradeCommand(program);
 
 program.parse();

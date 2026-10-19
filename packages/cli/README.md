@@ -35,7 +35,9 @@ weaver migrate                      # apply the pending migrations
 weaver seed --build-project         # build the project, then run the seeders
 weaver openapi --format yaml        # export the OpenAPI specification
 weaver test setup                   # create the temporary test database (NODE_ENV=test)
-weaver update --dry-run             # list the package updates without installing them
+weaver module add redis docker      # add modules to the project, from the scaffold templates
+weaver module remove docker         # remove a module, deleting its files
+weaver upgrade --dry-run            # list the package upgrades without installing them
 ```
 
 Long flags are kebab-case, and the flags turning a default off are `--no-*` negations (`--no-skill`,

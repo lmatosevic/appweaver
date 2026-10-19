@@ -86,6 +86,15 @@ for (const pkgName of fs.readdirSync(packagesDir)) {
       }
     }
 
+    // A dependency on another package requires the exact version it is
+    // published with, since they share the scaffold templates
+    for (const dependency of Object.keys(pkgJson.dependencies ?? {})) {
+      if (dependency.startsWith(`${moduleName}/`)) {
+        pkgJson.dependencies[dependency] = pkgJson.version;
+        rewritePkgJson = true;
+      }
+    }
+
     if (rewritePkgJson) {
       fs.writeFileSync(
         path.join(fullPath, distDir, 'package.json'),

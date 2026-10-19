@@ -1,13 +1,13 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { updateSkillFiles } from '../../update/update-skill';
+import { upgradeSkillFiles } from '../../upgrade/upgrade-skill';
 
 // The skill directory is copied next to the compiled CLI during the build, so
 // it is created temporarily here to exercise the copy behaviour.
 const skillDir = path.join(__dirname, '..', '..', 'skill');
 
-describe('update-skill', () => {
+describe('upgrade-skill', () => {
   let tempDir: string;
   let originalCwd: string;
   let createdSkillDir = false;
@@ -52,11 +52,11 @@ describe('update-skill', () => {
   const skillPath = (agentDir: string, ...segments: string[]) =>
     path.join(tempDir, agentDir, 'skills', 'appweaver', ...segments);
 
-  describe('updateSkillFiles', () => {
+  describe('upgradeSkillFiles', () => {
     test('warns and does nothing when the skill directory is missing', async () => {
       fs.mkdirSync(path.join(tempDir, '.claude'));
 
-      await updateSkillFiles(false);
+      await upgradeSkillFiles(false);
 
       expect(console.warn).toHaveBeenCalledWith(
         expect.stringContaining('Skill directory not found')
@@ -65,7 +65,7 @@ describe('update-skill', () => {
     });
 
     test('stays silent when the skill directory is missing and quiet is set', async () => {
-      await updateSkillFiles(true);
+      await upgradeSkillFiles(true);
 
       expect(console.warn).not.toHaveBeenCalled();
     });
@@ -74,7 +74,7 @@ describe('update-skill', () => {
       createSkillDir();
       fs.mkdirSync(path.join(tempDir, '.claude'));
 
-      await updateSkillFiles(true);
+      await upgradeSkillFiles(true);
 
       expect(fs.readFileSync(skillPath('.claude', 'SKILL.md'), 'utf8')).toBe(
         '# Skill'
@@ -96,7 +96,7 @@ describe('update-skill', () => {
         fs.mkdirSync(path.join(tempDir, agentDir));
       }
 
-      await updateSkillFiles(true);
+      await upgradeSkillFiles(true);
 
       for (const agentDir of ['.claude', '.github', '.agents']) {
         expect(fs.existsSync(skillPath(agentDir, 'SKILL.md'))).toBe(true);
@@ -107,7 +107,7 @@ describe('update-skill', () => {
       createSkillDir();
       fs.mkdirSync(path.join(tempDir, '.claude'));
 
-      await updateSkillFiles(true);
+      await upgradeSkillFiles(true);
 
       expect(fs.existsSync(path.join(tempDir, '.agents'))).toBe(false);
       expect(fs.existsSync(path.join(tempDir, '.junie'))).toBe(false);
@@ -122,7 +122,7 @@ describe('update-skill', () => {
         'utf8'
       );
 
-      await updateSkillFiles(true);
+      await upgradeSkillFiles(true);
 
       expect(fs.readFileSync(path.join(tempDir, 'CLAUDE.md'), 'utf8')).toBe(
         '# My project rules'
@@ -134,7 +134,7 @@ describe('update-skill', () => {
       fs.mkdirSync(skillPath('.claude'), { recursive: true });
       fs.writeFileSync(skillPath('.claude', 'SKILL.md'), '# Outdated', 'utf8');
 
-      await updateSkillFiles(true);
+      await upgradeSkillFiles(true);
 
       expect(fs.readFileSync(skillPath('.claude', 'SKILL.md'), 'utf8')).toBe(
         '# Skill'
@@ -145,7 +145,7 @@ describe('update-skill', () => {
       createSkillDir();
       fs.mkdirSync(path.join(tempDir, '.claude'));
 
-      await updateSkillFiles(false);
+      await upgradeSkillFiles(false);
 
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining(path.join('.claude', 'skills', 'appweaver'))

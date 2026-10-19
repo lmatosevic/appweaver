@@ -262,12 +262,14 @@ An email is rendered when its `.html` or `.txt` template exists, with the transl
 when it has no `.subject` template. Without a template, or without the `handlebars` package, it is sent as plain text
 built from the `emails.*` translations, which the framework defines in English and `locales/<locale>.json` overrides.
 
-A scaffolded project starts with the `.html` and `.subject` templates of all three emails in `templates/emails/`,
-sharing the `layouts/email.html` layout and the `partials/email-button.html` partial, and with their English keys in
-`locales/en.json`. Their plain text is derived from the HTML, add a `.txt` template only for a text that should read
-differently. Edit them freely, or delete them to send the plain text. Created with `--no-locales`, the templates
-hold the English texts themselves and there is no `locales/` directory; created with `--no-templates`, the emails are
-sent as plain text of `locales/en.json`. See [templates.md](./templates.md).
+A project scaffolded with the `mailer`, `templates` and `locales` modules starts with the `.html` and `.subject`
+templates of all three emails in `templates/emails/`, sharing the `layouts/email.html` layout and the
+`partials/email-button.html` partial, and with their English keys in `locales/en.json`. Their plain text is derived from
+the HTML, add a `.txt` template only for a text that should read differently. Edit them freely, or delete them to send
+the plain text. Without the `locales` module, the templates hold the English texts themselves and there is no
+`locales/` directory; without the `templates` module, the emails are sent as plain text of `locales/en.json`. Removing
+the `mailer` module (`weaver module remove mailer`) deletes these templates, and without it the mailer is disabled.
+See [templates.md](./templates.md).
 
 ---
 
