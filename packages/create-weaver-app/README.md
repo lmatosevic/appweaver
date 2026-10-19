@@ -15,7 +15,8 @@
 ## Description
 
 `create-weaver-app` generates a ready-to-run Appweaver project for Node or Bun: the source layout, configuration files
-per environment, a seeded admin user, Docker files, the test setup, and the agent skill files for the chosen AI agent.
+per environment, a seeded admin user, the test setup, the agent skill files for the chosen AI agent, and the optional
+modules (Redis, queue, scheduler, mailer, templates, locales, Docker files).
 
 ## Usage
 
@@ -24,25 +25,42 @@ npx @appweaver/create-weaver-app <name> [description] [options]
 ```
 
 ```sh
-npx @appweaver/create-weaver-app MyApp "My awesome API" --database postgresql --no-queue
+npx @appweaver/create-weaver-app MyApp "My awesome API" --database postgresql --add redis queue docker
+npx @appweaver/create-weaver-app MyApp "My awesome API" --all --no-scheduler
 ```
 
-| Flag               | Description                                                                       | Default      |
-|--------------------|-----------------------------------------------------------------------------------|--------------|
-| `-o, --output-dir` | Output directory (use ./ for current working directory)                           | project name |
-| `--database`       | `sqlite`, `postgresql`, `mysql`, `sqlserver`                                      | `sqlite`     |
-| `--host`           | Hostname or IP address where the application server will bind                     | `0.0.0.0`    |
-| `--port`           | Port number where the application server will listen                              | `5000`       |
-| `--agent`          | `claude`, `codex`, `junie`, `cursor`, `copilot`, `opencode`, `kiro`, `pi`, `none` | `claude`     |
-| `--bun`            | Use Bun as the application runtime                                                | Node         |
-| `--no-install`     | Skip the installation of the dependencies                                         | installs     |
-| `--no-docker`      | Skip the Dockerfile and docker-compose.yml files                                  | copied       |
-| `--no-redis`       | Skip IoRedis, use the in-memory cache, rate limit, and queue                      | installed    |
-| `--no-queue`       | Skip BullMQ, use the in-memory queue                                              | installed    |
-| `--no-mailer`      | Skip Nodemailer and disable the mailer                                            | installed    |
-| `--no-templates`   | Skip Handlebars and the template files                                            | installed    |
-| `--no-locales`     | Skip the translation files, writing the English texts into the templates          | copied       |
-| `--no-cron`        | Skip Cron and disable the scheduler                                               | installed    |
+| Flag                 | Description                                                                       | Default      |
+|----------------------|-----------------------------------------------------------------------------------|--------------|
+| `-o, --output-dir`   | Output directory (use ./ for current working directory)                           | project name |
+| `--database`         | `sqlite`, `postgresql`, `mysql`, `sqlserver`                                      | `sqlite`     |
+| `--host`             | Hostname or IP address where the application server will bind                     | `0.0.0.0`    |
+| `--port`             | Port number where the application server will listen                              | `5000`       |
+| `--agent`            | `claude`, `codex`, `junie`, `cursor`, `copilot`, `opencode`, `kiro`, `pi`, `none` | `claude`     |
+| `--add <modules...>` | Modules to add, separated by spaces or commas                                     | none         |
+| `--all`              | Add every module                                                                  | false        |
+| `--no-<module>`      | Leave a module out of `--all`                                                     | —            |
+| `--bun`              | Use Bun as the application runtime                                                | Node         |
+| `--no-install`       | Skip the installation of the dependencies                                         | installs     |
+
+The base project has none of the modules. A module required by an added one is added along with it:
+
+| Module      | Adds                                                                         | Without it                                  |
+|-------------|------------------------------------------------------------------------------|---------------------------------------------|
+| `redis`     | IoRedis, the Redis connection, and the Redis service of `docker-compose.yml` | in-memory Redis store, cache and rate limit |
+| `queue`     | BullMQ, requires `redis`                                                     | in-memory queue                             |
+| `scheduler` | Cron                                                                         | scheduler disabled                          |
+| `mailer`    | Nodemailer, and the account email templates with `templates`                 | mailer disabled                             |
+| `templates` | Handlebars and `templates/`                                                  | no template engine                          |
+| `locales`   | `locales/en.json`                                                            | English texts written into the templates    |
+| `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`              | no Docker files                             |
+
+The modules of an existing project are managed with the `weaver` CLI, from the same templates:
+
+```sh
+npx weaver module list
+npx weaver module add templates locales
+npx weaver module remove docker
+```
 
 Then create the first migration and seed the database:
 

@@ -2,7 +2,7 @@ import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { compareVersions } from '@appweaver/common';
 import { runProcessOutput } from '../utils';
-import { isBunRuntime } from './update-packages';
+import { isBunRuntime } from './upgrade-packages';
 
 /** The versions of the third-party packages an Appweaver release is built and scaffolded with. */
 export type ScaffoldDependencies = {

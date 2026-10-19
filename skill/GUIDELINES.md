@@ -302,7 +302,8 @@ export async function createAdminUser(): Promise<void> {
 | `npm run format`              | Format code with Prettier                 |
 | `npm run lint`                | Lint code with ESLint                     |
 | `weaver migration new <name>` | Create a new database migration           |
-| `weaver update`               | Update all @appweaver/* packages          |
+| `weaver upgrade`              | Upgrade all @appweaver/* packages         |
+| `weaver module add <name>`    | Add a module (redis, docker, templates…)  |
 | `weaver openapi`              | Generate OpenAPI specification            |
 
 ## Testing

@@ -19,9 +19,6 @@
       "log": {
         "level": "debug",
         "pretty": true
-      },
-      "template": {
-        "cache": false
       }
     },
     "test": {
@@ -37,18 +34,6 @@
       },
       "storage": {
         "path": "./temp/storage"
-      },
-      "redis": {
-        "provider": "@appweaver/core/memory/in-memory"
-      },
-      "queue": {
-        "provider": "@appweaver/core/queue/memory-queue"
-      },
-      "mailer": {
-        "provider": "@appweaver/core/mailer/json-mailer"
-      },
-      "scheduler": {
-        "autoStartJob": false
       }
     }
   }

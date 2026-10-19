@@ -28,20 +28,20 @@ The basic file structure of the Appweaver project:
 
 - `database/` - database migrations, seeders, generated prisma client, and client used by the application
 - `dist/` - the output directory for transpiled JavaScript files
-- `locales/` - the translation files, a nested JSON file per locale (`en.json`, `de.json`)
+- `locales/` - the translation files, a nested JSON file per locale (`en.json`, `de.json`, `locales` module)
 - `public/` - publicly exposed files if static file serving is enabled
 - `src/features/` - main application logic structured using vertical slice architecture (VSA)
 - `src/resources/` - application resources (models, services, policies, and routes)
 - `src/types/` - application types (generated and manually created)
 - `src/main.ts` - the main application entrypoint
-- `templates/` - the Handlebars templates of emails, HTML pages, XML exports or any other text (`*.<format>.hbs`)
+- `templates/` - the Handlebars templates of emails, HTML pages, XML exports or any other text (`*.<format>.hbs`, `templates` module)
 - `test/e2e/` - the end-to-end tests root directory
 - `test/unit/` - the unit tests root directory
 - `.env` - override the central configuration (optional)
 - `.env.{env}` - override the central configuration for a specific environment (optional)
 - `appweaver.json` - central library configuration file, with the overrides of each environment under `environments`
 - `appweaver.{env}.json` - environment specific configuration files, overriding the `environments` section (optional)
-- `Dockerfile` - the dockerfile used for building a docker image for deploying the application
+- `Dockerfile` - the dockerfile used for building a docker image for deploying the application (`docker` module)
 
 **IMPORTANT:** `{env}` is controlled by `NODE_ENV` environment variable set before any command is executed (can also be
 set in the `.env` file). The environment names are `test`, `local`, `dev`, `staging`, `qa`, and `prod`; `development`
@@ -51,8 +51,8 @@ resolves to `dev`, and `production` or an unset `NODE_ENV` to `prod`.
 
 ### Scaffolding a new application
 
-Use `create-weaver-app` to scaffold a new project. It copies a default template, installs dependencies, and generates
-initial Prisma schema and models.
+Use `create-weaver-app` to scaffold a new project. It copies the base template, adds the selected modules, installs
+dependencies, and generates initial Prisma schema and models. It is a one-shot command without prompts.
 
 ```sh
 create-weaver-app <name> [description] [options]
@@ -60,27 +60,39 @@ create-weaver-app <name> [description] [options]
 
 **Options:**
 
-| Flag               | Description                                                    | Default      |
-|--------------------|----------------------------------------------------------------|--------------|
-| `-o, --output-dir` | Output directory (use ./ for current working directory)        | project name |
-| `--database`       | Database type: `sqlite`, `postgresql`, `mysql`, `sqlserver`    | `sqlite`     |
-| `--host`           | Hostname or IP address where the application server will bind. | 0.0.0.0      |
-| `--port`           | Port number where the application server will listen.          | 5000         |
-| `--agent`          | The AI agent for which to configure guidelines and skill files | `claude`     |
-| `--bun`            | Use Bun as application runtime. (default is node and npm)      | false        |
-| `--no-install`     | Skip all dependencies installation.                            | installs     |
-| `--no-docker`      | Skip Dockerfile, Dockerfile.bun and docker-compose.yml files   | copied       |
-| `--no-redis`       | Skip ioredis, use in-memory cache, rate limit and queue        | installed    |
-| `--no-queue`       | Skip bullmq, use in-memory queue                               | installed    |
-| `--no-mailer`      | Skip nodemailer, disable mailer (email features respond 501)   | installed    |
-| `--no-templates`   | Skip handlebars and the templates directory                    | installed    |
-| `--no-locales`     | Skip the locales directory, English texts written in templates | copied       |
-| `--no-cron`        | Skip cron, disable scheduler                                   | installed    |
+| Flag                 | Description                                                    | Default      |
+|----------------------|----------------------------------------------------------------|--------------|
+| `-o, --output-dir`   | Output directory (use ./ for current working directory)        | project name |
+| `--database`         | Database type: `sqlite`, `postgresql`, `mysql`, `sqlserver`    | `sqlite`     |
+| `--host`             | Hostname or IP address where the application server will bind. | 0.0.0.0      |
+| `--port`             | Port number where the application server will listen.          | 5000         |
+| `--agent`            | The AI agent for which to configure guidelines and skill files | `claude`     |
+| `--add <modules...>` | Modules to add, separated by spaces or commas                  | none         |
+| `--all`              | Add every module                                               | false        |
+| `--no-<module>`      | Leave a module out of `--all` (e.g. `--all --no-docker`)       | —            |
+| `--bun`              | Use Bun as application runtime. (default is node and npm)      | false        |
+| `--no-install`       | Skip all dependencies installation.                            | installs     |
 
-**Example — PostgreSQL project without queue:**
+**Modules:** the base project has none of them. Each one is added with `--add`, `--all`, or later with
+`weaver module add` (see [Managing modules](#managing-modules)):
+
+| Module      | Adds                                                                         | Without it                                   |
+|-------------|------------------------------------------------------------------------------|----------------------------------------------|
+| `redis`     | `ioredis`, the `redis.url`, the docker-compose Redis service                 | in-memory Redis store, cache and rate limit  |
+| `queue`     | `bullmq` (requires `redis`, added along with it)                             | in-memory queue                              |
+| `scheduler` | `cron`                                                                       | scheduler disabled                           |
+| `mailer`    | `nodemailer`                                                                 | mailer disabled (email features respond 501) |
+| `templates` | `handlebars`, `templates/`, with the account email templates with the mailer | `TEMPLATE_PROVIDER` empty                    |
+| `locales`   | `locales/en.json`                                                            | English texts written into the templates     |
+| `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`              | no Docker files                              |
+
+Options are given after the positional arguments, since `--add` takes every following value up to the next option.
+
+**Example — PostgreSQL project with Redis, mailer and Docker:**
 
 ```sh
-create-weaver-app MyBlogAPI "My own CMS for blogging" --database postgresql --no-queue
+create-weaver-app MyBlogAPI "My own CMS for blogging" --database postgresql --add redis mailer docker
+create-weaver-app MyBlogAPI "My own CMS for blogging" --database postgresql --all --no-queue
 ```
 
 This creates a `./my-blog-api` directory, installs all dependencies, and runs the initial schema and type generation.
@@ -116,9 +128,9 @@ NODE_ENV=dev
 DB_PASSWORD=my-blog-api
 ```
 
-For a PostgreSQL, MySQL, or SQL Server project, the generated `docker-compose.yml` runs the database server (and Redis)
-on their default ports (`5432`, `3306`, `1433`, and `6379` for Redis), also published on the host, with the `.env`
-credentials. So `docker compose up` runs the whole stack, while `docker compose up -d postgres redis` and `npm run dev`
+With the `docker` module, the generated `docker-compose.yml` of a PostgreSQL, MySQL, or SQL Server project runs the
+database server (and Redis, with the `redis` module) on their default ports (`5432`, `3306`, `1433`, and `6379` for
+Redis), also published on the host, with the `.env` credentials. So `docker compose up` runs the whole stack, while `docker compose up -d postgres redis` and `npm run dev`
 run the app locally against the same containers. The application containers read `.env` and set only `DB_HOST` and
 `REDIS_HOST` to the service names, which the URLs default to `localhost` without. To use another server, change the
 URL in `appweaver.json`, or set `DB_HOST` / `REDIS_HOST` in `.env`. Setting `DB_NAME` renames the database (the test
@@ -633,7 +645,7 @@ Turnstile). When a custom route's 2xx response schema references resource output
 the response payload automatically before serialization.
 
 Route and model schemas are written with [TypeBox](https://github.com/sinclairzx81/typebox) (`@sinclair/typebox`), a
-dependency of every scaffolded project at the version the framework uses, which `weaver update` keeps in step.
+dependency of every scaffolded project at the version the framework uses, which `weaver upgrade` keeps in step.
 
 Request validation is strict: a `body`, `querystring` or `params` property the route schema does not declare is
 rejected with `VALIDATION_FAILED` (`rule: "additionalProperties"`, `message: "is not allowed"`), never silently dropped.
@@ -906,23 +918,49 @@ weaver openapi --output-path ./generated/openapi.json  # generate schema to a cu
 weaver openapi --format yaml                           # generate schema in yaml format (./openapi.yaml)
 ```
 
-### Update Appweaver packages
+### Upgrade Appweaver packages
 
 ```sh
-weaver update                                 # update all @appweaver/* packages to latest
-weaver update @appweaver/core @appweaver/cli  # update specific packages
-weaver update --target-version 1.2.3          # update to a specific version
-weaver update --no-skill                      # skip updating AI agent skill files (.claude, .agents, …)
-weaver update --force                         # force update despite peerDependency mismatches
-weaver update --no-companions                 # skip the companion packages (prisma, bullmq, nodemailer, …)
-weaver update --tooling                       # also update the tooling packages (eslint, jest, prettier, …)
-weaver update --dry-run                       # print the updates without installing them
+weaver upgrade                                 # upgrade all @appweaver/* packages to latest
+weaver upgrade @appweaver/core @appweaver/cli  # upgrade specific packages
+weaver upgrade --target-version 1.2.3          # upgrade to a specific version
+weaver upgrade --no-skill                      # skip upgrading AI agent skill files (.claude, .agents, …)
+weaver upgrade --force                         # force upgrade despite peerDependency mismatches
+weaver upgrade --no-companions                 # skip the companion packages (prisma, bullmq, nodemailer, …)
+weaver upgrade --tooling                       # also upgrade the tooling packages (eslint, jest, prettier, …)
+weaver upgrade --dry-run                       # print the upgrades without installing them
 ```
 
-Besides the `@appweaver/*` packages, `weaver update` bumps the companion packages the project already has (Prisma
+Besides the `@appweaver/*` packages, `weaver upgrade` bumps the companion packages the project already has (Prisma
 and its adapters, TypeBox, BullMQ, Cron, Handlebars, IoRedis, Nodemailer, TypeScript) to the exact versions the target
 release is built with. It never adds missing packages or downgrades newer ones. Run `weaver generate` afterwards when
-Prisma is updated.
+Prisma is upgraded.
+
+### Managing modules
+
+The optional modules of `create-weaver-app` are added to and removed from an existing project with the same templates,
+of the version the project's `@appweaver/cli` is at:
+
+```sh
+weaver module list                     # the modules, whether enabled, their packages and requirements
+weaver module add redis queue docker   # add modules with the modules they require, and install them
+weaver module add templates --dry-run  # print the files and configuration it would change
+weaver module add docker --force       # overwrite the existing files instead of skipping them
+weaver module remove docker            # remove modules (alias: rm), deleting their files
+weaver module remove mailer --no-install
+```
+
+A module is enabled when the project depends on its packages (`locales` and `docker` when `locales/` and `Dockerfile`
+exist). `add` writes the module's packages into `package.json`, its values into `appweaver.json`, its files (skipping
+the existing ones that differ), and what it adds to the enabled modules: the Redis service of `docker-compose.yml`, the
+Dockerfile `COPY` of the templates and translation files, the email templates of the mailer. Adding `locales` restores
+the `t` calls of the scaffolded templates that still hold the English texts.
+
+`remove` reverts all of it and deletes the module's files: the whole `templates/` or `locales/` directory, the Docker
+files, the mailer's email templates. Removing `locales` first writes the English texts of `locales/en.json` into the
+templates, so they keep rendering (the other languages are lost). A module another enabled module requires cannot be
+removed alone (`queue` requires `redis`). An `appweaver.json` value changed in the project is kept, and `src/` is never
+touched, so remove the code using a removed module yourself.
 
 ### Run tests
 

@@ -6,9 +6,9 @@ jest.mock('../../utils', () => ({
   isBunProcess: () => isBunProcess()
 }));
 
-import { updatePackages } from '../../update/update-packages';
+import { upgradePackages } from '../../upgrade/upgrade-packages';
 
-describe('update-packages', () => {
+describe('upgrade-packages', () => {
   const originalRuntime = process.env.APP_RUNTIME;
 
   beforeEach(() => {
@@ -27,9 +27,9 @@ describe('update-packages', () => {
     jest.resetModules();
   });
 
-  describe('updatePackages', () => {
+  describe('upgradePackages', () => {
     test('installs the packages with the requested version using npm', async () => {
-      const status = await updatePackages({
+      const status = await upgradePackages({
         '@appweaver/core': '1.2.3',
         '@appweaver/cli': '1.2.3'
       });
@@ -43,7 +43,7 @@ describe('update-packages', () => {
     });
 
     test('supports the latest version tag', async () => {
-      await updatePackages({ '@appweaver/core': 'latest' });
+      await upgradePackages({ '@appweaver/core': 'latest' });
 
       expect(runProcess).toHaveBeenCalledWith(
         'npm',
@@ -53,7 +53,7 @@ describe('update-packages', () => {
     });
 
     test('installs each package with its own version in one call', async () => {
-      await updatePackages({
+      await upgradePackages({
         '@appweaver/core': 'latest',
         prisma: '7.9.1',
         bullmq: '5.79.1'
@@ -68,7 +68,7 @@ describe('update-packages', () => {
     });
 
     test('adds the legacy peer deps flag when forced', async () => {
-      await updatePackages({ '@appweaver/core': '1.2.3' }, true);
+      await upgradePackages({ '@appweaver/core': '1.2.3' }, true);
 
       expect(runProcess).toHaveBeenCalledWith(
         'npm',
@@ -78,7 +78,7 @@ describe('update-packages', () => {
     });
 
     test('passes the quiet flag through to the process', async () => {
-      await updatePackages({ '@appweaver/core': '1.2.3' }, false, false);
+      await upgradePackages({ '@appweaver/core': '1.2.3' }, false, false);
 
       expect(runProcess).toHaveBeenCalledWith('npm', expect.any(Array), {
         quiet: false
@@ -89,12 +89,12 @@ describe('update-packages', () => {
       runProcess.mockResolvedValue(1);
 
       await expect(
-        updatePackages({ '@appweaver/core': '1.2.3' })
+        upgradePackages({ '@appweaver/core': '1.2.3' })
       ).resolves.toBe(1);
     });
 
     test('runs an install without packages', async () => {
-      await updatePackages({});
+      await upgradePackages({});
 
       expect(runProcess).toHaveBeenCalledWith('npm', ['install'], {
         quiet: true
@@ -106,8 +106,8 @@ describe('update-packages', () => {
       isBunProcess.mockReturnValue(true);
       jest.resetModules();
 
-      const { updatePackages: bunUpdatePackages } =
-        await import('../../update/update-packages');
+      const { upgradePackages: bunUpdatePackages } =
+        await import('../../upgrade/upgrade-packages');
       await bunUpdatePackages({ '@appweaver/core': '1.2.3' }, true);
 
       expect(runProcess).toHaveBeenCalledWith(
@@ -122,8 +122,8 @@ describe('update-packages', () => {
       isBunProcess.mockReturnValue(false);
       jest.resetModules();
 
-      const { updatePackages: bunUpdatePackages } =
-        await import('../../update/update-packages');
+      const { upgradePackages: bunUpdatePackages } =
+        await import('../../upgrade/upgrade-packages');
       await bunUpdatePackages({ '@appweaver/core': '1.2.3' });
 
       expect(runProcess).toHaveBeenCalledWith('npm', expect.any(Array), {
