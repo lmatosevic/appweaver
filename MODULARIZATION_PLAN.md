@@ -249,10 +249,16 @@ emails and translations.
 
 ### 6.3 Discovery and selection
 
-- **Enabled modules** are the dependencies in the `package.json` of the app whose manifest has the `appweaver.module`
-  field, the modules they require, and the explicit paths of `app.modules` (`APP_MODULES`), i.e. local modules or `..`
-  in a playground. `app.modulesDisabled` (`APP_MODULES_DISABLED`) opts a module out. They load in the order of their
-  `requires`.
+- **Enabled modules** come from three sources, all with the same format:
+  - **packages**: the dependencies in the `package.json` of the app whose manifest has the `appweaver.module` field,
+    and the modules they require
+  - **local modules**: every manifest matching `app.modulesPattern` (`APP_MODULES_PATTERN`, default
+    `<srcPath>/modules/*/module.ts`), found without any config. Like `APP_SCAN_FILES_PATTERN`, the pattern resolves
+    against the build directory at runtime (`./dist/src/modules/*/module.js`) and against the sources with Bun and in
+    `weaver generate`. An empty pattern turns the scan off.
+  - **explicit paths** of `app.modules` (`APP_MODULES`), i.e. a module outside the pattern or `..` in a playground
+- `app.modulesDisabled` (`APP_MODULES_DISABLED`) opts any of them out by name. They load in the order of their
+  `requires`, so a local module can require a package module, and two modules with one name fail the startup.
 - This replaces `APP_AUTOLOAD_MODULES`, the hardcoded `@appweaver/core/resources` and the service list of
   `load-providers.ts`. `weaver generate` uses the same discovery.
 - **A driver is selected** by the short name its module registers (`"provider": "gcs"`), or by module path as today,
@@ -411,8 +417,18 @@ appweaver-gcs/
 ### 10.2 Modules inside an application
 
 `weaver new module <name> [--contract storage]` creates the same structure in `src/modules/<name>/` of an application,
-loaded like any other module. A local module that proves useful elsewhere moves into its own package unchanged, like a
-NestJS library (`nest g library`) or a Rails engine. AI agents learn a single module format.
+without a `package.json`, its playground and its publish workflow. The local module discovery (section 6.3) enables it
+without any config step, and the application compiles it with its own sources.
+
+| Location              | Created with                   | Found by                                     | Dependencies                          |
+| --------------------- | ------------------------------ | -------------------------------------------- | ------------------------------------- |
+| `src/modules/<name>/` | `weaver new module <name>`     | `app.modulesPattern`, no config              | The `package.json` of the app         |
+| Its own npm package   | `npm create @appweaver module` | The dependencies of the app's `package.json` | Its own, `core` and `common` as peers |
+
+A local module that proves useful elsewhere moves into its own package unchanged, like a NestJS library
+(`nest g library`) or a Rails engine: copy the folder and add a `package.json` with the `appweaver.module` field and its
+dependencies. This only holds while it imports nothing of the application through the `@/` aliases, which the lint
+rules of the module template enforce. AI agents learn a single module format.
 
 ### 10.3 Scaffolder changes
 
@@ -439,7 +455,8 @@ NestJS library (`nest g library`) or a Rails engine. AI agents learn a single mo
 2. The error classes moved to `@appweaver/common`.
 3. `defineConfig`, the config registry and the split loader. The single schema converted into sections, generating the
    JSON Schema, the types, the `.env.example` block and the config docs table.
-4. `defineModule`, the discovery, the short provider names and the `auto` providers. `load-providers.ts`,
+4. `defineModule`, the discovery of package, local and explicit modules, the short provider names and the `auto`
+   providers. `load-providers.ts`,
    `create-server.ts` and `resources.ts` converted into internal module manifests, and the CLI using the discovery.
 5. The server as a lifecycle service with staged plugin registration, without `context.server`.
 6. The HTTP files of every directory (`resource`, `security`, `storage`, `health`, `template`, `cache`) grouped into
@@ -499,6 +516,7 @@ These come first, so that every package is created with them.
 | `FileService`, `EmailService` and their models in core           | No heavy dependencies, used by workers, the drivers carry the libraries           |
 | Drivers named after their library                                | Room for other implementations of the same contract                               |
 | Discovery from `package.json`, explicit paths with `APP_MODULES` | Installing a module enables it, a single source of truth                          |
+| Local modules found by `APP_MODULES_PATTERN`                     | `weaver new module` needs no config step, the same format as a package            |
 | Config sections with `defineConfig`, validated on first access   | Same sources and env pattern for every module, unselected drivers ask for nothing |
 | One scaffolder, `@appweaver/create`, with a `module` command     | Shared template machinery, one package to release                                 |
 | _Module_ and _driver_, _plugin_ stays a Fastify plugin           | No clash with `registerPlugin`                                                    |
