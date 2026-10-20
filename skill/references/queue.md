@@ -1,8 +1,9 @@
 # Queue
 
 The queue module provides background job processing with support for workers, retries, and lifecycle event hooks. The
-`BullQueue` driver (provider `bullmq`) uses [BullMQ](https://docs.bullmq.io/) on the Redis connection of the `Memory`
-provider, and is selected when `bullmq` is installed (it requires `ioredis` and `MEMORY_PROVIDER` resolving to `redis`).
+`BullQueue` driver (provider `bullmq`) of `@appweaver/bullmq` uses [BullMQ](https://docs.bullmq.io/) on the Redis
+connection of the `Memory` provider, and is selected when the package is installed (it brings `@appweaver/redis`, and
+requires `MEMORY_PROVIDER` resolving to `redis`).
 Otherwise the `MemoryQueue` of core (provider `memory`) runs the jobs in the process, losing them on a restart, which a
 production application logs as a warning on startup.
 
@@ -175,14 +176,14 @@ type QueueJob<Data, Response> = {
 
 ## Configuration
 
-| Key                          | Type     | Default   | Description                                                                                        |
-|------------------------------|----------|-----------|----------------------------------------------------------------------------------------------------|
-| `QUEUE_PROVIDER`             | `string` | `'auto'`  | `auto` (`bullmq` when installed, otherwise `memory`), `memory`, `bullmq`, `none`, or a module path |
-| `QUEUE_KEEP_COMPLETED_COUNT` | `int`    | `0`       | How many completed jobs to retain (0 = remove all)                                                 |
-| `QUEUE_KEEP_FAILED_COUNT`    | `int`    | `50`      | How many failed jobs to retain for inspection                                                      |
-| `QUEUE_RETRY_ATTEMPTS`       | `int`    | `3`       | Number of retry attempts on failure                                                                |
-| `QUEUE_RETRY_BACKOFF`        | `int`    | `3000`    | Backoff delay in milliseconds                                                                      |
-| `QUEUE_RETRY_BACKOFF_TYPE`   | `enum`   | `'fixed'` | `fixed` or `exponential`                                                                           |
+| Key                          | Type     | Default   | Description                                                                                                  |
+|------------------------------|----------|-----------|--------------------------------------------------------------------------------------------------------------|
+| `QUEUE_PROVIDER`             | `string` | `'auto'`  | `auto` (`bullmq` with `@appweaver/bullmq`, otherwise `memory`), `memory`, `bullmq`, `none`, or a module path |
+| `QUEUE_KEEP_COMPLETED_COUNT` | `int`    | `0`       | How many completed jobs to retain (0 = remove all)                                                           |
+| `QUEUE_KEEP_FAILED_COUNT`    | `int`    | `50`      | How many failed jobs to retain for inspection                                                                |
+| `QUEUE_RETRY_ATTEMPTS`       | `int`    | `3`       | Number of retry attempts on failure                                                                          |
+| `QUEUE_RETRY_BACKOFF`        | `int`    | `3000`    | Backoff delay in milliseconds                                                                                |
+| `QUEUE_RETRY_BACKOFF_TYPE`   | `enum`   | `'fixed'` | `fixed` or `exponential`                                                                                     |
 
 **Use `MemoryQueue` in the tests:**
 

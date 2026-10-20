@@ -59,7 +59,8 @@ commits together when it resolves, and an error thrown out of it rolls everythin
 error caught inside the function does not roll back.
 
 ```ts
-import { afterCommit, injectService, runTransaction } from '@appweaver/core';
+import { afterCommit, injectService } from '@appweaver/core';
+import { runTransaction } from '@appweaver/data';
 import { Prisma } from '@db/client/client';
 
 const orders = injectService('Order');

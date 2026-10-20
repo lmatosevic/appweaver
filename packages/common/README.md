@@ -23,8 +23,9 @@
   that `weaver generate` fills so the factories infer the model types from a model name.
 - **Infrastructure contracts** – the abstract `Database`, `Cache`, `Memory`, `Queue`, `Scheduler`, `Storage`,
   `Mailer`, `Events`, `TemplateEngine`, `ImageProcessor`, and `SecurityStore` classes the drivers implement.
-- **Modules** – `defineModule`, the manifest of a module declaring its contracts, providers, services, resources and
-  startup code, the same format for the framework's own modules, npm packages, and the `src/modules/` of an app.
+- **Modules** – `defineModule`, the manifest of a module declaring its contracts, providers, services, setup,
+  resources and startup code, the same format for the framework's own modules, npm packages, and the `src/modules/`
+  of an app.
 - **Lifecycle** – the `OnInit`, `OnReady`, `OnShutdown`, and `OnDestroy` hooks of the application services.
 - **Utilities** – string, object, date, and version helpers such as `randomString` and `compareVersions`.
 

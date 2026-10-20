@@ -2,8 +2,8 @@
 
 The cache module provides a key-value store with TTL support, eviction strategies, and automatic invalidation tied to
 resource mutations. The one implementation, `MemoryCache` (provider `memory`), stores its entries in the selected
-`Memory` provider: in the process by default, in Redis with `MEMORY_PROVIDER=redis` (the default when `ioredis` is
-installed). It is accessed through the abstract `Cache` class and the higher-level `CacheService`.
+`Memory` provider: in the process by default, in Redis with `MEMORY_PROVIDER=redis` (the default when
+`@appweaver/redis` is installed). It is accessed through the abstract `Cache` class and the higher-level `CacheService`.
 
 ## `Cache` — low-level provider
 

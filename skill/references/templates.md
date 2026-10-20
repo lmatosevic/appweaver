@@ -5,8 +5,9 @@ Templates and localization are two independent features, each usable without the
 - **Templates**: the template engine renders text of any format from template files: email bodies, HTML pages, XML
   documents for external integrations, CSV or any other text. `TemplateEngine` is an optional infrastructure provider of
   `@appweaver/common`, the default implementation is `HandlebarsTemplateEngine`
-  ([Handlebars](https://handlebarsjs.com/guide/)), replaceable with `TEMPLATE_PROVIDER`. It needs the `handlebars`
-  package, a companion package the project installs with the `templates` module (`weaver upgrade` keeps it in step).
+  ([Handlebars](https://handlebarsjs.com/guide/)) of the `@appweaver/handlebars` package, replaceable with
+  `TEMPLATE_PROVIDER`. The project installs the package with the `templates` module (`weaver upgrade` keeps it in
+  step).
 - **Localization**: the locale service translates the keys of nested JSON files into a locale, anywhere in the
   application and, with the `t` helper, inside the templates. `LocaleService` is a core service of `@appweaver/core`,
   always available. Without a `locales/` directory it translates only the framework's own English `emails.*` keys.
@@ -19,7 +20,7 @@ project without translation files can still render localized templates.
 which `weaver module add` and `weaver module remove` add and remove later. With the `mailer` module the templates
 include the account emails:
 
-| Modules             | `templates/`, `handlebars`                     | `locales/` | Account emails (with `mailer`)        |
+| Modules             | `templates/`, `@appweaver/handlebars`          | `locales/` | Account emails (with `mailer`)        |
 |---------------------|------------------------------------------------|------------|---------------------------------------|
 | `templates locales` | Scaffolded, the texts translated with `{{t}}`  | `en.json`  | Rendered from the localized templates |
 | `templates`         | Scaffolded, the English texts written in place | —          | Rendered from the English templates   |
@@ -39,7 +40,7 @@ server when a file of either changes, and ignores a directory that does not exis
 ## Templates
 
 The template engine is selected only when its package is installed: `TEMPLATE_PROVIDER=auto` picks the `handlebars`
-driver when `handlebars` is installed, otherwise the application starts without an engine, as with
+driver when `@appweaver/handlebars` is installed, otherwise the application starts without an engine, as with
 `TEMPLATE_PROVIDER=none`. Injecting `TemplateEngine` then throws `CONTEXT_DEFINITION_MISSING`, sending a template email
 fails with `CONFIGURATION_INVALID`, and the account emails are sent as plain text built from the `emails.*`
 translations, as they are when the application has no template for them. `EmailService.sendEmail` sends an email the
@@ -124,7 +125,8 @@ a `Type.String()` response and the produced MIME type, so the OpenAPI document d
 ```ts
 import { Type } from '@sinclair/typebox';
 import { TemplateEngine, templateContentType } from '@appweaver/common';
-import { inject, registerRoute } from '@appweaver/core';
+import { inject } from '@appweaver/core';
+import { registerRoute } from '@appweaver/web';
 
 registerRoute(
   (router) => {
@@ -292,18 +294,18 @@ and the content type of its format. The query parameters are the template data:
 A missing template responds with `404 TEMPLATE_PREVIEW_NOT_FOUND`, and an invalid `_data` with `400 MALFORMED_REQUEST`.
 The route requires authentication only when `TEMPLATE_PREVIEW_AUTH` is `true`, is left out of the OpenAPI document,
 responds with `Content-Security-Policy: sandbox` so no script of a rendered page runs, and fails the startup when no
-template engine is loaded (the `handlebars` package is not installed).
+template engine is loaded (the `@appweaver/handlebars` package is not installed).
 
 ### Template configuration
 
-| Key                             | Default         | Description                                                                  |
-|---------------------------------|-----------------|------------------------------------------------------------------------------|
-| `TEMPLATE_PATH`                 | `'./templates'` | Directory of the template files                                              |
-| `TEMPLATE_CACHE`                | `true`          | Keep the templates in memory                                                 |
-| `TEMPLATE_PREVIEW_ENABLED`      | `false`         | Enable the preview route                                                     |
-| `TEMPLATE_PREVIEW_AUTH`         | `false`         | Require authentication for the preview route                                 |
-| `TEMPLATE_PREVIEW_ROUTE_PREFIX` | `'/templates'`  | URL prefix of the preview route                                              |
-| `TEMPLATE_PROVIDER`             | `'auto'`        | `auto` (`handlebars` when installed), `handlebars`, `none`, or a module path |
+| Key                             | Default         | Description                                                                                |
+|---------------------------------|-----------------|--------------------------------------------------------------------------------------------|
+| `TEMPLATE_PATH`                 | `'./templates'` | Directory of the template files                                                            |
+| `TEMPLATE_CACHE`                | `true`          | Keep the templates in memory                                                               |
+| `TEMPLATE_PREVIEW_ENABLED`      | `false`         | Enable the preview route                                                                   |
+| `TEMPLATE_PREVIEW_AUTH`         | `false`         | Require authentication for the preview route                                               |
+| `TEMPLATE_PREVIEW_ROUTE_PREFIX` | `'/templates'`  | URL prefix of the preview route                                                            |
+| `TEMPLATE_PROVIDER`             | `'auto'`        | `auto` (`handlebars` with `@appweaver/handlebars`), `handlebars`, `none`, or a module path |
 
 ### Template errors
 
@@ -403,7 +405,8 @@ A missing key returns the key itself. The framework's own keys (`emails.*`) fall
 ### Translating in a service hook
 
 ```ts
-import { createService, inject, LocaleService } from '@appweaver/core';
+import { inject, LocaleService } from '@appweaver/core';
+import { createService } from '@appweaver/data';
 
 export default createService({
   modelName: 'Category',

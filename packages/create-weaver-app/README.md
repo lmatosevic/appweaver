@@ -42,17 +42,19 @@ npx @appweaver/create-weaver-app MyApp "My awesome API" --all --no-scheduler
 | `--bun`              | Use Bun as the application runtime                                                | Node         |
 | `--no-install`       | Skip the installation of the dependencies                                         | installs     |
 
-The base project has none of the modules. A module required by an added one is added along with it:
+The base project depends on `@appweaver/core`, `@appweaver/data`, `@appweaver/web` and `@appweaver/sharp`, and has
+none of the modules. A module installs its driver package, and a module required by an added one is added along with
+it:
 
-| Module      | Adds                                                                         | Without it                                  |
-|-------------|------------------------------------------------------------------------------|---------------------------------------------|
-| `redis`     | IoRedis, the Redis connection, and the Redis service of `docker-compose.yml` | memory, cache and rate limit in the process |
-| `queue`     | BullMQ, requires `redis`                                                     | in-memory queue                             |
-| `scheduler` | Cron                                                                         | scheduler disabled                          |
-| `mailer`    | Nodemailer, and the account email templates with `templates`                 | mailer disabled                             |
-| `templates` | Handlebars and `templates/`                                                  | no template engine                          |
-| `locales`   | `locales/en.json`                                                            | English texts written into the templates    |
-| `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`              | no Docker files                             |
+| Module      | Adds                                                                                | Without it                                  |
+|-------------|-------------------------------------------------------------------------------------|---------------------------------------------|
+| `redis`     | `@appweaver/redis`, the Redis connection, the Redis service of `docker-compose.yml` | memory, cache and rate limit in the process |
+| `queue`     | `@appweaver/bullmq`, requires `redis`                                               | in-memory queue                             |
+| `scheduler` | `@appweaver/cron`                                                                   | scheduler disabled                          |
+| `mailer`    | `@appweaver/nodemailer`, and the account email templates with `templates`           | mailer disabled                             |
+| `templates` | `@appweaver/handlebars` and `templates/`                                            | no template engine                          |
+| `locales`   | `locales/en.json`                                                                   | English texts written into the templates    |
+| `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                     | no Docker files                             |
 
 The modules of an existing project are managed with the `weaver` CLI, from the same templates:
 

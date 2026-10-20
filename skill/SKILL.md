@@ -73,16 +73,17 @@ create-weaver-app <name> [description] [options]
 | `--bun`              | Use Bun as application runtime. (default is node and npm)      | false        |
 | `--no-install`       | Skip all dependencies installation.                            | installs     |
 
-**Modules:** the base project has none of them. Each one is added with `--add`, `--all`, or later with
-`weaver module add` (see [Managing modules](#managing-modules)):
+**Modules:** the base project depends on `@appweaver/core`, `@appweaver/data` (the database), `@appweaver/web` (the
+server) and `@appweaver/sharp` (the image transforms), and has none of these modules. Each one is added with `--add`,
+`--all`, or later with `weaver module add` (see [Managing modules](#managing-modules)):
 
 | Module      | Adds                                                                         | Without it                                   |
 |-------------|------------------------------------------------------------------------------|----------------------------------------------|
-| `redis`     | `ioredis`, the `memory.redis.url`, the docker-compose Redis service          | memory, cache and rate limit in the process  |
-| `queue`     | `bullmq` (requires `redis`, added along with it)                             | in-memory queue                              |
-| `scheduler` | `cron`                                                                       | scheduler disabled                           |
-| `mailer`    | `nodemailer`                                                                 | mailer disabled (email features respond 501) |
-| `templates` | `handlebars`, `templates/`, with the account email templates with the mailer | no template engine                           |
+| `redis`     | `@appweaver/redis`, the `memory.redis.url`, the docker-compose Redis service | memory, cache and rate limit in the process  |
+| `queue`     | `@appweaver/bullmq` (requires `redis`, added along with it)                  | in-memory queue                              |
+| `scheduler` | `@appweaver/cron`                                                            | scheduler disabled                           |
+| `mailer`    | `@appweaver/nodemailer`                                                      | mailer disabled (email features respond 501) |
+| `templates` | `@appweaver/handlebars`, `templates/`, the account emails with the mailer    | no template engine                           |
 | `locales`   | `locales/en.json`                                                            | English texts written into the templates     |
 | `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`              | no Docker files                              |
 
@@ -223,13 +224,16 @@ await app.start(); // app.start(false) starts every service without listening fo
 ```
 
 `app.server` is the Fastify instance of the `HttpServer` service (`inject(HttpServer).instance`), and `app.spec()`
-returns the OpenAPI document; both throw when the `@appweaver/web` module is disabled.
+returns the OpenAPI document. `@appweaver/web` adds both to `Application`, so neither is available when the module is
+not installed or disabled.
 
 ### Modules and application kinds
 
 Every part of the framework is a module declared with `defineModule`: `@appweaver/core` (always), `@appweaver/data`
-(Prisma, the resources), `@appweaver/web` (the Fastify server, authentication) and one driver module per library
-(`ioredis`, `bullmq`, `cron`, `nodemailer`, `handlebars`, `sharp`), each enabled when its library is installed. The
+(Prisma, the resources), `@appweaver/web` (the Fastify server, authentication, requires data) and one driver package
+per library (`@appweaver/redis`, `@appweaver/bullmq`, `@appweaver/cron`, `@appweaver/nodemailer`,
+`@appweaver/handlebars`, `@appweaver/sharp`). Every package but core is enabled by being a dependency of the
+application's `package.json`, and carries the library it wraps, so install `@appweaver/redis`, not `ioredis`. The
 `provider` key of each contract (`auto` by default) picks the driver of an enabled module, `none` turns the contract
 off. An application adds its own modules in `src/modules/<name>/module.ts` or as npm packages. See
 [modules.md](references/modules.md) and the [providers](references/configuration.md#providers).
@@ -288,7 +292,7 @@ variations, define schema for CRUD routes, and input/output arguments to resourc
 
 ```ts
 // src/resources/product/model.ts
-import { createModel } from '@appweaver/core';
+import { createModel } from '@appweaver/data';
 
 export default createModel({
   name: 'Product',
@@ -393,7 +397,7 @@ route handlers to perform database operations for a bound model and trigger side
 
 ```ts
 // src/resources/product/service.ts
-import { createService } from '@appweaver/core';
+import { createService } from '@appweaver/data';
 
 export default createService({
   modelName: 'Product',
@@ -437,7 +441,7 @@ from the resource model.
 
 ```ts
 // src/resources/product/routes.ts
-import { createRoutes } from '@appweaver/core';
+import { createRoutes } from '@appweaver/web';
 
 export default createRoutes({
   modelName: 'Product',
@@ -489,7 +493,7 @@ permission checks.
 
 ```ts
 // src/resources/product/policy.ts
-import { createPolicy } from '@appweaver/core';
+import { createPolicy } from '@appweaver/data';
 
 export default createPolicy({
   modelName: 'Product',
@@ -532,7 +536,7 @@ or a string, an `Error`, or an `AppweaverError` to abort the login, the last one
 
 ```ts
 // src/resources/user/model.ts
-import { createAuthModel } from '@appweaver/core';
+import { createAuthModel } from '@appweaver/data';
 
 export default createAuthModel({
   name: 'User',
@@ -554,7 +558,7 @@ export default createAuthModel({
 
 ```ts
 // src/resources/user/service.ts
-import { createAuthService } from '@appweaver/core';
+import { createAuthService } from '@appweaver/data';
 
 export default createAuthService({
   modelName: 'User',
@@ -686,7 +690,7 @@ schemas) stay open, and `headers` are never closed.
 
 ```ts
 // src/plugins/custom-route.ts
-import { registerRoute, Router } from '@appweaver/core';
+import { registerRoute, Router } from '@appweaver/web';
 import { Type } from '@sinclair/typebox';
 
 registerRoute(
@@ -759,7 +763,7 @@ before creating a record.
 ```ts
 import { ApplicationError, ErrorCode } from '@appweaver/common';
 import { defineErrors, ResourceError } from '@appweaver/common';
-import { errorResponses } from '@appweaver/core';
+import { errorResponses } from '@appweaver/web';
 
 // A module of its own, imported where the codes are used
 export const ShopErrors = defineErrors({
@@ -785,7 +789,7 @@ Registered models are added to the schema registry and can be referenced by `$re
 
 ```ts
 // src/plugins/custom-model.ts
-import { registerModel } from '@appweaver/core';
+import { registerModel } from '@appweaver/web';
 import { Type } from '@sinclair/typebox';
 
 registerModel(
@@ -808,7 +812,7 @@ optional dependencies on other named plugins.
 
 ```ts
 // src/plugins/audit-log.ts
-import { registerPlugin } from '@appweaver/core';
+import { registerPlugin } from '@appweaver/web';
 
 registerPlugin('audit-log', async (server) => {
   server.addHook('onResponse', async (request, reply) => {
@@ -861,7 +865,7 @@ any service or model previously defined in the main application logic or exporte
 ```ts
 // database/seeders/001-create-admin-user.ts
 
-import { hashPassword, systemConfig } from '@appweaver/core';
+import { hashPassword, systemConfig } from '@appweaver/data';
 import { randomString } from '@appweaver/common';
 import { db } from '@db/client';
 
@@ -965,15 +969,15 @@ weaver upgrade @appweaver/core @appweaver/cli  # upgrade specific packages
 weaver upgrade --target-version 1.2.3          # upgrade to a specific version
 weaver upgrade --no-skill                      # skip upgrading AI agent skill files (.claude, .agents, …)
 weaver upgrade --force                         # force upgrade despite peerDependency mismatches
-weaver upgrade --no-companions                 # skip the companion packages (prisma, bullmq, nodemailer, …)
+weaver upgrade --no-companions                 # skip the companion packages (prisma, typebox, typescript, …)
 weaver upgrade --tooling                       # also upgrade the tooling packages (eslint, jest, prettier, …)
 weaver upgrade --dry-run                       # print the upgrades without installing them
 ```
 
 Besides the `@appweaver/*` packages, `weaver upgrade` bumps the companion packages the project already has (Prisma
-and its adapters, TypeBox, BullMQ, Cron, Handlebars, IoRedis, Nodemailer, TypeScript) to the exact versions the target
-release is built with. It never adds missing packages or downgrades newer ones. Run `weaver generate` afterwards when
-Prisma is upgraded.
+and its adapters, TypeBox, TypeScript) to the exact versions the target release is built with. It never adds missing
+packages or downgrades newer ones. The libraries of the drivers (BullMQ, Cron, Handlebars, IoRedis, Nodemailer, Sharp)
+come with their `@appweaver/*` driver packages. Run `weaver generate` afterwards when Prisma is upgraded.
 
 ### Managing modules
 

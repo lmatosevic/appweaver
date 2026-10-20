@@ -7,21 +7,23 @@ first-party module does.
 
 ## First-party modules
 
-| Module                  | Enabled                    | Brings                                                                                                            |
-|-------------------------|----------------------------|-------------------------------------------------------------------------------------------------------------------|
-| `@appweaver/core`       | Always                     | The contracts and the in-process drivers: `memory`, `node` events, `local` storage, `memory` queue, `json` mailer |
-| `@appweaver/data`       | `@prisma/client` installed | The `prisma` database, the resources, `FileService`, the `database` security store                                |
-| `@appweaver/web`        | Always, unless disabled    | The Fastify server (`HttpServer`), authentication, account and OAuth2 services                                    |
-| `@appweaver/redis`      | `ioredis` installed        | The `redis` memory, also the store of the cache and the rate limit                                                |
-| `@appweaver/bullmq`     | `bullmq` installed         | The `bullmq` queue, requires `@appweaver/redis`                                                                   |
-| `@appweaver/cron`       | `cron` installed           | The `cron` scheduler                                                                                              |
-| `@appweaver/nodemailer` | `nodemailer` installed     | The `smtp` mailer                                                                                                 |
-| `@appweaver/handlebars` | `handlebars` installed     | The `handlebars` template engine                                                                                  |
-| `@appweaver/sharp`      | `sharp` installed          | The `sharp` image processor                                                                                       |
+| Module                  | Enabled                      | Brings                                                                                                            |
+|-------------------------|------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| `@appweaver/core`       | Always                       | The contracts and the in-process drivers: `memory`, `node` events, `local` storage, `memory` queue, `json` mailer |
+| `@appweaver/data`       | Installed                    | The `prisma` database, the resources, `FileService`, the `database` security store                                |
+| `@appweaver/web`        | Installed (requires `data`)  | The Fastify server (`HttpServer`), authentication, account and OAuth2 services                                    |
+| `@appweaver/redis`      | Installed                    | The `redis` memory, also the store of the cache and the rate limit                                                |
+| `@appweaver/bullmq`     | Installed (requires `redis`) | The `bullmq` queue                                                                                                |
+| `@appweaver/cron`       | Installed                    | The `cron` scheduler                                                                                              |
+| `@appweaver/nodemailer` | Installed                    | The `smtp` mailer                                                                                                 |
+| `@appweaver/handlebars` | Installed                    | The `handlebars` template engine                                                                                  |
+| `@appweaver/sharp`      | Installed                    | The `sharp` image processor                                                                                       |
 
-The first-party modules are still part of `@appweaver/core`, each enabled by the library it wraps, so installing
-`ioredis` moves the memory, the cache and the rate limit to Redis without any config. The scaffold modules of
-`weaver module add` (`redis`, `queue`, `mailer`, ...) install these libraries along with their config and files.
+Every first-party module but core is a package of its own, enabled like any [package module](#package-modules): by
+being a dependency of the application's `package.json`. A driver package carries the library it wraps as a dependency,
+so `npm install @appweaver/redis` moves the memory, the cache and the rate limit to Redis without any config, and
+installing `ioredis` alone enables nothing. The scaffold modules of `weaver module add` (`redis`, `queue`, `mailer`,
+...) install these packages along with their config and files.
 
 ## Discovery
 
@@ -29,13 +31,13 @@ The enabled modules come from:
 
 | Source         | Found                                                                                                                                                                                      |
 |----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| First-party    | The table above                                                                                                                                                                            |
+| Core           | `@appweaver/core`, always                                                                                                                                                                  |
 | Packages       | The `dependencies` and `optionalDependencies` of the project's `package.json` whose own `package.json` has `"appweaver": { "module": "./dist/module.js" }`, and the modules they `require` |
 | Local modules  | Every manifest matching `APP_MODULES_PATTERN` (`app.modulesPattern`, default `<srcPath>/modules/*/module.ts`), without any config                                                          |
 | Explicit paths | `APP_MODULES` (`app.modules`), manifest paths relative to the project root, i.e. `../shared/dist/module.js`                                                                                |
 
 - `APP_MODULES_DISABLED` (`app.modulesDisabled`) leaves modules out by name, i.e. `["@appweaver/web"]` for a worker or
-  a scheduled job runner without a server.
+  a scheduled job runner without a server, which can also leave the package out of its dependencies.
 - The local pattern resolves against the build output on Node (`./dist/src/modules/*/module.js`) and against the
   sources with Bun and in `weaver generate`. An empty pattern turns the scan off.
 - Every module comes after the modules it `requires`, otherwise in the order above.
@@ -52,10 +54,15 @@ The enabled modules come from:
 
 1. The providers selected for every declared contract, then the `services` of every module whose `requires` are all
    provided.
-2. With `@appweaver/data`: the resources of the application, then the `resources` of the modules.
+2. The `setup` of every module, in the module order. `@appweaver/data` loads the resources of the application, then
+   the `resources` of the modules. `@appweaver/web` loads the resource routes of the application
+   (`RESOURCE_ROUTES_PATTERN`), then the `web` part of every module.
 3. The `main` part of every module.
 4. The application files (`APP_SCAN_FILES_PATTERN`).
-5. With `@appweaver/web`: the `web` part of every module, then the server is created.
+
+The server of `@appweaver/web` is created by its `HttpServer` service once everything is loaded, and listens when the
+application starts. The resources and the routes of the application and the modules are all loaded before the `main`
+parts and the application files.
 
 A provider or a service of a module is defined with the `override` mode of `define`. The application replaces one with
 `define(MyService, ModuleService, 'override')`, since the default mode keeps the existing definition.
@@ -93,17 +100,31 @@ export default defineModule({ name: 'appweaver-newsletter' /* ... */ });
 | `contracts` | `{ contract, provider: () => string }[]` | The contracts it declares, with the function reading the provider key, i.e. `() => paymentConfig.PROVIDER`                                         |
 | `providers` | `{ contract, name, load, auto? }[]`      | Its contract implementations. `load` imports the class lazily (`() => import('./gcs-storage')`), `auto` is `true`, `'fallback'` or `false`         |
 | `services`  | `{ load, requires? }[]`                  | Classes defined at startup by their class name, with their lifecycle hooks and health checks; `requires` lists the contracts that must be provided |
-| `resources` | `() => import(...)`                      | A file exporting its models, resource services and policies, loaded only with `@appweaver/data`, and by `weaver generate`                          |
+| `setup`     | `(context) => unknown`                   | Run after the providers and services of every module, before the `main` parts and the application files (see below)                                |
+| `resources` | `() => import(...)`                      | A file exporting its models, resource services and policies, loaded by the `setup` of `@appweaver/data`, and by `weaver generate`                  |
 | `main`      | `() => import(...)`                      | Code run at startup: scheduled jobs, queue workers, event listeners                                                                                |
-| `web`       | `() => import(...)`                      | Its resource routes, custom routes (`registerRoute`) and plugins (`registerPlugin`), loaded only with `@appweaver/web`                             |
+| `web`       | `() => import(...)`                      | Its resource routes, custom routes (`registerRoute`) and plugins (`registerPlugin`), loaded by the `setup` of `@appweaver/web`                     |
 | `commands`  | `() => import(...)`                      | Its `weaver` subcommands                                                                                                                           |
 | `seeders`   | `string`                                 | The absolute path of its seeders directory                                                                                                         |
 | `locales`   | `string`                                 | The absolute path of its translations, overridden by the ones of the application                                                                   |
 | `templates` | `string`                                 | The absolute path of its templates, overridden by the ones of the application                                                                      |
 
 Every part is imported lazily and only when used: a driver only when it is selected, `web` only with a server. Keep
-the routes in `web`, not in `resources`, so the module also works without a server. `isModule(value)` checks a
-manifest, and `PROVIDER_AUTO` / `PROVIDER_NONE` hold `'auto'` and `'none'`.
+the routes in `web`, not in `resources`, so the module also works without a server.
+
+`setup` receives `{ modules, scanPath, params }`: the enabled manifests in their load order, the source directory of
+the application (`./dist/src`) and the parameters given to `createApp` (`resourcePaths`, `autoLoadResources`, ...).
+It is how a module loads what it brings from the application or the other modules, the way `@appweaver/data` loads the
+resources and `@appweaver/web` the routes:
+
+```ts
+export default defineModule({
+  name: '@acme/appweaver-jobs',
+  setup: async ({ modules, scanPath }) => (await import('./load-jobs')).loadJobs(modules, scanPath)
+});
+```
+
+`isModule(value)` checks a manifest, and `PROVIDER_AUTO` / `PROVIDER_NONE` hold `'auto'` and `'none'`.
 
 The `config`, `commands`, `seeders`, `locales` and `templates` fields are declared for the tooling, and not loaded by
 the framework yet: a config section is registered when its file imports `defineConfig`, and only the seeders,
@@ -246,8 +267,12 @@ export default defineModule({
 
 - Name the package `appweaver-<name>` or `@scope/appweaver-<name>`, with the npm keyword `appweaver-module`.
 - `@appweaver/common` and `@appweaver/core` are peer dependencies, never dependencies, so the application keeps one
-  dependency injection context.
-- A module the package `requires` is a regular dependency of it, so installing the package brings and enables it.
+  dependency injection context, as are `@appweaver/data` and `@appweaver/web` for a module importing their factories,
+  services or routes.
+- A module the package `requires` is a dependency of it (`@appweaver/bullmq` depends on `@appweaver/redis`), so
+  installing the package brings and enables it, or a peer dependency the application installs too (`@appweaver/web`
+  on `@appweaver/data`).
 - The application enables the package by installing it as a dependency (not a dev dependency).
 - A driver nests its config section under its contract (`storage.gcs`, like `mailer.smtp`), any other module takes its
-  own top-level section.
+  own top-level section. Two packages may define the same section path with their own keys (`healthCheck` in core and
+  web, `security.oauth2` in data and web), but a flattened key belongs to one section only.

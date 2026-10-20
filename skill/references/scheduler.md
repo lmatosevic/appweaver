@@ -1,9 +1,9 @@
 # Scheduler
 
-The scheduler module runs recurring tasks using cron expressions. Its driver, `CronScheduler` (provider `cron`), wraps
-the [`cron`](https://github.com/kelektiv/node-cron) library and is selected when `cron` is installed; without it, or
-with `SCHEDULER_PROVIDER=none`, no `Scheduler` is defined. Jobs auto-start on `addJob` (controlled by
-`SCHEDULER_AUTO_START_JOB`) and are stopped gracefully on application shutdown.
+The scheduler module runs recurring tasks using cron expressions. Its driver, `CronScheduler` (provider `cron`) of
+`@appweaver/cron`, wraps the [`cron`](https://github.com/kelektiv/node-cron) library and is selected when the package is
+installed; without it, or with `SCHEDULER_PROVIDER=none`, no `Scheduler` is defined. Jobs auto-start on `addJob`
+(controlled by `SCHEDULER_AUTO_START_JOB`) and are stopped gracefully on application shutdown.
 
 An application of scheduled jobs needs no server: disable `@appweaver/web` (`APP_MODULES_DISABLED=@appweaver/web`), and
 the cron jobs keep it running. `weaver run` sets `SCHEDULER_AUTO_START_JOB` to `false`, so a one-shot task never starts
@@ -133,10 +133,10 @@ await scheduler.removeJob(jobId);
 
 ## Configuration
 
-| Key                        | Type     | Default  | Description                                                                      |
-|----------------------------|----------|----------|----------------------------------------------------------------------------------|
-| `SCHEDULER_AUTO_START_JOB` | `bool`   | `true`   | Automatically start jobs when `addJob` is called                                 |
-| `SCHEDULER_PROVIDER`       | `string` | `'auto'` | `auto` (`cron` when installed, otherwise none), `cron`, `none`, or a module path |
+| Key                        | Type     | Default  | Description                                                                              |
+|----------------------------|----------|----------|------------------------------------------------------------------------------------------|
+| `SCHEDULER_AUTO_START_JOB` | `bool`   | `true`   | Automatically start jobs when `addJob` is called                                         |
+| `SCHEDULER_PROVIDER`       | `string` | `'auto'` | `auto` (`cron` with `@appweaver/cron`, otherwise none), `cron`, `none`, or a module path |
 
 ---
 
@@ -144,8 +144,8 @@ await scheduler.removeJob(jobId);
 
 Every application instance runs its own cron jobs, so a job registered at startup runs once per instance. When it must
 run once per tick (sending a digest, charging a subscription), guard it with a lock of the `Memory` provider configured
-for Redis (`MEMORY_PROVIDER=redis`, the default when `ioredis` is installed). The `memory` provider locks within one
-process only, so it guards nothing across instances.
+for Redis (`MEMORY_PROVIDER=redis`, the default when `@appweaver/redis` is installed). The `memory` provider locks
+within one process only, so it guards nothing across instances.
 
 ```ts
 import { inject } from '@appweaver/core';
