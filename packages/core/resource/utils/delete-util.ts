@@ -12,12 +12,13 @@ import {
   ResourceError
 } from '@appweaver/common';
 import { context, injectModel } from '../../context';
-import { currentAuthUser, resourceAuthModel } from '../../security';
+import { resourceAuthModel } from '../../security';
 import {
   deletedResourceFileFields,
   isSoftDeleteModel,
   liveRecordFilter
 } from '../../utils';
+import { currentAuthUser } from '../../context/auth-context';
 
 /** The nested write actions a single relation field can be mapped to. */
 export type RelationActions = Record<

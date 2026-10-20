@@ -1,7 +1,9 @@
+import { AsyncResource } from 'node:async_hooks';
 import Fastify, { FastifyInstance } from 'fastify';
 import { fastifyRequestContext } from '@fastify/request-context';
 import { AuthUser } from '@appweaver/common';
 import { define } from '../../context';
+import { runInAuthContext, setAuthContext } from '../../context/auth-context';
 import { CacheService } from '../../cache/cache-service';
 import caching from '../../cache/caching';
 import { resetContext } from '../fixtures/context-fixture';
@@ -23,13 +25,12 @@ describe('caching', () => {
   ): Promise<void> {
     app = Fastify({ logger: false });
     app.register(fastifyRequestContext, {
-      defaultStoreValues: {
-        authUser,
-        authType: null,
-        authSource: null,
-        apiKey: null,
-        cached: undefined
-      }
+      defaultStoreValues: { cached: undefined },
+      createAsyncResource: () =>
+        runInAuthContext(() => {
+          setAuthContext({ authUser });
+          return new AsyncResource('appweaver-request');
+        })
     });
     app.register(caching);
     app.route({

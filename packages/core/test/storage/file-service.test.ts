@@ -8,12 +8,12 @@ import {
 import { context, define } from '../../context';
 import { CacheService } from '../../cache';
 import { FileService } from '../../storage/file-service';
-import { currentAuthUser } from '../../security/helper';
 import { withoutPolicies } from '../../utils';
 import { resetContext } from '../fixtures/context-fixture';
+import { currentAuthUser } from '../../context/auth-context';
 
-jest.mock('../../security/helper', () => ({
-  ...jest.requireActual('../../security/helper'),
+jest.mock('../../context/auth-context', () => ({
+  ...jest.requireActual('../../context/auth-context'),
   currentAuthUser: jest.fn()
 }));
 

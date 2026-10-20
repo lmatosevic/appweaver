@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { AsyncResource } from 'node:async_hooks';
 import Fastify, { LogController } from 'fastify';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import fastifyCors from '@fastify/cors';
@@ -37,6 +38,7 @@ import { requestValidation } from './request-validation';
 import { referencedSerializer } from './response-serialization';
 import schemas from './schemas';
 import swagger from './swagger';
+import { runInAuthContext } from '../context/auth-context';
 
 /**
  * Creates and configures a new server instance.
@@ -158,14 +160,12 @@ export function createServer(): Server {
   }
 
   // Register request context plugin with default values
+  // The async resource of each request is created in a new auth context, so
+  // the authenticated user is kept through the whole request
   server.register(fastifyRequestContext, {
-    defaultStoreValues: {
-      authUser: null,
-      authType: null,
-      authSource: null,
-      apiKey: null,
-      cached: undefined
-    }
+    defaultStoreValues: { cached: undefined },
+    createAsyncResource: () =>
+      runInAuthContext(() => new AsyncResource('appweaver-request'))
   });
 
   // Register all defined plugins

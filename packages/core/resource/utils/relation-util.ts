@@ -15,8 +15,8 @@ import {
   ResourceError
 } from '@appweaver/common';
 import { injectModel } from '../../context';
-import { currentAuthUser } from '../../security';
 import { liveInclusionFilter, RelationActions } from './delete-util';
+import { currentAuthUser } from '../../context/auth-context';
 
 /** Levels of a self referencing relation read when the relation configures no
  * `maxDepth`, i.e. the relation itself and nothing below it. */

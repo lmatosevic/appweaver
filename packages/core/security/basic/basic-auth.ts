@@ -1,7 +1,6 @@
 import { FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import fastifyBasicAuth from '@fastify/basic-auth';
-import { requestContext } from '@fastify/request-context';
 import {
   AuthSource,
   AuthType,
@@ -14,6 +13,7 @@ import { basicAuthConfig } from '../security-config';
 import { inject } from '../../context';
 import { AuthService } from '../auth-service';
 import { Server } from '../../types';
+import { setAuthContext } from '../../context/auth-context';
 
 export const basicAuth = fastifyPlugin(async (server: Server) => {
   const authService = inject(AuthService);
@@ -48,9 +48,11 @@ export const basicAuth = fastifyPlugin(async (server: Server) => {
 
       authService.authorize(authUser, request.url, request.routeOptions.config);
 
-      requestContext.set('authUser', authUser);
-      requestContext.set('authType', AuthType.Basic);
-      requestContext.set('authSource', AuthSource.Password);
+      setAuthContext({
+        authUser,
+        authType: AuthType.Basic,
+        authSource: AuthSource.Password
+      });
     }
   });
 });

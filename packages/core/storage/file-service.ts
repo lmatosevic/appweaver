@@ -22,13 +22,7 @@ import {
 } from '@appweaver/common';
 import { storageConfig } from './storage-config';
 import { inject, injectModel, injectPolicy, injectService } from '../context';
-import { currentAuthUser } from '../security/helper';
 import { PrismaDatabase, toDatabaseError } from '../database';
-import {
-  afterCommit,
-  afterRollback,
-  currentTransaction
-} from '../database/transaction-context';
 import { CacheService } from '../cache';
 import {
   arePoliciesSkipped,
@@ -43,6 +37,12 @@ import {
   sizeInBytes
 } from '../utils';
 import { File, FileBuffer } from '../types';
+import { currentAuthUser } from '../context/auth-context';
+import {
+  afterCommit,
+  afterRollback,
+  currentTransaction
+} from '../context/transaction-scope';
 
 export type FileStream = {
   content: ContentStream;

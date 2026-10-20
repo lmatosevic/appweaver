@@ -8,9 +8,10 @@ import {
 } from './auth-schema';
 import { AuthScope, AuthSource, AuthType } from '@appweaver/common';
 import { AuthService } from './auth-service';
-import { currentAuthSource, resourceAuthModel } from './helper';
+import { resourceAuthModel } from './helper';
 import { inject } from '../context';
 import { Server } from '../types';
+import { currentAuthSource } from '../context/auth-context';
 
 /**
  * Registers the authentication routes: login, logout, token refresh and exchange, password change, and the current

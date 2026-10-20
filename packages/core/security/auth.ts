@@ -11,7 +11,6 @@ import {
   turnstileConfig
 } from './security-config';
 import { Server } from '../types';
-import { currentAuthUser } from './helper';
 import { authRoutes } from './auth-routes';
 import { accountRoutes } from './account';
 import { recaptcha } from './recaptcha';
@@ -19,6 +18,7 @@ import { turnstile } from './turnstile';
 import { basicAuth, hasBasicAuth } from './basic';
 import { apiKeyAuth, hasApiKey } from './api-key';
 import { hasBearerAuth, jwtAuth } from './jwt';
+import { currentAuthUser } from '../context/auth-context';
 import * as oauth2Plugins from './oauth2';
 
 const PLUGIN_META = Symbol.for('plugin-meta');

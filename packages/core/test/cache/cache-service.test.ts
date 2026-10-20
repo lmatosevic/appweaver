@@ -7,13 +7,13 @@ import { InMemory } from '../../memory/in-memory';
 import { createModel } from '../../factory/create-model';
 import { resetContext } from '../fixtures/context-fixture';
 import {
+  TransactionContext,
   runInTransaction,
-  settleTransaction,
-  TransactionContext
-} from '../../database/transaction-context';
+  settleTransaction
+} from '../../context/transaction-scope';
 
 const transactionContext = (): TransactionContext => ({
-  tx: {} as any,
+  tx: {},
   commitCallbacks: new Map(),
   rollbackCallbacks: []
 });

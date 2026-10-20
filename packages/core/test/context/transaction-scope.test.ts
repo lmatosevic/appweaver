@@ -1,20 +1,20 @@
 import { logger } from '@appweaver/common';
 import {
+  TransactionContext,
   afterCommit,
   afterRollback,
   currentTransaction,
   runInTransaction,
-  settleTransaction,
-  TransactionContext
-} from '../../database/transaction-context';
+  settleTransaction
+} from '../../context/transaction-scope';
 
 const createContext = (): TransactionContext => ({
-  tx: {} as any,
+  tx: {},
   commitCallbacks: new Map(),
   rollbackCallbacks: []
 });
 
-describe('transaction-context', () => {
+describe('transaction-scope', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });

@@ -1,13 +1,15 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { logger } from '@appweaver/common';
-import { Prisma } from '../prisma/client/client';
 
-/** The state of the transaction the current call runs in. */
-export type TransactionContext = {
-  tx: Prisma.TransactionClient;
+/**
+ * The state of the transaction the current call runs in, opened by the database for its transactions, so the code
+ * without a database (the events, the cache) can defer its work to the commit.
+ */
+export type TransactionContext<Tx = unknown, IsolationLevel = string> = {
+  tx: Tx;
   commitCallbacks: Map<string | symbol, () => unknown>;
   rollbackCallbacks: (() => unknown)[];
-  isolationLevel?: Prisma.TransactionIsolationLevel;
+  isolationLevel?: IsolationLevel;
 };
 
 const transactionStorage = new AsyncLocalStorage<TransactionContext>();
@@ -17,8 +19,12 @@ const transactionStorage = new AsyncLocalStorage<TransactionContext>();
  *
  * @return {TransactionContext | undefined} The current transaction, or undefined outside of one.
  */
-export function currentTransaction(): TransactionContext | undefined {
-  return transactionStorage.getStore();
+export function currentTransaction<Tx = unknown, IsolationLevel = string>():
+  | TransactionContext<Tx, IsolationLevel>
+  | undefined {
+  return transactionStorage.getStore() as
+    | TransactionContext<Tx, IsolationLevel>
+    | undefined;
 }
 
 /**
@@ -28,11 +34,11 @@ export function currentTransaction(): TransactionContext | undefined {
  * @param {Function} fn - The function to run.
  * @return {Object} The value returned by the function.
  */
-export function runInTransaction<T>(
-  context: TransactionContext,
+export function runInTransaction<T, Tx = unknown, IsolationLevel = string>(
+  context: TransactionContext<Tx, IsolationLevel>,
   fn: () => T
 ): T {
-  return transactionStorage.run(context, fn);
+  return transactionStorage.run(context as TransactionContext, fn);
 }
 
 /**
@@ -76,8 +82,8 @@ export function afterRollback(fn: () => unknown): void {
  * @param {TransactionContext} context - The finished transaction.
  * @param {boolean} committed - Whether the transaction committed or rolled back.
  */
-export async function settleTransaction(
-  context: TransactionContext,
+export async function settleTransaction<Tx, IsolationLevel>(
+  context: TransactionContext<Tx, IsolationLevel>,
   committed: boolean
 ): Promise<void> {
   const callbacks = committed

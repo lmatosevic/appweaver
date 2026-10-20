@@ -1,7 +1,6 @@
 import { FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import fastifyJwt from '@fastify/jwt';
-import { requestContext } from '@fastify/request-context';
 import {
   AuthType,
   AuthUser,
@@ -16,6 +15,7 @@ import { inject } from '../../context';
 import { AuthService } from '../auth-service';
 import { JwtPayload, Server } from '../../types';
 import { loadSecurityKeys } from './jwt-keys';
+import { setAuthContext } from '../../context/auth-context';
 
 export const jwtAuth = fastifyPlugin(async (server: Server) => {
   const authService = inject(AuthService);
@@ -76,9 +76,11 @@ export const jwtAuth = fastifyPlugin(async (server: Server) => {
       payload
     );
 
-    requestContext.set('authUser', authUser);
-    requestContext.set('authType', AuthType.Jwt);
-    requestContext.set('authSource', payload.source);
+    setAuthContext({
+      authUser,
+      authType: AuthType.Jwt,
+      authSource: payload.source
+    });
   });
 });
 
