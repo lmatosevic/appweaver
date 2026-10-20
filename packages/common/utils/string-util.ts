@@ -1,7 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { Readable } from 'node:stream';
 import { DefaultGenerationOptions, generateApiKey } from 'generate-api-key';
-import { getDayOfYear, getISOWeek } from 'date-fns';
 import { plural as pluralize, singular as singularize } from 'pluralize';
 
 /**
@@ -362,8 +361,8 @@ export function replacePatternVariables(
     month: now.getUTCMonth() + 1,
     day: now.getUTCDate(),
     weekDay: now.getUTCDay(),
-    yearWeek: getISOWeek(now),
-    yearDay: getDayOfYear(now),
+    yearWeek: isoWeekOfYear(now),
+    yearDay: dayOfYear(now),
     hours: now.getUTCHours(),
     minutes: now.getUTCMinutes(),
     seconds: now.getUTCSeconds(),
@@ -410,4 +409,25 @@ export function toText(value: unknown): string {
       }
       return value === null ? '' : (JSON.stringify(value) ?? '');
   }
+}
+
+/** Returns the ISO 8601 week of the year of a date in UTC, from 1 to 53. */
+function isoWeekOfYear(date: Date): number {
+  const day = new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+  );
+  // The Thursday of the week decides the year the week belongs to
+  day.setUTCDate(day.getUTCDate() + 4 - (day.getUTCDay() || 7));
+  const yearStart = Date.UTC(day.getUTCFullYear(), 0, 1);
+  return Math.ceil(((day.getTime() - yearStart) / 86_400_000 + 1) / 7);
+}
+
+/** Returns the day of the year of a date in UTC, from 1 to 366. */
+function dayOfYear(date: Date): number {
+  const day = Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate()
+  );
+  return (day - Date.UTC(date.getUTCFullYear(), 0, 1)) / 86_400_000 + 1;
 }
