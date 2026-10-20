@@ -1,13 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { ErrorCode } from '@appweaver/common';
 import {
+  ErrorCode,
   defineErrors,
   errorCodeName,
-  errorCodes,
-  errorHttpMap,
-  errorHttpMapping
-} from '../../errors/error-http-map';
+  errorCodes
+} from '@appweaver/common';
+import { errorHttpMap, errorHttpMapping } from '../../errors/error-http-map';
 
 describe('error-http-map', () => {
   describe('errorHttpMap', () => {

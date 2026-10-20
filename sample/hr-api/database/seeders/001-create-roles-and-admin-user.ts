@@ -1,5 +1,5 @@
-import { hashPassword } from '@appweaver/core';
-import { config, randomString } from '@appweaver/common';
+import { hashPassword, systemConfig } from '@appweaver/core';
+import { randomString } from '@appweaver/common';
 import { db } from '@db/client';
 import { Permission } from '@/features/access/permissions';
 
@@ -34,7 +34,7 @@ export async function createRolesAndAdminUser(): Promise<void> {
     });
   }
 
-  let password = config.SYSTEM_ADMIN_INITIAL_PASSWORD;
+  let password = systemConfig.ADMIN_INITIAL_PASSWORD;
 
   if (!password) {
     password = randomString(16, { extra: false });
@@ -46,7 +46,7 @@ export async function createRolesAndAdminUser(): Promise<void> {
       employeeNumber: 'EMP-0001',
       firstName: 'System',
       lastName: 'Admin',
-      email: config.SYSTEM_ADMIN_INITIAL_EMAIL,
+      email: systemConfig.ADMIN_INITIAL_EMAIL,
       hireDate: new Date('2020-01-01T00:00:00.000Z'),
       employmentType: 'Contractor',
       passwordHash: await hashPassword(password),

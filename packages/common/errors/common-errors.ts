@@ -20,7 +20,7 @@ export class ConfigurationError<
 
 /**
  * An error of the application itself, with a code of its own. The API maps
- * the code to an HTTP status registered with `defineErrors` of `@appweaver/core`,
+ * the code to an HTTP status registered with `defineErrors`,
  * and to a 500 status when it is not registered.
  *
  * @example

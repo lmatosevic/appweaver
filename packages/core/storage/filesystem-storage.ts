@@ -4,7 +4,6 @@ import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { Readable } from 'node:stream';
 import {
-  config,
   ContentStream,
   findReservedStoragePath,
   HealthCheckResult,
@@ -13,10 +12,11 @@ import {
   resolveStoragePath,
   Storage
 } from '@appweaver/common';
+import { storageConfig } from './storage-config';
 
 export class FilesystemStorage extends Storage {
   /** @internal */
-  private readonly _dirPath: string = path.resolve(config.STORAGE_PATH);
+  private readonly _dirPath: string = path.resolve(storageConfig.PATH);
 
   public async onInit(): Promise<void> {
     const directoryExists = await this.pathExists(this._dirPath);
@@ -118,7 +118,7 @@ export class FilesystemStorage extends Storage {
 
     const reservedPath = findReservedStoragePath(
       fileName,
-      config.STORAGE_RESERVED_PATHS
+      storageConfig.RESERVED_PATHS
     );
     if (reservedPath !== null) {
       logger.error(

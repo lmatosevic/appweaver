@@ -1,12 +1,12 @@
-import { config, uncapitalize } from '@appweaver/common';
+import { uncapitalize } from '@appweaver/common';
+import { apiKeyConfig } from '../../security-config';
 import { createModel } from '../../../factory';
 import { resourceAuthModel } from '../../helper';
 
 const authModel = resourceAuthModel();
 
 const shouldCreateModel =
-  config.SECURITY_API_KEY_ENABLED ||
-  config.SECURITY_API_KEY_KEEP_DATABASE_TABLE;
+  apiKeyConfig.ENABLED || apiKeyConfig.KEEP_DATABASE_TABLE;
 
 export default shouldCreateModel
   ? createModel({

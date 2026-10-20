@@ -1,16 +1,3 @@
-jest.mock('@appweaver/common', () => {
-  const actual = jest.requireActual('@appweaver/common');
-  const configOverrides: Record<string, unknown> = {};
-  return {
-    __esModule: true,
-    ...actual,
-    configOverrides,
-    get config() {
-      return { ...actual.config, ...configOverrides };
-    }
-  };
-});
-
 import * as common from '@appweaver/common';
 import {
   mergeRouteDefaults,

@@ -15,6 +15,7 @@ import {
   ResourceSchemaConfig,
   StringDate
 } from '@appweaver/common';
+import { resourceConfig } from './resource-config';
 import { injectModel } from '../context';
 import {
   authErrorCodes,
@@ -187,7 +188,7 @@ export function createSchema(
   const bulkItems = (route: ResourceRouteName, items: TSchema) =>
     Type.Array(items, {
       minItems: 1,
-      maxItems: routeBulk[route]?.maxItems ?? config.RESOURCE_BULK_MAX_ITEMS
+      maxItems: routeBulk[route]?.maxItems ?? resourceConfig.BULK_MAX_ITEMS
     });
 
   const idValue = idParams.properties.id;
@@ -198,7 +199,7 @@ export function createSchema(
   // The records a bulk request applied, as its single route responds with each,
   // or only their count
   const bulkResponse = (route: ResourceRouteName) =>
-    (routeBulk[route]?.returnRecords ?? config.RESOURCE_BULK_RETURN_RECORDS)
+    (routeBulk[route]?.returnRecords ?? resourceConfig.BULK_RETURN_RECORDS)
       ? Type.Array(Type.Ref(`${name}Single`))
       : createSchemaModel(BulkResponse);
 
@@ -544,14 +545,14 @@ export function createSchema(
       body: Type.Array(idValue, {
         minItems: 1,
         maxItems:
-          routeBulk['bulkDelete']?.maxItems ?? config.RESOURCE_BULK_MAX_ITEMS,
+          routeBulk['bulkDelete']?.maxItems ?? resourceConfig.BULK_MAX_ITEMS,
         uniqueItems: true
       })
     }
   };
 
-  for (const resourceConfig of Object.values(resourceSchemaConfig)) {
-    resourceConfig[`x-${CONFIG_NAME}-resource`] = name;
+  for (const schemaConfig of Object.values(resourceSchemaConfig)) {
+    schemaConfig[`x-${CONFIG_NAME}-resource`] = name;
   }
 
   return resourceSchemaConfig;

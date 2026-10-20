@@ -36,9 +36,9 @@ npm install @appweaver/common
 ## Usage
 
 ```ts
-import { config, logger, randomString } from '@appweaver/common';
+import { appConfig, logger, randomString } from '@appweaver/common';
 
-logger.info({ port: config.SERVER_PORT }, 'Starting the server');
+logger.info({ env: appConfig.ENV }, 'Starting the application');
 
 const token = randomString(32);
 ```

@@ -1,12 +1,7 @@
 import { createTransport, Transporter } from 'nodemailer';
 import { Attachment } from 'nodemailer/lib/mailer';
-import {
-  config,
-  Email,
-  HealthCheckResult,
-  logger,
-  Mailer
-} from '@appweaver/common';
+import { Email, HealthCheckResult, logger, Mailer } from '@appweaver/common';
+import { mailerConfig } from './mailer-config';
 import { textToHtml } from './utils/html-util';
 
 export class JsonMailer extends Mailer<Attachment> {
@@ -24,7 +19,7 @@ export class JsonMailer extends Mailer<Attachment> {
     const { to, subject, text, html, attachments } = data;
 
     const msg = await this._transporter.sendMail({
-      from: `"${config.MAILER_SENDER_NAME}" <${config.MAILER_SENDER_ADDRESS}>`,
+      from: `"${mailerConfig.SENDER_NAME}" <${mailerConfig.SENDER_ADDRESS}>`,
       to,
       subject,
       text,

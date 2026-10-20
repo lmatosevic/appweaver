@@ -1,5 +1,5 @@
 import { replaceTscAliasPaths } from 'tsc-alias';
-import { config } from '@appweaver/common';
+import { appConfig } from '@appweaver/common';
 import { rimrafPath, runProcess } from '../utils';
 
 /**
@@ -10,7 +10,7 @@ import { rimrafPath, runProcess } from '../utils';
  * Returns 0 if the compilation process is successful.
  */
 export async function buildProject(projectFile: string): Promise<number> {
-  await rimrafPath(config.APP_BUILD_PATH, true);
+  await rimrafPath(appConfig.BUILD_PATH, true);
 
   const tscStatus = await runProcess('tsc', ['-p', projectFile]);
 

@@ -1,12 +1,12 @@
 import {
   ActionType,
-  config,
   EventData,
   EventListener,
   Events,
   logger,
   uuid
 } from '@appweaver/common';
+import { eventsConfig } from './events-config';
 import {
   afterCommit,
   currentTransaction
@@ -21,7 +21,7 @@ export class NodeEvents extends Events {
 
   constructor() {
     super({ captureRejections: true });
-    this.setMaxListeners(config.EVENTS_MAX_LISTENERS);
+    this.setMaxListeners(eventsConfig.MAX_LISTENERS);
     this.on('error', (e: Error) => {
       logger.error(e, 'Event handler error');
     });

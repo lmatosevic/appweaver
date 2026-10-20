@@ -1,10 +1,10 @@
-import { config } from '@appweaver/common';
+import { securityStoreConfig } from '../../security-config';
 import { createModel } from '../../../factory';
 
 const shouldCreateModel =
-  config.SECURITY_STORE_PROVIDER ===
+  securityStoreConfig.PROVIDER ===
     '@appweaver/core/security/store/database-security-store' ||
-  config.SECURITY_STORE_KEEP_DATABASE_TABLE;
+  securityStoreConfig.KEEP_DATABASE_TABLE;
 
 export default shouldCreateModel
   ? createModel({

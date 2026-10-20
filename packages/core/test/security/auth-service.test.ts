@@ -13,9 +13,9 @@ import {
   RESOURCE_TYPE,
   SecurityStore,
   TwoFactorAuth,
-  config,
   ErrorCode
 } from '@appweaver/common';
+import { jwtConfig, securityConfig } from '../../security/security-config';
 import { context, define, inject } from '../../context';
 import { CacheService } from '../../cache';
 import { FileService } from '../../storage/file-service';
@@ -164,7 +164,7 @@ describe('auth-service', () => {
       expect(cacheService.addToCache).toHaveBeenCalledWith(
         'auth:1:inv',
         expect.objectContaining({ id: 1 }),
-        config.SECURITY_CACHE_TTL
+        securityConfig.CACHE_TTL
       );
     });
 
@@ -408,10 +408,8 @@ describe('auth-service', () => {
 
       expect(tokens.accessToken).toBe('token-1');
       expect(tokens.refreshToken).toBe('token-2');
-      expect(tokens.expiresIn).toBe(config.SECURITY_JWT_EXPIRES_IN);
-      expect(tokens.refreshExpiresIn).toBe(
-        config.SECURITY_JWT_REFRESH_EXPIRES_IN
-      );
+      expect(tokens.expiresIn).toBe(jwtConfig.EXPIRES_IN);
+      expect(tokens.refreshExpiresIn).toBe(jwtConfig.REFRESH_EXPIRES_IN);
     });
 
     test('signs the access token with the auth scope', async () => {

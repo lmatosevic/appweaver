@@ -1,16 +1,9 @@
 jest.mock('@appweaver/common', () => {
   const actual = jest.requireActual('@appweaver/common');
-  const configOverrides: Record<string, unknown> = {
+  Object.assign(actual.configOverrides, {
     SECURITY_TURNSTILE_SECRET: 'turnstile-secret'
-  };
-  return {
-    __esModule: true,
-    ...actual,
-    configOverrides,
-    get config() {
-      return { ...actual.config, ...configOverrides };
-    }
-  };
+  });
+  return actual;
 });
 
 jest.mock('../../../security/turnstile/turnstile-verify', () => ({
@@ -96,9 +89,7 @@ describe('turnstile', () => {
 
     test('rejects the request the verification rejects', async () => {
       await startServer();
-      const { TurnstileError } = jest.requireActual(
-        '../../../security/turnstile/turnstile-error'
-      );
+      const { TurnstileError } = jest.requireActual('@appweaver/common');
       (turnstileVerify as jest.Mock).mockRejectedValueOnce(
         new TurnstileError('TURNSTILE_ACTION_MISMATCH', 'Turnstile mismatch')
       );

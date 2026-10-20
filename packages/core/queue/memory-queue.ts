@@ -7,9 +7,9 @@ import {
   QueueJob,
   QueueListener,
   QueueProcessor,
-  uuid
+  uuid,
+  QueueError
 } from '@appweaver/common';
-import { QueueError } from './queue-error';
 
 type MemoryQueueJob<Data = any, Response = any> = QueueJob<Data, Response> & {
   status: 'waiting' | 'active' | 'completed' | 'failed';

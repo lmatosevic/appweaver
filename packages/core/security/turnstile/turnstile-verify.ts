@@ -1,5 +1,5 @@
-import { config, ErrorCode, logger } from '@appweaver/common';
-import { TurnstileError } from './turnstile-error';
+import { ErrorCode, logger, TurnstileError } from '@appweaver/common';
+import { turnstileConfig } from '../security-config';
 
 type TurnstileResponse = {
   success: boolean;
@@ -30,7 +30,7 @@ export async function turnstileVerify(
   action?: string
 ): Promise<void> {
   const params = new URLSearchParams();
-  params.set('secret', config.SECURITY_TURNSTILE_SECRET!);
+  params.set('secret', turnstileConfig.SECRET!);
   params.set('response', token);
   if (remoteIp) {
     params.set('remoteip', remoteIp);
@@ -38,7 +38,7 @@ export async function turnstileVerify(
 
   let resp: Response;
   try {
-    resp = await fetch(config.SECURITY_TURNSTILE_VERIFY_URL, {
+    resp = await fetch(turnstileConfig.VERIFY_URL, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       body: params.toString()

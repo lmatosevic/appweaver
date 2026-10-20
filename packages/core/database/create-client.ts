@@ -12,16 +12,18 @@ import {
   logger,
   requireModule,
   resolveDatabaseType,
-  Runtime
+  Runtime,
+  appConfig
 } from '@appweaver/common';
+import { databaseConfig } from './database-config';
 import { Prisma, PrismaClient } from '../prisma/client/client';
 
 const options: Omit<PrismaClientOptions, 'adapter'> = {
   transactionOptions: {
-    maxWait: config.DATABASE_TRANSACTION_MAX_WAIT,
-    timeout: config.DATABASE_TRANSACTION_TIMEOUT
+    maxWait: databaseConfig.TRANSACTION_MAX_WAIT,
+    timeout: databaseConfig.TRANSACTION_TIMEOUT
   },
-  log: config.DATABASE_LOG_EVENTS.map((e) => ({ emit: 'event', level: e }))
+  log: databaseConfig.LOG_EVENTS.map((e) => ({ emit: 'event', level: e }))
 };
 
 /**
@@ -34,7 +36,7 @@ const options: Omit<PrismaClientOptions, 'adapter'> = {
  * @return {PrismaClient} A PrismaClient instance configured for the selected database type.
  */
 export function createClient(): PrismaClient {
-  const dbType = resolveDatabaseType(config.DATABASE_TYPE, config.DATABASE_URL);
+  const dbType = resolveDatabaseType(databaseConfig.TYPE, databaseConfig.URL);
   switch (dbType) {
     case DatabaseType.Sqlite:
       return sqliteClient();
@@ -60,7 +62,7 @@ export function createClient(): PrismaClient {
 function sqliteClient(): PrismaClient {
   let sqliteAdapter: Ctor;
 
-  if (config.APP_RUNTIME === Runtime.Bun) {
+  if (appConfig.RUNTIME === Runtime.Bun) {
     const { PrismaLibSql } = requireModule(
       '@prisma/adapter-libsql',
       true
@@ -75,7 +77,7 @@ function sqliteClient(): PrismaClient {
   }
 
   const adapter = new sqliteAdapter({
-    url: config.DATABASE_URL || 'file:./sqlite.db'
+    url: databaseConfig.URL || 'file:./sqlite.db'
   });
 
   return createPrismaClient(adapter);
@@ -93,10 +95,10 @@ function postgresClient(): PrismaClient {
   // Prisma Migrate reads the schema from the URL, while the adapter ignores it
   // and would query the "public" schema, so pass it on
   const schema =
-    new URL(config.DATABASE_URL).searchParams.get('schema') ?? undefined;
+    new URL(databaseConfig.URL).searchParams.get('schema') ?? undefined;
 
   const adapter = new PrismaPg(
-    { connectionString: config.DATABASE_URL },
+    { connectionString: databaseConfig.URL },
     { schema }
   );
 
@@ -115,7 +117,7 @@ function mysqlClient(): PrismaClient {
     true
   ).value;
 
-  const dbUrl = new URL(config.DATABASE_URL);
+  const dbUrl = new URL(databaseConfig.URL);
 
   const adapter = new PrismaMariaDb({
     host: dbUrl.hostname,
@@ -138,7 +140,7 @@ function mysqlClient(): PrismaClient {
 function sqlServerClient(): PrismaClient {
   const { PrismaMssql } = requireModule('@prisma/adapter-mssql', true).value;
 
-  const adapter = new PrismaMssql(config.DATABASE_URL);
+  const adapter = new PrismaMssql(databaseConfig.URL);
 
   return createPrismaClient(adapter);
 }
@@ -161,10 +163,10 @@ function createPrismaClient(adapter: SqlDriverAdapterFactory): PrismaClient {
 
   const buildDirPath = isTypeScriptRuntime()
     ? ''
-    : config.APP_BUILD_PATH || distDirName;
+    : appConfig.BUILD_PATH || distDirName;
 
   const testDirPath =
-    !isTypeScriptRuntime() && config.APP_ENV === 'test' ? '..' : '';
+    !isTypeScriptRuntime() && appConfig.ENV === 'test' ? '..' : '';
 
   // Construct the Prisma client path supporting multiple different ways of running
   // application (JavaScript runtime, TypeScript runtime, tests, from CLI, ...)
@@ -172,7 +174,7 @@ function createPrismaClient(adapter: SqlDriverAdapterFactory): PrismaClient {
     cwd,
     buildDirPath,
     testDirPath,
-    config.DATABASE_CLIENT_OUTPUT_DIR_PATH,
+    databaseConfig.CLIENT_OUTPUT_DIR_PATH,
     'client'
   );
 
@@ -181,7 +183,7 @@ function createPrismaClient(adapter: SqlDriverAdapterFactory): PrismaClient {
   const client = new PrismaClient({ adapter, ...options });
 
   // Add configured Prisma event logging
-  for (const event of config.DATABASE_LOG_EVENTS) {
+  for (const event of databaseConfig.LOG_EVENTS) {
     if (event === DatabaseEvent.Query) {
       client.$on(event, (e: Prisma.QueryEvent) => {
         logger.debug(e, 'Prisma query');

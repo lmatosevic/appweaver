@@ -8,21 +8,21 @@ import {
 import pretty from 'pino-pretty';
 import { createStream } from 'rotating-file-stream';
 import { LogLevel } from '../enums';
-import { config } from '../config';
+import { appConfig, logConfig } from '../config/app-config';
 
-const level = process.env.WEAVER_CLI ? LogLevel.Silent : config.LOG_LEVEL;
+const level = process.env.WEAVER_CLI ? LogLevel.Silent : logConfig.LEVEL;
 
-const logName = config.APP_NAME
-  ? config.APP_NAME.toLowerCase().replace(/\s+/g, '_')
+const logName = appConfig.NAME
+  ? appConfig.NAME.toLowerCase().replace(/\s+/g, '_')
   : 'app';
 
 // A synchronous destination writes each record before the next statement
 // runs and registers no exit hook to flush what it buffered
-const sync = config.LOG_SYNC;
+const sync = logConfig.SYNC;
 
 const streams: DestinationStream[] = [];
 
-if (config.LOG_PRETTY) {
+if (logConfig.PRETTY) {
   streams.push(
     pretty({
       colorize: true,
@@ -35,21 +35,21 @@ if (config.LOG_PRETTY) {
   streams.push(destination({ dest: 1, sync }));
 }
 
-if (config.LOG_PATH && level !== LogLevel.Silent) {
-  if (config.LOG_ROTATE) {
+if (logConfig.PATH && level !== LogLevel.Silent) {
+  if (logConfig.ROTATE) {
     streams.push(
       createStream(`${logName}.log`, {
-        path: config.LOG_PATH,
-        interval: config.LOG_ROTATE_INTERVAL as `${number}M`,
-        size: config.LOG_ROTATE_SIZE as `${number}M`,
-        maxSize: config.LOG_ROTATE_MAX_SIZE as `${number}M`,
-        maxFiles: config.LOG_ROTATE_MAX_FILES,
-        compress: config.LOG_ROTATE_COMPRESS ? 'gzip' : false
+        path: logConfig.PATH,
+        interval: logConfig.ROTATE_INTERVAL as `${number}M`,
+        size: logConfig.ROTATE_SIZE as `${number}M`,
+        maxSize: logConfig.ROTATE_MAX_SIZE as `${number}M`,
+        maxFiles: logConfig.ROTATE_MAX_FILES,
+        compress: logConfig.ROTATE_COMPRESS ? 'gzip' : false
       })
     );
   } else {
     streams.push(
-      destination({ dest: `${config.LOG_PATH}/${logName}.log`, sync })
+      destination({ dest: `${logConfig.PATH}/${logName}.log`, sync })
     );
   }
 }

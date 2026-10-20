@@ -1,4 +1,5 @@
 import { AuthType, config } from '@appweaver/common';
+import { accountConfig, twoFactorConfig } from '../security-config';
 import {
   resetPasswordSchema,
   send2FACodeSchema,
@@ -25,7 +26,7 @@ export function accountRoutes(server: Server): void {
 
   const accountService = inject(AccountService);
 
-  if (config.SECURITY_ACCOUNT_VERIFY_EMAIL_ENABLED) {
+  if (accountConfig.VERIFY_EMAIL_ENABLED) {
     server.post(
       '/send-verify-email',
       {
@@ -91,7 +92,7 @@ export function accountRoutes(server: Server): void {
     );
   }
 
-  if (config.SECURITY_ACCOUNT_RESET_PASSWORD_ENABLED) {
+  if (accountConfig.RESET_PASSWORD_ENABLED) {
     server.post(
       '/send-reset-password',
       {
@@ -140,7 +141,7 @@ export function accountRoutes(server: Server): void {
     );
   }
 
-  if (config.SECURITY_ACCOUNT_2FA_ENABLED) {
+  if (twoFactorConfig.ENABLED) {
     server.post(
       '/send-2fa-code',
       {

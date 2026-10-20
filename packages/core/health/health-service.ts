@@ -8,6 +8,7 @@ import {
   logger,
   uncapitalize
 } from '@appweaver/common';
+import { healthCheckConfig } from './health-config';
 import { injectAllWhere } from '../context';
 
 export type HealthCheckResponse = {
@@ -107,12 +108,12 @@ export class HealthService {
       ).values()
     );
 
-    const pick = config.HEALTH_CHECK_PICK_INSTANCES;
+    const pick = healthCheckConfig.PICK_INSTANCES;
     if (pick) {
       all = all.filter((instance) => pick.includes(instance.name));
     }
 
-    const omit = config.HEALTH_CHECK_OMIT_INSTANCES;
+    const omit = healthCheckConfig.OMIT_INSTANCES;
     if (omit) {
       all = all.filter((instance) => !omit.includes(instance.name));
     }

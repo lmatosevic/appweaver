@@ -1,16 +1,13 @@
 jest.mock('@appweaver/common', () => {
   const actual = jest.requireActual('@appweaver/common');
-  return {
-    __esModule: true,
-    ...actual,
-    config: {
-      ...actual.config,
-      SECURITY_TURNSTILE_SECRET: 'turnstile-secret'
-    }
-  };
+  Object.assign(actual.configOverrides, {
+    SECURITY_TURNSTILE_SECRET: 'turnstile-secret'
+  });
+  return actual;
 });
 
 import { config, ErrorCode } from '@appweaver/common';
+import { turnstileConfig } from '../../../security/security-config';
 import { turnstileVerify } from '../../../security/turnstile/turnstile-verify';
 import { jsonResponse } from '../../fixtures/oauth2-fixture';
 
@@ -35,7 +32,7 @@ describe('turnstile-verify', () => {
       await turnstileVerify('token-value', '10.0.0.1', 'login');
 
       const [url, init] = fetchMock.mock.calls[0];
-      expect(url).toBe(config.SECURITY_TURNSTILE_VERIFY_URL);
+      expect(url).toBe(turnstileConfig.VERIFY_URL);
       expect(url).toBe(
         'https://challenges.cloudflare.com/turnstile/v0/siteverify'
       );

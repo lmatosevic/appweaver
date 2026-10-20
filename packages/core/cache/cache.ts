@@ -2,11 +2,11 @@ import {
   Cache as CommonCache,
   CacheEntryMeta,
   CacheEvictionStrategy,
-  config,
   logger,
   Memory,
   textToBytes
 } from '@appweaver/common';
+import { cacheConfig } from './cache-config';
 import {
   EvictionIndex,
   FifoEvictionIndex,
@@ -20,7 +20,7 @@ export abstract class Cache extends CommonCache {
   /** @internal */
   private readonly _evictionIndex: EvictionIndex = this.createEvictionIndex();
   /** @internal */
-  private readonly _maxSizeBytes: number = textToBytes(config.CACHE_MAX_SIZE);
+  private readonly _maxSizeBytes: number = textToBytes(cacheConfig.MAX_SIZE);
   /** @internal */
   private _unavailable: boolean = false;
   /** @internal */
@@ -33,7 +33,7 @@ export abstract class Cache extends CommonCache {
   }
 
   public async onInit(): Promise<void> {
-    if (config.CACHE_ENABLED && config.CACHE_CLEAN_START) {
+    if (cacheConfig.ENABLED && cacheConfig.CLEAN_START) {
       if (this._memory.isAvailable()) {
         await this.deleteMatching();
       } else {
@@ -81,7 +81,7 @@ export abstract class Cache extends CommonCache {
    * @internal
    */
   private async guard<T>(fallback: T, action: () => Promise<T>): Promise<T> {
-    if (!config.CACHE_SKIP_ON_ERROR) {
+    if (!cacheConfig.SKIP_ON_ERROR) {
       return this.run(action);
     }
 
@@ -173,7 +173,7 @@ export abstract class Cache extends CommonCache {
     ttl?: number
   ): Promise<boolean> {
     const prefixedKey = this.addPrefix(key);
-    const expireMs = ttl === 0 ? undefined : (ttl ?? config.CACHE_DEFAULT_TTL);
+    const expireMs = ttl === 0 ? undefined : (ttl ?? cacheConfig.DEFAULT_TTL);
 
     await this.evictExcessEntries();
 
@@ -239,7 +239,7 @@ export abstract class Cache extends CommonCache {
 
     // Calculate the number of entries that should be evicted, plus one is added
     // because this method is called before adding new cache entry
-    const excessItemsCount = this._entryMeta.size - config.CACHE_MAX_ITEMS + 1;
+    const excessItemsCount = this._entryMeta.size - cacheConfig.MAX_ITEMS + 1;
     if (excessItemsCount <= 0) {
       return;
     }
@@ -247,12 +247,12 @@ export abstract class Cache extends CommonCache {
     const candidateKeys = this._evictionIndex.evictionCandidates(
       excessItemsCount,
       now,
-      config.CACHE_EVICTION_GRACE_PERIOD
+      cacheConfig.EVICTION_GRACE_PERIOD
     );
 
     const evictActions = candidateKeys.map((key) => this.delete(key));
 
-    if (config.CACHE_EVICTION_DEFERRED) {
+    if (cacheConfig.EVICTION_DEFERRED) {
       Promise.all(evictActions).catch((error) => {
         logger.error(error, 'Cache eviction error');
       });
@@ -267,7 +267,7 @@ export abstract class Cache extends CommonCache {
       return;
     }
 
-    if (config.CACHE_EVICTION_DEFERRED) {
+    if (cacheConfig.EVICTION_DEFERRED) {
       this.runEnsureMemoryLimit().catch((error) => {
         logger.error(error, 'Cache memory limit eviction error');
       });
@@ -294,7 +294,7 @@ export abstract class Cache extends CommonCache {
       const candidateKeys = this._evictionIndex.evictionCandidates(
         10,
         now,
-        config.CACHE_EVICTION_GRACE_PERIOD
+        cacheConfig.EVICTION_GRACE_PERIOD
       );
 
       if (candidateKeys.length === 0) {
@@ -321,7 +321,7 @@ export abstract class Cache extends CommonCache {
 
   /** @internal */
   private addPrefix(key: string): string {
-    const prefix = config.CACHE_KEY_PREFIX;
+    const prefix = cacheConfig.KEY_PREFIX;
     if (key.startsWith(prefix)) {
       return key;
     }
@@ -330,7 +330,7 @@ export abstract class Cache extends CommonCache {
 
   /** @internal */
   private createEvictionIndex(): EvictionIndex {
-    switch (config.CACHE_EVICTION_STRATEGY) {
+    switch (cacheConfig.EVICTION_STRATEGY) {
       case CacheEvictionStrategy.LRU:
         return new LruEvictionIndex();
       case CacheEvictionStrategy.LFU:

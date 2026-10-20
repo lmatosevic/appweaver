@@ -12,8 +12,17 @@ import {
   ResourceId,
   RouteConfig,
   SecurityStore,
-  TwoFactorAuth
+  TwoFactorAuth,
+  AuthError,
+  ContextError
 } from '@appweaver/common';
+import {
+  jwtConfig,
+  passwordConfig,
+  securityConfig,
+  twoFactorConfig
+} from './security-config';
+import { cacheConfig } from '../cache/cache-config';
 import {
   checkPassword,
   checkScopeAccess,
@@ -25,11 +34,10 @@ import {
   validatePasswordComplexity
 } from './helper';
 import { OAuth2Service } from './oauth2/oauth2-service';
-import { context, ContextError, inject } from '../context';
+import { context, inject } from '../context';
 import { CacheService } from '../cache';
 import { FileService } from '../storage/file-service';
 import { toDatabaseError } from '../database';
-import { AuthError } from './auth-error';
 import { withoutPolicies } from '../utils';
 import {
   AuthOTTData,
@@ -83,7 +91,7 @@ export class AuthService {
    */
   public async findById(id: ResourceId): Promise<AuthUser | null> {
     try {
-      if (!config.CACHE_ENABLED || config.SECURITY_CACHE_TTL < 0) {
+      if (!cacheConfig.ENABLED || securityConfig.CACHE_TTL < 0) {
         return withoutPolicies(() => this._authUserService.find(id));
       }
 
@@ -101,7 +109,7 @@ export class AuthService {
       await this._cacheService.addToCache(
         cacheKey,
         authUser,
-        config.SECURITY_CACHE_TTL
+        securityConfig.CACHE_TTL
       );
 
       return authUser;
@@ -118,7 +126,7 @@ export class AuthService {
    */
   public async findByUsername(username: string): Promise<AuthUser | null> {
     try {
-      if (!config.CACHE_ENABLED || config.SECURITY_CACHE_TTL < 0) {
+      if (!cacheConfig.ENABLED || securityConfig.CACHE_TTL < 0) {
         return await withoutPolicies(() =>
           this._authUserService.single({ email: username })
         );
@@ -139,7 +147,7 @@ export class AuthService {
         await this._cacheService.addToCache(
           cacheKey,
           authUser,
-          config.SECURITY_CACHE_TTL
+          securityConfig.CACHE_TTL
         );
       }
 
@@ -238,7 +246,7 @@ export class AuthService {
     currentPassword: string,
     newPassword: string
   ): Promise<AuthTokens> {
-    if (!config.SECURITY_PASSWORD_ENABLED) {
+    if (!passwordConfig.ENABLED) {
       throw new AuthError(
         ErrorCode.AuthPasswordDisabled,
         'Password update is not supported'
@@ -373,9 +381,8 @@ export class AuthService {
     const authUser = await this.authenticate(username, password);
 
     if (
-      config.SECURITY_ACCOUNT_2FA_ENABLED &&
-      (config.SECURITY_ACCOUNT_2FA_FORCED ||
-        authUser.twoFactorAuth !== TwoFactorAuth.None)
+      twoFactorConfig.ENABLED &&
+      (twoFactorConfig.FORCED || authUser.twoFactorAuth !== TwoFactorAuth.None)
     ) {
       return this.generateAuthTokens(authUser, AuthScope.TwoFA);
     }
@@ -474,8 +481,8 @@ export class AuthService {
       sub: authUser.id
     };
 
-    const expiresIn = config.SECURITY_JWT_EXPIRES_IN;
-    const refreshExpiresIn = config.SECURITY_JWT_REFRESH_EXPIRES_IN;
+    const expiresIn = jwtConfig.EXPIRES_IN;
+    const refreshExpiresIn = jwtConfig.REFRESH_EXPIRES_IN;
 
     // The signer sets the `iat` claim, in seconds like the expiration
     const accessToken = server.jwt.sign(jwtPayload, { expiresIn });

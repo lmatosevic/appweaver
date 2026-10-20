@@ -1,15 +1,15 @@
 import {
-  config,
   Database,
   DatabaseType,
   ErrorCode,
   HealthCheckResult,
   IsolationLevel,
   resolveDatabaseType,
-  TransactionOptions
+  TransactionOptions,
+  DatabaseError
 } from '@appweaver/common';
+import { databaseConfig } from './database-config';
 import { createClient } from './create-client';
-import { DatabaseError } from './database-error';
 import {
   currentTransaction,
   runInTransaction,
@@ -148,10 +148,7 @@ export class PrismaDatabase extends Database {
     level?: TransactionOptions['isolationLevel']
   ): Prisma.TransactionIsolationLevel | undefined {
     // SQLite runs every transaction serializable and rejects the other levels
-    const dbType = resolveDatabaseType(
-      config.DATABASE_TYPE,
-      config.DATABASE_URL
-    );
+    const dbType = resolveDatabaseType(databaseConfig.TYPE, databaseConfig.URL);
     if (dbType === DatabaseType.Sqlite) {
       return IsolationLevel.Serializable;
     }

@@ -9,10 +9,10 @@ import {
   RESOURCE_NAME,
   RESOURCE_SERVICE_TYPE,
   RESOURCE_TYPE,
-  TwoFactorAuth
+  TwoFactorAuth,
+  DatabaseError
 } from '@appweaver/common';
 import { context, define } from '../../../context';
-import { DatabaseError } from '../../../database/database-error';
 import { OAuth2Service } from '../../../security/oauth2/oauth2-service';
 import { resetContext } from '../../fixtures/context-fixture';
 import { prismaError } from '../../fixtures/database-fixture';

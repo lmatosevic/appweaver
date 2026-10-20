@@ -5,11 +5,12 @@ import {
   ErrorCode,
   logger,
   TemplateEngine,
-  templateContentType
+  templateContentType,
+  TemplateError
 } from '@appweaver/common';
+import { templatePreviewConfig } from './template-config';
 import { inject } from '../context';
 import { Server } from '../types';
-import { TemplateError } from './template-error';
 import {
   TemplatePreviewParams,
   TemplatePreviewQuery,
@@ -43,7 +44,7 @@ export async function templatePreview(server: Server): Promise<void> {
     '/*',
     {
       schema: templatePreviewSchema,
-      onRequest: config.TEMPLATE_PREVIEW_AUTH ? authenticate() : undefined,
+      onRequest: templatePreviewConfig.AUTH ? authenticate() : undefined,
       config: {
         rateLimit: {
           max: 60
@@ -76,6 +77,6 @@ export async function templatePreview(server: Server): Promise<void> {
   );
 
   logger.info(
-    `Template preview enabled on '${server.prefix}/*'${config.TEMPLATE_PREVIEW_AUTH ? ', requiring authentication' : ''}`
+    `Template preview enabled on '${server.prefix}/*'${templatePreviewConfig.AUTH ? ', requiring authentication' : ''}`
   );
 }

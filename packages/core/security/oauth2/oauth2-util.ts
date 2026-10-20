@@ -1,12 +1,12 @@
 import * as fs from 'node:fs';
 import * as crypto from 'node:crypto';
 import {
-  config,
   ConfigurationError,
   ErrorCode,
-  logger
+  logger,
+  OAuth2Error
 } from '@appweaver/common';
-import { OAuth2Error } from './oauth2-error';
+import { oauth2Config } from '../security-config';
 import { AvatarFile } from '../../types';
 
 const APPLE_TOKEN_AUDIENCE = 'https://appleid.apple.com';
@@ -59,7 +59,7 @@ export async function fetchAvatarFile(
   id: string,
   accessToken?: string
 ): Promise<AvatarFile | undefined> {
-  if (!config.SECURITY_OAUTH2_FETCH_AVATAR_ENABLED) {
+  if (!oauth2Config.FETCH_AVATAR_ENABLED) {
     return undefined;
   }
 
@@ -168,13 +168,13 @@ export function decodeJwtPayload<T>(providerName: string, token?: string): T {
  * @throws {Error} If neither a literal secret nor a complete signing key configuration is available.
  */
 export function createAppleClientSecret(): string {
-  if (config.SECURITY_OAUTH2_APPLE_CLIENT_SECRET) {
-    return config.SECURITY_OAUTH2_APPLE_CLIENT_SECRET;
+  if (oauth2Config.APPLE_CLIENT_SECRET) {
+    return oauth2Config.APPLE_CLIENT_SECRET;
   }
 
-  const clientId = config.SECURITY_OAUTH2_APPLE_CLIENT_ID;
-  const teamId = config.SECURITY_OAUTH2_APPLE_TEAM_ID;
-  const keyId = config.SECURITY_OAUTH2_APPLE_KEY_ID;
+  const clientId = oauth2Config.APPLE_CLIENT_ID;
+  const teamId = oauth2Config.APPLE_TEAM_ID;
+  const keyId = oauth2Config.APPLE_KEY_ID;
   const privateKey = readApplePrivateKey();
 
   if (!clientId || !teamId || !keyId || !privateKey) {
@@ -191,7 +191,7 @@ export function createAppleClientSecret(): string {
     {
       iss: teamId,
       iat: issuedAt,
-      exp: issuedAt + config.SECURITY_OAUTH2_APPLE_CLIENT_SECRET_EXPIRES_IN,
+      exp: issuedAt + oauth2Config.APPLE_CLIENT_SECRET_EXPIRES_IN,
       aud: APPLE_TOKEN_AUDIENCE,
       sub: clientId
     },
@@ -206,15 +206,12 @@ export function createAppleClientSecret(): string {
  */
 function readApplePrivateKey(): string | undefined {
   // Escaped newlines survive the trip through an environment variable, so restore them.
-  const inlineKey = config.SECURITY_OAUTH2_APPLE_PRIVATE_KEY?.replace(
-    /\\n/g,
-    '\n'
-  );
+  const inlineKey = oauth2Config.APPLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
   if (inlineKey) {
     return inlineKey;
   }
 
-  const keyPath = config.SECURITY_OAUTH2_APPLE_PRIVATE_KEY_PATH;
+  const keyPath = oauth2Config.APPLE_PRIVATE_KEY_PATH;
 
   return keyPath ? fs.readFileSync(keyPath, 'utf8') : undefined;
 }

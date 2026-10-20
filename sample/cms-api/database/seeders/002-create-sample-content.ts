@@ -1,10 +1,10 @@
-import { config } from '@appweaver/common';
+import { systemConfig } from '@appweaver/core';
 import { db } from '@db/client';
 
 /** A category tree, the tags, two pages, the posts, and their comments. */
 export async function createSampleContent(): Promise<string> {
   const author = await db.user.findFirst({
-    where: { email: config.SYSTEM_ADMIN_INITIAL_EMAIL }
+    where: { email: systemConfig.ADMIN_INITIAL_EMAIL }
   });
 
   const nature = await db.category.create({

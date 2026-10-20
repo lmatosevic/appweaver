@@ -4,9 +4,9 @@ import {
   isPlainObject,
   makeHash,
   QueryResponse,
-  ResourceId
+  ResourceId,
+  ResourceError
 } from '@appweaver/common';
-import { ResourceError } from '../resource-error';
 
 /** The cursors a query response carries, kept in step with the response contract. */
 export type PageCursors = Pick<

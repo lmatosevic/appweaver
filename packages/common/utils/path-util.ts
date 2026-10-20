@@ -73,8 +73,8 @@ export function isTypeScriptRuntime(
   // A deployed image ships only the build output, which the CLI must run instead
   // Required lazily, since the config module itself imports the utils
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { config } = require('../config/config');
-  return fs.existsSync(path.resolve(config.APP_SOURCE_PATH));
+  const { appConfig } = require('../config/app-config');
+  return fs.existsSync(path.resolve(appConfig.SOURCE_PATH));
 }
 
 /**

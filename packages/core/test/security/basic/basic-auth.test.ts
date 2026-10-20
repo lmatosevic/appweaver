@@ -1,20 +1,6 @@
-jest.mock('@appweaver/common', () => {
-  const actual = jest.requireActual('@appweaver/common');
-  const configOverrides: Record<string, unknown> = {};
-  return {
-    __esModule: true,
-    ...actual,
-    configOverrides,
-    get config() {
-      return { ...actual.config, ...configOverrides };
-    }
-  };
-});
-
 import * as common from '@appweaver/common';
-import { AuthSource, AuthType, ErrorCode } from '@appweaver/common';
+import { AuthSource, AuthType, ErrorCode, AuthError } from '@appweaver/common';
 import { define } from '../../../context';
-import { AuthError } from '../../../security/auth-error';
 import { AuthService } from '../../../security/auth-service';
 import { basicAuth, hasBasicAuth } from '../../../security/basic/basic-auth';
 import { Server } from '../../../types';

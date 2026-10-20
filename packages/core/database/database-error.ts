@@ -1,5 +1,5 @@
 import {
-  AppweaverError,
+  DatabaseError,
   ErrorCode,
   ErrorDetails,
   isAppweaverError,
@@ -62,16 +62,6 @@ const PRISMA_CODES: Record<string, DatabaseErrorCode> = {
 
 // The connection errors, a connection pool timeout and too many connections
 const UNAVAILABLE_CODES = /^P10\d\d$|^P2024$|^P2037$/;
-
-/**
- * An error of a database operation, i.e. a violated constraint. Raised by
- * {@link toDatabaseError} from the errors of the Prisma client.
- */
-export class DatabaseError<
-  C extends DatabaseErrorCode = DatabaseErrorCode
-> extends AppweaverError<C> {
-  public readonly module = 'database';
-}
 
 /**
  * Checks whether an error was raised by the Prisma client.

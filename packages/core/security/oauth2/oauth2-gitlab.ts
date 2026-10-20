@@ -1,4 +1,5 @@
-import { AuthSource, config } from '@appweaver/common';
+import { AuthSource } from '@appweaver/common';
+import { oauth2Config } from '../security-config';
 import { UserInfo } from '../../types';
 import { createOAuth2Plugin } from './create-oauth2-plugin';
 import { fetchUserInfo, requireEmail, splitFullName } from './oauth2-util';
@@ -11,12 +12,12 @@ type GitlabUser = {
   avatar_url?: string;
 };
 
-const baseUrl = config.SECURITY_OAUTH2_GITLAB_BASE_URL.replace(/\/$/, '');
+const baseUrl = oauth2Config.GITLAB_BASE_URL.replace(/\/$/, '');
 
 export const oauth2Gitlab = createOAuth2Plugin(AuthSource.OAuth2Gitlab, {
-  enabled: config.SECURITY_OAUTH2_GITLAB_ENABLED,
-  clientId: config.SECURITY_OAUTH2_GITLAB_CLIENT_ID,
-  clientSecret: config.SECURITY_OAUTH2_GITLAB_CLIENT_SECRET,
+  enabled: oauth2Config.GITLAB_ENABLED,
+  clientId: oauth2Config.GITLAB_CLIENT_ID,
+  clientSecret: oauth2Config.GITLAB_CLIENT_SECRET,
   displayName: 'GitLab',
   scope: ['read_user'],
   // Built from the base URL rather than the bundled preset, so self-managed instances work too.
@@ -33,7 +34,7 @@ export const oauth2Gitlab = createOAuth2Plugin(AuthSource.OAuth2Gitlab, {
 export async function fetchGitlabUser(accessToken: string): Promise<UserInfo> {
   const data = await fetchUserInfo<GitlabUser>(
     'GitLab',
-    config.SECURITY_OAUTH2_GITLAB_USER_INFO_URL,
+    oauth2Config.GITLAB_USER_INFO_URL,
     accessToken
   );
 

@@ -4,12 +4,13 @@ import {
   randomString,
   uncapitalize
 } from '@appweaver/common';
+import { apiKeyConfig } from '../../security-config';
 import { createService } from '../../../factory';
 import { currentAuthUser, resourceAuthModel } from '../../helper';
 import { injectService } from '../../../context';
 import { ApiKey } from '../../../types';
 
-export default config.SECURITY_API_KEY_ENABLED
+export default apiKeyConfig.ENABLED
   ? createService({
       modelName: 'ApiKey',
       beforeCreate: (data: ApiKey) => {
@@ -22,7 +23,7 @@ export default config.SECURITY_API_KEY_ENABLED
         };
 
         // Enforces max API key duration based on config value
-        const maxDuration = config.SECURITY_API_KEY_MAX_DURATION;
+        const maxDuration = apiKeyConfig.MAX_DURATION;
         if (maxDuration) {
           const maxExpiryDate = new Date(Date.now() + maxDuration * 1000);
           if (
@@ -36,7 +37,7 @@ export default config.SECURITY_API_KEY_ENABLED
       afterCreate: async (data: ApiKey) => {
         const service = injectService('ApiKey');
         await service.update(data.id, { key: `...${data.key.slice(-6)}` });
-        data.key = `${data.id}${config.SECURITY_API_KEY_DELIMITER}${data.key}`;
+        data.key = `${data.id}${apiKeyConfig.DELIMITER}${data.key}`;
       }
     })
   : undefined;

@@ -8,6 +8,7 @@ import {
   RelationOutput,
   ResourceModel
 } from '@appweaver/common';
+import { cacheConfig } from './cache-config';
 import { stringify } from 'flatted';
 import { context, inject, injectModel } from '../context';
 import {
@@ -95,7 +96,7 @@ export class CacheService {
     modelName: string,
     action: 'create' | 'update' | 'delete' | 'uploadFiles' | 'deleteFiles'
   ): Promise<void> {
-    if (!config.CACHE_ENABLED) {
+    if (!cacheConfig.ENABLED) {
       return;
     }
 
@@ -108,7 +109,7 @@ export class CacheService {
       return;
     }
 
-    const strategy = config.CACHE_INVALIDATION_STRATEGY;
+    const strategy = cacheConfig.INVALIDATION_STRATEGY;
 
     logger.debug(
       { modelName, action, strategy },
@@ -126,7 +127,7 @@ export class CacheService {
     }
 
     if (invalidation) {
-      if (config.CACHE_INVALIDATION_DEFERRED) {
+      if (cacheConfig.INVALIDATION_DEFERRED) {
         void invalidation.catch((error) => {
           logger.error(error, 'Cache invalidation error');
         });

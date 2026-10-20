@@ -1,19 +1,5 @@
-jest.mock('@appweaver/common', () => {
-  const actual = jest.requireActual('@appweaver/common');
-  const configOverrides: Record<string, unknown> = {};
-  return {
-    __esModule: true,
-    ...actual,
-    configOverrides,
-    get config() {
-      return { ...actual.config, ...configOverrides };
-    }
-  };
-});
-
 import * as common from '@appweaver/common';
-import { QueryMethod } from '@appweaver/common';
-import { ResourceError } from '../../../resource/resource-error';
+import { QueryMethod, ResourceError } from '@appweaver/common';
 import {
   bulkRouteEnabled,
   parseJsonParams,

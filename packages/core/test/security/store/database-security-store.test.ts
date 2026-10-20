@@ -1,6 +1,5 @@
-import { Database, ErrorCode, makeHash } from '@appweaver/common';
+import { Database, ErrorCode, makeHash, AuthError } from '@appweaver/common';
 import { define } from '../../../context';
-import { AuthError } from '../../../security/auth-error';
 import { DatabaseSecurityStore } from '../../../security/store/database-security-store';
 import { resetContext } from '../../fixtures/context-fixture';
 import {

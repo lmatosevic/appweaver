@@ -13,8 +13,10 @@ import {
   resourceModelProps,
   ResourcePolicyConfig,
   ResourceRoutes,
-  relinkResourceModels
+  relinkResourceModels,
+  appConfig
 } from '@appweaver/common';
+import { resourceConfig } from './resource-config';
 import {
   validateFileNamePatterns,
   validateScalarDefaults,
@@ -69,7 +71,7 @@ async function loadModels(
   modelPattern?: string
 ): Promise<Record<string, ResourceModel>> {
   const cwd = baseDir ?? process.cwd();
-  const pathPattern = modelPattern || config.RESOURCE_MODEL_PATTERN;
+  const pathPattern = modelPattern || resourceConfig.MODEL_PATTERN;
 
   const models: Record<string, ResourceModel> = {};
 
@@ -136,7 +138,7 @@ async function loadServices(
   servicePattern?: string
 ): Promise<Record<string, IResourceService>> {
   const cwd = baseDir ?? process.cwd();
-  const pathPattern = servicePattern || config.RESOURCE_SERVICE_PATTERN;
+  const pathPattern = servicePattern || resourceConfig.SERVICE_PATTERN;
 
   const services: Record<string, IResourceService> = {};
 
@@ -167,7 +169,7 @@ async function loadPolicies(
   policyPattern?: string
 ): Promise<Record<string, ResourcePolicyConfig>> {
   const cwd = baseDir ?? process.cwd();
-  const pathPattern = policyPattern || config.RESOURCE_POLICY_PATTERN;
+  const pathPattern = policyPattern || resourceConfig.POLICY_PATTERN;
 
   const policies: Record<string, ResourcePolicyConfig> = {};
 
@@ -198,7 +200,7 @@ async function loadRoutes(
   routePattern?: string
 ): Promise<Record<string, ResourceRoutes>> {
   const cwd = baseDir ?? process.cwd();
-  const pathPattern = routePattern || config.RESOURCE_ROUTES_PATTERN;
+  const pathPattern = routePattern || resourceConfig.ROUTES_PATTERN;
 
   const routes: Record<string, ResourceRoutes> = {};
 
@@ -235,7 +237,7 @@ async function findAllFiles(pattern: string, cwd: string): Promise<string[]> {
   files.push('@appweaver/core/resources');
 
   // Add additional modules from config
-  for (const module of config.APP_AUTOLOAD_MODULES) {
+  for (const module of appConfig.AUTOLOAD_MODULES) {
     files.push(module);
   }
 

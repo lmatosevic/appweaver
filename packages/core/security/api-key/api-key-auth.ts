@@ -4,18 +4,18 @@ import { requestContext } from '@fastify/request-context';
 import {
   AuthSource,
   AuthType,
-  config,
   Database,
   ErrorCode,
   makeHash,
   toResourceId,
-  uncapitalize
+  uncapitalize,
+  AuthError
 } from '@appweaver/common';
+import { apiKeyConfig, securityConfig } from '../security-config';
 import { inject, injectModel } from '../../context';
 import { liveRecordFilter } from '../../utils';
 import { resourceAuthModel } from '../helper';
 import { AuthService } from '../auth-service';
-import { AuthError } from '../auth-error';
 import { CacheService } from '../../cache';
 import { PrismaDatabase } from '../../database';
 import { ApiKey, Server } from '../../types';
@@ -26,13 +26,12 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
   const db = inject<PrismaDatabase>(Database as any);
 
   server.decorate('authenticateApiKey', async (request: FastifyRequest) => {
-    const key =
-      request.headers[config.SECURITY_API_KEY_HEADER_NAME.toLowerCase()];
+    const key = request.headers[apiKeyConfig.HEADER_NAME.toLowerCase()];
     if (!key) {
       throw new AuthError(
         ErrorCode.AuthApiKeyMissing,
-        `Missing API key header: ${config.SECURITY_API_KEY_HEADER_NAME}`,
-        { header: config.SECURITY_API_KEY_HEADER_NAME }
+        `Missing API key header: ${apiKeyConfig.HEADER_NAME}`,
+        { header: apiKeyConfig.HEADER_NAME }
       );
     }
 
@@ -40,16 +39,14 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
 
     // Use configured delimiter to split an API key and separate ID from the
     // rest of the key value
-    const apiKeyParts = sanitizedApiKey.split(
-      config.SECURITY_API_KEY_DELIMITER
-    );
+    const apiKeyParts = sanitizedApiKey.split(apiKeyConfig.DELIMITER);
     // The id prefix is read back in the primary key type of the ApiKey model,
     // which can be configured as a string like on any other model
     const apiKeyId = toResourceId(
       apiKeyParts.shift() ?? '',
       injectModel('ApiKey', false)?.config?.id
     );
-    const apiKeyValue = apiKeyParts.join(config.SECURITY_API_KEY_DELIMITER);
+    const apiKeyValue = apiKeyParts.join(apiKeyConfig.DELIMITER);
 
     const cacheKey = cacheService.buildCacheKey({
       baseKey: `apikey:${apiKeyId}`,
@@ -74,7 +71,7 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
         await cacheService.addToCache(
           cacheKey,
           apiKey,
-          config.SECURITY_CACHE_TTL
+          securityConfig.CACHE_TTL
         );
       }
     }
@@ -106,5 +103,5 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
 
 /** Checks whether a request carries an API key in its configured header. */
 export function hasApiKey(request: FastifyRequest): boolean {
-  return !!request.headers[config.SECURITY_API_KEY_HEADER_NAME.toLowerCase()];
+  return !!request.headers[apiKeyConfig.HEADER_NAME.toLowerCase()];
 }

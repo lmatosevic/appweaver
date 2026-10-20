@@ -1,31 +1,18 @@
-jest.mock('@appweaver/common', () => {
-  const actual = jest.requireActual('@appweaver/common');
-  const configOverrides: Record<string, unknown> = {};
-  return {
-    __esModule: true,
-    ...actual,
-    configOverrides,
-    get config() {
-      return { ...actual.config, ...configOverrides };
-    }
-  };
-});
-
 import Fastify, { FastifyInstance } from 'fastify';
 import fastifySwagger from '@fastify/swagger';
 import * as common from '@appweaver/common';
 import {
   ErrorCode,
   QueryMethod,
-  ResourceRoutesConfig
+  ResourceRoutesConfig,
+  AuthError,
+  ResourceError,
+  TurnstileError
 } from '@appweaver/common';
 import { context } from '../../context';
 import { createModel } from '../../factory/create-model';
 import { resourceRoutes } from '../../resource/resource-routes';
 import { errorHandler, ProblemDetailsSchema } from '../../errors';
-import { AuthError } from '../../security/auth-error';
-import { TurnstileError } from '../../security/turnstile/turnstile-error';
-import { ResourceError } from '../../resource/resource-error';
 import schemas from '../../server/schemas';
 import { resetContext } from '../fixtures/context-fixture';
 import { linkModels } from '../fixtures/model-fixture';

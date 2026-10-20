@@ -1,5 +1,5 @@
-import { ErrorCode } from '@appweaver/common';
-import { createPolicy, ResourceError } from '@appweaver/core';
+import { ErrorCode, ResourceError } from '@appweaver/common';
+import { createPolicy } from '@appweaver/core';
 import { can, Permission } from '@/features/access/permissions';
 
 // The fields shaping the organization, changed by HR only

@@ -1,5 +1,5 @@
-import { ErrorCode } from '@appweaver/common';
-import { createPolicy, hasRole, ResourceError } from '@appweaver/core';
+import { ErrorCode, ResourceError } from '@appweaver/common';
+import { createPolicy, hasRole } from '@appweaver/core';
 import { Role } from '@/features/access/roles';
 
 export default createPolicy({

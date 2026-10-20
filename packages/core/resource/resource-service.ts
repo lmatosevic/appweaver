@@ -5,7 +5,6 @@ import {
   AggregateSelect,
   AggregateSelected,
   BulkItem,
-  config,
   ConfigurationError,
   countFieldName,
   Database,
@@ -28,8 +27,10 @@ import {
   ResourceClient,
   ResourceData,
   uncapitalize,
-  isAppweaverError
+  isAppweaverError,
+  ResourceError
 } from '@appweaver/common';
+import { resourceConfig } from './resource-config';
 import { inject, injectModel } from '../context';
 import {
   arePoliciesSkipped,
@@ -39,7 +40,6 @@ import {
 import { PrismaDatabase, toDatabaseError } from '../database';
 import { CacheService } from '../cache';
 import { FileService } from '../storage';
-import { ResourceError } from './resource-error';
 import {
   AffectedRecords,
   aggregationRecordCount,
@@ -1314,7 +1314,7 @@ export abstract class ResourceService<
           }
           return results;
         },
-        { timeout: config.RESOURCE_BULK_TRANSACTION_TIMEOUT }
+        { timeout: resourceConfig.BULK_TRANSACTION_TIMEOUT }
       );
     } catch (e) {
       // The errors of the items are translated already, which leaves the

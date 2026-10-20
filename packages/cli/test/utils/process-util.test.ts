@@ -25,7 +25,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import fkill from 'fkill';
-import { config } from '@appweaver/common';
+import { appConfig } from '@appweaver/common';
+import { databaseConfig } from '@appweaver/core/database/database-config';
 import {
   assertEnv,
   assertEnvs,
@@ -180,9 +181,7 @@ describe('process-util', () => {
       const exit = jest.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
-      expect(() =>
-        assertEnv(config.APP_ENV, 'Wrong environment')
-      ).not.toThrow();
+      expect(() => assertEnv(appConfig.ENV, 'Wrong environment')).not.toThrow();
       expect(exit).not.toHaveBeenCalled();
     });
 
@@ -206,7 +205,7 @@ describe('process-util', () => {
         throw new Error('process.exit called');
       });
       expect(() =>
-        assertEnvs(['other-env', config.APP_ENV], 'Wrong environment')
+        assertEnvs(['other-env', appConfig.ENV], 'Wrong environment')
       ).not.toThrow();
       expect(exit).not.toHaveBeenCalled();
     });
@@ -254,7 +253,7 @@ describe('process-util', () => {
     });
 
     test('gives the consent by default', () => {
-      expect(config.DATABASE_AI_DANGEROUS_ACTIONS_ENABLED).toBe(true);
+      expect(databaseConfig.AI_DANGEROUS_ACTIONS_ENABLED).toBe(true);
       setAiDangerousActionConsent();
       expect(process.env[consentEnv]).toBeTruthy();
     });

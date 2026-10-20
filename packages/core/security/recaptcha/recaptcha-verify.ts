@@ -1,5 +1,5 @@
-import { config, ErrorCode, logger } from '@appweaver/common';
-import { RecaptchaError } from './recaptcha-error';
+import { ErrorCode, logger, RecaptchaError } from '@appweaver/common';
+import { recaptchaConfig } from '../security-config';
 
 type ReCaptchaResponse = {
   success: boolean;
@@ -22,7 +22,7 @@ export async function recaptchaVerify(
   action?: string
 ): Promise<void> {
   const params = new URLSearchParams();
-  params.set('secret', config.SECURITY_RECAPTCHA_SECRET!);
+  params.set('secret', recaptchaConfig.SECRET!);
   params.set('response', token);
   if (remoteIp) {
     params.set('remoteip', remoteIp);
@@ -30,7 +30,7 @@ export async function recaptchaVerify(
 
   let resp: Response;
   try {
-    resp = await fetch(config.SECURITY_RECAPTCHA_VERIFY_URL, {
+    resp = await fetch(recaptchaConfig.VERIFY_URL, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       body: params.toString()
@@ -82,7 +82,7 @@ export async function recaptchaVerify(
     );
   }
 
-  if (data.score < config.SECURITY_RECAPTCHA_MIN_SCORE) {
+  if (data.score < recaptchaConfig.MIN_SCORE) {
     throw new RecaptchaError(
       ErrorCode.RecaptchaLowScore,
       'reCAPTCHA low score'

@@ -5,37 +5,37 @@ import { requestContext } from '@fastify/request-context';
 import {
   AuthType,
   AuthUser,
-  config,
   ErrorCode,
   isAppweaverError,
   logger,
-  ModuleErrorCode
+  ModuleErrorCode,
+  AuthError
 } from '@appweaver/common';
+import { jwtConfig } from '../security-config';
 import { inject } from '../../context';
 import { AuthService } from '../auth-service';
-import { AuthError } from '../auth-error';
 import { JwtPayload, Server } from '../../types';
 import { loadSecurityKeys } from './jwt-keys';
 
 export const jwtAuth = fastifyPlugin(async (server: Server) => {
   const authService = inject(AuthService);
 
-  if (config.SECURITY_JWT_SECRET) {
+  if (jwtConfig.SECRET) {
     server.register(fastifyJwt, {
-      secret: config.SECURITY_JWT_SECRET
+      secret: jwtConfig.SECRET
     });
   } else {
     const { keysExisted, publicKey, privateKey } = await loadSecurityKeys(
-      config.SECURITY_JWT_PUBLIC_KEY_PATH,
-      config.SECURITY_JWT_PRIVATE_KEY_PATH,
-      config.SECURITY_JWT_AUTO_GENERATE_KEYS
+      jwtConfig.PUBLIC_KEY_PATH,
+      jwtConfig.PRIVATE_KEY_PATH,
+      jwtConfig.AUTO_GENERATE_KEYS
     );
 
     if (!keysExisted) {
       logger.info(
         {
-          publicKeyPath: config.SECURITY_JWT_PUBLIC_KEY_PATH,
-          privateKeyPath: config.SECURITY_JWT_PRIVATE_KEY_PATH
+          publicKeyPath: jwtConfig.PUBLIC_KEY_PATH,
+          privateKeyPath: jwtConfig.PRIVATE_KEY_PATH
         },
         'Security keys generated'
       );

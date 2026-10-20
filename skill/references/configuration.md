@@ -111,9 +111,57 @@ like the `DB_HOST` a docker-compose container sets to the database service name.
 
 Unknown environment variables are preserved with an `_appweaver_` prefix.
 
-## Config helper methods
+## Reading the config in code
 
-The config object provides type-safe accessor methods:
+The config is split into **sections**, each declared with `defineConfig` by the module it belongs to. A section reads
+its keys by their short names: the section `server` reads `SERVER_PORT` as `serverConfig.PORT`, and the JSON value
+`config.server.port`. The environment variable names and the JSON paths of every key are the same as before, only the
+code reads them through their section:
+
+```ts
+import { appConfig, logConfig } from '@appweaver/common';
+import { databaseConfig, serverConfig } from '@appweaver/core';
+
+serverConfig.PORT; // number
+appConfig.HOSTNAME; // string
+databaseConfig.URL; // string
+```
+
+| Section variable                                                                                                                                                                                                                                                               | Keys                            | Imported from       |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|---------------------|
+| `appConfig`, `logConfig`                                                                                                                                                                                                                                                       | `APP_*`, `LOG_*`                | `@appweaver/common` |
+| `serverConfig`, `rateLimitConfig`, `swaggerConfig`, `corsConfig`, `healthCheckConfig`                                                                                                                                                                                          | `SERVER_*`, `RATE_LIMIT_*`, ... | `@appweaver/core`   |
+| `resourceConfig`, `exportConfig`, `databaseConfig`, `storageConfig`, `cacheConfig`, `memoryConfig`, `redisConfig`, `queueConfig`, `schedulerConfig`, `eventsConfig`, `mailerConfig`, `smtpConfig` (`MAILER_SMTP_*`), `templateConfig`, `templatePreviewConfig`, `localeConfig` | `RESOURCE_*`, ...               | `@appweaver/core`   |
+| `securityConfig` (`SECURITY_*` not below), `accountConfig`, `twoFactorConfig` (`SECURITY_ACCOUNT_2FA_*`), `passwordConfig`, `securityStoreConfig`, `recaptchaConfig`, `turnstileConfig`, `basicAuthConfig`, `apiKeyConfig`, `jwtConfig`, `oauth2Config`, `systemConfig`      | `SECURITY_*`, `SYSTEM_*`        | `@appweaver/core`   |
+
+A section is parsed on the first access of one of its values, with the defaults of its schema, then kept frozen. A
+missing or invalid value throws a `ConfigurationError` (`CONFIGURATION_INVALID`) naming its environment variable and
+its JSON path.
+
+### Application config
+
+An application declares its own settings the same way, typed and validated, instead of reading untyped keys:
+
+```ts
+import { Type } from '@sinclair/typebox';
+import { defineConfig } from '@appweaver/common';
+
+export const paymentConfig = defineConfig('payment', {
+  API_KEY: Type.String(), // PAYMENT_API_KEY, or config.payment.apiKey of appweaver.json
+  TIMEOUT: Type.Integer({ default: 10_000 })
+});
+
+paymentConfig.TIMEOUT; // number
+```
+
+A section path can be nested (`defineConfig('storage.gcs', ...)` reads `STORAGE_GCS_*` and `config.storage.gcs.*`).
+Two sections can share a path, but a flattened key belongs to one section only, otherwise the second definition throws a
+`ConfigurationError`.
+
+### Config helper methods
+
+The `config` object of `@appweaver/common` reads any key by its flattened name, including the keys no section declares,
+with typed accessor methods:
 
 ```ts
 import { config } from '@appweaver/common';
@@ -126,7 +174,26 @@ config.bool('CACHE_ENABLED', true); // boolean
 config.arr('CORS_METHODS', ['*']); // string[]
 ```
 
-The config object is frozen with `Object.freeze()` after loading to prevent runtime mutations.
+A key of a section returns its parsed value, any other key its raw value from the environment or the JSON files.
+
+### Overriding the config in tests
+
+`configOverrides` of `@appweaver/common` replaces the value of any key, by its flattened name, in every section:
+
+```ts
+import { configOverrides } from '@appweaver/common';
+
+beforeEach(() => {
+  configOverrides.SECURITY_API_KEY_ENABLED = true;
+});
+
+afterEach(() => {
+  delete configOverrides.SECURITY_API_KEY_ENABLED;
+});
+```
+
+A module reading the config when it is imported needs the override before its import, set in a `jest.mock` factory of
+`@appweaver/common` (`Object.assign(jest.requireActual('@appweaver/common').configOverrides, { ... })`).
 
 ---
 

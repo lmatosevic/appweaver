@@ -1,10 +1,9 @@
-import { ErrorCode } from '@appweaver/common';
+import { ErrorCode, ResourceError } from '@appweaver/common';
 import {
   errorHandler,
   notFoundHandler,
   PROBLEM_CONTENT_TYPE
 } from '../../errors/error-handler';
-import { ResourceError } from '../../resource/resource-error';
 
 describe('error-handler', () => {
   const createRequest = () =>

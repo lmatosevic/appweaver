@@ -1,9 +1,10 @@
 import { Type } from '@sinclair/typebox';
 import {
-  config,
   ErrorCode,
   TemplateEngine,
-  templateContentType
+  templateContentType,
+  appConfig,
+  ResourceError
 } from '@appweaver/common';
 import {
   currentAuthUser,
@@ -11,7 +12,7 @@ import {
   errorResponses,
   inject,
   registerRoute,
-  ResourceError
+  serverConfig
 } from '@appweaver/core';
 import { findPublishedPost, findPublishedPosts } from './posts';
 
@@ -138,7 +139,7 @@ registerRoute(
           data: {
             post,
             sender: currentAuthUser()!.email,
-            link: `${config.APP_HOSTNAME}${config.SERVER_API_PREFIX}/posts/${post.slug}/page${query}`
+            link: `${appConfig.HOSTNAME}${serverConfig.API_PREFIX}/posts/${post.slug}/page${query}`
           },
           locale: req.body.locale
         });

@@ -1,15 +1,15 @@
 import { Readable } from 'node:stream';
 import {
-  config,
   ErrorCode,
   logger,
   RESOURCE_SERVICE_TYPE,
-  RESOURCE_TYPE
+  RESOURCE_TYPE,
+  ExportError
 } from '@appweaver/common';
+import { exportConfig } from '../../export/export-config';
 import { define } from '../../context';
 import { ExportService } from '../../export/export-service';
 import { createModel } from '../../factory/create-model';
-import { ExportError } from '../../export/export-error';
 import { resetContext } from '../fixtures/context-fixture';
 import { linkModels } from '../fixtures/model-fixture';
 
@@ -125,7 +125,7 @@ describe('export-service', () => {
       expect(query).toHaveBeenCalledTimes(1);
       expect(query).toHaveBeenCalledWith({
         filter: { views: 10 },
-        size: config.EXPORT_BATCH_SIZE,
+        size: exportConfig.BATCH_SIZE,
         sort: 'title',
         cursor: undefined,
         totalCount: false
@@ -146,7 +146,7 @@ describe('export-service', () => {
       expect(query).toHaveBeenCalledTimes(3);
       expect(query).toHaveBeenNthCalledWith(2, {
         filter: {},
-        size: config.EXPORT_BATCH_SIZE,
+        size: exportConfig.BATCH_SIZE,
         sort: '-createdAt',
         cursor: '2',
         totalCount: false
@@ -381,7 +381,7 @@ describe('export-service', () => {
       const { stream } = await service.exportCsv('Post');
       const csv = await readStream(stream);
 
-      expect(config.EXPORT_CSV_ADD_HEADERS).toBe(true);
+      expect(exportConfig.CSV_ADD_HEADERS).toBe(true);
       expect(csv).toContain('Post title');
     });
 
@@ -457,7 +457,7 @@ describe('export-service', () => {
       const csv = await readStream(stream);
 
       expect(csv).toContain('tags.name');
-      expect(csv).toContain(`News${config.EXPORT_CSV_JOIN_DELIMITER}Tech`);
+      expect(csv).toContain(`News${exportConfig.CSV_JOIN_DELIMITER}Tech`);
     });
 
     test('leaves the hidden fields of the record out of the file', async () => {

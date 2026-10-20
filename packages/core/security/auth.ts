@@ -1,8 +1,15 @@
 import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import fastifyAuth from '@fastify/auth';
-import { AuthType, config, ErrorCode } from '@appweaver/common';
-import { AuthError } from './auth-error';
+import { AuthType, config, ErrorCode, AuthError } from '@appweaver/common';
+import {
+  accountConfig,
+  apiKeyConfig,
+  basicAuthConfig,
+  recaptchaConfig,
+  securityConfig,
+  turnstileConfig
+} from './security-config';
 import { Server } from '../types';
 import { currentAuthUser } from './helper';
 import { authRoutes } from './auth-routes';
@@ -30,19 +37,19 @@ function isFastifyPlugin(value: unknown): value is FastifyPluginAsync {
 export default fastifyPlugin((server: Server) => {
   server.register(fastifyAuth);
 
-  if (config.SECURITY_RECAPTCHA_ENABLED) {
+  if (recaptchaConfig.ENABLED) {
     server.register(recaptcha);
   }
 
-  if (config.SECURITY_TURNSTILE_ENABLED) {
+  if (turnstileConfig.ENABLED) {
     server.register(turnstile);
   }
 
-  if (config.SECURITY_BASIC_ENABLED) {
+  if (basicAuthConfig.ENABLED) {
     server.register(basicAuth);
   }
 
-  if (config.SECURITY_API_KEY_ENABLED) {
+  if (apiKeyConfig.ENABLED) {
     server.register(apiKeyAuth);
   }
 
@@ -56,10 +63,10 @@ export default fastifyPlugin((server: Server) => {
     }
   }
 
-  server.register(authRoutes, { prefix: config.SECURITY_ROUTE_PREFIX });
+  server.register(authRoutes, { prefix: securityConfig.ROUTE_PREFIX });
 
   server.register(accountRoutes, {
-    prefix: config.SECURITY_ACCOUNT_ROUTE_PREFIX
+    prefix: accountConfig.ROUTE_PREFIX
   });
 
   server.decorate('authenticate', (authTypes?: AuthType[]) => {
@@ -88,12 +95,12 @@ export default fastifyPlugin((server: Server) => {
           authHandlers.push(optionalHandler(hasBearerAuth, authenticateJWT));
           break;
         case AuthType.ApiKey:
-          if (config.SECURITY_API_KEY_ENABLED) {
+          if (apiKeyConfig.ENABLED) {
             authHandlers.push(optionalHandler(hasApiKey, authenticateApiKey));
           }
           break;
         case AuthType.Basic:
-          if (config.SECURITY_BASIC_ENABLED) {
+          if (basicAuthConfig.ENABLED) {
             authHandlers.push([
               // Use OR condition since Basic auth plugin throws an error before
               // the validation function is called. Also, the Basic auth plugin

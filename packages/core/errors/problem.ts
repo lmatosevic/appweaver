@@ -10,16 +10,19 @@ import {
   ModuleErrorCode,
   ProblemDetails,
   RequestError,
-  RequestErrorCode
+  RequestErrorCode,
+  appConfig,
+  AuthError,
+  FileError,
+  ErrorHttpMapping
 } from '@appweaver/common';
+import { serverConfig } from '../server/server-config';
 import {
   isPrismaError,
   prismaErrorMessage,
   toDatabaseError
 } from '../database/database-error';
-import { AuthError } from '../security/auth-error';
-import { FileError } from '../storage/file-error';
-import { errorHttpMapping, ErrorHttpMapping } from './error-http-map';
+import { errorHttpMapping } from './error-http-map';
 
 /** The request a problem occurred on. */
 export type ProblemRequest = { url: string; id?: string };
@@ -105,7 +108,7 @@ export function toProblem(
     logger.warn(`Error code '${code}' is not registered with defineErrors`);
   }
 
-  const production = (config.APP_ENV as Environment) === Environment.Production;
+  const production = (appConfig.ENV as Environment) === Environment.Production;
   const status =
     (code as ErrorCode) === ErrorCode.RequestFailed
       ? ((error as FrameworkError).statusCode ?? mapping.status)
@@ -115,7 +118,7 @@ export function toProblem(
   let detail = (known && e.message) || mapping.title;
   const cause = known ? e.cause : error;
   if (isPrismaError(cause)) {
-    if (config.SERVER_ERROR_DATABASE_MESSAGE_ENABLED) {
+    if (serverConfig.ERROR_DATABASE_MESSAGE_ENABLED) {
       detail = `${detail} (${prismaErrorMessage(cause)})`;
     }
   } else if (!production && cause !== undefined) {
@@ -149,7 +152,7 @@ export function toProblem(
  * (`https://docs.example.com/types/error/resource-not-found`).
  */
 export function errorType(code: string): string {
-  const base = config.APP_TYPE_BASE.replace(/[:/]+$/, '');
+  const base = appConfig.TYPE_BASE.replace(/[:/]+$/, '');
   const separator = /^[a-z][a-z0-9+.-]*:\/\//i.test(base) ? '/' : ':';
   const name = code.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   return [base, 'error', name].join(separator);

@@ -9,7 +9,6 @@ import fastifyMultipart from '@fastify/multipart';
 import { Redis as RedisClient, RedisOptions } from 'ioredis';
 import { fastifyRequestContext } from '@fastify/request-context';
 import {
-  config,
   ErrorCode,
   loggerConfig,
   MemoryType,
@@ -19,6 +18,11 @@ import {
   ROUTE,
   textToBytes
 } from '@appweaver/common';
+import { storageConfig } from '../storage/storage-config';
+import { templatePreviewConfig } from '../template/template-config';
+import { healthCheckConfig } from '../health/health-config';
+import { cacheConfig } from '../cache/cache-config';
+import { corsConfig, rateLimitConfig, serverConfig } from './server-config';
 import { context, inject, injectAll } from '../context';
 import { errorHandler, notFoundHandler, stashErrorResponses } from '../errors';
 import { files } from '../storage';
@@ -68,10 +72,10 @@ export function createServer(): Server {
       maxParamLength: 512,
       caseSensitive: false
     },
-    trustProxy: config.SERVER_TRUST_PROXY,
-    bodyLimit: textToBytes(config.SERVER_BODY_MAX_SIZE),
+    trustProxy: serverConfig.TRUST_PROXY,
+    bodyLimit: textToBytes(serverConfig.BODY_MAX_SIZE),
     logController: new LogController({
-      disableRequestLogging: !config.SERVER_REQUEST_LOGGING_ENABLED
+      disableRequestLogging: !serverConfig.REQUEST_LOGGING_ENABLED
     }),
     logger: loggerConfig
   }).withTypeProvider<TypeBoxTypeProvider>();
@@ -79,12 +83,12 @@ export function createServer(): Server {
   // Register CORS rules
   server.register(fastifyCors, {
     // @fastify/cors matches a '*' inside a list literally, so it goes alone
-    origin: config.CORS_ORIGIN.includes('*') ? '*' : config.CORS_ORIGIN,
-    methods: config.CORS_METHODS,
-    allowedHeaders: config.CORS_ALLOWED_HEADERS,
-    exposedHeaders: config.CORS_EXPOSED_HEADERS,
-    maxAge: config.CORS_MAX_AGE,
-    credentials: config.CORS_CREDENTIALS
+    origin: corsConfig.ORIGIN.includes('*') ? '*' : corsConfig.ORIGIN,
+    methods: corsConfig.METHODS,
+    allowedHeaders: corsConfig.ALLOWED_HEADERS,
+    exposedHeaders: corsConfig.EXPOSED_HEADERS,
+    maxAge: corsConfig.MAX_AGE,
+    credentials: corsConfig.CREDENTIALS
   });
 
   // Register security rules
@@ -98,19 +102,19 @@ export function createServer(): Server {
   });
 
   // Register static public file serving
-  if (config.SERVER_STATIC_ENABLED) {
+  if (serverConfig.STATIC_ENABLED) {
     server.register(fastifyStatic, {
-      root: path.isAbsolute(config.SERVER_STATIC_DIR_PATH)
-        ? config.SERVER_STATIC_DIR_PATH
-        : path.join(process.cwd(), config.SERVER_STATIC_DIR_PATH),
-      prefix: config.SERVER_STATIC_ROUTE_PREFIX,
-      maxAge: config.SERVER_STATIC_MAX_AGE,
+      root: path.isAbsolute(serverConfig.STATIC_DIR_PATH)
+        ? serverConfig.STATIC_DIR_PATH
+        : path.join(process.cwd(), serverConfig.STATIC_DIR_PATH),
+      prefix: serverConfig.STATIC_ROUTE_PREFIX,
+      maxAge: serverConfig.STATIC_MAX_AGE,
       prefixAvoidTrailingSlash: true,
-      constraints: config.SERVER_STATIC_ALLOWED_HOST
-        ? { host: config.SERVER_STATIC_ALLOWED_HOST }
+      constraints: serverConfig.STATIC_ALLOWED_HOST
+        ? { host: serverConfig.STATIC_ALLOWED_HOST }
         : {},
       setHeaders: (reply) => {
-        for (const header of config.SERVER_STATIC_RESPONSE_HEADERS) {
+        for (const header of serverConfig.STATIC_RESPONSE_HEADERS) {
           const [name, ...valueParts] = header.split(':');
           reply.header(name.trim(), valueParts.join(':').trim());
         }
@@ -122,9 +126,9 @@ export function createServer(): Server {
   server.register(fastifyMultipart, { throwFileSizeLimit: false });
 
   // Register global request rate limiter
-  if (config.RATE_LIMIT_ENABLED) {
+  if (rateLimitConfig.ENABLED) {
     const redisClient =
-      config.RATE_LIMIT_STORE === MemoryType.Redis
+      rateLimitConfig.STORE === MemoryType.Redis
         ? inject<Redis<RedisOptions, RedisClient>>(Redis).createClient({
             connectionName: 'rate-limit',
             connectTimeout: 500,
@@ -138,10 +142,10 @@ export function createServer(): Server {
     }
 
     server.register(fastifyRateLimit, {
-      max: config.RATE_LIMIT_MAX,
-      timeWindow: config.RATE_LIMIT_WINDOW,
-      allowList: config.RATE_LIMIT_ALLOW_LIST,
-      skipOnError: config.RATE_LIMIT_SKIP_ON_ERROR,
+      max: rateLimitConfig.MAX,
+      timeWindow: rateLimitConfig.WINDOW,
+      allowList: rateLimitConfig.ALLOW_LIST,
+      skipOnError: rateLimitConfig.SKIP_ON_ERROR,
       nameSpace: 'rate-limit:',
       redis: redisClient,
       errorResponseBuilder: (_, context) =>
@@ -187,31 +191,31 @@ export function createServer(): Server {
   server.register(auth);
 
   // Register caching plugin
-  if (config.CACHE_ENABLED) {
+  if (cacheConfig.ENABLED) {
     server.register(caching);
   }
 
   // Register a health route
-  if (config.HEALTH_CHECK_ENABLED) {
-    server.register(health, { prefix: config.HEALTH_CHECK_ROUTE_PREFIX });
+  if (healthCheckConfig.ENABLED) {
+    server.register(health, { prefix: healthCheckConfig.ROUTE_PREFIX });
   }
 
   // Register a template preview route
-  if (config.TEMPLATE_PREVIEW_ENABLED) {
+  if (templatePreviewConfig.ENABLED) {
     server.register(templatePreview, {
-      prefix: config.TEMPLATE_PREVIEW_ROUTE_PREFIX
+      prefix: templatePreviewConfig.ROUTE_PREFIX
     });
   }
 
   // Register files route
-  server.register(files, { prefix: config.STORAGE_FILES_ROUTE_PREFIX });
+  server.register(files, { prefix: storageConfig.FILES_ROUTE_PREFIX });
 
   // Register info route
-  server.register(info, { prefix: config.SERVER_API_PREFIX });
+  server.register(info, { prefix: serverConfig.API_PREFIX });
 
   // Register resource routes
   for (const route of context.resource.routes.values()) {
-    const prefix = [config.SERVER_API_PREFIX, route.basePath]
+    const prefix = [serverConfig.API_PREFIX, route.basePath]
       .join('/')
       .replaceAll('//', '/');
     server.register(route.handler, { prefix });
@@ -220,7 +224,7 @@ export function createServer(): Server {
   // Register other defined routes
   const routes = injectAll<(router: Router) => void>(ROUTE);
   for (const route of routes) {
-    server.register(route, { prefix: config.SERVER_API_PREFIX + '/' });
+    server.register(route, { prefix: serverConfig.API_PREFIX + '/' });
   }
 
   return server;

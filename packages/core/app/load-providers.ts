@@ -1,6 +1,5 @@
 import {
   Cache,
-  config,
   Database,
   Events,
   Mailer,
@@ -12,6 +11,16 @@ import {
   Storage,
   TemplateEngine
 } from '@appweaver/common';
+import { schedulerConfig } from '../scheduler/scheduler-config';
+import { mailerConfig } from '../mailer/mailer-config';
+import { queueConfig } from '../queue/queue-config';
+import { templateConfig } from '../template/template-config';
+import { securityStoreConfig } from '../security/security-config';
+import { eventsConfig } from '../events/events-config';
+import { cacheConfig } from '../cache/cache-config';
+import { memoryConfig, redisConfig } from '../memory/memory-config';
+import { storageConfig } from '../storage/storage-config';
+import { databaseConfig } from '../database/database-config';
 import { loadProvider } from '../context';
 
 /**
@@ -23,27 +32,22 @@ import { loadProvider } from '../context';
  */
 export function loadProviders(baseDir: string): void {
   // Common infrastructure services
-  loadProvider(baseDir, config.DATABASE_PROVIDER, Database);
-  loadProvider(baseDir, config.STORAGE_PROVIDER, Storage);
-  loadProvider(baseDir, config.MEMORY_PROVIDER, Memory);
-  loadProvider(baseDir, config.CACHE_PROVIDER, Cache);
-  loadProvider(baseDir, config.EVENTS_PROVIDER, Events);
-  loadProvider(baseDir, config.SECURITY_STORE_PROVIDER, SecurityStore);
-  loadProvider(baseDir, config.REDIS_PROVIDER, Redis, false);
-  if (config.TEMPLATE_PROVIDER) {
-    loadProvider(baseDir, config.TEMPLATE_PROVIDER, TemplateEngine, false);
+  loadProvider(baseDir, databaseConfig.PROVIDER, Database);
+  loadProvider(baseDir, storageConfig.PROVIDER, Storage);
+  loadProvider(baseDir, memoryConfig.PROVIDER, Memory);
+  loadProvider(baseDir, cacheConfig.PROVIDER, Cache);
+  loadProvider(baseDir, eventsConfig.PROVIDER, Events);
+  loadProvider(baseDir, securityStoreConfig.PROVIDER, SecurityStore);
+  loadProvider(baseDir, redisConfig.PROVIDER, Redis, false);
+  if (templateConfig.PROVIDER) {
+    loadProvider(baseDir, templateConfig.PROVIDER, TemplateEngine, false);
   }
-  const queueLoaded = loadProvider(
-    baseDir,
-    config.QUEUE_PROVIDER,
-    Queue,
-    false
-  );
+  const queueLoaded = loadProvider(baseDir, queueConfig.PROVIDER, Queue, false);
   const mailerLoaded =
-    config.MAILER_ENABLED &&
-    loadProvider(baseDir, config.MAILER_PROVIDER, Mailer, false);
-  if (config.SCHEDULER_ENABLED) {
-    loadProvider(baseDir, config.SCHEDULER_PROVIDER, Scheduler, false);
+    mailerConfig.ENABLED &&
+    loadProvider(baseDir, mailerConfig.PROVIDER, Mailer, false);
+  if (schedulerConfig.ENABLED) {
+    loadProvider(baseDir, schedulerConfig.PROVIDER, Scheduler, false);
   }
 
   // Core feature services

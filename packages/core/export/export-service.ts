@@ -1,6 +1,5 @@
 import { Readable } from 'node:stream';
 import {
-  config,
   ErrorCode,
   ExportConfig,
   extractResourceName,
@@ -13,10 +12,11 @@ import {
   logger,
   plural,
   QueryResponse,
-  QuerySort
+  QuerySort,
+  ExportError
 } from '@appweaver/common';
+import { exportConfig } from './export-config';
 import { injectModel, injectService } from '../context';
-import { ExportError } from './export-error';
 import { generateFileName, toCsv } from '../utils';
 
 export type ExportStream = {
@@ -47,7 +47,7 @@ export class ExportService {
 
     let exportStream: Readable;
     try {
-      const batchSize = config.EXPORT_BATCH_SIZE;
+      const batchSize = exportConfig.BATCH_SIZE;
 
       const mapValues = (items: any[]) => this.mapProperties(modelName, items);
       const readBatch = (cursor?: string | null) =>
@@ -66,12 +66,12 @@ export class ExportService {
       // A generator rather than a `read` callback, which the stream may re-enter
       // while an awaited batch is pending and would then write it twice
       async function* rows(): AsyncGenerator<string> {
-        if (config.EXPORT_CSV_ADD_SEP_ROW) {
-          yield `SEP=${config.EXPORT_CSV_DELIMITER}\n`;
+        if (exportConfig.CSV_ADD_SEP_ROW) {
+          yield `SEP=${exportConfig.CSV_DELIMITER}\n`;
         }
 
         let batch: QueryResponse<any> | undefined = firstBatch;
-        let addHeaders = config.EXPORT_CSV_ADD_HEADERS;
+        let addHeaders = exportConfig.CSV_ADD_HEADERS;
 
         while (batch) {
           let chunk: string | undefined;
@@ -140,7 +140,7 @@ export class ExportService {
     const readModel = resourceModel.readModel;
     const relationsModel = resourceModel.relationsModel;
     const filesModel = resourceModel.filesModel;
-    const exportConfig = resourceExportConfig ?? resourceModel.config.export;
+    const fieldsConfig = resourceExportConfig ?? resourceModel.config.export;
 
     const property = {};
 
@@ -173,7 +173,7 @@ export class ExportService {
 
       const isArrayValue = isArray(value);
 
-      const exportField = exportConfig?.[key];
+      const exportField = fieldsConfig?.[key];
       if (exportField) {
         if (exportField.exclude === true) {
           // Skip mapping for excluded fields.
@@ -234,7 +234,7 @@ export class ExportService {
           for (const subKey in mappedItem) {
             if (subKey in property) {
               property[subKey] = [property[subKey], mappedItem[subKey]].join(
-                config.EXPORT_CSV_JOIN_DELIMITER
+                exportConfig.CSV_JOIN_DELIMITER
               );
             } else {
               property[subKey] = mappedItem[subKey];

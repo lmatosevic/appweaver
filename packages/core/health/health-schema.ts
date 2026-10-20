@@ -1,12 +1,12 @@
 import { TSchema, Type } from '@sinclair/typebox';
 import {
   AuthType,
-  config,
   HealthCheckStatus,
   RouteSchema,
   StringDate,
   StringEnum
 } from '@appweaver/common';
+import { healthCheckConfig } from './health-config';
 import { errorResponses } from '../errors';
 import { authErrorCodes } from '../security/auth-schema';
 import { createSchemaModel } from '../utils';
@@ -67,14 +67,14 @@ export function createHealthCheckSchema(serviceNames: string[]): RouteSchema {
 
   return {
     tags: ['Health'],
-    security: config.HEALTH_CHECK_AUTH ? [{ bearer: [] }] : [],
+    security: healthCheckConfig.AUTH ? [{ bearer: [] }] : [],
     summary: 'Health check status',
     description: 'Health check status',
     response: {
       200: healthCheckResponse,
       503: healthCheckResponse,
       ...errorResponses(
-        ...(config.HEALTH_CHECK_AUTH ? authErrorCodes([AuthType.Jwt]) : [])
+        ...(healthCheckConfig.AUTH ? authErrorCodes([AuthType.Jwt]) : [])
       )
     }
   };

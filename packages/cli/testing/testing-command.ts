@@ -1,6 +1,9 @@
 import fsp from 'node:fs/promises';
 import { Command } from 'commander';
 import { config } from '@appweaver/common';
+import { databaseConfig } from '@appweaver/core/database/database-config';
+import { resourceConfig } from '@appweaver/core/resource/resource-config';
+import { storageConfig } from '@appweaver/core/storage/storage-config';
 import { generateSchema } from '../generate';
 import {
   assertEnv,
@@ -58,14 +61,14 @@ export function testingCommand(program: Command): void {
 
       const tempDir = command.getOptionValue('dir');
 
-      const storagePath = config.STORAGE_PATH;
+      const storagePath = storageConfig.PATH;
 
       const schemaPath =
-        command.getOptionValue('schemaPath') ?? config.DATABASE_SCHEMA_PATH;
+        command.getOptionValue('schemaPath') ?? databaseConfig.SCHEMA_PATH;
 
       const clientPath =
         command.getOptionValue('clientPath') ??
-        config.DATABASE_CLIENT_OUTPUT_DIR_PATH;
+        databaseConfig.CLIENT_OUTPUT_DIR_PATH;
 
       assertPathInside(
         tempDir,
@@ -92,7 +95,7 @@ export function testingCommand(program: Command): void {
       console.log('\nStorage initialized');
 
       const models = await loadModels(
-        command.getOptionValue('modelPattern') ?? config.RESOURCE_MODEL_PATTERN
+        command.getOptionValue('modelPattern') ?? resourceConfig.MODEL_PATTERN
       );
 
       const generateStatus = await generateSchema(
@@ -141,7 +144,7 @@ export function testingCommand(program: Command): void {
 
       const tempDir = command.getOptionValue('dir');
 
-      const storagePath = config.STORAGE_PATH;
+      const storagePath = storageConfig.PATH;
 
       assertPathInside(
         tempDir,

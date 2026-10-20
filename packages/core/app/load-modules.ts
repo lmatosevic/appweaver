@@ -1,9 +1,9 @@
 import fsp from 'node:fs/promises';
 import {
-  config,
   findFilesByPattern,
   importModule,
-  logger
+  logger,
+  appConfig
 } from '@appweaver/common';
 
 /**
@@ -20,7 +20,7 @@ export async function loadModules(
   moduleFilesPattern?: string
 ): Promise<void> {
   const cwd = baseDir ?? process.cwd();
-  const pathPattern = moduleFilesPattern || config.APP_SCAN_FILES_PATTERN;
+  const pathPattern = moduleFilesPattern || appConfig.SCAN_FILES_PATTERN;
 
   // Find all project files matching provided glob pattern
   const modulePaths = await findFilesByPattern(pathPattern, cwd);

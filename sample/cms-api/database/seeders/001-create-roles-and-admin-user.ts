@@ -1,5 +1,5 @@
-import { hashPassword } from '@appweaver/core';
-import { config, randomString } from '@appweaver/common';
+import { hashPassword, systemConfig } from '@appweaver/core';
+import { randomString } from '@appweaver/common';
 import { db } from '@db/client';
 
 export async function createRolesAndAdminUser(): Promise<void> {
@@ -25,7 +25,7 @@ export async function createRolesAndAdminUser(): Promise<void> {
     }
   });
 
-  let password = config.SYSTEM_ADMIN_INITIAL_PASSWORD;
+  let password = systemConfig.ADMIN_INITIAL_PASSWORD;
 
   if (!password) {
     password = randomString(16, { extra: false });
@@ -38,7 +38,7 @@ export async function createRolesAndAdminUser(): Promise<void> {
     data: {
       firstName: 'Admin',
       lastName: 'Admin',
-      email: config.SYSTEM_ADMIN_INITIAL_EMAIL,
+      email: systemConfig.ADMIN_INITIAL_EMAIL,
       phone: '01234435',
       passwordHash,
       roles: {

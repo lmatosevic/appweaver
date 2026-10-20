@@ -1,16 +1,9 @@
 jest.mock('@appweaver/common', () => {
   const actual = jest.requireActual('@appweaver/common');
-  const configOverrides: Record<string, unknown> = {
+  Object.assign(actual.configOverrides, {
     SECURITY_RECAPTCHA_SECRET: 'recaptcha-secret'
-  };
-  return {
-    __esModule: true,
-    ...actual,
-    configOverrides,
-    get config() {
-      return { ...actual.config, ...configOverrides };
-    }
-  };
+  });
+  return actual;
 });
 
 jest.mock('../../../security/recaptcha/recaptcha-verify', () => ({
@@ -92,9 +85,7 @@ describe('recaptcha', () => {
 
     test('rejects the request the verification rejects', async () => {
       await startServer();
-      const { RecaptchaError } = jest.requireActual(
-        '../../../security/recaptcha/recaptcha-error'
-      );
+      const { RecaptchaError } = jest.requireActual('@appweaver/common');
       (recaptchaVerify as jest.Mock).mockRejectedValueOnce(
         new RecaptchaError('RECAPTCHA_LOW_SCORE', 'reCAPTCHA low score')
       );

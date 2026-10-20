@@ -1,4 +1,5 @@
-import { AuthSource, config } from '@appweaver/common';
+import { AuthSource } from '@appweaver/common';
+import { oauth2Config } from '../security-config';
 import { UserInfo } from '../../types';
 import { createOAuth2Plugin } from './create-oauth2-plugin';
 import {
@@ -17,12 +18,12 @@ type MicrosoftUser = {
   userPrincipalName?: string;
 };
 
-const tenant = config.SECURITY_OAUTH2_MICROSOFT_TENANT;
+const tenant = oauth2Config.MICROSOFT_TENANT;
 
 export const oauth2Microsoft = createOAuth2Plugin(AuthSource.OAuth2Microsoft, {
-  enabled: config.SECURITY_OAUTH2_MICROSOFT_ENABLED,
-  clientId: config.SECURITY_OAUTH2_MICROSOFT_CLIENT_ID,
-  clientSecret: config.SECURITY_OAUTH2_MICROSOFT_CLIENT_SECRET,
+  enabled: oauth2Config.MICROSOFT_ENABLED,
+  clientId: oauth2Config.MICROSOFT_CLIENT_ID,
+  clientSecret: oauth2Config.MICROSOFT_CLIENT_SECRET,
   scope: ['openid', 'profile', 'email', 'User.Read'],
   // Built from the configured tenant rather than the bundled preset, which is hardcoded to `common`.
   auth: {
@@ -37,7 +38,7 @@ export const oauth2Microsoft = createOAuth2Plugin(AuthSource.OAuth2Microsoft, {
 export async function fetchMicrosoftUser(
   accessToken: string
 ): Promise<UserInfo> {
-  const userInfoUrl = config.SECURITY_OAUTH2_MICROSOFT_USER_INFO_URL;
+  const userInfoUrl = oauth2Config.MICROSOFT_USER_INFO_URL;
 
   const data = await fetchUserInfo<MicrosoftUser>(
     'Microsoft',

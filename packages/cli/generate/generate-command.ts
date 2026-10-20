@@ -1,5 +1,7 @@
 import { Command } from 'commander';
 import { config } from '@appweaver/common';
+import { databaseConfig } from '@appweaver/core/database/database-config';
+import { resourceConfig } from '@appweaver/core/resource/resource-config';
 import { generateTypes } from './generate-types';
 import { generateSchema } from './generate-schema';
 import { loadModels } from '../utils';
@@ -44,7 +46,7 @@ export function generateCommand(program: Command): void {
         !command.getOptionValue('types') && !command.getOptionValue('schema');
 
       const models = await loadModels(
-        command.getOptionValue('modelPattern') ?? config.RESOURCE_MODEL_PATTERN
+        command.getOptionValue('modelPattern') ?? resourceConfig.MODEL_PATTERN
       );
 
       let typeGenerateResult: number = 0;
@@ -52,7 +54,7 @@ export function generateCommand(program: Command): void {
         typeGenerateResult = await generateTypes(
           models,
           command.getOptionValue('typesPath') ??
-            config.RESOURCE_GENERATED_TYPES_PATH,
+            resourceConfig.GENERATED_TYPES_PATH,
           quiet,
           command.getOptionValue('registry')
         );
@@ -62,9 +64,9 @@ export function generateCommand(program: Command): void {
       if (command.getOptionValue('schema') || generateAll) {
         schemaGenerateResult = await generateSchema(
           models,
-          command.getOptionValue('schemaPath') ?? config.DATABASE_SCHEMA_PATH,
+          command.getOptionValue('schemaPath') ?? databaseConfig.SCHEMA_PATH,
           command.getOptionValue('clientPath') ??
-            config.DATABASE_CLIENT_OUTPUT_DIR_PATH,
+            databaseConfig.CLIENT_OUTPUT_DIR_PATH,
           quiet
         );
       }

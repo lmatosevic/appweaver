@@ -20,10 +20,10 @@ import {
   ResourceClient,
   ResourceModel,
   ScalarField,
-  setValue
+  setValue,
+  ResourceError
 } from '@appweaver/common';
 import { injectModel } from '../../context';
-import { ResourceError } from '../resource-error';
 
 /** The kind of value an aggregatable field holds. */
 export type AggregateFieldType = 'numeric' | 'date';

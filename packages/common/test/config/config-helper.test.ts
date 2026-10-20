@@ -1,19 +1,22 @@
-import { addHelpers } from '../../config/config-helper';
+import { createConfigHelper } from '../../config/config-helper';
 import { CONFIG_NAME } from '../../constants';
 
+/** Creates the helpers over flattened keys, reading an unknown key from its `_appweaver_` prefixed form like the loader stores it. */
+const addHelpers = (source: Record<string, any>) =>
+  createConfigHelper((key) =>
+    key in source ? source[key] : source[`_${CONFIG_NAME}_${key}`]
+  );
+
 describe('config-helper', () => {
-  describe('addHelpers', () => {
-    test('returns the same object augmented with the helper functions', () => {
-      const source: Record<string, any> = { APP_NAME: 'Appweaver' };
-      const config = addHelpers(source);
-      expect(config).toBe(source);
+  describe('createConfigHelper', () => {
+    test('returns the helper functions', () => {
+      const config = addHelpers({ APP_NAME: 'Appweaver' });
       expect(typeof config.env).toBe('function');
       expect(typeof config.str).toBe('function');
       expect(typeof config.int).toBe('function');
       expect(typeof config.float).toBe('function');
       expect(typeof config.bool).toBe('function');
       expect(typeof config.arr).toBe('function');
-      expect(config.APP_NAME).toBe('Appweaver');
     });
   });
 

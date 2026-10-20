@@ -1,4 +1,4 @@
-import { defineErrors } from '@appweaver/core';
+import { defineErrors } from '@appweaver/common';
 
 /** The error codes of the movies API, returned as the `code` of its error responses. */
 export const MovieErrors = defineErrors({

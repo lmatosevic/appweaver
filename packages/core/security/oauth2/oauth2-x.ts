@@ -1,5 +1,5 @@
-import { AuthSource, config, ErrorCode } from '@appweaver/common';
-import { OAuth2Error } from './oauth2-error';
+import { AuthSource, ErrorCode, OAuth2Error } from '@appweaver/common';
+import { oauth2Config } from '../security-config';
 import { UserInfo } from '../../types';
 import { createOAuth2Plugin } from './create-oauth2-plugin';
 import { fetchUserInfo, splitFullName } from './oauth2-util';
@@ -15,9 +15,9 @@ type XUser = {
 };
 
 export const oauth2X = createOAuth2Plugin(AuthSource.OAuth2X, {
-  enabled: config.SECURITY_OAUTH2_X_ENABLED,
-  clientId: config.SECURITY_OAUTH2_X_CLIENT_ID,
-  clientSecret: config.SECURITY_OAUTH2_X_CLIENT_SECRET,
+  enabled: oauth2Config.X_ENABLED,
+  clientId: oauth2Config.X_CLIENT_ID,
+  clientSecret: oauth2Config.X_CLIENT_SECRET,
   scope: ['users.read', 'tweet.read'],
   // X only issues tokens for authorization requests using the PKCE extension.
   pkce: 'S256',
@@ -34,7 +34,7 @@ export async function fetchXUser(accessToken: string): Promise<UserInfo> {
   // Only apps granted the email permission may read `confirmed_email`; for the rest X rejects the request outright.
   const { data } = await fetchUserInfo<XUser>(
     'X',
-    `${config.SECURITY_OAUTH2_X_USER_INFO_URL}?${params}`,
+    `${oauth2Config.X_USER_INFO_URL}?${params}`,
     accessToken
   );
 
