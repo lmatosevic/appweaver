@@ -80,7 +80,32 @@ describe('module-command', () => {
     });
   });
 
+  describe('module new', () => {
+    test('creates a local module', async () => {
+      await run('new', 'billing');
+
+      expect(fs.existsSync('src/modules/billing/module.ts')).toBe(true);
+      expect(logs).toContain(`  ${path.join('src/modules/billing/main.ts')}`);
+    });
+
+    test('rejects an invalid module name', async () => {
+      await expect(run('new', 'Billing')).rejects.toThrow('process.exit(1)');
+      expect(errors[0]).toContain('kebab-case');
+    });
+  });
+
   describe('module add', () => {
+    test('installs a module package without running its scripts', async () => {
+      await run('add', '@acme/appweaver-gcs');
+
+      expect(runProcess).toHaveBeenCalledWith(
+        'npm',
+        ['install', '--ignore-scripts', '@acme/appweaver-gcs'],
+        expect.any(Object)
+      );
+      expect(logs).toContain('Package @acme/appweaver-gcs is not installed.');
+    });
+
     test('adds the modules with the ones they require and installs them', async () => {
       await run('add', 'queue');
 

@@ -1,6 +1,7 @@
 import { AbstractCtor } from '../utils/type-util';
 
-export const MODULE = Symbol('Module');
+// Registered globally, so a manifest is recognized whichever copy of this package defined it
+export const MODULE = Symbol.for('appweaver.module');
 
 /** Selects the driver of an enabled module for a contract, otherwise the fallback of core. */
 export const PROVIDER_AUTO = 'auto';

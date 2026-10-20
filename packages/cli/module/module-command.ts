@@ -12,7 +12,10 @@ import {
   resolveModules,
   ScaffoldError
 } from '@appweaver/create-weaver-app/scaffold';
+import { appConfig } from '@appweaver/common';
 import { runProcess } from '../utils';
+import { localModuleFiles, writeModuleFiles } from './local-module';
+import { describePackageModule, isPackageName } from './package-module';
 
 /**
  * Registers the `module` command, listing, adding and removing the optional modules of the project.
@@ -24,7 +27,7 @@ export function moduleCommand(program: Command): void {
     .command('module')
     .alias('mod')
     .description(
-      `Manage the optional modules of the project (${moduleNames.join(', ')}).`
+      `Manage the optional modules of the project (${moduleNames.join(', ')}), module packages and local modules.`
     );
 
   module
@@ -47,9 +50,36 @@ export function moduleCommand(program: Command): void {
     });
 
   module
+    .command('new <name>')
+    .description(
+      'Create a local module in <sourcePath>/modules/<name>/, enabled by app.modulesPattern.'
+    )
+    .option('--dry-run', 'Print the files without writing them.')
+    .action((name: string, _, command: Command) => {
+      let files: Record<string, string>;
+      try {
+        files = localModuleFiles(name, appConfig.SOURCE_PATH);
+        if (!command.getOptionValue('dryRun')) {
+          writeModuleFiles(process.cwd(), files);
+        }
+      } catch (e) {
+        console.error((e as Error).message);
+        process.exit(1);
+      }
+      console.log(
+        command.getOptionValue('dryRun')
+          ? 'Files that would be created:'
+          : 'Created:'
+      );
+      Object.keys(files).forEach((file) => console.log(`  ${file}`));
+    });
+
+  module
     .command('add <modules...>')
     .description(
-      'Add modules to the project: their packages, configuration and files, with the modules they require.'
+      'Add modules to the project: the optional modules with their packages, configuration and files and the ' +
+        'modules they require, or any module package by its name (i.e. @acme/appweaver-gcs), installed without ' +
+        'running its scripts.'
     )
     .option(
       '-f, --force',
@@ -58,8 +88,17 @@ export function moduleCommand(program: Command): void {
     .option('--dry-run', 'Print the changes without applying them.')
     .option('--no-install', 'Skip the installation of the dependencies.')
     .option('--verbose', 'Print verbose output.')
-    .action(async (names: string[], _, command: Command) => {
+    .action(async (allNames: string[], _, command: Command) => {
       const project = load();
+      const packageNames = allNames.filter(isPackageName);
+      if (packageNames.length > 0) {
+        await addPackageModules(project, packageNames, command);
+      }
+      const names = allNames.filter((name) => !isPackageName(name));
+      if (names.length === 0) {
+        return;
+      }
+
       const { modules: requested, required } = run(() =>
         resolveModules(parseModuleNames(names))
       );
@@ -139,6 +178,39 @@ export function moduleCommand(program: Command): void {
         `Removed modules: ${removed.join(', ')}`
       );
     });
+}
+
+/** Installs module packages without running their scripts, then describes their modules. */
+async function addPackageModules(
+  project: LoadedProject,
+  packageNames: string[],
+  command: Command
+): Promise<void> {
+  const bun = project.context.runtime === 'bun';
+  const args = bun
+    ? ['add', ...packageNames]
+    : ['install', '--ignore-scripts', ...packageNames];
+  const packageManager = bun ? 'bun' : 'npm';
+
+  if (command.getOptionValue('dryRun')) {
+    console.log(`Would run: ${packageManager} ${args.join(' ')}`);
+    return;
+  }
+
+  const status = await runProcess(packageManager, args, {
+    quiet: !command.getOptionValue('verbose')
+  });
+  if (status !== 0) {
+    console.error(
+      `Installing ${packageNames.join(', ')} failed. Use --verbose flag to see error details.`
+    );
+    process.exit(1);
+  }
+  for (const name of packageNames) {
+    describePackageModule(process.cwd(), name).forEach((line) =>
+      console.log(line)
+    );
+  }
 }
 
 /** Loads the project of the working directory, exiting on an error. */
