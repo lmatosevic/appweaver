@@ -52,5 +52,12 @@ export default tsEslint.config(
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-return': 'off'
     }
+  },
+  {
+    // The contract suites export the tests other packages run
+    files: ['packages/testing/contracts/**/*.ts'],
+    rules: {
+      'jest/no-export': 'off'
+    }
   }
 );

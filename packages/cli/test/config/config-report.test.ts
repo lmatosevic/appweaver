@@ -1,4 +1,4 @@
-import { Type, TObject } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 import {
   configOverrides,
   ConfigurationError,
@@ -23,7 +23,7 @@ describe('config-report', () => {
             PORT: Type.Integer(),
             PASSWORD: Type.String(),
             TOKEN_SALT: Type.String({ secret: true })
-          }) as TObject,
+          }),
           values: { PORT: 8080, PASSWORD: 'p4ss', TOKEN_SALT: undefined }
         }
       ]);
@@ -52,7 +52,7 @@ describe('config-report', () => {
         {
           section: 'broken',
           prefix: 'BROKEN_',
-          schema: Type.Object({ URL: Type.String() }) as TObject,
+          schema: Type.Object({ URL: Type.String() }),
           values
         }
       ]);
