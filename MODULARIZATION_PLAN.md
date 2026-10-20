@@ -614,8 +614,9 @@ exactly like a first-party one:
   `locales` goes, stay code of the scaffold engine, for its scaffold-only modules.
 - The first-party packages keep their scaffold files in their own package, and the build copies them into
   `@appweaver/create`, so a project is created without installing anything first, also with `--no-install`.
-- Every module and every integration stays reversible. A test checks that every valid combination of the first-party
-  modules gives the same files created at once, added one at a time, or removed from a full project.
+- Every module and every integration stays reversible, covered by basic tests: adding and removing each module on its
+  own, each integration once, and creating a project with `--all`. They keep the branch coverage of the engine above
+  80%, without testing every combination of modules.
 
 ### 10.3 Module package templates
 
@@ -697,8 +698,8 @@ a module whose `framework` range excludes the target version is reported before 
    versions) into utils used by both commands.
 6. Write the driver stubs by hand per contract, and add a test that scaffolds the driver of every contract and
    type-checks it against `@appweaver/common`, so no stub falls behind its contract.
-7. Add the combination test of section 10.2, and a CI test that scaffolds a driver and a feature module package
-   against the built local packages and runs their tests, the contract suite included.
+7. Add the basic tests of section 10.2, and a CI test that scaffolds a driver and a feature module package against
+   the built local packages and runs their tests, the contract suite included.
 
 ## 11. Phases
 
@@ -735,7 +736,7 @@ a module whose `framework` range excludes the target version is reported before 
 11. The scaffold engine and `weaver module list | add | remove` with the optional parts of today as modules (`redis`,
     `queue`, `scheduler`, `mailer`, `templates`, `locales`, `docker`): the minimal project by default, `--add`,
     `--all` and `--no-<module>` (`--no-cron` becoming `--no-scheduler`), `@appweaver/cli` depending on the scaffolder
-    at its exact version, and the combination test.
+    at its exact version, and the basic tests of section 10.2.
 
 These come first, so that every package is created with them, and the contracts change once, before any driver moves.
 
@@ -777,16 +778,16 @@ These come first, so that every package is created with them, and the contracts 
   the outside drivers of phase 3 before the freeze.
 - **The registry of module models.** A model registered by its module and again by the app fails the type check
   (section 10.3), so `weaver generate` must tell package modules from local ones.
-- **The scaffold combinations** double with every module: ten first-party modules make about a thousand. The engine
-  stages the changes in memory, which keeps the combination test fast, and the test falls back to every pair plus the
-  full project if it grows too slow.
+- **Untested scaffold paths.** The scaffold tests stay basic (section 10.2), so a branch coverage threshold of 80%
+  (`coverageThreshold` of `jest.config.json`, unset today) fails CI when new code goes untested.
 - **Third-party code runs at startup**, like any dependency, and an installed module is enabled. `app.modulesDisabled`
   opts out, and `weaver module add` never runs scripts of the module.
 - **Bun** runs every test file in one process with a frozen context, and `tools/copy-packages.js` writes an empty
   `tsconfig.json` into every copied package. Verify both for the new packages.
 - **Type augmentations**: the Fastify ones move to `web`, the `@fastify/request-context` one goes away.
-- **Combinations not tested** break unnoticed. CI starts an application for each kind of section 4.1, at least the API,
-  the web app without a database, the worker and the SQLite job runner.
+- **Package combinations** could break unnoticed. The end-to-end tests of the samples cover them, one sample per kind
+  of section 4.1 (the API samples, the SQLite job runner and the web app without a database of phase 2), with no
+  extra test matrix.
 - **Lazy config validation** reports a misconfigured driver at startup instead of import, covered in CI by
   `weaver config check`.
 
@@ -811,6 +812,7 @@ These come first, so that every package is created with them, and the contracts 
 | One scaffolder, `@appweaver/create`, with a `module` command            | Shared template machinery, one package to release                                 |
 | A minimal project, modules added with `--add` or `weaver module add`    | An app starts with what it uses, and adds a module the same way later             |
 | One scaffold engine for creating and for `weaver module`, reversible    | A module gives the same files however it is added or removed                      |
+| Basic tests, 80% branch coverage, no combination matrix                 | Enough to catch regressions while the tests stay simple                           |
 | The scaffold of a module declared in its manifest                       | Third-party modules add their files, config and Docker services too               |
 | `@appweaver/cli` depends on `@appweaver/create` at its exact version    | Shared templates, and `npm create` installs no peers of the CLI                   |
 | `weaver upgrade` instead of `weaver update`                             | Names the version bump, apart from the module changes of `weaver module`          |
