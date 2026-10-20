@@ -51,7 +51,7 @@ for application configuration, committed with the project. These are automatical
 
 The overrides of each environment go to the `environments` key of `appweaver.json`, keyed by the environment name. The
 section matching `NODE_ENV` is merged over `config` property by property (an array value replaces the whole array),
-the other ones are ignored. This keeps the whole configuration in a single file, which is what `create-weaver-app`
+the other ones are ignored. This keeps the whole configuration in a single file, which is what `@appweaver/create`
 scaffolds:
 
 ```json
@@ -138,8 +138,9 @@ databaseConfig.URL; // string
 | `smtpConfig`                                                                                                                                                                                                                                                                                                       | `MAILER_SMTP_*`                 | `@appweaver/nodemailer` |
 
 A section is parsed on the first access of one of its values, with the defaults of its schema, then kept frozen. A
-missing or invalid value throws a `ConfigurationError` (`CONFIGURATION_INVALID`) naming its environment variable and
-its JSON path.
+missing or invalid value throws a `ConfigurationError` (`CONFIGURATION_INVALID`) naming only the invalid keys of the
+section, each with its environment variable and JSON path. `weaver config check` finds them before the startup (see
+[Inspecting the config](#inspecting-the-config)).
 
 ### Application config
 
@@ -198,6 +199,45 @@ afterEach(() => {
 
 A module reading the config when it is imported needs the override before its import, set in a `jest.mock` factory of
 `@appweaver/common` (`Object.assign(jest.requireActual('@appweaver/common').configOverrides, { ... })`).
+
+## Inspecting the config
+
+`weaver config` (alias `cfg`) creates the application without starting it, so every enabled module and the application
+files have defined their sections, then:
+
+```sh
+weaver config schema                           # write ./appweaver.schema.json
+weaver config schema -o ./config/schema.json   # another output path
+weaver config print                            # every key with its source and value, the secrets hidden
+NODE_ENV=prod weaver config check              # validate every section, exit 1 listing the errors
+```
+
+- **`schema`** writes the JSON Schema of `appweaver.json` from the sections of the enabled modules: every key under its
+  camelCase name in its section, with its type and default, for `config` and each `environments.<env>`.
+  Point the `$schema` of `appweaver.json` to it to get the completion and validation of the sections of the module
+  packages and of the application, and rerun it after adding one:
+
+  ```json
+  {
+    "$schema": "./appweaver.schema.json",
+    "config": {}
+  }
+  ```
+
+- **`print`** lists every flattened key with its source: `override` (`configOverrides`), `env` (the environment and
+  the `.env` files), `json` (the `appweaver*.json` files) or `default`. `configSource(key)` of `@appweaver/common`
+  returns the same in code. A value is shown as `********` when its key ends with `PASSWORD`, `SECRET`, `TOKEN`,
+  `PRIVATE_KEY`, `CREDENTIALS` or `API_KEY`, or its schema has the `secret: true` option:
+
+  ```ts
+  export const paymentConfig = defineConfig('payment', {
+    /** The signing key of the webhooks. */
+    WEBHOOK_KEY: Type.String({ secret: true })
+  });
+  ```
+
+- **`check`** parses every section and exits with 1, listing each invalid key with its environment variable and JSON
+  path. Run it in CI with the environment of the deployment, so a missing secret fails the pipeline, not the startup.
 
 ## Providers
 
@@ -712,12 +752,13 @@ the cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting 
 
 ## Configuration files summary
 
-| File                   | Purpose                                                                         |
-|------------------------|---------------------------------------------------------------------------------|
-| `appweaver.json`       | Global configuration (`config`) and the overrides of each env (`environments`)  |
-| `appweaver.{env}.json` | Optional environment-specific overrides, loaded over the `environments` section |
-| `.env`                 | Environment variables (all environments)                                        |
-| `.env.{env}`           | Environment-specific env variable overrides                                     |
+| File                    | Purpose                                                                         |
+|-------------------------|---------------------------------------------------------------------------------|
+| `appweaver.json`        | Global configuration (`config`) and the overrides of each env (`environments`)  |
+| `appweaver.{env}.json`  | Optional environment-specific overrides, loaded over the `environments` section |
+| `appweaver.schema.json` | The JSON Schema of the enabled modules' sections, from `weaver config schema`   |
+| `.env`                  | Environment variables (all environments)                                        |
+| `.env.{env}`            | Environment-specific env variable overrides                                     |
 
 ## Environment values
 

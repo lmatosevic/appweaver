@@ -50,17 +50,14 @@ Optional:
 
 ### 1. Scaffold a new project
 
-Install the scaffolding CLI tool:
+Bootstrap the new application with the scaffolding tool, `@appweaver/create`:
 
 ```sh
-npm install -g @appweaver/create-weaver-app
+npm create @appweaver MyApp "My awesome API" -- --database postgresql --add redis mailer docker
 ```
 
-Bootstrap the new application:
-
-```sh
-create-weaver-app MyApp "My awesome API" --database postgresql --add redis mailer docker
-```
+npm passes the options after `--` to the tool. `npx @appweaver/create MyApp ...` takes them directly, and a global
+install (`npm install -g @appweaver/create`) runs it as `create-appweaver`.
 
 This creates a `./my-app` directory, installs all dependencies, and runs the initial schema and type generation. The
 base project has no optional module: add them with `--add`, all of them with `--all` (leaving some out with
@@ -132,6 +129,10 @@ Every option can also be set via an environment variable which useful for secret
 is documented in [`skill/references/configuration.md`](./skill/references/configuration.md) and available
 in [appweaver.example.json](appweaver.example.json) or [.env.example](.env.example).
 
+`weaver config schema` writes the JSON Schema of `appweaver.json` from the config sections of the enabled modules
+(point its `$schema` to `./appweaver.schema.json`), `weaver config print` shows every value with its source and the
+secrets hidden, and `weaver config check` validates them, i.e. with `NODE_ENV=prod` in CI.
+
 ---
 
 ## Skills for AI Agents
@@ -142,7 +143,7 @@ source code on every task.
 
 ### How it works
 
-When you scaffold a new project with `create-weaver-app`, the generated `AGENTS.md` (or `CLAUDE.md`) at the project
+When you scaffold a new project with `@appweaver/create`, the generated `AGENTS.md` (or `CLAUDE.md`) at the project
 root automatically references the skill files. Any agent harness that supports project-level instruction files (Claude
 Code, Cursor, Codex, etc.) will load these as context, giving the agent accurate, up-to-date guidance.
 
@@ -296,7 +297,9 @@ One package per library, each carrying the library as a dependency and enabled b
 
 ### `@appweaver/testing`
 
-The test helpers of the packages and their modules: `resetContext`, `linkModels` and `createDatabaseStub`.
+The test helpers of the packages and their modules: `resetContext`, `linkModels` and `createDatabaseStub`, and the
+contract suites testing a driver against its contract (`testStorageContract('GcsStorage', () => new GcsStorage())`,
+also for `Memory`, `Queue`, `Scheduler` and `Mailer`), under Jest, Vitest or Bun.
 
 ### `@appweaver/common`
 
@@ -322,6 +325,9 @@ weaver seed                       # seed the database
 weaver openapi                    # export OpenAPI spec to openapi.json
 weaver run src/tasks/report.ts    # run a one-shot task with the application
 weaver module add redis docker    # add modules to the project (list, add, remove)
+weaver module add appweaver-gcs   # install a module package, print its providers
+weaver module new audit-log       # create a local module in src/modules/audit-log/
+weaver config check               # validate the config of every enabled module (schema, print)
 weaver upgrade                    # upgrade all @appweaver/* packages and skill files
 ```
 
@@ -360,14 +366,16 @@ const avatarData = await avatarFile.base64();
 await client.user.delete(user.id);
 ```
 
-### `@appweaver/create-weaver-app` (`create-weaver-app`)
+### `@appweaver/create` (`create-appweaver`)
 
 Project scaffolding tool. Generates a complete Appweaver application from a template with support for Node and Bun
 runtimes, multiple databases, and optional modules (Redis, queue, scheduler, mailer, templates, locales, Docker), which
-`weaver module add` and `weaver module remove` manage later from the same templates.
+`weaver module add` and `weaver module remove` manage later from the same templates. It also creates module packages,
+a storage or mailer driver with its contract test, or a feature module, ready to publish.
 
 ```sh
-npx create-weaver-app <name> [description] [options]
+npm create @appweaver <name> [description] -- [options]
+npm create @appweaver module <package> [description] -- [--contract storage|mailer|none] [-o dir]
 ```
 
 ---
@@ -394,6 +402,9 @@ Run the full test suite with:
 ```sh
 npm run test
 ```
+
+It fails below 80% of the branches covered. Jest maps every `@appweaver/*` import to the sources of its package, so
+the tests need no build.
 
 ### Releasing
 

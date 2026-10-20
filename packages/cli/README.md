@@ -15,8 +15,8 @@
 ## Description
 
 `@appweaver/cli` provides the `weaver` binary that drives the development workflow of an Appweaver project: building,
-starting, code generation, migrations, seeding, one-shot tasks, OpenAPI export, test database setup, and package
-updates. It runs
+starting, code generation, migrations, seeding, one-shot tasks, OpenAPI export, test database setup, configuration
+checks, modules, and package updates. It runs
 under Bun automatically when the project is configured for the Bun runtime.
 
 ## Installation
@@ -41,7 +41,12 @@ weaver seed --build-project         # build the project, then run the seeders
 weaver openapi --format yaml        # export the OpenAPI specification
 weaver run src/tasks/report.ts      # run the default export of a file with the application, then exit
 weaver test setup                   # create the temporary test database (NODE_ENV=test)
+weaver config schema                # write the JSON Schema of appweaver.json from the enabled modules
+weaver config print                 # print every config value with its source, the secrets hidden
+weaver config check                 # validate the config, i.e. NODE_ENV=prod in CI (exit 1 on an error)
 weaver module add redis docker      # add modules to the project, from the scaffold templates
+weaver module add appweaver-gcs     # install a module package without its scripts, print its providers
+weaver module new audit-log         # create the local module src/modules/audit-log/
 weaver module remove docker         # remove a module, deleting its files
 weaver upgrade --dry-run            # list the package upgrades without installing them
 ```

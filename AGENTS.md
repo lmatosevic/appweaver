@@ -16,7 +16,7 @@ The project is a TypeScript monorepo using `tsc -b` for builds.
 
 ### CLI conventions
 
-Every CLI (`weaver`, `weaver-client`, `create-weaver-app`) uses **kebab-case** long flags (`--dry-run`,
+Every CLI (`weaver`, `weaver-client`, `create-appweaver`) uses **kebab-case** long flags (`--dry-run`,
 `--model-pattern`). A flag that turns something off is declared as a Commander negation (`--no-install`,
 `--no-skill`), which the action reads as the positive option (`command.getOptionValue('install')`, `true` unless the
 flag is passed). Never add `--skipX` or camelCase flags. `-v` is reserved for `--version` on the program level, so
@@ -26,11 +26,18 @@ flag is passed). Never add `--skipX` or camelCase flags. `-v` is reserved for `-
 
 Tests are located in `packages/*/test` and use **Jest** with **SWC** for fast execution.
 
-- **Running all tests**: `npm test`
+- **Running all tests**: `npm test`, with coverage
 - **Running specific tests**: `jest path/to/file.test.ts`
 - **Type-checking the tests**: `npm run test:typecheck`
+- **Coverage threshold**: the `coverageThreshold` of `jest.config.json` fails `npm test` below 80% of the branches
+  covered, so a change adds the tests of its branches
+- **Package sources**: the `moduleNameMapper` of `jest.config.json` maps every `@appweaver/*` import (and subpath) to
+  the sources of its package, so the tests need no build and the tests of every package share one instance of each
+  module. A new package is added to both of its patterns
 - **Test helpers**: `resetContext`, `linkModels`, `createDatabaseStub` and `prismaError` of `@appweaver/testing`
   (`packages/testing`), shared by the tests of every package
+- **Contract suites**: the test of a driver runs the suite of its contract from `@appweaver/testing`, i.e.
+  `testStorageContract('FilesystemStorage', () => new FilesystemStorage())` (see `packages/testing`)
 
 ### Naming and layout
 
@@ -261,6 +268,14 @@ a stubbed Prisma client) and `prismaError`. The tests of `data`, `web` and the d
 path into another package. Jest maps every `@appweaver/*` import to the sources of its package (`moduleNameMapper` of
 `jest.config.json`), so the tests need no build and share one instance of each module.
 
+The contract suites of `contracts/` test a driver against the behavior every driver of its contract shares:
+`testMemoryContract`, `testStorageContract`, `testQueueContract`, `testSchedulerContract` and `testMailerContract`,
+each called as `(name, () => driver)` at the top level of a test file. They use the `describe`, `test`, `beforeEach`,
+`afterEach` and `expect` globals, so they run under Jest, Vitest and Bun, and create a fresh driver for every test.
+`InMemory`, `FilesystemStorage`, `MemoryQueue`, `JsonMailer` and `CronScheduler` run them, and so does the test of a
+driver package scaffolded with `npm create @appweaver module`. A change of a contract's shared behavior goes into its
+suite, so every driver is held to it.
+
 ### `packages/cli`
 
 The `weaver` CLI tool. Entry point: `weaver.ts` → compiled to `dist/weaver.js`.
@@ -302,34 +317,56 @@ The package exposes a `weaver-client` CLI binary. See **Section 6** for the full
 
 ---
 
-### `packages/create-weaver-app`
+### `packages/create`
 
-The `create-weaver-app` module is a project scaffolding tool that generates new Appweaver applications. It exposes the
-**`create-weaver-app`** CLI binary, which can be invoked via `npx create-weaver-app`.
+The `@appweaver/create` package is the scaffolding tool that generates new Appweaver applications and module packages.
+It exposes the **`create-appweaver`** CLI binary (entry point `create.ts`), run as `npm create @appweaver <name>` or
+`npx @appweaver/create <name>`, and as `npm create @appweaver module <package>` for a module package.
 
 A generated project starts from the base template (`templates/base/`) and adds the optional modules selected with
 `--add <modules...>` or `--all` (minus the `--no-<module>` ones): `redis`, `queue` (requires `redis`), `scheduler`,
 `mailer`, `templates`, `locales` and `docker`. The base project depends on `@appweaver/cli`, `common`, `core`, `data`,
 `web` and `sharp`, and a module adds its driver package: `@appweaver/redis` (`redis`), `@appweaver/bullmq` (`queue`),
 `@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`) and `@appweaver/handlebars` (`templates`), every
-`@appweaver/*` package at the framework version, the version of `create-weaver-app` (`scaffold/package-versions.ts`).
+`@appweaver/*` package at the framework version, the version of `@appweaver/create` (`scaffold/package-versions.ts`).
 The scaffolding engine lives in `scaffold/` and is exported as
-`@appweaver/create-weaver-app/scaffold`, which `weaver module add|remove` of `packages/cli` uses on an existing
-project, so both apply the same templates. `@appweaver/cli` depends on `@appweaver/create-weaver-app` at its exact
+`@appweaver/create/scaffold`, which `weaver module add|remove` of `packages/cli` uses on an existing
+project, so both apply the same templates. `@appweaver/cli` depends on `@appweaver/create` at its exact
 version (`tools/copy-packages.js` pins the `@appweaver/*` dependencies of the published manifests).
 
-| Path                         | Purpose                                                                                     |
-|------------------------------|---------------------------------------------------------------------------------------------|
-| `create-weaver-app.ts`       | CLI entry point: options, module selection, agent files, installation                       |
-| `scaffold/modules.ts`        | The module catalog: packages, requirements, `appweaver.json` values when enabled / disabled |
-| `scaffold/apply-modules.ts`  | `enableModules` / `disableModules`, and the integrations between two modules                |
-| `scaffold/create-project.ts` | The base template, the disabled modules' config, then `enableModules`                       |
-| `scaffold/load-project.ts`   | Reads an existing project and its enabled modules (from its packages or marker files)       |
-| `scaffold/project-files.ts`  | `ProjectFiles`, staging the writes and deletions until `commit` (dry runs print them)       |
-| `scaffold/compose-util.ts`   | Adds and removes the Redis service of `docker-compose.yml` with the `yaml` document API     |
-| `templates/base/`            | The project every module is added to                                                        |
-| `templates/modules/<name>/`  | The files of a module, deleted when it is removed                                           |
-| `templates/modules/<a>+<b>/` | The files of two modules enabled together (`mailer+templates` holds the email templates)    |
+| Path                                | Purpose                                                                                                              |
+|-------------------------------------|----------------------------------------------------------------------------------------------------------------------|
+| `create.ts`                         | CLI entry point: the project program (options, module selection, agent files, installation) and the `module` program |
+| `scaffold/create-module-package.ts` | `createModulePackage` and `moduleShortName`, a module package from `templates/module-package/`                       |
+| `scaffold/modules.ts`               | The module catalog: packages, requirements, `appweaver.json` values when enabled / disabled                          |
+| `scaffold/apply-modules.ts`         | `enableModules` / `disableModules`, and the integrations between two modules                                         |
+| `scaffold/create-project.ts`        | The base template, the disabled modules' config, then `enableModules`                                                |
+| `scaffold/load-project.ts`          | Reads an existing project and its enabled modules (from its packages or marker files)                                |
+| `scaffold/project-files.ts`         | `ProjectFiles`, staging the writes and deletions until `commit` (dry runs print them)                                |
+| `scaffold/compose-util.ts`          | Adds and removes the Redis service of `docker-compose.yml` with the `yaml` document API                              |
+| `templates/base/`                   | The project every module is added to                                                                                 |
+| `templates/modules/<name>/`         | The files of a module, deleted when it is removed                                                                    |
+| `templates/modules/<a>+<b>/`        | The files of two modules enabled together (`mailer+templates` holds the email templates)                             |
+| `templates/module-package/`         | The files of every module package (`common/`), and those of each contract (`storage/`, `mailer/`, `none/`)           |
+
+**Module packages**: `create-appweaver module <package> [description] [--contract storage|mailer|none] [-o dir]`
+(selected by `module` as the first argument) creates a package in `-o` (by default the package name without its scope)
+from `templates/module-package/common/` and the directory of its contract:
+
+- `package.json` with the `appweaver.module` field (`./dist/module.js`) and the keyword `appweaver-module`,
+  `@appweaver/common`, `@appweaver/core` and TypeBox as peer dependencies, `@appweaver/testing` and the test tooling
+  (the `scaffoldDependencies` versions) as dev dependencies
+- `src/module.ts` (the manifest, with the framework range), `src/config.ts` (its section) and `src/index.ts`
+- for a driver, the class `<Name>Storage` (`src/storage.ts`) or `<Name>Mailer` (`src/mailer.ts`), a working in-memory
+  stub, and a test running the contract suite of `@appweaver/testing`; for a feature module (`none`, the default),
+  `src/main.ts` and a test of the manifest
+- `tsconfig.json`, `tsconfig.build.json`, `jest.config.json`, `.gitignore` (the template is `gitignore`, since npm
+  leaves the `.gitignore` files out of a published package) and `README.md`
+
+The short name (`moduleShortName`) strips the scope and the `appweaver-` prefix (`@acme/appweaver-gcs` → `gcs`) and is
+the provider name. The config section is `<contract>.<name>` for a driver (`storage.gcs`), `<name>` for a feature
+module, both in camelCase. Only `storage` and `mailer` have a driver template, a driver of another contract starts as a
+feature module.
 
 A template file can have runtime-specific variants:
 
@@ -340,7 +377,7 @@ A template file can have runtime-specific variants:
 
 A module is defined by data (packages, config values) and its files, and anything else it adds to another enabled
 module is an integration of the two in `apply-modules.ts` (the Redis service of `docker-compose.yml`, the Dockerfile
-`COPY` blocks of templates and locales). `create-weaver-app` creates the base project with every module's disabled
+`COPY` blocks of templates and locales). `@appweaver/create` creates the base project with every module's disabled
 config, then adds the selected modules exactly like `weaver module add`, so a test checks that every combination of
 modules created, added one at a time, or removed from a full project gives the same files. Keep any new module or
 integration reversible: removal deletes its files and restores the config and packages.
@@ -358,7 +395,7 @@ the modules write theirs into `package.json`, so bump versions there, not in the
 to the root `dependencies` and `devDependencies`, which a test checks. The libraries of the drivers (BullMQ, Cron,
 Handlebars, IoRedis, Nodemailer, Sharp) are not among them, since they are dependencies of the driver packages.
 
-A package lists the root fields it needs in its own `rootFields` array (`cli` and `create-weaver-app` list
+A package lists the root fields it needs in its own `rootFields` array (`cli` and `create` list
 `scaffoldDependencies`). `tools/copy-packages.js` copies them into `dist/package.json` and strips `rootFields`, the same
 way it handles `files`, so the published manifests carry them. Running from the sources, as the tests do,
 `scaffold/package-versions.ts` reads the field from the root `package.json` instead. `weaver upgrade` reads it from the
@@ -386,6 +423,46 @@ weaver build [options]
 1. Removes the build directory (`APP_BUILD_PATH`, `./dist` by default).
 2. Runs `tsc -p <project>`.
 3. Runs `tsc-alias` to resolve path aliases in emitted JS.
+
+---
+
+### `weaver config` (alias: `cfg`)
+
+Inspect the configuration of the application. Every subcommand creates the application without starting it, so the
+enabled modules and the application files have defined their config sections (`configSections` of
+`@appweaver/common`).
+
+```
+weaver config schema [options]
+weaver config print
+weaver config check
+```
+
+#### `weaver config schema`
+
+| Option                     | Description                          | Default                   |
+|----------------------------|--------------------------------------|---------------------------|
+| `-o, --output-path [path]` | Output path for the generated schema | `./appweaver.schema.json` |
+
+Writes the JSON Schema of `appweaver.json` (`config/config-schema.ts`): every key under its camelCase name in the
+nested object of its section, with its type and default, under `config` and each `environments.<env>`.
+Point the `$schema` of `appweaver.json` to it, so the editor knows the sections of the installed module packages and
+the application too, which the static `packages/common/config/schema.json` cannot.
+
+#### `weaver config print`
+
+Prints the environment, then every flattened key sorted by name, with its source and value (`config/config-report.ts`).
+The source comes from `configSource(key)` of `@appweaver/common`: `override` (`configOverrides`), `env` (the
+environment and the `.env` files), `json` (the `appweaver*.json` files) or `default`. A value is hidden as `********`
+when its key ends with `PASSWORD`, `SECRET`, `TOKEN`, `PRIVATE_KEY`, `CREDENTIALS` or `API_KEY`, or its schema has the
+`secret: true` option (`Type.String({ secret: true })`). The errors of the sections failing to parse follow the table,
+with exit code 1.
+
+#### `weaver config check`
+
+Parses every section and exits with 1, listing the errors, when one is invalid. An error names only the invalid keys of
+its section, each with its environment variable and JSON path. Run it in CI for the deployed environment,
+`NODE_ENV=prod weaver config check`.
 
 ---
 
@@ -469,11 +546,13 @@ unless `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is `false`. Call it before any ne
 
 ### `weaver module` (alias: `mod`)
 
-Add and remove the optional modules of `create-weaver-app` (`redis`, `queue`, `scheduler`, `mailer`, `templates`,
-`locales`, `docker`) in the current project, with the scaffold templates of `@appweaver/create-weaver-app`.
+Add and remove the optional modules of `@appweaver/create` (`redis`, `queue`, `scheduler`, `mailer`, `templates`,
+`locales`, `docker`) in the current project, with the scaffold templates of `@appweaver/create/scaffold`, install
+module packages, and create local modules.
 
 ```
 weaver module list                         (alias: ls)
+weaver module new <name> [--dry-run]
 weaver module add <modules...> [options]
 weaver module remove <modules...> [options] (alias: rm)
 ```
@@ -489,6 +568,20 @@ weaver module remove <modules...> [options] (alias: rm)
 module deletes its files (the whole `templates/` or `locales/` directory, the Docker files) and reverts its
 `appweaver.json` values and packages; it never touches `src/`. The enabled modules are read from the project's
 dependencies, and for `locales` and `docker` from the `locales/` directory and the `Dockerfile`.
+
+`new <name>` creates a local module in `<APP_SOURCE_PATH>/modules/<name>/` (`module/local-module.ts`), enabled by
+`APP_MODULES_PATTERN`: `module.ts` (the manifest, with commented `providers` and `services`), `config.ts` (the section
+named after the camelCase of the name, `audit-log` → `auditLog`, with an `ENABLED` key) and `main.ts`. The name must be
+kebab-case, and the command fails without writing anything when a file of the module exists. `--dry-run` prints the
+files.
+
+`add` also takes package names (`module/package-module.ts`): a name with a scope, a `-` or a `/` is a package, never a
+scaffold module. The packages are installed with `npm install --ignore-scripts <packages...>` (`bun add` on Bun), so
+their install scripts never run, then each is described from the manifest of the `appweaver.module` field of its
+`package.json`: the providers it brings, selected in the provider key of their contract, and the modules it requires.
+A package without the field or a valid manifest is reported as not a module. With `--dry-run` the command prints the
+install command instead. A manifest is marked with `Symbol.for('appweaver.module')`, so `isModule` recognizes it
+whichever copy of `@appweaver/common` defined it.
 
 ---
 
@@ -838,7 +931,7 @@ start.sh seed         # Seed the database
 
 ### Other samples
 
-Scaffolded with `create-weaver-app`, each showcases a different part of the framework and documents it in its own
+Scaffolded with `@appweaver/create`, each showcases a different part of the framework and documents it in its own
 `README.md`. They follow the `cms-api` workflow above, with the differences listed here.
 
 | Sample                  | Runtime | Database           | Showcases                                                                                                  |
@@ -891,25 +984,25 @@ This runs the following steps automatically:
 5. **Version bump** (`@semantic-release/npm`, no publish) — updates `version` in the root `package.json` and in the
    `package.json` of every published package, listed in `release.config.js` (and `tools/lock-samples.js`): `core`,
    `common`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `handlebars`, `sharp`, `testing`, `cli`, `client`
-   and `create-weaver-app`.
+   and `create`.
 6. **Package copy** (`@semantic-release/exec`) — runs `node ./tools/copy-packages.js` to sync built packages into
    `node_modules/@appweaver`.
 7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the npm registry:
     ```bash
-    cd packages/core/dist              && npm publish
-    cd packages/common/dist            && npm publish
-    cd packages/data/dist              && npm publish
-    cd packages/web/dist               && npm publish
-    cd packages/redis/dist             && npm publish
-    cd packages/bullmq/dist            && npm publish
-    cd packages/cron/dist              && npm publish
-    cd packages/nodemailer/dist        && npm publish
-    cd packages/handlebars/dist        && npm publish
-    cd packages/sharp/dist             && npm publish
-    cd packages/testing/dist           && npm publish
-    cd packages/cli/dist               && npm publish
-    cd packages/client/dist            && npm publish
-    cd packages/create-weaver-app/dist && npm publish
+    cd packages/core/dist       && npm publish
+    cd packages/common/dist     && npm publish
+    cd packages/data/dist       && npm publish
+    cd packages/web/dist        && npm publish
+    cd packages/redis/dist      && npm publish
+    cd packages/bullmq/dist     && npm publish
+    cd packages/cron/dist       && npm publish
+    cd packages/nodemailer/dist && npm publish
+    cd packages/handlebars/dist && npm publish
+    cd packages/sharp/dist      && npm publish
+    cd packages/testing/dist    && npm publish
+    cd packages/cli/dist        && npm publish
+    cd packages/client/dist     && npm publish
+    cd packages/create/dist     && npm publish
     ```
 8. **Git commit** (`@semantic-release/git`) — commits the updated `package.json` files and `CHANGELOG.md` with a chore
    commit, then tags the release.
@@ -949,9 +1042,9 @@ The [SKILL.md](./skill/SKILL.md) file provides a comprehensive guide for AI agen
 or other coding assistants) working with Appweaver projects. It contains detailed documentation on the library's
 architecture, conventions, APIs, and best practices to enable agentic development workflows.
 
-### For new projects created with `create-weaver-app`
+### For new projects created with `@appweaver/create`
 
-New projects scaffolded via `npx create-weaver-app` include a `AGENTS.md` or `CLAUDE.md` file at the project root. This
+New projects scaffolded via `npm create @appweaver` include a `AGENTS.md` or `CLAUDE.md` file at the project root. This
 file is a thin, project-owned stub that references the framework guidelines (`GUIDELINES.md`) copied into the agent's
 skills directory (e.g. `.claude/skills/appweaver/GUIDELINES.md`). It can be freely extended with project-specific
 instructions and is never overwritten by `weaver upgrade`, which refreshes only the skill files (including

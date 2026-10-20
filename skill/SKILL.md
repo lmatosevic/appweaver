@@ -51,11 +51,13 @@ resolves to `dev`, and `production` or an unset `NODE_ENV` to `prod`.
 
 ### Scaffolding a new application
 
-Use `create-weaver-app` to scaffold a new project. It copies the base template, adds the selected modules, installs
-dependencies, and generates initial Prisma schema and models. It is a one-shot command without prompts.
+Use `@appweaver/create` (the `create-appweaver` binary) to scaffold a new project. It copies the base template, adds
+the selected modules, installs dependencies, and generates initial Prisma schema and models. It is a one-shot command
+without prompts.
 
 ```sh
-create-weaver-app <name> [description] [options]
+npx @appweaver/create <name> [description] [options]
+npm create @appweaver <name> [description] -- [options]  # the same, npm passes the options after --
 ```
 
 **Options:**
@@ -92,8 +94,8 @@ Options are given after the positional arguments, since `--add` takes every foll
 **Example — PostgreSQL project with Redis, mailer and Docker:**
 
 ```sh
-create-weaver-app MyBlogAPI "My own CMS for blogging" --database postgresql --add redis mailer docker
-create-weaver-app MyBlogAPI "My own CMS for blogging" --database postgresql --all --no-queue
+npx @appweaver/create MyBlogAPI "My own CMS for blogging" --database postgresql --add redis mailer docker
+npx @appweaver/create MyBlogAPI "My own CMS for blogging" --database postgresql --all --no-queue
 ```
 
 This creates a `./my-blog-api` directory, installs all dependencies, and runs the initial schema and type generation.
@@ -167,7 +169,7 @@ Desktop on macOS and Windows maps the ownership of bind mounts itself and needs 
 **Example — Bun project with Sqlite:**
 
 ```sh
-create-weaver-app BunApp "Bun application with simple API" --bun --database sqlite
+npx @appweaver/create BunApp "Bun application with simple API" --bun --database sqlite
 ```
 
 This creates a `./bun-app` directory, installs all dependencies using bun package manager, and runs the initial schema
@@ -235,8 +237,10 @@ per library (`@appweaver/redis`, `@appweaver/bullmq`, `@appweaver/cron`, `@appwe
 `@appweaver/handlebars`, `@appweaver/sharp`). Every package but core is enabled by being a dependency of the
 application's `package.json`, and carries the library it wraps, so install `@appweaver/redis`, not `ioredis`. The
 `provider` key of each contract (`auto` by default) picks the driver of an enabled module, `none` turns the contract
-off. An application adds its own modules in `src/modules/<name>/module.ts` or as npm packages. See
-[modules.md](references/modules.md) and the [providers](references/configuration.md#providers).
+off. An application adds its own modules in `src/modules/<name>/module.ts` (`weaver module new <name>`) or as npm
+packages (`weaver module add <package>`), and a module package is created with `npm create @appweaver module
+<package>`, its driver tested with the contract suites of `@appweaver/testing`. See [modules.md](references/modules.md)
+and the [providers](references/configuration.md#providers).
 
 | Application                  | How                                                                                                                                |
 |------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
@@ -743,7 +747,7 @@ plural, =0 {no unread messages} one {# unread message} other {# unread messages}
 Inside the templates, `{{t "key" name=value}}` translates into the rendered locale, layouts and components are partials
 (`{{#> layouts/page.html}}...{{/layouts/page.html}}`), and `formatDate`, `formatNumber`, `formatCurrency` format in the
 locale. The account emails (verification, password reset, 2FA) render the `emails/*` templates of the application,
-scaffolded by `create-weaver-app`, or without them are sent as plain text of the `emails.*` translations.
+scaffolded by `@appweaver/create`, or without them are sent as plain text of the `emails.*` translations.
 
 To check a template while editing it, enable `template.preview.enabled` in the `dev` environment: `GET
 /templates/emails/order-shipped.html?_locale=de&order.number=WS-1` renders it with the query parameters as its data
@@ -955,6 +959,18 @@ weaver openapi --output-path ./generated/openapi.json  # generate schema to a cu
 weaver openapi --format yaml                           # generate schema in yaml format (./openapi.yaml)
 ```
 
+### Inspect the configuration
+
+```sh
+weaver config schema               # JSON Schema of appweaver.json from the enabled modules (./appweaver.schema.json)
+weaver config print                # every key with its source (override, env, json, default), the secrets hidden
+NODE_ENV=prod weaver config check  # validate every section, exit 1 listing the invalid keys (run in CI)
+```
+
+Point the `$schema` of `appweaver.json` to the generated `./appweaver.schema.json` to get the sections of the module
+packages and the application too, and rerun `weaver config schema` after adding a module or a section. See
+[configuration.md](references/configuration.md#inspecting-the-config).
+
 ### Run a one-shot task
 
 ```sh
@@ -981,7 +997,7 @@ come with their `@appweaver/*` driver packages. Run `weaver generate` afterwards
 
 ### Managing modules
 
-The optional modules of `create-weaver-app` are added to and removed from an existing project with the same templates,
+The optional modules of `@appweaver/create` are added to and removed from an existing project with the same templates,
 of the version the project's `@appweaver/cli` is at:
 
 ```sh
@@ -991,6 +1007,8 @@ weaver module add templates --dry-run  # print the files and configuration it wo
 weaver module add docker --force       # overwrite the existing files instead of skipping them
 weaver module remove docker            # remove modules (alias: rm), deleting their files
 weaver module remove mailer --no-install
+weaver module add @acme/appweaver-gcs  # install a module package (no install scripts), print its providers
+weaver module new audit-log            # create the local module src/modules/audit-log/
 ```
 
 A module is enabled when the project depends on its packages (`locales` and `docker` when `locales/` and `Dockerfile`
@@ -1004,6 +1022,12 @@ files, the mailer's email templates. Removing `locales` first writes the English
 templates, so they keep rendering (the other languages are lost). A module another enabled module requires cannot be
 removed alone (`queue` requires `redis`). An `appweaver.json` value changed in the project is kept, and `src/` is never
 touched, so remove the code using a removed module yourself.
+
+A name with a scope, a `-` or a `/` is a module package: `add` installs it with `npm install --ignore-scripts` (`bun
+add` on Bun) and prints the providers and requirements of its manifest. `new <name>` creates a local module (kebab-case
+name) with its `module.ts`, `config.ts` (the camelCase section of the name) and `main.ts`, enabled without config. A
+reusable module goes into a package of its own, created with `npm create @appweaver module <package> -- --contract
+storage|mailer|none` (see [modules.md](references/modules.md#creating-a-module-package)).
 
 ### Run tests
 

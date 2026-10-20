@@ -16,7 +16,7 @@ The locale is always given by the application (a request parameter, a user field
 `LOCALE_DEFAULT`. It also picks the localized template variants and the locale of the date and number helpers, so a
 project without translation files can still render localized templates.
 
-`create-weaver-app` scaffolds each one as a module, `templates` and `locales` (`--add templates locales`, or `--all`),
+`@appweaver/create` scaffolds each one as a module, `templates` and `locales` (`--add templates locales`, or `--all`),
 which `weaver module add` and `weaver module remove` add and remove later. With the `mailer` module the templates
 include the account emails:
 

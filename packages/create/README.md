@@ -3,31 +3,35 @@
 </p>
 
 <p align="center">
-  Scaffold a new <a href="https://appweaver.co" target="_blank">Appweaver</a> application in one command.
+  Scaffold a new <a href="https://appweaver.co" target="_blank">Appweaver</a> application or module package in one command.
 </p>
 
 <p align="center">
-<a href="https://www.npmjs.com/package/@appweaver/create-weaver-app" target="_blank"><img src="https://img.shields.io/npm/v/@appweaver/create-weaver-app.svg" alt="NPM Version" /></a>
-<a href="https://github.com/lmatosevic/appweaver/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/npm/l/@appweaver/create-weaver-app.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/package/@appweaver/create-weaver-app" target="_blank"><img src="https://img.shields.io/npm/dw/@appweaver/create-weaver-app.svg" alt="NPM Downloads" /></a>
+<a href="https://www.npmjs.com/package/@appweaver/create" target="_blank"><img src="https://img.shields.io/npm/v/@appweaver/create.svg" alt="NPM Version" /></a>
+<a href="https://github.com/lmatosevic/appweaver/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/npm/l/@appweaver/create.svg" alt="Package License" /></a>
+<a href="https://www.npmjs.com/package/@appweaver/create" target="_blank"><img src="https://img.shields.io/npm/dw/@appweaver/create.svg" alt="NPM Downloads" /></a>
 </p>
 
 ## Description
 
-`create-weaver-app` generates a ready-to-run Appweaver project for Node or Bun: the source layout, configuration files
+`@appweaver/create` generates a ready-to-run Appweaver project for Node or Bun: the source layout, configuration files
 per environment, a seeded admin user, the test setup, the agent skill files for the chosen AI agent, and the optional
-modules (Redis, queue, scheduler, mailer, templates, locales, Docker files).
+modules (Redis, queue, scheduler, mailer, templates, locales, Docker files). It also creates
+[module packages](#module-packages), the drivers and features published to npm.
 
 ## Usage
 
 ```sh
-npx @appweaver/create-weaver-app <name> [description] [options]
+npm create @appweaver <name> [description] -- [options]
+npx @appweaver/create <name> [description] [options]
 ```
 
 ```sh
-npx @appweaver/create-weaver-app MyApp "My awesome API" --database postgresql --add redis queue docker
-npx @appweaver/create-weaver-app MyApp "My awesome API" --all --no-scheduler
+npm create @appweaver MyApp "My awesome API" -- --database postgresql --add redis queue docker
+npx @appweaver/create MyApp "My awesome API" --all --no-scheduler
 ```
+
+npm passes the options after `--` to the `create-appweaver` binary, `npx` takes them directly.
 
 | Flag                 | Description                                                                       | Default      |
 |----------------------|-----------------------------------------------------------------------------------|--------------|
@@ -72,6 +76,38 @@ npx weaver migration new init
 npm run seed
 npm run dev
 ```
+
+## Module packages
+
+```sh
+npm create @appweaver module <package> [description] -- [options]
+```
+
+```sh
+npm create @appweaver module @acme/appweaver-gcs "Google Cloud Storage driver" -- --contract storage
+npx @appweaver/create module @acme/appweaver-audit
+```
+
+| Flag               | Description                                                                   | Default                        |
+|--------------------|-------------------------------------------------------------------------------|--------------------------------|
+| `--contract`       | The contract its driver implements: `storage`, `mailer`, `none` for a feature | `none`                         |
+| `-o, --output-dir` | Output directory                                                              | package name without its scope |
+
+The package is a module enabled by installing it: its `package.json` has the `appweaver.module` field and the
+`appweaver-module` keyword, with `@appweaver/common` and `@appweaver/core` as peer dependencies. It holds the manifest
+(`src/module.ts`), a config section (`src/config.ts`), and either a driver class (`GcsStorage`, `<Name>Mailer`) with a
+test running the contract suite of `@appweaver/testing`, or the startup code of a feature module (`src/main.ts`), with
+the TypeScript and Jest setup. The short name, without the scope and the `appweaver-` prefix (`gcs`), is the name of
+its provider and of its config section (`storage.gcs` for a storage driver).
+
+```sh
+cd appweaver-gcs
+npm install
+npm test
+npm publish
+```
+
+An application then adds it with `weaver module add @acme/appweaver-gcs`.
 
 ## Documentation
 

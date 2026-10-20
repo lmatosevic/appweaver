@@ -314,6 +314,8 @@ export async function createAdminUser(): Promise<void> {
 | `weaver migration new <name>` | Create a new database migration           |
 | `weaver upgrade`              | Upgrade all @appweaver/* packages         |
 | `weaver module add <name>`    | Add a module (redis, docker, templates…)  |
+| `weaver module new <name>`    | Create a local module in `src/modules/`   |
+| `weaver config check`         | Validate the config of every module       |
 | `weaver openapi`              | Generate OpenAPI specification            |
 | `weaver run <file> [args...]` | Run a one-shot task, then exit            |
 

@@ -24,7 +24,7 @@ it is selected whenever the module is installed.
 npm install @appweaver/handlebars
 ```
 
-or `weaver module add templates` in a project created with `create-weaver-app`.
+or `weaver module add templates` in a project created with `@appweaver/create`.
 
 It renders the templates of `template.path`, with the translations of the locale service.
 

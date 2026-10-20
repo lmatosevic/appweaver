@@ -124,7 +124,8 @@ export default defineModule({
 });
 ```
 
-`isModule(value)` checks a manifest, and `PROVIDER_AUTO` / `PROVIDER_NONE` hold `'auto'` and `'none'`.
+`isModule(value)` checks a manifest, and `PROVIDER_AUTO` / `PROVIDER_NONE` hold `'auto'` and `'none'`. A manifest is
+marked with `Symbol.for('appweaver.module')`, so it is recognized whichever copy of `@appweaver/common` defined it.
 
 The `config`, `commands`, `seeders`, `locales` and `templates` fields are declared for the tooling, and not loaded by
 the framework yet: a config section is registered when its file imports `defineConfig`, and only the seeders,
@@ -132,9 +133,25 @@ translations and templates of the application are read.
 
 A module model relates to the application only through a reference resolved when the app loads, i.e. the auth model.
 
+## Local modules
+
+A local module lives in `src/modules/<name>/`, compiled with the application and enabled by `APP_MODULES_PATTERN`
+without any config. `weaver module new <name>` creates its files:
+
+```sh
+weaver module new audit-log            # src/modules/audit-log/{module.ts,config.ts,main.ts}
+weaver module new audit-log --dry-run  # print the files without writing them
+```
+
+The name is kebab-case, and the config section the camelCase of it (`auditLog`, read from `config.auditLog` and the
+`AUDIT_LOG_*` variables), with an `ENABLED` key. `module.ts` names the module, its config and its `main`, with
+commented `providers` and `services` entries to fill in; `main.ts` is its startup code. The command refuses to
+overwrite an existing module. A driver nests its section under its contract, so rename the section of a new driver
+module (`defineConfig('storage.gcs', ...)`), as in the example below.
+
 ## Example: a Google Cloud Storage driver
 
-A local module lives in `src/modules/<name>/`, compiled with the application and enabled without any config:
+The files of a local driver module:
 
 ```
 src/modules/gcs/
@@ -276,3 +293,80 @@ export default defineModule({
 - A driver nests its config section under its contract (`storage.gcs`, like `mailer.smtp`), any other module takes its
   own top-level section. Two packages may define the same section path with their own keys (`healthCheck` in core and
   web, `security.oauth2` in data and web), but a flattened key belongs to one section only.
+
+### Creating a module package
+
+`npm create @appweaver module` creates a module package, ready to test and publish:
+
+```sh
+npm create @appweaver module @acme/appweaver-gcs "Google Cloud Storage driver" -- --contract storage
+npx @appweaver/create module @acme/appweaver-audit                       # a feature module
+npx @appweaver/create module appweaver-postmark --contract mailer -o ./postmark
+```
+
+| Option                         | Description                                                                         | Default                        |
+|--------------------------------|-------------------------------------------------------------------------------------|--------------------------------|
+| `<package>`                    | npm name of the package, i.e. `@acme/appweaver-gcs`                                 | —                              |
+| `[description]`                | Description of the package                                                          | `Appweaver module`             |
+| `--contract [contract]`        | Contract its driver implements: `storage`, `mailer`, or `none` for a feature module | `none`                         |
+| `-o, --output-dir [outputDir]` | Directory of the package                                                            | package name without its scope |
+
+The short name of the module strips the scope and the `appweaver-` prefix (`@acme/appweaver-gcs` → `gcs`), and is the
+name of its provider. The package holds:
+
+| File                                              | Holds                                                                                                                                 |
+|---------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
+| `package.json`                                    | The `appweaver.module` field, the keyword `appweaver-module`, `@appweaver/common`, `@appweaver/core` and TypeBox as peer dependencies |
+| `src/module.ts`                                   | The manifest, named after the package, with its `framework` range and its provider or `main`                                          |
+| `src/config.ts`                                   | Its section: `<contract>.<name>` for a driver (`storage.gcs`, `STORAGE_GCS_*`), `<name>` for a feature module                         |
+| `src/storage.ts` / `src/mailer.ts`                | The driver class `<Name>Storage` / `<Name>Mailer`, an in-memory stub passing the contract suite, to replace with the service calls    |
+| `src/main.ts`                                     | The startup code of a feature module                                                                                                  |
+| `test/*.test.ts`                                  | The contract suite of the driver, or a test of the manifest                                                                           |
+| `tsconfig*.json`, `jest.config.json`, `README.md` | The build, the Jest setup with SWC, and the usage                                                                                     |
+
+```sh
+cd appweaver-gcs && npm install && npm test && npm publish
+```
+
+### Testing a driver
+
+`@appweaver/testing` holds a contract suite per contract, testing a driver against the behavior every driver of it
+shares. Call it at the top level of a test file with the name of the driver and a function creating it, a fresh
+instance for every test:
+
+```ts
+// test/gcs-storage.test.ts
+import { testStorageContract } from '@appweaver/testing';
+import { GcsStorage } from '../src/gcs-storage';
+
+testStorageContract('GcsStorage', () => new GcsStorage());
+```
+
+| Suite                   | Contract    | Tests                                                                                       |
+|-------------------------|-------------|---------------------------------------------------------------------------------------------|
+| `testMemoryContract`    | `Memory`    | Values and their expiry, `exists` and `delete`, key patterns, locks, the health check       |
+| `testStorageContract`   | `Storage`   | Storing and streaming a file and a byte range, `exists`, `delete`, `url`, the health check  |
+| `testQueueContract`     | `Queue`     | A job processed by a worker and its result, a failed job, closing a queue, the health check |
+| `testSchedulerContract` | `Scheduler` | Adding, starting, stopping and removing a job, an unknown job id (yearly jobs, none ticks)  |
+| `testMailerContract`    | `Mailer`    | Sending an email with every field of the contract, the health check                         |
+
+The suites use the `describe`, `test`, `beforeEach`, `afterEach` and `expect` globals, so they run under Jest, Vitest
+(with `globals: true`) and Bun. A driver of a remote service runs them against a test instance or emulator, the
+mailer suite against a test inbox or a mocked transport, since it sends a real email. Set the config the driver reads
+with `configOverrides` of `@appweaver/common` in the factory or a `beforeAll`.
+
+### Adding a module package
+
+An application enables a module package by installing it as a dependency. `weaver module add` does that without
+running its install scripts, then prints what it brings:
+
+```sh
+weaver module add @acme/appweaver-gcs
+# Module @acme/appweaver-gcs is enabled.
+#   provides Storage "gcs", select it in the provider key of the contract
+```
+
+A name with a scope, a `-` or a `/` is a package, installed with `npm install --ignore-scripts` (`bun add` on Bun), and
+can be mixed with the scaffold modules (`weaver module add redis @acme/appweaver-gcs`). A package without the
+`appweaver.module` field, or without a valid manifest, is reported as not a module. `--dry-run` prints the install
+command.

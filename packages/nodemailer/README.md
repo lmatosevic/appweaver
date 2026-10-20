@@ -24,7 +24,7 @@ it is selected whenever the module is installed.
 npm install @appweaver/nodemailer
 ```
 
-or `weaver module add mailer` in a project created with `create-weaver-app`.
+or `weaver module add mailer` in a project created with `@appweaver/create`.
 
 The SMTP connection is configured in `mailer.smtp` (`MAILER_SMTP_HOST`, `MAILER_SMTP_PORT`, ...).
 

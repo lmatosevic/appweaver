@@ -33,7 +33,7 @@ the HTTP server in [`@appweaver/web`](https://www.npmjs.com/package/@appweaver/w
 
 ## Installation
 
-New projects are best created with [`create-weaver-app`](https://www.npmjs.com/package/@appweaver/create-weaver-app),
+New projects are best created with [`@appweaver/create`](https://www.npmjs.com/package/@appweaver/create),
 which installs this package along with the `weaver` CLI. To add it by hand:
 
 ```sh
