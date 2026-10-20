@@ -46,7 +46,7 @@ The base project has none of the modules. A module required by an added one is a
 
 | Module      | Adds                                                                         | Without it                                  |
 |-------------|------------------------------------------------------------------------------|---------------------------------------------|
-| `redis`     | IoRedis, the Redis connection, and the Redis service of `docker-compose.yml` | in-memory Redis store, cache and rate limit |
+| `redis`     | IoRedis, the Redis connection, and the Redis service of `docker-compose.yml` | memory, cache and rate limit in the process |
 | `queue`     | BullMQ, requires `redis`                                                     | in-memory queue                             |
 | `scheduler` | Cron                                                                         | scheduler disabled                          |
 | `mailer`    | Nodemailer, and the account email templates with `templates`                 | mailer disabled                             |

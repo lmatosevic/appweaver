@@ -127,12 +127,12 @@ appConfig.HOSTNAME; // string
 databaseConfig.URL; // string
 ```
 
-| Section variable                                                                                                                                                                                                                                                               | Keys                            | Imported from       |
-|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|---------------------|
-| `appConfig`, `logConfig`                                                                                                                                                                                                                                                       | `APP_*`, `LOG_*`                | `@appweaver/common` |
-| `serverConfig`, `rateLimitConfig`, `swaggerConfig`, `corsConfig`, `healthCheckConfig`                                                                                                                                                                                          | `SERVER_*`, `RATE_LIMIT_*`, ... | `@appweaver/core`   |
-| `resourceConfig`, `exportConfig`, `databaseConfig`, `storageConfig`, `cacheConfig`, `memoryConfig`, `redisConfig`, `queueConfig`, `schedulerConfig`, `eventsConfig`, `mailerConfig`, `smtpConfig` (`MAILER_SMTP_*`), `templateConfig`, `templatePreviewConfig`, `localeConfig` | `RESOURCE_*`, ...               | `@appweaver/core`   |
-| `securityConfig` (`SECURITY_*` not below), `accountConfig`, `twoFactorConfig` (`SECURITY_ACCOUNT_2FA_*`), `passwordConfig`, `securityStoreConfig`, `recaptchaConfig`, `turnstileConfig`, `basicAuthConfig`, `apiKeyConfig`, `jwtConfig`, `oauth2Config`, `systemConfig`      | `SECURITY_*`, `SYSTEM_*`        | `@appweaver/core`   |
+| Section variable                                                                                                                                                                                                                                                                                                 | Keys                            | Imported from       |
+|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|---------------------|
+| `appConfig`, `logConfig`                                                                                                                                                                                                                                                                                         | `APP_*`, `LOG_*`                | `@appweaver/common` |
+| `serverConfig`, `rateLimitConfig`, `swaggerConfig`, `corsConfig`, `healthCheckConfig`, `healthConfig`                                                                                                                                                                                                            | `SERVER_*`, `RATE_LIMIT_*`, ... | `@appweaver/core`   |
+| `resourceConfig`, `exportConfig`, `databaseConfig`, `storageConfig`, `imageConfig`, `cacheConfig`, `memoryConfig`, `redisConfig` (`MEMORY_REDIS_*`), `queueConfig`, `schedulerConfig`, `eventsConfig`, `mailerConfig`, `smtpConfig` (`MAILER_SMTP_*`), `templateConfig`, `templatePreviewConfig`, `localeConfig` | `RESOURCE_*`, ...               | `@appweaver/core`   |
+| `securityConfig` (`SECURITY_*` not below), `accountConfig`, `twoFactorConfig` (`SECURITY_ACCOUNT_2FA_*`), `passwordConfig`, `securityStoreConfig`, `recaptchaConfig`, `turnstileConfig`, `basicAuthConfig`, `apiKeyConfig`, `jwtConfig`, `oauth2Config`, `systemConfig`                                          | `SECURITY_*`, `SYSTEM_*`        | `@appweaver/core`   |
 
 A section is parsed on the first access of one of its values, with the defaults of its schema, then kept frozen. A
 missing or invalid value throws a `ConfigurationError` (`CONFIGURATION_INVALID`) naming its environment variable and
@@ -195,6 +195,54 @@ afterEach(() => {
 A module reading the config when it is imported needs the override before its import, set in a `jest.mock` factory of
 `@appweaver/common` (`Object.assign(jest.requireActual('@appweaver/common').configOverrides, { ... })`).
 
+## Providers
+
+Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation of a contract, and takes:
+
+| Value            | Selects                                                                                                                         |
+|------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| `auto` (default) | The driver of an enabled module, otherwise the fallback of core, otherwise none.                                                |
+| `none`           | Nothing: the contract is not defined, and neither are the services requiring it (`EmailService` without a `Mailer`).            |
+| A provider name  | The provider of that name of any enabled module, i.e. `memory` or `json`. A name no enabled module provides fails the startup.  |
+| A module path    | A value with a `.`, `/` or `@` loads the class the file exports, i.e. `@/infra/my-storage` for a driver inside the application. |
+
+| Contract         | Key                       | Providers            | `auto` selects                                                                          |
+|------------------|---------------------------|----------------------|-----------------------------------------------------------------------------------------|
+| `Memory`         | `MEMORY_PROVIDER`         | `memory`, `redis`    | `redis` when `ioredis` is installed, otherwise `memory`                                 |
+| `Cache`          | `CACHE_PROVIDER`          | `memory`             | `memory`, stored in the selected `Memory` (so in Redis with `redis`)                    |
+| `Events`         | `EVENTS_PROVIDER`         | `node`               | `node`                                                                                  |
+| `Storage`        | `STORAGE_PROVIDER`        | `local`              | `local`, unless a module of another driver is enabled                                   |
+| `SecurityStore`  | `SECURITY_STORE_PROVIDER` | `database`, `memory` | `database` with the `@appweaver/data` module, otherwise none; `memory` only by its name |
+| `Queue`          | `QUEUE_PROVIDER`          | `memory`, `bullmq`   | `bullmq` when `bullmq` is installed (it requires `ioredis`), otherwise `memory`         |
+| `Mailer`         | `MAILER_PROVIDER`         | `smtp`, `json`       | `smtp` when `nodemailer` is installed, otherwise none; `json` only by its name          |
+| `TemplateEngine` | `TEMPLATE_PROVIDER`       | `handlebars`         | `handlebars` when `handlebars` is installed, otherwise none                             |
+| `Scheduler`      | `SCHEDULER_PROVIDER`      | `cron`               | `cron` when `cron` is installed, otherwise none                                         |
+| `Database`       | `DATABASE_PROVIDER`       | `prisma`             | `prisma` when `@prisma/client` is installed                                             |
+| `ImageProcessor` | `IMAGE_PROVIDER`          | `sharp`              | `sharp` when `sharp` is installed, otherwise none (images stored as uploaded)           |
+
+- Each driver comes with a module (see [modules](./modules.md)), enabled when the library it wraps is installed, so
+  installing `ioredis` moves the memory, the cache and the rate limit to Redis without any config.
+- Two enabled drivers of one contract fail an `auto` key with `MODULE_PROVIDER_AMBIGUOUS` until one is selected by
+  name. An unknown name fails with `MODULE_PROVIDER_MISSING`.
+- `selectedProvider(Contract)` of `@appweaver/core` returns the name of the selected provider (or the module path),
+  `undefined` when none is. The selection is logged at the `debug` level on startup.
+- A production application falling back to the `memory` queue logs a warning, since its jobs (and the queued emails)
+  are lost on a restart.
+- A test environment selects the in-process drivers by name while the libraries stay installed:
+
+```json
+{
+  "environments": {
+    "test": {
+      "memory": { "provider": "memory" },
+      "queue": { "provider": "memory" },
+      "mailer": { "provider": "json" },
+      "scheduler": { "autoStartJob": false }
+    }
+  }
+}
+```
+
 ---
 
 ## Configuration properties
@@ -214,7 +262,9 @@ A module reading the config when it is imported needs the override before its im
 | `APP_SOURCE_PATH`        | string   | `'./src'`                          | Path to the application source code. Used in other path variables with <srcPath> placeholder.                               |
 | `APP_SCAN_FILES_PATTERN` | string   | `'<srcPath>/*/index.ts'`           | Glob pattern for scanning application files.                                                                                |
 | `APP_MAIN_FILE_PATH`     | string   | `'<srcPath>/main.ts'`              | Path to main application entrypoint file.                                                                                   |
-| `APP_AUTOLOAD_MODULES`   | string[] | `[]`                               | Module paths to auto-load on startup.                                                                                       |
+| `APP_MODULES_PATTERN`    | string   | `'<srcPath>/modules/*/module.ts'`  | Glob of the manifests of the local modules, empty to find none. See [modules](./modules.md).                                |
+| `APP_MODULES`            | string[] | `[]`                               | Paths of the module manifests to enable besides the package and local ones, relative to the project root.                   |
+| `APP_MODULES_DISABLED`   | string[] | `[]`                               | Names of the modules to leave disabled, i.e. `@appweaver/web` for an application without a server.                          |
 
 ### Logging (LOG\_\*)
 
@@ -252,14 +302,14 @@ A module reading the config when it is imported needs the override before its im
 
 ### Rate limiting (RATE_LIMIT_\*)
 
-| Property                   | Type      | Default   | Description                                                                                                |
-|----------------------------|-----------|-----------|------------------------------------------------------------------------------------------------------------|
-| `RATE_LIMIT_ENABLED`       | boolean   | `true`    | Enable global rate limiting middleware.                                                                    |
-| `RATE_LIMIT_MAX`           | integer   | `1000`    | Maximum requests allowed per time window.                                                                  |
-| `RATE_LIMIT_WINDOW`        | integer   | `60000`   | Rate limit window in milliseconds.                                                                         |
-| `RATE_LIMIT_ALLOW_LIST`    | string[]? | -         | IP addresses/patterns exempt from rate limiting.                                                           |
-| `RATE_LIMIT_STORE`         | enum      | `'redis'` | Store backend for tracking limits. Values: `redis`, `in-memory`.                                           |
-| `RATE_LIMIT_SKIP_ON_ERROR` | boolean   | `true`    | Skip rate limiting instead of failing requests with `500` when the store errors, e.g. while Redis is down. |
+| Property                   | Type      | Default  | Description                                                                                                                             |
+|----------------------------|-----------|----------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `RATE_LIMIT_ENABLED`       | boolean   | `true`   | Enable global rate limiting middleware.                                                                                                 |
+| `RATE_LIMIT_MAX`           | integer   | `1000`   | Maximum requests allowed per time window.                                                                                               |
+| `RATE_LIMIT_WINDOW`        | integer   | `60000`  | Rate limit window in milliseconds.                                                                                                      |
+| `RATE_LIMIT_ALLOW_LIST`    | string[]? | -        | IP addresses/patterns exempt from rate limiting.                                                                                        |
+| `RATE_LIMIT_STORE`         | enum      | `'auto'` | Store of the counters. `auto`: the Redis connection of the `Memory` provider with `redis`, otherwise the process. `local`: the process. |
+| `RATE_LIMIT_SKIP_ON_ERROR` | boolean   | `true`   | Skip rate limiting instead of failing requests with `500` when the store errors, e.g. while Redis is down.                              |
 
 ### Swagger / OpenAPI (SWAGGER\_\*)
 
@@ -279,6 +329,17 @@ A module reading the config when it is imported needs the override before its im
 | `HEALTH_CHECK_CACHE_TTL`      | number    | `3000`      | Cache TTL for the health check response in milliseconds.      |
 | `HEALTH_CHECK_PICK_INSTANCES` | string[]? | -           | List of health check instance names to include in response.   |
 | `HEALTH_CHECK_OMIT_INSTANCES` | string[]? | -           | List of health check instance names to exclude from response. |
+
+### Health listener (HEALTH\_\*)
+
+An application without the `@appweaver/web` server (a worker, a scheduled job runner) answers `GET /health/check` and
+`GET /health/ready` on its own `node:http` listener, without authentication, running the same checks as the health
+route.
+
+| Property      | Type    | Default     | Description                                |
+|---------------|---------|-------------|--------------------------------------------|
+| `HEALTH_PORT` | integer | `0`         | Port of the health listener, `0` for none. |
+| `HEALTH_HOST` | string  | `'0.0.0.0'` | Host of the health listener.               |
 
 ### CORS (CORS\_\*)
 
@@ -323,14 +384,14 @@ A module reading the config when it is imported needs the override before its im
 
 #### General
 
-| Property                             | Type     | Default                                                    | Description                                               |
-|--------------------------------------|----------|------------------------------------------------------------|-----------------------------------------------------------|
-| `SECURITY_ROUTE_PREFIX`              | string   | `'/auth'`                                                  | Base path for authentication routes.                      |
-| `SECURITY_CACHE_TTL`                 | integer  | `300000`                                                   | Security cache TTL in milliseconds.                       |
-| `SECURITY_AUTH_OTT_TTL`              | integer  | `120000`                                                   | One-time token TTL for authentication (ms).               |
-| `SECURITY_ALLOWED_REDIRECT_HOSTS`    | string[] | `['*']`                                                    | Allowed hosts for post-authentication redirects.          |
-| `SECURITY_STORE_PROVIDER`            | string   | `'@appweaver/core/security/store/database-security-store'` | Security store implementation path.                       |
-| `SECURITY_STORE_KEEP_DATABASE_TABLE` | boolean  | `false`                                                    | Keep the one-time token table when another store is used. |
+| Property                             | Type     | Default   | Description                                                                          |
+|--------------------------------------|----------|-----------|--------------------------------------------------------------------------------------|
+| `SECURITY_ROUTE_PREFIX`              | string   | `'/auth'` | Base path for authentication routes.                                                 |
+| `SECURITY_CACHE_TTL`                 | integer  | `300000`  | Security cache TTL in milliseconds.                                                  |
+| `SECURITY_AUTH_OTT_TTL`              | integer  | `120000`  | One-time token TTL for authentication (ms).                                          |
+| `SECURITY_ALLOWED_REDIRECT_HOSTS`    | string[] | `['*']`   | Allowed hosts for post-authentication redirects.                                     |
+| `SECURITY_STORE_PROVIDER`            | string   | `'auto'`  | `auto` (`database` with a database), `database`, `memory`, `none`, or a module path. |
+| `SECURITY_STORE_KEEP_DATABASE_TABLE` | boolean  | `false`   | Keep the one-time token table when another store is used.                            |
 
 #### Password policy
 
@@ -509,121 +570,121 @@ you generated yourself, or provide the team ID, key ID and `.p8` private key and
 
 ### Database (DATABASE\_\*)
 
-| Property                                | Type     | Default                                      | Description                                                                             |
-|-----------------------------------------|----------|----------------------------------------------|-----------------------------------------------------------------------------------------|
-| `DATABASE_TYPE`                         | enum?    | -                                            | Database type. Values: `sqlite`, `postgresql`, `mysql`, `sqlserver`.                    |
-| `DATABASE_URL`                          | string   | `''`                                         | Database connection URL/DSN.                                                            |
-| `DATABASE_SCHEMA_PATH`                  | string   | `'./database/schema.prisma'`                 | Path to Prisma schema file.                                                             |
-| `DATABASE_MIGRATIONS_DIR_PATH`          | string   | `'./database/migrations'`                    | Path to database migrations directory.                                                  |
-| `DATABASE_SEEDERS_DIR_PATH`             | string   | `'./database/seeders'`                       | Path to database seeders directory.                                                     |
-| `DATABASE_CLIENT_OUTPUT_DIR_PATH`       | string   | `'./database/client'`                        | Path for generated Prisma client output.                                                |
-| `DATABASE_TRANSACTION_MAX_WAIT`         | integer  | `2000`                                       | Max wait time for acquiring a transaction lock (ms).                                    |
-| `DATABASE_TRANSACTION_TIMEOUT`          | integer  | `5000`                                       | Transaction timeout in milliseconds.                                                    |
-| `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` | boolean  | `true`                                       | Allow an AI agent to run dangerous Prisma actions, i.e. reset (disable for production). |
-| `DATABASE_LOG_EVENTS`                   | string[] | `[]`                                         | List of database events to log. Values: `query`, `info`, `warn`, `error`                |
-| `DATABASE_PROVIDER`                     | string   | `'@appweaver/core/database/prisma-database'` | Database provider implementation path.                                                  |
+| Property                                | Type     | Default                      | Description                                                                             |
+|-----------------------------------------|----------|------------------------------|-----------------------------------------------------------------------------------------|
+| `DATABASE_TYPE`                         | enum?    | -                            | Database type. Values: `sqlite`, `postgresql`, `mysql`, `sqlserver`.                    |
+| `DATABASE_URL`                          | string   | `''`                         | Database connection URL/DSN.                                                            |
+| `DATABASE_SCHEMA_PATH`                  | string   | `'./database/schema.prisma'` | Path to Prisma schema file.                                                             |
+| `DATABASE_MIGRATIONS_DIR_PATH`          | string   | `'./database/migrations'`    | Path to database migrations directory.                                                  |
+| `DATABASE_SEEDERS_DIR_PATH`             | string   | `'./database/seeders'`       | Path to database seeders directory.                                                     |
+| `DATABASE_CLIENT_OUTPUT_DIR_PATH`       | string   | `'./database/client'`        | Path for generated Prisma client output.                                                |
+| `DATABASE_TRANSACTION_MAX_WAIT`         | integer  | `2000`                       | Max wait time for acquiring a transaction lock (ms).                                    |
+| `DATABASE_TRANSACTION_TIMEOUT`          | integer  | `5000`                       | Transaction timeout in milliseconds.                                                    |
+| `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` | boolean  | `true`                       | Allow an AI agent to run dangerous Prisma actions, i.e. reset (disable for production). |
+| `DATABASE_LOG_EVENTS`                   | string[] | `[]`                         | List of database events to log. Values: `query`, `info`, `warn`, `error`                |
+| `DATABASE_PROVIDER`                     | string   | `'auto'`                     | `auto` or `prisma`, or `none` for an application without a database.                    |
 
 ### File storage (STORAGE\_\*)
 
-| Property                     | Type    | Default                                        | Description                                                                                                                                                                                                                                                                               |
-|------------------------------|---------|------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `STORAGE_PATH`               | string  | `'./storage'`                                  | Base directory for file storage.                                                                                                                                                                                                                                                          |
-| `STORAGE_RESERVED_PATHS`     | array   | `['keys']`                                     | Paths inside the storage directory that files can never be stored under. Each entry is a directory or a full file name relative to `STORAGE_PATH`, matched case-insensitively (no wildcards). Violations fail on startup for configured name patterns, and with a `400` error at runtime. |
-| `STORAGE_NAME_PATTERN`       | string  | `'{name}-{hash}.{extension}'`                  | File naming pattern for stored files.                                                                                                                                                                                                                                                     |
-| `STORAGE_CACHE_TTL`          | integer | `86400000`                                     | File storage cache TTL in milliseconds. (24h)                                                                                                                                                                                                                                             |
-| `STORAGE_FILES_ROUTE_PREFIX` | string  | `/files`                                       | URL prefix for file access routes.                                                                                                                                                                                                                                                        |
-| `STORAGE_PROVIDER`           | string  | `'@appweaver/core/storage/filesystem-storage'` | Storage provider implementation path.                                                                                                                                                                                                                                                     |
+| Property                     | Type    | Default                       | Description                                                                                                                                                                                                                                                                               |
+|------------------------------|---------|-------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `STORAGE_PATH`               | string  | `'./storage'`                 | Base directory for file storage.                                                                                                                                                                                                                                                          |
+| `STORAGE_RESERVED_PATHS`     | array   | `['keys']`                    | Paths inside the storage directory that files can never be stored under. Each entry is a directory or a full file name relative to `STORAGE_PATH`, matched case-insensitively (no wildcards). Violations fail on startup for configured name patterns, and with a `400` error at runtime. |
+| `STORAGE_NAME_PATTERN`       | string  | `'{name}-{hash}.{extension}'` | File naming pattern for stored files.                                                                                                                                                                                                                                                     |
+| `STORAGE_CACHE_TTL`          | integer | `86400000`                    | File storage cache TTL in milliseconds. (24h)                                                                                                                                                                                                                                             |
+| `STORAGE_FILES_ROUTE_PREFIX` | string  | `/files`                      | URL prefix for file access routes.                                                                                                                                                                                                                                                        |
+| `STORAGE_PROVIDER`           | string  | `'auto'`                      | `auto` (`local` unless another storage driver is enabled), `local`, `none`, or a module path.                                                                                                                                                                                             |
 
-### Redis (REDIS\_\*)
+### Image processing (IMAGE\_\*)
 
-| Property         | Type   | Default                          | Description                         |
-|------------------|--------|----------------------------------|-------------------------------------|
-| `REDIS_URL`      | string | `'redis://localhost:6379/0'`     | Redis connection URL.               |
-| `REDIS_PROVIDER` | string | `'@appweaver/core/memory/redis'` | Redis provider implementation path. |
+| Property         | Type   | Default  | Description                                                                                                                                         |
+|------------------|--------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `IMAGE_PROVIDER` | string | `'auto'` | Image processor of the uploads: `auto` (`sharp` when installed, otherwise none, keeping the images as uploaded), `sharp`, `none`, or a module path. |
+
+### Memory (MEMORY\_\*)
+
+The key-value store with locks behind the cache, the rate limit, the memory security store and the BullMQ queue: kept
+in the process (`memory`) or in Redis (`redis`).
+
+| Property           | Type    | Default                      | Description                                                                                            |
+|--------------------|---------|------------------------------|--------------------------------------------------------------------------------------------------------|
+| `MEMORY_PROVIDER`  | string  | `'auto'`                     | `auto` (`redis` when `ioredis` is installed, otherwise `memory`), `memory`, `redis`, or a module path. |
+| `MEMORY_MAX_SIZE`  | string? | -                            | Maximum size of the in-process store.                                                                  |
+| `MEMORY_REDIS_URL` | string  | `'redis://localhost:6379/0'` | Redis connection URL of the `redis` provider (`config.memory.redis.url`).                              |
 
 The application starts and keeps running while Redis is unreachable. Connections reconnect in the background, each
 outage and recovery is logged once, and commands fail right away instead of waiting for the reconnection, so by default
-the
-cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting is skipped (see
+the cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting is skipped (see
 `RATE_LIMIT_SKIP_ON_ERROR`) and queues throw (see `queue.md`).
-
-### In-memory store (MEMORY\_\*)
-
-| Property          | Type    | Default                              | Description                             |
-|-------------------|---------|--------------------------------------|-----------------------------------------|
-| `MEMORY_MAX_SIZE` | string? | -                                    | Maximum size of the in-memory store.    |
-| `MEMORY_PROVIDER` | string  | `'@appweaver/core/memory/in-memory'` | In-memory provider implementation path. |
 
 ### Cache (CACHE\_\*)
 
-| Property                      | Type    | Default                               | Description                                                            |
-|-------------------------------|---------|---------------------------------------|------------------------------------------------------------------------|
-| `CACHE_ENABLED`               | boolean | `true`                                | Enable the caching system.                                             |
-| `CACHE_CLEAN_START`           | boolean | `false`                               | Clear all cache entries on application startup.                        |
-| `CACHE_KEY_PREFIX`            | string  | `'cache:'`                            | Prefix prepended to all cache keys.                                    |
-| `CACHE_MAX_ITEMS`             | integer | `1000`                                | Maximum number of items in the cache.                                  |
-| `CACHE_CACHE_MAX_SIZE`        | string? | -                                     | Maximum size used by the cache.                                        |
-| `CACHE_DEFAULT_TTL`           | integer | `5000`                                | Default time-to-live for cache entries in milliseconds.                |
-| `CACHE_EVICTION_GRACE_PERIOD` | integer | `1000`                                | Grace period before evicting expired items (ms).                       |
-| `CACHE_EVICTION_STRATEGY`     | enum    | `'LRU'`                               | Eviction strategy. Values: `LRU`, `LFU`, `FIFO`.                       |
-| `CACHE_EVICTION_DEFERRED`     | boolean | `false`                               | Defer eviction to a background process.                                |
-| `CACHE_INVALIDATION_STRATEGY` | enum    | `'expire-related'`                    | Invalidation strategy. Values: `expire-related`, `expire-all`, `none`. |
-| `CACHE_INVALIDATION_DEFERRED` | boolean | `false`                               | Defer invalidation to a background process.                            |
-| `CACHE_SKIP_ON_ERROR`         | boolean | `true`                                | Return empty results instead of failing when the cache backend errors. |
-| `CACHE_PROVIDER`              | string  | `'@appweaver/core/cache/redis-cache'` | Cache provider implementation path.                                    |
+| Property                      | Type    | Default            | Description                                                                     |
+|-------------------------------|---------|--------------------|---------------------------------------------------------------------------------|
+| `CACHE_ENABLED`               | boolean | `true`             | Enable the caching system.                                                      |
+| `CACHE_CLEAN_START`           | boolean | `false`            | Clear all cache entries on application startup.                                 |
+| `CACHE_KEY_PREFIX`            | string  | `'cache:'`         | Prefix prepended to all cache keys.                                             |
+| `CACHE_MAX_ITEMS`             | integer | `1000`             | Maximum number of items in the cache.                                           |
+| `CACHE_CACHE_MAX_SIZE`        | string? | -                  | Maximum size used by the cache.                                                 |
+| `CACHE_DEFAULT_TTL`           | integer | `5000`             | Default time-to-live for cache entries in milliseconds.                         |
+| `CACHE_EVICTION_GRACE_PERIOD` | integer | `1000`             | Grace period before evicting expired items (ms).                                |
+| `CACHE_EVICTION_STRATEGY`     | enum    | `'LRU'`            | Eviction strategy. Values: `LRU`, `LFU`, `FIFO`.                                |
+| `CACHE_EVICTION_DEFERRED`     | boolean | `false`            | Defer eviction to a background process.                                         |
+| `CACHE_INVALIDATION_STRATEGY` | enum    | `'expire-related'` | Invalidation strategy. Values: `expire-related`, `expire-all`, `none`.          |
+| `CACHE_INVALIDATION_DEFERRED` | boolean | `false`            | Defer invalidation to a background process.                                     |
+| `CACHE_SKIP_ON_ERROR`         | boolean | `true`             | Return empty results instead of failing when the cache backend errors.          |
+| `CACHE_PROVIDER`              | string  | `'auto'`           | `auto` or `memory` (stored in the `Memory` provider), `none`, or a module path. |
 
 ### Job queue (QUEUE\_\*)
 
-| Property                       | Type     | Default                              | Description                                            |
-|--------------------------------|----------|--------------------------------------|--------------------------------------------------------|
-| `QUEUE_KEEP_COMPLETED_COUNT`   | integer  | `0`                                  | Number of completed jobs to retain in the queue.       |
-| `QUEUE_KEEP_COMPLETED_SECONDS` | integer? | -                                    | Time to keep completed jobs in seconds.                |
-| `QUEUE_KEEP_FAILED_COUNT`      | integer  | `50`                                 | Number of failed jobs to retain in the queue.          |
-| `QUEUE_KEEP_FAILED_SECONDS`    | integer? | -                                    | Time to keep failed jobs in seconds.                   |
-| `QUEUE_RETRY_ATTEMPTS`         | integer  | `3`                                  | Number of retry attempts for failed jobs.              |
-| `QUEUE_RETRY_BACKOFF`          | integer  | `3000`                               | Initial backoff delay between retries in milliseconds. |
-| `QUEUE_RETRY_BACKOFF_TYPE`     | enum     | `'fixed'`                            | Retry backoff type. Values: `fixed`, `exponential`.    |
-| `QUEUE_PROVIDER`               | string   | `'@appweaver/core/queue/bull-queue'` | Job queue provider implementation path.                |
+| Property                       | Type     | Default   | Description                                                                                         |
+|--------------------------------|----------|-----------|-----------------------------------------------------------------------------------------------------|
+| `QUEUE_KEEP_COMPLETED_COUNT`   | integer  | `0`       | Number of completed jobs to retain in the queue.                                                    |
+| `QUEUE_KEEP_COMPLETED_SECONDS` | integer? | -         | Time to keep completed jobs in seconds.                                                             |
+| `QUEUE_KEEP_FAILED_COUNT`      | integer  | `50`      | Number of failed jobs to retain in the queue.                                                       |
+| `QUEUE_KEEP_FAILED_SECONDS`    | integer? | -         | Time to keep failed jobs in seconds.                                                                |
+| `QUEUE_RETRY_ATTEMPTS`         | integer  | `3`       | Number of retry attempts for failed jobs.                                                           |
+| `QUEUE_RETRY_BACKOFF`          | integer  | `3000`    | Initial backoff delay between retries in milliseconds.                                              |
+| `QUEUE_RETRY_BACKOFF_TYPE`     | enum     | `'fixed'` | Retry backoff type. Values: `fixed`, `exponential`.                                                 |
+| `QUEUE_PROVIDER`               | string   | `'auto'`  | `auto` (`bullmq` when installed, otherwise `memory`), `memory`, `bullmq`, `none`, or a module path. |
 
 ### Scheduler (SCHEDULER\_\*)
 
-| Property                   | Type    | Default                                      | Description                                                                |
-|----------------------------|---------|----------------------------------------------|----------------------------------------------------------------------------|
-| `SCHEDULER_ENABLED`        | boolean | `true`                                       | Enable the scheduler. Disable it when the `cron` package is not installed. |
-| `SCHEDULER_AUTO_START_JOB` | boolean | `true`                                       | Auto-start scheduled jobs on application startup.                          |
-| `SCHEDULER_PROVIDER`       | string  | `'@appweaver/core/scheduler/cron-scheduler'` | Scheduler provider implementation path.                                    |
+| Property                   | Type    | Default  | Description                                                                       |
+|----------------------------|---------|----------|-----------------------------------------------------------------------------------|
+| `SCHEDULER_AUTO_START_JOB` | boolean | `true`   | Auto-start scheduled jobs on application startup.                                 |
+| `SCHEDULER_PROVIDER`       | string  | `'auto'` | `auto` (`cron` when installed, otherwise none), `cron`, `none`, or a module path. |
 
 ### Events (EVENTS\_\*)
 
-| Property               | Type    | Default                                | Description                                 |
-|------------------------|---------|----------------------------------------|---------------------------------------------|
-| `EVENTS_MAX_LISTENERS` | integer | `20`                                   | Maximum event listeners per event type.     |
-| `EVENTS_PROVIDER`      | string  | `'@appweaver/core/events/node-events'` | Event emitter provider implementation path. |
+| Property               | Type    | Default  | Description                             |
+|------------------------|---------|----------|-----------------------------------------|
+| `EVENTS_MAX_LISTENERS` | integer | `20`     | Maximum event listeners per event type. |
+| `EVENTS_PROVIDER`      | string  | `'auto'` | `auto` or `node`, or a module path.     |
 
 ### Mailer (MAILER\_\*)
 
-| Property                | Type    | Default                                | Description                                                                                                                                                               |
-|-------------------------|---------|----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `MAILER_ENABLED`        | boolean | `true`                                 | Enable the mailer. Disable it when the `nodemailer` package is not installed. Without it the email features (email verification, password reset, 2FA) respond with `501`. |
-| `MAILER_SENDER_NAME`    | string? | -                                      | Default sender name for outgoing emails.                                                                                                                                  |
-| `MAILER_SENDER_ADDRESS` | string? | -                                      | Default sender email address.                                                                                                                                             |
-| `MAILER_PROVIDER`       | string  | `'@appweaver/core/mailer/smtp-mailer'` | Mailer provider implementation path.                                                                                                                                      |
-| `MAILER_SMTP_HOST`      | string  | `'127.0.0.1'`                          | SMTP server hostname.                                                                                                                                                     |
-| `MAILER_SMTP_PORT`      | integer | `587`                                  | SMTP server port.                                                                                                                                                         |
-| `MAILER_SMTP_SECURE`    | boolean | `false`                                | Use TLS/SSL for SMTP connections.                                                                                                                                         |
-| `MAILER_SMTP_USER`      | string? | -                                      | SMTP authentication username.                                                                                                                                             |
-| `MAILER_SMTP_PASSWORD`  | string? | -                                      | SMTP authentication password.                                                                                                                                             |
+| Property                | Type    | Default       | Description                                                                                                                                                                                                                                              |
+|-------------------------|---------|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `MAILER_SENDER_NAME`    | string? | -             | Default sender name for outgoing emails.                                                                                                                                                                                                                 |
+| `MAILER_SENDER_ADDRESS` | string? | -             | Default sender email address.                                                                                                                                                                                                                            |
+| `MAILER_PROVIDER`       | string  | `'auto'`      | `auto` (`smtp` when `nodemailer` is installed, otherwise none), `smtp`, `json` (logs the emails, for development and tests), `none`, or a module path. Without a mailer the email features (email verification, password reset, 2FA) respond with `501`. |
+| `MAILER_SMTP_HOST`      | string  | `'127.0.0.1'` | SMTP server hostname.                                                                                                                                                                                                                                    |
+| `MAILER_SMTP_PORT`      | integer | `587`         | SMTP server port.                                                                                                                                                                                                                                        |
+| `MAILER_SMTP_SECURE`    | boolean | `false`       | Use TLS/SSL for SMTP connections.                                                                                                                                                                                                                        |
+| `MAILER_SMTP_USER`      | string? | -             | SMTP authentication username.                                                                                                                                                                                                                            |
+| `MAILER_SMTP_PASSWORD`  | string? | -             | SMTP authentication password.                                                                                                                                                                                                                            |
 
 ### Template (TEMPLATE\_\*)
 
-| Property                        | Type    | Default                                                 | Description                                                                                  |
-|---------------------------------|---------|---------------------------------------------------------|----------------------------------------------------------------------------------------------|
-| `TEMPLATE_PATH`                 | string  | `'./templates'`                                         | Directory of the template files (emails, pages, exports), see [templates](./templates.md).   |
-| `TEMPLATE_CACHE`                | boolean | `true`                                                  | Keep the loaded templates in memory. Disable it to reload the changed files on every render. |
-| `TEMPLATE_PREVIEW_ENABLED`      | boolean | `false`                                                 | Enable the route previewing a template rendered with the data of its query parameters.       |
-| `TEMPLATE_PREVIEW_AUTH`         | boolean | `false`                                                 | Require authentication for the template preview route.                                       |
-| `TEMPLATE_PREVIEW_ROUTE_PREFIX` | string  | `'/templates'`                                          | URL prefix for the template preview route.                                                   |
-| `TEMPLATE_PROVIDER`             | string  | `'@appweaver/core/template/handlebars-template-engine'` | Template engine provider implementation path, empty to load none.                            |
+| Property                        | Type    | Default         | Description                                                                                   |
+|---------------------------------|---------|-----------------|-----------------------------------------------------------------------------------------------|
+| `TEMPLATE_PATH`                 | string  | `'./templates'` | Directory of the template files (emails, pages, exports), see [templates](./templates.md).    |
+| `TEMPLATE_CACHE`                | boolean | `true`          | Keep the loaded templates in memory. Disable it to reload the changed files on every render.  |
+| `TEMPLATE_PREVIEW_ENABLED`      | boolean | `false`         | Enable the route previewing a template rendered with the data of its query parameters.        |
+| `TEMPLATE_PREVIEW_AUTH`         | boolean | `false`         | Require authentication for the template preview route.                                        |
+| `TEMPLATE_PREVIEW_ROUTE_PREFIX` | string  | `'/templates'`  | URL prefix for the template preview route.                                                    |
+| `TEMPLATE_PROVIDER`             | string  | `'auto'`        | `auto` (`handlebars` when installed, otherwise none), `handlebars`, `none`, or a module path. |
 
 ### Locale (LOCALE\_\*)
 

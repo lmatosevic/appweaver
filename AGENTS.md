@@ -108,27 +108,42 @@ Core application logic. Organized into the following modules:
 
 | Module       | Purpose                                                                                                                                                              |
 |--------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `app/`       | Application lifecycle: bootstrapping, loading modules and providers, startup/shutdown hooks                                                                          |
+| `app/`       | Application lifecycle: module discovery (`discover-modules.ts`), provider selection (`load-providers.ts`), loading the app files, lifecycle hooks                    |
 | `database/`  | Database client factory and Prisma setup                                                                                                                             |
-| `server/`    | Fastify HTTP server creation, route registration, model mounting, Swagger/OpenAPI integration                                                                        |
+| `server/`    | Fastify HTTP server creation, the `HttpServer` lifecycle service of the web module, route registration, model mounting, Swagger/OpenAPI                              |
 | `security/`  | Authentication and authorization — sub-modules for JWT, OAuth2, API key, basic auth, reCAPTCHA, Turnstile, account management, and security token storage (`store/`) |
 | `resource/`  | CRUD resource lifecycle: loading, routing, schema validation, and service layer                                                                                      |
 | `factory/`   | Factory helpers for creating models, policies, routes, and services                                                                                                  |
-| `storage/`   | File upload and management — filesystem storage and file service/routes                                                                                              |
-| `queue/`     | Background job queues — Bull (Redis-backed) and in-memory implementations                                                                                            |
+| `storage/`   | File upload and management — filesystem storage, the sharp `ImageProcessor`, and file service/routes                                                                 |
+| `queue/`     | Background job queues — BullMQ (on the Redis memory) and in-memory implementations                                                                                   |
 | `scheduler/` | Cron job scheduling service                                                                                                                                          |
 | `seeder/`    | Database seeding utilities                                                                                                                                           |
 | `mailer/`    | Email service — SMTP and JSON (dev/test) mailer implementations, rendering the template emails                                                                       |
 | `template/`  | Template engine — the Handlebars implementation of `TemplateEngine` and its helpers, without any templates of its own                                                |
 | `locale/`    | Locale service — translating the dotted keys of the nested JSON translation files, with the framework's own English translations                                     |
-| `cache/`     | Caching layer abstractions and implementations                                                                                                                       |
+| `cache/`     | Caching layer abstractions and the cache stored in the `Memory` provider                                                                                             |
+| `memory/`    | The `Memory` drivers: in-process (`memory`) and Redis (`redis`)                                                                                                      |
 | `context/`   | Dependency injection container and utility functions                                                                                                                 |
-| `health/`    | Health check endpoint and service registration                                                                                                                       |
+| `health/`    | Health check endpoint and service registration, and the `node:http` health listener of an app without web (`HEALTH_PORT`)                                            |
 | `export/`    | Data export service (CSV and other formats)                                                                                                                          |
 | `events/`    | Node.js event emitter integration                                                                                                                                    |
 | `errors/`    | The API error layer: error code to HTTP status map, `defineErrors`, RFC 9457 problem details, error handler and `errorResponses` schemas                             |
 | `types/`     | TypeScript type definitions (hand-written and generated)                                                                                                             |
 | `utils/`     | Utility functions shared across modules or meant for library users (see the placement rule below)                                                                    |
+| `modules/`   | The manifests of the first-party modules (core, data, web, redis, bullmq, cron, nodemailer, handlebars, sharp), a driver enabled with its library                    |
+
+**Module system**: every part of the framework is a module declared with `defineModule`
+(`packages/common/module/define-module.ts`): the contracts it declares, its providers (drivers) by name, its services,
+resources, `main` and `web` parts. `discoverModules` enables the first-party modules of `core/modules`, the
+dependencies with an `appweaver.module` field in their `package.json`, the local manifests of `APP_MODULES_PATTERN` and
+the paths of `APP_MODULES`, minus `APP_MODULES_DISABLED`, ordered by their `requires`. `loadProviders` defines the
+provider of every contract from its `*.provider` key: `auto` (the default) picks the driver of an enabled module, else
+the fallback of core, `none` disables the contract and the services requiring it, a name selects a provider, and a
+module path still loads a class. The provider names are `memory` and `redis` (`Memory`), `memory` (`Cache`), `node`
+(`Events`), `local` (`Storage`), `database` and `memory` (`SecurityStore`), `memory` and `bullmq` (`Queue`), `smtp` and
+`json` (`Mailer`), `handlebars` (`TemplateEngine`), `cron` (`Scheduler`), `prisma` (`Database`) and `sharp`
+(`ImageProcessor`). A new driver goes into a module manifest with a provider name, never into `load-providers.ts`, and
+is documented in `skill/references/modules.md` and `skill/references/configuration.md`.
 
 **Utility placement rule**: `core/utils` holds helpers shared by two or more modules, or ones useful to library users
 directly. Helpers internal to a single module go in that module's own `utils/` directory (i.e. `core/resource/utils`),
@@ -303,11 +318,16 @@ weaver generate [options]
 | `--schema-path [path]`      | Output path for Prisma schema            | from config |
 | `--client-path [path]`      | Output path for Prisma client            | from config |
 | `--no-registry`             | Skip registering the model types         | registered  |
+| `--no-prune`                | Keep the framework models not used       | pruned      |
 | `--verbose`                 | Verbose output                           | false       |
 
 Running with no flags generates **both** types and schema. The generated types register every model in the
 `ResourceRegistry` of `@appweaver/common`, so the factories and `injectService` infer the model types from a model
-name. Core's own `npm run generate` passes `--no-registry`, since the registry belongs to the application.
+name. The models come from the project and from the `resources` of the enabled modules. The framework models are left
+out unless used: `Role`, `Permission`, `ApiKey`, `OneTimeToken` and `ConnectedAccount` without an auth model, `File`
+without a model declaring `files`, `Seeder` without a seeders directory (`core/resource/utils/prune-util.ts`). Core's
+own `npm run generate` passes `--no-registry` and `--no-prune`, since the registry belongs to the application and core
+keeps every model.
 
 ---
 
@@ -397,7 +417,23 @@ weaver openapi [options]
 | `-o, --output-path [path]` | Output path for the generated OpenAPI specification    | `./openapi.json` |
 | `-f, --format [format]`    | Output format for the specification (`json` or `yaml`) | `json`           |
 
-With `--format yaml` and the default output path, the specification is written to `./openapi.yaml`.
+With `--format yaml` and the default output path, the specification is written to `./openapi.yaml`. Fails with a message
+when the `@appweaver/web` module is disabled.
+
+---
+
+### `weaver run` (alias: `r`)
+
+Run a one-shot task with the application.
+
+```
+weaver run <file> [args...]
+```
+
+Creates the application without starting its server or its scheduled jobs (`SCHEDULER_AUTO_START_JOB` is forced to
+`false`), runs the default export of the file, `(args: string[]) => number | void`, with the arguments after the file,
+stops the application, and exits with the returned number (`0` otherwise, `1` when the task throws). On Node a `.ts`
+path runs from the build output (`src/tasks/report.ts` from `dist/src/tasks/report.js`).
 
 ---
 
@@ -677,8 +713,8 @@ to highest precedence:
 
 The samples and the scaffolded projects keep every environment in `appweaver.json`. For example, its `config` sets the
 server port, database URL, and app metadata, the `dev` section enables debug logging with pretty-printing, while the
-`test` section redirects the database to a temporary path, swaps Redis and queue providers for in-memory
-implementations, and disables the scheduler auto-start. Only `appweaver.json` may declare `environments`.
+`test` section redirects the database to a temporary path, selects the `memory` providers of the memory and the queue
+and the `json` mailer, and disables the scheduler auto-start. Only `appweaver.json` may declare `environments`.
 
 #### Seeding the database
 

@@ -38,11 +38,11 @@ server when a file of either changes, and ignores a directory that does not exis
 
 ## Templates
 
-Like the Redis and queue providers, the template engine is loaded only when its package is installed: without
-`handlebars` the application logs that the provider failed to load and starts without it. Injecting `TemplateEngine`
-then throws `CONTEXT_DEFINITION_MISSING`, sending a template email fails with `CONFIGURATION_INVALID`, and the account
-emails are sent as plain text built from the `emails.*` translations, as they are when the application has no template
-for them. An empty `TEMPLATE_PROVIDER` loads no engine, without the warning. `EmailService.sendEmail` sends an email the
+The template engine is selected only when its package is installed: `TEMPLATE_PROVIDER=auto` picks the `handlebars`
+driver when `handlebars` is installed, otherwise the application starts without an engine, as with
+`TEMPLATE_PROVIDER=none`. Injecting `TemplateEngine` then throws `CONTEXT_DEFINITION_MISSING`, sending a template email
+fails with `CONFIGURATION_INVALID`, and the account emails are sent as plain text built from the `emails.*`
+translations, as they are when the application has no template for them. `EmailService.sendEmail` sends an email the
 application built itself, i.e. of an HTML body stored in the database, with or without the engine.
 
 ### Project layout
@@ -296,14 +296,14 @@ template engine is loaded (the `handlebars` package is not installed).
 
 ### Template configuration
 
-| Key                             | Default                                                 | Description                                  |
-|---------------------------------|---------------------------------------------------------|----------------------------------------------|
-| `TEMPLATE_PATH`                 | `'./templates'`                                         | Directory of the template files              |
-| `TEMPLATE_CACHE`                | `true`                                                  | Keep the templates in memory                 |
-| `TEMPLATE_PREVIEW_ENABLED`      | `false`                                                 | Enable the preview route                     |
-| `TEMPLATE_PREVIEW_AUTH`         | `false`                                                 | Require authentication for the preview route |
-| `TEMPLATE_PREVIEW_ROUTE_PREFIX` | `'/templates'`                                          | URL prefix of the preview route              |
-| `TEMPLATE_PROVIDER`             | `'@appweaver/core/template/handlebars-template-engine'` | Template engine implementation               |
+| Key                             | Default         | Description                                                                  |
+|---------------------------------|-----------------|------------------------------------------------------------------------------|
+| `TEMPLATE_PATH`                 | `'./templates'` | Directory of the template files                                              |
+| `TEMPLATE_CACHE`                | `true`          | Keep the templates in memory                                                 |
+| `TEMPLATE_PREVIEW_ENABLED`      | `false`         | Enable the preview route                                                     |
+| `TEMPLATE_PREVIEW_AUTH`         | `false`         | Require authentication for the preview route                                 |
+| `TEMPLATE_PREVIEW_ROUTE_PREFIX` | `'/templates'`  | URL prefix of the preview route                                              |
+| `TEMPLATE_PROVIDER`             | `'auto'`        | `auto` (`handlebars` when installed), `handlebars`, `none`, or a module path |
 
 ### Template errors
 

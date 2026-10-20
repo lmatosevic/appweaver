@@ -255,6 +255,11 @@ Only the model is required: a service needs the model, routes need the service, 
 the model. Define each in its own file under `src/resources/<name>/` and the framework autoloads them on startup. They
 can also be created and exported from a single file.
 
+The application is assembled from modules: the framework's own, a driver per installed library (Redis, BullMQ, Cron,
+Nodemailer, Handlebars, Sharp) selected by its `provider` key (`auto` by default), npm packages declaring an
+`appweaver.module` field, and the local `src/modules/*/module.ts`. See
+[`skill/references/modules.md`](./skill/references/modules.md).
+
 ### `@appweaver/common`
 
 Shared utilities, configuration loader, logger, and base TypeScript types used by all other packages. You generally
@@ -277,6 +282,7 @@ weaver migration new <name>       # create a new database migration
 weaver migrate                    # apply pending migrations
 weaver seed                       # seed the database
 weaver openapi                    # export OpenAPI spec to openapi.json
+weaver run src/tasks/report.ts    # run a one-shot task with the application
 weaver module add redis docker    # add modules to the project (list, add, remove)
 weaver upgrade                    # upgrade all @appweaver/* packages and skill files
 ```

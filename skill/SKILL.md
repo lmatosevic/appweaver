@@ -78,11 +78,11 @@ create-weaver-app <name> [description] [options]
 
 | Module      | Adds                                                                         | Without it                                   |
 |-------------|------------------------------------------------------------------------------|----------------------------------------------|
-| `redis`     | `ioredis`, the `redis.url`, the docker-compose Redis service                 | in-memory Redis store, cache and rate limit  |
+| `redis`     | `ioredis`, the `memory.redis.url`, the docker-compose Redis service          | memory, cache and rate limit in the process  |
 | `queue`     | `bullmq` (requires `redis`, added along with it)                             | in-memory queue                              |
 | `scheduler` | `cron`                                                                       | scheduler disabled                           |
 | `mailer`    | `nodemailer`                                                                 | mailer disabled (email features respond 501) |
-| `templates` | `handlebars`, `templates/`, with the account email templates with the mailer | `TEMPLATE_PROVIDER` empty                    |
+| `templates` | `handlebars`, `templates/`, with the account email templates with the mailer | no template engine                           |
 | `locales`   | `locales/en.json`                                                            | English texts written into the templates     |
 | `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`              | no Docker files                              |
 
@@ -108,8 +108,10 @@ section), whose `${VAR}` references are expanded from the environment. Only the 
     "database": {
       "url": "postgresql://${DB_USER:-my-blog-api}:${DB_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME:-my-blog-api}"
     },
-    "redis": {
-      "url": "redis://${REDIS_HOST:-localhost}:6379/0"
+    "memory": {
+      "redis": {
+        "url": "redis://${REDIS_HOST:-localhost}:6379/0"
+      }
     }
   },
   "environments": {
@@ -212,15 +214,44 @@ Manually starting an application:
 ```ts
 // src/main.ts
 import { createApp } from '@appweaver/core';
-import { logger } from '@appweaver/common';
 
 const app = await createApp({ autoStart: false, scanPath: './dist/my/app/path' });
 
 // custom init logic...
 
-const address = await app.start();
-logger.info(address);
+await app.start(); // app.start(false) starts every service without listening for requests
 ```
+
+`app.server` is the Fastify instance of the `HttpServer` service (`inject(HttpServer).instance`), and `app.spec()`
+returns the OpenAPI document; both throw when the `@appweaver/web` module is disabled.
+
+### Modules and application kinds
+
+Every part of the framework is a module declared with `defineModule`: `@appweaver/core` (always), `@appweaver/data`
+(Prisma, the resources), `@appweaver/web` (the Fastify server, authentication) and one driver module per library
+(`ioredis`, `bullmq`, `cron`, `nodemailer`, `handlebars`, `sharp`), each enabled when its library is installed. The
+`provider` key of each contract (`auto` by default) picks the driver of an enabled module, `none` turns the contract
+off. An application adds its own modules in `src/modules/<name>/module.ts` or as npm packages. See
+[modules.md](references/modules.md) and the [providers](references/configuration.md#providers).
+
+| Application                  | How                                                                                                                                |
+|------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
+| HTTP API                     | The default: `createApp()` starts the server on `SERVER_PORT`.                                                                     |
+| Queue worker, scheduled jobs | `APP_MODULES_DISABLED=@appweaver/web`: no server, kept alive by its workers or cron jobs. `HEALTH_PORT` answers the health checks. |
+| One-shot task                | `weaver run src/tasks/report.ts [args...]`: runs the default export `(args) => number \| void`, then exits.                        |
+
+```ts
+// src/tasks/report.ts, run with `weaver run src/tasks/report.ts Pending`
+import { injectService } from '@appweaver/core';
+
+export default async function (args: string[]) {
+  const count = await injectService('Order').count({ status: args[0] });
+  console.log(`${count} orders`);
+  return count > 0 ? 0 : 1; // the exit code
+}
+```
+
+`weaver run` creates the application without starting the server or the scheduled jobs, and stops it after the task.
 
 ### Creating resources
 
@@ -795,30 +826,27 @@ instantiated as singletons on the first injection.
 import { Cache } from '@appweaver/common';
 import { define, inject } from '@appweaver/core';
 
-define(RedisCacheService, Cache); // register class under abstract token
+define(MyCacheService, Cache); // register class under abstract token
 define('https://api.example.com', 'ApiBaseUrl'); // register plain value
 
 const cache = inject(Cache); // resolves singleton instance
 const url = inject<string>('ApiBaseUrl'); // resolves by string token
 ```
 
-Use `loadProvider` to dynamically load a class from a file path or npm package and register it under an abstract token.
-This is the standard pattern for wiring infrastructure providers in `main.ts`.
+The infrastructure providers (`Storage`, `Mailer`, `Queue`, ...) are defined by the modules from the `provider` keys,
+so `main.ts` never wires them. Inject an optional one with a fallback, or check it first:
 
 ```ts
-import { cacheConfig, databaseConfig, loadProvider, mailerConfig } from '@appweaver/core';
-import { Database, Cache } from '@appweaver/common';
+import { Mailer } from '@appweaver/common';
+import { inject, isDefined } from '@appweaver/core';
 
-loadProvider(__dirname, databaseConfig.PROVIDER, Database); // required provider
-loadProvider(__dirname, cacheConfig.PROVIDER, Cache);
-loadProvider(__dirname, mailerConfig.PROVIDER, Mailer, false); // optional (no error if provider cannot be loaded)
-
-const mailer: Mailer | undefined = inject(Mailer, false); // optional injection
+const mailer: Mailer | undefined = inject(Mailer, false); // undefined with MAILER_PROVIDER=none
+if (isDefined(Mailer)) { /* ... */ }
 ```
 
-A registered class implementing `OnInit` or `OnDestroy` from `@appweaver/common`, and setting the static
-`[LIFECYCLE] = true` tag, has its `onInit()` called when the application starts and its `onDestroy()` when it stops;
-see [dependency-injection.md](references/dependency-injection.md#lifecycle-hooks).
+A registered class setting the static `[LIFECYCLE] = true` tag has its hooks of `@appweaver/common` called:
+`onInit()` when the application starts, `onReady({ startServer })` once every service is initialized, `onShutdown()`
+first on stop, and `onDestroy()` last; see [dependency-injection.md](references/dependency-injection.md#lifecycle-hooks).
 
 ### Writing a seeder
 
@@ -890,7 +918,11 @@ weaver start --project tsconfig.json  # path to tsconfig file
 weaver generate --types           # TypeScript types only
 weaver generate --schema          # Prisma schema only
 weaver generate --types --schema  # both (same as with no option flags)
+weaver generate --no-prune        # keep the framework models the project does not use
 ```
+
+The framework models are generated only when used: `Role`, `Permission`, `ApiKey`, `OneTimeToken` and
+`ConnectedAccount` with an auth model, `File` when a model declares `files`, `Seeder` when the seeders directory exists.
 
 ### Run database migrations
 
@@ -917,6 +949,12 @@ weaver seed --fix-warnings                                 # fix all warnings li
 weaver openapi                                         # generate schema to ./openapi.json
 weaver openapi --output-path ./generated/openapi.json  # generate schema to a custom path
 weaver openapi --format yaml                           # generate schema in yaml format (./openapi.yaml)
+```
+
+### Run a one-shot task
+
+```sh
+weaver run src/tasks/report.ts Pending  # run the default export of the file with the arguments, then exit
 ```
 
 ### Upgrade Appweaver packages
@@ -1014,6 +1052,7 @@ npm run lint  # eslint "./**/*.ts"
 
 - Application CLI (weaver): [cli.md](references/cli.md)
 - Application configuration: [configuration.md](references/configuration.md)
+- Modules & providers: [modules.md](references/modules.md)
 - Application resources: [resources.md](references/resources.md)
 - Dependency injection: [dependency-injection.md](references/dependency-injection.md)
 - Security details: [security.md](references/security.md)

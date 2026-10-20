@@ -145,15 +145,15 @@ weaver migrate
 
 ## Configuration
 
-| Key                             | Type     | Default                                      | Description                                     |
-|---------------------------------|----------|----------------------------------------------|-------------------------------------------------|
-| `DATABASE_TYPE`                 | `enum`   | —                                            | `sqlite`, `postgresql`, `mysql`, or `sqlserver` |
-| `DATABASE_URL`                  | `string` | —                                            | Connection string / DSN                         |
-| `DATABASE_SCHEMA_PATH`          | `string` | `'./database/schema.prisma'`                 | Path to the Prisma schema file                  |
-| `DATABASE_MIGRATIONS_DIR_PATH`  | `string` | `'./database/migrations'`                    | Path to the migrations directory                |
-| `DATABASE_TRANSACTION_MAX_WAIT` | `int`    | `2000`                                       | Max time (ms) to wait to acquire a transaction  |
-| `DATABASE_TRANSACTION_TIMEOUT`  | `int`    | `5000`                                       | Max time (ms) a transaction may run             |
-| `DATABASE_PROVIDER`             | `string` | `'@appweaver/core/database/prisma-database'` | Path to the Database implementation             |
+| Key                             | Type     | Default                      | Description                                     |
+|---------------------------------|----------|------------------------------|-------------------------------------------------|
+| `DATABASE_TYPE`                 | `enum`   | —                            | `sqlite`, `postgresql`, `mysql`, or `sqlserver` |
+| `DATABASE_URL`                  | `string` | —                            | Connection string / DSN                         |
+| `DATABASE_SCHEMA_PATH`          | `string` | `'./database/schema.prisma'` | Path to the Prisma schema file                  |
+| `DATABASE_MIGRATIONS_DIR_PATH`  | `string` | `'./database/migrations'`    | Path to the migrations directory                |
+| `DATABASE_TRANSACTION_MAX_WAIT` | `int`    | `2000`                       | Max time (ms) to wait to acquire a transaction  |
+| `DATABASE_TRANSACTION_TIMEOUT`  | `int`    | `5000`                       | Max time (ms) a transaction may run             |
+| `DATABASE_PROVIDER`             | `string` | `'auto'`                     | `auto`/`prisma`, or `none` for no database      |
 
 Configure the URL in `appweaver.json`, referencing the password of the gitignored `.env` (`DB_PASSWORD=myapp`), a
 `DB_HOST` a docker-compose container sets to the database service name, and a `DB_NAME` and `DB_USER` to rename the
