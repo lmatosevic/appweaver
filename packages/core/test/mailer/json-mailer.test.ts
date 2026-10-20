@@ -1,5 +1,6 @@
 import { logger } from '@appweaver/common';
 import { JsonMailer } from '../../mailer/json-mailer';
+import { testMailerContract } from '@appweaver/testing';
 
 describe('json-mailer', () => {
   afterEach(() => {
@@ -43,3 +44,5 @@ describe('json-mailer', () => {
     });
   });
 });
+
+testMailerContract('JsonMailer', () => new JsonMailer());

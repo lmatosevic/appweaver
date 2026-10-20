@@ -27,6 +27,7 @@ if (!isBunProcess() && appConfig.RUNTIME === Runtime.Bun) {
 // unnecessary loading of all dependencies
 import { Command } from 'commander';
 import { buildCommand } from './build';
+import { configCommand } from './config';
 import { generateCommand } from './generate';
 import { migrateCommand } from './migrate';
 import { migrationCommand } from './migration';
@@ -50,6 +51,8 @@ program
   .usage('<command> [options]');
 
 buildCommand(program);
+
+configCommand(program);
 
 generateCommand(program);
 

@@ -72,6 +72,30 @@ export function readRawConfig(key: string): unknown {
   return undefined;
 }
 
+/** Where the value of a config key comes from. */
+export type ConfigSource = 'override' | 'env' | 'json' | 'default';
+
+/**
+ * Tells where the value of a flattened key comes from: a test override, the environment, the JSON files, or the
+ * default of its schema.
+ *
+ * @param {string} key - The flattened key, i.e. `SERVER_PORT`.
+ * @return {ConfigSource} The source of the value.
+ */
+export function configSource(key: string): ConfigSource {
+  if (Object.prototype.hasOwnProperty.call(configOverrides, key)) {
+    return 'override';
+  }
+  const rawKey = `_${CONFIG_NAME}_${key}`;
+  if (!isEmpty(rawConfig.env[rawKey])) {
+    return 'env';
+  }
+  if (!isEmpty(rawConfig.json[rawKey])) {
+    return 'json';
+  }
+  return 'default';
+}
+
 /**
  * Defines a section of the application config, read from the `appweaver.json` files and the environment variables
  * with the same sources, precedence and flattening as the rest of the config. The section `storage.gcs` with the key
@@ -187,12 +211,24 @@ function parseSection<V>(
   try {
     values = Value.Parse(schema, input) as V;
   } catch {
-    const errors = [...Value.Errors(schema, Value.Convert(schema, input))].map(
-      (error) => {
-        const key = error.path.split('/')[1] ?? '';
-        return `${prefix + key} (config.${section}.${snakeToCamelCase(key.toLowerCase())}): ${error.message}`;
-      }
+    // The defaults are applied first, so only the invalid values are named,
+    // each with its first error
+    const checked = Value.Convert(
+      schema,
+      Value.Default(schema, structuredClone(input))
     );
+    const errors: string[] = [];
+    const named = new Set<string>();
+    for (const error of Value.Errors(schema, checked)) {
+      const key = error.path.split('/')[1] ?? '';
+      if (named.has(key)) {
+        continue;
+      }
+      named.add(key);
+      errors.push(
+        `${prefix + key} (config.${section}.${snakeToCamelCase(key.toLowerCase())}): ${error.message}`
+      );
+    }
     throw new ConfigurationError(
       ErrorCode.ConfigurationInvalid,
       `Invalid config of section "${section}": ${errors.join(', ')}`,

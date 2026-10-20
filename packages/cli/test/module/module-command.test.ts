@@ -167,7 +167,9 @@ describe('module-command', () => {
       expect(errors).toEqual([
         'Module queue requires redis, remove queue as well.'
       ]);
-      expect(readJson('package.json').dependencies).toHaveProperty('@appweaver/redis');
+      expect(readJson('package.json').dependencies).toHaveProperty(
+        '@appweaver/redis'
+      );
     });
 
     test('reports the disabled modules', async () => {

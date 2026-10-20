@@ -48,5 +48,10 @@
     "!packages/client/generated/**"
   ],
   "coverageDirectory": "./reports",
-  "roots": ["<rootDir>/packages"]
+  "roots": ["<rootDir>/packages"],
+  "coverageThreshold": {
+    "global": {
+      "branches": 80
+    }
+  }
 }

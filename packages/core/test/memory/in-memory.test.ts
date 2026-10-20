@@ -1,4 +1,5 @@
 import { InMemory } from '../../memory/in-memory';
+import { testMemoryContract } from '@appweaver/testing';
 
 describe('in-memory', () => {
   let memory: InMemory;
@@ -331,3 +332,5 @@ describe('in-memory', () => {
     });
   });
 });
+
+testMemoryContract('InMemory', () => new InMemory());
