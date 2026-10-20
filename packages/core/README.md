@@ -14,21 +14,22 @@
 
 ## Description
 
-`@appweaver/core` is the runtime of an Appweaver application. It builds a [Fastify](https://fastify.dev) server and a
-[Prisma](https://prisma.io) data layer from declarative resource definitions, and provides:
+`@appweaver/core` is the runtime of every Appweaver application, with neither a server nor a database:
 
-- **Resources** – `createModel`, `createService`, `createRoutes`, and `createPolicy` factories for validated CRUD
-  routes with filtering, sorting, cursor pagination, aggregation, export, and an OpenAPI specification.
-- **Security** – JWT, API key, HTTP Basic, and OAuth2 authentication, roles and permissions, row-level policies, 2FA,
-  email verification, password reset, reCAPTCHA, and Cloudflare Turnstile.
-- **Infrastructure** – file storage with image processing, Redis or in-memory caching and rate limiting, BullMQ or
-  in-memory queues, a cron scheduler, an SMTP mailer, Handlebars templates with translations, events, health checks,
-  and database seeders. Each driver is enabled when its library is installed (`ioredis`, `bullmq`, `cron`,
-  `nodemailer`, `handlebars`, `sharp`) and selected by name in its `provider` key, `auto` by default.
-- **Modules** – the application is assembled from module manifests: the framework's own, the npm packages declaring
-  an `appweaver.module` field, and the local `src/modules/*/module.ts`. Disabling `@appweaver/web` runs a worker or
-  scheduled jobs without a server.
-- **Dependency injection** – `define`, `inject`, `injectService`, and `isDefined` for wiring services by token.
+- **Modules** – the application is assembled from module manifests: the npm packages declaring an
+  `appweaver.module` field (`@appweaver/data`, `@appweaver/web`, the drivers), the local `src/modules/*/module.ts`,
+  and the paths of `app.modules`. A driver is selected by name in its `provider` key, `auto` by default.
+- **Application** – `createApp`, the lifecycle hooks (`onInit`, `onReady`, `onShutdown`, `onDestroy`), the health
+  listener of the applications without a server, and `weaver run` tasks.
+- **Dependency injection** – `define`, `inject`, `injectService` and `isDefined`, the auth user context with
+  `runAs`, and the transaction scope with `afterCommit`.
+- **In-process drivers** – the memory, the cache, the queue, the node events, the `local` file storage and the `json`
+  mailer, with `EmailService`, the locale service and the template registration.
+
+The database, the resources and the auth data model are in [`@appweaver/data`](https://www.npmjs.com/package/@appweaver/data),
+the HTTP server in [`@appweaver/web`](https://www.npmjs.com/package/@appweaver/web), and the drivers in
+`@appweaver/redis`, `@appweaver/bullmq`, `@appweaver/cron`, `@appweaver/nodemailer`, `@appweaver/handlebars` and
+`@appweaver/sharp`.
 
 ## Installation
 
@@ -36,8 +37,8 @@ New projects are best created with [`create-weaver-app`](https://www.npmjs.com/p
 which installs this package along with the `weaver` CLI. To add it by hand:
 
 ```sh
-npm install @appweaver/core @appweaver/common @prisma/client
-npm install -D @appweaver/cli prisma typescript
+npm install @appweaver/core @appweaver/common
+npm install -D @appweaver/cli typescript
 ```
 
 ## Usage
@@ -49,21 +50,6 @@ import { logger } from '@appweaver/common';
 
 createApp().catch((err) => logger.error(err));
 ```
-
-```ts
-// src/resources/post/model.ts
-import { createModel } from '@appweaver/core';
-
-export default createModel({
-  name: 'Post',
-  scalars: {
-    title: { type: 'string', minLength: 1, maxLength: 200 },
-    body: { type: 'string' }
-  }
-});
-```
-
-Run `weaver generate` after changing a model to refresh the generated types and the Prisma schema.
 
 ## Documentation
 

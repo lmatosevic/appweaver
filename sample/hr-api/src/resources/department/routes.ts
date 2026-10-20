@@ -1,4 +1,4 @@
-import { createRoutes } from '@appweaver/core';
+import { createRoutes } from '@appweaver/web';
 import { Permission } from '@/features/access/permissions';
 
 export default createRoutes({

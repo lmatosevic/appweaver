@@ -1,5 +1,6 @@
 import { ErrorCode, RequestError } from '@appweaver/common';
-import { createService, inject, LocaleService } from '@appweaver/core';
+import { createService } from '@appweaver/data';
+import { inject, LocaleService } from '@appweaver/core';
 
 export default createService({
   modelName: 'Category',

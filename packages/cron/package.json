@@ -1,0 +1,45 @@
+{
+  "name": "@appweaver/cron",
+  "version": "1.12.2",
+  "description": "Appweaver - the backend framework for AI-first development (@cron)",
+  "author": "Luka Matosevic",
+  "license": "MIT",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "keywords": [
+    "appweaver",
+    "appweaver-module"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lmatosevic/appweaver.git",
+    "directory": "packages/cron"
+  },
+  "maintainers": [
+    {
+      "name": "Luka Matosevic",
+      "email": "lukamatosevic5@gmail.com",
+      "web": "https://lukamatosevic.com"
+    }
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">= 24.7"
+  },
+  "appweaver": {
+    "module": "./module.js"
+  },
+  "dependencies": {
+    "cron": "4.4.0"
+  },
+  "peerDependencies": {
+    "@appweaver/common": "^1.12.2",
+    "@appweaver/core": "^1.12.2"
+  },
+  "devDependencies": {
+    "@appweaver/common": "^1.12.2",
+    "@appweaver/core": "^1.12.2"
+  }
+}

@@ -1,4 +1,4 @@
-import { createAuthModel } from '@appweaver/core';
+import { createAuthModel } from '@appweaver/data';
 
 /** The support staff, and the integrations calling the API with a key. */
 export default createAuthModel({

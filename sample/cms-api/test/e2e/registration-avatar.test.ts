@@ -1,11 +1,6 @@
 import { AuthSource, Database, Storage } from '@appweaver/common';
-import {
-  Application,
-  AuthService,
-  createApp,
-  inject,
-  injectService
-} from '@appweaver/core';
+import { Application, createApp, inject, injectService } from '@appweaver/core';
+import { AuthService } from '@appweaver/web';
 import { resetTestData } from './support/reset';
 
 /**

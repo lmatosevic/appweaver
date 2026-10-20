@@ -40,7 +40,7 @@
     "packages/*/**/*.ts",
     "!**/test/**",
     "!**/*.d.ts",
-    "!packages/core/prisma/client/**",
+    "!packages/data/prisma/client/**",
     "!packages/client/generated/**"
   ],
   "coverageDirectory": "./reports",

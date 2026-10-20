@@ -1,4 +1,4 @@
-import { createModel } from '@appweaver/core';
+import { createModel } from '@appweaver/data';
 import { UserSingle } from '@/types';
 
 export default createModel({

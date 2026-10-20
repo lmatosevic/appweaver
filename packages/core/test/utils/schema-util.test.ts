@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { MODEL } from '@appweaver/common';
-import { define, injectAll } from '../../context';
+import { define, injectAll } from '../../context/dependency-injection';
 import { createSchemaModel } from '../../utils/schema-util';
 import { resetContext } from '../fixtures/context-fixture';
 

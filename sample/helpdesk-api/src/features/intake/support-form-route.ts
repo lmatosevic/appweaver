@@ -1,5 +1,6 @@
 import { Type } from '@sinclair/typebox';
-import { injectService, registerRoute } from '@appweaver/core';
+import { injectService } from '@appweaver/core';
+import { registerRoute } from '@appweaver/web';
 
 registerRoute(
   (router) => {

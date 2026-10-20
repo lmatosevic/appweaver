@@ -1,4 +1,4 @@
-import { hashPassword, systemConfig } from '@appweaver/core';
+import { hashPassword, systemConfig } from '@appweaver/data';
 import { randomString } from '@appweaver/common';
 import { db } from '@db/client';
 import { Permission } from '@/features/access/permissions';

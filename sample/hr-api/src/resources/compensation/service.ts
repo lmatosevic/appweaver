@@ -1,5 +1,5 @@
 import { ErrorCode, RequestError, ResourceError } from '@appweaver/common';
-import { createService } from '@appweaver/core';
+import { createService } from '@appweaver/data';
 import db from '@db/client';
 
 export default createService({

@@ -29,7 +29,7 @@ import {
   DefinitionEntry,
   DefinitionMode,
   DefinitionValue
-} from '../types';
+} from '../types/application-context';
 
 /**
  * Defines a resource or a definition value within the application context.

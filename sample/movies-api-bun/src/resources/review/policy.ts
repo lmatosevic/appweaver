@@ -1,4 +1,4 @@
-import { createPolicy, hasRoles } from '@appweaver/core';
+import { createPolicy, hasRoles } from '@appweaver/data';
 import { catalogEditors } from '@/features/access/roles';
 
 export default createPolicy({

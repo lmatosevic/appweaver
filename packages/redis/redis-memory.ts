@@ -1,0 +1,262 @@
+import { setTimeout } from 'node:timers/promises';
+import { Redis as RedisClient, RedisOptions } from 'ioredis';
+import { parse, stringify } from 'flatted';
+import {
+  ErrorCode,
+  HealthCheckConfig,
+  HealthCheckResult,
+  logger,
+  Memory,
+  uuid,
+  LockError
+} from '@appweaver/common';
+import { redisConfig } from './config';
+
+export class RedisMemory extends Memory<RedisOptions, RedisClient> {
+  /** @internal */
+  private readonly _options: RedisOptions;
+  /** @internal */
+  private readonly _client: RedisClient;
+
+  constructor() {
+    super();
+    this._options = this.parseConnectionUrl(redisConfig.URL);
+    // Commands fail right away while disconnected instead of queueing, so the
+    // callers can fall back without waiting for the reconnection
+    this._client = this.createClient({
+      connectionName: 'appweaver',
+      lazyConnect: true,
+      enableOfflineQueue: false,
+      maxRetriesPerRequest: 1
+    });
+  }
+
+  public async onInit(): Promise<void> {
+    try {
+      await this.connect();
+    } catch {
+      // Logged by the connection monitor, the client keeps reconnecting
+    }
+  }
+
+  public async onDestroy(): Promise<void> {
+    await this.disconnect();
+  }
+
+  public createClient(options: RedisOptions = {}): RedisClient {
+    const client = new RedisClient({
+      ...this._options,
+      ...options
+    });
+    this.monitorConnection(client);
+    return client;
+  }
+
+  public async connect(): Promise<void> {
+    await this._client.connect();
+  }
+
+  public async disconnect(): Promise<void> {
+    try {
+      await this._client.quit();
+    } catch {
+      // Stops the reconnection of a connection that is down
+      this._client.disconnect();
+    }
+  }
+
+  public async get<T = any>(key: string): Promise<T | null> {
+    const value = await this._client.get(key);
+    return value ? (parse(value) as T) : null;
+  }
+
+  public async set(key: string, value: any, ttl?: number): Promise<boolean> {
+    const jsonValue = stringify(value);
+    const result = ttl
+      ? await this._client.set(key, jsonValue, 'PX', ttl)
+      : await this._client.set(key, jsonValue);
+    return result === 'OK';
+  }
+
+  public async has(key: string): Promise<boolean> {
+    const result = await this._client.exists(key);
+    return result === 1;
+  }
+
+  public async delete(key: string): Promise<boolean> {
+    const result = await this._client.del(key);
+    return result > 0;
+  }
+
+  public async deleteMatching(pattern: string = '*'): Promise<number> {
+    const keys = await this.keys(pattern);
+    if (keys.length === 0) {
+      return 0;
+    }
+    return this._client.del(...keys);
+  }
+
+  public async keys(pattern: string = '*'): Promise<string[]> {
+    return new Promise((resolve, reject) => {
+      const stream = this._client.scanStream({
+        match: pattern,
+        count: 10000
+      });
+
+      const keysSet = new Set<string>();
+
+      stream.on('data', (keys) => {
+        stream.pause();
+        keys.forEach((key: string) => keysSet.add(key));
+        stream.resume();
+      });
+
+      stream.on('end', () => {
+        resolve([...keysSet]);
+      });
+
+      stream.on('error', reject);
+    });
+  }
+
+  public async sizeBytes(key: string): Promise<number | null> {
+    return this._client.memory('USAGE', key);
+  }
+
+  public async lock(
+    resource: string,
+    lockConfig: {
+      expireMs?: number;
+      retryCount?: number;
+      retryDelay?: number;
+    } = {}
+  ): Promise<{ release: () => Promise<boolean> }> {
+    const redisLock = new RedisLock(
+      this._client,
+      resource,
+      lockConfig.expireMs,
+      lockConfig.retryCount,
+      lockConfig.retryDelay
+    );
+    return await redisLock.lock();
+  }
+
+  public async checkHealth(): Promise<HealthCheckResult> {
+    try {
+      const result = await this._client.ping();
+      return { success: result === 'PONG' };
+    } catch (e) {
+      return { success: false, message: (e as Error).message };
+    }
+  }
+
+  public isAvailable(): boolean {
+    return this._client.status === 'ready';
+  }
+
+  public checkHealthConfig(): HealthCheckConfig {
+    return { name: 'redis' };
+  }
+
+  /** @internal */
+  private monitorConnection(client: RedisClient): void {
+    const name = client.options.connectionName ?? 'redis';
+    let lost = false;
+
+    // Logs only the first error of an outage, the client emits one on every
+    // failed reconnection attempt
+    client.on('error', (error) => {
+      if (!lost) {
+        lost = true;
+        logger.error(
+          error,
+          `Redis connection '${name}' is down, reconnecting in background`
+        );
+      }
+    });
+
+    client.on('ready', () => {
+      if (lost) {
+        lost = false;
+        logger.info(`Redis connection '${name}' is restored`);
+      }
+    });
+  }
+
+  /** @internal */
+  private parseConnectionUrl(url: string): RedisOptions {
+    const urlPattern =
+      /redis:\/\/(?:(.*?)(?::(.*?))?@)?(.*?):(\d+)(?:\/(\d+))?/;
+    const match = url.match(urlPattern);
+
+    if (!match) {
+      return { host: 'localhost', port: 6379 };
+    }
+
+    const username = match[2] ? match[1] : undefined;
+    const password = match[2] || match[1];
+    const host = match[3] || 'localhost';
+    const port = parseInt(match[4], 10) || 6379;
+    const db = match[5] ? parseInt(match[5], 10) : undefined;
+
+    return { username, password, host, port, db };
+  }
+}
+
+class RedisLock {
+  /** @internal */
+  private readonly _releaseLockCommand: string = 'releaseLock';
+
+  constructor(
+    private readonly client: RedisClient,
+    private readonly resource: string,
+    private readonly expireMs: number = 5000,
+    private readonly retryCount: number = 10,
+    private readonly retryDelay: number = 200
+  ) {
+    this.initReleaseLockScript();
+  }
+
+  public async lock(): Promise<{ release: () => Promise<boolean> }> {
+    const resourceKey = `lock:${this.resource}`;
+    const lockValue = uuid();
+    let retries = 0;
+
+    do {
+      const result = await this.client.set(
+        resourceKey,
+        lockValue,
+        'PX',
+        this.expireMs,
+        'NX'
+      );
+      if (result === 'OK') {
+        return {
+          release: async () =>
+            (await this.client[this._releaseLockCommand](
+              resourceKey,
+              lockValue
+            )) > 0
+        };
+      } else {
+        await setTimeout(this.retryDelay);
+        retries++;
+      }
+    } while (retries < this.retryCount);
+
+    throw new LockError(
+      ErrorCode.LockNotAcquired,
+      'Unable to acquire lock on requested resource'
+    );
+  }
+
+  private initReleaseLockScript(): void {
+    if (this._releaseLockCommand in this.client) {
+      return;
+    }
+    this.client.defineCommand(this._releaseLockCommand, {
+      numberOfKeys: 1,
+      lua: 'if redis.call("get",KEYS[1]) == ARGV[1] then return redis.call("del",KEYS[1]) else return 0 end'
+    });
+  }
+}

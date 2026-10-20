@@ -1,4 +1,4 @@
-import { createModel } from '@appweaver/core';
+import { createModel } from '@appweaver/data';
 
 /** An order line, keeping the name and price the product had at checkout. */
 export default createModel({

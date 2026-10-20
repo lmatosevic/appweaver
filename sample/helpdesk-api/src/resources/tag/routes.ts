@@ -1,4 +1,4 @@
-import { createRoutes } from '@appweaver/core';
+import { createRoutes } from '@appweaver/web';
 import { Role, staff } from '@/features/access/roles';
 
 // Mostly created on the fly with the tickets, see the ticket model

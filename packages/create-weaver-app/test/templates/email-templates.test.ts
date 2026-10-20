@@ -2,11 +2,10 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import * as common from '@appweaver/common';
-import { define } from '../../../core/context';
-import { LocaleService } from '../../../core/locale';
+import { define, LocaleService } from '@appweaver/core';
+import { HandlebarsTemplateEngine } from '@appweaver/handlebars';
+import { resetContext } from '@appweaver/testing';
 import { htmlToText } from '../../../core/mailer/utils/html-util';
-import { HandlebarsTemplateEngine } from '../../../core/template/handlebars-template-engine';
-import { resetContext } from '../../../core/test/fixtures/context-fixture';
 import {
   flattenTranslations,
   inlineTranslations

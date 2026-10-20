@@ -42,6 +42,16 @@ export type ModuleService = {
   requires?: AbstractCtor[];
 };
 
+/** What the setup of a module receives. */
+export type ModuleSetupContext = {
+  /** The enabled modules, in their load order. */
+  modules: readonly Module[];
+  /** The source directory of the application, i.e. `./dist/src`. */
+  scanPath: string;
+  /** The parameters given to `createApp`, i.e. the `resourcePaths` read by `@appweaver/data`. */
+  params: Readonly<Record<string, unknown>>;
+};
+
 /** The manifest of a module, the default export of its `module.ts` file. */
 export type ModuleManifest = {
   /** The name of the module, its package name for a package module. */
@@ -58,6 +68,11 @@ export type ModuleManifest = {
   providers?: ModuleProvider[];
   /** Its classes defined at startup. */
   services?: ModuleService[];
+  /**
+   * Runs once the providers and the services of every module are defined, before the `main` parts and the files of
+   * the application, i.e. `@appweaver/data` loads the resources of the application and of the modules here.
+   */
+  setup?: (context: ModuleSetupContext) => unknown;
   /** Imports its models, resource services and policies, loaded only with a database. */
   resources?: ModuleLoader;
   /** Imports the code run at startup: scheduled jobs, queue workers, event listeners. */

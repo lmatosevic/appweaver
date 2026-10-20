@@ -4,7 +4,8 @@ import {
   ErrorCode,
   ResourceError
 } from '@appweaver/common';
-import { CacheService, hasRole, inject, injectService } from '@appweaver/core';
+import { CacheService, inject, injectService } from '@appweaver/core';
+import { hasRole } from '@appweaver/data';
 import db from '@db/client';
 import { OrderSingle } from '@/types';
 import { Role } from '@/features/access/roles';

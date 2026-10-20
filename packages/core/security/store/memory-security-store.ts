@@ -7,7 +7,7 @@ import {
   ValidationResult,
   AuthError
 } from '@appweaver/common';
-import { inject } from '../../context';
+import { inject } from '../../context/dependency-injection';
 
 const SECURITY_OTT_KEY = 'security:ott';
 

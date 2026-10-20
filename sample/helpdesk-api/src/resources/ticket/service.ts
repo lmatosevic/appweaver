@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { createService } from '@appweaver/core';
+import { createService } from '@appweaver/data';
 import db from '@db/client';
 import { TicketCreate, TicketUpdate } from '@/types';
 import { sendTicketReceived } from '@/features/notifications/ticket-emails';

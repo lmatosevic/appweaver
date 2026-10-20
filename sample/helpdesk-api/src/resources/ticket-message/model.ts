@@ -1,4 +1,4 @@
-import { createModel } from '@appweaver/core';
+import { createModel } from '@appweaver/data';
 
 /** A reply on a ticket, from the customer or an agent, or an internal note. */
 export default createModel({

@@ -8,15 +8,7 @@
       "@appweaver/common/*": ["../common/*"]
     }
   },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "prisma/migrations",
-    "prisma/schema.prisma",
-    "prisma.config.ts",
-    "test/**/*",
-    "**/*.test.ts"
-  ],
+  "exclude": ["node_modules", "dist", "test/**/*", "**/*.test.ts"],
   "references": [
     {
       "path": "../common/tsconfig.build.json"

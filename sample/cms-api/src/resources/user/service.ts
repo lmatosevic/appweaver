@@ -1,5 +1,5 @@
 import { ErrorCode, OAuth2Error } from '@appweaver/common';
-import { createAuthService } from '@appweaver/core';
+import { createAuthService } from '@appweaver/data';
 import db from '@db/client';
 
 export default createAuthService({

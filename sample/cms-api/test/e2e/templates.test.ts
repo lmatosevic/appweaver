@@ -2,10 +2,10 @@ import {
   Application,
   createApp,
   EmailService,
-  hashPassword,
   inject,
   injectService
 } from '@appweaver/core';
+import { hashPassword } from '@appweaver/data';
 import { resetTestData } from './support/reset';
 
 /**

@@ -7,8 +7,8 @@
   "include": [
     "packages/**/*.test.ts",
     "packages/*/test/fixtures/*.ts",
-    "packages/core/types/fastify-extensions.ts",
-    "packages/core/security/jwt/jwt-auth.ts"
+    "packages/web/types/fastify-extensions.ts",
+    "packages/web/security/jwt/jwt-auth.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }

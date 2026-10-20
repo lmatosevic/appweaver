@@ -4,7 +4,8 @@ import {
   RequestError,
   ResourceId
 } from '@appweaver/common';
-import { createService, currentAuthUser } from '@appweaver/core';
+import { createService } from '@appweaver/data';
+import { currentAuthUser } from '@appweaver/core';
 import db from '@db/client';
 import { LeaveRequestCreate, LeaveRequestUpdate } from '@/types';
 import { countWorkingDays } from '@/features/leave/working-days';

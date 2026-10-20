@@ -1,4 +1,4 @@
-import { registerPlugin, Server } from '@appweaver/core';
+import { registerPlugin, Server } from '@appweaver/web';
 import { logger } from '@appweaver/common';
 
 registerPlugin('RequestLogger', (server: Server) => {

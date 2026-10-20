@@ -75,7 +75,7 @@ describe('module-command', () => {
         /^docker\s+enabled/
       );
       expect(logs.find((line) => line.startsWith('queue'))).toMatch(
-        /^queue\s+disabled\s+bullmq\s+redis/
+        /^queue\s+disabled\s+@appweaver\/bullmq\s+redis/
       );
     });
   });
@@ -88,8 +88,8 @@ describe('module-command', () => {
       expect(logs).toContain('  update  docker-compose.yml');
       expect(logs).toContain('\nAdded modules: redis, queue');
       expect(readJson('package.json').dependencies).toMatchObject({
-        bullmq: expect.any(String),
-        ioredis: expect.any(String)
+        '@appweaver/bullmq': expect.any(String),
+        '@appweaver/redis': expect.any(String)
       });
       expect(
         fs.readFileSync(path.join(dir, 'docker-compose.yml'), 'utf8')
@@ -108,7 +108,7 @@ describe('module-command', () => {
       );
       expect(fs.existsSync(path.join(dir, 'templates'))).toBe(false);
       expect(readJson('package.json').dependencies).not.toHaveProperty(
-        'handlebars'
+        '@appweaver/handlebars'
       );
       expect(runProcess).not.toHaveBeenCalled();
     });
@@ -124,7 +124,7 @@ describe('module-command', () => {
       await run('add', 'mailer', '--no-install');
 
       expect(readJson('package.json').dependencies).toHaveProperty(
-        'nodemailer'
+        '@appweaver/nodemailer'
       );
       expect(runProcess).not.toHaveBeenCalled();
     });
@@ -167,7 +167,7 @@ describe('module-command', () => {
       expect(errors).toEqual([
         'Module queue requires redis, remove queue as well.'
       ]);
-      expect(readJson('package.json').dependencies).toHaveProperty('ioredis');
+      expect(readJson('package.json').dependencies).toHaveProperty('@appweaver/redis');
     });
 
     test('reports the disabled modules', async () => {

@@ -9,7 +9,7 @@ import {
   OnShutdown,
   ReadyOptions
 } from '@appweaver/common';
-import { injectAllWhere } from '../context';
+import { injectAllWhere } from '../context/dependency-injection';
 
 export abstract class LifecycleManager {
   private _initialized = false;

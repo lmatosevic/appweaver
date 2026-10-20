@@ -1,4 +1,4 @@
-import { createRoutes } from '@appweaver/core';
+import { createRoutes } from '@appweaver/web';
 import { Role, staff } from '@/features/access/roles';
 
 // The staff sees the directory, agents edit their own profile (see the policy)

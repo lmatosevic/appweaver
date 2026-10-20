@@ -1,7 +1,5 @@
 import { logger, appConfig } from '@appweaver/common';
-import { context, inject } from '../context';
-import { HttpServer } from '../server/http-server';
-import { Server } from '../types';
+import { context } from '../context/context';
 import { LifecycleManager } from './lifecycle-manager';
 
 /**
@@ -12,16 +10,6 @@ export class Application extends LifecycleManager {
   private _started = false;
   /** The process handlers added on start, removed again on stop */
   private _processHandlers: [string, (...args: any[]) => void][] = [];
-
-  /**
-   * Retrieves the Fastify instance of the HTTP server.
-   *
-   * @return {Server} The underlying Fastify server instance.
-   * @throws {ContextError} When the `@appweaver/web` module is not enabled.
-   */
-  get server(): Server {
-    return inject(HttpServer).instance;
-  }
 
   /**
    * Starts the application by calling the onInit lifecycle methods of the services implementing the `OnInit`
@@ -71,18 +59,6 @@ export class Application extends LifecycleManager {
     await this.destroy();
 
     logger.info('Application stopped');
-  }
-
-  /**
-   * Generates and returns the OpenAPI specification in JSON or YAML format.
-   *
-   * @param {'json' | 'yaml'} [format='json'] - The format in which to generate specification.
-   * @return {Promise<string>} A promise that resolves to a JSON or YAML formatted string containing the OpenAPI
-   * specification.
-   * @throws {ContextError} When the `@appweaver/web` module is not enabled.
-   */
-  public async spec(format: 'json' | 'yaml' = 'json'): Promise<string> {
-    return inject(HttpServer).spec(format);
   }
 
   /**

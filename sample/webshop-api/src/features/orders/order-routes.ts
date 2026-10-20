@@ -1,10 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import { ErrorCode } from '@appweaver/common';
-import {
-  currentAuthUser,
-  errorResponses,
-  registerRoute
-} from '@appweaver/core';
+import { currentAuthUser } from '@appweaver/core';
+import { errorResponses, registerRoute } from '@appweaver/web';
 import { ShopErrors } from '@/errors';
 import { Role } from '@/features/access/roles';
 import { cancelOrder, deliverOrder, shipOrder } from './order-status';

@@ -1,6 +1,21 @@
 require('dotenv/config');
 
-const packages = ['core', 'common', 'cli', 'client', 'create-weaver-app'];
+const packages = [
+  'core',
+  'common',
+  'data',
+  'web',
+  'redis',
+  'bullmq',
+  'cron',
+  'nodemailer',
+  'handlebars',
+  'sharp',
+  'testing',
+  'cli',
+  'client',
+  'create-weaver-app'
+];
 
 const preset = 'conventionalcommits';
 

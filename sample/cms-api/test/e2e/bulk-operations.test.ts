@@ -1,11 +1,6 @@
 import { Events } from '@appweaver/common';
-import {
-  Application,
-  createApp,
-  hashPassword,
-  inject,
-  injectService
-} from '@appweaver/core';
+import { Application, createApp, inject, injectService } from '@appweaver/core';
+import { hashPassword } from '@appweaver/data';
 import { resetTestData } from './support/reset';
 
 /**

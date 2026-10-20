@@ -33,8 +33,8 @@ const rawConfig: RawConfig = { json: {}, env: {} };
 /** The registered sections, keyed by their path. */
 export const configSections = new Map<string, ConfigSectionDefinition>();
 
-/** The section path owning each flattened key. */
-const keyOwners = new Map<string, string>();
+/** The section owning each flattened key. A section path may be defined by several packages, each with its own keys. */
+const keyOwners = new Map<string, ConfigSectionDefinition>();
 
 /**
  * Values replacing the config of any section, keyed by the flattened name (`SERVER_PORT`). Meant for tests, which set
@@ -103,16 +103,13 @@ export function defineConfig<P extends TProperties>(
   const schema: TObject = Type.Object(properties) as TObject;
 
   for (const key of Object.keys(properties)) {
-    const owner = keyOwners.get(prefix + key);
+    const owner = keyOwners.get(prefix + key)?.section;
     if (owner !== undefined && owner !== section) {
       throw new ConfigurationError(
         ErrorCode.ConfigurationInvalid,
         `Config key ${prefix + key} of section "${section}" is already defined by section "${owner}"`
       );
     }
-  }
-  for (const key of Object.keys(properties)) {
-    keyOwners.set(prefix + key, section);
   }
 
   let values: ConfigValues<P> | undefined;
@@ -133,7 +130,11 @@ export function defineConfig<P extends TProperties>(
   }
 
   Object.freeze(result);
-  configSections.set(section, { section, prefix, schema, values: result });
+  const definition = { section, prefix, schema, values: result };
+  configSections.set(section, definition);
+  for (const key of Object.keys(properties)) {
+    keyOwners.set(prefix + key, definition);
+  }
 
   return result;
 }
@@ -145,9 +146,7 @@ export function defineConfig<P extends TProperties>(
  * @return {unknown} The value of the key, or `undefined` when it is not set.
  */
 export function readConfig(key: string): unknown {
-  const owner = keyOwners.get(key);
-  const definition =
-    owner === undefined ? undefined : configSections.get(owner);
+  const definition = keyOwners.get(key);
   if (definition) {
     return definition.values[key.slice(definition.prefix.length)];
   }

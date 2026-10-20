@@ -1,5 +1,5 @@
 import { AuthUser } from '@appweaver/common';
-import { hasPermission } from '@appweaver/core';
+import { hasPermission } from '@appweaver/data';
 
 /**
  * The permissions the routes and policies check. Roles only group them (see

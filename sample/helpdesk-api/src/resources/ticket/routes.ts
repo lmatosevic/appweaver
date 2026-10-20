@@ -1,4 +1,4 @@
-import { createRoutes } from '@appweaver/core';
+import { createRoutes } from '@appweaver/web';
 import { Role, staff } from '@/features/access/roles';
 
 const staffAndIntegrations = {

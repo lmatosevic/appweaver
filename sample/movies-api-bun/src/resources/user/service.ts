@@ -1,5 +1,5 @@
 import { TwoFactorAuth } from '@appweaver/common';
-import { createAuthService } from '@appweaver/core';
+import { createAuthService } from '@appweaver/data';
 import db from '@db/client';
 import { Role } from '@/features/access/roles';
 

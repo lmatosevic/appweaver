@@ -10,7 +10,8 @@ import {
 } from '@appweaver/common';
 import { cacheConfig } from './cache-config';
 import { stringify } from 'flatted';
-import { context, inject, injectModel } from '../context';
+import { context } from '../context/context';
+import { inject, injectModel } from '../context/dependency-injection';
 import { afterCommit, currentTransaction } from '../context/transaction-scope';
 
 export class CacheService {

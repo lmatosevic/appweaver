@@ -1,9 +1,5 @@
-import {
-  Application,
-  createApp,
-  hashPassword,
-  injectService
-} from '@appweaver/core';
+import { Application, createApp, injectService } from '@appweaver/core';
+import { hashPassword } from '@appweaver/data';
 import { resetTestData } from './support/reset';
 
 /**

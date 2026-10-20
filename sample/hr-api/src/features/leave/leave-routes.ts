@@ -1,10 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import { ErrorCode } from '@appweaver/common';
-import {
-  currentAuthUser,
-  errorResponses,
-  registerRoute
-} from '@appweaver/core';
+import { currentAuthUser } from '@appweaver/core';
+import { errorResponses, registerRoute } from '@appweaver/web';
 import { HrErrors } from '@/errors';
 import { Permission } from '@/features/access/permissions';
 import { cancelLeaveRequest, decideLeaveRequest } from './leave-decision';

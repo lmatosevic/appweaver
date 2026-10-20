@@ -1,5 +1,6 @@
-import { define } from '../../context';
-import { LocaleService, registerTranslations } from '../../locale';
+import { define } from '../../context/dependency-injection';
+import { LocaleService } from '../../locale/locale-service';
+import { registerTranslations } from '../../locale/register-translations';
 import { resetContext } from '../fixtures/context-fixture';
 
 describe('register-translations', () => {

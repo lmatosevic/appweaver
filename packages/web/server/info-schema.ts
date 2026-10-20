@@ -1,0 +1,21 @@
+import { Type } from '@sinclair/typebox';
+import { errorResponses } from '../errors/error-schema';
+import { createSchemaModel } from '@appweaver/core';
+
+export const InfoResponse = Type.Object(
+  {
+    name: Type.String(),
+    version: Type.String()
+  },
+  { $id: 'InfoResponse' }
+);
+
+export const infoSchema = {
+  tags: ['Info'],
+  summary: 'Application info',
+  description: 'Application info',
+  response: {
+    200: createSchemaModel(InfoResponse),
+    ...errorResponses()
+  }
+};

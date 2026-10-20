@@ -1,4 +1,4 @@
-import { createModel } from '@appweaver/core';
+import { createModel } from '@appweaver/data';
 
 /** The annual leave days of an employee for one calendar year. */
 export default createModel({

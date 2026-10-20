@@ -1,4 +1,4 @@
-import { createModel } from '@appweaver/core';
+import { createModel } from '@appweaver/data';
 
 /** A reusable reply, shared by a team or by everyone. */
 export default createModel({

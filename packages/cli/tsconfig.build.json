@@ -9,7 +9,11 @@
       "@appweaver/core/*": ["../core/*"],
       "@appweaver/common": ["../common"],
       "@appweaver/common/*": ["../common/*"],
-      "@appweaver/create-weaver-app/*": ["../create-weaver-app/*"]
+      "@appweaver/create-weaver-app/*": ["../create-weaver-app/*"],
+      "@appweaver/data": ["../data"],
+      "@appweaver/data/*": ["../data/*"],
+      "@appweaver/web": ["../web"],
+      "@appweaver/web/*": ["../web/*"]
     }
   },
   "exclude": ["node_modules", "dist", "test/**/*", "**/*.test.ts"],
@@ -22,6 +26,12 @@
     },
     {
       "path": "../create-weaver-app/tsconfig.build.json"
+    },
+    {
+      "path": "../data/tsconfig.build.json"
+    },
+    {
+      "path": "../web/tsconfig.build.json"
     }
   ]
 }

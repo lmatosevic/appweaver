@@ -1,4 +1,4 @@
-import { createAuthModel } from '@appweaver/core';
+import { createAuthModel } from '@appweaver/data';
 
 export default createAuthModel({
   name: 'User',

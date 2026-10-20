@@ -1,10 +1,6 @@
 import { Database, makeHash, randomString } from '@appweaver/common';
-import {
-  Application,
-  hashPassword,
-  inject,
-  apiKeyConfig
-} from '@appweaver/core';
+import { Application, inject } from '@appweaver/core';
+import { hashPassword, apiKeyConfig } from '@appweaver/data';
 import { Role } from '@/features/access/roles';
 
 export const PASSWORD = 'Passw0rd!';

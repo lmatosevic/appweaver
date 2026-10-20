@@ -27,13 +27,16 @@ const packageVersions: Record<string, string> = (() => {
 })();
 
 /**
- * Returns the version a package is scaffolded with.
+ * Returns the version a package is scaffolded with, the {@link frameworkVersion} for an Appweaver package.
  *
  * @param {string} name - The package name.
  * @return {string} The exact version of the package.
  * @throws {ScaffoldError} When the package has no scaffold dependency version.
  */
 export function packageVersion(name: string): string {
+  if (name.startsWith('@appweaver/')) {
+    return frameworkVersion;
+  }
   const version = packageVersions[name];
   if (!version) {
     throw new ScaffoldError(`Missing scaffold dependency version of ${name}`);

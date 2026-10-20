@@ -1,4 +1,5 @@
 import {
+  AbstractCtor,
   Cache,
   configOverrides,
   defineModule,
@@ -10,21 +11,55 @@ import {
   SecurityStore,
   Storage
 } from '@appweaver/common';
-import { context, isDefined } from '../../context';
+import { context } from '../../context/context';
+import { isDefined } from '../../context/dependency-injection';
 import { EnabledModule } from '../../app/discover-modules';
 import { loadProviders, selectedProvider } from '../../app/load-providers';
 import { firstPartyModules } from '../../modules';
 import { resetContext } from '../fixtures/context-fixture';
 
-const allModules: EnabledModule[] = firstPartyModules.map(({ module }) => ({
-  module,
-  source: 'core'
-}));
+const load = () => import('../../memory/in-memory');
+
+/** A driver module, standing in for a first-party driver package. */
+const driverModule = (
+  name: string,
+  contract: AbstractCtor,
+  provider: string
+): EnabledModule => ({
+  module: defineModule({
+    name,
+    providers: [{ contract, name: provider, load }]
+  }),
+  source: 'package'
+});
+
+/** A module standing in for @appweaver/data, with its fallback security store. */
+const dataModule: EnabledModule = {
+  module: defineModule({
+    name: '@appweaver/data',
+    providers: [
+      { contract: SecurityStore, name: 'database', load, auto: 'fallback' }
+    ]
+  }),
+  source: 'package'
+};
 
 /** The modules of core and data, without any driver module. */
-const coreModules = allModules.filter(({ module }) =>
-  ['@appweaver/core', '@appweaver/data'].includes(module.name)
-);
+const coreModules: EnabledModule[] = [
+  ...firstPartyModules.map(({ module }) => ({
+    module,
+    source: 'core' as const
+  })),
+  dataModule
+];
+
+const allModules: EnabledModule[] = [
+  ...coreModules,
+  driverModule('@appweaver/redis', Memory, 'redis'),
+  driverModule('@appweaver/bullmq', Queue, 'bullmq'),
+  driverModule('@appweaver/cron', Scheduler, 'cron'),
+  driverModule('@appweaver/nodemailer', Mailer, 'smtp')
+];
 
 const definedNames = () => context.definitions.map((def) => String(def.name));
 
@@ -53,7 +88,7 @@ describe('load-providers', () => {
       expect(selectedProvider(Mailer)).toBe('smtp');
       expect(selectedProvider(SecurityStore)).toBe('database');
       expect(definedNames()).toEqual(
-        expect.arrayContaining(['EmailService', 'LocaleService', 'HttpServer'])
+        expect.arrayContaining(['EmailService', 'LocaleService'])
       );
     });
 

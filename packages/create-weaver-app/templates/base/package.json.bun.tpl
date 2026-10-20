@@ -20,6 +20,9 @@
     "@appweaver/cli": "{{VERSION}}",
     "@appweaver/common": "{{VERSION}}",
     "@appweaver/core": "{{VERSION}}",
+    "@appweaver/data": "{{VERSION}}",
+    "@appweaver/sharp": "{{VERSION}}",
+    "@appweaver/web": "{{VERSION}}",
 {{DEPENDENCIES}}
   },
   "devDependencies": {

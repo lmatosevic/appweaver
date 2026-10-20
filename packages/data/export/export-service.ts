@@ -1,0 +1,260 @@
+import { Readable } from 'node:stream';
+import {
+  ErrorCode,
+  ExportConfig,
+  extractResourceName,
+  extractSchemaProperties,
+  isArray,
+  isCountField,
+  isFunction,
+  isPlainObject,
+  isString,
+  logger,
+  plural,
+  QueryResponse,
+  QuerySort,
+  ExportError
+} from '@appweaver/common';
+import { exportConfig } from './export-config';
+import { injectModel, injectService } from '@appweaver/core';
+import { generateFileName } from '../utils/file-util';
+import { toCsv } from '../utils/export-util';
+
+export type ExportStream = {
+  stream: Readable;
+  fileName: string;
+  mimeType: string;
+};
+
+export class ExportService {
+  /**
+   * Exports data as a CSV stream based on the provided filter and sort parameters.
+   * The records are read batch by batch, each following the cursor of the
+   * previous one, so the export never counts the records up front.
+   *
+   * @param {string} modelName - The resource name for which to export data.
+   * @param {Object} [filter={}] - The filter conditions to apply when retrieving the data. Default is an empty object.
+   * @param {QuerySort} [sort='-createdAt'] - The sorting criteria for the data, given either as a comma-separated
+   * field list or as an object of field directions.
+   * @return {Promise<ExportStream>} A promise resolving to the export stream object, which includes the readable
+   * stream, MIME type, and file name for the CSV.
+   */
+  public async exportCsv(
+    modelName: string,
+    filter: any = {},
+    sort: QuerySort = '-createdAt'
+  ): Promise<ExportStream> {
+    const service = injectService(modelName);
+
+    let exportStream: Readable;
+    try {
+      const batchSize = exportConfig.BATCH_SIZE;
+
+      const mapValues = (items: any[]) => this.mapProperties(modelName, items);
+      const readBatch = (cursor?: string | null) =>
+        service.query({
+          filter,
+          size: batchSize,
+          sort,
+          cursor,
+          totalCount: false
+        });
+
+      // Read before the stream is handed out, so a failing query becomes an
+      // error response instead of a truncated download
+      const firstBatch = await readBatch();
+
+      // A generator rather than a `read` callback, which the stream may re-enter
+      // while an awaited batch is pending and would then write it twice
+      async function* rows(): AsyncGenerator<string> {
+        if (exportConfig.CSV_ADD_SEP_ROW) {
+          yield `SEP=${exportConfig.CSV_DELIMITER}\n`;
+        }
+
+        let batch: QueryResponse<any> | undefined = firstBatch;
+        let addHeaders = exportConfig.CSV_ADD_HEADERS;
+
+        while (batch) {
+          let chunk: string | undefined;
+          let next: QueryResponse<any> | undefined;
+
+          try {
+            if (batch.resultCount > 0) {
+              chunk = toCsv(mapValues(batch.items), addHeaders);
+              addHeaders = false;
+            }
+
+            // A next cursor is returned only while further records match
+            next = batch.nextCursor
+              ? await readBatch(batch.nextCursor)
+              : undefined;
+          } catch (e) {
+            // End early rather than fail a download already in flight
+            logger.error(e, `${modelName} export error`);
+            next = undefined;
+          }
+
+          if (chunk !== undefined) {
+            yield chunk;
+          }
+          batch = next;
+        }
+      }
+
+      exportStream = Readable.from(rows(), { objectMode: false });
+    } catch (e) {
+      throw new ExportError(
+        ErrorCode.ExportFailed,
+        `${modelName} export failed`,
+        { model: modelName },
+        { cause: e }
+      );
+    }
+
+    const fileName = this.generateExportFileName(modelName, 'csv');
+
+    logger.debug({ modelName, filter, fileName }, 'CSV File export');
+
+    return { stream: exportStream, mimeType: 'text/csv', fileName };
+  }
+
+  /** @internal */
+  private mapProperties(resourceName: string, items: any[]): any[] {
+    const properties: any[] = [];
+
+    for (const item of items) {
+      const property = this.mapProperty(resourceName, item);
+      properties.push(property);
+    }
+
+    return properties;
+  }
+
+  /** @internal */
+  private mapProperty(
+    resourceName: string,
+    item: any,
+    resourceExportConfig?: ExportConfig,
+    parentKey: string = ''
+  ): any {
+    const resourceModel = injectModel(resourceName);
+    const readModel = resourceModel.readModel;
+    const relationsModel = resourceModel.relationsModel;
+    const filesModel = resourceModel.filesModel;
+    const fieldsConfig = resourceExportConfig ?? resourceModel.config.export;
+
+    const property = {};
+
+    for (const key in item) {
+      let value = item[key];
+
+      const modelSchema = extractSchemaProperties(readModel, key);
+      const relationSchema = extractSchemaProperties(relationsModel, key);
+      const fileSchema = extractSchemaProperties(filesModel, key);
+      if (
+        !modelSchema &&
+        !relationSchema &&
+        !fileSchema &&
+        !isCountField(key)
+      ) {
+        // Skip mapping for non-exposed fields.
+        continue;
+      }
+
+      // The records are read from the database rather than through a response
+      // schema, so the fields no response carries are dropped here instead.
+      if (
+        modelSchema?.['hidden'] === true ||
+        resourceModel.config.virtual?.[key]?.output?.type === 'none'
+      ) {
+        continue;
+      }
+
+      let header = parentKey ? `${parentKey}.${key}` : key;
+
+      const isArrayValue = isArray(value);
+
+      const exportField = fieldsConfig?.[key];
+      if (exportField) {
+        if (exportField.exclude === true) {
+          // Skip mapping for excluded fields.
+          continue;
+        }
+
+        if (isString(exportField.headerName)) {
+          header = parentKey
+            ? `${parentKey}.${exportField.headerName}`
+            : exportField.headerName;
+        }
+
+        const mapValue = exportField.mapValue;
+        if (mapValue) {
+          // A scalar value has no properties to read the configured field name
+          // off, so it is resolved against the exported record itself.
+          if (isString(mapValue) && !relationSchema && !fileSchema) {
+            value = item?.[mapValue];
+          } else {
+            const mappedValues: string[] = [];
+
+            // Transform value items using mapValue configuration.
+            const subItems = isArrayValue ? value : [value];
+            for (const subItem of subItems) {
+              if (isFunction(mapValue)) {
+                try {
+                  mappedValues.push(mapValue(subItem));
+                } catch (e) {
+                  mappedValues.push('');
+                  logger.error(e, 'Export value mapping error.');
+                }
+              } else if (isString(mapValue)) {
+                mappedValues.push(subItem?.[mapValue]);
+              }
+            }
+
+            value = mappedValues.join(',');
+          }
+        }
+      }
+
+      // Recursively map relation and file fields if the value is an object.
+      // Arrays of plain values are written as a single column below.
+      if (isPlainObject(value) || (isArrayValue && isPlainObject(value[0]))) {
+        const relationName = extractResourceName(relationSchema ?? fileSchema);
+        if (!relationName) {
+          continue;
+        }
+
+        const subItems = isArrayValue ? value : [value];
+        for (const subItem of subItems) {
+          const mappedItem = this.mapProperty(
+            relationName,
+            subItem,
+            exportField,
+            header
+          );
+          for (const subKey in mappedItem) {
+            if (subKey in property) {
+              property[subKey] = [property[subKey], mappedItem[subKey]].join(
+                exportConfig.CSV_JOIN_DELIMITER
+              );
+            } else {
+              property[subKey] = mappedItem[subKey];
+            }
+          }
+        }
+      } else {
+        property[header] = value;
+      }
+    }
+
+    return property;
+  }
+
+  /** @internal */
+  private generateExportFileName(modelName: string, extension: string): string {
+    return generateFileName(
+      `${plural(modelName)}.${extension}`,
+      '{name}_{year}{month}{day}_{hours}{minutes}{seconds}.{extension}'
+    );
+  }
+}

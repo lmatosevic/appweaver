@@ -1,10 +1,10 @@
 import { TemplateEngine } from '@appweaver/common';
-import { define } from '../../context';
+import { define } from '../../context/dependency-injection';
 import {
   registerTemplate,
   registerTemplateHelper,
   registerTemplateHelpers
-} from '../../template';
+} from '../../template/register-template';
 import { resetContext } from '../fixtures/context-fixture';
 
 describe('register-template', () => {

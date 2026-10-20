@@ -1,4 +1,4 @@
-import { createAuthService } from '@appweaver/core';
+import { createAuthService } from '@appweaver/data';
 
 // Customers register through the /register route, admins create other users
 export default createAuthService({

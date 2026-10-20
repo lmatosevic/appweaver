@@ -1,4 +1,4 @@
-import { createPolicy } from '@appweaver/core';
+import { createPolicy } from '@appweaver/data';
 import { can, Permission } from '@/features/access/permissions';
 
 export default createPolicy({
