@@ -6,6 +6,8 @@ import {
   defineErrors
 } from '@appweaver/common';
 import { errorType, toProblem } from '../../errors/problem';
+// Registers the translator of the Prisma errors
+import '../../database/database-error';
 
 /** Creates an error shaped like the ones of Fastify and its plugins. */
 const fastifyError = (props: Record<string, unknown>, message = 'failed') =>
@@ -238,6 +240,7 @@ describe('problem', () => {
       try {
         const { toProblem: enabledToProblem } =
           await import('../../errors/problem');
+        await import('../../database/database-error');
 
         const problem = enabledToProblem(
           prismaError(
