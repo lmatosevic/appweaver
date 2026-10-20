@@ -44,7 +44,7 @@
       "@appweaver/web/*": ["./packages/web/*"],
       "@appweaver/cli": ["./packages/cli"],
       "@appweaver/cli/*": ["./packages/cli/*"],
-      "@appweaver/create-weaver-app/*": ["./packages/create-weaver-app/*"]
+      "@appweaver/create/*": ["./packages/create/*"]
     }
   },
   "include": ["packages/**/*", "eslint.config.mjs"],

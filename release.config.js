@@ -14,7 +14,7 @@ const packages = [
   'testing',
   'cli',
   'client',
-  'create-weaver-app'
+  'create'
 ];
 
 const preset = 'conventionalcommits';

@@ -31,7 +31,7 @@ const lockedPackages = [
   'testing',
   'cli',
   'client',
-  'create-weaver-app'
+  'create'
 ];
 
 const cliArgs = process.argv.slice(2);
