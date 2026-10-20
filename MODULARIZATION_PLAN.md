@@ -13,7 +13,8 @@ external users yet.
   module can do.
 - Anyone can publish a module that implements a framework contract (Google Cloud Storage, a Brevo or Mailgun
   mailer, ...) or adds any other feature, with its own validated config in `appweaver.json` and environment variables.
-- A new module is scaffolded with one command, as an npm package or as a folder inside an application.
+- A new module is scaffolded with one command, as an npm package or as a folder inside an application, and any module
+  is added to or removed from an application with one command.
 
 ## 2. Current state
 
@@ -89,7 +90,7 @@ Why not keep one package:
 - The decoupling of section 2.2 is needed for apps without a server anyway, and it is most of the work.
 - `core/index.ts` re-exports every module, so one package loads Fastify and sharp in every app. Getting the size win
   within one package would turn Fastify, its plugins and sharp into optional peers that every app installs by hand.
-- `scaffoldDependencies.companion`, the companion bumps of `weaver update` and their version test exist only because
+- `scaffoldDependencies.companion`, the companion bumps of `weaver upgrade` and their version test exist only because
   core cannot declare `bullmq`, `cron`, ... as dependencies. A driver package declares them.
 - Package boundaries rule out import cycles by construction.
 
@@ -321,7 +322,7 @@ Every module, first- or third-party, has the same shape:
   test/                 runs the Storage contract suite of @appweaver/testing
 ```
 
-The `src/` directory of a package is what a local module is in `src/modules/<name>/` of an app (section 10.2), and
+The `src/` directory of a package is what a local module is in `src/modules/<name>/` of an app (section 10.4), and
 the manifest field points at its build output.
 
 ```jsonc
@@ -364,6 +365,7 @@ export default defineModule({
 | `main`                 | Module path loaded at startup: scheduled jobs, queue workers, event listeners                   |
 | `web`                  | Module path of its resource routes, custom routes and Fastify plugins, loaded only with `web`   |
 | `commands`             | Module path exporting `weaver` subcommands, i.e. `weaver newsletter:send`                       |
+| `scaffold`             | What `weaver module add` adds to an application: files, config values, Docker services (10.2)   |
 | `seeders`              | Its seeders directory                                                                           |
 | `locales`, `templates` | Its translation and template directories, overridden by the files of the app                    |
 
@@ -465,11 +467,11 @@ MAILER_BREVO_API_KEY=...
    `healthCheck` and the other `security` subsections (routes, JWT, OAuth2, captcha). Keys are renamed where a section
    moves, i.e. `config.SERVER_PORT` becomes `serverConfig.PORT`. Applications use the same typed API for their own
    settings instead of `config.str('MY_KEY')`.
-6. **The config documentation is generated.** `weaver config schema` (also run by `weaver generate` and `weaver add`)
-   builds the JSON Schema that `$schema` of `appweaver.json` points to, from the sections of the enabled modules,
-   since a TypeBox schema is a JSON Schema. It also generates the `.env.example` block and the config table of the
-   docs. This retires `common/config/schema.json` and `config-type.ts`, and the five files `AGENTS.md` lists for a
-   config change come down to the one TypeBox definition.
+6. **The config documentation is generated.** `weaver config schema` (also run by `weaver generate` and
+   `weaver module add`) builds the JSON Schema that `$schema` of `appweaver.json` points to, from the sections of the
+   enabled modules, since a TypeBox schema is a JSON Schema. It also generates the `.env.example` block and the config
+   table of the docs. This retires `common/config/schema.json` and `config-type.ts`, and the five files `AGENTS.md`
+   lists for a config change come down to the one TypeBox definition.
 7. **`weaver config print`** shows each value, secrets hidden, with the source it came from, and
    **`weaver config check --env prod`** validates the config of every selected driver in CI.
 
@@ -510,7 +512,8 @@ Rules for evolving them:
 - **`@appweaver/testing`** provides a test suite per contract (`testStorageContract(() => new GcsStorage())`,
   `testMailerContract(...)`, ...) and `createTestApp()`. The first-party drivers run the same suites. The suites use
   the `describe`/`test` globals, so they run in Jest, Vitest and Bun.
-- **`weaver add <package>`** installs any module, first- or third-party, and writes a config skeleton from its declared
+- **`weaver module add <package>`** (section 10.2) installs any module, first- or third-party, applies what its
+  manifest declares to scaffold (config values, files, Docker services) and writes a config skeleton from its declared
   sections, without running any script of the module.
 - **`skill/references/modules.md`** teaches AI agents how to write a module.
 - **Naming**: `appweaver-<name>` or `@scope/appweaver-<name>`, with the npm keyword `appweaver-module` to find them.
@@ -522,39 +525,122 @@ One scaffolder for applications and modules, `@appweaver/create` (renamed `creat
 (starter kits) do the same. The `.tpl` variables, the `.node`/`.bun` variants, the dependency versions of
 `scaffoldDependencies` and the agent skill files are shared by both, and the templates are small.
 
+One scaffold engine, exported as `@appweaver/create/scaffold`, adds the modules both when a project is created and
+later with `weaver module`, so a module gives the same files whenever it is added.
+
 ```bash
-npm create @appweaver my-api                                       # application (default command)
-npm create @appweaver my-worker -- --no-web                        # application without the HTTP stack
-npm create @appweaver module appweaver-gcs -- --contract storage   # driver of a contract
-npm create @appweaver module appweaver-newsletter                  # feature module
+npm create @appweaver my-app                                        # minimal application, core only
+npm create @appweaver my-api -- --add web data redis queue docker   # modules added at creation
+npm create @appweaver my-api -- --all --no-docker                   # every module but Docker
+npm create @appweaver module appweaver-gcs -- --contract storage    # package of a driver
+npm create @appweaver module appweaver-newsletter                   # package of a feature module
 ```
 
-**Terminology**: a _module_ is any package with an Appweaver manifest, a _driver_ is a module implementing a contract.
+**Terminology**: a _module_ is any package with an Appweaver manifest, or one of the two scaffold-only modules of the
+scaffolder (`locales`, `docker`), which add files but no package. A _driver_ is a module implementing a contract.
 _Plugin_ keeps meaning a Fastify plugin (`registerPlugin`).
 
-### 10.1 Module templates
+### 10.1 Creating an application
 
-- **Driver** (`--contract storage | mailer | queue | cache | memory | scheduler | events | template | image |
-security-store`):
-  a class extending the contract with every abstract method stubbed and documented, its config section under the
-  contract (`storage.<name>`, `STORAGE_<NAME>_*`), and the contract suite of `@appweaver/testing` already wired.
+- The project starts minimal: `core` and `common`, the lint and test tooling, `src/main.ts`, `appweaver.json` and the
+  agent skill files. Every other part is a module, added with `--add <modules...>` (separated by spaces or commas) or
+  `--all`, where `--no-<module>` leaves one out of `--all`.
+- A module required by an added one comes along with it (`queue` adds `redis`), and leaving out a module that a
+  selected one requires is an error.
+- The command asks no questions, so agents and scripts run it as it is.
+- `--database sqlite | postgresql | mysql | sqlserver` picks the Prisma driver adapter of the `data` module, `sqlite`
+  by default, and its Docker service.
+- Creating a project creates the minimal project, then adds its modules exactly like `weaver module add`.
+
+The first-party modules have reserved short names, every other module is named by its package:
+
+| Module      | Package                               | Adds                                                                    | Without it                               |
+| ----------- | ------------------------------------- | ----------------------------------------------------------------------- | ---------------------------------------- |
+| `web`       | `@appweaver/web`                      | The server config, `public/`, the e2e test setup of the routes          | No server                                |
+| `data`      | `@appweaver/data`                     | Prisma, its adapter, `database/`, the User resource (routes with `web`) | No database                              |
+| `redis`     | `@appweaver/redis`                    | The Redis connection, its `docker-compose.yml` service                  | Per-process memory, cache and rate limit |
+| `queue`     | `@appweaver/bullmq`, requires `redis` | The test override to the memory queue                                   | The memory queue                         |
+| `scheduler` | `@appweaver/cron`                     | The test override not starting the jobs                                 | Scheduler disabled                       |
+| `mailer`    | `@appweaver/nodemailer`               | The SMTP config, the account email templates with `templates`           | Mailer disabled                          |
+| `templates` | `@appweaver/handlebars`               | `templates/`                                                            | No template engine                       |
+| `images`    | `@appweaver/sharp`                    | Nothing besides the package                                             | Images stored as uploaded                |
+| `locales`   | None, scaffold-only                   | `locales/en.json`                                                       | English texts written into the templates |
+| `docker`    | None, scaffold-only                   | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`         | No Docker files                          |
+
+An application kind of section 4.1 is its list of modules, i.e. `--add data scheduler` for the SQLite job runner.
+
+### 10.2 Adding and removing modules
+
+```bash
+weaver module list                      # every module, enabled or not, with its packages and requirements
+weaver module add templates locales     # first-party modules by their short name
+weaver module add @acme/appweaver-gcs   # any other module by its package name
+weaver module remove docker
+weaver module new newsletter            # a local module (section 10.4)
+```
+
+`weaver module` (alias `mod`, `list` alias `ls`, `remove` alias `rm`):
+
+- **`add`** installs the packages of the module (the first-party ones at the version of the CLI, the others at a
+  release whose `framework` range fits), sets its `appweaver.json` values, writes its files, skipping an existing file
+  that differs unless `--force` is passed, and adds what it brings to the modules already enabled: the Redis service of
+  `docker-compose.yml`, the Dockerfile `COPY` blocks, the account email templates. The modules it requires come along.
+- **`remove`** reverts all of it in the reverse order and deletes the files and the directories of the module (the whole
+  `templates/` or `locales/`, the Docker files). It refuses to remove a module that a remaining one requires, and
+  removing `locales` first writes the English texts of `locales/en.json` into the templates.
+- Both never touch `src/` and keep the `appweaver.json` values the project changed. `--dry-run` prints the changes,
+  `--no-install` skips the installation, `--verbose` prints its output.
+- The enabled modules are the ones the runtime discovers (section 6.3), from the dependencies, and for the scaffold-only
+  modules from their marker (`locales/`, `Dockerfile`).
+
+What a module adds is declared in the `scaffold` field of its manifest (section 6.2), so a third-party module scaffolds
+exactly like a first-party one:
+
+| `scaffold` field | Purpose                                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------- |
+| `files`          | Directory copied into the project (`.tpl` variables, `.node`/`.bun` variants), deleted again on removal |
+| `directories`    | Directories the module owns, deleted with all of their contents on removal                              |
+| `config`         | The `appweaver.json` values set while it is enabled, i.e. `config.redis.url` or an override of `test`   |
+| `compose`        | Its `docker-compose.yml` services, added while `docker` is enabled                                      |
+| `dockerfile`     | Its Dockerfile blocks (the `COPY` of its directories), added while `docker` is enabled                  |
+| `with`           | Directories of files applying only while another module is enabled too (`mailer` with `templates`)      |
+| `marker`         | For a scaffold-only module, the file whose presence marks it enabled                                    |
+
+- No module sets values while it is disabled: the `auto` providers fall back by themselves (section 6.3), so removing
+  `redis` needs no in-memory provider written into `appweaver.json`.
+- `docker-compose.yml` is edited with the document API of `yaml`, keeping its formatting and comments, so adding and
+  removing a service gives back the same file byte for byte.
+- The integrations that transform files instead of copying them, like writing the English texts into the templates when
+  `locales` goes, stay code of the scaffold engine, for its scaffold-only modules.
+- The first-party packages keep their scaffold files in their own package, and the build copies them into
+  `@appweaver/create`, so a project is created without installing anything first, also with `--no-install`.
+- Every module and every integration stays reversible. A test checks that every valid combination of the first-party
+  modules gives the same files created at once, added one at a time, or removed from a full project.
+
+### 10.3 Module package templates
+
+- **Driver** (`--contract` with `storage`, `mailer`, `queue`, `cache`, `memory`, `scheduler`, `events`, `template`,
+  `image` or `security-store`): a class extending the contract with every abstract method stubbed and documented, its
+  config section under the contract (`storage.<name>`, `STORAGE_<NAME>_*`), and the contract suite of
+  `@appweaver/testing` already wired.
 - **Feature** (default): a package importing `@appweaver/core` and `@appweaver/common` that can add anything. Each part
   is optional and switched by flags (`--no-resources`, `--no-web`, ...): services, models with their service and
   policy (in its `resources` entry, with `@appweaver/data` as an optional peer), routes and Fastify plugins (in its
   `web` entry, with `@appweaver/web` as an optional peer), scheduled jobs, queue workers and event listeners, seeders,
-  locales and templates, its own config section.
+  locales and templates, its own config section and its `scaffold` field.
 
 Every module project contains:
 
 ```
 appweaver-gcs/
   package.json         keyword appweaver-module, "appweaver": { "module" }, peers common and core ^2
-  src/module.ts        defineModule({ name, framework, config, providers, ... })
+  src/module.ts        defineModule({ name, framework, config, providers, scaffold, ... })
   src/config.ts        defineConfig('storage.gcs', { ... })
   src/                 the implementation
+  scaffold/            the files it adds to an application, if any
   test/                the contract suite and a module test with createTestApp()
   playground/          a small application loading the module from "..", started with `npm run dev`
-  README.md            install steps (`weaver add ...`) and the generated config table
+  README.md            install steps (`weaver module add ...`) and the generated config table
   CLAUDE.md, skill     guidelines for AI agents writing modules (references/modules.md)
   tsconfig, eslint, jest and swc (or bun), CI and npm publish workflows
 ```
@@ -569,15 +655,15 @@ appweaver-gcs/
   package modules out of its own registry, since TypeScript rejects the same registry key declared twice with
   different types. `data` works the same way for its own models, replacing the `--no-registry` of core.
 
-### 10.2 Modules inside an application
+### 10.4 Modules inside an application
 
-`weaver new module <name> [--contract storage]` creates the same structure in `src/modules/<name>/` of an application,
+`weaver module new <name> [--contract storage]` creates the same structure in `src/modules/<name>/` of an application,
 without a `package.json`, its playground and its publish workflow. The local module discovery (section 6.3) enables it
 without any config step, and the application compiles it with its own sources.
 
 | Location              | Created with                   | Found by                                     | Dependencies                          |
 | --------------------- | ------------------------------ | -------------------------------------------- | ------------------------------------- |
-| `src/modules/<name>/` | `weaver new module <name>`     | `app.modulesPattern`, no config              | The `package.json` of the app         |
+| `src/modules/<name>/` | `weaver module new <name>`     | `app.modulesPattern`, no config              | The `package.json` of the app         |
 | Its own npm package   | `npm create @appweaver module` | The dependencies of the app's `package.json` | Its own, `core` and `common` as peers |
 
 A local module that proves useful elsewhere moves into its own package unchanged, like a NestJS library
@@ -586,23 +672,40 @@ A local module that proves useful elsewhere moves into its own package unchanged
 `@/` aliases, which a lint rule of the app template enforces for `src/modules/**`. While it is local, the app registers
 its models, since they are part of its sources. AI agents learn a single module format.
 
-### 10.3 Scaffolder changes
+### 10.5 Upgrading an application
+
+`weaver upgrade` (alias `up`) replaces `weaver update`, which is removed. It upgrades the `@appweaver/*` packages to one
+version (every first-party module among them), the companion packages left in `scaffoldDependencies` (Prisma, its
+adapters, TypeBox, TypeScript), and the agent skill files, with the options of today (`--target-version`,
+`--no-skill`, `--no-companions`, `--tooling`, `--dry-run`, `--force`). The third-party modules keep their versions, and
+a module whose `framework` range excludes the target version is reported before anything is installed.
+
+### 10.6 Scaffolder changes
 
 1. Rename the package to `@appweaver/create`, with the commander commands `app` (default) and `module`.
-2. Move the templates to `templates/app/` (the current `default`) and
-   `templates/module/{base,feature,driver/<contract>}/`.
-3. Extract the shared steps of `create-weaver-app.ts` (variables, runtime variants, agent skill files, dependency
+2. Move the engine into `scaffold/`, exported as `@appweaver/create/scaffold`: the module catalog read from the
+   manifests, adding and removing modules with their integrations, loading an existing project with its enabled
+   modules, and `ProjectFiles`, staging every write and deletion until a commit, which a dry run prints instead.
+3. Split the templates into `templates/app/base/` (the minimal project), `templates/app/modules/<name>/` and
+   `<a>+<b>/` (the scaffold-only modules, and the copies of the first-party scaffolds), and
+   `templates/module/{base,feature,driver/<contract>}/` (the module packages).
+4. `@appweaver/cli` depends on `@appweaver/create` for the engine of `weaver module`, at its exact version:
+   `tools/copy-packages.js` pins the `@appweaver/*` dependencies of the published manifests to the release, and
+   `tools/lock-samples.js` pins `@appweaver/create` too. The other way round, `npm create @appweaver` would install the
+   peers of the CLI (core, Prisma, TypeScript).
+5. Extract the shared steps of `create-weaver-app.ts` (variables, runtime variants, agent skill files, dependency
    versions) into utils used by both commands.
-4. Write the driver stubs by hand per contract, and add a test that scaffolds the driver of every contract and
+6. Write the driver stubs by hand per contract, and add a test that scaffolds the driver of every contract and
    type-checks it against `@appweaver/common`, so no stub falls behind its contract.
-5. Add a CI test that scaffolds a driver and a feature module against the built local packages and runs their tests,
-   the contract suite included.
+7. Add the combination test of section 10.2, and a CI test that scaffolds a driver and a feature module package
+   against the built local packages and runs their tests, the contract suite included.
 
 ## 11. Phases
 
 ### Quick wins, at any time
 
 - Replace `date-fns` with small UTC date helpers, saving 28 MB in every app.
+- Rename `weaver update` to `weaver upgrade` (alias `up`), removing `update`.
 - Import `sharp` lazily, only when an upload configures an image transform.
 
 ### Phase 1: decouple inside the current core
@@ -629,6 +732,10 @@ its models, since they are part of its sources. AI agents learn a single module 
    and account services) into `security/http/`, and the database code (`database`, `resource`, `factory`, the auth
    data model, `FileService`, the database security store, `export`, `seeder`) apart from the runtime of core.
 10. The lint rules of the target graph.
+11. The scaffold engine and `weaver module list | add | remove` with the optional parts of today as modules (`redis`,
+    `queue`, `scheduler`, `mailer`, `templates`, `locales`, `docker`): the minimal project by default, `--add`,
+    `--all` and `--no-<module>` (`--no-cron` becoming `--no-scheduler`), `@appweaver/cli` depending on the scaffolder
+    at its exact version, and the combination test.
 
 These come first, so that every package is created with them, and the contracts change once, before any driver moves.
 
@@ -638,23 +745,25 @@ These come first, so that every package is created with them, and the contracts 
    each with its `module.ts` and config sections, and the tests moved along with `git mv`.
 2. Update the tooling: tsconfig references and root `paths`, the package lists of `release.config.js` and
    `tools/lock-samples.js`, the shared fixtures in `@appweaver/testing`, `scaffoldDependencies.companion` reduced to
-   Prisma, the adapters, TypeBox and TypeScript, and the simplified `weaver update`.
-3. Move the samples and the app template of `create-weaver-app` to the new packages, the driver flags installing the
-   `@appweaver/*` drivers, a new `--no-web` and `--database none`, so the scaffolded projects keep working through the
-   prereleases. Add two samples beyond the web ones: scheduled jobs storing their data in SQLite (`core`, `data`,
-   `cron`), and a web app without a database sending emails (`core`, `web`, `nodemailer`, `handlebars`).
+   Prisma, the adapters, TypeBox and TypeScript, and the simplified `weaver upgrade`.
+3. Move the samples and the scaffolder to the new packages: each package declares its `scaffold` field, the build
+   copies the first-party scaffolds into the scaffolder, and `web`, `data` and `images` become modules of the minimal
+   project, so the scaffolded projects keep working through the prereleases. Add two samples beyond the web ones:
+   scheduled jobs storing their data in SQLite (`core`, `data`, `cron`), and a web app without a database sending
+   emails (`core`, `web`, `nodemailer`, `handlebars`).
 4. Publish `2.0.0-next.N` prereleases.
 
 ### Phase 3: module tooling and outside validation
 
 1. Add the contract suites of `@appweaver/testing`, passed by every first-party driver.
-2. Rename the scaffolder to `@appweaver/create` and add its module templates, and `weaver new module`.
+2. Rename the scaffolder to `@appweaver/create`, add its module package templates and `weaver module new`, and let
+   `weaver module add` take any module by its package name.
 3. Build a Google Cloud Storage driver and a Brevo mailer with the module template, in repositories outside the
    monorepo, and fix the gaps they expose in the contracts, the config and the templates.
 
 ### Phase 4: developer experience and release
 
-1. `weaver add`, `weaver config print` and `weaver config check`.
+1. `weaver config print` and `weaver config check`.
 2. `SKILL.md`, `skill/references/*.md` (with the new `modules.md` and the generated configuration reference),
    `AGENTS.md` and the package READMEs.
 3. Release `2.0.0` with the contracts frozen.
@@ -667,9 +776,12 @@ These come first, so that every package is created with them, and the contracts 
 - **A public contract is a commitment.** Every breaking change of a contract breaks the packages of other people, hence
   the outside drivers of phase 3 before the freeze.
 - **The registry of module models.** A model registered by its module and again by the app fails the type check
-  (section 10.1), so `weaver generate` must tell package modules from local ones.
+  (section 10.3), so `weaver generate` must tell package modules from local ones.
+- **The scaffold combinations** double with every module: ten first-party modules make about a thousand. The engine
+  stages the changes in memory, which keeps the combination test fast, and the test falls back to every pair plus the
+  full project if it grows too slow.
 - **Third-party code runs at startup**, like any dependency, and an installed module is enabled. `app.modulesDisabled`
-  opts out, and `weaver add` never runs scripts of the module.
+  opts out, and `weaver module add` never runs scripts of the module.
 - **Bun** runs every test file in one process with a frozen context, and `tools/copy-packages.js` writes an empty
   `tsconfig.json` into every copied package. Verify both for the new packages.
 - **Type augmentations**: the Fastify ones move to `web`, the `@fastify/request-context` one goes away.
@@ -689,7 +801,7 @@ These come first, so that every package is created with them, and the contracts 
 | `EmailService` and the `local` storage in core, `FileService` in `data` | Emails and raw files without a database, file records with it                     |
 | Drivers named after their library                                       | Room for other implementations of the same contract                               |
 | Discovery from `package.json`, explicit paths with `APP_MODULES`        | Installing a module enables it, a single source of truth                          |
-| Local modules found by `APP_MODULES_PATTERN`                            | `weaver new module` needs no config step, the same format as a package            |
+| Local modules found by `APP_MODULES_PATTERN`                            | `weaver module new` needs no config step, the same format as a package            |
 | Config sections with `defineConfig`, validated on first access          | Same sources and env pattern for every module, unselected drivers ask for nothing |
 | First-party modules use only the public API                             | Third-party modules can do everything the first-party ones do                     |
 | `defineErrors` in common, HTTP statuses applied by `web`                | Modules without `web` declare their own error codes                               |
@@ -697,5 +809,10 @@ These come first, so that every package is created with them, and the contracts 
 | Health listener in core, `weaver run` for one-shot tasks                | Apps without `web` run in containers and as tasks                                 |
 | `Database` is not a public contract                                     | The resources are built on Prisma, databases come from its driver adapters        |
 | One scaffolder, `@appweaver/create`, with a `module` command            | Shared template machinery, one package to release                                 |
+| A minimal project, modules added with `--add` or `weaver module add`    | An app starts with what it uses, and adds a module the same way later             |
+| One scaffold engine for creating and for `weaver module`, reversible    | A module gives the same files however it is added or removed                      |
+| The scaffold of a module declared in its manifest                       | Third-party modules add their files, config and Docker services too               |
+| `@appweaver/cli` depends on `@appweaver/create` at its exact version    | Shared templates, and `npm create` installs no peers of the CLI                   |
+| `weaver upgrade` instead of `weaver update`                             | Names the version bump, apart from the module changes of `weaver module`          |
 | _Module_ and _driver_, _plugin_ stays a Fastify plugin                  | No clash with `registerPlugin`                                                    |
 | Breaking `2.0.0` without a migration layer                              | No external users yet                                                             |
