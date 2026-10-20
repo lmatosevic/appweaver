@@ -35,7 +35,7 @@
     "node": ">= 24.7"
   },
   "scripts": {
-    "create-weaver-app": "node ./dist/create-weaver-app.js"
+    "create-appweaver": "node ./dist/create.js"
   },
   "dependencies": {
     "commander": "15.0.0",

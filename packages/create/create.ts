@@ -103,8 +103,8 @@ function createProjectProgram(): Command {
   const program = new Command();
 
   program
-    .name('create')
-    .description('Create Weaver App - Bootstrap new Appweaver project')
+    .name('create-appweaver')
+    .description('Create a new Appweaver project, run as npm create @appweaver')
     .version(pkg.version, '-v, --version', 'Output the current version.')
     .helpOption('-h, --help', 'Output usage information.')
     .usage('<name> [description] [options]')
