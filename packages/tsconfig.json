@@ -17,7 +17,7 @@
       "path": "./core/tsconfig.build.json"
     },
     {
-      "path": "./create-weaver-app/tsconfig.build.json"
+      "path": "./create/tsconfig.build.json"
     },
     {
       "path": "./cron/tsconfig.build.json"

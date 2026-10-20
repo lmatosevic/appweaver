@@ -37,7 +37,7 @@
     "weaver": "node ./dist/weaver.js"
   },
   "dependencies": {
-    "@appweaver/create-weaver-app": "^1.12.2",
+    "@appweaver/create": "^1.12.2",
     "@sinclair/typebox": "0.34.49",
     "@sinclair/typebox-codegen": "0.11.1",
     "commander": "15.0.0",

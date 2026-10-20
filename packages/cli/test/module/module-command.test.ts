@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { Command } from 'commander';
-import { createProject } from '@appweaver/create-weaver-app/scaffold';
+import { createProject } from '@appweaver/create/scaffold';
 import { moduleCommand } from '../../module';
 
 describe('module-command', () => {

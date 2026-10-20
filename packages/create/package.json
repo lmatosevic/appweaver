@@ -1,13 +1,13 @@
 {
-  "name": "@appweaver/create-weaver-app",
+  "name": "@appweaver/create",
   "version": "1.12.2",
-  "description": "Appweaver - the backend framework for AI-first development (@create-weaver-app)",
+  "description": "Appweaver - the backend framework for AI-first development (@create)",
   "author": "Luka Matosevic",
   "license": "MIT",
-  "main": "./create-weaver-app.js",
-  "types": "./create-weaver-app.d.ts",
+  "main": "./create.js",
+  "types": "./create.d.ts",
   "bin": {
-    "create-weaver-app": "./create-weaver-app.js"
+    "create-appweaver": "./create.js"
   },
   "files": [
     "templates",
@@ -19,7 +19,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/lmatosevic/appweaver.git",
-    "directory": "packages/create-weaver-app"
+    "directory": "packages/create"
   },
   "maintainers": [
     {

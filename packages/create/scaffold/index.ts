@@ -4,3 +4,4 @@ export * from './load-project';
 export * from './modules';
 export * from './project-files';
 export * from './types';
+export * from './create-module-package';

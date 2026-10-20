@@ -27,7 +27,7 @@ describe('scaffoldDependencies', () => {
   });
 });
 
-describe('create-weaver-app', () => {
+describe('create', () => {
   let tempDir: string;
   let originalCwd: string;
   let originalArgv: string[];
@@ -81,11 +81,11 @@ describe('create-weaver-app', () => {
       errors.push(parts.join(' '));
     });
 
-    process.argv = ['node', 'create-weaver-app', ...args];
+    process.argv = ['node', 'create', ...args];
     jest.isolateModules(() => {
       // The CLI runs on import, so it must be loaded synchronously here
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('../create-weaver-app');
+      require('../create');
     });
 
     const deadline = Date.now() + 30000;
@@ -915,12 +915,12 @@ describe('create-weaver-app', () => {
         throw new Error('process.exit called');
       });
 
-      process.argv = ['node', 'create-weaver-app', ...args];
+      process.argv = ['node', 'create', ...args];
 
       expect(() =>
         jest.isolateModules(() => {
           // eslint-disable-next-line @typescript-eslint/no-require-imports
-          require('../create-weaver-app');
+          require('../create');
         })
       ).toThrow('process.exit called');
 

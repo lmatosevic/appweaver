@@ -11,7 +11,7 @@ import {
   parseModuleNames,
   resolveModules,
   ScaffoldError
-} from '@appweaver/create-weaver-app/scaffold';
+} from '@appweaver/create/scaffold';
 import { appConfig } from '@appweaver/common';
 import { runProcess } from '../utils';
 import { localModuleFiles, writeModuleFiles } from './local-module';

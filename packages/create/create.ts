@@ -6,7 +6,10 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { Command, InvalidOptionArgumentError } from 'commander';
 import {
+  createModulePackage,
   createProject,
+  ModuleContract,
+  moduleContracts,
   DatabaseType,
   databaseTypes,
   ModuleName,
@@ -33,65 +36,128 @@ const agentTypes = [
   'none'
 ];
 
-const program = new Command();
-
-program
-  .name('create-weaver-app')
-  .description('Create Weaver App - Bootstrap new Appweaver project')
-  .version(pkg.version, '-v, --version', 'Output the current version.')
-  .helpOption('-h, --help', 'Output usage information.')
-  .usage('<name> [description] [options]')
-  .argument('<name>', 'Name of the new project')
-  .argument(
-    '[description]',
-    'Description of the new project',
-    'Appweaver project'
-  )
-  .option(
-    '-o, --output-dir [outputDir]',
-    'Directory where to generate new project. (default: name of project)'
-  )
-  .option(
-    '--database [database]',
-    `Type of SQL database (${databaseTypes.join(', ')}).`,
-    parseDatabaseType,
-    'sqlite'
-  )
-  .option(
-    '--port [port]',
-    'Port number where the application server will listen.',
-    parsePortNumber,
-    5000
-  )
-  .option(
-    '--host [host]',
-    'Hostname or IP address where the application server will bind.',
-    parseHostname,
-    '0.0.0.0'
-  )
-  .option(
-    '--agent [agent]',
-    `The AI agent for which to configure guidelines and skill files (${agentTypes.join(', ')}).`,
-    parseAgentType,
-    'claude'
-  )
-  .option(
-    '--add <modules...>',
-    `Modules to add, separated by spaces or commas (${moduleNames.join(', ')}).`
-  )
-  .option('--all', 'Add every module.')
-  .option('--bun', 'Use Bun as application runtime.')
-  .option('--no-install', 'Skip all dependencies installation.');
-
-for (const name of moduleNames) {
-  program.option(
-    `--no-${name}`,
-    `Leave out the ${name} module: ${modules[name].description}.`
-  );
+// `create-appweaver module <package>` creates a module package instead of a project
+if (process.argv[2] === 'module') {
+  createModuleProgram().parse(process.argv.toSpliced(2, 1));
+} else {
+  createProjectProgram().parse();
 }
 
-program
-  .action((name: string, description: string, _, command: Command) => {
+/** The program creating a module package. */
+function createModuleProgram(): Command {
+  return new Command()
+    .name('create-appweaver module')
+    .description(
+      'Create an Appweaver module package, run as npm create @appweaver module <package>'
+    )
+    .helpOption('-h, --help', 'Output usage information.')
+    .argument('<package>', 'npm name of the package, i.e. @acme/appweaver-gcs')
+    .argument('[description]', 'Description of the package', 'Appweaver module')
+    .option(
+      '--contract [contract]',
+      `Contract the driver of the module implements (${moduleContracts.join(', ')}), none for a feature module.`,
+      parseContract,
+      'none'
+    )
+    .option(
+      '-o, --output-dir [outputDir]',
+      'Directory where to create the package. (default: name of the package)'
+    )
+    .action(async (packageName: string, description: string, _, command) => {
+      const dir = path.resolve(
+        command.getOptionValue('outputDir') ??
+          packageName.replace(/^@[^/]+\//, '')
+      );
+      try {
+        const files = await createModulePackage({
+          dir,
+          packageName,
+          description,
+          contract: command.getOptionValue('contract')
+        });
+        console.log(
+          `Created module package in ${path.relative(process.cwd(), dir) || '.'}:`
+        );
+        files.forEach((file) => console.log(`  ${file}`));
+        console.log('\nNext: npm install, npm test, then npm publish');
+      } catch (e) {
+        if (e instanceof ScaffoldError) {
+          command.error(`error: ${e.message}`);
+        }
+        throw e;
+      }
+    });
+}
+
+function parseContract(value: string): ModuleContract {
+  if (!moduleContracts.includes(value as ModuleContract)) {
+    throw new InvalidOptionArgumentError(
+      `Must be one of: ${moduleContracts.join(', ')}.`
+    );
+  }
+  return value as ModuleContract;
+}
+
+/** The program creating a project. */
+function createProjectProgram(): Command {
+  const program = new Command();
+
+  program
+    .name('create')
+    .description('Create Weaver App - Bootstrap new Appweaver project')
+    .version(pkg.version, '-v, --version', 'Output the current version.')
+    .helpOption('-h, --help', 'Output usage information.')
+    .usage('<name> [description] [options]')
+    .argument('<name>', 'Name of the new project')
+    .argument(
+      '[description]',
+      'Description of the new project',
+      'Appweaver project'
+    )
+    .option(
+      '-o, --output-dir [outputDir]',
+      'Directory where to generate new project. (default: name of project)'
+    )
+    .option(
+      '--database [database]',
+      `Type of SQL database (${databaseTypes.join(', ')}).`,
+      parseDatabaseType,
+      'sqlite'
+    )
+    .option(
+      '--port [port]',
+      'Port number where the application server will listen.',
+      parsePortNumber,
+      5000
+    )
+    .option(
+      '--host [host]',
+      'Hostname or IP address where the application server will bind.',
+      parseHostname,
+      '0.0.0.0'
+    )
+    .option(
+      '--agent [agent]',
+      `The AI agent for which to configure guidelines and skill files (${agentTypes.join(', ')}).`,
+      parseAgentType,
+      'claude'
+    )
+    .option(
+      '--add <modules...>',
+      `Modules to add, separated by spaces or commas (${moduleNames.join(', ')}).`
+    )
+    .option('--all', 'Add every module.')
+    .option('--bun', 'Use Bun as application runtime.')
+    .option('--no-install', 'Skip all dependencies installation.');
+
+  for (const name of moduleNames) {
+    program.option(
+      `--no-${name}`,
+      `Leave out the ${name} module: ${modules[name].description}.`
+    );
+  }
+
+  program.action((name: string, description: string, _, command: Command) => {
     // Validated before anything is created, reported as an invalid option
     let selectedModules: ModuleName[];
     try {
@@ -104,8 +170,10 @@ program
     }
 
     return createApp(name, description, command, selectedModules);
-  })
-  .parse();
+  });
+
+  return program;
+}
 
 /** Creates the project with the selected modules, its agent files, and installs its dependencies. */
 async function createApp(
