@@ -1,22 +1,21 @@
-import { ErrorCode, makeHash, Redis } from '@appweaver/common';
+import { ErrorCode, makeHash, Memory } from '@appweaver/common';
 import { define } from '../../../context';
 import { InMemory } from '../../../memory/in-memory';
-import { RedisSecurityStore } from '../../../security/store/redis-security-store';
+import { MemorySecurityStore } from '../../../security/store/memory-security-store';
 import { resetContext } from '../../fixtures/context-fixture';
 
-describe('redis-security-store', () => {
+describe('memory-security-store', () => {
   let memory: InMemory;
-  let store: RedisSecurityStore;
+  let store: MemorySecurityStore;
 
   const tokenKey = (purpose: string, token: string) =>
     `security:ott:${purpose}:${makeHash(token)}`;
 
   beforeEach(() => {
     resetContext();
-    // The in-memory implementation shares the Redis provider contract
     memory = new InMemory();
-    define(memory, Redis as any);
-    store = new RedisSecurityStore();
+    define(memory, Memory);
+    store = new MemorySecurityStore();
   });
 
   afterAll(() => {

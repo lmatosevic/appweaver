@@ -39,8 +39,15 @@ export const appConfig = defineConfig(
     SCAN_FILES_PATTERN: Type.String({ default: '<srcPath>/*/index.ts' }),
     /** Path to the application entry point file. Default: `'<srcPath>/main.ts'`. */
     MAIN_FILE_PATH: Type.String({ default: '<srcPath>/main.ts' }),
-    /** Module paths to autoload on startup. Default: `[]`. */
-    AUTOLOAD_MODULES: Type.Array(Type.String(), { default: [] })
+    /** Glob pattern of the manifests of the local modules, empty to find none. Default:
+     * `'<srcPath>/modules/"*"/module.ts'`. */
+    MODULES_PATTERN: Type.String({ default: '<srcPath>/modules/*/module.ts' }),
+    /** Paths of the module manifests to enable besides the package and local modules, relative to the project root,
+     * i.e. `../shared/module.ts`. Default: `[]`. */
+    MODULES: Type.Array(Type.String(), { default: [] }),
+    /** Names of the modules to leave disabled, i.e. `@appweaver/web` for an application without a server. Default:
+     * `[]`. */
+    MODULES_DISABLED: Type.Array(Type.String(), { default: [] })
   },
   {
     transform: (values) => ({
@@ -53,6 +60,10 @@ export const appConfig = defineConfig(
         values.SOURCE_PATH
       ),
       MAIN_FILE_PATH: values.MAIN_FILE_PATH.replace(
+        '<srcPath>',
+        values.SOURCE_PATH
+      ),
+      MODULES_PATTERN: values.MODULES_PATTERN.replace(
         '<srcPath>',
         values.SOURCE_PATH
       )

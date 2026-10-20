@@ -9,7 +9,7 @@ import {
   ResourceError,
   TurnstileError
 } from '@appweaver/common';
-import { context } from '../../context';
+import { context, define } from '../../context';
 import { createModel } from '../../factory/create-model';
 import { resourceRoutes } from '../../resource/resource-routes';
 import { errorHandler, ProblemDetailsSchema } from '../../errors';
@@ -53,7 +53,7 @@ async function server(
     ...requestValidation()
   });
 
-  context.server = app;
+  define({ instance: app }, 'HttpServer', 'override');
 
   // Rejecting every request that is authenticated tells the public routes apart
   app.decorate('authenticate', () => async () => {

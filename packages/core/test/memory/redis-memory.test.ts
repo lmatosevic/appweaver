@@ -54,23 +54,23 @@ jest.mock('ioredis', () => {
 import { Redis as RedisClient } from 'ioredis';
 import * as common from '@appweaver/common';
 import { ErrorCode, logger } from '@appweaver/common';
-import { Redis } from '../../memory/redis';
+import { RedisMemory } from '../../memory/redis-memory';
 
 const clients = () => (RedisClient as any).instances as any[];
 
-describe('redis', () => {
-  let redis: Redis;
+describe('redis-memory', () => {
+  let redis: RedisMemory;
   let client: any;
 
   beforeEach(() => {
     clients().length = 0;
-    redis = new Redis();
+    redis = new RedisMemory();
     client = clients()[0];
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
-    delete (common as any).configOverrides.REDIS_URL;
+    delete (common as any).configOverrides.MEMORY_REDIS_URL;
   });
 
   describe('constructor', () => {
@@ -85,9 +85,9 @@ describe('redis', () => {
       ],
       ['not-a-url', { host: 'localhost', port: 6379 }]
     ])('parses the connection URL %s', (url, expected) => {
-      (common as any).configOverrides.REDIS_URL = url;
+      (common as any).configOverrides.MEMORY_REDIS_URL = url;
 
-      new Redis();
+      new RedisMemory();
 
       expect(clients()[1].options).toMatchObject(expected);
       expect(clients()[1].options.connectionName).toBe('appweaver');

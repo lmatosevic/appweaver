@@ -1,6 +1,7 @@
 import { AuthSource, ErrorCode, ContextError } from '@appweaver/common';
 import { oauth2Config } from '../security-config';
-import { context } from '../../context';
+import { injectCreated } from '../../context';
+import type { HttpServer } from '../../server/http-server';
 import { UserInfo } from '../../types';
 import { createOAuth2Plugin } from './create-oauth2-plugin';
 import { fetchUserInfo, requireEmail } from './oauth2-util';
@@ -23,7 +24,7 @@ export const oauth2Custom = createOAuth2Plugin(AuthSource.OAuth2Custom, {
 });
 
 export async function fetchCustomUser(accessToken: string): Promise<UserInfo> {
-  const server = context.server;
+  const server = injectCreated<HttpServer>('HttpServer')?.instance;
   if (!server) {
     throw new ContextError(
       ErrorCode.ContextServerUnavailable,

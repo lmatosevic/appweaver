@@ -3,15 +3,16 @@ import { Redis as RedisClient, RedisOptions } from 'ioredis';
 import { parse, stringify } from 'flatted';
 import {
   ErrorCode,
+  HealthCheckConfig,
   HealthCheckResult,
   logger,
-  Redis as CommonRedis,
+  Memory,
   uuid,
   LockError
 } from '@appweaver/common';
 import { redisConfig } from './memory-config';
 
-export class Redis extends CommonRedis<RedisOptions, RedisClient> {
+export class RedisMemory extends Memory<RedisOptions, RedisClient> {
   /** @internal */
   private readonly _options: RedisOptions;
   /** @internal */
@@ -151,6 +152,10 @@ export class Redis extends CommonRedis<RedisOptions, RedisClient> {
 
   public isAvailable(): boolean {
     return this._client.status === 'ready';
+  }
+
+  public checkHealthConfig(): HealthCheckConfig {
+    return { name: 'redis' };
   }
 
   /** @internal */

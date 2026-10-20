@@ -84,6 +84,7 @@ their prefix:
 | `ConfigurationError` | `@appweaver/common` | `CONFIGURATION_` | Invalid configuration and model definitions                     |
 | `ApplicationError`   | `@appweaver/common` | any              | The application, with its own codes (see below)                 |
 | `ContextError`       | `@appweaver/common` | `CONTEXT_`       | The dependency injection container                              |
+| `ModuleError`        | `@appweaver/common` | `MODULE_`        | The module discovery and the provider selection at startup      |
 | `DatabaseError`      | `@appweaver/common` | `DATABASE_`      | The database operations, translated from the Prisma errors      |
 | `ResourceError`      | `@appweaver/common` | `RESOURCE_`      | The resource services and their query, sort and relation inputs |
 | `AuthError`          | `@appweaver/common` | `AUTH_`          | The authentication and authorization                            |
@@ -130,6 +131,12 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `CONTEXT_DEFINITION_MISSING`         | 500    | Missing context definition            |
 | `CONTEXT_DEFINITION_DUPLICATE`       | 500    | Duplicate context definition          |
 | `CONTEXT_SERVER_UNAVAILABLE`         | 500    | Server unavailable                    |
+| `MODULE_INVALID`                     | 500    | Invalid module                        |
+| `MODULE_MISSING`                     | 500    | Missing module                        |
+| `MODULE_DUPLICATE`                   | 500    | Duplicate module                      |
+| `MODULE_INCOMPATIBLE`                | 500    | Incompatible module                   |
+| `MODULE_PROVIDER_MISSING`            | 500    | Missing provider                      |
+| `MODULE_PROVIDER_AMBIGUOUS`          | 500    | Ambiguous provider                    |
 | `DATABASE_UNIQUE_VIOLATION`          | 409    | Unique constraint violation           |
 | `DATABASE_FOREIGN_KEY_VIOLATION`     | 409    | Relation constraint violation         |
 | `DATABASE_NULL_VIOLATION`            | 400    | Required field missing                |

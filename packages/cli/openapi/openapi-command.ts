@@ -1,7 +1,7 @@
 import path from 'node:path';
 import fsp from 'node:fs/promises';
 import { Command, InvalidOptionArgumentError } from 'commander';
-import { createApp } from '@appweaver/core';
+import { createApp, HttpServer, isDefined } from '@appweaver/core';
 import { ensureDirExists } from '../utils';
 
 const formats = ['json', 'yaml'];
@@ -37,6 +37,13 @@ export function openapiCommand(program: Command): void {
 
       try {
         const app = await createApp({ autoStart: false });
+
+        if (!isDefined(HttpServer)) {
+          console.error(
+            'weaver openapi needs the @appweaver/web module, which is disabled'
+          );
+          process.exit(1);
+        }
 
         const spec = await app.spec(format);
 

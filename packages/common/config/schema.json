@@ -36,7 +36,9 @@
                   "enum": ["test", "local", "dev", "staging", "qa", "prod"],
                   "default": "prod"
                 },
-                { "type": "string" }
+                {
+                  "type": "string"
+                }
               ]
             },
             "name": {
@@ -79,12 +81,26 @@
               "type": "string",
               "default": "<srcPath>/main.ts"
             },
-            "autoloadModules": {
+            "modulesPattern": {
+              "type": "string",
+              "default": "<srcPath>/modules/*/module.ts",
+              "description": "Glob pattern of the manifests of the local modules, empty to find none."
+            },
+            "modules": {
               "type": "array",
               "items": {
                 "type": "string"
               },
-              "default": []
+              "default": [],
+              "description": "Paths of the module manifests to enable besides the package and local modules, relative to the project root."
+            },
+            "modulesDisabled": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [],
+              "description": "Names of the modules to leave disabled, i.e. `@appweaver/web`."
             }
           }
         },
@@ -227,8 +243,8 @@
             },
             "store": {
               "type": "string",
-              "enum": ["redis", "in-memory"],
-              "default": "redis"
+              "enum": ["auto", "local"],
+              "default": "auto"
             },
             "skipOnError": {
               "type": "boolean",
@@ -270,8 +286,12 @@
             },
             "pickInstances": {
               "oneOf": [
-                { "type": "null" },
-                { "type": "string" },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "string"
+                },
                 {
                   "type": "array",
                   "items": {
@@ -283,8 +303,12 @@
             },
             "omitInstances": {
               "oneOf": [
-                { "type": "null" },
-                { "type": "string" },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "string"
+                },
                 {
                   "type": "array",
                   "items": {
@@ -300,12 +324,28 @@
             }
           }
         },
+        "health": {
+          "type": "object",
+          "properties": {
+            "port": {
+              "type": "integer",
+              "default": 0,
+              "description": "Port of the health listener of an application without a server, `0` to start none."
+            },
+            "host": {
+              "type": "string",
+              "default": "0.0.0.0"
+            }
+          }
+        },
         "cors": {
           "type": "object",
           "properties": {
             "origin": {
               "oneOf": [
-                { "type": "string" },
+                {
+                  "type": "string"
+                },
                 {
                   "type": "array",
                   "items": {
@@ -317,7 +357,9 @@
             },
             "methods": {
               "oneOf": [
-                { "type": "string" },
+                {
+                  "type": "string"
+                },
                 {
                   "type": "array",
                   "items": {
@@ -329,7 +371,9 @@
             },
             "allowedHeaders": {
               "oneOf": [
-                { "type": "string" },
+                {
+                  "type": "string"
+                },
                 {
                   "type": "array",
                   "items": {
@@ -341,7 +385,9 @@
             },
             "exposedHeaders": {
               "oneOf": [
-                { "type": "string" },
+                {
+                  "type": "string"
+                },
                 {
                   "type": "array",
                   "items": {
@@ -473,7 +519,9 @@
             },
             "allowedRedirectHosts": {
               "oneOf": [
-                { "type": "string" },
+                {
+                  "type": "string"
+                },
                 {
                   "type": "array",
                   "items": {
@@ -488,7 +536,8 @@
               "properties": {
                 "provider": {
                   "type": "string",
-                  "default": "@appweaver/core/security/store/database-security-store"
+                  "default": "auto",
+                  "description": "`auto`, `none`, `database`, `memory`, or the module path of an implementation."
                 },
                 "keepDatabaseTable": {
                   "type": "boolean",
@@ -963,7 +1012,8 @@
             },
             "provider": {
               "type": "string",
-              "default": "@appweaver/core/database/prisma-database"
+              "default": "auto",
+              "description": "`auto`, `none`, `prisma`, or the module path of an implementation."
             }
           }
         },
@@ -976,7 +1026,9 @@
             },
             "reservedPaths": {
               "oneOf": [
-                { "type": "string" },
+                {
+                  "type": "string"
+                },
                 {
                   "type": "array",
                   "items": {
@@ -1000,20 +1052,18 @@
             },
             "provider": {
               "type": "string",
-              "default": "@appweaver/core/storage/filesystem-storage"
+              "default": "auto",
+              "description": "`auto`, `none`, `local`, or the module path of an implementation."
             }
           }
         },
-        "redis": {
+        "image": {
           "type": "object",
           "properties": {
-            "url": {
-              "type": "string",
-              "default": "redis://localhost:6379/0"
-            },
             "provider": {
               "type": "string",
-              "default": "@appweaver/core/memory/redis"
+              "default": "auto",
+              "description": "`auto`, `none`, `sharp`, or the module path of an implementation."
             }
           }
         },
@@ -1025,7 +1075,17 @@
             },
             "provider": {
               "type": "string",
-              "default": "@appweaver/core/memory/in-memory"
+              "default": "auto",
+              "description": "`auto`, `none`, `memory`, `redis`, or the module path of an implementation."
+            },
+            "redis": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "default": "redis://localhost:6379/0"
+                }
+              }
             }
           }
         },
@@ -1083,7 +1143,8 @@
             },
             "provider": {
               "type": "string",
-              "default": "@appweaver/core/cache/redis-cache"
+              "default": "auto",
+              "description": "`auto`, `none`, `memory`, or the module path of an implementation."
             }
           }
         },
@@ -1119,24 +1180,22 @@
             },
             "provider": {
               "type": "string",
-              "default": "@appweaver/core/queue/bull-queue"
+              "default": "auto",
+              "description": "`auto`, `none`, `memory`, `bullmq`, or the module path of an implementation."
             }
           }
         },
         "scheduler": {
           "type": "object",
           "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": true
-            },
             "autoStartJob": {
               "type": "boolean",
               "default": true
             },
             "provider": {
               "type": "string",
-              "default": "@appweaver/core/scheduler/cron-scheduler"
+              "default": "auto",
+              "description": "`auto`, `none`, `cron`, or the module path of an implementation."
             }
           }
         },
@@ -1149,17 +1208,14 @@
             },
             "provider": {
               "type": "string",
-              "default": "@appweaver/core/events/node-events"
+              "default": "auto",
+              "description": "`auto`, `none`, `node`, or the module path of an implementation."
             }
           }
         },
         "mailer": {
           "type": "object",
           "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": true
-            },
             "senderName": {
               "type": ["string", "null"]
             },
@@ -1168,7 +1224,8 @@
             },
             "provider": {
               "type": "string",
-              "default": "@appweaver/core/mailer/smtp-mailer"
+              "default": "auto",
+              "description": "`auto`, `none`, `smtp`, `json`, or the module path of an implementation."
             },
             "smtp": {
               "type": "object",
@@ -1225,7 +1282,8 @@
             },
             "provider": {
               "type": "string",
-              "default": "@appweaver/core/template/handlebars-template-engine"
+              "default": "auto",
+              "description": "`auto`, `none`, `handlebars`, or the module path of an implementation."
             }
           }
         },

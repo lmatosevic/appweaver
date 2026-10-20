@@ -1,5 +1,6 @@
 import { resolveSourcePath, appConfig } from '@appweaver/common';
 import { databaseConfig } from '../database/database-config';
+import { discoverModules } from '../app/discover-modules';
 import { loadProviders } from '../app/load-providers';
 import { Seeder } from './seeder';
 
@@ -46,8 +47,8 @@ export async function createSeeder(
     './dist/database/seeders'
   );
 
-  // Load all defined providers from this project
-  loadProviders(scanPath);
+  // Define the providers and the services of the modules
+  await loadProviders(await discoverModules({ scanPath }), scanPath);
 
   const seeder = new Seeder(
     seedersPath,

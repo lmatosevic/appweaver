@@ -5,6 +5,7 @@ export type ErrorModule =
   | 'request'
   | 'configuration'
   | 'context'
+  | 'module'
   | 'database'
   | 'resource'
   | 'auth'

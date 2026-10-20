@@ -12,7 +12,7 @@ describe('application', () => {
   ] as const;
 
   let calls: string[];
-  let server: any;
+  let onReady: jest.Mock;
 
   const listenerCounts = () =>
     events.map((event) => process.listenerCount(event));
@@ -23,14 +23,19 @@ describe('application', () => {
     jest.spyOn(Object, 'freeze').mockImplementation((value: any) => value);
 
     calls = [];
-    server = {
-      close: jest.fn(async () => {
-        calls.push('server.close');
-      }),
-      listen: jest.fn(async () => 'http://localhost:5000'),
-      addresses: jest.fn(() => [])
-    };
+    onReady = jest.fn();
 
+    // Serves the requests like the HTTP server does
+    define(
+      {
+        [LIFECYCLE]: true,
+        onReady,
+        onShutdown: async () => {
+          calls.push('server.close');
+        }
+      },
+      'HttpServer'
+    );
     define({
       [LIFECYCLE]: true,
       onInit: async () => undefined,
@@ -51,11 +56,20 @@ describe('application', () => {
   describe('start', () => {
     test('adds the process handlers once per start', async () => {
       const before = listenerCounts();
-      const app = new Application(server);
+      const app = new Application();
 
       await app.start(false);
 
       expect(listenerCounts()).toEqual(before.map((count) => count + 1));
+      await app.stop();
+    });
+
+    test('tells the services it is ready, with the server start option', async () => {
+      const app = new Application();
+
+      await app.start(false);
+
+      expect(onReady).toHaveBeenCalledWith({ startServer: false });
       await app.stop();
     });
   });
@@ -63,7 +77,7 @@ describe('application', () => {
   describe('stop', () => {
     test('removes the process handlers added on start', async () => {
       const before = listenerCounts();
-      const app = new Application(server);
+      const app = new Application();
 
       await app.start(false);
       await app.stop();
@@ -73,8 +87,8 @@ describe('application', () => {
       expect(listenerCounts()).toEqual(before);
     });
 
-    test('closes the server before destroying the services', async () => {
-      const app = new Application(server);
+    test('shuts the server down before destroying the services', async () => {
+      const app = new Application();
 
       await app.start(false);
       await app.stop();

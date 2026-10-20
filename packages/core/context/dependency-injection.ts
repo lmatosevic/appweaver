@@ -187,6 +187,40 @@ export function inject<T = DefinitionValue, R extends boolean = true>(
 }
 
 /**
+ * Returns the instance of a definition if it is already created, without creating it, i.e. to reach a service only
+ * once it is running.
+ *
+ * @param {string | symbol | DefinitionClass | FunctionType} nameOrClass - The name or class of the definition.
+ * @return {T | undefined} The instance, or undefined when the definition is missing or not created yet.
+ */
+export function injectCreated<T = DefinitionValue>(
+  nameOrClass: string | symbol | DefinitionClass<T> | FunctionType
+): T | undefined {
+  const name =
+    isString(nameOrClass) || isSymbol(nameOrClass)
+      ? nameOrClass
+      : nameOrClass.name;
+  const value = findFirstDefinition(name);
+  return value && !isConstructor(value) ? (value as T) : undefined;
+}
+
+/**
+ * Checks if a definition is registered under the given name or class, without creating its instance.
+ *
+ * @param {string | symbol | DefinitionClass | FunctionType} nameOrClass - The name or class of the definition.
+ * @return {boolean} `true` if the definition is registered.
+ */
+export function isDefined(
+  nameOrClass: string | symbol | DefinitionClass | FunctionType
+): boolean {
+  const name =
+    isString(nameOrClass) || isSymbol(nameOrClass)
+      ? nameOrClass
+      : nameOrClass.name;
+  return findFirstDefinition(name) !== undefined;
+}
+
+/**
  * Injects all definitions that match the specified name or class.
  *
  * @param {string | symbol | DefinitionClass | FunctionType} nameOrClass The name of the definition or the

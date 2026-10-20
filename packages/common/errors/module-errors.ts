@@ -8,6 +8,13 @@ export class ContextError<
   public readonly module = 'context';
 }
 
+/** An error of the modules of the application, i.e. a required module that is not enabled. */
+export class ModuleError<
+  C extends ModuleErrorCode<'MODULE'> = ModuleErrorCode<'MODULE'>
+> extends AppweaverError<C> {
+  public readonly module = 'module';
+}
+
 /**
  * An error of a database operation, i.e. a violated constraint. Raised from the errors of the database client.
  */

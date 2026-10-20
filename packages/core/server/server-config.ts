@@ -1,5 +1,13 @@
 import { Type } from '@sinclair/typebox';
-import { defineConfig, MemoryType } from '@appweaver/common';
+import { defineConfig } from '@appweaver/common';
+
+/** The store of the rate limit counters. */
+export enum RateLimitStore {
+  /** The connection of the `Memory` provider when it has one (`redis`), otherwise the process. */
+  Auto = 'auto',
+  /** The process, so every server counts on its own. */
+  Local = 'local'
+}
 
 export const serverConfig = defineConfig('server', {
   /** HTTP server listening port. Default: `5000`. */
@@ -42,8 +50,9 @@ export const rateLimitConfig = defineConfig('rateLimit', {
   WINDOW: Type.Integer({ default: 60000 }),
   /** IP addresses/patterns exempt from rate limiting. */
   ALLOW_LIST: Type.Optional(Type.Array(Type.String())),
-  /** Store backend for tracking limits. Values: `redis`, `in-memory`. Default: `'redis'`. */
-  STORE: Type.Enum(MemoryType, { default: MemoryType.Redis }),
+  /** Store of the counters. Values: `auto` (the connection of the `Memory` provider when it has one, i.e. `redis`,
+   * otherwise the process), `local` (the process). Default: `'auto'`. */
+  STORE: Type.Enum(RateLimitStore, { default: RateLimitStore.Auto }),
   /** Skip rate limiting instead of failing requests when the store errors, e.g. while Redis is down. Default: `true`. */
   SKIP_ON_ERROR: Type.Boolean({ default: true })
 });

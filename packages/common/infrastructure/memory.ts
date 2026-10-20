@@ -7,7 +7,13 @@ import {
 } from '../interfaces';
 import { HEALTH_CHECK, LIFECYCLE } from '../constants';
 
-export abstract class Memory implements IHealthCheck, OnInit, OnDestroy {
+/**
+ * A key-value store with locks, kept in the process (`memory`) or on a server shared by the processes (`redis`). The
+ * memory of a server also creates the clients of its connection, i.e. for the BullMQ queue and the rate limit.
+ */
+export abstract class Memory<Options = any, Client = any>
+  implements IHealthCheck, OnInit, OnDestroy
+{
   static [LIFECYCLE] = true;
   static [HEALTH_CHECK] = true;
 
@@ -22,11 +28,12 @@ export abstract class Memory implements IHealthCheck, OnInit, OnDestroy {
   abstract disconnect(): Promise<void>;
 
   /**
-   * Creates and returns the underlying client.
+   * Creates a client of the underlying connection, i.e. an IoRedis client, or returns `undefined` for a memory kept in
+   * the process.
    *
    * @param {Object} options - Provider-specific client options.
    */
-  abstract createClient(options?: any): any;
+  abstract createClient(options?: Options): Client | undefined;
 
   /**
    * Retrieves a value by key.

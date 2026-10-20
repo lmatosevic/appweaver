@@ -6,7 +6,6 @@ import {
   ResourcePolicyConfig,
   ResourceRoutes
 } from '@appweaver/common';
-import { Server } from './server';
 
 export type DefinitionMode = 'ignore' | 'append' | 'override' | 'fail';
 
@@ -26,8 +25,13 @@ export type ResourceContext = {
   routes: Map<string | symbol, ResourceRoutes>;
 };
 
+export type ModuleContext = {
+  /** The name of the provider selected for each contract, keyed by the contract name. */
+  providers: Map<string, string>;
+};
+
 export type ApplicationContext = {
-  server: Server | null;
   resource: ResourceContext;
+  modules: ModuleContext;
   definitions: DefinitionEntry[];
 };

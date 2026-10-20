@@ -137,7 +137,7 @@ describe('cron-scheduler', () => {
       const jobId = scheduler.addJob({
         cronTime: '* * * * * *',
         onTick,
-        start: false
+        providerOptions: { start: false }
       });
 
       const cronJob = scheduler.getJob(jobId)!;

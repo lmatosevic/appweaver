@@ -264,7 +264,7 @@ describe('apply-modules', () => {
       const { config, environments } = JSON.parse(
         fs.readFileSync(configFile, 'utf8')
       );
-      expect(config.scheduler).toEqual({ enabled: false });
+      expect(config).not.toHaveProperty('scheduler');
       expect(environments.test.scheduler).toEqual({ autoStartJob: true });
     });
   });

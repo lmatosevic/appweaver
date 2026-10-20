@@ -1,10 +1,19 @@
 import { OnDestroy } from '../interfaces';
 import { LIFECYCLE } from '../constants';
 
-export abstract class Scheduler<
-  Job = any,
-  JobParams = any
-> implements OnDestroy {
+/** A scheduled job, the same for every scheduler. */
+export type JobParams = {
+  /** A cron expression, i.e. `0 9 * * 1-5`, with an optional leading seconds field, or the date of a single run. */
+  cronTime: string | Date;
+  /** Runs on every tick of the job. */
+  onTick: () => unknown;
+  /** The IANA time zone of the cron expression, i.e. `Europe/Zagreb`. Default: the time zone of the process. */
+  timeZone?: string;
+  /** Options of the scheduler driver. */
+  providerOptions?: Record<string, unknown>;
+};
+
+export abstract class Scheduler<Job = unknown> implements OnDestroy {
   static [LIFECYCLE] = true;
 
   abstract onDestroy(): Promise<void>;

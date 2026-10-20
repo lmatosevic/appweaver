@@ -294,6 +294,76 @@ export function compareVersions(first: string, second: string): number {
 }
 
 /**
+ * Checks if a version satisfies a range of the npm syntax: an exact version, `*`, a `^` or `~` range, a comparison
+ * (`>=2.0.0 <3.0.0`), or alternatives joined by `||`. A prerelease is compared by its release version.
+ *
+ * @param {string} version - The version, i.e. `2.1.0`.
+ * @param {string} range - The range, i.e. `^2.0.0`.
+ * @return {boolean} `true` if the version is in the range.
+ */
+export function satisfiesVersion(version: string, range: string): boolean {
+  const release = version.trim().replace(/^v/, '').split(/[-+]/)[0];
+
+  return range.split('||').some((alternative) =>
+    alternative
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .every((comparator) => satisfiesComparator(release, comparator))
+  );
+}
+
+function satisfiesComparator(version: string, comparator: string): boolean {
+  const [, operator, bound] = /^(\^|~|>=|<=|>|<|=)?v?(.*)$/.exec(comparator)!;
+  if (['*', 'x', ''].includes(bound)) {
+    return true;
+  }
+
+  const parts = bound.split('.').filter((part) => !/^[x*]$/i.test(part));
+  const lower = parts.join('.');
+  const compared = compareVersions(version, lower);
+
+  switch (operator) {
+    case '>=':
+      return compared >= 0;
+    case '>':
+      return compared > 0;
+    case '<=':
+      return compared <= 0;
+    case '<':
+      return compared < 0;
+    case '^': {
+      // The first non-zero part stays, i.e. ^0.2.0 allows only 0.2.x
+      const index = parts.findIndex((part) => Number(part) !== 0);
+      const kept = index === -1 ? parts.length - 1 : index;
+      return (
+        compared >= 0 && compareVersions(version, nextVersion(parts, kept)) < 0
+      );
+    }
+    case '~':
+      return (
+        compared >= 0 &&
+        compareVersions(version, nextVersion(parts, parts.length > 1 ? 1 : 0)) <
+          0
+      );
+    default:
+      // A partial version, i.e. 2 or 2.1, matches every version it starts with
+      return parts.length < 3
+        ? compared >= 0 &&
+            compareVersions(version, nextVersion(parts, parts.length - 1)) < 0
+        : compared === 0;
+  }
+}
+
+/** The version after the given parts with the part of the index raised, i.e. 2.1 at 0 is 3. */
+function nextVersion(parts: string[], index: number): string {
+  return parts
+    .slice(0, index + 1)
+    .map((part, i) => (i === index ? Number(part) + 1 : Number(part)))
+    .join('.');
+}
+
+/**
  * Converts a human-readable size string (e.g., "1.5 MB", "2GB", "5k") into its equivalent size in bytes.
  *
  * @param {string} sizeText - A string representing the size with an optional unit (e.g., "KB", "MB", "GB", "TB").

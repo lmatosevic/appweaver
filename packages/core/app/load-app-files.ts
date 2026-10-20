@@ -7,7 +7,7 @@ import {
 } from '@appweaver/common';
 
 /**
- * Loads and initializes modules exported from the application using the provided base directory and file pattern.
+ * Loads the files of the application matching `app.scanFilesPattern` using the provided base directory and file pattern.
  *
  * @param {string} [baseDir] - The base directory containing the module files to load.
  * @param {string} [moduleFilesPattern] - Path patterns for loading files that export application logic like:
@@ -15,7 +15,7 @@ import {
  * @return {Promise<void>} A promise that resolves when the modules are successfully loaded,
  * or rejects if an error occurs during the process.
  */
-export async function loadModules(
+export async function loadAppFiles(
   baseDir?: string,
   moduleFilesPattern?: string
 ): Promise<void> {

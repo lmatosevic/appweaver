@@ -13,8 +13,14 @@ export const storageConfig = defineConfig('storage', {
   CACHE_TTL: Type.Integer({ default: 86400000 }),
   /** URL prefix for file access routes. Default: `'/files'`. */
   FILES_ROUTE_PREFIX: Type.String({ default: '/files' }),
-  /** Storage provider implementation path. Default: `'@appweaver/core/storage/filesystem-storage'`. */
-  PROVIDER: Type.String({
-    default: '@appweaver/core/storage/filesystem-storage'
-  })
+  /** Storage provider: `auto` (`local` unless a module of another driver is enabled), `local`, `none`, or the
+   * module path of an implementation. Default: `'auto'`. */
+  PROVIDER: Type.String({ default: 'auto' })
+});
+
+export const imageConfig = defineConfig('image', {
+  /** Image processor transforming the uploaded images: `auto` (`sharp` when its module is enabled, otherwise none,
+   * keeping the images as they are uploaded), `sharp`, `none`, or the module path of an implementation. Default:
+   * `'auto'`. */
+  PROVIDER: Type.String({ default: 'auto' })
 });

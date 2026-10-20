@@ -1,32 +1,42 @@
+import {
+  Cache,
+  configOverrides,
+  defineModule,
+  ErrorCode,
+  Mailer,
+  Memory,
+  Queue,
+  Scheduler,
+  SecurityStore,
+  Storage
+} from '@appweaver/common';
+import { context, isDefined } from '../../context';
+import { EnabledModule } from '../../app/discover-modules';
+import { loadProviders, selectedProvider } from '../../app/load-providers';
+import { firstPartyModules } from '../../modules';
 import { resetContext } from '../fixtures/context-fixture';
 
-/** Loads the providers with the given environment, without instantiating them. */
-async function loadWithEnv(env: Record<string, string>): Promise<string[]> {
-  Object.assign(process.env, env);
-  jest.resetModules();
+const allModules: EnabledModule[] = firstPartyModules.map(({ module }) => ({
+  module,
+  source: 'core'
+}));
 
-  const { logger } = await import('@appweaver/common');
-  jest.spyOn(logger, 'warn').mockImplementation(() => undefined);
+/** The modules of core and data, without any driver module. */
+const coreModules = allModules.filter(({ module }) =>
+  ['@appweaver/core', '@appweaver/data'].includes(module.name)
+);
 
-  const { loadProviders } = await import('../../app/load-providers');
-  const freshContext = (await import('../../context/context')).context;
-  loadProviders(__dirname);
-
-  return freshContext.definitions.map((def) => String(def.name));
-}
+const definedNames = () => context.definitions.map((def) => String(def.name));
 
 describe('load-providers', () => {
-  const originalEnv = { ...process.env };
+  beforeEach(() => {
+    resetContext();
+  });
 
   afterEach(() => {
-    for (const key of Object.keys(process.env)) {
-      if (!(key in originalEnv)) {
-        delete process.env[key];
-      }
+    for (const key of Object.keys(configOverrides)) {
+      delete configOverrides[key];
     }
-    Object.assign(process.env, originalEnv);
-    jest.restoreAllMocks();
-    jest.resetModules();
   });
 
   afterAll(() => {
@@ -34,52 +44,93 @@ describe('load-providers', () => {
   });
 
   describe('loadProviders', () => {
-    test('loads the scheduler, the mailer and the email service', async () => {
-      const names = await loadWithEnv({});
+    test('selects the drivers of the enabled modules for auto', async () => {
+      await loadProviders(allModules, __dirname);
 
-      expect(names).toEqual(
-        expect.arrayContaining(['Scheduler', 'Mailer', 'EmailService'])
+      expect(selectedProvider(Memory)).toBe('redis');
+      expect(selectedProvider(Queue)).toBe('bullmq');
+      expect(selectedProvider(Scheduler)).toBe('cron');
+      expect(selectedProvider(Mailer)).toBe('smtp');
+      expect(selectedProvider(SecurityStore)).toBe('database');
+      expect(definedNames()).toEqual(
+        expect.arrayContaining(['EmailService', 'LocaleService', 'HttpServer'])
       );
     });
 
-    test('loads the template engine and the locale service', async () => {
-      const names = await loadWithEnv({});
+    test('falls back to the drivers of core without driver modules', async () => {
+      await loadProviders(coreModules, __dirname);
 
-      expect(names).toEqual(
-        expect.arrayContaining(['TemplateEngine', 'LocaleService'])
+      expect(selectedProvider(Memory)).toBe('memory');
+      expect(selectedProvider(Cache)).toBe('memory');
+      expect(selectedProvider(Queue)).toBe('memory');
+      expect(selectedProvider(Storage)).toBe('local');
+      expect(selectedProvider(Scheduler)).toBeUndefined();
+      expect(isDefined(Scheduler)).toBe(false);
+    });
+
+    test('leaves the mailer and the email service out without a driver', async () => {
+      await loadProviders(coreModules, __dirname);
+
+      expect(isDefined(Mailer)).toBe(false);
+      expect(definedNames()).not.toContain('EmailService');
+    });
+
+    test('selects a provider by its name', async () => {
+      configOverrides.MAILER_PROVIDER = 'json';
+
+      await loadProviders(coreModules, __dirname);
+
+      expect(selectedProvider(Mailer)).toBe('json');
+      expect(definedNames()).toContain('EmailService');
+    });
+
+    test('disables a contract and the services requiring it with none', async () => {
+      configOverrides.QUEUE_PROVIDER = 'none';
+
+      await loadProviders(allModules, __dirname);
+
+      expect(isDefined(Queue)).toBe(false);
+      expect(definedNames()).not.toContain('EmailService');
+    });
+
+    test('loads a provider from a module path', async () => {
+      configOverrides.MEMORY_PROVIDER = '../../memory/in-memory';
+
+      await loadProviders(allModules, __dirname);
+
+      expect(selectedProvider(Memory)).toBe('../../memory/in-memory');
+      expect(isDefined(Memory)).toBe(true);
+    });
+
+    test('fails for a provider no enabled module registers', async () => {
+      configOverrides.SCHEDULER_PROVIDER = 'agenda';
+
+      await expect(loadProviders(coreModules, __dirname)).rejects.toMatchObject(
+        { code: ErrorCode.ModuleProviderMissing }
       );
     });
 
-    test('skips the template engine whose package is not installed', async () => {
-      const names = await loadWithEnv({
-        TEMPLATE_PROVIDER: '@appweaver/core/template/missing'
+    test('fails for auto matching the drivers of two modules', async () => {
+      const otherRedis = defineModule({
+        name: 'other-redis',
+        providers: [
+          {
+            contract: Memory,
+            name: 'valkey',
+            load: () => import('../../memory/in-memory')
+          }
+        ]
       });
 
-      expect(names).not.toContain('TemplateEngine');
-      expect(names).toContain('LocaleService');
-    });
-
-    test('skips the scheduler when it is disabled', async () => {
-      const names = await loadWithEnv({ SCHEDULER_ENABLED: 'false' });
-
-      expect(names).not.toContain('Scheduler');
-    });
-
-    test('skips the mailer and the email service when disabled', async () => {
-      const names = await loadWithEnv({ MAILER_ENABLED: 'false' });
-
-      expect(names).not.toContain('Mailer');
-      expect(names).not.toContain('EmailService');
-    });
-
-    test('skips the email service without a queue', async () => {
-      const names = await loadWithEnv({
-        QUEUE_PROVIDER: '@appweaver/core/queue/missing'
+      await expect(
+        loadProviders(
+          [...allModules, { module: otherRedis, source: 'local' }],
+          __dirname
+        )
+      ).rejects.toMatchObject({
+        code: ErrorCode.ModuleProviderAmbiguous,
+        details: { contract: 'Memory', providers: ['redis', 'valkey'] }
       });
-
-      expect(names).not.toContain('Queue');
-      expect(names).not.toContain('EmailService');
-      expect(names).toContain('Mailer');
     });
   });
 });

@@ -136,7 +136,7 @@ export class EmailService {
    * `TEMPLATE_RENDER_FAILED` if a template fails to render.
    */
   public async renderTemplateEmail(email: TemplateEmail): Promise<Email> {
-    const { to, template, data = {}, locale, attachments } = email;
+    const { template, data = {}, locale, ...envelope } = email;
     const engine = this._templateEngine;
     if (!engine) {
       throw new ConfigurationError(
@@ -174,11 +174,10 @@ export class EmailService {
     }
 
     return {
-      to,
+      ...envelope,
       subject: subject.replace(/\s+/g, ' ').trim(),
       text: text ?? htmlToText(html!),
-      html,
-      attachments
+      html
     };
   }
 

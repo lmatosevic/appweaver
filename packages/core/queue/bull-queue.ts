@@ -1,11 +1,4 @@
-import {
-  Job,
-  JobProgress,
-  Queue,
-  Worker,
-  WorkerListener,
-  WorkerOptions
-} from 'bullmq';
+import { Job, JobProgress, Queue, Worker, WorkerListener } from 'bullmq';
 import { EventEmitter } from 'node:events';
 import { Redis as RedisClient, RedisOptions } from 'ioredis';
 import { JobsOptions } from 'bullmq/dist/esm/types';
@@ -16,17 +9,20 @@ import {
   Queue as CommonQueue,
   QueueHandlerResponse,
   QueueListener,
+  QueueJobOptions,
   QueueProcessor,
-  Redis,
+  QueueWorkerOptions,
+  Memory,
   uuid,
-  QueueError
+  QueueError,
+  ConfigurationError
 } from '@appweaver/common';
 import { queueConfig } from './queue-config';
 import { inject } from '../context';
 
 type EventName = keyof WorkerListener;
 
-type IoRedis = Redis<RedisOptions, RedisClient>;
+type IoRedis = Memory<RedisOptions, RedisClient>;
 
 export class BullQueue extends CommonQueue {
   /** @internal */
@@ -82,9 +78,7 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
   Data,
   Response,
   Job<Data, Response>,
-  JobsOptions,
-  Worker<Data, Response>,
-  WorkerOptions
+  Worker<Data, Response>
 > {
   /** @internal */
   private readonly _connection: RedisClient;
@@ -100,10 +94,17 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
 
   constructor(public readonly name: string) {
     super();
-    this._connection = inject<IoRedis>(Redis).createClient({
+    const connection = inject<IoRedis>(Memory).createClient({
       connectionName: `queue:${name}`,
       maxRetriesPerRequest: null
     });
+    if (!connection) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        'The bullmq queue needs the redis memory provider'
+      );
+    }
+    this._connection = connection;
     this._queue = new Queue(name, {
       connection: this._connection as any, // Needed because of different ioredis types
       skipVersionCheck: true,
@@ -134,17 +135,21 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
   public async sendJob(
     data: Data,
     name?: string,
-    options: JobsOptions = {}
+    options: QueueJobOptions = {}
   ): Promise<Job<Data, Response>> {
     await this.ensureConnected();
-    return await this._queue.add(name ?? 'defaultJob', data, options);
+    return await this._queue.add(
+      name ?? 'defaultJob',
+      data,
+      toJobsOptions(options)
+    );
   }
 
   public async sendBulkJobs(
     jobs: Array<{
       data: Data;
       name?: string;
-      options?: Omit<JobsOptions, 'repeat'>;
+      options?: QueueJobOptions;
     }>
   ): Promise<Array<Job<Data, Response>>> {
     await this.ensureConnected();
@@ -152,17 +157,18 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       jobs.map(({ data, name, options }) => ({
         data,
         name: name ?? 'defaultJob',
-        ...(options ?? {})
+        opts: toJobsOptions(options ?? {})
       }))
     );
   }
 
   public addWorker(
     processor: (job: Job<Data, Response>) => Promise<Response>,
-    options: Omit<WorkerOptions, 'connection'> = {}
+    options: QueueWorkerOptions = {}
   ): Worker<Data, Response> {
     const worker = new Worker<Data, Response>(this.name, processor, {
-      ...options,
+      ...options.providerOptions,
+      ...(options.concurrency ? { concurrency: options.concurrency } : {}),
       connection: this._connection as any, // Needed because of different ioredis types
       skipVersionCheck: true,
       name: `${this.name}_${uuid()}`
@@ -384,4 +390,14 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       internal[key]?.on('error', () => undefined);
     }
   }
+}
+
+/** Converts the job options of the contract into the ones of BullMQ, leaving the defaults of the queue as they are. */
+function toJobsOptions(options: QueueJobOptions): JobsOptions {
+  const { providerOptions, ...jobOptions } = options;
+  return Object.fromEntries(
+    Object.entries({ ...providerOptions, ...jobOptions }).filter(
+      ([, value]) => value !== undefined
+    )
+  );
 }

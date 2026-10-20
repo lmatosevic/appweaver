@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { MODEL } from '@appweaver/common';
-import { context, injectAll } from '../../context';
+import { define, injectAll } from '../../context';
 import { createSchemaModel } from '../../utils/schema-util';
 import { resetContext } from '../fixtures/context-fixture';
 
@@ -88,7 +88,7 @@ describe('schema-util', () => {
 
     test('skips adding an already registered schema to the server', () => {
       const addSchema = jest.fn();
-      context.server = { addSchema } as any;
+      define({ instance: { addSchema } }, 'HttpServer', 'override');
 
       createSchemaModel(Type.Object({}), { name: 'CustomData' });
       createSchemaModel(Type.Object({}), { name: 'CustomData' });
@@ -98,7 +98,7 @@ describe('schema-util', () => {
 
     test('adds the schema to the server instance', () => {
       const addSchema = jest.fn();
-      context.server = { addSchema } as any;
+      define({ instance: { addSchema } }, 'HttpServer', 'override');
 
       createSchemaModel(Type.Object({ id: Type.Integer() }), {
         name: 'CustomData'
@@ -111,7 +111,7 @@ describe('schema-util', () => {
 
     test('skips adding the schema to the server when disabled', () => {
       const addSchema = jest.fn();
-      context.server = { addSchema } as any;
+      define({ instance: { addSchema } }, 'HttpServer', 'override');
 
       createSchemaModel(Type.Object({}), {
         name: 'CustomData',

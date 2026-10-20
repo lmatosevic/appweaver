@@ -84,15 +84,18 @@ export function isTypeScriptRuntime(
  * @param {string} cwd - The base directory to search files within.
  * @param {boolean} [stripOverlapping=true] - Whether to remove overlapping paths between a pattern and cwd from a glob
  * pattern before searching for files.
+ * @param {boolean} [sanitize=true] - Whether to match the files of the current runtime, the `.js` files of a `.ts`
+ * pattern on Node, or the pattern as it is, i.e. to find the source files.
  * @return {Promise<string[]>} A promise that resolves to a sorted array of absolute file paths matching the pattern.
  */
 export async function findFilesByPattern(
   pattern: string,
   cwd: string,
-  stripOverlapping: boolean = true
+  stripOverlapping: boolean = true,
+  sanitize: boolean = true
 ): Promise<string[]> {
   // Add project files using a sanitized glob pattern
-  const filePaths = sanitizePath(pattern);
+  const filePaths = sanitize ? sanitizePath(pattern) : pattern;
   const filePattern = stripOverlapping
     ? stripOverlappingPath(filePaths, cwd)
     : filePaths;

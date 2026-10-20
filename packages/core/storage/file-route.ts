@@ -59,10 +59,13 @@ export function files(server: Server): void {
       schema: createFileAccessSchema(true)
     },
     async (request, reply) => {
-      const data = await fileService.stream(
+      const data = await fileService.download(
         request.params['*'],
         request.headers.range
       );
+      if ('url' in data) {
+        return reply.redirect(data.url, 302);
+      }
 
       const code = addHeaders(reply, data, !!request.headers.range);
 
@@ -77,10 +80,13 @@ export function files(server: Server): void {
       onRequest: authenticate()
     },
     async (request, reply) => {
-      const data = await fileService.stream(
+      const data = await fileService.download(
         request.params['*'],
         request.headers.range
       );
+      if ('url' in data) {
+        return reply.redirect(data.url, 302);
+      }
 
       const code = addHeaders(reply, data, !!request.headers.range);
 

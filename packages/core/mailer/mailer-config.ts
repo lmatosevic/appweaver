@@ -2,16 +2,13 @@ import { Type } from '@sinclair/typebox';
 import { defineConfig } from '@appweaver/common';
 
 export const mailerConfig = defineConfig('mailer', {
-  /** Enable the mailer and the email features, disable it when the `nodemailer` package is not installed. Default: `true`. */
-  ENABLED: Type.Boolean({ default: true }),
   /** Default sender name for outgoing emails. */
   SENDER_NAME: Type.Optional(Type.String()),
   /** Default sender email address. */
   SENDER_ADDRESS: Type.Optional(Type.String()),
-  /** Mailer provider implementation path. Default: `'@appweaver/core/mailer/smtp-mailer'`. */
-  PROVIDER: Type.String({
-    default: '@appweaver/core/mailer/smtp-mailer'
-  })
+  /** Mailer provider: `auto` (`smtp` when its module is enabled, otherwise none), `smtp`, `json` (writes the emails
+   * into the log, for development and tests), `none`, or the module path of an implementation. Default: `'auto'`. */
+  PROVIDER: Type.String({ default: 'auto' })
 });
 
 export const smtpConfig = defineConfig('mailer.smtp', {

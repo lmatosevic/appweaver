@@ -11,7 +11,9 @@
       "sourcePath": "./src",
       "scanFilesPattern": "<srcPath>/*/index.ts",
       "mainFilePath": "<srcPath>/main.ts",
-      "autoloadModules": ["aws-storage", "service-bus"]
+      "modulesPattern": "<srcPath>/modules/*/module.ts",
+      "modules": ["../shared/dist/module.js"],
+      "modulesDisabled": []
     },
     "server": {
       "port": 5000,
@@ -48,7 +50,7 @@
       "max": 1000,
       "window": 60000,
       "allowList": ["127.0.0.1", "192.168.5.1"],
-      "store": "redis",
+      "store": "auto",
       "skipOnError": true
     },
     "swagger": {
@@ -63,6 +65,10 @@
       "cacheTtl": 3000,
       "pickInstances": ["database", "redis", "storage"],
       "omitInstances": null
+    },
+    "health": {
+      "port": 0,
+      "host": "0.0.0.0"
     },
     "cors": {
       "origin": "*",
@@ -104,7 +110,7 @@
       "authOttTtl": 120000,
       "allowedRedirectHosts": "*",
       "store": {
-        "provider": "@appweaver/core/security/store/database-security-store",
+        "provider": "auto",
         "keepDatabaseTable": false
       },
       "password": {
@@ -241,7 +247,7 @@
       "transactionTimeout": 5000,
       "aiDangerousActionsEnabled": true,
       "logEvents": ["query", "info", "warn", "error"],
-      "provider": "@appweaver/core/database/prisma-database"
+      "provider": "auto"
     },
     "storage": {
       "path": "./storage",
@@ -249,15 +255,17 @@
       "namePattern": "{name}-{hash}.{extension}",
       "cacheTtl": 86400000,
       "filesRoutePrefix": "/files",
-      "provider": "@appweaver/core/storage/filesystem-storage"
+      "provider": "auto"
     },
-    "redis": {
-      "url": "redis://localhost:6379/0",
-      "provider": "@appweaver/core/memory/redis"
+    "image": {
+      "provider": "auto"
     },
     "memory": {
       "maxSize": "100M",
-      "provider": "@appweaver/core/memory/memory"
+      "provider": "auto",
+      "redis": {
+        "url": "redis://localhost:6379/0"
+      }
     },
     "cache": {
       "enabled": true,
@@ -272,7 +280,7 @@
       "invalidationStrategy": "expire-related",
       "invalidationDeferred": false,
       "skipOnError": true,
-      "provider": "@appweaver/core/cache/redis-cache"
+      "provider": "auto"
     },
     "queue": {
       "keepCompletedCount": 0,
@@ -282,22 +290,20 @@
       "retryAttempts": 3,
       "retryBackoff": 3000,
       "retryBackoffType": "fixed",
-      "provider": "@appweaver/core/queue/bull-queue"
+      "provider": "auto"
     },
     "scheduler": {
-      "enabled": true,
       "autoStartJob": true,
-      "provider": "@appweaver/core/scheduler/cron-scheduler"
+      "provider": "auto"
     },
     "events": {
       "maxListeners": 20,
-      "provider": "@appweaver/core/events/node-events"
+      "provider": "auto"
     },
     "mailer": {
-      "enabled": true,
       "senderName": "John Doe",
       "senderAddress": "no-reply@appweaver.co",
-      "provider": "@appweaver/core/mailer/smtp-mailer",
+      "provider": "auto",
       "smtp": {
         "host": "mail.appweaver.co",
         "port": 587,
@@ -314,7 +320,7 @@
         "auth": false,
         "routePrefix": "/templates"
       },
-      "provider": "@appweaver/core/template/handlebars-template-engine"
+      "provider": "auto"
     },
     "locale": {
       "default": "en",
