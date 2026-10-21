@@ -221,7 +221,7 @@ The `image` options of a file field (dimensions, fit, quality) are applied by th
 `@appweaver/common`, `supports(mimeType)` and `process(stream, mimeType, config?)`. Its `sharp` driver
 (`SharpImageProcessor` of `@appweaver/sharp`, a dependency of every scaffolded project) is selected when the package is
 installed. Without a processor (`IMAGE_PROVIDER=none`, or no `@appweaver/sharp`), the images are stored as they are
-uploaded.
+uploaded, and the application warns at startup naming the file fields whose `image` options are not applied.
 
 ### Injecting FileService
 
