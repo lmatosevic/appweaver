@@ -293,8 +293,9 @@ The contract suites of `contracts/` test a driver against the behavior every dri
 `testMemoryContract`, `testStorageContract`, `testQueueContract`, `testSchedulerContract` and `testMailerContract`,
 each called as `(name, () => driver)` at the top level of a test file. They use the `describe`, `test`, `beforeEach`,
 `afterEach` and `expect` globals, so they run under Jest, Vitest and Bun, and create a fresh driver for every test.
-`InMemory`, `FilesystemStorage`, `MemoryQueue`, `JsonMailer` and `CronScheduler` run them, and so does the test of a
-driver package scaffolded with `npm create @appweaver module`. A change of a contract's shared behavior goes into its
+`InMemory`, `RedisMemory` (on `ioredis-mock`, which runs its Lua scripts), `FilesystemStorage`, `MemoryQueue`,
+`JsonMailer` and `CronScheduler` run them, and so does the test of a driver package scaffolded with
+`npm create @appweaver module`. A change of a contract's shared behavior goes into its
 suite, so every driver is held to it.
 
 ### `packages/cli`

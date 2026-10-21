@@ -361,6 +361,9 @@ import { GcsStorage } from '../src/gcs-storage';
 testStorageContract('GcsStorage', () => new GcsStorage());
 ```
 
+A driver of an external service runs the suite on an in-memory stand-in of its client, the way `@appweaver/redis` runs
+`testMemoryContract` on `ioredis-mock` (`jest.mock('ioredis', ...)`), or on a real service in an integration test.
+
 | Suite                   | Contract    | Tests                                                                                       |
 |-------------------------|-------------|---------------------------------------------------------------------------------------------|
 | `testMemoryContract`    | `Memory`    | Values and their expiry, `exists` and `delete`, key patterns, locks, the health check       |
