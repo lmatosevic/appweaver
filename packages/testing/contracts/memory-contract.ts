@@ -1,5 +1,5 @@
 import { Memory } from '@appweaver/common';
-import { ContractFactory, wait } from './contract-util';
+import { ContractFactory, runner, wait } from './contract-util';
 
 /**
  * Tests a `Memory` driver against the behavior every driver shares, with the `describe` and `test` globals of Jest,
@@ -12,6 +12,8 @@ export function testMemoryContract(
   name: string,
   create: ContractFactory<Memory>
 ): void {
+  const { describe, test, expect, beforeEach, afterEach } = runner();
+
   describe(`${name} implements the Memory contract`, () => {
     let memory: Memory;
 

@@ -1,5 +1,5 @@
 import { Queue } from '@appweaver/common';
-import { ContractFactory } from './contract-util';
+import { ContractFactory, runner } from './contract-util';
 
 /**
  * Tests a `Queue` driver against the behavior every driver shares, with the `describe` and `test` globals of Jest,
@@ -12,6 +12,8 @@ export function testQueueContract(
   name: string,
   create: ContractFactory<Queue>
 ): void {
+  const { describe, test, expect, beforeEach, afterEach } = runner();
+
   describe(`${name} implements the Queue contract`, () => {
     let queue: Queue;
 

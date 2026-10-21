@@ -42,7 +42,7 @@ testStorageContract('GcsStorage', () => new GcsStorage());
 ```
 
 | Suite                   | Contract    | Tests                                                                             |
-|-------------------------|-------------|-----------------------------------------------------------------------------------|
+| ----------------------- | ----------- | --------------------------------------------------------------------------------- |
 | `testMemoryContract`    | `Memory`    | Values and their expiry, `exists` and `delete`, key patterns, locks, health       |
 | `testStorageContract`   | `Storage`   | Storing and streaming a file and a byte range, `exists`, `delete`, `url`, health  |
 | `testQueueContract`     | `Queue`     | A job processed by a worker and its result, a failed job, closing a queue, health |

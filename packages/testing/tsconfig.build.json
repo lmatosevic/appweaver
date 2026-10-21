@@ -9,7 +9,7 @@
       "@appweaver/core": ["../core"],
       "@appweaver/core/*": ["../core/*"]
     },
-    "types": ["node", "jest"]
+    "types": ["node"]
   },
   "exclude": ["node_modules", "dist", "test/**/*", "**/*.test.ts"],
   "references": [

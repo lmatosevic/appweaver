@@ -1,5 +1,5 @@
 import { Mailer } from '@appweaver/common';
-import { ContractFactory } from './contract-util';
+import { ContractFactory, runner } from './contract-util';
 
 /**
  * Tests a `Mailer` driver against the behavior every driver shares, with the `describe` and `test` globals of Jest,
@@ -12,6 +12,8 @@ export function testMailerContract(
   name: string,
   create: ContractFactory<Mailer>
 ): void {
+  const { describe, test, expect, beforeEach } = runner();
+
   describe(`${name} implements the Mailer contract`, () => {
     let mailer: Mailer;
 

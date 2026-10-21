@@ -1,6 +1,6 @@
 import { Readable } from 'node:stream';
 import { Storage } from '@appweaver/common';
-import { ContractFactory } from './contract-util';
+import { ContractFactory, runner } from './contract-util';
 
 /** Reads a stream into a string. */
 async function read(stream: Readable): Promise<string> {
@@ -22,6 +22,8 @@ export function testStorageContract(
   name: string,
   create: ContractFactory<Storage>
 ): void {
+  const { describe, test, expect, beforeEach } = runner();
+
   describe(`${name} implements the Storage contract`, () => {
     let storage: Storage;
 
