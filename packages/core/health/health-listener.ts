@@ -7,7 +7,7 @@ import {
   OnReady,
   OnShutdown
 } from '@appweaver/common';
-import { inject } from '../context/dependency-injection';
+import { inject, isDefined } from '../context/dependency-injection';
 import { healthConfig } from './health-config';
 import { HealthService } from './health-service';
 
@@ -22,7 +22,8 @@ export class HealthListener implements OnReady, OnShutdown {
   private _server?: http.Server;
 
   public async onReady(): Promise<void> {
-    if (!healthConfig.PORT) {
+    // The server of web answers the health routes itself
+    if (!healthConfig.PORT || isDefined('HttpServer')) {
       return;
     }
 

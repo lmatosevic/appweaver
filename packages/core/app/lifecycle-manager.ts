@@ -6,24 +6,14 @@ import {
   OnDestroy,
   OnInit,
   OnReady,
-  OnShutdown
+  OnShutdown,
+  isConstructor
 } from '@appweaver/common';
+import { context } from '../context/context';
 import { injectAllWhere } from '../context/dependency-injection';
 
 export abstract class LifecycleManager {
   private _initialized = false;
-  private readonly _initServices = injectAllWhere<OnInit>((def) =>
-    isLifecycleInit(def.value)
-  );
-  private readonly _readyServices = injectAllWhere<OnReady>((def) =>
-    isLifecycleReady(def.value)
-  );
-  private readonly _shutdownServices = injectAllWhere<OnShutdown>((def) =>
-    isLifecycleShutdown(def.value)
-  );
-  private readonly _destroyServices = injectAllWhere<OnDestroy>((def) =>
-    isLifecycleDestroy(def.value)
-  );
 
   /**
    * Initializes the services and sets the initialized state.
@@ -35,41 +25,58 @@ export abstract class LifecycleManager {
     if (this._initialized) {
       return;
     }
-    await Promise.all([
-      ...this._initServices.map((service) => service.onInit())
-    ]);
+    await Promise.all(
+      injectAllWhere<OnInit>((def) => isLifecycleInit(def.value)).map(
+        (service) => service.onInit()
+      )
+    );
     this._initialized = true;
   }
 
   /**
-   * Tells the services that every service is initialized, i.e. so the server starts listening.
+   * Tells the services that every service is initialized, i.e. so the server starts listening. The ready services are
+   * created here, so a manager that is never ready, i.e. the seeder, never creates the server.
    *
    * @return A promise that resolves when all services are ready.
    */
   public async ready(): Promise<void> {
-    await Promise.all([
-      ...this._readyServices.map((service) => service.onReady())
-    ]);
+    await Promise.all(
+      injectAllWhere<OnReady>((def) => isLifecycleReady(def.value)).map(
+        (service) => service.onReady()
+      )
+    );
   }
 
   /**
    * Releases resources and cleans up any initialized services.
    * This method ensures that all registered services perform their individual cleanup operations.
    * The services stop serving requests first, so none of the requests in flight reaches a destroyed service.
+   * Only the services already created are shut down and destroyed, since the others hold no resources.
    * It also sets the initialized state to false.
    *
    * @return A promise that resolves when all cleanup operations are completed.
    */
   public async destroy(): Promise<void> {
-    await Promise.all([
-      ...this._shutdownServices.map((service) => service.onShutdown())
-    ]);
+    await Promise.all(
+      createdServices<OnShutdown>(isLifecycleShutdown).map((service) =>
+        service.onShutdown()
+      )
+    );
     if (!this._initialized) {
       return;
     }
-    await Promise.all([
-      ...this._destroyServices.map((service) => service.onDestroy())
-    ]);
+    await Promise.all(
+      createdServices<OnDestroy>(isLifecycleDestroy).map((service) =>
+        service.onDestroy()
+      )
+    );
     this._initialized = false;
   }
+}
+
+/** Returns the created instances of the definitions matching a lifecycle check, without creating the other ones. */
+function createdServices<T>(matches: (value: unknown) => boolean): T[] {
+  return context.definitions
+    .map((def) => def.value)
+    .filter((value) => !isConstructor(value) && matches(value)) as T[];
 }

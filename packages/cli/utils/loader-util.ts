@@ -91,6 +91,7 @@ export async function loadModels(
     sources: true
   });
   const modelExports: any[] = [];
+  const moduleExports: any[] = [];
 
   // Add project files using a pattern
   const modelPaths = await glob(modelPattern, { cwd, absolute: true });
@@ -121,7 +122,7 @@ export async function loadModels(
       if (!exports) {
         continue;
       }
-      modelExports.push(exports);
+      moduleExports.push(exports);
       if (registeredByModules && shipsResourceRegistry(enabled)) {
         for (const model of exportedModels(exports)) {
           registeredByModules.add(model.name);
@@ -133,6 +134,13 @@ export async function loadModels(
   for (const modelExport of modelExports) {
     for (const model of exportedModels(modelExport)) {
       models[model.name] = model;
+    }
+  }
+
+  // A model of the project replaces the model of a module with its name, as when the application loads them
+  for (const moduleExport of moduleExports) {
+    for (const model of exportedModels(moduleExport)) {
+      models[model.name] ??= model;
     }
   }
 

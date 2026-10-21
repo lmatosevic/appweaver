@@ -47,6 +47,15 @@ describe('health-listener', () => {
       expect(listener.port()).toBeUndefined();
     });
 
+    test('starts no listener beside the server of web', async () => {
+      configOverrides.HEALTH_CHECK_PORT = await freePort();
+      define({ instance: {} }, 'HttpServer');
+
+      await listener.onReady();
+
+      expect(listener.port()).toBeUndefined();
+    });
+
     test('answers the health checks on the configured port', async () => {
       const port = await freePort();
       configOverrides.HEALTH_CHECK_PORT = port;

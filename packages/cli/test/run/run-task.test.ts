@@ -43,6 +43,7 @@ describe('run-task', () => {
       expect(app.stop).toHaveBeenCalled();
       expect(configOverrides.SCHEDULER_AUTO_START_JOB).toBe(false);
       expect(configOverrides.SERVER_LISTEN).toBe(false);
+      expect(configOverrides.HEALTH_CHECK_PORT).toBe(0);
     });
 
     test('fails for a file without a default function, stopping the application', async () => {

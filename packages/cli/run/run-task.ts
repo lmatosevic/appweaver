@@ -41,6 +41,8 @@ export async function runTask(
 ): Promise<number> {
   configOverrides.SCHEDULER_AUTO_START_JOB = false;
   configOverrides.SERVER_LISTEN = false;
+  // The application the task runs in may already listen on the health port
+  configOverrides.HEALTH_CHECK_PORT = 0;
 
   const app = await createApp();
 
