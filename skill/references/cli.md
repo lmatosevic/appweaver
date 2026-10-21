@@ -158,6 +158,10 @@ framework models reach the schema only when the project uses them: `Role`, `Perm
 `ConnectedAccount` with an auth model, `File` when a model declares `files`, and `Seeder` when the seeders directory
 exists (or an enabled module declares `seeders`). `--no-prune` keeps all of them.
 
+The registry belongs to the application: in a module package (`appweaver.module` in its `package.json`) `weaver
+generate` never writes it, and in an application it leaves out, with a warning, the models of a module package whose
+declaration files register them already, so no model is registered twice.
+
 With the types, `weaver generate` writes `appweaver.schema.json`, the JSON Schema the `$schema` of `appweaver.json`
 points to, from the config sections the enabled modules list in their manifests, so rerun it after adding a module.
 

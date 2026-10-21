@@ -525,6 +525,11 @@ without a model declaring `files`, `Seeder` without a seeders directory (`data/r
 `npm run generate` of `packages/data` passes `--no-registry`, `--no-prune` and `--no-config-schema`, since the
 registry and the config belong to the application and data keeps every model.
 
+The registry belongs to the application, so a model is registered once: run in a module package (its `package.json` has
+the `appweaver.module` field), `weaver generate` never writes the registry, and in an application it leaves out the
+models of a module package whose declaration files already augment `ResourceRegistry`, with a warning naming them
+(`shipsResourceRegistry` of `utils/loader-util.ts`).
+
 ---
 
 ### `weaver migrate` (alias: `mge`)

@@ -304,6 +304,9 @@ export default defineModule({
   installing the package brings and enables it, or a peer dependency the application installs too (`@appweaver/web`
   on `@appweaver/data`).
 - The application enables the package by installing it as a dependency (not a dev dependency).
+- Never ship a `ResourceRegistry` augmentation for the models of the package: the application's `weaver generate`
+  registers them (it skips the registry when run in a module package, and leaves out the models of a package that
+  registers them anyway).
 - Import the framework by its entry points only, since every `@appweaver/*` package declares them in its `exports`:
   the package names, `@appweaver/core/config` and `@appweaver/data/config` (the config sections),
   `@appweaver/core/drivers` (the in-process drivers) and `@appweaver/core/internal` (the application `context`, the
