@@ -8,7 +8,6 @@ import {
   isModule,
   Module,
   ModuleError,
-  requireModule,
   satisfiesVersion
 } from '@appweaver/common';
 import { context } from '../context/context';
@@ -212,7 +211,7 @@ async function importManifest(
   sources: boolean = false
 ): Promise<EnabledModule> {
   const { value, error } = sources
-    ? requireModule(manifestPath)
+    ? requireSource(manifestPath)
     : await importModule(manifestPath);
   const manifest = (value as { default?: unknown } | null)?.default ?? value;
   if (error || !isModule(manifest)) {
@@ -226,6 +225,21 @@ async function importManifest(
     );
   }
   return { module: manifest, source, path: manifestPath };
+}
+
+/**
+ * Requires a manifest of the sources as it is, i.e. a `.ts` file compiled by the registered loader, which
+ * `requireModule` would rewrite to the `.js` file of a build.
+ */
+function requireSource(
+  manifestPath: string
+): { value: unknown; error: null } | { value: null; error: Error } {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return { value: require(manifestPath), error: null };
+  } catch (e) {
+    return { value: null, error: e as Error };
+  }
 }
 
 /** Rejects two modules with the same name. */

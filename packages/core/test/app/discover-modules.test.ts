@@ -106,6 +106,21 @@ describe('discover-modules', () => {
       });
     });
 
+    test('requires the TypeScript manifests of the sources as they are', async () => {
+      const sourcesRoot = path.join(__dirname, '../fixtures/modules/sources');
+
+      const modules = await discoverModules({
+        scanPath: path.join(sourcesRoot, 'src'),
+        rootPath: sourcesRoot,
+        sources: true
+      });
+
+      expect(modules.map(({ module }) => module.name)).toEqual([
+        '@appweaver/core',
+        'billing-sources'
+      ]);
+    });
+
     test('fails for a module supporting another framework version', async () => {
       configOverrides.APP_MODULES = ['future/module.js'];
 
