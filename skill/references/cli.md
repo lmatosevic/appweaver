@@ -385,7 +385,8 @@ Requires `NODE_ENV=test`.
 | `--verbose`                 | Print verbose output                    | `false`                                  |
 
 Aborts unless the storage, schema and client paths all resolve inside `--dir`, so a misconfigured test run cannot
-touch the development database or uploads.
+touch the development database or uploads. It resets the test database (`prisma migrate reset --force`) before the
+initial migration, since a PostgreSQL or MySQL test database keeps the tables and migrations of the last run.
 
 ### `weaver test reset`
 

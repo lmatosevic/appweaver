@@ -712,7 +712,8 @@ weaver test setup [options]
 | `--migration-name [name]`   | Initial migration name    | `init_test` |
 | `--verbose`                 | Verbose output            | false       |
 
-Steps: removes temp dir → creates storage dir → generates schema → runs initial migration. The storage, schema, and
+Steps: removes temp dir → creates storage dir → generates schema → resets the test database (`prisma migrate reset
+--force`, since a database server keeps the tables of the last run) → runs initial migration. The storage, schema, and
 client paths must lie inside the temporary directory.
 
 #### `weaver test reset`

@@ -112,6 +112,18 @@ export function testingCommand(program: Command): void {
       }
 
       setAiDangerousActionConsent();
+      // A database server keeps the tables and the migrations of the last run,
+      // which the new migration would conflict with
+      const resetStatus = await runProcess(
+        'prisma',
+        ['migrate', 'reset', '--force'],
+        { quiet }
+      );
+      if (resetStatus !== 0) {
+        console.error('Failed to reset the test database');
+        process.exit(resetStatus);
+      }
+
       const migrateStatus = await runProcess(
         'prisma',
         ['migrate', 'dev', '--name', command.getOptionValue('migrationName')],
