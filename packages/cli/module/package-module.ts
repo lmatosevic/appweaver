@@ -3,9 +3,23 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { isModule, Module } from '@appweaver/common';
 
-/** A scaffold module name, unlike a package name, has neither a scope nor a slash. */
-export function isPackageName(name: string): boolean {
-  return name.startsWith('@') || name.includes('/') || name.includes('-');
+/**
+ * Checks if a name of `weaver module add` is a package rather than a scaffold module: one that is not a scaffold
+ * module, with a scope, a slash or a dash. Any other name is a scaffold module, so a mistyped one is reported as
+ * unknown instead of installed from the registry.
+ *
+ * @param {string} name - The name, i.e. `redis` or `@acme/appweaver-gcs`.
+ * @param {readonly string[]} scaffoldModules - The names of the scaffold modules.
+ * @return {boolean} `true` for a package name.
+ */
+export function isPackageName(
+  name: string,
+  scaffoldModules: readonly string[]
+): boolean {
+  return (
+    !scaffoldModules.includes(name) &&
+    (name.startsWith('@') || name.includes('/') || name.includes('-'))
+  );
 }
 
 /**

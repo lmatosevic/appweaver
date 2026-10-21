@@ -8,10 +8,17 @@ const rootPath = path.join(__dirname, 'fixtures/project');
 
 describe('package-module', () => {
   describe('isPackageName', () => {
+    const scaffoldModules = ['redis', 'audit-log'];
+
     test('tells a package name apart from an optional module', () => {
-      expect(isPackageName('@acme/appweaver-gcs')).toBe(true);
-      expect(isPackageName('appweaver-brevo')).toBe(true);
-      expect(isPackageName('redis')).toBe(false);
+      expect(isPackageName('@acme/appweaver-gcs', scaffoldModules)).toBe(true);
+      expect(isPackageName('appweaver-brevo', scaffoldModules)).toBe(true);
+      expect(isPackageName('redis', scaffoldModules)).toBe(false);
+    });
+
+    test('keeps a scaffold module with a dash, and a mistyped name, a module', () => {
+      expect(isPackageName('audit-log', scaffoldModules)).toBe(false);
+      expect(isPackageName('redsi', scaffoldModules)).toBe(false);
     });
   });
 

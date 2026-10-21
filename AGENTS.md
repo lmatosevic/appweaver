@@ -602,12 +602,13 @@ named after the camelCase of the name, `audit-log` → `auditLog`, with an `ENAB
 kebab-case, and the command fails without writing anything when a file of the module exists. `--dry-run` prints the
 files.
 
-`add` also takes package names (`module/package-module.ts`): a name with a scope, a `-` or a `/` is a package, never a
-scaffold module. The packages are installed with `npm install --ignore-scripts <packages...>` (`bun add` on Bun), so
+`add` also takes package names (`module/package-module.ts`): a name that is not a scaffold module, with a scope, a `-`
+or a `/`, is a package (any other name is a scaffold module, so a typo is reported as unknown). The packages are installed with `npm install --ignore-scripts <packages...>` (`bun add` on Bun), so
 their install scripts never run, then each is described from the manifest of the `appweaver.module` field of its
 `package.json`: the providers it brings, selected in the provider key of their contract, and the modules it requires.
 A package without the field or a valid manifest is reported as not a module. With `--dry-run` the command prints the
-install command instead. A manifest is marked with `Symbol.for('appweaver.module')`, so `isModule` recognizes it
+install command instead, and with `--no-install` it only adds the packages to `package.json` and the lockfile
+(`--package-lock-only`, `--lockfile-only` on Bun). A manifest is marked with `Symbol.for('appweaver.module')`, so `isModule` recognizes it
 whichever copy of `@appweaver/common` defined it.
 
 ---

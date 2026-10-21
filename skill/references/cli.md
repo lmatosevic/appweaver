@@ -262,7 +262,7 @@ their values to `appweaver.json`, their files, and what they add to the other en
 differs is skipped and reported. Adding `locales` restores the `t` calls of the scaffolded templates still holding
 the English texts. The dependencies are installed when `package.json` changed.
 
-A name with a scope, a `-` or a `/` is a module package (`weaver module add @acme/appweaver-gcs`), installed with
+A name that is not a scaffold module, with a scope, a `-` or a `/`, is a module package (`weaver module add @acme/appweaver-gcs`), installed with
 `npm install --ignore-scripts <package>` (`bun add` on Bun), so its install scripts never run. The command then
 prints the providers of its manifest, selected in the provider key of their contract, and the modules it requires, or
 that the package is not a module (no `appweaver.module` field in its `package.json`, or no valid manifest). With

@@ -388,7 +388,7 @@ weaver module add @acme/appweaver-gcs
 #   provides Storage "gcs", select it in the provider key of the contract
 ```
 
-A name with a scope, a `-` or a `/` is a package, installed with `npm install --ignore-scripts` (`bun add` on Bun), and
+A name that is not a scaffold module, with a scope, a `-` or a `/`, is a package, installed with `npm install --ignore-scripts` (`bun add` on Bun), and
 can be mixed with the scaffold modules (`weaver module add redis @acme/appweaver-gcs`). A package without the
 `appweaver.module` field, or without a valid manifest, is reported as not a module. `--dry-run` prints the install
-command.
+command, and `--no-install` only adds the packages to `package.json` and the lockfile.

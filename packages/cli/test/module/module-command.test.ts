@@ -106,6 +106,24 @@ describe('module-command', () => {
       expect(logs).toContain('Package @acme/appweaver-gcs is not installed.');
     });
 
+    test('only adds a module package to package.json without the installation', async () => {
+      await run('add', '@acme/appweaver-gcs', '--no-install');
+
+      expect(runProcess).toHaveBeenCalledWith(
+        'npm',
+        [
+          'install',
+          '--ignore-scripts',
+          '--package-lock-only',
+          '@acme/appweaver-gcs'
+        ],
+        expect.any(Object)
+      );
+      expect(logs).toContain(
+        'Added @acme/appweaver-gcs to package.json, run "npm install" to enable the modules.'
+      );
+    });
+
     test('adds the modules with the ones they require and installs them', async () => {
       await run('add', 'queue');
 

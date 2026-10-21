@@ -90,11 +90,12 @@ export function moduleCommand(program: Command): void {
     .option('--verbose', 'Print verbose output.')
     .action(async (allNames: string[], _, command: Command) => {
       const project = load();
-      const packageNames = allNames.filter(isPackageName);
+      const isPackage = (name: string) => isPackageName(name, moduleNames);
+      const packageNames = allNames.filter(isPackage);
       if (packageNames.length > 0) {
         await addPackageModules(project, packageNames, command);
       }
-      const names = allNames.filter((name) => !isPackageName(name));
+      const names = allNames.filter((name) => !isPackage(name));
       if (names.length === 0) {
         return;
       }
@@ -187,9 +188,16 @@ async function addPackageModules(
   command: Command
 ): Promise<void> {
   const bun = project.context.runtime === 'bun';
+  const install = command.getOptionValue('install');
+  // Without the installation, only package.json and the lockfile are updated
   const args = bun
-    ? ['add', ...packageNames]
-    : ['install', '--ignore-scripts', ...packageNames];
+    ? ['add', ...(install ? [] : ['--lockfile-only']), ...packageNames]
+    : [
+        'install',
+        '--ignore-scripts',
+        ...(install ? [] : ['--package-lock-only']),
+        ...packageNames
+      ];
   const packageManager = bun ? 'bun' : 'npm';
 
   if (command.getOptionValue('dryRun')) {
@@ -205,6 +213,12 @@ async function addPackageModules(
       `Installing ${packageNames.join(', ')} failed. Use --verbose flag to see error details.`
     );
     process.exit(1);
+  }
+  if (!install) {
+    console.log(
+      `Added ${packageNames.join(', ')} to package.json, run "${packageManager} install" to enable the modules.`
+    );
+    return;
   }
   for (const name of packageNames) {
     describePackageModule(process.cwd(), name).forEach((line) =>

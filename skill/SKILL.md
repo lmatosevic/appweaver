@@ -1024,7 +1024,7 @@ templates, so they keep rendering (the other languages are lost). A module anoth
 removed alone (`queue` requires `redis`). An `appweaver.json` value changed in the project is kept, and `src/` is never
 touched, so remove the code using a removed module yourself.
 
-A name with a scope, a `-` or a `/` is a module package: `add` installs it with `npm install --ignore-scripts` (`bun
+A name that is not a scaffold module, with a scope, a `-` or a `/`, is a module package: `add` installs it with `npm install --ignore-scripts` (`bun
 add` on Bun) and prints the providers and requirements of its manifest. `new <name>` creates a local module (kebab-case
 name) with its `module.ts`, `config.ts` (the camelCase section of the name) and `main.ts`, enabled without config. A
 reusable module goes into a package of its own, created with `npm create @appweaver module <package> -- --contract
