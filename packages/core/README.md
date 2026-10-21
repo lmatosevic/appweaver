@@ -37,8 +37,8 @@ New projects are best created with [`@appweaver/create`](https://www.npmjs.com/p
 which installs this package along with the `weaver` CLI. To add it by hand:
 
 ```sh
-npm install @appweaver/core @appweaver/common
-npm install -D @appweaver/cli typescript
+npm install @appweaver/core @appweaver/common @appweaver/cli
+npm install -D typescript
 ```
 
 ## Usage

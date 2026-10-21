@@ -137,10 +137,10 @@ Generate types and/or schemas. With no flags, generates both types and schema.
 |-----------------------------|-----------------------------------------|------------------------------------------|
 | `-t, --types`               | Generate TypeScript types               | —                                        |
 | `-s, --schema`              | Generate Prisma schema                  | —                                        |
-| `--model-pattern [pattern]` | Glob pattern for finding model files    | `config.RESOURCE_MODEL_PATTERN`          |
-| `--types-path [path]`       | Output path for generated types         | `config.RESOURCE_GENERATED_TYPES_PATH`   |
-| `--schema-path [path]`      | Output path for generated Prisma schema | `config.DATABASE_SCHEMA_PATH`            |
-| `--client-path [path]`      | Output path for generated Prisma client | `config.DATABASE_CLIENT_OUTPUT_DIR_PATH` |
+| `--model-pattern [pattern]` | Glob pattern for finding model files    | from config (`RESOURCE_MODEL_PATTERN`)  |
+| `--types-path [path]`       | Output path for generated types         | from config (`RESOURCE_GENERATED_TYPES_PATH`)|
+| `--schema-path [path]`      | Output path for generated Prisma schema | from config (`DATABASE_SCHEMA_PATH`)    |
+| `--client-path [path]`      | Output path for generated Prisma client | from config (`DATABASE_CLIENT_OUTPUT_DIR_PATH`)|
 | `--no-registry`             | Skip registering the model types        | registered                               |
 | `--no-prune`                | Keep the framework models not used      | pruned                                   |
 | `--config-schema-path [path]` | Output path for the JSON Schema of `appweaver.json` | `./appweaver.schema.json`    |
@@ -305,7 +305,8 @@ weaver run|r <file> [args...]
 ```
 
 Run a one-shot task with the application, like a Rails runner. The command creates the application without starting
-the server or the scheduled jobs (`SCHEDULER_AUTO_START_JOB` is forced to `false`), calls the default export of the file
+the server listening, the health listener or the scheduled jobs (`SERVER_LISTEN`, `HEALTH_CHECK_PORT` and
+`SCHEDULER_AUTO_START_JOB` are forced off), calls the default export of the file
 with the arguments given after it, stops the application, and exits with the number the task returns (`0` otherwise,
 `1` when it throws). On Node a `.ts` path runs from the build output (`src/tasks/report.ts` from
 `dist/src/tasks/report.js`), so build first; Bun runs the source.
@@ -333,11 +334,15 @@ Seed the database.
 
 | Option                    | Description                                                         | Default                            |
 |---------------------------|---------------------------------------------------------------------|------------------------------------|
-| `--seeders-path [path]`   | Seeders directory path                                              | `config.DATABASE_SEEDERS_DIR_PATH` |
+| `--seeders-path [path]`   | Seeders directory path                                              | from config (`DATABASE_SEEDERS_DIR_PATH`) |
 | `-b, --build-project`     | Build the project before seeding                                    | `false`                            |
 | `-p, --project [path]`    | TypeScript project build config file (used when `-b` is set)        | `tsconfig.build.json`              |
 | `-c, --continue-on-error` | Continue seeder execution if error is thrown                        | `false`                            |
 | `-f, --fix-warnings`      | Fix all seeder warnings like wrong checksum or deleted seeder files | `false`                            |
+
+The seeders of the enabled modules (their `seeders` directory) run first, each recorded under its module name
+(`billing/1-plans`), then the seeders of the application. A missing seeders directory is skipped with a warning, and
+its recorded seeders are not reported as deleted; the command fails only when no directory is accessible.
 
 ---
 
@@ -382,9 +387,9 @@ Requires `NODE_ENV=test`.
 | Option                      | Description                             | Default                                  |
 |-----------------------------|-----------------------------------------|------------------------------------------|
 | `-d, --dir [tempDir]`       | Directory for temporary test data       | `./temp`                                 |
-| `--model-pattern [pattern]` | Glob pattern for finding model files    | `config.RESOURCE_MODEL_PATTERN`          |
-| `--schema-path [path]`      | Output path for generated Prisma schema | `config.DATABASE_SCHEMA_PATH`            |
-| `--client-path [path]`      | Output path for generated Prisma client | `config.DATABASE_CLIENT_OUTPUT_DIR_PATH` |
+| `--model-pattern [pattern]` | Glob pattern for finding model files    | from config (`RESOURCE_MODEL_PATTERN`)  |
+| `--schema-path [path]`      | Output path for generated Prisma schema | from config (`DATABASE_SCHEMA_PATH`)    |
+| `--client-path [path]`      | Output path for generated Prisma client | from config (`DATABASE_CLIENT_OUTPUT_DIR_PATH`)|
 | `--migration-name [name]`   | Name for the initial migration          | `init_test`                              |
 | `--verbose`                 | Print verbose output                    | `false`                                  |
 

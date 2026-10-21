@@ -22,8 +22,11 @@ under Bun automatically when the project is configured for the Bun runtime.
 ## Installation
 
 ```sh
-npm install -D @appweaver/cli
+npm install @appweaver/cli
 ```
+
+It is a dependency rather than a dev dependency, as in a scaffolded project, since a production image runs
+`weaver start` and `weaver migrate`.
 
 The CLI needs only `@appweaver/core`. `weaver generate`, `weaver seed` and `weaver test setup` use the
 `@appweaver/data` package of the project, `weaver openapi` its `@appweaver/web`, and they exit naming the package when

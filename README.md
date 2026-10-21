@@ -67,10 +67,16 @@ Without the scaffolder, an API installs the runtime, the database and the server
 each library it uses (never the library itself):
 
 ```sh
-npm install @appweaver/core @appweaver/common @appweaver/data @appweaver/web @prisma/client
-npm install -D @appweaver/cli prisma typescript
+npm install @appweaver/core @appweaver/common @appweaver/data @appweaver/web @appweaver/cli
+npm install @prisma/client prisma @sinclair/typebox @prisma/adapter-pg  # the driver adapter of your database
+npm install -D typescript
 npm install @appweaver/redis @appweaver/bullmq @appweaver/nodemailer  # optional drivers
 ```
+
+The driver adapters are `@prisma/adapter-pg` (PostgreSQL), `@prisma/adapter-mariadb` (MySQL / MariaDB),
+`@prisma/adapter-better-sqlite3` (SQLite, `@prisma/adapter-libsql` on Bun) and `@prisma/adapter-mssql` (SQL Server).
+`@appweaver/cli` and `prisma` are dependencies rather than dev dependencies, since a production image runs
+`weaver start` and `weaver migrate`.
 
 Common options:
 

@@ -4,7 +4,9 @@ export const CONFIG_NAME = 'appweaver';
 export const RESOURCE_NAME = Symbol.for('appweaver.ResourceName');
 export const RESOURCE_TYPE = Symbol.for('appweaver.ResourceType');
 export const RESOURCE_AUTH = Symbol.for('appweaver.ResourceAuth');
-export const RESOURCE_MODEL_RELINK = Symbol.for('appweaver.ResourceModelRelink');
+export const RESOURCE_MODEL_RELINK = Symbol.for(
+  'appweaver.ResourceModelRelink'
+);
 
 export const RESOURCE_MODEL_TYPE = 'Model';
 export const RESOURCE_SERVICE_TYPE = 'Service';

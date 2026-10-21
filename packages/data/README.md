@@ -30,9 +30,12 @@ declaring `files`, Seeder with a seeders directory.
 ## Installation
 
 ```sh
-npm install @appweaver/data @prisma/client
-npm install -D prisma
+npm install @appweaver/data @prisma/client prisma @prisma/adapter-pg  # the driver adapter of your database
 ```
+
+The client connects through the Prisma driver adapter of the database: `@prisma/adapter-pg` (PostgreSQL),
+`@prisma/adapter-mariadb` (MySQL / MariaDB), `@prisma/adapter-better-sqlite3` (SQLite, `@prisma/adapter-libsql` on Bun)
+or `@prisma/adapter-mssql` (SQL Server). `prisma` is a dependency, since `weaver migrate` runs it in production.
 
 ```ts
 // src/resources/post/model.ts

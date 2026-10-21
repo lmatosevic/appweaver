@@ -20,8 +20,9 @@ The `mode` decides what happens when a definition with the same name exists:
   service, routes, or policy) has one definition per name, so it replaces the existing one.
 - `'override'` – replaces the existing definition.
 - `'fail'` – throws an error.
-- `'default'` – keeps the existing definition silently, otherwise adds a default that any later definition under the
-  same name replaces, whatever its mode. The providers and services of the modules are defined so, so a plain
+- `'default'` – keeps an existing definition silently (a default replaces an earlier default), otherwise adds a
+  default that a later definition under the same name replaces in the `ignore`, `override` and `fail` modes, while
+  `append` adds beside it. The providers and services of the modules are defined so, so a plain
   `define(new MyEmailService(), EmailService)` in an application file replaces the one of a module.
 
 **Register a plain value with a string token:**

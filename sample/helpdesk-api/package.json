@@ -19,7 +19,6 @@
     "lint": "eslint \"./**/*.ts\""
   },
   "dependencies": {
-    "@appweaver/bullmq": "^1.12.2",
     "@appweaver/cli": "^1.12.2",
     "@appweaver/common": "^1.12.2",
     "@appweaver/core": "^1.12.2",

@@ -65,8 +65,9 @@ application starts. The resources and the routes of the application and the modu
 parts and the application files.
 
 A provider or a service of a module is defined with the `default` mode of `define`: it keeps a definition the
-application made before `createApp`, and any later `define` of the application replaces it, in any mode
-(`define(MyService, ModuleService)` in an application file).
+application made before `createApp`, and a later `define` of the application replaces it in the `ignore` (default),
+`override` and `fail` modes (`define(MyService, ModuleService)` in an application file), while `append` adds a
+definition beside it, which `inject` does not return.
 
 ## Provider selection
 

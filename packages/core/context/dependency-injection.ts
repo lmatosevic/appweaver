@@ -47,9 +47,10 @@ import {
  *                        single definition per name, so it replaces the existing one.
  *             'override' - Replaces the existing definition.
  *             'fail' - Throws an error.
- *             'default' - Keeps an existing definition silently, otherwise adds a default that any later definition
- *                         under the same name replaces, whatever its mode. The providers and services of the modules
- *                         are defined so, letting the application replace them.
+ *             'default' - Keeps an existing definition silently (a default replaces an earlier default), otherwise
+ *                         adds a default that a later definition under the same name replaces, except in the 'append'
+ *                         mode, which adds beside it. The providers and services of the modules are defined so,
+ *                         letting the application replace them.
  *             Defaults to 'ignore'.
  * @return void
  */

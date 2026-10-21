@@ -43,7 +43,7 @@ export const appConfig = defineConfig(
      * `'<srcPath>/modules/"*"/module.ts'`. */
     MODULES_PATTERN: Type.String({ default: '<srcPath>/modules/*/module.ts' }),
     /** Paths of the module manifests to enable besides the package and local modules, relative to the project root,
-     * i.e. `../shared/module.ts`. Default: `[]`. */
+     * i.e. the built `../shared/dist/module.js`. Default: `[]`. */
     MODULES: Type.Array(Type.String(), { default: [] }),
     /** Names of the modules to leave disabled, i.e. `@appweaver/web` for an application without a server. Default:
      * `[]`. */

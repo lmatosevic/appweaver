@@ -12,7 +12,7 @@
       "scanFilesPattern": "<srcPath>/*/index.ts",
       "mainFilePath": "<srcPath>/main.ts",
       "modulesPattern": "<srcPath>/modules/*/module.ts",
-      "modules": ["../shared/dist/module.js"],
+      "modules": [],
       "modulesDisabled": []
     },
     "server": {
@@ -28,7 +28,6 @@
         "Content-Security-Policy: script-src 'self'"
       ],
       "staticMaxAge": "30d",
-      "staticAllowedHost": null,
       "trustProxy": true,
       "requestLoggingEnabled": false,
       "errorDatabaseMessageEnabled": false,
@@ -65,15 +64,14 @@
       "routePrefix": "/health",
       "cacheTtl": 3000,
       "pickInstances": ["database", "redis", "storage"],
-      "omitInstances": null,
       "port": 0,
       "host": "0.0.0.0"
     },
     "cors": {
-      "origin": "*",
-      "methods": "*",
-      "allowedHeaders": "*",
-      "exposedHeaders": "*",
+      "origin": ["*"],
+      "methods": ["*"],
+      "allowedHeaders": ["*"],
+      "exposedHeaders": ["*"],
       "maxAge": 86400,
       "credentials": true
     },
@@ -81,7 +79,7 @@
       "modelPattern": "<srcPath>/resources/*/*model.ts",
       "servicePattern": "<srcPath>/resources/*/*service.ts",
       "policyPattern": "<srcPath>/resources/*/*policy.ts",
-      "routesPattern": "<srcPath>/resources/*/*route.ts",
+      "routesPattern": "<srcPath>/resources/*/*routes.ts",
       "generatedTypesPath": "<srcPath>/types/generated.ts",
       "queryMethod": "post",
       "aggregateMethod": "post",
@@ -107,7 +105,7 @@
       "routePrefix": "/auth",
       "cacheTtl": 300000,
       "authOttTtl": 120000,
-      "allowedRedirectHosts": "*",
+      "allowedRedirectHosts": ["*"],
       "store": {
         "provider": "auto",
         "keepDatabaseTable": false
@@ -159,7 +157,6 @@
         "enabled": false,
         "keepDatabaseTable": false,
         "headerName": "x-api-key",
-        "maxDuration": null,
         "delimiter": "AK"
       },
       "jwt": {
@@ -284,9 +281,7 @@
     },
     "queue": {
       "keepCompletedCount": 0,
-      "keepCompletedSeconds": null,
       "keepFailedCount": 50,
-      "keepFailedSeconds": null,
       "retryAttempts": 3,
       "retryBackoff": 3000,
       "retryBackoffType": "fixed",

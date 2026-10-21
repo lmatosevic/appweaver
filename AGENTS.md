@@ -147,6 +147,7 @@ any other file. Besides `.` and `./package.json`:
 | `@appweaver/web/config`      | The config sections of web, without loading Fastify                                         |
 | `@appweaver/data/internal`   | `pruneUnusedModels`, for `weaver generate`                                                  |
 | `@appweaver/create/scaffold` | The scaffolding engine of `weaver module`                                                   |
+| `@appweaver/client/angular`  | The Angular client (`AngularClient`), with its ESM and CommonJS builds                      |
 
 `@appweaver/core/app/application` is exported for the type augmentation of `Application` by `@appweaver/web` only. A
 new entry point is a file at the root of its package (`internal.ts`), added to its `exports`. The tests are not bound
@@ -233,7 +234,7 @@ index) — you must regenerate the types and the Prisma directory contents, then
 ```bash
 cd packages/data
 npm run generate      # refresh types/generated.ts, prisma/schema.prisma and prisma/client
-npm run db:recreate   # drop dev.db, remove the *_init migration and recreate it from the new schema
+npm run db:recreate   # drop dev.db and prisma/migrations, then recreate the init migration from the new schema
 ```
 
 The `appweaver.json` of `packages/data` (never published) turns on the `KEEP_DATABASE_TABLE` keys of the API keys,
@@ -648,8 +649,8 @@ Run a one-shot task with the application.
 weaver run <file> [args...]
 ```
 
-Creates the application without starting its server or its scheduled jobs (`SCHEDULER_AUTO_START_JOB` is forced to
-`false`), runs the default export of the file, `(args: string[]) => number | void`, with the arguments after the file,
+Creates the application without starting its server, its health listener or its scheduled jobs (`SERVER_LISTEN`,
+`HEALTH_CHECK_PORT` and `SCHEDULER_AUTO_START_JOB` are forced off), runs the default export of the file, `(args: string[]) => number | void`, with the arguments after the file,
 stops the application, and exits with the returned number (`0` otherwise, `1` when the task throws). On Node a `.ts`
 path runs from the build output (`src/tasks/report.ts` from `dist/src/tasks/report.js`).
 
@@ -670,6 +671,10 @@ weaver seed [options]
 | `-p, --project [path]`    | TypeScript project config file used by `--build-project`   | `tsconfig.build.json` |
 | `-c, --continue-on-error` | Continue on seeder errors                                  | false                 |
 | `-f, --fix-warnings`      | Fix seeder warnings (wrong checksum, deleted seeder files) | false                 |
+
+The seeders of the enabled modules run first, each recorded under its module name (`billing/1-plans`), then the
+seeders of the application. A missing seeders directory is skipped with a warning (its recorded seeders are not
+reported as deleted), and only no accessible directory at all stops the command.
 
 ---
 
@@ -1014,7 +1019,8 @@ npm run release
 
 This runs the following steps automatically:
 
-1. **`prerelease`** — runs `npm run build` to produce fresh `dist/` output for all packages.
+1. **`prerelease`** — checks the tokens (`tools/check-tokens.js`), then runs `npm run build -- --sourceMap false` to
+   produce fresh `dist/` output for all packages.
 2. **Commit analysis** (`@semantic-release/commit-analyzer`) — determines the next version (`patch` / `minor` / `major`)
    from commit messages since the last tag.
 3. **Release notes** (`@semantic-release/release-notes-generator`) — builds human-readable notes.
@@ -1045,7 +1051,7 @@ This runs the following steps automatically:
     cd packages/client/dist     && npm publish
     ```
 8. **Git commit** (`@semantic-release/git`) — commits the updated `package.json` files and `CHANGELOG.md` with a chore
-   commit, then tags the release.
+   commit, then tags the release, and `@semantic-release/github` creates the GitHub release.
 9. **Sample lockfiles** (`@semantic-release/exec`) — once the packages are published, runs
    `node ./tools/lock-samples.js <version> --commit`, which raises the `@appweaver/*` ranges of the samples to
    `^<version>`, pins their lockfile entries to the built `dist` manifests and their `npm pack` integrity (the exact
@@ -1063,8 +1069,9 @@ All packages are published to the public @appweaver organization npm registry:
 https://www.npmjs.com/package/@appweaver
 ```
 
-Ensure your environment has a valid `NPM_TOKEN` (or `CI_JOB_TOKEN` in CI) with write access to this registry before
-running a release.
+Ensure your environment has a valid `NPM_TOKEN`, with the right to publish and create the packages of the scope, and a
+`GITHUB_TOKEN` (or `GH_TOKEN`) for the GitHub release, before running a release; `tools/check-tokens.js` stops the
+release when either one is missing or rejected.
 
 ### Commit message conventions
 

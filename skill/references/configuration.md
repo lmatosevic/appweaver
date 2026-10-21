@@ -11,8 +11,9 @@ Configuration is loaded and merged in the following order (later sources overrid
 2. **Global JSON config** `appweaver.json` (properties under the `config` key)
 3. **Inline environment config** `appweaver.json` (properties under the `environments.{NODE_ENV}` key)
 4. **Environment-specific JSON config** `appweaver.{NODE_ENV}.json` (properties under the `config` key)
-5. **Default .env file** `.env`
-6. **Environment-specific .env file** `.env.{NODE_ENV}` (overrides all above)
+5. **Default .env file** `.env`, which never replaces a variable the process environment already has
+6. **Process environment** variables
+7. **Environment-specific .env file** `.env.{NODE_ENV}` (overrides all above, the process environment included)
 
 The environment names are `test`, `local`, `dev`, `staging`, `qa`, and `prod`. `NODE_ENV=development` resolves to `dev`
 and `NODE_ENV=production` to `prod`, for `APP_ENV`, the names of the `environments` sections, and the
@@ -131,7 +132,7 @@ databaseConfig.URL; // string
 | Section variable                                                                                                                                                                                                                                                                                                   | Keys                            | Imported from           |
 |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|-------------------------|
 | `appConfig`, `logConfig`                                                                                                                                                                                                                                                                                           | `APP_*`, `LOG_*`                | `@appweaver/common`     |
-| `cacheConfig`, `eventsConfig`, `healthConfig` (`HEALTH_CHECK_PORT`, `HOST`, `PICK_INSTANCES`, `OMIT_INSTANCES`), `localeConfig`, `mailerConfig`, `memoryConfig`, `queueConfig`, `schedulerConfig`, `securityStoreConfig` (`SECURITY_STORE_*`), `storageConfig`, `templateConfig`                        | `CACHE_*`, `HEALTH_CHECK_*`, ...| `@appweaver/core`       |
+| `cacheConfig`, `eventsConfig`, `healthConfig` (`HEALTH_CHECK_*`: `PORT`, `HOST`, `PICK_INSTANCES`, `OMIT_INSTANCES`), `localeConfig`, `mailerConfig`, `memoryConfig`, `queueConfig`, `schedulerConfig`, `securityStoreConfig` (`SECURITY_STORE_*`), `storageConfig`, `templateConfig`                        | `CACHE_*`, `HEALTH_CHECK_*`, ...| `@appweaver/core`       |
 | `databaseConfig`, `resourceConfig`, `exportConfig`, `imageConfig`, `passwordConfig`, `apiKeyConfig`, `connectedAccountConfig` (`SECURITY_OAUTH2_CONNECTED_ACCOUNTS_*`), `systemConfig`                                                                                                                             | `DATABASE_*`, `RESOURCE_*`, ... | `@appweaver/data`       |
 | `serverConfig`, `rateLimitConfig`, `swaggerConfig`, `corsConfig`, `healthCheckConfig`, `templatePreviewConfig`, `securityConfig` (`SECURITY_*` not elsewhere), `accountConfig`, `twoFactorConfig` (`SECURITY_ACCOUNT_2FA_*`), `recaptchaConfig`, `turnstileConfig`, `basicAuthConfig`, `jwtConfig`, `oauth2Config` | `SERVER_*`, `SECURITY_*`, ...   | `@appweaver/web`        |
 | `redisConfig`                                                                                                                                                                                                                                                                                                      | `MEMORY_REDIS_*`                | `@appweaver/redis`      |
@@ -207,7 +208,7 @@ files have defined their sections, then:
 
 ```sh
 weaver config schema                           # write ./appweaver.schema.json
-weaver config schema -o ./config/schema.json   # another output path
+weaver config schema -o ./schemas/config.json   # another output path
 weaver config print                            # every key with its source and value, the secrets hidden
 NODE_ENV=prod weaver config check              # validate every section, exit 1 listing the errors
 ```
@@ -385,7 +386,8 @@ health listener the `healthCheck` section of `@appweaver/core` (`healthConfig`).
 
 An application without the `@appweaver/web` server (a worker, a scheduled job runner) answers `GET /health/check` and
 `GET /health/ready` on its own `node:http` listener, without authentication, running the same checks as the health
-route.
+route. The listener stays off beside the server of `@appweaver/web`, which answers the health routes itself, and in
+`weaver run`, whose task may run beside an application listening on the port.
 
 | Property            | Type    | Default     | Description                                |
 |---------------------|---------|-------------|--------------------------------------------|
@@ -407,10 +409,10 @@ route.
 
 | Property                            | Type    | Default                              | Description                                                                             |
 |-------------------------------------|---------|--------------------------------------|-----------------------------------------------------------------------------------------|
-| `RESOURCE_MODEL_PATTERN`            | string  | `'<srcPath>/resources/*/model.ts'`   | Glob pattern for resource model files.                                                  |
-| `RESOURCE_SERVICE_PATTERN`          | string  | `'<srcPath>/resources/*/service.ts'` | Glob pattern for resource service files.                                                |
-| `RESOURCE_POLICY_PATTERN`           | string  | `'<srcPath>/resources/*/policy.ts'`  | Glob pattern for resource policy files.                                                 |
-| `RESOURCE_ROUTES_PATTERN`           | string  | `'<srcPath>/resources/*/routes.ts'`  | Glob pattern for resource routes files.                                                 |
+| `RESOURCE_MODEL_PATTERN`            | string  | `'<srcPath>/resources/*/*model.ts'`  | Glob pattern for resource model files.                                                  |
+| `RESOURCE_SERVICE_PATTERN`          | string  | `'<srcPath>/resources/*/*service.ts'`| Glob pattern for resource service files.                                                |
+| `RESOURCE_POLICY_PATTERN`           | string  | `'<srcPath>/resources/*/*policy.ts'` | Glob pattern for resource policy files.                                                 |
+| `RESOURCE_ROUTES_PATTERN`           | string  | `'<srcPath>/resources/*/*routes.ts'` | Glob pattern for resource routes files.                                                 |
 | `RESOURCE_GENERATED_TYPES_PATH`     | string  | `'<srcPath>/types/generated.ts'`     | Output path for generated TypeScript types.                                             |
 | `RESOURCE_QUERY_METHOD`             | enum    | `'post'`                             | Methods of the `query` routes: `post`, `get`, or `get-post`. Overridable per route.     |
 | `RESOURCE_AGGREGATE_METHOD`         | enum    | `'post'`                             | Methods of the `aggregate` routes: `post`, `get`, or `get-post`. Overridable per route. |
@@ -677,7 +679,7 @@ the cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting 
 | `CACHE_CLEAN_START`           | boolean | `false`            | Clear all cache entries on application startup.                                 |
 | `CACHE_KEY_PREFIX`            | string  | `'cache:'`         | Prefix prepended to all cache keys.                                             |
 | `CACHE_MAX_ITEMS`             | integer | `1000`             | Maximum number of items in the cache.                                           |
-| `CACHE_CACHE_MAX_SIZE`        | string? | -                  | Maximum size used by the cache.                                                 |
+| `CACHE_MAX_SIZE`              | string? | -                  | Maximum size used by the cache.                                                 |
 | `CACHE_DEFAULT_TTL`           | integer | `5000`             | Default time-to-live for cache entries in milliseconds.                         |
 | `CACHE_EVICTION_GRACE_PERIOD` | integer | `1000`             | Grace period before evicting expired items (ms).                                |
 | `CACHE_EVICTION_STRATEGY`     | enum    | `'LRU'`            | Eviction strategy. Values: `LRU`, `LFU`, `FIFO`.                                |
