@@ -170,8 +170,8 @@ export function moduleDirectories(
 
 /**
  * Parses the config sections the enabled modules declare in their `config`, so an invalid value fails the start of
- * the application instead of the first read of its key. The sections of a driver module are parsed only when one of
- * its providers is selected.
+ * the application instead of the first read of its key. The sections of a driver module, with providers but no
+ * contracts of its own, are parsed only when one of its providers is selected.
  *
  * @throws {ConfigurationError} For the first section with an invalid or missing value.
  */
@@ -179,6 +179,7 @@ export function checkModuleConfig(): void {
   for (const module of context.modules.enabled) {
     const used =
       !module.providers?.length ||
+      !!module.contracts?.length ||
       module.providers.some(
         ({ contract, name }) =>
           context.modules.providers.get(contract.name) === name

@@ -1,6 +1,26 @@
+import fsp from 'node:fs/promises';
 import { ConfigSectionDefinition, snakeToCamelCase } from '@appweaver/common';
+import { ensureDirExists } from '../utils/path-util';
 
 type JsonSchema = Record<string, any>;
+
+/**
+ * Writes the JSON Schema of the `appweaver.json` file, built from the config sections.
+ *
+ * @param {Iterable<ConfigSectionDefinition>} sections - The registered config sections.
+ * @param {string} outputPath - The path of the schema file, i.e. `./appweaver.schema.json`.
+ */
+export async function writeConfigSchema(
+  sections: Iterable<ConfigSectionDefinition>,
+  outputPath: string
+): Promise<void> {
+  await ensureDirExists(outputPath);
+  await fsp.writeFile(
+    outputPath,
+    JSON.stringify(buildConfigSchema(sections), null, 2) + '\n',
+    'utf8'
+  );
+}
 
 /**
  * Builds the JSON Schema of the `appweaver.json` file from the config sections of the application, the one its

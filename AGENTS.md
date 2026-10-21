@@ -91,9 +91,13 @@ types, and a doc comment above each key describes it. Two packages may define th
 keys (`healthCheck` in core and web, `security.oauth2` in data and web), but a flattened key belongs to one section
 only. Tests override any key with `configOverrides` of `@appweaver/common`, by its flattened name.
 
+A module lists its sections in the `config` of its manifest, which registers them when the module is discovered, so
+`weaver generate` writes the JSON Schema of `appweaver.json` (`appweaver.schema.json`, the `$schema` of the samples and
+the scaffolded projects) from the enabled modules, and the application validates them when it starts. A new section of
+a framework package is added to the `config` of its manifest.
+
 When adding or changing a config key, make sure to also update all the following files:
 
-- **packages/common/config/schema.json**: JSON schema definitions
 - **skill/references/configuration.md**: Skill for configuration usage by AI agents
 - **appweaver.example.json**: example defaults as JSON properties
 - **.env.example**: example defaults as env variables
@@ -462,8 +466,9 @@ weaver config check
 
 Writes the JSON Schema of `appweaver.json` (`config/config-schema.ts`): every key under its camelCase name in the
 nested object of its section, with its type and default, under `config` and each `environments.<env>`.
-Point the `$schema` of `appweaver.json` to it, so the editor knows the sections of the installed module packages and
-the application too, which the static `packages/common/config/schema.json` cannot.
+`weaver generate` writes the same file from the sections the enabled modules list in their manifests, without creating
+the application, so only a section defined outside a module needs `weaver config schema`. The `$schema` of
+`appweaver.json` points to it, so the editor knows the sections of the installed module packages too.
 
 #### `weaver config print`
 
@@ -500,15 +505,19 @@ weaver generate [options]
 | `--client-path [path]`      | Output path for Prisma client            | from config |
 | `--no-registry`             | Skip registering the model types         | registered  |
 | `--no-prune`                | Keep the framework models not used       | pruned      |
+| `--config-schema-path [path]` | Output path for the JSON Schema of `appweaver.json` | `./appweaver.schema.json` |
+| `--no-config-schema`        | Skip writing the JSON Schema of `appweaver.json` | written |
 | `--verbose`                 | Verbose output                           | false       |
 
-Running with no flags generates **both** types and schema. The generated types register every model in the
+Running with no flags generates **both** types and schema. With the types, it writes the JSON Schema of
+`appweaver.json` from the config sections the enabled modules list (`appweaver.schema.json`, like
+`weaver config schema`). The generated types register every model in the
 `ResourceRegistry` of `@appweaver/common`, so the factories and `injectService` infer the model types from a model
 name. The models come from the project and from the `resources` of the enabled modules. The framework models are left
 out unless used: `Role`, `Permission`, `ApiKey`, `OneTimeToken` and `ConnectedAccount` without an auth model, `File`
 without a model declaring `files`, `Seeder` without a seeders directory (`data/resource/utils/prune-util.ts`). The
-`npm run generate` of `packages/data` passes `--no-registry` and `--no-prune`, since the registry belongs to the
-application and data keeps every model.
+`npm run generate` of `packages/data` passes `--no-registry`, `--no-prune` and `--no-config-schema`, since the
+registry and the config belong to the application and data keeps every model.
 
 ---
 

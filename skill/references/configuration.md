@@ -214,8 +214,10 @@ NODE_ENV=prod weaver config check              # validate every section, exit 1 
 
 - **`schema`** writes the JSON Schema of `appweaver.json` from the sections of the enabled modules: every key under its
   camelCase name in its section, with its type and default, for `config` and each `environments.<env>`.
-  Point the `$schema` of `appweaver.json` to it to get the completion and validation of the sections of the module
-  packages and of the application, and rerun it after adding one:
+  The `$schema` of `appweaver.json` points to it, for the completion and validation of the sections of the module
+  packages and of the application. `weaver generate` writes the same file from the sections the enabled modules list
+  in their `config` (on every run, so after adding a module too), and this command is only needed for a section
+  defined in an application file outside a module:
 
   ```json
   {
@@ -756,7 +758,7 @@ the cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting 
 |-------------------------|---------------------------------------------------------------------------------|
 | `appweaver.json`        | Global configuration (`config`) and the overrides of each env (`environments`)  |
 | `appweaver.{env}.json`  | Optional environment-specific overrides, loaded over the `environments` section |
-| `appweaver.schema.json` | The JSON Schema of the enabled modules' sections, from `weaver config schema`   |
+| `appweaver.schema.json` | The JSON Schema of the enabled modules' sections, from `weaver generate`        |
 | `.env`                  | Environment variables (all environments)                                        |
 | `.env.{env}`            | Environment-specific env variable overrides                                     |
 

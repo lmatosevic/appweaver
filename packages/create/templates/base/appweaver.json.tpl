@@ -1,5 +1,5 @@
 {
-  "$schema": "./node_modules/@appweaver/common/config/schema.json",
+  "$schema": "./appweaver.schema.json",
   "config": {
     "app": {
       "name": "{{NAME}}",

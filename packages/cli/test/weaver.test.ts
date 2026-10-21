@@ -75,6 +75,7 @@ describe('weaver', () => {
 
   test.each([
     [['generate'], '--no-registry', 'registry'],
+    [['generate'], '--no-config-schema', 'configSchema'],
     [['upgrade'], '--no-skill', 'skill'],
     [['upgrade'], '--no-companions', 'companions'],
     [['module', 'add'], '--no-install', 'install'],

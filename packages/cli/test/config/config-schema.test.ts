@@ -1,6 +1,12 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { Type } from '@sinclair/typebox';
 import { TObject } from '@sinclair/typebox';
-import { buildConfigSchema } from '../../config/config-schema';
+import {
+  buildConfigSchema,
+  writeConfigSchema
+} from '../../config/config-schema';
 
 /** A registered section with the given properties. */
 const section = (path: string, properties: Record<string, any>) => ({
@@ -52,6 +58,24 @@ describe('config-schema', () => {
       expect(schema.properties.environments.additionalProperties.$ref).toBe(
         '#/definitions/config'
       );
+    });
+  });
+
+  describe('writeConfigSchema', () => {
+    test('writes the schema into a new directory', async () => {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'appweaver-schema-'));
+      const outputPath = path.join(dir, 'config', 'appweaver.schema.json');
+
+      await writeConfigSchema(
+        [section('app', { NAME: Type.String() })],
+        outputPath
+      );
+
+      const schema = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
+      expect(schema.definitions.config.properties.app.properties.name).toEqual({
+        type: 'string'
+      });
+      fs.rmSync(dir, { recursive: true, force: true });
     });
   });
 });

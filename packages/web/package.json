@@ -11,6 +11,10 @@
       "types": "./index.d.ts",
       "default": "./index.js"
     },
+    "./config": {
+      "types": "./config.d.ts",
+      "default": "./config.js"
+    },
     "./package.json": "./package.json"
   },
   "keywords": [

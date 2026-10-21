@@ -97,7 +97,7 @@ export default defineModule({ name: 'appweaver-newsletter' /* ... */ });
 | `name`      | `string`                                 | The name, the package name for a package module                                                                                                    |
 | `framework` | `string`                                 | The supported Appweaver version range, i.e. `^2.0.0`, checked at startup                                                                           |
 | `requires`  | `string[]`                               | The modules that must be enabled with it (`@appweaver/bullmq` requires `@appweaver/redis`)                                                         |
-| `config`    | `object[]`                               | Its config sections, defined with `defineConfig`, validated when the application starts (a driver's only when one of its providers is selected)    |
+| `config`    | `object[]`                               | Its config sections, defined with `defineConfig`, validated at start and listed in `appweaver.schema.json` (a driver's validated only when selected)|
 | `contracts` | `{ contract, provider: () => string }[]` | The contracts it declares, with the function reading the provider key, i.e. `() => paymentConfig.PROVIDER`                                         |
 | `providers` | `{ contract, name, load, auto? }[]`      | Its contract implementations. `load` imports the class lazily (`() => import('./gcs-storage')`), `auto` is `true`, `'fallback'` or `false`         |
 | `services`  | `{ load, requires? }[]`                  | Classes defined at startup by their class name, with their lifecycle hooks and health checks; `requires` lists the contracts that must be provided |

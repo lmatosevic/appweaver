@@ -71,8 +71,10 @@ all defined.
 
 Writes the JSON Schema of `appweaver.json`, built from the config sections of the enabled modules: every key under its
 camelCase name in the nested object of its section, with its type and default, for `config` and each
-`environments.<env>`. Point the `$schema` of `appweaver.json` to it (`"$schema": "./appweaver.schema.json"`) to get the
-completion and validation of the module packages' sections too, and rerun it after adding a module or a section.
+`environments.<env>`. The `$schema` of `appweaver.json` points to it (`"$schema": "./appweaver.schema.json"`), for the
+completion and validation of the module packages' sections too. `weaver generate` writes the same file from the
+sections the modules list, while this command creates the application, so it also finds a section defined in an
+application file outside a module.
 
 ### `weaver config print`
 
@@ -141,6 +143,8 @@ Generate types and/or schemas. With no flags, generates both types and schema.
 | `--client-path [path]`      | Output path for generated Prisma client | `config.DATABASE_CLIENT_OUTPUT_DIR_PATH` |
 | `--no-registry`             | Skip registering the model types        | registered                               |
 | `--no-prune`                | Keep the framework models not used      | pruned                                   |
+| `--config-schema-path [path]` | Output path for the JSON Schema of `appweaver.json` | `./appweaver.schema.json`    |
+| `--no-config-schema`        | Skip writing the JSON Schema of `appweaver.json` | written                         |
 | `--verbose`                 | Print verbose output                    | `false`                                  |
 
 Per model, the type file holds `<Model>`, `<Model>Single`, `<Model>Multiple`, `<Model>Create`, `<Model>Update`,
@@ -152,7 +156,10 @@ registering the types of every model in the `ResourceRegistry` of `@appweaver/co
 The models come from the project and from the `resources` of the enabled modules (see [modules](./modules.md)). The
 framework models reach the schema only when the project uses them: `Role`, `Permission`, `ApiKey`, `OneTimeToken` and
 `ConnectedAccount` with an auth model, `File` when a model declares `files`, and `Seeder` when the seeders directory
-exists. `--no-prune` keeps all of them.
+exists (or an enabled module declares `seeders`). `--no-prune` keeps all of them.
+
+With the types, `weaver generate` writes `appweaver.schema.json`, the JSON Schema the `$schema` of `appweaver.json`
+points to, from the config sections the enabled modules list in their manifests, so rerun it after adding a module.
 
 ---
 

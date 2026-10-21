@@ -64,7 +64,7 @@
     "rimraf": "6.1.3"
   },
   "scripts": {
-    "generate": "weaver generate --no-registry --no-prune --model-pattern ./**/model.ts --types-path ./types/generated.ts --schema-path ./prisma/schema.prisma --client-path ./prisma/client",
+    "generate": "weaver generate --no-registry --no-prune --no-config-schema --model-pattern ./**/model.ts --types-path ./types/generated.ts --schema-path ./prisma/schema.prisma --client-path ./prisma/client",
     "db:recreate": "rimraf dev.db && rimraf prisma/migrations && weaver migration new init"
   }
 }

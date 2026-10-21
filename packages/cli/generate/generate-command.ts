@@ -1,5 +1,7 @@
 import { Command } from 'commander';
-import { config } from '@appweaver/common';
+import path from 'node:path';
+import { config, configSections } from '@appweaver/common';
+import { writeConfigSchema } from '../config/config-schema';
 import { generateTypes } from './generate-types';
 import { generateSchema } from './generate-schema';
 import { importPackage, loadModels } from '../utils';
@@ -40,6 +42,15 @@ export function generateCommand(program: Command): void {
       '--no-prune',
       'Keep the framework models the project does not use (auth data model, File, Seeder).'
     )
+    .option(
+      '--config-schema-path [path]',
+      'Output path for the JSON Schema of appweaver.json, written with the types.',
+      './appweaver.schema.json'
+    )
+    .option(
+      '--no-config-schema',
+      'Skip writing the JSON Schema of appweaver.json.'
+    )
     .option('--verbose', 'Print verbose output.')
     .action(async (_, command: Command) => {
       const quiet = !command.getOptionValue('verbose');
@@ -64,6 +75,15 @@ export function generateCommand(program: Command): void {
           quiet,
           command.getOptionValue('registry')
         );
+
+        // Discovering the modules registered the config sections they list
+        if (command.getOptionValue('configSchema')) {
+          const configSchemaPath = command.getOptionValue('configSchemaPath');
+          await writeConfigSchema(configSections.values(), configSchemaPath);
+          console.log(
+            `Config schema generated to ${path.relative(process.cwd(), configSchemaPath)}`
+          );
+        }
       }
 
       let schemaGenerateResult: number = 0;

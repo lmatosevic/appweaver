@@ -967,8 +967,9 @@ weaver config print                # every key with its source (override, env, j
 NODE_ENV=prod weaver config check  # validate every section, exit 1 listing the invalid keys (run in CI)
 ```
 
-Point the `$schema` of `appweaver.json` to the generated `./appweaver.schema.json` to get the sections of the module
-packages and the application too, and rerun `weaver config schema` after adding a module or a section. See
+The `$schema` of `appweaver.json` points to `./appweaver.schema.json`, which `weaver generate` writes from the config
+sections the enabled modules list (rerun it after adding a module), and `weaver config schema` also for a section of an
+application file outside a module. See
 [configuration.md](references/configuration.md#inspecting-the-config).
 
 ### Run a one-shot task

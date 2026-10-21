@@ -62,8 +62,9 @@ export type ModuleManifest = {
   /** The names of the modules that must be enabled with it. */
   requires?: string[];
   /**
-   * Its config sections, defined with `defineConfig`, validated when the application starts. The sections of a driver
-   * module are validated only when one of its providers is selected.
+   * Its config sections, defined with `defineConfig`, validated when the application starts and listed in the JSON
+   * Schema of `weaver generate`. The sections of a driver module, with providers but no contracts, are validated only
+   * when one of its providers is selected.
    */
   config?: object[];
   /** The contracts it declares, which the providers of every module implement. */

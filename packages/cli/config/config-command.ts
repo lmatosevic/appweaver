@@ -1,9 +1,7 @@
-import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { Command } from 'commander';
 import { appConfig, configSections } from '@appweaver/common';
-import { ensureDirExists } from '../utils';
-import { buildConfigSchema } from './config-schema';
+import { writeConfigSchema } from './config-schema';
 import { formatConfigRows, readConfigReport } from './config-report';
 
 /**
@@ -40,13 +38,7 @@ export function configCommand(program: Command): void {
     .action(async (_, subcommand: Command) => {
       const outputPath = subcommand.getOptionValue('outputPath');
       try {
-        const schema = buildConfigSchema(await loadSections());
-        await ensureDirExists(outputPath);
-        await fsp.writeFile(
-          outputPath,
-          JSON.stringify(schema, null, 2) + '\n',
-          'utf8'
-        );
+        await writeConfigSchema(await loadSections(), outputPath);
         console.log(
           `Schema generated to ${path.relative(process.cwd(), outputPath)}, point the $schema of appweaver.json to it`
         );

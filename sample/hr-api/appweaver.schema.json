@@ -1,0 +1,1298 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "title": "Appweaver Workspace Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "config": {
+      "description": "Base configuration, applied in every environment.",
+      "$ref": "#/definitions/config"
+    },
+    "environments": {
+      "type": "object",
+      "description": "Configuration of each environment, keyed by the environment name and merged over `config`.",
+      "additionalProperties": {
+        "$ref": "#/definitions/config"
+      }
+    }
+  },
+  "definitions": {
+    "config": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "object",
+          "properties": {
+            "env": {
+              "default": "prod",
+              "anyOf": [
+                {
+                  "anyOf": [
+                    {
+                      "const": "test",
+                      "type": "string"
+                    },
+                    {
+                      "const": "local",
+                      "type": "string"
+                    },
+                    {
+                      "const": "dev",
+                      "type": "string"
+                    },
+                    {
+                      "const": "staging",
+                      "type": "string"
+                    },
+                    {
+                      "const": "qa",
+                      "type": "string"
+                    },
+                    {
+                      "const": "prod",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "name": {
+              "default": "Appweaver",
+              "type": "string"
+            },
+            "version": {
+              "default": "unknown",
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "hostname": {
+              "default": "",
+              "type": "string"
+            },
+            "typeBase": {
+              "default": "urn:appweaver",
+              "type": "string"
+            },
+            "runtime": {
+              "default": "node",
+              "anyOf": [
+                {
+                  "const": "node",
+                  "type": "string"
+                },
+                {
+                  "const": "bun",
+                  "type": "string"
+                }
+              ]
+            },
+            "buildPath": {
+              "default": "./dist",
+              "type": "string"
+            },
+            "sourcePath": {
+              "default": "./src",
+              "type": "string"
+            },
+            "scanFilesPattern": {
+              "default": "<srcPath>/*/index.ts",
+              "type": "string"
+            },
+            "mainFilePath": {
+              "default": "<srcPath>/main.ts",
+              "type": "string"
+            },
+            "modulesPattern": {
+              "default": "<srcPath>/modules/*/module.ts",
+              "type": "string"
+            },
+            "modules": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "modulesDisabled": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "cache": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "default": true,
+              "type": "boolean"
+            },
+            "cleanStart": {
+              "default": false,
+              "type": "boolean"
+            },
+            "keyPrefix": {
+              "default": "cache:",
+              "type": "string"
+            },
+            "maxItems": {
+              "default": 1000,
+              "type": "integer"
+            },
+            "maxSize": {
+              "type": "string"
+            },
+            "defaultTtl": {
+              "default": 5000,
+              "type": "integer"
+            },
+            "evictionGracePeriod": {
+              "default": 1000,
+              "type": "integer"
+            },
+            "evictionStrategy": {
+              "default": "LRU",
+              "anyOf": [
+                {
+                  "const": "LRU",
+                  "type": "string"
+                },
+                {
+                  "const": "LFU",
+                  "type": "string"
+                },
+                {
+                  "const": "FIFO",
+                  "type": "string"
+                }
+              ]
+            },
+            "evictionDeferred": {
+              "default": false,
+              "type": "boolean"
+            },
+            "invalidationStrategy": {
+              "default": "expire-related",
+              "anyOf": [
+                {
+                  "const": "expire-related",
+                  "type": "string"
+                },
+                {
+                  "const": "expire-all",
+                  "type": "string"
+                },
+                {
+                  "const": "none",
+                  "type": "string"
+                }
+              ]
+            },
+            "invalidationDeferred": {
+              "default": false,
+              "type": "boolean"
+            },
+            "skipOnError": {
+              "default": true,
+              "type": "boolean"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            }
+          }
+        },
+        "cors": {
+          "type": "object",
+          "properties": {
+            "origin": {
+              "default": [
+                "*"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "methods": {
+              "default": [
+                "*"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "allowedHeaders": {
+              "default": [
+                "*"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "exposedHeaders": {
+              "default": [
+                "*"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "maxAge": {
+              "default": 86400,
+              "type": "integer"
+            },
+            "credentials": {
+              "default": true,
+              "type": "boolean"
+            }
+          }
+        },
+        "database": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "anyOf": [
+                {
+                  "const": "sqlite",
+                  "type": "string"
+                },
+                {
+                  "const": "postgresql",
+                  "type": "string"
+                },
+                {
+                  "const": "mysql",
+                  "type": "string"
+                },
+                {
+                  "const": "sqlserver",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "default": "",
+              "type": "string"
+            },
+            "schemaPath": {
+              "default": "./database/schema.prisma",
+              "type": "string"
+            },
+            "migrationsDirPath": {
+              "default": "./database/migrations",
+              "type": "string"
+            },
+            "seedersDirPath": {
+              "default": "./database/seeders",
+              "type": "string"
+            },
+            "clientOutputDirPath": {
+              "default": "./database/client",
+              "type": "string"
+            },
+            "transactionMaxWait": {
+              "default": 2000,
+              "type": "integer"
+            },
+            "transactionTimeout": {
+              "default": 5000,
+              "type": "integer"
+            },
+            "aiDangerousActionsEnabled": {
+              "default": true,
+              "type": "boolean"
+            },
+            "logEvents": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "const": "query",
+                    "type": "string"
+                  },
+                  {
+                    "const": "info",
+                    "type": "string"
+                  },
+                  {
+                    "const": "warn",
+                    "type": "string"
+                  },
+                  {
+                    "const": "error",
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            }
+          }
+        },
+        "events": {
+          "type": "object",
+          "properties": {
+            "maxListeners": {
+              "default": 20,
+              "type": "integer"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            }
+          }
+        },
+        "export": {
+          "type": "object",
+          "properties": {
+            "batchSize": {
+              "default": 1000,
+              "type": "integer"
+            },
+            "csvDelimiter": {
+              "default": ";",
+              "type": "string"
+            },
+            "csvJoinDelimiter": {
+              "default": ",",
+              "type": "string"
+            },
+            "csvAddHeaders": {
+              "default": true,
+              "type": "boolean"
+            },
+            "csvAddSepRow": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        },
+        "health": {
+          "type": "object",
+          "properties": {
+            "port": {
+              "default": 0,
+              "type": "integer"
+            },
+            "host": {
+              "default": "0.0.0.0",
+              "type": "string"
+            }
+          }
+        },
+        "healthCheck": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "default": true,
+              "type": "boolean"
+            },
+            "auth": {
+              "default": true,
+              "type": "boolean"
+            },
+            "routePrefix": {
+              "default": "/health",
+              "type": "string"
+            },
+            "cacheTtl": {
+              "default": 3000,
+              "type": "integer"
+            }
+          }
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            }
+          }
+        },
+        "locale": {
+          "type": "object",
+          "properties": {
+            "default": {
+              "default": "en",
+              "type": "string"
+            },
+            "path": {
+              "default": "./locales",
+              "type": "string"
+            }
+          }
+        },
+        "log": {
+          "type": "object",
+          "properties": {
+            "level": {
+              "default": "info",
+              "anyOf": [
+                {
+                  "const": "fatal",
+                  "type": "string"
+                },
+                {
+                  "const": "error",
+                  "type": "string"
+                },
+                {
+                  "const": "warn",
+                  "type": "string"
+                },
+                {
+                  "const": "info",
+                  "type": "string"
+                },
+                {
+                  "const": "debug",
+                  "type": "string"
+                },
+                {
+                  "const": "trace",
+                  "type": "string"
+                },
+                {
+                  "const": "silent",
+                  "type": "string"
+                }
+              ]
+            },
+            "path": {
+              "type": "string"
+            },
+            "rotate": {
+              "default": true,
+              "type": "boolean"
+            },
+            "rotateSize": {
+              "default": "100M",
+              "type": "string"
+            },
+            "rotateMaxSize": {
+              "default": "5G",
+              "type": "string"
+            },
+            "rotateMaxFiles": {
+              "default": 1000,
+              "type": "integer"
+            },
+            "rotateInterval": {
+              "default": "1d",
+              "type": "string"
+            },
+            "rotateCompress": {
+              "default": true,
+              "type": "boolean"
+            },
+            "pretty": {
+              "default": false,
+              "type": "boolean"
+            },
+            "sync": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        },
+        "mailer": {
+          "type": "object",
+          "properties": {
+            "senderName": {
+              "type": "string"
+            },
+            "senderAddress": {
+              "type": "string"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            },
+            "smtp": {
+              "type": "object",
+              "properties": {
+                "host": {
+                  "default": "127.0.0.1",
+                  "type": "string"
+                },
+                "port": {
+                  "default": 587,
+                  "type": "integer"
+                },
+                "secure": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "user": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "memory": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            },
+            "maxSize": {
+              "type": "string"
+            }
+          }
+        },
+        "queue": {
+          "type": "object",
+          "properties": {
+            "keepCompletedCount": {
+              "default": 0,
+              "type": "integer"
+            },
+            "keepCompletedSeconds": {
+              "type": "integer"
+            },
+            "keepFailedCount": {
+              "default": 50,
+              "type": "integer"
+            },
+            "keepFailedSeconds": {
+              "type": "integer"
+            },
+            "retryAttempts": {
+              "default": 3,
+              "type": "integer"
+            },
+            "retryBackoff": {
+              "default": 3000,
+              "type": "integer"
+            },
+            "retryBackoffType": {
+              "default": "fixed",
+              "anyOf": [
+                {
+                  "const": "fixed",
+                  "type": "string"
+                },
+                {
+                  "const": "exponential",
+                  "type": "string"
+                }
+              ]
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            }
+          }
+        },
+        "rateLimit": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "default": true,
+              "type": "boolean"
+            },
+            "max": {
+              "default": 1000,
+              "type": "integer"
+            },
+            "window": {
+              "default": 60000,
+              "type": "integer"
+            },
+            "allowList": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "store": {
+              "default": "auto",
+              "anyOf": [
+                {
+                  "const": "auto",
+                  "type": "string"
+                },
+                {
+                  "const": "local",
+                  "type": "string"
+                }
+              ]
+            },
+            "skipOnError": {
+              "default": true,
+              "type": "boolean"
+            }
+          }
+        },
+        "resource": {
+          "type": "object",
+          "properties": {
+            "modelPattern": {
+              "default": "<srcPath>/resources/*/*model.ts",
+              "type": "string"
+            },
+            "servicePattern": {
+              "default": "<srcPath>/resources/*/*service.ts",
+              "type": "string"
+            },
+            "policyPattern": {
+              "default": "<srcPath>/resources/*/*policy.ts",
+              "type": "string"
+            },
+            "routesPattern": {
+              "default": "<srcPath>/resources/*/*routes.ts",
+              "type": "string"
+            },
+            "generatedTypesPath": {
+              "default": "<srcPath>/types/generated.ts",
+              "type": "string"
+            },
+            "queryMethod": {
+              "default": "post",
+              "anyOf": [
+                {
+                  "const": "post",
+                  "type": "string"
+                },
+                {
+                  "const": "get",
+                  "type": "string"
+                },
+                {
+                  "const": "get-post",
+                  "type": "string"
+                }
+              ]
+            },
+            "aggregateMethod": {
+              "default": "post",
+              "anyOf": [
+                {
+                  "const": "post",
+                  "type": "string"
+                },
+                {
+                  "const": "get",
+                  "type": "string"
+                },
+                {
+                  "const": "get-post",
+                  "type": "string"
+                }
+              ]
+            },
+            "bulkCreateEnabled": {
+              "default": false,
+              "type": "boolean"
+            },
+            "bulkUpdateEnabled": {
+              "default": false,
+              "type": "boolean"
+            },
+            "bulkDeleteEnabled": {
+              "default": false,
+              "type": "boolean"
+            },
+            "bulkMaxItems": {
+              "default": 2000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "bulkTransactionTimeout": {
+              "default": 5000,
+              "type": "integer"
+            },
+            "bulkReturnRecords": {
+              "default": true,
+              "type": "boolean"
+            }
+          }
+        },
+        "scheduler": {
+          "type": "object",
+          "properties": {
+            "autoStartJob": {
+              "default": true,
+              "type": "boolean"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            }
+          }
+        },
+        "security": {
+          "type": "object",
+          "properties": {
+            "routePrefix": {
+              "default": "/auth",
+              "type": "string"
+            },
+            "cacheTtl": {
+              "default": 300000,
+              "type": "integer"
+            },
+            "authOttTtl": {
+              "default": 120000,
+              "type": "integer"
+            },
+            "allowedRedirectHosts": {
+              "default": [
+                "*"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "account": {
+              "type": "object",
+              "properties": {
+                "routePrefix": {
+                  "default": "/auth/account",
+                  "type": "string"
+                },
+                "verifyEmailEnabled": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "verifyEmailOttTtl": {
+                  "default": 7200000,
+                  "type": "integer"
+                },
+                "resetPasswordEnabled": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "resetPasswordOttTtl": {
+                  "default": 1800000,
+                  "type": "integer"
+                },
+                "2fa": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "default": true,
+                      "type": "boolean"
+                    },
+                    "forced": {
+                      "default": false,
+                      "type": "boolean"
+                    },
+                    "ottTtl": {
+                      "default": 300000,
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            },
+            "apiKey": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "keepDatabaseTable": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "headerName": {
+                  "default": "x-api-key",
+                  "type": "string"
+                },
+                "maxDuration": {
+                  "type": "integer"
+                },
+                "delimiter": {
+                  "default": "AK",
+                  "type": "string"
+                }
+              }
+            },
+            "basic": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "realm": {
+                  "type": "string"
+                },
+                "proxyMode": {
+                  "default": false,
+                  "type": "boolean"
+                }
+              }
+            },
+            "jwt": {
+              "type": "object",
+              "properties": {
+                "secret": {
+                  "type": "string"
+                },
+                "publicKeyPath": {
+                  "default": "./storage/keys/public.key",
+                  "type": "string"
+                },
+                "privateKeyPath": {
+                  "default": "./storage/keys/private.key",
+                  "type": "string"
+                },
+                "autoGenerateKeys": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "expiresIn": {
+                  "default": 604800,
+                  "type": "integer"
+                },
+                "refreshExpiresIn": {
+                  "default": 5184000,
+                  "type": "integer"
+                }
+              }
+            },
+            "oauth2": {
+              "type": "object",
+              "properties": {
+                "stateTtl": {
+                  "default": 600000,
+                  "type": "integer"
+                },
+                "registrationEnabled": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "fetchAvatarEnabled": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "googleEnabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "googleClientId": {
+                  "type": "string"
+                },
+                "googleClientSecret": {
+                  "type": "string"
+                },
+                "googleUserInfoUrl": {
+                  "default": "https://www.googleapis.com/oauth2/v2/userinfo",
+                  "type": "string"
+                },
+                "facebookEnabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "facebookClientId": {
+                  "type": "string"
+                },
+                "facebookClientSecret": {
+                  "type": "string"
+                },
+                "facebookUserInfoUrl": {
+                  "default": "https://graph.facebook.com/me",
+                  "type": "string"
+                },
+                "xEnabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "xClientId": {
+                  "type": "string"
+                },
+                "xClientSecret": {
+                  "type": "string"
+                },
+                "xUserInfoUrl": {
+                  "default": "https://api.x.com/2/users/me",
+                  "type": "string"
+                },
+                "githubEnabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "githubClientId": {
+                  "type": "string"
+                },
+                "githubClientSecret": {
+                  "type": "string"
+                },
+                "githubUserInfoUrl": {
+                  "default": "https://api.github.com/user",
+                  "type": "string"
+                },
+                "gitlabEnabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "gitlabClientId": {
+                  "type": "string"
+                },
+                "gitlabClientSecret": {
+                  "type": "string"
+                },
+                "gitlabBaseUrl": {
+                  "default": "https://gitlab.com",
+                  "type": "string"
+                },
+                "gitlabUserInfoUrl": {
+                  "default": "https://gitlab.com/api/v4/user",
+                  "type": "string"
+                },
+                "linkedinEnabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "linkedinClientId": {
+                  "type": "string"
+                },
+                "linkedinClientSecret": {
+                  "type": "string"
+                },
+                "linkedinUserInfoUrl": {
+                  "default": "https://api.linkedin.com/v2/userinfo",
+                  "type": "string"
+                },
+                "appleEnabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "appleClientId": {
+                  "type": "string"
+                },
+                "appleClientSecret": {
+                  "type": "string"
+                },
+                "appleTeamId": {
+                  "type": "string"
+                },
+                "appleKeyId": {
+                  "type": "string"
+                },
+                "applePrivateKey": {
+                  "type": "string"
+                },
+                "applePrivateKeyPath": {
+                  "type": "string"
+                },
+                "appleClientSecretExpiresIn": {
+                  "default": 15552000,
+                  "type": "integer"
+                },
+                "microsoftEnabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "microsoftClientId": {
+                  "type": "string"
+                },
+                "microsoftClientSecret": {
+                  "type": "string"
+                },
+                "microsoftTenant": {
+                  "default": "common",
+                  "type": "string"
+                },
+                "microsoftUserInfoUrl": {
+                  "default": "https://graph.microsoft.com/v1.0/me",
+                  "type": "string"
+                },
+                "customEnabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "customClientId": {
+                  "type": "string"
+                },
+                "customClientSecret": {
+                  "type": "string"
+                },
+                "customIssuer": {
+                  "type": "string"
+                }
+              }
+            },
+            "password": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "minLength": {
+                  "default": 8,
+                  "type": "integer"
+                },
+                "maxLength": {
+                  "default": 100,
+                  "type": "integer"
+                },
+                "uppercase": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "lowercase": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "numeric": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "special": {
+                  "default": true,
+                  "type": "boolean"
+                }
+              }
+            },
+            "recaptcha": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "secret": {
+                  "type": "string"
+                },
+                "headerName": {
+                  "default": "x-recaptcha-token",
+                  "type": "string"
+                },
+                "minScore": {
+                  "default": 0.4,
+                  "type": "number"
+                },
+                "verifyUrl": {
+                  "default": "https://www.google.com/recaptcha/api/siteverify",
+                  "type": "string"
+                }
+              }
+            },
+            "store": {
+              "type": "object",
+              "properties": {
+                "provider": {
+                  "default": "auto",
+                  "type": "string"
+                },
+                "keepDatabaseTable": {
+                  "default": false,
+                  "type": "boolean"
+                }
+              }
+            },
+            "turnstile": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "secret": {
+                  "type": "string"
+                },
+                "headerName": {
+                  "default": "x-turnstile-token",
+                  "type": "string"
+                },
+                "verifyUrl": {
+                  "default": "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "server": {
+          "type": "object",
+          "properties": {
+            "port": {
+              "default": 5000,
+              "type": "integer"
+            },
+            "host": {
+              "default": "0.0.0.0",
+              "type": "string"
+            },
+            "apiPrefix": {
+              "default": "/api",
+              "type": "string"
+            },
+            "bodyMaxSize": {
+              "default": "100M",
+              "type": "string"
+            },
+            "staticEnabled": {
+              "default": true,
+              "type": "boolean"
+            },
+            "staticDirPath": {
+              "default": "./public",
+              "type": "string"
+            },
+            "staticRoutePrefix": {
+              "default": "/public",
+              "type": "string"
+            },
+            "staticResponseHeaders": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "staticMaxAge": {
+              "default": "30d",
+              "type": "string"
+            },
+            "staticAllowedHost": {
+              "type": "string"
+            },
+            "trustProxy": {
+              "default": true,
+              "type": "boolean"
+            },
+            "requestLoggingEnabled": {
+              "default": false,
+              "type": "boolean"
+            },
+            "errorDatabaseMessageEnabled": {
+              "default": false,
+              "type": "boolean"
+            },
+            "errorResponseMaxCount": {
+              "default": 20,
+              "type": "integer"
+            }
+          }
+        },
+        "storage": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "default": "./storage",
+              "type": "string"
+            },
+            "reservedPaths": {
+              "default": [
+                "keys"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "namePattern": {
+              "default": "{name}-{hash}.{extension}",
+              "type": "string"
+            },
+            "cacheTtl": {
+              "default": 86400000,
+              "type": "integer"
+            },
+            "filesRoutePrefix": {
+              "default": "/files",
+              "type": "string"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            }
+          }
+        },
+        "swagger": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "default": true,
+              "type": "boolean"
+            },
+            "path": {
+              "default": "/swagger",
+              "type": "string"
+            },
+            "hideUntagged": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        },
+        "system": {
+          "type": "object",
+          "properties": {
+            "adminInitialEmail": {
+              "default": "admin@appweaver.co",
+              "type": "string"
+            },
+            "adminInitialPassword": {
+              "type": "string"
+            }
+          }
+        },
+        "template": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "default": "./templates",
+              "type": "string"
+            },
+            "cache": {
+              "default": true,
+              "type": "boolean"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            },
+            "preview": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "auth": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "routePrefix": {
+                  "default": "/templates",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
