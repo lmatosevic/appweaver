@@ -1,8 +1,9 @@
 require('dotenv/config');
 
+// In the publish order, every package after the ones it depends on
 const packages = [
-  'core',
   'common',
+  'core',
   'data',
   'web',
   'redis',
@@ -12,9 +13,9 @@ const packages = [
   'handlebars',
   'sharp',
   'testing',
+  'create',
   'cli',
-  'client',
-  'create'
+  'client'
 ];
 
 const preset = 'conventionalcommits';
@@ -72,11 +73,12 @@ module.exports = {
       }
     ],
 
-    // 7) Publish all packages
+    // 7) Publish all packages, skipping a version already published, so a
+    // release failing halfway publishes the rest when run again
     ...packages.map((pkg) => [
       '@semantic-release/exec',
       {
-        publishCmd: `cd packages/${pkg}/dist && npm publish`
+        publishCmd: `cd packages/${pkg}/dist && (npm view @appweaver/${pkg}@\${nextRelease.version} version 2>/dev/null | grep -q . || npm publish)`
       }
     ]),
 

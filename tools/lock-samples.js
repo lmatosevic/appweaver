@@ -72,14 +72,21 @@ for (const name of fs.readdirSync(samplesDir)) {
   if (releases) {
     console.log(`Pinning ${sampleDir} to version ${version}...`);
     const pkgJsonPath = path.join(sampleDir, 'package.json');
-    const pkgJson = fs.readFileSync(pkgJsonPath, 'utf8');
-    fs.writeFileSync(pkgJsonPath, raiseRanges(pkgJson, releases, version));
+    const pkgJson = raiseRanges(
+      fs.readFileSync(pkgJsonPath, 'utf8'),
+      releases,
+      version
+    );
+    fs.writeFileSync(pkgJsonPath, pkgJson);
+    const needed = neededReleases(JSON.parse(pkgJson), releases);
 
     if (fs.existsSync(lockfilePath)) {
       const content = fs.readFileSync(lockfilePath, 'utf8');
       fs.writeFileSync(
         lockfilePath,
-        bun ? pinBunLock(content, releases) : pinPackageLock(content, releases)
+        bun
+          ? pinBunLock(content, releases, needed, JSON.parse(pkgJson))
+          : pinPackageLock(content, releases, needed)
       );
     }
   }
@@ -164,10 +171,41 @@ function raiseRanges(content, releases, version) {
 }
 
 /**
- * Rewrites the entries of the released packages in a package-lock.json,
- * keeping the flags npm derives from the dependency tree.
+ * Lists the released packages a sample needs, with the released packages they
+ * depend on, each flagged as a dev dependency when only the dev dependencies
+ * of the sample need it.
  */
-function pinPackageLock(content, releases) {
+function neededReleases(pkgJson, releases) {
+  const needed = new Map();
+  const pending = [
+    ...Object.keys(pkgJson.dependencies ?? {}).map((name) => [name, false]),
+    ...Object.keys(pkgJson.devDependencies ?? {}).map((name) => [name, true])
+  ];
+
+  while (pending.length > 0) {
+    const [name, dev] = pending.shift();
+    const release = releases.get(name);
+    if (!release || (needed.has(name) && (dev || !needed.get(name)))) {
+      continue;
+    }
+    needed.set(name, dev);
+    for (const dependency of Object.keys(
+      release.manifest.dependencies ?? {}
+    )) {
+      pending.push([dependency, dev]);
+    }
+  }
+
+  return needed;
+}
+
+/**
+ * Rewrites the entries of the released packages in a package-lock.json,
+ * keeping the flags npm derives from the dependency tree. A released package
+ * the sample needs but the lockfile lacks, i.e. one published for the first
+ * time, gets its entry too, since the registry may not serve it yet.
+ */
+function pinPackageLock(content, releases, needed) {
   const lock = JSON.parse(content);
 
   const pin = (location, entry, { manifest, integrity }) => {
@@ -196,15 +234,9 @@ function pinPackageLock(content, releases) {
     }
   }
 
-  // A released package newly depending on another one, which the registry
-  // may not serve yet, gets its entry with the flags of the dependent
-  for (const [location, entry] of Object.entries(lock.packages)) {
-    const release = releases.get(location.replace(/^.*node_modules\//, ''));
-    for (const name of Object.keys(release?.manifest.dependencies ?? {})) {
-      const dependency = releases.get(name);
-      if (dependency && !lock.packages[`node_modules/${name}`]) {
-        pin(`node_modules/${name}`, entry, dependency);
-      }
+  for (const [name, dev] of needed) {
+    if (!lock.packages[`node_modules/${name}`]) {
+      pin(`node_modules/${name}`, { dev: dev || undefined }, releases.get(name));
     }
   }
 
@@ -213,9 +245,10 @@ function pinPackageLock(content, releases) {
 
 /**
  * Rewrites the entries of the released packages in a bun.lock, each of which
- * is a single line in its "packages" section.
+ * is a single line in its "packages" section. A released package the sample
+ * needs but the lockfile lacks gets its line at the start of the section.
  */
-function pinBunLock(content, releases) {
+function pinBunLock(content, releases, needed, pkgJson) {
   const entry = (name) => {
     const { manifest, integrity } = releases.get(name);
     const optionalPeers = Object.keys(
@@ -239,27 +272,56 @@ function pinBunLock(content, releases) {
     ]);
   };
 
-  return content.replace(
+  const pinned = content.replace(
     /^(\s*)"((?:[^"]+\/)?(@[^"/]+\/[^"/]+))": \[.*\](,?)$/gm,
-    (line, indent, key, name, comma) => {
-      const release = releases.get(name);
-      if (!release) {
-        return line;
-      }
-
-      // A released package newly depending on another one, which the
-      // registry may not serve yet, gets its entry after the dependent
-      const added = Object.keys(release.manifest.dependencies ?? {}).filter(
-        (dependency) =>
-          releases.has(dependency) && !content.includes(`"${dependency}": [`)
-      );
-
-      return [
-        `${indent}"${key}": ${entry(name)}`,
-        ...added.map((dependency) => `${indent}"${dependency}": ${entry(dependency)}`)
-      ].join(',\n') + comma;
-    }
+    (line, indent, key, name, comma) =>
+      releases.has(name) ? `${indent}"${key}": ${entry(name)}${comma}` : line
   );
+
+  const missing = [...needed.keys()].filter(
+    (name) => !pinned.includes(`"${name}": [`)
+  );
+  return withWorkspaceReleases(pinned, releases, pkgJson).replace(
+    /^(\s*)"packages": \{\n/m,
+    (section, indent) =>
+      section +
+      missing.map((name) => `${indent}  "${name}": ${entry(name)},\n`).join('')
+  );
+}
+
+/**
+ * Writes the ranges of the released packages of the sample package.json into
+ * the root workspace of a bun.lock, which bun otherwise resolves again from
+ * the registry.
+ */
+function withWorkspaceReleases(content, releases, pkgJson) {
+  const start = content.indexOf('"workspaces": {');
+  const end = content.indexOf('"packages": {');
+  let workspaces = content.slice(start, end);
+
+  for (const field of ['dependencies', 'devDependencies']) {
+    const ranges = Object.entries(pkgJson[field] ?? {}).filter(([name]) =>
+      releases.has(name)
+    );
+    workspaces = workspaces.replace(
+      new RegExp(`^(\\s*)"${field}": \\{\\n([\\s\\S]*?)^\\1\\},`, 'm'),
+      (block, indent, body) => {
+        const lines = body
+          .split('\n')
+          .filter((line) => line.trim() !== '')
+          .filter((line) => !ranges.some(([name]) => line.includes(`"${name}":`)));
+        lines.push(
+          ...ranges.map(
+            ([name, range]) => `${indent}  ${JSON.stringify(name)}: ${JSON.stringify(range)},`
+          )
+        );
+        lines.sort((a, b) => a.trim().localeCompare(b.trim()));
+        return `${indent}"${field}": {\n${lines.join('\n')}\n${indent}},`;
+      }
+    );
+  }
+
+  return content.slice(0, start) + workspaces + content.slice(end);
 }
 
 /**

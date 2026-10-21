@@ -1025,10 +1025,12 @@ This runs the following steps automatically:
    and `create`.
 6. **Package copy** (`@semantic-release/exec`) — runs `node ./tools/copy-packages.js` to sync built packages into
    `node_modules/@appweaver`.
-7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the npm registry:
+7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the npm registry, every
+   package after the ones it depends on, skipping a version the registry already has, so a release failing halfway
+   publishes the remaining packages when run again:
     ```bash
-    cd packages/core/dist       && npm publish
     cd packages/common/dist     && npm publish
+    cd packages/core/dist       && npm publish
     cd packages/data/dist       && npm publish
     cd packages/web/dist        && npm publish
     cd packages/redis/dist      && npm publish
@@ -1038,16 +1040,17 @@ This runs the following steps automatically:
     cd packages/handlebars/dist && npm publish
     cd packages/sharp/dist      && npm publish
     cd packages/testing/dist    && npm publish
+    cd packages/create/dist     && npm publish
     cd packages/cli/dist        && npm publish
     cd packages/client/dist     && npm publish
-    cd packages/create/dist     && npm publish
     ```
 8. **Git commit** (`@semantic-release/git`) — commits the updated `package.json` files and `CHANGELOG.md` with a chore
    commit, then tags the release.
 9. **Sample lockfiles** (`@semantic-release/exec`) — once the packages are published, runs
    `node ./tools/lock-samples.js <version> --commit`, which raises the `@appweaver/*` ranges of the samples to
    `^<version>`, pins their lockfile entries to the built `dist` manifests and their `npm pack` integrity (the exact
-   published tarballs), lets npm and Bun resolve the rest of the tree, and commits the changes separately, since the
+   published tarballs), adds the entries of the released packages a sample needs but its lockfile lacks (a package
+   published for the first time, with the root workspace of `bun.lock`), lets npm and Bun resolve the rest of the tree, and commits the changes separately, since the
    release commit is made before the packages are published. The registry is never asked for the new release, so there
    is no wait for it to propagate.
 10. **`postrelease`** — runs `git push --follow-tags` to push the commits and tag to the remote.
