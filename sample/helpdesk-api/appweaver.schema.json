@@ -387,6 +387,26 @@
         "healthCheck": {
           "type": "object",
           "properties": {
+            "port": {
+              "default": 0,
+              "type": "integer"
+            },
+            "host": {
+              "default": "0.0.0.0",
+              "type": "string"
+            },
+            "pickInstances": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "omitInstances": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
             "enabled": {
               "default": true,
               "type": "boolean"
@@ -877,6 +897,10 @@
             "oauth2": {
               "type": "object",
               "properties": {
+                "connectedAccountsKeepDatabaseTable": {
+                  "default": false,
+                  "type": "boolean"
+                },
                 "stateTtl": {
                   "default": 600000,
                   "type": "integer"

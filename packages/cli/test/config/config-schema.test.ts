@@ -51,6 +51,17 @@ describe('config-schema', () => {
       });
     });
 
+    test('merges two definitions of a section path', () => {
+      const schema = buildConfigSchema([
+        section('healthCheck', { PORT: Type.Integer() }),
+        section('healthCheck', { ENABLED: Type.Boolean() })
+      ]);
+
+      expect(
+        Object.keys(schema.definitions.config.properties.healthCheck.properties)
+      ).toEqual(['port', 'enabled']);
+    });
+
     test('references the config from the base and the environments', () => {
       const schema = buildConfigSchema([]);
 

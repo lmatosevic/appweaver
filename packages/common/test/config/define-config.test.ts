@@ -181,10 +181,22 @@ describe('define-config', () => {
 
       defineConfig(section, { NAME: Type.String({ default: 'value' }) });
 
-      expect(configSections.get(section)).toMatchObject({
+      expect(configSections.get(`${section}:NAME`)).toMatchObject({
         section,
         prefix: sectionPrefix(section)
       });
+    });
+
+    test('registers both definitions of a path with their own keys', () => {
+      const section = uniqueSection('shared');
+
+      defineConfig(section, { FIRST: Type.String({ default: 'a' }) });
+      defineConfig(section, { SECOND: Type.String({ default: 'b' }) });
+
+      const definitions = [...configSections.values()].filter(
+        (definition) => definition.section === section
+      );
+      expect(definitions).toHaveLength(2);
     });
 
     test('lets a section be defined again, i.e. by a reloaded module', () => {

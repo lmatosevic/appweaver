@@ -30,7 +30,10 @@ type RawConfig = { json: ConfigEntry['config']; env: ConfigEntry['config'] };
 
 const rawConfig: RawConfig = { json: {}, env: {} };
 
-/** The registered sections, keyed by their path. */
+/**
+ * The registered sections, keyed by their path and keys (`healthCheck:ENABLED,AUTH`), since two packages may define
+ * the same path with their own keys. A section defined again with the same keys replaces its definition.
+ */
 export const configSections = new Map<string, ConfigSectionDefinition>();
 
 /** The section owning each flattened key. A section path may be defined by several packages, each with its own keys. */
@@ -155,7 +158,10 @@ export function defineConfig<P extends TProperties>(
 
   Object.freeze(result);
   const definition = { section, prefix, schema, values: result };
-  configSections.set(section, definition);
+  configSections.set(
+    `${section}:${Object.keys(properties).join(',')}`,
+    definition
+  );
   for (const key of Object.keys(properties)) {
     keyOwners.set(prefix + key, definition);
   }
