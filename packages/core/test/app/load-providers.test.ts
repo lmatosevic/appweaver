@@ -155,6 +155,18 @@ describe('load-providers', () => {
       expect(inject('LocaleService')).toBe(locale);
     });
 
+    test('selects the driver of a copy of the contract with the same name', async () => {
+      // The Memory of another copy of @appweaver/common
+      const CopiedMemory = { name: 'Memory' } as unknown as typeof Memory;
+
+      await loadProviders(
+        [...coreModules, driverModule('copied-redis', CopiedMemory, 'redis')],
+        __dirname
+      );
+
+      expect(selectedProvider(Memory)).toBe('redis');
+    });
+
     test('fails for a provider no enabled module registers', async () => {
       configOverrides.SCHEDULER_PROVIDER = 'agenda';
 

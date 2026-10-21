@@ -43,7 +43,9 @@ export async function loadProviders(
       const name = await loadContractProvider(
         contract,
         provider(),
-        providers.filter((entry) => entry.contract === contract),
+        // By name, like the definitions, since a module package may load a
+        // copy of the contract of its own copy of @appweaver/common
+        providers.filter((entry) => entry.contract.name === contract.name),
         baseDir
       );
       if (name) {

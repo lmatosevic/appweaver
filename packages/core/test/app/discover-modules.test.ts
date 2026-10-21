@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { Type } from '@sinclair/typebox';
 import {
@@ -5,6 +7,7 @@ import {
   defineConfig,
   defineModule,
   ErrorCode,
+  logger,
   Memory
 } from '@appweaver/common';
 import {
@@ -119,6 +122,55 @@ describe('discover-modules', () => {
         '@appweaver/core',
         'billing-sources'
       ]);
+    });
+
+    test('warns about a module package loading its own copy of common', async () => {
+      const root = fs.mkdtempSync(path.join(os.tmpdir(), 'appweaver-copy-'));
+      const write = (file: string, content: string) => {
+        fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+        fs.writeFileSync(path.join(root, file), content);
+      };
+      write('package.json', JSON.stringify({ dependencies: { linked: '1' } }));
+      write('node_modules/@appweaver/common/package.json', '{}');
+      write(
+        'node_modules/linked/package.json',
+        JSON.stringify({ appweaver: { module: './module.js' } })
+      );
+      write(
+        'node_modules/linked/module.js',
+        "module.exports = require('@appweaver/common').defineModule({ name: 'linked' });"
+      );
+      write(
+        'node_modules/linked/node_modules/@appweaver/common/package.json',
+        '{}'
+      );
+      const warn = jest.spyOn(logger, 'warn').mockImplementation();
+      configOverrides.APP_MODULES_PATTERN = '';
+
+      const modules = await discoverModules({ scanPath: root, rootPath: root });
+
+      expect(modules.map(({ module }) => module.name)).toContain('linked');
+      expect(warn).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'linked' }),
+        expect.stringContaining('loads its own copy of @appweaver/common')
+      );
+      warn.mockRestore();
+      fs.rmSync(root, { recursive: true, force: true });
+    });
+
+    test('warns without a package.json in the working directory', async () => {
+      const root = fs.mkdtempSync(path.join(os.tmpdir(), 'appweaver-nopkg-'));
+      const warn = jest.spyOn(logger, 'warn').mockImplementation();
+      configOverrides.APP_MODULES_PATTERN = '';
+
+      await discoverModules({ scanPath: root, rootPath: root });
+
+      expect(warn).toHaveBeenCalledWith(
+        { rootPath: root },
+        expect.stringContaining('No package.json')
+      );
+      warn.mockRestore();
+      fs.rmSync(root, { recursive: true, force: true });
     });
 
     test('fails for a module supporting another framework version', async () => {

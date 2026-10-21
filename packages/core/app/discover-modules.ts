@@ -6,6 +6,7 @@ import {
   findFilesByPattern,
   importModule,
   isModule,
+  logger,
   Module,
   ModuleError,
   satisfiesVersion
@@ -35,6 +36,8 @@ export type DiscoverModulesParams = {
    */
   sources?: boolean;
 };
+
+const COMMON = '@appweaver/common';
 
 /** The packages a project never enables as modules, the framework itself. */
 const frameworkPackages = ['@appweaver/common', '@appweaver/core'];
@@ -91,8 +94,14 @@ export async function discoverModules(
 async function findPackageModules(rootPath: string): Promise<EnabledModule[]> {
   const packageJson = readJson(path.join(rootPath, 'package.json'));
   if (!packageJson) {
+    logger.warn(
+      { rootPath },
+      'No package.json in the working directory, so no module package is enabled, start the application from its root'
+    );
     return [];
   }
+
+  const projectCommon = realPackagePath(COMMON, rootPath);
 
   const modules: EnabledModule[] = [];
   const visited = new Set<string>(frameworkPackages);
@@ -121,6 +130,15 @@ async function findPackageModules(rootPath: string): Promise<EnabledModule[]> {
       'package'
     );
     modules.push(enabled);
+
+    const moduleCommon = realPackagePath(COMMON, packagePath);
+    if (moduleCommon && projectCommon && moduleCommon !== projectCommon) {
+      logger.warn(
+        { name: enabled.module.name, common: moduleCommon },
+        `The module '${enabled.module.name}' loads its own copy of ${COMMON}, whose config sections the application ` +
+          'does not see, dedupe it (npm dedupe) or install a matching version'
+      );
+    }
 
     for (const required of enabled.module.requires ?? []) {
       pending.push([required, packagePath]);
@@ -331,6 +349,12 @@ function findPackagePath(name: string, fromPath: string): string | undefined {
     }
     directory = parent;
   }
+}
+
+/** Returns the real path of the copy of a package a directory resolves, if any. */
+function realPackagePath(name: string, fromPath: string): string | undefined {
+  const packagePath = findPackagePath(name, fromPath);
+  return packagePath ? fs.realpathSync(packagePath) : undefined;
 }
 
 function readJson(filePath: string): Record<string, any> | undefined {
