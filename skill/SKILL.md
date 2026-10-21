@@ -245,7 +245,7 @@ and the [providers](references/configuration.md#providers).
 | Application                  | How                                                                                                                                |
 |------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
 | HTTP API                     | The default: `createApp()` starts the server on `SERVER_PORT`.                                                                     |
-| Queue worker, scheduled jobs | `APP_MODULES_DISABLED=@appweaver/web`: no server, kept alive by its workers or cron jobs. `HEALTH_PORT` answers the health checks. |
+| Queue worker, scheduled jobs | `APP_MODULES_DISABLED=@appweaver/web`: no server, kept alive by its workers or cron jobs. `HEALTH_CHECK_PORT` answers the health checks. |
 | One-shot task                | `weaver run src/tasks/report.ts [args...]`: runs the default export `(args) => number \| void`, then exits.                        |
 
 ```ts

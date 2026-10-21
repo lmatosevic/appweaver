@@ -64,9 +64,7 @@
       "routePrefix": "/health",
       "cacheTtl": 3000,
       "pickInstances": ["database", "redis", "storage"],
-      "omitInstances": null
-    },
-    "health": {
+      "omitInstances": null,
       "port": 0,
       "host": "0.0.0.0"
     },

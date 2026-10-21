@@ -33,7 +33,7 @@ describe('health-listener', () => {
 
   afterEach(async () => {
     await listener.onShutdown();
-    delete configOverrides.HEALTH_PORT;
+    delete configOverrides.HEALTH_CHECK_PORT;
   });
 
   afterAll(() => {
@@ -49,7 +49,7 @@ describe('health-listener', () => {
 
     test('answers the health checks on the configured port', async () => {
       const port = await freePort();
-      configOverrides.HEALTH_PORT = port;
+      configOverrides.HEALTH_CHECK_PORT = port;
 
       await listener.onReady();
       const check = await fetch(`http://localhost:${port}/health/check`);
@@ -68,7 +68,7 @@ describe('health-listener', () => {
 
     test('responds with 503 when a check is down', async () => {
       const port = await freePort();
-      configOverrides.HEALTH_PORT = port;
+      configOverrides.HEALTH_CHECK_PORT = port;
       status = HealthCheckStatus.Down;
 
       await listener.onReady();
@@ -80,7 +80,7 @@ describe('health-listener', () => {
 
   describe('onShutdown', () => {
     test('closes the listener', async () => {
-      configOverrides.HEALTH_PORT = await freePort();
+      configOverrides.HEALTH_CHECK_PORT = await freePort();
       await listener.onReady();
 
       await listener.onShutdown();

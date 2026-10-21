@@ -13,7 +13,7 @@ import { HealthService } from './health-service';
 
 /**
  * Answers the health checks of an application without the HTTP server of `@appweaver/web`, i.e. a worker in a
- * container, on `health.port` with a small `node:http` listener running the checks of the health route.
+ * container, on `healthCheck.port` with a small `node:http` listener running the checks of the health route.
  */
 export class HealthListener implements OnReady, OnShutdown {
   static [LIFECYCLE] = true;

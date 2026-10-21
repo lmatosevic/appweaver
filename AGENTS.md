@@ -170,7 +170,7 @@ The runtime every application has, with neither a server nor a database. Organiz
 | `mailer/`    | `EmailService`, rendering the template emails, and the `json` mailer of development and tests                                        |
 | `template/`  | The template config and `registerTemplate` / `registerTemplateHelper`, the engine is `@appweaver/handlebars`                         |
 | `locale/`    | Locale service — translating the dotted keys of the nested JSON translation files, with the framework's own English translations     |
-| `health/`    | `HealthService`, and the `node:http` health listener of an app without web (`HEALTH_PORT`)                                           |
+| `health/`    | `HealthService`, and the `node:http` health listener of an app without web (`HEALTH_CHECK_PORT`)                                           |
 | `security/`  | The `security.store` config and the `memory` security store (`store/`)                                                               |
 | `types/`     | `ApplicationContext`                                                                                                                 |
 | `utils/`     | `createSchemaModel`                                                                                                                  |

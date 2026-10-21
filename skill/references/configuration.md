@@ -131,7 +131,7 @@ databaseConfig.URL; // string
 | Section variable                                                                                                                                                                                                                                                                                                   | Keys                            | Imported from           |
 |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|-------------------------|
 | `appConfig`, `logConfig`                                                                                                                                                                                                                                                                                           | `APP_*`, `LOG_*`                | `@appweaver/common`     |
-| `cacheConfig`, `eventsConfig`, `healthConfig`, `healthInstancesConfig` (`HEALTH_CHECK_PICK_INSTANCES`, `HEALTH_CHECK_OMIT_INSTANCES`), `localeConfig`, `mailerConfig`, `memoryConfig`, `queueConfig`, `schedulerConfig`, `securityStoreConfig` (`SECURITY_STORE_*`), `storageConfig`, `templateConfig`             | `CACHE_*`, `HEALTH_*`, ...      | `@appweaver/core`       |
+| `cacheConfig`, `eventsConfig`, `healthConfig` (`HEALTH_CHECK_PORT`, `HOST`, `PICK_INSTANCES`, `OMIT_INSTANCES`), `localeConfig`, `mailerConfig`, `memoryConfig`, `queueConfig`, `schedulerConfig`, `securityStoreConfig` (`SECURITY_STORE_*`), `storageConfig`, `templateConfig`                        | `CACHE_*`, `HEALTH_CHECK_*`, ...| `@appweaver/core`       |
 | `databaseConfig`, `resourceConfig`, `exportConfig`, `imageConfig`, `passwordConfig`, `apiKeyConfig`, `connectedAccountConfig` (`SECURITY_OAUTH2_CONNECTED_ACCOUNTS_*`), `systemConfig`                                                                                                                             | `DATABASE_*`, `RESOURCE_*`, ... | `@appweaver/data`       |
 | `serverConfig`, `rateLimitConfig`, `swaggerConfig`, `corsConfig`, `healthCheckConfig`, `templatePreviewConfig`, `securityConfig` (`SECURITY_*` not elsewhere), `accountConfig`, `twoFactorConfig` (`SECURITY_ACCOUNT_2FA_*`), `recaptchaConfig`, `turnstileConfig`, `basicAuthConfig`, `jwtConfig`, `oauth2Config` | `SERVER_*`, `SECURITY_*`, ...   | `@appweaver/web`        |
 | `redisConfig`                                                                                                                                                                                                                                                                                                      | `MEMORY_REDIS_*`                | `@appweaver/redis`      |
@@ -367,9 +367,9 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 
 ### Health check (HEALTH_CHECK_\*)
 
-The route keys are the `healthCheck` section of `@appweaver/web` (`healthCheckConfig`), the instance filters the
-`healthCheck` section of `@appweaver/core` (`healthInstancesConfig`), read by `HealthService` for the route and the
-health listener alike.
+The route keys are the `healthCheck` section of `@appweaver/web` (`healthCheckConfig`), the instance filters and the
+health listener the `healthCheck` section of `@appweaver/core` (`healthConfig`). The filters are read by
+`HealthService` for the route and the health listener alike.
 
 | Property                      | Type      | Default     | Description                                                   |
 |-------------------------------|-----------|-------------|---------------------------------------------------------------|
@@ -380,16 +380,16 @@ health listener alike.
 | `HEALTH_CHECK_PICK_INSTANCES` | string[]? | -           | List of health check instance names to include in response.   |
 | `HEALTH_CHECK_OMIT_INSTANCES` | string[]? | -           | List of health check instance names to exclude from response. |
 
-### Health listener (HEALTH\_\*)
+### Health listener (HEALTH_CHECK_PORT, HEALTH_CHECK_HOST)
 
 An application without the `@appweaver/web` server (a worker, a scheduled job runner) answers `GET /health/check` and
 `GET /health/ready` on its own `node:http` listener, without authentication, running the same checks as the health
 route.
 
-| Property      | Type    | Default     | Description                                |
-|---------------|---------|-------------|--------------------------------------------|
-| `HEALTH_PORT` | integer | `0`         | Port of the health listener, `0` for none. |
-| `HEALTH_HOST` | string  | `'0.0.0.0'` | Host of the health listener.               |
+| Property            | Type    | Default     | Description                                |
+|---------------------|---------|-------------|--------------------------------------------|
+| `HEALTH_CHECK_PORT` | integer | `0`         | Port of the health listener, `0` for none. |
+| `HEALTH_CHECK_HOST` | string  | `'0.0.0.0'` | Host of the health listener.               |
 
 ### CORS (CORS\_\*)
 

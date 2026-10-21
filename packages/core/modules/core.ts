@@ -12,7 +12,7 @@ import {
 } from '@appweaver/common';
 import { cacheConfig } from '../cache/cache-config';
 import { eventsConfig } from '../events/events-config';
-import { healthConfig, healthInstancesConfig } from '../health/health-config';
+import { healthConfig } from '../health/health-config';
 import { localeConfig } from '../locale/locale-config';
 import { mailerConfig } from '../mailer/mailer-config';
 import { memoryConfig } from '../memory/memory-config';
@@ -36,8 +36,7 @@ export default defineModule({
     templateConfig,
     schedulerConfig,
     localeConfig,
-    healthConfig,
-    healthInstancesConfig
+    healthConfig
   ],
   contracts: [
     { contract: Memory, provider: () => memoryConfig.PROVIDER },
