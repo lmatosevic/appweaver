@@ -1,0 +1,9 @@
+{
+  "config": {
+    "security": {
+      "apiKey": { "keepDatabaseTable": true },
+      "store": { "keepDatabaseTable": true },
+      "oauth2": { "connectedAccountsKeepDatabaseTable": true }
+    }
+  }
+}

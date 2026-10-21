@@ -236,6 +236,10 @@ npm run generate      # refresh types/generated.ts, prisma/schema.prisma and pri
 npm run db:recreate   # drop dev.db, remove the *_init migration and recreate it from the new schema
 ```
 
+The `appweaver.json` of `packages/data` (never published) turns on the `KEEP_DATABASE_TABLE` keys of the API keys,
+the security store and the connected accounts, so `npm run generate` emits every framework model whatever the
+environment.
+
 A stale `prisma/client` makes Prisma reject writes with a misleading "Unknown argument" naming an *unrelated* field
 (usually `createdById`) — suspect regeneration before the calling code.
 
