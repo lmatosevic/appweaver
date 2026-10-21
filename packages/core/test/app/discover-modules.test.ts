@@ -13,12 +13,9 @@ import {
   moduleDirectories
 } from '../../app/discover-modules';
 import { context } from '../../context/context';
-import { firstPartyModules } from '../../modules';
 
 const rootPath = path.join(__dirname, '../fixtures/modules/project');
 const scanPath = path.join(rootPath, 'src');
-
-const firstPartyNames = firstPartyModules.map(({ module }) => module.name);
 
 /** Discovers the modules of the fixture project, returning their names. */
 async function discoverNames(): Promise<string[]> {
@@ -42,7 +39,7 @@ describe('discover-modules', () => {
       configOverrides.APP_MODULES = ['shared/module.js'];
 
       expect(await discoverNames()).toEqual([
-        ...firstPartyNames,
+        '@appweaver/core',
         'acme-base',
         'acme-gcs',
         'billing',

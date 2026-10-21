@@ -12,7 +12,7 @@ import {
   satisfiesVersion
 } from '@appweaver/common';
 import { context } from '../context/context';
-import { firstPartyModules } from '../modules';
+import coreModule from '../modules/core';
 
 /** Where an enabled module was found. */
 export type ModuleSource = 'core' | 'package' | 'local' | 'explicit';
@@ -54,11 +54,8 @@ export async function discoverModules(
   params: DiscoverModulesParams
 ): Promise<EnabledModule[]> {
   const rootPath = params.rootPath ?? process.cwd();
-  const found: EnabledModule[] = [];
-
-  for (const { module } of firstPartyModules) {
-    found.push({ module, source: 'core' });
-  }
+  // Every module builds on the runtime of core
+  const found: EnabledModule[] = [{ module: coreModule, source: 'core' }];
 
   found.push(...(await findPackageModules(rootPath)));
 

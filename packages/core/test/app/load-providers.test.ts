@@ -15,7 +15,7 @@ import { context } from '../../context/context';
 import { define, inject, isDefined } from '../../context/dependency-injection';
 import { EnabledModule } from '../../app/discover-modules';
 import { loadProviders, selectedProvider } from '../../app/load-providers';
-import { firstPartyModules } from '../../modules';
+import coreModule from '../../modules/core';
 import { resetContext } from '../fixtures/context-fixture';
 
 const load = () => import('../../memory/in-memory');
@@ -46,10 +46,7 @@ const dataModule: EnabledModule = {
 
 /** The modules of core and data, without any driver module. */
 const coreModules: EnabledModule[] = [
-  ...firstPartyModules.map(({ module }) => ({
-    module,
-    source: 'core' as const
-  })),
+  { module: coreModule, source: 'core' },
   dataModule
 ];
 

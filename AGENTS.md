@@ -159,7 +159,7 @@ The runtime every application has, with neither a server nor a database. Organiz
 | Module       | Purpose                                                                                                                              |
 |--------------|--------------------------------------------------------------------------------------------------------------------------------------|
 | `app/`       | `createApp`, `Application`, module discovery (`discover-modules.ts`), provider selection (`load-providers.ts`), app files, lifecycle |
-| `modules/`   | The manifest of the core module (`core.ts`): every contract and its in-process driver, the only module of `firstPartyModules`        |
+| `modules/`   | The manifest of the core module (`core.ts`): every contract and its in-process driver, always enabled first                          |
 | `context/`   | Dependency injection container (`define`, `inject`, `injectService`, ...), the auth user context (`runAs`) and the transaction scope |
 | `cache/`     | The `Cache` stored in the `Memory` provider, its eviction indexes and `CacheService`                                                 |
 | `memory/`    | The in-process `memory` driver of `Memory`                                                                                           |
