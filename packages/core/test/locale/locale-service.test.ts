@@ -2,7 +2,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import * as common from '@appweaver/common';
-import { ErrorCode, logger } from '@appweaver/common';
+import { defineModule, ErrorCode, logger } from '@appweaver/common';
+import { context } from '../../context/context';
 import { LocaleService } from '../../locale/locale-service';
 
 const { configOverrides } = common as unknown as {
@@ -39,6 +40,7 @@ describe('locale-service', () => {
   });
 
   afterEach(() => {
+    context.modules.enabled.length = 0;
     fs.rmSync(dir, { recursive: true, force: true });
     jest.restoreAllMocks();
   });
@@ -156,6 +158,23 @@ describe('locale-service', () => {
 
       expect(service.translate('emails.passwordReset.subject', 'hr')).toBe(
         'Nova lozinka'
+      );
+    });
+
+    test('reads the translations of the modules, overridden by the application', () => {
+      const moduleDir = fs.mkdtempSync(path.join(dir, 'module-'));
+      fs.writeFileSync(
+        path.join(moduleDir, 'en.json'),
+        JSON.stringify({ greeting: 'Hi {name}', newsletter: 'Subscribe' })
+      );
+      context.modules.enabled.push(
+        defineModule({ name: 'newsletter', locales: moduleDir })
+      );
+      service.reload();
+
+      expect(service.translate('newsletter')).toBe('Subscribe');
+      expect(service.translate('greeting', 'en', { name: 'Ana' })).toBe(
+        'Hello Ana'
       );
     });
   });

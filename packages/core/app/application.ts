@@ -1,5 +1,6 @@
 import { logger, appConfig } from '@appweaver/common';
 import { context } from '../context/context';
+import { checkModuleConfig } from './discover-modules';
 import { LifecycleManager } from './lifecycle-manager';
 
 /**
@@ -25,6 +26,8 @@ export class Application extends LifecycleManager {
       logger.warn('Trying to start already started application.');
       return;
     }
+
+    checkModuleConfig();
 
     this._started = true;
 

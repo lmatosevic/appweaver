@@ -42,6 +42,8 @@ export default defineModule({
   // providers: [{ contract: Storage, name: '${name}', load: () => import('./${name}-storage') }],
   // Classes defined at startup, with their lifecycle hooks:
   // services: [{ load: () => import('./${name}-service') }],
+  // Its translations, templates and seeders, beside the ones of the application:
+  // locales: path.join(__dirname, 'locales'),
   main: () => import('./main')
 });
 `,

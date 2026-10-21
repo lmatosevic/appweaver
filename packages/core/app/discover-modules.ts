@@ -11,6 +11,7 @@ import {
   requireModule,
   satisfiesVersion
 } from '@appweaver/common';
+import { context } from '../context/context';
 import { firstPartyModules } from '../modules';
 
 /** Where an enabled module was found. */
@@ -137,12 +138,12 @@ async function findPackageModules(rootPath: string): Promise<EnabledModule[]> {
  * Loads a part of every module declaring it, in the order of the modules.
  *
  * @param {EnabledModule[]} modules - The enabled modules.
- * @param {'resources' | 'main' | 'web' | 'commands'} part - The part to load.
+ * @param {'resources' | 'main' | 'web'} part - The part to load.
  * @return {Promise<unknown[]>} The exports of the part of every module.
  */
 export async function loadModuleParts(
   modules: EnabledModule[],
-  part: 'resources' | 'main' | 'web' | 'commands'
+  part: 'resources' | 'main' | 'web'
 ): Promise<unknown[]> {
   const exports: unknown[] = [];
   for (const { module } of modules) {
@@ -152,6 +153,44 @@ export async function loadModuleParts(
     }
   }
   return exports;
+}
+
+/**
+ * Returns the directories the enabled modules declare for a part, in the load order of the modules, i.e. the
+ * translations directories the `LocaleService` reads before the one of the application.
+ *
+ * @param {'locales' | 'templates' | 'seeders'} part - The part of the manifests.
+ * @return {string[]} The absolute paths of the directories.
+ */
+export function moduleDirectories(
+  part: 'locales' | 'templates' | 'seeders'
+): string[] {
+  return context.modules.enabled.flatMap((module) => module[part] ?? []);
+}
+
+/**
+ * Parses the config sections the enabled modules declare in their `config`, so an invalid value fails the start of
+ * the application instead of the first read of its key. The sections of a driver module are parsed only when one of
+ * its providers is selected.
+ *
+ * @throws {ConfigurationError} For the first section with an invalid or missing value.
+ */
+export function checkModuleConfig(): void {
+  for (const module of context.modules.enabled) {
+    const used =
+      !module.providers?.length ||
+      module.providers.some(
+        ({ contract, name }) =>
+          context.modules.providers.get(contract.name) === name
+      );
+    if (!used) {
+      continue;
+    }
+    for (const section of module.config ?? []) {
+      // Reading the values parses the section
+      Object.values(section);
+    }
+  }
 }
 
 /**

@@ -1,6 +1,18 @@
 import path from 'node:path';
-import { configOverrides, ErrorCode } from '@appweaver/common';
-import { discoverModules } from '../../app/discover-modules';
+import { Type } from '@sinclair/typebox';
+import {
+  configOverrides,
+  defineConfig,
+  defineModule,
+  ErrorCode,
+  Memory
+} from '@appweaver/common';
+import {
+  checkModuleConfig,
+  discoverModules,
+  moduleDirectories
+} from '../../app/discover-modules';
+import { context } from '../../context/context';
 import { firstPartyModules } from '../../modules';
 
 const rootPath = path.join(__dirname, '../fixtures/modules/project');
@@ -104,6 +116,67 @@ describe('discover-modules', () => {
         code: ErrorCode.ModuleIncompatible,
         details: { name: 'future', framework: '>=99.0.0' }
       });
+    });
+  });
+
+  describe('moduleDirectories', () => {
+    afterEach(() => {
+      context.modules.enabled.length = 0;
+    });
+
+    test('returns the directories of the modules declaring the part', () => {
+      context.modules.enabled.push(
+        defineModule({ name: 'a', locales: '/a/locales' }),
+        defineModule({ name: 'b' }),
+        defineModule({
+          name: 'c',
+          locales: '/c/locales',
+          seeders: '/c/seeders'
+        })
+      );
+
+      expect(moduleDirectories('locales')).toEqual([
+        '/a/locales',
+        '/c/locales'
+      ]);
+      expect(moduleDirectories('templates')).toEqual([]);
+    });
+  });
+
+  describe('checkModuleConfig', () => {
+    // A required key without a value fails to parse
+    const invalidConfig = defineConfig('discoverModulesTest', {
+      KEY: Type.String()
+    });
+    const load = () => ({});
+
+    afterEach(() => {
+      context.modules.enabled.length = 0;
+      context.modules.providers.clear();
+    });
+
+    test('fails for an invalid config section of a module', () => {
+      context.modules.enabled.push(
+        defineModule({ name: 'feature', config: [invalidConfig] })
+      );
+
+      expect(() => checkModuleConfig()).toThrow('DISCOVER_MODULES_TEST_KEY');
+    });
+
+    test('checks the config of a driver module only when it is selected', () => {
+      context.modules.enabled.push(
+        defineModule({
+          name: 'valkey',
+          config: [invalidConfig],
+          providers: [{ contract: Memory, name: 'valkey', load }]
+        })
+      );
+
+      expect(() => checkModuleConfig()).not.toThrow();
+
+      context.modules.providers.set('Memory', 'valkey');
+
+      expect(() => checkModuleConfig()).toThrow('DISCOVER_MODULES_TEST_KEY');
     });
   });
 });

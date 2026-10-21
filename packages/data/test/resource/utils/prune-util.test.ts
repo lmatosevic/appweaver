@@ -70,5 +70,14 @@ describe('prune-util', () => {
 
       expect(pruneUnusedModels(models)).toContain('Seeder');
     });
+
+    test('keeps the Seeder model for the seeders of a module', () => {
+      configOverrides.DATABASE_SEEDERS_DIR_PATH = './missing/seeders';
+      const models = withFrameworkModels(model('User', {}, true));
+
+      expect(pruneUnusedModels(models, ['/billing/seeders'])).not.toContain(
+        'Seeder'
+      );
+    });
   });
 });

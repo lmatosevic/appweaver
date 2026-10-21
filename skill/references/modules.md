@@ -97,7 +97,7 @@ export default defineModule({ name: 'appweaver-newsletter' /* ... */ });
 | `name`      | `string`                                 | The name, the package name for a package module                                                                                                    |
 | `framework` | `string`                                 | The supported Appweaver version range, i.e. `^2.0.0`, checked at startup                                                                           |
 | `requires`  | `string[]`                               | The modules that must be enabled with it (`@appweaver/bullmq` requires `@appweaver/redis`)                                                         |
-| `config`    | `object[]`                               | Its config sections, defined with `defineConfig`                                                                                                   |
+| `config`    | `object[]`                               | Its config sections, defined with `defineConfig`, validated when the application starts (a driver's only when one of its providers is selected)    |
 | `contracts` | `{ contract, provider: () => string }[]` | The contracts it declares, with the function reading the provider key, i.e. `() => paymentConfig.PROVIDER`                                         |
 | `providers` | `{ contract, name, load, auto? }[]`      | Its contract implementations. `load` imports the class lazily (`() => import('./gcs-storage')`), `auto` is `true`, `'fallback'` or `false`         |
 | `services`  | `{ load, requires? }[]`                  | Classes defined at startup by their class name, with their lifecycle hooks and health checks; `requires` lists the contracts that must be provided |
@@ -105,8 +105,7 @@ export default defineModule({ name: 'appweaver-newsletter' /* ... */ });
 | `resources` | `() => import(...)`                      | A file exporting its models, resource services and policies, loaded by the `setup` of `@appweaver/data`, and by `weaver generate`                  |
 | `main`      | `() => import(...)`                      | Code run at startup: scheduled jobs, queue workers, event listeners                                                                                |
 | `web`       | `() => import(...)`                      | Its resource routes, custom routes (`registerRoute`) and plugins (`registerPlugin`), loaded by the `setup` of `@appweaver/web`                     |
-| `commands`  | `() => import(...)`                      | Its `weaver` subcommands                                                                                                                           |
-| `seeders`   | `string`                                 | The absolute path of its seeders directory                                                                                                         |
+| `seeders`   | `string`                                 | The absolute path of its seeders directory, run by `weaver seed` before the seeders of the application                                             |
 | `locales`   | `string`                                 | The absolute path of its translations, overridden by the ones of the application                                                                   |
 | `templates` | `string`                                 | The absolute path of its templates, overridden by the ones of the application                                                                      |
 
@@ -128,9 +127,23 @@ export default defineModule({
 `isModule(value)` checks a manifest, and `PROVIDER_AUTO` / `PROVIDER_NONE` hold `'auto'` and `'none'`. A manifest is
 marked with `Symbol.for('appweaver.module')`, so it is recognized whichever copy of `@appweaver/common` defined it.
 
-The `config`, `commands`, `seeders`, `locales` and `templates` fields are declared for the tooling, and not loaded by
-the framework yet: a config section is registered when its file imports `defineConfig`, and only the seeders,
-translations and templates of the application are read.
+The directories of `seeders`, `locales` and `templates` are absolute, i.e. `path.join(__dirname, 'locales')` in
+`module.ts`, so they point to the build output of a package or a local module:
+
+- `weaver seed` (`createSeeder`) runs the seeders of the modules first, in their load order, each recorded under the
+  name of its module (`appweaver-newsletter/1-lists`), then the seeders of the application. A module declaring
+  `seeders` keeps the `Seeder` model in `weaver generate`.
+- The `LocaleService` reads the translation files of the modules, then of `LOCALE_PATH`, a key of the application
+  replacing the same key of a module.
+- The Handlebars engine reads the templates of the modules, then of `TEMPLATE_PATH`, a template of the application
+  replacing the template of a module with the same name and locale, so an application restyles the email of a module
+  by adding the file of the same name.
+
+`moduleDirectories('locales' | 'templates' | 'seeders')` of `@appweaver/core` returns the directories of the enabled
+modules, for a driver of another engine. A config section is registered when its file is imported (the manifest
+imports it to list it), and the sections of `config` are parsed when the application starts, so an invalid value fails
+the start instead of the first read of its key. A module ships its own command line tool, or a task run with
+`weaver run`, since `weaver` has no module subcommands.
 
 A module model relates to the application only through a reference resolved when the app loads, i.e. the auth model.
 

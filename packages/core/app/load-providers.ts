@@ -35,6 +35,9 @@ export async function loadProviders(
   const providers = modules.flatMap(({ module }) => module.providers ?? []);
   const selected: Record<string, string> = {};
 
+  context.modules.enabled.length = 0;
+  context.modules.enabled.push(...modules.map(({ module }) => module));
+
   for (const { module } of modules) {
     for (const { contract, provider } of module.contracts ?? []) {
       const name = await loadContractProvider(

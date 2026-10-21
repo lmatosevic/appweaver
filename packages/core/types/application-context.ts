@@ -1,6 +1,7 @@
 import {
   AbstractCtor,
   Ctor,
+  Module,
   IResourceService,
   ResourceModel,
   ResourcePolicyConfig,
@@ -36,6 +37,8 @@ export type ResourceContext = {
 };
 
 export type ModuleContext = {
+  /** The enabled modules, in their load order. */
+  enabled: Module[];
   /** The name of the provider selected for each contract, keyed by the contract name. */
   providers: Map<string, string>;
 };

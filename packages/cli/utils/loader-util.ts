@@ -50,7 +50,7 @@ export async function loadLocalPackageJson(): Promise<Record<string, any>> {
  *
  * @param {string} [modelPattern] - The glob pattern used to locate model files. The default value is used from config.
  * @param {boolean} [prune=true] - Whether to leave out the framework models the project does not use (the auth data
- * model without an auth model, File without file fields, Seeder without a seeders directory).
+ * model without an auth model, File without file fields, Seeder without a seeders directory of the project or a module).
  * @return {Promise<Record<string, ResourceModel>>} A promise resolving to an object containing the loaded resource models,
  * where the keys are the model names and the values are the associated ResourceModel objects.
  */
@@ -128,7 +128,10 @@ export async function loadModels(
   // Leave out the models of the framework the application does not use
   if (prune) {
     const { pruneUnusedModels } = await import('@appweaver/data/internal');
-    pruneUnusedModels(models);
+    pruneUnusedModels(
+      models,
+      modules.flatMap(({ module }) => module.seeders ?? [])
+    );
   }
 
   // Resolve the schemas referencing the primary key of another model, now that
