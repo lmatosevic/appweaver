@@ -1,21 +1,35 @@
-import { AuthUser, Cache, makeHash } from '@appweaver/common';
+import {
+  AuthUser,
+  Cache,
+  makeHash,
+  RelationConfig,
+  ResourceModel
+} from '@appweaver/common';
 import { stringify } from 'flatted';
-import { define, CacheService } from '@appweaver/core';
-import { Cache as CoreCache } from '@appweaver/core/cache/cache';
-import { InMemory } from '@appweaver/core/drivers';
-import { createModel } from '../../factory/create-model';
-import { resetContext } from '@appweaver/testing';
+import { Cache as CoreCache } from '../../cache/cache';
+import { CacheService } from '../../cache/cache-service';
+import { context } from '../../context/context';
+import { define } from '../../context/dependency-injection';
+import { InMemory } from '../../memory/in-memory';
+import { resetContext } from '../fixtures/context-fixture';
 import {
   TransactionContext,
   runInTransaction,
   settleTransaction
-} from '@appweaver/core/internal';
+} from '../../context/transaction-scope';
 
 const transactionContext = (): TransactionContext => ({
   tx: {},
   commitCallbacks: new Map(),
   rollbackCallbacks: []
 });
+
+/** Registers a model with its relations, all the cache service reads of it. */
+const createModel = (model: { name: string; relations?: RelationConfig }) =>
+  context.resource.models.set(model.name, {
+    name: model.name,
+    config: { relations: model.relations }
+  } as unknown as ResourceModel);
 
 class TestCache extends CoreCache {
   constructor() {
@@ -252,10 +266,9 @@ describe('cache-service', () => {
     });
 
     test('collects the model relations for a model based key', () => {
-      createModel({ name: 'User', scalars: { email: { type: 'string' } } });
+      createModel({ name: 'User' });
       createModel({
         name: 'Post',
-        scalars: { title: { type: 'string' } },
         relations: { author: { model: 'User', type: 'oneToMany', owner: true } }
       });
 
@@ -269,10 +282,9 @@ describe('cache-service', () => {
     });
 
     test('skips relations excluded from the output', () => {
-      createModel({ name: 'User', scalars: { email: { type: 'string' } } });
+      createModel({ name: 'User' });
       createModel({
         name: 'Post',
-        scalars: { title: { type: 'string' } },
         relations: {
           author: {
             model: 'User',
@@ -294,10 +306,9 @@ describe('cache-service', () => {
     });
 
     test('collects the relations of every model for the wildcard', () => {
-      createModel({ name: 'User', scalars: { email: { type: 'string' } } });
+      createModel({ name: 'User' });
       createModel({
         name: 'Post',
-        scalars: { title: { type: 'string' } },
         relations: { author: { model: 'User', type: 'oneToMany', owner: true } }
       });
 

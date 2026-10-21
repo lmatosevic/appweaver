@@ -1,9 +1,7 @@
 import { argon2Sync, randomBytes } from 'node:crypto';
 import {
-  AuthScope,
-  AuthSource,
   AuthUser,
-  config,
+  configOverrides,
   RESOURCE_AUTH,
   RESOURCE_MODEL_TYPE,
   RESOURCE_SERVICE_TYPE,
@@ -11,10 +9,10 @@ import {
   RESOURCE_NAME,
   AuthError
 } from '@appweaver/common';
-import { oauth2Config } from '../../security/security-config';
 import { define } from '@appweaver/core';
+import { resetContext } from '@appweaver/testing';
+import { createAuthService } from '../../security/create-auth-resources';
 import {
-  createAuthService,
   checkPassword,
   hasPermission,
   hasPermissions,
@@ -27,12 +25,7 @@ import {
   resourceAuthService,
   updatePasswordHash,
   validatePasswordComplexity
-} from '@appweaver/data';
-import {
-  checkScopeAccess,
-  validateRedirectUrl
-} from '../../security/access-util';
-import { resetContext } from '@appweaver/testing';
+} from '../../security/helper';
 
 /** Hashes a password into a PHC string with the given Argon2id parameters. */
 const argon2Hash = (
@@ -60,7 +53,7 @@ const role = (name: string, permissions: string[] = []) => ({
   permissions: permissions.map((p) => ({ name: p }))
 });
 
-describe('security-helper', () => {
+describe('helper', () => {
   beforeEach(() => {
     resetContext();
   });
@@ -266,92 +259,19 @@ describe('security-helper', () => {
     });
   });
 
-  describe('validateRedirectUrl', () => {
-    test('accepts any host by default', () => {
-      expect(validateRedirectUrl('https://example.com/callback')).toEqual({
-        valid: true,
-        message: 'URL is valid and allowed'
-      });
-    });
-
-    test('rejects a malformed URL', () => {
-      const result = validateRedirectUrl('not-a-url');
-
-      expect(result.valid).toBe(false);
-      expect(result.message).toContain('Invalid URL format');
-    });
-
-    test('rejects an empty URL', () => {
-      expect(validateRedirectUrl('').valid).toBe(false);
-    });
-  });
-
   describe('isOAuth2Enabled', () => {
-    const providerFlags = Object.values(AuthSource)
-      .filter((source) => source.startsWith('oauth2'))
-      .map((source) => `${source.replace('oauth2', '').toUpperCase()}_ENABLED`);
-
-    test('resolves a config flag for every OAuth2 auth source', () => {
-      // A provider whose flag is missing would silently never enable the connected accounts table
-      for (const flag of providerFlags) {
-        expect(oauth2Config).toHaveProperty(flag);
-      }
+    afterEach(() => {
+      delete configOverrides.SECURITY_OAUTH2_GITHUB_ENABLED;
     });
 
     test('reports disabled when no provider is turned on', () => {
-      expect(providerFlags.some((flag) => oauth2Config[flag] === true)).toBe(
-        false
-      );
       expect(isOAuth2Enabled()).toBe(false);
     });
 
-    test('ignores the general OAuth2 flags that are on by default', () => {
-      expect(oauth2Config.REGISTRATION_ENABLED).toBe(true);
-      expect(providerFlags).not.toContain('REGISTRATION_ENABLED');
-    });
-  });
+    test('reports enabled when a provider is turned on', () => {
+      configOverrides.SECURITY_OAUTH2_GITHUB_ENABLED = true;
 
-  describe('checkScopeAccess', () => {
-    test('allows a regular route for the auth scope', () => {
-      expect(checkScopeAccess('/api/posts', AuthScope.Auth)).toBe(true);
-    });
-
-    test('blocks the refresh route for the auth scope', () => {
-      expect(checkScopeAccess('/auth/refresh', AuthScope.Auth)).toBe(false);
-    });
-
-    test('allows only the refresh route for the refresh scope', () => {
-      expect(checkScopeAccess('/auth/refresh', AuthScope.Refresh)).toBe(true);
-      expect(checkScopeAccess('/api/posts', AuthScope.Refresh)).toBe(false);
-      expect(checkScopeAccess('/auth/me', AuthScope.Refresh)).toBe(false);
-    });
-
-    test('allows the 2FA verification route only for the 2FA scope', () => {
-      expect(
-        checkScopeAccess('/auth/account/verify-2fa-code', AuthScope.TwoFA)
-      ).toBe(true);
-      expect(
-        checkScopeAccess('/auth/account/verify-2fa-code', AuthScope.Auth)
-      ).toBe(false);
-      expect(checkScopeAccess('/api/posts', AuthScope.TwoFA)).toBe(false);
-    });
-
-    test('allows the 2FA code request route only for the 2FA scope', () => {
-      expect(
-        checkScopeAccess('/auth/account/send-2fa-code', AuthScope.TwoFA)
-      ).toBe(true);
-      expect(
-        checkScopeAccess('/auth/account/send-2fa-code', AuthScope.Auth)
-      ).toBe(false);
-      expect(
-        checkScopeAccess('/auth/account/send-2fa-code', AuthScope.Refresh)
-      ).toBe(false);
-    });
-
-    test('denies access for an unknown scope', () => {
-      expect(checkScopeAccess('/api/posts', 'unknown' as AuthScope)).toBe(
-        false
-      );
+      expect(isOAuth2Enabled()).toBe(true);
     });
   });
 

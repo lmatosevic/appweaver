@@ -1,3 +1,4 @@
+// The schemas of @appweaver/data, validated by the request validation of the server
 import Fastify, { FastifyInstance } from 'fastify';
 import { context } from '@appweaver/core/internal';
 import {

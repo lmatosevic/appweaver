@@ -1,3 +1,4 @@
+// The schemas of @appweaver/data, validated by the request validation of the server
 import Fastify, { FastifyInstance } from 'fastify';
 import { TObject } from '@sinclair/typebox';
 import {
@@ -13,8 +14,8 @@ import { context } from '@appweaver/core/internal';
 import { createModel } from '@appweaver/data';
 import { resetContext } from '@appweaver/testing';
 import { linkModels } from '@appweaver/testing';
-import { errorHandler } from '../../errors/error-handler';
-import { requestValidation } from '../../server/request-validation';
+import { errorHandler } from '../../../errors/error-handler';
+import { requestValidation } from '../../../server/request-validation';
 
 const properties = (schema: TObject) =>
   schema.properties as Record<string, any>;
