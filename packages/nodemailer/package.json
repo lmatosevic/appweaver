@@ -39,6 +39,7 @@
     "module": "./module.js"
   },
   "dependencies": {
+    "@sinclair/typebox": "0.34.49",
     "nodemailer": "10.0.13"
   },
   "peerDependencies": {

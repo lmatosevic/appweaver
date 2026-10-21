@@ -39,6 +39,7 @@
     "module": "./module.js"
   },
   "dependencies": {
+    "@sinclair/typebox": "0.34.49",
     "ioredis": "5.11.1",
     "flatted": "3.4.2"
   },
