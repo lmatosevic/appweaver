@@ -148,11 +148,14 @@ function selectAuto(
   return candidates[0];
 }
 
-/** Defines the first class a module exports, or its first export when it exports no class. */
+/**
+ * Defines the first class a module exports, or its first export when it exports no class, as a default: a definition
+ * made before keeps its place, and the application replaces it with any later one.
+ */
 function defineExports(exports: unknown, contract: AbstractCtor | undefined) {
   const values = Object.values(exports as Record<string, unknown>);
   const value = values.find((exported) => isConstructor(exported)) ?? values[0];
-  define(value as object, contract, 'override');
+  define(value as object, contract, 'default');
 }
 
 /** Checks if a provider value is a module path rather than a provider name. */

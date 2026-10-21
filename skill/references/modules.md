@@ -64,8 +64,9 @@ The server of `@appweaver/web` is created by its `HttpServer` service once every
 application starts. The resources and the routes of the application and the modules are all loaded before the `main`
 parts and the application files.
 
-A provider or a service of a module is defined with the `override` mode of `define`. The application replaces one with
-`define(MyService, ModuleService, 'override')`, since the default mode keeps the existing definition.
+A provider or a service of a module is defined with the `default` mode of `define`: it keeps a definition the
+application made before `createApp`, and any later `define` of the application replaces it, in any mode
+(`define(MyService, ModuleService)` in an application file).
 
 ## Provider selection
 

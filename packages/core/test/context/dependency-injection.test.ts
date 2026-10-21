@@ -150,6 +150,28 @@ describe('dependency-injection', () => {
       );
     });
 
+    test('replaces a default with a later definition of any mode', () => {
+      define({ value: 'module' }, 'Config', 'default');
+      define({ value: 'app' }, 'Config');
+
+      expect(inject('Config')).toEqual({ value: 'app' });
+      expect(context.definitions).toHaveLength(1);
+    });
+
+    test('keeps an existing definition silently in default mode', () => {
+      define({ value: 'app' }, 'Config');
+      define({ value: 'module' }, 'Config', 'default');
+
+      expect(inject('Config')).toEqual({ value: 'app' });
+    });
+
+    test('appends beside a default in append mode', () => {
+      define({ value: 'module' }, 'Config', 'default');
+      define({ value: 'app' }, 'Config', 'append');
+
+      expect(injectAll('Config')).toHaveLength(2);
+    });
+
     test('overrides an existing resource model', () => {
       const updated = model('Post');
       define(model('Post'));

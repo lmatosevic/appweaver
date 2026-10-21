@@ -12,7 +12,7 @@ import {
   Storage
 } from '@appweaver/common';
 import { context } from '../../context/context';
-import { isDefined } from '../../context/dependency-injection';
+import { define, inject, isDefined } from '../../context/dependency-injection';
 import { EnabledModule } from '../../app/discover-modules';
 import { loadProviders, selectedProvider } from '../../app/load-providers';
 import { firstPartyModules } from '../../modules';
@@ -135,6 +135,27 @@ describe('load-providers', () => {
 
       expect(selectedProvider(Memory)).toBe('../../memory/in-memory');
       expect(isDefined(Memory)).toBe(true);
+    });
+
+    test('keeps a definition the application made before', async () => {
+      const memory = { name: 'stub' };
+      define(memory, Memory);
+
+      await loadProviders(allModules, __dirname);
+
+      expect(inject(Memory)).toBe(memory);
+    });
+
+    test('lets the application replace a provider and a service', async () => {
+      await loadProviders(allModules, __dirname);
+      const memory = { name: 'stub' };
+      const locale = { name: 'locale' };
+
+      define(memory, Memory);
+      define(locale, 'LocaleService');
+
+      expect(inject(Memory)).toBe(memory);
+      expect(inject('LocaleService')).toBe(locale);
     });
 
     test('fails for a provider no enabled module registers', async () => {

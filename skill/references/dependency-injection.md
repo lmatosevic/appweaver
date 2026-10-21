@@ -11,7 +11,7 @@ Registers a value or class constructor in the application context.
 |---------------|------------------------------------------------|-------------------------------------------------------------------------------------------------------|
 | `value`       | any                                            | The value, instance, or class constructor to register                                                 |
 | `nameOrClass` | `string \| symbol \| Class \| Function`        | Token used to look up this definition. Defaults to the value's class name or `RESOURCE_NAME` property |
-| `mode`        | `'ignore' \| 'override' \| 'append' \| 'fail'` | How to handle duplicates. Defaults to `'ignore'`                                                      |
+| `mode`        | `'ignore' \| 'override' \| 'append' \| 'fail' \| 'default'` | How to handle duplicates. Defaults to `'ignore'`                                      |
 
 The `mode` decides what happens when a definition with the same name exists:
 
@@ -20,6 +20,9 @@ The `mode` decides what happens when a definition with the same name exists:
   service, routes, or policy) has one definition per name, so it replaces the existing one.
 - `'override'` – replaces the existing definition.
 - `'fail'` – throws an error.
+- `'default'` – keeps the existing definition silently, otherwise adds a default that any later definition under the
+  same name replaces, whatever its mode. The providers and services of the modules are defined so, so a plain
+  `define(new MyEmailService(), EmailService)` in an application file replaces the one of a module.
 
 **Register a plain value with a string token:**
 

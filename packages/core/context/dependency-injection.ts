@@ -47,6 +47,9 @@ import {
  *                        single definition per name, so it replaces the existing one.
  *             'override' - Replaces the existing definition.
  *             'fail' - Throws an error.
+ *             'default' - Keeps an existing definition silently, otherwise adds a default that any later definition
+ *                         under the same name replaces, whatever its mode. The providers and services of the modules
+ *                         are defined so, letting the application replace them.
  *             Defaults to 'ignore'.
  * @return void
  */
@@ -80,21 +83,22 @@ export function define<T = DefinitionValue, S extends T = T>(
       context.resource.policies.set(definitionName, value);
     }
   } else {
-    const shouldAdd = shouldAddDefinition(
-      context.definitions,
-      definitionName,
-      mode
+    const index = context.definitions.findIndex(
+      (def) => def.name === definitionName
     );
-    if (shouldAdd) {
-      const index =
-        mode === 'override'
-          ? context.definitions.findIndex((def) => def.name === definitionName)
-          : -1;
-      if (index > -1) {
-        context.definitions.splice(index, 1, { name: definitionName, value });
-      } else {
-        context.definitions.push({ name: definitionName, value });
-      }
+    const entry: DefinitionEntry = { name: definitionName, value };
+    if (mode === 'default') {
+      entry.fallback = true;
+    }
+    // A default of a module gives way to any later definition
+    const replace =
+      index > -1 &&
+      (mode === 'override' ||
+        (mode !== 'append' && context.definitions[index].fallback));
+    if (replace) {
+      context.definitions.splice(index, 1, entry);
+    } else if (shouldAddDefinition(context.definitions, definitionName, mode)) {
+      context.definitions.push(entry);
     }
   }
 }
@@ -397,6 +401,9 @@ function shouldAddDefinition(
       (!isArray(store) && store.has(name))) &&
     !['append', 'override'].includes(mode)
   ) {
+    if (mode === 'default') {
+      return false;
+    }
     const msg = `Definition '${String(name)}' is already present in the application context.`;
     if (mode === 'fail') {
       throw new ContextError(ErrorCode.ContextDefinitionDuplicate, msg, {
