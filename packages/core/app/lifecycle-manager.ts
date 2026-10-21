@@ -25,11 +25,10 @@ export abstract class LifecycleManager {
     if (this._initialized) {
       return;
     }
-    await Promise.all(
-      injectAllWhere<OnInit>((def) => isLifecycleInit(def.value)).map(
-        (service) => service.onInit()
-      )
+    const services = injectAllWhere<OnInit>((def) =>
+      isLifecycleInit(def.value)
     );
+    await Promise.all([...services.map((service) => service.onInit())]);
     this._initialized = true;
   }
 
@@ -40,11 +39,10 @@ export abstract class LifecycleManager {
    * @return A promise that resolves when all services are ready.
    */
   public async ready(): Promise<void> {
-    await Promise.all(
-      injectAllWhere<OnReady>((def) => isLifecycleReady(def.value)).map(
-        (service) => service.onReady()
-      )
+    const services = injectAllWhere<OnReady>((def) =>
+      isLifecycleReady(def.value)
     );
+    await Promise.all([...services.map((service) => service.onReady())]);
   }
 
   /**
@@ -57,19 +55,17 @@ export abstract class LifecycleManager {
    * @return A promise that resolves when all cleanup operations are completed.
    */
   public async destroy(): Promise<void> {
-    await Promise.all(
-      createdServices<OnShutdown>(isLifecycleShutdown).map((service) =>
-        service.onShutdown()
-      )
-    );
+    const shutdownServices = createdServices<OnShutdown>(isLifecycleShutdown);
+    await Promise.all([
+      ...shutdownServices.map((service) => service.onShutdown())
+    ]);
     if (!this._initialized) {
       return;
     }
-    await Promise.all(
-      createdServices<OnDestroy>(isLifecycleDestroy).map((service) =>
-        service.onDestroy()
-      )
-    );
+    const destroyServices = createdServices<OnDestroy>(isLifecycleDestroy);
+    await Promise.all([
+      ...destroyServices.map((service) => service.onDestroy())
+    ]);
     this._initialized = false;
   }
 }
