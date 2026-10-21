@@ -175,7 +175,7 @@ export class FileService {
     const file = await this.authorizeRead(fileName);
 
     const url = await this._storage.url(fileName, {
-      expiresIn: storageConfig.CACHE_TTL
+      expiresIn: storageConfig.URL_TTL
     });
     if (url) {
       return {

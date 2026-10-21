@@ -254,6 +254,7 @@
       "reservedPaths": ["keys"],
       "namePattern": "{name}-{hash}.{extension}",
       "cacheTtl": 86400000,
+      "urlTtl": 900000,
       "filesRoutePrefix": "/files",
       "provider": "auto"
     },

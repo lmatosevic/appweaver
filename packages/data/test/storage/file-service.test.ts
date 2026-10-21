@@ -385,6 +385,9 @@ describe('file-service', () => {
         mimeType: 'application/pdf'
       });
       expect(storage.stream).not.toHaveBeenCalled();
+      expect(storage.url).toHaveBeenCalledWith(file.name, {
+        expiresIn: 900_000
+      });
     });
 
     test('streams the file from a storage without URLs', async () => {
