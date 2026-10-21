@@ -144,6 +144,7 @@ any other file. Besides `.` and `./package.json`:
 | `@appweaver/core/drivers`    | The in-process drivers (`InMemory`, `NodeEvents`, `FilesystemStorage`, `MemoryQueue`, ...)  |
 | `@appweaver/core/internal`   | `context`, the transaction scope, `LifecycleManager` and `loadProviders`, for the packages  |
 | `@appweaver/data/config`     | The config sections of data, without loading Prisma (the CLI and `prisma.config.ts`)        |
+| `@appweaver/web/config`      | The config sections of web, without loading Fastify                                         |
 | `@appweaver/data/internal`   | `pruneUnusedModels`, for `weaver generate`                                                  |
 | `@appweaver/create/scaffold` | The scaffolding engine of `weaver module`                                                   |
 
