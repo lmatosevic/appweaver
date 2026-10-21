@@ -49,6 +49,9 @@
         "level": "silent",
         "sync": true
       },
+      "server": {
+        "listen": false
+      },
       "database": {
         "url": "postgresql://${DB_USER:-webshop-api}:${DB_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME:-webshop-api}-test",
         "schemaPath": "./temp/database/schema.prisma",

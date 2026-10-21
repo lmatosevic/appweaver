@@ -536,6 +536,7 @@ describe('create', () => {
       expect(appConfig.environments.dev).not.toHaveProperty('template');
       expect(Object.keys(appConfig.environments.test)).toEqual([
         'log',
+        'server',
         'database',
         'storage'
       ]);

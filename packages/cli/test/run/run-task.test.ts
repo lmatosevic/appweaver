@@ -39,10 +39,10 @@ describe('run-task', () => {
       const code = await runTask(fixture('sum-task.js'), ['1', '2']);
 
       expect(code).toBe(3);
-      expect(createApp).toHaveBeenCalledWith({ autoStart: false });
-      expect(app.start).toHaveBeenCalledWith(false);
+      expect(createApp).toHaveBeenCalled();
       expect(app.stop).toHaveBeenCalled();
       expect(configOverrides.SCHEDULER_AUTO_START_JOB).toBe(false);
+      expect(configOverrides.SERVER_LISTEN).toBe(false);
     });
 
     test('fails for a file without a default function, stopping the application', async () => {

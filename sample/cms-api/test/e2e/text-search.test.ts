@@ -16,7 +16,7 @@ describe('Text search', () => {
     );
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     posts = injectService('Post');
 
     await posts.client.deleteMany({});

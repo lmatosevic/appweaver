@@ -17,9 +17,6 @@ export type CreateAppParams = {
   /** A boolean flag indicating whether the application should automatically
    * start after being created. (default: true) **/
   autoStart?: boolean;
-  /** A boolean flag indicating whether the web server should automatically
-   * start after being created. (default: true) **/
-  autoStartServer?: boolean;
   /** The path patterns of the resource files, read by `@appweaver/data` (`modelPattern`, `servicePattern`,
    * `policyPattern`) and `@appweaver/web` (`routePattern`). */
   resourcePaths?: Record<string, string>;
@@ -76,7 +73,7 @@ export async function createApp(
   const app = new Application();
 
   if (params.autoStart !== false) {
-    await app.start(params.autoStartServer);
+    await app.start();
   }
 
   return app;

@@ -22,7 +22,7 @@ describe('Deleting a user with framework owned relations', () => {
     });
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     users = injectService('User');
     connectedAccounts = injectService('ConnectedAccount');
     apiKeys = injectService('ApiKey');

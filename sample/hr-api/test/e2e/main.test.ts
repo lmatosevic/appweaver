@@ -5,7 +5,7 @@ describe('Sample e2e test', () => {
   let app: Application;
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
   });
 
   afterAll(async () => {

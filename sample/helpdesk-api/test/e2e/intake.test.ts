@@ -40,7 +40,7 @@ describe('Ticket intake', () => {
     });
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     await createRoles();
 
     supportTeam = await team('Support');

@@ -52,7 +52,7 @@ describe('Leave workflow', () => {
     ).items[0];
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     await createRoles();
 
     manager = await hire('Mia', { roles: ['Manager'] });

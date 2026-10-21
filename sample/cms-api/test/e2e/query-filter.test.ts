@@ -53,7 +53,7 @@ describe('Query filter operators', () => {
   };
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     posts = injectService('Post');
   });
 

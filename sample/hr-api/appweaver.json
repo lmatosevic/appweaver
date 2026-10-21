@@ -42,6 +42,9 @@
         "level": "silent",
         "sync": true
       },
+      "server": {
+        "listen": false
+      },
       "database": {
         "url": "file:./temp/hr-api-test.db",
         "schemaPath": "./temp/database/schema.prisma",

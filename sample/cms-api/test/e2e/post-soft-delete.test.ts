@@ -22,7 +22,7 @@ describe('Soft deleting a post', () => {
     service.client.findFirst({ where: { id } });
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     posts = injectService('Post');
     comments = injectService('Comment');
   });

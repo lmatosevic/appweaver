@@ -333,6 +333,7 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 |-----------------------------------------|----------|--------------|------------------------------------------------------------------------------------------------------|
 | `SERVER_PORT`                           | integer  | `5000`       | HTTP server listening port.                                                                          |
 | `SERVER_HOST`                           | string   | `'0.0.0.0'`  | HTTP server listening host/IP.                                                                       |
+| `SERVER_LISTEN`                         | boolean  | `true`       | Listen when the app starts, `false` serves only `app.server.inject()` (e2e tests).                   |
 | `SERVER_API_PREFIX`                     | string   | `'/api'`     | Base path prefix for all API routes.                                                                 |
 | `SERVER_BODY_MAX_SIZE`                  | string   | `100M`       | Maximum request body size.                                                                           |
 | `SERVER_STATIC_ENABLED`                 | boolean  | `true`       | Enable serving static files from disk.                                                               |

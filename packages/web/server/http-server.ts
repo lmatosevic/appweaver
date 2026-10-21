@@ -1,10 +1,4 @@
-import {
-  LIFECYCLE,
-  logger,
-  OnReady,
-  OnShutdown,
-  ReadyOptions
-} from '@appweaver/common';
+import { LIFECYCLE, logger, OnReady, OnShutdown } from '@appweaver/common';
 import { Application, inject } from '@appweaver/core';
 import { Server } from '../types/server';
 import { createServer } from './create-server';
@@ -12,8 +6,8 @@ import { serverConfig } from './server-config';
 
 /**
  * The HTTP server of the application, a lifecycle service of the `@appweaver/web` module. The server is created with
- * the service, once every module and file of the application is loaded, listens when the application is ready, and
- * closes before any service is destroyed.
+ * the service, once every module and file of the application is loaded, listens when the application is ready
+ * (unless `SERVER_LISTEN` is `false`), and closes before any service is destroyed.
  */
 export class HttpServer implements OnReady, OnShutdown {
   static [LIFECYCLE] = true;
@@ -21,8 +15,8 @@ export class HttpServer implements OnReady, OnShutdown {
   /** The Fastify instance. */
   public readonly instance: Server = createServer();
 
-  public async onReady(options: ReadyOptions): Promise<void> {
-    if (options.startServer) {
+  public async onReady(): Promise<void> {
+    if (serverConfig.LISTEN) {
       await this.listen();
     }
   }

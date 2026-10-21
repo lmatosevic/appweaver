@@ -56,7 +56,7 @@ describe('Query cursor pagination', () => {
   };
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     posts = injectService('Post');
     users = injectService('User');
   });

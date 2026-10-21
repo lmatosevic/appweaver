@@ -59,7 +59,7 @@ describe('Update and replace routes', () => {
   };
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     pages = injectService('Page');
     users = injectService('User');
     auth = await signInAdmin();

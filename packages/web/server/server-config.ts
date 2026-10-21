@@ -14,6 +14,9 @@ export const serverConfig = defineConfig('server', {
   PORT: Type.Integer({ default: 5000 }),
   /** HTTP server listening host/IP. Default: `'0.0.0.0'`. */
   HOST: Type.String({ default: '0.0.0.0' }),
+  /** Listen for requests when the application starts, `false` to serve only `app.server.inject()`, i.e. in the
+   *  end-to-end tests. Default: `true`. */
+  LISTEN: Type.Boolean({ default: true }),
   /** Base path prefix for all API routes. Default: `'/api'`. */
   API_PREFIX: Type.String({ default: '/api' }),
   /** Maximum request body size. Default: `100M`. */

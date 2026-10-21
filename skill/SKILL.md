@@ -222,7 +222,7 @@ const app = await createApp({ autoStart: false, scanPath: './dist/my/app/path' }
 
 // custom init logic...
 
-await app.start(); // app.start(false) starts every service without listening for requests
+await app.start(); // with SERVER_LISTEN=false, every service starts without the server listening
 ```
 
 `app.server` is the Fastify instance of the `HttpServer` service (`inject(HttpServer).instance`), and `app.spec()`
@@ -853,7 +853,7 @@ if (isDefined(Mailer)) { /* ... */ }
 ```
 
 A registered class setting the static `[LIFECYCLE] = true` tag has its hooks of `@appweaver/common` called:
-`onInit()` when the application starts, `onReady({ startServer })` once every service is initialized, `onShutdown()`
+`onInit()` when the application starts, `onReady()` once every service is initialized, `onShutdown()`
 first on stop, and `onDestroy()` last; see [dependency-injection.md](references/dependency-injection.md#lifecycle-hooks).
 
 ### Writing a seeder
@@ -1050,7 +1050,8 @@ describe('My e2e test', () => {
   let app: Application;
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    // The test environment sets server.listen to false, so app.server.inject() serves the requests
+    app = await createApp();
   });
 
   afterAll(async () => {

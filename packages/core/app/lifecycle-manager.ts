@@ -6,8 +6,7 @@ import {
   OnDestroy,
   OnInit,
   OnReady,
-  OnShutdown,
-  ReadyOptions
+  OnShutdown
 } from '@appweaver/common';
 import { injectAllWhere } from '../context/dependency-injection';
 
@@ -45,12 +44,11 @@ export abstract class LifecycleManager {
   /**
    * Tells the services that every service is initialized, i.e. so the server starts listening.
    *
-   * @param {ReadyOptions} options - The options of the application start.
    * @return A promise that resolves when all services are ready.
    */
-  public async ready(options: ReadyOptions): Promise<void> {
+  public async ready(): Promise<void> {
     await Promise.all([
-      ...this._readyServices.map((service) => service.onReady(options))
+      ...this._readyServices.map((service) => service.onReady())
     ]);
   }
 

@@ -47,6 +47,9 @@
         "level": "silent",
         "sync": true
       },
+      "server": {
+        "listen": false
+      },
       "database": {
         "url": "mysql://${DB_USER:-helpdesk-api}:${DB_PASSWORD}@${DB_HOST:-localhost}:3306/${DB_NAME:-helpdesk-api}-test",
         "schemaPath": "./temp/database/schema.prisma",

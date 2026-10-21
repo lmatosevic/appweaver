@@ -49,7 +49,7 @@ describe('CSV export', () => {
   };
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     exportService = inject(ExportService);
     posts = injectService('Post');
     users = injectService('User');

@@ -1163,6 +1163,10 @@
               "default": "0.0.0.0",
               "type": "string"
             },
+            "listen": {
+              "default": true,
+              "type": "boolean"
+            },
             "apiPrefix": {
               "default": "/api",
               "type": "string"

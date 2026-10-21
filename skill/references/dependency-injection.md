@@ -238,7 +238,7 @@ interfaces of `@appweaver/common`, called in this order:
 | Hook                       | Interface    | Runs                                                                                                                            |
 |----------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------|
 | `onInit()`                 | `OnInit`     | Once when the application starts.                                                                                               |
-| `onReady({ startServer })` | `OnReady`    | Once every `onInit` finished, i.e. to start serving requests. `startServer` is `false` for `app.start(false)` and `weaver run`. |
+| `onReady()`                | `OnReady`    | Once every `onInit` finished, i.e. to start serving requests (the server listens unless `SERVER_LISTEN` is `false`).            |
 | `onShutdown()`             | `OnShutdown` | First when the application stops, before any service is destroyed, i.e. to stop serving requests.                               |
 | `onDestroy()`              | `OnDestroy`  | Last when the application stops, after every `onShutdown`, to release the resources.                                            |
 

@@ -25,6 +25,9 @@
         "level": "silent",
         "sync": true
       },
+      "server": {
+        "listen": false
+      },
       "database": {
         "url": "{{DATABASE_TEST_URL}}",
         "schemaPath": "./temp/database/schema.prisma",

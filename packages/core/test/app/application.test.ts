@@ -58,18 +58,18 @@ describe('application', () => {
       const before = listenerCounts();
       const app = new Application();
 
-      await app.start(false);
+      await app.start();
 
       expect(listenerCounts()).toEqual(before.map((count) => count + 1));
       await app.stop();
     });
 
-    test('tells the services it is ready, with the server start option', async () => {
+    test('tells the services it is ready', async () => {
       const app = new Application();
 
-      await app.start(false);
+      await app.start();
 
-      expect(onReady).toHaveBeenCalledWith({ startServer: false });
+      expect(onReady).toHaveBeenCalledWith();
       await app.stop();
     });
   });
@@ -79,9 +79,9 @@ describe('application', () => {
       const before = listenerCounts();
       const app = new Application();
 
-      await app.start(false);
+      await app.start();
       await app.stop();
-      await app.start(false);
+      await app.start();
       await app.stop();
 
       expect(listenerCounts()).toEqual(before);
@@ -90,7 +90,7 @@ describe('application', () => {
     test('shuts the server down before destroying the services', async () => {
       const app = new Application();
 
-      await app.start(false);
+      await app.start();
       await app.stop();
 
       expect(calls).toEqual(['server.close', 'service.onDestroy']);

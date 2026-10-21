@@ -38,7 +38,7 @@ describe('Ticket conversation', () => {
     ).body;
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     await createRoles();
 
     staff = await agent(app, `Agent${RUN}`);

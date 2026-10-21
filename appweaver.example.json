@@ -18,6 +18,7 @@
     "server": {
       "port": 5000,
       "host": "0.0.0.0",
+      "listen": true,
       "apiPrefix": "/api",
       "bodyMaxSize": "100M",
       "staticEnabled": true,

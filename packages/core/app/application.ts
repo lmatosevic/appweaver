@@ -14,14 +14,13 @@ export class Application extends LifecycleManager {
 
   /**
    * Starts the application by calling the onInit lifecycle methods of the services implementing the `OnInit`
-   * interface, then the onReady methods of the `OnReady` ones, which start the server listening for requests. This
-   * process also includes logging the environment in which the application is running, and freezing the application
-   * context to prevent further changes.
+   * interface, then the onReady methods of the `OnReady` ones, i.e. the server of `@appweaver/web` listening for
+   * requests. This process also includes logging the environment in which the application is running, and freezing
+   * the application context to prevent further changes.
    *
-   * @param {boolean} [startServer=true] - Whether the server starts listening for requests.
    * @return {Promise<void>} A promise that resolves once the application is started.
    */
-  public async start(startServer: boolean = true): Promise<void> {
+  public async start(): Promise<void> {
     if (this._started) {
       logger.warn('Trying to start already started application.');
       return;
@@ -39,7 +38,7 @@ export class Application extends LifecycleManager {
 
     this.addProcessHandlers();
 
-    await this.ready({ startServer });
+    await this.ready();
   }
 
   /**

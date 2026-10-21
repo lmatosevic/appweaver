@@ -49,7 +49,7 @@ describe('Order emails', () => {
     ) as Promise<Email>;
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     await createRoles();
 
     croatian = await registerCustomer(app, 'Ivana', 'hr');
