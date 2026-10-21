@@ -2,7 +2,7 @@
  * Imports a module of a package the command needs, i.e. `@appweaver/data` of `weaver generate`, exiting with a
  * message naming the package when the project does not have it, since the CLI requires only `@appweaver/core`.
  *
- * @param {string} specifier - The module, i.e. `@appweaver/data` or `@appweaver/data/resource/resource-config`.
+ * @param {string} specifier - The module, i.e. `@appweaver/data` or `@appweaver/data/config`.
  * @param {string} command - The command needing it, i.e. `generate`.
  * @return {Promise<T>} The exports of the module.
  */

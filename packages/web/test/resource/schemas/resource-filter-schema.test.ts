@@ -1,5 +1,5 @@
 import Fastify, { FastifyInstance } from 'fastify';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import {
   createModel,
   buildQueryFilterSchema,

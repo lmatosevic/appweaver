@@ -8,7 +8,7 @@ import {
   makeHash
 } from '@appweaver/common';
 import { Seeder as SeederRecord } from '../prisma/client/client';
-import { LifecycleManager } from '@appweaver/core/app/lifecycle-manager';
+import { LifecycleManager } from '@appweaver/core/internal';
 import { PrismaDatabase } from '../database/prisma-database';
 import { inject } from '@appweaver/core';
 

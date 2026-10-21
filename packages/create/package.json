@@ -6,6 +6,17 @@
   "license": "MIT",
   "main": "./create.js",
   "types": "./create.d.ts",
+  "exports": {
+    ".": {
+      "types": "./create.d.ts",
+      "default": "./create.js"
+    },
+    "./scaffold": {
+      "types": "./scaffold/index.d.ts",
+      "default": "./scaffold/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "bin": {
     "create-appweaver": "./create.js"
   },

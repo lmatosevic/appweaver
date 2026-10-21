@@ -16,7 +16,7 @@ import {
   ErrorCode
 } from '@appweaver/common';
 import { jwtConfig, securityConfig } from '../../security/security-config';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import { define, inject, CacheService } from '@appweaver/core';
 import {
   FileService,

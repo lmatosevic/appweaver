@@ -128,8 +128,24 @@ on it:
 
 The directories moved as they were, so a file keeps its path within its package (`core/server/register-route.ts` is
 now `web/server/register-route.ts`). `@appweaver/common` and `@appweaver/core` are peer dependencies of every other
-package, `@appweaver/data` also of `@appweaver/web`. A package imports another one by its package name (and its
-subpaths, i.e. `@appweaver/core/context/context`), never by a relative path.
+package, `@appweaver/data` also of `@appweaver/web`. A package imports another one by its package name, never by a
+relative path.
+
+Every package declares its entry points in the `exports` field of its `package.json`, so Node refuses a deep import of
+any other file. Besides `.` and `./package.json`:
+
+| Entry point                  | Holds                                                                                       |
+|------------------------------|---------------------------------------------------------------------------------------------|
+| `@appweaver/core/config`     | The config sections of core, without loading the runtime (the CLI)                          |
+| `@appweaver/core/drivers`    | The in-process drivers (`InMemory`, `NodeEvents`, `FilesystemStorage`, `MemoryQueue`, ...)  |
+| `@appweaver/core/internal`   | `context`, the transaction scope, `LifecycleManager` and `loadProviders`, for the packages  |
+| `@appweaver/data/config`     | The config sections of data, without loading Prisma (the CLI and `prisma.config.ts`)        |
+| `@appweaver/data/internal`   | `pruneUnusedModels`, for `weaver generate`                                                  |
+| `@appweaver/create/scaffold` | The scaffolding engine of `weaver module`                                                   |
+
+`@appweaver/core/app/application` is exported for the type augmentation of `Application` by `@appweaver/web` only. A
+new entry point is a file at the root of its package (`internal.ts`), added to its `exports`. The tests are not bound
+by them, since Jest maps every import to the sources.
 
 ### `packages/core`
 

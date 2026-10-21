@@ -44,8 +44,8 @@ export function generateCommand(program: Command): void {
     .action(async (_, command: Command) => {
       const quiet = !command.getOptionValue('verbose');
       const { databaseConfig, resourceConfig } = await importPackage<
-        typeof import('@appweaver/data')
-      >('@appweaver/data', 'generate');
+        typeof import('@appweaver/data/config')
+      >('@appweaver/data/config', 'generate');
 
       const generateAll =
         !command.getOptionValue('types') && !command.getOptionValue('schema');

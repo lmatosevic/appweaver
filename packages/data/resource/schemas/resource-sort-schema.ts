@@ -7,7 +7,7 @@ import {
   ResourceModel,
   StringEnum
 } from '@appweaver/common';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import { createSchemaModel } from '@appweaver/core';
 
 /**

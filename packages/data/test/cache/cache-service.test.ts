@@ -2,14 +2,14 @@ import { AuthUser, Cache, makeHash } from '@appweaver/common';
 import { stringify } from 'flatted';
 import { define, CacheService } from '@appweaver/core';
 import { Cache as CoreCache } from '@appweaver/core/cache/cache';
-import { InMemory } from '@appweaver/core/memory/in-memory';
+import { InMemory } from '@appweaver/core/drivers';
 import { createModel } from '../../factory/create-model';
 import { resetContext } from '@appweaver/testing';
 import {
   TransactionContext,
   runInTransaction,
   settleTransaction
-} from '@appweaver/core/context/transaction-scope';
+} from '@appweaver/core/internal';
 
 const transactionContext = (): TransactionContext => ({
   tx: {},

@@ -9,7 +9,7 @@ import {
   RelationInput,
   resourceModelProps
 } from '@appweaver/common';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import { createModel } from '@appweaver/data';
 import { resetContext } from '@appweaver/testing';
 import { linkModels } from '@appweaver/testing';

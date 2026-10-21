@@ -1,7 +1,7 @@
 import { resolveSourcePath, appConfig } from '@appweaver/common';
 import { databaseConfig } from '../database/database-config';
 import { discoverModules } from '@appweaver/core';
-import { loadProviders } from '@appweaver/core/app/load-providers';
+import { loadProviders } from '@appweaver/core/internal';
 import { Seeder } from './seeder';
 
 export type CreateSeederParams = {

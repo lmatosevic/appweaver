@@ -12,7 +12,7 @@ import {
   TwoFactorAuth,
   DatabaseError
 } from '@appweaver/common';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import { define } from '@appweaver/core';
 import { OAuth2Service } from '../../../security/oauth2/oauth2-service';
 import { resetContext } from '@appweaver/testing';

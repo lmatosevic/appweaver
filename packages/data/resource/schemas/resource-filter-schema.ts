@@ -1,6 +1,6 @@
 import { TObject, TSchema, Type } from '@sinclair/typebox';
 import { AuditFields, capitalize, ResourceModel } from '@appweaver/common';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import { createSchemaModel } from '@appweaver/core';
 
 /** The schema name the shared field condition object is registered under. */

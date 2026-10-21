@@ -11,7 +11,7 @@ import {
   uncapitalize,
   ResourceError
 } from '@appweaver/common';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import { injectModel, currentAuthUser } from '@appweaver/core';
 import { resourceAuthModel } from '../../security/helper';
 import { deletedResourceFileFields } from '../../utils/file-util';

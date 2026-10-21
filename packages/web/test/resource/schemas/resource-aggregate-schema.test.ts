@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import Fastify, { FastifyInstance } from 'fastify';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import {
   createModel,
   AGGREGATE_DATE_SCHEMA_NAME,

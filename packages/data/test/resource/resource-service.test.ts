@@ -1,6 +1,6 @@
 import { Database, Events, DatabaseError } from '@appweaver/common';
 import { define, CacheService } from '@appweaver/core';
-import { NodeEvents } from '@appweaver/core/events/node-events';
+import { NodeEvents } from '@appweaver/core/drivers';
 import { ErrorCode } from '@appweaver/common';
 import { createModel } from '../../factory/create-model';
 import { ResourceService } from '../../resource/resource-service';

@@ -15,7 +15,7 @@ import {
   config
 } from '@appweaver/common';
 import { passwordConfig } from './auth-config';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import { injectService } from '@appweaver/core';
 
 type Argon2Params = { m: number; t: number; p: number };

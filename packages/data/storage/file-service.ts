@@ -48,7 +48,7 @@ import {
   afterCommit,
   afterRollback,
   currentTransaction
-} from '@appweaver/core/context/transaction-scope';
+} from '@appweaver/core/internal';
 
 export type FileStream = {
   content: ContentStream;

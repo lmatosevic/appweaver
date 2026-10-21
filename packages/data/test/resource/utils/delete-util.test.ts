@@ -1,5 +1,5 @@
 import { ErrorCode, RESOURCE_AUTH } from '@appweaver/common';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import { createModel } from '../../../factory/create-model';
 import {
   assertLiveRelationTargets,

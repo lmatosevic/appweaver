@@ -1,4 +1,4 @@
-import { context } from '@appweaver/core/context';
+import { context } from '@appweaver/core/internal';
 
 /**
  * Clears every definition from the application context, so each test starts with an empty container.

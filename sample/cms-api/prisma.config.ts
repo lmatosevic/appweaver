@@ -2,7 +2,7 @@
 // npm install --save-dev prisma
 import { defineConfig } from 'prisma/config';
 
-import { databaseConfig } from '@appweaver/data';
+import { databaseConfig } from '@appweaver/data/config';
 
 export default defineConfig({
   schema: databaseConfig.SCHEMA_PATH,

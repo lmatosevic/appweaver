@@ -1,7 +1,7 @@
 import fsp from 'node:fs/promises';
 import { Command } from 'commander';
 import { config } from '@appweaver/common';
-import { storageConfig } from '@appweaver/core/storage/storage-config';
+import { storageConfig } from '@appweaver/core/config';
 import { generateSchema } from '../generate';
 import {
   assertEnv,
@@ -58,8 +58,8 @@ export function testingCommand(program: Command): void {
 
       const quiet = !command.getOptionValue('verbose');
       const { databaseConfig, resourceConfig } = await importPackage<
-        typeof import('@appweaver/data')
-      >('@appweaver/data', 'test setup');
+        typeof import('@appweaver/data/config')
+      >('@appweaver/data/config', 'test setup');
 
       const tempDir = command.getOptionValue('dir');
 

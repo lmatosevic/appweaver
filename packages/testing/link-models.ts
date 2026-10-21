@@ -1,6 +1,6 @@
 import { TSchema, Type } from '@sinclair/typebox';
 import { relinkResourceModels, resourceModelProps } from '@appweaver/common';
-import { context } from '@appweaver/core/context';
+import { context } from '@appweaver/core/internal';
 
 /**
  * Resolves the schema references between every model registered in the context,

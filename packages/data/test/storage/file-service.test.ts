@@ -5,7 +5,7 @@ import {
   RESOURCE_TYPE,
   Storage
 } from '@appweaver/common';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import { define, CacheService, currentAuthUser } from '@appweaver/core';
 import { FileService } from '../../storage/file-service';
 import { withoutPolicies } from '../../utils/policy-util';

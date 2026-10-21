@@ -19,7 +19,7 @@ import {
 } from '../security/security-config';
 import { apiKeyConfig } from '@appweaver/data';
 import { serverConfig, swaggerConfig } from './server-config';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import {
   documentErrorResponses,
   ERROR_RESPONSES_KEY,

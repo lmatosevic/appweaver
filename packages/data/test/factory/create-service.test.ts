@@ -9,9 +9,9 @@ import {
   RESOURCE_TYPE,
   ResourceId
 } from '@appweaver/common';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import { define, CacheService } from '@appweaver/core';
-import { NodeEvents } from '@appweaver/core/events/node-events';
+import { NodeEvents } from '@appweaver/core/drivers';
 import { createModel } from '../../factory/create-model';
 import { createService } from '../../factory/create-service';
 import { withoutPolicies } from '../../utils/policy-util';
