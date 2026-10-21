@@ -176,8 +176,24 @@ describe('seeder', () => {
 
       await new Seeder(path.join(dir, 'missing')).seed();
 
-      expect(logged(error)).toContain('is not accessible');
+      expect(logged(warn)).toContain('is not accessible');
+      expect(logged(error)).toContain('No seeders directory is accessible');
       expect(table.create).not.toHaveBeenCalled();
+    });
+
+    test('runs the seeders of a module without a seeders directory of the application', async () => {
+      const order: string[] = [];
+      seederFile('1-plans.ts', { plans: async () => order.push('plans') });
+      records.push({ id: 9, seederName: '1-users', checksum: 'x' });
+
+      await new Seeder(path.join(dir, 'missing'), false, true, [
+        { name: 'billing', path: dir }
+      ]).seed();
+
+      expect(order).toEqual(['plans']);
+      expect(records.map((r) => r.seederName)).toContain('billing/1-plans');
+      // The seeders of the missing directory are kept
+      expect(table.delete).not.toHaveBeenCalled();
     });
   });
 });

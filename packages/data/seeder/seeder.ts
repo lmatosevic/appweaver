@@ -51,17 +51,23 @@ export class Seeder extends LifecycleManager {
     await this.init();
 
     // The seeders of the modules run first, in their load order
-    const seederFiles: SeederFile[] = [];
-    for (const { name, path: dirPath } of [
+    const directories = [
       ...this._moduleSeeders,
       { name: '', path: this._dirPath }
-    ]) {
+    ];
+    const seederFiles: SeederFile[] = [];
+    const missing: string[] = [];
+    for (const { name, path: dirPath } of directories) {
       try {
         seederFiles.push(...(await this.loadSeederFiles(dirPath, name)));
       } catch {
-        console.error(`Seeders directory ${dirPath} is not accessible`);
-        return;
+        console.warn(`Seeders directory ${dirPath} is not accessible`);
+        missing.push(name);
       }
+    }
+    if (missing.length === directories.length) {
+      console.error('No seeders directory is accessible');
+      return;
     }
 
     let calledSeedersCount: number = 0;
@@ -116,7 +122,12 @@ export class Seeder extends LifecycleManager {
       calledSeedersCount++;
     }
 
-    const seedersWithoutFiles = await this.findSeedersWithoutFiles(seederFiles);
+    // The seeders of a missing directory are not reported as deleted
+    const seedersWithoutFiles = (
+      await this.findSeedersWithoutFiles(seederFiles)
+    ).filter(
+      (seeder) => !missing.includes(this.seederOwner(seeder.seederName))
+    );
     for (const seeder of seedersWithoutFiles) {
       console.warn(
         `Warning: seeder ${seeder.seederName} does not exist but is present in database table`
@@ -226,6 +237,14 @@ export class Seeder extends LifecycleManager {
         seederName: { notIn: seederNames }
       }
     });
+  }
+
+  /** @internal */
+  private seederOwner(seederName: string): string {
+    const owner = this._moduleSeeders.find(({ name }) =>
+      seederName.startsWith(`${name}/`)
+    );
+    return owner?.name ?? '';
   }
 
   /** @internal */
