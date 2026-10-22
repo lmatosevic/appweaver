@@ -567,15 +567,6 @@
             },
             "maxSize": {
               "type": "string"
-            },
-            "redis": {
-              "type": "object",
-              "properties": {
-                "url": {
-                  "default": "redis://localhost:6379/0",
-                  "type": "string"
-                }
-              }
             }
           }
         },
