@@ -1,5 +1,5 @@
 ## 1. Install dependencies, build the application, and keep the production dependencies
-FROM node:24.18.1-alpine AS build
+FROM node:24.22.1-alpine AS build
 
 # Install tools for building the native modules
 RUN apk add --no-cache build-base python3 make gcc
@@ -21,7 +21,7 @@ RUN npm prune --omit=dev
 
 
 ## 2. Setup server environment, copy build output and start the application script
-FROM node:24.18.1-alpine AS deploy
+FROM node:24.22.1-alpine AS deploy
 
 # Run in the production environment unless the container sets NODE_ENV itself
 ENV NODE_ENV=prod
