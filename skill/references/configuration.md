@@ -645,6 +645,10 @@ you generated yourself, or provide the team ID, key ID and `.p8` private key and
 | `DATABASE_LOG_EVENTS`                   | string[] | `[]`                         | List of database events to log. Values: `query`, `info`, `warn`, `error`                |
 | `DATABASE_PROVIDER`                     | string   | `'auto'`                     | `auto` or `prisma`, or `none` for an application without a database.                    |
 
+The application starts and keeps running while the database is unreachable, whatever its type. The connection is
+checked on startup, an unreachable database is logged as an error naming its URL without the password, and its queries
+fail until it is reachable again.
+
 ### File storage (STORAGE\_\*)
 
 | Property                     | Type    | Default                       | Description                                                                                                                                                                                                                                                                               |

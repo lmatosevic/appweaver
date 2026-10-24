@@ -35,7 +35,7 @@ jest.mock('../../utils', () => {
   };
 });
 
-import { generateDbSchema } from '../../generate/generate-db-schema';
+import { generatePrismaSchema } from '../../generate/generate-prisma-schema';
 
 /** Creates a minimal resource model as produced by `createModel`. */
 function model(
@@ -60,7 +60,12 @@ describe('generate-schema', () => {
   const generate = async (
     models: Record<string, ResourceModel>
   ): Promise<{ status: number; schema: string }> => {
-    const status = await generateDbSchema(models, schemaPath, clientPath, true);
+    const status = await generatePrismaSchema(
+      models,
+      schemaPath,
+      clientPath,
+      true
+    );
     const schemaFile = path.join(tempDir, schemaPath);
     return {
       status,
@@ -1176,7 +1181,7 @@ describe('generate-schema', () => {
     test('returns 2 and keeps the process alive when the generation throws', async () => {
       const error = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-      const status = await generateDbSchema(
+      const status = await generatePrismaSchema(
         { Post: { name: 'Post' } as any },
         schemaPath,
         clientPath,

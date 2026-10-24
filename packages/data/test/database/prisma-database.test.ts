@@ -50,6 +50,74 @@ describe('prisma-database', () => {
     delete overrides.DATABASE_TYPE;
   });
 
+  describe('onInit', () => {
+    let error: jest.SpyInstance;
+
+    beforeEach(() => {
+      error = jest.spyOn(common.logger, 'error').mockImplementation();
+    });
+
+    afterEach(() => {
+      error.mockRestore();
+      delete overrides.DATABASE_URL;
+    });
+
+    test('connects and checks the connection', async () => {
+      await db.onInit();
+
+      expect(root.$connect).toHaveBeenCalled();
+      expect(root.$queryRaw).toHaveBeenCalled();
+      expect(error).not.toHaveBeenCalled();
+    });
+
+    test('logs an unreachable database and creates a new client for the next query', async () => {
+      overrides.DATABASE_URL =
+        'postgresql://helpdesk:secret@localhost:5432/helpdesk';
+      const failure = new Error('pool timeout');
+      root.$queryRaw.mockRejectedValue(failure);
+
+      await expect(db.onInit()).resolves.toBeUndefined();
+
+      expect(error).toHaveBeenCalledWith(
+        failure,
+        'Cannot connect to the postgresql database at ' +
+          'postgresql://helpdesk:********@localhost:5432/helpdesk'
+      );
+      expect(root.$disconnect).toHaveBeenCalled();
+
+      const next = createRoot().root;
+      (createClient as jest.Mock).mockReturnValue(next);
+      await db.client<any>().post.create({});
+      expect(next.post.create).toHaveBeenCalled();
+    });
+
+    test('logs a failed connect and a failed disconnect', async () => {
+      root.$connect.mockRejectedValue(new Error('ECONNREFUSED'));
+      root.$disconnect.mockRejectedValue(new Error('not connected'));
+
+      await expect(db.onInit()).resolves.toBeUndefined();
+
+      expect(error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'Cannot connect to the postgresql database'
+      );
+      expect(root.$queryRaw).not.toHaveBeenCalled();
+    });
+
+    test('hides the password parameter of a SQL Server URL', async () => {
+      overrides.DATABASE_TYPE = common.DatabaseType.SQLServer;
+      overrides.DATABASE_URL =
+        'sqlserver://localhost:1433;database=app;user=sa;password=secret;encrypt=true';
+      root.$queryRaw.mockRejectedValue(new Error('failed'));
+
+      await db.onInit();
+
+      expect(error.mock.calls[0][1]).toContain(
+        'sqlserver://localhost:1433;database=app;user=sa;password=********;encrypt=true'
+      );
+    });
+  });
+
   describe('client', () => {
     test('runs the queries on the connection outside a transaction', async () => {
       await expect(db.client<any>().post.create({})).resolves.toEqual({

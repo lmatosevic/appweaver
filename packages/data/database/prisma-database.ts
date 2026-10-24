@@ -4,6 +4,7 @@ import {
   ErrorCode,
   HealthCheckResult,
   IsolationLevel,
+  logger,
   resolveDatabaseType,
   TransactionOptions,
   DatabaseError
@@ -43,8 +44,28 @@ export class PrismaDatabase extends Database {
   /** @internal */
   private _proxy: PrismaClient | undefined;
 
+  /**
+   * Connects to the database and checks the connection, logging an error when the database is unreachable instead of
+   * failing the start, since most drivers connect lazily and the queries reconnect once it is reachable.
+   */
   public async onInit(): Promise<void> {
-    await this.connect();
+    try {
+      await this.connect();
+      await this.clientInstance().$queryRaw`SELECT 1`;
+    } catch (error) {
+      const dbType = resolveDatabaseType(
+        databaseConfig.TYPE,
+        databaseConfig.URL
+      );
+      const url = this.redactUrl(databaseConfig.URL);
+      logger.error(
+        error,
+        `Cannot connect to the ${dbType} database${url ? ` at ${url}` : ''}`
+      );
+      // The next query creates a new client, which detects the capabilities of the database again
+      await this.disconnect().catch(() => undefined);
+      this._client = undefined;
+    }
   }
 
   public async onDestroy(): Promise<void> {
@@ -133,7 +154,7 @@ export class PrismaDatabase extends Database {
         );
       } catch (e) {
         await settleTransaction(context, false);
-        if (attempt < (options.retries ?? 0) && isWriteConflict(e)) {
+        if (attempt < (options.retries ?? 0) && this.isWriteConflict(e)) {
           continue;
         }
         throw e;
@@ -203,14 +224,22 @@ export class PrismaDatabase extends Database {
       ? Promise.all(arg as Promise<unknown>[])
       : root.$transaction(arg as any, options as any);
   }
-}
 
-function isWriteConflict(error: unknown): boolean {
-  // Followed through the errors wrapping it, i.e. a service's DatabaseError
-  for (let e: any = error; e; e = e.cause) {
-    if (e.code === 'P2034' || e.code === ErrorCode.DatabaseWriteConflict) {
-      return true;
-    }
+  /** @internal */
+  private redactUrl(url: string): string {
+    return url
+      .replace(/(\/\/[^:/@]*):[^@/]*@/, '$1:********@')
+      .replace(/((?:password|pwd)=)[^;&]*/gi, '$1********');
   }
-  return false;
+
+  /** @internal */
+  private isWriteConflict(error: unknown): boolean {
+    // Followed through the errors wrapping it, i.e. a service's DatabaseError
+    for (let e: any = error; e; e = e.cause) {
+      if (e.code === 'P2034' || e.code === ErrorCode.DatabaseWriteConflict) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

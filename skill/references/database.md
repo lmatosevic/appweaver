@@ -2,7 +2,8 @@
 
 The database module exposes a thin abstraction over the underlying database client. The default implementation
 wraps [Prisma](https://www.prisma.io/) and is registered under the abstract `Database` class. The framework connects on
-startup and disconnects on shutdown automatically.
+startup and disconnects on shutdown automatically. An unreachable database never fails the startup: the connection is
+checked with a `SELECT 1`, the failure is logged as an error, and the next query connects again with a new client.
 
 ## Injecting the client
 
@@ -42,7 +43,8 @@ const users = await client.user.findMany({ where: { active: true } });
 
 #### `db.connect()`
 
-Opens the database connection. Called automatically by the framework during `onInit`.
+Opens the database connection, throwing when it fails. Called by the framework during `onInit`, which logs the failure
+instead of throwing.
 
 #### `db.disconnect()`
 

@@ -1,3 +1,3 @@
 export * from './generate-command';
-export * from './generate-db-schema';
+export * from './generate-prisma-schema';
 export * from './generate-types';
