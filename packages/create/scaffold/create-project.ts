@@ -41,13 +41,14 @@ export type CreateProjectOptions = {
  * existing project.
  *
  * @param {CreateProjectOptions} options - The properties and modules of the project.
+ * @param {ProjectFiles} [files] - The files the project is written with, by default the ones of its directory.
  * @return {Promise<ModuleChangeResult>} The outcome of adding the modules.
  */
 export async function createProject(
-  options: CreateProjectOptions
+  options: CreateProjectOptions,
+  files: ProjectFiles = new ProjectFiles(options.dir)
 ): Promise<ModuleChangeResult> {
   const { dir, packageName, runtime, database } = options;
-  const files = new ProjectFiles(dir);
 
   const variables: Record<string, string> = {
     NAME: options.name.charAt(0).toUpperCase() + options.name.slice(1),

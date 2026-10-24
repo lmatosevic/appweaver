@@ -20,12 +20,14 @@ export type LoadedProject = {
  * depends on its packages, or for a module without packages, when its marker file exists.
  *
  * @param {string} dir - The project directory.
+ * @param {ProjectFiles} [files] - The files the project is read from, by default the ones of its directory.
  * @return {LoadedProject} The project files, properties and enabled modules.
  * @throws {ScaffoldError} When the directory has no package.json or appweaver.json, or no Prisma driver adapter.
  */
-export function loadProject(dir: string): LoadedProject {
-  const files = new ProjectFiles(dir);
-
+export function loadProject(
+  dir: string,
+  files: ProjectFiles = new ProjectFiles(dir)
+): LoadedProject {
   const pkg = files.readJson('package.json');
   if (!pkg) {
     throw new ScaffoldError(`No package.json file found in ${dir}`);

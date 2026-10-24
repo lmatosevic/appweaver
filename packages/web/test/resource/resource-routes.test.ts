@@ -19,6 +19,7 @@ import schemas from '../../server/schemas';
 import { resetContext } from '@appweaver/testing';
 import { linkModels } from '@appweaver/testing';
 import { requestValidation } from '../../server/request-validation';
+import { referencedSerializer } from '../../server/response-serialization';
 
 const queryResponse = {
   resultCount: 0,
@@ -29,6 +30,35 @@ const queryResponse = {
 };
 
 const aggregateResponse = { total: {}, items: [] };
+
+/**
+ * Wraps a compiler factory of the server, so a route schema is compiled once
+ * for all the servers of the tests rather than once for each one. A compiled
+ * function depends only on the shared schemas, the options and the route, so
+ * it is keyed by their JSON.
+ */
+function cached<F extends (...args: any[]) => (route: any) => unknown>(
+  factory: F
+): F {
+  const compiled = new Map<string, unknown>();
+  return ((externalSchemas: unknown, options: unknown) => {
+    const prefix = JSON.stringify([externalSchemas, options]);
+    let compile: ((route: unknown) => unknown) | undefined;
+    return (route: unknown) => {
+      const key = prefix + JSON.stringify(route);
+      if (!compiled.has(key)) {
+        compile ??= factory(externalSchemas, options);
+        compiled.set(key, compile(route));
+      }
+      return compiled.get(key);
+    };
+  }) as F;
+}
+
+const buildValidator = cached(
+  requestValidation().schemaController!.compilersFactory!.buildValidator!
+);
+const buildSerializer = cached(referencedSerializer());
 
 const postResponse = {
   id: 1,
@@ -52,7 +82,10 @@ async function server(
 ): Promise<FastifyInstance> {
   const app = Fastify({
     logger: false,
-    ...requestValidation()
+    ...requestValidation(),
+    schemaController: {
+      compilersFactory: { buildValidator, buildSerializer }
+    }
   });
 
   define({ instance: app }, 'HttpServer', 'override');

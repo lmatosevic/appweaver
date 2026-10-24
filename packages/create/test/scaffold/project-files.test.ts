@@ -69,6 +69,23 @@ describe('project-files', () => {
       expect(files.exists('templates')).toBe(true);
       expect(files.list('templates')).toEqual(['templates/c.hbs']);
     });
+
+    test('lists the whole project with an empty path', () => {
+      files.write('new.txt', 'new');
+      files.remove('templates/b.hbs');
+
+      const expected = ['config.json', 'new.txt', 'templates/emails/a.hbs'];
+      expect(files.list('')).toEqual(expected);
+      expect(files.list('.')).toEqual(expected);
+    });
+
+    test('lists the staged files of a directory not on disk', () => {
+      const staged = new ProjectFiles(path.join(dir, 'missing'));
+      staged.write('package.json', '{}');
+      staged.write('src/main.ts', '');
+
+      expect(staged.list('')).toEqual(['package.json', 'src/main.ts']);
+    });
   });
 
   describe('changes', () => {

@@ -4,6 +4,7 @@ import path from 'node:path';
 import { disableModules, enableModules } from '../../scaffold/apply-modules';
 import { createProject } from '../../scaffold/create-project';
 import { loadProject } from '../../scaffold/load-project';
+import { ProjectFiles } from '../../scaffold/project-files';
 import {
   DatabaseType,
   ModuleName,
@@ -11,9 +12,36 @@ import {
   Runtime
 } from '../../scaffold/types';
 
+// The template files never change, so each one is read once for the hundreds
+// of projects the tests create
+jest.mock('../../scaffold/template-files', () => {
+  const actual = jest.requireActual('../../scaffold/template-files');
+  const cache = new Map<string, unknown>();
+  const cached =
+    (fn: (...args: any[]) => unknown) =>
+    (...args: any[]) => {
+      const key = JSON.stringify(args);
+      if (!cache.has(key)) {
+        cache.set(key, fn(...args));
+      }
+      return cache.get(key);
+    };
+  return {
+    ...actual,
+    collectTemplateFiles: cached(actual.collectTemplateFiles),
+    readTemplateFile: cached(actual.readTemplateFile)
+  };
+});
+
+/** Files kept in memory, a commit leaving the staged changes in place. */
+class MemoryFiles extends ProjectFiles {
+  public override async commit(): Promise<void> {}
+}
+
 describe('apply-modules', () => {
   let tempDir: string;
   let count = 0;
+  const createdSnapshots = new Map<string, Record<string, unknown>>();
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'appweaver-modules-'));
@@ -23,30 +51,51 @@ describe('apply-modules', () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
+  /** A project on disk by its directory, or one staged in memory. */
+  type Project = string | ProjectFiles;
+
   /** Creates a project in a new directory of the temporary one. */
   const create = async (
     modules: ModuleName[],
     options: { database?: DatabaseType; runtime?: Runtime } = {}
   ): Promise<string> => {
     const dir = path.join(tempDir, `project-${count++}`);
-    await createProject({
-      dir,
-      name: 'MyApp',
-      packageName: 'my-app',
-      description: 'My description',
-      host: '0.0.0.0',
-      port: 5000,
-      database: options.database ?? 'postgresql',
-      runtime: options.runtime ?? 'node',
-      modules
-    });
+    await createProject(projectOptions(dir, modules, options));
     return dir;
   };
 
+  /** Creates a project staged in memory, since writing it to disk takes most of the time of a test. */
+  const stage = async (modules: ModuleName[]): Promise<ProjectFiles> => {
+    const files = new MemoryFiles(path.join(tempDir, `project-${count++}`));
+    await createProject(projectOptions(files.dir, modules), files);
+    return files;
+  };
+
+  const projectOptions = (
+    dir: string,
+    modules: ModuleName[],
+    options: { database?: DatabaseType; runtime?: Runtime } = {}
+  ) => ({
+    dir,
+    name: 'MyApp',
+    packageName: 'my-app',
+    description: 'My description',
+    host: '0.0.0.0',
+    port: 5000,
+    database: options.database ?? 'postgresql',
+    runtime: options.runtime ?? 'node',
+    modules
+  });
+
+  const load = (project: Project) =>
+    typeof project === 'string'
+      ? loadProject(project)
+      : loadProject(project.dir, project);
+
   /** Adds the modules one at a time, the way `weaver module add` does. */
-  const add = async (dir: string, ...modules: ModuleName[]) => {
+  const add = async (project: Project, ...modules: ModuleName[]) => {
     for (const name of modules) {
-      const { files, context, enabled } = loadProject(dir);
+      const { files, context, enabled } = load(project);
       const result = enableModules(files, context, enabled, [name]);
       await files.commit();
       expect(result.warnings).toEqual([]);
@@ -54,9 +103,9 @@ describe('apply-modules', () => {
   };
 
   /** Removes the modules one at a time, the way `weaver module remove` does. */
-  const remove = async (dir: string, ...modules: ModuleName[]) => {
+  const remove = async (project: Project, ...modules: ModuleName[]) => {
     for (const name of modules) {
-      const { files, context, enabled } = loadProject(dir);
+      const { files, context, enabled } = load(project);
       const result = disableModules(files, context, enabled, [name]);
       await files.commit();
       expect(result.warnings).toEqual([]);
@@ -64,20 +113,27 @@ describe('apply-modules', () => {
   };
 
   /** Reads every file of a project, parsing the JSON files so their key order does not matter. */
-  const snapshot = (dir: string): Record<string, unknown> =>
-    Object.fromEntries(
-      fs
-        .readdirSync(dir, { recursive: true, withFileTypes: true })
-        .filter((entry) => entry.isFile())
-        .map((entry) => {
-          const file = path.join(entry.parentPath, entry.name);
-          const content = fs.readFileSync(file, 'utf8');
-          return [
-            path.relative(dir, file),
-            file.endsWith('.json') ? JSON.parse(content) : content
-          ];
-        })
+  const snapshot = (project: Project): Record<string, unknown> => {
+    const files =
+      typeof project === 'string' ? new ProjectFiles(project) : project;
+    return Object.fromEntries(
+      files.list('').map((file) => {
+        const content = files.read(file)!;
+        return [file, file.endsWith('.json') ? JSON.parse(content) : content];
+      })
     );
+  };
+
+  /** The snapshot of a created project, shared by the tests comparing every combination of modules. */
+  const createdSnapshot = async (
+    modules: ModuleName[]
+  ): Promise<Record<string, unknown>> => {
+    const key = modules.join();
+    if (!createdSnapshots.has(key)) {
+      createdSnapshots.set(key, snapshot(await stage(modules)));
+    }
+    return createdSnapshots.get(key)!;
+  };
 
   const read = (dir: string, file: string) =>
     fs.readFileSync(path.join(dir, file), 'utf8');
@@ -91,14 +147,13 @@ describe('apply-modules', () => {
   describe('enableModules', () => {
     test('adds every combination of modules like a created project', async () => {
       for (const modules of combinations()) {
-        const created = await create(modules);
-        const added = await create([]);
+        const added = await stage([]);
         // Added in the reverse order they are applied, to cover every integration
         await add(added, ...[...modules].reverse());
 
         expect([modules, snapshot(added)]).toEqual([
           modules,
-          snapshot(created)
+          await createdSnapshot(modules)
         ]);
       }
     }, 120_000);
@@ -169,8 +224,7 @@ describe('apply-modules', () => {
   describe('disableModules', () => {
     test('removes every combination of modules like a created project', async () => {
       for (const modules of combinations()) {
-        const created = await create(modules);
-        const removed = await create([...moduleNames]);
+        const removed = await stage([...moduleNames]);
         await remove(
           removed,
           ...[...moduleNames]
@@ -180,7 +234,7 @@ describe('apply-modules', () => {
 
         expect([modules, snapshot(removed)]).toEqual([
           modules,
-          snapshot(created)
+          await createdSnapshot(modules)
         ]);
       }
     }, 120_000);

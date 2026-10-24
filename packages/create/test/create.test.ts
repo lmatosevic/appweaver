@@ -3,6 +3,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { defaultTranslations } from '../../core/locale/default-translations';
 
+// The CLI is loaded again for every run, while its dependencies are loaded
+// once, as evaluating them again takes most of the time of a run
+const mockYaml = jest.requireActual('yaml');
+const mockCommander = jest.requireActual('commander');
+jest.mock('yaml', () => mockYaml);
+jest.mock('commander', () => mockCommander);
+
 const packageRoot = path.join(__dirname, '..');
 const skillDir = path.join(packageRoot, 'skill');
 const cliVersion = JSON.parse(
@@ -71,36 +78,27 @@ describe('create', () => {
   };
 
   /** Runs the CLI with the given arguments and waits until it is done. */
-  const run = async (...args: string[]): Promise<string[]> => {
-    const logs: string[] = [];
-    const errors: string[] = [];
-    jest.spyOn(console, 'log').mockImplementation((...parts: any[]) => {
-      logs.push(parts.join(' '));
-    });
-    jest.spyOn(console, 'error').mockImplementation((...parts: any[]) => {
-      errors.push(parts.join(' '));
-    });
+  const run = (...args: string[]): Promise<string[]> =>
+    new Promise((resolve, reject) => {
+      const logs: string[] = [];
+      jest.spyOn(console, 'log').mockImplementation((...parts: any[]) => {
+        const line = parts.join(' ');
+        logs.push(line);
+        if (line.includes('created successfully')) {
+          resolve(logs);
+        }
+      });
+      jest.spyOn(console, 'error').mockImplementation((...parts: any[]) => {
+        reject(new Error(parts.join(' ')));
+      });
 
-    process.argv = ['node', 'create', ...args];
-    jest.isolateModules(() => {
-      // The CLI runs on import, so it must be loaded synchronously here
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('../create');
+      process.argv = ['node', 'create', ...args];
+      jest.isolateModules(() => {
+        // The CLI runs on import, so it must be loaded synchronously here
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        require('../create');
+      });
     });
-
-    const deadline = Date.now() + 30000;
-    while (Date.now() < deadline) {
-      if (errors.length > 0) {
-        throw new Error(errors.join('\n'));
-      }
-      if (logs.some((line) => line.includes('created successfully'))) {
-        return logs;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 10));
-    }
-
-    throw new Error(`CLI did not finish. Output:\n${logs.join('\n')}`);
-  };
 
   const readJson = (...segments: string[]) =>
     JSON.parse(fs.readFileSync(path.join(tempDir, ...segments), 'utf8'));

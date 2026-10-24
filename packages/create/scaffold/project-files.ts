@@ -71,7 +71,10 @@ export class ProjectFiles {
     }
   }
 
-  /** Lists the files inside a directory and its subdirectories, after the staged changes. */
+  /**
+   * Lists the files inside a directory and its subdirectories, after the staged changes. An empty path lists the
+   * whole project.
+   */
   public list(dir: string): string[] {
     const rel = normalize(dir);
     const files = new Set(this.stagedUnder(rel));
@@ -123,11 +126,14 @@ export class ProjectFiles {
       await fsp.rm(this.resolve(rel), { recursive: true, force: true });
       await this.removeEmptyParents(rel);
     }
-    for (const [rel, content] of this.writes) {
-      const abs = this.resolve(rel);
-      await fsp.mkdir(path.dirname(abs), { recursive: true });
-      await fsp.writeFile(abs, content);
-    }
+    // Written concurrently, since every file is written once
+    await Promise.all(
+      [...this.writes].map(async ([rel, content]) => {
+        const abs = this.resolve(rel);
+        await fsp.mkdir(path.dirname(abs), { recursive: true });
+        await fsp.writeFile(abs, content);
+      })
+    );
     this.writes.clear();
     this.deletes.clear();
   }
@@ -146,7 +152,10 @@ export class ProjectFiles {
   }
 
   private stagedUnder(rel: string): string[] {
-    return [...this.writes.keys()].filter((file) => file.startsWith(`${rel}/`));
+    const files = [...this.writes.keys()];
+    return rel === ''
+      ? files
+      : files.filter((file) => file.startsWith(`${rel}/`));
   }
 
   private async removeEmptyParents(rel: string): Promise<void> {
@@ -163,5 +172,8 @@ export class ProjectFiles {
 }
 
 function normalize(file: string): string {
-  return file.replace(/\\/g, '/').replace(/^\.\//, '').replace(/\/$/, '');
+  return file
+    .replace(/\\/g, '/')
+    .replace(/^\.(\/|$)/, '')
+    .replace(/\/$/, '');
 }
