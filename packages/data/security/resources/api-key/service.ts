@@ -1,9 +1,4 @@
-import {
-  config,
-  makeHash,
-  randomString,
-  uncapitalize
-} from '@appweaver/common';
+import { makeHash, randomString, uncapitalize } from '@appweaver/common';
 import { apiKeyConfig } from '../../auth-config';
 import { createService } from '../../../factory/create-service';
 import { resourceAuthModel } from '../../helper';

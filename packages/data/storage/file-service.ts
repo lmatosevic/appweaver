@@ -1,6 +1,5 @@
 import { PassThrough, Readable, Transform } from 'node:stream';
 import {
-  config,
   ContentStream,
   Database,
   ErrorCode,

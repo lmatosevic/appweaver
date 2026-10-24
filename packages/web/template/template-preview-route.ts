@@ -1,6 +1,5 @@
 import { Static } from '@sinclair/typebox';
 import {
-  config,
   ConfigurationError,
   ErrorCode,
   logger,

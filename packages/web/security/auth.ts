@@ -1,7 +1,7 @@
 import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import fastifyAuth from '@fastify/auth';
-import { AuthType, config, ErrorCode, AuthError } from '@appweaver/common';
+import { AuthType, ErrorCode, AuthError } from '@appweaver/common';
 import {
   accountConfig,
   basicAuthConfig,

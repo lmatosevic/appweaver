@@ -36,7 +36,7 @@ export function openapiCommand(program: Command): void {
           : rawOutputPath;
 
       try {
-        const app = await createApp({ autoStart: false });
+        await createApp({ autoStart: false });
 
         if (!isDefined('HttpServer')) {
           console.error(

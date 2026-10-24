@@ -7,7 +7,7 @@ jest.mock('@appweaver/common', () => {
   return actual;
 });
 
-import { config, ErrorCode } from '@appweaver/common';
+import { ErrorCode } from '@appweaver/common';
 import { recaptchaConfig } from '../../../security/security-config';
 import { recaptchaVerify } from '../../../security/recaptcha/recaptcha-verify';
 import { jsonResponse } from '../../fixtures/oauth2-fixture';

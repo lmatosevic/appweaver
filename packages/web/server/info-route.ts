@@ -1,4 +1,4 @@
-import { config, appConfig } from '@appweaver/common';
+import { appConfig } from '@appweaver/common';
 import { infoSchema } from './info-schema';
 import { Server } from '../types/server';
 

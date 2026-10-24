@@ -10,7 +10,6 @@ jest.mock('@appweaver/common', () => {
 import {
   AuthOTTPurpose,
   AuthSource,
-  config,
   ErrorCode,
   makeHash,
   SecurityStore,

@@ -1,5 +1,5 @@
 import * as common from '@appweaver/common';
-import { AuthType, config, ErrorCode } from '@appweaver/common';
+import { AuthType, ErrorCode } from '@appweaver/common';
 import { apiKeyConfig } from '@appweaver/data';
 import {
   authErrorCodes,

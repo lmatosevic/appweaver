@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { TscWatchClient } from 'tsc-watch/client';
 import { replaceTscAliasPaths } from 'tsc-alias';
-import { config, Runtime, appConfig } from '@appweaver/common';
+import { Runtime, appConfig } from '@appweaver/common';
 import { localeConfig } from '@appweaver/core/config';
 import { templateConfig } from '@appweaver/core/config';
 import { isBunProcess, runProcess } from '../utils';

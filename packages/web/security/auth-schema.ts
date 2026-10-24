@@ -2,7 +2,6 @@ import { TObject, TSchema, Type } from '@sinclair/typebox';
 import {
   AuthType,
   CaptchaConfig,
-  config,
   ErrorCode,
   RecaptchaConfig,
   RouteSchema,

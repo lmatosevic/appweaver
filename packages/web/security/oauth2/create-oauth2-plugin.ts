@@ -4,7 +4,6 @@ import oauthPlugin, { ProviderConfiguration } from '@fastify/oauth2';
 import {
   AuthOTTPurpose,
   AuthSource,
-  config,
   ConfigurationError,
   ErrorCode,
   pickProperties,

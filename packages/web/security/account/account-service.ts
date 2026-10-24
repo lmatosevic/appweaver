@@ -2,7 +2,6 @@ import {
   AuthOTTPurpose,
   AuthSource,
   AuthUser,
-  config,
   ErrorCode,
   makeHash,
   randomString,

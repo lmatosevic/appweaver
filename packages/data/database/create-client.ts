@@ -4,7 +4,6 @@ import {
   SqlDriverAdapterFactory
 } from '@prisma/client/runtime/client';
 import {
-  config,
   Ctor,
   DatabaseEvent,
   DatabaseType,

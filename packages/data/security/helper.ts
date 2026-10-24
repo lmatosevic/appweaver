@@ -1,8 +1,6 @@
 import { argon2, randomBytes, timingSafeEqual } from 'node:crypto';
 import {
-  AuthScope,
   AuthSource,
-  AuthType,
   AuthUser,
   ErrorCode,
   IResourceService,

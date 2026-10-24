@@ -1,4 +1,4 @@
-import { AuthType, config } from '@appweaver/common';
+import { AuthType } from '@appweaver/common';
 import { accountConfig, twoFactorConfig } from '../security-config';
 import {
   resetPasswordSchema,

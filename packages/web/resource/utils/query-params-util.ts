@@ -1,4 +1,4 @@
-import { config, QueryMethod, ResourceError } from '@appweaver/common';
+import { QueryMethod, ResourceError } from '@appweaver/common';
 import { resourceConfig } from '@appweaver/data';
 import { ErrorCode } from '@appweaver/common';
 

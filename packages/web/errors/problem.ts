@@ -1,6 +1,5 @@
 import {
   AppweaverError,
-  config,
   Environment,
   ErrorCode,
   errorMessage,

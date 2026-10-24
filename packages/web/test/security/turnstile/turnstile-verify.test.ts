@@ -6,7 +6,7 @@ jest.mock('@appweaver/common', () => {
   return actual;
 });
 
-import { config, ErrorCode } from '@appweaver/common';
+import { ErrorCode } from '@appweaver/common';
 import { turnstileConfig } from '../../../security/security-config';
 import { turnstileVerify } from '../../../security/turnstile/turnstile-verify';
 import { jsonResponse } from '../../fixtures/oauth2-fixture';

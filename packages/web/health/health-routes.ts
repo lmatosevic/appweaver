@@ -1,4 +1,4 @@
-import { config, HealthCheckStatus } from '@appweaver/common';
+import { HealthCheckStatus } from '@appweaver/common';
 import { healthCheckConfig } from './health-check-config';
 import { createHealthCheckSchema, healthReadySchema } from './health-schema';
 import { HealthService, inject } from '@appweaver/core';

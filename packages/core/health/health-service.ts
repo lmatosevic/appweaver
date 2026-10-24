@@ -1,5 +1,4 @@
 import {
-  config,
   HealthCheckConfig,
   HealthCheckResult,
   HealthCheckStatus,

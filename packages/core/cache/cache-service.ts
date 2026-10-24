@@ -2,7 +2,6 @@ import {
   AuthUser,
   Cache,
   CacheInvalidationStrategy,
-  config,
   logger,
   makeHash,
   RelationOutput,

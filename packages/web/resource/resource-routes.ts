@@ -4,7 +4,6 @@ import {
   BulkItem,
   BulkResponse,
   CaptchaConfig,
-  config,
   QueryOptions,
   ResourceId,
   QueryRouteConfig,
