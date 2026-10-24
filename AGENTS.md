@@ -1035,9 +1035,10 @@ This runs the following steps automatically:
    and `create`.
 6. **Package copy** (`@semantic-release/exec`) — runs `node ./tools/copy-packages.js` to sync built packages into
    `node_modules/@appweaver`.
-7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the npm registry, every
-   package after the ones it depends on, skipping a version the registry already has, so a release failing halfway
-   publishes the remaining packages when run again:
+7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the npm registry with
+   `node ./tools/publish-package.js <package> <version>` (a Node script, since semantic-release runs its commands with
+   `cmd.exe` on Windows), every package after the ones it depends on, skipping a version the registry already has, so a
+   release failing halfway publishes the remaining packages when run again:
     ```bash
     cd packages/common/dist     && npm publish
     cd packages/core/dist       && npm publish

@@ -78,7 +78,7 @@ module.exports = {
     ...packages.map((pkg) => [
       '@semantic-release/exec',
       {
-        publishCmd: `cd packages/${pkg}/dist && (npm view @appweaver/${pkg}@\${nextRelease.version} version 2>/dev/null | grep -q . || npm publish)`
+        publishCmd: `node ./tools/publish-package.js ${pkg} \${nextRelease.version}`
       }
     ]),
 
