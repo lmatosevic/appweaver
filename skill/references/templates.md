@@ -6,7 +6,7 @@ Templates and localization are two independent features, each usable without the
   documents for external integrations, CSV or any other text. `TemplateEngine` is an optional infrastructure provider of
   `@appweaver/common`, the default implementation is `HandlebarsTemplateEngine`
   ([Handlebars](https://handlebarsjs.com/guide/)), replaceable with `TEMPLATE_PROVIDER`. It needs the `handlebars`
-  package, a companion package the project installs (`weaver update` keeps it in step).
+  package, a companion package the project installs with the `templates` module (`weaver upgrade` keeps it in step).
 - **Localization**: the locale service translates the keys of nested JSON files into a locale, anywhere in the
   application and, with the `t` helper, inside the templates. `LocaleService` is a core service of `@appweaver/core`,
   always available. Without a `locales/` directory it translates only the framework's own English `emails.*` keys.
@@ -15,18 +15,22 @@ The locale is always given by the application (a request parameter, a user field
 `LOCALE_DEFAULT`. It also picks the localized template variants and the locale of the date and number helpers, so a
 project without translation files can still render localized templates.
 
-`create-weaver-app` scaffolds both, and skips either one with its flag:
+`create-weaver-app` scaffolds each one as a module, `templates` and `locales` (`--add templates locales`, or `--all`),
+which `weaver module add` and `weaver module remove` add and remove later. With the `mailer` module the templates
+include the account emails:
 
-| Flags                         | `templates/`, `handlebars`                     | `locales/` | Account emails                        |
-|-------------------------------|------------------------------------------------|------------|---------------------------------------|
-| (none)                        | Scaffolded, the texts translated with `{{t}}`  | `en.json`  | Rendered from the localized templates |
-| `--no-locales`                | Scaffolded, the English texts written in place | —          | Rendered from the English templates   |
-| `--no-templates`              | —, `TEMPLATE_PROVIDER` is empty                | `en.json`  | Plain text of the `en.json` texts     |
-| `--no-templates --no-locales` | —, `TEMPLATE_PROVIDER` is empty                | —          | Plain text of the framework's texts   |
+| Modules             | `templates/`, `handlebars`                     | `locales/` | Account emails (with `mailer`)        |
+|---------------------|------------------------------------------------|------------|---------------------------------------|
+| `templates locales` | Scaffolded, the texts translated with `{{t}}`  | `en.json`  | Rendered from the localized templates |
+| `templates`         | Scaffolded, the English texts written in place | —          | Rendered from the English templates   |
+| `locales`           | —, `TEMPLATE_PROVIDER` is empty                | `en.json`  | Plain text of the `en.json` texts     |
+| (neither)           | —, `TEMPLATE_PROVIDER` is empty                | —          | Plain text of the framework's texts   |
 
-With `--no-locales`, every `{{t "key" param=value}}` of the scaffolded templates is replaced by the English message of
+Without `locales`, every `{{t "key" param=value}}` of the scaffolded templates is replaced by the English message of
 the key, its parameters by the expressions (`{{@app.name}}`) and a plural by an `{{#if (eq count 1)}}` chain, so the
-templates render the same text. Localization can be added later by creating `locales/` and calling `t` again.
+templates render the same text. `weaver module remove locales` does the same to every template of the project with the
+texts of its `locales/en.json`, before deleting `locales/`. `weaver module add locales` restores the `t` calls of the
+scaffolded templates that still hold the English texts, and leaves the edited ones as they are.
 
 Both directories live in the project root next to `public/`, outside `src/`, so they are read the same way from the
 Node build and the Bun sources. A Docker image copies each of them next to `dist/`. `weaver start --watch` restarts the

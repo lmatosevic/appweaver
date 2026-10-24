@@ -46,7 +46,6 @@
     "@fastify/type-provider-typebox": "6.1.0",
     "@sinclair/typebox": "0.34.49",
     "csv-stringify": "6.8.0",
-    "date-fns": "4.4.0",
     "fastify": "5.12.7",
     "fastify-plugin": "6.0.0",
     "flatted": "3.4.2",

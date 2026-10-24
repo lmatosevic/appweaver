@@ -1,5 +1,5 @@
 services:
-{{DATABASE_DOCKER_SERVICE}}{{REDIS_DOCKER_SERVICE}}  {{LOWER_NAME}}.migrations:
+{{DATABASE_DOCKER_SERVICE}}  {{LOWER_NAME}}.migrations:
     image: {{LOWER_NAME}}:latest
     container_name: {{LOWER_NAME}}-migrations
     restart: no
@@ -46,7 +46,7 @@ services:
       start_period: 5s
       start_interval: 5s
     depends_on:
-{{REDIS_DOCKER_APP_DEPENDS}}      {{LOWER_NAME}}.seed:
+      {{LOWER_NAME}}.seed:
         condition: service_completed_successfully
     ports:
       - "127.0.0.1:{{PORT}}:{{PORT}}"
@@ -64,4 +64,4 @@ networks:
     name: {{LOWER_NAME}}-network
 
 volumes:
-{{DATABASE_DOCKER_NAMED_VOLUME}}{{REDIS_DOCKER_NAMED_VOLUME}}
+{{DATABASE_DOCKER_NAMED_VOLUME}}

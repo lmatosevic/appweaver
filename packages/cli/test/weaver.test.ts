@@ -15,11 +15,12 @@ import { buildCommand } from '../build';
 import { generateCommand } from '../generate';
 import { migrateCommand } from '../migrate';
 import { migrationCommand } from '../migration';
+import { moduleCommand } from '../module';
 import { openapiCommand } from '../openapi';
 import { seedCommand } from '../seed';
 import { startCommand } from '../start';
 import { testingCommand } from '../testing';
-import { updateCommand } from '../update';
+import { upgradeCommand } from '../upgrade';
 
 const KEBAB_CASE_FLAG = /^--[a-z0-9]+(-[a-z0-9]+)*$/;
 
@@ -31,11 +32,12 @@ function createProgram(): Command {
     generateCommand,
     migrateCommand,
     migrationCommand,
+    moduleCommand,
     openapiCommand,
     seedCommand,
     startCommand,
     testingCommand,
-    updateCommand
+    upgradeCommand
   ]) {
     register(program);
   }
@@ -69,8 +71,10 @@ describe('weaver', () => {
 
   test.each([
     [['generate'], '--no-registry', 'registry'],
-    [['update'], '--no-skill', 'skill'],
-    [['update'], '--no-companions', 'companions']
+    [['upgrade'], '--no-skill', 'skill'],
+    [['upgrade'], '--no-companions', 'companions'],
+    [['module', 'add'], '--no-install', 'install'],
+    [['module', 'remove'], '--no-install', 'install']
   ])(
     'declares %s %s as a negation of the %s option',
     (path, flag, attribute) => {
@@ -85,8 +89,10 @@ describe('weaver', () => {
     [['seed'], '--build-project', 'buildProject'],
     [['seed'], '--continue-on-error', 'continueOnError'],
     [['seed'], '--fix-warnings', 'fixWarnings'],
-    [['update'], '--dry-run', 'dryRun'],
-    [['update'], '--target-version', 'targetVersion'],
+    [['upgrade'], '--dry-run', 'dryRun'],
+    [['upgrade'], '--target-version', 'targetVersion'],
+    [['module', 'add'], '--dry-run', 'dryRun'],
+    [['module', 'remove'], '--dry-run', 'dryRun'],
     [['test', 'setup'], '--migration-name', 'migrationName'],
     [['openapi'], '--output-path', 'outputPath']
   ])('reads %s %s as the %s option', (path, flag, attribute) => {
@@ -99,12 +105,12 @@ describe('weaver', () => {
       ['--no-skill', '--no-companions', '--dry-run'],
       { skill: false, companions: false, dryRun: true }
     ]
-  ])('parses update %j into %j', async (args, expected) => {
+  ])('parses upgrade %j into %j', async (args, expected) => {
     const program = createProgram();
     const action = jest.fn();
-    program.commands.find((c) => c.name() === 'update')!.action(action);
+    program.commands.find((c) => c.name() === 'upgrade')!.action(action);
 
-    await program.parseAsync(['update', ...args], { from: 'user' });
+    await program.parseAsync(['upgrade', ...args], { from: 'user' });
 
     expect(action.mock.calls[0][1]).toMatchObject(expected);
   });

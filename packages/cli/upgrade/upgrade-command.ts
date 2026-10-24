@@ -7,48 +7,48 @@ import {
   PackageUpdate,
   resolveScaffoldUpdates
 } from './scaffold-dependencies';
-import { updatePackages } from './update-packages';
-import { updateSkillFiles } from './update-skill';
+import { upgradePackages } from './upgrade-packages';
+import { upgradeSkillFiles } from './upgrade-skill';
 
 /**
- * Registers the `update` command, updating the Appweaver packages and their companion packages.
+ * Registers the `upgrade` command, upgrading the Appweaver packages and their companion packages.
  *
  * @param {Command} program - The program to register the command on.
  */
-export function updateCommand(program: Command): void {
+export function upgradeCommand(program: Command): void {
   program
-    .command('update')
-    .alias('u')
-    .description('Update the Appweaver packages and their companion packages.')
+    .command('upgrade')
+    .alias('up')
+    .description('Upgrade the Appweaver packages and their companion packages.')
     .argument(
       '[packages...]',
-      'A list of packages to update (e.g. @appweaver/core @appweaver/cli).' +
+      'A list of packages to upgrade (e.g. @appweaver/core @appweaver/cli). ' +
         'Defaults to all currently installed @appweaver/* packages.'
     )
     .option(
       '--target-version [version]',
-      'The version to update the packages.',
+      'The version to upgrade the packages to.',
       'latest'
     )
     .option(
       '--no-skill',
-      'Skip updating AI agents skill files in the agent directories (e.g. .claude, .agents) of the current project.'
+      'Skip upgrading AI agents skill files in the agent directories (e.g. .claude, .agents) of the current project.'
     )
     .option(
       '--no-companions',
-      'Skip updating the installed companion packages (e.g. prisma, bullmq, nodemailer) to the versions of the target release.'
+      'Skip upgrading the installed companion packages (e.g. prisma, bullmq, nodemailer) to the versions of the target release.'
     )
     .option(
       '--tooling',
-      'Also update the installed tooling packages (e.g. eslint, jest, prettier) to the versions of the target release.'
+      'Also upgrade the installed tooling packages (e.g. eslint, jest, prettier) to the versions of the target release.'
     )
     .option(
       '--dry-run',
-      'Print the packages that would be updated without installing them.'
+      'Print the packages that would be upgraded without installing them.'
     )
     .option(
       '-f, --force',
-      'Force update despite peerDependency version mismatches.'
+      'Force upgrade despite peerDependency version mismatches.'
     )
     .option('--verbose', 'Print verbose output.')
     .action(async (packages: string[], _, command: Command) => {
@@ -98,7 +98,7 @@ export function updateCommand(program: Command): void {
       );
 
       if (appweaverPackages.length === 0) {
-        console.log(`No @appweaver packages found for update.`);
+        console.log(`No @appweaver packages found for upgrade.`);
         process.exit(0);
       }
 
@@ -142,18 +142,18 @@ export function updateCommand(program: Command): void {
         } else {
           console.warn(
             `Unable to resolve the companion package versions of @appweaver/cli@${targetVersion}, ` +
-              'updating only the Appweaver packages.'
+              'upgrading only the Appweaver packages.'
           );
         }
       }
 
       if (dryRun) {
-        console.log('Packages that would be updated:');
+        console.log('Packages that would be upgraded:');
         printUpdates(updates);
         return;
       }
 
-      const status = await updatePackages(
+      const status = await upgradePackages(
         Object.fromEntries(updates.map(({ name, to }) => [name, to])),
         force,
         quiet
@@ -161,19 +161,19 @@ export function updateCommand(program: Command): void {
 
       if (status === 0) {
         if (updateSkill) {
-          await updateSkillFiles(quiet);
+          await upgradeSkillFiles(quiet);
         }
-        console.log(`Successfully updated packages:`);
+        console.log(`Successfully upgraded packages:`);
         printUpdates(updates);
 
         if (updates.some(({ name }) => isPrismaPackage(name))) {
           console.log(
-            '\nPrisma was updated, run `weaver generate` to regenerate the Prisma client.'
+            '\nPrisma was upgraded, run `weaver generate` to regenerate the Prisma client.'
           );
         }
       } else {
         console.error(
-          'Update did not complete successfully. Use --verbose flag to see error details.'
+          'Upgrade did not complete successfully. Use --verbose flag to see error details.'
         );
         process.exit(1);
       }

@@ -17,7 +17,7 @@ const { packagesDir, distDir } = require('./constants');
 
 const samplesDir = 'sample';
 const registryUrl = 'https://registry.npmjs.org/';
-const lockedPackages = ['core', 'common', 'cli', 'client'];
+const lockedPackages = ['core', 'common', 'cli', 'client', 'create-weaver-app'];
 
 const cliArgs = process.argv.slice(2);
 const commit = cliArgs.includes('--commit');
@@ -155,13 +155,7 @@ function raiseRanges(content, releases, version) {
 function pinPackageLock(content, releases) {
   const lock = JSON.parse(content);
 
-  for (const [location, entry] of Object.entries(lock.packages)) {
-    const release = releases.get(location.replace(/^.*node_modules\//, ''));
-    if (!release) {
-      continue;
-    }
-
-    const { manifest, integrity } = release;
+  const pin = (location, entry, { manifest, integrity }) => {
     lock.packages[location] = {
       version: manifest.version,
       resolved: tarballUrl(manifest),
@@ -178,6 +172,25 @@ function pinPackageLock(content, releases) {
       peerDependencies: manifest.peerDependencies,
       peerDependenciesMeta: manifest.peerDependenciesMeta
     };
+  };
+
+  for (const [location, entry] of Object.entries(lock.packages)) {
+    const release = releases.get(location.replace(/^.*node_modules\//, ''));
+    if (release) {
+      pin(location, entry, release);
+    }
+  }
+
+  // A released package newly depending on another one, which the registry
+  // may not serve yet, gets its entry with the flags of the dependent
+  for (const [location, entry] of Object.entries(lock.packages)) {
+    const release = releases.get(location.replace(/^.*node_modules\//, ''));
+    for (const name of Object.keys(release?.manifest.dependencies ?? {})) {
+      const dependency = releases.get(name);
+      if (dependency && !lock.packages[`node_modules/${name}`]) {
+        pin(`node_modules/${name}`, entry, dependency);
+      }
+    }
   }
 
   return `${JSON.stringify(lock, null, 2)}\n`;
@@ -188,30 +201,48 @@ function pinPackageLock(content, releases) {
  * is a single line in its "packages" section.
  */
 function pinBunLock(content, releases) {
+  const entry = (name) => {
+    const { manifest, integrity } = releases.get(name);
+    const optionalPeers = Object.keys(
+      manifest.peerDependenciesMeta ?? {}
+    ).filter((peer) => manifest.peerDependenciesMeta[peer].optional);
+    const metadata = {
+      dependencies: manifest.dependencies,
+      optionalDependencies: manifest.optionalDependencies,
+      peerDependencies: manifest.peerDependencies,
+      optionalPeers: optionalPeers.length ? optionalPeers : undefined,
+      os: manifest.os,
+      cpu: manifest.cpu,
+      bin: normalizeBin(manifest.bin)
+    };
+
+    return formatBunValue([
+      `${name}@${manifest.version}`,
+      '',
+      metadata,
+      integrity
+    ]);
+  };
+
   return content.replace(
-    /^(\s*"(?:[^"]+\/)?(@[^"/]+\/[^"/]+)": )\[.*\](,?)$/gm,
-    (line, prefix, name, comma) => {
+    /^(\s*)"((?:[^"]+\/)?(@[^"/]+\/[^"/]+))": \[.*\](,?)$/gm,
+    (line, indent, key, name, comma) => {
       const release = releases.get(name);
       if (!release) {
         return line;
       }
 
-      const { manifest, integrity } = release;
-      const optionalPeers = Object.keys(
-        manifest.peerDependenciesMeta ?? {}
-      ).filter((peer) => manifest.peerDependenciesMeta[peer].optional);
-      const metadata = {
-        dependencies: manifest.dependencies,
-        optionalDependencies: manifest.optionalDependencies,
-        peerDependencies: manifest.peerDependencies,
-        optionalPeers: optionalPeers.length ? optionalPeers : undefined,
-        os: manifest.os,
-        cpu: manifest.cpu,
-        bin: normalizeBin(manifest.bin)
-      };
+      // A released package newly depending on another one, which the
+      // registry may not serve yet, gets its entry after the dependent
+      const added = Object.keys(release.manifest.dependencies ?? {}).filter(
+        (dependency) =>
+          releases.has(dependency) && !content.includes(`"${dependency}": [`)
+      );
 
-      const entry = [`${name}@${manifest.version}`, '', metadata, integrity];
-      return `${prefix}${formatBunValue(entry)}${comma}`;
+      return [
+        `${indent}"${key}": ${entry(name)}`,
+        ...added.map((dependency) => `${indent}"${dependency}": ${entry(dependency)}`)
+      ].join(',\n') + comma;
     }
   );
 }

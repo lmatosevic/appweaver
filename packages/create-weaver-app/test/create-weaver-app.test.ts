@@ -157,7 +157,14 @@ describe('create-weaver-app', () => {
 
   describe('template processing', () => {
     beforeEach(async () => {
-      await run('MyApp', 'My description', '--no-install', '--agent', 'none');
+      await run(
+        'MyApp',
+        'My description',
+        '--no-install',
+        '--agent',
+        'none',
+        '--all'
+      );
     });
 
     test('replaces the template variables', () => {
@@ -344,7 +351,9 @@ describe('create-weaver-app', () => {
         '--agent',
         'none',
         '--database',
-        'postgresql'
+        'postgresql',
+        '--add',
+        'docker'
       );
 
       const config = readJson('my-app', 'appweaver.json');
@@ -391,7 +400,9 @@ describe('create-weaver-app', () => {
         '--agent',
         'none',
         '--database',
-        'mysql'
+        'mysql',
+        '--add',
+        'docker'
       );
 
       const config = readJson('my-app', 'appweaver.json');
@@ -426,7 +437,9 @@ describe('create-weaver-app', () => {
         '--agent',
         'none',
         '--database',
-        'postgresql'
+        'postgresql',
+        '--add',
+        'docker'
       );
 
       expect(exists('my-app', 'database', 'mariadb-init.sh')).toBe(false);
@@ -439,7 +452,9 @@ describe('create-weaver-app', () => {
         '--agent',
         'none',
         '--database',
-        'sqlserver'
+        'sqlserver',
+        '--add',
+        'docker'
       );
 
       const config = readJson('my-app', 'appweaver.json');
@@ -459,8 +474,7 @@ describe('create-weaver-app', () => {
         '--agent',
         'none',
         '--database',
-        'postgresql',
-        '--no-docker'
+        'postgresql'
       );
 
       expect(exists('my-app', 'docker-compose.yml')).toBe(false);
@@ -471,7 +485,7 @@ describe('create-weaver-app', () => {
     });
 
     test('adds a named volume for the embedded SQLite database', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none');
+      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'docker');
 
       const compose = read('my-app', 'docker-compose.yml');
       expect(compose).toContain('sqlite-data:/usr/app/data');
@@ -480,90 +494,208 @@ describe('create-weaver-app', () => {
     });
   });
 
-  describe('optional modules', () => {
-    test('installs every optional dependency by default', async () => {
+  describe('modules', () => {
+    const modulePackages = [
+      'bullmq',
+      'cron',
+      'handlebars',
+      'ioredis',
+      'nodemailer'
+    ];
+
+    test('creates a project without any module by default', async () => {
       await run('MyApp', '--no-install', '--agent', 'none');
 
       const { dependencies } = readJson('my-app', 'package.json');
-      expect(dependencies).toHaveProperty('bullmq');
-      expect(dependencies).toHaveProperty('cron');
-      expect(dependencies).toHaveProperty('ioredis');
-      expect(dependencies).toHaveProperty('nodemailer');
-      expect(dependencies).toHaveProperty('handlebars');
+      for (const name of modulePackages) {
+        expect(dependencies).not.toHaveProperty(name);
+      }
+      expect(dependencies).toHaveProperty('@prisma/client');
+
+      for (const file of [
+        'templates',
+        'locales',
+        'Dockerfile',
+        '.dockerignore',
+        'docker-compose.yml',
+        'start.sh'
+      ]) {
+        expect(exists('my-app', file)).toBe(false);
+      }
     });
 
-    test('skips the dependencies of the disabled modules', async () => {
+    test('configures the in-memory or disabled modules by default', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none');
+
+      const appConfig = readJson('my-app', 'appweaver.json');
+      expect(appConfig.config).toEqual({
+        app: expect.any(Object),
+        server: expect.any(Object),
+        database: expect.any(Object),
+        redis: { provider: '@appweaver/core/memory/in-memory' },
+        cache: { provider: '@appweaver/core/cache/memory-cache' },
+        rateLimit: { store: 'in-memory' },
+        queue: { provider: '@appweaver/core/queue/memory-queue' },
+        scheduler: { enabled: false },
+        mailer: { enabled: false },
+        template: { provider: '' }
+      });
+      expect(appConfig.environments.dev).not.toHaveProperty('template');
+      expect(Object.keys(appConfig.environments.test)).toEqual([
+        'log',
+        'database',
+        'storage'
+      ]);
+    });
+
+    test('adds every module with the all flag', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--all');
+
+      const { dependencies } = readJson('my-app', 'package.json');
+      for (const name of modulePackages) {
+        expect(dependencies).toHaveProperty(name);
+      }
+
+      const appConfig = readJson('my-app', 'appweaver.json');
+      expect(Object.keys(appConfig.config)).toEqual([
+        'app',
+        'server',
+        'database',
+        'redis'
+      ]);
+      expect(appConfig.config.redis).toEqual({
+        url: 'redis://${REDIS_HOST:-localhost}:6379/0'
+      });
+      expect(appConfig.environments.dev.template).toEqual({ cache: false });
+      expect(appConfig.environments.test).toMatchObject({
+        redis: { provider: '@appweaver/core/memory/in-memory' },
+        queue: { provider: '@appweaver/core/queue/memory-queue' },
+        scheduler: { autoStartJob: false },
+        mailer: { provider: '@appweaver/core/mailer/json-mailer' }
+      });
+      expect(exists('my-app', 'Dockerfile')).toBe(true);
+      expect(exists('my-app', 'locales', 'en.json')).toBe(true);
+    });
+
+    test('adds the modules separated by spaces or commas', async () => {
       await run(
         'MyApp',
         '--no-install',
         '--agent',
         'none',
-        '--no-queue',
-        '--no-cron',
-        '--no-redis',
-        '--no-mailer',
-        '--no-templates'
+        '--add',
+        'mailer,scheduler',
+        'templates'
       );
 
       const { dependencies } = readJson('my-app', 'package.json');
-      expect(dependencies).not.toHaveProperty('bullmq');
-      expect(dependencies).not.toHaveProperty('cron');
+      expect(dependencies).toHaveProperty('nodemailer');
+      expect(dependencies).toHaveProperty('cron');
+      expect(dependencies).toHaveProperty('handlebars');
       expect(dependencies).not.toHaveProperty('ioredis');
-      expect(dependencies).not.toHaveProperty('nodemailer');
-      expect(dependencies).not.toHaveProperty('handlebars');
-      expect(dependencies).toHaveProperty('@prisma/client');
-    });
-
-    test('uses the in-memory queue with the no-queue flag', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none', '--no-queue');
 
       const { config } = readJson('my-app', 'appweaver.json');
-      expect(config.queue.provider).toBe('@appweaver/core/queue/memory-queue');
+      expect(config).not.toHaveProperty('mailer');
+      expect(config).not.toHaveProperty('scheduler');
+      expect(config).not.toHaveProperty('template');
+      expect(config.queue).toEqual({
+        provider: '@appweaver/core/queue/memory-queue'
+      });
+    });
+
+    test('adds the modules a module requires', async () => {
+      const logs = await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--add',
+        'queue'
+      );
+
+      expect(logs).toContain('Adding module redis, required by queue.');
+      const { dependencies } = readJson('my-app', 'package.json');
+      expect(dependencies).toHaveProperty('bullmq');
+      expect(dependencies).toHaveProperty('ioredis');
+
+      const { config } = readJson('my-app', 'appweaver.json');
+      expect(config).not.toHaveProperty('queue');
       expect(config).not.toHaveProperty('cache');
     });
 
-    test('disables the scheduler with the no-cron flag', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none', '--no-cron');
+    test('leaves out the negated modules of all', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--all',
+        '--no-docker',
+        '--no-scheduler'
+      );
 
-      const { config } = readJson('my-app', 'appweaver.json');
-      expect(config.scheduler).toEqual({ enabled: false });
+      expect(exists('my-app', 'Dockerfile')).toBe(false);
+      expect(exists('my-app', 'docker-compose.yml')).toBe(false);
+      expect(exists('my-app', 'templates')).toBe(true);
+
+      const { dependencies } = readJson('my-app', 'package.json');
+      expect(dependencies).not.toHaveProperty('cron');
+      expect(dependencies).toHaveProperty('bullmq');
+      expect(readJson('my-app', 'appweaver.json').config.scheduler).toEqual({
+        enabled: false
+      });
     });
 
-    test('disables the mailer with the no-mailer flag', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none', '--no-mailer');
+    test('writes the account email templates with the mailer and templates', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--add',
+        'mailer',
+        'templates',
+        'locales'
+      );
 
-      const { config } = readJson('my-app', 'appweaver.json');
-      expect(config.mailer).toEqual({ enabled: false });
-    });
-
-    test('skips the template files with the no-templates flag', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none', '--no-templates');
-
-      const appConfig = readJson('my-app', 'appweaver.json');
-      expect(appConfig.config.template).toEqual({ provider: '' });
-      expect(appConfig.environments.dev).not.toHaveProperty('template');
-      expect(exists('my-app', 'templates')).toBe(false);
+      expect(
+        read('my-app', 'templates', 'emails', 'password-reset.subject.hbs')
+      ).toContain('{{t "emails.passwordReset.subject"}}');
+      expect(exists('my-app', 'templates', 'layouts', 'email.html.hbs')).toBe(
+        true
+      );
       expect(readJson('my-app', 'locales', 'en.json')).toEqual(
         defaultTranslations
       );
-      const dockerfile = read('my-app', 'Dockerfile');
-      expect(dockerfile).not.toContain('templates');
-      expect(dockerfile).toContain(
-        '# Copy translation files\nCOPY --from=build /usr/app/locales /usr/app/locales\n'
-      );
-      expect(dockerfile).toContain('COPY --from=build /usr/app/dist');
     });
 
-    test('writes the English texts into the templates with the no-locales flag', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none', '--no-locales');
-
-      expect(exists('my-app', 'locales')).toBe(false);
-      const dockerfile = read('my-app', 'Dockerfile');
-      expect(dockerfile).not.toContain('locales');
-      expect(dockerfile).toContain(
-        'COPY --from=build /usr/app/templates /usr/app/templates'
+    test('writes no email templates without the mailer', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--add',
+        'templates'
       );
 
+      expect(fs.readdirSync(path.join(tempDir, 'my-app', 'templates'))).toEqual(
+        ['.gitkeep']
+      );
+    });
+
+    test('writes the English texts into the templates without the locales', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--add',
+        'mailer',
+        'templates'
+      );
+
+      expect(exists('my-app', 'locales')).toBe(false);
       const subject = read(
         'my-app',
         'templates',
@@ -584,18 +716,38 @@ describe('create-weaver-app', () => {
       ).toContain('This email was sent by {{@app.name}}.');
     });
 
-    test('skips both the template and translation files', async () => {
+    test('copies the templates and translations in the Docker image', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--all');
+
+      expect(read('my-app', 'Dockerfile')).toContain(
+        '# Copy public static files\nCOPY --from=build /usr/app/public /usr/app/public\n\n' +
+          '# Copy templates\nCOPY --from=build /usr/app/templates /usr/app/templates\n\n' +
+          '# Copy translation files\nCOPY --from=build /usr/app/locales /usr/app/locales\n\n' +
+          '# Copy Prisma'
+      );
+    });
+
+    test('copies only the translation files without the templates', async () => {
       await run(
         'MyApp',
         '--no-install',
         '--agent',
         'none',
-        '--no-templates',
-        '--no-locales'
+        '--add',
+        'docker',
+        'locales'
       );
 
-      expect(exists('my-app', 'templates')).toBe(false);
-      expect(exists('my-app', 'locales')).toBe(false);
+      const dockerfile = read('my-app', 'Dockerfile');
+      expect(dockerfile).not.toContain('templates');
+      expect(dockerfile).toContain(
+        '# Copy translation files\nCOPY --from=build /usr/app/locales /usr/app/locales\n'
+      );
+    });
+
+    test('copies neither the templates nor the translations without them', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'docker');
+
       const dockerfile = read('my-app', 'Dockerfile');
       expect(dockerfile).not.toMatch(/templates|locales|# Copy translation/);
       expect(dockerfile).toContain(
@@ -603,60 +755,16 @@ describe('create-weaver-app', () => {
       );
     });
 
-    test('skips the template files of a Bun project', async () => {
+    test('adds the Redis service to docker-compose.yml', async () => {
       await run(
         'MyApp',
         '--no-install',
         '--agent',
         'none',
-        '--bun',
-        '--no-templates'
+        '--add',
+        'redis',
+        'docker'
       );
-
-      const appConfig = readJson('my-app', 'appweaver.json');
-      expect(appConfig.environments.dev).not.toHaveProperty('template');
-      expect(read('my-app', 'Dockerfile')).not.toContain('templates');
-      expect(read('my-app', 'Dockerfile')).toContain('/usr/app/locales');
-    });
-
-    test('keeps the template and translation files by default', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none');
-
-      const appConfig = readJson('my-app', 'appweaver.json');
-      expect(appConfig.environments.dev.template).toEqual({ cache: false });
-      expect(
-        read('my-app', 'templates', 'emails', 'password-reset.subject.hbs')
-      ).toContain('{{t "emails.passwordReset.subject"}}');
-      expect(read('my-app', 'Dockerfile')).toContain(
-        'COPY --from=build /usr/app/templates /usr/app/templates'
-      );
-      expect(read('my-app', 'Dockerfile')).toContain(
-        'COPY --from=build /usr/app/locales /usr/app/locales'
-      );
-    });
-
-    test('leaves the module defaults without a skip flag', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none');
-
-      const { config } = readJson('my-app', 'appweaver.json');
-      expect(Object.keys(config)).toEqual([
-        'app',
-        'server',
-        'database',
-        'redis'
-      ]);
-    });
-
-    test('uses Redis for the modules that default to it', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none');
-
-      const { config } = readJson('my-app', 'appweaver.json');
-      expect(config.redis).toEqual({
-        url: 'redis://${REDIS_HOST:-localhost}:6379/0'
-      });
-      expect(config).not.toHaveProperty('cache');
-      expect(config).not.toHaveProperty('rateLimit');
-      expect(config).not.toHaveProperty('queue');
 
       const compose = read('my-app', 'docker-compose.yml');
       expect(compose).toContain('image: redis:7.4.9');
@@ -665,38 +773,24 @@ describe('create-weaver-app', () => {
         '      redis:\n        condition: service_healthy'
       );
       expect(compose).toContain('  redis-data:');
-      expect(compose).toContain('      REDIS_HOST: "redis"\n');
+      expect(compose).toContain(
+        '    environment:\n      REDIS_HOST: "redis"\n'
+      );
       expect(compose).not.toContain('REDIS_URL');
       expect(read('my-app', '.env')).not.toContain('REDIS');
     });
 
-    test('switches to in-memory modules with the no-redis flag', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none', '--no-redis');
-
-      const { config } = readJson('my-app', 'appweaver.json');
-      expect(config.redis.provider).toBe('@appweaver/core/memory/in-memory');
-      expect(config.cache.provider).toBe('@appweaver/core/cache/memory-cache');
-      expect(config.rateLimit.store).toBe('in-memory');
-      expect(config.queue.provider).toBe('@appweaver/core/queue/memory-queue');
-      expect(config.app.name).toBe('MyApp');
-      expect(typeof config.server.port).toBe('number');
+    test('generates docker-compose.yml without Redis', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'docker');
 
       const compose = read('my-app', 'docker-compose.yml');
       expect(compose).not.toContain('redis');
-      expect(read('my-app', '.env')).toBe('NODE_ENV=dev\n');
       expect(compose).toContain('  my-app.migrations:');
       expect(compose).toContain('  sqlite-data:');
     });
 
-    test('switches to in-memory modules for the Bun runtime', async () => {
-      await run(
-        'MyApp',
-        '--no-install',
-        '--agent',
-        'none',
-        '--bun',
-        '--no-redis'
-      );
+    test('configures the in-memory modules for the Bun runtime', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--bun');
 
       const { config } = readJson('my-app', 'appweaver.json');
       expect(config.app.runtime).toBe('bun');
@@ -732,36 +826,32 @@ describe('create-weaver-app', () => {
       expect(devDependencies).not.toHaveProperty('@swc/jest');
     });
 
-    test('removes the Docker files with the no-docker flag', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none', '--no-docker');
-
-      expect(exists('my-app', 'Dockerfile')).toBe(false);
-      expect(exists('my-app', 'docker-compose.yml')).toBe(false);
-    });
-
-    test('generates the Docker files by default', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none');
-
-      expect(exists('my-app', 'Dockerfile')).toBe(true);
-      expect(exists('my-app', 'docker-compose.yml')).toBe(true);
-      expect(exists('my-app', 'Dockerfile.bun')).toBe(false);
-    });
-
     test('generates the Node Dockerfile running as an unprivileged user', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none');
+      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'docker');
 
       const dockerfile = read('my-app', 'Dockerfile');
       expect(dockerfile).toContain('FROM node:');
       expect(dockerfile).toContain('USER node');
+      expect(exists('my-app', 'Dockerfile.bun')).toBe(false);
+      expect(exists('my-app', '.dockerignore')).toBe(true);
     });
 
     test('generates the Bun Dockerfile for the Bun runtime', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none', '--bun');
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--bun',
+        '--add',
+        'docker'
+      );
 
       const dockerfile = read('my-app', 'Dockerfile');
       expect(dockerfile).toContain('FROM oven/bun:');
       expect(dockerfile).toContain('USER bun');
       expect(exists('my-app', 'Dockerfile.bun')).toBe(false);
+      expect(read('my-app', 'start.sh')).toContain('bun');
     });
   });
 
@@ -874,6 +964,25 @@ describe('create-weaver-app', () => {
       const { stderr } = runInvalid();
 
       expect(stderr).toContain('name');
+    });
+
+    test('rejects an unknown module', () => {
+      const { stderr, exit } = runInvalid('MyApp', '--add', 'redis,graphql');
+
+      expect(stderr).toContain('Unknown module: graphql.');
+      expect(exit).toHaveBeenCalledWith(1);
+    });
+
+    test('rejects a module both added and left out', () => {
+      expect(
+        runInvalid('MyApp', '--add', 'mailer', '--no-mailer').stderr
+      ).toContain('Module mailer cannot be both added and left out.');
+    });
+
+    test('rejects leaving out a module an added one requires', () => {
+      expect(runInvalid('MyApp', '--all', '--no-redis').stderr).toContain(
+        'Module queue requires redis, leave out queue as well.'
+      );
     });
 
     test('accepts an uppercase database type', async () => {

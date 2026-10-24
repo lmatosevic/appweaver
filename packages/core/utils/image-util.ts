@@ -1,5 +1,5 @@
 import { Readable } from 'node:stream';
-import sharp from 'sharp';
+import type Sharp from 'sharp';
 import { ImageConfig } from '@appweaver/common';
 
 const IMAGE_MIME_FORMATS: Record<string, string> = {
@@ -39,6 +39,10 @@ export function processImage(
     return stream;
   }
 
+  // Loaded on the first processed image, so an application without image
+  // processing never loads the native module
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const sharp: typeof Sharp = require('sharp');
   let pipeline = sharp().rotate();
 
   if (config) {

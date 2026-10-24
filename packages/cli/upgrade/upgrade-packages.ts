@@ -9,7 +9,7 @@ import { isBunProcess, runProcess } from '../utils';
  * @param {boolean} [quiet=true] - Whether to suppress output logs during the update process.
  * @return {Promise<number>} A promise that resolves with the exit code of the package manager.
  */
-export async function updatePackages(
+export async function upgradePackages(
   packages: Record<string, string>,
   force: boolean = false,
   quiet: boolean = true
@@ -19,9 +19,9 @@ export async function updatePackages(
   );
 
   if (isBunRuntime()) {
-    return updateBunPackages(packagesWithVersion, quiet);
+    return upgradeBunPackages(packagesWithVersion, quiet);
   } else {
-    return updateNodePackages(packagesWithVersion, force, quiet);
+    return upgradeNodePackages(packagesWithVersion, force, quiet);
   }
 }
 
@@ -42,7 +42,7 @@ export function isBunRuntime(): boolean {
  * @param {boolean} quiet - A flag indicating whether to suppress output during the update process.
  * @return {Promise<number>} A promise that resolves with the exit code of the npm process.
  */
-async function updateNodePackages(
+async function upgradeNodePackages(
   packages: string[],
   force: boolean,
   quiet: boolean
@@ -62,7 +62,7 @@ async function updateNodePackages(
  * @param {boolean} quiet - A flag to suppress output if set to true.
  * @return {Promise<number>} A promise that resolves to the exit code of the process.
  */
-async function updateBunPackages(
+async function upgradeBunPackages(
   packages: string[],
   quiet: boolean
 ): Promise<number> {

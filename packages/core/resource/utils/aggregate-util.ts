@@ -8,9 +8,8 @@ import {
   differenceInMonths,
   differenceInSeconds,
   differenceInYears,
-  parseISO,
-  subDays
-} from 'date-fns';
+  parseIsoDate
+} from './date-util';
 import {
   AggregateSelect,
   AggregateValue,
@@ -91,8 +90,8 @@ export function buildAggregationPeriods(
   step?: number,
   safeIncrement: boolean = true
 ): AggregationPeriods {
-  const toDate = parseISO(to ?? new Date().toISOString());
-  const fromDate = from ? parseISO(from) : subDays(toDate, 7);
+  const toDate = parseIsoDate(to ?? new Date().toISOString());
+  const fromDate = from ? parseIsoDate(from) : addDays(toDate, -7);
 
   const iterator = makeAggregationIterator(
     fromDate,
@@ -103,7 +102,7 @@ export function buildAggregationPeriods(
 
   const ranges: AggregationRange[] = [];
 
-  let currentDate = parseISO(fromDate.toISOString());
+  let currentDate = new Date(fromDate.getTime());
   while (currentDate < toDate) {
     const date = currentDate;
     const median = iterator.addPeriod(date, (iterator.step - 1) / 2);

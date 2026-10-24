@@ -1,6 +1,5 @@
 import { Readable } from 'node:stream';
 import { createHash } from 'node:crypto';
-import { getDayOfYear, getISOWeek } from 'date-fns';
 import {
   camelToSnakeCase,
   capitalize,
@@ -405,12 +404,24 @@ describe('string-util', () => {
       );
     });
 
-    test('replaces the ISO week and day of year variables', () => {
-      const now = new Date();
-      expect(replacePatternVariables('{yearWeek}-{yearDay}')).toBe(
-        `${getISOWeek(now)}-${getDayOfYear(now)}`
-      );
-    });
+    test.each([
+      ['2021-01-03T12:00:00Z', '53-3'],
+      ['2024-12-30T00:00:00Z', '1-365'],
+      ['2024-12-31T23:59:59Z', '1-366'],
+      ['2026-06-15T08:00:00Z', '25-166']
+    ])(
+      'replaces the ISO week and day of year variables of %s in UTC',
+      (date, expected) => {
+        jest.useFakeTimers({ now: new Date(date) });
+        try {
+          expect(replacePatternVariables('{yearWeek}-{yearDay}')).toBe(
+            expected
+          );
+        } finally {
+          jest.useRealTimers();
+        }
+      }
+    );
 
     test('replaces every occurrence of a variable', () => {
       const now = new Date();

@@ -25,7 +25,8 @@
       "@appweaver/core": ["./packages/core"],
       "@appweaver/core/*": ["./packages/core/*"],
       "@appweaver/cli": ["./packages/cli"],
-      "@appweaver/cli/*": ["./packages/cli/*"]
+      "@appweaver/cli/*": ["./packages/cli/*"],
+      "@appweaver/create-weaver-app/*": ["./packages/create-weaver-app/*"]
     }
   },
   "include": ["packages/**/*", "eslint.config.mjs"],

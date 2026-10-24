@@ -16,10 +16,11 @@ weaver <command> [options]
 | `generate`      | `g`   | Generate types and/or schemas          |
 | `migrate`       | `mge` | Run database migrations                |
 | `migration`     | `mgn` | Database migration commands            |
+| `module`        | `mod` | Manage the modules of the project      |
 | `seed`          | `sd`  | Seed the database                      |
 | `start`         | `s`   | Start the application                  |
 | `test`          | `t`   | Perform operations used during testing |
-| `update`        | `u`   | Update the Appweaver packages          |
+| `upgrade`       | `up`  | Upgrade the Appweaver packages         |
 | `help`          |       | Display help for command               |
 | `-v, --version` |       | Output the current version             |
 | `-h, --help`    |       | Output usage information               |
@@ -128,6 +129,71 @@ Without `--force` the command runs only when `NODE_ENV` resolves to `dev` or `te
 
 ---
 
+## `weaver module`
+
+```
+weaver module|mod <command> [options]
+```
+
+Add and remove the optional modules of `create-weaver-app` in an existing project, from the templates of the
+installed `@appweaver/cli`. A module is enabled when the project depends on its packages, `locales` and `docker` when
+`locales/` and `Dockerfile` exist.
+
+| Module      | Packages     | Requires | Files                                                                                               |
+|-------------|--------------|----------|-----------------------------------------------------------------------------------------------------|
+| `redis`     | `ioredis`    | —        | The Redis service of `docker-compose.yml`                                                           |
+| `queue`     | `bullmq`     | `redis`  | —                                                                                                   |
+| `scheduler` | `cron`       | —        | —                                                                                                   |
+| `mailer`    | `nodemailer` | —        | The email templates of `templates/` (`emails/`, `layouts/email`, `partials/email-button`)           |
+| `templates` | `handlebars` | —        | `templates/`, the Dockerfile `COPY` of the templates                                                |
+| `locales`   | —            | —        | `locales/en.json`, the Dockerfile `COPY` of the translation files                                   |
+| `docker`    | —            | —        | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`, `database/mariadb-init.sh` (MySQL) |
+
+### `weaver module list`
+
+```
+weaver module list|ls
+```
+
+List the modules, whether the project has them enabled, their packages, requirements and description.
+
+### `weaver module add`
+
+```
+weaver module add <modules...> [options]
+```
+
+Add the modules, with the modules they require: their packages to `package.json` (at the versions of the release),
+their values to `appweaver.json`, their files, and what they add to the other enabled modules. An existing file that
+differs is skipped and reported. Adding `locales` restores the `t` calls of the scaffolded templates still holding
+the English texts. The dependencies are installed when `package.json` changed.
+
+| Option         | Description                                      | Default   |
+|----------------|--------------------------------------------------|-----------|
+| `-f, --force`  | Overwrite the existing files instead of skipping | `false`   |
+| `--dry-run`    | Print the changes without applying them          | `false`   |
+| `--no-install` | Skip the installation of the dependencies        | installed |
+| `--verbose`    | Print verbose output                             | `false`   |
+
+### `weaver module remove`
+
+```
+weaver module remove|rm <modules...> [options]
+```
+
+Remove the modules: their packages, their `appweaver.json` values (the ones changed in the project are kept), their
+files (the whole `templates/` and `locales/` directories, the Docker files), and what they added to the other enabled
+modules. Removing `locales` writes the English texts of `locales/en.json` into the templates first. A module that an
+enabled module requires is removed only along with it. The `src/` code is never touched.
+
+| Option         | Description                               | Default   |
+|----------------|-------------------------------------------|-----------|
+| `--dry-run`    | Print the changes without applying them   | `false`   |
+| `--no-install` | Skip the installation of the dependencies | installed |
+| `--verbose`    | Print verbose output                      | `false`   |
+
+---
+
 ## `weaver seed`
 
 ```
@@ -220,30 +286,30 @@ Requires `NODE_ENV=test`.
 
 ---
 
-## `weaver update`
+## `weaver upgrade`
 
 ```
-weaver update|u [options] [packages...]
+weaver upgrade|up [options] [packages...]
 ```
 
-Update the Appweaver packages. The companion packages installed in the project are bumped along to the exact versions
+Upgrade the Appweaver packages. The companion packages installed in the project are bumped along to the exact versions
 the target release is built with, read from the `scaffoldDependencies` of `@appweaver/cli` in the registry. Missing
-packages are never added and newer ones never downgraded. Run `weaver generate` afterward when Prisma is updated.
+packages are never added and newer ones never downgraded. Run `weaver generate` afterward when Prisma is upgraded.
 
 **Arguments:**
 
-| Argument   | Description                                                                                                     | Default                               |
-|------------|-----------------------------------------------------------------------------------------------------------------|---------------------------------------|
-| `packages` | A list of packages to update (e.g. `@appweaver/core @appweaver/cli`). Only `@appweaver/*` packages are updated. | All installed `@appweaver/*` packages |
+| Argument   | Description                                                                                                       | Default                               |
+|------------|-------------------------------------------------------------------------------------------------------------------|---------------------------------------|
+| `packages` | A list of packages to upgrade (e.g. `@appweaver/core @appweaver/cli`). Only `@appweaver/*` packages are upgraded. | All installed `@appweaver/*` packages |
 
 **Options:**
 
-| Option                       | Description                                                                 | Default    |
-|------------------------------|-----------------------------------------------------------------------------|------------|
-| `--target-version [version]` | The version to update the packages to                                       | `"latest"` |
-| `--no-skill`                 | Skip updating AI agents skill files in agent dirs (`.claude`, `.agents`, …) | updated    |
-| `--no-companions`            | Skip updating the companion packages                                        | updated    |
-| `--tooling`                  | Also update the tooling packages (`eslint`, `jest`, `prettier`, …)          | `false`    |
-| `--dry-run`                  | Print the packages that would be updated without installing them            | `false`    |
-| `-f, --force`                | Force update despite peerDependency version mismatches                      | `false`    |
-| `--verbose`                  | Print verbose output                                                        | `false`    |
+| Option                       | Description                                                                  | Default    |
+|------------------------------|------------------------------------------------------------------------------|------------|
+| `--target-version [version]` | The version to upgrade the packages to                                       | `"latest"` |
+| `--no-skill`                 | Skip upgrading AI agents skill files in agent dirs (`.claude`, `.agents`, …) | upgraded   |
+| `--no-companions`            | Skip upgrading the companion packages                                        | upgraded   |
+| `--tooling`                  | Also upgrade the tooling packages (`eslint`, `jest`, `prettier`, …)          | `false`    |
+| `--dry-run`                  | Print the packages that would be upgraded without installing them            | `false`    |
+| `-f, --force`                | Force upgrade despite peerDependency version mismatches                      | `false`    |
+| `--verbose`                  | Print verbose output                                                         | `false`    |

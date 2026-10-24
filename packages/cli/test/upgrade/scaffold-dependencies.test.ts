@@ -12,7 +12,7 @@ jest.mock('../../utils', () => ({
   runProcessOutput: (...args: any[]) => runProcessOutput(...args)
 }));
 
-jest.mock('../../update/update-packages', () => ({
+jest.mock('../../upgrade/upgrade-packages', () => ({
   isBunRuntime: () => isBunRuntime()
 }));
 
@@ -21,7 +21,7 @@ import {
   loadInstalledVersion,
   resolveScaffoldUpdates,
   ScaffoldDependencies
-} from '../../update/scaffold-dependencies';
+} from '../../upgrade/scaffold-dependencies';
 
 const scaffold: ScaffoldDependencies = {
   companion: { prisma: '7.9.1', bullmq: '5.79.1', ioredis: '5.11.1' },

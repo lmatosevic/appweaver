@@ -14,7 +14,7 @@ import path from 'node:path';
  * @param {boolean} quiet - If true, suppresses logging output; otherwise, logs actions are performed.
  * @return {Promise<void>} A promise that resolves when the update process is complete.
  */
-export async function updateSkillFiles(quiet: boolean): Promise<void> {
+export async function upgradeSkillFiles(quiet: boolean): Promise<void> {
   const projectDir = process.cwd();
   const skillDir = path.join(__dirname, '..', 'skill');
 

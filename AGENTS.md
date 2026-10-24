@@ -200,34 +200,58 @@ The package exposes a `weaver-client` CLI binary. See **Section 6** for the full
 The `create-weaver-app` module is a project scaffolding tool that generates new Appweaver applications. It exposes the
 **`create-weaver-app`** CLI binary, which can be invoked via `npx create-weaver-app`.
 
-The module uses a template-based generation system where each file can have runtime-specific variants:
+A generated project starts from the base template (`templates/base/`) and adds the optional modules selected with
+`--add <modules...>` or `--all` (minus the `--no-<module>` ones): `redis`, `queue` (requires `redis`), `scheduler`,
+`mailer`, `templates`, `locales` and `docker`. The scaffolding engine lives in `scaffold/` and is exported as
+`@appweaver/create-weaver-app/scaffold`, which `weaver module add|remove` of `packages/cli` uses on an existing
+project, so both apply the same templates. `@appweaver/cli` depends on `@appweaver/create-weaver-app` at its exact
+version (`tools/copy-packages.js` pins the `@appweaver/*` dependencies of the published manifests).
 
-- **`.tpl`** extension: Template files that are processed and copied to the new project (e.g., `index.ts.tpl` →
-  `index.ts`).
+| Path                         | Purpose                                                                                     |
+|------------------------------|---------------------------------------------------------------------------------------------|
+| `create-weaver-app.ts`       | CLI entry point: options, module selection, agent files, installation                       |
+| `scaffold/modules.ts`        | The module catalog: packages, requirements, `appweaver.json` values when enabled / disabled |
+| `scaffold/apply-modules.ts`  | `enableModules` / `disableModules`, and the integrations between two modules                |
+| `scaffold/create-project.ts` | The base template, the disabled modules' config, then `enableModules`                       |
+| `scaffold/load-project.ts`   | Reads an existing project and its enabled modules (from its packages or marker files)       |
+| `scaffold/project-files.ts`  | `ProjectFiles`, staging the writes and deletions until `commit` (dry runs print them)       |
+| `scaffold/compose-util.ts`   | Adds and removes the Redis service of `docker-compose.yml` with the `yaml` document API     |
+| `templates/base/`            | The project every module is added to                                                        |
+| `templates/modules/<name>/`  | The files of a module, deleted when it is removed                                           |
+| `templates/modules/<a>+<b>/` | The files of two modules enabled together (`mailer+templates` holds the email templates)    |
+
+A template file can have runtime-specific variants:
+
+- **`.tpl`** extension: Template files whose `{{VARIABLE}}`s are replaced (e.g., `index.ts.tpl` → `index.ts`).
 - **`.node`** extension: Node.js-specific files that are only included when generating a project for the Node runtime.
-- **`.bun`** extension: Bun-specific files that are only included when generating a project for the Bun runtime.
+- **`.bun`** extension: Bun-specific files that are only included when generating a project for the Bun runtime,
+  replacing the file without the extension.
 
-During project generation, the CLI accepts arguments for name, description, runtime (Node or Bun), and what modules to
-skip installing. Then replaces the templates with defined variables, and copies only the relevant files based on the
-chosen runtime, stripping the `.tpl`, `.node`, or `.bun` extensions from the final output.
+A module is defined by data (packages, config values) and its files, and anything else it adds to another enabled
+module is an integration of the two in `apply-modules.ts` (the Redis service of `docker-compose.yml`, the Dockerfile
+`COPY` blocks of templates and locales). `create-weaver-app` creates the base project with every module's disabled
+config, then adds the selected modules exactly like `weaver module add`, so a test checks that every combination of
+modules created, added one at a time, or removed from a full project gives the same files. Keep any new module or
+integration reversible: removal deletes its files and restores the config and packages.
 
-Templates and localization are scaffolded independently. `--no-templates` drops `templates/` and Handlebars,
-`--no-locales` drops `locales/` and replaces every `{{t "key"}}` of the scaffolded templates with the English message of
-the key in `locales/en.json`, using `utils/translation-util.ts` (a plural becomes an `{{#if (eq count 1)}}` chain). Write
-the scaffolded templates with `t` calls only, a test checks that both variants render the same text.
+Templates and localization are scaffolded independently. Without `locales`, every `{{t "key"}}` of the scaffolded
+templates is replaced with the English message of the key in `locales/en.json`, using `utils/translation-util.ts` (a
+plural becomes an `{{#if (eq count 1)}}` chain). Write the scaffolded templates with `t` calls only, a test checks that
+both variants render the same text.
 
 The versions of every npm package a generated project installs (except the `@appweaver/*` packages, which follow the
 CLI's own version) are kept in the `scaffoldDependencies` field of the **root** `package.json`, split into `companion`
 (packages the framework uses at runtime or as a peer: Prisma, TypeBox, BullMQ, Cron, Handlebars, IoRedis, Nodemailer,
-TypeScript) and `tooling` (lint and test setup). The templates receive them through the `{{DEPENDENCIES}}` and
-`{{DEV_DEPENDENCIES}}` variables, so bump versions there, not in the templates. Keep the versions equal to the root
+TypeScript) and `tooling` (lint and test setup). The base template receives them through the `{{DEPENDENCIES}}` and
+`{{DEV_DEPENDENCIES}}` variables, and the modules write theirs into `package.json`, so bump versions there, not in the
+templates. Keep the versions equal to the root
 `dependencies` and `devDependencies`, which a test checks.
 
 A package lists the root fields it needs in its own `rootFields` array (`cli` and `create-weaver-app` list
 `scaffoldDependencies`). `tools/copy-packages.js` copies them into `dist/package.json` and strips `rootFields`, the same
 way it handles `files`, so the published manifests carry them. Running from the sources, as the tests do,
-`create-weaver-app.ts` reads the field from the root `package.json` instead. `weaver update` reads it from the target
-`@appweaver/cli` release in the registry.
+`scaffold/package-versions.ts` reads the field from the root `package.json` instead. `weaver upgrade` reads it from the
+target `@appweaver/cli` release in the registry.
 
 ## 5. CLI Command Reference (`weaver`)
 
@@ -324,6 +348,31 @@ Executes `prisma migrate reset` (with `--force` when `-y` or `-f` is passed).
 Every `weaver migration` and `weaver test` command calls `setAiDangerousActionConsent` before `prisma migrate dev` or
 `prisma migrate reset`, giving Prisma the consent of `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` for an AI agent
 unless `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is `false`. Call it before any new Prisma command that may lose data.
+
+---
+
+### `weaver module` (alias: `mod`)
+
+Add and remove the optional modules of `create-weaver-app` (`redis`, `queue`, `scheduler`, `mailer`, `templates`,
+`locales`, `docker`) in the current project, with the scaffold templates of `@appweaver/create-weaver-app`.
+
+```
+weaver module list                         (alias: ls)
+weaver module add <modules...> [options]
+weaver module remove <modules...> [options] (alias: rm)
+```
+
+| Option         | Description                                                  | Default   |
+|----------------|--------------------------------------------------------------|-----------|
+| `-f, --force`  | `add` only: overwrite the existing files instead of skipping | false     |
+| `--dry-run`    | Print the file changes without applying them                 | false     |
+| `--no-install` | Skip the installation of the dependencies                    | installed |
+| `--verbose`    | Verbose output                                               | false     |
+
+`add` brings in the required modules too, `remove` refuses to remove a module a remaining one requires. Removing a
+module deletes its files (the whole `templates/` or `locales/` directory, the Docker files) and reverts its
+`appweaver.json` values and packages; it never touches `src/`. The enabled modules are read from the project's
+dependencies, and for `locales` and `docker` from the `locales/` directory and the `Dockerfile`.
 
 ---
 
@@ -443,32 +492,32 @@ weaver test teardown [options]
 
 ---
 
-### `weaver update` (alias: `u`)
+### `weaver upgrade` (alias: `up`)
 
-Update Appweaver packages in the current project.
+Upgrade Appweaver packages in the current project.
 
 ```
-weaver update [packages...] [options]
+weaver upgrade [packages...] [options]
 ```
 
-| Argument      | Description                                                                                                            | Default                               |
-|---------------|------------------------------------------------------------------------------------------------------------------------|---------------------------------------|
-| `[packages…]` | One or more package names to update (e.g. `@appweaver/core @appweaver/cli`). Only `@appweaver/*` packages are updated. | All installed `@appweaver/*` packages |
+| Argument      | Description                                                                                                              | Default                               |
+|---------------|--------------------------------------------------------------------------------------------------------------------------|---------------------------------------|
+| `[packages…]` | One or more package names to upgrade (e.g. `@appweaver/core @appweaver/cli`). Only `@appweaver/*` packages are upgraded. | All installed `@appweaver/*` packages |
 
-| Option                       | Description                                                                        | Default  |
-|------------------------------|------------------------------------------------------------------------------------|----------|
-| `--target-version [version]` | The version to update the packages to.                                             | `latest` |
-| `--no-skill`                 | Skip updating AI agent skill files in agent directories (`.claude`, `.agents`, …). | updated  |
-| `--no-companions`            | Skip updating the companion packages (Prisma, BullMQ, Cron, IoRedis, Nodemailer…). | updated  |
-| `--tooling`                  | Also update the tooling packages (ESLint, Jest, SWC, Prettier…).                   | false    |
-| `--dry-run`                  | Print the packages that would be updated without installing them.                  | false    |
-| `-f, --force`                | Force update despite `peerDependency` version mismatches.                          | false    |
-| `--verbose`                  | Print verbose output.                                                              | false    |
+| Option                       | Description                                                                         | Default  |
+|------------------------------|-------------------------------------------------------------------------------------|----------|
+| `--target-version [version]` | The version to upgrade the packages to.                                             | `latest` |
+| `--no-skill`                 | Skip upgrading AI agent skill files in agent directories (`.claude`, `.agents`, …). | upgraded |
+| `--no-companions`            | Skip upgrading the companion packages (Prisma, BullMQ, Cron, IoRedis, Nodemailer…). | upgraded |
+| `--tooling`                  | Also upgrade the tooling packages (ESLint, Jest, SWC, Prettier…).                   | false    |
+| `--dry-run`                  | Print the packages that would be upgraded without installing them.                  | false    |
+| `-f, --force`                | Force upgrade despite `peerDependency` version mismatches.                          | false    |
+| `--verbose`                  | Print verbose output.                                                               | false    |
 
 The companion packages the project already has are bumped to the exact versions in the `scaffoldDependencies` of the
 target `@appweaver/cli` release (`npm view` / `bun info`), in the same install as the `@appweaver/*` packages so the
 peer ranges resolve together. Missing packages are never added and newer ones never downgraded. A failed lookup falls
-back to updating only the `@appweaver/*` packages.
+back to upgrading only the `@appweaver/*` packages.
 
 ---
 
@@ -765,7 +814,7 @@ architecture, conventions, APIs, and best practices to enable agentic developmen
 New projects scaffolded via `npx create-weaver-app` include a `AGENTS.md` or `CLAUDE.md` file at the project root. This
 file is a thin, project-owned stub that references the framework guidelines (`GUIDELINES.md`) copied into the agent's
 skills directory (e.g. `.claude/skills/appweaver/GUIDELINES.md`). It can be freely extended with project-specific
-instructions and is never overwritten by `weaver update`, which refreshes only the skill files (including
+instructions and is never overwritten by `weaver upgrade`, which refreshes only the skill files (including
 `GUIDELINES.md`) inside the skills' directory.
 
 ### Updating skill files
