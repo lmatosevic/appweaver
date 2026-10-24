@@ -118,13 +118,13 @@ describe('Templates and locales', () => {
     test('renders a published post in the requested locale', async () => {
       const response = await app.server.inject({
         method: 'GET',
-        url: '/api/posts/trails-and-peaks/page?locale=hr'
+        url: '/api/posts/trails-and-peaks/page?locale=de'
       });
 
-      expect(response.body).toContain('<html lang="hr">');
-      expect(response.body).toContain('Objavljeno 31. siječnja 2026.');
-      expect(response.body).toContain('Oznake:');
-      expect(response.body).toContain('1 komentar');
+      expect(response.body).toContain('<html lang="de">');
+      expect(response.body).toContain('Veröffentlicht am 31. Januar 2026');
+      expect(response.body).toContain('Schlagwörter:');
+      expect(response.body).toContain('1 Kommentar');
     });
 
     test('responds with a problem for an unknown post', async () => {
@@ -185,21 +185,21 @@ describe('Templates and locales', () => {
         method: 'POST',
         url: '/api/posts/trails-and-peaks/share',
         headers: auth,
-        payload: { email: 'reader@example.com', locale: 'hr' }
+        payload: { email: 'reader@example.com', locale: 'de' }
       });
 
       expect(response.statusCode).toBe(200);
       const email = await renderEmail.mock.results[0].value;
       expect(email.to).toBe('reader@example.com');
       expect(email.subject).toBe(
-        'templates@example.com dijeli objavu s vama: Trails & <Peaks>'
+        'templates@example.com hat einen Beitrag mit Ihnen geteilt: Trails & <Peaks>'
       );
-      expect(email.html).toContain('<html lang="hr">');
-      expect(email.html).toContain('Pročitajte objavu');
+      expect(email.html).toContain('<html lang="de">');
+      expect(email.html).toContain('Beitrag lesen');
       expect(email.text).toContain(
-        '/api/posts/trails-and-peaks/page?locale=hr'
+        '/api/posts/trails-and-peaks/page?locale=de'
       );
-      expect(email.text).toContain('Ovu poruku poslala je aplikacija CMS API.');
+      expect(email.text).toContain('Diese E-Mail wurde von CMS API gesendet.');
     });
 
     test('translates the framework emails with the translation files', async () => {
@@ -207,11 +207,11 @@ describe('Templates and locales', () => {
         to: 'reader@example.com',
         template: 'emails/two-factor-code',
         data: { code: '123456', expiresInMinutes: 3 },
-        locale: 'hr'
+        locale: 'de'
       });
 
-      expect(email.subject).toBe('Vaš kontrolni kod');
-      expect(email.text).toContain('Kod istječe za 3 minute.');
+      expect(email.subject).toBe('Ihr Bestätigungscode');
+      expect(email.text).toContain('Der Code läuft in 3 Minuten ab.');
     });
   });
 

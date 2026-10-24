@@ -377,7 +377,7 @@ Angular, vue-i18n and Symfony, with the plural categories of the Unicode CLDR (`
 | `{n, number}`, `{n, number, integer}`, `{n, number, percent}` | The number formatted in the locale                                |
 | `''`, `'{text}'`                                              | An apostrophe, the quoted text as it is (a lone `'` stays as is)  |
 
-The categories differ by language: English has `one` and `other`, Croatian adds `few` (`2`-`4`), Arabic has all six
+The categories differ by language: English and German have `one` and `other`, Spanish adds `many` (a million and more), Arabic has all six
 (`zero`, `one`, `two`, `few`, `many`, `other`). Every `plural`, `selectordinal` and `select` needs an `other` branch.
 A message is checked when its file loads, failing with `LOCALE_LOAD_FAILED` on an invalid one, and an argument without
 a parameter is written as it is, i.e. `{name}`. The plural forms follow the locale of the file the translation is found
@@ -389,8 +389,8 @@ import { inject, LocaleService, registerTranslations } from '@appweaver/core';
 const locales = inject(LocaleService);
 
 locales.translate('inbox.unread', 'en', { msg_cnt: 1 }); // 'You have 1 unread message'
-locales.translate('inbox.unread', 'hr', { msg_cnt: 3 }); // the `few` branch of hr.json
-locales.hasTranslation('inbox.unread', 'hr');
+locales.translate('inbox.unread', 'de', { msg_cnt: 3 }); // the `other` branch of de.json
+locales.hasTranslation('inbox.unread', 'de');
 locales.getLocales(); // ['de', 'en']
 locales.resolveLocales('de-AT'); // ['de-AT', 'de', 'en']
 

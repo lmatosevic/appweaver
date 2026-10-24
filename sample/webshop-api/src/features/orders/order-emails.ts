@@ -24,7 +24,7 @@ registerTemplateHelper('money', (cents: number, options: HelperOptions) =>
 );
 
 // The country of an address is stored as its code, i.e. `{{countryName 'DE'}}`
-// is "Germany" in English and "Njemačka" in Croatian
+// is "Germany" in English and "Deutschland" in German
 registerTemplateHelper(
   'countryName',
   (code: string, options: HelperOptions) => {

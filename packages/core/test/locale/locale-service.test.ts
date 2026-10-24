@@ -106,10 +106,10 @@ describe('locale-service', () => {
     });
 
     test('formats an ICU message with the plural form of any argument', () => {
-      writeLocale('hr', {
+      writeLocale('es', {
         inbox: {
           unread:
-            'Imate {msg_cnt, plural, =0 {nijednu nepročitanu poruku} one {# nepročitanu poruku} few {# nepročitane poruke} other {# nepročitanih poruka}}'
+            'Tienes {msg_cnt, plural, =0 {ningún mensaje sin leer} one {# mensaje sin leer} many {# de mensajes sin leer} other {# mensajes sin leer}}'
         }
       });
       service.addTranslations('en', {
@@ -127,9 +127,11 @@ describe('locale-service', () => {
       expect(unread(0)).toBe('You have no unread messages');
       expect(unread(1)).toBe('You have 1 unread message');
       expect(unread(7)).toBe('You have 7 unread messages');
-      expect(unread(1, 'hr')).toBe('Imate 1 nepročitanu poruku');
-      expect(unread(3, 'hr')).toBe('Imate 3 nepročitane poruke');
-      expect(unread(5, 'hr')).toBe('Imate 5 nepročitanih poruka');
+      expect(unread(1, 'es')).toBe('Tienes 1 mensaje sin leer');
+      expect(unread(5, 'es')).toBe('Tienes 5 mensajes sin leer');
+      expect(unread(1_000_000, 'es')).toBe(
+        'Tienes 1.000.000 de mensajes sin leer'
+      );
       expect(
         service.translate('inbox.title', 'en', { name: 'Ana', msg_cnt: 2 })
       ).toBe('Ana, you have 2 new messages');
@@ -137,11 +139,13 @@ describe('locale-service', () => {
 
     test('selects the plural form by the locale the translation is found in', () => {
       service.addTranslations('en', {
-        files: '{n, plural, one {# file} few {# files (few)} other {# files}}'
+        files: '{n, plural, one {# file} many {# files (many)} other {# files}}'
       });
 
-      // The Croatian "few" category does not exist in English
-      expect(service.translate('files', 'hr', { n: 3 })).toBe('3 files');
+      // The Spanish "many" category does not exist in English
+      expect(service.translate('files', 'es', { n: 1_000_000 })).toBe(
+        '1,000,000 files'
+      );
     });
 
     test('falls back to the framework translations', () => {
@@ -151,13 +155,13 @@ describe('locale-service', () => {
     });
 
     test('lets a translation file override a framework translation', () => {
-      writeLocale('hr', {
-        emails: { passwordReset: { subject: 'Nova lozinka' } }
+      writeLocale('es', {
+        emails: { passwordReset: { subject: 'Nueva contraseña' } }
       });
       service.reload();
 
-      expect(service.translate('emails.passwordReset.subject', 'hr')).toBe(
-        'Nova lozinka'
+      expect(service.translate('emails.passwordReset.subject', 'es')).toBe(
+        'Nueva contraseña'
       );
     });
 
@@ -203,7 +207,7 @@ describe('locale-service', () => {
     test('follows the default locale configured', () => {
       configOverrides.LOCALE_DEFAULT = 'de-CH';
 
-      expect(service.resolveLocales('hr')).toEqual(['hr', 'de-CH', 'de']);
+      expect(service.resolveLocales('es')).toEqual(['es', 'de-CH', 'de']);
     });
   });
 
@@ -240,33 +244,36 @@ describe('locale-service', () => {
 
   describe('loading', () => {
     test('flattens the nested translations into dotted keys', () => {
-      writeLocale('hr', {
-        page: { title: 'Naslov', footer: { copyright: 'Sva prava pridržana' } }
+      writeLocale('es', {
+        page: {
+          title: 'Título',
+          footer: { copyright: 'Todos los derechos reservados' }
+        }
       });
 
       service.reload();
 
-      expect(service.translate('page.title', 'hr')).toBe('Naslov');
-      expect(service.translate('page.footer.copyright', 'hr')).toBe(
-        'Sva prava pridržana'
+      expect(service.translate('page.title', 'es')).toBe('Título');
+      expect(service.translate('page.footer.copyright', 'es')).toBe(
+        'Todos los derechos reservados'
       );
-      expect(service.hasTranslation('page', 'hr')).toBe(false);
+      expect(service.hasTranslation('page', 'es')).toBe(false);
     });
 
     test('ignores the values that are neither strings nor objects', () => {
       const warn = jest.spyOn(logger, 'warn').mockImplementation();
-      writeLocale('hr', { count: 3, list: ['a'], page: { title: 'Naslov' } });
+      writeLocale('es', { count: 3, list: ['a'], page: { title: 'Título' } });
 
       service.reload();
 
-      expect(service.translate('page.title', 'hr')).toBe('Naslov');
-      expect(service.hasTranslation('count', 'hr')).toBe(false);
-      expect(service.hasTranslation('list', 'hr')).toBe(false);
+      expect(service.translate('page.title', 'es')).toBe('Título');
+      expect(service.hasTranslation('count', 'es')).toBe(false);
+      expect(service.hasTranslation('list', 'es')).toBe(false);
       expect(warn).toHaveBeenCalledTimes(2);
     });
 
     test('names the dotted key of an invalid nested message', () => {
-      writeLocale('hr', { page: { title: 'Naslov {name' } });
+      writeLocale('es', { page: { title: 'Título {name' } });
 
       expect(() => service.reload()).toThrow(/'page\.title'/);
     });
@@ -282,20 +289,20 @@ describe('locale-service', () => {
     });
 
     test('fails on a translation that is not a valid message', () => {
-      writeLocale('hr', { broken: 'Imate {n, plural, one {# poruku}}' });
+      writeLocale('es', { broken: 'Tienes {n, plural, one {# mensaje}}' });
 
       expect(() => service.reload()).toThrow(
         expect.objectContaining({
           code: ErrorCode.LocaleLoadFailed,
           message: expect.stringContaining(
-            "Translation 'broken' of " + path.join(dir, 'hr.json')
+            "Translation 'broken' of " + path.join(dir, 'es.json')
           )
         })
       );
     });
 
     test('fails on a file that is not valid JSON', () => {
-      writeLocale('hr', '{ invalid');
+      writeLocale('es', '{ invalid');
 
       expect(() => service.reload()).toThrow(
         expect.objectContaining({ code: ErrorCode.LocaleLoadFailed })
@@ -303,7 +310,7 @@ describe('locale-service', () => {
     });
 
     test('fails on a file that is not a JSON object', () => {
-      writeLocale('hr', '["a"]');
+      writeLocale('es', '["a"]');
 
       expect(() => service.onInit()).toThrow(
         expect.objectContaining({ code: ErrorCode.LocaleLoadFailed })

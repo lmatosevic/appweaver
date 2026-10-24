@@ -24,7 +24,7 @@ scheduled for publishing, static pages for the site menu, and comments open to g
 | Custom route with its own response model                                              | [`features/publisher/publish-route.ts`](src/features/publisher/publish-route.ts)         |
 | Scheduled job publishing the posts whose publish date has passed                      | [`features/publisher/publish-scheduler.ts`](src/features/publisher/publish-scheduler.ts) |
 | Localized HTML page and an XML export for an external integration, from templates     | [`features/syndication/`](src/features/syndication/syndication-routes.ts)                |
-| Localized email sent on demand, and the account email templates translated to Croatian | [`templates/emails/`](templates/emails), [`locales/hr.json`](locales/hr.json)            |
+| Localized email sent on demand, and the account email templates translated to German  | [`templates/emails/`](templates/emails), [`locales/de.json`](locales/de.json)            |
 | Template preview route of the development environment (`/templates/<name>?<data>`)    | `template.preview` of the `dev` environment in [`appweaver.json`](appweaver.json)        |
 | Translated default value stored by a service hook                                     | [`resources/category/service.ts`](src/resources/category/service.ts)                     |
 | Fastify plugin logging every request                                                  | [`plugins/request-logger.ts`](src/plugins/request-logger.ts)                             |
@@ -64,13 +64,13 @@ curl -s localhost:5001/api/posts -H "authorization: Bearer $TOKEN" -H 'content-t
 curl -s localhost:5001/api/publish-posts -H "authorization: Bearer $TOKEN" -H 'content-type: application/json' \
   -H 'x-my-custom-header: demo' -d '{}' | jq .published
 
-# The published post as an HTML page, in Croatian, and every published post as an XML document
-curl -s 'localhost:5001/api/posts/<slug>/page?locale=hr'
+# The published post as an HTML page, in German, and every published post as an XML document
+curl -s 'localhost:5001/api/posts/<slug>/page?locale=de'
 curl -s localhost:5001/api/posts/export/xml -H "authorization: Bearer $TOKEN"
 
-# Email a post to a reader, in Croatian, through the SMTP server of the mailer config
+# Email a post to a reader, in German, through the SMTP server of the mailer config
 curl -s localhost:5001/api/posts/<slug>/share -H "authorization: Bearer $TOKEN" -H 'content-type: application/json' \
-  -d '{"email":"reader@example.com","locale":"hr"}'
+  -d '{"email":"reader@example.com","locale":"de"}'
 
 # Guests can comment, five times a minute
 curl -s localhost:5001/api/comments -H 'content-type: application/json' \

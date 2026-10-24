@@ -41,13 +41,14 @@ describe('message-format', () => {
 
     test('selects the plural categories of the locale', () => {
       const message =
-        '{n, plural, one {# poruka} few {# poruke} other {# poruka}}';
+        '{n, plural, one {# mensaje} many {# de mensajes} other {# mensajes}}';
 
-      expect(formatMessage(message, { n: 1 }, 'hr')).toBe('1 poruka');
-      expect(formatMessage(message, { n: 3 }, 'hr')).toBe('3 poruke');
-      expect(formatMessage(message, { n: 5 }, 'hr')).toBe('5 poruka');
-      expect(formatMessage(message, { n: 21 }, 'hr')).toBe('21 poruka');
-      expect(formatMessage(message, { n: 1500 }, 'hr')).toBe('1.500 poruka');
+      expect(formatMessage(message, { n: 1 }, 'es')).toBe('1 mensaje');
+      expect(formatMessage(message, { n: 5 }, 'es')).toBe('5 mensajes');
+      expect(formatMessage(message, { n: 21 }, 'es')).toBe('21 mensajes');
+      expect(formatMessage(message, { n: 1_000_000 }, 'es')).toBe(
+        '1.000.000 de mensajes'
+      );
     });
 
     test('subtracts the offset from the plural number', () => {

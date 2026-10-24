@@ -28,9 +28,9 @@ describe('handlebars-helpers', () => {
     });
 
     test('translates a key into the given locale', () => {
-      render('{{t "greeting" "hr"}}', {}, 'de');
+      render('{{t "greeting" "es"}}', {}, 'de');
 
-      expect(translate).toHaveBeenCalledWith('greeting', 'hr', {});
+      expect(translate).toHaveBeenCalledWith('greeting', 'es', {});
     });
 
     test('compares the values', () => {

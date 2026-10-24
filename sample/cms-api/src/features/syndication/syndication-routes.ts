@@ -13,7 +13,7 @@ import { findPublishedPost, findPublishedPosts } from './posts';
 // The locale chosen by the application, here a request parameter, passed to
 // the template engine and the email service
 const locale = Type.Optional(
-  Type.String({ description: 'Locale to render in, i.e. `hr`.' })
+  Type.String({ description: 'Locale to render in, i.e. `de`.' })
 );
 
 registerRoute(

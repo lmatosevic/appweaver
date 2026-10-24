@@ -152,8 +152,8 @@ export async function eventually<T>(
 
 export const ADDRESS = {
   recipient: 'Test Customer',
-  street: 'Ilica 1',
-  city: 'Zagreb',
-  postalCode: '10000',
-  country: 'HR'
+  street: 'Calle de Alcalá 1',
+  city: 'Madrid',
+  postalCode: '28014',
+  country: 'ES'
 };

@@ -1,0 +1,40 @@
+{
+  "category": {
+    "defaultDescription": "Beiträge über {name}."
+  },
+  "post": {
+    "page": {
+      "publishedOn": "Veröffentlicht am {date}",
+      "by": "von {author}",
+      "category": "Kategorie",
+      "tags": "Schlagwörter",
+      "comments": "{comments, plural, =0 {Noch keine Kommentare} one {# Kommentar} other {# Kommentare}}"
+    }
+  },
+  "emails": {
+    "postShare": {
+      "subject": "{sender} hat einen Beitrag mit Ihnen geteilt: {title}",
+      "message": "{sender} glaubt, dass Sie dieser Beitrag interessieren könnte:",
+      "action": "Beitrag lesen"
+    },
+    "greeting": "Hallo,",
+    "linkHint": "Falls die Schaltfläche nicht funktioniert, kopieren Sie den folgenden Link in Ihren Browser:",
+    "footer": "Diese E-Mail wurde von {appName} gesendet.",
+    "verifyEmail": {
+      "subject": "Bestätigen Sie Ihre E-Mail-Adresse",
+      "message": "Bitte bestätigen Sie Ihre E-Mail-Adresse über den folgenden Link.",
+      "action": "E-Mail-Adresse bestätigen"
+    },
+    "passwordReset": {
+      "subject": "Anfrage zum Zurücksetzen des Passworts",
+      "message": "Wir haben eine Anfrage zum Zurücksetzen des Passworts Ihres Kontos erhalten. Über den folgenden Link können Sie ein neues Passwort wählen.",
+      "action": "Passwort zurücksetzen",
+      "ignore": "Falls Sie das Zurücksetzen des Passworts nicht angefordert haben, können Sie diese E-Mail ignorieren."
+    },
+    "twoFactorCode": {
+      "subject": "Ihr Bestätigungscode",
+      "message": "Bitte geben Sie den folgenden Code ein, um fortzufahren:",
+      "expires": "Der Code läuft in {count, plural, one {# Minute} other {# Minuten}} ab."
+    }
+  }
+}

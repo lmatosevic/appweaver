@@ -64,7 +64,7 @@ describe('watch-paths', () => {
       await wait(50);
 
       controller.abort();
-      fs.writeFileSync(path.join(dir, 'locales', 'hr.json'), '{}');
+      fs.writeFileSync(path.join(dir, 'locales', 'es.json'), '{}');
       await wait(300);
 
       expect(onChange).not.toHaveBeenCalled();

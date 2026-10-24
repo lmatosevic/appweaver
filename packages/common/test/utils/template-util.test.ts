@@ -9,7 +9,7 @@ import {
 
 describe('template-util', () => {
   describe('isLocaleTag', () => {
-    test.each(['en', 'de', 'hr', 'en-US', 'sr-Latn', 'de-AT'])(
+    test.each(['en', 'de', 'es', 'en-US', 'sr-Latn', 'de-AT'])(
       'accepts the locale %s',
       (tag) => {
         expect(isLocaleTag(tag)).toBe(true);
