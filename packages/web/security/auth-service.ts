@@ -42,7 +42,7 @@ import {
 } from '@appweaver/core';
 import { checkScopeAccess } from './access-util';
 import { OAuth2Service } from './oauth2/oauth2-service';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import type { HttpServer } from '../server/http-server';
 import { AuthOTTData, AuthTokens, JwtPayload } from '../types/http-auth';
 

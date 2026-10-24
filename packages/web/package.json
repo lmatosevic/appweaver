@@ -6,6 +6,17 @@
   "license": "MIT",
   "main": "./index.js",
   "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./config": {
+      "types": "./config.d.ts",
+      "default": "./config.js"
+    },
+    "./package.json": "./package.json"
+  },
   "keywords": [
     "appweaver",
     "appweaver-module"

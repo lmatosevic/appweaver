@@ -13,7 +13,7 @@ describe('Category tree output', () => {
   let leafId: number;
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     categories = injectService('Category');
 
     await categories.client.deleteMany({});

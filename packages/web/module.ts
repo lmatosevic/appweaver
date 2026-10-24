@@ -1,9 +1,43 @@
 import { Database, defineModule } from '@appweaver/common';
+import { healthCheckConfig } from './health/health-check-config';
+import {
+  accountConfig,
+  basicAuthConfig,
+  jwtConfig,
+  oauth2Config,
+  recaptchaConfig,
+  securityConfig,
+  turnstileConfig,
+  twoFactorConfig
+} from './security/security-config';
+import {
+  corsConfig,
+  rateLimitConfig,
+  serverConfig,
+  swaggerConfig
+} from './server/server-config';
+import { templatePreviewConfig } from './template/template-preview-config';
 
 /** The HTTP server with the authentication. */
 export default defineModule({
   name: '@appweaver/web',
   requires: ['@appweaver/data'],
+  config: [
+    serverConfig,
+    rateLimitConfig,
+    swaggerConfig,
+    corsConfig,
+    healthCheckConfig,
+    securityConfig,
+    accountConfig,
+    twoFactorConfig,
+    recaptchaConfig,
+    turnstileConfig,
+    basicAuthConfig,
+    jwtConfig,
+    oauth2Config,
+    templatePreviewConfig
+  ],
   services: [
     { load: () => import('./security/auth-service'), requires: [Database] },
     {

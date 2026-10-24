@@ -19,7 +19,7 @@ import {
   validateSoftDeleteCascades
 } from '../utils/model-util';
 import { ResourceContext } from '@appweaver/core';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import { pruneUnusedModels } from './utils/prune-util';
 
 export type LoadResourcePaths = {

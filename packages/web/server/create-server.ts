@@ -36,7 +36,7 @@ import {
   RateLimitStore,
   serverConfig
 } from './server-config';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import { errorHandler, notFoundHandler } from '../errors/error-handler';
 import { stashErrorResponses } from '../errors/error-schema';
 import { files } from '../storage/file-route';

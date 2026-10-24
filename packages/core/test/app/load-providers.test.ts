@@ -12,10 +12,10 @@ import {
   Storage
 } from '@appweaver/common';
 import { context } from '../../context/context';
-import { isDefined } from '../../context/dependency-injection';
+import { define, inject, isDefined } from '../../context/dependency-injection';
 import { EnabledModule } from '../../app/discover-modules';
 import { loadProviders, selectedProvider } from '../../app/load-providers';
-import { firstPartyModules } from '../../modules';
+import coreModule from '../../modules/core';
 import { resetContext } from '../fixtures/context-fixture';
 
 const load = () => import('../../memory/in-memory');
@@ -46,10 +46,7 @@ const dataModule: EnabledModule = {
 
 /** The modules of core and data, without any driver module. */
 const coreModules: EnabledModule[] = [
-  ...firstPartyModules.map(({ module }) => ({
-    module,
-    source: 'core' as const
-  })),
+  { module: coreModule, source: 'core' },
   dataModule
 ];
 
@@ -135,6 +132,39 @@ describe('load-providers', () => {
 
       expect(selectedProvider(Memory)).toBe('../../memory/in-memory');
       expect(isDefined(Memory)).toBe(true);
+    });
+
+    test('keeps a definition the application made before', async () => {
+      const memory = { name: 'stub' };
+      define(memory, Memory);
+
+      await loadProviders(allModules, __dirname);
+
+      expect(inject(Memory)).toBe(memory);
+    });
+
+    test('lets the application replace a provider and a service', async () => {
+      await loadProviders(allModules, __dirname);
+      const memory = { name: 'stub' };
+      const locale = { name: 'locale' };
+
+      define(memory, Memory);
+      define(locale, 'LocaleService');
+
+      expect(inject(Memory)).toBe(memory);
+      expect(inject('LocaleService')).toBe(locale);
+    });
+
+    test('selects the driver of a copy of the contract with the same name', async () => {
+      // The Memory of another copy of @appweaver/common
+      const CopiedMemory = { name: 'Memory' } as unknown as typeof Memory;
+
+      await loadProviders(
+        [...coreModules, driverModule('copied-redis', CopiedMemory, 'redis')],
+        __dirname
+      );
+
+      expect(selectedProvider(Memory)).toBe('redis');
     });
 
     test('fails for a provider no enabled module registers', async () => {

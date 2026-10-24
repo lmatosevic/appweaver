@@ -5,7 +5,7 @@ import {
   RESOURCE_TYPE,
   Storage
 } from '@appweaver/common';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import { define, CacheService, currentAuthUser } from '@appweaver/core';
 import { FileService } from '../../storage/file-service';
 import { withoutPolicies } from '../../utils/policy-util';
@@ -385,6 +385,9 @@ describe('file-service', () => {
         mimeType: 'application/pdf'
       });
       expect(storage.stream).not.toHaveBeenCalled();
+      expect(storage.url).toHaveBeenCalledWith(file.name, {
+        expiresIn: 900_000
+      });
     });
 
     test('streams the file from a storage without URLs', async () => {

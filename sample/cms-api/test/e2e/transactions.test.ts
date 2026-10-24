@@ -34,7 +34,7 @@ describe('Transactions', () => {
   const isStored = (fileName: string) => inject(Storage).exists(fileName);
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     categories = injectService('Category');
     tags = injectService('Tag');
     posts = injectService('Post');

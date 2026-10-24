@@ -1,5 +1,4 @@
 import { PassThrough, Readable, Transform } from 'node:stream';
-import { Multipart, MultipartFile } from '@fastify/multipart';
 import {
   config,
   ContentStream,
@@ -43,12 +42,12 @@ import {
 } from '../utils/file-util';
 import { liveRecordFilter } from '../utils/model-util';
 import { File } from '../types/generated';
-import { FileBuffer } from '../types/storage';
+import { FileBuffer, UploadedFile, UploadPart } from '../types/storage';
 import {
   afterCommit,
   afterRollback,
   currentTransaction
-} from '@appweaver/core/context/transaction-scope';
+} from '@appweaver/core/internal';
 
 export type FileStream = {
   content: ContentStream;
@@ -175,7 +174,7 @@ export class FileService {
     const file = await this.authorizeRead(fileName);
 
     const url = await this._storage.url(fileName, {
-      expiresIn: storageConfig.CACHE_TTL
+      expiresIn: storageConfig.URL_TTL
     });
     if (url) {
       return {
@@ -191,7 +190,7 @@ export class FileService {
   /**
    * Saves a file to storage, validates its properties, and associates it with a specific resource and client.
    *
-   * @param {MultipartFile} data The multipart file object containing the file data, field name, filename, and metadata.
+   * @param {UploadedFile} data The multipart file object containing the file data, field name, filename, and metadata.
    * @param {Resource} resource The resource object with which the file is being associated.
    * @param {ResourceClient} client The database client responsible for handling the resource.
    * @return {Promise<File>} A promise that resolves to the saved file object or rejects with an error if the operation
@@ -199,7 +198,7 @@ export class FileService {
    * @throws {FileError} Throws an error if file validation, storage, or resource association fails.
    */
   public async saveFile(
-    data: MultipartFile,
+    data: UploadedFile,
     resource: Resource,
     client: ResourceClient
   ): Promise<File> {
@@ -258,7 +257,7 @@ export class FileService {
   /**
    * Saves files received as an asynchronous iterable of multipart data.
    *
-   * @param {AsyncIterableIterator<Multipart>} parts - The asynchronous iterable providing multipart data where each
+   * @param {AsyncIterableIterator<UploadPart>} parts - The asynchronous iterable providing multipart data where each
    * part is expected to represent a file or other data.
    * @param {Resource} resource - The resource associated with the files being saved, providing additional contextual
    * information.
@@ -268,7 +267,7 @@ export class FileService {
    * if one or more files fail to save.
    */
   public async saveFiles(
-    parts: AsyncIterableIterator<Multipart>,
+    parts: AsyncIterableIterator<UploadPart>,
     resource: Resource,
     client: ResourceClient
   ): Promise<File[]> {

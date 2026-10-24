@@ -1,7 +1,7 @@
 import fastifyPlugin from 'fastify-plugin';
 import { TObject } from '@sinclair/typebox';
 import { MODEL, Model, resourceModelProps } from '@appweaver/common';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import { injectAll } from '@appweaver/core';
 import {
   PROBLEM_DETAILS_SCHEMA_NAME,

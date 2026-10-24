@@ -24,7 +24,7 @@ it is selected whenever the module is installed.
 npm install @appweaver/cron
 ```
 
-or `weaver module add scheduler` in a project created with `create-weaver-app`.
+or `weaver module add scheduler` in a project created with `@appweaver/create`.
 
 `inject(Scheduler).addJob({ cronTime, onTick, timeZone })` registers a job, `scheduler.autoStartJob` starts it.
 

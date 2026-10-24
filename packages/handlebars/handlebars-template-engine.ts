@@ -16,7 +16,12 @@ import {
   appConfig,
   TemplateError
 } from '@appweaver/common';
-import { inject, LocaleService, templateConfig } from '@appweaver/core';
+import {
+  inject,
+  LocaleService,
+  moduleDirectories,
+  templateConfig
+} from '@appweaver/core';
 import { createHandlebarsHelpers } from './handlebars-helpers';
 
 const TEMPLATE_EXTENSIONS = ['.hbs', '.handlebars'];
@@ -145,43 +150,14 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
 
   /** @internal */
   private async loadFiles(): Promise<void> {
-    const dir = path.resolve(process.cwd(), templateConfig.PATH);
     const files: TemplateLayer = new Map();
 
-    let fileNames: string[];
-    try {
-      fileNames = await fsp.readdir(dir, { recursive: true });
-    } catch {
-      logger.debug({ dir }, 'Template directory not found');
-      fileNames = [];
-    }
-
-    for (const fileName of fileNames) {
-      const extension = TEMPLATE_EXTENSIONS.find((ext) =>
-        fileName.endsWith(ext)
-      );
-      if (!extension) {
-        continue;
-      }
-
-      const filePath = path.join(dir, fileName);
-      let source: string;
-      try {
-        // An editor ends a file with a line break, which would otherwise be
-        // written after every included partial
-        source = (await fsp.readFile(filePath, 'utf8')).replace(/\r?\n$/, '');
-      } catch (e) {
-        throw new TemplateError(
-          ErrorCode.TemplateLoadFailed,
-          `Template file '${filePath}' loading failed`,
-          { path: filePath },
-          { cause: e }
-        );
-      }
-
-      parseTemplate(filePath, source);
-      const parsed = parseTemplatePath(fileName.slice(0, -extension.length));
-      addTemplate(files, parsed.name, source, parsed.locale);
+    // The templates of the application override the ones of the modules
+    for (const dir of [
+      ...moduleDirectories('templates'),
+      path.resolve(process.cwd(), templateConfig.PATH)
+    ]) {
+      await readTemplateFiles(dir, files);
     }
 
     this._files = files;
@@ -337,6 +313,46 @@ function parseTemplate(name: string, source: string): void {
       { path: name },
       { cause: e }
     );
+  }
+}
+
+/** Reads the template files of a directory into a layer, replacing the templates of the same name and locale. */
+async function readTemplateFiles(
+  dir: string,
+  files: TemplateLayer
+): Promise<void> {
+  let fileNames: string[];
+  try {
+    fileNames = await fsp.readdir(dir, { recursive: true });
+  } catch {
+    logger.debug({ dir }, 'Template directory not found');
+    fileNames = [];
+  }
+
+  for (const fileName of fileNames) {
+    const extension = TEMPLATE_EXTENSIONS.find((ext) => fileName.endsWith(ext));
+    if (!extension) {
+      continue;
+    }
+
+    const filePath = path.join(dir, fileName);
+    let source: string;
+    try {
+      // An editor ends a file with a line break, which would otherwise be
+      // written after every included partial
+      source = (await fsp.readFile(filePath, 'utf8')).replace(/\r?\n$/, '');
+    } catch (e) {
+      throw new TemplateError(
+        ErrorCode.TemplateLoadFailed,
+        `Template file '${filePath}' loading failed`,
+        { path: filePath },
+        { cause: e }
+      );
+    }
+
+    parseTemplate(filePath, source);
+    const parsed = parseTemplatePath(fileName.slice(0, -extension.length));
+    addTemplate(files, parsed.name, source, parsed.locale);
   }
 }
 

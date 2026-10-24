@@ -16,7 +16,7 @@ import {
   runInTransaction,
   settleTransaction,
   TransactionContext
-} from '@appweaver/core/context/transaction-scope';
+} from '@appweaver/core/internal';
 
 /** The transaction of the Prisma client the current call runs in. */
 type PrismaTransaction = TransactionContext<

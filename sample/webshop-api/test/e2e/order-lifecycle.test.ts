@@ -46,7 +46,7 @@ describe('Order lifecycle', () => {
     (await db().product.findUnique({ where: { id: productId } })).stock;
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     await createRoles();
 
     customer = await registerCustomer(app, 'Cleo');

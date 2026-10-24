@@ -1,7 +1,7 @@
 import fsp from 'node:fs/promises';
 import { Command } from 'commander';
 import { config } from '@appweaver/common';
-import { storageConfig } from '@appweaver/core/storage/storage-config';
+import { storageConfig } from '@appweaver/core/config';
 import { generateSchema } from '../generate';
 import {
   assertEnv,
@@ -58,8 +58,8 @@ export function testingCommand(program: Command): void {
 
       const quiet = !command.getOptionValue('verbose');
       const { databaseConfig, resourceConfig } = await importPackage<
-        typeof import('@appweaver/data')
-      >('@appweaver/data', 'test setup');
+        typeof import('@appweaver/data/config')
+      >('@appweaver/data/config', 'test setup');
 
       const tempDir = command.getOptionValue('dir');
 
@@ -112,6 +112,18 @@ export function testingCommand(program: Command): void {
       }
 
       setAiDangerousActionConsent();
+      // A database server keeps the tables and the migrations of the last run,
+      // which the new migration would conflict with
+      const resetStatus = await runProcess(
+        'prisma',
+        ['migrate', 'reset', '--force'],
+        { quiet }
+      );
+      if (resetStatus !== 0) {
+        console.error('Failed to reset the test database');
+        process.exit(resetStatus);
+      }
+
       const migrateStatus = await runProcess(
         'prisma',
         ['migrate', 'dev', '--name', command.getOptionValue('migrationName')],

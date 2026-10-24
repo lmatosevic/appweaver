@@ -8,6 +8,7 @@ export const context: ApplicationContext = {
     routes: new Map()
   },
   modules: {
+    enabled: [],
     providers: new Map()
   },
   definitions: []

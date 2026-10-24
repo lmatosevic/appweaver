@@ -5,7 +5,7 @@ describe('Test Sample CMS API', () => {
   let app: Application;
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
   });
 
   afterAll(async () => {

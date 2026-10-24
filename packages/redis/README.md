@@ -24,7 +24,7 @@ it is selected whenever the module is installed.
 npm install @appweaver/redis
 ```
 
-or `weaver module add redis` in a project created with `create-weaver-app`.
+or `weaver module add redis` in a project created with `@appweaver/create`.
 
 The connection URL is `memory.redis.url` (`MEMORY_REDIS_URL`). The cache, the rate limit (`rateLimit.store` `auto`) and the BullMQ queue use its connection.
 

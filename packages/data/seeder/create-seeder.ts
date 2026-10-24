@@ -1,7 +1,7 @@
 import { resolveSourcePath, appConfig } from '@appweaver/common';
 import { databaseConfig } from '../database/database-config';
 import { discoverModules } from '@appweaver/core';
-import { loadProviders } from '@appweaver/core/app/load-providers';
+import { loadProviders } from '@appweaver/core/internal';
 import { Seeder } from './seeder';
 
 export type CreateSeederParams = {
@@ -26,7 +26,8 @@ export type CreateSeederParams = {
 
 /**
  * Creates the database seeder, loading the providers of the project first, and runs the pending seeders unless
- * `autoSeed` is disabled.
+ * `autoSeed` is disabled: the seeders of the modules declaring a `seeders` directory first, then the ones of the
+ * application.
  *
  * @param {CreateSeederParams} [params={}] - The seeder parameters.
  * @return {Promise<Seeder>} The created seeder.
@@ -48,12 +49,16 @@ export async function createSeeder(
   );
 
   // Define the providers and the services of the modules
-  await loadProviders(await discoverModules({ scanPath }), scanPath);
+  const modules = await discoverModules({ scanPath });
+  await loadProviders(modules, scanPath);
 
   const seeder = new Seeder(
     seedersPath,
     params.continueOnError,
-    params.fixWarnings
+    params.fixWarnings,
+    modules.flatMap(({ module }) =>
+      module.seeders ? [{ name: module.name, path: module.seeders }] : []
+    )
   );
 
   if (params.autoSeed !== false) {

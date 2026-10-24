@@ -6,12 +6,13 @@ import {
   findFilesByPattern,
   importModule,
   isModule,
+  logger,
   Module,
   ModuleError,
-  requireModule,
   satisfiesVersion
 } from '@appweaver/common';
-import { firstPartyModules } from '../modules';
+import { context } from '../context/context';
+import coreModule from '../modules/core';
 
 /** Where an enabled module was found. */
 export type ModuleSource = 'core' | 'package' | 'local' | 'explicit';
@@ -36,6 +37,8 @@ export type DiscoverModulesParams = {
   sources?: boolean;
 };
 
+const COMMON = '@appweaver/common';
+
 /** The packages a project never enables as modules, the framework itself. */
 const frameworkPackages = ['@appweaver/common', '@appweaver/core'];
 
@@ -53,11 +56,8 @@ export async function discoverModules(
   params: DiscoverModulesParams
 ): Promise<EnabledModule[]> {
   const rootPath = params.rootPath ?? process.cwd();
-  const found: EnabledModule[] = [];
-
-  for (const { module } of firstPartyModules) {
-    found.push({ module, source: 'core' });
-  }
+  // Every module builds on the runtime of core
+  const found: EnabledModule[] = [{ module: coreModule, source: 'core' }];
 
   found.push(...(await findPackageModules(rootPath)));
 
@@ -94,8 +94,14 @@ export async function discoverModules(
 async function findPackageModules(rootPath: string): Promise<EnabledModule[]> {
   const packageJson = readJson(path.join(rootPath, 'package.json'));
   if (!packageJson) {
+    logger.warn(
+      { rootPath },
+      'No package.json in the working directory, so no module package is enabled, start the application from its root'
+    );
     return [];
   }
+
+  const projectCommon = realPackagePath(COMMON, rootPath);
 
   const modules: EnabledModule[] = [];
   const visited = new Set<string>(frameworkPackages);
@@ -125,6 +131,15 @@ async function findPackageModules(rootPath: string): Promise<EnabledModule[]> {
     );
     modules.push(enabled);
 
+    const moduleCommon = realPackagePath(COMMON, packagePath);
+    if (moduleCommon && projectCommon && moduleCommon !== projectCommon) {
+      logger.warn(
+        { name: enabled.module.name, common: moduleCommon },
+        `The module '${enabled.module.name}' loads its own copy of ${COMMON}, whose config sections the application ` +
+          'does not see, dedupe it (npm dedupe) or install a matching version'
+      );
+    }
+
     for (const required of enabled.module.requires ?? []) {
       pending.push([required, packagePath]);
     }
@@ -137,12 +152,12 @@ async function findPackageModules(rootPath: string): Promise<EnabledModule[]> {
  * Loads a part of every module declaring it, in the order of the modules.
  *
  * @param {EnabledModule[]} modules - The enabled modules.
- * @param {'resources' | 'main' | 'web' | 'commands'} part - The part to load.
+ * @param {'resources' | 'main' | 'web'} part - The part to load.
  * @return {Promise<unknown[]>} The exports of the part of every module.
  */
 export async function loadModuleParts(
   modules: EnabledModule[],
-  part: 'resources' | 'main' | 'web' | 'commands'
+  part: 'resources' | 'main' | 'web'
 ): Promise<unknown[]> {
   const exports: unknown[] = [];
   for (const { module } of modules) {
@@ -152,6 +167,45 @@ export async function loadModuleParts(
     }
   }
   return exports;
+}
+
+/**
+ * Returns the directories the enabled modules declare for a part, in the load order of the modules, i.e. the
+ * translations directories the `LocaleService` reads before the one of the application.
+ *
+ * @param {'locales' | 'templates' | 'seeders'} part - The part of the manifests.
+ * @return {string[]} The absolute paths of the directories.
+ */
+export function moduleDirectories(
+  part: 'locales' | 'templates' | 'seeders'
+): string[] {
+  return context.modules.enabled.flatMap((module) => module[part] ?? []);
+}
+
+/**
+ * Parses the config sections the enabled modules declare in their `config`, so an invalid value fails the start of
+ * the application instead of the first read of its key. The sections of a driver module, with providers but no
+ * contracts of its own, are parsed only when one of its providers is selected.
+ *
+ * @throws {ConfigurationError} For the first section with an invalid or missing value.
+ */
+export function checkModuleConfig(): void {
+  for (const module of context.modules.enabled) {
+    const used =
+      !module.providers?.length ||
+      !!module.contracts?.length ||
+      module.providers.some(
+        ({ contract, name }) =>
+          context.modules.providers.get(contract.name) === name
+      );
+    if (!used) {
+      continue;
+    }
+    for (const section of module.config ?? []) {
+      // Reading the values parses the section
+      Object.values(section);
+    }
+  }
 }
 
 /**
@@ -175,7 +229,7 @@ async function importManifest(
   sources: boolean = false
 ): Promise<EnabledModule> {
   const { value, error } = sources
-    ? requireModule(manifestPath)
+    ? requireSource(manifestPath)
     : await importModule(manifestPath);
   const manifest = (value as { default?: unknown } | null)?.default ?? value;
   if (error || !isModule(manifest)) {
@@ -189,6 +243,21 @@ async function importManifest(
     );
   }
   return { module: manifest, source, path: manifestPath };
+}
+
+/**
+ * Requires a manifest of the sources as it is, i.e. a `.ts` file compiled by the registered loader, which
+ * `requireModule` would rewrite to the `.js` file of a build.
+ */
+function requireSource(
+  manifestPath: string
+): { value: unknown; error: null } | { value: null; error: Error } {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return { value: require(manifestPath), error: null };
+  } catch (e) {
+    return { value: null, error: e as Error };
+  }
 }
 
 /** Rejects two modules with the same name. */
@@ -280,6 +349,12 @@ function findPackagePath(name: string, fromPath: string): string | undefined {
     }
     directory = parent;
   }
+}
+
+/** Returns the real path of the copy of a package a directory resolves, if any. */
+function realPackagePath(name: string, fromPath: string): string | undefined {
+  const packagePath = findPackagePath(name, fromPath);
+  return packagePath ? fs.realpathSync(packagePath) : undefined;
 }
 
 function readJson(filePath: string): Record<string, any> | undefined {

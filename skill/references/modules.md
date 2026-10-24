@@ -64,8 +64,10 @@ The server of `@appweaver/web` is created by its `HttpServer` service once every
 application starts. The resources and the routes of the application and the modules are all loaded before the `main`
 parts and the application files.
 
-A provider or a service of a module is defined with the `override` mode of `define`. The application replaces one with
-`define(MyService, ModuleService, 'override')`, since the default mode keeps the existing definition.
+A provider or a service of a module is defined with the `default` mode of `define`: it keeps a definition the
+application made before `createApp`, and a later `define` of the application replaces it in the `ignore` (default),
+`override` and `fail` modes (`define(MyService, ModuleService)` in an application file), while `append` adds a
+definition beside it, which `inject` does not return.
 
 ## Provider selection
 
@@ -96,7 +98,7 @@ export default defineModule({ name: 'appweaver-newsletter' /* ... */ });
 | `name`      | `string`                                 | The name, the package name for a package module                                                                                                    |
 | `framework` | `string`                                 | The supported Appweaver version range, i.e. `^2.0.0`, checked at startup                                                                           |
 | `requires`  | `string[]`                               | The modules that must be enabled with it (`@appweaver/bullmq` requires `@appweaver/redis`)                                                         |
-| `config`    | `object[]`                               | Its config sections, defined with `defineConfig`                                                                                                   |
+| `config`    | `object[]`                               | Its config sections, defined with `defineConfig`, validated at start and listed in `appweaver.schema.json` (a driver's validated only when selected)|
 | `contracts` | `{ contract, provider: () => string }[]` | The contracts it declares, with the function reading the provider key, i.e. `() => paymentConfig.PROVIDER`                                         |
 | `providers` | `{ contract, name, load, auto? }[]`      | Its contract implementations. `load` imports the class lazily (`() => import('./gcs-storage')`), `auto` is `true`, `'fallback'` or `false`         |
 | `services`  | `{ load, requires? }[]`                  | Classes defined at startup by their class name, with their lifecycle hooks and health checks; `requires` lists the contracts that must be provided |
@@ -104,8 +106,7 @@ export default defineModule({ name: 'appweaver-newsletter' /* ... */ });
 | `resources` | `() => import(...)`                      | A file exporting its models, resource services and policies, loaded by the `setup` of `@appweaver/data`, and by `weaver generate`                  |
 | `main`      | `() => import(...)`                      | Code run at startup: scheduled jobs, queue workers, event listeners                                                                                |
 | `web`       | `() => import(...)`                      | Its resource routes, custom routes (`registerRoute`) and plugins (`registerPlugin`), loaded by the `setup` of `@appweaver/web`                     |
-| `commands`  | `() => import(...)`                      | Its `weaver` subcommands                                                                                                                           |
-| `seeders`   | `string`                                 | The absolute path of its seeders directory                                                                                                         |
+| `seeders`   | `string`                                 | The absolute path of its seeders directory, run by `weaver seed` before the seeders of the application                                             |
 | `locales`   | `string`                                 | The absolute path of its translations, overridden by the ones of the application                                                                   |
 | `templates` | `string`                                 | The absolute path of its templates, overridden by the ones of the application                                                                      |
 
@@ -124,17 +125,48 @@ export default defineModule({
 });
 ```
 
-`isModule(value)` checks a manifest, and `PROVIDER_AUTO` / `PROVIDER_NONE` hold `'auto'` and `'none'`.
+`isModule(value)` checks a manifest, and `PROVIDER_AUTO` / `PROVIDER_NONE` hold `'auto'` and `'none'`. A manifest is
+marked with `Symbol.for('appweaver.module')`, so it is recognized whichever copy of `@appweaver/common` defined it.
 
-The `config`, `commands`, `seeders`, `locales` and `templates` fields are declared for the tooling, and not loaded by
-the framework yet: a config section is registered when its file imports `defineConfig`, and only the seeders,
-translations and templates of the application are read.
+The directories of `seeders`, `locales` and `templates` are absolute, i.e. `path.join(__dirname, 'locales')` in
+`module.ts`, so they point to the build output of a package or a local module:
+
+- `weaver seed` (`createSeeder`) runs the seeders of the modules first, in their load order, each recorded under the
+  name of its module (`appweaver-newsletter/1-lists`), then the seeders of the application. A module declaring
+  `seeders` keeps the `Seeder` model in `weaver generate`.
+- The `LocaleService` reads the translation files of the modules, then of `LOCALE_PATH`, a key of the application
+  replacing the same key of a module.
+- The Handlebars engine reads the templates of the modules, then of `TEMPLATE_PATH`, a template of the application
+  replacing the template of a module with the same name and locale, so an application restyles the email of a module
+  by adding the file of the same name.
+
+`moduleDirectories('locales' | 'templates' | 'seeders')` of `@appweaver/core` returns the directories of the enabled
+modules, for a driver of another engine. A config section is registered when its file is imported (the manifest
+imports it to list it), and the sections of `config` are parsed when the application starts, so an invalid value fails
+the start instead of the first read of its key. A module ships its own command line tool, or a task run with
+`weaver run`, since `weaver` has no module subcommands.
 
 A module model relates to the application only through a reference resolved when the app loads, i.e. the auth model.
 
+## Local modules
+
+A local module lives in `src/modules/<name>/`, compiled with the application and enabled by `APP_MODULES_PATTERN`
+without any config. `weaver module new <name>` creates its files:
+
+```sh
+weaver module new audit-log            # src/modules/audit-log/{module.ts,config.ts,main.ts}
+weaver module new audit-log --dry-run  # print the files without writing them
+```
+
+The name is kebab-case, and the config section the camelCase of it (`auditLog`, read from `config.auditLog` and the
+`AUDIT_LOG_*` variables), with an `ENABLED` key. `module.ts` names the module, its config and its `main`, with
+commented `providers` and `services` entries to fill in; `main.ts` is its startup code. The command refuses to
+overwrite an existing module. A driver nests its section under its contract, so rename the section of a new driver
+module (`defineConfig('storage.gcs', ...)`), as in the example below.
+
 ## Example: a Google Cloud Storage driver
 
-A local module lives in `src/modules/<name>/`, compiled with the application and enabled without any config:
+The files of a local driver module:
 
 ```
 src/modules/gcs/
@@ -273,6 +305,94 @@ export default defineModule({
   installing the package brings and enables it, or a peer dependency the application installs too (`@appweaver/web`
   on `@appweaver/data`).
 - The application enables the package by installing it as a dependency (not a dev dependency).
+- Never ship a `ResourceRegistry` augmentation for the models of the package: the application's `weaver generate`
+  registers them (it skips the registry when run in a module package, and leaves out the models of a package that
+  registers them anyway).
+- Import the framework by its entry points only, since every `@appweaver/*` package declares them in its `exports`:
+  the package names, `@appweaver/core/config` and `@appweaver/data/config` (the config sections),
+  `@appweaver/core/drivers` (the in-process drivers) and `@appweaver/core/internal` (the application `context`, the
+  transaction scope, `LifecycleManager` and `loadProviders`, which can change in a minor release, so pin the
+  `framework` range). Node refuses a deep import such as `@appweaver/core/context/context`.
 - A driver nests its config section under its contract (`storage.gcs`, like `mailer.smtp`), any other module takes its
   own top-level section. Two packages may define the same section path with their own keys (`healthCheck` in core and
   web, `security.oauth2` in data and web), but a flattened key belongs to one section only.
+
+### Creating a module package
+
+`npm create @appweaver module` creates a module package, ready to test and publish:
+
+```sh
+npm create @appweaver module @acme/appweaver-gcs "Google Cloud Storage driver" -- --contract storage
+npx @appweaver/create module @acme/appweaver-audit                       # a feature module
+npx @appweaver/create module appweaver-postmark --contract mailer -o ./postmark
+```
+
+| Option                         | Description                                                                         | Default                        |
+|--------------------------------|-------------------------------------------------------------------------------------|--------------------------------|
+| `<package>`                    | npm name of the package, i.e. `@acme/appweaver-gcs`                                 | —                              |
+| `[description]`                | Description of the package                                                          | `Appweaver module`             |
+| `--contract [contract]`        | Contract its driver implements: `storage`, `mailer`, or `none` for a feature module | `none`                         |
+| `-o, --output-dir [outputDir]` | Directory of the package                                                            | package name without its scope |
+
+The short name of the module strips the scope and the `appweaver-` prefix (`@acme/appweaver-gcs` → `gcs`), and is the
+name of its provider. The package holds:
+
+| File                                              | Holds                                                                                                                                 |
+|---------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
+| `package.json`                                    | The `appweaver.module` field, the keyword `appweaver-module`, `@appweaver/common`, `@appweaver/core` and TypeBox as peer dependencies |
+| `src/module.ts`                                   | The manifest, named after the package, with its `framework` range and its provider or `main`                                          |
+| `src/config.ts`                                   | Its section: `<contract>.<name>` for a driver (`storage.gcs`, `STORAGE_GCS_*`), `<name>` for a feature module                         |
+| `src/storage.ts` / `src/mailer.ts`                | The driver class `<Name>Storage` / `<Name>Mailer`, an in-memory stub passing the contract suite, to replace with the service calls    |
+| `src/main.ts`                                     | The startup code of a feature module                                                                                                  |
+| `test/*.test.ts`                                  | The contract suite of the driver, or a test of the manifest                                                                           |
+| `tsconfig*.json`, `jest.config.json`, `README.md` | The build, the Jest setup with SWC, and the usage                                                                                     |
+
+```sh
+cd appweaver-gcs && npm install && npm test && npm publish
+```
+
+### Testing a driver
+
+`@appweaver/testing` holds a contract suite per contract, testing a driver against the behavior every driver of it
+shares. Call it at the top level of a test file with the name of the driver and a function creating it, a fresh
+instance for every test:
+
+```ts
+// test/gcs-storage.test.ts
+import { testStorageContract } from '@appweaver/testing';
+import { GcsStorage } from '../src/gcs-storage';
+
+testStorageContract('GcsStorage', () => new GcsStorage());
+```
+
+A driver of an external service runs the suite on an in-memory stand-in of its client, the way `@appweaver/redis` runs
+`testMemoryContract` on `ioredis-mock` (`jest.mock('ioredis', ...)`), or on a real service in an integration test.
+
+| Suite                   | Contract    | Tests                                                                                       |
+|-------------------------|-------------|---------------------------------------------------------------------------------------------|
+| `testMemoryContract`    | `Memory`    | Values and their expiry, `exists` and `delete`, key patterns, locks, the health check       |
+| `testStorageContract`   | `Storage`   | Storing and streaming a file and a byte range, `exists`, `delete`, `url`, the health check  |
+| `testQueueContract`     | `Queue`     | A job processed by a worker and its result, a failed job, closing a queue, the health check |
+| `testSchedulerContract` | `Scheduler` | Adding, starting, stopping and removing a job, an unknown job id (yearly jobs, none ticks)  |
+| `testMailerContract`    | `Mailer`    | Sending an email with every field of the contract, the health check                         |
+
+The suites use the `describe`, `test`, `beforeEach`, `afterEach` and `expect` globals, so they run under Jest, Vitest
+(with `globals: true`) and Bun. A driver of a remote service runs them against a test instance or emulator, the
+mailer suite against a test inbox or a mocked transport, since it sends a real email. Set the config the driver reads
+with `configOverrides` of `@appweaver/common` in the factory or a `beforeAll`.
+
+### Adding a module package
+
+An application enables a module package by installing it as a dependency. `weaver module add` does that without
+running its install scripts, then prints what it brings:
+
+```sh
+weaver module add @acme/appweaver-gcs
+# Module @acme/appweaver-gcs is enabled.
+#   provides Storage "gcs", select it in the provider key of the contract
+```
+
+A name that is not a scaffold module, with a scope, a `-` or a `/`, is a package, installed with `npm install --ignore-scripts` (`bun add` on Bun), and
+can be mixed with the scaffold modules (`weaver module add redis @acme/appweaver-gcs`). A package without the
+`appweaver.module` field, or without a valid manifest, is reported as not a module. `--dry-run` prints the install
+command, and `--no-install` only adds the packages to `package.json` and the lockfile.

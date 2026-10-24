@@ -11,7 +11,7 @@ Registers a value or class constructor in the application context.
 |---------------|------------------------------------------------|-------------------------------------------------------------------------------------------------------|
 | `value`       | any                                            | The value, instance, or class constructor to register                                                 |
 | `nameOrClass` | `string \| symbol \| Class \| Function`        | Token used to look up this definition. Defaults to the value's class name or `RESOURCE_NAME` property |
-| `mode`        | `'ignore' \| 'override' \| 'append' \| 'fail'` | How to handle duplicates. Defaults to `'ignore'`                                                      |
+| `mode`        | `'ignore' \| 'override' \| 'append' \| 'fail' \| 'default'` | How to handle duplicates. Defaults to `'ignore'`                                      |
 
 The `mode` decides what happens when a definition with the same name exists:
 
@@ -20,6 +20,10 @@ The `mode` decides what happens when a definition with the same name exists:
   service, routes, or policy) has one definition per name, so it replaces the existing one.
 - `'override'` – replaces the existing definition.
 - `'fail'` – throws an error.
+- `'default'` – keeps an existing definition silently (a default replaces an earlier default), otherwise adds a
+  default that a later definition under the same name replaces in the `ignore`, `override` and `fail` modes, while
+  `append` adds beside it. The providers and services of the modules are defined so, so a plain
+  `define(new MyEmailService(), EmailService)` in an application file replaces the one of a module.
 
 **Register a plain value with a string token:**
 
@@ -235,7 +239,7 @@ interfaces of `@appweaver/common`, called in this order:
 | Hook                       | Interface    | Runs                                                                                                                            |
 |----------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------|
 | `onInit()`                 | `OnInit`     | Once when the application starts.                                                                                               |
-| `onReady({ startServer })` | `OnReady`    | Once every `onInit` finished, i.e. to start serving requests. `startServer` is `false` for `app.start(false)` and `weaver run`. |
+| `onReady()`                | `OnReady`    | Once every `onInit` finished, i.e. to start serving requests (the server listens unless `SERVER_LISTEN` is `false`).            |
 | `onShutdown()`             | `OnShutdown` | First when the application stops, before any service is destroyed, i.e. to stop serving requests.                               |
 | `onDestroy()`              | `OnDestroy`  | Last when the application stops, after every `onShutdown`, to release the resources.                                            |
 

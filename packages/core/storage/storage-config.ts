@@ -11,6 +11,9 @@ export const storageConfig = defineConfig('storage', {
   NAME_PATTERN: Type.String({ default: '{name}-{hash}.{extension}' }),
   /** File storage cache TTL in milliseconds. Default: `86400000` (24 hours). */
   CACHE_TTL: Type.Integer({ default: 86400000 }),
+  /** How long the URL of a storage serving its files directly (i.e. a signed URL) is valid, in milliseconds.
+   *  Default: `900000` (15 minutes). */
+  URL_TTL: Type.Integer({ default: 900000 }),
   /** URL prefix for file access routes. Default: `'/files'`. */
   FILES_ROUTE_PREFIX: Type.String({ default: '/files' }),
   /** Storage provider: `auto` (`local` unless a module of another driver is enabled), `local`, `none`, or the

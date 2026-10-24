@@ -1,5 +1,5 @@
 {
-  "$schema": "../../node_modules/@appweaver/common/config/schema.json",
+  "$schema": "./appweaver.schema.json",
   "config": {
     "app": {
       "name": "CMS API",
@@ -76,6 +76,9 @@
       "log": {
         "level": "silent",
         "sync": true
+      },
+      "server": {
+        "listen": false
       },
       "database": {
         "url": "file:./temp/test.db",

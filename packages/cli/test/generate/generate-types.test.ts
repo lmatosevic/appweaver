@@ -43,9 +43,16 @@ describe('generate-types', () => {
 
   const generate = async (
     models: Record<string, ResourceModel>,
-    registry: boolean = true
+    registry: boolean = true,
+    unregistered?: ReadonlySet<string>
   ): Promise<{ status: number; types: string }> => {
-    const status = await generateTypes(models, typesPath, true, registry);
+    const status = await generateTypes(
+      models,
+      typesPath,
+      true,
+      registry,
+      unregistered
+    );
     const typesFile = path.join(tempDir, typesPath);
     return {
       status,
@@ -317,6 +324,21 @@ describe('generate-types', () => {
         'Draft: { model: any; single: any; multiple: any; create: any; update: any; replace: any; query: any; service: IResourceService; relations: string };'
       );
       expect(types).toContain('import { AggregateSelect, IResourceService');
+    });
+
+    test('leaves out of the registry the models their module registers', async () => {
+      const { types } = await generate(
+        {
+          Post: model('Post', Type.Object({ title: Type.String() })),
+          Invoice: model('Invoice', Type.Object({ total: Type.Number() }))
+        },
+        true,
+        new Set(['Invoice'])
+      );
+
+      expect(types).toContain('export type InvoiceResourceService');
+      expect(types).toContain('    Post: { model: Post;');
+      expect(types).not.toContain('    Invoice: {');
     });
 
     test('skips the resource registry when disabled', async () => {

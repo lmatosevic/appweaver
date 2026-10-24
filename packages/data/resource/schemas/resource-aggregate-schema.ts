@@ -1,6 +1,6 @@
 import { TObject, TSchema, Type } from '@sinclair/typebox';
 import { ResourceModel } from '@appweaver/common';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import { createSchemaModel } from '@appweaver/core';
 import { aggregateFields } from '../utils/aggregate-util';
 

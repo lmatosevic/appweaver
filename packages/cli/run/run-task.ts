@@ -40,9 +40,11 @@ export async function runTask(
   args: string[]
 ): Promise<number> {
   configOverrides.SCHEDULER_AUTO_START_JOB = false;
+  configOverrides.SERVER_LISTEN = false;
+  // The application the task runs in may already listen on the health port
+  configOverrides.HEALTH_CHECK_PORT = 0;
 
-  const app = await createApp({ autoStart: false });
-  await app.start(false);
+  const app = await createApp();
 
   try {
     const { value: task, error } = await importModule<Task>(

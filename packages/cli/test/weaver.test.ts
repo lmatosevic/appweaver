@@ -12,6 +12,7 @@ jest.mock('prettier', () => ({
 
 import { Command } from 'commander';
 import { buildCommand } from '../build';
+import { configCommand } from '../config';
 import { generateCommand } from '../generate';
 import { migrateCommand } from '../migrate';
 import { migrationCommand } from '../migration';
@@ -30,6 +31,7 @@ function createProgram(): Command {
   const program = new Command('weaver');
   for (const register of [
     buildCommand,
+    configCommand,
     generateCommand,
     migrateCommand,
     migrationCommand,
@@ -73,6 +75,7 @@ describe('weaver', () => {
 
   test.each([
     [['generate'], '--no-registry', 'registry'],
+    [['generate'], '--no-config-schema', 'configSchema'],
     [['upgrade'], '--no-skill', 'skill'],
     [['upgrade'], '--no-companions', 'companions'],
     [['module', 'add'], '--no-install', 'install'],

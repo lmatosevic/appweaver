@@ -2,6 +2,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { Readable } from 'node:stream';
+import { configOverrides } from '@appweaver/common';
+import { testStorageContract } from '@appweaver/testing';
+import { FilesystemStorage } from '../../storage/filesystem-storage';
 
 const tempDir = path.join(
   os.tmpdir(),
@@ -123,4 +126,13 @@ describe('FilesystemStorage', () => {
       );
     });
   });
+});
+
+testStorageContract('FilesystemStorage', () => {
+  configOverrides.STORAGE_PATH = path.join(tempDir, 'contract');
+  return new FilesystemStorage();
+});
+
+afterAll(() => {
+  delete configOverrides.STORAGE_PATH;
 });

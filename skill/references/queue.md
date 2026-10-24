@@ -8,7 +8,7 @@ Otherwise the `MemoryQueue` of core (provider `memory`) runs the jobs in the pro
 production application logs as a warning on startup.
 
 A queue worker needs no server: disable `@appweaver/web` (`APP_MODULES_DISABLED=@appweaver/web`), and its workers keep
-the application running. Set `HEALTH_PORT` to answer the health checks of its container.
+the application running. Set `HEALTH_CHECK_PORT` to answer the health checks of its container.
 
 ## Injecting Queue
 

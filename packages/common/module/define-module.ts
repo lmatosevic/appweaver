@@ -1,6 +1,7 @@
 import { AbstractCtor } from '../utils/type-util';
 
-export const MODULE = Symbol('Module');
+// Registered globally, so a manifest is recognized whichever copy of this package defined it
+export const MODULE = Symbol.for('appweaver.module');
 
 /** Selects the driver of an enabled module for a contract, otherwise the fallback of core. */
 export const PROVIDER_AUTO = 'auto';
@@ -60,7 +61,11 @@ export type ModuleManifest = {
   framework?: string;
   /** The names of the modules that must be enabled with it. */
   requires?: string[];
-  /** Its config sections, defined with `defineConfig`. */
+  /**
+   * Its config sections, defined with `defineConfig`, validated when the application starts and listed in the JSON
+   * Schema of `weaver generate`. The sections of a driver module, with providers but no contracts, are validated only
+   * when one of its providers is selected.
+   */
   config?: object[];
   /** The contracts it declares, which the providers of every module implement. */
   contracts?: ModuleContract[];
@@ -79,9 +84,10 @@ export type ModuleManifest = {
   main?: ModuleLoader;
   /** Imports its resource routes, custom routes and server plugins, loaded only with a server. */
   web?: ModuleLoader;
-  /** Imports its `weaver` subcommands. */
-  commands?: ModuleLoader;
-  /** The absolute path of its seeders directory. */
+  /**
+   * The absolute path of its seeders directory, i.e. `path.join(__dirname, 'seeders')`. `weaver seed` runs them before
+   * the seeders of the application, recorded under the name of the module (`billing/1-plans`).
+   */
   seeders?: string;
   /** The absolute path of its translations directory, overridden by the translations of the application. */
   locales?: string;

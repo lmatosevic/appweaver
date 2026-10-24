@@ -4,6 +4,7 @@ import { ConfigurationError } from '../../errors';
 import {
   configOverrides,
   configSections,
+  configSource,
   defineConfig,
   readConfig,
   readRawConfig,
@@ -180,10 +181,22 @@ describe('define-config', () => {
 
       defineConfig(section, { NAME: Type.String({ default: 'value' }) });
 
-      expect(configSections.get(section)).toMatchObject({
+      expect(configSections.get(`${section}:NAME`)).toMatchObject({
         section,
         prefix: sectionPrefix(section)
       });
+    });
+
+    test('registers both definitions of a path with their own keys', () => {
+      const section = uniqueSection('shared');
+
+      defineConfig(section, { FIRST: Type.String({ default: 'a' }) });
+      defineConfig(section, { SECOND: Type.String({ default: 'b' }) });
+
+      const definitions = [...configSections.values()].filter(
+        (definition) => definition.section === section
+      );
+      expect(definitions).toHaveLength(2);
     });
 
     test('lets a section be defined again, i.e. by a reloaded module', () => {
@@ -215,6 +228,36 @@ describe('define-config', () => {
       expect(() => values.MAX_SIZE).toThrow(
         `${prefix}MAX_SIZE (config.${section}.maxSize)`
       );
+    });
+
+    test('names only the invalid values, not the keys with a default', () => {
+      const section = uniqueSection('defaulted');
+      const prefix = sectionPrefix(section);
+      setRawConfig({}, raw({ [`${prefix}PORT`]: 'abc' }));
+
+      const values = defineConfig(section, {
+        PORT: Type.Integer(),
+        HOST: Type.String({ default: 'localhost' })
+      });
+
+      expect(() => values.PORT).toThrow(
+        `Invalid config of section "${section}": ${prefix}PORT (config.${section}.port): Expected integer`
+      );
+    });
+  });
+
+  describe('configSource', () => {
+    test('tells the source of a value', () => {
+      setRawConfig(
+        raw({ SRC_JSON: 'a', SRC_BOTH: 'b' }),
+        raw({ SRC_BOTH: 'c' })
+      );
+      configOverrides.SRC_OVERRIDE = 1;
+
+      expect(configSource('SRC_JSON')).toBe('json');
+      expect(configSource('SRC_BOTH')).toBe('env');
+      expect(configSource('SRC_OVERRIDE')).toBe('override');
+      expect(configSource('SRC_MISSING')).toBe('default');
     });
   });
 

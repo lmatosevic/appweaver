@@ -9,7 +9,7 @@
       "@appweaver/core/*": ["../core/*"],
       "@appweaver/common": ["../common"],
       "@appweaver/common/*": ["../common/*"],
-      "@appweaver/create-weaver-app/*": ["../create-weaver-app/*"],
+      "@appweaver/create/*": ["../create/*"],
       "@appweaver/data": ["../data"],
       "@appweaver/data/*": ["../data/*"],
       "@appweaver/web": ["../web"],
@@ -25,7 +25,7 @@
       "path": "../core/tsconfig.build.json"
     },
     {
-      "path": "../create-weaver-app/tsconfig.build.json"
+      "path": "../create/tsconfig.build.json"
     },
     {
       "path": "../data/tsconfig.build.json"

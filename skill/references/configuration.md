@@ -11,8 +11,9 @@ Configuration is loaded and merged in the following order (later sources overrid
 2. **Global JSON config** `appweaver.json` (properties under the `config` key)
 3. **Inline environment config** `appweaver.json` (properties under the `environments.{NODE_ENV}` key)
 4. **Environment-specific JSON config** `appweaver.{NODE_ENV}.json` (properties under the `config` key)
-5. **Default .env file** `.env`
-6. **Environment-specific .env file** `.env.{NODE_ENV}` (overrides all above)
+5. **Default .env file** `.env`, which never replaces a variable the process environment already has
+6. **Process environment** variables
+7. **Environment-specific .env file** `.env.{NODE_ENV}` (overrides all above, the process environment included)
 
 The environment names are `test`, `local`, `dev`, `staging`, `qa`, and `prod`. `NODE_ENV=development` resolves to `dev`
 and `NODE_ENV=production` to `prod`, for `APP_ENV`, the names of the `environments` sections, and the
@@ -51,7 +52,7 @@ for application configuration, committed with the project. These are automatical
 
 The overrides of each environment go to the `environments` key of `appweaver.json`, keyed by the environment name. The
 section matching `NODE_ENV` is merged over `config` property by property (an array value replaces the whole array),
-the other ones are ignored. This keeps the whole configuration in a single file, which is what `create-weaver-app`
+the other ones are ignored. This keeps the whole configuration in a single file, which is what `@appweaver/create`
 scaffolds:
 
 ```json
@@ -131,15 +132,16 @@ databaseConfig.URL; // string
 | Section variable                                                                                                                                                                                                                                                                                                   | Keys                            | Imported from           |
 |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|-------------------------|
 | `appConfig`, `logConfig`                                                                                                                                                                                                                                                                                           | `APP_*`, `LOG_*`                | `@appweaver/common`     |
-| `cacheConfig`, `eventsConfig`, `healthConfig`, `healthInstancesConfig` (`HEALTH_CHECK_PICK_INSTANCES`, `HEALTH_CHECK_OMIT_INSTANCES`), `localeConfig`, `mailerConfig`, `memoryConfig`, `queueConfig`, `schedulerConfig`, `securityStoreConfig` (`SECURITY_STORE_*`), `storageConfig`, `templateConfig`             | `CACHE_*`, `HEALTH_*`, ...      | `@appweaver/core`       |
+| `cacheConfig`, `eventsConfig`, `healthConfig` (`HEALTH_CHECK_*`: `PORT`, `HOST`, `PICK_INSTANCES`, `OMIT_INSTANCES`), `localeConfig`, `mailerConfig`, `memoryConfig`, `queueConfig`, `schedulerConfig`, `securityStoreConfig` (`SECURITY_STORE_*`), `storageConfig`, `templateConfig`                        | `CACHE_*`, `HEALTH_CHECK_*`, ...| `@appweaver/core`       |
 | `databaseConfig`, `resourceConfig`, `exportConfig`, `imageConfig`, `passwordConfig`, `apiKeyConfig`, `connectedAccountConfig` (`SECURITY_OAUTH2_CONNECTED_ACCOUNTS_*`), `systemConfig`                                                                                                                             | `DATABASE_*`, `RESOURCE_*`, ... | `@appweaver/data`       |
 | `serverConfig`, `rateLimitConfig`, `swaggerConfig`, `corsConfig`, `healthCheckConfig`, `templatePreviewConfig`, `securityConfig` (`SECURITY_*` not elsewhere), `accountConfig`, `twoFactorConfig` (`SECURITY_ACCOUNT_2FA_*`), `recaptchaConfig`, `turnstileConfig`, `basicAuthConfig`, `jwtConfig`, `oauth2Config` | `SERVER_*`, `SECURITY_*`, ...   | `@appweaver/web`        |
 | `redisConfig`                                                                                                                                                                                                                                                                                                      | `MEMORY_REDIS_*`                | `@appweaver/redis`      |
 | `smtpConfig`                                                                                                                                                                                                                                                                                                       | `MAILER_SMTP_*`                 | `@appweaver/nodemailer` |
 
 A section is parsed on the first access of one of its values, with the defaults of its schema, then kept frozen. A
-missing or invalid value throws a `ConfigurationError` (`CONFIGURATION_INVALID`) naming its environment variable and
-its JSON path.
+missing or invalid value throws a `ConfigurationError` (`CONFIGURATION_INVALID`) naming only the invalid keys of the
+section, each with its environment variable and JSON path. `weaver config check` finds them before the startup (see
+[Inspecting the config](#inspecting-the-config)).
 
 ### Application config
 
@@ -198,6 +200,47 @@ afterEach(() => {
 
 A module reading the config when it is imported needs the override before its import, set in a `jest.mock` factory of
 `@appweaver/common` (`Object.assign(jest.requireActual('@appweaver/common').configOverrides, { ... })`).
+
+## Inspecting the config
+
+`weaver config` (alias `cfg`) creates the application without starting it, so every enabled module and the application
+files have defined their sections, then:
+
+```sh
+weaver config schema                           # write ./appweaver.schema.json
+weaver config schema -o ./schemas/config.json   # another output path
+weaver config print                            # every key with its source and value, the secrets hidden
+NODE_ENV=prod weaver config check              # validate every section, exit 1 listing the errors
+```
+
+- **`schema`** writes the JSON Schema of `appweaver.json` from the sections of the enabled modules: every key under its
+  camelCase name in its section, with its type and default, for `config` and each `environments.<env>`.
+  The `$schema` of `appweaver.json` points to it, for the completion and validation of the sections of the module
+  packages and of the application. `weaver generate` writes the same file from the sections the enabled modules list
+  in their `config` (on every run, so after adding a module too), and this command is only needed for a section
+  defined in an application file outside a module:
+
+  ```json
+  {
+    "$schema": "./appweaver.schema.json",
+    "config": {}
+  }
+  ```
+
+- **`print`** lists every flattened key with its source: `override` (`configOverrides`), `env` (the environment and
+  the `.env` files), `json` (the `appweaver*.json` files) or `default`. `configSource(key)` of `@appweaver/common`
+  returns the same in code. A value is shown as `********` when its key ends with `PASSWORD`, `SECRET`, `TOKEN`,
+  `PRIVATE_KEY`, `CREDENTIALS` or `API_KEY`, or its schema has the `secret: true` option:
+
+  ```ts
+  export const paymentConfig = defineConfig('payment', {
+    /** The signing key of the webhooks. */
+    WEBHOOK_KEY: Type.String({ secret: true })
+  });
+  ```
+
+- **`check`** parses every section and exits with 1, listing each invalid key with its environment variable and JSON
+  path. Run it in CI with the environment of the deployment, so a missing secret fails the pipeline, not the startup.
 
 ## Providers
 
@@ -291,6 +334,7 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 |-----------------------------------------|----------|--------------|------------------------------------------------------------------------------------------------------|
 | `SERVER_PORT`                           | integer  | `5000`       | HTTP server listening port.                                                                          |
 | `SERVER_HOST`                           | string   | `'0.0.0.0'`  | HTTP server listening host/IP.                                                                       |
+| `SERVER_LISTEN`                         | boolean  | `true`       | Listen when the app starts, `false` serves only `app.server.inject()` (e2e tests).                   |
 | `SERVER_API_PREFIX`                     | string   | `'/api'`     | Base path prefix for all API routes.                                                                 |
 | `SERVER_BODY_MAX_SIZE`                  | string   | `100M`       | Maximum request body size.                                                                           |
 | `SERVER_STATIC_ENABLED`                 | boolean  | `true`       | Enable serving static files from disk.                                                               |
@@ -325,9 +369,9 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 
 ### Health check (HEALTH_CHECK_\*)
 
-The route keys are the `healthCheck` section of `@appweaver/web` (`healthCheckConfig`), the instance filters the
-`healthCheck` section of `@appweaver/core` (`healthInstancesConfig`), read by `HealthService` for the route and the
-health listener alike.
+The route keys are the `healthCheck` section of `@appweaver/web` (`healthCheckConfig`), the instance filters and the
+health listener the `healthCheck` section of `@appweaver/core` (`healthConfig`). The filters are read by
+`HealthService` for the route and the health listener alike.
 
 | Property                      | Type      | Default     | Description                                                   |
 |-------------------------------|-----------|-------------|---------------------------------------------------------------|
@@ -338,16 +382,17 @@ health listener alike.
 | `HEALTH_CHECK_PICK_INSTANCES` | string[]? | -           | List of health check instance names to include in response.   |
 | `HEALTH_CHECK_OMIT_INSTANCES` | string[]? | -           | List of health check instance names to exclude from response. |
 
-### Health listener (HEALTH\_\*)
+### Health listener (HEALTH_CHECK_PORT, HEALTH_CHECK_HOST)
 
 An application without the `@appweaver/web` server (a worker, a scheduled job runner) answers `GET /health/check` and
 `GET /health/ready` on its own `node:http` listener, without authentication, running the same checks as the health
-route.
+route. The listener stays off beside the server of `@appweaver/web`, which answers the health routes itself, and in
+`weaver run`, whose task may run beside an application listening on the port.
 
-| Property      | Type    | Default     | Description                                |
-|---------------|---------|-------------|--------------------------------------------|
-| `HEALTH_PORT` | integer | `0`         | Port of the health listener, `0` for none. |
-| `HEALTH_HOST` | string  | `'0.0.0.0'` | Host of the health listener.               |
+| Property            | Type    | Default     | Description                                |
+|---------------------|---------|-------------|--------------------------------------------|
+| `HEALTH_CHECK_PORT` | integer | `0`         | Port of the health listener, `0` for none. |
+| `HEALTH_CHECK_HOST` | string  | `'0.0.0.0'` | Host of the health listener.               |
 
 ### CORS (CORS\_\*)
 
@@ -364,10 +409,10 @@ route.
 
 | Property                            | Type    | Default                              | Description                                                                             |
 |-------------------------------------|---------|--------------------------------------|-----------------------------------------------------------------------------------------|
-| `RESOURCE_MODEL_PATTERN`            | string  | `'<srcPath>/resources/*/model.ts'`   | Glob pattern for resource model files.                                                  |
-| `RESOURCE_SERVICE_PATTERN`          | string  | `'<srcPath>/resources/*/service.ts'` | Glob pattern for resource service files.                                                |
-| `RESOURCE_POLICY_PATTERN`           | string  | `'<srcPath>/resources/*/policy.ts'`  | Glob pattern for resource policy files.                                                 |
-| `RESOURCE_ROUTES_PATTERN`           | string  | `'<srcPath>/resources/*/routes.ts'`  | Glob pattern for resource routes files.                                                 |
+| `RESOURCE_MODEL_PATTERN`            | string  | `'<srcPath>/resources/*/*model.ts'`  | Glob pattern for resource model files.                                                  |
+| `RESOURCE_SERVICE_PATTERN`          | string  | `'<srcPath>/resources/*/*service.ts'`| Glob pattern for resource service files.                                                |
+| `RESOURCE_POLICY_PATTERN`           | string  | `'<srcPath>/resources/*/*policy.ts'` | Glob pattern for resource policy files.                                                 |
+| `RESOURCE_ROUTES_PATTERN`           | string  | `'<srcPath>/resources/*/*routes.ts'` | Glob pattern for resource routes files.                                                 |
 | `RESOURCE_GENERATED_TYPES_PATH`     | string  | `'<srcPath>/types/generated.ts'`     | Output path for generated TypeScript types.                                             |
 | `RESOURCE_QUERY_METHOD`             | enum    | `'post'`                             | Methods of the `query` routes: `post`, `get`, or `get-post`. Overridable per route.     |
 | `RESOURCE_AGGREGATE_METHOD`         | enum    | `'post'`                             | Methods of the `aggregate` routes: `post`, `get`, or `get-post`. Overridable per route. |
@@ -600,6 +645,7 @@ you generated yourself, or provide the team ID, key ID and `.p8` private key and
 | `STORAGE_RESERVED_PATHS`     | array   | `['keys']`                    | Paths inside the storage directory that files can never be stored under. Each entry is a directory or a full file name relative to `STORAGE_PATH`, matched case-insensitively (no wildcards). Violations fail on startup for configured name patterns, and with a `400` error at runtime. |
 | `STORAGE_NAME_PATTERN`       | string  | `'{name}-{hash}.{extension}'` | File naming pattern for stored files.                                                                                                                                                                                                                                                     |
 | `STORAGE_CACHE_TTL`          | integer | `86400000`                    | File storage cache TTL in milliseconds. (24h)                                                                                                                                                                                                                                             |
+| `STORAGE_URL_TTL`            | integer | `900000`                      | How long the URL of a storage serving its files directly (a signed URL) is valid, in milliseconds. (15min)                                                                                                                                                                                |
 | `STORAGE_FILES_ROUTE_PREFIX` | string  | `/files`                      | URL prefix for file access routes.                                                                                                                                                                                                                                                        |
 | `STORAGE_PROVIDER`           | string  | `'auto'`                      | `auto` (`local` unless another storage driver is enabled), `local`, `none`, or a module path.                                                                                                                                                                                             |
 
@@ -633,7 +679,7 @@ the cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting 
 | `CACHE_CLEAN_START`           | boolean | `false`            | Clear all cache entries on application startup.                                 |
 | `CACHE_KEY_PREFIX`            | string  | `'cache:'`         | Prefix prepended to all cache keys.                                             |
 | `CACHE_MAX_ITEMS`             | integer | `1000`             | Maximum number of items in the cache.                                           |
-| `CACHE_CACHE_MAX_SIZE`        | string? | -                  | Maximum size used by the cache.                                                 |
+| `CACHE_MAX_SIZE`              | string? | -                  | Maximum size used by the cache.                                                 |
 | `CACHE_DEFAULT_TTL`           | integer | `5000`             | Default time-to-live for cache entries in milliseconds.                         |
 | `CACHE_EVICTION_GRACE_PERIOD` | integer | `1000`             | Grace period before evicting expired items (ms).                                |
 | `CACHE_EVICTION_STRATEGY`     | enum    | `'LRU'`            | Eviction strategy. Values: `LRU`, `LFU`, `FIFO`.                                |
@@ -712,12 +758,13 @@ the cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting 
 
 ## Configuration files summary
 
-| File                   | Purpose                                                                         |
-|------------------------|---------------------------------------------------------------------------------|
-| `appweaver.json`       | Global configuration (`config`) and the overrides of each env (`environments`)  |
-| `appweaver.{env}.json` | Optional environment-specific overrides, loaded over the `environments` section |
-| `.env`                 | Environment variables (all environments)                                        |
-| `.env.{env}`           | Environment-specific env variable overrides                                     |
+| File                    | Purpose                                                                         |
+|-------------------------|---------------------------------------------------------------------------------|
+| `appweaver.json`        | Global configuration (`config`) and the overrides of each env (`environments`)  |
+| `appweaver.{env}.json`  | Optional environment-specific overrides, loaded over the `environments` section |
+| `appweaver.schema.json` | The JSON Schema of the enabled modules' sections, from `weaver generate`        |
+| `.env`                  | Environment variables (all environments)                                        |
+| `.env.{env}`            | Environment-specific env variable overrides                                     |
 
 ## Environment values
 

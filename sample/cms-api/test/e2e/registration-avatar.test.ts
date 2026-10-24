@@ -35,7 +35,7 @@ describe('Registration files', () => {
     );
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     users = injectService('User');
 
     // The registration data of the sample connects the User role

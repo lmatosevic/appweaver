@@ -1,0 +1,55 @@
+{
+  "name": "@appweaver/create",
+  "version": "1.12.2",
+  "description": "Appweaver - the backend framework for AI-first development (@create)",
+  "author": "Luka Matosevic",
+  "license": "MIT",
+  "main": "./create.js",
+  "types": "./create.d.ts",
+  "exports": {
+    ".": {
+      "types": "./create.d.ts",
+      "default": "./create.js"
+    },
+    "./scaffold": {
+      "types": "./scaffold/index.d.ts",
+      "default": "./scaffold/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "create-appweaver": "./create.js"
+  },
+  "files": [
+    "templates",
+    "../../skill"
+  ],
+  "rootFields": [
+    "scaffoldDependencies"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lmatosevic/appweaver.git",
+    "directory": "packages/create"
+  },
+  "maintainers": [
+    {
+      "name": "Luka Matosevic",
+      "email": "lukamatosevic5@gmail.com",
+      "web": "https://lukamatosevic.com"
+    }
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">= 24.7"
+  },
+  "scripts": {
+    "create-appweaver": "node ./dist/create.js"
+  },
+  "dependencies": {
+    "commander": "15.0.0",
+    "yaml": "2.9.0"
+  }
+}

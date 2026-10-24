@@ -5,7 +5,7 @@ import {
   logger,
   ModuleSetupContext
 } from '@appweaver/common';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import { resourceConfig } from '@appweaver/data';
 
 /**

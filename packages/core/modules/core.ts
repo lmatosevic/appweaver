@@ -12,6 +12,8 @@ import {
 } from '@appweaver/common';
 import { cacheConfig } from '../cache/cache-config';
 import { eventsConfig } from '../events/events-config';
+import { healthConfig } from '../health/health-config';
+import { localeConfig } from '../locale/locale-config';
 import { mailerConfig } from '../mailer/mailer-config';
 import { memoryConfig } from '../memory/memory-config';
 import { queueConfig } from '../queue/queue-config';
@@ -23,6 +25,19 @@ import { templateConfig } from '../template/template-config';
 /** The runtime every application has, with the in-process drivers the `auto` providers fall back to. */
 export default defineModule({
   name: '@appweaver/core',
+  config: [
+    memoryConfig,
+    cacheConfig,
+    eventsConfig,
+    storageConfig,
+    securityStoreConfig,
+    queueConfig,
+    mailerConfig,
+    templateConfig,
+    schedulerConfig,
+    localeConfig,
+    healthConfig
+  ],
   contracts: [
     { contract: Memory, provider: () => memoryConfig.PROVIDER },
     { contract: Cache, provider: () => cacheConfig.PROVIDER },

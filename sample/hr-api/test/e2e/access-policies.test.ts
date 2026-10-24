@@ -37,7 +37,7 @@ describe('Access policies', () => {
   };
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     await createRoles();
 
     manager = await hire('Mark', { roles: ['Manager'] });

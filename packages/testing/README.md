@@ -16,13 +16,44 @@
 
 `@appweaver/testing` holds the helpers the Appweaver packages and their modules test with: `resetContext()` clears
 the application context between tests, `linkModels()` links the models defined in a test, and
-`createDatabaseStub()` records the queries of a stubbed Prisma client.
+`createDatabaseStub()` records the queries of a stubbed Prisma client. Its contract suites test a driver against the
+behavior every driver of its contract shares.
 
 ## Installation
 
 ```sh
 npm install -D @appweaver/testing
 ```
+
+## Contract suites
+
+Call the suite of the driver's contract at the top level of a test file, with the name of the driver and a function
+creating it. Every test gets a fresh instance:
+
+```ts
+// test/gcs-storage.test.ts
+import { configOverrides } from '@appweaver/common';
+import { testStorageContract } from '@appweaver/testing';
+import { GcsStorage } from '../src/gcs-storage';
+
+configOverrides.STORAGE_GCS_BUCKET = 'contract-tests';
+
+testStorageContract('GcsStorage', () => new GcsStorage());
+```
+
+| Suite                   | Contract    | Tests                                                                             |
+| ----------------------- | ----------- | --------------------------------------------------------------------------------- |
+| `testMemoryContract`    | `Memory`    | Values and their expiry, `exists` and `delete`, key patterns, locks, health       |
+| `testStorageContract`   | `Storage`   | Storing and streaming a file and a byte range, `exists`, `delete`, `url`, health  |
+| `testQueueContract`     | `Queue`     | A job processed by a worker and its result, a failed job, closing a queue, health |
+| `testSchedulerContract` | `Scheduler` | Adding, starting, stopping and removing a job, an unknown job id                  |
+| `testMailerContract`    | `Mailer`    | Sending an email with every field of the contract, health                         |
+
+The suites use the `describe`, `test`, `beforeEach`, `afterEach` and `expect` globals, so they run under Jest, Vitest
+(with `globals: true`) and Bun. The drivers of the framework run them too (`InMemory`, `FilesystemStorage`,
+`MemoryQueue`, `JsonMailer`, `CronScheduler`), and so does the test of a module package created with
+`npm create @appweaver module`. Run a driver of a remote service against a test instance or an emulator, and the mailer
+suite against a test inbox or a mocked transport, since it sends a real email.
 
 ## Documentation
 

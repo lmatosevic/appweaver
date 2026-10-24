@@ -85,7 +85,7 @@ describe('Bulk create, update, and delete routes', () => {
   };
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     tags = injectService('Tag');
     users = injectService('User');
     auth = await signInAdmin();

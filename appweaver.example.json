@@ -1,5 +1,5 @@
 {
-  "$schema": "./node_modules/@appweaver/common/config/schema.json",
+  "$schema": "./appweaver.schema.json",
   "config": {
     "app": {
       "name": "Appweaver",
@@ -12,12 +12,13 @@
       "scanFilesPattern": "<srcPath>/*/index.ts",
       "mainFilePath": "<srcPath>/main.ts",
       "modulesPattern": "<srcPath>/modules/*/module.ts",
-      "modules": ["../shared/dist/module.js"],
+      "modules": [],
       "modulesDisabled": []
     },
     "server": {
       "port": 5000,
       "host": "0.0.0.0",
+      "listen": true,
       "apiPrefix": "/api",
       "bodyMaxSize": "100M",
       "staticEnabled": true,
@@ -27,7 +28,6 @@
         "Content-Security-Policy: script-src 'self'"
       ],
       "staticMaxAge": "30d",
-      "staticAllowedHost": null,
       "trustProxy": true,
       "requestLoggingEnabled": false,
       "errorDatabaseMessageEnabled": false,
@@ -64,17 +64,14 @@
       "routePrefix": "/health",
       "cacheTtl": 3000,
       "pickInstances": ["database", "redis", "storage"],
-      "omitInstances": null
-    },
-    "health": {
       "port": 0,
       "host": "0.0.0.0"
     },
     "cors": {
-      "origin": "*",
-      "methods": "*",
-      "allowedHeaders": "*",
-      "exposedHeaders": "*",
+      "origin": ["*"],
+      "methods": ["*"],
+      "allowedHeaders": ["*"],
+      "exposedHeaders": ["*"],
       "maxAge": 86400,
       "credentials": true
     },
@@ -82,7 +79,7 @@
       "modelPattern": "<srcPath>/resources/*/*model.ts",
       "servicePattern": "<srcPath>/resources/*/*service.ts",
       "policyPattern": "<srcPath>/resources/*/*policy.ts",
-      "routesPattern": "<srcPath>/resources/*/*route.ts",
+      "routesPattern": "<srcPath>/resources/*/*routes.ts",
       "generatedTypesPath": "<srcPath>/types/generated.ts",
       "queryMethod": "post",
       "aggregateMethod": "post",
@@ -108,7 +105,7 @@
       "routePrefix": "/auth",
       "cacheTtl": 300000,
       "authOttTtl": 120000,
-      "allowedRedirectHosts": "*",
+      "allowedRedirectHosts": ["*"],
       "store": {
         "provider": "auto",
         "keepDatabaseTable": false
@@ -160,7 +157,6 @@
         "enabled": false,
         "keepDatabaseTable": false,
         "headerName": "x-api-key",
-        "maxDuration": null,
         "delimiter": "AK"
       },
       "jwt": {
@@ -254,6 +250,7 @@
       "reservedPaths": ["keys"],
       "namePattern": "{name}-{hash}.{extension}",
       "cacheTtl": 86400000,
+      "urlTtl": 900000,
       "filesRoutePrefix": "/files",
       "provider": "auto"
     },
@@ -284,9 +281,7 @@
     },
     "queue": {
       "keepCompletedCount": 0,
-      "keepCompletedSeconds": null,
       "keepFailedCount": 50,
-      "keepFailedSeconds": null,
       "retryAttempts": 3,
       "retryBackoff": 3000,
       "retryBackoffType": "fixed",

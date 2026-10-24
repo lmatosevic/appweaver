@@ -85,7 +85,7 @@ describe('Templates and locales', () => {
   };
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     users = injectService('User');
     posts = injectService('Post');
     emailService = inject(EmailService);

@@ -14,7 +14,7 @@ describe('Onboarding', () => {
     injectService('LeaveBalance').query({ filter: { employee: employeeId } });
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     await createRoles();
   });
 

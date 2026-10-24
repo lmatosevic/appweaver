@@ -42,7 +42,7 @@ describe('Aggregate selection', () => {
     posts.aggregate({ select, dateField: 'createdAt', from, to });
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     posts = injectService('Post');
   });
 

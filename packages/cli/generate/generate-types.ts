@@ -20,13 +20,16 @@ import { ensureDirExists } from '../utils';
  * @param {boolean} [quiet=false] - If true, suppresses detailed logging during the operation.
  * @param {boolean} [registry=true] - Whether to register the types of every model in the resource registry, which
  * lets the factories and injection functions infer them from a model name.
+ * @param {ReadonlySet<string>} [unregistered] - The models left out of the registry, the ones their module package
+ * registers itself.
  * @return {Promise<number>} A promise that resolves to a status code: `0` for success, `2` for failure.
  */
 export async function generateTypes(
   models: Record<string, ResourceModel>,
   typesPath: string,
   quiet: boolean = false,
-  registry: boolean = true
+  registry: boolean = true,
+  unregistered: ReadonlySet<string> = new Set()
 ): Promise<number> {
   const cwd = process.cwd();
 
@@ -68,7 +71,10 @@ export async function generateTypes(
       ``
     ];
 
-    const registered = registry && Object.keys(models).length > 0;
+    const registeredModels = Object.fromEntries(
+      Object.entries(models).filter(([name]) => !unregistered.has(name))
+    );
+    const registered = registry && Object.keys(registeredModels).length > 0;
 
     if (Object.keys(modelTypeNames).length > 0 || registered) {
       typesContent.push(
@@ -102,7 +108,10 @@ export async function generateTypes(
     }
 
     if (registered) {
-      typesContent.push(registryDeclaration(models, modelTypeNames), ``);
+      typesContent.push(
+        registryDeclaration(registeredModels, modelTypeNames),
+        ``
+      );
     }
 
     const outputPath = path.join(cwd, typesPath);

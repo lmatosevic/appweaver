@@ -2,8 +2,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import * as common from '@appweaver/common';
-import { ErrorCode } from '@appweaver/common';
+import { defineModule, ErrorCode } from '@appweaver/common';
 import { define, LocaleService } from '@appweaver/core';
+import { context } from '@appweaver/core/internal';
 import { resetContext } from '@appweaver/testing';
 import { HandlebarsTemplateEngine } from '../handlebars-template-engine';
 
@@ -160,6 +161,19 @@ describe('handlebars-template-engine', () => {
       expect(await engine.render('feeds/posts.rss.xml')).toBe(
         '<rss><title>Test App</title></rss>'
       );
+    });
+
+    test('reads the templates of the modules, overridden by the application', async () => {
+      writeFile('module/pages/legal.html.hbs', 'Module terms');
+      writeFile('module/pages/welcome.html.hbs', 'Welcome {{name}}');
+      context.modules.enabled.push(
+        defineModule({ name: 'shop', templates: path.join(dir, 'module') })
+      );
+
+      expect(await engine.render('pages/welcome.html', { name: 'Ana' })).toBe(
+        'Welcome Ana'
+      );
+      expect(await engine.render('pages/legal.html')).toBe('Terms');
     });
 
     test('prefers the variant of the locale', async () => {

@@ -24,7 +24,7 @@ it is selected whenever the module is installed.
 npm install @appweaver/bullmq
 ```
 
-or `weaver module add queue` in a project created with `create-weaver-app`.
+or `weaver module add queue` in a project created with `@appweaver/create`.
 
 It requires `@appweaver/redis`, a dependency of this package, and the `redis` memory provider.
 

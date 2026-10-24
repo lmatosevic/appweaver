@@ -20,13 +20,15 @@ const authModelNames = [
 /**
  * Removes the models of the framework an application does not use, so its database gets none of their tables: the
  * auth data model without an auth model, the File model without a model declaring `files`, and the Seeder model
- * without a seeders directory.
+ * without a seeders directory, of the application or of an enabled module.
  *
  * @param {Record<string, ResourceModel>} models - The loaded models, keyed by their name, changed in place.
+ * @param {string[]} [moduleSeeders=[]] - The seeders directories of the enabled modules.
  * @return {string[]} The names of the removed models.
  */
 export function pruneUnusedModels(
-  models: Record<string, ResourceModel>
+  models: Record<string, ResourceModel>,
+  moduleSeeders: string[] = []
 ): string[] {
   const all = Object.values(models);
   const unused: string[] = [];
@@ -45,7 +47,7 @@ export function pruneUnusedModels(
     unused.push('File');
   }
 
-  if (!hasSeedersDirectory()) {
+  if (!hasSeedersDirectory() && moduleSeeders.length === 0) {
     unused.push('Seeder');
   }
 

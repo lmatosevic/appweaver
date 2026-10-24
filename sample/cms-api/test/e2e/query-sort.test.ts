@@ -64,7 +64,7 @@ describe('Query sort input', () => {
   };
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     posts = injectService('Post');
     users = injectService('User');
   });

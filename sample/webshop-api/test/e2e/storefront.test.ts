@@ -22,7 +22,7 @@ describe('Storefront', () => {
   let admin: Record<string, string>;
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     await createRoles();
     admin = await staff(app, 'Ada', Role.Admin);
   }, 30_000);

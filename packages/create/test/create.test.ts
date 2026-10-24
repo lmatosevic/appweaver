@@ -1,0 +1,995 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { defaultTranslations } from '../../core/locale/default-translations';
+
+const packageRoot = path.join(__dirname, '..');
+const skillDir = path.join(packageRoot, 'skill');
+const cliVersion = JSON.parse(
+  fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf8')
+).version;
+const rootPkg = JSON.parse(
+  fs.readFileSync(path.join(packageRoot, '..', '..', 'package.json'), 'utf8')
+);
+
+describe('scaffoldDependencies', () => {
+  test('match the versions the monorepo is built with', () => {
+    const rootVersions = {
+      ...rootPkg.dependencies,
+      ...rootPkg.devDependencies
+    };
+    const { companion, tooling } = rootPkg.scaffoldDependencies;
+    const shared = Object.entries({ ...companion, ...tooling }).filter(
+      ([name]) => rootVersions[name]
+    );
+
+    expect(shared).toEqual(shared.map(([name]) => [name, rootVersions[name]]));
+  });
+});
+
+describe('create', () => {
+  let tempDir: string;
+  let originalCwd: string;
+  let originalArgv: string[];
+  let createdSkillDir = false;
+
+  beforeEach(() => {
+    originalCwd = process.cwd();
+    originalArgv = process.argv;
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'appweaver-create-'));
+    process.chdir(tempDir);
+    jest.resetModules();
+  });
+
+  afterEach(() => {
+    process.chdir(originalCwd);
+    process.argv = originalArgv;
+    fs.rmSync(tempDir, { recursive: true, force: true });
+    if (createdSkillDir) {
+      fs.rmSync(skillDir, { recursive: true, force: true });
+      createdSkillDir = false;
+    }
+    jest.restoreAllMocks();
+  });
+
+  /**
+   * The skill directory is copied next to the compiled CLI during the build, so
+   * it is created temporarily here to exercise the agent files generation.
+   */
+  const createSkillDir = () => {
+    if (fs.existsSync(skillDir)) {
+      throw new Error(`Unexpected existing skill directory: ${skillDir}`);
+    }
+    fs.mkdirSync(skillDir, { recursive: true });
+    fs.writeFileSync(path.join(skillDir, 'SKILL.md'), '# Skill', 'utf8');
+    fs.writeFileSync(
+      path.join(skillDir, 'GUIDELINES.md'),
+      '# Guidelines',
+      'utf8'
+    );
+    createdSkillDir = true;
+  };
+
+  /** Runs the CLI with the given arguments and waits until it is done. */
+  const run = async (...args: string[]): Promise<string[]> => {
+    const logs: string[] = [];
+    const errors: string[] = [];
+    jest.spyOn(console, 'log').mockImplementation((...parts: any[]) => {
+      logs.push(parts.join(' '));
+    });
+    jest.spyOn(console, 'error').mockImplementation((...parts: any[]) => {
+      errors.push(parts.join(' '));
+    });
+
+    process.argv = ['node', 'create', ...args];
+    jest.isolateModules(() => {
+      // The CLI runs on import, so it must be loaded synchronously here
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('../create');
+    });
+
+    const deadline = Date.now() + 30000;
+    while (Date.now() < deadline) {
+      if (errors.length > 0) {
+        throw new Error(errors.join('\n'));
+      }
+      if (logs.some((line) => line.includes('created successfully'))) {
+        return logs;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+
+    throw new Error(`CLI did not finish. Output:\n${logs.join('\n')}`);
+  };
+
+  const readJson = (...segments: string[]) =>
+    JSON.parse(fs.readFileSync(path.join(tempDir, ...segments), 'utf8'));
+
+  const read = (...segments: string[]) =>
+    fs.readFileSync(path.join(tempDir, ...segments), 'utf8');
+
+  const exists = (...segments: string[]) =>
+    fs.existsSync(path.join(tempDir, ...segments));
+
+  describe('project directory', () => {
+    test('creates a directory from the sanitized project name', async () => {
+      await run(
+        'MyCoolApp',
+        'My description',
+        '--no-install',
+        '--agent',
+        'none'
+      );
+
+      expect(exists('my-cool-app')).toBe(true);
+      expect(exists('my-cool-app', 'package.json')).toBe(true);
+    });
+
+    test('replaces whitespace in the project name', async () => {
+      await run('My App', '--no-install', '--agent', 'none');
+
+      expect(exists('my-app')).toBe(true);
+    });
+
+    test('uses an explicit output directory', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--output-dir',
+        'custom-dir'
+      );
+
+      expect(exists('custom-dir', 'package.json')).toBe(true);
+      expect(exists('my-app')).toBe(false);
+    });
+
+    test('reuses an existing directory', async () => {
+      fs.mkdirSync(path.join(tempDir, 'my-app'));
+
+      const logs = await run('MyApp', '--no-install', '--agent', 'none');
+
+      expect(logs.join('\n')).toContain('Using existing directory');
+      expect(exists('my-app', 'package.json')).toBe(true);
+    });
+  });
+
+  describe('template processing', () => {
+    beforeEach(async () => {
+      await run(
+        'MyApp',
+        'My description',
+        '--no-install',
+        '--agent',
+        'none',
+        '--all'
+      );
+    });
+
+    test('replaces the template variables', () => {
+      const pkg = readJson('my-app', 'package.json');
+      expect(pkg.name).toBe('my-app');
+      expect(pkg.description).toBe('My description');
+
+      const config = readJson('my-app', 'appweaver.json');
+      expect(config.config.app.name).toBe('MyApp');
+      expect(config.config.app.description).toBe('My description');
+    });
+
+    test('keeps the environment configs in a single config file', () => {
+      const config = readJson('my-app', 'appweaver.json');
+      expect(config.environments.dev.log.level).toBe('debug');
+      expect(config.environments.test.log.level).toBe('silent');
+
+      expect(exists('my-app', 'appweaver.dev.json')).toBe(false);
+      expect(exists('my-app', 'appweaver.test.json')).toBe(false);
+    });
+
+    test('uses the current package version for the framework dependencies', () => {
+      const pkg = readJson('my-app', 'package.json');
+
+      expect(pkg.dependencies['@appweaver/core']).toBe(cliVersion);
+      expect(pkg.dependencies['@appweaver/cli']).toBe(cliVersion);
+      expect(pkg.dependencies['@appweaver/common']).toBe(cliVersion);
+    });
+
+    test('uses the scaffold dependency versions for the other dependencies', () => {
+      const pkg = readJson('my-app', 'package.json');
+      const versions = {
+        ...rootPkg.scaffoldDependencies.companion,
+        ...rootPkg.scaffoldDependencies.tooling
+      };
+
+      const thirdParty = Object.entries({
+        ...pkg.dependencies,
+        ...pkg.devDependencies
+      }).filter(([name]) => !name.startsWith('@appweaver/'));
+
+      expect(thirdParty.length).toBeGreaterThan(0);
+      expect(thirdParty).toEqual(
+        thirdParty.map(([name]) => [name, versions[name]])
+      );
+    });
+
+    test('removes every template file', () => {
+      const remaining = fs
+        .readdirSync(path.join(tempDir, 'my-app'), { recursive: true })
+        .map(String)
+        .filter((file) => /\.(tpl|node|bun)$/.test(file));
+
+      expect(remaining).toEqual([]);
+    });
+
+    test('keeps the files of the selected runtime', () => {
+      expect(exists('my-app', 'jest.config.json')).toBe(true);
+      expect(exists('my-app', 'swc.config.json')).toBe(true);
+      expect(exists('my-app', 'test', 'e2e', 'jest.e2e-config.json')).toBe(
+        true
+      );
+    });
+
+    test('maps every TypeScript path alias in both Jest configs', () => {
+      const aliases = Object.keys(
+        readJson('my-app', 'tsconfig.json').compilerOptions.paths
+      ).map((alias) => `^${alias.replace('*', '(.*)')}$`);
+
+      for (const jestConfig of [
+        readJson('my-app', 'jest.config.json'),
+        readJson('my-app', 'test', 'e2e', 'jest.e2e-config.json')
+      ]) {
+        expect(Object.keys(jestConfig.moduleNameMapper).sort()).toEqual(
+          aliases.sort()
+        );
+      }
+    });
+
+    test('generates the project sources and the dotfiles', () => {
+      expect(exists('my-app', 'src', 'main.ts')).toBe(true);
+      expect(exists('my-app', 'src', 'resources', 'user', 'model.ts')).toBe(
+        true
+      );
+      expect(exists('my-app', 'database', 'schema.prisma')).toBe(true);
+      expect(exists('my-app', '.env')).toBe(true);
+      expect(exists('my-app', '.env.example')).toBe(true);
+      expect(exists('my-app', '.gitignore')).toBe(true);
+    });
+
+    test('generates the account email templates and translations', () => {
+      for (const email of [
+        'verify-email',
+        'password-reset',
+        'two-factor-code'
+      ]) {
+        for (const format of ['subject', 'html']) {
+          expect(
+            exists('my-app', 'templates', 'emails', `${email}.${format}.hbs`)
+          ).toBe(true);
+        }
+      }
+      expect(exists('my-app', 'templates', 'layouts', 'email.html.hbs')).toBe(
+        true
+      );
+      expect(readJson('my-app', 'locales', 'en.json')).toEqual(
+        defaultTranslations
+      );
+    });
+
+    test('creates the reports directory', () => {
+      expect(exists('my-app', 'reports')).toBe(true);
+    });
+  });
+
+  describe('server options', () => {
+    test('uses the default host and port', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none');
+
+      const config = readJson('my-app', 'appweaver.json');
+      expect(config.config.server.host).toBe('0.0.0.0');
+      expect(config.config.server.port).toBe(5000);
+    });
+
+    test('applies a custom host and port', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--host',
+        '127.0.0.1',
+        '--port',
+        '8080'
+      );
+
+      const config = readJson('my-app', 'appweaver.json');
+      expect(config.config.server.host).toBe('127.0.0.1');
+      expect(config.config.server.port).toBe(8080);
+    });
+  });
+
+  describe('database options', () => {
+    test('configures SQLite by default', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none');
+
+      const config = readJson('my-app', 'appweaver.json');
+      expect(config.config.database.url).toBe('file:./data/my-app.db');
+      expect(read('my-app', '.env')).toBe('NODE_ENV=dev\n');
+
+      const pkg = readJson('my-app', 'package.json');
+      expect(pkg.dependencies).toHaveProperty('@prisma/adapter-better-sqlite3');
+      expect(exists('my-app', 'data', '.gitkeep')).toBe(true);
+      expect(read('my-app', '.gitignore')).toContain(
+        '# Local SQLite database files\n/data/*.db\n/data/*.db-*\n\n# OS'
+      );
+    });
+
+    test('uses a separate test database url', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none');
+
+      expect(
+        readJson('my-app', 'appweaver.json').environments.test.database.url
+      ).toBe('file:./temp/my-app-test.db');
+    });
+
+    test('keeps a copy of the .env file as an example', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--database',
+        'postgresql'
+      );
+
+      expect(read('my-app', '.env.example')).toBe(read('my-app', '.env'));
+    });
+
+    test('configures PostgreSQL', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--database',
+        'postgresql',
+        '--add',
+        'docker'
+      );
+
+      const config = readJson('my-app', 'appweaver.json');
+      expect(config.config.database.url).toBe(
+        'postgresql://${DB_USER:-my-app}:${DB_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME:-my-app}'
+      );
+      expect(
+        readJson('my-app', 'appweaver.json').environments.test.database.url
+      ).toBe(
+        'postgresql://${DB_USER:-my-app}:${DB_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME:-my-app}-test'
+      );
+      expect(read('my-app', '.env')).toBe(
+        'NODE_ENV=dev\n\n# Secrets referenced by the ${VAR} placeholders of the appweaver.json files\n' +
+          'DB_PASSWORD=my-app\n'
+      );
+
+      const pkg = readJson('my-app', 'package.json');
+      expect(pkg.dependencies).toHaveProperty('@prisma/adapter-pg');
+      expect(pkg.dependencies).not.toHaveProperty(
+        '@prisma/adapter-better-sqlite3'
+      );
+      expect(exists('my-app', 'data')).toBe(false);
+      expect(read('my-app', '.gitignore')).not.toContain('/data/');
+
+      const compose = read('my-app', 'docker-compose.yml');
+      expect(compose).toContain('postgres:18.4');
+      expect(compose).toContain('"127.0.0.1:5432:5432"');
+      expect(compose).toContain('container_name: my-app-postgres');
+      expect(compose).toContain('condition: service_healthy');
+      expect(compose).toContain('      POSTGRES_DB: "${DB_NAME:-my-app}"\n');
+      expect(compose).toContain('      POSTGRES_USER: "${DB_USER:-my-app}"\n');
+      expect(compose).toContain('      DB_HOST: "postgres"\n');
+      expect(compose).not.toContain('DATABASE_URL');
+      // Escaped from docker-compose, so the container reads its own variables
+      expect(compose).toContain(
+        'PGPASSWORD=$$POSTGRES_PASSWORD psql -U $$POSTGRES_USER -d $$POSTGRES_DB'
+      );
+    });
+
+    test('configures MySQL', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--database',
+        'mysql',
+        '--add',
+        'docker'
+      );
+
+      const config = readJson('my-app', 'appweaver.json');
+      expect(config.config.database.url).toBe(
+        'mysql://${DB_USER:-my-app}:${DB_PASSWORD}@${DB_HOST:-localhost}:3306/${DB_NAME:-my-app}'
+      );
+      expect(readJson('my-app', 'package.json').dependencies).toHaveProperty(
+        '@prisma/adapter-mariadb'
+      );
+
+      const compose = read('my-app', 'docker-compose.yml');
+      expect(compose).toContain('mariadb:11.4');
+      expect(compose).toContain(
+        '      MARIADB_DATABASE: "${DB_NAME:-my-app}"\n'
+      );
+      expect(compose).toContain('      MARIADB_USER: "${DB_USER:-my-app}"\n');
+      expect(compose).toContain(
+        '      - ./database/mariadb-init.sh:/docker-entrypoint-initdb.d/mariadb-init.sh:ro\n'
+      );
+      expect(compose).toContain('      DB_HOST: "mysql"\n');
+      expect(read('my-app', '.env')).toContain('DB_PASSWORD=my-app\n');
+      // Lets the user create the shadow and the test databases
+      expect(read('my-app', 'database', 'mariadb-init.sh')).toContain(
+        "GRANT ALL PRIVILEGES ON *.* TO '$MARIADB_USER'@'%';"
+      );
+    });
+
+    test('keeps the MariaDB init script for MySQL only', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--database',
+        'postgresql',
+        '--add',
+        'docker'
+      );
+
+      expect(exists('my-app', 'database', 'mariadb-init.sh')).toBe(false);
+    });
+
+    test('configures SQL Server', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--database',
+        'sqlserver',
+        '--add',
+        'docker'
+      );
+
+      const config = readJson('my-app', 'appweaver.json');
+      expect(config.config.database.url).toBe(
+        'sqlserver://${DB_HOST:-localhost}:1433;database=${DB_NAME:-my-app};user=${DB_USER:-sa};password=${DB_PASSWORD};trustServerCertificate=true'
+      );
+      expect(read('my-app', '.env')).toContain('DB_PASSWORD=my-app-Passw0rd\n');
+      expect(read('my-app', 'docker-compose.yml')).toContain(
+        '      DB_HOST: "sqlserver"\n'
+      );
+    });
+
+    test('configures the database connection without Docker', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--database',
+        'postgresql'
+      );
+
+      expect(exists('my-app', 'docker-compose.yml')).toBe(false);
+      expect(readJson('my-app', 'appweaver.json').config.database.url).toBe(
+        'postgresql://${DB_USER:-my-app}:${DB_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME:-my-app}'
+      );
+      expect(read('my-app', '.env')).toContain('DB_PASSWORD=my-app\n');
+    });
+
+    test('adds a named volume for the embedded SQLite database', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'docker');
+
+      const compose = read('my-app', 'docker-compose.yml');
+      expect(compose).toContain('sqlite-data:/usr/app/data');
+      expect(compose).not.toContain('image: postgres');
+      expect(compose).not.toContain('DB_HOST');
+    });
+  });
+
+  describe('modules', () => {
+    const modulePackages = [
+      '@appweaver/bullmq',
+      '@appweaver/cron',
+      '@appweaver/handlebars',
+      '@appweaver/nodemailer',
+      '@appweaver/redis'
+    ];
+
+    test('creates a project without any module by default', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none');
+
+      const { dependencies } = readJson('my-app', 'package.json');
+      for (const name of modulePackages) {
+        expect(dependencies).not.toHaveProperty(name);
+      }
+      expect(dependencies).toHaveProperty('@prisma/client');
+
+      for (const file of [
+        'templates',
+        'locales',
+        'Dockerfile',
+        '.dockerignore',
+        'docker-compose.yml',
+        'start.sh'
+      ]) {
+        expect(exists('my-app', file)).toBe(false);
+      }
+    });
+
+    test('leaves the providers of the missing modules to auto by default', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none');
+
+      const appConfig = readJson('my-app', 'appweaver.json');
+      expect(appConfig.config).toEqual({
+        app: expect.any(Object),
+        server: expect.any(Object),
+        database: expect.any(Object)
+      });
+      expect(appConfig.environments.dev).not.toHaveProperty('template');
+      expect(Object.keys(appConfig.environments.test)).toEqual([
+        'log',
+        'server',
+        'database',
+        'storage'
+      ]);
+    });
+
+    test('adds every module with the all flag', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--all');
+
+      const { dependencies } = readJson('my-app', 'package.json');
+      for (const name of modulePackages) {
+        expect(dependencies).toHaveProperty(name);
+      }
+
+      const appConfig = readJson('my-app', 'appweaver.json');
+      expect(Object.keys(appConfig.config)).toEqual([
+        'app',
+        'server',
+        'database',
+        'memory'
+      ]);
+      expect(appConfig.config.memory).toEqual({
+        redis: { url: 'redis://${REDIS_HOST:-localhost}:6379/0' }
+      });
+      expect(appConfig.environments.dev.template).toEqual({ cache: false });
+      expect(appConfig.environments.test).toMatchObject({
+        memory: { provider: 'memory' },
+        queue: { provider: 'memory' },
+        scheduler: { autoStartJob: false },
+        mailer: { provider: 'json' }
+      });
+      expect(exists('my-app', 'Dockerfile')).toBe(true);
+      expect(exists('my-app', 'locales', 'en.json')).toBe(true);
+    });
+
+    test('adds the modules separated by spaces or commas', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--add',
+        'mailer,scheduler',
+        'templates'
+      );
+
+      const { dependencies } = readJson('my-app', 'package.json');
+      expect(dependencies).toHaveProperty('@appweaver/nodemailer');
+      expect(dependencies).toHaveProperty('@appweaver/cron');
+      expect(dependencies).toHaveProperty('@appweaver/handlebars');
+      expect(dependencies).not.toHaveProperty('@appweaver/redis');
+
+      const { config } = readJson('my-app', 'appweaver.json');
+      expect(config).not.toHaveProperty('mailer');
+      expect(config).not.toHaveProperty('scheduler');
+      expect(config).not.toHaveProperty('template');
+      expect(config).not.toHaveProperty('queue');
+    });
+
+    test('adds the modules a module requires', async () => {
+      const logs = await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--add',
+        'queue'
+      );
+
+      expect(logs).toContain('Adding module redis, required by queue.');
+      const { dependencies } = readJson('my-app', 'package.json');
+      expect(dependencies).toHaveProperty('@appweaver/bullmq');
+      expect(dependencies).toHaveProperty('@appweaver/redis');
+
+      const { config } = readJson('my-app', 'appweaver.json');
+      expect(config).not.toHaveProperty('queue');
+      expect(config).not.toHaveProperty('cache');
+    });
+
+    test('leaves out the negated modules of all', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--all',
+        '--no-docker',
+        '--no-scheduler'
+      );
+
+      expect(exists('my-app', 'Dockerfile')).toBe(false);
+      expect(exists('my-app', 'docker-compose.yml')).toBe(false);
+      expect(exists('my-app', 'templates')).toBe(true);
+
+      const { dependencies } = readJson('my-app', 'package.json');
+      expect(dependencies).not.toHaveProperty('@appweaver/cron');
+      expect(dependencies).toHaveProperty('@appweaver/bullmq');
+      expect(readJson('my-app', 'appweaver.json').config).not.toHaveProperty(
+        'scheduler'
+      );
+    });
+
+    test('writes the account email templates with the mailer and templates', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--add',
+        'mailer',
+        'templates',
+        'locales'
+      );
+
+      expect(
+        read('my-app', 'templates', 'emails', 'password-reset.subject.hbs')
+      ).toContain('{{t "emails.passwordReset.subject"}}');
+      expect(exists('my-app', 'templates', 'layouts', 'email.html.hbs')).toBe(
+        true
+      );
+      expect(readJson('my-app', 'locales', 'en.json')).toEqual(
+        defaultTranslations
+      );
+    });
+
+    test('writes no email templates without the mailer', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--add',
+        'templates'
+      );
+
+      expect(fs.readdirSync(path.join(tempDir, 'my-app', 'templates'))).toEqual(
+        ['.gitkeep']
+      );
+    });
+
+    test('writes the English texts into the templates without the locales', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--add',
+        'mailer',
+        'templates'
+      );
+
+      expect(exists('my-app', 'locales')).toBe(false);
+      const subject = read(
+        'my-app',
+        'templates',
+        'emails',
+        'password-reset.subject.hbs'
+      );
+      expect(subject.trim()).toBe('Password reset request');
+      const html = read(
+        'my-app',
+        'templates',
+        'emails',
+        'two-factor-code.html.hbs'
+      );
+      expect(html).toContain('{{#if (eq expiresInMinutes 1)}}');
+      expect(html).not.toMatch(/[{(]t "/);
+      expect(
+        read('my-app', 'templates', 'layouts', 'email.html.hbs')
+      ).toContain('This email was sent by {{@app.name}}.');
+    });
+
+    test('copies the templates and translations in the Docker image', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--all');
+
+      expect(read('my-app', 'Dockerfile')).toContain(
+        '# Copy public static files\nCOPY --from=build /usr/app/public /usr/app/public\n\n' +
+          '# Copy templates\nCOPY --from=build /usr/app/templates /usr/app/templates\n\n' +
+          '# Copy translation files\nCOPY --from=build /usr/app/locales /usr/app/locales\n\n' +
+          '# Copy Prisma'
+      );
+    });
+
+    test('copies only the translation files without the templates', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--add',
+        'docker',
+        'locales'
+      );
+
+      const dockerfile = read('my-app', 'Dockerfile');
+      expect(dockerfile).not.toContain('templates');
+      expect(dockerfile).toContain(
+        '# Copy translation files\nCOPY --from=build /usr/app/locales /usr/app/locales\n'
+      );
+    });
+
+    test('copies neither the templates nor the translations without them', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'docker');
+
+      const dockerfile = read('my-app', 'Dockerfile');
+      expect(dockerfile).not.toMatch(/templates|locales|# Copy translation/);
+      expect(dockerfile).toContain(
+        '# Copy public static files\nCOPY --from=build /usr/app/public /usr/app/public\n\n# Copy Prisma'
+      );
+    });
+
+    test('adds the Redis service to docker-compose.yml', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--add',
+        'redis',
+        'docker'
+      );
+
+      const compose = read('my-app', 'docker-compose.yml');
+      expect(compose).toContain('image: redis:7.4.9');
+      expect(compose).toContain('"127.0.0.1:6379:6379"');
+      expect(compose).toContain(
+        '      redis:\n        condition: service_healthy'
+      );
+      expect(compose).toContain('  redis-data:');
+      expect(compose).toContain(
+        '    environment:\n      REDIS_HOST: "redis"\n'
+      );
+      expect(compose).not.toContain('REDIS_URL');
+      expect(read('my-app', '.env')).not.toContain('REDIS');
+    });
+
+    test('generates docker-compose.yml without Redis', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'docker');
+
+      const compose = read('my-app', 'docker-compose.yml');
+      expect(compose).not.toContain('redis');
+      expect(compose).toContain('  my-app.migrations:');
+      expect(compose).toContain('  sqlite-data:');
+    });
+
+    test('configures the Bun runtime', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--bun');
+
+      const { config } = readJson('my-app', 'appweaver.json');
+      expect(config.app.runtime).toBe('bun');
+      expect(config).not.toHaveProperty('cache');
+    });
+
+    test('runs only the test files with the Bun unit tests', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--bun');
+
+      // A path given after --coverage would be run as a test file
+      expect(readJson('my-app', 'package.json').scripts.test).toBe(
+        'bun test ./test/unit --coverage --reporter=junit --reporter-outfile=./reports/junit.xml'
+      );
+    });
+
+    test('installs the Jest tooling for the Node runtime', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none');
+
+      const { devDependencies } = readJson('my-app', 'package.json');
+      expect(devDependencies).toHaveProperty('jest');
+      expect(devDependencies).toHaveProperty('@swc/jest');
+      expect(devDependencies).toHaveProperty('typescript');
+      expect(devDependencies).not.toHaveProperty('@types/bun');
+    });
+
+    test('installs the Bun types instead of Jest for the Bun runtime', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--bun');
+
+      const { devDependencies } = readJson('my-app', 'package.json');
+      expect(devDependencies).toHaveProperty('@types/bun');
+      expect(devDependencies).toHaveProperty('typescript');
+      expect(devDependencies).not.toHaveProperty('jest');
+      expect(devDependencies).not.toHaveProperty('@swc/jest');
+    });
+
+    test('generates the Node Dockerfile running as an unprivileged user', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'docker');
+
+      const dockerfile = read('my-app', 'Dockerfile');
+      expect(dockerfile).toContain('FROM node:');
+      expect(dockerfile).toContain('USER node');
+      expect(exists('my-app', 'Dockerfile.bun')).toBe(false);
+      expect(exists('my-app', '.dockerignore')).toBe(true);
+    });
+
+    test('generates the Bun Dockerfile for the Bun runtime', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--bun',
+        '--add',
+        'docker'
+      );
+
+      const dockerfile = read('my-app', 'Dockerfile');
+      expect(dockerfile).toContain('FROM oven/bun:');
+      expect(dockerfile).toContain('USER bun');
+      expect(exists('my-app', 'Dockerfile.bun')).toBe(false);
+      expect(read('my-app', 'start.sh')).toContain('bun');
+    });
+  });
+
+  describe('agent files', () => {
+    test('creates the Claude guidelines and the skill files', async () => {
+      createSkillDir();
+
+      await run('MyApp', 'My description', '--no-install', '--agent', 'claude');
+
+      expect(
+        exists('my-app', '.claude', 'skills', 'appweaver', 'SKILL.md')
+      ).toBe(true);
+      expect(
+        exists('my-app', '.claude', 'skills', 'appweaver', 'GUIDELINES.md')
+      ).toBe(true);
+
+      const guidelines = read('my-app', 'CLAUDE.md');
+      expect(guidelines).toContain('# MyApp');
+      expect(guidelines).toContain('My description');
+      expect(guidelines).toContain('@.claude/skills/appweaver/GUIDELINES.md');
+      expect(guidelines).toContain(
+        'Add your own project-specific instructions below this line.'
+      );
+    });
+
+    test('creates a markdown reference for the other agents', async () => {
+      createSkillDir();
+
+      await run('MyApp', '--no-install', '--agent', 'codex');
+
+      expect(
+        exists('my-app', '.agents', 'skills', 'appweaver', 'SKILL.md')
+      ).toBe(true);
+      expect(read('my-app', 'AGENTS.md')).toContain(
+        '[Appweaver framework guidelines](.agents/skills/appweaver/GUIDELINES.md)'
+      );
+      expect(exists('my-app', 'CLAUDE.md')).toBe(false);
+    });
+
+    test('uses the .github directory for Copilot', async () => {
+      createSkillDir();
+
+      await run('MyApp', '--no-install', '--agent', 'copilot');
+
+      expect(
+        exists('my-app', '.github', 'skills', 'appweaver', 'SKILL.md')
+      ).toBe(true);
+      expect(read('my-app', 'AGENTS.md')).toContain(
+        '.github/skills/appweaver/GUIDELINES.md'
+      );
+    });
+
+    test('creates no agent files for the none agent', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none');
+
+      expect(exists('my-app', 'CLAUDE.md')).toBe(false);
+      expect(exists('my-app', 'AGENTS.md')).toBe(false);
+      expect(exists('my-app', '.claude')).toBe(false);
+    });
+  });
+
+  describe('option validation', () => {
+    const runInvalid = (...args: string[]) => {
+      const stderr: string[] = [];
+      jest.spyOn(process.stderr, 'write').mockImplementation((chunk: any) => {
+        stderr.push(String(chunk));
+        return true;
+      });
+      const exit = jest.spyOn(process, 'exit').mockImplementation(() => {
+        throw new Error('process.exit called');
+      });
+
+      process.argv = ['node', 'create', ...args];
+
+      expect(() =>
+        jest.isolateModules(() => {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          require('../create');
+        })
+      ).toThrow('process.exit called');
+
+      return { stderr: stderr.join(''), exit };
+    };
+
+    test('rejects an unsupported database type', () => {
+      const { stderr, exit } = runInvalid('MyApp', '--database', 'oracle');
+
+      expect(stderr).toContain('Must be one of following');
+      expect(stderr).toContain('sqlite');
+      expect(exit).toHaveBeenCalledWith(1);
+    });
+
+    test('rejects a port outside of the valid range', () => {
+      expect(runInvalid('MyApp', '--port', '70000').stderr).toContain(
+        'Must be an integer between 0 and 65535.'
+      );
+      expect(runInvalid('MyApp', '--port', 'abc').stderr).toContain(
+        'Must be an integer between 0 and 65535.'
+      );
+    });
+
+    test('rejects an unknown agent type', () => {
+      const { stderr } = runInvalid('MyApp', '--agent', 'robot');
+
+      expect(stderr).toContain('Must be one of following');
+      expect(stderr).toContain('claude');
+    });
+
+    test('rejects a missing project name', () => {
+      const { stderr } = runInvalid();
+
+      expect(stderr).toContain('name');
+    });
+
+    test('rejects an unknown module', () => {
+      const { stderr, exit } = runInvalid('MyApp', '--add', 'redis,graphql');
+
+      expect(stderr).toContain('Unknown module: graphql.');
+      expect(exit).toHaveBeenCalledWith(1);
+    });
+
+    test('rejects a module both added and left out', () => {
+      expect(
+        runInvalid('MyApp', '--add', 'mailer', '--no-mailer').stderr
+      ).toContain('Module mailer cannot be both added and left out.');
+    });
+
+    test('rejects leaving out a module an added one requires', () => {
+      expect(runInvalid('MyApp', '--all', '--no-redis').stderr).toContain(
+        'Module queue requires redis, leave out queue as well.'
+      );
+    });
+
+    test('accepts an uppercase database type', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--database',
+        'PostgreSQL'
+      );
+
+      expect(
+        readJson('my-app', 'appweaver.json').config.database.url
+      ).toContain('postgresql://');
+    });
+  });
+});

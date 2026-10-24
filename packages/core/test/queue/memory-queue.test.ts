@@ -1,4 +1,5 @@
 import { MemoryQueue } from '../../queue/memory-queue';
+import { testQueueContract } from '@appweaver/testing';
 
 /** Waits until the condition holds or the timeout elapses. */
 const waitFor = async (
@@ -323,3 +324,5 @@ describe('memory-queue', () => {
     });
   });
 });
+
+testQueueContract('MemoryQueue', () => new MemoryQueue());

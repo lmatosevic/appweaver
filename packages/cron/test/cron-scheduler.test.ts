@@ -1,4 +1,5 @@
 import { CronScheduler } from '../cron-scheduler';
+import { testSchedulerContract } from '@appweaver/testing';
 
 describe('cron-scheduler', () => {
   let scheduler: CronScheduler;
@@ -147,3 +148,5 @@ describe('cron-scheduler', () => {
     });
   });
 });
+
+testSchedulerContract('CronScheduler', () => new CronScheduler());

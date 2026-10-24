@@ -10,7 +10,7 @@ let app: Promise<Application> | undefined;
  * resetting the database in between.
  */
 export function testApp(): Promise<Application> {
-  app ??= createApp({ autoStartServer: false });
+  app ??= createApp();
   return app;
 }
 

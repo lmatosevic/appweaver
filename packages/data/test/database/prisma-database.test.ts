@@ -10,7 +10,7 @@ import {
   afterCommit,
   afterRollback,
   currentTransaction
-} from '@appweaver/core/context/transaction-scope';
+} from '@appweaver/core/internal';
 
 /** A Prisma client stand-in, running each transaction on its own client. */
 function createRoot() {

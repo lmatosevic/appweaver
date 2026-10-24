@@ -19,7 +19,7 @@ describe('Employee directory', () => {
   };
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     await createRoles();
 
     target = await hire('Rosalind');

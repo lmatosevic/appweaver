@@ -31,7 +31,7 @@ describe('Files of deleted resources', () => {
   const isStored = async (file: any) => inject(Storage).exists(file.name);
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     posts = injectService('Post');
     users = injectService('User');
     files = inject<any>(Database as any).client().file;

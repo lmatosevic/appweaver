@@ -31,7 +31,7 @@ import {
   ConfigurationError,
   ErrorCode
 } from '@appweaver/common';
-import { context } from '@appweaver/core/context/context';
+import { context } from '@appweaver/core/internal';
 import { define } from '@appweaver/core';
 import {
   auditSchema as buildAuditFieldsSchema,

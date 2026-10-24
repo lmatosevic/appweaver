@@ -39,7 +39,7 @@ The framework is assembled from modules: `@appweaver/core`, `@appweaver/data` (P
 enabled by being a dependency of the project. Install the driver package, never its library (`@appweaver/redis`, not
 `ioredis`), and import each name from the package exporting it (`createModel` from `@appweaver/data`, `createRoutes`
 from `@appweaver/web`). Each `provider` key defaults to `auto` (the driver of an enabled module), `none` turns a
-contract off, and `APP_MODULES_DISABLED=@appweaver/web` runs a worker or scheduled jobs without a server (`HEALTH_PORT`
+contract off, and `APP_MODULES_DISABLED=@appweaver/web` runs a worker or scheduled jobs without a server (`HEALTH_CHECK_PORT`
 answers the health checks). See [modules.md](references/modules.md).
 
 ## Creating resources
@@ -314,6 +314,8 @@ export async function createAdminUser(): Promise<void> {
 | `weaver migration new <name>` | Create a new database migration           |
 | `weaver upgrade`              | Upgrade all @appweaver/* packages         |
 | `weaver module add <name>`    | Add a module (redis, docker, templates…)  |
+| `weaver module new <name>`    | Create a local module in `src/modules/`   |
+| `weaver config check`         | Validate the config of every module       |
 | `weaver openapi`              | Generate OpenAPI specification            |
 | `weaver run <file> [args...]` | Run a one-shot task, then exit            |
 

@@ -11,6 +11,7 @@ import {
   OnInit,
   LocaleError
 } from '@appweaver/common';
+import { moduleDirectories } from '../app/discover-modules';
 import { localeConfig } from './locale-config';
 import { defaultTranslations } from './default-translations';
 import { formatMessage, parseMessage } from './utils/message-format';
@@ -141,7 +142,7 @@ export class LocaleService implements OnInit {
   }
 
   /**
-   * Reads the translation files of the `LOCALE_PATH` directory again.
+   * Reads the translation files of the enabled modules and of the `LOCALE_PATH` directory again.
    *
    * @throws {LocaleError} `LOCALE_LOAD_FAILED` if a translation file cannot be read or parsed.
    */
@@ -156,45 +157,16 @@ export class LocaleService implements OnInit {
       return;
     }
 
-    const dir = path.resolve(process.cwd(), localeConfig.PATH);
     const files = new Map<string, FlatTranslations>();
 
-    let fileNames: string[] = [];
-    try {
-      fileNames = fs.readdirSync(dir).filter((f) => f.endsWith('.json'));
-    } catch {
-      logger.debug({ dir }, 'Locale directory not found');
-    }
-
-    for (const fileName of fileNames) {
-      const filePath = path.join(dir, fileName);
-      const locale = normalizeLocale(fileName.slice(0, -'.json'.length));
-      if (!locale) {
-        logger.warn({ filePath }, 'Translation file of an invalid locale');
-        continue;
+    // The translations of the application override the ones of the modules
+    for (const dir of [
+      ...moduleDirectories('locales'),
+      path.resolve(process.cwd(), localeConfig.PATH)
+    ]) {
+      for (const [locale, translations] of readTranslationFiles(dir)) {
+        files.set(locale, { ...files.get(locale), ...translations });
       }
-
-      let translations: unknown;
-      try {
-        translations = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-      } catch (e) {
-        throw new LocaleError(
-          ErrorCode.LocaleLoadFailed,
-          `Translation file '${filePath}' loading failed`,
-          { path: filePath },
-          { cause: e }
-        );
-      }
-
-      if (!isPlainObject(translations)) {
-        throw new LocaleError(
-          ErrorCode.LocaleLoadFailed,
-          `Translation file '${filePath}' must contain a JSON object`,
-          { path: filePath }
-        );
-      }
-
-      files.set(locale, flattenTranslations(translations, locale, filePath));
     }
 
     this._files = files;
@@ -223,6 +195,51 @@ export class LocaleService implements OnInit {
       ? { value: this._defaults[key], locale: 'en' }
       : undefined;
   }
+}
+
+/** Reads the translation files of a directory, keyed by their locale. */
+function readTranslationFiles(dir: string): Map<string, FlatTranslations> {
+  const files = new Map<string, FlatTranslations>();
+
+  let fileNames: string[] = [];
+  try {
+    fileNames = fs.readdirSync(dir).filter((f) => f.endsWith('.json'));
+  } catch {
+    logger.debug({ dir }, 'Locale directory not found');
+  }
+
+  for (const fileName of fileNames) {
+    const filePath = path.join(dir, fileName);
+    const locale = normalizeLocale(fileName.slice(0, -'.json'.length));
+    if (!locale) {
+      logger.warn({ filePath }, 'Translation file of an invalid locale');
+      continue;
+    }
+
+    let translations: unknown;
+    try {
+      translations = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    } catch (e) {
+      throw new LocaleError(
+        ErrorCode.LocaleLoadFailed,
+        `Translation file '${filePath}' loading failed`,
+        { path: filePath },
+        { cause: e }
+      );
+    }
+
+    if (!isPlainObject(translations)) {
+      throw new LocaleError(
+        ErrorCode.LocaleLoadFailed,
+        `Translation file '${filePath}' must contain a JSON object`,
+        { path: filePath }
+      );
+    }
+
+    files.set(locale, flattenTranslations(translations, locale, filePath));
+  }
+
+  return files;
 }
 
 /**

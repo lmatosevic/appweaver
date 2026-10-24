@@ -150,13 +150,50 @@ describe('seeder', () => {
       expect(records[0]).toMatchObject({ logs: 'Error: boom' });
     });
 
+    test('runs the seeders of the modules first, under their module name', async () => {
+      const order: string[] = [];
+      const moduleDir = path.join(dir, 'billing');
+      fs.mkdirSync(moduleDir);
+      seederFile('1-users.ts', { users: async () => order.push('users') });
+      seederFile('billing/1-plans.ts', {
+        plans: async () => order.push('plans')
+      });
+
+      await new Seeder(dir, false, false, [
+        { name: 'billing', path: moduleDir }
+      ]).seed();
+
+      expect(order).toEqual(['plans', 'users']);
+      expect(records.map((r) => r.seederName)).toEqual([
+        'billing/1-plans',
+        '1-users'
+      ]);
+      expect(logged(log)).toContain('2 seeders found in');
+    });
+
     test('reports a seeders directory that is not accessible', async () => {
       const error = jest.spyOn(console, 'error');
 
       await new Seeder(path.join(dir, 'missing')).seed();
 
-      expect(logged(error)).toContain('is not accessible');
+      expect(logged(warn)).toContain('is not accessible');
+      expect(logged(error)).toContain('No seeders directory is accessible');
       expect(table.create).not.toHaveBeenCalled();
+    });
+
+    test('runs the seeders of a module without a seeders directory of the application', async () => {
+      const order: string[] = [];
+      seederFile('1-plans.ts', { plans: async () => order.push('plans') });
+      records.push({ id: 9, seederName: '1-users', checksum: 'x' });
+
+      await new Seeder(path.join(dir, 'missing'), false, true, [
+        { name: 'billing', path: dir }
+      ]).seed();
+
+      expect(order).toEqual(['plans']);
+      expect(records.map((r) => r.seederName)).toContain('billing/1-plans');
+      // The seeders of the missing directory are kept
+      expect(table.delete).not.toHaveBeenCalled();
     });
   });
 });

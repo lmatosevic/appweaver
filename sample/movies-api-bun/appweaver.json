@@ -1,5 +1,5 @@
 {
-  "$schema": "../../node_modules/@appweaver/common/config/schema.json",
+  "$schema": "./appweaver.schema.json",
   "config": {
     "app": {
       "name": "Movies API Bun",
@@ -37,6 +37,9 @@
       "log": {
         "level": "silent",
         "sync": true
+      },
+      "server": {
+        "listen": false
       },
       "database": {
         "url": "file:./temp/movies-api-bun-test.db",

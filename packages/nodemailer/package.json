@@ -6,6 +6,13 @@
   "license": "MIT",
   "main": "./index.js",
   "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "keywords": [
     "appweaver",
     "appweaver-module"
@@ -32,6 +39,7 @@
     "module": "./module.js"
   },
   "dependencies": {
+    "@sinclair/typebox": "0.34.49",
     "nodemailer": "10.0.13"
   },
   "peerDependencies": {

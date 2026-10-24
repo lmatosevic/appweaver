@@ -30,7 +30,10 @@ type RawConfig = { json: ConfigEntry['config']; env: ConfigEntry['config'] };
 
 const rawConfig: RawConfig = { json: {}, env: {} };
 
-/** The registered sections, keyed by their path. */
+/**
+ * The registered sections, keyed by their path and keys (`healthCheck:ENABLED,AUTH`), since two packages may define
+ * the same path with their own keys. A section defined again with the same keys replaces its definition.
+ */
 export const configSections = new Map<string, ConfigSectionDefinition>();
 
 /** The section owning each flattened key. A section path may be defined by several packages, each with its own keys. */
@@ -70,6 +73,30 @@ export function readRawConfig(key: string): unknown {
     }
   }
   return undefined;
+}
+
+/** Where the value of a config key comes from. */
+export type ConfigSource = 'override' | 'env' | 'json' | 'default';
+
+/**
+ * Tells where the value of a flattened key comes from: a test override, the environment, the JSON files, or the
+ * default of its schema.
+ *
+ * @param {string} key - The flattened key, i.e. `SERVER_PORT`.
+ * @return {ConfigSource} The source of the value.
+ */
+export function configSource(key: string): ConfigSource {
+  if (Object.prototype.hasOwnProperty.call(configOverrides, key)) {
+    return 'override';
+  }
+  const rawKey = `_${CONFIG_NAME}_${key}`;
+  if (!isEmpty(rawConfig.env[rawKey])) {
+    return 'env';
+  }
+  if (!isEmpty(rawConfig.json[rawKey])) {
+    return 'json';
+  }
+  return 'default';
 }
 
 /**
@@ -131,7 +158,10 @@ export function defineConfig<P extends TProperties>(
 
   Object.freeze(result);
   const definition = { section, prefix, schema, values: result };
-  configSections.set(section, definition);
+  configSections.set(
+    `${section}:${Object.keys(properties).join(',')}`,
+    definition
+  );
   for (const key of Object.keys(properties)) {
     keyOwners.set(prefix + key, definition);
   }
@@ -187,12 +217,24 @@ function parseSection<V>(
   try {
     values = Value.Parse(schema, input) as V;
   } catch {
-    const errors = [...Value.Errors(schema, Value.Convert(schema, input))].map(
-      (error) => {
-        const key = error.path.split('/')[1] ?? '';
-        return `${prefix + key} (config.${section}.${snakeToCamelCase(key.toLowerCase())}): ${error.message}`;
-      }
+    // The defaults are applied first, so only the invalid values are named,
+    // each with its first error
+    const checked = Value.Convert(
+      schema,
+      Value.Default(schema, structuredClone(input))
     );
+    const errors: string[] = [];
+    const named = new Set<string>();
+    for (const error of Value.Errors(schema, checked)) {
+      const key = error.path.split('/')[1] ?? '';
+      if (named.has(key)) {
+        continue;
+      }
+      named.add(key);
+      errors.push(
+        `${prefix + key} (config.${section}.${snakeToCamelCase(key.toLowerCase())}): ${error.message}`
+      );
+    }
     throw new ConfigurationError(
       ErrorCode.ConfigurationInvalid,
       `Invalid config of section "${section}": ${errors.join(', ')}`,

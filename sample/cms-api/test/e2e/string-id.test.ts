@@ -46,7 +46,7 @@ describe('String primary key resources', () => {
   };
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     comments = injectService('Comment');
     posts = injectService('Post');
     users = injectService('User');

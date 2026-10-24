@@ -1,5 +1,5 @@
 {
-  "$schema": "../../node_modules/@appweaver/common/config/schema.json",
+  "$schema": "./appweaver.schema.json",
   "config": {
     "app": {
       "name": "Webshop API",
@@ -48,6 +48,9 @@
       "log": {
         "level": "silent",
         "sync": true
+      },
+      "server": {
+        "listen": false
       },
       "database": {
         "url": "postgresql://${DB_USER:-webshop-api}:${DB_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME:-webshop-api}-test",

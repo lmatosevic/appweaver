@@ -82,7 +82,7 @@ describe('Query and aggregate GET routes', () => {
   };
 
   beforeAll(async () => {
-    app = await createApp({ autoStartServer: false });
+    app = await createApp();
     posts = injectService('Post');
     tags = injectService('Tag');
     users = injectService('User');

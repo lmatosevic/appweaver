@@ -1,0 +1,7 @@
+{
+  "testEnvironment": "node",
+  "testMatch": ["**/test/**/*.test.ts"],
+  "transform": {
+    "^.+\\.ts$": ["@swc/jest"]
+  }
+}
