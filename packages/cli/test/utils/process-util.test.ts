@@ -133,9 +133,54 @@ describe('process-util', () => {
             )
           );
 
+      const waitForExit = async (pid: number) => {
+        for (let i = 0; i < 100; i++) {
+          try {
+            process.kill(pid, 0);
+          } catch {
+            return;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 20));
+        }
+      };
+
       test('stays quiet when the process is already gone', async () => {
         // As on Windows, where Ctrl+C also stops the child itself
         failKill("Process doesn't exist");
+        const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const controller = new AbortController();
+
+        const promise = running(controller);
+        setTimeout(() => controller.abort(), 200);
+
+        await expect(promise).resolves.toBe(0);
+        expect(error).not.toHaveBeenCalled();
+      }, 30000);
+
+      test('stays quiet when taskkill no longer finds the process', async () => {
+        // The process exited between the existence check of fkill and taskkill
+        failKill('ERROR: The process "1" not found.');
+        const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const controller = new AbortController();
+
+        const promise = running(controller);
+        setTimeout(() => controller.abort(), 200);
+
+        await expect(promise).resolves.toBe(0);
+        expect(error).not.toHaveBeenCalled();
+      }, 30000);
+
+      test('stays quiet when a kill failing with any message left the process gone', async () => {
+        // A localized taskkill message, once the process has exited
+        const killTree = jest.mocked(fkill).getMockImplementation()!;
+        jest.mocked(fkill).mockImplementationOnce(async (pid, options) => {
+          await killTree(pid, options);
+          await waitForExit(pid as number);
+          throw new AggregateError(
+            ['Killing process 1 failed: FEHLER: Prozess nicht gefunden.'],
+            'Failed to kill processes'
+          );
+        });
         const error = jest.spyOn(console, 'error').mockImplementation(() => {});
         const controller = new AbortController();
 

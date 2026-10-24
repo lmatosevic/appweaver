@@ -46,7 +46,7 @@ export function runProcess(
       try {
         await fkill(child.pid, { force: true, tree: true });
       } catch (e) {
-        if (!isProcessGoneError(e)) {
+        if (!isProcessGoneError(e, child.pid)) {
           console.error('Failed to kill process:', e);
         }
       }
@@ -98,14 +98,32 @@ export function runProcessOutput(
 
 /**
  * Whether killing failed only because the processes had already exited, which
- * leaves them exactly as the kill intended.
+ * leaves them exactly as the kill intended. A process exiting between the
+ * existence check of fkill and the kill fails with the message of `taskkill`
+ * on Windows, localized, so a process no longer running counts as gone too.
  */
-function isProcessGoneError(error: unknown): boolean {
+function isProcessGoneError(error: unknown, pid: number): boolean {
   return (
     error instanceof AggregateError &&
     error.errors.length > 0 &&
-    error.errors.every((message) => /doesn't exist/.test(String(message)))
+    (error.errors.every((message) =>
+      /doesn't exist|not found|no running instance/.test(String(message))
+    ) ||
+      !isProcessRunning(pid))
   );
+}
+
+/**
+ * Whether a process with the PID is running, signal 0 only checks that it
+ * exists. EPERM means it exists, owned by another user.
+ */
+function isProcessRunning(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (e) {
+    return (e as NodeJS.ErrnoException).code === 'EPERM';
+  }
 }
 
 /**
