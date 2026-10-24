@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { AsyncResource } from 'node:async_hooks';
 import Fastify, { LogController } from 'fastify';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import fastifyCors from '@fastify/cors';
@@ -6,14 +7,14 @@ import fastifyHelmet from '@fastify/helmet';
 import fastifyStatic from '@fastify/static';
 import fastifyRateLimit from '@fastify/rate-limit';
 import fastifyMultipart from '@fastify/multipart';
-import { Redis as RedisClient, RedisOptions } from 'ioredis';
+import type { Redis as RedisClient, RedisOptions } from 'ioredis';
 import { fastifyRequestContext } from '@fastify/request-context';
 import {
+  Database,
   ErrorCode,
   loggerConfig,
-  MemoryType,
+  Memory,
   PLUGIN,
-  Redis,
   RequestError,
   ROUTE,
   textToBytes
@@ -22,8 +23,13 @@ import { storageConfig } from '../storage/storage-config';
 import { templatePreviewConfig } from '../template/template-config';
 import { healthCheckConfig } from '../health/health-config';
 import { cacheConfig } from '../cache/cache-config';
-import { corsConfig, rateLimitConfig, serverConfig } from './server-config';
-import { context, inject, injectAll } from '../context';
+import {
+  corsConfig,
+  rateLimitConfig,
+  RateLimitStore,
+  serverConfig
+} from './server-config';
+import { context, inject, injectAll, injectModel, isDefined } from '../context';
 import { errorHandler, notFoundHandler, stashErrorResponses } from '../errors';
 import { files } from '../storage';
 import { health } from '../health';
@@ -37,6 +43,7 @@ import { requestValidation } from './request-validation';
 import { referencedSerializer } from './response-serialization';
 import schemas from './schemas';
 import swagger from './swagger';
+import { runInAuthContext } from '../context/auth-context';
 
 /**
  * Creates and configures a new server instance.
@@ -128,8 +135,8 @@ export function createServer(): Server {
   // Register global request rate limiter
   if (rateLimitConfig.ENABLED) {
     const redisClient =
-      rateLimitConfig.STORE === MemoryType.Redis
-        ? inject<Redis<RedisOptions, RedisClient>>(Redis).createClient({
+      rateLimitConfig.STORE === RateLimitStore.Auto
+        ? inject<Memory<RedisOptions, RedisClient>>(Memory).createClient({
             connectionName: 'rate-limit',
             connectTimeout: 500,
             maxRetriesPerRequest: 1,
@@ -158,14 +165,12 @@ export function createServer(): Server {
   }
 
   // Register request context plugin with default values
+  // The async resource of each request is created in a new auth context, so
+  // the authenticated user is kept through the whole request
   server.register(fastifyRequestContext, {
-    defaultStoreValues: {
-      authUser: null,
-      authType: null,
-      authSource: null,
-      apiKey: null,
-      cached: undefined
-    }
+    defaultStoreValues: { cached: undefined },
+    createAsyncResource: () =>
+      runInAuthContext(() => new AsyncResource('appweaver-request'))
   });
 
   // Register all defined plugins
@@ -187,8 +192,10 @@ export function createServer(): Server {
   // Register schema models to enable $ref usage in route validation
   server.register(schemas);
 
-  // Register authentication plugin
-  server.register(auth);
+  // Register authentication plugin, authenticating the users of the database
+  if (isDefined(Database)) {
+    server.register(auth);
+  }
 
   // Register caching plugin
   if (cacheConfig.ENABLED) {
@@ -207,8 +214,10 @@ export function createServer(): Server {
     });
   }
 
-  // Register files route
-  server.register(files, { prefix: storageConfig.FILES_ROUTE_PREFIX });
+  // Register files route, serving the files of the database records
+  if (isDefined(Database) && injectModel('File', false)) {
+    server.register(files, { prefix: storageConfig.FILES_ROUTE_PREFIX });
+  }
 
   // Register info route
   server.register(info, { prefix: serverConfig.API_PREFIX });

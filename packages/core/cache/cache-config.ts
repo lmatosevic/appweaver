@@ -34,6 +34,7 @@ export const cacheConfig = defineConfig('cache', {
   INVALIDATION_DEFERRED: Type.Boolean({ default: false }),
   /** Return empty results instead of failing when the cache backend errors, e.g. while Redis is down. Default: `true`. */
   SKIP_ON_ERROR: Type.Boolean({ default: true }),
-  /** Cache provider implementation path. Default: `'@appweaver/core/cache/redis-cache'`. */
-  PROVIDER: Type.String({ default: '@appweaver/core/cache/redis-cache' })
+  /** Cache provider: `auto` or `memory` (the cache stored in the `Memory` provider), or the module path of an
+   * implementation. Default: `'auto'`. */
+  PROVIDER: Type.String({ default: 'auto' })
 });

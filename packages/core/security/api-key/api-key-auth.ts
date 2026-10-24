@@ -1,6 +1,5 @@
 import { FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import { requestContext } from '@fastify/request-context';
 import {
   AuthSource,
   AuthType,
@@ -19,6 +18,7 @@ import { AuthService } from '../auth-service';
 import { CacheService } from '../../cache';
 import { PrismaDatabase } from '../../database';
 import { ApiKey, Server } from '../../types';
+import { setAuthContext } from '../../context/auth-context';
 
 export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
   const authService = inject(AuthService);
@@ -94,10 +94,12 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
 
     authService.authorize(authUser, request.url, request.routeOptions.config);
 
-    requestContext.set('apiKey', apiKey);
-    requestContext.set('authUser', authUser);
-    requestContext.set('authType', AuthType.ApiKey);
-    requestContext.set('authSource', AuthSource.ApiKey);
+    setAuthContext({
+      apiKey,
+      authUser,
+      authType: AuthType.ApiKey,
+      authSource: AuthSource.ApiKey
+    });
   });
 });
 

@@ -1,7 +1,8 @@
 # Storage
 
 The storage module handles file persistence: storing, streaming, and deleting binary content. The default implementation
-(`FilesystemStorage`) writes files to a local directory using a configurable name pattern. The module supports
+(`FilesystemStorage`, provider `local`) writes files to a local directory using a configurable name pattern; a module
+of another driver (i.e. a cloud storage, see [modules](./modules.md)) replaces it once enabled. The module supports
 range-based streaming for efficient large-file delivery (e.g., video, audio).
 
 ## Injecting Storage
@@ -15,15 +16,16 @@ const storage = inject(Storage);
 
 ---
 
-#### `storage.store(fileName, data)`
+#### `storage.store(fileName, data, options?)`
 
 Persists a readable stream under the given file name. Returns the stored file's path/ID (derived from
 `STORAGE_NAME_PATTERN`), or `null` on failure.
 
-| Parameter  | Type       | Description                                |
-|------------|------------|--------------------------------------------|
-| `fileName` | `string`   | Original file name (used for name pattern) |
-| `data`     | `Readable` | Node.js readable stream with the content   |
+| Parameter  | Type           | Description                                                                                     |
+|------------|----------------|-------------------------------------------------------------------------------------------------|
+| `fileName` | `string`       | Original file name (used for name pattern)                                                      |
+| `data`     | `Readable`     | Node.js readable stream with the content                                                        |
+| `options`  | `StoreOptions` | `{ contentType?, size? }`, the MIME type and the byte size, kept as metadata by a cloud storage |
 
 ```ts
 import { createReadStream } from 'node:fs';
@@ -36,8 +38,14 @@ const fileId = await storage.store('avatar.png', createReadStream('/tmp/upload.p
 
 ```ts
 const upload = await req.file();
-const fileId = await storage.store(upload.filename, upload.file);
+const fileId = await storage.store(upload.filename, upload.file, { contentType: upload.mimetype });
 ```
+
+#### `storage.url(fileName, options?)`
+
+Returns a URL the clients download the file from directly, i.e. a signed URL of a cloud storage valid for
+`options.expiresIn` milliseconds, or `null` (the default, and the `local` storage) to stream the file through the
+server. The files route redirects (`302`) to the URL when there is one.
 
 ---
 
@@ -144,14 +152,15 @@ time are rejected with a `400` error.
 
 ## Configuration
 
-| Key                          | Type       | Default                                        | Description                                           |
-|------------------------------|------------|------------------------------------------------|-------------------------------------------------------|
-| `STORAGE_PATH`               | `string`   | `'./storage'`                                  | Root directory where files are stored                 |
-| `STORAGE_RESERVED_PATHS`     | `string[]` | `['keys']`                                     | Paths inside the storage root that files cannot use   |
-| `STORAGE_NAME_PATTERN`       | `string`   | `'{name}-{hash}.{extension}'`                  | Template for deriving the stored file name            |
-| `STORAGE_CACHE_TTL`          | `int`      | `86400000`                                     | Cache TTL for storage responses in milliseconds (24h) |
-| `STORAGE_FILES_ROUTE_PREFIX` | `string`   | `/files`                                       | URL prefix for file access routes.                    |
-| `STORAGE_PROVIDER`           | `string`   | `'@appweaver/core/storage/filesystem-storage'` | Path to the Storage implementation                    |
+| Key                          | Type       | Default                       | Description                                                                                  |
+|------------------------------|------------|-------------------------------|----------------------------------------------------------------------------------------------|
+| `STORAGE_PATH`               | `string`   | `'./storage'`                 | Root directory where files are stored                                                        |
+| `STORAGE_RESERVED_PATHS`     | `string[]` | `['keys']`                    | Paths inside the storage root that files cannot use                                          |
+| `STORAGE_NAME_PATTERN`       | `string`   | `'{name}-{hash}.{extension}'` | Template for deriving the stored file name                                                   |
+| `STORAGE_CACHE_TTL`          | `int`      | `86400000`                    | Cache TTL for storage responses in milliseconds (24h), also the validity of a storage URL    |
+| `STORAGE_FILES_ROUTE_PREFIX` | `string`   | `/files`                      | URL prefix for file access routes.                                                           |
+| `STORAGE_PROVIDER`           | `string`   | `'auto'`                      | `auto` (`local` unless another storage driver is enabled), `local`, `none`, or a module path |
+| `IMAGE_PROVIDER`             | `string`   | `'auto'`                      | `auto` (`sharp` when installed, otherwise none), `sharp`, `none`, or a module path           |
 
 **`appweaver.json` example:**
 
@@ -203,7 +212,15 @@ export class AvatarService {
 
 The `FileService` provides higher-level file management specifically for **Resource Models**. Unlike the raw `Storage`
 module, it automatically manages the database records (`File` entries) and enforces security policies defined on your
-models.
+models. It is defined with a database and a storage. The `File` model, and the files routes, exist only when a model
+declares `files`.
+
+### Image processing
+
+The `image` options of a file field (dimensions, fit, quality) are applied by the `ImageProcessor` contract of
+`@appweaver/common`, `supports(mimeType)` and `process(stream, mimeType, config?)`. Its `sharp` driver (`SharpImageProcessor`)
+is selected when `sharp` is installed. Without a processor (`IMAGE_PROVIDER=none`, or no `sharp`), the images are
+stored as they are uploaded.
 
 ### Injecting FileService
 
@@ -300,7 +317,9 @@ Stored file checksums always use the defaults: **`sha256` + `hex`**.
 ### Streaming a file
 
 `FileService.stream()` handles authorization checks (public, private, or protected) and range-based requests
-automatically.
+automatically. `FileService.download()` authorizes the same way and returns the `{ url, fileName, mimeType }` of the
+storage URL when `storage.url()` gives one, otherwise the stream, which the files route answers with a `302` redirect
+or the content.
 
 ```ts
 // Streams a file while checking if the current user has access

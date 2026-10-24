@@ -8,12 +8,12 @@ import {
 import { context, define } from '../../context';
 import { CacheService } from '../../cache';
 import { FileService } from '../../storage/file-service';
-import { currentAuthUser } from '../../security/helper';
 import { withoutPolicies } from '../../utils';
 import { resetContext } from '../fixtures/context-fixture';
+import { currentAuthUser } from '../../context/auth-context';
 
-jest.mock('../../security/helper', () => ({
-  ...jest.requireActual('../../security/helper'),
+jest.mock('../../context/auth-context', () => ({
+  ...jest.requireActual('../../context/auth-context'),
   currentAuthUser: jest.fn()
 }));
 
@@ -99,7 +99,8 @@ describe('file-service', () => {
 
       expect(storage.store).toHaveBeenCalledWith(
         expect.stringMatching(/^avatar-.+\.pdf$/),
-        expect.anything()
+        expect.anything(),
+        { contentType: 'application/pdf' }
       );
 
       expect(client.update).toHaveBeenCalledWith(
@@ -175,7 +176,8 @@ describe('file-service', () => {
 
       expect(storage.store).toHaveBeenCalledWith(
         'avatars/1-avatar.pdf',
-        expect.anything()
+        expect.anything(),
+        { contentType: 'application/pdf' }
       );
     });
 
@@ -345,6 +347,54 @@ describe('file-service', () => {
 
       expect(canDelete).not.toHaveBeenCalled();
       expect(storage.delete).toHaveBeenCalledWith(file.name);
+    });
+  });
+
+  describe('download', () => {
+    const file = {
+      name: 'avatar-1.pdf',
+      mimeType: 'application/pdf',
+      sizeBytes: 3,
+      resourceName: 'User',
+      resourceField: 'avatar',
+      resourceId: '1'
+    };
+
+    beforeEach(() => {
+      context.resource.models.set('File', {
+        name: 'File',
+        config: { name: 'File', softDelete: true },
+        [RESOURCE_TYPE]: RESOURCE_MODEL_TYPE
+      } as any);
+      context.resource.policies.set('User', {
+        modelName: 'User',
+        files: { avatar: { accessType: 'public' } }
+      } as any);
+
+      storage.stream = jest.fn().mockResolvedValue({ size: 3 });
+      dbClient.file.findFirst = jest.fn().mockResolvedValue(file);
+    });
+
+    test('returns the URL of a storage serving its files directly', async () => {
+      storage.url = jest
+        .fn()
+        .mockResolvedValue('https://cdn.test/avatar-1.pdf');
+
+      await expect(service.download(file.name)).resolves.toEqual({
+        url: 'https://cdn.test/avatar-1.pdf',
+        fileName: 'avatar-1.pdf',
+        mimeType: 'application/pdf'
+      });
+      expect(storage.stream).not.toHaveBeenCalled();
+    });
+
+    test('streams the file from a storage without URLs', async () => {
+      storage.url = jest.fn().mockResolvedValue(null);
+
+      await expect(service.download(file.name)).resolves.toMatchObject({
+        content: { size: 3 },
+        mimeType: 'application/pdf'
+      });
     });
   });
 

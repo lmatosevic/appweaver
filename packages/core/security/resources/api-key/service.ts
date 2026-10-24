@@ -6,9 +6,10 @@ import {
 } from '@appweaver/common';
 import { apiKeyConfig } from '../../security-config';
 import { createService } from '../../../factory';
-import { currentAuthUser, resourceAuthModel } from '../../helper';
+import { resourceAuthModel } from '../../helper';
 import { injectService } from '../../../context';
 import { ApiKey } from '../../../types';
+import { currentAuthUser } from '../../../context/auth-context';
 
 export default apiKeyConfig.ENABLED
   ? createService({

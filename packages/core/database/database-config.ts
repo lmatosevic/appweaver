@@ -33,8 +33,6 @@ export const databaseConfig = defineConfig('database', {
   LOG_EVENTS: Type.Array(Type.Enum(DatabaseEvent), {
     default: []
   }),
-  /** Database provider implementation path. Default: `'@appweaver/core/database/prisma-database'`. */
-  PROVIDER: Type.String({
-    default: '@appweaver/core/database/prisma-database'
-  })
+  /** Database provider: `auto` or `prisma`, or `none` for an application without a database. Default: `'auto'`. */
+  PROVIDER: Type.String({ default: 'auto' })
 });

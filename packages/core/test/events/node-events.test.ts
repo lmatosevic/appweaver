@@ -1,12 +1,12 @@
 import { NodeEvents } from '../../events/node-events';
 import {
+  TransactionContext,
   runInTransaction,
-  settleTransaction,
-  TransactionContext
-} from '../../database/transaction-context';
+  settleTransaction
+} from '../../context/transaction-scope';
 
 const transactionContext = (): TransactionContext => ({
-  tx: {} as any,
+  tx: {},
   commitCallbacks: new Map(),
   rollbackCallbacks: []
 });

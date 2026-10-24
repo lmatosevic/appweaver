@@ -1,44 +1,41 @@
 import { logger, appConfig } from '@appweaver/common';
-import { serverConfig } from '../server/server-config';
-import { context } from '../context';
+import { context, inject } from '../context';
+import { HttpServer } from '../server/http-server';
 import { Server } from '../types';
 import { LifecycleManager } from './lifecycle-manager';
 
 /**
- * Represents an application that manages the lifecycle of a server and all
- * defined services.
+ * Represents an application that manages the lifecycle of all defined services, the HTTP server among them when the
+ * `@appweaver/web` module is enabled.
  */
 export class Application extends LifecycleManager {
   private _started = false;
   /** The process handlers added on start, removed again on stop */
   private _processHandlers: [string, (...args: any[]) => void][] = [];
 
-  constructor(private readonly _server: Server) {
-    super();
-  }
-
   /**
-   * Retrieves the Fastify instance.
+   * Retrieves the Fastify instance of the HTTP server.
    *
    * @return {Server} The underlying Fastify server instance.
+   * @throws {ContextError} When the `@appweaver/web` module is not enabled.
    */
   get server(): Server {
-    return this._server;
+    return inject(HttpServer).instance;
   }
 
   /**
-   * Starts the application by initializing the server and calls onInit lifecycle methods for
-   * services that implement the `OnInit` interface. This process also includes logging the environment
-   * in which the application is running, freezing the application context to prevent further changes,
-   * and starting a server to listen for incoming requests.
+   * Starts the application by calling the onInit lifecycle methods of the services implementing the `OnInit`
+   * interface, then the onReady methods of the `OnReady` ones, which start the server listening for requests. This
+   * process also includes logging the environment in which the application is running, and freezing the application
+   * context to prevent further changes.
    *
-   * @return {Promise<string>} A promise that resolves to a string denoting the server URL on a successful start or
-   * empty string if server was not started.
+   * @param {boolean} [startServer=true] - Whether the server starts listening for requests.
+   * @return {Promise<void>} A promise that resolves once the application is started.
    */
-  public async start(startServer: boolean = true): Promise<string> {
+  public async start(startServer: boolean = true): Promise<void> {
     if (this._started) {
       logger.warn('Trying to start already started application.');
-      return this._server.addresses()[0]?.address ?? '';
+      return;
     }
 
     this._started = true;
@@ -51,14 +48,7 @@ export class Application extends LifecycleManager {
 
     this.addProcessHandlers();
 
-    if (startServer) {
-      return this._server.listen({
-        port: serverConfig.PORT,
-        host: serverConfig.HOST
-      });
-    }
-
-    return '';
+    await this.ready({ startServer });
   }
 
   /**
@@ -78,10 +68,6 @@ export class Application extends LifecycleManager {
 
     this.removeProcessHandlers();
 
-    // The server stops accepting requests and waits for the in-flight ones
-    // first, so none of them reaches an already destroyed service
-    await this._server.close();
-
     await this.destroy();
 
     logger.info('Application stopped');
@@ -93,17 +79,10 @@ export class Application extends LifecycleManager {
    * @param {'json' | 'yaml'} [format='json'] - The format in which to generate specification.
    * @return {Promise<string>} A promise that resolves to a JSON or YAML formatted string containing the OpenAPI
    * specification.
+   * @throws {ContextError} When the `@appweaver/web` module is not enabled.
    */
   public async spec(format: 'json' | 'yaml' = 'json'): Promise<string> {
-    await this._server.ready();
-
-    const document = this._server.swagger({ yaml: format === 'yaml' });
-
-    if (typeof document === 'string') {
-      return document;
-    }
-
-    return JSON.stringify(document, null, 4);
+    return inject(HttpServer).spec(format);
   }
 
   /**

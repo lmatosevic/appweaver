@@ -17,6 +17,20 @@ export interface ErrorDetailsMap {
   [ErrorCode.ContextDefinitionMissing]: { name: string; kind: string };
   [ErrorCode.ContextDefinitionDuplicate]: { name: string };
 
+  [ErrorCode.ModuleInvalid]: { path: string };
+  [ErrorCode.ModuleMissing]: { name: string; requiredBy: string };
+  [ErrorCode.ModuleDuplicate]: { name: string; paths: string[] };
+  [ErrorCode.ModuleIncompatible]: {
+    name: string;
+    framework: string;
+    version: string;
+  };
+  [ErrorCode.ModuleProviderMissing]: { contract: string; provider: string };
+  [ErrorCode.ModuleProviderAmbiguous]: {
+    contract: string;
+    providers: string[];
+  };
+
   [ErrorCode.DatabaseUniqueViolation]: FieldsDetails;
   [ErrorCode.DatabaseForeignKeyViolation]: FieldsDetails;
   [ErrorCode.DatabaseNullViolation]: FieldsDetails;

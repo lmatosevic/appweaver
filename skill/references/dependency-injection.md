@@ -34,10 +34,10 @@ define('https://api.example.com', 'ApiBaseUrl');
 ```ts
 import { define } from '@appweaver/core';
 import { SecurityStore } from '@appweaver/common';
-import { RedisSecurityStore } from './redis-security-store';
+import { MySecurityStore } from './my-security-store';
 
-// RedisSecurityStore will be looked up by SecurityStore.name
-define(new RedisSecurityStore(), SecurityStore);
+// MySecurityStore will be looked up by SecurityStore.name
+define(new MySecurityStore(), SecurityStore);
 ```
 
 **Register a class constructor (lazy instantiation on the first injection):**
@@ -45,10 +45,10 @@ define(new RedisSecurityStore(), SecurityStore);
 ```ts
 import { define } from '@appweaver/core';
 import { Cache } from '@appweaver/common';
-import { RedisCacheService } from './redis-cache-service';
+import { MyCacheService } from './my-cache-service';
 
-// RedisCacheService is instantiated the first time inject(Cache) is called
-define(RedisCacheService, Cache);
+// MyCacheService is instantiated the first time inject(Cache) is called
+define(MyCacheService, Cache);
 ```
 
 **Register with a symbol token:**
@@ -117,10 +117,27 @@ const limiter = inject<RateLimiter>(RATE_LIMITER);
 import { inject } from '@appweaver/core';
 import { Mailer } from '@appweaver/common';
 
-const mailer = inject(Mailer, false); // undefined if not registered
+const mailer = inject(Mailer, false); // undefined if not registered, i.e. with MAILER_PROVIDER=none
 if (mailer) {
   await mailer.sendEmail({ to: 'jane@example.com', subject: 'Welcome', text: 'Hello!' });
 }
+```
+
+#### `isDefined(nameOrClass)` and `injectCreated(nameOrClass)`
+
+`isDefined` checks if a definition is registered without creating its instance, i.e. whether a contract has a provider
+or a module is enabled. `injectCreated` returns the instance only once it is created, `undefined` before, so it never
+instantiates a class:
+
+```ts
+import { HttpServer, injectCreated, isDefined } from '@appweaver/core';
+import { Scheduler } from '@appweaver/common';
+
+if (isDefined(Scheduler)) {
+  // a scheduler driver is selected
+}
+
+const server = injectCreated(HttpServer)?.instance; // the Fastify instance, once the server is created
 ```
 
 **Real-world example — service using injected dependencies:**
@@ -172,8 +189,9 @@ const lifecycle = injectAllWhere((def) => typeof def.value?.onInit === 'function
 #### `loadProvider(baseDir, classPath, definition?, required?)`
 
 Dynamically loads a class from a file path and registers it in the context. The first exported constructor in the
-resolved module is used. This is the standard way to load infrastructure provider implementations that are configured
-via environment-specific paths.
+resolved module is used. The infrastructure providers are defined by the modules from their `provider` keys (see
+[modules](./modules.md)), which call `loadProvider` for a key holding a module path; call it directly only to load a
+class from a configurable path.
 
 | Parameter    | Type      | Description                                                                          |
 |--------------|-----------|--------------------------------------------------------------------------------------|
@@ -193,55 +211,16 @@ import { Database } from '@appweaver/common';
 loadProvider(__dirname, './providers/postgres-database', Database);
 ```
 
-**Load an optional provider (no error if the file is missing):**
-
-```ts
-import { loadProvider, queueConfig } from '@appweaver/core';
-import { Queue } from '@appweaver/common';
-
-loadProvider(__dirname, queueConfig.PROVIDER, Queue, false);
-```
-
-**Load a provider from an NPM package:**
+**Load an optional class (no error if the file is missing), registered by its own class name:**
 
 ```ts
 import { loadProvider } from '@appweaver/core';
-import { Cache } from '@appweaver/common';
 
-loadProvider(__dirname, '@myorg/redis-cache', Cache);
-```
-
-**Loading multiple providers at startup (typical `main.ts` pattern):**
-
-```ts
-// src/main.ts
-import {
-  cacheConfig,
-  databaseConfig,
-  loadProvider,
-  mailerConfig
-} from '@appweaver/core';
-import { Database, Cache, Mailer } from '@appweaver/common';
-
-// Required infrastructure
-loadProvider(__dirname, databaseConfig.PROVIDER, Database);
-loadProvider(__dirname, cacheConfig.PROVIDER, Cache);
-
-// Optional infrastructure
-loadProvider(__dirname, mailerConfig.PROVIDER, Mailer, false);
-
-// Internal feature service (no token — registered by its own class name)
 loadProvider(__dirname, '../notifications/notification-service', undefined, false);
 ```
 
-After `loadProvider` runs, the loaded class is available via `inject`:
-
-```ts
-import { inject } from '@appweaver/core';
-import { Database } from '@appweaver/common';
-
-const db = inject(Database); // resolves the class loaded from databaseConfig.PROVIDER
-```
+`selectedProvider(Contract)` returns the name of the provider the modules selected for a contract (`redis` for the
+`Memory`), or `undefined` when none is.
 
 `inject` resolves the definition when it is called and throws before the application has defined it. To hold the
 database client in a module-level constant, use `injectDatabaseClient<PrismaClient>()` instead, which resolves the
@@ -250,11 +229,17 @@ client on every access.
 ## Lifecycle hooks
 
 A class registered in the application context can run code when the application starts and stops by implementing the
-`OnInit` and `OnDestroy` interfaces from `@appweaver/common`:
+interfaces of `@appweaver/common`, called in this order:
 
-- `onInit()` runs once when the application starts, before the server starts listening.
-- `onDestroy()` runs once when the application stops, after the server stopped accepting requests and finished the
-  ones in flight.
+| Hook                       | Interface    | Runs                                                                                                                            |
+|----------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------|
+| `onInit()`                 | `OnInit`     | Once when the application starts.                                                                                               |
+| `onReady({ startServer })` | `OnReady`    | Once every `onInit` finished, i.e. to start serving requests. `startServer` is `false` for `app.start(false)` and `weaver run`. |
+| `onShutdown()`             | `OnShutdown` | First when the application stops, before any service is destroyed, i.e. to stop serving requests.                               |
+| `onDestroy()`              | `OnDestroy`  | Last when the application stops, after every `onShutdown`, to release the resources.                                            |
+
+The HTTP server is such a service: `HttpServer` of the `@appweaver/web` module listens in `onReady` and closes in
+`onShutdown`, finishing the requests in flight before any service is destroyed.
 
 The class must also set the static `[LIFECYCLE]` tag, otherwise its hooks are never called:
 
@@ -285,9 +270,9 @@ export class ExchangeRates implements OnInit, OnDestroy {
 define(ExchangeRates);
 ```
 
-- The hooks of every class run in parallel, with no order between them, so a hook must not rely on the hook of
-  another class having finished.
+- The hooks of one kind run in parallel for every class, with no order between them, so a hook must not rely on the
+  same hook of another class having finished.
 - Only the classes defined before the application is created are collected: the ones defined in the files the
-  application loads on start (resources and modules) or before `createApp()` is called.
+  application loads on start (modules, resources and application files) or before `createApp()` is called.
 - A class defined as a constructor is instantiated when the application is created, as the single instance every
   `inject` call then returns.

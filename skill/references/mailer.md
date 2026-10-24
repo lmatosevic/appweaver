@@ -1,12 +1,14 @@
 # Mailer
 
-The mailer module sends transactional emails. The default implementation (`SmtpMailer`) uses Nodemailer over SMTP. A
-`JsonMailer` is available for development and tests — it returns a JSON representation of the email instead of sending
-it.
+The mailer module sends transactional emails. Its driver `SmtpMailer` (provider `smtp`) uses Nodemailer over SMTP and
+is selected when `nodemailer` is installed. The `JsonMailer` of core (provider `json`, selected by name only) writes
+the emails into the log instead of sending them, for development and tests. Without a driver, or with
+`MAILER_PROVIDER=none`, no `Mailer` and no `EmailService` are defined, and the email features (email verification,
+password reset, 2FA) respond with `501`.
 
 ## Injecting Mailer
 
-Mailer is an optional infrastructure. Inject it with `required: false` to avoid errors when no mailer is configured.
+Mailer is an optional infrastructure. Inject it with `required: false` to avoid errors when no mailer is selected.
 
 ```ts
 import { inject } from '@appweaver/core';
@@ -21,13 +23,23 @@ const mailer = inject(Mailer, false); // undefined if not registered
 
 Sends an email. Returns `true` on success.
 
-| Field         | Type           | Required | Description                                  |
-|---------------|----------------|----------|----------------------------------------------|
-| `to`          | `string`       | Yes      | Recipient address                            |
-| `subject`     | `string`       | Yes      | Email subject line                           |
-| `text`        | `string`       | Yes      | Plain-text body                              |
-| `html`        | `string`       | No       | HTML body (falls back to the escaped `text`) |
-| `attachments` | `Attachment[]` | No       | Provider-specific attachment objects         |
+| Field             | Type                      | Required | Description                                                                 |
+|-------------------|---------------------------|----------|-----------------------------------------------------------------------------|
+| `to`              | `string \| string[]`      | Yes      | Recipient addresses, i.e. `jane@example.com` or `"Jane" <jane@example.com>` |
+| `subject`         | `string`                  | Yes      | Email subject line                                                          |
+| `text`            | `string`                  | Yes      | Plain-text body                                                             |
+| `html`            | `string`                  | No       | HTML body (falls back to the escaped `text`)                                |
+| `from`            | `string`                  | No       | Sender, `"MAILER_SENDER_NAME" <MAILER_SENDER_ADDRESS>` by default           |
+| `cc`, `bcc`       | `string \| string[]`      | No       | Copy recipients                                                             |
+| `replyTo`         | `string`                  | No       | Reply-to address                                                            |
+| `headers`         | `Record<string, string>`  | No       | Additional headers                                                          |
+| `attachments`     | `EmailAttachment[]`       | No       | Attached files, the same shape for every mailer (below)                     |
+| `providerOptions` | `Record<string, unknown>` | No       | Options of the driver, i.e. passed to `sendMail` by `smtp`                  |
+
+The sender, recipients, headers, attachments and `providerOptions` form the `EmailEnvelope` type, shared by `Email` and
+`TemplateEmail`. An `EmailAttachment` is `{ filename, content, contentType?, encoding? }`, where `content` is a
+`string` or a `Buffer` and `encoding` is `'base64'` or `'utf8'` for a string. An email sent through the queue of
+`EmailService` keeps binary content as a `base64` string with `encoding: 'base64'`.
 
 ```ts
 await mailer.sendEmail({
@@ -38,15 +50,16 @@ await mailer.sendEmail({
 });
 ```
 
-**With attachments** (Nodemailer format for SmtpMailer):
+**With attachments:**
 
 ```ts
 await mailer.sendEmail({
-  to: 'bob@example.com',
+  to: ['bob@example.com', 'carol@example.com'],
+  replyTo: 'billing@example.com',
   subject: 'Your invoice',
   text: 'Please find your invoice attached.',
   attachments: [
-    { filename: 'invoice.pdf', path: '/tmp/invoice.pdf' }
+    { filename: 'invoice.pdf', content: pdf.toString('base64'), encoding: 'base64', contentType: 'application/pdf' }
   ]
 });
 ```
@@ -61,16 +74,16 @@ Verifies that the mail transport is reachable (`transporter.verify()` for SMTP).
 
 ## Configuration
 
-| Key                     | Type     | Default                                | Description                       |
-|-------------------------|----------|----------------------------------------|-----------------------------------|
-| `MAILER_PROVIDER`       | `string` | `'@appweaver/core/mailer/smtp-mailer'` | Path to the Mailer implementation |
-| `MAILER_SENDER_NAME`    | `string` | —                                      | Display name of the sender        |
-| `MAILER_SENDER_ADDRESS` | `string` | —                                      | From address                      |
-| `MAILER_SMTP_HOST`      | `string` | `'127.0.0.1'`                          | SMTP server hostname              |
-| `MAILER_SMTP_PORT`      | `int`    | `587`                                  | SMTP server port                  |
-| `MAILER_SMTP_SECURE`    | `bool`   | `false`                                | Use TLS (`true` for port 465)     |
-| `MAILER_SMTP_USER`      | `string` | —                                      | SMTP authentication username      |
-| `MAILER_SMTP_PASSWORD`  | `string` | —                                      | SMTP authentication password      |
+| Key                     | Type     | Default       | Description                                                                                              |
+|-------------------------|----------|---------------|----------------------------------------------------------------------------------------------------------|
+| `MAILER_PROVIDER`       | `string` | `'auto'`      | `auto` (`smtp` when `nodemailer` is installed, otherwise none), `smtp`, `json`, `none`, or a module path |
+| `MAILER_SENDER_NAME`    | `string` | —             | Display name of the default sender                                                                       |
+| `MAILER_SENDER_ADDRESS` | `string` | —             | Address of the default sender                                                                            |
+| `MAILER_SMTP_HOST`      | `string` | `'127.0.0.1'` | SMTP server hostname                                                                                     |
+| `MAILER_SMTP_PORT`      | `int`    | `587`         | SMTP server port                                                                                         |
+| `MAILER_SMTP_SECURE`    | `bool`   | `false`       | Use TLS (`true` for port 465)                                                                            |
+| `MAILER_SMTP_USER`      | `string` | —             | SMTP authentication username                                                                             |
+| `MAILER_SMTP_PASSWORD`  | `string` | —             | SMTP authentication password                                                                             |
 
 **`appweaver.json` example:**
 
@@ -85,11 +98,13 @@ Verifies that the mail transport is reachable (`transporter.verify()` for SMTP).
 }
 ```
 
-**Use `JsonMailer` in development or tests:**
+**Use `JsonMailer` in the tests:**
 
 ```json
 {
-  "MAILER_PROVIDER": "@appweaver/core/mailer/json-mailer"
+  "environments": {
+    "test": { "mailer": { "provider": "json" } }
+  }
 }
 ```
 
@@ -125,8 +140,8 @@ export class AuthService {
 decouples the caller from the SMTP transport, provides retry semantics, and avoids blocking the request thread on email
 delivery.
 
-Inject it like any other service — no `required: false` needed since it is always registered when the mailer module is
-loaded.
+Inject it like any other service. It is defined whenever a `Mailer` and a `Queue` are, so inject it with
+`required: false` in code that must also run without a mailer.
 
 ```ts
 import { EmailService, inject } from '@appweaver/core';
@@ -164,7 +179,7 @@ const sent = await emailService.sendEmailAndWait({
   to: 'bob@example.com',
   subject: 'Your invoice',
   text: 'Please find your invoice attached.',
-  attachments: [{ filename: 'invoice.pdf', path: '/tmp/invoice.pdf' }]
+  attachments: [{ filename: 'invoice.pdf', content: pdf.toString('base64'), encoding: 'base64' }]
 });
 ```
 
@@ -217,14 +232,16 @@ the given locale. The `template` is a name without the format, its templates ren
 | `<template>.txt`     | The plain text body | No, derived from the HTML body when missing |
 | `<template>.subject` | The subject         | Unless `subject` is given                   |
 
-| Field         | Type           | Required | Description                                                   |
-|---------------|----------------|----------|---------------------------------------------------------------|
-| `to`          | `string`       | Yes      | Recipient address                                             |
-| `template`    | `string`       | Yes      | Template name without the format, i.e. `emails/order-shipped` |
-| `data`        | `object`       | No       | The data the templates render                                 |
-| `locale`      | `string`       | No       | The locale to render in, `LOCALE_DEFAULT` by default          |
-| `subject`     | `string`       | No       | Used instead of the `.subject` template                       |
-| `attachments` | `Attachment[]` | No       | Provider-specific attachment objects                          |
+| Field      | Type                 | Required | Description                                                   |
+|------------|----------------------|----------|---------------------------------------------------------------|
+| `to`       | `string \| string[]` | Yes      | Recipient addresses                                           |
+| `template` | `string`             | Yes      | Template name without the format, i.e. `emails/order-shipped` |
+| `data`     | `object`             | No       | The data the templates render                                 |
+| `locale`   | `string`             | No       | The locale to render in, `LOCALE_DEFAULT` by default          |
+| `subject`  | `string`             | No       | Used instead of the `.subject` template                       |
+
+The other fields of the `EmailEnvelope` (`from`, `cc`, `bcc`, `replyTo`, `headers`, `attachments`, `providerOptions`)
+are passed on to the rendered email.
 
 ```text
 templates/emails/
@@ -268,7 +285,8 @@ templates of all three emails in `templates/emails/`, sharing the `layouts/email
 the HTML, add a `.txt` template only for a text that should read differently. Edit them freely, or delete them to send
 the plain text. Without the `locales` module, the templates hold the English texts themselves and there is no
 `locales/` directory; without the `templates` module, the emails are sent as plain text of `locales/en.json`. Removing
-the `mailer` module (`weaver module remove mailer`) deletes these templates, and without it the mailer is disabled.
+the `mailer` module (`weaver module remove mailer`) deletes these templates, and without `nodemailer` no mailer is
+selected.
 See [templates.md](./templates.md).
 
 ---

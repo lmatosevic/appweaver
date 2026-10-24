@@ -23,8 +23,12 @@
   email verification, password reset, reCAPTCHA, and Cloudflare Turnstile.
 - **Infrastructure** – file storage with image processing, Redis or in-memory caching and rate limiting, BullMQ or
   in-memory queues, a cron scheduler, an SMTP mailer, Handlebars templates with translations, events, health checks,
-  and database seeders.
-- **Dependency injection** – `define`, `inject`, `injectService`, and `loadProvider` for wiring providers by token.
+  and database seeders. Each driver is enabled when its library is installed (`ioredis`, `bullmq`, `cron`,
+  `nodemailer`, `handlebars`, `sharp`) and selected by name in its `provider` key, `auto` by default.
+- **Modules** – the application is assembled from module manifests: the framework's own, the npm packages declaring
+  an `appweaver.module` field, and the local `src/modules/*/module.ts`. Disabling `@appweaver/web` runs a worker or
+  scheduled jobs without a server.
+- **Dependency injection** – `define`, `inject`, `injectService`, and `isDefined` for wiring services by token.
 
 ## Installation
 

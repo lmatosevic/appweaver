@@ -13,20 +13,17 @@
     "database": {
       "url": "file:./data/movies-api-bun.db"
     },
-    "redis": {
-      "provider": "@appweaver/core/memory/in-memory"
-    },
-    "cache": {
-      "provider": "@appweaver/core/cache/memory-cache"
+    "memory": {
+      "provider": "memory"
     },
     "rateLimit": {
-      "store": "in-memory"
+      "store": "local"
     },
     "queue": {
-      "provider": "@appweaver/core/queue/memory-queue"
+      "provider": "memory"
     },
     "mailer": {
-      "enabled": false
+      "provider": "none"
     }
   },
   "environments": {
@@ -50,14 +47,14 @@
       "storage": {
         "path": "./temp/storage"
       },
-      "redis": {
-        "provider": "@appweaver/core/memory/in-memory"
+      "memory": {
+        "provider": "memory"
       },
       "queue": {
-        "provider": "@appweaver/core/queue/memory-queue"
+        "provider": "memory"
       },
       "mailer": {
-        "provider": "@appweaver/core/mailer/json-mailer"
+        "provider": "json"
       },
       "scheduler": {
         "autoStartJob": false

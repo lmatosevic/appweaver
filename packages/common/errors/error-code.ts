@@ -23,6 +23,14 @@ export enum ErrorCode {
   ContextDefinitionDuplicate = 'CONTEXT_DEFINITION_DUPLICATE',
   ContextServerUnavailable = 'CONTEXT_SERVER_UNAVAILABLE',
 
+  // Modules
+  ModuleInvalid = 'MODULE_INVALID',
+  ModuleMissing = 'MODULE_MISSING',
+  ModuleDuplicate = 'MODULE_DUPLICATE',
+  ModuleIncompatible = 'MODULE_INCOMPATIBLE',
+  ModuleProviderMissing = 'MODULE_PROVIDER_MISSING',
+  ModuleProviderAmbiguous = 'MODULE_PROVIDER_AMBIGUOUS',
+
   // Database
   DatabaseUniqueViolation = 'DATABASE_UNIQUE_VIOLATION',
   DatabaseForeignKeyViolation = 'DATABASE_FOREIGN_KEY_VIOLATION',

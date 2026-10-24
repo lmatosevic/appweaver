@@ -4,6 +4,7 @@ import {
   camelToSnakeCase,
   capitalize,
   compareVersions,
+  satisfiesVersion,
   errorMessage,
   generateToken,
   makeHash,
@@ -308,6 +309,27 @@ describe('string-util', () => {
       expect(errorMessage(404)).toBe('404');
       expect(errorMessage(null)).toBe('null');
       expect(errorMessage(undefined)).toBe('undefined');
+    });
+  });
+
+  describe('satisfiesVersion', () => {
+    test.each([
+      ['2.1.0', '^2.0.0', true],
+      ['3.0.0', '^2.0.0', false],
+      ['0.2.5', '^0.2.0', true],
+      ['0.3.0', '^0.2.0', false],
+      ['2.1.9', '~2.1.0', true],
+      ['2.2.0', '~2.1.0', false],
+      ['2.4.0', '>=2.0.0 <3.0.0', true],
+      ['3.0.0', '>=2.0.0 <3.0.0', false],
+      ['1.5.0', '^1.0.0 || ^2.0.0', true],
+      ['2.0.0', '2.0.0', true],
+      ['2.0.1', '2.0.0', false],
+      ['2.7.1', '2.x', true],
+      ['5.0.0', '*', true],
+      ['2.0.0-next.3', '^2.0.0', true]
+    ])('%s in %s is %s', (version, range, expected) => {
+      expect(satisfiesVersion(version, range)).toBe(expected);
     });
   });
 

@@ -4,4 +4,5 @@ export * from './define-errors';
 export * from './module-errors';
 export * from './error-code';
 export * from './error-details';
+export * from './error-translator';
 export * from './problem-details';

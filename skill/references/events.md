@@ -83,10 +83,10 @@ events.removeResourceEvent(listenerId);
 
 ## Configuration
 
-| Key                    | Type     | Default                                | Description                           |
-|------------------------|----------|----------------------------------------|---------------------------------------|
-| `EVENTS_MAX_LISTENERS` | `int`    | `20`                                   | Max listeners per event (Node.js cap) |
-| `EVENTS_PROVIDER`      | `string` | `'@appweaver/core/events/node-events'` | Path to the Events implementation     |
+| Key                    | Type     | Default  | Description                           |
+|------------------------|----------|----------|---------------------------------------|
+| `EVENTS_MAX_LISTENERS` | `int`    | `20`     | Max listeners per event (Node.js cap) |
+| `EVENTS_PROVIDER`      | `string` | `'auto'` | `auto`/`node`, or a module path       |
 
 ## Real-world example
 

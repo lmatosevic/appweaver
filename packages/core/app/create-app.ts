@@ -4,11 +4,14 @@ import {
   resolveSourcePath,
   appConfig
 } from '@appweaver/common';
-import { context } from '../context';
-import { createServer } from '../server';
 import { LoadResourcePaths, loadResources } from '../resource';
+import {
+  discoverModules,
+  isModuleEnabled,
+  loadModuleParts
+} from './discover-modules';
 import { loadProviders } from './load-providers';
-import { loadModules } from './load-modules';
+import { loadAppFiles } from './load-app-files';
 import { Application } from './application';
 
 export type CreateAppParams = {
@@ -24,19 +27,22 @@ export type CreateAppParams = {
   autoStartServer?: boolean;
   /** An object containing the path patterns for loading resources from. */
   resourcePaths?: LoadResourcePaths;
-  /** Path pattern used for finding modules that export application logic
+  /** Path pattern used for finding the files that export application logic
    * (default: `./src/"*"/index.ts`) */
-  modulePaths?: string;
+  appFilesPattern?: string;
   /** A boolean flag indicating whether the application should automatically load
    * resources configured and exported using factory functions. (default: true) */
   autoLoadResources?: boolean;
   /** A boolean flag indicating whether the application should automatically load
-   * export modules from the project source directory. (default: true) */
-  autoLoadModules?: boolean;
+   * the files of `app.scanFilesPattern` from the project source directory. (default: true) */
+  autoLoadAppFiles?: boolean;
 };
 
 /**
- * Creates and initializes an application instance with the provided parameters.
+ * Creates and initializes an application instance with the provided parameters. The modules of the application are
+ * loaded in order: the providers and services of every module, the resources of the modules and the application
+ * (with a database), the `main` part of every module, the files of the application, and the `web` part of every module
+ * (with a server).
  *
  * @param {CreateAppParams} [params={}] Configuration parameters for creating the application.
  * @return {Promise<Application>} A promise that resolves to the initialized application instance.
@@ -53,25 +59,35 @@ export async function createApp(
     './dist/src'
   );
 
-  // Load all defined providers from this project
-  loadProviders(scanPath);
+  const modules = await discoverModules({ scanPath });
+
+  // Define the providers and the services of the modules
+  await loadProviders(modules, scanPath);
 
   // Load resource models, routes, policies and services
-  if (params.autoLoadResources !== false) {
-    await loadResources(scanPath, params.resourcePaths);
+  if (
+    params.autoLoadResources !== false &&
+    isModuleEnabled(modules, '@appweaver/data')
+  ) {
+    await loadResources(
+      scanPath,
+      params.resourcePaths,
+      modules.flatMap(({ module }) => module.resources ?? [])
+    );
   }
+
+  await loadModuleParts(modules, 'main');
 
   // Load exported application files
-  if (params.autoLoadModules !== false) {
-    await loadModules(scanPath, params.modulePaths);
+  if (params.autoLoadAppFiles !== false) {
+    await loadAppFiles(scanPath, params.appFilesPattern);
   }
 
-  // Create a Fastify server instance
-  const server = createServer();
+  if (isModuleEnabled(modules, '@appweaver/web')) {
+    await loadModuleParts(modules, 'web');
+  }
 
-  context.server = server;
-
-  const app = new Application(server);
+  const app = new Application();
 
   if (params.autoStart !== false) {
     await app.start(params.autoStartServer);

@@ -36,6 +36,22 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     title: 'Server unavailable'
   },
 
+  [ErrorCode.ModuleInvalid]: { status: 500, title: 'Invalid module' },
+  [ErrorCode.ModuleMissing]: { status: 500, title: 'Missing module' },
+  [ErrorCode.ModuleDuplicate]: { status: 500, title: 'Duplicate module' },
+  [ErrorCode.ModuleIncompatible]: {
+    status: 500,
+    title: 'Incompatible module'
+  },
+  [ErrorCode.ModuleProviderMissing]: {
+    status: 500,
+    title: 'Missing provider'
+  },
+  [ErrorCode.ModuleProviderAmbiguous]: {
+    status: 500,
+    title: 'Ambiguous provider'
+  },
+
   [ErrorCode.DatabaseUniqueViolation]: {
     status: 409,
     title: 'Unique constraint violation'

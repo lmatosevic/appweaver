@@ -1,10 +1,13 @@
 import {
+  AppweaverError,
   DatabaseError,
   ErrorCode,
   ErrorDetails,
-  isAppweaverError,
   ModuleErrorCode,
-  ResourceModel
+  ResourceModel,
+  defineErrorTranslator,
+  isAppweaverError,
+  config
 } from '@appweaver/common';
 import { injectModel } from '../context';
 
@@ -315,3 +318,14 @@ function unquote(name: string): string {
 function stripOrder(field: string): string {
   return field.replace(/^[-+]/, '');
 }
+
+// The Prisma errors reach the API as a DatabaseError naming the violated
+// constraint, with the message of Prisma only when the server enables it
+defineErrorTranslator({
+  name: 'database',
+  matches: isPrismaError,
+  translate: (error) => toDatabaseError(error) as AppweaverError,
+  describe: (error) => prismaErrorMessage(error as Error),
+  exposeDescription: () =>
+    config.bool('SERVER_ERROR_DATABASE_MESSAGE_ENABLED', false)
+});

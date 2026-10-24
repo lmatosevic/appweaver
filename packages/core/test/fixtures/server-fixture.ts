@@ -1,13 +1,15 @@
+import { AsyncResource } from 'node:async_hooks';
 import fastify from 'fastify';
 import { fastifyRequestContext } from '@fastify/request-context';
 import { AuthUser, TwoFactorAuth } from '@appweaver/common';
 import { errorHandler } from '../../errors';
+import { Server } from '../../types';
 import {
   currentAuthSource,
   currentAuthType,
-  currentAuthUser
-} from '../../security/helper';
-import { Server } from '../../types';
+  currentAuthUser,
+  runInAuthContext
+} from '../../context/auth-context';
 
 /**
  * Creates a bare fastify instance with the request context and error handling of `createServer`, so the security
@@ -17,12 +19,8 @@ export function createTestServer(): Server {
   const server = fastify() as unknown as Server;
 
   server.register(fastifyRequestContext, {
-    defaultStoreValues: {
-      authUser: null,
-      authType: null,
-      authSource: null,
-      apiKey: null
-    }
+    createAsyncResource: () =>
+      runInAuthContext(() => new AsyncResource('appweaver-request'))
   });
   server.setErrorHandler(errorHandler);
 

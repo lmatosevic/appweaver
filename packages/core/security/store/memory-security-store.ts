@@ -2,7 +2,7 @@ import {
   ErrorCode,
   generateToken,
   makeHash,
-  Redis,
+  Memory,
   SecurityStore,
   ValidationResult,
   AuthError
@@ -11,9 +11,9 @@ import { inject } from '../../context';
 
 const SECURITY_OTT_KEY = 'security:ott';
 
-export class RedisSecurityStore extends SecurityStore {
+export class MemorySecurityStore extends SecurityStore {
   /** @internal */
-  private readonly _redis = inject(Redis);
+  private readonly _memory = inject(Memory);
 
   public async generateOneTimeToken<T = any>(
     purpose: string,
@@ -22,7 +22,7 @@ export class RedisSecurityStore extends SecurityStore {
   ): Promise<string> {
     const token = generateToken('bytes', 64);
 
-    await this._redis.set(
+    await this._memory.set(
       `${SECURITY_OTT_KEY}:${purpose}:${makeHash(token)}`,
       data,
       ttl
@@ -37,7 +37,7 @@ export class RedisSecurityStore extends SecurityStore {
     validateContent?: (value: T) => ValidationResult
   ): Promise<T> {
     const tokenKey = `${SECURITY_OTT_KEY}:${purpose}:${makeHash(token)}`;
-    const value = await this._redis.get<T>(tokenKey);
+    const value = await this._memory.get<T>(tokenKey);
 
     if (value === null) {
       throw new AuthError(
@@ -55,7 +55,7 @@ export class RedisSecurityStore extends SecurityStore {
     }
 
     // Only the one of concurrent uses that removes the token gets its data
-    const removed = await this._redis.delete(tokenKey);
+    const removed = await this._memory.delete(tokenKey);
     if (!removed) {
       throw new AuthError(
         ErrorCode.AuthInvalidToken,

@@ -26,7 +26,7 @@ import {
 import { define, injectPolicy } from '../context';
 import { ResourceService } from '../resource';
 import { bindTextSearch } from '../resource/utils';
-import { currentAuthUser } from '../security';
+import { currentAuthUser } from '../context/auth-context';
 
 /**
  * Creates the resource service of a model, running the configured hooks around its operations and applying the

@@ -150,7 +150,7 @@ describe('email-service', () => {
         template: 'emails/welcome',
         data: { name: 'Ana' },
         locale: 'de',
-        attachments: [{ filename: 'a.txt' }]
+        attachments: [{ filename: 'a.txt', content: 'a' }]
       });
 
       expect(rendered).toEqual({
@@ -158,7 +158,7 @@ describe('email-service', () => {
         subject: 'Welcome aboard',
         html: templates['emails/welcome.html'],
         text: 'Hi there',
-        attachments: [{ filename: 'a.txt' }]
+        attachments: [{ filename: 'a.txt', content: 'a' }]
       });
       expect(engine.render).toHaveBeenCalledWith(
         'emails/welcome.html',

@@ -13,8 +13,10 @@
     "database": {
       "url": "file:./data/cms-api.db"
     },
-    "redis": {
-      "url": "redis://${REDIS_HOST:-localhost}:6379/0"
+    "memory": {
+      "redis": {
+        "url": "redis://${REDIS_HOST:-localhost}:6379/0"
+      }
     },
     "healthCheck": {
       "omitInstances": ["mailer"]
@@ -84,14 +86,14 @@
       "storage": {
         "path": "./temp/storage"
       },
-      "redis": {
-        "provider": "@appweaver/core/memory/in-memory"
+      "memory": {
+        "provider": "memory"
       },
       "queue": {
-        "provider": "@appweaver/core/queue/memory-queue"
+        "provider": "memory"
       },
       "mailer": {
-        "provider": "@appweaver/core/mailer/json-mailer"
+        "provider": "json"
       },
       "scheduler": {
         "autoStartJob": false

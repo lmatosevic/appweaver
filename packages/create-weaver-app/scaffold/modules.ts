@@ -29,26 +29,18 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     packages: ['ioredis'],
     requires: [],
     enabledConfig: [
-      ['config.redis.url', 'redis://${REDIS_HOST:-localhost}:6379/0'],
-      ['environments.test.redis.provider', '@appweaver/core/memory/in-memory']
+      ['config.memory.redis.url', 'redis://${REDIS_HOST:-localhost}:6379/0'],
+      ['environments.test.memory.provider', 'memory']
     ],
-    disabledConfig: [
-      ['config.redis.provider', '@appweaver/core/memory/in-memory'],
-      ['config.cache.provider', '@appweaver/core/cache/memory-cache'],
-      ['config.rateLimit.store', 'in-memory']
-    ]
+    disabledConfig: []
   },
   queue: {
     name: 'queue',
     description: 'BullMQ queue on Redis, otherwise the in-memory queue',
     packages: ['bullmq'],
     requires: ['redis'],
-    enabledConfig: [
-      ['environments.test.queue.provider', '@appweaver/core/queue/memory-queue']
-    ],
-    disabledConfig: [
-      ['config.queue.provider', '@appweaver/core/queue/memory-queue']
-    ]
+    enabledConfig: [['environments.test.queue.provider', 'memory']],
+    disabledConfig: []
   },
   scheduler: {
     name: 'scheduler',
@@ -56,7 +48,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     packages: ['cron'],
     requires: [],
     enabledConfig: [['environments.test.scheduler.autoStartJob', false]],
-    disabledConfig: [['config.scheduler.enabled', false]]
+    disabledConfig: []
   },
   mailer: {
     name: 'mailer',
@@ -64,13 +56,8 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
       'SMTP mailer (Nodemailer) of the account emails, otherwise disabled',
     packages: ['nodemailer'],
     requires: [],
-    enabledConfig: [
-      [
-        'environments.test.mailer.provider',
-        '@appweaver/core/mailer/json-mailer'
-      ]
-    ],
-    disabledConfig: [['config.mailer.enabled', false]]
+    enabledConfig: [['environments.test.mailer.provider', 'json']],
+    disabledConfig: []
   },
   templates: {
     name: 'templates',
@@ -79,7 +66,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     packages: ['handlebars'],
     requires: [],
     enabledConfig: [['environments.dev.template.cache', false]],
-    disabledConfig: [['config.template.provider', '']],
+    disabledConfig: [],
     directories: ['templates']
   },
   locales: {

@@ -6,7 +6,9 @@ import {
   QueueHandlerResponse,
   QueueJob,
   QueueListener,
+  QueueJobOptions,
   QueueProcessor,
+  QueueWorkerOptions,
   uuid,
   QueueError
 } from '@appweaver/common';
@@ -19,12 +21,6 @@ type MemoryQueueJob<Data = any, Response = any> = QueueJob<Data, Response> & {
   error?: Error;
   processedAt?: number;
   finishedAt?: number;
-};
-
-type MemoryJobOptions = {
-  attempts?: number;
-  delay?: number;
-  priority?: number;
 };
 
 type MemoryWorker<Data = any, Response = any> = {
@@ -97,9 +93,7 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
   Data,
   Response,
   MemoryQueueJob<Data, Response>,
-  MemoryJobOptions,
-  MemoryWorker<Data, Response>,
-  undefined
+  MemoryWorker<Data, Response>
 > {
   /** @internal */
   private readonly _jobs: Map<string, MemoryQueueJob<Data, Response>> =
@@ -130,7 +124,7 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
   public async sendJob(
     data: Data,
     name?: string,
-    options: MemoryJobOptions = {}
+    options: QueueJobOptions = {}
   ): Promise<MemoryQueueJob<Data, Response>> {
     if (this._closed) {
       throw new QueueError(
@@ -169,7 +163,7 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     jobs: Array<{
       data: Data;
       name?: string;
-      options?: MemoryJobOptions;
+      options?: QueueJobOptions;
     }>
   ): Promise<Array<MemoryQueueJob<Data, Response>>> {
     const createdJobs: MemoryQueueJob<Data, Response>[] = [];
@@ -188,7 +182,7 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
 
   public addWorker(
     processor: (job: MemoryQueueJob<Data, Response>) => Promise<Response>,
-    _options?: undefined
+    _options?: QueueWorkerOptions
   ): MemoryWorker<Data, Response> {
     const worker: MemoryWorker<Data, Response> = {
       id: uuid(),

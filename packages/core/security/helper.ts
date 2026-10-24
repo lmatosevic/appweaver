@@ -1,5 +1,4 @@
 import { argon2, randomBytes, timingSafeEqual } from 'node:crypto';
-import { requestContext } from '@fastify/request-context';
 import {
   AuthScope,
   AuthSource,
@@ -70,36 +69,6 @@ export function resourceAuthService():
       return injectService(service[RESOURCE_NAME]);
     }
   }
-}
-
-/**
- * Retrieves the currently authenticated user from the request context.
- *
- * @return {AuthUser | null | undefined} The authenticated user object if available,
- * null if no user is authenticated, or undefined if the context does not contain
- * authentication information.
- */
-export function currentAuthUser(): AuthUser | null | undefined {
-  return requestContext.get('authUser');
-}
-
-/**
- * Retrieves the current authentication type from the request context.
- *
- * @return {AuthType | null | undefined} The authentication type if available; otherwise, returns null or undefined.
- */
-export function currentAuthType(): AuthType | null | undefined {
-  return requestContext.get('authType');
-}
-
-/**
- * Retrieves the current authentication source from the request context.
- *
- * @return {AuthSource | null | undefined} The authentication source if available; otherwise, null or undefined
- * if it is not set.
- */
-export function currentAuthSource(): AuthSource | null | undefined {
-  return requestContext.get('authSource');
 }
 
 /**

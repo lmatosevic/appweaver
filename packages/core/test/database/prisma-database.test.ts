@@ -5,12 +5,12 @@ jest.mock('../../database/create-client', () => ({
 import * as common from '@appweaver/common';
 import { ApplicationError, ErrorCode, DatabaseError } from '@appweaver/common';
 import { PrismaDatabase } from '../../database/prisma-database';
+import { createClient } from '../../database/create-client';
 import {
   afterCommit,
   afterRollback,
   currentTransaction
-} from '../../database/transaction-context';
-import { createClient } from '../../database/create-client';
+} from '../../context/transaction-scope';
 
 /** A Prisma client stand-in, running each transaction on its own client. */
 function createRoot() {

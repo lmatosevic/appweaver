@@ -10,13 +10,19 @@ import {
 } from '@appweaver/common';
 import { databaseConfig } from './database-config';
 import { createClient } from './create-client';
+import { Prisma, PrismaClient } from '../prisma/client/client';
 import {
   currentTransaction,
   runInTransaction,
   settleTransaction,
   TransactionContext
-} from './transaction-context';
-import { Prisma, PrismaClient } from '../prisma/client/client';
+} from '../context/transaction-scope';
+
+/** The transaction of the Prisma client the current call runs in. */
+type PrismaTransaction = TransactionContext<
+  Prisma.TransactionClient,
+  Prisma.TransactionIsolationLevel
+>;
 
 // Members that act on the connection itself, never on a transaction
 const ROOT_MEMBERS = new Set<string | symbol>([
@@ -93,7 +99,10 @@ export class PrismaDatabase extends Database {
   ): Promise<T> {
     const isolationLevel = this.isolationLevel(options.isolationLevel);
 
-    const current = currentTransaction();
+    const current = currentTransaction<
+      Prisma.TransactionClient,
+      Prisma.TransactionIsolationLevel
+    >();
     if (current) {
       if (options.isolationLevel && current.isolationLevel !== isolationLevel) {
         throw new DatabaseError(
@@ -106,7 +115,7 @@ export class PrismaDatabase extends Database {
     }
 
     for (let attempt = 0; ; attempt++) {
-      const context: TransactionContext = {
+      const context: PrismaTransaction = {
         tx: undefined as unknown as Prisma.TransactionClient,
         commitCallbacks: new Map(),
         rollbackCallbacks: [],
@@ -160,7 +169,10 @@ export class PrismaDatabase extends Database {
     return new Proxy({} as PrismaClient, {
       get: (_target, property) => {
         const root = this.clientInstance();
-        const context = currentTransaction();
+        const context = currentTransaction<
+          Prisma.TransactionClient,
+          Prisma.TransactionIsolationLevel
+        >();
 
         if (property === '$transaction') {
           return (arg: unknown, options?: TransactionOptions) =>
@@ -178,7 +190,7 @@ export class PrismaDatabase extends Database {
   /** @internal */
   private joinTransaction(
     root: PrismaClient,
-    context: TransactionContext | undefined,
+    context: PrismaTransaction | undefined,
     arg: unknown,
     options?: TransactionOptions
   ): Promise<unknown> {

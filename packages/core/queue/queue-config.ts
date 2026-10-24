@@ -21,6 +21,7 @@ export const queueConfig = defineConfig('queue', {
       default: 'fixed'
     }
   ),
-  /** Job queue provider implementation path. Default: `'@appweaver/core/queue/bull-queue'`. */
-  PROVIDER: Type.String({ default: '@appweaver/core/queue/bull-queue' })
+  /** Queue provider: `auto` (`bullmq` when its module is enabled, otherwise `memory`), `memory`, `bullmq`, `none`,
+   * or the module path of an implementation. Default: `'auto'`. */
+  PROVIDER: Type.String({ default: 'auto' })
 });

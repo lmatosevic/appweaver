@@ -42,7 +42,7 @@ jest.mock('bullmq', () => {
 
 import { EventEmitter } from 'node:events';
 import { Queue, Worker } from 'bullmq';
-import { ErrorCode, Redis } from '@appweaver/common';
+import { ErrorCode, Memory } from '@appweaver/common';
 import { define } from '../../context';
 import { BullQueue } from '../../queue/bull-queue';
 import { resetContext } from '../fixtures/context-fixture';
@@ -66,7 +66,7 @@ describe('bull-queue', () => {
     queues().length = 0;
     workers().length = 0;
     connection = new FakeConnection();
-    define({ createClient: () => connection }, Redis);
+    define({ createClient: () => connection }, Memory);
     queue = new BullQueue();
   });
 
@@ -129,9 +129,22 @@ describe('bull-queue', () => {
         ]);
 
       expect(queues()[0].addBulk).toHaveBeenCalledWith([
-        { data: 1, name: 'defaultJob' },
-        { data: 2, name: 'urgent', priority: 1 }
+        { data: 1, name: 'defaultJob', opts: {} },
+        { data: 2, name: 'urgent', opts: { priority: 1 } }
       ]);
+    });
+
+    test('passes the driver options with the job options', async () => {
+      await queue.get('emails').sendJob({}, 'report', {
+        delay: 1000,
+        providerOptions: { lifo: true }
+      });
+
+      expect(queues()[0].add).toHaveBeenCalledWith(
+        'report',
+        {},
+        { lifo: true, delay: 1000 }
+      );
     });
 
     test('waits for a connection being established', async () => {

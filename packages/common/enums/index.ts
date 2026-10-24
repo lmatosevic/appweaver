@@ -5,6 +5,5 @@ export * from './environment';
 export * from './health-check-status';
 export * from './isolation-level';
 export * from './log-level';
-export * from './memory-type';
 export * from './query-method';
 export * from './runtime';

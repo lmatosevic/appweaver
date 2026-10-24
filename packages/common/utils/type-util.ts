@@ -1,5 +1,11 @@
 import { DatabaseType, Environment } from '../enums';
-import { IHealthCheck, OnDestroy, OnInit } from '../interfaces';
+import {
+  IHealthCheck,
+  OnDestroy,
+  OnInit,
+  OnReady,
+  OnShutdown
+} from '../interfaces';
 import { HEALTH_CHECK, LIFECYCLE } from '../constants';
 
 export type BaseType<T> = T extends Array<infer I> ? I : T;
@@ -155,6 +161,28 @@ export function isLifecycleInit(value: any): value is OnInit {
  */
 export function isLifecycleDestroy(value: any): value is OnDestroy {
   return hasTagAndFunction(value, LIFECYCLE, 'onDestroy');
+}
+
+/**
+ * Determines if the given value is an instance that implements the `OnReady` interface.
+ * The tested value must also have a `LIFECYCLE` symbol with truthy value added.
+ *
+ * @param {Object} value - The value to check.
+ * @return {boolean} Returns true if the value implements `OnReady` interface, otherwise false.
+ */
+export function isLifecycleReady(value: any): value is OnReady {
+  return hasTagAndFunction(value, LIFECYCLE, 'onReady');
+}
+
+/**
+ * Determines if the given value is an instance that implements the `OnShutdown` interface.
+ * The tested value must also have a `LIFECYCLE` symbol with truthy value added.
+ *
+ * @param {Object} value - The value to check.
+ * @return {boolean} Returns true if the value implements `OnShutdown` interface, otherwise false.
+ */
+export function isLifecycleShutdown(value: any): value is OnShutdown {
+  return hasTagAndFunction(value, LIFECYCLE, 'onShutdown');
 }
 
 /**

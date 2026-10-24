@@ -9,8 +9,8 @@ import {
 } from '@appweaver/common';
 import { CacheService } from './cache-service';
 import { inject } from '../context';
-import { currentAuthUser } from '../security/helper';
 import { Server } from '../types';
+import { currentAuthUser } from '../context/auth-context';
 
 type FullRouteConfig = RouteConfig & RouteCacheConfig;
 

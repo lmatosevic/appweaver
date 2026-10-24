@@ -131,14 +131,20 @@ describe('auth-service', () => {
     define(new OAuth2Service(), OAuth2Service);
 
     signedTokens = [];
-    context.server = {
-      jwt: {
-        sign: (payload: any, options: any) => {
-          signedTokens.push({ payload, options });
-          return `token-${signedTokens.length}`;
+    define(
+      {
+        instance: {
+          jwt: {
+            sign: (payload: any, options: any) => {
+              signedTokens.push({ payload, options });
+              return `token-${signedTokens.length}`;
+            }
+          }
         }
-      }
-    } as any;
+      },
+      'HttpServer',
+      'override'
+    );
 
     service = new AuthService();
   });
@@ -458,7 +464,10 @@ describe('auth-service', () => {
     });
 
     test('throws when the server is not initialized', async () => {
-      context.server = null;
+      context.definitions.splice(
+        context.definitions.findIndex((def) => def.name === 'HttpServer'),
+        1
+      );
 
       await expect(service.generateAuthTokens(user())).rejects.toThrow(
         'Server instance not initialized'

@@ -1,8 +1,9 @@
 # Cache
 
 The cache module provides a key-value store with TTL support, eviction strategies, and automatic invalidation tied to
-resource mutations. Two implementations are available: `RedisCache` (production) and `MemoryCache` (
-development/testing). Both are accessed through the abstract `Cache` class and the higher-level `CacheService`.
+resource mutations. The one implementation, `MemoryCache` (provider `memory`), stores its entries in the selected
+`Memory` provider: in the process by default, in Redis with `MEMORY_PROVIDER=redis` (the default when `ioredis` is
+installed). It is accessed through the abstract `Cache` class and the higher-level `CacheService`.
 
 ## `Cache` — low-level provider
 
@@ -77,7 +78,7 @@ Returns all keys matching a glob pattern, or all keys if omitted.
 const keys = await cache.keys('session:*');
 ```
 
-The `Memory` provider the cache stores its entries in (`InMemory` or `Redis`, injected with `inject(Memory)`) offers
+The `Memory` provider the cache stores its entries in (`memory` or `redis`, injected with `inject(Memory)`) offers
 the same `get`, `set`, `has`, `delete`, `deleteMatching`, and `keys` methods, along with `sizeBytes(key)` and
 `lock(resource)`.
 
@@ -86,7 +87,7 @@ the same `get`, `set`, `has`, `delete`, `deleteMatching`, and `keys` methods, al
 ## `CacheService` — high-level helper
 
 `CacheService` wraps `Cache` with duplicate-check logic, debug logging, and resource-aware invalidation. It is
-registered automatically by the framework.
+registered automatically by the framework, unless `CACHE_PROVIDER` is `none`.
 
 ```ts
 import { inject } from '@appweaver/core';
@@ -172,24 +173,26 @@ const key = cacheService.buildCacheKey({
 
 ## Configuration
 
-| Key                           | Type     | Default                               | Description                                        |
-|-------------------------------|----------|---------------------------------------|----------------------------------------------------|
-| `CACHE_ENABLED`               | `bool`   | `true`                                | Enables or disables the cache globally             |
-| `CACHE_PROVIDER`              | `string` | `'@appweaver/core/cache/redis-cache'` | Path to the Cache implementation                   |
-| `CACHE_KEY_PREFIX`            | `string` | `'cache:'`                            | Prefix prepended to every key                      |
-| `CACHE_MAX_ITEMS`             | `int`    | `1000`                                | Maximum number of entries before eviction kicks in |
-| `CACHE_CACHE_MAX_SIZE`        | `string` | -                                     | Maximum size used by the cache.                    |
-| `CACHE_DEFAULT_TTL`           | `int`    | `5000`                                | Default TTL in milliseconds                        |
-| `CACHE_EVICTION_STRATEGY`     | `enum`   | `'lru'`                               | `lru`, `lfu`, or `fifo`                            |
-| `CACHE_INVALIDATION_STRATEGY` | `enum`   | `'expire-related'`                    | `expire-related`, `expire-all`, or `none`          |
-| `CACHE_INVALIDATION_DEFERRED` | `bool`   | `false`                               | Fire invalidation in the background (non-blocking) |
-| `CACHE_SKIP_ON_ERROR`         | `bool`   | `true`                                | Return empty results instead of failing on errors  |
+| Key                           | Type     | Default            | Description                                        |
+|-------------------------------|----------|--------------------|----------------------------------------------------|
+| `CACHE_ENABLED`               | `bool`   | `true`             | Enables or disables the cache globally             |
+| `CACHE_PROVIDER`              | `string` | `'auto'`           | `auto`/`memory`, `none`, or a module path          |
+| `CACHE_KEY_PREFIX`            | `string` | `'cache:'`         | Prefix prepended to every key                      |
+| `CACHE_MAX_ITEMS`             | `int`    | `1000`             | Maximum number of entries before eviction kicks in |
+| `CACHE_CACHE_MAX_SIZE`        | `string` | -                  | Maximum size used by the cache.                    |
+| `CACHE_DEFAULT_TTL`           | `int`    | `5000`             | Default TTL in milliseconds                        |
+| `CACHE_EVICTION_STRATEGY`     | `enum`   | `'lru'`            | `lru`, `lfu`, or `fifo`                            |
+| `CACHE_INVALIDATION_STRATEGY` | `enum`   | `'expire-related'` | `expire-related`, `expire-all`, or `none`          |
+| `CACHE_INVALIDATION_DEFERRED` | `bool`   | `false`            | Fire invalidation in the background (non-blocking) |
+| `CACHE_SKIP_ON_ERROR`         | `bool`   | `true`             | Return empty results instead of failing on errors  |
 
-Switch to the in-memory implementation for local development or tests:
+The cache follows the `Memory` provider, so keep the cache of the tests in the process with:
 
 ```json
 {
-  "CACHE_PROVIDER": "@appweaver/core/cache/memory-cache"
+  "environments": {
+    "test": { "memory": { "provider": "memory" } }
+  }
 }
 ```
 

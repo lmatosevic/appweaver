@@ -1,8 +1,13 @@
 # Scheduler
 
-The scheduler module runs recurring tasks using cron expressions. The default implementation (`CronScheduler`) wraps
-the [`cron`](https://github.com/kelektiv/node-cron) library. Jobs auto-start on `addJob` (controlled by
+The scheduler module runs recurring tasks using cron expressions. Its driver, `CronScheduler` (provider `cron`), wraps
+the [`cron`](https://github.com/kelektiv/node-cron) library and is selected when `cron` is installed; without it, or
+with `SCHEDULER_PROVIDER=none`, no `Scheduler` is defined. Jobs auto-start on `addJob` (controlled by
 `SCHEDULER_AUTO_START_JOB`) and are stopped gracefully on application shutdown.
+
+An application of scheduled jobs needs no server: disable `@appweaver/web` (`APP_MODULES_DISABLED=@appweaver/web`), and
+the cron jobs keep it running. `weaver run` sets `SCHEDULER_AUTO_START_JOB` to `false`, so a one-shot task never starts
+the jobs.
 
 ## Injecting Scheduler
 
@@ -11,6 +16,7 @@ import { inject } from '@appweaver/core';
 import { Scheduler } from '@appweaver/common';
 
 const scheduler = inject(Scheduler);
+const optional = inject(Scheduler, false); // undefined without a scheduler driver
 ```
 
 ---
@@ -20,17 +26,17 @@ const scheduler = inject(Scheduler);
 Registers a new cron job and returns a unique job ID. Jobs start immediately by default (see
 `SCHEDULER_AUTO_START_JOB`).
 
-**`CronJobParams` fields** (from the `cron` library):
+**`JobParams` fields** (the same for every scheduler):
 
-| Field               | Type                          | Default        | Description                                      |
-|---------------------|-------------------------------|----------------|--------------------------------------------------|
-| `cronTime`          | `string \| Date`              | —              | Cron expression or exact `Date`                  |
-| `onTick`            | `() => void \| Promise<void>` | —              | Function to execute on each tick                 |
-| `start`             | `boolean`                     | config default | Override `SCHEDULER_AUTO_START_JOB` for this job |
-| `waitForCompletion` | `boolean`                     | `true`         | Wait for the current tick to finish before next  |
-| `errorHandler`      | `(e: unknown) => void`        | logs error     | Custom error handler for tick failures           |
-| `timeZone`          | `string`                      | system TZ      | IANA timezone (e.g. `'America/New_York'`)        |
-| `runOnInit`         | `boolean`                     | `false`        | Execute immediately when the job is registered   |
+| Field             | Type                      | Default   | Description                                                      |
+|-------------------|---------------------------|-----------|------------------------------------------------------------------|
+| `cronTime`        | `string \| Date`          | —         | Cron expression (optional leading seconds field) or exact `Date` |
+| `onTick`          | `() => unknown`           | —         | Function to execute on each tick                                 |
+| `timeZone`        | `string`                  | system TZ | IANA timezone (e.g. `'America/New_York'`)                        |
+| `providerOptions` | `Record<string, unknown>` | —         | Options of the driver, passed to `CronJob.from` by `cron`        |
+
+The `cron` driver waits for a tick to finish before the next one and logs the errors of a tick. Its other options
+(`start` to override `SCHEDULER_AUTO_START_JOB` for one job, `runOnInit`, `errorHandler`) go to `providerOptions`.
 
 ```ts
 const jobId = scheduler.addJob({
@@ -66,7 +72,7 @@ const jobId = scheduler.addJob({
 
 #### `scheduler.getJob(jobId)`
 
-Returns the underlying `CronJob` instance, or `undefined` if not found.
+Returns the job of the driver (a `CronJob` of `cron`, typed by `Scheduler<Job>`), or `undefined` if not found.
 
 ```ts
 const job = scheduler.getJob(jobId);
@@ -127,10 +133,10 @@ await scheduler.removeJob(jobId);
 
 ## Configuration
 
-| Key                        | Type     | Default                                      | Description                                      |
-|----------------------------|----------|----------------------------------------------|--------------------------------------------------|
-| `SCHEDULER_AUTO_START_JOB` | `bool`   | `true`                                       | Automatically start jobs when `addJob` is called |
-| `SCHEDULER_PROVIDER`       | `string` | `'@appweaver/core/scheduler/cron-scheduler'` | Path to the Scheduler implementation             |
+| Key                        | Type     | Default  | Description                                                                      |
+|----------------------------|----------|----------|----------------------------------------------------------------------------------|
+| `SCHEDULER_AUTO_START_JOB` | `bool`   | `true`   | Automatically start jobs when `addJob` is called                                 |
+| `SCHEDULER_PROVIDER`       | `string` | `'auto'` | `auto` (`cron` when installed, otherwise none), `cron`, `none`, or a module path |
 
 ---
 
@@ -138,8 +144,8 @@ await scheduler.removeJob(jobId);
 
 Every application instance runs its own cron jobs, so a job registered at startup runs once per instance. When it must
 run once per tick (sending a digest, charging a subscription), guard it with a lock of the `Memory` provider configured
-for Redis (`MEMORY_PROVIDER=@appweaver/core/memory/redis`). The default in-memory provider locks within one process
-only, so it guards nothing across instances.
+for Redis (`MEMORY_PROVIDER=redis`, the default when `ioredis` is installed). The `memory` provider locks within one
+process only, so it guards nothing across instances.
 
 ```ts
 import { inject } from '@appweaver/core';
@@ -199,7 +205,7 @@ export function registerJobs() {
   // Run a heavy report only on weekdays; don't auto-start, trigger manually
   const reportJobId = scheduler.addJob({
     cronTime: '0 2 * * 1-5',
-    start: false,
+    providerOptions: { start: false },
     onTick: async () => {
       await generateWeeklyReport();
     }

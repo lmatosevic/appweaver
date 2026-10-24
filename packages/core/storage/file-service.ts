@@ -9,6 +9,7 @@ import {
   FilePolicy,
   findReservedStoragePath,
   generateToken,
+  ImageProcessor,
   isArray,
   isFunction,
   logger,
@@ -22,27 +23,25 @@ import {
 } from '@appweaver/common';
 import { storageConfig } from './storage-config';
 import { inject, injectModel, injectPolicy, injectService } from '../context';
-import { currentAuthUser } from '../security/helper';
 import { PrismaDatabase, toDatabaseError } from '../database';
-import {
-  afterCommit,
-  afterRollback,
-  currentTransaction
-} from '../database/transaction-context';
 import { CacheService } from '../cache';
 import {
   arePoliciesSkipped,
   buildFileUrl,
   deletedResourceFileFields,
   generateFileName,
-  isProcessableImage,
   isValidMimeType,
   liveRecordFilter,
   parseRange,
-  processImage,
   sizeInBytes
 } from '../utils';
 import { File, FileBuffer } from '../types';
+import { currentAuthUser } from '../context/auth-context';
+import {
+  afterCommit,
+  afterRollback,
+  currentTransaction
+} from '../context/transaction-scope';
 
 export type FileStream = {
   content: ContentStream;
@@ -50,6 +49,13 @@ export type FileStream = {
   mimeType: string;
   start: number;
   end: number;
+};
+
+/** A file the clients download from the URL of its storage, i.e. a signed URL of a cloud storage. */
+export type FileRedirect = {
+  url: string;
+  fileName: string;
+  mimeType: string;
 };
 
 /**
@@ -73,6 +79,8 @@ export class FileService {
   private readonly _storage = inject(Storage);
   /** @internal */
   private readonly _cacheService = inject(CacheService);
+  /** @internal */
+  private readonly _imageProcessor = inject(ImageProcessor, false);
 
   /**
    * Searches for a file by its name from a database.
@@ -117,59 +125,7 @@ export class FileService {
    * @throws {FileError} `FILE_STORAGE_ERROR` if an error occurs while reading the file from storage.
    */
   public async stream(fileName: string, range?: string): Promise<FileStream> {
-    const identity = currentAuthUser();
-
-    const file = await this.findByName(fileName);
-    if (!file) {
-      throw new FileError(ErrorCode.FileNotFound, 'File does not exist', {
-        fileName
-      });
-    }
-
-    const policy = this.getFilePolicy(file.resourceName, file.resourceField);
-
-    if (!identity && policy.accessType !== 'public') {
-      throw new FileError(
-        ErrorCode.FileForbidden,
-        'Public file access is forbidden',
-        { fileName, action: 'read' }
-      );
-    }
-
-    if (policy.accessType === 'private' && identity?.id !== file.createdById) {
-      throw new FileError(
-        ErrorCode.FileForbidden,
-        'Private file access is forbidden',
-        { fileName, action: 'read' }
-      );
-    }
-
-    if (
-      policy.accessType == 'protected' &&
-      file.resourceName &&
-      file.resourceId
-    ) {
-      const resourceService = injectService(file.resourceName);
-      // The owning id is stored as text, so it is converted back to the
-      // primary key type of that model before the lookup
-      const resource = await resourceService.find(
-        toResourceId(
-          file.resourceId,
-          injectModel(file.resourceName, false)?.config?.id
-        )
-      );
-
-      if (
-        !arePoliciesSkipped() &&
-        (await policy.canAccess?.(identity ?? null, resource, file)) === false
-      ) {
-        throw new FileError(
-          ErrorCode.FileForbidden,
-          'File access is forbidden',
-          { fileName, action: 'read' }
-        );
-      }
-    }
+    const file = await this.authorizeRead(fileName);
 
     const parsedRange = parseRange(range);
     const start = parsedRange.start;
@@ -194,6 +150,35 @@ export class FileService {
       start,
       end
     };
+  }
+
+  /**
+   * Opens a file for a download, handling authorization like {@link stream}: the URL of its storage when the storage
+   * serves its files directly, otherwise the stream of the file.
+   *
+   * @param {string} fileName - The name of the file to download.
+   * @param {string} [range] - An optional range header specifying the byte range to stream.
+   * @return {Promise<FileStream | FileRedirect>} The URL of the file, or its stream.
+   * @throws {FileError} The errors of {@link stream}.
+   */
+  public async download(
+    fileName: string,
+    range?: string
+  ): Promise<FileStream | FileRedirect> {
+    const file = await this.authorizeRead(fileName);
+
+    const url = await this._storage.url(fileName, {
+      expiresIn: storageConfig.CACHE_TTL
+    });
+    if (url) {
+      return {
+        url,
+        fileName: file.name.split('/')[0],
+        mimeType: file.mimeType
+      };
+    }
+
+    return this.stream(fileName, range);
   }
 
   /**
@@ -528,6 +513,69 @@ export class FileService {
     return deletedFiles;
   }
 
+  /**
+   * Finds a file, checking that the current user may read it.
+   *
+   * @internal
+   */
+  private async authorizeRead(fileName: string): Promise<File> {
+    const identity = currentAuthUser();
+
+    const file = await this.findByName(fileName);
+    if (!file) {
+      throw new FileError(ErrorCode.FileNotFound, 'File does not exist', {
+        fileName
+      });
+    }
+
+    const policy = this.getFilePolicy(file.resourceName, file.resourceField);
+
+    if (!identity && policy.accessType !== 'public') {
+      throw new FileError(
+        ErrorCode.FileForbidden,
+        'Public file access is forbidden',
+        { fileName, action: 'read' }
+      );
+    }
+
+    if (policy.accessType === 'private' && identity?.id !== file.createdById) {
+      throw new FileError(
+        ErrorCode.FileForbidden,
+        'Private file access is forbidden',
+        { fileName, action: 'read' }
+      );
+    }
+
+    if (
+      policy.accessType == 'protected' &&
+      file.resourceName &&
+      file.resourceId
+    ) {
+      const resourceService = injectService(file.resourceName);
+      // The owning id is stored as text, so it is converted back to the
+      // primary key type of that model before the lookup
+      const resource = await resourceService.find(
+        toResourceId(
+          file.resourceId,
+          injectModel(file.resourceName, false)?.config?.id
+        )
+      );
+
+      if (
+        !arePoliciesSkipped() &&
+        (await policy.canAccess?.(identity ?? null, resource, file)) === false
+      ) {
+        throw new FileError(
+          ErrorCode.FileForbidden,
+          'File access is forbidden',
+          { fileName, action: 'read' }
+        );
+      }
+    }
+
+    return file;
+  }
+
   /** @internal */
   private async saveContent(
     data: FileContent,
@@ -648,8 +696,12 @@ export class FileService {
     }
 
     let fileStream: Readable = data.stream;
-    if (isProcessableImage(data.mimeType)) {
-      fileStream = processImage(data.stream, data.mimeType, fileConfig.image);
+    if (this._imageProcessor?.supports(data.mimeType)) {
+      fileStream = this._imageProcessor.process(
+        data.stream,
+        data.mimeType,
+        fileConfig.image
+      );
     }
 
     // Tee the stream so the checksum and the stored size are calculated over the
@@ -675,7 +727,9 @@ export class FileService {
     });
 
     const [fileName, checksum] = await Promise.all([
-      this._storage.store(generatedName, storageStream),
+      this._storage.store(generatedName, storageStream, {
+        contentType: data.mimeType
+      }),
       makeHash(checksumStream)
     ]);
     if (!fileName) {

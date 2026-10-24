@@ -1,9 +1,9 @@
 import { securityStoreConfig } from '../../security-config';
 import { createModel } from '../../../factory';
 
+// The database store is the one `auto` selects with a database
 const shouldCreateModel =
-  securityStoreConfig.PROVIDER ===
-    '@appweaver/core/security/store/database-security-store' ||
+  ['auto', 'database'].includes(securityStoreConfig.PROVIDER) ||
   securityStoreConfig.KEEP_DATABASE_TABLE;
 
 export default shouldCreateModel

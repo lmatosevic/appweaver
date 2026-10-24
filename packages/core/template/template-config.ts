@@ -7,11 +7,9 @@ export const templateConfig = defineConfig('template', {
   /** Keep the loaded templates in memory, disable it to reload the changed template files on every render. Default:
    * `true`. */
   CACHE: Type.Boolean({ default: true }),
-  /** Template engine provider implementation path, empty to load none. Default:
-   * `'@appweaver/core/template/handlebars-template-engine'`. */
-  PROVIDER: Type.String({
-    default: '@appweaver/core/template/handlebars-template-engine'
-  })
+  /** Template engine provider: `auto` (`handlebars` when its module is enabled, otherwise none), `handlebars`,
+   * `none`, or the module path of an implementation. Default: `'auto'`. */
+  PROVIDER: Type.String({ default: 'auto' })
 });
 
 export const templatePreviewConfig = defineConfig('template.preview', {

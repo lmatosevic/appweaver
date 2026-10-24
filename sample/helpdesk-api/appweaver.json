@@ -12,20 +12,17 @@
     "database": {
       "url": "mysql://${DB_USER:-helpdesk-api}:${DB_PASSWORD}@${DB_HOST:-localhost}:3306/${DB_NAME:-helpdesk-api}"
     },
-    "redis": {
-      "provider": "@appweaver/core/memory/in-memory"
-    },
-    "cache": {
-      "provider": "@appweaver/core/cache/memory-cache"
+    "memory": {
+      "provider": "memory"
     },
     "rateLimit": {
-      "store": "in-memory"
+      "store": "local"
     },
     "queue": {
-      "provider": "@appweaver/core/queue/memory-queue"
+      "provider": "memory"
     },
     "mailer": {
-      "provider": "@appweaver/core/mailer/json-mailer",
+      "provider": "json",
       "senderName": "Support",
       "senderAddress": "support@helpdesk.example.com"
     },
@@ -59,11 +56,11 @@
       "storage": {
         "path": "./temp/storage"
       },
-      "redis": {
-        "provider": "@appweaver/core/memory/in-memory"
+      "memory": {
+        "provider": "memory"
       },
       "queue": {
-        "provider": "@appweaver/core/queue/memory-queue"
+        "provider": "memory"
       },
       "scheduler": {
         "autoStartJob": false

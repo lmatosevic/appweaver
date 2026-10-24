@@ -1,0 +1,8 @@
+{
+  "name": "fixture-app",
+  "private": true,
+  "dependencies": {
+    "acme-gcs": "1.0.0",
+    "plain-lib": "1.0.0"
+  }
+}

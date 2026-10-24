@@ -12,6 +12,7 @@ provides factory methods for creating resource models, services, policies, and r
 - `src/resources/` - resources (models, services, policies, routes)
 - `src/types/` - generated and manual types
 - `src/main.ts` - application entrypoint
+- `src/modules/<name>/module.ts` - local modules, enabled without config (optional)
 - `test/e2e/` - end-to-end tests
 - `test/unit/` - unit tests
 - `.env` / `.env.{env}` - environment variable overrides (optional)
@@ -31,6 +32,12 @@ import { logger } from '@appweaver/common';
 
 createApp().catch((err) => logger.error(err));
 ```
+
+The framework is assembled from modules: `@appweaver/core`, `@appweaver/data` (Prisma, resources), `@appweaver/web`
+(the server) and a driver module per installed library (`ioredis`, `bullmq`, `cron`, `nodemailer`, `handlebars`,
+`sharp`). Each `provider` key defaults to `auto` (the driver of an enabled module), `none` turns a contract off, and
+`APP_MODULES_DISABLED=@appweaver/web` runs a worker or scheduled jobs without a server (`HEALTH_PORT` answers the
+health checks). See [modules.md](references/modules.md).
 
 ## Creating resources
 
@@ -237,19 +244,19 @@ registerPlugin('audit-log', async (server) => {
 ## Dependency injection
 
 ```ts
-import { Cache } from '@appweaver/common';
-import { cacheConfig, define, inject, loadProvider, mailerConfig } from '@appweaver/core';
+import { Cache, Mailer } from '@appweaver/common';
+import { define, inject, isDefined } from '@appweaver/core';
 
-define(RedisCacheService, Cache);                // register class under abstract token
+define(MyCacheService, Cache);                   // register class under abstract token
 define('https://api.example.com', 'ApiBaseUrl'); // register plain value
 
 const cache = inject(Cache);                     // resolve singleton
 const url = inject<string>('ApiBaseUrl');        // resolve by string token
-
-// Dynamic provider loading (typical in main.ts)
-loadProvider(__dirname, cacheConfig.PROVIDER, Cache);
-loadProvider(__dirname, mailerConfig.PROVIDER, Mailer, false); // optional
+const mailer = inject(Mailer, false);            // undefined when no mailer is selected
+isDefined(Mailer);                               // check without creating the instance
 ```
+
+The modules define the providers from the `provider` keys; `main.ts` never loads them.
 
 ## Seeders
 
@@ -305,6 +312,7 @@ export async function createAdminUser(): Promise<void> {
 | `weaver upgrade`              | Upgrade all @appweaver/* packages         |
 | `weaver module add <name>`    | Add a module (redis, docker, templates…)  |
 | `weaver openapi`              | Generate OpenAPI specification            |
+| `weaver run <file> [args...]` | Run a one-shot task, then exit            |
 
 ## Testing
 
@@ -320,6 +328,7 @@ export async function createAdminUser(): Promise<void> {
 
 - Application CLI (weaver): [cli.md](references/cli.md)
 - Application configuration: [configuration.md](references/configuration.md)
+- Modules & providers: [modules.md](references/modules.md)
 - Application resources: [resources.md](references/resources.md)
 - Dependency injection: [dependency-injection.md](references/dependency-injection.md)
 - Security details: [security.md](references/security.md)

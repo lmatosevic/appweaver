@@ -19,6 +19,30 @@ export type QueueJob<T = any, R = any> = {
   id?: string;
 };
 
+/** The options of a job, the same for every queue. */
+export type QueueJobOptions = {
+  /** Milliseconds to wait before the job is processed. */
+  delay?: number;
+  /** The number of attempts, the first one included. Default: the `queue.retryAttempts` config. */
+  attempts?: number;
+  /** The wait between the attempts. Default: the `queue.retryBackoff` config. */
+  backoff?: { type: 'fixed' | 'exponential'; delay: number };
+  /** The priority, a lower number processed first. */
+  priority?: number;
+  /** A custom job id. */
+  jobId?: string;
+  /** Options of the queue driver. */
+  providerOptions?: Record<string, unknown>;
+};
+
+/** The options of a worker, the same for every queue. */
+export type QueueWorkerOptions = {
+  /** The number of jobs the worker processes at once. */
+  concurrency?: number;
+  /** Options of the queue driver. */
+  providerOptions?: Record<string, unknown>;
+};
+
 export abstract class Queue implements IHealthCheck, OnDestroy {
   static [LIFECYCLE] = true;
   static [HEALTH_CHECK] = true;
@@ -59,9 +83,7 @@ export abstract class QueueProcessor<
   Data = any,
   Response = any,
   Job extends QueueJob = QueueJob<Data, Response>,
-  JobOptions = any,
-  Worker = any,
-  WorkerOptions = any
+  Worker = any
 > {
   /**
    * Sends a single job to the queue.
@@ -73,7 +95,7 @@ export abstract class QueueProcessor<
   abstract sendJob(
     data: Data,
     name?: string,
-    options?: JobOptions
+    options?: QueueJobOptions
   ): Promise<Job>;
 
   /**
@@ -89,7 +111,7 @@ export abstract class QueueProcessor<
     jobs: {
       data: Data;
       name?: string;
-      options?: JobOptions;
+      options?: QueueJobOptions;
     }[]
   ): Promise<Job[]>;
 
@@ -97,12 +119,12 @@ export abstract class QueueProcessor<
    * Registers a worker to process jobs.
    *
    * @param {(job: Object) => Promise<Response>} processor - The job processing function.
-   * @param {WorkerOptions} [options] - Optional worker options.
+   * @param {QueueWorkerOptions} [options] - Optional worker options.
    * @return {Worker} The created worker instance.
    */
   abstract addWorker(
     processor: (job: Job) => Promise<Response>,
-    options?: WorkerOptions
+    options?: QueueWorkerOptions
   ): Worker;
 
   /**

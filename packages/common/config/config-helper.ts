@@ -149,7 +149,7 @@ export function createConfigHelper(
       return defaultValue;
     }
 
-    const parsed = parseInt(value, 10);
+    const parsed = parseInt(String(value), 10);
 
     return isNaN(parsed) ? defaultValue : parsed;
   }
@@ -166,7 +166,7 @@ export function createConfigHelper(
       return defaultValue;
     }
 
-    const parsed = parseFloat(value);
+    const parsed = parseFloat(String(value));
 
     return isNaN(parsed) ? defaultValue : parsed;
   }
@@ -183,7 +183,10 @@ export function createConfigHelper(
       return defaultValue;
     }
 
-    return ['true', 'on', 'yes', '1'].includes(value.toLowerCase().trim());
+    // A value parsed by its section is a boolean already
+    return ['true', 'on', 'yes', '1'].includes(
+      String(value).toLowerCase().trim()
+    );
   }
 
   /**

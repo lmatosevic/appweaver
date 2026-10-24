@@ -17,6 +17,7 @@ weaver <command> [options]
 | `migrate`       | `mge` | Run database migrations                |
 | `migration`     | `mgn` | Database migration commands            |
 | `module`        | `mod` | Manage the modules of the project      |
+| `run`           | `r`   | Run a one-shot task file               |
 | `seed`          | `sd`  | Seed the database                      |
 | `start`         | `s`   | Start the application                  |
 | `test`          | `t`   | Perform operations used during testing |
@@ -56,7 +57,8 @@ Generate application OpenAPI specification schema.
 | `-f, --format [format]`    | Output format for generated OpenAPI specification (json or yaml) | `json`           |
 
 When `--format yaml` is used and `--output-path` is left at its default, the output path becomes `./openapi.yaml`.
-Missing output directories are created automatically.
+Missing output directories are created automatically. The command fails with a message when the `@appweaver/web`
+module is disabled (`APP_MODULES_DISABLED`).
 
 ---
 
@@ -77,6 +79,7 @@ Generate types and/or schemas. With no flags, generates both types and schema.
 | `--schema-path [path]`      | Output path for generated Prisma schema | `config.DATABASE_SCHEMA_PATH`            |
 | `--client-path [path]`      | Output path for generated Prisma client | `config.DATABASE_CLIENT_OUTPUT_DIR_PATH` |
 | `--no-registry`             | Skip registering the model types        | registered                               |
+| `--no-prune`                | Keep the framework models not used      | pruned                                   |
 | `--verbose`                 | Print verbose output                    | `false`                                  |
 
 Per model, the type file holds `<Model>`, `<Model>Single`, `<Model>Multiple`, `<Model>Create`, `<Model>Update`,
@@ -84,6 +87,11 @@ Per model, the type file holds `<Model>`, `<Model>Single`, `<Model>Multiple`, `<
 `<Model>Aggregate`, and last `<Model>ResourceService`, the `injectService` type of that model. The file ends by
 registering the types of every model in the `ResourceRegistry` of `@appweaver/common`, which lets the factories and
 `injectService` infer them from a model name. `--no-registry` leaves the registration out.
+
+The models come from the project and from the `resources` of the enabled modules (see [modules](./modules.md)). The
+framework models reach the schema only when the project uses them: `Role`, `Permission`, `ApiKey`, `OneTimeToken` and
+`ConnectedAccount` with an auth model, `File` when a model declares `files`, and `Seeder` when the seeders directory
+exists. `--no-prune` keeps all of them.
 
 ---
 
@@ -191,6 +199,31 @@ enabled module requires is removed only along with it. The `src/` code is never 
 | `--dry-run`    | Print the changes without applying them   | `false`   |
 | `--no-install` | Skip the installation of the dependencies | installed |
 | `--verbose`    | Print verbose output                      | `false`   |
+
+---
+
+## `weaver run`
+
+```
+weaver run|r <file> [args...]
+```
+
+Run a one-shot task with the application, like a Rails runner. The command creates the application without starting
+the server or the scheduled jobs (`SCHEDULER_AUTO_START_JOB` is forced to `false`), calls the default export of the file
+with the arguments given after it, stops the application, and exits with the number the task returns (`0` otherwise,
+`1` when it throws). On Node a `.ts` path runs from the build output (`src/tasks/report.ts` from
+`dist/src/tasks/report.js`), so build first; Bun runs the source.
+
+```ts
+// src/tasks/report.ts
+export default async function (args: string[]): Promise<number | void> {
+  // the full application context is available: inject, injectService, ...
+}
+```
+
+```sh
+weaver run src/tasks/report.ts 2026-10
+```
 
 ---
 

@@ -524,21 +524,14 @@ describe('create-weaver-app', () => {
       }
     });
 
-    test('configures the in-memory or disabled modules by default', async () => {
+    test('leaves the providers of the missing modules to auto by default', async () => {
       await run('MyApp', '--no-install', '--agent', 'none');
 
       const appConfig = readJson('my-app', 'appweaver.json');
       expect(appConfig.config).toEqual({
         app: expect.any(Object),
         server: expect.any(Object),
-        database: expect.any(Object),
-        redis: { provider: '@appweaver/core/memory/in-memory' },
-        cache: { provider: '@appweaver/core/cache/memory-cache' },
-        rateLimit: { store: 'in-memory' },
-        queue: { provider: '@appweaver/core/queue/memory-queue' },
-        scheduler: { enabled: false },
-        mailer: { enabled: false },
-        template: { provider: '' }
+        database: expect.any(Object)
       });
       expect(appConfig.environments.dev).not.toHaveProperty('template');
       expect(Object.keys(appConfig.environments.test)).toEqual([
@@ -561,17 +554,17 @@ describe('create-weaver-app', () => {
         'app',
         'server',
         'database',
-        'redis'
+        'memory'
       ]);
-      expect(appConfig.config.redis).toEqual({
-        url: 'redis://${REDIS_HOST:-localhost}:6379/0'
+      expect(appConfig.config.memory).toEqual({
+        redis: { url: 'redis://${REDIS_HOST:-localhost}:6379/0' }
       });
       expect(appConfig.environments.dev.template).toEqual({ cache: false });
       expect(appConfig.environments.test).toMatchObject({
-        redis: { provider: '@appweaver/core/memory/in-memory' },
-        queue: { provider: '@appweaver/core/queue/memory-queue' },
+        memory: { provider: 'memory' },
+        queue: { provider: 'memory' },
         scheduler: { autoStartJob: false },
-        mailer: { provider: '@appweaver/core/mailer/json-mailer' }
+        mailer: { provider: 'json' }
       });
       expect(exists('my-app', 'Dockerfile')).toBe(true);
       expect(exists('my-app', 'locales', 'en.json')).toBe(true);
@@ -598,9 +591,7 @@ describe('create-weaver-app', () => {
       expect(config).not.toHaveProperty('mailer');
       expect(config).not.toHaveProperty('scheduler');
       expect(config).not.toHaveProperty('template');
-      expect(config.queue).toEqual({
-        provider: '@appweaver/core/queue/memory-queue'
-      });
+      expect(config).not.toHaveProperty('queue');
     });
 
     test('adds the modules a module requires', async () => {
@@ -641,9 +632,9 @@ describe('create-weaver-app', () => {
       const { dependencies } = readJson('my-app', 'package.json');
       expect(dependencies).not.toHaveProperty('cron');
       expect(dependencies).toHaveProperty('bullmq');
-      expect(readJson('my-app', 'appweaver.json').config.scheduler).toEqual({
-        enabled: false
-      });
+      expect(readJson('my-app', 'appweaver.json').config).not.toHaveProperty(
+        'scheduler'
+      );
     });
 
     test('writes the account email templates with the mailer and templates', async () => {
@@ -789,12 +780,12 @@ describe('create-weaver-app', () => {
       expect(compose).toContain('  sqlite-data:');
     });
 
-    test('configures the in-memory modules for the Bun runtime', async () => {
+    test('configures the Bun runtime', async () => {
       await run('MyApp', '--no-install', '--agent', 'none', '--bun');
 
       const { config } = readJson('my-app', 'appweaver.json');
       expect(config.app.runtime).toBe('bun');
-      expect(config.cache.provider).toBe('@appweaver/core/cache/memory-cache');
+      expect(config).not.toHaveProperty('cache');
     });
 
     test('runs only the test files with the Bun unit tests', async () => {

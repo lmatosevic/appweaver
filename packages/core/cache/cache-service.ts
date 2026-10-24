@@ -11,10 +11,7 @@ import {
 import { cacheConfig } from './cache-config';
 import { stringify } from 'flatted';
 import { context, inject, injectModel } from '../context';
-import {
-  afterCommit,
-  currentTransaction
-} from '../database/transaction-context';
+import { afterCommit, currentTransaction } from '../context/transaction-scope';
 
 export class CacheService {
   /** @internal */

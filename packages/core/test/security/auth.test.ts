@@ -2,7 +2,7 @@
 // `authenticate` decorator combines them rather than the handlers themselves
 jest.mock('../../security/jwt', () => {
   const fp = jest.requireActual('fastify-plugin');
-  const { requestContext } = jest.requireActual('@fastify/request-context');
+  const { setAuthContext } = jest.requireActual('../../context/auth-context');
   const { AuthError } = jest.requireActual('@appweaver/common');
   const actual = jest.requireActual('../../security/jwt/jwt-auth');
   return {
@@ -12,7 +12,7 @@ jest.mock('../../security/jwt', () => {
         if (request.headers.authorization !== 'Bearer valid') {
           throw new AuthError('AUTH_INVALID_TOKEN', 'Invalid JWT');
         }
-        requestContext.set('authUser', { id: 1, via: 'jwt' });
+        setAuthContext({ authUser: { id: 1, via: 'jwt' } });
       });
     })
   };
@@ -20,7 +20,7 @@ jest.mock('../../security/jwt', () => {
 
 jest.mock('../../security/api-key', () => {
   const fp = jest.requireActual('fastify-plugin');
-  const { requestContext } = jest.requireActual('@fastify/request-context');
+  const { setAuthContext } = jest.requireActual('../../context/auth-context');
   const { AuthError } = jest.requireActual('@appweaver/common');
   const actual = jest.requireActual('../../security/api-key/api-key-auth');
   return {
@@ -30,7 +30,7 @@ jest.mock('../../security/api-key', () => {
         if (request.headers['x-api-key'] !== 'valid') {
           throw new AuthError('AUTH_API_KEY_INVALID', 'Invalid API key');
         }
-        requestContext.set('authUser', { id: 2, via: 'apiKey' });
+        setAuthContext({ authUser: { id: 2, via: 'apiKey' } });
       });
     })
   };
@@ -38,7 +38,7 @@ jest.mock('../../security/api-key', () => {
 
 jest.mock('../../security/basic', () => {
   const fp = jest.requireActual('fastify-plugin');
-  const { requestContext } = jest.requireActual('@fastify/request-context');
+  const { setAuthContext } = jest.requireActual('../../context/auth-context');
   const { AuthError } = jest.requireActual('@appweaver/common');
   const actual = jest.requireActual('../../security/basic/basic-auth');
   return {
@@ -51,7 +51,7 @@ jest.mock('../../security/basic', () => {
             new AuthError('AUTH_INVALID_CREDENTIALS', 'Invalid credentials')
           );
         }
-        requestContext.set('authUser', { id: 3, via: 'basic' });
+        setAuthContext({ authUser: { id: 3, via: 'basic' } });
         done();
       });
     })

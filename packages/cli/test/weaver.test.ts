@@ -17,6 +17,7 @@ import { migrateCommand } from '../migrate';
 import { migrationCommand } from '../migration';
 import { moduleCommand } from '../module';
 import { openapiCommand } from '../openapi';
+import { runCommand } from '../run';
 import { seedCommand } from '../seed';
 import { startCommand } from '../start';
 import { testingCommand } from '../testing';
@@ -34,6 +35,7 @@ function createProgram(): Command {
     migrationCommand,
     moduleCommand,
     openapiCommand,
+    runCommand,
     seedCommand,
     startCommand,
     testingCommand,

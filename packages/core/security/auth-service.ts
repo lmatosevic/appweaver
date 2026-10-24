@@ -34,7 +34,8 @@ import {
   validatePasswordComplexity
 } from './helper';
 import { OAuth2Service } from './oauth2/oauth2-service';
-import { context, inject } from '../context';
+import { context, inject, injectCreated } from '../context';
+import type { HttpServer } from '../server/http-server';
 import { CacheService } from '../cache';
 import { FileService } from '../storage/file-service';
 import { toDatabaseError } from '../database';
@@ -466,7 +467,7 @@ export class AuthService {
     scope: AuthScope = AuthScope.Auth,
     source: AuthSource = AuthSource.Password
   ): Promise<AuthTokens> {
-    const server = context.server;
+    const server = injectCreated<HttpServer>('HttpServer')?.instance;
     if (!server) {
       throw new ContextError(
         ErrorCode.ContextServerUnavailable,

@@ -1,8 +1,13 @@
 # Queue
 
 The queue module provides background job processing with support for workers, retries, and lifecycle event hooks. The
-default implementation (`BullQueue`) uses [BullMQ](https://docs.bullmq.io/) backed by Redis. A `MemoryQueue` is
-available for development and testing without a Redis dependency.
+`BullQueue` driver (provider `bullmq`) uses [BullMQ](https://docs.bullmq.io/) on the Redis connection of the `Memory`
+provider, and is selected when `bullmq` is installed (it requires `ioredis` and `MEMORY_PROVIDER` resolving to `redis`).
+Otherwise the `MemoryQueue` of core (provider `memory`) runs the jobs in the process, losing them on a restart, which a
+production application logs as a warning on startup.
+
+A queue worker needs no server: disable `@appweaver/web` (`APP_MODULES_DISABLED=@appweaver/web`), and its workers keep
+the application running. Set `HEALTH_PORT` to answer the health checks of its container.
 
 ## Injecting Queue
 
@@ -14,7 +19,7 @@ const queue = inject(Queue);
 ```
 
 ---
-s
+
 ## `Queue` — manager
 
 #### `queue.get<Data, Response>(name)`
@@ -61,14 +66,25 @@ Obtained via `queue.get(name)`.
 
 Enqueues a single job. Returns the created `QueueJob`.
 
-| Parameter | Type         | Description                                    |
-|-----------|--------------|------------------------------------------------|
-| `data`    | `Data`       | Job payload                                    |
-| `name`    | `string`     | Optional job name/type label                   |
-| `options` | `JobOptions` | Provider-specific options (delay, priority, …) |
+| Parameter | Type              | Description                  |
+|-----------|-------------------|------------------------------|
+| `data`    | `Data`            | Job payload                  |
+| `name`    | `string`          | Optional job name/type label |
+| `options` | `QueueJobOptions` | Job options, see below       |
+
+**`QueueJobOptions`** (the same for every queue):
+
+| Field             | Type                                                | Description                                               |
+|-------------------|-----------------------------------------------------|-----------------------------------------------------------|
+| `delay`           | `number`                                            | Milliseconds to wait before the job is processed          |
+| `attempts`        | `number`                                            | Attempts, the first one included (`QUEUE_RETRY_ATTEMPTS`) |
+| `backoff`         | `{ type: 'fixed' \| 'exponential'; delay: number }` | Wait between the attempts (`QUEUE_RETRY_BACKOFF*`)        |
+| `priority`        | `number`                                            | A lower number is processed first                         |
+| `jobId`           | `string`                                            | A custom job id                                           |
+| `providerOptions` | `Record<string, unknown>`                           | Options of the driver, i.e. the `JobsOptions` of BullMQ   |
 
 ```ts
-const job = await emailQueue.sendJob({ to: 'alice@example.com', template: 'welcome' });
+const job = await emailQueue.sendJob({ to: 'alice@example.com', template: 'welcome' }, 'welcome', { delay: 60_000 });
 ```
 
 #### `processor.sendBulkJobs(jobs)`
@@ -84,12 +100,16 @@ await emailQueue.sendBulkJobs([
 
 #### `processor.addWorker(processor, options?)`
 
-Registers a worker function that processes jobs from the queue. Returns the created worker handle.
+Registers a worker function that processes jobs from the queue. Returns the created worker handle. The
+`QueueWorkerOptions` take the `concurrency` (jobs processed at once) and the `providerOptions` of the driver.
 
 ```ts
-emailQueue.addWorker(async (job) => {
-  await sendEmail(job.data.to, job.data.template);
-});
+emailQueue.addWorker(
+  async (job) => {
+    await sendEmail(job.data.to, job.data.template);
+  },
+  { concurrency: 5 }
+);
 ```
 
 #### `processor.removeWorker(id)`
@@ -155,20 +175,22 @@ type QueueJob<Data, Response> = {
 
 ## Configuration
 
-| Key                          | Type     | Default                              | Description                                        |
-|------------------------------|----------|--------------------------------------|----------------------------------------------------|
-| `QUEUE_PROVIDER`             | `string` | `'@appweaver/core/queue/bull-queue'` | Path to the Queue implementation                   |
-| `QUEUE_KEEP_COMPLETED_COUNT` | `int`    | `0`                                  | How many completed jobs to retain (0 = remove all) |
-| `QUEUE_KEEP_FAILED_COUNT`    | `int`    | `50`                                 | How many failed jobs to retain for inspection      |
-| `QUEUE_RETRY_ATTEMPTS`       | `int`    | `3`                                  | Number of retry attempts on failure                |
-| `QUEUE_RETRY_BACKOFF`        | `int`    | `3000`                               | Backoff delay in milliseconds                      |
-| `QUEUE_RETRY_BACKOFF_TYPE`   | `enum`   | `'fixed'`                            | `fixed` or `exponential`                           |
+| Key                          | Type     | Default   | Description                                                                                        |
+|------------------------------|----------|-----------|----------------------------------------------------------------------------------------------------|
+| `QUEUE_PROVIDER`             | `string` | `'auto'`  | `auto` (`bullmq` when installed, otherwise `memory`), `memory`, `bullmq`, `none`, or a module path |
+| `QUEUE_KEEP_COMPLETED_COUNT` | `int`    | `0`       | How many completed jobs to retain (0 = remove all)                                                 |
+| `QUEUE_KEEP_FAILED_COUNT`    | `int`    | `50`      | How many failed jobs to retain for inspection                                                      |
+| `QUEUE_RETRY_ATTEMPTS`       | `int`    | `3`       | Number of retry attempts on failure                                                                |
+| `QUEUE_RETRY_BACKOFF`        | `int`    | `3000`    | Backoff delay in milliseconds                                                                      |
+| `QUEUE_RETRY_BACKOFF_TYPE`   | `enum`   | `'fixed'` | `fixed` or `exponential`                                                                           |
 
-**Use `MemoryQueue` for local development:**
+**Use `MemoryQueue` in the tests:**
 
 ```json
 {
-  "QUEUE_PROVIDER": "@appweaver/core/queue/memory-queue"
+  "environments": {
+    "test": { "queue": { "provider": "memory" } }
+  }
 }
 ```
 

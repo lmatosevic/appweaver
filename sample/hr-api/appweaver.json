@@ -12,20 +12,17 @@
     "database": {
       "url": "file:./data/hr-api.db"
     },
-    "redis": {
-      "provider": "@appweaver/core/memory/in-memory"
-    },
-    "cache": {
-      "provider": "@appweaver/core/cache/memory-cache"
+    "memory": {
+      "provider": "memory"
     },
     "rateLimit": {
-      "store": "in-memory"
+      "store": "local"
     },
     "queue": {
-      "provider": "@appweaver/core/queue/memory-queue"
+      "provider": "memory"
     },
     "mailer": {
-      "provider": "@appweaver/core/mailer/json-mailer",
+      "provider": "json",
       "senderName": "HR Team",
       "senderAddress": "hr@example.com"
     },
@@ -54,11 +51,11 @@
       "storage": {
         "path": "./temp/storage"
       },
-      "redis": {
-        "provider": "@appweaver/core/memory/in-memory"
+      "memory": {
+        "provider": "memory"
       },
       "queue": {
-        "provider": "@appweaver/core/queue/memory-queue"
+        "provider": "memory"
       },
       "scheduler": {
         "autoStartJob": false

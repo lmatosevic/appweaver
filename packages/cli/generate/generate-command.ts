@@ -38,6 +38,10 @@ export function generateCommand(program: Command): void {
       '--no-registry',
       'Skip registering the generated types of every model in the resource registry of @appweaver/common.'
     )
+    .option(
+      '--no-prune',
+      'Keep the framework models the project does not use (auth data model, File, Seeder).'
+    )
     .option('--verbose', 'Print verbose output.')
     .action(async (_, command: Command) => {
       const quiet = !command.getOptionValue('verbose');
@@ -46,7 +50,8 @@ export function generateCommand(program: Command): void {
         !command.getOptionValue('types') && !command.getOptionValue('schema');
 
       const models = await loadModels(
-        command.getOptionValue('modelPattern') ?? resourceConfig.MODEL_PATTERN
+        command.getOptionValue('modelPattern') ?? resourceConfig.MODEL_PATTERN,
+        command.getOptionValue('prune')
       );
 
       let typeGenerateResult: number = 0;

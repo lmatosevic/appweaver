@@ -14,14 +14,9 @@ import {
   appConfig,
   AuthError,
   FileError,
-  ErrorHttpMapping
+  ErrorHttpMapping,
+  findErrorTranslator
 } from '@appweaver/common';
-import { serverConfig } from '../server/server-config';
-import {
-  isPrismaError,
-  prismaErrorMessage,
-  toDatabaseError
-} from '../database/database-error';
 import { errorHttpMapping } from './error-http-map';
 
 /** The request a problem occurred on. */
@@ -117,9 +112,10 @@ export function toProblem(
   // the framework and application errors
   let detail = (known && e.message) || mapping.title;
   const cause = known ? e.cause : error;
-  if (isPrismaError(cause)) {
-    if (serverConfig.ERROR_DATABASE_MESSAGE_ENABLED) {
-      detail = `${detail} (${prismaErrorMessage(cause)})`;
+  const translator = findErrorTranslator(cause);
+  if (translator) {
+    if (translator.exposeDescription?.() ?? !production) {
+      detail = `${detail} (${translator.describe?.(cause) ?? errorMessage(cause)})`;
     }
   } else if (!production && cause !== undefined) {
     detail = `${detail} (${errorMessage(cause)})`;
@@ -159,15 +155,17 @@ export function errorType(code: string): string {
 }
 
 /**
- * Converts the errors of Fastify, its plugins and the Prisma client into an
- * {@link AppweaverError}, leaving any other error as it is.
+ * Converts the errors of Fastify, its plugins and the libraries of the error
+ * translators (the Prisma client) into an {@link AppweaverError}, leaving any
+ * other error as it is.
  */
 function normalizeError(error: unknown): AppweaverError | unknown {
   if (isAppweaverError(error)) {
     return error;
   }
-  if (isPrismaError(error)) {
-    return toDatabaseError(error);
+  const translator = findErrorTranslator(error);
+  if (translator) {
+    return translator.translate(error);
   }
 
   const e = error as FrameworkError;

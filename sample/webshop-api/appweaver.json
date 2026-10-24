@@ -12,11 +12,13 @@
     "database": {
       "url": "postgresql://${DB_USER:-webshop-api}:${DB_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME:-webshop-api}"
     },
-    "redis": {
-      "url": "redis://${REDIS_HOST:-localhost}:6379/0"
+    "memory": {
+      "redis": {
+        "url": "redis://${REDIS_HOST:-localhost}:6379/0"
+      }
     },
     "mailer": {
-      "provider": "@appweaver/core/mailer/json-mailer",
+      "provider": "json",
       "senderName": "Webshop",
       "senderAddress": "orders@webshop.example.com"
     },
@@ -56,11 +58,11 @@
       "storage": {
         "path": "./temp/storage"
       },
-      "redis": {
-        "provider": "@appweaver/core/memory/in-memory"
+      "memory": {
+        "provider": "memory"
       },
       "queue": {
-        "provider": "@appweaver/core/queue/memory-queue"
+        "provider": "memory"
       },
       "scheduler": {
         "autoStartJob": false
