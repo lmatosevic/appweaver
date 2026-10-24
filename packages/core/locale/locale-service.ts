@@ -8,9 +8,10 @@ import {
   isString,
   LIFECYCLE,
   logger,
-  OnInit
+  OnInit,
+  LocaleError
 } from '@appweaver/common';
-import { LocaleError } from './locale-error';
+import { localeConfig } from './locale-config';
 import { defaultTranslations } from './default-translations';
 import { formatMessage, parseMessage } from './utils/message-format';
 
@@ -43,7 +44,7 @@ export class LocaleService implements OnInit {
 
   /** The locale used when none is given, the `LOCALE_DEFAULT` config. */
   public get defaultLocale(): string {
-    return normalizeLocale(config.LOCALE_DEFAULT) ?? 'en';
+    return normalizeLocale(localeConfig.DEFAULT) ?? 'en';
   }
 
   public onInit(): void {
@@ -155,7 +156,7 @@ export class LocaleService implements OnInit {
       return;
     }
 
-    const dir = path.resolve(process.cwd(), config.LOCALE_PATH);
+    const dir = path.resolve(process.cwd(), localeConfig.PATH);
     const files = new Map<string, FlatTranslations>();
 
     let fileNames: string[] = [];

@@ -1,4 +1,5 @@
-import { AuthSource, config, logger } from '@appweaver/common';
+import { AuthSource, logger } from '@appweaver/common';
+import { oauth2Config } from '../security-config';
 import { OAuth2UserInfoContext, UserInfo } from '../../types';
 import { createOAuth2Plugin } from './create-oauth2-plugin';
 import {
@@ -21,8 +22,8 @@ type AppleFormUser = {
 };
 
 export const oauth2Apple = createOAuth2Plugin(AuthSource.OAuth2Apple, {
-  enabled: config.SECURITY_OAUTH2_APPLE_ENABLED,
-  clientId: config.SECURITY_OAUTH2_APPLE_CLIENT_ID,
+  enabled: oauth2Config.APPLE_ENABLED,
+  clientId: oauth2Config.APPLE_CLIENT_ID,
   // Resolved lazily so the signing key is only read when the provider is actually enabled.
   clientSecret: createAppleClientSecret,
   scope: ['name', 'email'],

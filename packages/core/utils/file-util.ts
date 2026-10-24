@@ -1,5 +1,4 @@
 import {
-  config,
   ConfigurationError,
   ErrorCode,
   FilesConfig,
@@ -9,8 +8,11 @@ import {
   normalizeStoragePath,
   replacePatternVariables,
   ResourceModel,
-  textToBytes
+  textToBytes,
+  appConfig
 } from '@appweaver/common';
+import { serverConfig } from '../server/server-config';
+import { storageConfig } from '../storage/storage-config';
 import { injectPolicy } from '../context';
 import { File } from '../types';
 
@@ -28,12 +30,12 @@ export function buildFileUrl(file: File): string {
   ]?.accessType;
   const pathPrefix = accessType === 'public' ? 'public' : 'protected';
 
-  const routePrefix = `/${config.STORAGE_FILES_ROUTE_PREFIX}/`.replace(
+  const routePrefix = `/${storageConfig.FILES_ROUTE_PREFIX}/`.replace(
     /\/+/g,
     '/'
   );
 
-  return `${config.APP_HOSTNAME}${routePrefix}${pathPrefix}/${file.name}`;
+  return `${appConfig.HOSTNAME}${routePrefix}${pathPrefix}/${file.name}`;
 }
 
 /**
@@ -92,7 +94,7 @@ export function maxFileSize(fileConfig: FilesConfig): number {
     .filter((v) => v > 0);
 
   if (!sizes.length) {
-    return textToBytes(config.SERVER_BODY_MAX_SIZE);
+    return textToBytes(serverConfig.BODY_MAX_SIZE);
   }
 
   return Math.max(...sizes);
@@ -160,7 +162,7 @@ export function generateFileName(
   }
 
   const defaultPattern =
-    config.STORAGE_NAME_PATTERN ?? '{name}-{hash}.{extension}';
+    storageConfig.NAME_PATTERN ?? '{name}-{hash}.{extension}';
 
   // Only the pattern itself is trusted to contain directory separators, every substituted value is reduced to a
   // single path segment so that an uploaded file name cannot introduce a sub-path or a traversal.
@@ -194,16 +196,16 @@ export function generateFileName(
 export function validateFileNamePatterns(
   models: Record<string, ResourceModel>
 ): void {
-  const reservedPaths = config.STORAGE_RESERVED_PATHS;
+  const reservedPaths = storageConfig.RESERVED_PATHS;
 
   const globalReservedPath = findReservedStoragePath(
-    config.STORAGE_NAME_PATTERN,
+    storageConfig.NAME_PATTERN,
     reservedPaths
   );
   if (globalReservedPath !== null) {
     throw new ConfigurationError(
       ErrorCode.ConfigurationInvalid,
-      `Configured STORAGE_NAME_PATTERN '${config.STORAGE_NAME_PATTERN}' is placed under the reserved ` +
+      `Configured STORAGE_NAME_PATTERN '${storageConfig.NAME_PATTERN}' is placed under the reserved ` +
         `storage path '${globalReservedPath}'`
     );
   }

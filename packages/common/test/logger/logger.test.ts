@@ -1,5 +1,4 @@
 import { LogLevel } from '../../enums';
-import type { Config } from '../../config/config-type';
 
 type LoggerModule = typeof import('../../logger/logger');
 
@@ -20,8 +19,10 @@ const activeConfig = (
 /** Minimal stand-in for a pino destination stream. */
 const fakeStream = (name: string) => ({ name, write: jest.fn() });
 
-/** The subset of the application config the logger reads, at its schema defaults. */
-const defaultConfig: Partial<Config> = {
+/** The flattened keys of the application config the logger reads, at their schema defaults. */
+type Config = Record<string, unknown>;
+
+const defaultConfig: Config = {
   APP_NAME: 'Appweaver',
   LOG_LEVEL: LogLevel.Info,
   LOG_PRETTY: false,
@@ -49,12 +50,21 @@ describe('logger', () => {
    * The destination factories are mocked so that no file descriptor is opened,
    * while `pino` and `pino.multistream` stay real.
    */
-  const loadLogger = (config: Partial<Config> = {}): LoggerModule => {
+  const loadLogger = (config: Config = {}): LoggerModule => {
     let loaded: LoggerModule | undefined;
 
     jest.isolateModules(() => {
-      jest.doMock('../../config', () => ({
-        config: { ...defaultConfig, ...config }
+      // The flattened keys are split into the sections the logger imports
+      const values = { ...defaultConfig, ...config };
+      const section = (prefix: string) =>
+        Object.fromEntries(
+          Object.entries(values)
+            .filter(([key]) => key.startsWith(prefix))
+            .map(([key, value]) => [key.slice(prefix.length), value])
+        );
+      jest.doMock('../../config/app-config', () => ({
+        appConfig: section('APP_'),
+        logConfig: section('LOG_')
       }));
       jest.doMock('pino', () => ({
         ...jest.requireActual('pino'),

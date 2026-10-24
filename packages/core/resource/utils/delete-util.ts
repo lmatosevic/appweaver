@@ -8,11 +8,11 @@ import {
   referencingRelations,
   ResourceId,
   ResourceModel,
-  uncapitalize
+  uncapitalize,
+  ResourceError
 } from '@appweaver/common';
 import { context, injectModel } from '../../context';
 import { currentAuthUser, resourceAuthModel } from '../../security';
-import { ResourceError } from '../resource-error';
 import {
   deletedResourceFileFields,
   isSoftDeleteModel,

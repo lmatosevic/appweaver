@@ -1,5 +1,6 @@
 import { CronJob, CronJobParams } from 'cron';
-import { config, logger, Scheduler, uuid } from '@appweaver/common';
+import { logger, Scheduler, uuid } from '@appweaver/common';
+import { schedulerConfig } from './scheduler-config';
 
 export class CronScheduler extends Scheduler<CronJob, CronJobParams> {
   /** @internal */
@@ -36,7 +37,7 @@ export class CronScheduler extends Scheduler<CronJob, CronJobParams> {
   public addJob(jobParams: CronJobParams): string {
     const jobId = uuid();
     this._jobs[jobId] = CronJob.from({
-      start: config.SCHEDULER_AUTO_START_JOB,
+      start: schedulerConfig.AUTO_START_JOB,
       waitForCompletion: true,
       errorHandler: (e) => {
         logger.error({ err: e, jobId }, 'Job handler error');

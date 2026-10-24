@@ -1,7 +1,11 @@
-import { ApplicationError, ErrorCode, RequestError } from '@appweaver/common';
-import { defineErrors } from '../../errors/error-http-map';
+import {
+  ApplicationError,
+  ErrorCode,
+  RequestError,
+  ResourceError,
+  defineErrors
+} from '@appweaver/common';
 import { errorType, toProblem } from '../../errors/problem';
-import { ResourceError } from '../../resource/resource-error';
 
 /** Creates an error shaped like the ones of Fastify and its plugins. */
 const fastifyError = (props: Record<string, unknown>, message = 'failed') =>

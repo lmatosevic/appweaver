@@ -3,12 +3,26 @@ import { STATUS_CODES } from 'node:http';
 import fastifyPlugin from 'fastify-plugin';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
-import { config, CONFIG_NAME, isArray } from '@appweaver/common';
+import {
+  config,
+  CONFIG_NAME,
+  isArray,
+  appConfig,
+  errorCodeName
+} from '@appweaver/common';
+import { storageConfig } from '../storage/storage-config';
+import { healthCheckConfig } from '../health/health-config';
+import {
+  accountConfig,
+  apiKeyConfig,
+  basicAuthConfig,
+  securityConfig
+} from '../security/security-config';
+import { serverConfig, swaggerConfig } from './server-config';
 import { context } from '../context';
 import {
   documentErrorResponses,
   ERROR_RESPONSES_KEY,
-  errorCodeName,
   PROBLEM_CONTENT_TYPE,
   PROBLEM_DETAILS_SCHEMA_NAME
 } from '../errors';
@@ -20,7 +34,7 @@ export const REQUEST_EXTENSION = `x-${CONFIG_NAME}-request`;
 
 export default fastifyPlugin((server: Server) => {
   server.register(fastifySwagger, {
-    hideUntagged: config.SWAGGER_HIDE_UNTAGGED,
+    hideUntagged: swaggerConfig.HIDE_UNTAGGED,
     transform: ({ schema, url }) => ({
       schema: documentRouteErrors(schema),
       url
@@ -37,9 +51,9 @@ export default fastifyPlugin((server: Server) => {
       ),
     openapi: {
       info: {
-        title: config.APP_NAME,
-        description: config.APP_DESCRIPTION,
-        version: config.APP_VERSION
+        title: appConfig.NAME,
+        description: appConfig.DESCRIPTION,
+        version: appConfig.VERSION
       },
       externalDocs: {
         url: 'https://swagger.io',
@@ -47,7 +61,7 @@ export default fastifyPlugin((server: Server) => {
       },
       servers: [
         {
-          url: config.APP_HOSTNAME
+          url: appConfig.HOSTNAME
         }
       ],
       tags: [],
@@ -58,16 +72,16 @@ export default fastifyPlugin((server: Server) => {
             bearerFormat: 'token',
             type: 'http'
           },
-          ...(config.SECURITY_API_KEY_ENABLED
+          ...(apiKeyConfig.ENABLED
             ? {
                 apiKeyAuth: {
                   type: 'apiKey',
                   in: 'header',
-                  name: config.SECURITY_API_KEY_HEADER_NAME
+                  name: apiKeyConfig.HEADER_NAME
                 }
               }
             : {}),
-          ...(config.SECURITY_BASIC_ENABLED
+          ...(basicAuthConfig.ENABLED
             ? {
                 basicAuth: {
                   type: 'http',
@@ -80,10 +94,10 @@ export default fastifyPlugin((server: Server) => {
     }
   });
 
-  if (config.SWAGGER_ENABLED) {
+  if (swaggerConfig.ENABLED) {
     server.register(fastifySwaggerUI, {
-      routePrefix: config.SWAGGER_PATH,
-      indexPrefix: new URL(config.APP_HOSTNAME).pathname,
+      routePrefix: swaggerConfig.PATH,
+      indexPrefix: new URL(appConfig.HOSTNAME).pathname,
       staticCSP: false,
       uiConfig: {
         // Replaces the default plugins of @fastify/swagger-ui, so its spec
@@ -337,12 +351,12 @@ function addConfig(document: any): any {
       basePath: normalizePath(r.basePath)
     })),
     routePrefixes: {
-      api: normalizePath(config.SERVER_API_PREFIX),
-      static: normalizePath(config.SERVER_STATIC_ROUTE_PREFIX),
-      health: normalizePath(config.HEALTH_CHECK_ROUTE_PREFIX),
-      auth: normalizePath(config.SECURITY_ROUTE_PREFIX),
-      account: normalizePath(config.SECURITY_ACCOUNT_ROUTE_PREFIX),
-      files: normalizePath(config.STORAGE_FILES_ROUTE_PREFIX)
+      api: normalizePath(serverConfig.API_PREFIX),
+      static: normalizePath(serverConfig.STATIC_ROUTE_PREFIX),
+      health: normalizePath(healthCheckConfig.ROUTE_PREFIX),
+      auth: normalizePath(securityConfig.ROUTE_PREFIX),
+      account: normalizePath(accountConfig.ROUTE_PREFIX),
+      files: normalizePath(storageConfig.FILES_ROUTE_PREFIX)
     }
   };
   return document;

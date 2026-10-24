@@ -1,11 +1,6 @@
 import { Type } from '@sinclair/typebox';
-import { ErrorCode } from '@appweaver/common';
-import {
-  errorResponses,
-  injectService,
-  registerRoute,
-  ResourceError
-} from '@appweaver/core';
+import { ErrorCode, ResourceError } from '@appweaver/common';
+import { errorResponses, injectService, registerRoute } from '@appweaver/core';
 import db from '@db/client';
 
 registerRoute(

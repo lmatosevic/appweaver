@@ -12,10 +12,10 @@ import {
   QuerySort,
   RelationField,
   ResourceModel,
-  setValue
+  setValue,
+  ResourceError
 } from '@appweaver/common';
 import { injectModel } from '../../context';
-import { ResourceError } from '../resource-error';
 import { mapRelationInclusions } from './relation-util';
 
 /** A single sort entry, holding a dot notation field path and its direction. */

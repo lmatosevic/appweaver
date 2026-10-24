@@ -1,6 +1,5 @@
-import { ErrorCode } from '@appweaver/common';
+import { ErrorCode, defineErrors } from '@appweaver/common';
 import { PROBLEM_CONTENT_TYPE } from '../../errors/error-handler';
-import { defineErrors } from '../../errors/error-http-map';
 import {
   documentErrorResponses,
   ERROR_CODES_EXTENSION,

@@ -1,7 +1,7 @@
-import { config } from '@appweaver/common';
+import { exportConfig } from '../../export/export-config';
 import { toCsv } from '../../utils/export-util';
 
-const DELIMITER = config.EXPORT_CSV_DELIMITER;
+const DELIMITER = exportConfig.CSV_DELIMITER;
 
 describe('export-util', () => {
   describe('toCsv', () => {

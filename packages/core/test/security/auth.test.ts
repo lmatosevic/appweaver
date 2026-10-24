@@ -1,22 +1,9 @@
-jest.mock('@appweaver/common', () => {
-  const actual = jest.requireActual('@appweaver/common');
-  const configOverrides: Record<string, unknown> = {};
-  return {
-    __esModule: true,
-    ...actual,
-    configOverrides,
-    get config() {
-      return { ...actual.config, ...configOverrides };
-    }
-  };
-});
-
 // Each handler accepts a single valid credential, so the test covers how the
 // `authenticate` decorator combines them rather than the handlers themselves
 jest.mock('../../security/jwt', () => {
   const fp = jest.requireActual('fastify-plugin');
   const { requestContext } = jest.requireActual('@fastify/request-context');
-  const { AuthError } = jest.requireActual('../../security/auth-error');
+  const { AuthError } = jest.requireActual('@appweaver/common');
   const actual = jest.requireActual('../../security/jwt/jwt-auth');
   return {
     hasBearerAuth: actual.hasBearerAuth,
@@ -34,7 +21,7 @@ jest.mock('../../security/jwt', () => {
 jest.mock('../../security/api-key', () => {
   const fp = jest.requireActual('fastify-plugin');
   const { requestContext } = jest.requireActual('@fastify/request-context');
-  const { AuthError } = jest.requireActual('../../security/auth-error');
+  const { AuthError } = jest.requireActual('@appweaver/common');
   const actual = jest.requireActual('../../security/api-key/api-key-auth');
   return {
     hasApiKey: actual.hasApiKey,
@@ -52,7 +39,7 @@ jest.mock('../../security/api-key', () => {
 jest.mock('../../security/basic', () => {
   const fp = jest.requireActual('fastify-plugin');
   const { requestContext } = jest.requireActual('@fastify/request-context');
-  const { AuthError } = jest.requireActual('../../security/auth-error');
+  const { AuthError } = jest.requireActual('@appweaver/common');
   const actual = jest.requireActual('../../security/basic/basic-auth');
   return {
     hasBasicAuth: actual.hasBasicAuth,

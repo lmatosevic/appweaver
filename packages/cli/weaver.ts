@@ -3,12 +3,12 @@
 process.env.WEAVER_CLI = 'true';
 
 import { spawnSync } from 'node:child_process';
-import { config, Runtime } from '@appweaver/common';
+import { Runtime, appConfig } from '@appweaver/common';
 import { isBunProcess, loadCliPackageJson } from './utils';
 
 // Restart the same process if the Bun runtime is configured and Bun is
 // available on the host machine
-if (!isBunProcess() && config.APP_RUNTIME === Runtime.Bun) {
+if (!isBunProcess() && appConfig.RUNTIME === Runtime.Bun) {
   const check = spawnSync('bun --version', {
     stdio: 'ignore',
     shell: true

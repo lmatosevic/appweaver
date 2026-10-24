@@ -196,10 +196,10 @@ loadProvider(__dirname, './providers/postgres-database', Database);
 **Load an optional provider (no error if the file is missing):**
 
 ```ts
-import { loadProvider } from '@appweaver/core';
+import { loadProvider, queueConfig } from '@appweaver/core';
 import { Queue } from '@appweaver/common';
 
-loadProvider(__dirname, config.QUEUE_PROVIDER, Queue, false);
+loadProvider(__dirname, queueConfig.PROVIDER, Queue, false);
 ```
 
 **Load a provider from an NPM package:**
@@ -215,16 +215,20 @@ loadProvider(__dirname, '@myorg/redis-cache', Cache);
 
 ```ts
 // src/main.ts
-import { loadProvider } from '@appweaver/core';
+import {
+  cacheConfig,
+  databaseConfig,
+  loadProvider,
+  mailerConfig
+} from '@appweaver/core';
 import { Database, Cache, Mailer } from '@appweaver/common';
-import { config } from '@appweaver/common';
 
 // Required infrastructure
-loadProvider(__dirname, config.DATABASE_PROVIDER, Database);
-loadProvider(__dirname, config.CACHE_PROVIDER, Cache);
+loadProvider(__dirname, databaseConfig.PROVIDER, Database);
+loadProvider(__dirname, cacheConfig.PROVIDER, Cache);
 
 // Optional infrastructure
-loadProvider(__dirname, config.MAILER_PROVIDER, Mailer, false);
+loadProvider(__dirname, mailerConfig.PROVIDER, Mailer, false);
 
 // Internal feature service (no token — registered by its own class name)
 loadProvider(__dirname, '../notifications/notification-service', undefined, false);
@@ -236,7 +240,7 @@ After `loadProvider` runs, the loaded class is available via `inject`:
 import { inject } from '@appweaver/core';
 import { Database } from '@appweaver/common';
 
-const db = inject(Database); // resolves the class loaded from config.DATABASE_PROVIDER
+const db = inject(Database); // resolves the class loaded from databaseConfig.PROVIDER
 ```
 
 `inject` resolves the definition when it is called and throws before the application has defined it. To hold the

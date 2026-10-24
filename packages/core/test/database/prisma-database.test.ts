@@ -1,23 +1,9 @@
-jest.mock('@appweaver/common', () => {
-  const actual = jest.requireActual('@appweaver/common');
-  const configOverrides: Record<string, unknown> = {};
-  return {
-    __esModule: true,
-    ...actual,
-    configOverrides,
-    get config() {
-      return { ...actual.config, ...configOverrides };
-    }
-  };
-});
-
 jest.mock('../../database/create-client', () => ({
   createClient: jest.fn()
 }));
 
 import * as common from '@appweaver/common';
-import { ApplicationError, ErrorCode } from '@appweaver/common';
-import { DatabaseError } from '../../database/database-error';
+import { ApplicationError, ErrorCode, DatabaseError } from '@appweaver/common';
 import { PrismaDatabase } from '../../database/prisma-database';
 import {
   afterCommit,

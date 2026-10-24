@@ -1,12 +1,14 @@
 import path from 'node:path';
 import { TscWatchClient } from 'tsc-watch/client';
 import { replaceTscAliasPaths } from 'tsc-alias';
-import { config, Runtime } from '@appweaver/common';
+import { config, Runtime, appConfig } from '@appweaver/common';
+import { localeConfig } from '@appweaver/core/locale/locale-config';
+import { templateConfig } from '@appweaver/core/template/template-config';
 import { isBunProcess, runProcess } from '../utils';
 import { watchPaths } from './watch-paths';
 
 /** Directories read at runtime, which tsc does not watch. */
-const runtimePaths = () => [config.TEMPLATE_PATH, config.LOCALE_PATH];
+const runtimePaths = () => [templateConfig.PATH, localeConfig.PATH];
 
 /**
  * Starts the project using the specified project file and runtime options.
@@ -20,11 +22,11 @@ export async function startProject(
   watch: boolean
 ): Promise<void> {
   const mainFilePath = path.join(
-    config.APP_BUILD_PATH,
-    config.APP_MAIN_FILE_PATH.replace(/\.ts$/i, '.js')
+    appConfig.BUILD_PATH,
+    appConfig.MAIN_FILE_PATH.replace(/\.ts$/i, '.js')
   );
 
-  if (isBunProcess() && config.APP_RUNTIME === Runtime.Bun) {
+  if (isBunProcess() && appConfig.RUNTIME === Runtime.Bun) {
     await startBunProject(mainFilePath, watch);
   } else {
     await startNodeProject(mainFilePath, projectFile, watch);
@@ -177,7 +179,7 @@ async function watchBunProcess(): Promise<void> {
 
       abortController = new AbortController();
 
-      runningProcess = runProcess('bun', [config.APP_MAIN_FILE_PATH], {
+      runningProcess = runProcess('bun', [appConfig.MAIN_FILE_PATH], {
         signal: abortController.signal
       });
     });
@@ -195,7 +197,7 @@ async function watchBunProcess(): Promise<void> {
 
   // Watch for file changes and start a new process once they settle
   const fileWatcher = watchPaths(
-    [config.APP_SOURCE_PATH, ...runtimePaths()],
+    [appConfig.SOURCE_PATH, ...runtimePaths()],
     () => void start()
   );
 

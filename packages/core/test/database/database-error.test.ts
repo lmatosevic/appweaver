@@ -1,11 +1,10 @@
-import { ErrorCode } from '@appweaver/common';
+import { ErrorCode, ResourceError } from '@appweaver/common';
 import {
   isPrismaError,
   prismaErrorMessage,
   toDatabaseError
 } from '../../database/database-error';
 import { createModel } from '../../factory/create-model';
-import { ResourceError } from '../../resource/resource-error';
 import { resetContext } from '../fixtures/context-fixture';
 
 /** Creates an error shaped like a known request error of the Prisma client. */

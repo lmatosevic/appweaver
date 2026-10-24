@@ -17,10 +17,11 @@ import {
   ResourceClient,
   ResourceId,
   Storage,
-  toResourceId
+  toResourceId,
+  FileError
 } from '@appweaver/common';
+import { storageConfig } from './storage-config';
 import { inject, injectModel, injectPolicy, injectService } from '../context';
-import { FileError } from './file-error';
 import { currentAuthUser } from '../security/helper';
 import { PrismaDatabase, toDatabaseError } from '../database';
 import {
@@ -753,7 +754,7 @@ export class FileService {
   private assertPathNotReserved(fileName: string): void {
     const reservedPath = findReservedStoragePath(
       fileName,
-      config.STORAGE_RESERVED_PATHS
+      storageConfig.RESERVED_PATHS
     );
 
     if (reservedPath !== null) {

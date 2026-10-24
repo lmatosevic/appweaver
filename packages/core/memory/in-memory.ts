@@ -1,14 +1,14 @@
 import { setTimeout } from 'node:timers/promises';
 import { parse, stringify } from 'flatted';
 import {
-  config,
   ErrorCode,
   HealthCheckResult,
   Memory,
   textToBytes,
-  uuid
+  uuid,
+  LockError
 } from '@appweaver/common';
-import { LockError } from './lock-error';
+import { memoryConfig } from './memory-config';
 
 type StorageEntry = {
   value: string;
@@ -26,7 +26,7 @@ export class InMemory extends Memory {
   /** @internal */
   private readonly _locks: Map<string, LockEntry> = new Map();
   /** @internal */
-  private readonly _maxSizeBytes: number = textToBytes(config.MEMORY_MAX_SIZE);
+  private readonly _maxSizeBytes: number = textToBytes(memoryConfig.MAX_SIZE);
   /** @internal */
   private _approximatedSize: number = 0;
 

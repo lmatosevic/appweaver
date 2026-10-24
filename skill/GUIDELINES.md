@@ -238,7 +238,7 @@ registerPlugin('audit-log', async (server) => {
 
 ```ts
 import { Cache } from '@appweaver/common';
-import { define, inject, loadProvider } from '@appweaver/core';
+import { cacheConfig, define, inject, loadProvider, mailerConfig } from '@appweaver/core';
 
 define(RedisCacheService, Cache);                // register class under abstract token
 define('https://api.example.com', 'ApiBaseUrl'); // register plain value
@@ -247,8 +247,8 @@ const cache = inject(Cache);                     // resolve singleton
 const url = inject<string>('ApiBaseUrl');        // resolve by string token
 
 // Dynamic provider loading (typical in main.ts)
-loadProvider(__dirname, config.CACHE_PROVIDER, Cache);
-loadProvider(__dirname, config.MAILER_PROVIDER, Mailer, false); // optional
+loadProvider(__dirname, cacheConfig.PROVIDER, Cache);
+loadProvider(__dirname, mailerConfig.PROVIDER, Mailer, false); // optional
 ```
 
 ## Seeders

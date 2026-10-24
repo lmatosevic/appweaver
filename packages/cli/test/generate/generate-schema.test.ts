@@ -17,13 +17,11 @@ let databaseType: string | undefined;
 // getter instead of by mutating it
 jest.mock('@appweaver/common', () => {
   const actual = jest.requireActual('@appweaver/common');
-  return {
-    __esModule: true,
-    ...actual,
-    get config() {
-      return { ...actual.config, DATABASE_TYPE: databaseType };
-    }
-  };
+  Object.defineProperty(actual.configOverrides, 'DATABASE_TYPE', {
+    get: () => databaseType,
+    enumerable: true
+  });
+  return actual;
 });
 
 // Only the process spawning is stubbed, the path helpers stay real. The utils

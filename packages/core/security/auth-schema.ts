@@ -8,6 +8,12 @@ import {
   RouteSchema,
   TurnstileConfig
 } from '@appweaver/common';
+import {
+  apiKeyConfig,
+  basicAuthConfig,
+  recaptchaConfig,
+  turnstileConfig
+} from './security-config';
 import { errorResponses } from '../errors';
 import { createSchemaModel } from '../utils';
 
@@ -144,12 +150,12 @@ export function authSchema(authTypes?: AuthType[]): any[] {
   for (const authType of authTypes ?? Object.values(AuthType)) {
     switch (authType) {
       case AuthType.Basic:
-        if (config.SECURITY_BASIC_ENABLED) {
+        if (basicAuthConfig.ENABLED) {
           authSchemas.push({ basicAuth: [] });
         }
         break;
       case AuthType.ApiKey:
-        if (config.SECURITY_API_KEY_ENABLED) {
+        if (apiKeyConfig.ENABLED) {
           authSchemas.push({ apiKeyAuth: [] });
         }
         break;
@@ -173,8 +179,8 @@ export function authErrorCodes(authTypes?: AuthType[]): ErrorCode[] {
   const types = (authTypes ?? Object.values(AuthType)).filter(
     (type) =>
       type === AuthType.Jwt ||
-      (type === AuthType.ApiKey && config.SECURITY_API_KEY_ENABLED) ||
-      (type === AuthType.Basic && config.SECURITY_BASIC_ENABLED)
+      (type === AuthType.ApiKey && apiKeyConfig.ENABLED) ||
+      (type === AuthType.Basic && basicAuthConfig.ENABLED)
   );
   if (types.length === 0) {
     return [];
@@ -201,7 +207,7 @@ export function authErrorCodes(authTypes?: AuthType[]): ErrorCode[] {
   }
   if (types.includes(AuthType.Basic)) {
     codes.push(
-      config.SECURITY_BASIC_PROXY_MODE
+      basicAuthConfig.PROXY_MODE
         ? ErrorCode.AuthProxyAuthenticationRequired
         : ErrorCode.AuthInvalidCredentials
     );
@@ -213,11 +219,8 @@ export function authErrorCodes(authTypes?: AuthType[]): ErrorCode[] {
  * Returns the error codes a route verifying a reCAPTCHA token can respond
  * with, none when the route verifies none.
  */
-export function recaptchaErrorCodes(
-  recaptchaConfig: RecaptchaConfig
-): ErrorCode[] {
-  return config.SECURITY_RECAPTCHA_ENABLED &&
-    (recaptchaConfig.recaptcha || recaptchaConfig.recaptchaAction)
+export function recaptchaErrorCodes(config: RecaptchaConfig): ErrorCode[] {
+  return recaptchaConfig.ENABLED && (config.recaptcha || config.recaptchaAction)
     ? [
         ErrorCode.RecaptchaMissing,
         ErrorCode.RecaptchaInvalid,
@@ -231,19 +234,16 @@ export function recaptchaErrorCodes(
 /**
  * Returns the header schema of the reCAPTCHA token a route verifies, empty when the route verifies none.
  *
- * @param {RecaptchaConfig} recaptchaConfig - The reCAPTCHA config of the route.
+ * @param {RecaptchaConfig} config - The reCAPTCHA config of the route.
  * @return {TObject} The header schema.
  */
-export function recaptchaHeaderSchema(
-  recaptchaConfig: RecaptchaConfig
-): TObject {
+export function recaptchaHeaderSchema(config: RecaptchaConfig): TObject {
   return Type.Object(
-    config.SECURITY_RECAPTCHA_ENABLED &&
-      (recaptchaConfig.recaptcha || recaptchaConfig.recaptchaAction)
+    recaptchaConfig.ENABLED && (config.recaptcha || config.recaptchaAction)
       ? {
-          [config.SECURITY_RECAPTCHA_HEADER_NAME.toLowerCase()]: Type.String({
+          [recaptchaConfig.HEADER_NAME.toLowerCase()]: Type.String({
             minLength: 1,
-            description: `reCAPTCHA token for ${recaptchaConfig.recaptchaAction ?? 'any'} action`
+            description: `reCAPTCHA token for ${config.recaptchaAction ?? 'any'} action`
           })
         }
       : {},
@@ -255,11 +255,8 @@ export function recaptchaHeaderSchema(
  * Returns the error codes a route verifying a Cloudflare Turnstile token can
  * respond with, none when the route verifies none.
  */
-export function turnstileErrorCodes(
-  turnstileConfig: TurnstileConfig
-): ErrorCode[] {
-  return config.SECURITY_TURNSTILE_ENABLED &&
-    (turnstileConfig.turnstile || turnstileConfig.turnstileAction)
+export function turnstileErrorCodes(config: TurnstileConfig): ErrorCode[] {
+  return turnstileConfig.ENABLED && (config.turnstile || config.turnstileAction)
     ? [
         ErrorCode.TurnstileMissing,
         ErrorCode.TurnstileInvalid,
@@ -272,20 +269,17 @@ export function turnstileErrorCodes(
 /**
  * Returns the header schema of the Cloudflare Turnstile token a route verifies, empty when the route verifies none.
  *
- * @param {TurnstileConfig} turnstileConfig - The Turnstile config of the route.
+ * @param {TurnstileConfig} config - The Turnstile config of the route.
  * @return {TObject} The header schema.
  */
-export function turnstileHeaderSchema(
-  turnstileConfig: TurnstileConfig
-): TObject {
+export function turnstileHeaderSchema(config: TurnstileConfig): TObject {
   return Type.Object(
-    config.SECURITY_TURNSTILE_ENABLED &&
-      (turnstileConfig.turnstile || turnstileConfig.turnstileAction)
+    turnstileConfig.ENABLED && (config.turnstile || config.turnstileAction)
       ? {
-          [config.SECURITY_TURNSTILE_HEADER_NAME.toLowerCase()]: Type.String({
+          [turnstileConfig.HEADER_NAME.toLowerCase()]: Type.String({
             minLength: 1,
             maxLength: 2048,
-            description: `Turnstile token for ${turnstileConfig.turnstileAction ?? 'any'} action`
+            description: `Turnstile token for ${config.turnstileAction ?? 'any'} action`
           })
         }
       : {},

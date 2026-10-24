@@ -7,11 +7,11 @@ import {
   Queue,
   QueueJob,
   TemplateEmail,
-  TemplateEngine
+  TemplateEngine,
+  MailerError,
+  TemplateError
 } from '@appweaver/common';
 import { inject } from '../context';
-import { TemplateError } from '../template/template-error';
-import { MailerError } from './mailer-error';
 import { htmlToText } from './utils/html-util';
 
 export class EmailService {

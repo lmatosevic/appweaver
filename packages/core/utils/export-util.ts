@@ -1,11 +1,6 @@
 import { stringify } from 'csv-stringify/sync';
-import {
-  config,
-  isArray,
-  isBoolean,
-  isNumber,
-  isString
-} from '@appweaver/common';
+import { isArray, isBoolean, isNumber, isString } from '@appweaver/common';
+import { exportConfig } from '../export/export-config';
 
 /**
  * Converts an array of data into a CSV-formatted string.
@@ -16,13 +11,13 @@ import {
  */
 export function toCsv(data: any[], header: boolean = false): string {
   return stringify(Object.values(data), {
-    delimiter: config.EXPORT_CSV_DELIMITER,
+    delimiter: exportConfig.CSV_DELIMITER,
     cast: {
       date: (value: Date) => value.toISOString(),
       object: (value: any) =>
         isArray(value) &&
         (isString(value) || isNumber(value) || isBoolean(value))
-          ? value.join(config.EXPORT_CSV_JOIN_DELIMITER)
+          ? value.join(exportConfig.CSV_JOIN_DELIMITER)
           : JSON.stringify(value)
     },
     header

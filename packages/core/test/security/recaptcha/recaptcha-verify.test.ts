@@ -1,17 +1,14 @@
 jest.mock('@appweaver/common', () => {
   const actual = jest.requireActual('@appweaver/common');
-  return {
-    __esModule: true,
-    ...actual,
-    config: {
-      ...actual.config,
-      SECURITY_RECAPTCHA_SECRET: 'recaptcha-secret',
-      SECURITY_RECAPTCHA_MIN_SCORE: 0.5
-    }
-  };
+  Object.assign(actual.configOverrides, {
+    SECURITY_RECAPTCHA_SECRET: 'recaptcha-secret',
+    SECURITY_RECAPTCHA_MIN_SCORE: 0.5
+  });
+  return actual;
 });
 
 import { config, ErrorCode } from '@appweaver/common';
+import { recaptchaConfig } from '../../../security/security-config';
 import { recaptchaVerify } from '../../../security/recaptcha/recaptcha-verify';
 import { jsonResponse } from '../../fixtures/oauth2-fixture';
 
@@ -36,7 +33,7 @@ describe('recaptcha-verify', () => {
       await recaptchaVerify('token-value', '10.0.0.1', 'login');
 
       const [url, init] = fetchMock.mock.calls[0];
-      expect(url).toBe(config.SECURITY_RECAPTCHA_VERIFY_URL);
+      expect(url).toBe(recaptchaConfig.VERIFY_URL);
       expect(init.method).toBe('POST');
       expect(Object.fromEntries(new URLSearchParams(init.body))).toEqual({
         secret: 'recaptcha-secret',

@@ -6,11 +6,11 @@ import {
   isAppweaverError,
   logger,
   ResourceId,
-  uncapitalize
+  uncapitalize,
+  OAuth2Error
 } from '@appweaver/common';
 import { injectService } from '../../context';
 import { toDatabaseError } from '../../database';
-import { OAuth2Error } from './oauth2-error';
 import { resourceAuthService } from '../helper';
 import { withoutPolicies } from '../../utils';
 import {

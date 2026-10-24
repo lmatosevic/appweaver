@@ -2,14 +2,14 @@ import { setTimeout } from 'node:timers/promises';
 import { Redis as RedisClient, RedisOptions } from 'ioredis';
 import { parse, stringify } from 'flatted';
 import {
-  config,
   ErrorCode,
   HealthCheckResult,
   logger,
   Redis as CommonRedis,
-  uuid
+  uuid,
+  LockError
 } from '@appweaver/common';
-import { LockError } from './lock-error';
+import { redisConfig } from './memory-config';
 
 export class Redis extends CommonRedis<RedisOptions, RedisClient> {
   /** @internal */
@@ -19,7 +19,7 @@ export class Redis extends CommonRedis<RedisOptions, RedisClient> {
 
   constructor() {
     super();
-    this._options = this.parseConnectionUrl(config.REDIS_URL);
+    this._options = this.parseConnectionUrl(redisConfig.URL);
     // Commands fail right away while disconnected instead of queueing, so the
     // callers can fall back without waiting for the reconnection
     this._client = this.createClient({

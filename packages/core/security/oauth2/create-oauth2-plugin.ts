@@ -8,11 +8,13 @@ import {
   ConfigurationError,
   ErrorCode,
   pickProperties,
-  SecurityStore
+  SecurityStore,
+  appConfig,
+  AuthError,
+  OAuth2Error
 } from '@appweaver/common';
+import { oauth2Config, securityConfig } from '../security-config';
 import { inject } from '../../context';
-import { AuthError } from '../auth-error';
-import { OAuth2Error } from './oauth2-error';
 import { AuthService } from '../auth-service';
 import { OAuth2Service } from './oauth2-service';
 import { validateRedirectUrl } from '../helper';
@@ -114,7 +116,7 @@ export function createOAuth2Plugin(
     const oauth2Service = inject(OAuth2Service);
     const securityStore = inject(SecurityStore);
 
-    const prefix = config.SECURITY_ROUTE_PREFIX.replace(/\/$/, '');
+    const prefix = securityConfig.ROUTE_PREFIX.replace(/\/$/, '');
     const callbackPath = `${prefix}/login/${lowerName}/callback`;
 
     // With `response_mode=form_post` the authorization response arrives in the request body, while
@@ -144,7 +146,7 @@ export function createOAuth2Plugin(
       scope: oAuth2Config.scope,
       schema: createOAuth2RedirectSchema(displayName),
       startRedirectPath: `${prefix}/login/${lowerName}`,
-      callbackUri: `${config.APP_HOSTNAME}${callbackPath}`,
+      callbackUri: `${appConfig.HOSTNAME}${callbackPath}`,
       ...(oAuth2Config.pkce ? { pkce: oAuth2Config.pkce } : {}),
       ...(oAuth2Config.userAgent ? { userAgent: oAuth2Config.userAgent } : {}),
       generateStateFunction: async (request: any) => {
@@ -158,7 +160,7 @@ export function createOAuth2Plugin(
         return securityStore.generateOneTimeToken<OAuth2StateData>(
           AuthOTTPurpose.OAuth2State,
           { redirectToUrl },
-          config.SECURITY_OAUTH2_STATE_TTL
+          oauth2Config.STATE_TTL
         );
       },
       checkStateFunction: async (request: any) => {
@@ -199,7 +201,7 @@ export function createOAuth2Plugin(
         ));
 
       if (!authUser) {
-        if (!config.SECURITY_OAUTH2_REGISTRATION_ENABLED) {
+        if (!oauth2Config.REGISTRATION_ENABLED) {
           throw new OAuth2Error(
             ErrorCode.OAuth2RegistrationDisabled,
             'Auth user does not exist and OAuth2 registration is disabled'
@@ -230,7 +232,7 @@ export function createOAuth2Plugin(
           scope: (token.scope as string) ?? oAuth2Config.scope.join(' '),
           passwordRequired
         },
-        config.SECURITY_AUTH_OTT_TTL
+        securityConfig.AUTH_OTT_TTL
       );
 
       const separator = stateData.redirectToUrl.includes('?') ? '&' : '?';

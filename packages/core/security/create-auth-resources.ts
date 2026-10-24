@@ -1,6 +1,5 @@
 import {
   AuthUser,
-  config as cfg,
   Ctor,
   IResourceService,
   ModelName,
@@ -17,6 +16,7 @@ import {
   uncapitalize,
   VirtualConfig
 } from '@appweaver/common';
+import { apiKeyConfig } from './security-config';
 import { isOAuth2Enabled, updatePasswordHash } from './helper';
 import { createModel, createService } from '../factory';
 import {
@@ -120,7 +120,7 @@ export function createAuthModel<
         }
       }
     },
-    ...(cfg.SECURITY_API_KEY_ENABLED
+    ...(apiKeyConfig.ENABLED
       ? {
           apiKeys: {
             model: 'ApiKey',

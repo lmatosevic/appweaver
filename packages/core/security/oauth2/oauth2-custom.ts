@@ -1,5 +1,6 @@
-import { AuthSource, config, ErrorCode } from '@appweaver/common';
-import { context, ContextError } from '../../context';
+import { AuthSource, ErrorCode, ContextError } from '@appweaver/common';
+import { oauth2Config } from '../security-config';
+import { context } from '../../context';
 import { UserInfo } from '../../types';
 import { createOAuth2Plugin } from './create-oauth2-plugin';
 import { fetchUserInfo, requireEmail } from './oauth2-util';
@@ -13,10 +14,10 @@ export type OAuth2UserInfo = {
 };
 
 export const oauth2Custom = createOAuth2Plugin(AuthSource.OAuth2Custom, {
-  enabled: config.SECURITY_OAUTH2_CUSTOM_ENABLED,
-  clientId: config.SECURITY_OAUTH2_CUSTOM_CLIENT_ID,
-  clientSecret: config.SECURITY_OAUTH2_CUSTOM_CLIENT_SECRET,
-  issuer: config.SECURITY_OAUTH2_CUSTOM_ISSUER,
+  enabled: oauth2Config.CUSTOM_ENABLED,
+  clientId: oauth2Config.CUSTOM_CLIENT_ID,
+  clientSecret: oauth2Config.CUSTOM_CLIENT_SECRET,
+  issuer: oauth2Config.CUSTOM_ISSUER,
   scope: ['openid', 'profile', 'email'],
   extractUserInfo: (accessToken) => fetchCustomUser(accessToken)
 });
@@ -39,7 +40,7 @@ export async function fetchCustomUser(accessToken: string): Promise<UserInfo> {
     // Fallback to direct API call if the plugin is not initialized
     data = await fetchUserInfo<OAuth2UserInfo>(
       'Custom OAuth2',
-      `${config.SECURITY_OAUTH2_CUSTOM_ISSUER}/protocol/openid-connect/userinfo`,
+      `${oauth2Config.CUSTOM_ISSUER}/protocol/openid-connect/userinfo`,
       accessToken
     );
   }

@@ -1,5 +1,5 @@
-import { hashPassword } from '@appweaver/core';
-import { config, makeHash, randomString } from '@appweaver/common';
+import { hashPassword, apiKeyConfig } from '@appweaver/core';
+import { makeHash, randomString } from '@appweaver/common';
 import { db } from '@db/client';
 import { Role } from '@/features/access/roles';
 
@@ -67,7 +67,7 @@ export async function createStaff(): Promise<string> {
     }
   });
   console.log(
-    `Status page API key: ${apiKey.id}${config.SECURITY_API_KEY_DELIMITER}${secret}`
+    `Status page API key: ${apiKey.id}${apiKeyConfig.DELIMITER}${secret}`
   );
 
   return `Seeded 4 agents, their password is ${DEMO_PASSWORD}`;

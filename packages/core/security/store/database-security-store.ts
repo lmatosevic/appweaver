@@ -4,11 +4,11 @@ import {
   generateToken,
   makeHash,
   SecurityStore,
-  ValidationResult
+  ValidationResult,
+  AuthError
 } from '@appweaver/common';
 import { inject } from '../../context';
 import { PrismaDatabase } from '../../database';
-import { AuthError } from '../auth-error';
 
 export class DatabaseSecurityStore extends SecurityStore {
   /** @internal */

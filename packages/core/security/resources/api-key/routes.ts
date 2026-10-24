@@ -1,7 +1,7 @@
-import { config } from '@appweaver/common';
+import { apiKeyConfig } from '../../security-config';
 import { createRoutes } from '../../../factory';
 
-export default config.SECURITY_API_KEY_ENABLED
+export default apiKeyConfig.ENABLED
   ? createRoutes({
       modelName: 'ApiKey',
       aggregate: {

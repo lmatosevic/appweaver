@@ -83,25 +83,25 @@ their prefix:
 | `RequestError`       | `@appweaver/common` | request codes    | The API layer, or the application for a rejected request        |
 | `ConfigurationError` | `@appweaver/common` | `CONFIGURATION_` | Invalid configuration and model definitions                     |
 | `ApplicationError`   | `@appweaver/common` | any              | The application, with its own codes (see below)                 |
-| `ContextError`       | `@appweaver/core`   | `CONTEXT_`       | The dependency injection container                              |
-| `DatabaseError`      | `@appweaver/core`   | `DATABASE_`      | The database operations, translated from the Prisma errors      |
-| `ResourceError`      | `@appweaver/core`   | `RESOURCE_`      | The resource services and their query, sort and relation inputs |
-| `AuthError`          | `@appweaver/core`   | `AUTH_`          | The authentication and authorization                            |
-| `AccountError`       | `@appweaver/core`   | `ACCOUNT_`       | The account service (email verification, password reset, 2FA)   |
-| `OAuth2Error`        | `@appweaver/core`   | `OAUTH2_`        | The OAuth2 sign-in                                              |
-| `RecaptchaError`     | `@appweaver/core`   | `RECAPTCHA_`     | The reCAPTCHA verification                                      |
-| `TurnstileError`     | `@appweaver/core`   | `TURNSTILE_`     | The Cloudflare Turnstile verification                           |
-| `FileError`          | `@appweaver/core`   | `FILE_`          | The file service and storage                                    |
-| `ExportError`        | `@appweaver/core`   | `EXPORT_`        | The data export                                                 |
-| `QueueError`         | `@appweaver/core`   | `QUEUE_`         | The queues                                                      |
-| `MailerError`        | `@appweaver/core`   | `MAILER_`        | The email service, wrapping the error of the mailer             |
-| `TemplateError`      | `@appweaver/core`   | `TEMPLATE_`      | The template engine: a missing, unreadable or failing template  |
-| `LocaleError`        | `@appweaver/core`   | `LOCALE_`        | The locale service: an unreadable file or an invalid message    |
-| `LockError`          | `@appweaver/core`   | `LOCK_`          | A lock that could not be acquired                               |
+| `ContextError`       | `@appweaver/common` | `CONTEXT_`       | The dependency injection container                              |
+| `DatabaseError`      | `@appweaver/common` | `DATABASE_`      | The database operations, translated from the Prisma errors      |
+| `ResourceError`      | `@appweaver/common` | `RESOURCE_`      | The resource services and their query, sort and relation inputs |
+| `AuthError`          | `@appweaver/common` | `AUTH_`          | The authentication and authorization                            |
+| `AccountError`       | `@appweaver/common` | `ACCOUNT_`       | The account service (email verification, password reset, 2FA)   |
+| `OAuth2Error`        | `@appweaver/common` | `OAUTH2_`        | The OAuth2 sign-in                                              |
+| `RecaptchaError`     | `@appweaver/common` | `RECAPTCHA_`     | The reCAPTCHA verification                                      |
+| `TurnstileError`     | `@appweaver/common` | `TURNSTILE_`     | The Cloudflare Turnstile verification                           |
+| `FileError`          | `@appweaver/common` | `FILE_`          | The file service and storage                                    |
+| `ExportError`        | `@appweaver/common` | `EXPORT_`        | The data export                                                 |
+| `QueueError`         | `@appweaver/common` | `QUEUE_`         | The queues                                                      |
+| `MailerError`        | `@appweaver/common` | `MAILER_`        | The email service, wrapping the error of the mailer             |
+| `TemplateError`      | `@appweaver/common` | `TEMPLATE_`      | The template engine: a missing, unreadable or failing template  |
+| `LocaleError`        | `@appweaver/common` | `LOCALE_`        | The locale service: an unreadable file or an invalid message    |
+| `LockError`          | `@appweaver/common` | `LOCK_`          | A lock that could not be acquired                               |
 
 ```ts
 import { ErrorCode } from '@appweaver/common';
-import { ResourceError } from '@appweaver/core';
+import { ResourceError } from '@appweaver/common';
 
 throw new ResourceError(ErrorCode.ResourceNotFound, 'Order not found', { model: 'Order', id });
 ```
@@ -215,7 +215,8 @@ documentation stay consistent:
 
 ```ts
 import { ErrorCode, RequestError } from '@appweaver/common';
-import { createPolicy, createService, ResourceError } from '@appweaver/core';
+import { ResourceError } from '@appweaver/common';
+import { createPolicy, createService } from '@appweaver/core';
 
 export default createService({
   modelName: 'Position',
@@ -268,7 +269,7 @@ registered before any route documents them:
 
 ```ts
 // src/errors.ts
-import { defineErrors } from '@appweaver/core';
+import { defineErrors } from '@appweaver/common';
 
 export const ShopErrors = defineErrors({
   OutOfStock: { status: 409, title: 'Product out of stock' },

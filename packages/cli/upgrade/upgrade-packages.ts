@@ -1,4 +1,4 @@
-import { config, Runtime } from '@appweaver/common';
+import { Runtime, appConfig } from '@appweaver/common';
 import { isBunProcess, runProcess } from '../utils';
 
 /**
@@ -31,7 +31,7 @@ export async function upgradePackages(
  * @return {boolean} `true` when running in Bun with the Bun application runtime configured.
  */
 export function isBunRuntime(): boolean {
-  return isBunProcess() && config.APP_RUNTIME === Runtime.Bun;
+  return isBunProcess() && appConfig.RUNTIME === Runtime.Bun;
 }
 
 /**

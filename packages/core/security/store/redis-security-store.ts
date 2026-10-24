@@ -4,10 +4,10 @@ import {
   makeHash,
   Redis,
   SecurityStore,
-  ValidationResult
+  ValidationResult,
+  AuthError
 } from '@appweaver/common';
 import { inject } from '../../context';
-import { AuthError } from '../auth-error';
 
 const SECURITY_OTT_KEY = 'security:ott';
 

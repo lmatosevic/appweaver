@@ -1,6 +1,6 @@
-import { config, QueryMethod } from '@appweaver/common';
+import { config, QueryMethod, ResourceError } from '@appweaver/common';
+import { resourceConfig } from '../resource-config';
 import { ErrorCode } from '@appweaver/common';
-import { ResourceError } from '../resource-error';
 
 /** The HTTP methods a query or aggregate route is registered for. */
 export type QueryRouteMethods = { post: boolean; get: boolean };
@@ -20,8 +20,8 @@ export function queryRouteMethods(
   const resolved =
     method ??
     (route === 'query'
-      ? config.RESOURCE_QUERY_METHOD
-      : config.RESOURCE_AGGREGATE_METHOD);
+      ? resourceConfig.QUERY_METHOD
+      : resourceConfig.AGGREGATE_METHOD);
 
   return {
     post: resolved === QueryMethod.Post || resolved === QueryMethod.GetPost,
@@ -48,12 +48,12 @@ export type BulkRouteName =
 export function bulkRouteEnabled(route: BulkRouteName): boolean {
   switch (route) {
     case 'bulkCreate':
-      return config.RESOURCE_BULK_CREATE_ENABLED;
+      return resourceConfig.BULK_CREATE_ENABLED;
     case 'bulkUpdate':
     case 'bulkReplace':
-      return config.RESOURCE_BULK_UPDATE_ENABLED;
+      return resourceConfig.BULK_UPDATE_ENABLED;
     case 'bulkDelete':
-      return config.RESOURCE_BULK_DELETE_ENABLED;
+      return resourceConfig.BULK_DELETE_ENABLED;
   }
 }
 

@@ -5,16 +5,21 @@ import {
   AuthSource,
   AuthType,
   AuthUser,
-  config,
   ErrorCode,
   IResourceService,
   isResourceAuthModel,
   isResourceAuthService,
   RESOURCE_NAME,
   ResourceModel,
-  ValidationResult
+  ValidationResult,
+  AuthError
 } from '@appweaver/common';
-import { AuthError } from './auth-error';
+import {
+  accountConfig,
+  oauth2Config,
+  passwordConfig,
+  securityConfig
+} from './security-config';
 import { context, injectService } from '../context';
 
 type Argon2Params = { m: number; t: number; p: number };
@@ -175,7 +180,7 @@ export async function updatePasswordHash(
   logout: boolean = false
 ): Promise<void> {
   if (password) {
-    if (!config.SECURITY_PASSWORD_ENABLED) {
+    if (!passwordConfig.ENABLED) {
       throw new AuthError(
         ErrorCode.AuthPasswordDisabled,
         'Password creation is not supported'
@@ -203,7 +208,7 @@ export async function updatePasswordHash(
  * @return {ValidationResult} An object with the validation result and message.
  */
 export function validatePasswordComplexity(password: string): ValidationResult {
-  const minLength = config.SECURITY_PASSWORD_MIN_LENGTH;
+  const minLength = passwordConfig.MIN_LENGTH;
   if (password.length < minLength) {
     return {
       valid: false,
@@ -211,7 +216,7 @@ export function validatePasswordComplexity(password: string): ValidationResult {
     };
   }
 
-  const maxLength = config.SECURITY_PASSWORD_MAX_LENGTH;
+  const maxLength = passwordConfig.MAX_LENGTH;
   if (password.length > maxLength) {
     return {
       valid: false,
@@ -219,28 +224,28 @@ export function validatePasswordComplexity(password: string): ValidationResult {
     };
   }
 
-  if (!/[A-Z]/.test(password) && config.SECURITY_PASSWORD_UPPERCASE) {
+  if (!/[A-Z]/.test(password) && passwordConfig.UPPERCASE) {
     return {
       valid: false,
       message: `Password must have at least one uppercase character`
     };
   }
 
-  if (!/[a-z]/.test(password) && config.SECURITY_PASSWORD_LOWERCASE) {
+  if (!/[a-z]/.test(password) && passwordConfig.LOWERCASE) {
     return {
       valid: false,
       message: `Password must have at least one lowercase character`
     };
   }
 
-  if (!/[0-9]/.test(password) && config.SECURITY_PASSWORD_NUMERIC) {
+  if (!/[0-9]/.test(password) && passwordConfig.NUMERIC) {
     return {
       valid: false,
       message: `Password must have at least one numeric character`
     };
   }
 
-  if (!/[^A-Za-z0-9]/.test(password) && config.SECURITY_PASSWORD_SPECIAL) {
+  if (!/[^A-Za-z0-9]/.test(password) && passwordConfig.SPECIAL) {
     return {
       valid: false,
       message: `Password must have at least one special character`
@@ -262,8 +267,8 @@ export function isOAuth2Enabled(): boolean {
     .filter((source) => source.startsWith('oauth2'))
     .some(
       (source) =>
-        config[
-          `SECURITY_OAUTH2_${source.replace('oauth2', '').toUpperCase()}_ENABLED`
+        oauth2Config[
+          `${source.replace('oauth2', '').toUpperCase()}_ENABLED`
         ] === true
     );
 }
@@ -286,7 +291,7 @@ export function validateRedirectUrl(url: string): ValidationResult {
 
   const checkUrl = new URL(url);
 
-  const allowedHosts = config.SECURITY_ALLOWED_REDIRECT_HOSTS;
+  const allowedHosts = securityConfig.ALLOWED_REDIRECT_HOSTS;
   if (
     !allowedHosts.includes('*') &&
     !allowedHosts.includes(checkUrl.hostname)
@@ -311,8 +316,8 @@ export function validateRedirectUrl(url: string): ValidationResult {
  * @return {boolean} Returns true if the URL is accessible based on the scope; false otherwise.
  */
 export function checkScopeAccess(url: string, authScope: AuthScope): boolean {
-  const securityPrefix = config.SECURITY_ROUTE_PREFIX.replace(/\/$/, '');
-  const accountPrefix = config.SECURITY_ACCOUNT_ROUTE_PREFIX.replace(/\/$/, '');
+  const securityPrefix = securityConfig.ROUTE_PREFIX.replace(/\/$/, '');
+  const accountPrefix = accountConfig.ROUTE_PREFIX.replace(/\/$/, '');
 
   const refreshPath = `${securityPrefix}/refresh`;
   const twoFASendPath = `${accountPrefix}/send-2fa-code`;

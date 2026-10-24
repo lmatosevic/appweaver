@@ -1,9 +1,8 @@
-import { Database, Events } from '@appweaver/common';
+import { Database, Events, DatabaseError } from '@appweaver/common';
 import { define } from '../../context';
 import { CacheService } from '../../cache';
 import { NodeEvents } from '../../events/node-events';
 import { ErrorCode } from '@appweaver/common';
-import { DatabaseError } from '../../database';
 import { createModel } from '../../factory/create-model';
 import { ResourceService } from '../../resource/resource-service';
 import { FileService } from '../../storage/file-service';

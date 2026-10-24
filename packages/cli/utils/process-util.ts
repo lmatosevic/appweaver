@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import fkill from 'fkill';
-import { config } from '@appweaver/common';
+import { config, appConfig } from '@appweaver/common';
+import { databaseConfig } from '@appweaver/core/database/database-config';
 
 /**
  * Executes a shell command with optional arguments and configuration parameters.
@@ -116,7 +117,7 @@ function isProcessGoneError(error: unknown): boolean {
  * @param {string} message - The error message to display if the environment does not match.
  */
 export function assertEnv(env: string, message: string): void {
-  if (config.APP_ENV !== env) {
+  if (appConfig.ENV !== env) {
     console.error(message);
     process.exit(1);
   }
@@ -130,7 +131,7 @@ export function assertEnv(env: string, message: string): void {
  * @param {string} message - The error message to display if the environment does not match any of the provided options.
  */
 export function assertEnvs(envs: string[], message: string): void {
-  if (!envs.includes(config.APP_ENV)) {
+  if (!envs.includes(appConfig.ENV)) {
     console.error(message);
     process.exit(1);
   }
@@ -141,10 +142,10 @@ export function assertEnvs(envs: string[], message: string): void {
  * they are disabled. A consent the environment already holds is kept while they are enabled. Call it before every
  * Prisma command that may lose data.
  *
- * @param {boolean} [enabled=config.DATABASE_AI_DANGEROUS_ACTIONS_ENABLED] - Whether an AI agent may run them.
+ * @param {boolean} [enabled=databaseConfig.AI_DANGEROUS_ACTIONS_ENABLED] - Whether an AI agent may run them.
  */
 export function setAiDangerousActionConsent(
-  enabled: boolean = config.DATABASE_AI_DANGEROUS_ACTIONS_ENABLED
+  enabled: boolean = databaseConfig.AI_DANGEROUS_ACTIONS_ENABLED
 ): void {
   if (enabled) {
     process.env.PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION ||=

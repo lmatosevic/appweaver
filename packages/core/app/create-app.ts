@@ -1,8 +1,8 @@
 import {
-  config,
   configFiles,
   logger,
-  resolveSourcePath
+  resolveSourcePath,
+  appConfig
 } from '@appweaver/common';
 import { context } from '../context';
 import { createServer } from '../server';
@@ -47,8 +47,8 @@ export async function createApp(
   logger.debug({ configFiles }, 'Configuration loaded');
 
   const scanPath = resolveSourcePath(
-    config.APP_BUILD_PATH,
-    config.APP_SOURCE_PATH,
+    appConfig.BUILD_PATH,
+    appConfig.SOURCE_PATH,
     params.scanPath,
     './dist/src'
   );

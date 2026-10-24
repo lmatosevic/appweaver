@@ -30,8 +30,10 @@ import {
   ScalarField,
   hasSoftDelete,
   softDeleteCascadeErrors,
-  uncapitalize
+  uncapitalize,
+  appConfig
 } from '@appweaver/common';
+import { databaseConfig } from '@appweaver/core/database/database-config';
 import { ensureDirExists, relativePathFrom, runProcess } from '../utils';
 
 const INDEX_SORT_PREFIXES: Record<string, string> = {
@@ -145,7 +147,7 @@ export async function generateSchema(
       `generator client {`,
       `  provider = "prisma-client"`,
       `  output   = "${relativeOutputPath}"`,
-      config.APP_RUNTIME === Runtime.Bun ? '  runtime  = "bun"' : undefined,
+      appConfig.RUNTIME === Runtime.Bun ? '  runtime  = "bun"' : undefined,
       `}`,
       ``
     ].filter((l) => l !== undefined);
@@ -1017,5 +1019,5 @@ function indexFieldSchema(field: string): string {
 }
 
 function databaseType(): DatabaseType {
-  return resolveDatabaseType(config.DATABASE_TYPE, config.DATABASE_URL);
+  return resolveDatabaseType(databaseConfig.TYPE, databaseConfig.URL);
 }

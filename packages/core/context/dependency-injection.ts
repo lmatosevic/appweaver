@@ -20,10 +20,10 @@ import {
   RESOURCE_NAME,
   ResourceModel,
   ResourcePolicyConfig,
-  ResourceRoutes
+  ResourceRoutes,
+  ContextError
 } from '@appweaver/common';
 import { context } from './context';
-import { ContextError } from './context-error';
 import {
   DefinitionClass,
   DefinitionEntry,

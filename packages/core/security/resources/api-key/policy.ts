@@ -1,4 +1,5 @@
-import { config, uncapitalize } from '@appweaver/common';
+import { uncapitalize } from '@appweaver/common';
+import { apiKeyConfig } from '../../security-config';
 import { resourceAuthModel } from '../../helper';
 import { createPolicy } from '../../../factory';
 
@@ -6,7 +7,7 @@ function authModelField(): string {
   return uncapitalize(resourceAuthModel()!.name);
 }
 
-export default config.SECURITY_API_KEY_ENABLED
+export default apiKeyConfig.ENABLED
   ? createPolicy({
       modelName: 'ApiKey',
       checkAccess: (user, resource, action) => {

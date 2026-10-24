@@ -309,7 +309,8 @@ or an `Error` to abort the flow with an `OAUTH2_USER_REJECTED` error (403), or a
 ```ts
 // src/resources/user/service.ts
 import { ApplicationError, AuthSource } from '@appweaver/common';
-import { createAuthService, defineErrors } from '@appweaver/core';
+import { defineErrors } from '@appweaver/common';
+import { createAuthService } from '@appweaver/core';
 
 const UserErrors = defineErrors({
   CompanyAccountRequired: { status: 403, title: 'Company account required' }

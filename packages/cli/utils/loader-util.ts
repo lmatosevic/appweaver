@@ -7,7 +7,8 @@ import {
   config,
   isResourceModel,
   relinkResourceModels,
-  ResourceModel
+  ResourceModel,
+  appConfig
 } from '@appweaver/common';
 
 /**
@@ -74,7 +75,7 @@ export async function loadModels(
   modelPaths.push('@appweaver/core/resources');
 
   // Add additional modules from config
-  for (const module of config.APP_AUTOLOAD_MODULES) {
+  for (const module of appConfig.AUTOLOAD_MODULES) {
     modelPaths.push(module);
   }
 

@@ -1,4 +1,5 @@
-import { config, makeHash, randomString } from '@appweaver/common';
+import { makeHash, randomString } from '@appweaver/common';
+import { apiKeyConfig } from '@appweaver/core';
 import { db } from '@db/client';
 import { Role } from '@/features/access/roles';
 
@@ -29,6 +30,6 @@ export async function createStaff(): Promise<void> {
   });
 
   console.log(
-    `Warehouse API key: ${apiKey.id}${config.SECURITY_API_KEY_DELIMITER}${secret}`
+    `Warehouse API key: ${apiKey.id}${apiKeyConfig.DELIMITER}${secret}`
   );
 }

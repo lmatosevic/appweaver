@@ -1,12 +1,12 @@
-import { config, uncapitalize } from '@appweaver/common';
+import { uncapitalize } from '@appweaver/common';
+import { oauth2Config } from '../../security-config';
 import { createModel } from '../../../factory';
 import { isOAuth2Enabled, resourceAuthModel } from '../../helper';
 
 const authModel = resourceAuthModel();
 
 const shouldCreateModel =
-  isOAuth2Enabled() ||
-  config.SECURITY_OAUTH2_CONNECTED_ACCOUNTS_KEEP_DATABASE_TABLE;
+  isOAuth2Enabled() || oauth2Config.CONNECTED_ACCOUNTS_KEEP_DATABASE_TABLE;
 
 export default shouldCreateModel
   ? createModel({

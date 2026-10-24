@@ -8,11 +8,12 @@ import {
   RESOURCE_MODEL_TYPE,
   RESOURCE_SERVICE_TYPE,
   RESOURCE_TYPE,
-  RESOURCE_NAME
+  RESOURCE_NAME,
+  AuthError
 } from '@appweaver/common';
+import { oauth2Config } from '../../security/security-config';
 import { define } from '../../context';
 import { createAuthService } from '../../security/create-auth-resources';
-import { AuthError } from '../../security/auth-error';
 import {
   checkPassword,
   checkScopeAccess,
@@ -286,28 +287,25 @@ describe('security-helper', () => {
   describe('isOAuth2Enabled', () => {
     const providerFlags = Object.values(AuthSource)
       .filter((source) => source.startsWith('oauth2'))
-      .map(
-        (source) =>
-          `SECURITY_OAUTH2_${source.replace('oauth2', '').toUpperCase()}_ENABLED`
-      );
+      .map((source) => `${source.replace('oauth2', '').toUpperCase()}_ENABLED`);
 
     test('resolves a config flag for every OAuth2 auth source', () => {
       // A provider whose flag is missing would silently never enable the connected accounts table
       for (const flag of providerFlags) {
-        expect(config).toHaveProperty(flag);
+        expect(oauth2Config).toHaveProperty(flag);
       }
     });
 
     test('reports disabled when no provider is turned on', () => {
-      expect(providerFlags.some((flag) => config[flag] === true)).toBe(false);
+      expect(providerFlags.some((flag) => oauth2Config[flag] === true)).toBe(
+        false
+      );
       expect(isOAuth2Enabled()).toBe(false);
     });
 
     test('ignores the general OAuth2 flags that are on by default', () => {
-      expect(config.SECURITY_OAUTH2_REGISTRATION_ENABLED).toBe(true);
-      expect(providerFlags).not.toContain(
-        'SECURITY_OAUTH2_REGISTRATION_ENABLED'
-      );
+      expect(oauth2Config.REGISTRATION_ENABLED).toBe(true);
+      expect(providerFlags).not.toContain('REGISTRATION_ENABLED');
     });
   });
 

@@ -1,5 +1,3 @@
-import { CONFIG_NAME } from '../constants';
-
 export type ConfigHelper = {
   /**
    * Retrieves the value of the specified environment variable.
@@ -103,23 +101,17 @@ export type ConfigHelper = {
 };
 
 /**
- * Adds the typed accessor helpers (`str`, `int`, `float`, `bool`, `arr`) to a parsed config, reading a key of the config
- * or its additional `_appweaver_` prefixed form.
+ * Creates the typed accessor helpers (`env`, `str`, `int`, `float`, `bool`, `arr`) reading the flattened keys of the
+ * config, i.e. `SERVER_PORT` or a key no section declares.
  *
- * @param {Object} parsedConfig - The parsed config.
- * @return {Object} The config extended with the helpers.
+ * @param {Function} read - Reads the value of a flattened key, `undefined` when it is not set.
+ * @return {ConfigHelper} The helpers.
  */
-export function addHelpers<C extends object>(
-  parsedConfig: C
-): C & ConfigHelper {
+export function createConfigHelper(
+  read: (key: string) => unknown
+): ConfigHelper {
   function extractConfigValue(key: string): any {
-    if (key in parsedConfig) {
-      return parsedConfig[key];
-    }
-    const additionalConfigKey = `_${CONFIG_NAME}_${key}`;
-    if (additionalConfigKey in parsedConfig) {
-      return parsedConfig[additionalConfigKey];
-    }
+    return read(key);
   }
 
   /**
@@ -200,14 +192,15 @@ export function addHelpers<C extends object>(
   function arr<T = string>(key: string): T[] | undefined;
   function arr<T = string>(key: string, defaultValue: T[]): T[];
   function arr<T = string>(key: string, defaultValue?: T[]): T[] | undefined {
-    if (key in parsedConfig) {
-      const value = parsedConfig[key];
-      return Array.isArray(value) ? value : [value];
-    }
-
     const envValue = extractConfigValue(key);
     if (envValue === undefined) {
       return defaultValue;
+    }
+    if (Array.isArray(envValue)) {
+      return envValue;
+    }
+    if (typeof envValue !== 'string') {
+      return [envValue];
     }
 
     // Determine type from default value if provided
@@ -230,12 +223,5 @@ export function addHelpers<C extends object>(
     });
   }
 
-  return Object.assign(parsedConfig, {
-    env,
-    str,
-    int,
-    float,
-    bool,
-    arr
-  });
+  return { env, str, int, float, bool, arr };
 }

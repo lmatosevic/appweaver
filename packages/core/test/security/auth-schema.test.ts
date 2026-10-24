@@ -1,18 +1,6 @@
-jest.mock('@appweaver/common', () => {
-  const actual = jest.requireActual('@appweaver/common');
-  const configOverrides: Record<string, unknown> = {};
-  return {
-    __esModule: true,
-    ...actual,
-    configOverrides,
-    get config() {
-      return { ...actual.config, ...configOverrides };
-    }
-  };
-});
-
 import * as common from '@appweaver/common';
 import { AuthType, config, ErrorCode } from '@appweaver/common';
+import { apiKeyConfig } from '../../security/security-config';
 import {
   authErrorCodes,
   captchaErrorCodes,
@@ -56,7 +44,7 @@ describe('auth-schema', () => {
       const codes = authErrorCodes([AuthType.ApiKey]);
 
       expect(codes.includes(ErrorCode.AuthApiKeyInvalid)).toBe(
-        config.SECURITY_API_KEY_ENABLED
+        apiKeyConfig.ENABLED
       );
     });
   });

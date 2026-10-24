@@ -1,17 +1,10 @@
 jest.mock('@appweaver/common', () => {
   const actual = jest.requireActual('@appweaver/common');
-  const configOverrides: Record<string, unknown> = {
+  Object.assign(actual.configOverrides, {
     APP_HOSTNAME: 'http://api.test',
     SECURITY_ALLOWED_REDIRECT_HOSTS: ['app.test']
-  };
-  return {
-    __esModule: true,
-    ...actual,
-    configOverrides,
-    get config() {
-      return { ...actual.config, ...configOverrides };
-    }
-  };
+  });
+  return actual;
 });
 
 import {
@@ -21,10 +14,15 @@ import {
   ErrorCode,
   makeHash,
   SecurityStore,
-  TemplateEngine
+  TemplateEngine,
+  AuthError
 } from '@appweaver/common';
+import {
+  accountConfig,
+  securityConfig,
+  twoFactorConfig
+} from '../../../security/security-config';
 import { define } from '../../../context';
-import { AuthError } from '../../../security/auth-error';
 import { EmailService } from '../../../mailer';
 import { LocaleService } from '../../../locale';
 import { AuthService } from '../../../security/auth-service';
@@ -120,7 +118,7 @@ describe('account-service', () => {
       expect(securityStore.generateOneTimeToken).toHaveBeenCalledWith(
         AuthOTTPurpose.EmailVerification,
         { authUserId: 1, redirectToUrl: 'https://app.test/verified' },
-        config.SECURITY_ACCOUNT_VERIFY_EMAIL_OTT_TTL
+        accountConfig.VERIFY_EMAIL_OTT_TTL
       );
       expect(lastEmail()).toMatchObject({
         to: 'user@test.com',
@@ -330,7 +328,7 @@ describe('account-service', () => {
       expect(securityStore.generateOneTimeToken).toHaveBeenCalledWith(
         AuthOTTPurpose.PasswordReset,
         { authUserId: 1, authSource: AuthSource.Password },
-        config.SECURITY_ACCOUNT_RESET_PASSWORD_OTT_TTL
+        accountConfig.RESET_PASSWORD_OTT_TTL
       );
       expect(lastEmail().template).toBe('emails/password-reset');
       expect(lastEmail().data.link).toMatch(
@@ -464,11 +462,11 @@ describe('account-service', () => {
       expect(securityStore.generateOneTimeToken).toHaveBeenCalledWith(
         AuthOTTPurpose.TwoFAVerification,
         { authUserId: 1, codeHash: makeHash(code), purpose: 'authentication' },
-        config.SECURITY_ACCOUNT_2FA_OTT_TTL
+        twoFactorConfig.OTT_TTL
       );
       expect(result).toEqual({
         challengeId: 'ott',
-        expiresIn: config.SECURITY_ACCOUNT_2FA_OTT_TTL
+        expiresIn: twoFactorConfig.OTT_TTL
       });
     });
 
@@ -513,13 +511,13 @@ describe('account-service', () => {
         service.verify2FACode('challenge', '123456')
       ).resolves.toEqual({
         token: 'ott',
-        expiresIn: config.SECURITY_AUTH_OTT_TTL
+        expiresIn: securityConfig.AUTH_OTT_TTL
       });
 
       expect(securityStore.generateOneTimeToken).toHaveBeenCalledWith(
         AuthOTTPurpose.Authentication,
         { authUserId: 1, authSource: AuthSource.Password },
-        config.SECURITY_AUTH_OTT_TTL
+        securityConfig.AUTH_OTT_TTL
       );
     });
 

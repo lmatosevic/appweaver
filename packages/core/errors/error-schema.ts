@@ -1,9 +1,14 @@
 import { STATUS_CODES } from 'node:http';
 import { TSchema, Type } from '@sinclair/typebox';
-import { CONFIG_NAME, ConfigurationError, ErrorCode } from '@appweaver/common';
+import {
+  CONFIG_NAME,
+  ConfigurationError,
+  ErrorCode,
+  errorCodes
+} from '@appweaver/common';
 import { createSchemaModel } from '../utils';
 import { PROBLEM_CONTENT_TYPE } from './error-handler';
-import { errorCodes, errorHttpMapping } from './error-http-map';
+import { errorHttpMapping } from './error-http-map';
 
 export const PROBLEM_DETAILS_SCHEMA_NAME = 'ProblemDetails';
 

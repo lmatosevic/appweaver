@@ -1,4 +1,5 @@
-import { config, resolveSourcePath } from '@appweaver/common';
+import { resolveSourcePath, appConfig } from '@appweaver/common';
+import { databaseConfig } from '../database/database-config';
 import { loadProviders } from '../app/load-providers';
 import { Seeder } from './seeder';
 
@@ -33,14 +34,14 @@ export async function createSeeder(
   params: CreateSeederParams = {}
 ): Promise<Seeder> {
   const scanPath = resolveSourcePath(
-    config.APP_BUILD_PATH,
-    config.APP_SOURCE_PATH,
+    appConfig.BUILD_PATH,
+    appConfig.SOURCE_PATH,
     params.scanPath,
     './dist/src'
   );
   const seedersPath = resolveSourcePath(
-    config.APP_BUILD_PATH,
-    config.DATABASE_SEEDERS_DIR_PATH,
+    appConfig.BUILD_PATH,
+    databaseConfig.SEEDERS_DIR_PATH,
     params.seedersPath,
     './dist/database/seeders'
   );

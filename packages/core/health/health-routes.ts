@@ -1,4 +1,5 @@
 import { config, HealthCheckStatus } from '@appweaver/common';
+import { healthCheckConfig } from './health-config';
 import { createHealthCheckSchema, healthReadySchema } from './health-schema';
 import { HealthService } from './health-service';
 import { inject } from '../context';
@@ -22,9 +23,9 @@ export function health(server: Server): void {
     '/check',
     {
       schema: healthCheckSchema,
-      onRequest: config.HEALTH_CHECK_AUTH ? authenticate() : undefined,
+      onRequest: healthCheckConfig.AUTH ? authenticate() : undefined,
       config: {
-        cacheTTL: config.HEALTH_CHECK_CACHE_TTL,
+        cacheTTL: healthCheckConfig.CACHE_TTL,
         rateLimit: {
           max: 12
         }

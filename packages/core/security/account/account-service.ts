@@ -9,8 +9,16 @@ import {
   ResourceId,
   SecurityStore,
   TemplateEmail,
-  TemplateEngine
+  TemplateEngine,
+  appConfig,
+  AccountError,
+  AuthError
 } from '@appweaver/common';
+import {
+  accountConfig,
+  securityConfig,
+  twoFactorConfig
+} from '../security-config';
 import { AuthService } from '../auth-service';
 import {
   hashPassword,
@@ -20,8 +28,6 @@ import {
 import { inject } from '../../context';
 import { EmailService } from '../../mailer';
 import { LocaleService, TranslationParams } from '../../locale';
-import { AuthError } from '../auth-error';
-import { AccountError } from './account-error';
 import { AuthOTTData, TwoFactorAuthData } from '../../types';
 
 type VerifyEmailData = {
@@ -86,15 +92,15 @@ export class AccountService {
       await this._securityStore.generateOneTimeToken<VerifyEmailData>(
         AuthOTTPurpose.EmailVerification,
         { authUserId: authUser.id, redirectToUrl },
-        config.SECURITY_ACCOUNT_VERIFY_EMAIL_OTT_TTL
+        accountConfig.VERIFY_EMAIL_OTT_TTL
       );
 
-    const accountPath = config.SECURITY_ACCOUNT_ROUTE_PREFIX.replace(/\/$/, '');
+    const accountPath = accountConfig.ROUTE_PREFIX.replace(/\/$/, '');
 
     const separator = redirectToUrl.includes('?') ? '&' : '?';
     const verifyLink =
       verificationType === VerificationType.Auto
-        ? `${config.APP_HOSTNAME}${accountPath}/verify-email-redirect?token=${token}`
+        ? `${appConfig.HOSTNAME}${accountPath}/verify-email-redirect?token=${token}`
         : `${redirectToUrl}${separator}token=${token}`;
 
     await this.sendAccountEmail(
@@ -229,7 +235,7 @@ export class AccountService {
     const token = await this._securityStore.generateOneTimeToken<AuthOTTData>(
       AuthOTTPurpose.PasswordReset,
       { authUserId: authUser.id, authSource: AuthSource.Password },
-      config.SECURITY_ACCOUNT_RESET_PASSWORD_OTT_TTL
+      accountConfig.RESET_PASSWORD_OTT_TTL
     );
 
     const separator = redirectToUrl.includes('?') ? '&' : '?';
@@ -325,7 +331,7 @@ export class AccountService {
       );
     }
 
-    const expiresIn = config.SECURITY_ACCOUNT_2FA_OTT_TTL;
+    const expiresIn = twoFactorConfig.OTT_TTL;
     const code = randomString(6, { numbers: true });
     const challengeId =
       await this._securityStore.generateOneTimeToken<TwoFactorAuthData>(
@@ -385,7 +391,7 @@ export class AccountService {
       );
     }
 
-    const expiresIn = config.SECURITY_AUTH_OTT_TTL;
+    const expiresIn = securityConfig.AUTH_OTT_TTL;
     const token = await this._securityStore.generateOneTimeToken<AuthOTTData>(
       data.purpose,
       { authUserId: authUser.id, authSource: AuthSource.Password },
@@ -431,7 +437,7 @@ export class AccountService {
       text: [
         t('emails.greeting'),
         ...body(t),
-        `--\n${t('emails.footer', { appName: config.APP_NAME })}`
+        `--\n${t('emails.footer', { appName: appConfig.NAME })}`
       ].join('\n\n')
     });
   }

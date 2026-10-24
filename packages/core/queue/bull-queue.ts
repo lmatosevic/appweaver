@@ -10,7 +10,6 @@ import { EventEmitter } from 'node:events';
 import { Redis as RedisClient, RedisOptions } from 'ioredis';
 import { JobsOptions } from 'bullmq/dist/esm/types';
 import {
-  config,
   ErrorCode,
   HealthCheckResult,
   logger,
@@ -19,10 +18,11 @@ import {
   QueueListener,
   QueueProcessor,
   Redis,
-  uuid
+  uuid,
+  QueueError
 } from '@appweaver/common';
+import { queueConfig } from './queue-config';
 import { inject } from '../context';
-import { QueueError } from './queue-error';
 
 type EventName = keyof WorkerListener;
 
@@ -109,17 +109,17 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       skipVersionCheck: true,
       defaultJobOptions: {
         removeOnComplete: {
-          count: config.QUEUE_KEEP_COMPLETED_COUNT,
-          age: config.QUEUE_KEEP_COMPLETED_SECONDS
+          count: queueConfig.KEEP_COMPLETED_COUNT,
+          age: queueConfig.KEEP_COMPLETED_SECONDS
         },
         removeOnFail: {
-          count: config.QUEUE_KEEP_FAILED_COUNT,
-          age: config.QUEUE_KEEP_FAILED_SECONDS
+          count: queueConfig.KEEP_FAILED_COUNT,
+          age: queueConfig.KEEP_FAILED_SECONDS
         },
-        attempts: config.QUEUE_RETRY_ATTEMPTS,
+        attempts: queueConfig.RETRY_ATTEMPTS,
         backoff: {
-          delay: config.QUEUE_RETRY_BACKOFF,
-          type: config.QUEUE_RETRY_BACKOFF_TYPE
+          delay: queueConfig.RETRY_BACKOFF,
+          type: queueConfig.RETRY_BACKOFF_TYPE
         }
       }
     });

@@ -1,12 +1,16 @@
 import fastifyPlugin from 'fastify-plugin';
 import { FastifyRequest } from 'fastify';
-import { config, ConfigurationError, ErrorCode } from '@appweaver/common';
-import { RecaptchaError } from './recaptcha-error';
+import {
+  ConfigurationError,
+  ErrorCode,
+  RecaptchaError
+} from '@appweaver/common';
+import { recaptchaConfig } from '../security-config';
 import { Server } from '../../types';
 import { recaptchaVerify } from './recaptcha-verify';
 
 export const recaptcha = fastifyPlugin(async (server: Server) => {
-  if (!config.SECURITY_RECAPTCHA_SECRET) {
+  if (!recaptchaConfig.SECRET) {
     throw new ConfigurationError(
       ErrorCode.ConfigurationInvalid,
       'reCAPTCHA secret is not set'
@@ -14,13 +18,12 @@ export const recaptcha = fastifyPlugin(async (server: Server) => {
   }
 
   server.decorate('recaptcha', async (request: FastifyRequest) => {
-    const token =
-      request.headers[config.SECURITY_RECAPTCHA_HEADER_NAME.toLowerCase()];
+    const token = request.headers[recaptchaConfig.HEADER_NAME.toLowerCase()];
     if (!token) {
       throw new RecaptchaError(
         ErrorCode.RecaptchaMissing,
-        `Missing reCAPTCHA header: ${config.SECURITY_RECAPTCHA_HEADER_NAME}`,
-        { header: config.SECURITY_RECAPTCHA_HEADER_NAME }
+        `Missing reCAPTCHA header: ${recaptchaConfig.HEADER_NAME}`,
+        { header: recaptchaConfig.HEADER_NAME }
       );
     }
 

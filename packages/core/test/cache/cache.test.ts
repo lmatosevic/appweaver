@@ -1,4 +1,5 @@
-import { config, logger, Memory } from '@appweaver/common';
+import { logger, Memory } from '@appweaver/common';
+import { cacheConfig } from '../../cache/cache-config';
 import { Cache } from '../../cache/cache';
 import { InMemory } from '../../memory/in-memory';
 
@@ -8,7 +9,7 @@ class TestCache extends Cache {
   }
 }
 
-const PREFIX = config.CACHE_KEY_PREFIX;
+const PREFIX = cacheConfig.KEY_PREFIX;
 
 describe('cache', () => {
   let memory: InMemory;
@@ -69,7 +70,7 @@ describe('cache', () => {
       await new Promise((resolve) => setTimeout(resolve, 20));
 
       await expect(cache.get('posts:1')).resolves.toEqual({ id: 1 });
-      expect(config.CACHE_DEFAULT_TTL).toBeGreaterThan(20);
+      expect(cacheConfig.DEFAULT_TTL).toBeGreaterThan(20);
     });
   });
 

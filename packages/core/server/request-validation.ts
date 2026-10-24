@@ -3,7 +3,8 @@ import AjvCompiler, {
   ErrorObject
 } from '@fastify/ajv-compiler';
 import { FastifyServerOptions } from 'fastify';
-import { config } from '@appweaver/common';
+
+import { serverConfig } from './server-config';
 import { FastifyRouteSchemaDef } from 'fastify/types/schema';
 
 type Schema = Record<string | symbol, any>;
@@ -56,7 +57,7 @@ const MAP_KEYWORDS = [
  * validation options of a Fastify server.
  */
 export function requestValidation(
-  maxErrorCount: number = config.SERVER_ERROR_RESPONSE_MAX_COUNT
+  maxErrorCount: number = serverConfig.ERROR_RESPONSE_MAX_COUNT
 ): Pick<FastifyServerOptions, 'schemaController' | 'ajv'> {
   const limit = Math.max(1, maxErrorCount);
 

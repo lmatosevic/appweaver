@@ -1,5 +1,4 @@
-import { ErrorCode } from '@appweaver/common';
-import { defineErrors } from '../../errors';
+import { ErrorCode, defineErrors } from '@appweaver/common';
 import {
   hoistErrorResponses,
   nameErrorCodes,

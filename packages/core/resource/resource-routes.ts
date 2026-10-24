@@ -12,6 +12,7 @@ import {
   RouteCacheConfig,
   RouteConfig
 } from '@appweaver/common';
+import { resourceConfig } from './resource-config';
 import { createSchema } from './resource-schema';
 import {
   parseJsonParams,
@@ -391,7 +392,7 @@ export function resourceRoutes(
       records: unknown[],
       count = records.length
     ): unknown[] | BulkResponse =>
-      (bulkConfig?.returnRecords ?? config.RESOURCE_BULK_RETURN_RECORDS)
+      (bulkConfig?.returnRecords ?? resourceConfig.BULK_RETURN_RECORDS)
         ? records
         : { success: true, count };
 

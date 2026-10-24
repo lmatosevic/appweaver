@@ -11,11 +11,11 @@ import {
   OutputType,
   RelationField,
   ResourceId,
-  ResourceModel
+  ResourceModel,
+  ResourceError
 } from '@appweaver/common';
 import { injectModel } from '../../context';
 import { currentAuthUser } from '../../security';
-import { ResourceError } from '../resource-error';
 import { liveInclusionFilter, RelationActions } from './delete-util';
 
 /** Levels of a self referencing relation read when the relation configures no

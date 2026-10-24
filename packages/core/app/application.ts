@@ -1,4 +1,5 @@
-import { config, logger } from '@appweaver/common';
+import { logger, appConfig } from '@appweaver/common';
+import { serverConfig } from '../server/server-config';
 import { context } from '../context';
 import { Server } from '../types';
 import { LifecycleManager } from './lifecycle-manager';
@@ -42,7 +43,7 @@ export class Application extends LifecycleManager {
 
     this._started = true;
 
-    logger.info(`Application started in "${config.APP_ENV}" environment`);
+    logger.info(`Application started in "${appConfig.ENV}" environment`);
 
     await this.init();
 
@@ -52,8 +53,8 @@ export class Application extends LifecycleManager {
 
     if (startServer) {
       return this._server.listen({
-        port: config.SERVER_PORT,
-        host: config.SERVER_HOST
+        port: serverConfig.PORT,
+        host: serverConfig.HOST
       });
     }
 

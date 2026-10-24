@@ -1,6 +1,7 @@
 import { FastifyReply } from 'fastify';
 import { Static } from '@sinclair/typebox';
-import { config } from '@appweaver/common';
+
+import { storageConfig } from './storage-config';
 import { FileService, FileStream } from './file-service';
 import { createFileAccessSchema, FileName } from './file-schema';
 import { inject } from '../context';
@@ -42,11 +43,11 @@ export function files(server: Server): void {
     reply.header('Pragma', 'public');
     reply.header(
       'Cache-Control',
-      `public, max-age=${Math.floor(config.STORAGE_CACHE_TTL / 1000)}`
+      `public, max-age=${Math.floor(storageConfig.CACHE_TTL / 1000)}`
     );
     reply.header(
       'Expires',
-      new Date(Date.now() + config.STORAGE_CACHE_TTL).toUTCString()
+      new Date(Date.now() + storageConfig.CACHE_TTL).toUTCString()
     );
 
     return hasRange ? 206 : 200;

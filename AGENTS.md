@@ -73,9 +73,15 @@ describe('Feature Verification', () => {
 Shared utilities, logger, configuration, and base types used by all other packages. Contains foundational TypeScript
 interfaces, type definitions, and helper utilities consumed by `packages/core` and `packages/cli`.
 
-When changing the config schema in `packages/common/config/config.ts`, make sure to also update all the following files:
+The config is split into sections declared with `defineConfig` (`packages/common/config/define-config.ts`), each in the
+module it belongs to: `appConfig` and `logConfig` in `packages/common/config/app-config.ts`, the other ones in a
+`<module>-config.ts` file of their `packages/core` directory (`serverConfig` in `server/server-config.ts`, ...). A
+section reads its keys by their short names (`serverConfig.PORT` for `SERVER_PORT`), its TypeBox schema gives the
+types, and a doc comment above each key describes it. Tests override any key with `configOverrides` of
+`@appweaver/common`, by its flattened name.
 
-- **packages/common/config/config-type.ts**: types and comments
+When adding or changing a config key, make sure to also update all the following files:
+
 - **packages/common/config/schema.json**: JSON schema definitions
 - **skill/references/configuration.md**: Skill for configuration usage by AI agents
 - **appweaver.example.json**: example defaults as JSON properties
@@ -85,8 +91,10 @@ When changing the config schema in `packages/common/config/config.ts`, make sure
 
 Code outside the API layer never throws an HTTP error. Every module throws a subclass of the abstract `AppweaverError`
 of `packages/common/errors` (`ResourceError`, `AuthError`, `DatabaseError`, ...), carrying a code of the
-`ErrorCode` enum and typed details. Only `core/errors` maps a code to its HTTP status (`errorHttpMap`) and responds
-with RFC 9457 problem details. Wrap the errors of Prisma calls with `toDatabaseError`, which names the violated
+`ErrorCode` enum and typed details. Every error class lives in `packages/common/errors/module-errors.ts`, and the
+application error codes are declared with `defineErrors` of `packages/common/errors/define-errors.ts`, with their HTTP
+status and title. Only `core/errors` maps a code to its HTTP status (`errorHttpMap`) and responds with RFC 9457
+problem details. Wrap the errors of Prisma calls with `toDatabaseError`, which names the violated
 constraint. When adding an error code:
 
 - add it to `ErrorCode` in `packages/common/errors/error-code.ts`, prefixed with the module raising it

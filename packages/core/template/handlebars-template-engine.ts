@@ -2,7 +2,6 @@ import fsp from 'node:fs/promises';
 import path from 'node:path';
 import Handlebars, { TemplateDelegate } from 'handlebars';
 import {
-  config,
   ErrorCode,
   isEscapedTemplateFormat,
   isLocaleTag,
@@ -13,11 +12,13 @@ import {
   TemplateHelper,
   TemplateRenderOptions,
   TemplateStringRenderOptions,
-  templateFormat
+  templateFormat,
+  appConfig,
+  TemplateError
 } from '@appweaver/common';
+import { templateConfig } from './template-config';
 import { inject } from '../context';
 import { LocaleService } from '../locale';
-import { TemplateError } from './template-error';
 import { createHandlebarsHelpers } from './handlebars-helpers';
 
 const TEMPLATE_EXTENSIONS = ['.hbs', '.handlebars'];
@@ -131,7 +132,7 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
 
   /** @internal */
   private load(): Promise<void> {
-    if (!this._loading || !config.TEMPLATE_CACHE) {
+    if (!this._loading || !templateConfig.CACHE) {
       // Without the cache, reload the translations too
       if (this._loading) {
         this._localeService.reload();
@@ -146,7 +147,7 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
 
   /** @internal */
   private async loadFiles(): Promise<void> {
-    const dir = path.resolve(process.cwd(), config.TEMPLATE_PATH);
+    const dir = path.resolve(process.cwd(), templateConfig.PATH);
     const files: TemplateLayer = new Map();
 
     let fileNames: string[];
@@ -223,10 +224,10 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
         data: {
           locale: locales[0],
           app: {
-            name: config.APP_NAME,
-            description: config.APP_DESCRIPTION,
-            hostname: config.APP_HOSTNAME,
-            version: config.APP_VERSION
+            name: appConfig.NAME,
+            description: appConfig.DESCRIPTION,
+            hostname: appConfig.HOSTNAME,
+            version: appConfig.VERSION
           }
         },
         partials: this.partials(mode, entry.format, locales)

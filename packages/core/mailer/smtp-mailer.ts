@@ -1,6 +1,7 @@
 import { createTransport, Transporter } from 'nodemailer';
 import { Attachment } from 'nodemailer/lib/mailer';
-import { config, Email, HealthCheckResult, Mailer } from '@appweaver/common';
+import { Email, HealthCheckResult, Mailer } from '@appweaver/common';
+import { mailerConfig, smtpConfig } from './mailer-config';
 import { textToHtml } from './utils/html-util';
 
 export class SmtpMailer extends Mailer<Attachment> {
@@ -10,12 +11,12 @@ export class SmtpMailer extends Mailer<Attachment> {
   constructor() {
     super();
     this._transporter = createTransport({
-      host: config.MAILER_SMTP_HOST,
-      port: config.MAILER_SMTP_PORT,
-      secure: config.MAILER_SMTP_SECURE,
+      host: smtpConfig.HOST,
+      port: smtpConfig.PORT,
+      secure: smtpConfig.SECURE,
       auth: {
-        user: config.MAILER_SMTP_USER,
-        pass: config.MAILER_SMTP_PASSWORD
+        user: smtpConfig.USER,
+        pass: smtpConfig.PASSWORD
       }
     });
   }
@@ -24,7 +25,7 @@ export class SmtpMailer extends Mailer<Attachment> {
     const { to, subject, text, html, attachments } = data;
 
     await this._transporter.sendMail({
-      from: `"${config.MAILER_SENDER_NAME}" <${config.MAILER_SENDER_ADDRESS}>`,
+      from: `"${mailerConfig.SENDER_NAME}" <${mailerConfig.SENDER_ADDRESS}>`,
       to,
       subject,
       text,

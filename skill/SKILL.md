@@ -727,7 +727,8 @@ before creating a record.
 
 ```ts
 import { ApplicationError, ErrorCode } from '@appweaver/common';
-import { defineErrors, errorResponses, ResourceError } from '@appweaver/core';
+import { defineErrors, ResourceError } from '@appweaver/common';
+import { errorResponses } from '@appweaver/core';
 
 // A module of its own, imported where the codes are used
 export const ShopErrors = defineErrors({
@@ -805,12 +806,12 @@ Use `loadProvider` to dynamically load a class from a file path or npm package a
 This is the standard pattern for wiring infrastructure providers in `main.ts`.
 
 ```ts
-import { loadProvider } from '@appweaver/core';
+import { cacheConfig, databaseConfig, loadProvider, mailerConfig } from '@appweaver/core';
 import { Database, Cache } from '@appweaver/common';
 
-loadProvider(__dirname, config.DATABASE_PROVIDER, Database); // required provider
-loadProvider(__dirname, config.CACHE_PROVIDER, Cache);
-loadProvider(__dirname, config.MAILER_PROVIDER, Mailer, false); // optional (no error if provider cannot be loaded)
+loadProvider(__dirname, databaseConfig.PROVIDER, Database); // required provider
+loadProvider(__dirname, cacheConfig.PROVIDER, Cache);
+loadProvider(__dirname, mailerConfig.PROVIDER, Mailer, false); // optional (no error if provider cannot be loaded)
 
 const mailer: Mailer | undefined = inject(Mailer, false); // optional injection
 ```
@@ -832,18 +833,18 @@ any service or model previously defined in the main application logic or exporte
 ```ts
 // database/seeders/001-create-admin-user.ts
 
-import { hashPassword } from '@appweaver/core';
-import { config, randomString } from '@appweaver/common';
+import { hashPassword, systemConfig } from '@appweaver/core';
+import { randomString } from '@appweaver/common';
 import { db } from '@db/client';
 
 export async function createAdminUser(): Promise<void> {
-  const password = config.SYSTEM_ADMIN_INITIAL_PASSWORD || randomString(16, { extra: false });
+  const password = systemConfig.ADMIN_INITIAL_PASSWORD || randomString(16, { extra: false });
 
   await db.user.create({
     data: {
       firstName: 'Admin',
       lastName: 'Admin',
-      email: config.SYSTEM_ADMIN_INITIAL_EMAIL,
+      email: systemConfig.ADMIN_INITIAL_EMAIL,
       passwordHash: await hashPassword(password),
       roles: {
         connectOrCreate: [

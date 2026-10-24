@@ -1,5 +1,10 @@
-import { config, Database, makeHash, randomString } from '@appweaver/common';
-import { Application, hashPassword, inject } from '@appweaver/core';
+import { Database, makeHash, randomString } from '@appweaver/common';
+import {
+  Application,
+  hashPassword,
+  inject,
+  apiKeyConfig
+} from '@appweaver/core';
 import { Role } from '@/features/access/roles';
 
 export const PASSWORD = 'Passw0rd!';
@@ -72,7 +77,7 @@ export async function integration(
   });
 
   return {
-    'x-api-key': `${apiKey.id}${config.SECURITY_API_KEY_DELIMITER}${secret}`
+    'x-api-key': `${apiKey.id}${apiKeyConfig.DELIMITER}${secret}`
   };
 }
 
