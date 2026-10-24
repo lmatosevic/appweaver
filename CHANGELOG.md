@@ -1,3 +1,530 @@
+## [2.0.0](https://github.com/lmatosevic/appweaver/compare/v1.12.2...v2.0.0) (2026-10-24)
+
+### ⚠ BREAKING CHANGES
+
+* @appweaver/create-weaver-app is renamed to
+@appweaver/create, its create-weaver-app binary to create-appweaver, and
+the scaffold API moves to @appweaver/create/scaffold.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* build: build, test and release the renamed scaffolder
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* fix: name the scaffolder create-appweaver in its help and scripts
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* docs: document the module tooling, weaver config and @appweaver/create
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* fix: let the application replace the providers and services of the modules
+
+The modules defined their providers and services with the override mode,
+replacing a definition the application made before createApp, while a
+later define of the application was ignored. They are now defined with
+the new default mode of define: an existing definition is kept, and any
+later definition under the same name replaces the default.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* feat!: declare the entry points of every package in its exports
+
+Every package declares its entry points in the exports field of its
+package.json, so Node refuses a deep import into the internals of a
+package. The framework packages import what they share through the new
+entry points: @appweaver/core/config and @appweaver/data/config hold the
+config sections without loading the runtime or Prisma (the CLI and
+prisma.config.ts use them), @appweaver/core/drivers the in-process
+drivers, and @appweaver/core/internal and @appweaver/data/internal the
+context, transaction scope, lifecycle and provider loading.
+* a deep import of a file of an @appweaver package, such
+as @appweaver/core/context/context, fails with
+ERR_PACKAGE_PATH_NOT_EXPORTED. Import the package, or one of its entry
+points (@appweaver/core/config, @appweaver/core/drivers,
+@appweaver/core/internal, @appweaver/data/config,
+@appweaver/data/internal, @appweaver/create/scaffold).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* feat!: load the seeders, translations, templates and config of the modules
+
+The seeders, locales, templates and config fields of a module manifest
+were declared but never read. Now:
+
+- weaver seed runs the seeders of the modules before the ones of the
+  application, each recorded under its module name (billing/1-plans),
+  and a module declaring seeders keeps the Seeder model
+- the LocaleService and the Handlebars engine read the translations and
+  templates of the modules, overridden by the ones of the application
+- the config sections a module lists are parsed when the application
+  starts, those of a driver module only when one of its providers is
+  selected
+- moduleDirectories() of @appweaver/core returns the directories of the
+  enabled modules, which the context now records
+* the commands field of defineModule is removed, weaver
+has no module subcommands. A module ships its own command line tool, or
+a task run with weaver run.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* feat!: generate the JSON Schema of appweaver.json with weaver generate
+
+The $schema of appweaver.json pointed to the hand-maintained schema.json
+of @appweaver/common, which knew no section of a module package. Every
+first-party manifest now lists its config sections, so discovering the
+modules registers them: weaver generate writes appweaver.schema.json
+from the enabled modules with the types (--config-schema-path,
+--no-config-schema), and the application validates them when it starts.
+The scaffolded projects, the samples and appweaver.example.json point
+their $schema to ./appweaver.schema.json. @appweaver/web gets a config
+entry point like core and data.
+* packages/common/config/schema.json is removed. Point the
+$schema of appweaver.json to ./appweaver.schema.json and run weaver
+generate. An invalid config value of an enabled module now fails the
+start of the application.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* docs: list the config entry point of @appweaver/web
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* test: move the tests into the packages of their subjects
+
+- the CacheService test moves to core, registering the models it reads
+  without the factories of data
+- the security helper test splits into data (helper) and web
+  (access-util, and the OAuth2 flags of security-config)
+- the schema tests of data running through the request validation and
+  the error handler of the server stay in web, grouped under
+  test/server/request-validation
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* test: run the memory contract suite on RedisMemory
+
+The suite runs on ioredis-mock, which runs the Lua script releasing a
+lock too, so the Redis memory is held to the shared behavior of every
+memory driver without a Redis server. It passes on a real Redis as
+well.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* fix: honor --no-install for module packages and keep scaffold names modules
+
+- weaver module add <package> --no-install adds the package to
+  package.json and the lockfile only (npm --package-lock-only, bun
+  --lockfile-only), instead of installing it anyway
+- a name of the scaffold catalog is never taken for a package, even
+  with a dash, while any other name without a scope, a slash or a dash
+  stays a scaffold module, so a typo is reported as unknown rather than
+  installed from the registry
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* fix: give the file URLs of a storage their own time to live
+
+The URL of a storage serving its files directly, i.e. a signed URL, was
+valid for STORAGE_CACHE_TTL, the 24 hours the files route caches a
+file for. It now expires after the new STORAGE_URL_TTL, 15 minutes by
+default.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* refactor!: read the health listener config from the healthCheck section
+
+The health listener of an application without a server read its own
+health section (HEALTH_PORT, HEALTH_HOST) beside the healthCheck one of
+the instance filters and the routes. Its keys join the healthCheck
+section of core, which holds the instance filters too (healthConfig).
+* HEALTH_PORT and HEALTH_HOST are renamed to
+HEALTH_CHECK_PORT and HEALTH_CHECK_HOST (config.healthCheck.port and
+config.healthCheck.host), and healthInstancesConfig is merged into
+healthConfig.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* build: build @appweaver/testing without the types of Jest
+
+The contract suites read describe, test, expect and the hooks from the
+globals of the runner through a small type of their own, so the package
+builds without @types/jest and declares no global its consumers on
+Vitest or Bun would clash with.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* build: generate every framework model of data whatever the environment
+
+npm run generate of packages/data emitted the API key and connected
+account models only with the KEEP_DATABASE_TABLE flags of a local .env
+copied from .env.example. A committed appweaver.json of the package,
+never published, sets them, replacing the .env.example.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* chore: regenerate the config schemas of the samples
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* fix: keep every definition of a shared config section path
+
+configSections was keyed by the section path, so of two packages
+defining the same path with their own keys (healthCheck in core and
+web, security.oauth2 in data and web) only the last one was kept: weaver
+config print, check and schema, and the schema of weaver generate, left
+the keys of the other out. It is keyed by the path and the keys now.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* fix: reset the test database in weaver test setup
+
+A PostgreSQL or MySQL test database outlives weaver test teardown, so
+the next weaver test setup found the tables and the migration of the
+last run, and prisma migrate dev failed asking to reset it. The setup
+resets the test database before its initial migration.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* feat!: let the server of web decide whether it listens
+
+createApp({ autoStartServer }), app.start(startServer) and the options
+of onReady were the server concerns of core from before the web module.
+The HttpServer of web listens unless the new SERVER_LISTEN key is
+false, which the test environment of the samples and the scaffolded
+projects sets, so the end-to-end tests serve app.server.inject() only,
+and weaver run forces off.
+* the autoStartServer parameter of createApp, the
+startServer parameter of Application.start and the ReadyOptions of
+OnReady.onReady are removed. Set server.listen to false (SERVER_LISTEN)
+in the test environment instead of createApp({ autoStartServer: false }).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* feat: warn at startup about the images stored unprocessed
+
+A file field with image options (dimensions, fit, quality) had them
+silently ignored when no image processor was provided. Once the
+resources are loaded, data warns naming the fields whose images are
+stored as uploaded, and how to provide a processor.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* fix: register every model once in the resource registry
+
+The registry belongs to the application, whose weaver generate
+registers the models of the enabled modules too, so a module package
+shipping its own ResourceRegistry augmentation would declare its models
+twice. weaver generate never writes the registry in a module package
+(an appweaver.module field in its package.json), and in an application
+it leaves out, with a warning, the models of a module package whose
+declaration files register them already.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* refactor: enable the core module directly in the discovery
+
+firstPartyModules held only the manifest of core since the split, the
+module every other one builds on, so the discovery enables it directly.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* fix: discover the TypeScript manifests of the local modules from the sources
+
+weaver generate and weaver test setup discover the modules from the
+sources, but requireModule rewrote the path of a local manifest from
+.ts to the .js of a build, so any project with a local module failed
+with MODULE_INVALID. The sources are now required as they are.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* fix: declare every package the published code and types of the drivers need
+
+- @appweaver/redis and @appweaver/nodemailer require @sinclair/typebox
+  in their config sections, which only resolved through the hoisting of
+  @appweaver/common
+- the FileService types of @appweaver/data imported @fastify/multipart,
+  a dependency of web only, so an application without web typed them as
+  any; data declares the uploaded parts it reads itself (UploadedFile,
+  UploadPart), which the parts of @fastify/multipart satisfy
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* fix: skip only the missing seeders directory in weaver seed
+
+A missing seeders directory, i.e. of an application whose seeders all
+come from its modules, stopped weaver seed before any seeder ran, and it
+still exited with 0. The directory is skipped with a warning, its
+recorded seeders are not reported as deleted (nor removed by
+--fix-warnings), and only no accessible directory at all stops it.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* fix: match the drivers of a second copy of @appweaver/common
+
+A module package loading its own copy of @appweaver/common, i.e. linked
+with npm link or installed with a mismatched version, declared its
+providers with a contract class the application did not compare equal,
+so auto silently fell back to the driver of core, and its classes
+carried lifecycle symbols the application did not know.
+
+- the providers are matched to a contract by its name, like the
+  definitions
+- the framework symbols are registered globally (Symbol.for)
+- the discovery warns about a module package resolving its own copy of
+  common, and about a working directory without a package.json, where
+  no module package is enabled
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* fix: keep the seeder and the tasks off the server and the health port
+
+- the lifecycle manager created every ready and shutdown service with
+  itself, so weaver seed built the Fastify server of web, with the Redis
+  client of its rate limit; the ready services are created by ready(),
+  and only the created services are shut down and destroyed
+- weaver run turns the health listener off, which an application the
+  task runs beside may already listen on, and the listener stays off
+  beside the server of web, which answers the health routes itself
+- weaver generate keeps the model of the project over a model of a
+  module with its name, as the application does when it loads them
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* build: publish the packages in their dependency order and lock new ones
+
+- the packages publish after the ones they depend on (common before
+  core, create before cli), and a version the registry already has is
+  skipped, so a release failing halfway publishes the rest when run
+  again
+- lock-samples adds the entries of the released packages a sample needs
+  but its lockfile lacks, i.e. the packages of 2.0 published for the
+  first time, and their ranges to the root workspace of bun.lock, so npm
+  and bun never ask the registry for a package published seconds before
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* docs: correct the examples, the install steps and the references for 2.0
+
+- the example config files: the routes pattern *routes.ts of the code,
+  no DATABASE_GENERATED_TYPES_PATH, arrays and no null values where the
+  schema wants them, so appweaver.example.json validates against its
+  $schema, no APP_MODULES path that does not exist, and the missing
+  DATABASE_TYPE and Apple private key and client secret keys
+- configuration.md: CACHE_MAX_SIZE, the resource pattern defaults, the
+  process environment in the load order, the health listener beside web
+  and in weaver run
+- the manual install steps install the Prisma driver adapter, and the
+  CLI and prisma as dependencies, as the scaffold does
+- cli.md names the config keys of the defaults, and documents the
+  module seeders and the missing seeders directories
+- the default mode of define, which append adds beside
+- AGENTS.md: the tokens and the prerelease of the release, the GitHub
+  release, the client/angular entry point and db:recreate
+- the helpdesk sample no longer depends on @appweaver/bullmq, which
+  enabled the Redis module its README says it runs without
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* style: spread the lifecycle hooks into the promise aggregations
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* chore(samples): regenerate the config schema of the helpdesk sample
+
+Without @appweaver/bullmq it no longer enables the Redis module, so the
+memory.redis section leaves its schema.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+* the factories, the resource services, the database and
+the auth data model are imported from @appweaver/data, the server, the
+routes, the authentication and the errors from @appweaver/web, and the
+drivers come from their packages, so an application installs
+@appweaver/data, @appweaver/web and the drivers it uses instead of their
+libraries. The companion packages of the scaffolder no longer include
+BullMQ, Cron, Handlebars, IoRedis and Nodemailer, the scaffold modules
+install the driver packages, and the secondary API key, connected account
+and health check filter keys moved into the sections of their packages.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* test: run the tests against the sources of every package
+
+The tests of a package import the other packages by name, which resolved to
+their built copies, so a test moved up a package covered nothing of the
+code it tests. Jest now maps every @appweaver package to its sources, one
+instance of each module shared by all the packages.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* docs: document the packages of the split
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+* currentAuthUser, currentAuthType and currentAuthSource
+are exported from the auth context of @appweaver/core instead of the
+security helpers, and the request context of @fastify/request-context no
+longer holds the authUser, authType, authSource and apiKey values.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* refactor: translate the library errors with registered translators
+
+The problem details of the API no longer import the Prisma error helpers.
+A module registers the translator of the errors of its library with
+defineErrorTranslator of @appweaver/common, and the error handler applies
+the translator matching an error, i.e. the database translator turning a
+Prisma error into a DatabaseError naming the violated constraint. A
+translator also describes the error, shown only where it allows.
+
+The int, float and bool config helpers accept the values a section
+parsed already.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* feat!: load the application from module manifests
+
+Every part of the framework is now a module declared with defineModule:
+core, data, web and the drivers that become their own packages (redis,
+bullmq, cron, nodemailer, handlebars, sharp). The modules are discovered
+from the package.json dependencies (the appweaver.module field), the local
+manifests of app.modulesPattern and the paths of app.modules, ordered by
+their requires, and app.modulesDisabled opts any of them out, i.e.
+@appweaver/web for an application without a server.
+
+- Providers are selected by name, with `auto` picking the driver of an
+  enabled module and `none` disabling a contract.
+- The HTTP server is the HttpServer lifecycle service of the web module,
+  started on the new onReady hook and closed on onShutdown.
+- Core answers health checks without web on health.port, and
+  `weaver run <file>` runs one-shot tasks.
+- The driver contracts are tightened before they are frozen: Storage
+  takes the content type and may serve URLs, Mailer has one attachment
+  shape with the sender, cc, bcc and reply-to, Queue and Scheduler take
+  driver-neutral options, and the new ImageProcessor contract replaces the
+  direct sharp calls.
+- The framework models reach only the applications using them.
+* the provider keys take provider names (`auto` by
+default) instead of module paths, MAILER_ENABLED and SCHEDULER_ENABLED are
+replaced by `provider: "none"`, and APP_AUTOLOAD_MODULES by APP_MODULES.
+The Redis contract is merged into Memory (MEMORY_PROVIDER=redis, the URL
+under MEMORY_REDIS_URL), RedisCache is removed, the redis security store
+is the memory store, and RATE_LIMIT_STORE takes `auto` or `local`.
+context.server is removed (the server is inject(HttpServer).instance),
+Application.start resolves to nothing, and the createApp options
+modulePaths and autoLoadModules are renamed appFilesPattern and
+autoLoadAppFiles. Mailer, Queue and Scheduler lose their driver type
+parameters, processImage and isProcessableImage are removed, and the
+Role, Permission, API key, one-time token, connected account, File and
+Seeder models are generated only when the application uses them
+(`weaver generate --no-prune` keeps them).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* docs: document the modules, the provider names and weaver run
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+* the config keys are no longer properties of config, but
+of the sections exported by @appweaver/common (appConfig, logConfig) and
+@appweaver/core (serverConfig, databaseConfig, securityConfig, ...), i.e.
+config.SERVER_PORT becomes serverConfig.PORT. config keeps only the env,
+str, int, float, bool and arr helpers, and the Config type is removed.
+The error classes (ResourceError, AuthError, FileError, ...) and
+defineErrors are exported by @appweaver/common instead of
+@appweaver/core.
+
+
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+Co-authored-by: Claude <noreply@anthropic.com>
+* create-weaver-app creates a project without the optional
+modules unless they are added with --add or --all, the --no-redis,
+--no-queue, --no-mailer, --no-templates, --no-locales, --no-docker and
+--no-cron flags now only leave a module out of --all (--no-cron is
+--no-scheduler), and the weaver update command is replaced by weaver
+upgrade.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01WnVFpLBLbzDYCeU4o8H1Um
+
+* refactor: replace date-fns and load sharp lazily
+
+date-fns (28 MB) was used by two files. The period arithmetic of the
+resource aggregations moves to core/resource/utils/date-util.ts, which
+keeps the local time semantics of date-fns v4, and the yearWeek and
+yearDay variables of the name patterns are computed in UTC, like the
+other date variables next to them.
+
+sharp is loaded on the first processed image instead of at the import of
+@appweaver/core, so an application without image processing never loads
+the native module.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+* docs: remove the modularization plan
+
+The plan is carried out by the 2.0 changes, which AGENTS.md, SKILL.md
+and the references document.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCeSX88vkDujEwpyneUuQv
+
+### Features
+
+* 2.0 stage 1, scaffold modules, weaver upgrade, drop date-fns ([5d1f361](https://github.com/lmatosevic/appweaver/commit/5d1f3610b2c64814c88cebc26f96ca2fc278add8)), closes [#10](https://github.com/lmatosevic/appweaver/issues/10) [#10](https://github.com/lmatosevic/appweaver/issues/10)
+* add module tooling, contract suites, weaver config, and create CLI ([a66dc04](https://github.com/lmatosevic/appweaver/commit/a66dc040c0dc9357bfe3d9a0495a92801670392e))
+* refactor the module system inside core package ([91e86a0](https://github.com/lmatosevic/appweaver/commit/91e86a0f41042416ae557b181ea0fa4a1ea1538d))
+* split core package into data, web and driver packages ([76a8a49](https://github.com/lmatosevic/appweaver/commit/76a8a49db2abad85f0288b692b5552455cd276c2))
+* split the config into sections and move the errors to common ([16e2a23](https://github.com/lmatosevic/appweaver/commit/16e2a239f2cf0acec11c3f8b3231bc824e5ac76a))
+
+### Bug Fixes
+
+* log database unreachable error on application startup ([215e182](https://github.com/lmatosevic/appweaver/commit/215e182352238f937e1e55c3408cb6ada1fa2548))
+* reformat skill docs, update generate CLI command logging ([20a7ed5](https://github.com/lmatosevic/appweaver/commit/20a7ed5870e53a5ed8d51e6bd309ae9a44f77706))
+* resolve process gone errors ([c35f9ef](https://github.com/lmatosevic/appweaver/commit/c35f9ef8de627ee1911076401827118c2d416e03))
+* shorten the import paths ([76e3288](https://github.com/lmatosevic/appweaver/commit/76e3288ad2d9067943c68058c2f510ffb4d17e94))
+
 ## [1.12.2](https://github.com/lmatosevic/appweaver/compare/v1.12.1...v1.12.2) (2026-10-18)
 
 ### Bug Fixes
