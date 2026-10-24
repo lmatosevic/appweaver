@@ -1,4 +1,4 @@
-import { createAuthService } from '@appweaver/core';
+import { createAuthService } from '@appweaver/data';
 
 // Accounts are opened by an admin, a sign-in never registers a new one
 export default createAuthService({

@@ -120,19 +120,22 @@ code reads them through their section:
 
 ```ts
 import { appConfig, logConfig } from '@appweaver/common';
-import { databaseConfig, serverConfig } from '@appweaver/core';
+import { databaseConfig } from '@appweaver/data';
+import { serverConfig } from '@appweaver/web';
 
 serverConfig.PORT; // number
 appConfig.HOSTNAME; // string
 databaseConfig.URL; // string
 ```
 
-| Section variable                                                                                                                                                                                                                                                                                                 | Keys                            | Imported from       |
-|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|---------------------|
-| `appConfig`, `logConfig`                                                                                                                                                                                                                                                                                         | `APP_*`, `LOG_*`                | `@appweaver/common` |
-| `serverConfig`, `rateLimitConfig`, `swaggerConfig`, `corsConfig`, `healthCheckConfig`, `healthConfig`                                                                                                                                                                                                            | `SERVER_*`, `RATE_LIMIT_*`, ... | `@appweaver/core`   |
-| `resourceConfig`, `exportConfig`, `databaseConfig`, `storageConfig`, `imageConfig`, `cacheConfig`, `memoryConfig`, `redisConfig` (`MEMORY_REDIS_*`), `queueConfig`, `schedulerConfig`, `eventsConfig`, `mailerConfig`, `smtpConfig` (`MAILER_SMTP_*`), `templateConfig`, `templatePreviewConfig`, `localeConfig` | `RESOURCE_*`, ...               | `@appweaver/core`   |
-| `securityConfig` (`SECURITY_*` not below), `accountConfig`, `twoFactorConfig` (`SECURITY_ACCOUNT_2FA_*`), `passwordConfig`, `securityStoreConfig`, `recaptchaConfig`, `turnstileConfig`, `basicAuthConfig`, `apiKeyConfig`, `jwtConfig`, `oauth2Config`, `systemConfig`                                          | `SECURITY_*`, `SYSTEM_*`        | `@appweaver/core`   |
+| Section variable                                                                                                                                                                                                                                                                                                   | Keys                            | Imported from           |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|-------------------------|
+| `appConfig`, `logConfig`                                                                                                                                                                                                                                                                                           | `APP_*`, `LOG_*`                | `@appweaver/common`     |
+| `cacheConfig`, `eventsConfig`, `healthConfig`, `healthInstancesConfig` (`HEALTH_CHECK_PICK_INSTANCES`, `HEALTH_CHECK_OMIT_INSTANCES`), `localeConfig`, `mailerConfig`, `memoryConfig`, `queueConfig`, `schedulerConfig`, `securityStoreConfig` (`SECURITY_STORE_*`), `storageConfig`, `templateConfig`             | `CACHE_*`, `HEALTH_*`, ...      | `@appweaver/core`       |
+| `databaseConfig`, `resourceConfig`, `exportConfig`, `imageConfig`, `passwordConfig`, `apiKeyConfig`, `connectedAccountConfig` (`SECURITY_OAUTH2_CONNECTED_ACCOUNTS_*`), `systemConfig`                                                                                                                             | `DATABASE_*`, `RESOURCE_*`, ... | `@appweaver/data`       |
+| `serverConfig`, `rateLimitConfig`, `swaggerConfig`, `corsConfig`, `healthCheckConfig`, `templatePreviewConfig`, `securityConfig` (`SECURITY_*` not elsewhere), `accountConfig`, `twoFactorConfig` (`SECURITY_ACCOUNT_2FA_*`), `recaptchaConfig`, `turnstileConfig`, `basicAuthConfig`, `jwtConfig`, `oauth2Config` | `SERVER_*`, `SECURITY_*`, ...   | `@appweaver/web`        |
+| `redisConfig`                                                                                                                                                                                                                                                                                                      | `MEMORY_REDIS_*`                | `@appweaver/redis`      |
+| `smtpConfig`                                                                                                                                                                                                                                                                                                       | `MAILER_SMTP_*`                 | `@appweaver/nodemailer` |
 
 A section is parsed on the first access of one of its values, with the defaults of its schema, then kept frozen. A
 missing or invalid value throws a `ConfigurationError` (`CONFIGURATION_INVALID`) naming its environment variable and
@@ -155,8 +158,9 @@ paymentConfig.TIMEOUT; // number
 ```
 
 A section path can be nested (`defineConfig('storage.gcs', ...)` reads `STORAGE_GCS_*` and `config.storage.gcs.*`).
-Two sections can share a path, but a flattened key belongs to one section only, otherwise the second definition throws a
-`ConfigurationError`.
+Two sections, even of two packages, can share a path with their own keys (`healthCheck` of `@appweaver/core` and
+`@appweaver/web`, `security.oauth2` of `@appweaver/data` and `@appweaver/web`), but a flattened key belongs to one
+section only, otherwise the second definition throws a `ConfigurationError`.
 
 ### Config helper methods
 
@@ -208,27 +212,27 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 
 | Contract         | Key                       | Providers            | `auto` selects                                                                          |
 |------------------|---------------------------|----------------------|-----------------------------------------------------------------------------------------|
-| `Memory`         | `MEMORY_PROVIDER`         | `memory`, `redis`    | `redis` when `ioredis` is installed, otherwise `memory`                                 |
+| `Memory`         | `MEMORY_PROVIDER`         | `memory`, `redis`    | `redis` with `@appweaver/redis`, otherwise `memory`                                     |
 | `Cache`          | `CACHE_PROVIDER`          | `memory`             | `memory`, stored in the selected `Memory` (so in Redis with `redis`)                    |
 | `Events`         | `EVENTS_PROVIDER`         | `node`               | `node`                                                                                  |
 | `Storage`        | `STORAGE_PROVIDER`        | `local`              | `local`, unless a module of another driver is enabled                                   |
 | `SecurityStore`  | `SECURITY_STORE_PROVIDER` | `database`, `memory` | `database` with the `@appweaver/data` module, otherwise none; `memory` only by its name |
-| `Queue`          | `QUEUE_PROVIDER`          | `memory`, `bullmq`   | `bullmq` when `bullmq` is installed (it requires `ioredis`), otherwise `memory`         |
-| `Mailer`         | `MAILER_PROVIDER`         | `smtp`, `json`       | `smtp` when `nodemailer` is installed, otherwise none; `json` only by its name          |
-| `TemplateEngine` | `TEMPLATE_PROVIDER`       | `handlebars`         | `handlebars` when `handlebars` is installed, otherwise none                             |
-| `Scheduler`      | `SCHEDULER_PROVIDER`      | `cron`               | `cron` when `cron` is installed, otherwise none                                         |
-| `Database`       | `DATABASE_PROVIDER`       | `prisma`             | `prisma` when `@prisma/client` is installed                                             |
-| `ImageProcessor` | `IMAGE_PROVIDER`          | `sharp`              | `sharp` when `sharp` is installed, otherwise none (images stored as uploaded)           |
+| `Queue`          | `QUEUE_PROVIDER`          | `memory`, `bullmq`   | `bullmq` with `@appweaver/bullmq` (it requires `@appweaver/redis`), otherwise `memory`  |
+| `Mailer`         | `MAILER_PROVIDER`         | `smtp`, `json`       | `smtp` with `@appweaver/nodemailer`, otherwise none; `json` only by its name            |
+| `TemplateEngine` | `TEMPLATE_PROVIDER`       | `handlebars`         | `handlebars` with `@appweaver/handlebars`, otherwise none                               |
+| `Scheduler`      | `SCHEDULER_PROVIDER`      | `cron`               | `cron` with `@appweaver/cron`, otherwise none                                           |
+| `Database`       | `DATABASE_PROVIDER`       | `prisma`             | `prisma` with `@appweaver/data`                                                         |
+| `ImageProcessor` | `IMAGE_PROVIDER`          | `sharp`              | `sharp` with `@appweaver/sharp`, otherwise none (images stored as uploaded)             |
 
-- Each driver comes with a module (see [modules](./modules.md)), enabled when the library it wraps is installed, so
-  installing `ioredis` moves the memory, the cache and the rate limit to Redis without any config.
+- Each driver is the module of its package (see [modules](./modules.md)), enabled by installing the package, so
+  `npm install @appweaver/redis` moves the memory, the cache and the rate limit to Redis without any config.
 - Two enabled drivers of one contract fail an `auto` key with `MODULE_PROVIDER_AMBIGUOUS` until one is selected by
   name. An unknown name fails with `MODULE_PROVIDER_MISSING`.
 - `selectedProvider(Contract)` of `@appweaver/core` returns the name of the selected provider (or the module path),
   `undefined` when none is. The selection is logged at the `debug` level on startup.
 - A production application falling back to the `memory` queue logs a warning, since its jobs (and the queued emails)
   are lost on a restart.
-- A test environment selects the in-process drivers by name while the libraries stay installed:
+- A test environment selects the in-process drivers by name while the driver packages stay installed:
 
 ```json
 {
@@ -320,6 +324,10 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 | `SWAGGER_HIDE_UNTAGGED` | boolean | `false`      | Hide untagged endpoints from documentation. |
 
 ### Health check (HEALTH_CHECK_\*)
+
+The route keys are the `healthCheck` section of `@appweaver/web` (`healthCheckConfig`), the instance filters the
+`healthCheck` section of `@appweaver/core` (`healthInstancesConfig`), read by `HealthService` for the route and the
+health listener alike.
 
 | Property                      | Type      | Default     | Description                                                   |
 |-------------------------------|-----------|-------------|---------------------------------------------------------------|
@@ -597,20 +605,20 @@ you generated yourself, or provide the team ID, key ID and `.p8` private key and
 
 ### Image processing (IMAGE\_\*)
 
-| Property         | Type   | Default  | Description                                                                                                                                         |
-|------------------|--------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `IMAGE_PROVIDER` | string | `'auto'` | Image processor of the uploads: `auto` (`sharp` when installed, otherwise none, keeping the images as uploaded), `sharp`, `none`, or a module path. |
+| Property         | Type   | Default  | Description                                                                                                                                                  |
+|------------------|--------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `IMAGE_PROVIDER` | string | `'auto'` | Image processor of the uploads: `auto` (`sharp` with `@appweaver/sharp`, otherwise none, keeping the images as uploaded), `sharp`, `none`, or a module path. |
 
 ### Memory (MEMORY\_\*)
 
 The key-value store with locks behind the cache, the rate limit, the memory security store and the BullMQ queue: kept
 in the process (`memory`) or in Redis (`redis`).
 
-| Property           | Type    | Default                      | Description                                                                                            |
-|--------------------|---------|------------------------------|--------------------------------------------------------------------------------------------------------|
-| `MEMORY_PROVIDER`  | string  | `'auto'`                     | `auto` (`redis` when `ioredis` is installed, otherwise `memory`), `memory`, `redis`, or a module path. |
-| `MEMORY_MAX_SIZE`  | string? | -                            | Maximum size of the in-process store.                                                                  |
-| `MEMORY_REDIS_URL` | string  | `'redis://localhost:6379/0'` | Redis connection URL of the `redis` provider (`config.memory.redis.url`).                              |
+| Property           | Type    | Default                      | Description                                                                                        |
+|--------------------|---------|------------------------------|----------------------------------------------------------------------------------------------------|
+| `MEMORY_PROVIDER`  | string  | `'auto'`                     | `auto` (`redis` with `@appweaver/redis`, otherwise `memory`), `memory`, `redis`, or a module path. |
+| `MEMORY_MAX_SIZE`  | string? | -                            | Maximum size of the in-process store.                                                              |
+| `MEMORY_REDIS_URL` | string  | `'redis://localhost:6379/0'` | Redis connection URL of the `redis` provider (`config.memory.redis.url`).                          |
 
 The application starts and keeps running while Redis is unreachable. Connections reconnect in the background, each
 outage and recovery is logged once, and commands fail right away instead of waiting for the reconnection, so by default
@@ -637,23 +645,23 @@ the cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting 
 
 ### Job queue (QUEUE\_\*)
 
-| Property                       | Type     | Default   | Description                                                                                         |
-|--------------------------------|----------|-----------|-----------------------------------------------------------------------------------------------------|
-| `QUEUE_KEEP_COMPLETED_COUNT`   | integer  | `0`       | Number of completed jobs to retain in the queue.                                                    |
-| `QUEUE_KEEP_COMPLETED_SECONDS` | integer? | -         | Time to keep completed jobs in seconds.                                                             |
-| `QUEUE_KEEP_FAILED_COUNT`      | integer  | `50`      | Number of failed jobs to retain in the queue.                                                       |
-| `QUEUE_KEEP_FAILED_SECONDS`    | integer? | -         | Time to keep failed jobs in seconds.                                                                |
-| `QUEUE_RETRY_ATTEMPTS`         | integer  | `3`       | Number of retry attempts for failed jobs.                                                           |
-| `QUEUE_RETRY_BACKOFF`          | integer  | `3000`    | Initial backoff delay between retries in milliseconds.                                              |
-| `QUEUE_RETRY_BACKOFF_TYPE`     | enum     | `'fixed'` | Retry backoff type. Values: `fixed`, `exponential`.                                                 |
-| `QUEUE_PROVIDER`               | string   | `'auto'`  | `auto` (`bullmq` when installed, otherwise `memory`), `memory`, `bullmq`, `none`, or a module path. |
+| Property                       | Type     | Default   | Description                                                                                                   |
+|--------------------------------|----------|-----------|---------------------------------------------------------------------------------------------------------------|
+| `QUEUE_KEEP_COMPLETED_COUNT`   | integer  | `0`       | Number of completed jobs to retain in the queue.                                                              |
+| `QUEUE_KEEP_COMPLETED_SECONDS` | integer? | -         | Time to keep completed jobs in seconds.                                                                       |
+| `QUEUE_KEEP_FAILED_COUNT`      | integer  | `50`      | Number of failed jobs to retain in the queue.                                                                 |
+| `QUEUE_KEEP_FAILED_SECONDS`    | integer? | -         | Time to keep failed jobs in seconds.                                                                          |
+| `QUEUE_RETRY_ATTEMPTS`         | integer  | `3`       | Number of retry attempts for failed jobs.                                                                     |
+| `QUEUE_RETRY_BACKOFF`          | integer  | `3000`    | Initial backoff delay between retries in milliseconds.                                                        |
+| `QUEUE_RETRY_BACKOFF_TYPE`     | enum     | `'fixed'` | Retry backoff type. Values: `fixed`, `exponential`.                                                           |
+| `QUEUE_PROVIDER`               | string   | `'auto'`  | `auto` (`bullmq` with `@appweaver/bullmq`, otherwise `memory`), `memory`, `bullmq`, `none`, or a module path. |
 
 ### Scheduler (SCHEDULER\_\*)
 
-| Property                   | Type    | Default  | Description                                                                       |
-|----------------------------|---------|----------|-----------------------------------------------------------------------------------|
-| `SCHEDULER_AUTO_START_JOB` | boolean | `true`   | Auto-start scheduled jobs on application startup.                                 |
-| `SCHEDULER_PROVIDER`       | string  | `'auto'` | `auto` (`cron` when installed, otherwise none), `cron`, `none`, or a module path. |
+| Property                   | Type    | Default  | Description                                                                               |
+|----------------------------|---------|----------|-------------------------------------------------------------------------------------------|
+| `SCHEDULER_AUTO_START_JOB` | boolean | `true`   | Auto-start scheduled jobs on application startup.                                         |
+| `SCHEDULER_PROVIDER`       | string  | `'auto'` | `auto` (`cron` with `@appweaver/cron`, otherwise none), `cron`, `none`, or a module path. |
 
 ### Events (EVENTS\_\*)
 
@@ -664,27 +672,27 @@ the cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting 
 
 ### Mailer (MAILER\_\*)
 
-| Property                | Type    | Default       | Description                                                                                                                                                                                                                                              |
-|-------------------------|---------|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `MAILER_SENDER_NAME`    | string? | -             | Default sender name for outgoing emails.                                                                                                                                                                                                                 |
-| `MAILER_SENDER_ADDRESS` | string? | -             | Default sender email address.                                                                                                                                                                                                                            |
-| `MAILER_PROVIDER`       | string  | `'auto'`      | `auto` (`smtp` when `nodemailer` is installed, otherwise none), `smtp`, `json` (logs the emails, for development and tests), `none`, or a module path. Without a mailer the email features (email verification, password reset, 2FA) respond with `501`. |
-| `MAILER_SMTP_HOST`      | string  | `'127.0.0.1'` | SMTP server hostname.                                                                                                                                                                                                                                    |
-| `MAILER_SMTP_PORT`      | integer | `587`         | SMTP server port.                                                                                                                                                                                                                                        |
-| `MAILER_SMTP_SECURE`    | boolean | `false`       | Use TLS/SSL for SMTP connections.                                                                                                                                                                                                                        |
-| `MAILER_SMTP_USER`      | string? | -             | SMTP authentication username.                                                                                                                                                                                                                            |
-| `MAILER_SMTP_PASSWORD`  | string? | -             | SMTP authentication password.                                                                                                                                                                                                                            |
+| Property                | Type    | Default       | Description                                                                                                                                                                                                                                            |
+|-------------------------|---------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `MAILER_SENDER_NAME`    | string? | -             | Default sender name for outgoing emails.                                                                                                                                                                                                               |
+| `MAILER_SENDER_ADDRESS` | string? | -             | Default sender email address.                                                                                                                                                                                                                          |
+| `MAILER_PROVIDER`       | string  | `'auto'`      | `auto` (`smtp` with `@appweaver/nodemailer`, otherwise none), `smtp`, `json` (logs the emails, for development and tests), `none`, or a module path. Without a mailer the email features (email verification, password reset, 2FA) respond with `501`. |
+| `MAILER_SMTP_HOST`      | string  | `'127.0.0.1'` | SMTP server hostname.                                                                                                                                                                                                                                  |
+| `MAILER_SMTP_PORT`      | integer | `587`         | SMTP server port.                                                                                                                                                                                                                                      |
+| `MAILER_SMTP_SECURE`    | boolean | `false`       | Use TLS/SSL for SMTP connections.                                                                                                                                                                                                                      |
+| `MAILER_SMTP_USER`      | string? | -             | SMTP authentication username.                                                                                                                                                                                                                          |
+| `MAILER_SMTP_PASSWORD`  | string? | -             | SMTP authentication password.                                                                                                                                                                                                                          |
 
 ### Template (TEMPLATE\_\*)
 
-| Property                        | Type    | Default         | Description                                                                                   |
-|---------------------------------|---------|-----------------|-----------------------------------------------------------------------------------------------|
-| `TEMPLATE_PATH`                 | string  | `'./templates'` | Directory of the template files (emails, pages, exports), see [templates](./templates.md).    |
-| `TEMPLATE_CACHE`                | boolean | `true`          | Keep the loaded templates in memory. Disable it to reload the changed files on every render.  |
-| `TEMPLATE_PREVIEW_ENABLED`      | boolean | `false`         | Enable the route previewing a template rendered with the data of its query parameters.        |
-| `TEMPLATE_PREVIEW_AUTH`         | boolean | `false`         | Require authentication for the template preview route.                                        |
-| `TEMPLATE_PREVIEW_ROUTE_PREFIX` | string  | `'/templates'`  | URL prefix for the template preview route.                                                    |
-| `TEMPLATE_PROVIDER`             | string  | `'auto'`        | `auto` (`handlebars` when installed, otherwise none), `handlebars`, `none`, or a module path. |
+| Property                        | Type    | Default         | Description                                                                                                 |
+|---------------------------------|---------|-----------------|-------------------------------------------------------------------------------------------------------------|
+| `TEMPLATE_PATH`                 | string  | `'./templates'` | Directory of the template files (emails, pages, exports), see [templates](./templates.md).                  |
+| `TEMPLATE_CACHE`                | boolean | `true`          | Keep the loaded templates in memory. Disable it to reload the changed files on every render.                |
+| `TEMPLATE_PREVIEW_ENABLED`      | boolean | `false`         | Enable the route previewing a template rendered with the data of its query parameters.                      |
+| `TEMPLATE_PREVIEW_AUTH`         | boolean | `false`         | Require authentication for the template preview route.                                                      |
+| `TEMPLATE_PREVIEW_ROUTE_PREFIX` | string  | `'/templates'`  | URL prefix for the template preview route.                                                                  |
+| `TEMPLATE_PROVIDER`             | string  | `'auto'`        | `auto` (`handlebars` with `@appweaver/handlebars`, otherwise none), `handlebars`, `none`, or a module path. |
 
 ### Locale (LOCALE\_\*)
 

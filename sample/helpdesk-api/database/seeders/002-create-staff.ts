@@ -1,4 +1,4 @@
-import { hashPassword, apiKeyConfig } from '@appweaver/core';
+import { hashPassword, apiKeyConfig } from '@appweaver/data';
 import { makeHash, randomString } from '@appweaver/common';
 import { db } from '@db/client';
 import { Role } from '@/features/access/roles';

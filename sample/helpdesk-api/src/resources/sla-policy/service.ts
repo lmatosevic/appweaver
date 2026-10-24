@@ -1,5 +1,5 @@
 import { ErrorCode, RequestError } from '@appweaver/common';
-import { createService } from '@appweaver/core';
+import { createService } from '@appweaver/data';
 
 export default createService({
   modelName: 'SlaPolicy',

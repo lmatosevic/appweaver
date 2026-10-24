@@ -1,4 +1,4 @@
-import { createRoutes } from '@appweaver/core';
+import { createRoutes } from '@appweaver/web';
 
 // Only an admin can change users, since the input includes their roles,
 // password, and enabled flag

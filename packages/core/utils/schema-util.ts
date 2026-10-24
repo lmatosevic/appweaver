@@ -1,7 +1,7 @@
 import { TObject, Type } from '@sinclair/typebox';
 import { MODEL, Model } from '@appweaver/common';
-import { Server } from '../types';
-import { context, define, injectCreated } from '../context';
+import { context } from '../context/context';
+import { define, injectCreated } from '../context/dependency-injection';
 
 /**
  * Creates a schema model by defining it with the given name and schema object. This function returns a TypeBox
@@ -41,7 +41,9 @@ export function createSchemaModel<T extends TObject>(
   define({ name, schema }, MODEL, 'append');
 
   // A schema created once the server is running is added to it directly
-  const server = injectCreated<{ instance: Server }>('HttpServer')?.instance;
+  const server = injectCreated<{
+    instance: { addSchema(schema: object): unknown };
+  }>('HttpServer')?.instance;
   if (server && config.addToServer !== false) {
     server.addSchema({ ...schema, $id: name });
   }

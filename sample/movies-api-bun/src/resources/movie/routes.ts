@@ -1,4 +1,4 @@
-import { createRoutes } from '@appweaver/core';
+import { createRoutes } from '@appweaver/web';
 import { catalogEditors, Role } from '@/features/access/roles';
 
 // A read heavy public catalog: cached reads, edited by curators only

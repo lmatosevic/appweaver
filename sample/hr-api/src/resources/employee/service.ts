@@ -1,4 +1,5 @@
-import { createAuthService, injectService } from '@appweaver/core';
+import { createAuthService } from '@appweaver/data';
+import { injectService } from '@appweaver/core';
 import { EmployeeCreate, EmployeeUpdate } from '@/types';
 
 export default createAuthService({

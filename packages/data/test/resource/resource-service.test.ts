@@ -1,0 +1,2438 @@
+import { Database, Events, DatabaseError } from '@appweaver/common';
+import { define, CacheService } from '@appweaver/core';
+import { NodeEvents } from '@appweaver/core/events/node-events';
+import { ErrorCode } from '@appweaver/common';
+import { createModel } from '../../factory/create-model';
+import { ResourceService } from '../../resource/resource-service';
+import { FileService } from '../../storage/file-service';
+import { resetContext } from '@appweaver/testing';
+import { linkModels } from '@appweaver/testing';
+import {
+  createDatabaseStub,
+  DatabaseStub,
+  prismaError
+} from '@appweaver/testing';
+
+class PostService extends ResourceService<any, any, any, any, any> {
+  constructor() {
+    super('Post');
+  }
+}
+
+describe('resource-service', () => {
+  let db: DatabaseStub;
+  let invalidateCache: jest.Mock;
+  let events: NodeEvents;
+  let service: PostService;
+
+  const defineModels = () => {
+    createModel({
+      name: 'User',
+      scalars: { email: { type: 'string' } }
+    });
+    createModel({
+      name: 'Tag',
+      scalars: { name: { type: 'string' } }
+    });
+    createModel({
+      name: 'Post',
+      scalars: {
+        title: { type: 'string' },
+        views: { type: 'int' },
+        publishedAt: { type: 'dateTime' },
+        keywords: { type: 'string', array: true },
+        secret: { type: 'string', hidden: true }
+      },
+      virtual: {
+        excerpt: {
+          type: 'string',
+          output: { value: (post: any) => `${post.title ?? ''}...` }
+        }
+      },
+      relations: {
+        author: { model: 'User', type: 'oneToMany', owner: true },
+        tags: { model: 'Tag', type: 'manyToMany' }
+      }
+    });
+    linkModels();
+  };
+
+  beforeEach(() => {
+    resetContext();
+
+    db = createDatabaseStub(['Post', 'User', 'Tag']);
+    define(db.database, Database as any);
+
+    events = new NodeEvents();
+    define(events, Events as any);
+
+    invalidateCache = jest.fn().mockResolvedValue(undefined);
+    define({ invalidateCache }, CacheService);
+
+    defineModels();
+
+    service = new PostService();
+  });
+
+  afterAll(() => {
+    resetContext();
+  });
+
+  describe('constructor', () => {
+    test('exposes the model client', () => {
+      expect(service.client.name).toBe('Post');
+      expect(service.modelName).toBe('Post');
+    });
+
+    test('throws for a model without a database client', () => {
+      class MissingService extends ResourceService {
+        constructor() {
+          super('Missing');
+        }
+      }
+
+      expect(() => new MissingService()).toThrow(
+        'ResourceService initialized with invalid model name: Missing'
+      );
+    });
+  });
+
+  describe('find', () => {
+    test('queries the record by id and returns it', async () => {
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+
+      const post = await service.find(1);
+
+      expect(db.lastQuery('findFirst').args.where).toEqual({ id: 1 });
+      expect(post).toMatchObject({ id: 1, title: 'First' });
+    });
+
+    test('includes the configured relations', async () => {
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+
+      await service.find(1);
+
+      expect(db.lastQuery('findFirst').args.include).toEqual({
+        author: true,
+        tags: true
+      });
+    });
+
+    test('projects the virtual fields onto the result', async () => {
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+
+      await expect(service.find(1)).resolves.toHaveProperty(
+        'excerpt',
+        'First...'
+      );
+    });
+
+    test('maps the relation counts to count fields', async () => {
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        _count: { tags: 3 }
+      });
+
+      const post: any = await service.find(1);
+
+      expect(post.tagsCount).toBe(3);
+      expect(post._count).toBeUndefined();
+    });
+
+    test('returns the record when the relation counts are null', async () => {
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        _count: null
+      });
+
+      await expect(service.find(1)).resolves.toMatchObject({ id: 1 });
+    });
+
+    test('throws a not found error for a missing record', async () => {
+      db.setResult('Post', 'findFirst', null);
+
+      await expect(service.find(1)).rejects.toMatchObject({
+        code: ErrorCode.ResourceNotFound,
+        message: expect.stringContaining('Post not found')
+      });
+    });
+
+    test('throws a not found error when the returned id differs', async () => {
+      db.setResult('Post', 'findFirst', { id: 2 });
+
+      await expect(service.find(1)).rejects.toMatchObject({
+        code: ErrorCode.ResourceNotFound
+      });
+    });
+
+    test('wraps a database error into a DatabaseError', async () => {
+      db.setResult(
+        'Post',
+        'findFirst',
+        prismaError('P2010', 'connection lost')
+      );
+
+      await expect(service.find(1)).rejects.toMatchObject({
+        code: ErrorCode.DatabaseOperationFailed,
+        message: expect.stringContaining('operation failed')
+      });
+    });
+
+    test('applies the read restrictions to the query', async () => {
+      class RestrictedService extends PostService {
+        protected async readRestrictions(): Promise<any> {
+          return { authorId: 7 };
+        }
+      }
+      db.setResult('Post', 'findFirst', { id: 1 });
+
+      await new RestrictedService().find(1);
+
+      expect(db.lastQuery('findFirst').args.where).toEqual({
+        id: 1,
+        authorId: 7
+      });
+    });
+
+    test('throws a forbidden error when the access check fails', async () => {
+      class ForbiddenService extends PostService {
+        protected async checkAccess(): Promise<boolean> {
+          return false;
+        }
+      }
+      db.setResult('Post', 'findFirst', { id: 1 });
+
+      await expect(new ForbiddenService().find(1)).rejects.toMatchObject({
+        code: ErrorCode.ResourceForbidden
+      });
+    });
+
+    test('emits a find resource event', async () => {
+      const handler = jest.fn();
+      events.onResourceEvent('Post', 'find', handler);
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+
+      await service.find(1);
+
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({ current: { id: 1, title: 'First' } })
+      );
+    });
+  });
+
+  describe('query', () => {
+    beforeEach(() => {
+      db.setResult('Post', 'findMany', [{ id: 1, title: 'First' }]);
+      db.setResult('Post', 'count', 1);
+    });
+
+    test('returns the items with the result and total counts', async () => {
+      const result = await service.query();
+
+      expect(result.totalCount).toBe(1);
+      expect(result.resultCount).toBe(1);
+      expect(result.items[0]).toMatchObject({ id: 1, title: 'First' });
+    });
+
+    test('applies the pagination values', async () => {
+      await service.query({ page: 3, size: 20 });
+
+      // One record past the page is fetched to detect a further page
+      expect(db.lastQuery('findMany').args).toMatchObject({
+        skip: 40,
+        take: 21
+      });
+    });
+
+    test('omits the total count when the query opts out of it', async () => {
+      const result = await service.query({
+        page: 1,
+        size: 50,
+        totalCount: false
+      });
+
+      expect(result.totalCount).toBeNull();
+      expect(db.queries.filter((query) => query.method === 'count')).toEqual(
+        []
+      );
+    });
+
+    test('returns null cursors when the whole result fits on one page', async () => {
+      const result = await service.query();
+
+      expect(result.nextCursor).toBeNull();
+      expect(result.prevCursor).toBeNull();
+    });
+
+    test('returns a next cursor and trims the over fetched record', async () => {
+      db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
+
+      const result = await service.query({ page: 1, size: 2 });
+
+      expect(result.resultCount).toBe(2);
+      expect(result.items.map((item: any) => item.id)).toEqual([1, 2]);
+      expect(result.nextCursor).toBeDefined();
+      expect(result.prevCursor).toBeNull();
+    });
+
+    test('returns a prev cursor for an offset page after the first', async () => {
+      const result = await service.query({ page: 2, size: 50 });
+
+      expect(result.prevCursor).toBeDefined();
+      expect(result.nextCursor).toBeNull();
+    });
+
+    test('follows a next cursor with a cursor query instead of an offset', async () => {
+      db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
+      const first = await service.query({ page: 1, size: 2 });
+
+      const second = await service.query({
+        page: 1,
+        size: 2,
+        cursor: first.nextCursor
+      });
+
+      expect(db.lastQuery('findMany').args).toMatchObject({
+        cursor: { id: 2 },
+        skip: 1,
+        take: 3
+      });
+      expect(second.prevCursor).toBeDefined();
+      expect(second.nextCursor).toBeDefined();
+    });
+
+    test('pages backward with a negative take and keeps the trailing records', async () => {
+      db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
+      const first = await service.query({ page: 1, size: 2 });
+
+      // The direction rides in the cursor, so the caller hands back the cursor
+      // of the page it wants without naming a direction of its own
+      const second = await service.query({
+        page: 1,
+        size: 2,
+        cursor: first.nextCursor
+      });
+      const back = await service.query({
+        page: 1,
+        size: 2,
+        cursor: second.prevCursor
+      });
+
+      // The prev cursor of a page anchors on its first record
+      expect(db.lastQuery('findMany').args).toMatchObject({
+        cursor: { id: 1 },
+        skip: 1,
+        take: -3
+      });
+      expect(back.items.map((item: any) => item.id)).toEqual([2, 3]);
+      // The page a backward cursor was followed from always exists
+      expect(back.nextCursor).toBeDefined();
+      expect(back.prevCursor).toBeDefined();
+    });
+
+    test('rejects a cursor issued for another filter', async () => {
+      db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
+      const first = await service.query({
+        filter: { views: 10 },
+        page: 1,
+        size: 2
+      });
+
+      await expect(
+        service.query({
+          filter: { views: 20 },
+          page: 1,
+          size: 2,
+          cursor: first.nextCursor
+        })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidCursor,
+        message: expect.stringContaining('does not match the filter and sort')
+      });
+    });
+
+    test('rejects a cursor issued for another sort order', async () => {
+      db.setResult('Post', 'findMany', [{ id: 1 }, { id: 2 }, { id: 3 }]);
+      const first = await service.query({ page: 1, size: 2, sort: 'title' });
+
+      await expect(
+        service.query({
+          page: 1,
+          size: 2,
+          sort: '-title',
+          cursor: first.nextCursor
+        })
+      ).rejects.toMatchObject({ code: ErrorCode.ResourceInvalidCursor });
+    });
+
+    test('fetches no record for an empty page size', async () => {
+      await service.query({ page: 1, size: 0 });
+
+      expect(db.lastQuery('findMany').args).toMatchObject({ take: 0 });
+    });
+
+    test('sorts by the default sort value', async () => {
+      await service.query();
+
+      expect(db.lastQuery('findMany').args.orderBy).toEqual([
+        { createdAt: 'desc' },
+        { id: 'asc' }
+      ]);
+    });
+
+    test('maps ascending and descending sort fields', async () => {
+      await service.query({ page: 1, size: 50, sort: 'title,-views' });
+
+      expect(db.lastQuery('findMany').args.orderBy).toEqual([
+        { title: 'asc' },
+        { views: 'desc' },
+        { id: 'asc' }
+      ]);
+    });
+
+    test('maps a nested relation sort field', async () => {
+      await service.query({ page: 1, size: 50, sort: '-author.email' });
+
+      expect(db.lastQuery('findMany').args.orderBy).toEqual([
+        { author: { email: 'desc' } },
+        { id: 'asc' }
+      ]);
+    });
+
+    test('maps a relation count sort field', async () => {
+      await service.query({ page: 1, size: 50, sort: '-tagsCount' });
+
+      expect(db.lastQuery('findMany').args.orderBy).toEqual([
+        { tags: { _count: 'desc' } },
+        { id: 'asc' }
+      ]);
+    });
+
+    test('maps a sort object in the declared field order', async () => {
+      await service.query({
+        page: 1,
+        size: 50,
+        sort: { title: 'asc', views: 'desc' }
+      });
+
+      expect(db.lastQuery('findMany').args.orderBy).toEqual([
+        { title: 'asc' },
+        { views: 'desc' },
+        { id: 'asc' }
+      ]);
+    });
+
+    test('throws a bad request error for a direction that is not lower case', async () => {
+      await expect(
+        service.query({ page: 1, size: 50, sort: { title: 'ASC' } as any })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidSort,
+        message: expect.stringContaining("Invalid sort direction 'ASC'")
+      });
+    });
+
+    test('maps a nested relation sort object', async () => {
+      await service.query({
+        page: 1,
+        size: 50,
+        sort: { author: { email: 'desc' }, id: 'asc' }
+      });
+
+      expect(db.lastQuery('findMany').args.orderBy).toEqual([
+        { author: { email: 'desc' } },
+        { id: 'asc' }
+      ]);
+    });
+
+    test('throws a bad request error for a field that cannot be sorted by', async () => {
+      await expect(
+        service.query({ page: 1, size: 50, sort: { unknown: 'asc' } })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidSort,
+        message: expect.stringContaining('is not a sortable field')
+      });
+    });
+
+    test('maps a scalar filter value directly', async () => {
+      await service.query({ filter: { title: 'First' } });
+
+      expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
+        title: 'First'
+      });
+    });
+
+    test('maps a list of scalar values to an inclusion filter', async () => {
+      await service.query({ filter: { title: ['First', 'Second'] } });
+
+      expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
+        title: { in: ['First', 'Second'] }
+      });
+    });
+
+    test('maps a numeric range filter', async () => {
+      await service.query({ filter: { views: [10, 100] } });
+
+      expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
+        views: { gte: 10, lte: 100 }
+      });
+    });
+
+    test('maps a date range filter', async () => {
+      await service.query({
+        filter: {
+          publishedAt: ['2026-01-01T00:00:00Z', '2026-02-01T00:00:00Z']
+        }
+      });
+
+      expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
+        publishedAt: {
+          gte: '2026-01-01T00:00:00Z',
+          lte: '2026-02-01T00:00:00Z'
+        }
+      });
+    });
+
+    test('maps an array scalar filter to a contains filter', async () => {
+      await service.query({ filter: { keywords: 'news' } });
+
+      expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
+        keywords: { has: 'news' }
+      });
+    });
+
+    test('maps a list of array scalar values to a hasSome filter', async () => {
+      await service.query({ filter: { keywords: ['news', 'tech'] } });
+
+      expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
+        keywords: { hasSome: ['news', 'tech'] }
+      });
+    });
+
+    test('maps a single relation filter to an id filter', async () => {
+      await service.query({ filter: { author: 5 } });
+
+      expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
+        author: { id: 5 }
+      });
+    });
+
+    test('maps a list relation filter to a some filter', async () => {
+      await service.query({ filter: { tags: [1, 2] } });
+
+      expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
+        tags: { some: { id: { in: [1, 2] } } }
+      });
+    });
+
+    test('maps a nested single relation filter through the related model', async () => {
+      createModel({ name: 'User', scalars: { age: { type: 'int' } } }, true);
+      linkModels();
+
+      await new PostService().query({ filter: { author: { age: [18, 30] } } });
+
+      expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
+        author: { age: { gte: 18, lte: 30 } }
+      });
+    });
+
+    test('maps a nested list relation filter through the related model', async () => {
+      await service.query({ filter: { tags: [{ name: ['news', 'tech'] }] } });
+
+      expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
+        tags: [{ name: { in: ['news', 'tech'] } }]
+      });
+    });
+
+    test('passes a null relation filter through unchanged', async () => {
+      await service.query({ filter: { author: null } });
+
+      expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
+        author: null
+      });
+    });
+
+    test('applies the read restrictions to the query', async () => {
+      class RestrictedService extends PostService {
+        protected async readRestrictions(): Promise<any> {
+          return { authorId: 7 };
+        }
+      }
+      const restricted = new RestrictedService();
+
+      await restricted.query({ filter: { title: 'First' } });
+
+      expect(db.lastQuery('findMany').args.where.AND).toContainEqual({
+        authorId: 7
+      });
+    });
+
+    test('applies the text search query and removes the search filter', async () => {
+      class SearchService extends PostService {
+        protected textSearchQuery(searchText: string): any {
+          return { title: { contains: searchText } };
+        }
+      }
+
+      await new SearchService().query({
+        filter: { searchText: 'news' } as any
+      });
+
+      const conditions = db.lastQuery('findMany').args.where.AND;
+      expect(conditions).toContainEqual({ title: { contains: 'news' } });
+      expect(conditions[0]).toEqual({});
+    });
+
+    test('includes only the relations allowed for the query action', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            author: { model: 'User', type: 'oneToMany', owner: true },
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              output: { type: 'single' }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+      const querying = new PostService();
+      db.setResult('Post', 'findMany', []);
+      db.setResult('Post', 'count', 0);
+
+      await querying.query();
+
+      expect(db.lastQuery('findMany').args.include).toEqual({ author: true });
+    });
+
+    test('adds the relation count selection when configured', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              output: { type: 'always', count: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+      const counting = new PostService();
+      db.setResult('Post', 'findMany', []);
+      db.setResult('Post', 'count', 0);
+
+      await counting.query();
+
+      expect(db.lastQuery('findMany').args.include._count).toEqual({
+        select: { tags: true }
+      });
+    });
+
+    test('wraps a database error into a DatabaseError', async () => {
+      db.setResult('Post', 'findMany', prismaError('P2010', 'connection lost'));
+
+      await expect(service.query()).rejects.toMatchObject({
+        code: ErrorCode.DatabaseOperationFailed,
+        message: expect.stringContaining('operation failed')
+      });
+    });
+
+    test('emits a query resource event', async () => {
+      const handler = jest.fn();
+      events.onResourceEvent('Post', 'query', handler);
+
+      await service.query();
+
+      expect(handler).toHaveBeenCalled();
+    });
+  });
+
+  describe('single', () => {
+    test('returns the first resource matching the filter', async () => {
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+
+      const post = await service.single({ title: 'First' });
+
+      expect(db.lastQuery('findFirst').args.where.AND[0]).toEqual({
+        title: 'First'
+      });
+      expect(post).toMatchObject({
+        id: 1,
+        title: 'First',
+        excerpt: 'First...'
+      });
+    });
+
+    test('includes the relations of the find action', async () => {
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+
+      await service.single();
+
+      expect(db.lastQuery('findFirst').args.include).toEqual({
+        author: true,
+        tags: true
+      });
+    });
+
+    test('orders the matches by the given sort, ending with the id', async () => {
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+
+      await service.single({}, 'title');
+
+      expect(db.lastQuery('findFirst').args.orderBy).toEqual([
+        { title: 'asc' },
+        { id: 'asc' }
+      ]);
+    });
+
+    test('returns null when nothing matches', async () => {
+      db.setResult('Post', 'findFirst', null);
+
+      await expect(service.single({ title: 'Missing' })).resolves.toBeNull();
+    });
+
+    test('applies the read restrictions of the query action', async () => {
+      const readRestrictions = jest.fn().mockResolvedValue({ authorId: 7 });
+      class RestrictedService extends PostService {
+        protected async readRestrictions(...args: any[]): Promise<any> {
+          return readRestrictions(...args);
+        }
+      }
+      db.setResult('Post', 'findFirst', null);
+
+      await new RestrictedService().single({ title: 'First' });
+
+      expect(readRestrictions).toHaveBeenCalledWith('query', {
+        title: 'First'
+      });
+      expect(db.lastQuery('findFirst').args.where.AND).toContainEqual({
+        authorId: 7
+      });
+    });
+
+    test('rejects a match the access check denies', async () => {
+      class DeniedService extends PostService {
+        protected async checkAccess(): Promise<boolean> {
+          return false;
+        }
+      }
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+
+      await expect(new DeniedService().single()).rejects.toMatchObject({
+        code: ErrorCode.ResourceForbidden
+      });
+    });
+  });
+
+  describe('count', () => {
+    test('counts the resources matching the filter', async () => {
+      db.setResult('Post', 'count', 4);
+
+      await expect(service.count({ title: 'First' })).resolves.toBe(4);
+      expect(db.lastQuery('count').args.where.AND[0]).toEqual({
+        title: 'First'
+      });
+    });
+
+    test('applies the read restrictions', async () => {
+      class RestrictedService extends PostService {
+        protected async readRestrictions(): Promise<any> {
+          return { authorId: 7 };
+        }
+      }
+      db.setResult('Post', 'count', 0);
+
+      await new RestrictedService().count();
+
+      expect(db.lastQuery('count').args.where.AND).toContainEqual({
+        authorId: 7
+      });
+    });
+  });
+
+  describe('exists', () => {
+    test('returns true when a resource matches', async () => {
+      db.setResult('Post', 'findFirst', { id: 1 });
+
+      await expect(service.exists({ title: 'First' })).resolves.toBe(true);
+      expect(db.lastQuery('findFirst').args.select).toEqual({ id: true });
+    });
+
+    test('returns false when nothing matches', async () => {
+      db.setResult('Post', 'findFirst', null);
+
+      await expect(service.exists({ title: 'Missing' })).resolves.toBe(false);
+    });
+  });
+
+  describe('create', () => {
+    beforeEach(() => {
+      db.setResult('Post', 'create', (args: any) => ({ id: 1, ...args.data }));
+    });
+
+    test('creates the record and returns it', async () => {
+      const post = await service.create({ title: 'First' });
+
+      expect(db.lastQuery('create').args.data).toMatchObject({
+        title: 'First'
+      });
+      expect(post).toMatchObject({ id: 1, title: 'First' });
+    });
+
+    test('removes undefined values from the data', async () => {
+      await service.create({ title: 'First', views: undefined });
+
+      expect(Object.keys(db.lastQuery('create').args.data)).not.toContain(
+        'views'
+      );
+    });
+
+    test('removes virtual fields from the stored data', async () => {
+      await service.create({ title: 'First', excerpt: 'ignored' });
+
+      expect(db.lastQuery('create').args.data).not.toHaveProperty('excerpt');
+    });
+
+    test('adds a default value for a required hidden scalar', async () => {
+      await service.create({ title: 'First' });
+
+      expect(db.lastQuery('create').args.data.secret).toBe('');
+    });
+
+    test('connects a single relation given by id', async () => {
+      await service.create({ title: 'First', author: 5 });
+
+      expect(db.lastQuery('create').args.data.author).toEqual({
+        connect: { id: 5 }
+      });
+    });
+
+    test('connects a single relation given as an object', async () => {
+      await service.create({ title: 'First', author: { id: 5 } });
+
+      expect(db.lastQuery('create').args.data.author).toEqual({
+        connect: { id: 5 }
+      });
+    });
+
+    test('connects a list relation', async () => {
+      await service.create({ title: 'First', tags: [{ id: 1 }, { id: 2 }] });
+
+      expect(db.lastQuery('create').args.data.tags).toEqual({
+        connect: [{ id: 1 }, { id: 2 }]
+      });
+    });
+
+    test('connects a list relation given as plain ids', async () => {
+      await service.create({ title: 'First', tags: [1, 2] });
+
+      expect(db.lastQuery('create').args.data.tags).toEqual({
+        connect: [{ id: 1 }, { id: 2 }]
+      });
+    });
+
+    test('creates a related record inline when enabled', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            author: {
+              model: 'User',
+              type: 'oneToMany',
+              owner: true,
+              input: { type: 'all', allowCreate: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+
+      await new PostService().create({
+        title: 'First',
+        author: { email: 'ada@mail.com' }
+      });
+
+      expect(db.lastQuery('create').args.data.author).toEqual({
+        create: { email: 'ada@mail.com' }
+      });
+    });
+
+    test('mixes connected and inline created records in a list relation', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              input: { type: 'all', allowCreate: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+
+      await new PostService().create({
+        title: 'First',
+        tags: [{ id: 1 }, { name: 'fresh' }]
+      });
+
+      expect(db.lastQuery('create').args.data.tags).toEqual({
+        connect: [{ id: 1 }],
+        create: [{ name: 'fresh' }]
+      });
+    });
+
+    test('rejects an inline update on the create action', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            author: {
+              model: 'User',
+              type: 'oneToMany',
+              owner: true,
+              input: { type: 'all', allowUpdate: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+
+      await expect(
+        new PostService().create({
+          title: 'First',
+          author: { id: 5, email: 'ada@mail.com' }
+        })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidRelation,
+        message: expect.stringContaining('does not accept inline updates'),
+        details: { relation: 'author', unknownFields: ['email'] }
+      });
+    });
+
+    test('matches records with the unique key when it is set', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              input: { type: 'all', allowCreate: true, uniqueKey: 'name' }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+
+      await new PostService().create({ title: 'First', tags: ['fresh'] });
+
+      expect(db.lastQuery('create').args.data.tags).toEqual({
+        connectOrCreate: [
+          {
+            where: { name: 'fresh' },
+            create: { name: 'fresh' }
+          }
+        ]
+      });
+    });
+
+    test('rejects a new record when the unique key is set without allowCreate', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              input: { type: 'all', uniqueKey: 'name' }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+
+      await expect(
+        new PostService().create({ title: 'First', tags: [{ name: 'fresh' }] })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidRelation,
+        message: expect.stringContaining('does not accept new records')
+      });
+    });
+
+    test('rejects an inline record missing a required field', async () => {
+      createModel(
+        {
+          name: 'Tag',
+          scalars: { name: { type: 'string' }, color: { type: 'string' } }
+        },
+        true
+      );
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              input: { type: 'all', allowCreate: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+
+      await expect(
+        new PostService().create({ title: 'First', tags: [{ name: 'fresh' }] })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidRelation,
+        message: expect.stringContaining('missing required fields: color')
+      });
+    });
+
+    test('rejects the fields excluded from the related create model', async () => {
+      createModel(
+        {
+          name: 'Tag',
+          scalars: { name: { type: 'string' }, hits: { type: 'int' } },
+          create: { omit: ['hits'] }
+        },
+        true
+      );
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              input: { type: 'all', allowCreate: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+
+      await expect(
+        new PostService().create({
+          title: 'First',
+          tags: [{ name: 'fresh', hits: 99 }]
+        })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidRelation,
+        details: { relation: 'tags', unknownFields: ['hits'] }
+      });
+    });
+
+    test('rejects an inline record when creation is not enabled', async () => {
+      await expect(
+        service.create({ title: 'First', author: { email: 'ada@mail.com' } })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidRelation,
+        message: expect.stringContaining("relation 'author'")
+      });
+    });
+
+    test('applies the write restrictions', async () => {
+      class RestrictedService extends PostService {
+        protected async writeRestrictions(): Promise<any> {
+          return { views: 0 };
+        }
+      }
+
+      await new RestrictedService().create({ title: 'First' });
+
+      expect(db.lastQuery('create').args.data.views).toBe(0);
+    });
+
+    test('throws a forbidden error when the access check fails', async () => {
+      class ForbiddenService extends PostService {
+        protected async checkAccess(): Promise<boolean> {
+          return false;
+        }
+      }
+
+      await expect(
+        new ForbiddenService().create({ title: 'First' })
+      ).rejects.toMatchObject({ code: ErrorCode.ResourceForbidden });
+    });
+
+    test('wraps a database error into a DatabaseError', async () => {
+      db.setResult(
+        'Post',
+        'create',
+        prismaError('P2010', 'constraint violation')
+      );
+
+      await expect(service.create({ title: 'First' })).rejects.toMatchObject({
+        code: ErrorCode.DatabaseOperationFailed,
+        message: expect.stringContaining('operation failed')
+      });
+    });
+
+    test('invalidates the resource cache', async () => {
+      await service.create({ title: 'First' });
+
+      expect(invalidateCache).toHaveBeenCalledWith('Post', 'create');
+    });
+
+    test('emits a create resource event', async () => {
+      const handler = jest.fn();
+      events.onResourceEvent('Post', 'create', handler);
+
+      await service.create({ title: 'First' });
+
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({ current: expect.objectContaining({ id: 1 }) })
+      );
+    });
+  });
+
+  describe('update', () => {
+    beforeEach(() => {
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First', tags: [] });
+      db.setResult('Post', 'update', (args: any) => ({
+        id: 1,
+        ...args.data
+      }));
+    });
+
+    test('updates the record and returns the new state', async () => {
+      const post = await service.update(1, { title: 'Updated' });
+
+      expect(db.lastQuery('update').args.where).toEqual({ id: 1 });
+      expect(db.lastQuery('update').args.data).toMatchObject({
+        title: 'Updated'
+      });
+      expect(post).toMatchObject({ title: 'Updated' });
+    });
+
+    test('reads the current record before updating', async () => {
+      await service.update(1, { title: 'Updated' });
+
+      expect(db.queries[0]).toMatchObject({
+        method: 'findFirst',
+        args: { where: { id: 1 } }
+      });
+    });
+
+    test('throws a not found error for a missing record', async () => {
+      db.setResult('Post', 'findFirst', null);
+
+      await expect(service.update(1, { title: 'x' })).rejects.toMatchObject({
+        code: ErrorCode.ResourceNotFound
+      });
+    });
+
+    test('throws a forbidden error when the access check fails', async () => {
+      class ForbiddenService extends PostService {
+        protected async checkAccess(): Promise<boolean> {
+          return false;
+        }
+      }
+
+      await expect(
+        new ForbiddenService().update(1, { title: 'x' })
+      ).rejects.toMatchObject({ code: ErrorCode.ResourceForbidden });
+    });
+
+    test('connects a reassigned relation', async () => {
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        author: { id: 2 },
+        tags: []
+      });
+
+      await service.update(1, { author: 9 });
+
+      expect(db.lastQuery('update').args.data.author).toEqual({
+        connect: { id: 9 }
+      });
+    });
+
+    test('skips the relation action when the record has no current relation', async () => {
+      await service.update(1, { author: 9 });
+
+      expect(db.lastQuery('update').args.data.author).toBeUndefined();
+    });
+
+    test('disconnects a relation that is set to null', async () => {
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        author: { id: 2 },
+        tags: []
+      });
+
+      await service.update(1, { author: null });
+
+      expect(db.lastQuery('update').args.data.author).toEqual({
+        disconnect: { id: 2 }
+      });
+    });
+
+    test('disconnects the relations that are no longer assigned', async () => {
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        tags: [{ id: 1 }, { id: 2 }]
+      });
+
+      await service.update(1, { tags: [{ id: 1 }] });
+
+      expect(db.lastQuery('update').args.data.tags).toEqual({
+        disconnect: [{ id: 2 }],
+        connect: [{ id: 1 }]
+      });
+    });
+
+    test('connects a relation that is currently empty', async () => {
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        author: null,
+        tags: []
+      });
+
+      await service.update(1, { author: 9 });
+
+      expect(db.lastQuery('update').args.data.author).toEqual({
+        connect: { id: 9 }
+      });
+    });
+
+    test('updates a related record inline when enabled', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            author: {
+              model: 'User',
+              type: 'oneToMany',
+              owner: true,
+              input: { type: 'all', allowUpdate: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        author: { id: 2 }
+      });
+
+      await new PostService().update(1, {
+        author: { id: 2, email: 'new@mail.com' }
+      });
+
+      expect(db.lastQuery('update').args.data.author).toEqual({
+        update: { where: { id: 2 }, data: { email: 'new@mail.com' } }
+      });
+    });
+
+    test('connects a record given by id only when inline update is enabled', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            author: {
+              model: 'User',
+              type: 'oneToMany',
+              owner: true,
+              input: { type: 'all', allowUpdate: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        author: { id: 2 }
+      });
+
+      await new PostService().update(1, { author: { id: 9 } });
+
+      expect(db.lastQuery('update').args.data.author).toEqual({
+        connect: { id: 9 }
+      });
+    });
+
+    test('rejects the fields excluded from the related update model', async () => {
+      createModel(
+        {
+          name: 'Tag',
+          scalars: { name: { type: 'string' }, hits: { type: 'int' } },
+          update: { pick: ['name'] }
+        },
+        true
+      );
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              input: { type: 'all', allowUpdate: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        tags: [{ id: 1 }]
+      });
+
+      await expect(
+        new PostService().update(1, {
+          tags: [{ id: 1, name: 'renamed', hits: 99 }]
+        })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidRelation,
+        details: { relation: 'tags', unknownFields: ['hits'] }
+      });
+    });
+
+    test('rejects an inline update holding only excluded fields', async () => {
+      createModel(
+        {
+          name: 'Tag',
+          scalars: { name: { type: 'string' }, hits: { type: 'int' } },
+          update: { pick: ['name'] }
+        },
+        true
+      );
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              input: { type: 'all', allowUpdate: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        tags: [{ id: 1 }]
+      });
+
+      await expect(
+        new PostService().update(1, { tags: [{ id: 1, hits: 99 }] })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidRelation,
+        details: { relation: 'tags', unknownFields: ['hits'] }
+      });
+    });
+
+    test('updates list items inline while disconnecting missing ones', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              input: { type: 'all', allowUpdate: true }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        tags: [{ id: 1 }, { id: 2 }]
+      });
+
+      await new PostService().update(1, {
+        tags: [{ id: 1, name: 'renamed' }]
+      });
+
+      expect(db.lastQuery('update').args.data.tags).toEqual({
+        disconnect: [{ id: 2 }],
+        update: [{ where: { id: 1 }, data: { name: 'renamed' } }]
+      });
+    });
+
+    test('wraps a database error into a DatabaseError', async () => {
+      db.setResult(
+        'Post',
+        'update',
+        prismaError('P2010', 'constraint violation')
+      );
+
+      await expect(service.update(1, { title: 'x' })).rejects.toMatchObject({
+        code: ErrorCode.DatabaseOperationFailed,
+        message: expect.stringContaining('operation failed')
+      });
+    });
+
+    test('throws a not found error for a record removed after it was read', async () => {
+      db.setResult('Post', 'update', prismaError('P2025', 'No record found'));
+
+      await expect(service.update(1, { title: 'x' })).rejects.toMatchObject({
+        code: ErrorCode.ResourceNotFound,
+        message: 'Post not found',
+        details: { model: 'Post', id: 1 }
+      });
+    });
+
+    test('invalidates the resource cache', async () => {
+      await service.update(1, { title: 'Updated' });
+
+      expect(invalidateCache).toHaveBeenCalledWith('Post', 'update');
+    });
+
+    test('emits an update event with the previous and current state', async () => {
+      const handler = jest.fn();
+      events.onResourceEvent('Post', 'update', handler);
+
+      await service.update(1, { title: 'Updated' });
+
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          previous: expect.objectContaining({ title: 'First' }),
+          current: expect.objectContaining({ title: 'Updated' })
+        })
+      );
+    });
+  });
+
+  describe('replace', () => {
+    const defineArticle = (update?: { omit: string[] }) => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: {
+            title: { type: 'string' },
+            status: { type: 'string', default: 'draft' },
+            rating: { type: 'int', default: 3 },
+            meta: { type: 'json', default: { pinned: false } },
+            summary: { type: 'string', required: false },
+            slug: { type: 'string', required: false },
+            secret: { type: 'string', hidden: true, required: false }
+          },
+          virtual: {
+            note: { type: 'string', required: false }
+          },
+          relations: {
+            author: {
+              model: 'User',
+              type: 'oneToMany',
+              owner: true,
+              required: false
+            }
+          },
+          update
+        },
+        true
+      );
+      linkModels();
+    };
+
+    beforeEach(() => {
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        status: 'published',
+        summary: 'Old',
+        author: { id: 2 }
+      });
+      db.setResult('Post', 'update', (args: any) => ({
+        id: 1,
+        ...args.data
+      }));
+    });
+
+    test('resets the fields left out to their default value or to null', async () => {
+      defineArticle();
+
+      await service.replace(1, { title: 'Replaced' });
+
+      expect(db.lastQuery('update').args.data).toEqual({
+        title: 'Replaced',
+        status: 'draft',
+        rating: 3,
+        meta: { pinned: false },
+        summary: null,
+        slug: null
+      });
+    });
+
+    test('keeps the values the data gives, null included', async () => {
+      defineArticle();
+
+      await service.replace(1, {
+        title: 'Replaced',
+        status: 'archived',
+        rating: 5,
+        summary: 'New',
+        slug: null
+      });
+
+      expect(db.lastQuery('update').args.data).toMatchObject({
+        status: 'archived',
+        rating: 5,
+        summary: 'New',
+        slug: null
+      });
+    });
+
+    test('copies a default value, so the configuration is never shared', async () => {
+      defineArticle();
+
+      await service.replace(1, { title: 'Replaced' });
+      db.lastQuery('update').args.data.meta.pinned = true;
+      await service.replace(1, { title: 'Again' });
+
+      expect(db.lastQuery('update').args.data.meta).toEqual({ pinned: false });
+    });
+
+    test('leaves out the hidden fields and the fields excluded from an update', async () => {
+      defineArticle({ omit: ['slug', 'status'] });
+
+      await service.replace(1, { title: 'Replaced' });
+
+      const data = db.lastQuery('update').args.data;
+      expect(data).not.toHaveProperty('slug');
+      expect(data).not.toHaveProperty('status');
+      expect(data).not.toHaveProperty('secret');
+    });
+
+    test('leaves an optional relation left out untouched', async () => {
+      defineArticle();
+
+      await service.replace(1, { title: 'Replaced' });
+
+      expect(db.lastQuery('update').args.data).not.toHaveProperty('author');
+    });
+
+    test('disconnects an optional relation set to null', async () => {
+      defineArticle();
+
+      await service.replace(1, { title: 'Replaced', author: null });
+
+      expect(db.lastQuery('update').args.data.author).toEqual({
+        disconnect: { id: 2 }
+      });
+    });
+
+    test('applies the update policies, cache invalidation, and event', async () => {
+      defineArticle();
+      const writeRestrictions = jest.fn().mockResolvedValue({});
+      class RestrictedService extends PostService {
+        protected async writeRestrictions(action: any, data: any) {
+          return writeRestrictions(action, data);
+        }
+      }
+      const handler = jest.fn();
+      events.onResourceEvent('Post', 'update', handler);
+
+      await new RestrictedService().replace(1, { title: 'Replaced' });
+
+      expect(writeRestrictions).toHaveBeenCalledWith(
+        'update',
+        expect.objectContaining({ id: 1, title: 'Replaced', status: 'draft' })
+      );
+      expect(invalidateCache).toHaveBeenCalledWith('Post', 'update');
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          previous: expect.objectContaining({ status: 'published' }),
+          current: expect.objectContaining({ status: 'draft' })
+        })
+      );
+    });
+
+    test('throws a not found error for a missing record', async () => {
+      defineArticle();
+      db.setResult('Post', 'findFirst', null);
+
+      await expect(
+        service.replace(1, { title: 'Replaced' })
+      ).rejects.toMatchObject({ code: ErrorCode.ResourceNotFound });
+    });
+  });
+
+  describe('bulk', () => {
+    // Every id the pre-check of a bulk delete asks for exists
+    const liveIds = (args: any) =>
+      (args.where.id.in as number[]).map((id) => ({ id }));
+
+    beforeEach(() => {
+      db.setResult('Post', 'findMany', liveIds);
+      db.setResult('Post', 'create', (args: any) => ({ id: 1, ...args.data }));
+      db.setResult('Post', 'findFirst', (args: any) => ({
+        id: args.where.id,
+        title: 'First',
+        tags: []
+      }));
+      db.setResult('Post', 'update', (args: any) => ({
+        id: args.where.id,
+        ...args.data
+      }));
+      db.setResult('Post', 'delete', (args: any) => ({
+        id: args.where.id,
+        title: 'First'
+      }));
+    });
+
+    test('creates every item in order', async () => {
+      const posts = await service.bulkCreate([
+        { title: 'First' },
+        { title: 'Second' }
+      ]);
+
+      const creates = db.queries.filter((query) => query.method === 'create');
+      expect(creates.map((query) => query.args.data.title)).toEqual([
+        'First',
+        'Second'
+      ]);
+      expect(posts.map((post: any) => post.title)).toEqual(['First', 'Second']);
+    });
+
+    test('updates every item by its id', async () => {
+      const posts = await service.bulkUpdate([
+        { id: 1, data: { title: 'One' } },
+        { id: 2, data: { title: 'Two' } }
+      ]);
+
+      const updates = db.queries.filter((query) => query.method === 'update');
+      expect(updates.map((query) => query.args.where.id)).toEqual([1, 2]);
+      expect(posts.map((post: any) => post.title)).toEqual(['One', 'Two']);
+    });
+
+    test('replaces every item, resetting the fields left out', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: {
+            title: { type: 'string' },
+            summary: { type: 'string', required: false }
+          }
+        },
+        true
+      );
+      linkModels();
+
+      await service.bulkReplace([
+        { id: 1, data: { title: 'One' } },
+        { id: 2, data: { title: 'Two', summary: 'Kept' } }
+      ]);
+
+      const updates = db.queries.filter((query) => query.method === 'update');
+      expect(updates.map((query) => query.args.data)).toEqual([
+        { title: 'One', summary: null },
+        { title: 'Two', summary: 'Kept' }
+      ]);
+    });
+
+    test('deletes every item by its id', async () => {
+      const posts = await service.bulkDelete([3, 4]);
+
+      const deletes = db.queries.filter((query) => query.method === 'delete');
+      expect(deletes.map((query) => query.args.where.id)).toEqual([3, 4]);
+      expect(posts.map((post: any) => post.id)).toEqual([3, 4]);
+    });
+
+    test('deletes none of the ids when one of them does not exist', async () => {
+      db.setResult('Post', 'findMany', (args: any) =>
+        liveIds(args).filter((record: any) => record.id !== 4)
+      );
+
+      await expect(service.bulkDelete([3, 4, 5])).rejects.toMatchObject({
+        code: ErrorCode.ResourceNotFound,
+        details: { model: 'Post', id: 4 }
+      });
+      expect(db.queries.some((query) => query.method === 'delete')).toBe(false);
+    });
+
+    test('skips an id the cascade of an earlier id removed', async () => {
+      const removed = new Set<number>();
+      db.setResult('Post', 'findMany', (args: any) =>
+        liveIds(args).filter((record: any) => !removed.has(record.id))
+      );
+      // Deleting 3 cascades into 4
+      db.setResult('Post', 'delete', (args: any) => {
+        removed.add(args.where.id);
+        if (args.where.id === 3) {
+          removed.add(4);
+        }
+        return { id: args.where.id };
+      });
+
+      const posts = await service.bulkDelete([3, 4, 5]);
+
+      const deletes = db.queries.filter((query) => query.method === 'delete');
+      expect(deletes.map((query) => query.args.where.id)).toEqual([3, 5]);
+      expect(posts.map((post: any) => post.id)).toEqual([3, 5]);
+    });
+
+    test('runs with the bulk transaction timeout', async () => {
+      const client = db.database.client();
+      const transaction = jest.spyOn(client, '$transaction');
+
+      await service.bulkCreate([{ title: 'First' }]);
+
+      expect(transaction).toHaveBeenCalledWith(expect.any(Function), {
+        timeout: 5000
+      });
+    });
+
+    test('stops at the first failed item and throws its error', async () => {
+      db.setResult('Post', 'findFirst', (args: any) =>
+        args.where.id === 2 ? null : { id: args.where.id, tags: [] }
+      );
+
+      await expect(
+        service.bulkUpdate([
+          { id: 1, data: { title: 'One' } },
+          { id: 2, data: { title: 'Two' } },
+          { id: 3, data: { title: 'Three' } }
+        ])
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceNotFound,
+        details: { model: 'Post', id: 2 }
+      });
+
+      const updates = db.queries.filter((query) => query.method === 'update');
+      expect(updates.map((query) => query.args.where.id)).toEqual([1]);
+    });
+
+    test('runs every item in a single transaction', async () => {
+      const client = db.database.client();
+      const transaction = jest.spyOn(client, '$transaction');
+
+      await service.bulkCreate([{ title: 'First' }, { title: 'Second' }]);
+
+      expect(transaction).toHaveBeenCalledTimes(1);
+    });
+
+    test('translates an error of the transaction itself', async () => {
+      const client = db.database.client();
+      jest
+        .spyOn(client, '$transaction')
+        .mockRejectedValueOnce(prismaError('P2028'));
+
+      await expect(
+        service.bulkCreate([{ title: 'First' }])
+      ).rejects.toBeInstanceOf(DatabaseError);
+    });
+
+    test('emits the resource event and invalidates the cache of every item', async () => {
+      const handler = jest.fn();
+      events.onResourceEvent('Post', 'create', handler);
+
+      await service.bulkCreate([{ title: 'First' }, { title: 'Second' }]);
+
+      expect(handler).toHaveBeenCalledTimes(2);
+      expect(invalidateCache).toHaveBeenCalledWith('Post', 'create');
+    });
+  });
+
+  describe('delete', () => {
+    beforeEach(() => {
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+      db.setResult('Post', 'delete', { id: 1, title: 'First' });
+    });
+
+    test('deletes the record and returns it', async () => {
+      const post = await service.delete(1);
+
+      expect(db.lastQuery('delete').args.where).toEqual({ id: 1 });
+      expect(post).toMatchObject({ id: 1, title: 'First' });
+    });
+
+    test('throws a not found error for a missing record', async () => {
+      db.setResult('Post', 'findFirst', null);
+
+      await expect(service.delete(1)).rejects.toMatchObject({
+        code: ErrorCode.ResourceNotFound
+      });
+    });
+
+    test('throws a forbidden error when the access check fails', async () => {
+      class ForbiddenService extends PostService {
+        protected async checkAccess(): Promise<boolean> {
+          return false;
+        }
+      }
+
+      await expect(new ForbiddenService().delete(1)).rejects.toMatchObject({
+        code: ErrorCode.ResourceForbidden
+      });
+    });
+
+    test('applies the read restrictions when loading the record', async () => {
+      class RestrictedService extends PostService {
+        protected async readRestrictions(): Promise<any> {
+          return { authorId: 7 };
+        }
+      }
+
+      await new RestrictedService().delete(1);
+
+      expect(db.queries[0].args.where).toEqual({ id: 1, authorId: 7 });
+    });
+
+    test('wraps a database error into a DatabaseError', async () => {
+      db.setResult(
+        'Post',
+        'delete',
+        prismaError('P2010', 'foreign key constraint')
+      );
+
+      await expect(service.delete(1)).rejects.toMatchObject({
+        code: ErrorCode.DatabaseOperationFailed,
+        message: expect.stringContaining('operation failed')
+      });
+    });
+
+    test('invalidates the resource cache', async () => {
+      await service.delete(1);
+
+      expect(invalidateCache).toHaveBeenCalledWith('Post', 'delete');
+    });
+
+    test('emits a delete resource event', async () => {
+      const handler = jest.fn();
+      events.onResourceEvent('Post', 'delete', handler);
+
+      await service.delete(1);
+
+      expect(handler).toHaveBeenCalled();
+    });
+  });
+
+  describe('soft delete', () => {
+    let deleteResourcesFiles: jest.Mock;
+
+    const defineSoftDeleteModels = (postSoftDelete: boolean) => {
+      createModel({ name: 'File', softDelete: true });
+      createModel({ name: 'User', scalars: { email: { type: 'string' } } });
+      createModel({ name: 'Tag', softDelete: true });
+      createModel(
+        {
+          name: 'Post',
+          softDelete: postSoftDelete,
+          scalars: { title: { type: 'string' } },
+          files: { cover: {} },
+          relations: {
+            author: {
+              model: 'User',
+              type: 'oneToMany',
+              owner: true,
+              required: false
+            },
+            tags: { model: 'Tag', type: 'manyToMany' },
+            comments: {
+              model: 'Comment',
+              type: 'oneToMany',
+              mappedBy: 'post',
+              orphanRemoval: true,
+              output: { type: 'none' }
+            }
+          }
+        },
+        true
+      );
+      createModel({
+        name: 'Comment',
+        softDelete: postSoftDelete,
+        files: { attachment: {} },
+        relations: {
+          post: {
+            model: 'Post',
+            type: 'oneToMany',
+            owner: true,
+            mappedBy: 'comments',
+            onDelete: 'cascade'
+          }
+        }
+      });
+      linkModels();
+    };
+
+    const setup = (postSoftDelete: boolean = true) => {
+      resetContext();
+
+      db = createDatabaseStub(['Post', 'User', 'Tag', 'Comment', 'File']);
+      define(db.database, Database as any);
+      define(events, Events as any);
+      define({ invalidateCache }, CacheService);
+
+      deleteResourcesFiles = jest.fn().mockResolvedValue([]);
+      define({ deleteResourcesFiles }, FileService);
+
+      defineSoftDeleteModels(postSoftDelete);
+
+      service = new PostService();
+
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+      db.setResult('Post', 'update', ({ data }: any) => ({
+        id: 1,
+        title: 'First',
+        ...data
+      }));
+      db.setResult('Post', 'delete', { id: 1, title: 'First' });
+      db.setResult('Comment', 'findMany', [{ id: 10 }, { id: 11 }]);
+    };
+
+    beforeEach(() => {
+      setup();
+    });
+
+    test('finds only a record that is not soft deleted', async () => {
+      await service.find(1);
+
+      expect(db.lastQuery('findFirst').args.where).toEqual({
+        id: 1,
+        deletedAt: null
+      });
+    });
+
+    test('queries only the records that are not soft deleted', async () => {
+      db.setResult('Post', 'findMany', []);
+      db.setResult('Post', 'count', 0);
+
+      await service.query({ filter: { title: 'First' } });
+
+      expect(db.lastQuery('findMany').args.where.AND).toEqual([
+        { title: 'First' },
+        {},
+        {},
+        { deletedAt: null }
+      ]);
+    });
+
+    test('aggregates only the records that are not soft deleted', async () => {
+      db.setResult('Post', 'aggregate', { _count: { id: 1 } });
+
+      await service.aggregate({ select: { id: { count: true } } as any });
+
+      expect(db.lastQuery('aggregate').args.where.AND[0].AND).toContainEqual({
+        deletedAt: null
+      });
+    });
+
+    test('updates only a record that is not soft deleted', async () => {
+      await service.update(1, { title: 'Second' });
+
+      expect(db.lastQuery('findFirst').args.where).toEqual({
+        id: 1,
+        deletedAt: null
+      });
+    });
+
+    test('marks the record deleted instead of removing it', async () => {
+      const post = await service.delete(1);
+
+      expect(db.queries.some((query) => query.method === 'delete')).toBe(false);
+      expect(db.lastQuery('update').args).toEqual({
+        where: { id: 1 },
+        data: { deletedAt: expect.any(Date) }
+      });
+      expect(post).toMatchObject({ id: 1, title: 'First' });
+    });
+
+    test('loads the record with its relations before marking it', async () => {
+      await service.delete(1);
+
+      expect(db.queries[0].args).toEqual({
+        where: { id: 1, deletedAt: null },
+        include: expect.objectContaining({ author: true })
+      });
+    });
+
+    test('soft deletes the cascading records with the same values', async () => {
+      await service.delete(1);
+
+      const { data } = db.lastQuery('update').args;
+      expect(
+        db.queries.find(
+          (query) => query.method === 'updateMany' && query.model === 'Comment'
+        )
+      ).toEqual({
+        model: 'Comment',
+        method: 'updateMany',
+        args: { where: { id: { in: [10, 11] } }, data }
+      });
+    });
+
+    test('invalidates the cache of every affected model', async () => {
+      await service.delete(1);
+
+      expect(invalidateCache).toHaveBeenCalledWith('Post', 'delete');
+      expect(invalidateCache).toHaveBeenCalledWith('Comment', 'delete');
+    });
+
+    test('retains the files of the soft deleted records with the same values', async () => {
+      await service.delete(1);
+
+      const { data } = db.lastQuery('update').args;
+      const retained = db.queries
+        .filter((query) => query.model === 'File')
+        .map((query) => query.args);
+      expect(retained).toHaveLength(2);
+      expect(retained).toEqual(
+        expect.arrayContaining([
+          {
+            where: expect.objectContaining({
+              resourceName: 'Post',
+              resourceId: { in: ['1'] },
+              resourceField: { in: ['cover'] }
+            }),
+            data
+          },
+          {
+            where: expect.objectContaining({
+              resourceName: 'Comment',
+              resourceId: { in: ['10', '11'] },
+              resourceField: { in: ['attachment'] }
+            }),
+            data
+          }
+        ])
+      );
+    });
+
+    test('keeps the deleted record when its model cascades into itself', async () => {
+      createModel(
+        {
+          name: 'Post',
+          softDelete: true,
+          files: { cover: {} },
+          relations: {
+            parent: {
+              model: 'Post',
+              type: 'oneToMany',
+              owner: true,
+              required: false,
+              onDelete: 'cascade'
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+      db.setResult('Post', 'findMany', ({ where }: any) =>
+        where.parentId.in.includes(1) ? [{ id: 2 }] : []
+      );
+
+      await service.delete(1);
+
+      const retained = db.queries.find(
+        (query) =>
+          query.model === 'File' && query.args.where.resourceName === 'Post'
+      );
+      expect(retained?.args.where.resourceId.in.sort()).toEqual(['1', '2']);
+    });
+
+    test('retains no files a database delete removes', async () => {
+      setup(false);
+
+      await service.delete(1);
+
+      expect(db.queries.some((query) => query.model === 'File')).toBe(false);
+    });
+
+    test('cleans up the files of the soft deleted records', async () => {
+      await service.delete(1);
+
+      // Each file field decides on its own whether a soft delete removes it
+      expect(deleteResourcesFiles).toHaveBeenCalledWith('Post', [1], true);
+      expect(deleteResourcesFiles).toHaveBeenCalledWith(
+        'Comment',
+        [10, 11],
+        true
+      );
+    });
+
+    test('removes the files of the records a database delete cascades to', async () => {
+      setup(false);
+
+      await service.delete(1);
+
+      expect(db.lastQuery('delete').args.where).toEqual({ id: 1 });
+      expect(deleteResourcesFiles).toHaveBeenCalledWith('Post', [1], false);
+      expect(deleteResourcesFiles).toHaveBeenCalledWith(
+        'Comment',
+        [10, 11],
+        false
+      );
+      expect(invalidateCache).toHaveBeenCalledWith('Comment', 'delete');
+    });
+
+    test('soft deletes the orphans of a soft deleted model on update', async () => {
+      db.setResult('Post', 'findFirst', { id: 1, comments: [{ id: 10 }] });
+      db.setResult('Comment', 'findMany', [{ id: 10 }]);
+
+      await service.update(1, { comments: [] });
+
+      expect(
+        db.queries.find(
+          (query) => query.method === 'updateMany' && query.model === 'Comment'
+        )
+      ).toMatchObject({ args: { where: { id: { in: [10] } } } });
+      expect(db.lastQuery('update').args.data.comments).toBeUndefined();
+      expect(invalidateCache).toHaveBeenCalledWith('Comment', 'delete');
+      expect(deleteResourcesFiles).toHaveBeenCalledWith('Comment', [10], true);
+    });
+
+    test('removes the files of the orphans an update deletes', async () => {
+      setup(false);
+      db.setResult('Post', 'findFirst', { id: 1, comments: [{ id: 10 }] });
+      db.setResult('Comment', 'findMany', [{ id: 10 }]);
+
+      await service.update(1, { comments: [] });
+
+      expect(db.lastQuery('update').args.data.comments).toEqual({
+        delete: [{ id: 10 }]
+      });
+      expect(deleteResourcesFiles).toHaveBeenCalledWith('Comment', [10], false);
+      expect(invalidateCache).toHaveBeenCalledWith('Comment', 'delete');
+    });
+
+    test('hides a soft deleted single relation from the output', async () => {
+      createModel(
+        {
+          name: 'User',
+          softDelete: true,
+          scalars: { email: { type: 'string' } }
+        },
+        true
+      );
+      linkModels();
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        author: { id: 2, deletedAt: new Date() }
+      });
+
+      const post = await service.find(1);
+
+      expect(post.author).toBeNull();
+    });
+
+    test('rejects a connect to a soft deleted related record', async () => {
+      db.setResult('Tag', 'count', 1);
+
+      await expect(
+        service.create({ title: 'New', tags: [5] })
+      ).rejects.toMatchObject({ code: ErrorCode.ResourceInvalidRelation });
+      expect(db.queries.some((query) => query.method === 'create')).toBe(false);
+    });
+  });
+
+  describe('aggregate', () => {
+    beforeEach(() => {
+      db.setResult('Post', 'aggregate', {
+        _count: { id: 4 },
+        _sum: { views: 8 }
+      });
+    });
+
+    test('maps the selection to the Prisma aggregation operators', async () => {
+      await service.aggregate({ select: { views: { sum: true } } });
+
+      expect(db.lastQuery('aggregate').args._sum).toEqual({ views: true });
+    });
+
+    test('maps the aggregation results back to the response format', async () => {
+      const result = await service.aggregate({
+        select: { views: { sum: true } },
+        dateField: 'createdAt',
+        from: '2026-01-01T00:00:00.000Z',
+        to: '2026-01-08T00:00:00.000Z'
+      });
+
+      expect(result.total).toEqual({ id: { count: 4 }, views: { sum: 8 } });
+      expect(result.items.length).toBeGreaterThan(0);
+      expect(result.items[0].result).toEqual({
+        id: { count: 4 },
+        views: { sum: 8 }
+      });
+    });
+
+    // The assertions on the response type are checked by `npm run test:typecheck`
+    test('types the response by the fields the selection named', async () => {
+      class TypedPostService extends ResourceService<{
+        id: number;
+        title: string;
+        views: number;
+        publishedAt: Date;
+      }> {
+        constructor() {
+          super('Post');
+        }
+      }
+
+      const result = await new TypedPostService().aggregate({
+        select: { views: { sum: true } }
+      });
+
+      // @ts-expect-error publishedAt was not part of the selection
+      const unselected = result.total.publishedAt;
+
+      expect(result.total.views?.sum).toBe(8);
+      expect(unselected).toBeUndefined();
+    });
+
+    test('splits the interval into periods', async () => {
+      const result = await service.aggregate({
+        select: { views: { sum: true } },
+        dateField: 'createdAt',
+        from: '2026-01-01T00:00:00.000Z',
+        to: '2026-01-08T00:00:00.000Z'
+      });
+
+      expect(result.items).toHaveLength(7);
+      expect(result.items[0].date).toBeInstanceOf(Date);
+    });
+
+    test('applies the date field range to every aggregation', async () => {
+      await service.aggregate({
+        select: { views: { sum: true } },
+        dateField: 'publishedAt',
+        from: '2026-01-01T00:00:00.000Z',
+        to: '2026-01-08T00:00:00.000Z'
+      });
+
+      const conditions = db.lastQuery('aggregate').args.where.AND;
+      expect(conditions[1]).toHaveProperty('publishedAt');
+    });
+
+    test('applies the query filter to the aggregation', async () => {
+      await service.aggregate({
+        filter: { title: 'First' },
+        select: {
+          views: { sum: true }
+        }
+      });
+
+      const conditions = db.lastQuery('aggregate').args.where.AND[0].AND;
+      expect(conditions[0]).toEqual({ title: 'First' });
+    });
+
+    describe('first and last operators', () => {
+      // A one second range keeps the aggregation to a single period, so the
+      // recorded queries belong to it and to the overall range alike
+      const from = '2026-01-01T00:00:00.000Z';
+      const to = '2026-01-01T00:00:01.000Z';
+
+      const findFirstQueries = () =>
+        db.queries.filter((query) => query.method === 'findFirst');
+
+      test('reads the boundary records of the range', async () => {
+        db.setResult('Post', 'aggregate', { _count: { _all: 2 } });
+        db.setResult('Post', 'findFirst', (args: any) => ({
+          views: args.orderBy[0].createdAt === 'asc' ? 3 : 9
+        }));
+
+        const result = await service.aggregate({
+          select: { views: { first: true, last: true } },
+          dateField: 'createdAt',
+          from,
+          to
+        });
+
+        expect(result.total).toEqual({ views: { first: 3, last: 9 } });
+        expect(result.items[0].result).toEqual({
+          views: { first: 3, last: 9 }
+        });
+      });
+
+      test('orders the boundary lookups by the aggregated date field', async () => {
+        db.setResult('Post', 'aggregate', { _count: { _all: 2 } });
+        db.setResult('Post', 'findFirst', { publishedAt: null });
+
+        await service.aggregate({
+          select: { views: { first: true } },
+          dateField: 'publishedAt',
+          from,
+          to
+        });
+
+        expect(findFirstQueries()).toHaveLength(1);
+        expect(findFirstQueries()[0].args).toMatchObject({
+          orderBy: [{ publishedAt: 'asc' }, { id: 'asc' }],
+          select: { views: true }
+        });
+      });
+
+      test('applies the range query to the boundary lookups', async () => {
+        db.setResult('Post', 'aggregate', { _count: { _all: 2 } });
+        db.setResult('Post', 'findFirst', { views: 3 });
+
+        await service.aggregate({
+          filter: { title: 'First' },
+          select: { views: { first: true } },
+          dateField: 'createdAt',
+          from,
+          to
+        });
+
+        const conditions = findFirstQueries()[0].args.where.AND;
+        expect(conditions[0].AND[0]).toEqual({ title: 'First' });
+        expect(conditions[1]).toHaveProperty('createdAt');
+      });
+
+      test('skips the boundary lookups of an empty range', async () => {
+        db.setResult('Post', 'aggregate', { _count: { _all: 0 } });
+
+        const result = await service.aggregate({
+          select: { views: { first: true, last: true } },
+          dateField: 'createdAt',
+          from,
+          to
+        });
+
+        expect(findFirstQueries()).toHaveLength(0);
+        expect(result.total).toEqual({ views: { first: null, last: null } });
+      });
+
+      test('reads no boundary record when the operators are not selected', async () => {
+        db.setResult('Post', 'aggregate', { _sum: { views: 8 } });
+
+        await service.aggregate({
+          select: { views: { sum: true } },
+          dateField: 'createdAt',
+          from,
+          to
+        });
+
+        expect(findFirstQueries()).toHaveLength(0);
+        expect(db.lastQuery('aggregate').args).not.toHaveProperty('_count');
+      });
+
+      test('leaves the counted records of the range out of the response', async () => {
+        db.setResult('Post', 'aggregate', {
+          _count: { _all: 2, views: 2 },
+          _sum: { views: 8 }
+        });
+        db.setResult('Post', 'findFirst', { views: 3 });
+
+        const result = await service.aggregate({
+          select: { views: { count: true, sum: true, first: true } },
+          dateField: 'createdAt',
+          from,
+          to
+        });
+
+        expect(result.total).toEqual({
+          views: { count: 2, sum: 8, first: 3 }
+        });
+      });
+    });
+
+    test('throws a bad request error for an empty selection', async () => {
+      await expect(
+        service.aggregate({ select: {} as any })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidAggregate,
+        message: expect.stringContaining(
+          'at least one field with a selected aggregation operator'
+        )
+      });
+    });
+
+    test('throws a bad request error for a field that cannot be aggregated', async () => {
+      await expect(
+        service.aggregate({ select: { title: { count: true } } as any })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidAggregate,
+        message: expect.stringContaining('not a numeric or date field')
+      });
+    });
+
+    test('throws a bad request error for an operator the field does not support', async () => {
+      await expect(
+        service.aggregate({ select: { publishedAt: { sum: true } } as any })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidAggregate,
+        message: expect.stringContaining("Cannot apply the 'sum' operator")
+      });
+    });
+
+    test('throws a bad request error for a date field that is not a date', async () => {
+      await expect(
+        service.aggregate({
+          select: { views: { sum: true } } as any,
+          dateField: 'title'
+        })
+      ).rejects.toMatchObject({
+        code: ErrorCode.ResourceInvalidAggregate,
+        message: expect.stringContaining('not a date field')
+      });
+    });
+
+    test('wraps a database error into a DatabaseError', async () => {
+      db.setResult(
+        'Post',
+        'aggregate',
+        prismaError('P2010', 'aggregation failed')
+      );
+
+      await expect(
+        service.aggregate({ select: { views: { sum: true } } as any })
+      ).rejects.toMatchObject({
+        code: ErrorCode.DatabaseOperationFailed,
+        message: expect.stringContaining('operation failed')
+      });
+    });
+
+    test('throws a DatabaseError for failures', async () => {
+      db.setResult(
+        'Post',
+        'aggregate',
+        prismaError('P2010', 'aggregation failed')
+      );
+
+      await expect(
+        service.aggregate({ select: { views: { sum: true } } as any })
+      ).rejects.toBeInstanceOf(DatabaseError);
+    });
+  });
+});

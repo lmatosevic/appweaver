@@ -1,4 +1,4 @@
-import { inject } from '../context';
+import { inject } from '../context/dependency-injection';
 import { LocaleService, Translations } from './locale-service';
 
 /**

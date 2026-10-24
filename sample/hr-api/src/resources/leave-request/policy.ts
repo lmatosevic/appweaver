@@ -1,5 +1,5 @@
 import { AuthUser } from '@appweaver/common';
-import { createPolicy } from '@appweaver/core';
+import { createPolicy } from '@appweaver/data';
 import { can, Permission } from '@/features/access/permissions';
 import { teamRestriction } from '@/features/access/team-restriction';
 

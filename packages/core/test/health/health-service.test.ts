@@ -1,5 +1,5 @@
 import { HEALTH_CHECK, HealthCheckStatus } from '@appweaver/common';
-import { define } from '../../context';
+import { define } from '../../context/dependency-injection';
 import { HealthService } from '../../health/health-service';
 import { resetContext } from '../fixtures/context-fixture';
 

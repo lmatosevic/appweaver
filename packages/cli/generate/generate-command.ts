@@ -1,10 +1,8 @@
 import { Command } from 'commander';
 import { config } from '@appweaver/common';
-import { databaseConfig } from '@appweaver/core/database/database-config';
-import { resourceConfig } from '@appweaver/core/resource/resource-config';
 import { generateTypes } from './generate-types';
 import { generateSchema } from './generate-schema';
-import { loadModels } from '../utils';
+import { importPackage, loadModels } from '../utils';
 
 /**
  * Registers the `generate` command, generating the types and the Prisma schema of the models.
@@ -45,6 +43,9 @@ export function generateCommand(program: Command): void {
     .option('--verbose', 'Print verbose output.')
     .action(async (_, command: Command) => {
       const quiet = !command.getOptionValue('verbose');
+      const { databaseConfig, resourceConfig } = await importPackage<
+        typeof import('@appweaver/data')
+      >('@appweaver/data', 'generate');
 
       const generateAll =
         !command.getOptionValue('types') && !command.getOptionValue('schema');

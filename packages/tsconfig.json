@@ -2,6 +2,9 @@
   "files": [],
   "references": [
     {
+      "path": "./bullmq/tsconfig.build.json"
+    },
+    {
       "path": "./cli/tsconfig.build.json"
     },
     {
@@ -15,6 +18,30 @@
     },
     {
       "path": "./create-weaver-app/tsconfig.build.json"
+    },
+    {
+      "path": "./cron/tsconfig.build.json"
+    },
+    {
+      "path": "./data/tsconfig.build.json"
+    },
+    {
+      "path": "./handlebars/tsconfig.build.json"
+    },
+    {
+      "path": "./nodemailer/tsconfig.build.json"
+    },
+    {
+      "path": "./redis/tsconfig.build.json"
+    },
+    {
+      "path": "./sharp/tsconfig.build.json"
+    },
+    {
+      "path": "./testing/tsconfig.build.json"
+    },
+    {
+      "path": "./web/tsconfig.build.json"
     }
   ]
 }

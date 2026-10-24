@@ -130,7 +130,8 @@ or a module is enabled. `injectCreated` returns the instance only once it is cre
 instantiates a class:
 
 ```ts
-import { HttpServer, injectCreated, isDefined } from '@appweaver/core';
+import { injectCreated, isDefined } from '@appweaver/core';
+import { HttpServer } from '@appweaver/web';
 import { Scheduler } from '@appweaver/common';
 
 if (isDefined(Scheduler)) {

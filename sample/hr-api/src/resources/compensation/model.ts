@@ -1,4 +1,4 @@
-import { createModel } from '@appweaver/core';
+import { createModel } from '@appweaver/data';
 
 /** A salary change, so the rows of an employee form their pay history. */
 export default createModel({

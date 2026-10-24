@@ -160,7 +160,7 @@ time are rejected with a `400` error.
 | `STORAGE_CACHE_TTL`          | `int`      | `86400000`                    | Cache TTL for storage responses in milliseconds (24h), also the validity of a storage URL    |
 | `STORAGE_FILES_ROUTE_PREFIX` | `string`   | `/files`                      | URL prefix for file access routes.                                                           |
 | `STORAGE_PROVIDER`           | `string`   | `'auto'`                      | `auto` (`local` unless another storage driver is enabled), `local`, `none`, or a module path |
-| `IMAGE_PROVIDER`             | `string`   | `'auto'`                      | `auto` (`sharp` when installed, otherwise none), `sharp`, `none`, or a module path           |
+| `IMAGE_PROVIDER`             | `string`   | `'auto'`                      | `auto` (`sharp` with `@appweaver/sharp`, otherwise none), `sharp`, `none`, or a module path  |
 
 **`appweaver.json` example:**
 
@@ -218,15 +218,16 @@ declares `files`.
 ### Image processing
 
 The `image` options of a file field (dimensions, fit, quality) are applied by the `ImageProcessor` contract of
-`@appweaver/common`, `supports(mimeType)` and `process(stream, mimeType, config?)`. Its `sharp` driver (`SharpImageProcessor`)
-is selected when `sharp` is installed. Without a processor (`IMAGE_PROVIDER=none`, or no `sharp`), the images are
-stored as they are uploaded.
+`@appweaver/common`, `supports(mimeType)` and `process(stream, mimeType, config?)`. Its `sharp` driver
+(`SharpImageProcessor` of `@appweaver/sharp`, a dependency of every scaffolded project) is selected when the package is
+installed. Without a processor (`IMAGE_PROVIDER=none`, or no `@appweaver/sharp`), the images are stored as they are
+uploaded.
 
 ### Injecting FileService
 
 ```ts
 import { inject } from '@appweaver/core';
-import { FileService } from '@appweaver/core';
+import { FileService } from '@appweaver/data';
 
 const fileService = inject(FileService);
 ```
@@ -238,7 +239,7 @@ When saving a file via `FileService`, you must provide the multipart data, the r
 
 ```ts
 import { inject, injectService } from '@appweaver/core';
-import { FileService } from '@appweaver/core';
+import { FileService } from '@appweaver/data';
 
 export class PostService {
   private readonly _fileService = inject(FileService);
@@ -268,7 +269,7 @@ checksum, `File` record), except the content comes from a buffer and the target 
 
 ```ts
 import { inject, injectService } from '@appweaver/core';
-import { FileService } from '@appweaver/core';
+import { FileService } from '@appweaver/data';
 
 const users = injectService('User');
 const user = await users.find(userId);

@@ -1,4 +1,4 @@
-import { createModel } from '@appweaver/core';
+import { createModel } from '@appweaver/data';
 
 /**
  * Joins a person to a movie, carrying what the plain many-to-many join table

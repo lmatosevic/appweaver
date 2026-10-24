@@ -1,4 +1,4 @@
-import { createModel } from '@appweaver/core';
+import { createModel } from '@appweaver/data';
 
 /** The response and resolution targets of one ticket priority. */
 export default createModel({

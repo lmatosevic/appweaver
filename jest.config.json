@@ -3,6 +3,10 @@
   "rootDir": ".",
   "testEnvironment": "node",
   "setupFiles": ["<rootDir>/jest.setup.js"],
+  "moduleNameMapper": {
+    "^@appweaver/(common|core|data|web|redis|bullmq|cron|nodemailer|handlebars|sharp|testing|cli|client|create-weaver-app)$": "<rootDir>/packages/$1/index",
+    "^@appweaver/(common|core|data|web|redis|bullmq|cron|nodemailer|handlebars|sharp|testing|cli|client|create-weaver-app)/(.*)$": "<rootDir>/packages/$1/$2"
+  },
   "testMatch": ["**/*.test.ts"],
   "testPathIgnorePatterns": ["/node_modules/", "/dist/"],
   "modulePathIgnorePatterns": ["<rootDir>/packages/[^/]+/dist/"],
@@ -40,7 +44,7 @@
     "packages/*/**/*.ts",
     "!**/test/**",
     "!**/*.d.ts",
-    "!packages/core/prisma/client/**",
+    "!packages/data/prisma/client/**",
     "!packages/client/generated/**"
   ],
   "coverageDirectory": "./reports",

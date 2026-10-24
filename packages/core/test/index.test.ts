@@ -1,15 +1,17 @@
 import * as core from '../index';
-import { CacheService } from '../cache';
+import { CacheService } from '../cache/cache-service';
 import { EmailService } from '../mailer/email-service';
-import { LocaleService, registerTranslations } from '../locale';
-import { registerTemplate, registerTemplateHelper } from '../template';
-import { FileService } from '../storage/file-service';
+import { LocaleService } from '../locale/locale-service';
+import { registerTranslations } from '../locale/register-translations';
+import {
+  registerTemplate,
+  registerTemplateHelper
+} from '../template/register-template';
 
 describe('index', () => {
   test('exports the services an application injects', () => {
     expect(core.CacheService).toBe(CacheService);
     expect(core.EmailService).toBe(EmailService);
-    expect(core.FileService).toBe(FileService);
     expect(core.LocaleService).toBe(LocaleService);
   });
 
@@ -19,9 +21,9 @@ describe('index', () => {
     expect(core.registerTranslations).toBe(registerTranslations);
   });
 
-  test('exports the config sections of the modules', () => {
-    expect(core.serverConfig).toBeDefined();
-    expect(core.databaseConfig).toBeDefined();
-    expect(core.securityConfig).toBeDefined();
+  test('exports the config sections of core', () => {
+    expect(core.memoryConfig).toBeDefined();
+    expect(core.mailerConfig).toBeDefined();
+    expect(core.storageConfig).toBeDefined();
   });
 });

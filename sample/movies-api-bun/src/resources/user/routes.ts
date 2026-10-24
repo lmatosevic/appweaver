@@ -1,4 +1,4 @@
-import { createRoutes } from '@appweaver/core';
+import { createRoutes } from '@appweaver/web';
 import { Role } from '@/features/access/roles';
 
 // Members edit their own profile, only admins browse and manage accounts

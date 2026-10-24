@@ -5,7 +5,7 @@ import {
   Queue,
   TemplateEngine
 } from '@appweaver/common';
-import { define } from '../../context';
+import { define } from '../../context/dependency-injection';
 import { EmailService } from '../../mailer/email-service';
 import { resetContext } from '../fixtures/context-fixture';
 

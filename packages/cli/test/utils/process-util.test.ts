@@ -26,7 +26,7 @@ import os from 'node:os';
 import path from 'node:path';
 import fkill from 'fkill';
 import { appConfig } from '@appweaver/common';
-import { databaseConfig } from '@appweaver/core/database/database-config';
+import { databaseConfig } from '@appweaver/data/database/database-config';
 import {
   assertEnv,
   assertEnvs,

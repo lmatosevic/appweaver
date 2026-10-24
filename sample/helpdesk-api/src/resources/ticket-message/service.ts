@@ -1,4 +1,5 @@
-import { CacheService, createService, inject } from '@appweaver/core';
+import { CacheService, inject } from '@appweaver/core';
+import { createService } from '@appweaver/data';
 import db from '@db/client';
 import { TicketMessage } from '@/types';
 import { sendAgentReply } from '@/features/notifications/ticket-emails';

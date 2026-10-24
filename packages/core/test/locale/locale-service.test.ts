@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import * as common from '@appweaver/common';
 import { ErrorCode, logger } from '@appweaver/common';
-import { LocaleService } from '../../locale';
+import { LocaleService } from '../../locale/locale-service';
 
 const { configOverrides } = common as unknown as {
   configOverrides: Record<string, unknown>;

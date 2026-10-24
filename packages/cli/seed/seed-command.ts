@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { createSeeder } from '@appweaver/core';
+import { importPackage } from '../utils';
 import { buildProject } from '../build';
 
 /**
@@ -40,6 +40,9 @@ export function seedCommand(program: Command): void {
         await buildProject(projectFile);
       }
 
+      const { createSeeder } = await importPackage<
+        typeof import('@appweaver/data')
+      >('@appweaver/data', 'seed');
       const seeder = await createSeeder({
         seedersPath,
         continueOnError,

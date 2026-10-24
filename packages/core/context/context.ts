@@ -1,4 +1,4 @@
-import { ApplicationContext } from '../types';
+import { ApplicationContext } from '../types/application-context';
 
 export const context: ApplicationContext = {
   resource: {

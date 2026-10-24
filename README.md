@@ -66,6 +66,15 @@ This creates a `./my-app` directory, installs all dependencies, and runs the ini
 base project has no optional module: add them with `--add`, all of them with `--all` (leaving some out with
 `--no-<module>`), or later with `weaver module add`.
 
+Without the scaffolder, an API installs the runtime, the database and the server packages, and a driver package for
+each library it uses (never the library itself):
+
+```sh
+npm install @appweaver/core @appweaver/common @appweaver/data @appweaver/web @prisma/client
+npm install -D @appweaver/cli prisma typescript
+npm install @appweaver/redis @appweaver/bullmq @appweaver/nodemailer  # optional drivers
+```
+
 Common options:
 
 | Flag                 | Description                                                               | Default      |
@@ -163,7 +172,7 @@ A resource is the core building block of an Appweaver API. Create four files und
 **model.ts** – defines database fields, relations, files, and I/O restrictions:
 
 ```ts
-import { createModel } from '@appweaver/core';
+import { createModel } from '@appweaver/data';
 
 export default createModel({
   name: 'Post',
@@ -188,7 +197,7 @@ export default createModel({
 **service.ts** – business logic and lifecycle hooks:
 
 ```ts
-import { createService } from '@appweaver/core';
+import { createService } from '@appweaver/data';
 
 export default createService({
   modelName: 'Post',
@@ -199,7 +208,7 @@ export default createService({
 **routes.ts** – which CRUD endpoints to expose and their auth/cache settings:
 
 ```ts
-import { createRoutes } from '@appweaver/core';
+import { createRoutes } from '@appweaver/web';
 
 export default createRoutes({
   modelName: 'Post',
@@ -213,7 +222,7 @@ export default createRoutes({
 **policy.ts** – row-level access control (the user is `null` for an unauthenticated request):
 
 ```ts
-import { createPolicy } from '@appweaver/core';
+import { createPolicy } from '@appweaver/data';
 
 export default createPolicy({
   modelName: 'Post',
@@ -240,9 +249,9 @@ weaver migrate                              # apply new database migration
 
 ### `@appweaver/core`
 
-The heart of the framework. Provides factory functions for creating resources (models, services, routes, policies),
-authentication, dependency injection, file storage, queues, cron scheduler, mailer, templates and translations,
-caching, events, and the HTTP server.
+The runtime of every application, with neither a server nor a database: the modules, the lifecycle, dependency
+injection, the auth user context, and the in-process drivers (memory, cache, queue, events, local file storage), with
+the email, locale and health services.
 
 ```ts
 import { createApp } from '@appweaver/core';
@@ -251,14 +260,43 @@ import { createApp } from '@appweaver/core';
 createApp().catch(console.error);
 ```
 
+The application is assembled from modules: core, the npm packages declaring an `appweaver.module` field (the
+`@appweaver/*` packages below among them), and the local `src/modules/*/module.ts`. A package module is enabled by
+being a dependency of the project, and a driver is selected by its `provider` key (`auto` by default). See
+[`skill/references/modules.md`](./skill/references/modules.md).
+
+### `@appweaver/data`
+
+The database module, built on Prisma: the factory functions of the resources (`createModel`, `createService`,
+`createPolicy`), the resource services, the auth data model (`createAuthModel`, `createAuthService`, roles,
+permissions, API keys), `FileService`, the seeders and the CSV export.
+
 Only the model is required: a service needs the model, routes need the service, and an optional policy needs only
 the model. Define each in its own file under `src/resources/<name>/` and the framework autoloads them on startup. They
 can also be created and exported from a single file.
 
-The application is assembled from modules: the framework's own, a driver per installed library (Redis, BullMQ, Cron,
-Nodemailer, Handlebars, Sharp) selected by its `provider` key (`auto` by default), npm packages declaring an
-`appweaver.module` field, and the local `src/modules/*/module.ts`. See
-[`skill/references/modules.md`](./skill/references/modules.md).
+### `@appweaver/web`
+
+The HTTP module, built on Fastify: the server, the resource routes (`createRoutes`), custom routes and plugins
+(`registerRoute`, `registerPlugin`), JWT, API key, Basic and OAuth2 authentication, the RFC 9457 problem details and
+Swagger. It requires `@appweaver/data`, and an application without a server leaves it out.
+
+### Drivers
+
+One package per library, each carrying the library as a dependency and enabled by installing it:
+
+| Package                 | Provides                                                                 |
+|-------------------------|--------------------------------------------------------------------------|
+| `@appweaver/redis`      | The `redis` memory (ioredis), also the store of the cache and rate limit |
+| `@appweaver/bullmq`     | The `bullmq` queue, requires `@appweaver/redis`                          |
+| `@appweaver/cron`       | The `cron` scheduler                                                     |
+| `@appweaver/nodemailer` | The `smtp` mailer                                                        |
+| `@appweaver/handlebars` | The `handlebars` template engine                                         |
+| `@appweaver/sharp`      | The `sharp` image processor of the uploads                               |
+
+### `@appweaver/testing`
+
+The test helpers of the packages and their modules: `resetContext`, `linkModels` and `createDatabaseStub`.
 
 ### `@appweaver/common`
 

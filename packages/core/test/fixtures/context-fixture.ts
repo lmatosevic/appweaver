@@ -1,4 +1,4 @@
-import { context } from '../../context';
+import { context } from '../../context/context';
 
 /**
  * Clears every definition from the shared application context so each test

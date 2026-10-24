@@ -29,6 +29,8 @@ Tests are located in `packages/*/test` and use **Jest** with **SWC** for fast ex
 - **Running all tests**: `npm test`
 - **Running specific tests**: `jest path/to/file.test.ts`
 - **Type-checking the tests**: `npm run test:typecheck`
+- **Test helpers**: `resetContext`, `linkModels`, `createDatabaseStub` and `prismaError` of `@appweaver/testing`
+  (`packages/testing`), shared by the tests of every package
 
 ### Naming and layout
 
@@ -71,14 +73,16 @@ describe('Feature Verification', () => {
 ### `packages/common`
 
 Shared utilities, logger, configuration, and base types used by all other packages. Contains foundational TypeScript
-interfaces, type definitions, and helper utilities consumed by `packages/core` and `packages/cli`.
+interfaces, type definitions, and helper utilities consumed by every other package.
 
 The config is split into sections declared with `defineConfig` (`packages/common/config/define-config.ts`), each in the
 module it belongs to: `appConfig` and `logConfig` in `packages/common/config/app-config.ts`, the other ones in a
-`<module>-config.ts` file of their `packages/core` directory (`serverConfig` in `server/server-config.ts`, ...). A
+`<module>-config.ts` file of their package directory (`serverConfig` in `packages/web/server/server-config.ts`,
+`databaseConfig` in `packages/data/database/database-config.ts`, `redisConfig` in `packages/redis/config.ts`, ...). A
 section reads its keys by their short names (`serverConfig.PORT` for `SERVER_PORT`), its TypeBox schema gives the
-types, and a doc comment above each key describes it. Tests override any key with `configOverrides` of
-`@appweaver/common`, by its flattened name.
+types, and a doc comment above each key describes it. Two packages may define the same section path with their own
+keys (`healthCheck` in core and web, `security.oauth2` in data and web), but a flattened key belongs to one section
+only. Tests override any key with `configOverrides` of `@appweaver/common`, by its flattened name.
 
 When adding or changing a config key, make sure to also update all the following files:
 
@@ -93,63 +97,95 @@ Code outside the API layer never throws an HTTP error. Every module throws a sub
 of `packages/common/errors` (`ResourceError`, `AuthError`, `DatabaseError`, ...), carrying a code of the
 `ErrorCode` enum and typed details. Every error class lives in `packages/common/errors/module-errors.ts`, and the
 application error codes are declared with `defineErrors` of `packages/common/errors/define-errors.ts`, with their HTTP
-status and title. Only `core/errors` maps a code to its HTTP status (`errorHttpMap`) and responds with RFC 9457
+status and title. Only `web/errors` maps a code to its HTTP status (`errorHttpMap`) and responds with RFC 9457
 problem details. Wrap the errors of Prisma calls with `toDatabaseError`, which names the violated
 constraint. When adding an error code:
 
 - add it to `ErrorCode` in `packages/common/errors/error-code.ts`, prefixed with the module raising it
 - add its details to `ErrorDetailsMap` in `packages/common/errors/error-details.ts`, unless it carries none
-- map it in `errorHttpMap` of `packages/core/errors/error-http-map.ts` (a missing code fails to compile)
+- map it in `errorHttpMap` of `packages/web/errors/error-http-map.ts` (a missing code fails to compile)
 - list it in the `errorResponses` of the routes responding with it, and in `skill/references/errors.md`
+
+### Framework packages
+
+The framework is split into packages, each a module (see the module system below) an application enables by depending
+on it:
+
+| Package                                                 | Holds                                                                                        |
+|---------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| `@appweaver/core`                                       | The runtime: modules, lifecycle, dependency injection, the in-process drivers                |
+| `@appweaver/data`                                       | Prisma, the resources, the auth data model, `FileService`, the seeders and the CSV export    |
+| `@appweaver/web`                                        | The Fastify server, the resource routes, the authentication, the problem details and Swagger |
+| `@appweaver/redis`, `bullmq`, `cron`, `nodemailer`, ... | One driver each, carrying the library it wraps as a dependency                               |
+| `@appweaver/testing`                                    | The test helpers shared by the packages                                                      |
+
+The directories moved as they were, so a file keeps its path within its package (`core/server/register-route.ts` is
+now `web/server/register-route.ts`). `@appweaver/common` and `@appweaver/core` are peer dependencies of every other
+package, `@appweaver/data` also of `@appweaver/web`. A package imports another one by its package name (and its
+subpaths, i.e. `@appweaver/core/context/context`), never by a relative path.
 
 ### `packages/core`
 
-Core application logic. Organized into the following modules:
+The runtime every application has, with neither a server nor a database. Organized into the following modules:
 
-| Module       | Purpose                                                                                                                                                              |
-|--------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `app/`       | Application lifecycle: module discovery (`discover-modules.ts`), provider selection (`load-providers.ts`), loading the app files, lifecycle hooks                    |
-| `database/`  | Database client factory and Prisma setup                                                                                                                             |
-| `server/`    | Fastify HTTP server creation, the `HttpServer` lifecycle service of the web module, route registration, model mounting, Swagger/OpenAPI                              |
-| `security/`  | Authentication and authorization — sub-modules for JWT, OAuth2, API key, basic auth, reCAPTCHA, Turnstile, account management, and security token storage (`store/`) |
-| `resource/`  | CRUD resource lifecycle: loading, routing, schema validation, and service layer                                                                                      |
-| `factory/`   | Factory helpers for creating models, policies, routes, and services                                                                                                  |
-| `storage/`   | File upload and management — filesystem storage, the sharp `ImageProcessor`, and file service/routes                                                                 |
-| `queue/`     | Background job queues — BullMQ (on the Redis memory) and in-memory implementations                                                                                   |
-| `scheduler/` | Cron job scheduling service                                                                                                                                          |
-| `seeder/`    | Database seeding utilities                                                                                                                                           |
-| `mailer/`    | Email service — SMTP and JSON (dev/test) mailer implementations, rendering the template emails                                                                       |
-| `template/`  | Template engine — the Handlebars implementation of `TemplateEngine` and its helpers, without any templates of its own                                                |
-| `locale/`    | Locale service — translating the dotted keys of the nested JSON translation files, with the framework's own English translations                                     |
-| `cache/`     | Caching layer abstractions and the cache stored in the `Memory` provider                                                                                             |
-| `memory/`    | The `Memory` drivers: in-process (`memory`) and Redis (`redis`)                                                                                                      |
-| `context/`   | Dependency injection container and utility functions                                                                                                                 |
-| `health/`    | Health check endpoint and service registration, and the `node:http` health listener of an app without web (`HEALTH_PORT`)                                            |
-| `export/`    | Data export service (CSV and other formats)                                                                                                                          |
-| `events/`    | Node.js event emitter integration                                                                                                                                    |
-| `errors/`    | The API error layer: error code to HTTP status map, `defineErrors`, RFC 9457 problem details, error handler and `errorResponses` schemas                             |
-| `types/`     | TypeScript type definitions (hand-written and generated)                                                                                                             |
-| `utils/`     | Utility functions shared across modules or meant for library users (see the placement rule below)                                                                    |
-| `modules/`   | The manifests of the first-party modules (core, data, web, redis, bullmq, cron, nodemailer, handlebars, sharp), a driver enabled with its library                    |
+| Module       | Purpose                                                                                                                              |
+|--------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| `app/`       | `createApp`, `Application`, module discovery (`discover-modules.ts`), provider selection (`load-providers.ts`), app files, lifecycle |
+| `modules/`   | The manifest of the core module (`core.ts`): every contract and its in-process driver, the only module of `firstPartyModules`        |
+| `context/`   | Dependency injection container (`define`, `inject`, `injectService`, ...), the auth user context (`runAs`) and the transaction scope |
+| `cache/`     | The `Cache` stored in the `Memory` provider, its eviction indexes and `CacheService`                                                 |
+| `memory/`    | The in-process `memory` driver of `Memory`                                                                                           |
+| `events/`    | The `node` driver of `Events`                                                                                                        |
+| `storage/`   | The `local` filesystem driver of `Storage`                                                                                           |
+| `queue/`     | The in-process `memory` driver of `Queue`                                                                                            |
+| `scheduler/` | The scheduler config, its driver is `@appweaver/cron`                                                                                |
+| `mailer/`    | `EmailService`, rendering the template emails, and the `json` mailer of development and tests                                        |
+| `template/`  | The template config and `registerTemplate` / `registerTemplateHelper`, the engine is `@appweaver/handlebars`                         |
+| `locale/`    | Locale service — translating the dotted keys of the nested JSON translation files, with the framework's own English translations     |
+| `health/`    | `HealthService`, and the `node:http` health listener of an app without web (`HEALTH_PORT`)                                           |
+| `security/`  | The `security.store` config and the `memory` security store (`store/`)                                                               |
+| `types/`     | `ApplicationContext`                                                                                                                 |
+| `utils/`     | `createSchemaModel`                                                                                                                  |
 
 **Module system**: every part of the framework is a module declared with `defineModule`
 (`packages/common/module/define-module.ts`): the contracts it declares, its providers (drivers) by name, its services,
-resources, `main` and `web` parts. `discoverModules` enables the first-party modules of `core/modules`, the
-dependencies with an `appweaver.module` field in their `package.json`, the local manifests of `APP_MODULES_PATTERN` and
-the paths of `APP_MODULES`, minus `APP_MODULES_DISABLED`, ordered by their `requires`. `loadProviders` defines the
-provider of every contract from its `*.provider` key: `auto` (the default) picks the driver of an enabled module, else
-the fallback of core, `none` disables the contract and the services requiring it, a name selects a provider, and a
-module path still loads a class. The provider names are `memory` and `redis` (`Memory`), `memory` (`Cache`), `node`
-(`Events`), `local` (`Storage`), `database` and `memory` (`SecurityStore`), `memory` and `bullmq` (`Queue`), `smtp` and
-`json` (`Mailer`), `handlebars` (`TemplateEngine`), `cron` (`Scheduler`), `prisma` (`Database`) and `sharp`
-(`ImageProcessor`). A new driver goes into a module manifest with a provider name, never into `load-providers.ts`, and
-is documented in `skill/references/modules.md` and `skill/references/configuration.md`.
+its `setup`, resources, `main` and `web` parts. `discoverModules` enables the core module, the dependencies with an
+`appweaver.module` field in their `package.json` (and the modules they `require`), the local manifests of
+`APP_MODULES_PATTERN` and the paths of `APP_MODULES`, minus `APP_MODULES_DISABLED`, ordered by their `requires`.
+`createApp` then loads the providers and services, runs the `setup` of every module (data loads the resources of the
+app and the modules, web the resource routes and the `web` parts), the `main` parts, then the app files.
+`loadProviders` defines the provider of every contract from its `*.provider` key: `auto` (the default) picks the
+driver of an enabled module, else the fallback of core, `none` disables the contract and the services requiring it, a
+name selects a provider, and a module path still loads a class. The provider names are `memory` and `redis`
+(`Memory`), `memory` (`Cache`), `node` (`Events`), `local` (`Storage`), `database` and `memory` (`SecurityStore`),
+`memory` and `bullmq` (`Queue`), `smtp` and `json` (`Mailer`), `handlebars` (`TemplateEngine`), `cron` (`Scheduler`),
+`prisma` (`Database`) and `sharp` (`ImageProcessor`). A new driver goes into a module manifest with a provider name,
+never into `load-providers.ts`, and is documented in `skill/references/modules.md` and
+`skill/references/configuration.md`.
 
-**Utility placement rule**: `core/utils` holds helpers shared by two or more modules, or ones useful to library users
-directly. Helpers internal to a single module go in that module's own `utils/` directory (i.e. `core/resource/utils`),
-keeping `core/utils` a leaf that depends only on `context` and `types` and so cannot form import cycles.
+**Utility placement rule**: the `utils/` of a package holds helpers shared by two or more of its modules, or ones
+useful to library users directly. Helpers internal to a single module go in that module's own `utils/` directory (i.e.
+`data/resource/utils`), keeping `utils/` a leaf that cannot form import cycles.
 
-**Core development scripts** (run from `packages/core`):
+### `packages/data`
+
+The database module (`@appweaver/data`), built on Prisma, with `@prisma/client` as a peer dependency. Its `setup`
+loads the resources of the application, then the `resources` of the modules.
+
+| Module      | Purpose                                                                                                                                            |
+|-------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `database/` | `PrismaDatabase` (the `prisma` driver of `Database`), the client factory, `runTransaction` and `toDatabaseError`                                   |
+| `resource/` | Resource loading (`loadResources`), `ResourceService`, the model, filter, sort and aggregate schemas, the query `utils/`                           |
+| `factory/`  | `createModel`, `createPolicy` and `createService`                                                                                                  |
+| `security/` | The auth data model (`createAuthModel`, `hashPassword`, `hasRole`, ...), its config, the auth models (`resources/`), the `database` security store |
+| `storage/`  | `FileService`, the File model and the image config                                                                                                 |
+| `seeder/`   | `createSeeder` and the Seeder model                                                                                                                |
+| `export/`   | `ExportService` (CSV)                                                                                                                              |
+| `types/`    | The auth and storage types, and the generated types of the framework models (`generated.ts`)                                                       |
+| `utils/`    | Helpers shared by the modules or meant for library users: export, file, model, policy and virtual field utilities                                  |
+| `prisma/`   | The generated Prisma schema, client and migration of the framework models                                                                          |
+
+**Data development scripts** (run from `packages/data`):
 
 ```bash
 # Generate TypeScript types and Prisma schema from resource model files
@@ -162,12 +198,12 @@ npm run generate
 npm run db:recreate
 ```
 
-**IMPORTANT**: whenever a resource schema in `packages/core` changes — any `model.ts` under `security/resources/`,
+**IMPORTANT**: whenever a resource schema in `packages/data` changes — any `model.ts` under `security/resources/`,
 `storage/resources/`, `seeder/resources/`, etc. (adding, removing, or altering a scalar, relation, virtual field, or
 index) — you must regenerate the types and the Prisma directory contents, then recreate the test database:
 
 ```bash
-cd packages/core
+cd packages/data
 npm run generate      # refresh types/generated.ts, prisma/schema.prisma and prisma/client
 npm run db:recreate   # drop dev.db, remove the *_init migration and recreate it from the new schema
 ```
@@ -175,16 +211,64 @@ npm run db:recreate   # drop dev.db, remove the *_init migration and recreate it
 A stale `prisma/client` makes Prisma reject writes with a misleading "Unknown argument" naming an *unrelated* field
 (usually `createdById`) — suspect regeneration before the calling code.
 
-`weaver generate` loads the core models from the built `node_modules/@appweaver/core`, not from source, so run
-`npm run build` before `npm run generate` (if the build fails on the stale types, it still emits: run
+`weaver generate` runs from the built `node_modules/@appweaver/cli`, and the model files of `data` import the built
+`@appweaver/core` and `@appweaver/common`, so run `npm run build` before `npm run generate` (if the build fails on the stale types, it still emits: run
 `node tools/copy-packages.js`, generate, then build again).
 
 Downstream sample projects need the same refresh; in `sample/cms-api` use `npm run generate` then
 `weaver migration new <name>`, since it keeps a real migration history.
 
+### `packages/web`
+
+The HTTP module (`@appweaver/web`), built on Fastify. Its manifest `requires` `@appweaver/data`, and its `setup` loads
+the resource routes of the application (`RESOURCE_ROUTES_PATTERN`), then the `web` part of every module. It augments
+`Application` with `app.server` and `app.spec()`.
+
+| Module      | Purpose                                                                                                                                        |
+|-------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| `server/`   | Fastify server creation, the `HttpServer` lifecycle service, `registerRoute`, `registerPlugin`, `registerModel`, Swagger/OpenAPI               |
+| `resource/` | The resource routes and their schemas, the route loader (the `setup`) and the route `utils/`                                                   |
+| `factory/`  | `createRoutes`                                                                                                                                 |
+| `security/` | Authentication and authorization — `AuthService`, JWT, OAuth2, API key, basic auth, reCAPTCHA, Turnstile, account management, `access-util.ts` |
+| `errors/`   | The API error layer: error code to HTTP status map (`errorHttpMap`), RFC 9457 problem details, error handler and `errorResponses` schemas      |
+| `health/`   | The health check routes and their config                                                                                                       |
+| `cache/`    | The response caching of the routes                                                                                                             |
+| `storage/`  | The file routes                                                                                                                                |
+| `template/` | The template preview route of development                                                                                                      |
+| `types/`    | The `Server` and `Router` types, the Fastify extensions and the HTTP auth types                                                                |
+
+### Driver packages
+
+`packages/{redis,bullmq,cron,nodemailer,handlebars,sharp}` each hold one driver, its `module.ts` manifest and, when it
+has one, its `config.ts` section. The library a driver wraps is a dependency of its package, so an application
+installs `@appweaver/redis`, never `ioredis`.
+
+| Package                 | Driver                     | Provider                        | Config                          |
+|-------------------------|----------------------------|---------------------------------|---------------------------------|
+| `@appweaver/redis`      | `RedisMemory`              | `redis` (`Memory`)              | `redisConfig` (`memory.redis`)  |
+| `@appweaver/bullmq`     | `BullQueue`                | `bullmq` (`Queue`)              | — (requires `@appweaver/redis`) |
+| `@appweaver/cron`       | `CronScheduler`            | `cron` (`Scheduler`)            | —                               |
+| `@appweaver/nodemailer` | `SmtpMailer`               | `smtp` (`Mailer`)               | `smtpConfig` (`mailer.smtp`)    |
+| `@appweaver/handlebars` | `HandlebarsTemplateEngine` | `handlebars` (`TemplateEngine`) | —                               |
+| `@appweaver/sharp`      | `SharpImageProcessor`      | `sharp` (`ImageProcessor`)      | —                               |
+
+### `packages/testing`
+
+`@appweaver/testing` holds the test helpers of the packages and their modules: `resetContext` (clears the application
+context between tests), `linkModels` (links the models defined in a test), `createDatabaseStub` (records the queries of
+a stubbed Prisma client) and `prismaError`. The tests of `data`, `web` and the drivers import them from
+`@appweaver/testing`, and the other packages by their names (`@appweaver/core`, `@appweaver/data`), never by a relative
+path into another package. Jest maps every `@appweaver/*` import to the sources of its package (`moduleNameMapper` of
+`jest.config.json`), so the tests need no build and share one instance of each module.
+
 ### `packages/cli`
 
 The `weaver` CLI tool. Entry point: `weaver.ts` → compiled to `dist/weaver.js`.
+
+It needs only `@appweaver/core`. `@appweaver/data` and `@appweaver/web` are optional peer dependencies, loaded lazily by
+the commands needing them (`importPackage` of `utils/package-util.ts`): `generate`, `test setup` and `seed` need data,
+`openapi` needs web. Without the package, they exit with `weaver <command> needs the <package> package` (`openapi`
+with a message naming the disabled `@appweaver/web` module).
 
 See **Section 5** for the full command reference.
 
@@ -225,7 +309,11 @@ The `create-weaver-app` module is a project scaffolding tool that generates new 
 
 A generated project starts from the base template (`templates/base/`) and adds the optional modules selected with
 `--add <modules...>` or `--all` (minus the `--no-<module>` ones): `redis`, `queue` (requires `redis`), `scheduler`,
-`mailer`, `templates`, `locales` and `docker`. The scaffolding engine lives in `scaffold/` and is exported as
+`mailer`, `templates`, `locales` and `docker`. The base project depends on `@appweaver/cli`, `common`, `core`, `data`,
+`web` and `sharp`, and a module adds its driver package: `@appweaver/redis` (`redis`), `@appweaver/bullmq` (`queue`),
+`@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`) and `@appweaver/handlebars` (`templates`), every
+`@appweaver/*` package at the framework version, the version of `create-weaver-app` (`scaffold/package-versions.ts`).
+The scaffolding engine lives in `scaffold/` and is exported as
 `@appweaver/create-weaver-app/scaffold`, which `weaver module add|remove` of `packages/cli` uses on an existing
 project, so both apply the same templates. `@appweaver/cli` depends on `@appweaver/create-weaver-app` at its exact
 version (`tools/copy-packages.js` pins the `@appweaver/*` dependencies of the published manifests).
@@ -264,11 +352,11 @@ both variants render the same text.
 
 The versions of every npm package a generated project installs (except the `@appweaver/*` packages, which follow the
 CLI's own version) are kept in the `scaffoldDependencies` field of the **root** `package.json`, split into `companion`
-(packages the framework uses at runtime or as a peer: Prisma, TypeBox, BullMQ, Cron, Handlebars, IoRedis, Nodemailer,
-TypeScript) and `tooling` (lint and test setup). The base template receives them through the `{{DEPENDENCIES}}` and
-`{{DEV_DEPENDENCIES}}` variables, and the modules write theirs into `package.json`, so bump versions there, not in the
-templates. Keep the versions equal to the root
-`dependencies` and `devDependencies`, which a test checks.
+(packages the framework uses as a peer: Prisma and its driver adapters, TypeBox, TypeScript) and `tooling` (lint and
+test setup). The base template receives them through the `{{DEPENDENCIES}}` and `{{DEV_DEPENDENCIES}}` variables, and
+the modules write theirs into `package.json`, so bump versions there, not in the templates. Keep the versions equal
+to the root `dependencies` and `devDependencies`, which a test checks. The libraries of the drivers (BullMQ, Cron,
+Handlebars, IoRedis, Nodemailer, Sharp) are not among them, since they are dependencies of the driver packages.
 
 A package lists the root fields it needs in its own `rootFields` array (`cli` and `create-weaver-app` list
 `scaffoldDependencies`). `tools/copy-packages.js` copies them into `dist/package.json` and strips `rootFields`, the same
@@ -325,9 +413,9 @@ Running with no flags generates **both** types and schema. The generated types r
 `ResourceRegistry` of `@appweaver/common`, so the factories and `injectService` infer the model types from a model
 name. The models come from the project and from the `resources` of the enabled modules. The framework models are left
 out unless used: `Role`, `Permission`, `ApiKey`, `OneTimeToken` and `ConnectedAccount` without an auth model, `File`
-without a model declaring `files`, `Seeder` without a seeders directory (`core/resource/utils/prune-util.ts`). Core's
-own `npm run generate` passes `--no-registry` and `--no-prune`, since the registry belongs to the application and core
-keeps every model.
+without a model declaring `files`, `Seeder` without a seeders directory (`data/resource/utils/prune-util.ts`). The
+`npm run generate` of `packages/data` passes `--no-registry` and `--no-prune`, since the registry belongs to the
+application and data keeps every model.
 
 ---
 
@@ -418,7 +506,7 @@ weaver openapi [options]
 | `-f, --format [format]`    | Output format for the specification (`json` or `yaml`) | `json`           |
 
 With `--format yaml` and the default output path, the specification is written to `./openapi.yaml`. Fails with a message
-when the `@appweaver/web` module is disabled.
+when the `@appweaver/web` module is not installed or disabled.
 
 ---
 
@@ -548,15 +636,15 @@ weaver upgrade [packages...] [options]
 |---------------|--------------------------------------------------------------------------------------------------------------------------|---------------------------------------|
 | `[packages…]` | One or more package names to upgrade (e.g. `@appweaver/core @appweaver/cli`). Only `@appweaver/*` packages are upgraded. | All installed `@appweaver/*` packages |
 
-| Option                       | Description                                                                         | Default  |
-|------------------------------|-------------------------------------------------------------------------------------|----------|
-| `--target-version [version]` | The version to upgrade the packages to.                                             | `latest` |
-| `--no-skill`                 | Skip upgrading AI agent skill files in agent directories (`.claude`, `.agents`, …). | upgraded |
-| `--no-companions`            | Skip upgrading the companion packages (Prisma, BullMQ, Cron, IoRedis, Nodemailer…). | upgraded |
-| `--tooling`                  | Also upgrade the tooling packages (ESLint, Jest, SWC, Prettier…).                   | false    |
-| `--dry-run`                  | Print the packages that would be upgraded without installing them.                  | false    |
-| `-f, --force`                | Force upgrade despite `peerDependency` version mismatches.                          | false    |
-| `--verbose`                  | Print verbose output.                                                               | false    |
+| Option                       | Description                                                                           | Default  |
+|------------------------------|---------------------------------------------------------------------------------------|----------|
+| `--target-version [version]` | The version to upgrade the packages to.                                               | `latest` |
+| `--no-skill`                 | Skip upgrading AI agent skill files in agent directories (`.claude`, `.agents`, …).   | upgraded |
+| `--no-companions`            | Skip upgrading the companion packages (Prisma and its adapters, TypeBox, TypeScript). | upgraded |
+| `--tooling`                  | Also upgrade the tooling packages (ESLint, Jest, SWC, Prettier…).                     | false    |
+| `--dry-run`                  | Print the packages that would be upgraded without installing them.                    | false    |
+| `-f, --force`                | Force upgrade despite `peerDependency` version mismatches.                            | false    |
+| `--verbose`                  | Print verbose output.                                                                 | false    |
 
 The companion packages the project already has are bumped to the exact versions in the `scaffoldDependencies` of the
 target `@appweaver/cli` release (`npm view` / `bun info`), in the same install as the `@appweaver/*` packages so the
@@ -768,7 +856,8 @@ Scaffolded with `create-weaver-app`, each showcases a different part of the fram
   name and user are `${DB_NAME:-<sample name>}` and `${DB_USER:-<sample name>}`, also in the compose database service.
   The MySQL sample mounts `database/mariadb-init.sh`, granting its user the shadow and the test databases.
 - The driver adapters of all the samples are root dev dependencies, so the samples run on the root `node_modules`.
-- Each sample also declares every package it needs, locked in its own `package-lock.json` (`bun.lock` for the Bun
+- Each sample also declares every package it needs (`@appweaver/data`, `@appweaver/web` and the driver packages it
+  uses, `@appweaver/sharp` for the image transforms), locked in its own `package-lock.json` (`bun.lock` for the Bun
   sample) to the published `@appweaver/*` release, so its Docker image builds with a clean install outside the
   monorepo. The lockfiles are regenerated after every release, or on demand with `npm run samples:lock`.
 - The Node samples build before their end-to-end tests (`pree2e`), since the application loads the compiled `dist/src`.
@@ -799,21 +888,28 @@ This runs the following steps automatically:
    from commit messages since the last tag.
 3. **Release notes** (`@semantic-release/release-notes-generator`) — builds human-readable notes.
 4. **Changelog** (`@semantic-release/changelog`) — appends notes to `CHANGELOG.md`.
-5. **Version bump** (`@semantic-release/npm`, no publish) — updates `version` in:
-    - `package.json` (root)
-    - `packages/core/package.json`
-    - `packages/common/package.json`
-    - `packages/cli/package.json`
-    - `packages/client/package.json`
-    - `packages/create-weaver-app/package.json`
+5. **Version bump** (`@semantic-release/npm`, no publish) — updates `version` in the root `package.json` and in the
+   `package.json` of every published package, listed in `release.config.js` (and `tools/lock-samples.js`): `core`,
+   `common`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `handlebars`, `sharp`, `testing`, `cli`, `client`
+   and `create-weaver-app`.
 6. **Package copy** (`@semantic-release/exec`) — runs `node ./tools/copy-packages.js` to sync built packages into
    `node_modules/@appweaver`.
 7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the npm registry:
     ```bash
-    cd packages/core/dist    && npm publish
-    cd packages/common/dist  && npm publish
-    cd packages/cli/dist     && npm publish
-    cd packages/client/dist  && npm publish
+    cd packages/core/dist              && npm publish
+    cd packages/common/dist            && npm publish
+    cd packages/data/dist              && npm publish
+    cd packages/web/dist               && npm publish
+    cd packages/redis/dist             && npm publish
+    cd packages/bullmq/dist            && npm publish
+    cd packages/cron/dist              && npm publish
+    cd packages/nodemailer/dist        && npm publish
+    cd packages/handlebars/dist        && npm publish
+    cd packages/sharp/dist             && npm publish
+    cd packages/testing/dist           && npm publish
+    cd packages/cli/dist               && npm publish
+    cd packages/client/dist            && npm publish
+    cd packages/create-weaver-app/dist && npm publish
     ```
 8. **Git commit** (`@semantic-release/git`) — commits the updated `package.json` files and `CHANGELOG.md` with a chore
    commit, then tags the release.

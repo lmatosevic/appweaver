@@ -1,6 +1,6 @@
 import net from 'node:net';
 import { configOverrides, HealthCheckStatus } from '@appweaver/common';
-import { define } from '../../context';
+import { define } from '../../context/dependency-injection';
 import { HealthListener } from '../../health/health-listener';
 import { HealthService } from '../../health/health-service';
 import { resetContext } from '../fixtures/context-fixture';

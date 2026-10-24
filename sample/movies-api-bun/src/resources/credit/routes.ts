@@ -1,4 +1,4 @@
-import { createRoutes } from '@appweaver/core';
+import { createRoutes } from '@appweaver/web';
 import { catalogEditors } from '@/features/access/roles';
 
 export default createRoutes({

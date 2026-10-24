@@ -8,8 +8,3 @@ export const memoryConfig = defineConfig('memory', {
   /** Maximum size of the in-memory store. */
   MAX_SIZE: Type.Optional(Type.String())
 });
-
-export const redisConfig = defineConfig('memory.redis', {
-  /** Redis connection URL. Default: `'redis://localhost:6379/0'`. */
-  URL: Type.String({ default: 'redis://localhost:6379/0' })
-});

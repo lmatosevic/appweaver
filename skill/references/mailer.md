@@ -1,9 +1,9 @@
 # Mailer
 
-The mailer module sends transactional emails. Its driver `SmtpMailer` (provider `smtp`) uses Nodemailer over SMTP and
-is selected when `nodemailer` is installed. The `JsonMailer` of core (provider `json`, selected by name only) writes
-the emails into the log instead of sending them, for development and tests. Without a driver, or with
-`MAILER_PROVIDER=none`, no `Mailer` and no `EmailService` are defined, and the email features (email verification,
+The mailer module sends transactional emails. Its driver `SmtpMailer` (provider `smtp`) of `@appweaver/nodemailer` uses
+Nodemailer over SMTP and is selected when the package is installed. The `JsonMailer` of core (provider `json`, selected
+by name only) writes the emails into the log instead of sending them, for development and tests. Without a driver, or
+with `MAILER_PROVIDER=none`, no `Mailer` and no `EmailService` are defined, and the email features (email verification,
 password reset, 2FA) respond with `501`.
 
 ## Injecting Mailer
@@ -74,16 +74,16 @@ Verifies that the mail transport is reachable (`transporter.verify()` for SMTP).
 
 ## Configuration
 
-| Key                     | Type     | Default       | Description                                                                                              |
-|-------------------------|----------|---------------|----------------------------------------------------------------------------------------------------------|
-| `MAILER_PROVIDER`       | `string` | `'auto'`      | `auto` (`smtp` when `nodemailer` is installed, otherwise none), `smtp`, `json`, `none`, or a module path |
-| `MAILER_SENDER_NAME`    | `string` | —             | Display name of the default sender                                                                       |
-| `MAILER_SENDER_ADDRESS` | `string` | —             | Address of the default sender                                                                            |
-| `MAILER_SMTP_HOST`      | `string` | `'127.0.0.1'` | SMTP server hostname                                                                                     |
-| `MAILER_SMTP_PORT`      | `int`    | `587`         | SMTP server port                                                                                         |
-| `MAILER_SMTP_SECURE`    | `bool`   | `false`       | Use TLS (`true` for port 465)                                                                            |
-| `MAILER_SMTP_USER`      | `string` | —             | SMTP authentication username                                                                             |
-| `MAILER_SMTP_PASSWORD`  | `string` | —             | SMTP authentication password                                                                             |
+| Key                     | Type     | Default       | Description                                                                                            |
+|-------------------------|----------|---------------|--------------------------------------------------------------------------------------------------------|
+| `MAILER_PROVIDER`       | `string` | `'auto'`      | `auto` (`smtp` with `@appweaver/nodemailer`, otherwise none), `smtp`, `json`, `none`, or a module path |
+| `MAILER_SENDER_NAME`    | `string` | —             | Display name of the default sender                                                                     |
+| `MAILER_SENDER_ADDRESS` | `string` | —             | Address of the default sender                                                                          |
+| `MAILER_SMTP_HOST`      | `string` | `'127.0.0.1'` | SMTP server hostname                                                                                   |
+| `MAILER_SMTP_PORT`      | `int`    | `587`         | SMTP server port                                                                                       |
+| `MAILER_SMTP_SECURE`    | `bool`   | `false`       | Use TLS (`true` for port 465)                                                                          |
+| `MAILER_SMTP_USER`      | `string` | —             | SMTP authentication username                                                                           |
+| `MAILER_SMTP_PASSWORD`  | `string` | —             | SMTP authentication password                                                                           |
 
 **`appweaver.json` example:**
 
@@ -275,19 +275,19 @@ the locale as their last argument. The framework ships no templates of its own:
 | `emails/password-reset`  | `email`, `link`                                |
 | `emails/two-factor-code` | `email`, `code`, `purpose`, `expiresInMinutes` |
 
-An email is rendered when its `.html` or `.txt` template exists, with the translated `emails.<email>.subject` key
-when it has no `.subject` template. Without a template, or without the `handlebars` package, it is sent as plain text
-built from the `emails.*` translations, which the framework defines in English and `locales/<locale>.json` overrides.
+An email is rendered when its `.html` or `.txt` template exists, with the translated `emails.<email>.subject` key when
+it has no `.subject` template. Without a template, or without the `@appweaver/handlebars` package, it is sent as plain
+text built from the `emails.*` translations, which the framework defines in English and `locales/<locale>.json`
+overrides.
 
 A project scaffolded with the `mailer`, `templates` and `locales` modules starts with the `.html` and `.subject`
 templates of all three emails in `templates/emails/`, sharing the `layouts/email.html` layout and the
 `partials/email-button.html` partial, and with their English keys in `locales/en.json`. Their plain text is derived from
 the HTML, add a `.txt` template only for a text that should read differently. Edit them freely, or delete them to send
-the plain text. Without the `locales` module, the templates hold the English texts themselves and there is no
-`locales/` directory; without the `templates` module, the emails are sent as plain text of `locales/en.json`. Removing
-the `mailer` module (`weaver module remove mailer`) deletes these templates, and without `nodemailer` no mailer is
-selected.
-See [templates.md](./templates.md).
+the plain text. Without the `locales` module, the templates hold the English texts themselves and there is no `locales/`
+directory; without the `templates` module, the emails are sent as plain text of `locales/en.json`. Removing the `mailer`
+module (`weaver module remove mailer`) deletes these templates, and without `@appweaver/nodemailer` no mailer is
+selected. See [templates.md](./templates.md).
 
 ---
 

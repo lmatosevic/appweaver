@@ -1,4 +1,4 @@
-import { createRoutes } from '@appweaver/core';
+import { createRoutes } from '@appweaver/web';
 import { Role } from '@/features/access/roles';
 
 export default createRoutes({

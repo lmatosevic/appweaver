@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { registerRoute } from '@appweaver/core';
+import { registerRoute } from '@appweaver/web';
 import { Role } from '@/features/access/roles';
 import { refreshTrendingScores } from './trending-job';
 

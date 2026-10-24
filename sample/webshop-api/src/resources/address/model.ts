@@ -1,4 +1,4 @@
-import { createModel } from '@appweaver/core';
+import { createModel } from '@appweaver/data';
 
 /** A shipping address saved to the account of a customer. */
 export default createModel({

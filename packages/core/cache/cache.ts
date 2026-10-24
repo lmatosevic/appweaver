@@ -7,12 +7,10 @@ import {
   textToBytes
 } from '@appweaver/common';
 import { cacheConfig } from './cache-config';
-import {
-  EvictionIndex,
-  FifoEvictionIndex,
-  LfuEvictionIndex,
-  LruEvictionIndex
-} from './eviction';
+import { EvictionIndex } from './eviction/eviction-index';
+import { FifoEvictionIndex } from './eviction/fifo-eviction-index';
+import { LfuEvictionIndex } from './eviction/lfu-eviction-index';
+import { LruEvictionIndex } from './eviction/lru-eviction-index';
 
 export abstract class Cache extends CommonCache {
   /** @internal */

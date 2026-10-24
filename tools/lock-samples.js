@@ -17,7 +17,22 @@ const { packagesDir, distDir } = require('./constants');
 
 const samplesDir = 'sample';
 const registryUrl = 'https://registry.npmjs.org/';
-const lockedPackages = ['core', 'common', 'cli', 'client', 'create-weaver-app'];
+const lockedPackages = [
+  'core',
+  'common',
+  'data',
+  'web',
+  'redis',
+  'bullmq',
+  'cron',
+  'nodemailer',
+  'handlebars',
+  'sharp',
+  'testing',
+  'cli',
+  'client',
+  'create-weaver-app'
+];
 
 const cliArgs = process.argv.slice(2);
 const commit = cliArgs.includes('--commit');

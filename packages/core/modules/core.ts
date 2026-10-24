@@ -16,7 +16,7 @@ import { mailerConfig } from '../mailer/mailer-config';
 import { memoryConfig } from '../memory/memory-config';
 import { queueConfig } from '../queue/queue-config';
 import { schedulerConfig } from '../scheduler/scheduler-config';
-import { securityStoreConfig } from '../security/security-config';
+import { securityStoreConfig } from '../security/security-store-config';
 import { storageConfig } from '../storage/storage-config';
 import { templateConfig } from '../template/template-config';
 

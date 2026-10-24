@@ -1,6 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import { ErrorCode, TwoFactorAuth } from '@appweaver/common';
-import { errorResponses, injectService, registerRoute } from '@appweaver/core';
+import { errorResponses, registerRoute } from '@appweaver/web';
+import { injectService } from '@appweaver/core';
 import db from '@db/client';
 import { Role } from '@/features/access/roles';
 

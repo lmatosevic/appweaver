@@ -1,4 +1,4 @@
-import { createRoutes } from '@appweaver/core';
+import { createRoutes } from '@appweaver/web';
 import { Permission } from '@/features/access/permissions';
 
 // The directory is open to every employee, the policy decides who may change

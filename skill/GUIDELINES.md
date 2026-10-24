@@ -33,11 +33,14 @@ import { logger } from '@appweaver/common';
 createApp().catch((err) => logger.error(err));
 ```
 
-The framework is assembled from modules: `@appweaver/core`, `@appweaver/data` (Prisma, resources), `@appweaver/web`
-(the server) and a driver module per installed library (`ioredis`, `bullmq`, `cron`, `nodemailer`, `handlebars`,
-`sharp`). Each `provider` key defaults to `auto` (the driver of an enabled module), `none` turns a contract off, and
-`APP_MODULES_DISABLED=@appweaver/web` runs a worker or scheduled jobs without a server (`HEALTH_PORT` answers the
-health checks). See [modules.md](references/modules.md).
+The framework is assembled from modules: `@appweaver/core`, `@appweaver/data` (Prisma, resources, factories),
+`@appweaver/web` (the server, routes, auth, errors) and a driver package per library (`@appweaver/redis`,
+`@appweaver/bullmq`, `@appweaver/cron`, `@appweaver/nodemailer`, `@appweaver/handlebars`, `@appweaver/sharp`), each
+enabled by being a dependency of the project. Install the driver package, never its library (`@appweaver/redis`, not
+`ioredis`), and import each name from the package exporting it (`createModel` from `@appweaver/data`, `createRoutes`
+from `@appweaver/web`). Each `provider` key defaults to `auto` (the driver of an enabled module), `none` turns a
+contract off, and `APP_MODULES_DISABLED=@appweaver/web` runs a worker or scheduled jobs without a server (`HEALTH_PORT`
+answers the health checks). See [modules.md](references/modules.md).
 
 ## Creating resources
 
@@ -70,7 +73,7 @@ needs only the model.
 
 ```ts
 // src/resources/product/model.ts
-import { createModel } from '@appweaver/core';
+import { createModel } from '@appweaver/data';
 
 export default createModel({
   name: 'Product',
@@ -103,7 +106,7 @@ The side holding the foreign key of a one-to-many relation is a `manyToOne` rela
 
 ```ts
 // src/resources/product/service.ts
-import { createService } from '@appweaver/core';
+import { createService } from '@appweaver/data';
 
 export default createService({
   modelName: 'Product',
@@ -132,7 +135,7 @@ const first = await products.single({ title: 'Lamp' }); // the first match or nu
 
 ```ts
 // src/resources/product/routes.ts
-import { createRoutes } from '@appweaver/core';
+import { createRoutes } from '@appweaver/web';
 
 export default createRoutes({
   modelName: 'Product',
@@ -147,7 +150,7 @@ export default createRoutes({
 
 ```ts
 // src/resources/product/policy.ts
-import { createPolicy } from '@appweaver/core';
+import { createPolicy } from '@appweaver/data';
 
 export default createPolicy({
   modelName: 'Product',
@@ -173,7 +176,7 @@ registrations/logins (return nothing to proceed, or a string/`Error` to abort).
 
 ```ts
 // src/resources/user/model.ts
-import { createAuthModel } from '@appweaver/core';
+import { createAuthModel } from '@appweaver/data';
 
 export default createAuthModel({
   name: 'User',
@@ -184,7 +187,7 @@ export default createAuthModel({
 
 ```ts
 // src/resources/user/service.ts
-import { createAuthService } from '@appweaver/core';
+import { createAuthService } from '@appweaver/data';
 
 export default createAuthService({
   modelName: 'User',
@@ -199,7 +202,7 @@ export default createAuthService({
 
 ```ts
 // src/features/custom-route.ts
-import { registerRoute, Router } from '@appweaver/core';
+import { registerRoute, Router } from '@appweaver/web';
 import { Type } from '@sinclair/typebox';
 
 registerRoute(
@@ -217,7 +220,7 @@ registerRoute(
 
 ```ts
 // src/features/custom-model.ts
-import { registerModel } from '@appweaver/core';
+import { registerModel } from '@appweaver/web';
 import { Type } from '@sinclair/typebox';
 
 registerModel(
@@ -232,7 +235,7 @@ registerModel(
 
 ```ts
 // src/plugins/audit-log.ts
-import { registerPlugin } from '@appweaver/core';
+import { registerPlugin } from '@appweaver/web';
 
 registerPlugin('audit-log', async (server) => {
   server.addHook('onResponse', async (request, reply) => {
@@ -264,7 +267,7 @@ Seeder files export async functions and run in alphabetical order. Prefix filena
 
 ```ts
 // database/seeders/001-create-admin-user.ts
-import { hashPassword } from '@appweaver/core';
+import { hashPassword } from '@appweaver/data';
 import { db } from '@db/client';
 
 export async function createAdminUser(): Promise<void> {

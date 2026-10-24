@@ -25,6 +25,10 @@ under Bun automatically when the project is configured for the Bun runtime.
 npm install -D @appweaver/cli
 ```
 
+The CLI needs only `@appweaver/core`. `weaver generate`, `weaver seed` and `weaver test setup` use the
+`@appweaver/data` package of the project, `weaver openapi` its `@appweaver/web`, and they exit naming the package when
+it is missing.
+
 ## Usage
 
 ```sh

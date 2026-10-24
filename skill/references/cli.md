@@ -3,6 +3,9 @@
 All long flags are kebab-case. A flag that turns a default behavior off is a `--no-*` negation (`--no-registry`,
 `--no-skill`), so leaving it out keeps the behavior on. `-v` is reserved for `--version`; `--verbose` has no short form.
 
+The CLI needs only `@appweaver/core`. `generate`, `seed` and `test setup` load the `@appweaver/data` package of the
+project when they run, and exit with `weaver <command> needs the @appweaver/data package` without it.
+
 ## `weaver` — Top-level
 
 ```
@@ -58,7 +61,7 @@ Generate application OpenAPI specification schema.
 
 When `--format yaml` is used and `--output-path` is left at its default, the output path becomes `./openapi.yaml`.
 Missing output directories are created automatically. The command fails with a message when the `@appweaver/web`
-module is disabled (`APP_MODULES_DISABLED`).
+module is not installed or disabled (`APP_MODULES_DISABLED`).
 
 ---
 
@@ -147,15 +150,15 @@ Add and remove the optional modules of `create-weaver-app` in an existing projec
 installed `@appweaver/cli`. A module is enabled when the project depends on its packages, `locales` and `docker` when
 `locales/` and `Dockerfile` exist.
 
-| Module      | Packages     | Requires | Files                                                                                               |
-|-------------|--------------|----------|-----------------------------------------------------------------------------------------------------|
-| `redis`     | `ioredis`    | —        | The Redis service of `docker-compose.yml`                                                           |
-| `queue`     | `bullmq`     | `redis`  | —                                                                                                   |
-| `scheduler` | `cron`       | —        | —                                                                                                   |
-| `mailer`    | `nodemailer` | —        | The email templates of `templates/` (`emails/`, `layouts/email`, `partials/email-button`)           |
-| `templates` | `handlebars` | —        | `templates/`, the Dockerfile `COPY` of the templates                                                |
-| `locales`   | —            | —        | `locales/en.json`, the Dockerfile `COPY` of the translation files                                   |
-| `docker`    | —            | —        | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`, `database/mariadb-init.sh` (MySQL) |
+| Module      | Packages                | Requires | Files                                                                                               |
+|-------------|-------------------------|----------|-----------------------------------------------------------------------------------------------------|
+| `redis`     | `@appweaver/redis`      | —        | The Redis service of `docker-compose.yml`                                                           |
+| `queue`     | `@appweaver/bullmq`     | `redis`  | —                                                                                                   |
+| `scheduler` | `@appweaver/cron`       | —        | —                                                                                                   |
+| `mailer`    | `@appweaver/nodemailer` | —        | The email templates of `templates/` (`emails/`, `layouts/email`, `partials/email-button`)           |
+| `templates` | `@appweaver/handlebars` | —        | `templates/`, the Dockerfile `COPY` of the templates                                                |
+| `locales`   | —                       | —        | `locales/en.json`, the Dockerfile `COPY` of the translation files                                   |
+| `docker`    | —                       | —        | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`, `database/mariadb-init.sh` (MySQL) |
 
 ### `weaver module list`
 
@@ -325,9 +328,11 @@ Requires `NODE_ENV=test`.
 weaver upgrade|up [options] [packages...]
 ```
 
-Upgrade the Appweaver packages. The companion packages installed in the project are bumped along to the exact versions
-the target release is built with, read from the `scaffoldDependencies` of `@appweaver/cli` in the registry. Missing
-packages are never added and newer ones never downgraded. Run `weaver generate` afterward when Prisma is upgraded.
+Upgrade the Appweaver packages. The companion packages installed in the project (Prisma and its adapters, TypeBox,
+TypeScript) are bumped along to the exact versions the target release is built with, read from the
+`scaffoldDependencies` of `@appweaver/cli` in the registry. The libraries of the drivers come with their `@appweaver/*`
+packages. Missing packages are never added and newer ones never downgraded. Run `weaver generate` afterward when Prisma
+is upgraded.
 
 **Arguments:**
 

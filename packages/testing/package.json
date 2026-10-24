@@ -1,0 +1,42 @@
+{
+  "name": "@appweaver/testing",
+  "version": "1.12.2",
+  "description": "Appweaver - the backend framework for AI-first development (@testing)",
+  "author": "Luka Matosevic",
+  "license": "MIT",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "keywords": [
+    "appweaver",
+    "testing"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lmatosevic/appweaver.git",
+    "directory": "packages/testing"
+  },
+  "maintainers": [
+    {
+      "name": "Luka Matosevic",
+      "email": "lukamatosevic5@gmail.com",
+      "web": "https://lukamatosevic.com"
+    }
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">= 24.7"
+  },
+  "peerDependencies": {
+    "@appweaver/common": "^1.12.2",
+    "@appweaver/core": "^1.12.2"
+  },
+  "devDependencies": {
+    "@appweaver/common": "^1.12.2",
+    "@appweaver/core": "^1.12.2"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "0.34.49"
+  }
+}

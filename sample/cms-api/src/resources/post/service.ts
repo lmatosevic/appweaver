@@ -1,4 +1,5 @@
-import { createService, injectService } from '@appweaver/core';
+import { createService } from '@appweaver/data';
+import { injectService } from '@appweaver/core';
 import { logger } from '@appweaver/common';
 
 export default createService({

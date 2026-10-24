@@ -1,4 +1,4 @@
-import { createPolicy } from '@appweaver/core';
+import { createPolicy } from '@appweaver/data';
 import { teamRestriction } from '@/features/access/team-restriction';
 
 export default createPolicy({

@@ -1,4 +1,4 @@
-import { systemConfig } from '@appweaver/core';
+import { systemConfig } from '@appweaver/data';
 import { db } from '@db/client';
 
 /** A category tree, the tags, two pages, the posts, and their comments. */

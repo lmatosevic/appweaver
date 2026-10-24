@@ -1,11 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import { ErrorCode } from '@appweaver/common';
-import {
-  currentAuthUser,
-  errorResponses,
-  registerModel,
-  registerRoute
-} from '@appweaver/core';
+import { currentAuthUser } from '@appweaver/core';
+import { errorResponses, registerModel, registerRoute } from '@appweaver/web';
 import { ShopErrors } from '@/errors';
 import { checkout } from './checkout';
 

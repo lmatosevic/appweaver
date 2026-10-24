@@ -1,5 +1,5 @@
 import { TemplateEngine, TemplateHelper } from '@appweaver/common';
-import { inject } from '../context';
+import { inject } from '../context/dependency-injection';
 
 /**
  * Registers a template from a source string, taking precedence over a template file of the same name and locale.

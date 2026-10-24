@@ -1,5 +1,5 @@
 import { makeHash, randomString } from '@appweaver/common';
-import { apiKeyConfig } from '@appweaver/core';
+import { apiKeyConfig } from '@appweaver/data';
 import { db } from '@db/client';
 import { Role } from '@/features/access/roles';
 

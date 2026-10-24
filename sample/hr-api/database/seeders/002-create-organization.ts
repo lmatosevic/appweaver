@@ -1,4 +1,4 @@
-import { hashPassword } from '@appweaver/core';
+import { hashPassword } from '@appweaver/data';
 import { db } from '@db/client';
 import { allowanceFor } from '@/features/leave/leave-accrual';
 import { countWorkingDays } from '@/features/leave/working-days';

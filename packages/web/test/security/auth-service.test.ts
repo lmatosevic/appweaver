@@ -1,0 +1,938 @@
+import { argon2Sync, randomBytes } from 'node:crypto';
+import {
+  AuthOTTPurpose,
+  AuthScope,
+  AuthSource,
+  AuthUser,
+  CONFIG,
+  Events,
+  RESOURCE_AUTH,
+  RESOURCE_MODEL_TYPE,
+  RESOURCE_NAME,
+  RESOURCE_SERVICE_TYPE,
+  RESOURCE_TYPE,
+  SecurityStore,
+  TwoFactorAuth,
+  ErrorCode
+} from '@appweaver/common';
+import { jwtConfig, securityConfig } from '../../security/security-config';
+import { context } from '@appweaver/core/context/context';
+import { define, inject, CacheService } from '@appweaver/core';
+import {
+  FileService,
+  checkPassword,
+  hashPassword,
+  arePoliciesSkipped
+} from '@appweaver/data';
+import { AuthService } from '../../security/auth-service';
+import { OAuth2Service } from '../../security/oauth2/oauth2-service';
+import { resetContext } from '@appweaver/testing';
+import { prismaError } from '@appweaver/testing';
+
+describe('auth-service', () => {
+  let authUserService: any;
+  let securityStore: any;
+  let connectedAccountService: any;
+  let cacheService: any;
+  let fileService: any;
+  let signedTokens: any[];
+  let eventListeners: Record<string, (data: any) => Promise<void>>;
+  let service: AuthService;
+
+  /** An Argon2id hash with a lower memory cost than the current one. */
+  const outdatedHash = (password: string) => {
+    const salt = randomBytes(16);
+    const key = argon2Sync('argon2id', {
+      message: password,
+      nonce: salt,
+      memory: 1024,
+      passes: 2,
+      parallelism: 1,
+      tagLength: 32
+    });
+    const encode = (bytes: Buffer) =>
+      bytes.toString('base64').replace(/=+$/, '');
+    return `$argon2id$v=19$m=1024,t=2,p=1$${encode(salt)}$${encode(key)}`;
+  };
+
+  const user = (overrides: Partial<AuthUser> = {}): AuthUser => ({
+    id: 1,
+    email: 'user@test.com',
+    enabled: true,
+    roles: [],
+    twoFactorAuth: TwoFactorAuth.None,
+    ...overrides
+  });
+
+  beforeEach(() => {
+    resetContext();
+
+    authUserService = {
+      modelName: 'User',
+      client: { name: 'User' },
+      find: jest.fn(),
+      single: jest.fn().mockResolvedValue(null),
+      create: jest.fn(),
+      update: jest
+        .fn()
+        .mockImplementation(async (id, data) => ({ id, ...data })),
+      [RESOURCE_TYPE]: RESOURCE_SERVICE_TYPE,
+      [RESOURCE_AUTH]: true,
+      [RESOURCE_NAME]: 'User',
+      [CONFIG]: {}
+    };
+    define(authUserService, 'User');
+
+    context.resource.models.set('User', {
+      name: 'User',
+      [RESOURCE_TYPE]: RESOURCE_MODEL_TYPE,
+      [RESOURCE_AUTH]: true
+    } as any);
+
+    connectedAccountService = {
+      modelName: 'ConnectedAccount',
+      single: jest.fn().mockResolvedValue(null),
+      create: jest.fn().mockResolvedValue({ id: 1 }),
+      update: jest.fn().mockResolvedValue({ id: 1 })
+    };
+    context.resource.services.set('ConnectedAccount', connectedAccountService);
+
+    securityStore = {
+      useOneTimeToken: jest.fn(),
+      createOneTimeToken: jest.fn()
+    };
+    define(securityStore, SecurityStore as any);
+
+    cacheService = {
+      // Suffixed like the real key, so a key built by hand does not match it
+      buildCacheKey: jest
+        .fn()
+        .mockImplementation((data: any) => `${data.baseKey}:inv`),
+      getCachedValue: jest.fn().mockResolvedValue(null),
+      addToCache: jest.fn().mockResolvedValue(true),
+      removeCachedValue: jest.fn().mockResolvedValue(true)
+    };
+    define(cacheService, CacheService);
+
+    eventListeners = {};
+    define(
+      {
+        onResourceEvent: jest.fn((model, event, listener) => {
+          eventListeners[`${model}.${event}`] = listener;
+          return `${model}.${event}`;
+        })
+      },
+      Events as any
+    );
+
+    fileService = {
+      saveBuffer: jest.fn().mockResolvedValue({ id: 1 })
+    };
+    define(fileService, FileService);
+
+    // exchangeToken delegates the OAuth2 account linking to it
+    define(new OAuth2Service(), OAuth2Service);
+
+    signedTokens = [];
+    define(
+      {
+        instance: {
+          jwt: {
+            sign: (payload: any, options: any) => {
+              signedTokens.push({ payload, options });
+              return `token-${signedTokens.length}`;
+            }
+          }
+        }
+      },
+      'HttpServer',
+      'override'
+    );
+
+    service = new AuthService();
+  });
+
+  afterAll(() => {
+    resetContext();
+  });
+
+  describe('findById', () => {
+    test('returns the cached user without querying the service', async () => {
+      cacheService.getCachedValue.mockResolvedValue(user());
+
+      await expect(service.findById(1)).resolves.toMatchObject({ id: 1 });
+      expect(authUserService.find).not.toHaveBeenCalled();
+    });
+
+    test('loads and caches the user on a cache miss', async () => {
+      authUserService.find.mockResolvedValue(user());
+
+      await expect(service.findById(1)).resolves.toMatchObject({ id: 1 });
+
+      expect(authUserService.find).toHaveBeenCalledWith(1);
+      expect(cacheService.addToCache).toHaveBeenCalledWith(
+        'auth:1:inv',
+        expect.objectContaining({ id: 1 }),
+        securityConfig.CACHE_TTL
+      );
+    });
+
+    test('wraps a lookup failure into a server error', async () => {
+      authUserService.find.mockRejectedValue(prismaError('P2010', 'db down'));
+
+      await expect(service.findById(1)).rejects.toMatchObject({
+        code: ErrorCode.DatabaseOperationFailed,
+        message: expect.stringContaining('operation failed')
+      });
+    });
+  });
+
+  describe('findByUsername', () => {
+    test('queries the user by email', async () => {
+      authUserService.single.mockResolvedValue(user());
+
+      await expect(
+        service.findByUsername('user@test.com')
+      ).resolves.toMatchObject({ id: 1 });
+      expect(authUserService.single).toHaveBeenCalledWith({
+        email: 'user@test.com'
+      });
+    });
+
+    test('returns null when no user matches', async () => {
+      await expect(
+        service.findByUsername('missing@test.com')
+      ).resolves.toBeNull();
+    });
+
+    test('does not cache a missing user', async () => {
+      await service.findByUsername('missing@test.com');
+
+      expect(cacheService.addToCache).not.toHaveBeenCalled();
+    });
+
+    test('returns the cached user', async () => {
+      cacheService.getCachedValue.mockResolvedValue(user());
+
+      await expect(
+        service.findByUsername('user@test.com')
+      ).resolves.toMatchObject({ id: 1 });
+      expect(authUserService.single).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('authenticate', () => {
+    test('returns the user for valid credentials', async () => {
+      const passwordHash = await hashPassword('Str0ng!Pass');
+      authUserService.single.mockResolvedValue(user({ passwordHash }));
+
+      await expect(
+        service.authenticate('user@test.com', 'Str0ng!Pass')
+      ).resolves.toMatchObject({ id: 1 });
+    });
+
+    test('rejects an unknown user', async () => {
+      await expect(
+        service.authenticate('missing@test.com', 'Str0ng!Pass')
+      ).rejects.toMatchObject({
+        code: ErrorCode.AuthInvalidCredentials,
+        message: expect.stringContaining('Invalid user credentials')
+      });
+    });
+
+    test('rejects a disabled user', async () => {
+      const passwordHash = await hashPassword('Str0ng!Pass');
+      authUserService.single.mockResolvedValue(
+        user({ passwordHash, enabled: false })
+      );
+
+      await expect(
+        service.authenticate('user@test.com', 'Str0ng!Pass')
+      ).rejects.toMatchObject({ code: ErrorCode.AuthInvalidCredentials });
+    });
+
+    test('rejects a user without a password hash', async () => {
+      authUserService.single.mockResolvedValue(user());
+
+      await expect(
+        service.authenticate('user@test.com', 'Str0ng!Pass')
+      ).rejects.toMatchObject({ code: ErrorCode.AuthInvalidCredentials });
+    });
+
+    test('rejects an invalid password', async () => {
+      const passwordHash = await hashPassword('Str0ng!Pass');
+      authUserService.single.mockResolvedValue(user({ passwordHash }));
+
+      await expect(
+        service.authenticate('user@test.com', 'wrong')
+      ).rejects.toMatchObject({
+        code: ErrorCode.AuthInvalidCredentials,
+        message: expect.stringContaining('Invalid user credentials')
+      });
+    });
+
+    test('rejects an unknown user and an invalid password alike', async () => {
+      const passwordHash = await hashPassword('Str0ng!Pass');
+      authUserService.single.mockResolvedValue(user({ passwordHash }));
+      const invalidPassword = await service
+        .authenticate('user@test.com', 'wrong')
+        .catch((e) => e);
+
+      authUserService.single.mockResolvedValue(null);
+      const unknownUser = await service
+        .authenticate('missing@test.com', 'wrong')
+        .catch((e) => e);
+
+      expect(unknownUser.code).toBe(invalidPassword.code);
+      expect(unknownUser.message).toBe(invalidPassword.message);
+    });
+
+    test('keeps a hash made with the current parameters', async () => {
+      const passwordHash = await hashPassword('Str0ng!Pass');
+      authUserService.single.mockResolvedValue(user({ passwordHash }));
+
+      await service.authenticate('user@test.com', 'Str0ng!Pass');
+
+      expect(authUserService.update).not.toHaveBeenCalled();
+    });
+
+    test('rehashes a hash made with outdated parameters', async () => {
+      const passwordHash = outdatedHash('Str0ng!Pass');
+      authUserService.single.mockResolvedValue(user({ passwordHash }));
+
+      await service.authenticate('user@test.com', 'Str0ng!Pass');
+
+      expect(authUserService.update).toHaveBeenCalledWith(1, {
+        passwordHash: expect.stringMatching(
+          /^\$argon2id\$v=19\$m=19456,t=2,p=1\$/
+        )
+      });
+      const [, data] = authUserService.update.mock.calls[0];
+      await expect(
+        checkPassword('Str0ng!Pass', data.passwordHash)
+      ).resolves.toBe(true);
+    });
+
+    test('authenticates the user when the rehash fails', async () => {
+      const passwordHash = outdatedHash('Str0ng!Pass');
+      authUserService.single.mockResolvedValue(user({ passwordHash }));
+      authUserService.update.mockRejectedValue(new Error('Database down'));
+
+      await expect(
+        service.authenticate('user@test.com', 'Str0ng!Pass')
+      ).resolves.toMatchObject({ id: 1 });
+    });
+  });
+
+  describe('authorize', () => {
+    test('allows an enabled user without route restrictions', () => {
+      expect(() => service.authorize(user(), '/api/posts')).not.toThrow();
+    });
+
+    test('rejects a missing user', () => {
+      expect(() => service.authorize(null, '/api/posts')).toThrow(
+        'Unauthorized access'
+      );
+    });
+
+    test('rejects a disabled user', () => {
+      expect(() =>
+        service.authorize(user({ enabled: false }), '/api/posts')
+      ).toThrow('Unauthorized access');
+    });
+
+    const seconds = (date: Date) => Math.floor(date.getTime() / 1000);
+
+    test('rejects a token issued before the last logout', () => {
+      const logoutAt = new Date();
+
+      expect(() =>
+        service.authorize(user({ logoutAt }), '/api/posts', {}, {
+          scope: AuthScope.Auth,
+          iat: seconds(logoutAt) - 1
+        } as any)
+      ).toThrow('Unauthorized access');
+    });
+
+    test('accepts a token issued after the last logout', () => {
+      const logoutAt = new Date(Date.now() - 5000);
+
+      expect(() =>
+        service.authorize(user({ logoutAt }), '/api/posts', {}, {
+          scope: AuthScope.Auth,
+          iat: seconds(logoutAt) + 1
+        } as any)
+      ).not.toThrow();
+    });
+
+    test('accepts a token issued within the same second as the logout', () => {
+      const logoutAt = new Date();
+
+      expect(() =>
+        service.authorize(user({ logoutAt }), '/api/posts', {}, {
+          scope: AuthScope.Auth,
+          iat: seconds(logoutAt)
+        } as any)
+      ).not.toThrow();
+    });
+
+    test('rejects a token whose scope does not allow the url', () => {
+      expect(() =>
+        service.authorize(user(), '/auth/refresh', {}, {
+          scope: AuthScope.Auth,
+          iat: Math.floor(Date.now() / 1000)
+        } as any)
+      ).toThrow('not authorized to access requested URL');
+    });
+
+    test('rejects a user without the required role', () => {
+      expect(() =>
+        service.authorize(user(), '/api/posts', { roles: ['Admin'] })
+      ).toThrow('Forbidden access');
+    });
+
+    test('accepts a user with the required role', () => {
+      const admin = user({
+        roles: [{ name: 'Admin', permissions: [] }] as any
+      });
+
+      expect(() =>
+        service.authorize(admin, '/api/posts', { roles: ['Admin'] })
+      ).not.toThrow();
+    });
+
+    test('rejects a user without the required permission', () => {
+      expect(() =>
+        service.authorize(user(), '/api/posts', { permissions: ['post:write'] })
+      ).toThrow('Forbidden access');
+    });
+  });
+
+  describe('login', () => {
+    test('returns the access and refresh tokens', async () => {
+      const passwordHash = await hashPassword('Str0ng!Pass');
+      authUserService.single.mockResolvedValue(user({ passwordHash }));
+
+      const tokens = await service.login('user@test.com', 'Str0ng!Pass');
+
+      expect(tokens.accessToken).toBe('token-1');
+      expect(tokens.refreshToken).toBe('token-2');
+      expect(tokens.expiresIn).toBe(jwtConfig.EXPIRES_IN);
+      expect(tokens.refreshExpiresIn).toBe(jwtConfig.REFRESH_EXPIRES_IN);
+    });
+
+    test('signs the access token with the auth scope', async () => {
+      const passwordHash = await hashPassword('Str0ng!Pass');
+      authUserService.single.mockResolvedValue(user({ passwordHash }));
+
+      await service.login('user@test.com', 'Str0ng!Pass');
+
+      expect(signedTokens[0].payload).toMatchObject({
+        scope: AuthScope.Auth,
+        source: AuthSource.Password,
+        sub: 1,
+        username: 'user@test.com'
+      });
+      expect(signedTokens[1].payload.scope).toBe(AuthScope.Refresh);
+    });
+
+    test('issues a 2FA scoped token for a user with 2FA enabled', async () => {
+      const passwordHash = await hashPassword('Str0ng!Pass');
+      authUserService.single.mockResolvedValue(
+        user({ passwordHash, twoFactorAuth: TwoFactorAuth.Email })
+      );
+
+      await service.login('user@test.com', 'Str0ng!Pass');
+
+      expect(signedTokens[0].payload.scope).toBe(AuthScope.TwoFA);
+    });
+  });
+
+  describe('generateAuthTokens', () => {
+    test('leaves the issue time to the signer', async () => {
+      await service.generateAuthTokens(user());
+
+      expect(signedTokens[0].payload).not.toHaveProperty('iat');
+      expect(signedTokens[1].payload).not.toHaveProperty('iat');
+    });
+
+    test('keeps the given scope and source', async () => {
+      await service.generateAuthTokens(
+        user(),
+        AuthScope.Auth,
+        AuthSource.OAuth2Google
+      );
+
+      expect(signedTokens[0].payload.source).toBe(AuthSource.OAuth2Google);
+    });
+
+    test('throws when the server is not initialized', async () => {
+      context.definitions.splice(
+        context.definitions.findIndex((def) => def.name === 'HttpServer'),
+        1
+      );
+
+      await expect(service.generateAuthTokens(user())).rejects.toThrow(
+        'Server instance not initialized'
+      );
+    });
+  });
+
+  describe('exchangeToken', () => {
+    test('exchanges a valid one time token for auth tokens', async () => {
+      securityStore.useOneTimeToken.mockResolvedValue({
+        authUserId: 1,
+        authSource: AuthSource.OAuth2Google
+      });
+      authUserService.find.mockResolvedValue(user());
+
+      const tokens = await service.exchangeToken('ott-token');
+
+      expect(securityStore.useOneTimeToken).toHaveBeenCalledWith(
+        'ott-token',
+        AuthOTTPurpose.Authentication
+      );
+      expect(tokens.accessToken).toBe('token-1');
+      expect(signedTokens[0].payload.source).toBe(AuthSource.OAuth2Google);
+    });
+
+    test('rejects a token of a disabled user', async () => {
+      securityStore.useOneTimeToken.mockResolvedValue({
+        authUserId: 1,
+        authSource: AuthSource.Password
+      });
+      authUserService.find.mockResolvedValue(user({ enabled: false }));
+
+      await expect(service.exchangeToken('ott-token')).rejects.toMatchObject({
+        code: ErrorCode.AuthUserNotFound
+      });
+    });
+
+    test('links the provider account after a successful exchange', async () => {
+      securityStore.useOneTimeToken.mockResolvedValue({
+        authUserId: 1,
+        authSource: AuthSource.OAuth2Google,
+        providerAccountId: '42',
+        scope: 'profile email'
+      });
+      authUserService.find.mockResolvedValue(user());
+
+      await service.exchangeToken('ott-token');
+
+      expect(connectedAccountService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: AuthSource.OAuth2Google,
+          providerAccountId: '42',
+          scope: 'profile email'
+        })
+      );
+    });
+
+    test('marks an unverified email as verified after an OAuth2 exchange', async () => {
+      securityStore.useOneTimeToken.mockResolvedValue({
+        authUserId: 1,
+        authSource: AuthSource.OAuth2Google,
+        providerAccountId: '42'
+      });
+      authUserService.find.mockResolvedValue(user({ verifiedEmail: false }));
+
+      await service.exchangeToken('ott-token');
+
+      expect(authUserService.update).toHaveBeenCalledWith(1, {
+        verifiedEmail: true
+      });
+    });
+
+    test('leaves an already verified email untouched', async () => {
+      securityStore.useOneTimeToken.mockResolvedValue({
+        authUserId: 1,
+        authSource: AuthSource.OAuth2Google,
+        providerAccountId: '42'
+      });
+      authUserService.find.mockResolvedValue(user({ verifiedEmail: true }));
+
+      await service.exchangeToken('ott-token');
+
+      expect(authUserService.update).not.toHaveBeenCalled();
+    });
+
+    test('does not verify the email when the confirmation fails', async () => {
+      securityStore.useOneTimeToken.mockResolvedValue({
+        authUserId: 1,
+        authSource: AuthSource.OAuth2Google,
+        providerAccountId: '42',
+        passwordRequired: true
+      });
+      authUserService.find.mockResolvedValue(
+        user({
+          verifiedEmail: false,
+          passwordHash: await hashPassword('Str0ng!Pass')
+        })
+      );
+
+      await expect(
+        service.exchangeToken('ott-token', 'WrongPass1!')
+      ).rejects.toMatchObject({ code: ErrorCode.AuthInvalidCredentials });
+      expect(authUserService.update).not.toHaveBeenCalled();
+    });
+
+    test('rejects a flagged token when no password is supplied', async () => {
+      securityStore.useOneTimeToken.mockResolvedValue({
+        authUserId: 1,
+        authSource: AuthSource.OAuth2Google,
+        providerAccountId: '42',
+        passwordRequired: true
+      });
+      authUserService.find.mockResolvedValue(
+        user({ passwordHash: await hashPassword('Str0ng!Pass') })
+      );
+
+      await expect(service.exchangeToken('ott-token')).rejects.toMatchObject({
+        code: ErrorCode.AuthPasswordRequired,
+        message: expect.stringContaining('Password confirmation is required')
+      });
+      expect(connectedAccountService.create).not.toHaveBeenCalled();
+    });
+
+    test('rejects a flagged token when the password is wrong', async () => {
+      securityStore.useOneTimeToken.mockResolvedValue({
+        authUserId: 1,
+        authSource: AuthSource.OAuth2Google,
+        providerAccountId: '42',
+        passwordRequired: true
+      });
+      authUserService.find.mockResolvedValue(
+        user({ passwordHash: await hashPassword('Str0ng!Pass') })
+      );
+
+      await expect(
+        service.exchangeToken('ott-token', 'WrongPass1!')
+      ).rejects.toMatchObject({ code: ErrorCode.AuthInvalidCredentials });
+      expect(connectedAccountService.create).not.toHaveBeenCalled();
+    });
+
+    test('links the account once the correct password confirms the flagged token', async () => {
+      securityStore.useOneTimeToken.mockResolvedValue({
+        authUserId: 1,
+        authSource: AuthSource.OAuth2Google,
+        providerAccountId: '42',
+        passwordRequired: true
+      });
+      authUserService.find.mockResolvedValue(
+        user({ passwordHash: await hashPassword('Str0ng!Pass') })
+      );
+
+      const tokens = await service.exchangeToken('ott-token', 'Str0ng!Pass');
+
+      expect(tokens.accessToken).toBe('token-1');
+      expect(connectedAccountService.create).toHaveBeenCalled();
+    });
+  });
+
+  describe('changePassword', () => {
+    test('rejects an invalid current password', async () => {
+      const passwordHash = await hashPassword('Str0ng!Pass');
+
+      await expect(
+        service.changePassword(user({ passwordHash }), 'wrong', 'New!Pass123')
+      ).rejects.toMatchObject({
+        code: ErrorCode.AuthPasswordInvalid,
+        message: expect.stringContaining('current password invalid')
+      });
+    });
+
+    test('rejects a new password that fails the complexity rules', async () => {
+      const passwordHash = await hashPassword('Str0ng!Pass');
+
+      await expect(
+        service.changePassword(user({ passwordHash }), 'Str0ng!Pass', 'weak')
+      ).rejects.toMatchObject({ code: ErrorCode.AuthPasswordWeak });
+    });
+
+    test('updates the password hash and returns new tokens', async () => {
+      const passwordHash = await hashPassword('Str0ng!Pass');
+      const authUser = user({ passwordHash });
+      authUserService.single.mockImplementation(async () => ({
+        ...authUser,
+        passwordHash: authUserService.updatedHash
+      }));
+      authUserService.update.mockImplementation(
+        async (_id: number, data: any) => {
+          authUserService.updatedHash = data.passwordHash;
+          return { ...authUser, ...data };
+        }
+      );
+
+      const tokens = await service.changePassword(
+        authUser,
+        'Str0ng!Pass',
+        'New!Pass123'
+      );
+
+      expect(authUserService.update).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          passwordHash: expect.any(String),
+          logoutAt: expect.any(Date)
+        })
+      );
+      expect(tokens.accessToken).toBeDefined();
+    });
+  });
+
+  describe('logout', () => {
+    test('sets the logout timestamp and clears the cached user', async () => {
+      await expect(service.logout(1)).resolves.toBe(true);
+
+      expect(cacheService.removeCachedValue).toHaveBeenCalledWith('auth:1:inv');
+      expect(authUserService.update).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ logoutAt: expect.any(Date) })
+      );
+    });
+  });
+
+  describe('auth user events', () => {
+    test('evicts the previous and current user on an update', async () => {
+      await eventListeners['User.update']({
+        previous: user({ email: 'old@test.com' }),
+        current: user({ email: 'new@test.com' })
+      });
+
+      expect(cacheService.removeCachedValue.mock.calls.flat()).toEqual([
+        'auth:1:inv',
+        'auth:old@test.com:inv',
+        'auth:new@test.com:inv'
+      ]);
+    });
+
+    test('evicts a deleted user', async () => {
+      await eventListeners['User.delete']({ current: user() });
+
+      expect(cacheService.removeCachedValue.mock.calls.flat()).toEqual([
+        'auth:1:inv',
+        'auth:user@test.com:inv'
+      ]);
+    });
+  });
+
+  describe('registerAuthUser', () => {
+    test('creates the user from the configured registration data', async () => {
+      authUserService[CONFIG] = {
+        registrationData: (source: AuthSource, email: string) => ({
+          email,
+          source
+        })
+      };
+      authUserService.create.mockImplementation(async (data: any) => ({
+        id: 2,
+        ...data
+      }));
+
+      const created = await service.registerAuthUser(
+        AuthSource.Password,
+        'new@test.com'
+      );
+
+      expect(authUserService.create).toHaveBeenCalledWith({
+        email: 'new@test.com',
+        source: AuthSource.Password,
+        verifiedEmail: false
+      });
+      expect(created).toMatchObject({ id: 2 });
+    });
+
+    test('marks the email as verified for external sources', async () => {
+      authUserService[CONFIG] = {
+        registrationData: (_source: AuthSource, email: string) => ({ email })
+      };
+      authUserService.create.mockResolvedValue({ id: 2 });
+
+      await service.registerAuthUser(AuthSource.OAuth2Google, 'new@test.com');
+
+      expect(authUserService.create).toHaveBeenCalledWith(
+        expect.objectContaining({ verifiedEmail: true })
+      );
+    });
+
+    test('wraps a registration failure into a server error', async () => {
+      authUserService[CONFIG] = {
+        registrationData: () => {
+          throw prismaError('P2010', 'invalid data');
+        }
+      };
+
+      await expect(
+        service.registerAuthUser(AuthSource.Password, 'new@test.com')
+      ).rejects.toMatchObject({ code: ErrorCode.DatabaseOperationFailed });
+    });
+
+    test('saves the selected registration files once the user exists', async () => {
+      const avatarFile = {
+        name: 'avatar.png',
+        mimeType: 'image/png',
+        size: 3,
+        data: Buffer.from('png')
+      };
+
+      authUserService[CONFIG] = {
+        registrationData: (_source: AuthSource, email: string) => ({ email }),
+        registrationFiles: (_source: AuthSource, data: any) => ({
+          avatar: data?.avatarFile,
+          banner: undefined
+        })
+      };
+      authUserService.create.mockResolvedValue({ id: 2 });
+
+      await service.registerAuthUser(
+        AuthSource.OAuth2Google,
+        'new@test.com',
+        undefined,
+        { avatarFile }
+      );
+
+      expect(fileService.saveBuffer).toHaveBeenCalledTimes(1);
+      expect(fileService.saveBuffer).toHaveBeenCalledWith(
+        'avatar',
+        avatarFile,
+        { id: 2 },
+        authUserService.client
+      );
+    });
+
+    test('registers the user without files when none are configured', async () => {
+      authUserService[CONFIG] = {
+        registrationData: (_source: AuthSource, email: string) => ({ email })
+      };
+      authUserService.create.mockResolvedValue({ id: 2 });
+
+      await service.registerAuthUser(AuthSource.Password, 'new@test.com');
+
+      expect(fileService.saveBuffer).not.toHaveBeenCalled();
+    });
+
+    test('completes the registration when a file cannot be saved', async () => {
+      authUserService[CONFIG] = {
+        registrationData: (_source: AuthSource, email: string) => ({ email }),
+        registrationFiles: () => ({
+          avatar: {
+            name: 'avatar.png',
+            mimeType: 'image/png',
+            data: Buffer.from('png')
+          }
+        })
+      };
+      authUserService.create.mockResolvedValue({ id: 2 });
+      fileService.saveBuffer.mockRejectedValue(new Error('unsupported type'));
+
+      await expect(
+        service.registerAuthUser(AuthSource.OAuth2Google, 'new@test.com')
+      ).resolves.toMatchObject({ id: 2 });
+    });
+  });
+
+  describe('updateAuthUser', () => {
+    test('updates the user through the auth user service', async () => {
+      await service.updateAuthUser(1, { email: 'new@test.com' });
+
+      expect(authUserService.update).toHaveBeenCalledWith(1, {
+        email: 'new@test.com'
+      });
+    });
+
+    test('evicts the cached user by id and email after the update', async () => {
+      await service.updateAuthUser(1, { email: 'new@test.com' });
+
+      expect(cacheService.removeCachedValue).toHaveBeenCalledWith('auth:1:inv');
+      expect(cacheService.removeCachedValue).toHaveBeenCalledWith(
+        'auth:new@test.com:inv'
+      );
+      expect(authUserService.update.mock.invocationCallOrder[0]).toBeLessThan(
+        cacheService.removeCachedValue.mock.invocationCallOrder[0]
+      );
+    });
+
+    test('keeps the cached user when the update fails', async () => {
+      authUserService.update.mockRejectedValue(prismaError('P2010', 'db down'));
+
+      await expect(service.updateAuthUser(1, {})).rejects.toThrow();
+      expect(cacheService.removeCachedValue).not.toHaveBeenCalled();
+    });
+
+    test('wraps an update failure into a server error', async () => {
+      authUserService.update.mockRejectedValue(prismaError('P2010', 'db down'));
+
+      await expect(service.updateAuthUser(1, {})).rejects.toMatchObject({
+        code: ErrorCode.DatabaseOperationFailed,
+        message: expect.stringContaining('operation failed')
+      });
+    });
+  });
+
+  describe('internal access', () => {
+    // Records whether each service call ran without the policies
+    const recorded = (result: any) =>
+      jest.fn().mockImplementation(async () => {
+        skipped.push(arePoliciesSkipped());
+        return result;
+      });
+
+    let skipped: boolean[];
+
+    beforeEach(() => {
+      skipped = [];
+    });
+
+    test('finds the user without the policies', async () => {
+      authUserService.find = recorded(user());
+      authUserService.single = recorded(user());
+
+      await service.findById(1);
+      await service.findByUsername('user@test.com');
+
+      expect(skipped).toEqual([true, true]);
+    });
+
+    test('updates the user without the policies', async () => {
+      authUserService.update = recorded(user());
+
+      await service.updateAuthUser(1, { logoutAt: new Date() });
+
+      expect(skipped).toEqual([true]);
+    });
+
+    test('registers the user and their files without the policies', async () => {
+      authUserService[CONFIG] = {
+        registrationData: (_source: AuthSource, email: string) => ({ email }),
+        registrationFiles: () => ({ avatar: { name: 'avatar.png' } })
+      };
+      authUserService.create = recorded(user({ id: 2 }));
+      fileService.saveBuffer = recorded({ id: 1 });
+
+      await service.registerAuthUser(AuthSource.OAuth2Google, 'new@test.com');
+
+      expect(skipped).toEqual([true, true]);
+    });
+
+    test('links the connected account without the policies', async () => {
+      connectedAccountService.single = recorded(null);
+      connectedAccountService.create = recorded({ id: 1 });
+
+      await inject(OAuth2Service).linkConnectedAccount(
+        user(),
+        AuthSource.OAuth2Google,
+        'provider-1'
+      );
+
+      expect(skipped).toEqual([true, true]);
+    });
+
+    test('applies the policies again after the call', async () => {
+      authUserService.find = recorded(user());
+
+      await service.findById(1);
+
+      expect(arePoliciesSkipped()).toBe(false);
+    });
+  });
+});

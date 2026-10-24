@@ -20,7 +20,7 @@ operations, and index configuration. It is used to generate Prisma schema, TypeS
 schemas.
 
 ```ts
-import { createModel } from '@appweaver/core';
+import { createModel } from '@appweaver/data';
 
 export default createModel({
   name: 'Product',
@@ -817,7 +817,7 @@ To apply them manually on a raw resource object (e.g. one fetched directly throu
 `projectVirtualFields` helper:
 
 ```ts
-import { projectVirtualFields } from '@appweaver/core';
+import { projectVirtualFields } from '@appweaver/data';
 
 const projected = projectVirtualFields(post, 'Post'); // sets virtual values, recursing into relations and files
 ```
@@ -969,7 +969,7 @@ Creates a resource service with lifecycle hooks and business logic. The service 
 model and triggers hooks on each CRUD operation before/after.
 
 ```ts
-import { createService } from '@appweaver/core';
+import { createService } from '@appweaver/data';
 
 export default createService({
   modelName: 'Product',
@@ -1415,7 +1415,7 @@ Creates CRUD route definitions for a resource. Routes are automatically register
 request/response schemas from the resource model.
 
 ```ts
-import { createRoutes } from '@appweaver/core';
+import { createRoutes } from '@appweaver/web';
 
 export default createRoutes({
   modelName: 'Product',
@@ -1602,7 +1602,7 @@ Creates row-level security policies for a resource. The service layer evaluates 
 enforce fine-grained authorization beyond static role/permission checks.
 
 ```ts
-import { createPolicy } from '@appweaver/core';
+import { createPolicy } from '@appweaver/data';
 
 export default createPolicy({
   modelName: 'Product',
@@ -1658,7 +1658,8 @@ still run. The framework's own authentication flows (login, sign-up, logout, pas
 and OAuth2 account linking) use it, so a policy on the auth model never blocks them.
 
 ```ts
-import { injectService, withoutPolicies } from '@appweaver/core';
+import { injectService } from '@appweaver/core';
+import { withoutPolicies } from '@appweaver/data';
 
 const pending = await withoutPolicies(() =>
   injectService('Order').query({ filter: { status: 'Pending' } })
@@ -1677,7 +1678,7 @@ standard CRUD resource. Its `body`, `querystring` and `params` schemas reject un
 sets `additionalProperties` explicitly (see the custom route section of SKILL.md).
 
 ```ts
-import { registerRoute, Router } from '@appweaver/core';
+import { registerRoute, Router } from '@appweaver/web';
 import { Type } from '@sinclair/typebox';
 
 registerRoute(
@@ -1725,7 +1726,7 @@ Registers a custom TypeBox schema as a named model in the schema registry. Regis
 `Type.Ref('ModelName')` in route schemas.
 
 ```ts
-import { registerModel } from '@appweaver/core';
+import { registerModel } from '@appweaver/web';
 import { Nullable } from '@appweaver/common';
 import { Type } from '@sinclair/typebox';
 
@@ -1756,7 +1757,7 @@ Registers a custom Fastify plugin. Plugins are wrapped with `fastify-plugin` so 
 the entire server instance.
 
 ```ts
-import { registerPlugin } from '@appweaver/core';
+import { registerPlugin } from '@appweaver/web';
 
 registerPlugin(
   'audit-log',

@@ -1,4 +1,4 @@
-import { createRoutes } from '@appweaver/core';
+import { createRoutes } from '@appweaver/web';
 import { Role } from '@/features/access/roles';
 
 // The storefront reads the catalog without an account, admins run it

@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { registerModel, registerRoute } from '@appweaver/core';
+import { registerModel, registerRoute } from '@appweaver/web';
 import db from '@db/client';
 import { Permission } from '@/features/access/permissions';
 

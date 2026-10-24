@@ -1,4 +1,4 @@
-import { createModel } from '@appweaver/core';
+import { createModel } from '@appweaver/data';
 
 // Money is kept in whole cents, so no rounding error creeps into a total
 export default createModel({

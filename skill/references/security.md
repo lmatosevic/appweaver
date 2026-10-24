@@ -310,7 +310,7 @@ or an `Error` to abort the flow with an `OAUTH2_USER_REJECTED` error (403), or a
 // src/resources/user/service.ts
 import { ApplicationError, AuthSource } from '@appweaver/common';
 import { defineErrors } from '@appweaver/common';
-import { createAuthService } from '@appweaver/core';
+import { createAuthService } from '@appweaver/data';
 
 const UserErrors = defineErrors({
   CompanyAccountRequired: { status: 403, title: 'Company account required' }
@@ -452,7 +452,8 @@ On every authenticated request:
 ### Helper functions
 
 ```ts
-import { hasRole, hasRoles, hasPermission, hasPermissions, currentAuthUser } from '@appweaver/core';
+import { currentAuthUser } from '@appweaver/core';
+import { hasRole, hasRoles, hasPermission, hasPermissions } from '@appweaver/data';
 
 const user = currentAuthUser();
 
@@ -728,7 +729,7 @@ native dependency. A hash has the standard PHC string form `$argon2id$v=19$m=194
 parallelism, the OWASP minimum. Other Argon2 libraries (e.g. `argon2` on npm, `argon2-cffi` in Python) read and verify
 these hashes. Every hash keeps its own parameters, so raising them for new hashes leaves the existing ones valid, and a
 successful login replaces a hash made with outdated parameters. Use `hashPassword` and `checkPassword` from
-`@appweaver/core` to hash and verify passwords in seeders and custom flows, and `needsRehash` to tell whether a hash
+`@appweaver/data` to hash and verify passwords in seeders and custom flows, and `needsRehash` to tell whether a hash
 uses outdated parameters.
 
 ### Complexity validation

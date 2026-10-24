@@ -22,12 +22,15 @@
     "@appweaver/cli": "^1.12.2",
     "@appweaver/common": "^1.12.2",
     "@appweaver/core": "^1.12.2",
+    "@appweaver/cron": "^1.12.2",
+    "@appweaver/data": "^1.12.2",
+    "@appweaver/handlebars": "^1.12.2",
+    "@appweaver/nodemailer": "^1.12.2",
+    "@appweaver/sharp": "^1.12.2",
+    "@appweaver/web": "^1.12.2",
     "@prisma/adapter-better-sqlite3": "7.9.1",
     "@prisma/client": "7.9.1",
     "@sinclair/typebox": "0.34.49",
-    "cron": "4.4.0",
-    "handlebars": "4.7.10",
-    "nodemailer": "10.0.13",
     "prisma": "7.9.1"
   },
   "devDependencies": {

@@ -1,0 +1,329 @@
+import {
+  ConfigurationError,
+  ErrorCode,
+  FilesConfig,
+  findReservedStoragePath,
+  generateToken,
+  isString,
+  normalizeStoragePath,
+  replacePatternVariables,
+  ResourceModel,
+  textToBytes,
+  appConfig,
+  config
+} from '@appweaver/common';
+import { storageConfig, injectPolicy } from '@appweaver/core';
+import { File } from '../types/generated';
+
+/**
+ * Builds the access URL for a stored file. The `public` or `protected` path prefix is resolved from the access type
+ * configured in the file policy of the resource owning the file, and the route prefix is taken from the
+ * `STORAGE_FILES_ROUTE_PREFIX` configuration.
+ *
+ * @param {File} file - The file object containing the name and owning resource information.
+ * @return {string} The absolute URL for accessing the file.
+ */
+export function buildFileUrl(file: File): string {
+  const accessType = injectPolicy(file.resourceName ?? '', false)?.files?.[
+    file.resourceField ?? ''
+  ]?.accessType;
+  const pathPrefix = accessType === 'public' ? 'public' : 'protected';
+
+  const routePrefix = `/${storageConfig.FILES_ROUTE_PREFIX}/`.replace(
+    /\/+/g,
+    '/'
+  );
+
+  return `${appConfig.HOSTNAME}${routePrefix}${pathPrefix}/${file.name}`;
+}
+
+/**
+ * Splits the file fields of a deleted resource by what happens to their files. On a delete removing the resource from
+ * the database each field follows its `onResourceDeleted` option, which defaults to `'delete'`, while on a soft delete
+ * it follows its `onResourceSoftDeleted` option, which defaults to `'keep'`.
+ *
+ * @param {FilesConfig} [files] - The file fields of the deleted resource's model.
+ * @param {boolean} softDeleted - Whether the resource was soft deleted.
+ * @return {{deleted: string[], kept: string[]}} The fields whose files are removed from storage, and the fields whose
+ * files are retained, but no longer served.
+ */
+export function deletedResourceFileFields(
+  files: FilesConfig = {},
+  softDeleted: boolean
+): { deleted: string[]; kept: string[] } {
+  const fields = { deleted: [] as string[], kept: [] as string[] };
+
+  for (const [field, fileField] of Object.entries(files)) {
+    const action = softDeleted
+      ? (fileField.onResourceSoftDeleted ?? 'keep')
+      : (fileField.onResourceDeleted ?? 'delete');
+    fields[action === 'delete' ? 'deleted' : 'kept'].push(field);
+  }
+
+  return fields;
+}
+
+/**
+ * Parses a range string and converts it into an object with start and end values.
+ *
+ * @param {string} [range] - The range string to parse, typically in the format "bytes=start-end".
+ * @return {{start: number, end?: number}} An object containing the start value and an optional end value.
+ */
+export function parseRange(range?: string): { start: number; end?: number } {
+  if (!range) {
+    return { start: 0 };
+  }
+
+  const parts = range.replace(/bytes=/, '').split('-');
+  const start = parseInt(parts[0], 10);
+  const end = parts[1] ? parseInt(parts[1], 10) : undefined;
+  return { start, end };
+}
+
+/**
+ * Calculates the maximum file size allowed based on the provided file configuration.
+ *
+ * @param {FilesConfig} fileConfig - An object containing file configuration data, including maximum size for each file
+ * type.
+ * @return {number} The maximum size in bytes allowed for any file based on the given configuration.
+ */
+export function maxFileSize(fileConfig: FilesConfig): number {
+  const sizes = Object.values(fileConfig)
+    .map((conf) => sizeInBytes(conf.maxSize))
+    .filter((v) => v > 0);
+
+  if (!sizes.length) {
+    return textToBytes(config.str('SERVER_BODY_MAX_SIZE', '100M'));
+  }
+
+  return Math.max(...sizes);
+}
+
+/**
+ * Converts a given size represented as a string or number into its equivalent size in bytes.
+ *
+ * @param {string | number} [size] - The size to be converted, either as a string or a number.
+ * @return {number} The size in bytes. Returns 0 if the input is invalid or not provided.
+ */
+export function sizeInBytes(size?: string | number): number {
+  return isString(size) ? textToBytes(size) : 0;
+}
+
+/**
+ * Validates if the provided MIME type matches a given pattern or regular expression.
+ *
+ * @param {string} mimeType - The MIME type to validate.
+ * @param {string|RegExp} [mimeTypeExp] - An optional pattern or regular expression to match the MIME type against.
+ *                                       If not provided, the method will always return true.
+ * @return {boolean} True if the MIME type matches the specified pattern or regular expression, false otherwise.
+ */
+export function isValidMimeType(
+  mimeType: string,
+  mimeTypeExp?: string | RegExp
+): boolean {
+  if (!mimeTypeExp) {
+    return true;
+  } else if (mimeTypeExp instanceof RegExp) {
+    return mimeTypeExp.test(mimeType);
+  } else {
+    const regexPattern = mimeTypeExp
+      .replace(/[.+?^$]/g, '\\$&')
+      .replace(/\*/g, '.*');
+
+    const regex = new RegExp(`^${regexPattern}$`);
+
+    return regex.test(mimeType);
+  }
+}
+
+/**
+ * Generates a file name based on a given name, an optional pattern, and a set of variables.
+ *
+ * @param {string} name The original file name including its extension.
+ * @param {string} [pattern] An optional pattern to customize the generated file name. If not provided, a default
+ * pattern will be used.
+ * @param {Record<string, any>} [variables={}] Additional variables to replace in the pattern. These can include custom
+ * placeholders to dynamically generate the file name.
+ * @return {string} The generated, sanitized file name based on the provided or default pattern.
+ */
+export function generateFileName(
+  name: string,
+  pattern?: string,
+  variables: Record<string, any> = {}
+): string {
+  const nameParts = name.split('.');
+  let extension: string | undefined = '';
+  let nameWithoutExtension = name;
+
+  if (nameParts.length > 1) {
+    extension = nameParts.pop();
+    nameWithoutExtension = nameParts.join('.');
+  }
+
+  const defaultPattern =
+    storageConfig.NAME_PATTERN ?? '{name}-{hash}.{extension}';
+
+  // Only the pattern itself is trusted to contain directory separators, every substituted value is reduced to a
+  // single path segment so that an uploaded file name cannot introduce a sub-path or a traversal.
+  let fileName = replacePatternVariables(pattern ?? defaultPattern, {
+    ...sanitizeVariables(variables),
+    name: sanitizeFileSegment(nameWithoutExtension),
+    extension: sanitizeFileSegment(extension)
+  });
+
+  fileName = sanitizeFilename(fileName);
+
+  fileName = fileName.endsWith('.')
+    ? fileName.substring(0, fileName.length - 1)
+    : fileName;
+
+  return (
+    normalizeStoragePath(fileName) ||
+    sanitizeFileSegment(name) ||
+    generateToken('bytes', 32)
+  );
+}
+
+/**
+ * Validates that no configured file name pattern writes into a path reserved by `STORAGE_RESERVED_PATHS`. Both the
+ * global `STORAGE_NAME_PATTERN` and the `namePattern` of every file field of the provided models are checked. Patterns
+ * defined as a factory function cannot be resolved before an upload, so they are validated at runtime instead.
+ *
+ * @param {Record<string, ResourceModel>} models - The loaded resource models, keyed by model name.
+ * @throws {Error} Throws an error naming the model, the field, and the reserved path when a pattern is reserved.
+ */
+export function validateFileNamePatterns(
+  models: Record<string, ResourceModel>
+): void {
+  const reservedPaths = storageConfig.RESERVED_PATHS;
+
+  const globalReservedPath = findReservedStoragePath(
+    storageConfig.NAME_PATTERN,
+    reservedPaths
+  );
+  if (globalReservedPath !== null) {
+    throw new ConfigurationError(
+      ErrorCode.ConfigurationInvalid,
+      `Configured STORAGE_NAME_PATTERN '${storageConfig.NAME_PATTERN}' is placed under the reserved ` +
+        `storage path '${globalReservedPath}'`
+    );
+  }
+
+  for (const model of Object.values(models)) {
+    for (const [field, fileConfig] of Object.entries(
+      model.config.files ?? {}
+    )) {
+      if (!isString(fileConfig.namePattern)) {
+        continue;
+      }
+
+      const reservedPath = findReservedStoragePath(
+        fileConfig.namePattern,
+        reservedPaths
+      );
+      if (reservedPath !== null) {
+        throw new ConfigurationError(
+          ErrorCode.ConfigurationInvalid,
+          `File name pattern '${fileConfig.namePattern}' of the '${model.name}.${field}' field is placed ` +
+            `under the reserved storage path '${reservedPath}'`
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Sanitizes a given filename by removing invalid characters that are not allowed in file systems. Path separators are
+ * preserved, since a file name may be a path relative to the storage root.
+ *
+ * @param fileName The original filename to sanitize.
+ * @return A sanitized filename with invalid characters removed.
+ */
+export function sanitizeFilename(fileName: string): string {
+  const invalidFilenameChars = new Set([
+    '\\',
+    ':',
+    '*',
+    '?',
+    '"',
+    '<',
+    '>',
+    '|'
+  ]);
+
+  return [...fileName]
+    .filter((char) => {
+      const code = char.charCodeAt(0);
+      // Strip control characters (including NUL) and characters invalid in file names.
+      return code > 31 && code !== 127 && !invalidFilenameChars.has(char);
+    })
+    .join('');
+}
+
+/**
+ * Sanitizes an untrusted value into a single file path segment. In addition to the characters removed by
+ * {@link sanitizeFilename}, all path separators are stripped and leading dots are removed, so that the value can never
+ * introduce a subdirectory, a `..` traversal or a hidden file.
+ *
+ * @param value The untrusted value to sanitize.
+ * @return A sanitized single path segment, or an empty string when nothing usable remains.
+ */
+export function sanitizeFileSegment(value?: string | null): string {
+  if (!isString(value)) {
+    return '';
+  }
+
+  // Trimming must precede the leading dot removal, otherwise a padded value such as '  ..  ' keeps its dots.
+  return sanitizeFilename(value)
+    .replace(/[/\\]+/g, '')
+    .trim()
+    .replace(/^\.+/, '')
+    .trim();
+}
+
+function sanitizeVariables(
+  variables: Record<string, any>
+): Record<string, any> {
+  return Object.fromEntries(
+    Object.entries(variables).map(([key, value]) => [
+      key,
+      isString(value) ? sanitizeFileSegment(value) : value
+    ])
+  );
+}
+
+/**
+ * Aggregates the provided files into a structured object based on the given configuration.
+ *
+ * @param {File[]} files - An array of file objects to be processed and aggregated.
+ * @param {FilesConfig} filesConfig - An object that defines the configuration for each file field, including whether
+ * the field supports multiple files.
+ * @return {Record<string, File | File[] | null>} A record where keys correspond to the configured fields, and values
+ * are either a single file, an array of files, or null if no files match the field.
+ */
+export function aggregateFiles(
+  files: File[],
+  filesConfig: FilesConfig
+): Record<string, File | File[] | null> {
+  const aggregated: Partial<Record<string, File | File[] | null>> =
+    Object.entries(filesConfig)
+      .map(([field, value]) => ({ [field]: value.array ? [] : null }))
+      .reduce((acc, obj) => Object.assign(acc, obj), {});
+
+  for (const file of files) {
+    const resourceField = file.resourceField;
+
+    if (resourceField) {
+      if (filesConfig[resourceField].array) {
+        if (!aggregated[resourceField]) {
+          aggregated[resourceField] = [];
+        }
+        (aggregated[resourceField] as File[]).push(file);
+      } else {
+        aggregated[resourceField] = file;
+      }
+    }
+  }
+
+  return aggregated as Record<string, File | File[]>;
+}

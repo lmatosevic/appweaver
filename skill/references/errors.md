@@ -115,7 +115,7 @@ code and narrows the details, `isAppweaverError(error)` recognizes an error of a
 ## Error codes
 
 The `ErrorCode` enum of `@appweaver/common` lists every code the framework raises, mapped to its HTTP status by
-`errorHttpMap` of `@appweaver/core`:
+`errorHttpMap` of `@appweaver/web`:
 
 | Code                                 | Status | Title                                 |
 |--------------------------------------|--------|---------------------------------------|
@@ -223,7 +223,7 @@ documentation stay consistent:
 ```ts
 import { ErrorCode, RequestError } from '@appweaver/common';
 import { ResourceError } from '@appweaver/common';
-import { createPolicy, createService } from '@appweaver/core';
+import { createPolicy, createService } from '@appweaver/data';
 
 export default createService({
   modelName: 'Position',
@@ -257,7 +257,7 @@ concurrent delete, is a `RESOURCE_NOT_FOUND` of the service. Code calling the Pr
 errors the same way with `toDatabaseError`, which returns any other error as it is:
 
 ```ts
-import { toDatabaseError } from '@appweaver/core';
+import { toDatabaseError } from '@appweaver/data';
 
 try {
   await db.order.update({ where: { id }, data });
@@ -308,7 +308,7 @@ reCAPTCHA and Turnstile errors of the route:
 
 ```ts
 import { ErrorCode } from '@appweaver/common';
-import { errorResponses, registerRoute } from '@appweaver/core';
+import { errorResponses, registerRoute } from '@appweaver/web';
 import { ShopErrors } from '@/errors';
 
 registerRoute((router) => {
@@ -360,5 +360,5 @@ The `retries` option of `runTransaction` retries the `DATABASE_WRITE_CONFLICT` e
 
 1. Add the member to `ErrorCode` in `packages/common/errors/error-code.ts`, prefixed with its module.
 2. Add its details to `ErrorDetailsMap` in `packages/common/errors/error-details.ts`, unless it carries none.
-3. Map it in `errorHttpMap` of `packages/core/errors/error-http-map.ts` (a missing mapping fails to compile).
+3. Map it in `errorHttpMap` of `packages/web/errors/error-http-map.ts` (a missing mapping fails to compile).
 4. List it in the `errorResponses` of the routes that can respond with it, and in the table above.

@@ -1,0 +1,59 @@
+import { uncapitalize } from '@appweaver/common';
+import { connectedAccountConfig } from '../../auth-config';
+import { createModel } from '../../../factory/create-model';
+import { isOAuth2Enabled, resourceAuthModel } from '../../helper';
+
+const authModel = resourceAuthModel();
+
+const shouldCreateModel =
+  isOAuth2Enabled() ||
+  connectedAccountConfig.CONNECTED_ACCOUNTS_KEEP_DATABASE_TABLE;
+
+export default shouldCreateModel
+  ? createModel({
+      name: 'ConnectedAccount',
+      // Cascades from the auth model, so it is soft deleted together with it
+      softDelete: !!authModel?.config.softDelete,
+      audit: {
+        createdById: false
+      },
+      scalars: {
+        provider: {
+          type: 'string',
+          maxLength: 255
+        },
+        providerAccountId: {
+          type: 'string',
+          maxLength: 255
+        },
+        scope: {
+          type: 'string',
+          required: false
+        },
+        lastLoginAt: {
+          type: 'dateTime'
+        }
+      },
+      ...(authModel
+        ? {
+            relations: {
+              [uncapitalize(authModel.name)]: {
+                model: authModel.name,
+                type: 'manyToOne',
+                mappedBy: 'connectedAccounts',
+                // Connected accounts are meaningless without their user
+                onDelete: 'cascade',
+                input: {
+                  type: 'none'
+                },
+                output: {
+                  type: 'none'
+                }
+              }
+            }
+          }
+        : {}),
+      // A provider account may only ever be linked to a single user
+      unique: [['provider', 'providerAccountId']]
+    })
+  : undefined;

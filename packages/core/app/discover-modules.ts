@@ -40,7 +40,7 @@ export type DiscoverModulesParams = {
 const frameworkPackages = ['@appweaver/common', '@appweaver/core'];
 
 /**
- * Finds the modules of the application: the first-party modules of core, the dependencies whose `package.json` has the
+ * Finds the modules of the application: the module of core, the dependencies whose `package.json` has the
  * `appweaver.module` field (with the modules they require), the local manifests matching `app.modulesPattern`, and the
  * manifests listed in `app.modules`. The modules of `app.modulesDisabled` are left out.
  *
@@ -55,10 +55,8 @@ export async function discoverModules(
   const rootPath = params.rootPath ?? process.cwd();
   const found: EnabledModule[] = [];
 
-  for (const { module, library } of firstPartyModules) {
-    if (!library || isInstalled(library, rootPath)) {
-      found.push({ module, source: 'core' });
-    }
+  for (const { module } of firstPartyModules) {
+    found.push({ module, source: 'core' });
   }
 
   found.push(...(await findPackageModules(rootPath)));
@@ -266,16 +264,6 @@ function orderByRequires(modules: EnabledModule[]): EnabledModule[] {
 /** The version of core, which the framework range of a module is checked against. */
 function frameworkVersion(): string {
   return readJson(path.join(__dirname, '../package.json'))?.version ?? '0.0.0';
-}
-
-/** Checks if a package can be resolved from the project or from core. */
-function isInstalled(name: string, rootPath: string): boolean {
-  try {
-    require.resolve(name, { paths: [rootPath, __dirname] });
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 /** Finds the directory of an installed package, looking up the `node_modules` directories from a path. */

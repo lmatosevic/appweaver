@@ -1,4 +1,4 @@
-import { hashPassword } from '@appweaver/core';
+import { hashPassword } from '@appweaver/data';
 import { db } from '@db/client';
 import { Role } from '@/features/access/roles';
 import { refreshMovieRating } from '@/features/ratings/movie-rating';

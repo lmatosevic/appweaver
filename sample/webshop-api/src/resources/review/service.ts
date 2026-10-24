@@ -1,5 +1,6 @@
 import { ApplicationError } from '@appweaver/common';
-import { createService, currentAuthUser } from '@appweaver/core';
+import { createService } from '@appweaver/data';
+import { currentAuthUser } from '@appweaver/core';
 import db from '@db/client';
 import { ReviewCreate } from '@/types';
 import { ShopErrors } from '@/errors';

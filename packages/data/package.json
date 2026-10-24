@@ -1,0 +1,55 @@
+{
+  "name": "@appweaver/data",
+  "version": "1.12.2",
+  "description": "Appweaver - the backend framework for AI-first development (@data)",
+  "author": "Luka Matosevic",
+  "license": "MIT",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "keywords": [
+    "appweaver",
+    "appweaver-module"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lmatosevic/appweaver.git",
+    "directory": "packages/data"
+  },
+  "maintainers": [
+    {
+      "name": "Luka Matosevic",
+      "email": "lukamatosevic5@gmail.com",
+      "web": "https://lukamatosevic.com"
+    }
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">= 24.7"
+  },
+  "appweaver": {
+    "module": "./module.js"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "0.34.49",
+    "csv-stringify": "6.8.0"
+  },
+  "peerDependencies": {
+    "@appweaver/common": "^1.12.2",
+    "@appweaver/core": "^1.12.2",
+    "@prisma/client": "^7.9.0"
+  },
+  "devDependencies": {
+    "@appweaver/common": "^1.12.2",
+    "@appweaver/core": "^1.12.2",
+    "@prisma/adapter-better-sqlite3": "7.9.1",
+    "@prisma/client": "7.9.1",
+    "prisma": "7.9.1",
+    "rimraf": "6.1.3"
+  },
+  "scripts": {
+    "generate": "weaver generate --no-registry --no-prune --model-pattern ./**/model.ts --types-path ./types/generated.ts --schema-path ./prisma/schema.prisma --client-path ./prisma/client",
+    "db:recreate": "rimraf dev.db && rimraf prisma/migrations && weaver migration new init"
+  }
+}

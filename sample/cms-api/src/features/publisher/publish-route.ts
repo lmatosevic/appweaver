@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { registerModel, registerRoute } from '@appweaver/core';
+import { registerModel, registerRoute } from '@appweaver/web';
 import { Nullable } from '@appweaver/common';
 import {
   latestPublishedPost,

@@ -1,11 +1,5 @@
-import {
-  Application,
-  createApp,
-  FileService,
-  inject,
-  injectService,
-  runTransaction
-} from '@appweaver/core';
+import { Application, createApp, inject, injectService } from '@appweaver/core';
+import { FileService, runTransaction } from '@appweaver/data';
 import { Database, Events, Storage } from '@appweaver/common';
 import { resetTestData } from './support/reset';
 

@@ -1,13 +1,12 @@
 import fsp from 'node:fs/promises';
 import { Command } from 'commander';
 import { config } from '@appweaver/common';
-import { databaseConfig } from '@appweaver/core/database/database-config';
-import { resourceConfig } from '@appweaver/core/resource/resource-config';
 import { storageConfig } from '@appweaver/core/storage/storage-config';
 import { generateSchema } from '../generate';
 import {
   assertEnv,
   assertPathInside,
+  importPackage,
   loadModels,
   rimrafPath,
   runProcess,
@@ -58,6 +57,9 @@ export function testingCommand(program: Command): void {
       );
 
       const quiet = !command.getOptionValue('verbose');
+      const { databaseConfig, resourceConfig } = await importPackage<
+        typeof import('@appweaver/data')
+      >('@appweaver/data', 'test setup');
 
       const tempDir = command.getOptionValue('dir');
 

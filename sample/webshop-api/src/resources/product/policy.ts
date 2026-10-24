@@ -1,4 +1,4 @@
-import { createPolicy, hasRole } from '@appweaver/core';
+import { createPolicy, hasRole } from '@appweaver/data';
 import { Role } from '@/features/access/roles';
 
 export default createPolicy({

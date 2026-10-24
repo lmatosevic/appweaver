@@ -4,12 +4,7 @@ import {
   resolveSourcePath,
   appConfig
 } from '@appweaver/common';
-import { LoadResourcePaths, loadResources } from '../resource';
-import {
-  discoverModules,
-  isModuleEnabled,
-  loadModuleParts
-} from './discover-modules';
+import { discoverModules, loadModuleParts } from './discover-modules';
 import { loadProviders } from './load-providers';
 import { loadAppFiles } from './load-app-files';
 import { Application } from './application';
@@ -25,13 +20,14 @@ export type CreateAppParams = {
   /** A boolean flag indicating whether the web server should automatically
    * start after being created. (default: true) **/
   autoStartServer?: boolean;
-  /** An object containing the path patterns for loading resources from. */
-  resourcePaths?: LoadResourcePaths;
+  /** The path patterns of the resource files, read by `@appweaver/data` (`modelPattern`, `servicePattern`,
+   * `policyPattern`) and `@appweaver/web` (`routePattern`). */
+  resourcePaths?: Record<string, string>;
   /** Path pattern used for finding the files that export application logic
    * (default: `./src/"*"/index.ts`) */
   appFilesPattern?: string;
-  /** A boolean flag indicating whether the application should automatically load
-   * resources configured and exported using factory functions. (default: true) */
+  /** A boolean flag indicating whether `@appweaver/data` and `@appweaver/web` should automatically load the
+   * resources of the application. (default: true) */
   autoLoadResources?: boolean;
   /** A boolean flag indicating whether the application should automatically load
    * the files of `app.scanFilesPattern` from the project source directory. (default: true) */
@@ -40,9 +36,9 @@ export type CreateAppParams = {
 
 /**
  * Creates and initializes an application instance with the provided parameters. The modules of the application are
- * loaded in order: the providers and services of every module, the resources of the modules and the application
- * (with a database), the `main` part of every module, the files of the application, and the `web` part of every module
- * (with a server).
+ * loaded in order: the providers and services of every module, the `setup` of every module (`@appweaver/data` loads
+ * the resources, `@appweaver/web` the routes and the `web` parts), the `main` part of every module, then the files of
+ * the application.
  *
  * @param {CreateAppParams} [params={}] Configuration parameters for creating the application.
  * @return {Promise<Application>} A promise that resolves to the initialized application instance.
@@ -64,16 +60,10 @@ export async function createApp(
   // Define the providers and the services of the modules
   await loadProviders(modules, scanPath);
 
-  // Load resource models, routes, policies and services
-  if (
-    params.autoLoadResources !== false &&
-    isModuleEnabled(modules, '@appweaver/data')
-  ) {
-    await loadResources(
-      scanPath,
-      params.resourcePaths,
-      modules.flatMap(({ module }) => module.resources ?? [])
-    );
+  // Let every module load what it brings, i.e. the resources with a database
+  const manifests = modules.map(({ module }) => module);
+  for (const module of manifests) {
+    await module.setup?.({ modules: manifests, scanPath, params });
   }
 
   await loadModuleParts(modules, 'main');
@@ -81,10 +71,6 @@ export async function createApp(
   // Load exported application files
   if (params.autoLoadAppFiles !== false) {
     await loadAppFiles(scanPath, params.appFilesPattern);
-  }
-
-  if (isModuleEnabled(modules, '@appweaver/web')) {
-    await loadModuleParts(modules, 'web');
   }
 
   const app = new Application();

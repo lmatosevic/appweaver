@@ -1,5 +1,5 @@
 import { ErrorCode, makeHash, Memory } from '@appweaver/common';
-import { define } from '../../../context';
+import { define } from '../../../context/dependency-injection';
 import { InMemory } from '../../../memory/in-memory';
 import { MemorySecurityStore } from '../../../security/store/memory-security-store';
 import { resetContext } from '../../fixtures/context-fixture';

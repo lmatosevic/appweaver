@@ -1,4 +1,4 @@
-import { createModel } from '@appweaver/core';
+import { createModel } from '@appweaver/data';
 
 /**
  * Whoever asked for help. Customers hold no account, they are matched by their

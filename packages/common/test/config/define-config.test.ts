@@ -227,6 +227,16 @@ describe('define-config', () => {
       expect(readConfig(`${prefix}LIMIT`)).toBe(5);
     });
 
+    test('reads the keys of a section path defined by two packages', () => {
+      const section = uniqueSection('shared');
+      const prefix = sectionPrefix(section);
+      defineConfig(section, { FIRST: Type.Integer({ default: 1 }) });
+      defineConfig(section, { SECOND: Type.Integer({ default: 2 }) });
+
+      expect(readConfig(`${prefix}FIRST`)).toBe(1);
+      expect(readConfig(`${prefix}SECOND`)).toBe(2);
+    });
+
     test('reads the raw value of a key no section declares', () => {
       setRawConfig(raw({ CUSTOM_KEY: 'json' }), raw({ CUSTOM_KEY: 'env' }));
 

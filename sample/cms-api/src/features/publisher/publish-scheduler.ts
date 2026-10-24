@@ -1,5 +1,5 @@
 import { inject } from '@appweaver/core';
-import { CronScheduler } from '@appweaver/core/scheduler/cron-scheduler';
+import { CronScheduler } from '@appweaver/cron';
 import { logger, Scheduler } from '@appweaver/common';
 import { publishScheduledPosts } from '@/features/publisher/publish';
 

@@ -6,14 +6,8 @@ import {
   appConfig,
   ResourceError
 } from '@appweaver/common';
-import {
-  currentAuthUser,
-  EmailService,
-  errorResponses,
-  inject,
-  registerRoute,
-  serverConfig
-} from '@appweaver/core';
+import { currentAuthUser, EmailService, inject } from '@appweaver/core';
+import { errorResponses, registerRoute, serverConfig } from '@appweaver/web';
 import { findPublishedPost, findPublishedPosts } from './posts';
 
 // The locale chosen by the application, here a request parameter, passed to

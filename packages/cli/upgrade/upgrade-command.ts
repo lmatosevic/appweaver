@@ -36,7 +36,7 @@ export function upgradeCommand(program: Command): void {
     )
     .option(
       '--no-companions',
-      'Skip upgrading the installed companion packages (e.g. prisma, bullmq, nodemailer) to the versions of the target release.'
+      'Skip upgrading the installed companion packages (e.g. prisma, its adapters, typebox) to the versions of the target release.'
     )
     .option(
       '--tooling',

@@ -1,4 +1,5 @@
-import { createService, currentAuthUser } from '@appweaver/core';
+import { createService } from '@appweaver/data';
+import { currentAuthUser } from '@appweaver/core';
 import db from '@db/client';
 
 export default createService({

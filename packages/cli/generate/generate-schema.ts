@@ -33,7 +33,6 @@ import {
   uncapitalize,
   appConfig
 } from '@appweaver/common';
-import { databaseConfig } from '@appweaver/core/database/database-config';
 import { ensureDirExists, relativePathFrom, runProcess } from '../utils';
 
 const INDEX_SORT_PREFIXES: Record<string, string> = {
@@ -1019,5 +1018,9 @@ function indexFieldSchema(field: string): string {
 }
 
 function databaseType(): DatabaseType {
-  return resolveDatabaseType(databaseConfig.TYPE, databaseConfig.URL);
+  // Read by the flattened keys, so the generator needs no import of @appweaver/data
+  return resolveDatabaseType(
+    (config.str('DATABASE_TYPE', '') || undefined) as DatabaseType | undefined,
+    config.str('DATABASE_URL', '')
+  );
 }

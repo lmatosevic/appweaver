@@ -496,11 +496,11 @@ describe('create-weaver-app', () => {
 
   describe('modules', () => {
     const modulePackages = [
-      'bullmq',
-      'cron',
-      'handlebars',
-      'ioredis',
-      'nodemailer'
+      '@appweaver/bullmq',
+      '@appweaver/cron',
+      '@appweaver/handlebars',
+      '@appweaver/nodemailer',
+      '@appweaver/redis'
     ];
 
     test('creates a project without any module by default', async () => {
@@ -582,10 +582,10 @@ describe('create-weaver-app', () => {
       );
 
       const { dependencies } = readJson('my-app', 'package.json');
-      expect(dependencies).toHaveProperty('nodemailer');
-      expect(dependencies).toHaveProperty('cron');
-      expect(dependencies).toHaveProperty('handlebars');
-      expect(dependencies).not.toHaveProperty('ioredis');
+      expect(dependencies).toHaveProperty('@appweaver/nodemailer');
+      expect(dependencies).toHaveProperty('@appweaver/cron');
+      expect(dependencies).toHaveProperty('@appweaver/handlebars');
+      expect(dependencies).not.toHaveProperty('@appweaver/redis');
 
       const { config } = readJson('my-app', 'appweaver.json');
       expect(config).not.toHaveProperty('mailer');
@@ -606,8 +606,8 @@ describe('create-weaver-app', () => {
 
       expect(logs).toContain('Adding module redis, required by queue.');
       const { dependencies } = readJson('my-app', 'package.json');
-      expect(dependencies).toHaveProperty('bullmq');
-      expect(dependencies).toHaveProperty('ioredis');
+      expect(dependencies).toHaveProperty('@appweaver/bullmq');
+      expect(dependencies).toHaveProperty('@appweaver/redis');
 
       const { config } = readJson('my-app', 'appweaver.json');
       expect(config).not.toHaveProperty('queue');
@@ -630,8 +630,8 @@ describe('create-weaver-app', () => {
       expect(exists('my-app', 'templates')).toBe(true);
 
       const { dependencies } = readJson('my-app', 'package.json');
-      expect(dependencies).not.toHaveProperty('cron');
-      expect(dependencies).toHaveProperty('bullmq');
+      expect(dependencies).not.toHaveProperty('@appweaver/cron');
+      expect(dependencies).toHaveProperty('@appweaver/bullmq');
       expect(readJson('my-app', 'appweaver.json').config).not.toHaveProperty(
         'scheduler'
       );

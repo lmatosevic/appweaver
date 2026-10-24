@@ -6,12 +6,8 @@ import {
   Events,
   RequestError
 } from '@appweaver/common';
-import {
-  CacheService,
-  inject,
-  injectService,
-  runTransaction
-} from '@appweaver/core';
+import { CacheService, inject, injectService } from '@appweaver/core';
+import { runTransaction } from '@appweaver/data';
 import db from '@db/client';
 import { Coupon, Prisma } from '@db/client/client';
 import { Order, OrderSingle } from '@/types';

@@ -26,7 +26,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     name: 'redis',
     description:
       'Redis connection (IoRedis) for the cache, rate limit and queue, otherwise in memory',
-    packages: ['ioredis'],
+    packages: ['@appweaver/redis'],
     requires: [],
     enabledConfig: [
       ['config.memory.redis.url', 'redis://${REDIS_HOST:-localhost}:6379/0'],
@@ -37,7 +37,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
   queue: {
     name: 'queue',
     description: 'BullMQ queue on Redis, otherwise the in-memory queue',
-    packages: ['bullmq'],
+    packages: ['@appweaver/bullmq'],
     requires: ['redis'],
     enabledConfig: [['environments.test.queue.provider', 'memory']],
     disabledConfig: []
@@ -45,7 +45,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
   scheduler: {
     name: 'scheduler',
     description: 'Cron job scheduler, otherwise disabled',
-    packages: ['cron'],
+    packages: ['@appweaver/cron'],
     requires: [],
     enabledConfig: [['environments.test.scheduler.autoStartJob', false]],
     disabledConfig: []
@@ -54,7 +54,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     name: 'mailer',
     description:
       'SMTP mailer (Nodemailer) of the account emails, otherwise disabled',
-    packages: ['nodemailer'],
+    packages: ['@appweaver/nodemailer'],
     requires: [],
     enabledConfig: [['environments.test.mailer.provider', 'json']],
     disabledConfig: []
@@ -63,7 +63,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     name: 'templates',
     description:
       'Handlebars templates in templates/, with the account email templates when the mailer is enabled',
-    packages: ['handlebars'],
+    packages: ['@appweaver/handlebars'],
     requires: [],
     enabledConfig: [['environments.dev.template.cache', false]],
     disabledConfig: [],

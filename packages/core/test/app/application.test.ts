@@ -1,5 +1,5 @@
 import { LIFECYCLE } from '@appweaver/common';
-import { define } from '../../context';
+import { define } from '../../context/dependency-injection';
 import { Application } from '../../app/application';
 import { resetContext } from '../fixtures/context-fixture';
 

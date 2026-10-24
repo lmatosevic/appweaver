@@ -14,7 +14,6 @@ import {
   isModuleEnabled,
   loadModuleParts
 } from '@appweaver/core/app/discover-modules';
-import { pruneUnusedModels } from '@appweaver/core/resource/utils/prune-util';
 
 /**
  * Loads and parses the `package.json` file located in the CLI project package directory.
@@ -128,6 +127,8 @@ export async function loadModels(
 
   // Leave out the models of the framework the application does not use
   if (prune) {
+    const { pruneUnusedModels } =
+      await import('@appweaver/data/resource/utils/prune-util');
     pruneUnusedModels(models);
   }
 
