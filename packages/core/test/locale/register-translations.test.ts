@@ -1,6 +1,6 @@
 import { define } from '../../context/dependency-injection';
 import { LocaleService } from '../../locale/locale-service';
-import { registerTranslations } from '../../locale/register-translations';
+import { registerTranslations } from '../../locale';
 import { resetContext } from '../fixtures/context-fixture';
 
 describe('register-translations', () => {

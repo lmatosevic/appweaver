@@ -11,7 +11,7 @@ import {
   MailerError,
   TemplateError
 } from '@appweaver/common';
-import { inject } from '../context/dependency-injection';
+import { inject } from '../context';
 import { htmlToText } from './utils/html-util';
 
 export class EmailService {

@@ -6,7 +6,7 @@ import { ErrorCode, TemplateEngine } from '@appweaver/common';
 import Fastify from 'fastify';
 import { define, LocaleService } from '@appweaver/core';
 import { errorHandler } from '../../errors/error-handler';
-import { ProblemDetailsSchema } from '../../errors/error-schema';
+import { ProblemDetailsSchema } from '../../errors';
 import { templatePreview } from '../../template/template-preview-route';
 import { HandlebarsTemplateEngine } from '@appweaver/handlebars';
 import { requestValidation } from '../../server/request-validation';

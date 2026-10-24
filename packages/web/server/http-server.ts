@@ -33,12 +33,11 @@ export class HttpServer implements OnReady, OnShutdown {
    * @return {Promise<string>} The URL the server listens on.
    */
   public async listen(): Promise<string> {
-    const address = await this.instance.listen({
+    return this.instance.listen({
       port: serverConfig.PORT,
-      host: serverConfig.HOST
+      host: serverConfig.HOST,
+      listenTextResolver: (address) => `Server listening on ${address}`
     });
-    logger.debug(`Server listening on ${address}`);
-    return address;
   }
 
   /**

@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { ErrorCode, RouteSchema } from '@appweaver/common';
-import { errorResponses } from '../../errors/error-schema';
+import { errorResponses } from '../../errors';
 
 export const OAuth2RedirectQuery = Type.Object({
   redirectToUrl: Type.String({

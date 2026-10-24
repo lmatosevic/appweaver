@@ -8,7 +8,7 @@ import {
   AuthError
 } from '@appweaver/common';
 import { inject } from '@appweaver/core';
-import { PrismaDatabase } from '../../database/prisma-database';
+import { PrismaDatabase } from '../../database';
 
 export class DatabaseSecurityStore extends SecurityStore {
   /** @internal */

@@ -29,7 +29,7 @@ import {
   captchaErrorCodes,
   captchaHeaderSchema
 } from '../security/auth-schema';
-import { errorResponses } from '../errors/error-schema';
+import { errorResponses } from '../errors';
 import { ResourceRouteName } from './utils/route-config-util';
 
 const CURSOR_EXAMPLE = 'eyJpIjo0MiwiZiI6IkhkQjVfa2VMTVlyNyJ9';

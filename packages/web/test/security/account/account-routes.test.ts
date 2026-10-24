@@ -1,7 +1,7 @@
 import Fastify from 'fastify';
 import { define } from '@appweaver/core';
 import { errorHandler } from '../../../errors/error-handler';
-import { accountRoutes } from '../../../security/account/account-routes';
+import { accountRoutes } from '../../../security/account';
 import { AccountService } from '../../../security/account/account-service';
 import { requestValidation } from '../../../server/request-validation';
 import schemas from '../../../server/schemas';

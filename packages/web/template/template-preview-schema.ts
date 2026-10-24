@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { ErrorCode, RouteSchema } from '@appweaver/common';
-import { errorResponses } from '../errors/error-schema';
+import { errorResponses } from '../errors';
 import { PREVIEW_DATA_PARAM, PREVIEW_LOCALE_PARAM } from './utils/preview-data';
 
 export const TemplatePreviewParams = Type.Object({

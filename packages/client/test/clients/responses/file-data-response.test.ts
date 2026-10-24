@@ -1,4 +1,4 @@
-import { FileDataResponse } from '../../../clients/responses/file-data-response';
+import { FileDataResponse } from '../../../clients/responses';
 
 describe('file-data-response', () => {
   const streamOf = (...chunks: string[]): ReadableStream =>

@@ -64,6 +64,10 @@ describe('Feature Verification', () => {
       involves code changes.
     - **Linting**: The project uses **ESLint**. Run `npm run lint` to check for issues and `npm run lint -- --fix` to
       automatically fix what's possible.
+    - **Circular dependencies**: Run `npm run check:circular` to check the package sources for import cycles with
+      madge (`.madgerc`). It skips the type-only and dynamic imports, which never run at load time, so it fails only on
+      a cycle of runtime imports. A shorter import through a directory barrel (`index.ts`) loads every module of the
+      barrel, so check it too.
     - **Comments**: Keep code comments short and to the point. Explain only what the code itself cannot show.
     - **Class member order**: fields first, then all public methods, then the private ones.
     - **Type member order**: in an interface or type, required properties come first, optional ones after them.

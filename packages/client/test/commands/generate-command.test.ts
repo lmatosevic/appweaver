@@ -10,11 +10,7 @@ jest.mock('prettier', () => ({
 }));
 
 import { Command } from 'commander';
-import {
-  generateCommand,
-  parseSchema,
-  relativePathFrom
-} from '../../commands/generate-command';
+import { generateCommand, parseSchema, relativePathFrom } from '../../commands';
 
 describe('generate-command', () => {
   describe('generateCommand', () => {

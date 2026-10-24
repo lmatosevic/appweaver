@@ -1,7 +1,7 @@
 import Fastify, { FastifyInstance } from 'fastify';
 import { ROUTE } from '@appweaver/common';
 import { context } from '@appweaver/core/internal';
-import { ProblemDetailsSchema } from '../../errors/error-schema';
+import { ProblemDetailsSchema } from '../../errors';
 import { registerRoute } from '../../server/register-route';
 import { resetContext } from '@appweaver/testing';
 

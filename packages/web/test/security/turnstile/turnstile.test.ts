@@ -11,7 +11,7 @@ jest.mock('../../../security/turnstile/turnstile-verify', () => ({
 }));
 
 import * as common from '@appweaver/common';
-import { turnstile } from '../../../security/turnstile/turnstile';
+import { turnstile } from '../../../security/turnstile';
 import { turnstileVerify } from '../../../security/turnstile/turnstile-verify';
 import { Server } from '../../../types/server';
 import { createTestServer } from '../../fixtures/server-fixture';

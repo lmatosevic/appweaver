@@ -1,8 +1,8 @@
 import * as core from '../index';
 import { CacheService } from '../cache/cache-service';
-import { EmailService } from '../mailer/email-service';
+import { EmailService } from '../mailer';
 import { LocaleService } from '../locale/locale-service';
-import { registerTranslations } from '../locale/register-translations';
+import { registerTranslations } from '../locale';
 import {
   registerTemplate,
   registerTemplateHelper

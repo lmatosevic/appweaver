@@ -11,7 +11,7 @@ jest.mock('../../../security/recaptcha/recaptcha-verify', () => ({
 }));
 
 import * as common from '@appweaver/common';
-import { recaptcha } from '../../../security/recaptcha/recaptcha';
+import { recaptcha } from '../../../security/recaptcha';
 import { recaptchaVerify } from '../../../security/recaptcha/recaptcha-verify';
 import { Server } from '../../../types/server';
 import { createTestServer } from '../../fixtures/server-fixture';

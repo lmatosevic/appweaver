@@ -13,7 +13,7 @@ import {
   turnstileConfig
 } from './security-config';
 import { apiKeyConfig } from '@appweaver/data';
-import { errorResponses } from '../errors/error-schema';
+import { errorResponses } from '../errors';
 import { createSchemaModel } from '@appweaver/core';
 
 export const LoginRequest = Type.Object(

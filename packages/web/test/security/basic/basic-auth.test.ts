@@ -2,7 +2,7 @@ import * as common from '@appweaver/common';
 import { AuthSource, AuthType, ErrorCode, AuthError } from '@appweaver/common';
 import { define } from '@appweaver/core';
 import { AuthService } from '../../../security/auth-service';
-import { basicAuth, hasBasicAuth } from '../../../security/basic/basic-auth';
+import { basicAuth, hasBasicAuth } from '../../../security/basic';
 import { Server } from '../../../types/server';
 import { resetContext } from '@appweaver/testing';
 import {

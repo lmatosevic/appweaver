@@ -9,7 +9,7 @@ import {
 } from '@appweaver/common';
 import { Seeder as SeederRecord } from '../prisma/client/client';
 import { LifecycleManager } from '@appweaver/core/internal';
-import { PrismaDatabase } from '../database/prisma-database';
+import { PrismaDatabase } from '../database';
 import { inject } from '@appweaver/core';
 
 /** The seeders directory of a module, whose seeders run before the ones of the application. */

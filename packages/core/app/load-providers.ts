@@ -11,12 +11,8 @@ import {
   PROVIDER_NONE,
   Queue
 } from '@appweaver/common';
-import { context } from '../context/context';
-import {
-  define,
-  isDefined,
-  loadProvider
-} from '../context/dependency-injection';
+import { context } from '../context';
+import { define, isDefined, loadProvider } from '../context';
 import { EnabledModule } from './discover-modules';
 
 /**

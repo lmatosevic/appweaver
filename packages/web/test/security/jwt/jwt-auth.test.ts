@@ -6,7 +6,7 @@ import * as common from '@appweaver/common';
 import { AuthScope, AuthSource, AuthType } from '@appweaver/common';
 import { define } from '@appweaver/core';
 import { AuthService } from '../../../security/auth-service';
-import { hasBearerAuth, jwtAuth } from '../../../security/jwt/jwt-auth';
+import { hasBearerAuth, jwtAuth } from '../../../security/jwt';
 import { Server } from '../../../types/server';
 import { resetContext } from '@appweaver/testing';
 import {

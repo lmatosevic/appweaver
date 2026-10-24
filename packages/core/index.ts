@@ -3,7 +3,7 @@ export * from './config';
 export * from './cache/cache-service';
 export * from './context/auth-context';
 export * from './context/dependency-injection';
-export { afterCommit, afterRollback } from './context/transaction-scope';
+export { afterCommit, afterRollback } from './context';
 export * from './health/health-listener';
 export * from './health/health-service';
 export * from './locale';

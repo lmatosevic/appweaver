@@ -1,0 +1,11 @@
+{
+  "fileExtensions": ["ts"],
+  "tsConfig": "tsconfig.json",
+  "excludeRegExp": ["[\\/](dist|node_modules|templates|test|prisma)[\\/]"],
+  "detectiveOptions": {
+    "ts": {
+      "skipTypeImports": true,
+      "skipAsyncImports": true
+    }
+  }
+}

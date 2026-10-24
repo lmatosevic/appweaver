@@ -7,7 +7,7 @@ import {
   OnReady,
   OnShutdown
 } from '@appweaver/common';
-import { inject, isDefined } from '../context/dependency-injection';
+import { inject, isDefined } from '../context';
 import { healthConfig } from './health-config';
 import { HealthService } from './health-service';
 

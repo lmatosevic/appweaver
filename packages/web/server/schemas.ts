@@ -3,10 +3,7 @@ import { TObject } from '@sinclair/typebox';
 import { MODEL, Model, resourceModelProps } from '@appweaver/common';
 import { context } from '@appweaver/core/internal';
 import { injectAll } from '@appweaver/core';
-import {
-  PROBLEM_DETAILS_SCHEMA_NAME,
-  problemDetailsSchema
-} from '../errors/error-schema';
+import { PROBLEM_DETAILS_SCHEMA_NAME, problemDetailsSchema } from '../errors';
 import { Server } from '../types/server';
 
 export default fastifyPlugin((server: Server) => {

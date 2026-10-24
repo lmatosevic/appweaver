@@ -6,7 +6,7 @@ import {
   TemplateEngine
 } from '@appweaver/common';
 import { define } from '../../context/dependency-injection';
-import { EmailService } from '../../mailer/email-service';
+import { EmailService } from '../../mailer';
 import { resetContext } from '../fixtures/context-fixture';
 
 const email = { to: 'user@test.com', subject: 'Welcome', text: 'Hi' };

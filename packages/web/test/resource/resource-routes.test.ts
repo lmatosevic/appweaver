@@ -14,7 +14,7 @@ import { define } from '@appweaver/core';
 import { createModel } from '@appweaver/data';
 import { resourceRoutes } from '../../resource/resource-routes';
 import { errorHandler } from '../../errors/error-handler';
-import { ProblemDetailsSchema } from '../../errors/error-schema';
+import { ProblemDetailsSchema } from '../../errors';
 import schemas from '../../server/schemas';
 import { resetContext } from '@appweaver/testing';
 import { linkModels } from '@appweaver/testing';

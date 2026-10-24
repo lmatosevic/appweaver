@@ -1,4 +1,4 @@
-import { AbstractCtor } from '../utils/type-util';
+import { AbstractCtor } from '../utils';
 
 // Registered globally, so a manifest is recognized whichever copy of this package defined it
 export const MODULE = Symbol.for('appweaver.module');

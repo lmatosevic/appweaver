@@ -1,7 +1,7 @@
 import { TObject, Type } from '@sinclair/typebox';
 import { MODEL, Model } from '@appweaver/common';
-import { context } from '../context/context';
-import { define, injectCreated } from '../context/dependency-injection';
+import { context } from '../context';
+import { define, injectCreated } from '../context';
 
 /**
  * Creates a schema model by defining it with the given name and schema object. This function returns a TypeBox

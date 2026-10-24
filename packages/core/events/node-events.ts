@@ -7,7 +7,7 @@ import {
   uuid
 } from '@appweaver/common';
 import { eventsConfig } from './events-config';
-import { afterCommit, currentTransaction } from '../context/transaction-scope';
+import { afterCommit, currentTransaction } from '../context';
 
 export class NodeEvents extends Events {
   /** @internal */

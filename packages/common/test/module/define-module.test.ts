@@ -1,5 +1,5 @@
 import { Storage } from '../../infrastructure';
-import { defineModule, isModule } from '../../module/define-module';
+import { defineModule, isModule } from '../../module';
 
 describe('define-module', () => {
   describe('defineModule', () => {

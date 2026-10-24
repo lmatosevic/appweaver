@@ -37,8 +37,8 @@ import {
   serverConfig
 } from './server-config';
 import { context } from '@appweaver/core/internal';
-import { errorHandler, notFoundHandler } from '../errors/error-handler';
-import { stashErrorResponses } from '../errors/error-schema';
+import { errorHandler, notFoundHandler } from '../errors';
+import { stashErrorResponses } from '../errors';
 import { files } from '../storage/file-route';
 import { health } from '../health/health-routes';
 import { templatePreview } from '../template/template-preview-route';

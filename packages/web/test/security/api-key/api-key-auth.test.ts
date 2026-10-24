@@ -10,7 +10,7 @@ import {
 import { context } from '@appweaver/core/internal';
 import { define, CacheService } from '@appweaver/core';
 import { AuthService } from '../../../security/auth-service';
-import { apiKeyAuth, hasApiKey } from '../../../security/api-key/api-key-auth';
+import { apiKeyAuth, hasApiKey } from '../../../security/api-key';
 import { Server } from '../../../types/server';
 import { resetContext } from '@appweaver/testing';
 import {

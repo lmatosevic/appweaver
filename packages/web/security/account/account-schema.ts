@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { AuthType, ErrorCode, StringEnum } from '@appweaver/common';
-import { errorResponses } from '../../errors/error-schema';
+import { errorResponses } from '../../errors';
 import {
   authErrorCodes,
   authSchema,

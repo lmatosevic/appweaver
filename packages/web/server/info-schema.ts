@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { errorResponses } from '../errors/error-schema';
+import { errorResponses } from '../errors';
 import { createSchemaModel } from '@appweaver/core';
 
 export const InfoResponse = Type.Object(

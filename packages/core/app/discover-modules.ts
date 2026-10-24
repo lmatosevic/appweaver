@@ -11,7 +11,7 @@ import {
   ModuleError,
   satisfiesVersion
 } from '@appweaver/common';
-import { context } from '../context/context';
+import { context } from '../context';
 import coreModule from '../modules/core';
 
 /** Where an enabled module was found. */

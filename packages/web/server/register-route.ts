@@ -15,7 +15,7 @@ import {
   captchaErrorCodes,
   captchaHeaderSchema
 } from '../security/auth-schema';
-import { errorResponses, mergeErrorResponses } from '../errors/error-schema';
+import { errorResponses, mergeErrorResponses } from '../errors';
 import { Router, Server } from '../types/server';
 import {
   buildVirtualProjectionPlan,

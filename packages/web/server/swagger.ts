@@ -23,8 +23,8 @@ import {
   documentErrorResponses,
   ERROR_RESPONSES_KEY,
   PROBLEM_DETAILS_SCHEMA_NAME
-} from '../errors/error-schema';
-import { PROBLEM_CONTENT_TYPE } from '../errors/error-handler';
+} from '../errors';
+import { PROBLEM_CONTENT_TYPE } from '../errors';
 import { Server } from '../types/server';
 import { swaggerUiFilterPlugin } from './swagger-ui-plugin';
 

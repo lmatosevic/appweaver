@@ -7,7 +7,7 @@ import {
   StringEnum
 } from '@appweaver/common';
 import { healthCheckConfig } from './health-check-config';
-import { errorResponses } from '../errors/error-schema';
+import { errorResponses } from '../errors';
 import { authErrorCodes } from '../security/auth-schema';
 import { createSchemaModel } from '@appweaver/core';
 

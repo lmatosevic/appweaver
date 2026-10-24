@@ -9,8 +9,8 @@ import {
   OnShutdown,
   isConstructor
 } from '@appweaver/common';
-import { context } from '../context/context';
-import { injectAllWhere } from '../context/dependency-injection';
+import { context } from '../context';
+import { injectAllWhere } from '../context';
 
 export abstract class LifecycleManager {
   private _initialized = false;

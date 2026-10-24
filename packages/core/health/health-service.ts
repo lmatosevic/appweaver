@@ -8,7 +8,7 @@ import {
   uncapitalize
 } from '@appweaver/common';
 import { healthConfig } from './health-config';
-import { injectAllWhere } from '../context/dependency-injection';
+import { injectAllWhere } from '../context';
 
 export type HealthCheckResponse = {
   status: HealthCheckStatus;

@@ -8,7 +8,7 @@ import {
   ERROR_RESPONSES_KEY,
   problemDetailsSchema,
   stashErrorResponses
-} from '../../errors/error-schema';
+} from '../../errors';
 
 /** Returns the codes by their status an error response lists. */
 const codesOf = (response: any): Record<string, string[]> =>

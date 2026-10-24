@@ -1,8 +1,4 @@
-import {
-  ClientError,
-  isClientError,
-  REQUEST_FAILED_CODE
-} from '../../errors/client-error';
+import { ClientError, isClientError, REQUEST_FAILED_CODE } from '../../errors';
 
 const problem = {
   type: 'urn:appweaver:error:database-unique-violation',

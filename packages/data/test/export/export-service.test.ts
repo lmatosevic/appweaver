@@ -8,7 +8,7 @@ import {
 } from '@appweaver/common';
 import { exportConfig } from '../../export/export-config';
 import { define } from '@appweaver/core';
-import { ExportService } from '../../export/export-service';
+import { ExportService } from '../../export';
 import { createModel } from '../../factory/create-model';
 import { resetContext } from '@appweaver/testing';
 import { linkModels } from '@appweaver/testing';
