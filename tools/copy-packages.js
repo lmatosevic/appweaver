@@ -20,7 +20,11 @@ for (const pkgName of fs.readdirSync(packagesDir)) {
     continue; // Skip if unable to check package directory stats
   }
 
-  if (!stat.isDirectory()) {
+  // Skip the directories that are not a package, i.e. one left after a rename
+  if (
+    !stat.isDirectory() ||
+    !fs.existsSync(path.join(fullPath, 'package.json'))
+  ) {
     continue;
   }
 
