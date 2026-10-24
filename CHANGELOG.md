@@ -581,7 +581,7 @@
 * change sample CMS API default database name ([6e522ac](https://github.com/lmatosevic/appweaver/commit/6e522ac3d73c77009d291c8b69f59857f6273060))
 * clean up legacy changelog sections, update skill configuration file, update config comments and default values ([7cb12b7](https://github.com/lmatosevic/appweaver/commit/7cb12b74dde01f43f71ee2a82d8b4f3ca5baf653))
 * conditionally register Swagger UI and update dependencies ([a4dfb1c](https://github.com/lmatosevic/appweaver/commit/a4dfb1c8d5292b2c50d6a63b5d62fd50286d356b))
-* correct formatting in output comments in `generate-schema.ts` ([b6633b3](https://github.com/lmatosevic/appweaver/commit/b6633b33ede7d5838b044a52258eeb604879dffd))
+* correct formatting in output comments in `generate-db-schema.ts` ([b6633b3](https://github.com/lmatosevic/appweaver/commit/b6633b33ede7d5838b044a52258eeb604879dffd))
 * disabled logging during CLI command execution ([91062e9](https://github.com/lmatosevic/appweaver/commit/91062e9d54bb5099e2d9e45eeed5e544074681a8))
 * do not register caching plugin if CACHE_ENABLED is false ([bdbdaab](https://github.com/lmatosevic/appweaver/commit/bdbdaaba03d05599453b82c671e27b512e068d1e))
 * downgrade ioredis version to match bullmq required version ([b605d6e](https://github.com/lmatosevic/appweaver/commit/b605d6e5fe5999fcf28ba05d0c9bba605b8919ee))

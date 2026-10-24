@@ -34,7 +34,8 @@ The basic file structure of the Appweaver project:
 - `src/resources/` - application resources (models, services, policies, and routes)
 - `src/types/` - application types (generated and manually created)
 - `src/main.ts` - the main application entrypoint
-- `templates/` - the Handlebars templates of emails, HTML pages, XML exports or any other text (`*.<format>.hbs`, `templates` module)
+- `templates/` - the Handlebars templates of emails, HTML pages, XML exports or any other text (`*.<format>.hbs`,
+  `templates` module)
 - `test/e2e/` - the end-to-end tests root directory
 - `test/unit/` - the unit tests root directory
 - `.env` - override the central configuration (optional)
@@ -135,7 +136,8 @@ DB_PASSWORD=my-blog-api
 
 With the `docker` module, the generated `docker-compose.yml` of a PostgreSQL, MySQL, or SQL Server project runs the
 database server (and Redis, with the `redis` module) on their default ports (`5432`, `3306`, `1433`, and `6379` for
-Redis), also published on the host, with the `.env` credentials. So `docker compose up` runs the whole stack, while `docker compose up -d postgres redis` and `npm run dev`
+Redis), also published on the host, with the `.env` credentials. So `docker compose up` runs the whole stack, while
+`docker compose up -d postgres redis` and `npm run dev`
 run the app locally against the same containers. The application containers read `.env` and set only `DB_HOST` and
 `REDIS_HOST` to the service names, which the URLs default to `localhost` without. To use another server, change the
 URL in `appweaver.json`, or set `DB_HOST` / `REDIS_HOST` in `.env`. Setting `DB_NAME` renames the database (the test
@@ -242,11 +244,11 @@ packages (`weaver module add <package>`), and a module package is created with `
 <package>`, its driver tested with the contract suites of `@appweaver/testing`. See [modules.md](references/modules.md)
 and the [providers](references/configuration.md#providers).
 
-| Application                  | How                                                                                                                                |
-|------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
-| HTTP API                     | The default: `createApp()` starts the server on `SERVER_PORT`.                                                                     |
+| Application                  | How                                                                                                                                      |
+|------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| HTTP API                     | The default: `createApp()` starts the server on `SERVER_PORT`.                                                                           |
 | Queue worker, scheduled jobs | `APP_MODULES_DISABLED=@appweaver/web`: no server, kept alive by its workers or cron jobs. `HEALTH_CHECK_PORT` answers the health checks. |
-| One-shot task                | `weaver run src/tasks/report.ts [args...]`: runs the default export `(args) => number \| void`, then exits.                        |
+| One-shot task                | `weaver run src/tasks/report.ts [args...]`: runs the default export `(args) => number \| void`, then exits.                              |
 
 ```ts
 // src/tasks/report.ts, run with `weaver run src/tasks/report.ts Pending`
@@ -849,12 +851,14 @@ import { Mailer } from '@appweaver/common';
 import { inject, isDefined } from '@appweaver/core';
 
 const mailer: Mailer | undefined = inject(Mailer, false); // undefined with MAILER_PROVIDER=none
-if (isDefined(Mailer)) { /* ... */ }
+if (isDefined(Mailer)) { /* ... */
+}
 ```
 
 A registered class setting the static `[LIFECYCLE] = true` tag has its hooks of `@appweaver/common` called:
 `onInit()` when the application starts, `onReady()` once every service is initialized, `onShutdown()`
-first on stop, and `onDestroy()` last; see [dependency-injection.md](references/dependency-injection.md#lifecycle-hooks).
+first on stop, and `onDestroy()` last;
+see [dependency-injection.md](references/dependency-injection.md#lifecycle-hooks).
 
 ### Writing a seeder
 
@@ -1024,7 +1028,8 @@ templates, so they keep rendering (the other languages are lost). A module anoth
 removed alone (`queue` requires `redis`). An `appweaver.json` value changed in the project is kept, and `src/` is never
 touched, so remove the code using a removed module yourself.
 
-A name that is not a scaffold module, with a scope, a `-` or a `/`, is a module package: `add` installs it with `npm install --ignore-scripts` (`bun
+A name that is not a scaffold module, with a scope, a `-` or a `/`, is a module package: `add` installs it with
+`npm install --ignore-scripts` (`bun
 add` on Bun) and prints the providers and requirements of its manifest. `new <name>` creates a local module (kebab-case
 name) with its `module.ts`, `config.ts` (the camelCase section of the name) and `main.ts`, enabled without config. A
 reusable module goes into a package of its own, created with `npm create @appweaver module <package> -- --contract

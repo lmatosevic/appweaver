@@ -40,7 +40,7 @@ function createModel(config: ResourceModelConfig, override ?: Partial<ResourceMo
 | `name`           | string                         | yes      | -                     | Model name (PascalCase). Used as database table name and type name. |
 | `tableName`      | string                         | no       | (model name)          | Custom database table name override.                                |
 | `generateTypes`  | boolean                        | no       | `true`                | Generate TypeScript types for this model.                           |
-| `generateSchema` | boolean                        | no       | `true`                | Generate Prisma schema for this model.                              |
+| `generateDbSchema` | boolean                        | no       | `true`                | Generate Prisma schema for this model.                              |
 | `id`             | IdField                        | no       | Autoincrement integer | ID field configuration.                                             |
 | `audit`          | AuditFields                    | no       | All included          | Audit timestamps and creator tracking fields.                       |
 | `scalars`        | Record\<string, ScalarField>   | no       | -                     | Scalar fields (database columns).                                   |

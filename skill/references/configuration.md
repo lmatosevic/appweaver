@@ -129,14 +129,14 @@ appConfig.HOSTNAME; // string
 databaseConfig.URL; // string
 ```
 
-| Section variable                                                                                                                                                                                                                                                                                                   | Keys                            | Imported from           |
-|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|-------------------------|
-| `appConfig`, `logConfig`                                                                                                                                                                                                                                                                                           | `APP_*`, `LOG_*`                | `@appweaver/common`     |
-| `cacheConfig`, `eventsConfig`, `healthConfig` (`HEALTH_CHECK_*`: `PORT`, `HOST`, `PICK_INSTANCES`, `OMIT_INSTANCES`), `localeConfig`, `mailerConfig`, `memoryConfig`, `queueConfig`, `schedulerConfig`, `securityStoreConfig` (`SECURITY_STORE_*`), `storageConfig`, `templateConfig`                        | `CACHE_*`, `HEALTH_CHECK_*`, ...| `@appweaver/core`       |
-| `databaseConfig`, `resourceConfig`, `exportConfig`, `imageConfig`, `passwordConfig`, `apiKeyConfig`, `connectedAccountConfig` (`SECURITY_OAUTH2_CONNECTED_ACCOUNTS_*`), `systemConfig`                                                                                                                             | `DATABASE_*`, `RESOURCE_*`, ... | `@appweaver/data`       |
-| `serverConfig`, `rateLimitConfig`, `swaggerConfig`, `corsConfig`, `healthCheckConfig`, `templatePreviewConfig`, `securityConfig` (`SECURITY_*` not elsewhere), `accountConfig`, `twoFactorConfig` (`SECURITY_ACCOUNT_2FA_*`), `recaptchaConfig`, `turnstileConfig`, `basicAuthConfig`, `jwtConfig`, `oauth2Config` | `SERVER_*`, `SECURITY_*`, ...   | `@appweaver/web`        |
-| `redisConfig`                                                                                                                                                                                                                                                                                                      | `MEMORY_REDIS_*`                | `@appweaver/redis`      |
-| `smtpConfig`                                                                                                                                                                                                                                                                                                       | `MAILER_SMTP_*`                 | `@appweaver/nodemailer` |
+| Section variable                                                                                                                                                                                                                                                                                                   | Keys                             | Imported from           |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|-------------------------|
+| `appConfig`, `logConfig`                                                                                                                                                                                                                                                                                           | `APP_*`, `LOG_*`                 | `@appweaver/common`     |
+| `cacheConfig`, `eventsConfig`, `healthConfig` (`HEALTH_CHECK_*`: `PORT`, `HOST`, `PICK_INSTANCES`, `OMIT_INSTANCES`), `localeConfig`, `mailerConfig`, `memoryConfig`, `queueConfig`, `schedulerConfig`, `securityStoreConfig` (`SECURITY_STORE_*`), `storageConfig`, `templateConfig`                              | `CACHE_*`, `HEALTH_CHECK_*`, ... | `@appweaver/core`       |
+| `databaseConfig`, `resourceConfig`, `exportConfig`, `imageConfig`, `passwordConfig`, `apiKeyConfig`, `connectedAccountConfig` (`SECURITY_OAUTH2_CONNECTED_ACCOUNTS_*`), `systemConfig`                                                                                                                             | `DATABASE_*`, `RESOURCE_*`, ...  | `@appweaver/data`       |
+| `serverConfig`, `rateLimitConfig`, `swaggerConfig`, `corsConfig`, `healthCheckConfig`, `templatePreviewConfig`, `securityConfig` (`SECURITY_*` not elsewhere), `accountConfig`, `twoFactorConfig` (`SECURITY_ACCOUNT_2FA_*`), `recaptchaConfig`, `turnstileConfig`, `basicAuthConfig`, `jwtConfig`, `oauth2Config` | `SERVER_*`, `SECURITY_*`, ...    | `@appweaver/web`        |
+| `redisConfig`                                                                                                                                                                                                                                                                                                      | `MEMORY_REDIS_*`                 | `@appweaver/redis`      |
+| `smtpConfig`                                                                                                                                                                                                                                                                                                       | `MAILER_SMTP_*`                  | `@appweaver/nodemailer` |
 
 A section is parsed on the first access of one of its values, with the defaults of its schema, then kept frozen. A
 missing or invalid value throws a `ConfigurationError` (`CONFIGURATION_INVALID`) naming only the invalid keys of the
@@ -281,10 +281,18 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 {
   "environments": {
     "test": {
-      "memory": { "provider": "memory" },
-      "queue": { "provider": "memory" },
-      "mailer": { "provider": "json" },
-      "scheduler": { "autoStartJob": false }
+      "memory": {
+        "provider": "memory"
+      },
+      "queue": {
+        "provider": "memory"
+      },
+      "mailer": {
+        "provider": "json"
+      },
+      "scheduler": {
+        "autoStartJob": false
+      }
     }
   }
 }
@@ -407,21 +415,21 @@ route. The listener stays off beside the server of `@appweaver/web`, which answe
 
 ### Resources (RESOURCE\_\*)
 
-| Property                            | Type    | Default                              | Description                                                                             |
-|-------------------------------------|---------|--------------------------------------|-----------------------------------------------------------------------------------------|
-| `RESOURCE_MODEL_PATTERN`            | string  | `'<srcPath>/resources/*/*model.ts'`  | Glob pattern for resource model files.                                                  |
-| `RESOURCE_SERVICE_PATTERN`          | string  | `'<srcPath>/resources/*/*service.ts'`| Glob pattern for resource service files.                                                |
-| `RESOURCE_POLICY_PATTERN`           | string  | `'<srcPath>/resources/*/*policy.ts'` | Glob pattern for resource policy files.                                                 |
-| `RESOURCE_ROUTES_PATTERN`           | string  | `'<srcPath>/resources/*/*routes.ts'` | Glob pattern for resource routes files.                                                 |
-| `RESOURCE_GENERATED_TYPES_PATH`     | string  | `'<srcPath>/types/generated.ts'`     | Output path for generated TypeScript types.                                             |
-| `RESOURCE_QUERY_METHOD`             | enum    | `'post'`                             | Methods of the `query` routes: `post`, `get`, or `get-post`. Overridable per route.     |
-| `RESOURCE_AGGREGATE_METHOD`         | enum    | `'post'`                             | Methods of the `aggregate` routes: `post`, `get`, or `get-post`. Overridable per route. |
-| `RESOURCE_BULK_CREATE_ENABLED`      | boolean | `false`                              | Register `POST /bulk` of every resource, unless the route sets `exclude`.               |
-| `RESOURCE_BULK_UPDATE_ENABLED`      | boolean | `false`                              | Register `PATCH`/`PUT /bulk` of every resource, unless the route sets `exclude`.        |
-| `RESOURCE_BULK_DELETE_ENABLED`      | boolean | `false`                              | Register `DELETE /bulk` of every resource, unless the route sets `exclude`.             |
-| `RESOURCE_BULK_MAX_ITEMS`           | integer | `2000`                               | Maximum items of a bulk request. Overridable per route (`maxItems`).                    |
-| `RESOURCE_BULK_TRANSACTION_TIMEOUT` | integer | `5000`                               | Timeout (ms) of the transaction a bulk request runs in.                                 |
-| `RESOURCE_BULK_RETURN_RECORDS`      | boolean | `true`                               | Respond with the records, or only `{ success, count }`. Overridable per route.          |
+| Property                            | Type    | Default                               | Description                                                                             |
+|-------------------------------------|---------|---------------------------------------|-----------------------------------------------------------------------------------------|
+| `RESOURCE_MODEL_PATTERN`            | string  | `'<srcPath>/resources/*/*model.ts'`   | Glob pattern for resource model files.                                                  |
+| `RESOURCE_SERVICE_PATTERN`          | string  | `'<srcPath>/resources/*/*service.ts'` | Glob pattern for resource service files.                                                |
+| `RESOURCE_POLICY_PATTERN`           | string  | `'<srcPath>/resources/*/*policy.ts'`  | Glob pattern for resource policy files.                                                 |
+| `RESOURCE_ROUTES_PATTERN`           | string  | `'<srcPath>/resources/*/*routes.ts'`  | Glob pattern for resource routes files.                                                 |
+| `RESOURCE_GENERATED_TYPES_PATH`     | string  | `'<srcPath>/types/generated.ts'`      | Output path for generated TypeScript types.                                             |
+| `RESOURCE_QUERY_METHOD`             | enum    | `'post'`                              | Methods of the `query` routes: `post`, `get`, or `get-post`. Overridable per route.     |
+| `RESOURCE_AGGREGATE_METHOD`         | enum    | `'post'`                              | Methods of the `aggregate` routes: `post`, `get`, or `get-post`. Overridable per route. |
+| `RESOURCE_BULK_CREATE_ENABLED`      | boolean | `false`                               | Register `POST /bulk` of every resource, unless the route sets `exclude`.               |
+| `RESOURCE_BULK_UPDATE_ENABLED`      | boolean | `false`                               | Register `PATCH`/`PUT /bulk` of every resource, unless the route sets `exclude`.        |
+| `RESOURCE_BULK_DELETE_ENABLED`      | boolean | `false`                               | Register `DELETE /bulk` of every resource, unless the route sets `exclude`.             |
+| `RESOURCE_BULK_MAX_ITEMS`           | integer | `2000`                                | Maximum items of a bulk request. Overridable per route (`maxItems`).                    |
+| `RESOURCE_BULK_TRANSACTION_TIMEOUT` | integer | `5000`                                | Timeout (ms) of the transaction a bulk request runs in.                                 |
+| `RESOURCE_BULK_RETURN_RECORDS`      | boolean | `true`                                | Respond with the records, or only `{ success, count }`. Overridable per route.          |
 
 ### Data export (EXPORT\_\*)
 

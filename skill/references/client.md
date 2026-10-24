@@ -227,7 +227,6 @@ When a `query` or `aggregate` route is GET-only, the generator passes `{ query: 
 client sends the request as query parameters. With both methods available, it uses POST.
 
 ```ts
-public
 tag = this.resourceClient<Type.TagResourceModuleType>('/api/tags', { query: 'get' });
 ```
 

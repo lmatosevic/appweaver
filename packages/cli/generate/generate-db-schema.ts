@@ -105,7 +105,7 @@ type PrismaSchemaModel = {
  * @param {boolean} [quiet=false] - Optional flag to suppress logs. Default is false.
  * @return {Promise<number>} A promise that resolves to the number of models processed for the schema generation.
  */
-export async function generateSchema(
+export async function generateDbSchema(
   models: Record<string, ResourceModel>,
   schemaPath: string,
   clientPath: string,
@@ -120,7 +120,7 @@ export async function generateSchema(
         console.error(relationError);
       }
       console.error(
-        'Schema generation failed due to inconsistent relation definitions.'
+        'DB schema generation failed due to inconsistent relation definitions.'
       );
       return 2;
     }
@@ -462,15 +462,15 @@ export async function generateSchema(
     if (code !== 0 && oldSchema) {
       await fsp.writeFile(outputPath, oldSchema);
       console.error(
-        `Schema generation failed.${quiet ? ' Start with --verbose flag to see error details.' : ''}`
+        `DB schema generation failed.${quiet ? ' Start with --verbose flag to see error details.' : ''}`
       );
       return 1;
     } else {
-      console.log(`Schema generated to ${path.relative(cwd, schemaPath)}`);
+      console.log(`DB schema generated to ${path.relative(cwd, schemaPath)}`);
       return 0;
     }
   } catch (error) {
-    console.error('Schema generation failed', error);
+    console.error('DB schema generation failed', error);
     return 2;
   }
 }

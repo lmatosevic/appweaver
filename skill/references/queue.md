@@ -190,7 +190,11 @@ type QueueJob<Data, Response> = {
 ```json
 {
   "environments": {
-    "test": { "queue": { "provider": "memory" } }
+    "test": {
+      "queue": {
+        "provider": "memory"
+      }
+    }
   }
 }
 ```

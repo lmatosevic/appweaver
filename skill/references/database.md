@@ -170,12 +170,13 @@ database or change its user. The type is resolved from the URL scheme when not s
 }
 ```
 
-The test database URL goes to the `environments.test` section of `appweaver.json` (i.e. the `${DB_NAME:-myapp}-test` database of the same server).
+The test database URL goes to the `environments.test` section of `appweaver.json` (i.e. the `${DB_NAME:-myapp}-test`
+database of the same server).
 
-PostgreSQL uses the `public` schema unless the URL selects another one with `?schema=` (i.e. `...:5432/myapp?schema=webshop`).
-Prisma Migrate creates the schema and its tables there, and the framework passes it on to the PostgreSQL adapter, so the
-queries use it as well. Existing tables are not moved from `public`. Prefer a name without hyphens (`my_app`), which
-raw SQL would otherwise have to double-quote.
+PostgreSQL uses the `public` schema unless the URL selects another one with `?schema=` (i.e.
+`...:5432/myapp?schema=webshop`). Prisma Migrate creates the schema and its tables there, and the framework passes it on
+to the PostgreSQL adapter, so the queries use it as well. Existing tables are not moved from `public`. Prefer a name
+without hyphens (`my_app`), which raw SQL would otherwise have to double-quote.
 
 ---
 

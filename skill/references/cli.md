@@ -133,19 +133,19 @@ weaver generate|g [options]
 
 Generate types and/or schemas. With no flags, generates both types and schema.
 
-| Option                      | Description                             | Default                                  |
-|-----------------------------|-----------------------------------------|------------------------------------------|
-| `-t, --types`               | Generate TypeScript types               | —                                        |
-| `-s, --schema`              | Generate Prisma schema                  | —                                        |
-| `--model-pattern [pattern]` | Glob pattern for finding model files    | from config (`RESOURCE_MODEL_PATTERN`)  |
-| `--types-path [path]`       | Output path for generated types         | from config (`RESOURCE_GENERATED_TYPES_PATH`)|
-| `--schema-path [path]`      | Output path for generated Prisma schema | from config (`DATABASE_SCHEMA_PATH`)    |
-| `--client-path [path]`      | Output path for generated Prisma client | from config (`DATABASE_CLIENT_OUTPUT_DIR_PATH`)|
-| `--no-registry`             | Skip registering the model types        | registered                               |
-| `--no-prune`                | Keep the framework models not used      | pruned                                   |
-| `--config-schema-path [path]` | Output path for the JSON Schema of `appweaver.json` | `./appweaver.schema.json`    |
-| `--no-config-schema`        | Skip writing the JSON Schema of `appweaver.json` | written                         |
-| `--verbose`                 | Print verbose output                    | `false`                                  |
+| Option                        | Description                                         | Default                                         |
+|-------------------------------|-----------------------------------------------------|-------------------------------------------------|
+| `-t, --types`                 | Generate TypeScript types                           | —                                               |
+| `-s, --schema`                | Generate Prisma schema                              | —                                               |
+| `--model-pattern [pattern]`   | Glob pattern for finding model files                | from config (`RESOURCE_MODEL_PATTERN`)          |
+| `--types-path [path]`         | Output path for generated types                     | from config (`RESOURCE_GENERATED_TYPES_PATH`)   |
+| `--schema-path [path]`        | Output path for generated Prisma schema             | from config (`DATABASE_SCHEMA_PATH`)            |
+| `--client-path [path]`        | Output path for generated Prisma client             | from config (`DATABASE_CLIENT_OUTPUT_DIR_PATH`) |
+| `--no-registry`               | Skip registering the model types                    | registered                                      |
+| `--no-prune`                  | Keep the framework models not used                  | pruned                                          |
+| `--config-schema-path [path]` | Output path for the JSON Schema of `appweaver.json` | `./appweaver.schema.json`                       |
+| `--no-config-schema`          | Skip writing the JSON Schema of `appweaver.json`    | written                                         |
+| `--verbose`                   | Print verbose output                                | `false`                                         |
 
 Per model, the type file holds `<Model>`, `<Model>Single`, `<Model>Multiple`, `<Model>Create`, `<Model>Update`,
 `<Model>RelationCreate`, `<Model>RelationUpdate`, `<Model>RelationInput`, `<Model>Query`, `<Model>Sort`,
@@ -266,7 +266,8 @@ their values to `appweaver.json`, their files, and what they add to the other en
 differs is skipped and reported. Adding `locales` restores the `t` calls of the scaffolded templates still holding
 the English texts. The dependencies are installed when `package.json` changed.
 
-A name that is not a scaffold module, with a scope, a `-` or a `/`, is a module package (`weaver module add @acme/appweaver-gcs`), installed with
+A name that is not a scaffold module, with a scope, a `-` or a `/`, is a module package
+(`weaver module add @acme/appweaver-gcs`), installed with
 `npm install --ignore-scripts <package>` (`bun add` on Bun), so its install scripts never run. The command then
 prints the providers of its manifest, selected in the provider key of their contract, and the modules it requires, or
 that the package is not a module (no `appweaver.module` field in its `package.json`, or no valid manifest). With
@@ -332,13 +333,13 @@ weaver seed|sd [options]
 
 Seed the database.
 
-| Option                    | Description                                                         | Default                            |
-|---------------------------|---------------------------------------------------------------------|------------------------------------|
+| Option                    | Description                                                         | Default                                   |
+|---------------------------|---------------------------------------------------------------------|-------------------------------------------|
 | `--seeders-path [path]`   | Seeders directory path                                              | from config (`DATABASE_SEEDERS_DIR_PATH`) |
-| `-b, --build-project`     | Build the project before seeding                                    | `false`                            |
-| `-p, --project [path]`    | TypeScript project build config file (used when `-b` is set)        | `tsconfig.build.json`              |
-| `-c, --continue-on-error` | Continue seeder execution if error is thrown                        | `false`                            |
-| `-f, --fix-warnings`      | Fix all seeder warnings like wrong checksum or deleted seeder files | `false`                            |
+| `-b, --build-project`     | Build the project before seeding                                    | `false`                                   |
+| `-p, --project [path]`    | TypeScript project build config file (used when `-b` is set)        | `tsconfig.build.json`                     |
+| `-c, --continue-on-error` | Continue seeder execution if error is thrown                        | `false`                                   |
+| `-f, --fix-warnings`      | Fix all seeder warnings like wrong checksum or deleted seeder files | `false`                                   |
 
 The seeders of the enabled modules (their `seeders` directory) run first, each recorded under its module name
 (`billing/1-plans`), then the seeders of the application. A missing seeders directory is skipped with a warning, and
@@ -384,14 +385,14 @@ Perform operations used during testing.
 
 Requires `NODE_ENV=test`.
 
-| Option                      | Description                             | Default                                  |
-|-----------------------------|-----------------------------------------|------------------------------------------|
-| `-d, --dir [tempDir]`       | Directory for temporary test data       | `./temp`                                 |
-| `--model-pattern [pattern]` | Glob pattern for finding model files    | from config (`RESOURCE_MODEL_PATTERN`)  |
-| `--schema-path [path]`      | Output path for generated Prisma schema | from config (`DATABASE_SCHEMA_PATH`)    |
-| `--client-path [path]`      | Output path for generated Prisma client | from config (`DATABASE_CLIENT_OUTPUT_DIR_PATH`)|
-| `--migration-name [name]`   | Name for the initial migration          | `init_test`                              |
-| `--verbose`                 | Print verbose output                    | `false`                                  |
+| Option                      | Description                             | Default                                         |
+|-----------------------------|-----------------------------------------|-------------------------------------------------|
+| `-d, --dir [tempDir]`       | Directory for temporary test data       | `./temp`                                        |
+| `--model-pattern [pattern]` | Glob pattern for finding model files    | from config (`RESOURCE_MODEL_PATTERN`)          |
+| `--schema-path [path]`      | Output path for generated Prisma schema | from config (`DATABASE_SCHEMA_PATH`)            |
+| `--client-path [path]`      | Output path for generated Prisma client | from config (`DATABASE_CLIENT_OUTPUT_DIR_PATH`) |
+| `--migration-name [name]`   | Name for the initial migration          | `init_test`                                     |
+| `--verbose`                 | Print verbose output                    | `false`                                         |
 
 Aborts unless the storage, schema and client paths all resolve inside `--dir`, so a misconfigured test run cannot
 touch the development database or uploads. It resets the test database (`prisma migrate reset --force`) before the

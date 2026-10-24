@@ -604,7 +604,16 @@ Works like reCAPTCHA, with its own config, route options, header, and `TURNSTILE
 by side.
 
 ```json
-{ "config": { "security": { "turnstile": { "enabled": true, "secret": "your-turnstile-secret-key" } } } }
+{
+  "config": {
+    "security": {
+      "turnstile": {
+        "enabled": true,
+        "secret": "your-turnstile-secret-key"
+      }
+    }
+  }
+}
 ```
 
 The client sends the widget token in the `x-turnstile-token` header, and the server verifies it with Cloudflare's

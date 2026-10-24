@@ -1,8 +1,7 @@
 import fsp from 'node:fs/promises';
 import { Command } from 'commander';
-import { config } from '@appweaver/common';
 import { storageConfig } from '@appweaver/core/config';
-import { generateSchema } from '../generate';
+import { generateDbSchema } from '../generate';
 import {
   assertEnv,
   assertPathInside,
@@ -100,7 +99,7 @@ export function testingCommand(program: Command): void {
         command.getOptionValue('modelPattern') ?? resourceConfig.MODEL_PATTERN
       );
 
-      const generateStatus = await generateSchema(
+      const generateStatus = await generateDbSchema(
         models,
         schemaPath,
         clientPath,

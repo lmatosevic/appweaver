@@ -103,7 +103,11 @@ Verifies that the mail transport is reachable (`transporter.verify()` for SMTP).
 ```json
 {
   "environments": {
-    "test": { "mailer": { "provider": "json" } }
+    "test": {
+      "mailer": {
+        "provider": "json"
+      }
+    }
   }
 }
 ```

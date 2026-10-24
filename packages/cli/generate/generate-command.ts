@@ -1,9 +1,9 @@
 import { Command } from 'commander';
 import path from 'node:path';
-import { config, configSections } from '@appweaver/common';
+import { configSections } from '@appweaver/common';
 import { writeConfigSchema } from '../config/config-schema';
 import { generateTypes } from './generate-types';
-import { generateSchema } from './generate-schema';
+import { generateDbSchema } from './generate-db-schema';
 import { importPackage, isModulePackage, loadModels } from '../utils';
 
 /**
@@ -106,7 +106,7 @@ export function generateCommand(program: Command): void {
 
       let schemaGenerateResult: number = 0;
       if (command.getOptionValue('schema') || generateAll) {
-        schemaGenerateResult = await generateSchema(
+        schemaGenerateResult = await generateDbSchema(
           models,
           command.getOptionValue('schemaPath') ?? databaseConfig.SCHEMA_PATH,
           command.getOptionValue('clientPath') ??
