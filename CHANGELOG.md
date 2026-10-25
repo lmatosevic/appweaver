@@ -1,3 +1,15 @@
+## [2.1.0](https://github.com/lmatosevic/appweaver/compare/v2.0.2...v2.1.0) (2026-10-25)
+
+### Features
+
+* add log levels per module ([588ddcd](https://github.com/lmatosevic/appweaver/commit/588ddcd3068174171402728695beebc7d2085ece))
+
+### Bug Fixes
+
+* disable default slow DB query warning ([95b504b](https://github.com/lmatosevic/appweaver/commit/95b504b2f77aaac204e1c8539065f82075cafebe))
+* improve module debug logging ([ea4cf54](https://github.com/lmatosevic/appweaver/commit/ea4cf54c10ee26c181795959ab3a3ab27b80e157))
+* remove default email sender address scaffolding ([31c3160](https://github.com/lmatosevic/appweaver/commit/31c31602c8f6ced8db2e07ee8495ef3353bb99cf))
+
 ## [2.0.2](https://github.com/lmatosevic/appweaver/compare/v2.0.1...v2.0.2) (2026-10-25)
 
 ### Bug Fixes
