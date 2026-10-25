@@ -29,6 +29,7 @@ export default defineModule({
     connectedAccountConfig,
     systemConfig
   ],
+  loggerNames: ['database', 'resource', 'storage'],
   contracts: [
     { contract: Database, provider: () => databaseConfig.PROVIDER },
     { contract: ImageProcessor, provider: () => imageConfig.PROVIDER }

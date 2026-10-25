@@ -62,6 +62,36 @@ describe('config-schema', () => {
       ).toEqual(['port', 'enabled']);
     });
 
+    test('suggests the logger names in log.levels, allowing any other name', () => {
+      const level = Type.Union([Type.Literal('debug'), Type.Literal('info')]);
+      const schema = buildConfigSchema(
+        [
+          section('log', {
+            LEVELS: Type.Record(Type.String(), level, { default: {} })
+          })
+        ],
+        ['server', 'database', 'server']
+      );
+
+      const levels = schema.definitions.config.properties.log.properties.levels;
+      const ref = { $ref: '#/definitions/logLevel' };
+      expect(levels.properties).toEqual({ database: ref, server: ref });
+      expect(Object.values(levels.patternProperties)).toEqual([ref]);
+      expect(schema.definitions.logLevel).toEqual(
+        JSON.parse(JSON.stringify(level))
+      );
+    });
+
+    test('leaves log.levels without properties when no module names a logger', () => {
+      const schema = buildConfigSchema([
+        section('log', { LEVELS: Type.Record(Type.String(), Type.String()) })
+      ]);
+
+      expect(
+        schema.definitions.config.properties.log.properties.levels.properties
+      ).toBeUndefined();
+    });
+
     test('references the config from the base and the environments', () => {
       const schema = buildConfigSchema([]);
 

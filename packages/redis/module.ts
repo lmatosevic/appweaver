@@ -5,6 +5,7 @@ import { redisConfig } from './config';
 export default defineModule({
   name: '@appweaver/redis',
   config: [redisConfig],
+  loggerNames: ['memory'],
   providers: [
     {
       contract: Memory,

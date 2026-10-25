@@ -493,36 +493,54 @@
               "type": "object",
               "patternProperties": {
                 "^(.*)$": {
-                  "anyOf": [
-                    {
-                      "const": "fatal",
-                      "type": "string"
-                    },
-                    {
-                      "const": "error",
-                      "type": "string"
-                    },
-                    {
-                      "const": "warn",
-                      "type": "string"
-                    },
-                    {
-                      "const": "info",
-                      "type": "string"
-                    },
-                    {
-                      "const": "debug",
-                      "type": "string"
-                    },
-                    {
-                      "const": "trace",
-                      "type": "string"
-                    },
-                    {
-                      "const": "silent",
-                      "type": "string"
-                    }
-                  ]
+                  "$ref": "#/definitions/logLevel"
+                }
+              },
+              "properties": {
+                "app": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "cache": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "database": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "events": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "health": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "locale": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "mailer": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "memory": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "queue": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "resource": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "scheduler": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "security": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "server": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "storage": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "template": {
+                  "$ref": "#/definitions/logLevel"
                 }
               }
             },
@@ -1364,6 +1382,38 @@
           }
         }
       }
+    },
+    "logLevel": {
+      "anyOf": [
+        {
+          "const": "fatal",
+          "type": "string"
+        },
+        {
+          "const": "error",
+          "type": "string"
+        },
+        {
+          "const": "warn",
+          "type": "string"
+        },
+        {
+          "const": "info",
+          "type": "string"
+        },
+        {
+          "const": "debug",
+          "type": "string"
+        },
+        {
+          "const": "trace",
+          "type": "string"
+        },
+        {
+          "const": "silent",
+          "type": "string"
+        }
+      ]
     }
   }
 }

@@ -38,6 +38,16 @@ export default defineModule({
     localeConfig,
     healthConfig
   ],
+  loggerNames: [
+    'app',
+    'cache',
+    'events',
+    'health',
+    'locale',
+    'mailer',
+    'queue',
+    'storage'
+  ],
   contracts: [
     { contract: Memory, provider: () => memoryConfig.PROVIDER },
     { contract: Cache, provider: () => cacheConfig.PROVIDER },

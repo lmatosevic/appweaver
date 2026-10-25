@@ -1,3 +1,5 @@
+import path from 'node:path';
+import { sourceLoggerNames } from '@appweaver/testing';
 import * as sections from '../config';
 import manifest from '../module';
 
@@ -9,5 +11,11 @@ describe('module', () => {
     );
 
     expect(new Set(manifest.config)).toEqual(new Set(all));
+  });
+
+  test('lists every logger of the package', () => {
+    expect([...(manifest.loggerNames ?? [])].sort()).toEqual(
+      sourceLoggerNames(path.join(__dirname, '..'))
+    );
   });
 });

@@ -38,6 +38,8 @@ import { ${section}Config } from './config';
 export default defineModule({
   name: '${name}',
   config: [${section}Config],
+  // The loggers it creates, suggested in log.levels of appweaver.json
+  loggerNames: ['${section}'],
   // Drivers of a contract, selected by name in its provider key:
   // providers: [{ contract: Storage, name: '${name}', load: () => import('./${name}-storage') }],
   // Classes defined at startup, with their lifecycle hooks:

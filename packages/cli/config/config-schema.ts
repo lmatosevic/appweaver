@@ -9,15 +9,17 @@ type JsonSchema = Record<string, any>;
  *
  * @param {Iterable<ConfigSectionDefinition>} sections - The registered config sections.
  * @param {string} outputPath - The path of the schema file, i.e. `./appweaver.schema.json`.
+ * @param {Iterable<string>} [loggerNames] - The logger names of the enabled modules, suggested in `log.levels`.
  */
 export async function writeConfigSchema(
   sections: Iterable<ConfigSectionDefinition>,
-  outputPath: string
+  outputPath: string,
+  loggerNames: Iterable<string> = []
 ): Promise<void> {
   await ensureDirExists(outputPath);
   await fsp.writeFile(
     outputPath,
-    JSON.stringify(buildConfigSchema(sections), null, 2) + '\n',
+    JSON.stringify(buildConfigSchema(sections, loggerNames), null, 2) + '\n',
     'utf8'
   );
 }
@@ -25,13 +27,16 @@ export async function writeConfigSchema(
 /**
  * Builds the JSON Schema of the `appweaver.json` file from the config sections of the application, the one its
  * `$schema` points to. A TypeBox schema is a JSON Schema, so each key keeps its type and default, under its camelCase
- * name in the nested object of its section.
+ * name in the nested object of its section. The logger names become the properties of `log.levels`, so an editor
+ * suggests them, while any other name still matches the pattern of the record.
  *
  * @param {Iterable<ConfigSectionDefinition>} sections - The registered config sections.
+ * @param {Iterable<string>} [loggerNames] - The logger names of the enabled modules, i.e. `database`.
  * @return {JsonSchema} The JSON Schema of the file.
  */
 export function buildConfigSchema(
-  sections: Iterable<ConfigSectionDefinition>
+  sections: Iterable<ConfigSectionDefinition>,
+  loggerNames: Iterable<string> = []
 ): JsonSchema {
   const config: JsonSchema = { type: 'object', properties: {} };
 
@@ -49,6 +54,22 @@ export function buildConfigSchema(
         JSON.stringify(property)
       );
       node.properties[snakeToCamelCase(key.toLowerCase())] = json;
+    }
+  }
+
+  const definitions: JsonSchema = { config };
+
+  // The level of each logger name refers to one definition, instead of repeating its enum
+  const levels = config.properties.log?.properties.levels;
+  const [pattern, level] =
+    Object.entries(levels?.patternProperties ?? {})[0] ?? [];
+  if (level) {
+    definitions.logLevel = level;
+    const ref = { $ref: '#/definitions/logLevel' };
+    levels.patternProperties = { [pattern]: ref };
+    const names = [...new Set(loggerNames)].sort();
+    if (names.length > 0) {
+      levels.properties = Object.fromEntries(names.map((name) => [name, ref]));
     }
   }
 
@@ -70,6 +91,6 @@ export function buildConfigSchema(
         additionalProperties: { $ref: '#/definitions/config' }
       }
     },
-    definitions: { config }
+    definitions
   };
 }

@@ -95,7 +95,7 @@ export function testingCommand(program: Command): void {
 
       console.log('\nStorage initialized');
 
-      const models = await loadModels(
+      const { models } = await loadModels(
         command.getOptionValue('modelPattern') ?? resourceConfig.MODEL_PATTERN
       );
 

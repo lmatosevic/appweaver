@@ -38,6 +38,7 @@ export default defineModule({
     oauth2Config,
     templatePreviewConfig
   ],
+  loggerNames: ['resource', 'security', 'server', 'template'],
   services: [
     { load: () => import('./security/auth-service'), requires: [Database] },
     {
