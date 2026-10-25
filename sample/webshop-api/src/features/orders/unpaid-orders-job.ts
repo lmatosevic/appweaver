@@ -1,7 +1,9 @@
 import { inject } from '@appweaver/core';
-import { logger, Scheduler } from '@appweaver/common';
+import { createLogger, Scheduler } from '@appweaver/common';
 import db from '@db/client';
 import { cancelOrder } from './order-status';
+
+const logger = createLogger('orders');
 
 /** A pending order still unpaid after this long is cancelled. */
 export const UNPAID_ORDER_TTL_MINUTES = 30;

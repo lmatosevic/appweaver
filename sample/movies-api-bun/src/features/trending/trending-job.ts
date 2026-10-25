@@ -1,7 +1,9 @@
 import { CacheService, inject } from '@appweaver/core';
-import { logger, Scheduler } from '@appweaver/common';
+import { createLogger, Scheduler } from '@appweaver/common';
 import db from '@db/client';
 import { TRENDING_WINDOW_DAYS, trendingScore } from './trending-score';
+
+const logger = createLogger('trending');
 
 // Every night, when the catalog is quiet
 inject(Scheduler).addJob({

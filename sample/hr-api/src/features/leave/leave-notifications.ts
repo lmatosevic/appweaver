@@ -1,5 +1,7 @@
 import { EmailService, inject } from '@appweaver/core';
-import { logger } from '@appweaver/common';
+import { createLogger } from '@appweaver/common';
+
+const logger = createLogger('leave');
 
 type Recipient = { email: string; firstName: string };
 

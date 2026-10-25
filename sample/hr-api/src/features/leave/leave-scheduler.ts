@@ -1,9 +1,11 @@
 import { inject } from '@appweaver/core';
-import { logger, Scheduler } from '@appweaver/common';
+import { createLogger, Scheduler } from '@appweaver/common';
 import db from '@db/client';
 import { REMINDER_AFTER_DAYS } from './constants';
 import { openLeaveYear } from './leave-accrual';
 import { remindManagers } from './leave-notifications';
+
+const logger = createLogger('leave');
 
 const scheduler = inject(Scheduler);
 

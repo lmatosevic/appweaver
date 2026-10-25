@@ -69,7 +69,8 @@ await mailer.sendEmail({
 The `mailer.senderName` and `mailer.senderAddress` config is the default sender, used by the account emails. `from`
 overrides it with an address string, or with `{ name?, address? }` whose missing parts come from the config. An
 enabled mailer requires `mailer.senderAddress`, without it the application fails to start with `CONFIGURATION_INVALID`.
-`npm create @appweaver` and `weaver module add mailer` leave it unset, so set it before the first start.
+`npm create @appweaver` and `weaver module add mailer` set it only in the `test` environment (`no-reply@example.com`,
+for the `json` mailer of the tests), so set it in `config` before the first start.
 
 Keep the address on a domain the mailer may send from, otherwise the provider or DMARC rejects it, and put a user's own
 address in `replyTo`:

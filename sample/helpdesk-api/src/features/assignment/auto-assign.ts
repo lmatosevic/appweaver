@@ -1,8 +1,10 @@
 import { CacheService, inject } from '@appweaver/core';
-import { Events, logger } from '@appweaver/common';
+import { createLogger, Events } from '@appweaver/common';
 import db from '@db/client';
 import { Ticket } from '@/types';
 import { Role } from '@/features/access/roles';
+
+const logger = createLogger('assignment');
 
 // Every new ticket without an assignee goes to an agent, however it came in
 inject(Events).onResourceEvent<Ticket & { teamId?: number | null }>(

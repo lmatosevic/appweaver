@@ -95,7 +95,9 @@ Register listeners at startup, then let the framework drive the emit side:
 ```ts
 // src/features/notifications/notification-listener.ts
 import { inject } from '@appweaver/core';
-import { Events, logger, Mailer } from '@appweaver/common';
+import { createLogger, Events, Mailer } from '@appweaver/common';
+
+const logger = createLogger('notifications');
 
 export function registerNotificationListeners() {
   const events = inject(Events);

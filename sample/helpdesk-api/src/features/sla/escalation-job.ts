@@ -1,8 +1,10 @@
 import { CacheService, inject } from '@appweaver/core';
-import { logger, Scheduler } from '@appweaver/common';
+import { createLogger, Scheduler } from '@appweaver/common';
 import db from '@db/client';
 import { sendEscalation } from '@/features/notifications/ticket-emails';
 import { escalatedPriority } from './sla';
+
+const logger = createLogger('sla');
 
 // Every five minutes, overdue tickets move up a priority and alert their team
 inject(Scheduler).addJob({

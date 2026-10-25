@@ -1,7 +1,9 @@
 import { EmailService, inject } from '@appweaver/core';
-import { Events, logger } from '@appweaver/common';
+import { createLogger, Events } from '@appweaver/common';
 import { Employee } from '@/types';
 import { openNewHireBalance } from '@/features/leave/leave-accrual';
+
+const logger = createLogger('onboarding');
 
 // Runs for every new employee, however it was created (route, seeder, service)
 inject(Events).onResourceEvent<Employee>(

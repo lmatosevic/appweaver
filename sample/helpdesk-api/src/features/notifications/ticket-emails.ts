@@ -1,5 +1,7 @@
 import { EmailService, inject } from '@appweaver/core';
-import { Email, logger } from '@appweaver/common';
+import { createLogger, Email } from '@appweaver/common';
+
+const logger = createLogger('notifications');
 
 type TicketMail = {
   reference: string;

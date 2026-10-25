@@ -1,6 +1,8 @@
 import { EmailService, inject, registerTemplateHelper } from '@appweaver/core';
-import { logger } from '@appweaver/common';
+import { createLogger } from '@appweaver/common';
 import db from '@db/client';
+
+const logger = createLogger('orders');
 
 type OrderEmail = 'confirmed' | 'paymentFailed' | 'shipped' | 'cancelled';
 

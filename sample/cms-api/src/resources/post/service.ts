@@ -1,6 +1,8 @@
 import { createService } from '@appweaver/data';
 import { injectService } from '@appweaver/core';
-import { logger } from '@appweaver/common';
+import { createLogger } from '@appweaver/common';
+
+const logger = createLogger('post');
 
 export default createService({
   modelName: 'Post',

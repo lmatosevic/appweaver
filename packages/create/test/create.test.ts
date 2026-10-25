@@ -563,7 +563,7 @@ describe('create', () => {
         memory: { provider: 'memory' },
         queue: { provider: 'memory' },
         scheduler: { autoStartJob: false },
-        mailer: { provider: 'json' }
+        mailer: { provider: 'json', senderAddress: 'no-reply@example.com' }
       });
       expect(exists('my-app', 'Dockerfile')).toBe(true);
       expect(exists('my-app', 'locales', 'en.json')).toBe(true);

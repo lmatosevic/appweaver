@@ -205,7 +205,9 @@ type QueueJob<Data, Response> = {
 
 ```ts
 import { inject } from '@appweaver/core';
-import { logger, Queue } from '@appweaver/common';
+import { createLogger, Queue } from '@appweaver/common';
+
+const logger = createLogger('reports');
 
 type ReportJob = { userId: number; reportType: string };
 
