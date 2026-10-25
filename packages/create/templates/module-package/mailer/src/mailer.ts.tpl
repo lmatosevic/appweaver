@@ -1,4 +1,5 @@
 import { Email, HealthCheckResult, Mailer } from '@appweaver/common';
+import { completeEmail } from '@appweaver/core';
 import { {{CONFIG_NAME}} } from './config';
 
 /** The {{MODULE_NAME}} mailer, selected with `"mailer": { "provider": "{{MODULE_NAME}}" }`. */
@@ -8,7 +9,8 @@ export class {{CLASS_NAME}} extends Mailer {
 
   public async sendEmail(data: Email): Promise<boolean> {
     void {{CONFIG_NAME}}.EXAMPLE;
-    this.sent.push(data);
+    // Formats the sender (the `mailer` config when missing) and derives the HTML body of a text one
+    this.sent.push(completeEmail(data));
     return true;
   }
 

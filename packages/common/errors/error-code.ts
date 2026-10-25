@@ -121,6 +121,7 @@ export enum ErrorCode {
   // Mailer
   MailerSendFailed = 'MAILER_SEND_FAILED',
   MailerJobNotFound = 'MAILER_JOB_NOT_FOUND',
+  MailerSenderMissing = 'MAILER_SENDER_MISSING',
 
   // Templates
   TemplateNotFound = 'TEMPLATE_NOT_FOUND',

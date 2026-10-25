@@ -29,7 +29,7 @@ Sends an email. Returns `true` on success.
 | `subject`         | `string`                  | Yes      | Email subject line                                                          |
 | `text`            | `string`                  | Yes      | Plain-text body                                                             |
 | `html`            | `string`                  | No       | HTML body (falls back to the escaped `text`)                                |
-| `from`            | `string`                  | No       | Sender, `"MAILER_SENDER_NAME" <MAILER_SENDER_ADDRESS>` by default           |
+| `from`            | `string \| EmailSender`   | No       | Sender, the config by default, see [the sender](#the-sender)                |
 | `cc`, `bcc`       | `string \| string[]`      | No       | Copy recipients                                                             |
 | `replyTo`         | `string`                  | No       | Reply-to address                                                            |
 | `headers`         | `Record<string, string>`  | No       | Additional headers                                                          |
@@ -64,6 +64,19 @@ await mailer.sendEmail({
 });
 ```
 
+### The sender
+
+The `mailer.senderName` and `mailer.senderAddress` config is the default sender, used by the account emails. `from`
+overrides it with an address string, or with `{ name?, address? }` whose missing parts come from the config. Without
+any address the email rejects with `MAILER_SENDER_MISSING`.
+
+Keep the address on a domain the mailer may send from, otherwise the provider or DMARC rejects it, and put a user's own
+address in `replyTo`:
+
+```ts
+await emailService.sendEmail({ to, from: { name: `${agent.name} via Helpdesk` }, replyTo: agent.email, subject, text });
+```
+
 ---
 
 #### `mailer.checkHealth()`
@@ -77,8 +90,8 @@ Verifies that the mail transport is reachable (`transporter.verify()` for SMTP).
 | Key                     | Type     | Default       | Description                                                                                            |
 |-------------------------|----------|---------------|--------------------------------------------------------------------------------------------------------|
 | `MAILER_PROVIDER`       | `string` | `'auto'`      | `auto` (`smtp` with `@appweaver/nodemailer`, otherwise none), `smtp`, `json`, `none`, or a module path |
-| `MAILER_SENDER_NAME`    | `string` | —             | Display name of the default sender                                                                     |
-| `MAILER_SENDER_ADDRESS` | `string` | —             | Address of the default sender                                                                          |
+| `MAILER_SENDER_NAME`    | `string` | —             | Display name of the default sender, the bare address without one                                       |
+| `MAILER_SENDER_ADDRESS` | `string` | —             | Address of the default sender, required unless every email sets its own                                |
 | `MAILER_SMTP_HOST`      | `string` | `'127.0.0.1'` | SMTP server hostname                                                                                   |
 | `MAILER_SMTP_PORT`      | `int`    | `587`         | SMTP server port                                                                                       |
 | `MAILER_SMTP_SECURE`    | `bool`   | `false`       | Use TLS (`true` for port 465)                                                                          |

@@ -752,6 +752,8 @@ Inside the templates, `{{t "key" name=value}}` translates into the rendered loca
 locale. The account emails (verification, password reset, 2FA) render the `emails/*` templates of the application,
 scaffolded by `@appweaver/create`, or without them are sent as plain text of the `emails.*` translations.
 
+An email's `from` overrides the sender of the `mailer` config, see [the sender](references/mailer.md#the-sender).
+
 To check a template while editing it, enable `template.preview.enabled` in the `dev` environment: `GET
 /templates/emails/order-shipped.html?_locale=de&order.number=WS-1` renders it with the query parameters as its data
 (dotted names nest, `_data` takes a JSON object). It is open without authentication unless `template.preview.auth` is

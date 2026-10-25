@@ -15,6 +15,7 @@ describe('json-mailer', () => {
 
       const sent = await new JsonMailer().sendEmail({
         to: ['a@b.c'],
+        from: { name: 'Shop', address: 'shop@example.com' },
         cc: 'c@d.e',
         subject: 'Invoice',
         text: 'Attached',
@@ -27,6 +28,7 @@ describe('json-mailer', () => {
       expect(info).toHaveBeenCalledWith(
         expect.objectContaining({
           to: ['a@b.c'],
+          from: '"Shop" <shop@example.com>',
           cc: 'c@d.e',
           subject: 'Invoice',
           attachments: [

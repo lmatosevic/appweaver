@@ -17,12 +17,21 @@ export type EmailAttachment = {
   encoding?: 'base64' | 'utf8';
 };
 
+/** The parts of a sender, each one missing taken from the `mailer.senderName` and `mailer.senderAddress` config. */
+export type EmailSender = {
+  /** The display name, i.e. `Jane via Acme`. An empty name sends from the bare address. */
+  name?: string;
+  /** The address, on a domain the mailer is allowed to send from. */
+  address?: string;
+};
+
 /** The sender, the recipients and the headers of an email, besides its content. */
 export type EmailEnvelope = {
   /** The recipient addresses, i.e. `jane@example.com` or `"Jane" <jane@example.com>`. */
   to: string | string[];
-  /** The sender, which defaults to the `mailer.senderName` and `mailer.senderAddress` config. */
-  from?: string;
+  /** The sender, as an address (`"Jane" <jane@example.com>`, used as it is) or its parts, completed by the
+   * `mailer.senderName` and `mailer.senderAddress` config, which is the sender when missing. */
+  from?: string | EmailSender;
   cc?: string | string[];
   bcc?: string | string[];
   replyTo?: string;

@@ -1,4 +1,5 @@
 import {
+  configOverrides,
   ErrorCode,
   logger,
   Mailer,
@@ -9,7 +10,9 @@ import { define } from '../../context/dependency-injection';
 import { EmailService } from '../../mailer';
 import { resetContext } from '../fixtures/context-fixture';
 
-const email = { to: 'user@test.com', subject: 'Welcome', text: 'Hi' };
+const sender = 'shop@test.com';
+const senderless = { to: 'user@test.com', subject: 'Welcome', text: 'Hi' };
+const email = { ...senderless, from: sender };
 
 describe('email-service', () => {
   let mailer: { sendEmail: jest.Mock };
@@ -34,11 +37,13 @@ describe('email-service', () => {
     define(mailer, Mailer);
     define({ get: () => processor }, Queue);
     jest.spyOn(logger, 'error').mockImplementation();
+    configOverrides.MAILER_SENDER_ADDRESS = sender;
     service = new EmailService();
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
+    delete configOverrides.MAILER_SENDER_ADDRESS;
   });
 
   afterAll(() => {
@@ -50,6 +55,27 @@ describe('email-service', () => {
       await service.sendEmail(email);
 
       expect(processor.sendJob).toHaveBeenCalledWith(email);
+    });
+
+    test('queues the email with the sender of the config', async () => {
+      await service.sendEmail({
+        ...senderless,
+        from: { name: 'Jane via Shop' }
+      });
+
+      expect(processor.sendJob).toHaveBeenCalledWith({
+        ...email,
+        from: `"Jane via Shop" <${sender}>`
+      });
+    });
+
+    test('rejects an email without a sender address', async () => {
+      delete configOverrides.MAILER_SENDER_ADDRESS;
+
+      await expect(service.sendEmail(senderless)).rejects.toMatchObject({
+        code: ErrorCode.MailerSenderMissing
+      });
+      expect(processor.sendJob).not.toHaveBeenCalled();
     });
   });
 
@@ -250,6 +276,7 @@ describe('email-service', () => {
   describe('with template emails', () => {
     const rendered = {
       to: 'user@test.com',
+      from: sender,
       subject: 'Welcome',
       text: 'Hi',
       html: undefined,
@@ -298,7 +325,7 @@ describe('email-service', () => {
       ]);
       expect(logger.error).toHaveBeenCalledWith(
         expect.objectContaining({ code: ErrorCode.TemplateNotFound }),
-        "E-mail 'emails/missing' rendering failed"
+        "E-mail 'emails/missing' could not be queued"
       );
     });
 

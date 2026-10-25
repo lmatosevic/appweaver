@@ -21,6 +21,10 @@
     "healthCheck": {
       "omitInstances": ["mailer"]
     },
+    "mailer": {
+      "senderName": "CMS",
+      "senderAddress": "no-reply@cms.example.com"
+    },
     "security": {
       "basic": {
         "enabled": true

@@ -23,7 +23,9 @@
       "provider": "memory"
     },
     "mailer": {
-      "provider": "none"
+      "provider": "none",
+      "senderName": "Movies",
+      "senderAddress": "no-reply@movies.example.com"
     }
   },
   "environments": {

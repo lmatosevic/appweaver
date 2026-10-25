@@ -239,6 +239,10 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     status: 500,
     title: 'Email job not found'
   },
+  [ErrorCode.MailerSenderMissing]: {
+    status: 500,
+    title: 'Email sender missing'
+  },
 
   [ErrorCode.TemplateNotFound]: { status: 500, title: 'Template not found' },
   [ErrorCode.TemplateRenderFailed]: {

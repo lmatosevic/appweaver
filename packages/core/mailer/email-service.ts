@@ -12,6 +12,7 @@ import {
   TemplateError
 } from '@appweaver/common';
 import { inject } from '../context';
+import { formatSender } from './utils/email-util';
 import { htmlToText } from './utils/html-util';
 
 export class EmailService {
@@ -40,6 +41,7 @@ export class EmailService {
    * @param {Email | TemplateEmail} email - The email to send, or the template email to render and send.
    * @return A promise that resolves when the email is successfully added to the queue.
    * @throws {TemplateError} See {@link renderTemplateEmail}.
+   * @throws {MailerError} `MAILER_SENDER_MISSING` if neither the email nor the config has a sender address.
    */
   public async sendEmail(email: Email | TemplateEmail): Promise<void> {
     await this._mailQueue.sendJob(await this.toEmail(email));
@@ -47,7 +49,7 @@ export class EmailService {
 
   /**
    * Sends bulk emails by queuing them for asynchronous processing. The template emails are rendered first, one that
-   * fails to render is logged and left out, the others are still queued.
+   * fails to render or has no sender is logged and left out, the others are still queued.
    *
    * @param {(Email | TemplateEmail)[]} emails - The emails to send, or the template emails to render and send.
    * @return {Promise<void>} A promise that resolves when the bulk email jobs are successfully queued.
@@ -62,8 +64,9 @@ export class EmailService {
       if (result.status === 'fulfilled') {
         rendered.push(result.value);
       } else {
-        const { template } = emails[i] as TemplateEmail;
-        logger.error(result.reason, `E-mail '${template}' rendering failed`);
+        const email = emails[i];
+        const name = 'template' in email ? email.template : email.subject;
+        logger.error(result.reason, `E-mail '${name}' could not be queued`);
       }
     });
 
@@ -101,6 +104,7 @@ export class EmailService {
    * @param {Email | TemplateEmail} email - The email to send, or the template email to render and send.
    * @return A promise that resolves with `true` when the email is sent successfully, or rejects if sending fails.
    * @throws {TemplateError} See {@link renderTemplateEmail}.
+   * @throws {MailerError} `MAILER_SENDER_MISSING` if neither the email nor the config has a sender address.
    */
   public async sendEmailAndWait(
     email: Email | TemplateEmail
@@ -183,7 +187,9 @@ export class EmailService {
 
   /** @internal */
   private async toEmail(email: Email | TemplateEmail): Promise<Email> {
-    return 'template' in email ? this.renderTemplateEmail(email) : email;
+    const rendered =
+      'template' in email ? await this.renderTemplateEmail(email) : email;
+    return { ...rendered, from: formatSender(rendered.from) };
   }
 
   /** @internal */

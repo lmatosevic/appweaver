@@ -206,6 +206,7 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `QUEUE_UNAVAILABLE`                  | 503    | Queue unavailable                     |
 | `MAILER_SEND_FAILED`                 | 502    | Email sending failed                  |
 | `MAILER_JOB_NOT_FOUND`               | 500    | Email job not found                   |
+| `MAILER_SENDER_MISSING`              | 500    | Email sender missing                  |
 | `TEMPLATE_NOT_FOUND`                 | 500    | Template not found                    |
 | `TEMPLATE_RENDER_FAILED`             | 500    | Template rendering failed             |
 | `TEMPLATE_LOAD_FAILED`               | 500    | Template loading failed               |
