@@ -50,6 +50,20 @@ describe('email-service', () => {
     resetContext();
   });
 
+  describe('onInit', () => {
+    test('starts with a sender address', async () => {
+      await expect(service.onInit()).resolves.toBeUndefined();
+    });
+
+    test('fails to start without a sender address', async () => {
+      delete configOverrides.MAILER_SENDER_ADDRESS;
+
+      await expect(service.onInit()).rejects.toMatchObject({
+        code: ErrorCode.ConfigurationInvalid
+      });
+    });
+  });
+
   describe('sendEmail', () => {
     test('queues the email', async () => {
       await service.sendEmail(email);

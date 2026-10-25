@@ -56,10 +56,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
       'SMTP mailer (Nodemailer) of the account emails, otherwise disabled',
     packages: ['@appweaver/nodemailer'],
     requires: [],
-    enabledConfig: [
-      ['config.mailer.senderAddress', 'no-reply@example.com'],
-      ['environments.test.mailer.provider', 'json']
-    ],
+    enabledConfig: [['environments.test.mailer.provider', 'json']],
     disabledConfig: []
   },
   templates: {
