@@ -1089,6 +1089,9 @@ release when either one is missing or rejected.
 | `feat!:` / `BREAKING CHANGE` footer               | major        |
 | `chore:`, `docs:`, `style:`, `refactor:`, `test:` | no release   |
 
+Never add attribution trailers or footers (`Co-Authored-By`, `Claude-Session`, `Generated with ...`) to commit messages
+or pull request descriptions: semantic-release copies the commit messages into `CHANGELOG.md` and the release notes.
+
 ## 9. Agents Skill File
 
 The [SKILL.md](./skill/SKILL.md) file provides a comprehensive guide for AI agents (such as Claude Code, Codex, Cursor,
