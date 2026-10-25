@@ -67,8 +67,9 @@ await mailer.sendEmail({
 ### The sender
 
 The `mailer.senderName` and `mailer.senderAddress` config is the default sender, used by the account emails. `from`
-overrides it with an address string, or with `{ name?, address? }` whose missing parts come from the config. Without
-any address the email rejects with `MAILER_SENDER_MISSING`.
+overrides it with an address string, or with `{ name?, address? }` whose missing parts come from the config. An
+enabled mailer requires `mailer.senderAddress`, without it the application fails to start with `CONFIGURATION_INVALID`.
+`npm create @appweaver` and `weaver module add mailer` leave it unset, so set it before the first start.
 
 Keep the address on a domain the mailer may send from, otherwise the provider or DMARC rejects it, and put a user's own
 address in `replyTo`:
@@ -91,7 +92,7 @@ Verifies that the mail transport is reachable (`transporter.verify()` for SMTP).
 |-------------------------|----------|---------------|--------------------------------------------------------------------------------------------------------|
 | `MAILER_PROVIDER`       | `string` | `'auto'`      | `auto` (`smtp` with `@appweaver/nodemailer`, otherwise none), `smtp`, `json`, `none`, or a module path |
 | `MAILER_SENDER_NAME`    | `string` | —             | Display name of the default sender, the bare address without one                                       |
-| `MAILER_SENDER_ADDRESS` | `string` | —             | Address of the default sender, required unless every email sets its own                                |
+| `MAILER_SENDER_ADDRESS` | `string` | —             | Address of the default sender, required by an enabled mailer to start                                  |
 | `MAILER_SMTP_HOST`      | `string` | `'127.0.0.1'` | SMTP server hostname                                                                                   |
 | `MAILER_SMTP_PORT`      | `int`    | `587`         | SMTP server port                                                                                       |
 | `MAILER_SMTP_SECURE`    | `bool`   | `false`       | Use TLS (`true` for port 465)                                                                          |

@@ -3,7 +3,9 @@ import {
   Email,
   ErrorCode,
   createLogger,
+  LIFECYCLE,
   Mailer,
+  OnInit,
   Queue,
   QueueJob,
   TemplateEmail,
@@ -12,12 +14,15 @@ import {
   TemplateError
 } from '@appweaver/common';
 import { inject } from '../context';
+import { mailerConfig } from './mailer-config';
 import { formatSender } from './utils/email-util';
 import { htmlToText } from './utils/html-util';
 
 const logger = createLogger('mailer');
 
-export class EmailService {
+export class EmailService implements OnInit {
+  static [LIFECYCLE] = true;
+
   /** @internal */
   private readonly _mailer = inject(Mailer);
   /** @internal */
@@ -34,6 +39,20 @@ export class EmailService {
     this._mailQueue.addWorker(this.processEmail.bind(this));
     this._mailQueue.onCompleted(this.onEmailSent.bind(this));
     this._mailQueue.onFailed(this.onEmailError.bind(this));
+  }
+
+  /**
+   * Checks the default sender address, which the account emails are sent from.
+   *
+   * @throws {ConfigurationError} `CONFIGURATION_INVALID` if the `mailer.senderAddress` config is not set.
+   */
+  public async onInit(): Promise<void> {
+    if (!mailerConfig.SENDER_ADDRESS) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        'The mailer needs a default sender address, set the `mailer.senderAddress` config (MAILER_SENDER_ADDRESS) or disable the mailer with MAILER_PROVIDER=none'
+      );
+    }
   }
 
   /**

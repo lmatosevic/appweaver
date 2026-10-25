@@ -553,12 +553,8 @@ describe('create', () => {
         'app',
         'server',
         'database',
-        'memory',
-        'mailer'
+        'memory'
       ]);
-      expect(appConfig.config.mailer).toEqual({
-        senderAddress: 'no-reply@example.com'
-      });
       expect(appConfig.config.memory).toEqual({
         redis: { url: 'redis://${REDIS_HOST:-localhost}:6379/0' }
       });
@@ -591,7 +587,7 @@ describe('create', () => {
       expect(dependencies).not.toHaveProperty('@appweaver/redis');
 
       const { config } = readJson('my-app', 'appweaver.json');
-      expect(config.mailer).toEqual({ senderAddress: 'no-reply@example.com' });
+      expect(config).not.toHaveProperty('mailer');
       expect(config).not.toHaveProperty('scheduler');
       expect(config).not.toHaveProperty('template');
       expect(config).not.toHaveProperty('queue');
