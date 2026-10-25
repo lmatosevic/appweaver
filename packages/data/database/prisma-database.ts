@@ -56,9 +56,7 @@ export class PrismaDatabase extends Database {
     try {
       await this.connect();
       await this.clientInstance().$queryRaw`SELECT 1`;
-      logger.info(
-        `Connected to the ${dbType} database${url ? ` at ${url}` : ''}`
-      );
+      logger.info(`Connected to the ${dbType} database`);
     } catch (error) {
       logger.error(
         error,
