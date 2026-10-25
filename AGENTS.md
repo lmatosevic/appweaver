@@ -355,7 +355,7 @@ It exposes the **`create-appweaver`** CLI binary (entry point `create.ts`), run 
 `npx @appweaver/create <name>`, and as `npm create @appweaver module <package>` for a module package.
 
 A generated project starts from the base template (`templates/base/`) and adds the optional modules selected with
-`--add <modules...>` or `--all` (minus the `--no-<module>` ones): `redis`, `queue` (requires `redis`), `scheduler`,
+`--add <modules...>` or `--all` (minus the `--exclude <modules...>` ones): `redis`, `queue` (requires `redis`), `scheduler`,
 `mailer`, `templates`, `locales` and `docker`. The base project depends on `@appweaver/cli`, `common`, `core`, `data`,
 `web` and `sharp`, and a module adds its driver package: `@appweaver/redis` (`redis`), `@appweaver/bullmq` (`queue`),
 `@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`) and `@appweaver/handlebars` (`templates`), every
@@ -1088,6 +1088,9 @@ release when either one is missing or rejected.
 | `feat:`                                           | minor        |
 | `feat!:` / `BREAKING CHANGE` footer               | major        |
 | `chore:`, `docs:`, `style:`, `refactor:`, `test:` | no release   |
+
+Never add attribution trailers or footers (`Co-Authored-By`, `Claude-Session`, `Generated with ...`) to commit messages
+or pull request descriptions: semantic-release copies the commit messages into `CHANGELOG.md` and the release notes.
 
 ## 9. Agents Skill File
 

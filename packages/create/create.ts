@@ -14,7 +14,6 @@ import {
   databaseTypes,
   ModuleName,
   moduleNames,
-  modules,
   parseModuleNames,
   resolveModules,
   ScaffoldError
@@ -147,15 +146,12 @@ function createProjectProgram(): Command {
       `Modules to add, separated by spaces or commas (${moduleNames.join(', ')}).`
     )
     .option('--all', 'Add every module.')
+    .option(
+      '--exclude <modules...>',
+      'Modules to leave out of --all, separated by spaces or commas.'
+    )
     .option('--bun', 'Use Bun as application runtime.')
     .option('--no-install', 'Skip all dependencies installation.');
-
-  for (const name of moduleNames) {
-    program.option(
-      `--no-${name}`,
-      `Leave out the ${name} module: ${modules[name].description}.`
-    );
-  }
 
   program.action((name: string, description: string, _, command: Command) => {
     // Validated before anything is created, reported as an invalid option
@@ -313,20 +309,18 @@ async function createApp(
 }
 
 /**
- * Selects the modules of `--all` or `--add` with the modules they require, leaving out the `--no-<module>` ones.
+ * Selects the modules of `--all` or `--add` with the modules they require, leaving out the `--exclude` ones.
  *
- * @throws {ScaffoldError} When a module is unknown, both added and left out, or required by an added module.
+ * @throws {ScaffoldError} When a module is unknown, both added and excluded, or required by an added module.
  */
 function selectModules(command: Command): ModuleName[] {
-  const excluded = moduleNames.filter(
-    (name) => command.getOptionValue(name) === false
-  );
+  const excluded = parseModuleNames(command.getOptionValue('exclude') ?? []);
   const added = parseModuleNames(command.getOptionValue('add') ?? []);
 
   const conflicts = added.filter((name) => excluded.includes(name));
   if (conflicts.length > 0) {
     throw new ScaffoldError(
-      `Module ${conflicts.join(', ')} cannot be both added and left out.`
+      `Module ${conflicts.join(', ')} cannot be both added and excluded.`
     );
   }
 

@@ -145,7 +145,7 @@ export function resolveModules(
     for (const requirement of modules[name].requires) {
       if (excluded.includes(requirement)) {
         throw new ScaffoldError(
-          `Module ${name} requires ${requirement}, leave out ${name} as well.`
+          `Module ${name} requires ${requirement}, exclude ${name} as well.`
         );
       }
       if (!result.has(requirement)) {

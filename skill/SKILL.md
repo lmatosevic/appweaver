@@ -63,18 +63,18 @@ npm create @appweaver <name> [description] -- [options]  # the same, npm passes 
 
 **Options:**
 
-| Flag                 | Description                                                    | Default      |
-|----------------------|----------------------------------------------------------------|--------------|
-| `-o, --output-dir`   | Output directory (use ./ for current working directory)        | project name |
-| `--database`         | Database type: `sqlite`, `postgresql`, `mysql`, `sqlserver`    | `sqlite`     |
-| `--host`             | Hostname or IP address where the application server will bind. | 0.0.0.0      |
-| `--port`             | Port number where the application server will listen.          | 5000         |
-| `--agent`            | The AI agent for which to configure guidelines and skill files | `claude`     |
-| `--add <modules...>` | Modules to add, separated by spaces or commas                  | none         |
-| `--all`              | Add every module                                               | false        |
-| `--no-<module>`      | Leave a module out of `--all` (e.g. `--all --no-docker`)       | —            |
-| `--bun`              | Use Bun as application runtime. (default is node and npm)      | false        |
-| `--no-install`       | Skip all dependencies installation.                            | installs     |
+| Flag                     | Description                                                     | Default      |
+|--------------------------|-----------------------------------------------------------------|--------------|
+| `-o, --output-dir`       | Output directory (use ./ for current working directory)         | project name |
+| `--database`             | Database type: `sqlite`, `postgresql`, `mysql`, `sqlserver`     | `sqlite`     |
+| `--host`                 | Hostname or IP address where the application server will bind.  | 0.0.0.0      |
+| `--port`                 | Port number where the application server will listen.           | 5000         |
+| `--agent`                | The AI agent for which to configure guidelines and skill files  | `claude`     |
+| `--add <modules...>`     | Modules to add, separated by spaces or commas                   | none         |
+| `--all`                  | Add every module                                                | false        |
+| `--exclude <modules...>` | Modules to leave out of `--all` (e.g. `--all --exclude docker`) | none         |
+| `--bun`                  | Use Bun as application runtime. (default is node and npm)       | false        |
+| `--no-install`           | Skip all dependencies installation.                             | installs     |
 
 **Modules:** the base project depends on `@appweaver/core`, `@appweaver/data` (the database), `@appweaver/web` (the
 server) and `@appweaver/sharp` (the image transforms), and has none of these modules. Each one is added with `--add`,
@@ -90,13 +90,14 @@ server) and `@appweaver/sharp` (the image transforms), and has none of these mod
 | `locales`   | `locales/en.json`                                                            | English texts written into the templates     |
 | `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`              | no Docker files                              |
 
-Options are given after the positional arguments, since `--add` takes every following value up to the next option.
+Options are given after the positional arguments, since `--add` and `--exclude` take every following value up to the
+next option.
 
 **Example — PostgreSQL project with Redis, mailer and Docker:**
 
 ```sh
 npx @appweaver/create MyBlogAPI "My own CMS for blogging" --database postgresql --add redis mailer docker
-npx @appweaver/create MyBlogAPI "My own CMS for blogging" --database postgresql --all --no-queue
+npx @appweaver/create MyBlogAPI "My own CMS for blogging" --database postgresql --all --exclude queue
 ```
 
 This creates a `./my-blog-api` directory, installs all dependencies, and runs the initial schema and type generation.
