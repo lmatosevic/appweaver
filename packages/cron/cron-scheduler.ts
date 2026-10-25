@@ -25,7 +25,7 @@ export class CronScheduler extends Scheduler<CronJob> {
 
     for (const job of Object.values(this._jobs)) {
       if (!job.isActive) {
-        return;
+        continue;
       }
       const stopAction = job.stop();
       if (stopAction) {

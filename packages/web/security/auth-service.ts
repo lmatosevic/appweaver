@@ -439,7 +439,7 @@ export class AuthService {
       }
     }
 
-    logger.debug({ id: authUser.id, token }, 'User token exchanged');
+    logger.debug({ id: authUser.id }, 'User token exchanged');
 
     return this.generateAuthTokens(authUser, AuthScope.Auth, authSource);
   }

@@ -71,9 +71,30 @@ const stream = multistream(
   streams.map((stream) => ({ level: LogLevel.Trace, stream }))
 );
 
+// The credentials a record may carry, replaced before it is written
+const redactedKeys = [
+  'password',
+  'passwordHash',
+  'token',
+  'accessToken',
+  'refreshToken',
+  'apiKey',
+  'secret'
+];
+
 const commonConfig = {
   level,
-  timestamp: stdTimeFunctions.isoTime
+  timestamp: stdTimeFunctions.isoTime,
+  redact: {
+    paths: [
+      'req.headers.authorization',
+      'req.headers.cookie',
+      'req.headers["x-api-key"]',
+      ...redactedKeys,
+      ...redactedKeys.map((key) => `*.${key}`)
+    ],
+    censor: '[Redacted]'
+  }
 };
 
 const loggerConfig = enabled ? { ...commonConfig, stream } : false;

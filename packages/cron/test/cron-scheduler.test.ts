@@ -102,6 +102,18 @@ describe('cron-scheduler', () => {
       expect(scheduler.getJob(second)!.isActive).toBe(false);
     });
 
+    test('stops the running jobs registered after a stopped one', async () => {
+      const stopped = scheduler.addJob(job());
+      const running = scheduler.addJob(job());
+      scheduler.startAll();
+      await scheduler.stopJob(stopped);
+
+      await scheduler.stopAll();
+
+      expect(scheduler.getJob(stopped)!.isActive).toBe(false);
+      expect(scheduler.getJob(running)!.isActive).toBe(false);
+    });
+
     test('does nothing without registered jobs', async () => {
       await expect(scheduler.stopAll()).resolves.toBeUndefined();
     });

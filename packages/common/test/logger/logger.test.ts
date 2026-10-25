@@ -286,6 +286,28 @@ describe('logger', () => {
       }
     });
 
+    test('redacts the credentials of a record and of its nested objects', () => {
+      const { createLogger } = loadLogger();
+
+      createLogger('security').info(
+        {
+          password: 'secret',
+          user: { id: 1, refreshToken: 'abc' },
+          req: { headers: { authorization: 'Bearer x', host: 'localhost' } }
+        },
+        'login'
+      );
+
+      const record = JSON.parse(
+        destination.mock.results[0].value.write.mock.calls[0][0]
+      );
+      expect(record).toMatchObject({
+        password: '[Redacted]',
+        user: { id: 1, refreshToken: '[Redacted]' },
+        req: { headers: { authorization: '[Redacted]', host: 'localhost' } }
+      });
+    });
+
     test('does not write records below the configured level', () => {
       const { logger } = loadLogger({ LOG_LEVEL: LogLevel.Error });
 
