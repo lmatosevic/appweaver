@@ -1,3 +1,9 @@
+## [2.1.1](https://github.com/lmatosevic/appweaver/compare/v2.1.0...v2.1.1) (2026-10-25)
+
+### Bug Fixes
+
+* add default placeholder mailer sender email address for testing ([f50c18a](https://github.com/lmatosevic/appweaver/commit/f50c18a6ef6369c1cfcb460b74a1efdec597b44a))
+
 ## [2.1.0](https://github.com/lmatosevic/appweaver/compare/v2.0.2...v2.1.0) (2026-10-25)
 
 ### Features
