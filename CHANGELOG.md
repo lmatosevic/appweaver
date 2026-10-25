@@ -1,3 +1,11 @@
+## [2.0.2](https://github.com/lmatosevic/appweaver/compare/v2.0.1...v2.0.2) (2026-10-25)
+
+### Bug Fixes
+
+* move default security keys location from keys to __keys__ directory ([b8674e3](https://github.com/lmatosevic/appweaver/commit/b8674e3b83000214dac846979174391bbb2f33e7))
+* update how templates and locales are created depending on mailer module ([7575389](https://github.com/lmatosevic/appweaver/commit/75753899f789d4bbada7c2157bbea04d99ce75ae))
+* update how templates and locales are created depending on mailer module ([1a1ce2f](https://github.com/lmatosevic/appweaver/commit/1a1ce2f48ee45c6e2428d624a188557895210f63))
+
 ## [2.0.1](https://github.com/lmatosevic/appweaver/compare/v2.0.0...v2.0.1) (2026-10-25)
 
 ### Bug Fixes
