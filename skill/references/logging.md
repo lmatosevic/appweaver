@@ -94,11 +94,11 @@ DATABASE_LOG_EVENTS=query,warn,error
 LOG_LEVELS_DATABASE=debug
 ```
 
-`DATABASE_SLOW_QUERY_THRESHOLD` logs every query taking at least that many milliseconds as a warning, with its SQL but
-without its parameters, whatever `DATABASE_LOG_EVENTS` holds:
+`DATABASE_SLOW_QUERY_THRESHOLD` (`1500` by default) logs every query taking at least that many milliseconds as a
+warning, with its SQL but without its parameters, whatever `DATABASE_LOG_EVENTS` holds. `0` disables it:
 
 ```bash
-DATABASE_SLOW_QUERY_THRESHOLD=500
+DATABASE_SLOW_QUERY_THRESHOLD=3000
 ```
 
 ### Request logs
