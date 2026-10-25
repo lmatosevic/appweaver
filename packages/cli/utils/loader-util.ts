@@ -54,6 +54,14 @@ export async function isModulePackage(): Promise<boolean> {
   }
 }
 
+/** The models of the project and its modules, with the modules found in its sources. */
+export type LoadedModels = {
+  /** The resource models, keyed by their names. */
+  models: Record<string, ResourceModel>;
+  /** The enabled modules, in their load order. */
+  modules: EnabledModule[];
+};
+
 /**
  * Loads and registers resource models from the enabled modules and the specified file pattern.
  *
@@ -66,14 +74,14 @@ export async function isModulePackage(): Promise<boolean> {
  * model without an auth model, File without file fields, Seeder without a seeders directory of the project or a module).
  * @param {Set<string>} [registeredByModules] - Collects the names of the models whose module package registers them in
  * the resource registry itself, which the project must not register again.
- * @return {Promise<Record<string, ResourceModel>>} A promise resolving to an object containing the loaded resource models,
- * where the keys are the model names and the values are the associated ResourceModel objects.
+ * @return {Promise<LoadedModels>} A promise resolving to the loaded resource models, keyed by their names, and the
+ * enabled modules.
  */
 export async function loadModels(
   modelPattern: string,
   prune: boolean = true,
   registeredByModules?: Set<string>
-): Promise<Record<string, ResourceModel>> {
+): Promise<LoadedModels> {
   const cwd = process.cwd();
 
   register({
@@ -164,7 +172,7 @@ export async function loadModels(
   // every model is registered
   relinkResourceModels(models);
 
-  return models;
+  return { models, modules };
 }
 
 /** Returns the resource models of the exports of a model file or of the resources of a module. */

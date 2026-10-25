@@ -248,7 +248,7 @@ config:
 
 | File        | Holds                                                                                                |
 |-------------|------------------------------------------------------------------------------------------------------|
-| `module.ts` | The manifest: its name, config and `main`, with commented `providers` and `services` to fill in      |
+| `module.ts` | The manifest: its name, config, `loggerNames` and `main`, with commented `providers` and `services`  |
 | `config.ts` | Its config section, named after the camelCase of the name (`audit-log` → `auditLog`), with `ENABLED` |
 | `main.ts`   | The code run at startup: scheduled jobs, queue workers, event listeners                              |
 

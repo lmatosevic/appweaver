@@ -14,6 +14,12 @@ async function loadSections() {
   return configSections.values();
 }
 
+/** The logger names of the modules enabled by {@link loadSections}. */
+async function loadLoggerNames() {
+  const { context } = await import('@appweaver/core/internal');
+  return context.modules.enabled.flatMap((module) => module.loggerNames ?? []);
+}
+
 /**
  * Registers the `config` command, generating the JSON Schema of the config, printing and checking its values.
  *
@@ -38,7 +44,11 @@ export function configCommand(program: Command): void {
     .action(async (_, subcommand: Command) => {
       const outputPath = subcommand.getOptionValue('outputPath');
       try {
-        await writeConfigSchema(await loadSections(), outputPath);
+        await writeConfigSchema(
+          await loadSections(),
+          outputPath,
+          await loadLoggerNames()
+        );
         console.log(
           `Schema generated to ${path.relative(process.cwd(), outputPath)}, point the $schema of appweaver.json to it`
         );

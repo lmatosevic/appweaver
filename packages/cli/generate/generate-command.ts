@@ -62,7 +62,7 @@ export function generateCommand(program: Command): void {
         !command.getOptionValue('types') && !command.getOptionValue('schema');
 
       const registeredByModules = new Set<string>();
-      const models = await loadModels(
+      const { models, modules } = await loadModels(
         command.getOptionValue('modelPattern') ?? resourceConfig.MODEL_PATTERN,
         command.getOptionValue('prune'),
         registeredByModules
@@ -97,7 +97,11 @@ export function generateCommand(program: Command): void {
         // Discovering the modules registered the config sections they list
         if (command.getOptionValue('configSchema')) {
           const configSchemaPath = command.getOptionValue('configSchemaPath');
-          await writeConfigSchema(configSections.values(), configSchemaPath);
+          await writeConfigSchema(
+            configSections.values(),
+            configSchemaPath,
+            modules.flatMap(({ module }) => module.loggerNames ?? [])
+          );
           console.log(
             `Config schema generated to ${path.relative(process.cwd(), configSchemaPath)}`
           );

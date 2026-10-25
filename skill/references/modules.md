@@ -93,22 +93,23 @@ import { defineModule } from '@appweaver/common';
 export default defineModule({ name: 'appweaver-newsletter' /* ... */ });
 ```
 
-| Field       | Type                                     | Purpose                                                                                                                                              |
-|-------------|------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `name`      | `string`                                 | The name, the package name for a package module                                                                                                      |
-| `framework` | `string`                                 | The supported Appweaver version range, i.e. `^2.0.0`, checked at startup                                                                             |
-| `requires`  | `string[]`                               | The modules that must be enabled with it (`@appweaver/bullmq` requires `@appweaver/redis`)                                                           |
-| `config`    | `object[]`                               | Its config sections, defined with `defineConfig`, validated at start and listed in `appweaver.schema.json` (a driver's validated only when selected) |
-| `contracts` | `{ contract, provider: () => string }[]` | The contracts it declares, with the function reading the provider key, i.e. `() => paymentConfig.PROVIDER`                                           |
-| `providers` | `{ contract, name, load, auto? }[]`      | Its contract implementations. `load` imports the class lazily (`() => import('./gcs-storage')`), `auto` is `true`, `'fallback'` or `false`           |
-| `services`  | `{ load, requires? }[]`                  | Classes defined at startup by their class name, with their lifecycle hooks and health checks; `requires` lists the contracts that must be provided   |
-| `setup`     | `(context) => unknown`                   | Run after the providers and services of every module, before the `main` parts and the application files (see below)                                  |
-| `resources` | `() => import(...)`                      | A file exporting its models, resource services and policies, loaded by the `setup` of `@appweaver/data`, and by `weaver generate`                    |
-| `main`      | `() => import(...)`                      | Code run at startup: scheduled jobs, queue workers, event listeners                                                                                  |
-| `web`       | `() => import(...)`                      | Its resource routes, custom routes (`registerRoute`) and plugins (`registerPlugin`), loaded by the `setup` of `@appweaver/web`                       |
-| `seeders`   | `string`                                 | The absolute path of its seeders directory, run by `weaver seed` before the seeders of the application                                               |
-| `locales`   | `string`                                 | The absolute path of its translations, overridden by the ones of the application                                                                     |
-| `templates` | `string`                                 | The absolute path of its templates, overridden by the ones of the application                                                                        |
+| Field         | Type                                     | Purpose                                                                                                                                              |
+|---------------|------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `name`        | `string`                                 | The name, the package name for a package module                                                                                                      |
+| `framework`   | `string`                                 | The supported Appweaver version range, i.e. `^2.0.0`, checked at startup                                                                             |
+| `requires`    | `string[]`                               | The modules that must be enabled with it (`@appweaver/bullmq` requires `@appweaver/redis`)                                                           |
+| `config`      | `object[]`                               | Its config sections, defined with `defineConfig`, validated at start and listed in `appweaver.schema.json` (a driver's validated only when selected) |
+| `loggerNames` | `string[]`                               | The names of the loggers it creates with `createLogger`, suggested as the keys of `log.levels` in `appweaver.schema.json`                            |
+| `contracts`   | `{ contract, provider: () => string }[]` | The contracts it declares, with the function reading the provider key, i.e. `() => paymentConfig.PROVIDER`                                           |
+| `providers`   | `{ contract, name, load, auto? }[]`      | Its contract implementations. `load` imports the class lazily (`() => import('./gcs-storage')`), `auto` is `true`, `'fallback'` or `false`           |
+| `services`    | `{ load, requires? }[]`                  | Classes defined at startup by their class name, with their lifecycle hooks and health checks; `requires` lists the contracts that must be provided   |
+| `setup`       | `(context) => unknown`                   | Run after the providers and services of every module, before the `main` parts and the application files (see below)                                  |
+| `resources`   | `() => import(...)`                      | A file exporting its models, resource services and policies, loaded by the `setup` of `@appweaver/data`, and by `weaver generate`                    |
+| `main`        | `() => import(...)`                      | Code run at startup: scheduled jobs, queue workers, event listeners                                                                                  |
+| `web`         | `() => import(...)`                      | Its resource routes, custom routes (`registerRoute`) and plugins (`registerPlugin`), loaded by the `setup` of `@appweaver/web`                       |
+| `seeders`     | `string`                                 | The absolute path of its seeders directory, run by `weaver seed` before the seeders of the application                                               |
+| `locales`     | `string`                                 | The absolute path of its translations, overridden by the ones of the application                                                                     |
+| `templates`   | `string`                                 | The absolute path of its templates, overridden by the ones of the application                                                                        |
 
 Every part is imported lazily and only when used: a driver only when it is selected, `web` only with a server. Keep
 the routes in `web`, not in `resources`, so the module also works without a server.
@@ -159,9 +160,9 @@ weaver module new audit-log --dry-run  # print the files without writing them
 ```
 
 The name is kebab-case, and the config section the camelCase of it (`auditLog`, read from `config.auditLog` and the
-`AUDIT_LOG_*` variables), with an `ENABLED` key. `module.ts` names the module, its config and its `main`, with
-commented `providers` and `services` entries to fill in; `main.ts` is its startup code, logging with
-`createLogger('auditLog')` (see [logging](./logging.md)). The command refuses to
+`AUDIT_LOG_*` variables), with an `ENABLED` key. `module.ts` names the module, its config, its `main` and its
+`loggerNames` (`['auditLog']`), with commented `providers` and `services` entries to fill in; `main.ts` is its startup
+code, logging with `createLogger('auditLog')` (see [logging](./logging.md)). The command refuses to
 overwrite an existing module. A driver nests its section under its contract, so rename the section of a new driver
 module (`defineConfig('storage.gcs', ...)`), as in the example below.
 
@@ -301,6 +302,7 @@ export default defineModule({
   name: '@acme/appweaver-gcs', // the package name
   framework: '^2.0.0',
   config: [gcsConfig],
+  loggerNames: ['gcs'], // the createLogger('gcs') of its sources
   providers: [{ contract: Storage, name: 'gcs', load: () => import('./gcs-storage') }]
 });
 ```
@@ -352,7 +354,7 @@ name of its provider. The package holds:
 | `src/config.ts`                                   | Its section: `<contract>.<name>` for a driver (`storage.gcs`, `STORAGE_GCS_*`), `<name>` for a feature module                         |
 | `src/storage.ts` / `src/mailer.ts`                | The driver class `<Name>Storage` / `<Name>Mailer`, an in-memory stub passing the contract suite, to replace with the service calls    |
 | `src/main.ts`                                     | The startup code of a feature module, logging with `createLogger('<name>')` (`log.levels.<name>`)                                     |
-| `test/*.test.ts`                                  | The contract suite of the driver, or a test of the manifest                                                                           |
+| `test/*.test.ts`                                  | The contract suite of the driver, or a test of the manifest and its `loggerNames` (`sourceLoggerNames`)                               |
 | `tsconfig*.json`, `jest.config.json`, `README.md` | The build, the Jest setup with SWC, and the usage                                                                                     |
 
 ```sh
