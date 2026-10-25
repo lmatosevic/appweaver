@@ -1,3 +1,10 @@
+## [2.1.2](https://github.com/lmatosevic/appweaver/compare/v2.1.1...v2.1.2) (2026-10-25)
+
+### Bug Fixes
+
+* suggest the logger names of the enabled modules in log.levels ([81432bf](https://github.com/lmatosevic/appweaver/commit/81432bf275234893b18a282ea79466697c7e6bba))
+* update logging skills docs ([214cb6b](https://github.com/lmatosevic/appweaver/commit/214cb6b0eab2419134b4d4dc351835c565b9e558))
+
 ## [2.1.1](https://github.com/lmatosevic/appweaver/compare/v2.1.0...v2.1.1) (2026-10-25)
 
 ### Bug Fixes

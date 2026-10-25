@@ -1,6 +1,6 @@
 {
   "name": "@appweaver/cron",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Appweaver - the backend framework for AI-first development (@cron)",
   "author": "Luka Matosevic",
   "license": "MIT",

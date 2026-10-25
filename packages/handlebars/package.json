@@ -1,6 +1,6 @@
 {
   "name": "@appweaver/handlebars",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Appweaver - the backend framework for AI-first development (@handlebars)",
   "author": "Luka Matosevic",
   "license": "MIT",

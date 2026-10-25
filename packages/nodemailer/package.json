@@ -1,6 +1,6 @@
 {
   "name": "@appweaver/nodemailer",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Appweaver - the backend framework for AI-first development (@nodemailer)",
   "author": "Luka Matosevic",
   "license": "MIT",
