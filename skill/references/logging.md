@@ -28,6 +28,8 @@ logs under its short name (`@acme/appweaver-gcs` → `gcs`), and a local module 
 
 ## Levels
 
+The framework logs at these levels:
+
 | Level   | Logged                                                                                                  |
 |---------|---------------------------------------------------------------------------------------------------------|
 | `fatal` | The process cannot go on, i.e. an uncaught exception                                                    |
@@ -39,6 +41,11 @@ logs under its short name (`@acme/appweaver-gcs` → `gcs`), and a local module 
 
 The framework never logs a request, a login or another operation at `info`. The requests are audited by the request
 logs of the `server` logger (`SERVER_REQUEST_LOGGING_ENABLED`), and the operations are seen at `debug`.
+
+The application is not bound by the levels of the framework and picks the level of its own logs: `info` for the core
+behavior worth seeing in the production logs (a scheduled job publishing posts, an order paid, a worker done), `debug`
+for the details only useful while investigating. A logger too noisy at `info` can still be quietened with its own level
+in `LOG_LEVELS`.
 
 ## Log levels per module
 

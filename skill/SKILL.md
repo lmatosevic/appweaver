@@ -794,8 +794,9 @@ call with `toDatabaseError(e, 'Model')`.
 ### Logging
 
 Log with a named logger, `createLogger('billing')` of `@appweaver/common`, so `log.levels.billing` can set its level
-apart from `log.level`. Log the operations at `debug`, and keep `info` for one-time, system-wide facts (started,
-connected, recovered). See [logging.md](references/logging.md) for the framework loggers and the config.
+apart from `log.level`. The application chooses its own levels: `info` for the behavior worth seeing in the
+production logs (a scheduled job's result, an order placed), `debug` for the details of how it got there. See
+[logging.md](references/logging.md) for the levels the framework logs at, its loggers and the config.
 
 ### Registering a custom model
 
