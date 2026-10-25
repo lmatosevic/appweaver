@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/lmatosevic/appweaver/compare/v2.0.0...v2.0.1) (2026-10-25)
+
+### Bug Fixes
+
+* dev server watch mode no longer restarts on file read ([d190c2e](https://github.com/lmatosevic/appweaver/commit/d190c2e46d1132c56f0ec94b82718d0b3b29de67))
+* replace the --no-<module> flags with --exclude <modules...> ([ee6b541](https://github.com/lmatosevic/appweaver/commit/ee6b5411c903a59b6c11068ac96523d748a7c5d5))
+
 ## [2.0.0](https://github.com/lmatosevic/appweaver/compare/v1.12.2...v2.0.0) (2026-10-24)
 
 ### ⚠ BREAKING CHANGES
