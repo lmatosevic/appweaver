@@ -646,7 +646,7 @@ you generated yourself, or provide the team ID, key ID and `.p8` private key and
 | `DATABASE_TRANSACTION_TIMEOUT`          | integer  | `5000`                       | Transaction timeout in milliseconds.                                                    |
 | `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` | boolean  | `true`                       | Allow an AI agent to run dangerous Prisma actions, i.e. reset (disable for production). |
 | `DATABASE_LOG_EVENTS`                   | string[] | `[]`                         | List of database events to log. Values: `query`, `info`, `warn`, `error`                |
-| `DATABASE_SLOW_QUERY_THRESHOLD`         | integer  | `1500`                       | Duration (ms) from which a query is logged as a warning, `0` disables it.               |
+| `DATABASE_SLOW_QUERY_THRESHOLD`         | integer  | `0`                          | Duration (ms) from which a query is logged as a warning, `0` disables it.               |
 | `DATABASE_PROVIDER`                     | string   | `'auto'`                     | `auto` or `prisma`, or `none` for an application without a database.                    |
 
 The application starts and keeps running while the database is unreachable, whatever its type. The connection is

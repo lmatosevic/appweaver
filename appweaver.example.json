@@ -247,7 +247,7 @@
       "transactionTimeout": 5000,
       "aiDangerousActionsEnabled": true,
       "logEvents": ["query", "info", "warn", "error"],
-      "slowQueryThreshold": 1500,
+      "slowQueryThreshold": 0,
       "provider": "auto"
     },
     "storage": {

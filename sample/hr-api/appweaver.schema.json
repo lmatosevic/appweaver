@@ -341,7 +341,7 @@
               }
             },
             "slowQueryThreshold": {
-              "default": 1500,
+              "default": 0,
               "minimum": 0,
               "type": "integer"
             },
