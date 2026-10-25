@@ -7,7 +7,11 @@ import {
 
 describe('error-handler', () => {
   const createRequest = () =>
-    ({ url: '/api/posts/1', id: 'req-1', log: { error: jest.fn() } }) as any;
+    ({
+      url: '/api/posts/1',
+      id: 'req-1',
+      log: { error: jest.fn(), debug: jest.fn() }
+    }) as any;
 
   const createReply = (contentType?: string) => {
     const reply: any = {
@@ -83,12 +87,16 @@ describe('error-handler', () => {
       );
     });
 
-    test('does not log client errors', () => {
+    test('logs client errors at the debug level', () => {
       const request = createRequest();
 
       errorHandler(notFound(), request, createReply());
 
       expect(request.log.error).not.toHaveBeenCalled();
+      expect(request.log.debug).toHaveBeenCalledWith(
+        { code: ErrorCode.ResourceNotFound, status: 404 },
+        expect.any(String)
+      );
     });
   });
 

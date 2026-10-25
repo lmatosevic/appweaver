@@ -11,8 +11,8 @@ describe('json-mailer', () => {
 
   describe('sendEmail', () => {
     test('logs the email with the size of its attachments', async () => {
-      const info = jest
-        .spyOn(logger, 'info')
+      const debug = jest
+        .spyOn(logger, 'debug')
         .mockImplementation(() => undefined);
 
       const sent = await new JsonMailer().sendEmail({
@@ -27,7 +27,7 @@ describe('json-mailer', () => {
       });
 
       expect(sent).toBe(true);
-      expect(info).toHaveBeenCalledWith(
+      expect(debug).toHaveBeenCalledWith(
         expect.objectContaining({
           to: ['a@b.c'],
           from: '"Shop" <shop@example.com>',

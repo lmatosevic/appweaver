@@ -56,6 +56,15 @@ export async function createApp(
   );
 
   const modules = await discoverModules({ scanPath });
+  logger.debug(
+    {
+      modules: modules.map(({ module, source }) => ({
+        name: module.name,
+        source
+      }))
+    },
+    'Modules enabled'
+  );
 
   // Define the providers and the services of the modules
   await loadProviders(modules, scanPath);

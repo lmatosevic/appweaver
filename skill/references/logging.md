@@ -26,6 +26,20 @@ Prefer a named logger in a module, a service or a job, so its level can be set a
 logs under its short name (`@acme/appweaver-gcs` → `gcs`), and a local module under the camelCase of its name
 (`audit-log` → `auditLog`), as the files scaffolded by `weaver module new` and `npm create @appweaver module` do.
 
+## Levels
+
+| Level   | Logged                                                                                                  |
+|---------|---------------------------------------------------------------------------------------------------------|
+| `fatal` | The process cannot go on, i.e. an uncaught exception                                                    |
+| `error` | A failure needing attention: a 5xx response, a failed job, a lost connection                            |
+| `warn`  | A degraded or unexpected state the application recovers from: a job retried, a slow query, a check down |
+| `info`  | One-time, system-wide facts only: the application started and stopped, a connection made or restored    |
+| `debug` | The internal behavior: every operation, i.e. a resource written, a job run, a login rejected, a 4xx     |
+| `trace` | Not used by the framework                                                                               |
+
+The framework never logs a request, a login or another operation at `info`. The requests are audited by the request
+logs of the `server` logger (`SERVER_REQUEST_LOGGING_ENABLED`), and the operations are seen at `debug`.
+
 ## Log levels per module
 
 `LOG_LEVELS` sets the level of a name, any other logger logs at `LOG_LEVEL`, and `silent` turns a logger off. A named
@@ -53,23 +67,23 @@ LOG_LEVELS=database:trace,cache:error
 
 ### Framework loggers
 
-| Name        | Logs of                                                                                     |
-|-------------|---------------------------------------------------------------------------------------------|
-| `app`       | Module discovery, provider loading, the application lifecycle, dependency injection         |
-| `database`  | Prisma (the `DATABASE_LOG_EVENTS` events, a query at `debug`) and the transactions          |
-| `resource`  | Resource and route loading, the services, policies and models, the CSV export               |
-| `server`    | Fastify, the request logs (`SERVER_REQUEST_LOGGING_ENABLED`), the plugins and error handler |
-| `security`  | Authentication, JWT, OAuth2, reCAPTCHA and Turnstile                                        |
-| `cache`     | `Cache` and `CacheService`                                                                  |
-| `memory`    | The Redis memory driver                                                                     |
-| `events`    | The `node` events driver                                                                    |
-| `queue`     | The `memory` and `bullmq` queue drivers                                                     |
-| `scheduler` | The `cron` scheduler                                                                        |
-| `mailer`    | `EmailService` and the `json` mailer                                                        |
-| `template`  | The Handlebars engine and the template preview route                                        |
-| `locale`    | `LocaleService`                                                                             |
-| `storage`   | The `local` storage driver and `FileService`                                                |
-| `health`    | `HealthService` and the health listener                                                     |
+| Name        | Logs of                                                                                                                      |
+|-------------|------------------------------------------------------------------------------------------------------------------------------|
+| `app`       | The started application and its duration (info), the enabled modules, providers, app files and lifecycle hook durations      |
+| `database`  | The connection (info), slow queries (warn), Prisma events, transaction retries and rollbacks                                 |
+| `resource`  | Resources created, updated and deleted, bulk operations, denied policies, the loaded models, services and routes, CSV export |
+| `server`    | Fastify and its request logs, 5xx (error) and 4xx (debug) responses, rate limit hits, plugins, routes and shutdown           |
+| `security`  | Logins and their rejection reason, rejected API keys, password, email and 2FA flows, OAuth2, reCAPTCHA and Turnstile         |
+| `cache`     | Cache hits and misses, writes, invalidation, eviction, and the cache going away and coming back                              |
+| `memory`    | The Redis connections: established and restored (info), lost (error)                                                         |
+| `events`    | The listeners added and the events emitted, or deferred to the commit of a transaction                                       |
+| `queue`     | Jobs added and completed with their duration, retried (warn), failed (error) and stalled (warn)                              |
+| `scheduler` | Jobs added with their next run, started, stopped and removed, each run with its duration                                     |
+| `mailer`    | E-mails queued and sent, the SMTP message id, and the e-mails of the `json` mailer                                           |
+| `template`  | The loaded templates and the template preview route                                                                          |
+| `locale`    | The loaded translations and the missing keys                                                                                 |
+| `storage`   | `FileService`, the `local` storage driver and the processed images                                                           |
+| `health`    | Each check going down (warn) and up again (info), once per change, and the health listener                                   |
 
 ### Database queries
 
@@ -80,19 +94,32 @@ DATABASE_LOG_EVENTS=query,warn,error
 LOG_LEVELS_DATABASE=debug
 ```
 
+`DATABASE_SLOW_QUERY_THRESHOLD` logs every query taking at least that many milliseconds as a warning, with its SQL but
+without its parameters, whatever `DATABASE_LOG_EVENTS` holds:
+
+```bash
+DATABASE_SLOW_QUERY_THRESHOLD=500
+```
+
 ### Request logs
 
 The request logs of Fastify are written by the `server` logger when `SERVER_REQUEST_LOGGING_ENABLED` is `true`, so
 `LOG_LEVELS_SERVER=warn` keeps the errors of the server without them.
 
+## Redacted values
+
+The values of the keys `password`, `passwordHash`, `token`, `accessToken`, `refreshToken`, `apiKey` and `secret`, at the
+top of a record or one level down, and the `authorization`, `cookie` and `x-api-key` headers of a request, are written
+as `[Redacted]`. Still never log a credential under another key.
+
 ## Output
 
-| Key               | Effect                                                                                       |
-|-------------------|----------------------------------------------------------------------------------------------|
-| `LOG_PRETTY`      | Colored, human-readable lines (`[database] Prisma query`), for development                   |
-| `LOG_PATH`        | Also writes to `<LOG_PATH>/<app name>.log` (`APP_NAME` in snake case), rotated by default    |
-| `LOG_ROTATE_*`    | The rotation of the file: its size, interval, total size, number of files and compression    |
-| `LOG_SYNC`        | Writes each record before the next statement runs, so none is lost or reordered (tests)      |
+| Key            | Effect                                                                                    |
+|----------------|-------------------------------------------------------------------------------------------|
+| `LOG_PRETTY`   | Colored, human-readable lines (`[database] Prisma query`), for development                |
+| `LOG_PATH`     | Also writes to `<LOG_PATH>/<app name>.log` (`APP_NAME` in snake case), rotated by default |
+| `LOG_ROTATE_*` | The rotation of the file: its size, interval, total size, number of files and compression |
+| `LOG_SYNC`     | Writes each record before the next statement runs, so none is lost or reordered (tests)   |
 
 The samples and the scaffolded projects pretty-print at `debug` in the `dev` environment, and log nothing in `test`.
 

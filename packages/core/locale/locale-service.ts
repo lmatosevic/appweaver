@@ -172,6 +172,7 @@ export class LocaleService implements OnInit {
 
     this._files = files;
     this._loaded = true;
+    logger.debug({ locales: [...files.keys()] }, 'Translations loaded');
   }
 
   /** @internal */

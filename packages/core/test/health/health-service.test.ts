@@ -1,4 +1,8 @@
-import { HEALTH_CHECK, HealthCheckStatus } from '@appweaver/common';
+import {
+  createLogger,
+  HEALTH_CHECK,
+  HealthCheckStatus
+} from '@appweaver/common';
 import { define } from '../../context/dependency-injection';
 import { HealthService } from '../../health/health-service';
 import { resetContext } from '../fixtures/context-fixture';
@@ -151,6 +155,57 @@ describe('health-service', () => {
   describe('checkReadiness', () => {
     test('reports the application as ready', async () => {
       await expect(service.checkReadiness()).resolves.toBe(true);
+    });
+  });
+
+  describe('health check transitions', () => {
+    const logger = createLogger('health');
+
+    test('warns once when a check goes down, and logs its recovery', async () => {
+      const warn = jest.spyOn(logger, 'warn').mockImplementation();
+      const info = jest.spyOn(logger, 'info').mockImplementation();
+      const check = healthCheck(
+        'Database',
+        { success: false, message: 'refused' },
+        { name: 'database' }
+      );
+      define(check, 'Database');
+
+      await service.checkHealth();
+      await service.checkHealth();
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn).toHaveBeenCalledWith(
+        { check: 'database', message: 'refused' },
+        'Health check is down'
+      );
+
+      check.checkHealth.mockResolvedValue({ success: true });
+      await service.checkHealth();
+      await service.checkHealth();
+      expect(info).toHaveBeenCalledTimes(1);
+      expect(info).toHaveBeenCalledWith(
+        { check: 'database' },
+        'Health check is up again'
+      );
+
+      warn.mockRestore();
+      info.mockRestore();
+    });
+
+    test('logs nothing for a check that stays up', async () => {
+      const warn = jest.spyOn(logger, 'warn').mockImplementation();
+      const info = jest.spyOn(logger, 'info').mockImplementation();
+      define(
+        healthCheck('Database', { success: true }, { name: 'database' }),
+        'Database'
+      );
+
+      await service.checkHealth();
+
+      expect(warn).not.toHaveBeenCalled();
+      expect(info).not.toHaveBeenCalled();
+      warn.mockRestore();
+      info.mockRestore();
     });
   });
 });

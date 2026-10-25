@@ -139,11 +139,16 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     options: QueueJobOptions = {}
   ): Promise<Job<Data, Response>> {
     await this.ensureConnected();
-    return await this._queue.add(
+    const job = await this._queue.add(
       name ?? 'defaultJob',
       data,
       toJobsOptions(options)
     );
+    logger.debug(
+      { queue: this.name, jobId: job.id, name: job.name, delay: options.delay },
+      'Job added'
+    );
+    return job;
   }
 
   public async sendBulkJobs(
@@ -154,13 +159,15 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     }>
   ): Promise<Array<Job<Data, Response>>> {
     await this.ensureConnected();
-    return await this._queue.addBulk(
+    const added = await this._queue.addBulk(
       jobs.map(({ data, name, options }) => ({
         data,
         name: name ?? 'defaultJob',
         opts: toJobsOptions(options ?? {})
       }))
     );
+    logger.debug({ queue: this.name, count: added.length }, 'Jobs added');
+    return added;
   }
 
   public addWorker(
@@ -201,6 +208,7 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       });
     }
 
+    this.logJobs(worker);
     this._workers.push(worker);
 
     return worker;
@@ -373,6 +381,48 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     }
 
     await Promise.allSettled(handlerActions);
+  }
+
+  /**
+   * Logs the completed, failed and stalled jobs of a worker.
+   *
+   * @internal
+   */
+  private logJobs(worker: Worker<Data, Response>): void {
+    worker.on('completed', (job) =>
+      logger.debug(
+        {
+          queue: this.name,
+          jobId: job.id,
+          name: job.name,
+          durationMs:
+            job.finishedOn && job.processedOn
+              ? job.finishedOn - job.processedOn
+              : undefined
+        },
+        'Job completed'
+      )
+    );
+    worker.on('failed', (job, error) => {
+      const fields = {
+        queue: this.name,
+        jobId: job?.id,
+        name: job?.name,
+        attempt: job?.attemptsMade,
+        attempts: job?.opts.attempts
+      };
+      if (job && job.attemptsMade < (job.opts.attempts ?? 1)) {
+        logger.warn(
+          { ...fields, error: error.message },
+          'Job failed, retrying'
+        );
+      } else {
+        logger.error({ ...fields, err: error }, 'Job failed');
+      }
+    });
+    worker.on('stalled', (jobId) =>
+      logger.warn({ queue: this.name, jobId }, 'Job stalled')
+    );
   }
 
   /**

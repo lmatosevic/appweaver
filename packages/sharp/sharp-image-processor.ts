@@ -1,6 +1,8 @@
 import { Readable } from 'node:stream';
-import Sharp from 'sharp';
-import { ImageConfig, ImageProcessor } from '@appweaver/common';
+import Sharp, { OutputInfo } from 'sharp';
+import { createLogger, ImageConfig, ImageProcessor } from '@appweaver/common';
+
+const logger = createLogger('storage');
 
 const IMAGE_MIME_FORMATS: Record<string, string> = {
   'image/jpeg': 'jpeg',
@@ -49,6 +51,21 @@ export class SharpImageProcessor extends ImageProcessor {
       const opts = config.quality ? { quality: config.quality } : {};
       pipeline = pipeline.toFormat(format as any, opts);
     }
+
+    const start = performance.now();
+    pipeline.once('info', (info: OutputInfo) =>
+      logger.debug(
+        {
+          mimeType,
+          format: info.format,
+          width: info.width,
+          height: info.height,
+          size: info.size,
+          durationMs: Math.round(performance.now() - start)
+        },
+        'Image processed'
+      )
+    );
 
     return stream.pipe(pipeline);
   }

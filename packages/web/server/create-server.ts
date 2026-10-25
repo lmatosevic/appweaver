@@ -164,6 +164,8 @@ export function createServer(): Server {
       skipOnError: rateLimitConfig.SKIP_ON_ERROR,
       nameSpace: 'rate-limit:',
       redis: redisClient,
+      onExceeded: (request, key) =>
+        request.log.debug({ key, url: request.url }, 'Rate limit exceeded'),
       errorResponseBuilder: (_, context) =>
         new RequestError(
           ErrorCode.RateLimited,

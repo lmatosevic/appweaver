@@ -2,9 +2,9 @@
 
 The mailer module sends transactional emails. Its driver `SmtpMailer` (provider `smtp`) of `@appweaver/nodemailer` uses
 Nodemailer over SMTP and is selected when the package is installed. The `JsonMailer` of core (provider `json`, selected
-by name only) writes the emails into the log instead of sending them, for development and tests. Without a driver, or
-with `MAILER_PROVIDER=none`, no `Mailer` and no `EmailService` are defined, and the email features (email verification,
-password reset, 2FA) respond with `501`.
+by name only) writes the emails into the log at `debug` (the `mailer` logger) instead of sending them, for development
+and tests. Without a driver, or with `MAILER_PROVIDER=none`, no `Mailer` and no `EmailService` are defined, and the
+email features (email verification, password reset, 2FA) respond with `501`.
 
 ## Injecting Mailer
 

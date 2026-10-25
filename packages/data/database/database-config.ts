@@ -33,6 +33,9 @@ export const databaseConfig = defineConfig('database', {
   LOG_EVENTS: Type.Array(Type.Enum(DatabaseEvent), {
     default: []
   }),
+  /** Duration in milliseconds from which a query is logged as a warning by the `database` logger, `0` to disable it.
+   * Default: `0`. */
+  SLOW_QUERY_THRESHOLD: Type.Integer({ default: 0, minimum: 0 }),
   /** Database provider: `auto` or `prisma`, or `none` for an application without a database. Default: `'auto'`. */
   PROVIDER: Type.String({ default: 'auto' })
 });

@@ -24,6 +24,9 @@ export type HealthCheckInstance = {
 };
 
 export class HealthService {
+  /** @internal */
+  private readonly _statuses = new Map<string, HealthCheckStatus>();
+
   /**
    * Performs a health check for multiple health check instances by invoking their respective health check methods.
    *
@@ -58,6 +61,10 @@ export class HealthService {
         return acc;
       },
       {}
+    );
+
+    Object.keys(healthChecks).forEach((name, index) =>
+      this.logTransition(name, checkResults[index])
     );
 
     logger.debug({ healthCheckResponse }, 'Health checks completed');
@@ -120,5 +127,30 @@ export class HealthService {
     }
 
     return all;
+  }
+
+  /**
+   * Logs a check going down, as a warning, and coming up again, once per change rather than on every probe.
+   *
+   * @internal
+   */
+  private logTransition(name: string, result: HealthCheckResult): void {
+    const status = result.success
+      ? HealthCheckStatus.Up
+      : HealthCheckStatus.Down;
+    const previous = this._statuses.get(name);
+    this._statuses.set(name, status);
+
+    if (status === HealthCheckStatus.Down && previous !== status) {
+      logger.warn(
+        { check: name, message: result.message },
+        'Health check is down'
+      );
+    } else if (
+      status === HealthCheckStatus.Up &&
+      previous === HealthCheckStatus.Down
+    ) {
+      logger.info({ check: name }, 'Health check is up again');
+    }
   }
 }

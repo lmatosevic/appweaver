@@ -65,7 +65,16 @@ export class EmailService implements OnInit {
    * @throws {MailerError} `MAILER_SENDER_MISSING` if neither the email nor the config has a sender address.
    */
   public async sendEmail(email: Email | TemplateEmail): Promise<void> {
-    await this._mailQueue.sendJob(await this.toEmail(email));
+    const data = await this.toEmail(email);
+    await this._mailQueue.sendJob(data);
+    logger.debug(
+      {
+        subject: data.subject,
+        template: 'template' in email ? email.template : undefined,
+        recipients: [data.to].flat().length
+      },
+      'E-mail queued'
+    );
   }
 
   /**
@@ -93,6 +102,7 @@ export class EmailService implements OnInit {
 
     if (rendered.length) {
       await this._mailQueue.sendBulkJobs(rendered.map((e) => ({ data: e })));
+      logger.debug({ count: rendered.length }, 'E-mails queued');
     }
   }
 
@@ -234,7 +244,10 @@ export class EmailService implements OnInit {
       resolver?.resolve(true);
     }
 
-    logger.debug(`E-mail '${job.data.subject}' sent successfully`);
+    logger.debug(
+      { jobId: job.id, subject: job.data.subject },
+      'E-mail sent successfully'
+    );
   }
 
   /** @internal */

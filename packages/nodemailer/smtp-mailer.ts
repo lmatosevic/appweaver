@@ -1,7 +1,14 @@
 import { createTransport, Transporter } from 'nodemailer';
-import { Email, HealthCheckResult, Mailer } from '@appweaver/common';
+import {
+  createLogger,
+  Email,
+  HealthCheckResult,
+  Mailer
+} from '@appweaver/common';
 import { completeEmail } from '@appweaver/core';
 import { smtpConfig } from './config';
+
+const logger = createLogger('mailer');
 
 export class SmtpMailer extends Mailer {
   /** @internal */
@@ -23,7 +30,14 @@ export class SmtpMailer extends Mailer {
   public async sendEmail(data: Email): Promise<boolean> {
     const { providerOptions, ...email } = completeEmail(data);
 
-    await this._transporter.sendMail({ ...providerOptions, ...email });
+    const info = await this._transporter.sendMail({
+      ...providerOptions,
+      ...email
+    });
+    logger.debug(
+      { messageId: info.messageId, response: info.response },
+      'SMTP message accepted'
+    );
 
     return true;
   }

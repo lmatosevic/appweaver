@@ -13,7 +13,7 @@ export class JsonMailer extends Mailer {
   public async sendEmail(data: Email): Promise<boolean> {
     const { attachments, ...email } = completeEmail(data);
 
-    logger.info(
+    logger.debug(
       {
         ...email,
         attachments: attachments?.map(({ filename, contentType, content }) => ({

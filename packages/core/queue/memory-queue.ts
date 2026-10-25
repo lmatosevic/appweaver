@@ -158,6 +158,11 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       this.processJobs();
     }
 
+    logger.debug(
+      { queue: this.name, jobId, name: job.name, delay: options.delay },
+      'Job added'
+    );
+
     return job;
   }
 
@@ -417,6 +422,16 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       job.status = 'completed';
       job.finishedAt = Date.now();
 
+      logger.debug(
+        {
+          queue: this.name,
+          jobId: job.id,
+          name: job.name,
+          durationMs: job.finishedAt - job.processedAt
+        },
+        'Job completed'
+      );
+
       await this.emitEvent('completed', job, result, 'active');
 
       // Clean up completed job after a short delay
@@ -430,6 +445,17 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
         job.status = 'failed';
         job.finishedAt = Date.now();
 
+        logger.error(
+          {
+            err: error,
+            queue: this.name,
+            jobId: job.id,
+            name: job.name,
+            attempts: job.attempts
+          },
+          'Job failed'
+        );
+
         await this.emitEvent('failed', job, error, 'active');
 
         // Clean up failed job after a short delay
@@ -439,6 +465,17 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       } else {
         // Retry the job
         job.status = 'waiting';
+        logger.warn(
+          {
+            error: (error as Error).message,
+            queue: this.name,
+            jobId: job.id,
+            name: job.name,
+            attempt: job.attempts,
+            attempts: job.maxAttempts
+          },
+          'Job failed, retrying'
+        );
         await this.emitEvent('error', error);
       }
     }

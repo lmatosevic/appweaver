@@ -306,6 +306,10 @@ export class AuthService {
       !authUser.passwordHash ||
       !passwordValid
     ) {
+      logger.debug(
+        { id: authUser?.id, reason: rejectionReason(authUser, passwordValid) },
+        'User authentication rejected'
+      );
       throw new AuthError(
         ErrorCode.AuthInvalidCredentials,
         'Invalid user credentials: wrong username or password, or the user is disabled'
@@ -636,4 +640,20 @@ export class AuthService {
       modelName: this._authUserService.modelName
     });
   }
+}
+
+/** Why a user failed to authenticate, logged but never told to the client. */
+function rejectionReason(
+  authUser: AuthUser | null | undefined,
+  passwordValid: boolean
+): string {
+  if (!authUser) {
+    return 'unknown user';
+  }
+  if (!authUser.enabled) {
+    return 'disabled';
+  }
+  return authUser.passwordHash && !passwordValid
+    ? 'wrong password'
+    : 'no password';
 }

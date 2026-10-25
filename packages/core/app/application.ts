@@ -31,8 +31,7 @@ export class Application extends LifecycleManager {
     checkModuleConfig();
 
     this._started = true;
-
-    logger.info(`Application started in "${appConfig.ENV}" environment`);
+    const start = performance.now();
 
     await this.init();
 
@@ -41,6 +40,11 @@ export class Application extends LifecycleManager {
     this.addProcessHandlers();
 
     await this.ready();
+
+    logger.info(
+      { durationMs: Math.round(performance.now() - start) },
+      `Application started in "${appConfig.ENV}" environment`
+    );
   }
 
   /**

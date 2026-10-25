@@ -1,4 +1,5 @@
 import {
+  createLogger,
   isLifecycleDestroy,
   isLifecycleInit,
   isLifecycleReady,
@@ -11,6 +12,8 @@ import {
 } from '@appweaver/common';
 import { context } from '../context';
 import { injectAllWhere } from '../context';
+
+const logger = createLogger('app');
 
 export abstract class LifecycleManager {
   private _initialized = false;
@@ -28,7 +31,7 @@ export abstract class LifecycleManager {
     const services = injectAllWhere<OnInit>((def) =>
       isLifecycleInit(def.value)
     );
-    await Promise.all([...services.map((service) => service.onInit())]);
+    await runHooks('onInit', services, (service) => service.onInit());
     this._initialized = true;
   }
 
@@ -42,7 +45,7 @@ export abstract class LifecycleManager {
     const services = injectAllWhere<OnReady>((def) =>
       isLifecycleReady(def.value)
     );
-    await Promise.all([...services.map((service) => service.onReady())]);
+    await runHooks('onReady', services, (service) => service.onReady());
   }
 
   /**
@@ -56,18 +59,40 @@ export abstract class LifecycleManager {
    */
   public async destroy(): Promise<void> {
     const shutdownServices = createdServices<OnShutdown>(isLifecycleShutdown);
-    await Promise.all([
-      ...shutdownServices.map((service) => service.onShutdown())
-    ]);
+    await runHooks('onShutdown', shutdownServices, (service) =>
+      service.onShutdown()
+    );
     if (!this._initialized) {
       return;
     }
     const destroyServices = createdServices<OnDestroy>(isLifecycleDestroy);
-    await Promise.all([
-      ...destroyServices.map((service) => service.onDestroy())
-    ]);
+    await runHooks('onDestroy', destroyServices, (service) =>
+      service.onDestroy()
+    );
     this._initialized = false;
   }
+}
+
+/** Runs a lifecycle hook of every service at once, logging how long the hook of each one took. */
+async function runHooks<T extends object>(
+  hook: string,
+  services: T[],
+  run: (service: T) => unknown
+): Promise<void> {
+  await Promise.all(
+    services.map(async (service) => {
+      const start = performance.now();
+      await run(service);
+      logger.debug(
+        {
+          service: service.constructor.name,
+          hook,
+          durationMs: Math.round(performance.now() - start)
+        },
+        'Service lifecycle hook completed'
+      );
+    })
+  );
 }
 
 /** Returns the created instances of the definitions matching a lifecycle check, without creating the other ones. */

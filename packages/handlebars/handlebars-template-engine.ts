@@ -164,6 +164,7 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
 
     this._files = files;
     this.clearPartials();
+    logger.debug({ templates: files.size }, 'Templates loaded');
   }
 
   /** @internal */

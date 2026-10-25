@@ -38,6 +38,8 @@ export class CacheService {
     const value = await this._cache.get<T>(key);
     if (value !== null) {
       logger.debug({ key }, 'Retrieved value from cache');
+    } else {
+      logger.debug({ key }, 'Cache miss');
     }
     return value;
   }

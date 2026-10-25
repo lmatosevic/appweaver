@@ -1,3 +1,4 @@
+import { createLogger } from '@appweaver/common';
 import { MemoryQueue } from '../../queue/memory-queue';
 import { testQueueContract } from '@appweaver/testing';
 
@@ -175,10 +176,24 @@ describe('memory-queue', () => {
         return 'ok';
       });
 
+      const warn = jest
+        .spyOn(createLogger('queue'), 'warn')
+        .mockImplementation();
+
       await processor.sendJob({}, undefined, { attempts: 3 });
 
       await waitFor(() => attempts >= 2);
       expect(attempts).toBe(2);
+      expect(warn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queue: 'emails',
+          attempt: 1,
+          attempts: 3,
+          error: 'temporary failure'
+        }),
+        'Job failed, retrying'
+      );
+      warn.mockRestore();
     });
 
     test('fails the job after the maximum number of attempts', async () => {
@@ -191,10 +206,19 @@ describe('memory-queue', () => {
         throw new Error('permanent failure');
       });
 
+      const logger = createLogger('queue');
+      jest.spyOn(logger, 'warn').mockImplementation();
+      const error = jest.spyOn(logger, 'error').mockImplementation();
+
       await processor.sendJob({}, undefined, { attempts: 2 });
 
       await waitFor(() => failed.length === 1);
       expect(failed[0].message).toBe('permanent failure');
+      expect(error).toHaveBeenCalledWith(
+        expect.objectContaining({ queue: 'emails', attempts: 2 }),
+        'Job failed'
+      );
+      jest.restoreAllMocks();
     });
 
     test('emits an error event for a retried job', async () => {

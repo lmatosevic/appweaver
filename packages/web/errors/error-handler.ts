@@ -18,6 +18,11 @@ export function errorHandler(
 
   if (problem.status >= 500) {
     request.log.error({ err: error }, problem.detail);
+  } else {
+    request.log.debug(
+      { code: problem.code, status: problem.status },
+      problem.detail
+    );
   }
 
   const contentType = reply.getHeader('Content-Type');
