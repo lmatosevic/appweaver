@@ -36,8 +36,8 @@
     "log": {
       "level": "info",
       "levels": {
-        "database": "debug",
-        "cache": "info"
+        "database": "trace",
+        "cache": "debug"
       },
       "path": "./logs",
       "rotate": true,
