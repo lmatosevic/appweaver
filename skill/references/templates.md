@@ -18,7 +18,7 @@ project without translation files can still render localized templates.
 
 `@appweaver/create` scaffolds each one as a module, `templates` and `locales` (`--add templates locales`, or `--all`),
 which `weaver module add` and `weaver module remove` add and remove later. With the `mailer` module the templates
-include the account emails:
+include the account emails, and `en.json` their `emails` texts (it starts empty without the mailer):
 
 | Modules             | `templates/`, `@appweaver/handlebars`          | `locales/` | Account emails (with `mailer`)        |
 |---------------------|------------------------------------------------|------------|---------------------------------------|

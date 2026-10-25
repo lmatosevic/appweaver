@@ -289,9 +289,10 @@ templates of all three emails in `templates/emails/`, sharing the `layouts/email
 `partials/email-button.html` partial, and with their English keys in `locales/en.json`. Their plain text is derived from
 the HTML, add a `.txt` template only for a text that should read differently. Edit them freely, or delete them to send
 the plain text. Without the `locales` module, the templates hold the English texts themselves and there is no `locales/`
-directory; without the `templates` module, the emails are sent as plain text of `locales/en.json`. Removing the `mailer`
-module (`weaver module remove mailer`) deletes these templates, and without `@appweaver/nodemailer` no mailer is
-selected. See [templates.md](./templates.md).
+directory; without the `templates` module, the emails are sent as plain text of `locales/en.json`. The `emails` keys are
+added to `locales/en.json` with the mailer only, whichever of the two modules is added first. Removing the `mailer`
+module (`weaver module remove mailer`) deletes these templates and the `emails` keys still holding their English text,
+and without `@appweaver/nodemailer` no mailer is selected. See [templates.md](./templates.md).
 
 ---
 

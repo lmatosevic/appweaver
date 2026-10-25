@@ -69,6 +69,8 @@ const localesBlock: DockerfileBlock = {
   before: ['Copy Prisma config']
 };
 
+const translationFile = 'locales/en.json';
+
 const integrations: ModuleIntegration[] = [
   {
     modules: ['redis', 'docker'],
@@ -81,8 +83,43 @@ const integrations: ModuleIntegration[] = [
         removeRedisService(content, scaffold.context.name)
       )
   },
-  // The account email templates, copied by the generic file handling
-  { modules: ['mailer', 'templates'] },
+  // The account email templates, copied by the generic file handling, replace the placeholder of the empty directory
+  {
+    modules: ['mailer', 'templates'],
+    enable: (scaffold) => scaffold.files.remove('templates/.gitkeep'),
+    disable: (scaffold, name) => {
+      if (name !== 'mailer') {
+        return;
+      }
+      const emails = collectModuleFiles(
+        'mailer+templates',
+        scaffold.context
+      ).map((file) => file.path);
+      if (
+        scaffold.files.list('templates').every((file) => emails.includes(file))
+      ) {
+        copyFiles(scaffold, 'templates');
+      }
+    }
+  },
+  // The English texts of the account emails, in the translation file of the project
+  {
+    modules: ['mailer', 'locales'],
+    enable: (scaffold) => {
+      const translations = scaffold.files.readJson(translationFile) ?? {};
+      addTranslations(translations, readSourceTranslations(), scaffold.force);
+      scaffold.files.writeJson(translationFile, translations);
+    },
+    // Removing the locales deletes the whole file
+    disable: (scaffold, name) => {
+      const translations = scaffold.files.readJson(translationFile);
+      if (name !== 'mailer' || !translations) {
+        return;
+      }
+      removeTranslations(translations, readSourceTranslations());
+      scaffold.files.writeJson(translationFile, translations);
+    }
+  },
   {
     modules: ['templates', 'locales'],
     // The scaffolded templates still holding the English texts get the `t` calls back
@@ -104,7 +141,7 @@ const integrations: ModuleIntegration[] = [
         return;
       }
       const translations = flattenTranslations(
-        scaffold.files.readJson('locales/en.json') ?? {}
+        scaffold.files.readJson(translationFile) ?? {}
       );
       for (const file of scaffold.files.list('templates')) {
         const content = scaffold.files.read(file);
@@ -342,16 +379,52 @@ function collectScaffoldedTemplates(scaffold: ModuleScaffold): TemplateFile[] {
     .filter((file) => file.path.endsWith('.hbs'));
 }
 
-/** The flattened English translations the project's locales/en.json is scaffolded with. */
-function loadSourceTranslations(): Record<string, string> {
-  return flattenTranslations(
-    JSON.parse(
-      fs.readFileSync(
-        path.join(templatesDir, 'modules', 'locales', 'locales', 'en.json'),
-        'utf8'
-      )
-    )
+/** The English translations of the scaffolded templates, which the mailer adds to the project's translation file. */
+function readSourceTranslations(): Record<string, any> {
+  return JSON.parse(
+    fs.readFileSync(path.join(templatesDir, 'translations', 'en.json'), 'utf8')
   );
+}
+
+/** The flattened English translations of the scaffolded templates. */
+function loadSourceTranslations(): Record<string, string> {
+  return flattenTranslations(readSourceTranslations());
+}
+
+/** Adds the translations missing from the target, overwriting the existing ones when forced. */
+function addTranslations(
+  target: Record<string, any>,
+  source: Record<string, any>,
+  force: boolean
+): void {
+  for (const [key, value] of Object.entries(source)) {
+    if (isObject(value) && isObject(target[key])) {
+      addTranslations(target[key], value, force);
+    } else if (force || !(key in target)) {
+      target[key] = value;
+    }
+  }
+}
+
+/** Deletes the translations still equal to the source, and the objects they leave empty. */
+function removeTranslations(
+  target: Record<string, any>,
+  source: Record<string, any>
+): void {
+  for (const [key, value] of Object.entries(source)) {
+    if (isObject(value) && isObject(target[key])) {
+      removeTranslations(target[key], value);
+      if (Object.keys(target[key]).length === 0) {
+        delete target[key];
+      }
+    } else if (target[key] === value) {
+      delete target[key];
+    }
+  }
+}
+
+function isObject(value: unknown): value is Record<string, any> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function inlineTemplate(

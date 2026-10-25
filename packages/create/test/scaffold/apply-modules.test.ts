@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { defaultTranslations } from '../../../core/locale/default-translations';
 import { disableModules, enableModules } from '../../scaffold/apply-modules';
 import { createProject } from '../../scaffold/create-project';
 import { loadProject } from '../../scaffold/load-project';
@@ -208,6 +209,55 @@ describe('apply-modules', () => {
       ).toContain('{{t "emails.passwordReset.subject"}}');
     });
 
+    test('keeps no placeholder beside the email templates', async () => {
+      const dir = await create(['templates']);
+
+      await add(dir, 'mailer');
+
+      expect(fs.existsSync(path.join(dir, 'templates', '.gitkeep'))).toBe(
+        false
+      );
+      expect(fs.existsSync(path.join(dir, 'templates', 'emails'))).toBe(true);
+    });
+
+    test('adds the email translations with the mailer only', async () => {
+      const dir = await create(['locales']);
+      expect(JSON.parse(read(dir, 'locales/en.json'))).toEqual({});
+
+      await add(dir, 'mailer');
+
+      expect(JSON.parse(read(dir, 'locales/en.json'))).toEqual(
+        defaultTranslations
+      );
+    });
+
+    test('keeps the existing translations, unless forced', async () => {
+      const dir = await create(['locales']);
+      fs.writeFileSync(
+        path.join(dir, 'locales', 'en.json'),
+        JSON.stringify({ emails: { greeting: 'Hi,' }, page: { title: 'Home' } })
+      );
+
+      await add(dir, 'mailer');
+
+      const translations = JSON.parse(read(dir, 'locales/en.json'));
+      expect(translations.emails.greeting).toBe('Hi,');
+      expect(translations.emails.footer).toBe(
+        'This email was sent by {appName}.'
+      );
+      expect(translations.page).toEqual({ title: 'Home' });
+
+      await remove(dir, 'mailer');
+      const { files, context, enabled } = loadProject(dir);
+      enableModules(files, context, enabled, ['mailer'], { force: true });
+      await files.commit();
+
+      expect(JSON.parse(read(dir, 'locales/en.json'))).toEqual({
+        ...defaultTranslations,
+        page: { title: 'Home' }
+      });
+    });
+
     test('reports whether the dependencies changed', async () => {
       const dir = await create([]);
       const { files, context } = loadProject(dir);
@@ -267,10 +317,35 @@ describe('apply-modules', () => {
 
       await remove(dir, 'mailer');
 
-      expect(fs.readdirSync(path.join(dir, 'templates')).sort()).toEqual([
-        '.gitkeep',
+      expect(fs.readdirSync(path.join(dir, 'templates'))).toEqual([
         'page.html.hbs'
       ]);
+    });
+
+    test('deletes the unchanged email translations with the mailer, keeping the others', async () => {
+      const dir = await create(['mailer', 'locales']);
+      const translations = JSON.parse(read(dir, 'locales/en.json'));
+      translations.emails.greeting = 'Hi,';
+      translations.page = { title: 'Home' };
+      fs.writeFileSync(
+        path.join(dir, 'locales', 'en.json'),
+        JSON.stringify(translations)
+      );
+
+      await remove(dir, 'mailer');
+
+      expect(JSON.parse(read(dir, 'locales/en.json'))).toEqual({
+        emails: { greeting: 'Hi,' },
+        page: { title: 'Home' }
+      });
+    });
+
+    test('restores the placeholder of the emptied template directory', async () => {
+      const dir = await create(['mailer', 'templates']);
+
+      await remove(dir, 'mailer');
+
+      expect(fs.readdirSync(path.join(dir, 'templates'))).toEqual(['.gitkeep']);
     });
 
     test('writes the English texts of the translation file into the templates', async () => {

@@ -219,15 +219,15 @@ Add and remove the optional modules of `@appweaver/create` in an existing projec
 installed `@appweaver/cli`, install module packages, and create local modules. A module is enabled when the project
 depends on its packages, `locales` and `docker` when `locales/` and `Dockerfile` exist.
 
-| Module      | Packages                | Requires | Files                                                                                               |
-|-------------|-------------------------|----------|-----------------------------------------------------------------------------------------------------|
-| `redis`     | `@appweaver/redis`      | —        | The Redis service of `docker-compose.yml`                                                           |
-| `queue`     | `@appweaver/bullmq`     | `redis`  | —                                                                                                   |
-| `scheduler` | `@appweaver/cron`       | —        | —                                                                                                   |
-| `mailer`    | `@appweaver/nodemailer` | —        | The email templates of `templates/` (`emails/`, `layouts/email`, `partials/email-button`)           |
-| `templates` | `@appweaver/handlebars` | —        | `templates/`, the Dockerfile `COPY` of the templates                                                |
-| `locales`   | —                       | —        | `locales/en.json`, the Dockerfile `COPY` of the translation files                                   |
-| `docker`    | —                       | —        | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`, `database/mariadb-init.sh` (MySQL) |
+| Module      | Packages                | Requires | Files                                                                                                                              |
+|-------------|-------------------------|----------|------------------------------------------------------------------------------------------------------------------------------------|
+| `redis`     | `@appweaver/redis`      | —        | The Redis service of `docker-compose.yml`                                                                                          |
+| `queue`     | `@appweaver/bullmq`     | `redis`  | —                                                                                                                                  |
+| `scheduler` | `@appweaver/cron`       | —        | —                                                                                                                                  |
+| `mailer`    | `@appweaver/nodemailer` | —        | The email templates of `templates/` (`emails/`, `layouts/email`, `partials/email-button`), the `emails` texts of `locales/en.json` |
+| `templates` | `@appweaver/handlebars` | —        | `templates/`, the Dockerfile `COPY` of the templates                                                                               |
+| `locales`   | —                       | —        | `locales/en.json` (empty without the mailer), the Dockerfile `COPY` of the translation files                                       |
+| `docker`    | —                       | —        | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`, `database/mariadb-init.sh` (MySQL)                                |
 
 ### `weaver module list`
 
@@ -288,7 +288,9 @@ weaver module remove|rm <modules...> [options]
 
 Remove the modules: their packages, their `appweaver.json` values (the ones changed in the project are kept), their
 files (the whole `templates/` and `locales/` directories, the Docker files), and what they added to the other enabled
-modules. Removing `locales` writes the English texts of `locales/en.json` into the templates first. A module that an
+modules. Removing `locales` writes the English texts of `locales/en.json` into the templates first. Removing `mailer`
+deletes
+the `emails` texts of `locales/en.json` that still hold their scaffolded value. A module that an
 enabled module requires is removed only along with it. The `src/` code is never touched.
 
 | Option         | Description                               | Default   |

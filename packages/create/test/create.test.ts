@@ -674,6 +674,12 @@ describe('create', () => {
       );
     });
 
+    test('writes no email translations without the mailer', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'locales');
+
+      expect(readJson('my-app', 'locales', 'en.json')).toEqual({});
+    });
+
     test('writes the English texts into the templates without the locales', async () => {
       await run(
         'MyApp',

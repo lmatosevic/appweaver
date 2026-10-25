@@ -87,7 +87,7 @@ server) and `@appweaver/sharp` (the image transforms), and has none of these mod
 | `scheduler` | `@appweaver/cron`                                                            | scheduler disabled                           |
 | `mailer`    | `@appweaver/nodemailer`                                                      | mailer disabled (email features respond 501) |
 | `templates` | `@appweaver/handlebars`, `templates/`, the account emails with the mailer    | no template engine                           |
-| `locales`   | `locales/en.json`                                                            | English texts written into the templates     |
+| `locales`   | `locales/en.json`, the account email texts with the mailer                   | English texts written into the templates     |
 | `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`              | no Docker files                              |
 
 Options are given after the positional arguments, since `--add` and `--exclude` take every following value up to the
@@ -1020,11 +1020,11 @@ weaver module new audit-log            # create the local module src/modules/aud
 A module is enabled when the project depends on its packages (`locales` and `docker` when `locales/` and `Dockerfile`
 exist). `add` writes the module's packages into `package.json`, its values into `appweaver.json`, its files (skipping
 the existing ones that differ), and what it adds to the enabled modules: the Redis service of `docker-compose.yml`, the
-Dockerfile `COPY` of the templates and translation files, the email templates of the mailer. Adding `locales` restores
+Dockerfile `COPY` of the templates and translation files, the email templates and texts of the mailer. Adding `locales` restores
 the `t` calls of the scaffolded templates that still hold the English texts.
 
 `remove` reverts all of it and deletes the module's files: the whole `templates/` or `locales/` directory, the Docker
-files, the mailer's email templates. Removing `locales` first writes the English texts of `locales/en.json` into the
+files, the mailer's email templates and its unchanged `emails` texts of `locales/en.json`. Removing `locales` first writes the English texts of `locales/en.json` into the
 templates, so they keep rendering (the other languages are lost). A module another enabled module requires cannot be
 removed alone (`queue` requires `redis`). An `appweaver.json` value changed in the project is kept, and `src/` is never
 touched, so remove the code using a removed module yourself.

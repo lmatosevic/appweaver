@@ -72,7 +72,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
   locales: {
     name: 'locales',
     description:
-      'Translation files in locales/, otherwise the English texts are written into the templates',
+      'Translation files in locales/, with the account email texts when the mailer is enabled, otherwise the English texts are written into the templates',
     packages: [],
     requires: [],
     enabledConfig: [],

@@ -50,15 +50,15 @@ The base project depends on `@appweaver/core`, `@appweaver/data`, `@appweaver/we
 none of the modules. A module installs its driver package, and a module required by an added one is added along with
 it:
 
-| Module      | Adds                                                                                | Without it                                  |
-|-------------|-------------------------------------------------------------------------------------|---------------------------------------------|
-| `redis`     | `@appweaver/redis`, the Redis connection, the Redis service of `docker-compose.yml` | memory, cache and rate limit in the process |
-| `queue`     | `@appweaver/bullmq`, requires `redis`                                               | in-memory queue                             |
-| `scheduler` | `@appweaver/cron`                                                                   | scheduler disabled                          |
-| `mailer`    | `@appweaver/nodemailer`, and the account email templates with `templates`           | mailer disabled                             |
-| `templates` | `@appweaver/handlebars` and `templates/`                                            | no template engine                          |
-| `locales`   | `locales/en.json`                                                                   | English texts written into the templates    |
-| `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                     | no Docker files                             |
+| Module      | Adds                                                                                              | Without it                                  |
+|-------------|---------------------------------------------------------------------------------------------------|---------------------------------------------|
+| `redis`     | `@appweaver/redis`, the Redis connection, the Redis service of `docker-compose.yml`               | memory, cache and rate limit in the process |
+| `queue`     | `@appweaver/bullmq`, requires `redis`                                                             | in-memory queue                             |
+| `scheduler` | `@appweaver/cron`                                                                                 | scheduler disabled                          |
+| `mailer`    | `@appweaver/nodemailer`, the account email templates with `templates`, their texts with `locales` | mailer disabled                             |
+| `templates` | `@appweaver/handlebars` and `templates/`                                                          | no template engine                          |
+| `locales`   | `locales/en.json`, empty without the mailer                                                       | English texts written into the templates    |
+| `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                   | no Docker files                             |
 
 The modules of an existing project are managed with the `weaver` CLI, from the same templates:
 
@@ -111,8 +111,10 @@ An application then adds it with `weaver module add @acme/appweaver-gcs`.
 
 ## Documentation
 
-- [Appweaver README](https://github.com/lmatosevic/appweaver#readme) – getting started, configuration, and the overview of every package
-- [Agent skill](https://github.com/lmatosevic/appweaver/blob/main/skill/SKILL.md) – the complete framework reference shipped to every scaffolded project
+- [Appweaver README](https://github.com/lmatosevic/appweaver#readme) – getting started, configuration, and the overview
+  of every package
+- [Agent skill](https://github.com/lmatosevic/appweaver/blob/main/skill/SKILL.md) – the complete framework reference
+  shipped to every scaffolded project
 
 ## License
 

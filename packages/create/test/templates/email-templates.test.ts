@@ -17,7 +17,14 @@ const { configOverrides } = common as unknown as {
 
 const modulesDir = path.join(__dirname, '..', '..', 'templates', 'modules');
 const templatesDir = path.join(modulesDir, 'mailer+templates', 'templates');
-const translationFile = path.join(modulesDir, 'locales', 'locales', 'en.json');
+const translationFile = path.join(
+  __dirname,
+  '..',
+  '..',
+  'templates',
+  'translations',
+  'en.json'
+);
 
 const emails: [string, Record<string, unknown>][] = [
   ['emails/verify-email', { link: 'https://app.test/verify?token=1' }],
