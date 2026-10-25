@@ -3,6 +3,7 @@ import fastifyPlugin from 'fastify-plugin';
 import {
   AuthSource,
   AuthType,
+  createLogger,
   Database,
   ErrorCode,
   makeHash,
@@ -26,6 +27,8 @@ import {
 } from '@appweaver/core';
 import { AuthService } from '../auth-service';
 import { Server } from '../../types/server';
+
+const logger = createLogger('security');
 
 export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
   const authService = inject(AuthService);
@@ -89,6 +92,13 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
       !apiKey.enabled ||
       apiKey.keyHash !== makeHash(apiKeyValue)
     ) {
+      logger.debug(
+        {
+          apiKeyId,
+          reason: !apiKey ? 'unknown' : !apiKey.enabled ? 'disabled' : 'hash'
+        },
+        'API key rejected'
+      );
       throw new AuthError(ErrorCode.AuthApiKeyInvalid, 'Invalid API key');
     }
 

@@ -1,6 +1,8 @@
-import { logger } from '@appweaver/common';
+import { createLogger } from '@appweaver/common';
 import { JsonMailer } from '../../mailer/json-mailer';
 import { testMailerContract } from '@appweaver/testing';
+
+const logger = createLogger('mailer');
 
 describe('json-mailer', () => {
   afterEach(() => {
@@ -9,8 +11,8 @@ describe('json-mailer', () => {
 
   describe('sendEmail', () => {
     test('logs the email with the size of its attachments', async () => {
-      const info = jest
-        .spyOn(logger, 'info')
+      const debug = jest
+        .spyOn(logger, 'debug')
         .mockImplementation(() => undefined);
 
       const sent = await new JsonMailer().sendEmail({
@@ -25,7 +27,7 @@ describe('json-mailer', () => {
       });
 
       expect(sent).toBe(true);
-      expect(info).toHaveBeenCalledWith(
+      expect(debug).toHaveBeenCalledWith(
         expect.objectContaining({
           to: ['a@b.c'],
           from: '"Shop" <shop@example.com>',

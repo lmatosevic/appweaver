@@ -1,4 +1,4 @@
-import { logger } from '@appweaver/common';
+import { createLogger } from '@appweaver/common';
 import {
   TransactionContext,
   afterCommit,
@@ -7,6 +7,8 @@ import {
   runInTransaction,
   settleTransaction
 } from '../../context/transaction-scope';
+
+const logger = createLogger('app');
 
 const createContext = (): TransactionContext => ({
   tx: {},

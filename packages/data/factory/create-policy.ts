@@ -1,6 +1,6 @@
 import {
   capitalize,
-  logger,
+  createLogger,
   ModelName,
   RESOURCE_NAME,
   RESOURCE_POLICY_TYPE,
@@ -9,6 +9,8 @@ import {
   ResourceRecord
 } from '@appweaver/common';
 import { define } from '@appweaver/core';
+
+const logger = createLogger('resource');
 
 /**
  * Creates the policy of a model, checking the access to its records and restricting the reads and writes. Once the

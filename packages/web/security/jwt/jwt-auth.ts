@@ -6,7 +6,7 @@ import {
   AuthUser,
   ErrorCode,
   isAppweaverError,
-  logger,
+  createLogger,
   ModuleErrorCode,
   AuthError
 } from '@appweaver/common';
@@ -16,6 +16,8 @@ import { AuthService } from '../auth-service';
 import { JwtPayload } from '../../types/http-auth';
 import { Server } from '../../types/server';
 import { loadSecurityKeys } from './jwt-keys';
+
+const logger = createLogger('security');
 
 export const jwtAuth = fastifyPlugin(async (server: Server) => {
   const authService = inject(AuthService);

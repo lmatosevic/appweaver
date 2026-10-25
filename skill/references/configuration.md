@@ -326,6 +326,7 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 | Property               | Type    | Default  | Description                                                                              |
 |------------------------|---------|----------|------------------------------------------------------------------------------------------|
 | `LOG_LEVEL`            | enum    | `'info'` | Minimum log level. Values: `silent`, `trace`, `debug`, `info`, `warn`, `error`, `fatal`. |
+| `LOG_LEVELS`           | record  | `{}`     | Level of each named logger, overriding `LOG_LEVEL`, i.e. `LOG_LEVELS=database:debug`.    |
 | `LOG_PATH`             | string? | -        | Path to log file. If unset, logs to console only.                                        |
 | `LOG_ROTATE`           | boolean | `true`   | Enable log file rotation.                                                                |
 | `LOG_ROTATE_SIZE`      | string  | `'100M'` | Maximum size per log file before rotation.                                               |
@@ -335,6 +336,8 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 | `LOG_ROTATE_COMPRESS`  | boolean | `true`   | Compress rotated log files with gzip.                                                    |
 | `LOG_PRETTY`           | boolean | `false`  | Enable pretty-printed JSON logs.                                                         |
 | `LOG_SYNC`             | boolean | `false`  | Write each record before the next statement runs, instead of buffering it.               |
+
+See [logging](./logging.md) for the loggers and the levels per module.
 
 ### Server (SERVER\_\*)
 
@@ -643,6 +646,7 @@ you generated yourself, or provide the team ID, key ID and `.p8` private key and
 | `DATABASE_TRANSACTION_TIMEOUT`          | integer  | `5000`                       | Transaction timeout in milliseconds.                                                    |
 | `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` | boolean  | `true`                       | Allow an AI agent to run dangerous Prisma actions, i.e. reset (disable for production). |
 | `DATABASE_LOG_EVENTS`                   | string[] | `[]`                         | List of database events to log. Values: `query`, `info`, `warn`, `error`                |
+| `DATABASE_SLOW_QUERY_THRESHOLD`         | integer  | `1500`                       | Duration (ms) from which a query is logged as a warning, `0` disables it.               |
 | `DATABASE_PROVIDER`                     | string   | `'auto'`                     | `auto` or `prisma`, or `none` for an application without a database.                    |
 
 The application starts and keeps running while the database is unreachable, whatever its type. The connection is

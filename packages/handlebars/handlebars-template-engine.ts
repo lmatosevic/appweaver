@@ -5,7 +5,7 @@ import {
   ErrorCode,
   isEscapedTemplateFormat,
   isLocaleTag,
-  logger,
+  createLogger,
   parseTemplatePath,
   TemplateData,
   TemplateEngine,
@@ -23,6 +23,8 @@ import {
   templateConfig
 } from '@appweaver/core';
 import { createHandlebarsHelpers } from './handlebars-helpers';
+
+const logger = createLogger('template');
 
 const TEMPLATE_EXTENSIONS = ['.hbs', '.handlebars'];
 
@@ -162,6 +164,7 @@ export class HandlebarsTemplateEngine extends TemplateEngine {
 
     this._files = files;
     this.clearPartials();
+    logger.debug({ templates: files.size }, 'Templates loaded');
   }
 
   /** @internal */

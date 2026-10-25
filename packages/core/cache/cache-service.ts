@@ -2,7 +2,7 @@ import {
   AuthUser,
   Cache,
   CacheInvalidationStrategy,
-  logger,
+  createLogger,
   makeHash,
   RelationOutput,
   ResourceModel
@@ -12,6 +12,8 @@ import { stringify } from 'flatted';
 import { context } from '../context';
 import { inject, injectModel } from '../context';
 import { afterCommit, currentTransaction } from '../context';
+
+const logger = createLogger('cache');
 
 export class CacheService {
   /** @internal */
@@ -36,6 +38,8 @@ export class CacheService {
     const value = await this._cache.get<T>(key);
     if (value !== null) {
       logger.debug({ key }, 'Retrieved value from cache');
+    } else {
+      logger.debug({ key }, 'Cache miss');
     }
     return value;
   }

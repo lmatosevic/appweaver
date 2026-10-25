@@ -3,11 +3,13 @@ import * as crypto from 'node:crypto';
 import {
   ConfigurationError,
   ErrorCode,
-  logger,
+  createLogger,
   OAuth2Error
 } from '@appweaver/common';
 import { oauth2Config } from '../security-config';
 import { AvatarFile } from '@appweaver/data';
+
+const logger = createLogger('security');
 
 const APPLE_TOKEN_AUDIENCE = 'https://appleid.apple.com';
 

@@ -1,6 +1,6 @@
 import {
   Database,
-  logger,
+  createLogger,
   Memory,
   RESOURCE_AUTH,
   RESOURCE_MODEL_TYPE,
@@ -23,6 +23,8 @@ import {
   loadProvider
 } from '../../context/dependency-injection';
 import { resetContext } from '../fixtures/context-fixture';
+
+const logger = createLogger('app');
 
 const model = (name: string, auth: boolean = false) =>
   ({

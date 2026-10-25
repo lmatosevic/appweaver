@@ -4,7 +4,7 @@ import {
   Environment,
   ErrorCode,
   isConstructor,
-  logger,
+  createLogger,
   ModuleError,
   ModuleProvider,
   PROVIDER_AUTO,
@@ -14,6 +14,8 @@ import {
 import { context } from '../context';
 import { define, isDefined, loadProvider } from '../context';
 import { EnabledModule } from './discover-modules';
+
+const logger = createLogger('app');
 
 /**
  * Defines the provider selected for every contract the enabled modules declare, then the services of the modules

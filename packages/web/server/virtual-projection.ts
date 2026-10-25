@@ -5,10 +5,12 @@ import {
   isArray,
   isPlainObject,
   isString,
-  logger
+  createLogger
 } from '@appweaver/common';
 import { injectModel } from '@appweaver/core';
 import { projectVirtualFields } from '@appweaver/data';
+
+const logger = createLogger('server');
 
 /** Path segment marking an array level inside a projection path. */
 const ARRAY_SEGMENT = '[]';

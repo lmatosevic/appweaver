@@ -6,13 +6,15 @@ import {
   findFilesByPattern,
   importModule,
   isModule,
-  logger,
+  createLogger,
   Module,
   ModuleError,
   satisfiesVersion
 } from '@appweaver/common';
 import { context } from '../context';
 import coreModule from '../modules/core';
+
+const logger = createLogger('app');
 
 /** Where an enabled module was found. */
 export type ModuleSource = 'core' | 'package' | 'local' | 'explicit';

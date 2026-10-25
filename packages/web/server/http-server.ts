@@ -1,8 +1,15 @@
-import { LIFECYCLE, logger, OnReady, OnShutdown } from '@appweaver/common';
+import {
+  createLogger,
+  LIFECYCLE,
+  OnReady,
+  OnShutdown
+} from '@appweaver/common';
 import { Application, inject } from '@appweaver/core';
 import { Server } from '../types/server';
 import { createServer } from './create-server';
 import { serverConfig } from './server-config';
+
+const logger = createLogger('server');
 
 /**
  * The HTTP server of the application, a lifecycle service of the `@appweaver/web` module. The server is created with
@@ -25,6 +32,7 @@ export class HttpServer implements OnReady, OnShutdown {
     // The server stops accepting requests and waits for the in-flight ones
     // first, so none of them reaches an already destroyed service
     await this.instance.close();
+    logger.debug('Server closed');
   }
 
   /**

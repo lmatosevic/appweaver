@@ -160,7 +160,8 @@ weaver module new audit-log --dry-run  # print the files without writing them
 
 The name is kebab-case, and the config section the camelCase of it (`auditLog`, read from `config.auditLog` and the
 `AUDIT_LOG_*` variables), with an `ENABLED` key. `module.ts` names the module, its config and its `main`, with
-commented `providers` and `services` entries to fill in; `main.ts` is its startup code. The command refuses to
+commented `providers` and `services` entries to fill in; `main.ts` is its startup code, logging with
+`createLogger('auditLog')` (see [logging](./logging.md)). The command refuses to
 overwrite an existing module. A driver nests its section under its contract, so rename the section of a new driver
 module (`defineConfig('storage.gcs', ...)`), as in the example below.
 
@@ -350,7 +351,7 @@ name of its provider. The package holds:
 | `src/module.ts`                                   | The manifest, named after the package, with its `framework` range and its provider or `main`                                          |
 | `src/config.ts`                                   | Its section: `<contract>.<name>` for a driver (`storage.gcs`, `STORAGE_GCS_*`), `<name>` for a feature module                         |
 | `src/storage.ts` / `src/mailer.ts`                | The driver class `<Name>Storage` / `<Name>Mailer`, an in-memory stub passing the contract suite, to replace with the service calls    |
-| `src/main.ts`                                     | The startup code of a feature module                                                                                                  |
+| `src/main.ts`                                     | The startup code of a feature module, logging with `createLogger('<name>')` (`log.levels.<name>`)                                     |
 | `test/*.test.ts`                                  | The contract suite of the driver, or a test of the manifest                                                                           |
 | `tsconfig*.json`, `jest.config.json`, `README.md` | The build, the Jest setup with SWC, and the usage                                                                                     |
 

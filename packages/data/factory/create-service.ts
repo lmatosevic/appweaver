@@ -9,7 +9,7 @@ import {
   Ctor,
   isFunction,
   isPlainObject,
-  logger,
+  createLogger,
   ModelName,
   QueryFilter,
   QueryOptions,
@@ -26,6 +26,8 @@ import {
 import { define, injectPolicy, currentAuthUser } from '@appweaver/core';
 import { ResourceService } from '../resource/resource-service';
 import { bindTextSearch } from '../resource/utils/text-search-util';
+
+const logger = createLogger('resource');
 
 /**
  * Creates the resource service of a model, running the configured hooks around its operations and applying the

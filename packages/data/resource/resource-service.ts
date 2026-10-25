@@ -7,6 +7,7 @@ import {
   BulkItem,
   ConfigurationError,
   countFieldName,
+  createLogger,
   Database,
   defaultScalarValue,
   ErrorCode,
@@ -70,6 +71,8 @@ import {
 } from './utils/cursor-util';
 import { mapQueryFilter } from './utils/filter-util';
 import { mapStableSortValues } from './utils/sort-util';
+
+const logger = createLogger('resource');
 
 export abstract class ResourceService<
   ReadOne = Resource,
@@ -584,6 +587,11 @@ export abstract class ResourceService<
       current: resource
     });
 
+    logger.debug(
+      { model: this._client.name, id: (resource as Resource).id },
+      'Resource created'
+    );
+
     return this.projectResource(resource);
   }
 
@@ -738,6 +746,11 @@ export abstract class ResourceService<
     this._events.emitResourceEvent(this._client.name, 'delete', {
       current: resource
     });
+
+    logger.debug(
+      { model: this._client.name, id, softDelete },
+      'Resource deleted'
+    );
 
     return this.projectResource(resource);
   }
@@ -931,6 +944,8 @@ export abstract class ResourceService<
       current: resource
     });
 
+    logger.debug({ model: this._client.name, id }, 'Resource updated');
+
     return {
       previous: this.projectResource(updateResource),
       current: this.projectResource(resource)
@@ -1107,7 +1122,18 @@ export abstract class ResourceService<
     action: ActionType,
     resource: ReadOne
   ): Promise<boolean> {
-    return arePoliciesSkipped() || this.checkAccess(action, resource);
+    if (arePoliciesSkipped() || (await this.checkAccess(action, resource))) {
+      return true;
+    }
+    logger.debug(
+      {
+        model: this._client.name,
+        action,
+        id: (resource as Resource | undefined)?.id
+      },
+      'Resource access denied by its policy'
+    );
+    return false;
   }
 
   /**
@@ -1305,7 +1331,7 @@ export abstract class ResourceService<
     prepare?: () => Promise<void>
   ): Promise<ReadOne[]> {
     try {
-      return await this._db.client().$transaction(
+      const results = await this._db.client().$transaction(
         async () => {
           await prepare?.();
 
@@ -1320,6 +1346,11 @@ export abstract class ResourceService<
         },
         { timeout: resourceConfig.BULK_TRANSACTION_TIMEOUT }
       );
+      logger.debug(
+        { model: this._client.name, count: results.length },
+        'Bulk operation committed'
+      );
+      return results;
     } catch (e) {
       // The errors of the items are translated already, which leaves the
       // errors of the transaction itself, i.e. its timeout

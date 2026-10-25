@@ -2,9 +2,11 @@ import fsp from 'node:fs/promises';
 import {
   findFilesByPattern,
   importModule,
-  logger,
+  createLogger,
   appConfig
 } from '@appweaver/common';
+
+const logger = createLogger('app');
 
 /**
  * Loads the files of the application matching `app.scanFilesPattern` using the provided base directory and file pattern.
@@ -28,6 +30,8 @@ export async function loadAppFiles(
   for (const path of modulePaths) {
     await loadModule(path);
   }
+
+  logger.debug({ files: modulePaths }, 'Application files loaded');
 }
 
 /**
@@ -45,7 +49,7 @@ async function loadModule(modulePath: string): Promise<void> {
       return;
     }
   } catch (error) {
-    logger.error(error, `Error while loading module`);
+    logger.error({ err: error, modulePath }, 'Error while loading module');
     return;
   }
 

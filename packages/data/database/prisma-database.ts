@@ -4,7 +4,7 @@ import {
   ErrorCode,
   HealthCheckResult,
   IsolationLevel,
-  logger,
+  createLogger,
   resolveDatabaseType,
   TransactionOptions,
   DatabaseError
@@ -18,6 +18,8 @@ import {
   settleTransaction,
   TransactionContext
 } from '@appweaver/core/internal';
+
+const logger = createLogger('database');
 
 /** The transaction of the Prisma client the current call runs in. */
 type PrismaTransaction = TransactionContext<
@@ -49,15 +51,15 @@ export class PrismaDatabase extends Database {
    * failing the start, since most drivers connect lazily and the queries reconnect once it is reachable.
    */
   public async onInit(): Promise<void> {
+    const dbType = resolveDatabaseType(databaseConfig.TYPE, databaseConfig.URL);
+    const url = this.redactUrl(databaseConfig.URL);
     try {
       await this.connect();
       await this.clientInstance().$queryRaw`SELECT 1`;
-    } catch (error) {
-      const dbType = resolveDatabaseType(
-        databaseConfig.TYPE,
-        databaseConfig.URL
+      logger.info(
+        `Connected to the ${dbType} database${url ? ` at ${url}` : ''}`
       );
-      const url = this.redactUrl(databaseConfig.URL);
+    } catch (error) {
       logger.error(
         error,
         `Cannot connect to the ${dbType} database${url ? ` at ${url}` : ''}`
@@ -85,6 +87,7 @@ export class PrismaDatabase extends Database {
     }
     await this._client.$disconnect();
     this._client = undefined;
+    logger.debug('Disconnected from the database');
   }
 
   /**
@@ -155,8 +158,16 @@ export class PrismaDatabase extends Database {
       } catch (e) {
         await settleTransaction(context, false);
         if (attempt < (options.retries ?? 0) && this.isWriteConflict(e)) {
+          logger.debug(
+            { attempt: attempt + 1, retries: options.retries },
+            'Transaction write conflict, retrying'
+          );
           continue;
         }
+        logger.debug(
+          { error: (e as Error).message },
+          'Transaction rolled back'
+        );
         throw e;
       }
 

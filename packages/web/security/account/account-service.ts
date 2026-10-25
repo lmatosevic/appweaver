@@ -2,6 +2,7 @@ import {
   AuthOTTPurpose,
   AuthSource,
   AuthUser,
+  createLogger,
   ErrorCode,
   makeHash,
   randomString,
@@ -28,6 +29,8 @@ import {
   TranslationParams
 } from '@appweaver/core';
 import { AuthOTTData, TwoFactorAuthData } from '../../types/http-auth';
+
+const logger = createLogger('security');
 
 type VerifyEmailData = {
   authUserId: ResourceId;
@@ -113,6 +116,8 @@ export class AccountService {
       (t) => [t('emails.verifyEmail.message'), verifyLink]
     );
 
+    logger.debug({ id: authUser.id }, 'Verification email sent');
+
     return 'Verification email sent';
   }
 
@@ -147,6 +152,8 @@ export class AccountService {
     }
 
     await this._authService.updateAuthUser(authUserId, { verifiedEmail: true });
+
+    logger.debug({ id: authUserId }, 'Email address verified');
 
     return 'E-mail address verified';
   }
@@ -228,6 +235,11 @@ export class AccountService {
 
     const authUser = await this._authService.findByUsername(email);
     if (!authUser || !authUser.enabled || !authUser.passwordHash) {
+      // Answered the same, so the response tells nothing of the account
+      logger.debug(
+        { id: authUser?.id },
+        'Password reset skipped, no enabled user with a password'
+      );
       return sentMessage;
     }
 
@@ -254,6 +266,8 @@ export class AccountService {
         t('emails.passwordReset.ignore')
       ]
     );
+
+    logger.debug({ id: authUser.id }, 'Password reset email sent');
 
     return sentMessage;
   }
@@ -301,6 +315,8 @@ export class AccountService {
       logoutAt: new Date(),
       passwordHash: await hashPassword(password)
     });
+
+    logger.debug({ id: authUserId }, 'Password reset');
 
     return 'Password reset successfully';
   }
@@ -355,6 +371,8 @@ export class AccountService {
       ]
     );
 
+    logger.debug({ id: authUser.id, challengeId }, '2FA code sent');
+
     return { challengeId, expiresIn };
   }
 
@@ -396,6 +414,8 @@ export class AccountService {
       { authUserId: authUser.id, authSource: AuthSource.Password },
       expiresIn
     );
+
+    logger.debug({ id: authUser.id }, '2FA code verified');
 
     return { token, expiresIn };
   }

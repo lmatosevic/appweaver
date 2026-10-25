@@ -1,4 +1,4 @@
-import { AuthSource, logger } from '@appweaver/common';
+import { AuthSource, createLogger } from '@appweaver/common';
 import { oauth2Config } from '../security-config';
 import { UserInfo } from '@appweaver/data';
 import { OAuth2UserInfoContext } from '../../types/http-auth';
@@ -8,6 +8,8 @@ import {
   decodeJwtPayload,
   requireEmail
 } from './oauth2-util';
+
+const logger = createLogger('security');
 
 type AppleIdToken = {
   sub: string;

@@ -1,7 +1,13 @@
-import { ImageProcessor, logger, ModuleSetupContext } from '@appweaver/common';
+import {
+  ImageProcessor,
+  createLogger,
+  ModuleSetupContext
+} from '@appweaver/common';
 import { isDefined } from '@appweaver/core';
 import { context } from '@appweaver/core/internal';
 import { LoadResourcePaths, loadResources } from './resource-loader';
+
+const logger = createLogger('resource');
 
 /**
  * The setup of `@appweaver/data`: loads the models, services and policies of the application, then the resources of

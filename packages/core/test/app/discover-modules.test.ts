@@ -7,7 +7,7 @@ import {
   defineConfig,
   defineModule,
   ErrorCode,
-  logger,
+  createLogger,
   Memory
 } from '@appweaver/common';
 import {
@@ -16,6 +16,8 @@ import {
   moduleDirectories
 } from '../../app/discover-modules';
 import { context } from '../../context/context';
+
+const logger = createLogger('app');
 
 const rootPath = path.join(__dirname, '../fixtures/modules/project');
 const scanPath = path.join(rootPath, 'src');

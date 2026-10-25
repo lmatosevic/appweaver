@@ -1,6 +1,8 @@
 import { CronJob } from 'cron';
-import { JobParams, logger, Scheduler, uuid } from '@appweaver/common';
+import { JobParams, createLogger, Scheduler, uuid } from '@appweaver/common';
 import { schedulerConfig } from '@appweaver/core';
+
+const logger = createLogger('scheduler');
 
 export class CronScheduler extends Scheduler<CronJob> {
   /** @internal */
@@ -23,7 +25,7 @@ export class CronScheduler extends Scheduler<CronJob> {
 
     for (const job of Object.values(this._jobs)) {
       if (!job.isActive) {
-        return;
+        continue;
       }
       const stopAction = job.stop();
       if (stopAction) {
@@ -46,10 +48,25 @@ export class CronScheduler extends Scheduler<CronJob> {
       ...providerOptions,
       cronTime,
       onTick: async () => {
+        const start = performance.now();
+        logger.debug({ jobId }, 'Job run started');
         await onTick();
+        logger.debug(
+          { jobId, durationMs: Math.round(performance.now() - start) },
+          'Job run finished'
+        );
       },
       timeZone
     });
+    logger.debug(
+      {
+        jobId,
+        cronTime,
+        timeZone,
+        nextRun: this._jobs[jobId].nextDate().toISO()
+      },
+      'Job added'
+    );
     return jobId;
   }
 
@@ -64,6 +81,7 @@ export class CronScheduler extends Scheduler<CronJob> {
     }
 
     job.start();
+    logger.debug({ jobId }, 'Job started');
 
     return true;
   }
@@ -75,6 +93,7 @@ export class CronScheduler extends Scheduler<CronJob> {
     }
 
     await job.stop();
+    logger.debug({ jobId }, 'Job stopped');
 
     return true;
   }
@@ -88,6 +107,7 @@ export class CronScheduler extends Scheduler<CronJob> {
     await job.stop();
 
     delete this._jobs[jobId];
+    logger.debug({ jobId }, 'Job removed');
 
     return true;
   }

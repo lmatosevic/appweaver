@@ -54,7 +54,9 @@ describe('prisma-database', () => {
     let error: jest.SpyInstance;
 
     beforeEach(() => {
-      error = jest.spyOn(common.logger, 'error').mockImplementation();
+      error = jest
+        .spyOn(common.createLogger('database'), 'error')
+        .mockImplementation();
     });
 
     afterEach(() => {

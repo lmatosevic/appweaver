@@ -4,7 +4,7 @@ import {
   CONFIG,
   ErrorCode,
   isAppweaverError,
-  logger,
+  createLogger,
   ResourceId,
   uncapitalize,
   OAuth2Error
@@ -19,6 +19,8 @@ import {
   ConnectedAccount,
   ConnectedAccountResourceService
 } from '@appweaver/data';
+
+const logger = createLogger('security');
 
 /**
  * Handles the parts of authentication that only apply to OAuth2 sign-ins: the application's own admission check, the

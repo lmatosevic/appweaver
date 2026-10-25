@@ -791,6 +791,12 @@ and an `ApplicationError` with a code registered by `defineErrors` for a busines
 plain `Error` for an expected failure, it responds with `INTERNAL_ERROR` (500). Translate the errors of a direct Prisma
 call with `toDatabaseError(e, 'Model')`.
 
+### Logging
+
+Log with a named logger, `createLogger('billing')` of `@appweaver/common`, so `log.levels.billing` can set its level
+apart from `log.level`. Log the operations at `debug`, and keep `info` for one-time, system-wide facts (started,
+connected, recovered). See [logging.md](references/logging.md) for the framework loggers and the config.
+
 ### Registering a custom model
 
 Use `registerModel` to register a custom [TypeBox](https://github.com/sinclairzx81/typebox) schema as a named model.
@@ -1090,6 +1096,7 @@ npm run lint  # eslint "./**/*.ts"
 
 - Application CLI (weaver): [cli.md](references/cli.md)
 - Application configuration: [configuration.md](references/configuration.md)
+- Logging & log levels per module: [logging.md](references/logging.md)
 - Modules & providers: [modules.md](references/modules.md)
 - Application resources: [resources.md](references/resources.md)
 - Dependency injection: [dependency-injection.md](references/dependency-injection.md)

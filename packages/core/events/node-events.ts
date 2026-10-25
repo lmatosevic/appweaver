@@ -3,11 +3,13 @@ import {
   EventData,
   EventListener,
   Events,
-  logger,
+  createLogger,
   uuid
 } from '@appweaver/common';
 import { eventsConfig } from './events-config';
 import { afterCommit, currentTransaction } from '../context';
+
+const logger = createLogger('events');
 
 export class NodeEvents extends Events {
   /** @internal */
@@ -33,6 +35,7 @@ export class NodeEvents extends Events {
     const eventName = this.resourceEventName(resourceName, event);
     this._eventListeners[listenerId] = { eventName, listener };
     this.on(eventName, listener);
+    logger.debug({ event: eventName, listenerId }, 'Event listener added');
     return listenerId;
   }
 
@@ -43,12 +46,19 @@ export class NodeEvents extends Events {
   ): boolean {
     const eventName = this.resourceEventName(resourceName, event);
 
+    const listeners = this.listenerCount(eventName);
+
     // Deferred to the commit, so no listener acts on a change a rollback discards
     if (currentTransaction()) {
       afterCommit(() => this.emit(eventName, data));
-      return this.listenerCount(eventName) > 0;
+      logger.debug(
+        { event: eventName, listeners },
+        'Event deferred to the commit'
+      );
+      return listeners > 0;
     }
 
+    logger.debug({ event: eventName, listeners }, 'Event emitted');
     return this.emit(eventName, data);
   }
 

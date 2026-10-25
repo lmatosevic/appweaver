@@ -1,8 +1,10 @@
 import { FastifyPluginCallback } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import { logger, PLUGIN } from '@appweaver/common';
+import { createLogger, PLUGIN } from '@appweaver/common';
 import { define } from '@appweaver/core';
 import { Server } from '../types/server';
+
+const logger = createLogger('server');
 
 /** A registered plugin, as it is stored in the application context. */
 export type PluginEntry = { plugin: FastifyPluginCallback };

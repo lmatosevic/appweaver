@@ -5,12 +5,14 @@ import {
   ErrorCode,
   HealthCheckConfig,
   HealthCheckResult,
-  logger,
+  createLogger,
   Memory,
   uuid,
   LockError
 } from '@appweaver/common';
 import { redisConfig } from './config';
+
+const logger = createLogger('memory');
 
 export class RedisMemory extends Memory<RedisOptions, RedisClient> {
   /** @internal */
@@ -161,6 +163,7 @@ export class RedisMemory extends Memory<RedisOptions, RedisClient> {
   /** @internal */
   private monitorConnection(client: RedisClient): void {
     const name = client.options.connectionName ?? 'redis';
+    let connected = false;
     let lost = false;
 
     // Logs only the first error of an outage, the client emits one on every
@@ -177,9 +180,12 @@ export class RedisMemory extends Memory<RedisOptions, RedisClient> {
 
     client.on('ready', () => {
       if (lost) {
-        lost = false;
         logger.info(`Redis connection '${name}' is restored`);
+      } else if (!connected) {
+        logger.info(`Redis connection '${name}' is established`);
       }
+      connected = true;
+      lost = false;
     });
   }
 

@@ -1,8 +1,10 @@
-import { ImageProcessor, logger, ResourceModel } from '@appweaver/common';
+import { ImageProcessor, createLogger, ResourceModel } from '@appweaver/common';
 import { define } from '@appweaver/core';
 import { context } from '@appweaver/core/internal';
 import { resetContext } from '@appweaver/testing';
 import { warnUnprocessedImages } from '../../resource/load-data-resources';
+
+const logger = createLogger('resource');
 
 /** Registers a model with the given file fields. */
 const model = (name: string, files: Record<string, object>) =>

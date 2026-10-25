@@ -8,7 +8,7 @@ import {
   DatabaseEvent,
   DatabaseType,
   isTypeScriptRuntime,
-  logger,
+  createLogger,
   requireModule,
   resolveDatabaseType,
   Runtime,
@@ -17,12 +17,14 @@ import {
 import { databaseConfig } from './database-config';
 import { Prisma, PrismaClient } from '../prisma/client/client';
 
+const logger = createLogger('database');
+
 const options: Omit<PrismaClientOptions, 'adapter'> = {
   transactionOptions: {
     maxWait: databaseConfig.TRANSACTION_MAX_WAIT,
     timeout: databaseConfig.TRANSACTION_TIMEOUT
   },
-  log: databaseConfig.LOG_EVENTS.map((e) => ({ emit: 'event', level: e }))
+  log: emittedEvents().map((e) => ({ emit: 'event', level: e }))
 };
 
 /**
@@ -182,11 +184,9 @@ function createPrismaClient(adapter: SqlDriverAdapterFactory): PrismaClient {
   const client = new PrismaClient({ adapter, ...options });
 
   // Add configured Prisma event logging
-  for (const event of databaseConfig.LOG_EVENTS) {
+  for (const event of emittedEvents()) {
     if (event === DatabaseEvent.Query) {
-      client.$on(event, (e: Prisma.QueryEvent) => {
-        logger.debug(e, 'Prisma query');
-      });
+      client.$on(event, logQuery);
     } else {
       client.$on(event, (e: Prisma.LogEvent) => {
         logger[event](e, `Prisma ${event} log`);
@@ -195,4 +195,26 @@ function createPrismaClient(adapter: SqlDriverAdapterFactory): PrismaClient {
   }
 
   return client;
+}
+
+/** The events Prisma emits: the logged ones, and the queries to time with a slow query threshold. */
+function emittedEvents(): DatabaseEvent[] {
+  const events = new Set(databaseConfig.LOG_EVENTS);
+  if (databaseConfig.SLOW_QUERY_THRESHOLD > 0) {
+    events.add(DatabaseEvent.Query);
+  }
+  return [...events];
+}
+
+/** Logs a query, as a warning without its parameters when it is slow. */
+export function logQuery(e: Prisma.QueryEvent): void {
+  const threshold = databaseConfig.SLOW_QUERY_THRESHOLD;
+  if (threshold > 0 && e.duration >= threshold) {
+    logger.warn(
+      { query: e.query, duration: e.duration, threshold },
+      'Slow database query'
+    );
+  } else if (databaseConfig.LOG_EVENTS.includes(DatabaseEvent.Query)) {
+    logger.debug(e, 'Prisma query');
+  }
 }

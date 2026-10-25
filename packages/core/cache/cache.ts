@@ -2,7 +2,7 @@ import {
   Cache as CommonCache,
   CacheEntryMeta,
   CacheEvictionStrategy,
-  logger,
+  createLogger,
   Memory,
   textToBytes
 } from '@appweaver/common';
@@ -11,6 +11,8 @@ import { EvictionIndex } from './eviction';
 import { FifoEvictionIndex } from './eviction';
 import { LfuEvictionIndex } from './eviction';
 import { LruEvictionIndex } from './eviction';
+
+const logger = createLogger('cache');
 
 export abstract class Cache extends CommonCache {
   /** @internal */

@@ -72,6 +72,7 @@ export async function createModulePackage(
     MODULE_NAME: shortName,
     CLASS_NAME: `${pascalName}${suffix}`,
     CONFIG_NAME: `${camelName}Config`,
+    LOGGER_NAME: camelName,
     CONFIG_SECTION: section,
     CONFIG_PREFIX:
       section

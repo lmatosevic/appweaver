@@ -53,8 +53,10 @@ jest.mock('ioredis', () => {
 
 import { Redis as RedisClient } from 'ioredis';
 import * as common from '@appweaver/common';
-import { ErrorCode, logger } from '@appweaver/common';
+import { ErrorCode, createLogger } from '@appweaver/common';
 import { RedisMemory } from '../redis-memory';
+
+const logger = createLogger('memory');
 
 const clients = () => (RedisClient as any).instances as any[];
 
@@ -95,6 +97,19 @@ describe('redis-memory', () => {
   });
 
   describe('createClient', () => {
+    test('logs the first connection once', () => {
+      const info = jest.spyOn(logger, 'info').mockImplementation();
+
+      client.emit('ready');
+      client.emit('ready');
+
+      expect(info).toHaveBeenCalledTimes(1);
+      expect(info).toHaveBeenCalledWith(
+        "Redis connection 'appweaver' is established"
+      );
+      info.mockRestore();
+    });
+
     test('logs only the first error of an outage, and the recovery', () => {
       const error = jest.spyOn(logger, 'error').mockImplementation();
       const info = jest.spyOn(logger, 'info').mockImplementation();

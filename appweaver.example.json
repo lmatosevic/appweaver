@@ -35,6 +35,10 @@
     },
     "log": {
       "level": "info",
+      "levels": {
+        "database": "trace",
+        "cache": "debug"
+      },
       "path": "./logs",
       "rotate": true,
       "rotateSize": "100M",
@@ -243,6 +247,7 @@
       "transactionTimeout": 5000,
       "aiDangerousActionsEnabled": true,
       "logEvents": ["query", "info", "warn", "error"],
+      "slowQueryThreshold": 1500,
       "provider": "auto"
     },
     "storage": {

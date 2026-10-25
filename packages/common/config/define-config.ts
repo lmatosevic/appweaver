@@ -90,10 +90,17 @@ export function configSource(key: string): ConfigSource {
     return 'override';
   }
   const rawKey = `_${CONFIG_NAME}_${key}`;
-  if (!isEmpty(rawConfig.env[rawKey])) {
+  const owner = keyOwners.get(key);
+  const property = owner?.schema.properties[key.slice(owner.prefix.length)];
+  // The entries of a record are flattened into keys of their own
+  const entries = (source: ConfigEntry['config']) =>
+    property !== undefined &&
+    isRecord(property) &&
+    Object.keys(source).some((name) => name.startsWith(`${rawKey}_`));
+  if (!isEmpty(rawConfig.env[rawKey]) || entries(rawConfig.env)) {
     return 'env';
   }
-  if (!isEmpty(rawConfig.json[rawKey])) {
+  if (!isEmpty(rawConfig.json[rawKey]) || entries(rawConfig.json)) {
     return 'json';
   }
   return 'default';
@@ -248,6 +255,9 @@ function parseSection<V>(
 /** Reads the value of a key from the environment over the JSON files, converting an environment string. */
 function readSectionValue(key: string, property: TSchema): unknown {
   const rawKey = `_${CONFIG_NAME}_${key}`;
+  if (isRecord(property)) {
+    return readRecordValue(rawKey);
+  }
   const mapFrom = property.mapFrom as string | undefined;
   const envValue =
     rawConfig.env[rawKey] ??
@@ -265,6 +275,48 @@ function readSectionValue(key: string, property: TSchema): unknown {
 
   const jsonValue = rawConfig.json[rawKey];
   return isEmpty(jsonValue) ? undefined : jsonValue;
+}
+
+/**
+ * Reads the entries of a record key, each from its own flattened key (`LOG_LEVELS_DATABASE` for the `database` entry
+ * of `log.levels`), and the environment string listing them as `name:value` pairs (`LOG_LEVELS=database:trace`). An
+ * entry of the environment overrides the same entry of the JSON files.
+ */
+function readRecordValue(rawKey: string): Record<string, unknown> | undefined {
+  const record: Record<string, unknown> = {};
+  const readEntries = (source: ConfigEntry['config']) => {
+    for (const [name, value] of Object.entries(source)) {
+      if (name.startsWith(`${rawKey}_`) && !isEmpty(value)) {
+        record[recordEntryName(name.slice(rawKey.length + 1))] = value;
+      }
+    }
+  };
+
+  readEntries(rawConfig.json);
+  const envValue = rawConfig.env[rawKey];
+  if (typeof envValue === 'string') {
+    for (const pair of parseArray(envValue)) {
+      const separator = pair.indexOf(':');
+      if (separator > 0) {
+        record[recordEntryName(pair.slice(0, separator).trim())] = pair
+          .slice(separator + 1)
+          .trim();
+      }
+    }
+  }
+  readEntries(rawConfig.env);
+
+  return Object.keys(record).length > 0 ? record : undefined;
+}
+
+/** The camelCase name of a record entry, flattened in upper snake case (`RATE_LIMIT` → `rateLimit`). */
+function recordEntryName(name: string): string {
+  return snakeToCamelCase(camelToSnakeCase(name).toLowerCase());
+}
+
+/** Tells whether a key is a TypeBox record, whose entries are flattened into keys of their own. */
+function isRecord(property: TSchema): boolean {
+  return property.type === 'object' && property.patternProperties !== undefined;
 }
 
 function isEmpty(value: unknown): boolean {

@@ -6,7 +6,7 @@ import {
   isResourceModel,
   isResourcePolicy,
   isResourceService,
-  logger,
+  createLogger,
   ResourceModel,
   resourceModelProps,
   ResourcePolicyConfig,
@@ -21,6 +21,8 @@ import {
 import { ResourceContext } from '@appweaver/core';
 import { context } from '@appweaver/core/internal';
 import { pruneUnusedModels } from './utils/prune-util';
+
+const logger = createLogger('resource');
 
 export type LoadResourcePaths = {
   /** Path pattern used for finding files that export resource models (default: `./src/resources/"*"/*model.ts`) */
