@@ -17,7 +17,7 @@ async function loadSections() {
 /** The logger names of the modules enabled by {@link loadSections}. */
 async function loadLoggerNames() {
   const { context } = await import('@appweaver/core/internal');
-  return context.modules.enabled.flatMap((module) => module.loggerNames ?? []);
+  return context.modules.enabled.flatMap((module) => module.loggers ?? []);
 }
 
 /**

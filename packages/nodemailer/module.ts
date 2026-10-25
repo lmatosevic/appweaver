@@ -5,7 +5,7 @@ import { smtpConfig } from './config';
 export default defineModule({
   name: '@appweaver/nodemailer',
   config: [smtpConfig],
-  loggerNames: ['mailer'],
+  loggers: ['mailer'],
   providers: [
     {
       contract: Mailer,

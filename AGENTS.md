@@ -100,7 +100,7 @@ A module lists its sections in the `config` of its manifest, which registers the
 the scaffolded projects) from the enabled modules, and the application validates them when it starts. A new section of
 a framework package is added to the `config` of its manifest.
 
-A module also lists the names of its `createLogger` loggers in the `loggerNames` of its manifest, which the schema
+A module also lists the names of its `createLogger` loggers in the `loggers` of its manifest, which the schema
 offers as the keys of `log.levels` (`definitions.logLevel`), still accepting any other name. A new logger name of a
 framework package is added to its manifest, which the `module` test of the package checks with `sourceLoggerNames` of
 `@appweaver/testing`.
@@ -300,7 +300,7 @@ installs `@appweaver/redis`, never `ioredis`.
 `@appweaver/testing` holds the test helpers of the packages and their modules: `resetContext` (clears the application
 context between tests), `linkModels` (links the models defined in a test), `createDatabaseStub` (records the queries of
 a stubbed Prisma client), `prismaError` and `sourceLoggerNames` (the `createLogger` names of a source directory, the
-`loggerNames` of a manifest are checked against). The tests of `data`, `web` and the drivers import them from
+`loggers` of a manifest are checked against). The tests of `data`, `web` and the drivers import them from
 `@appweaver/testing`, and the other packages by their names (`@appweaver/core`, `@appweaver/data`), never by a relative
 path into another package. Jest maps every `@appweaver/*` import to the sources of its package (`moduleNameMapper` of
 `jest.config.json`), so the tests need no build and share one instance of each module.
@@ -399,7 +399,7 @@ from `templates/module-package/common/` and the directory of its contract:
 - `src/module.ts` (the manifest, with the framework range), `src/config.ts` (its section) and `src/index.ts`
 - for a driver, the class `<Name>Storage` (`src/storage.ts`) or `<Name>Mailer` (`src/mailer.ts`), a working in-memory
   stub, and a test running the contract suite of `@appweaver/testing`; for a feature module (`none`, the default),
-  `src/main.ts` and a test of the manifest, checking its `loggerNames` against the sources
+  `src/main.ts` and a test of the manifest, checking its `loggers` against the sources
 - `tsconfig.json`, `tsconfig.build.json`, `jest.config.json`, `.gitignore` (the template is `gitignore`, since npm
   leaves the `.gitignore` files out of a published package) and `README.md`
 
@@ -491,7 +491,7 @@ nested object of its section, with its type and default, under `config` and each
 `weaver generate` writes the same file from the sections the enabled modules list in their manifests, without creating
 the application, so only a section defined outside a module needs `weaver config schema`. The `$schema` of
 `appweaver.json` points to it, so the editor knows the sections of the installed module packages too. The
-`loggerNames` of the enabled modules become the suggested keys of `log.levels`, any other name still allowed.
+`loggers` of the enabled modules become the suggested keys of `log.levels`, any other name still allowed.
 
 #### `weaver config print`
 
@@ -623,7 +623,7 @@ module deletes its files (the whole `templates/` or `locales/` directory, the Do
 dependencies, and for `locales` and `docker` from the `locales/` directory and the `Dockerfile`.
 
 `new <name>` creates a local module in `<APP_SOURCE_PATH>/modules/<name>/` (`module/local-module.ts`), enabled by
-`APP_MODULES_PATTERN`: `module.ts` (the manifest, with its `loggerNames` and commented `providers` and `services`), `config.ts` (the section
+`APP_MODULES_PATTERN`: `module.ts` (the manifest, with its `loggers` and commented `providers` and `services`), `config.ts` (the section
 named after the camelCase of the name, `audit-log` → `auditLog`, with an `ENABLED` key) and `main.ts`. The name must be
 kebab-case, and the command fails without writing anything when a file of the module exists. `--dry-run` prints the
 files.

@@ -71,7 +71,7 @@ export type ModuleManifest = {
    * The names of the loggers it creates with `createLogger`, i.e. `['database']`, suggested as the keys of `log.levels`
    * by the JSON Schema of `weaver generate`.
    */
-  loggerNames?: string[];
+  loggers?: string[];
   /** The contracts it declares, which the providers of every module implement. */
   contracts?: ModuleContract[];
   /** Its contract implementations. */

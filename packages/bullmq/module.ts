@@ -4,7 +4,7 @@ import { defineModule, Queue } from '@appweaver/common';
 export default defineModule({
   name: '@appweaver/bullmq',
   requires: ['@appweaver/redis'],
-  loggerNames: ['queue'],
+  loggers: ['queue'],
   providers: [
     {
       contract: Queue,

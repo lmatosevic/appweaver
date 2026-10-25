@@ -38,7 +38,7 @@ export default defineModule({
     localeConfig,
     healthConfig
   ],
-  loggerNames: [
+  loggers: [
     'app',
     'cache',
     'events',

@@ -70,7 +70,7 @@ LOG_LEVELS=database:trace,cache:error
 - A name of `LOG_LEVELS` no logger uses (a typo, or a disabled module) is reported with a warning when the application
   is created.
 - The `appweaver.schema.json` of `weaver generate` suggests the logger names the enabled modules list in the
-  `loggerNames` of their manifests (the framework loggers below, and those of the module packages and local modules),
+  `loggers` of their manifests (the framework loggers below, and those of the module packages and local modules),
   and still accepts any other name, i.e. a logger of the application.
 - The levels are read when the loggers are created, at startup, so a change needs a restart.
 - The `weaver` CLI commands log nothing, whatever the levels.

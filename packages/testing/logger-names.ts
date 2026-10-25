@@ -8,10 +8,10 @@ const skipped = new Set(['node_modules', 'dist', 'test']);
 
 /**
  * Returns the names of the loggers the TypeScript sources of a directory create with `createLogger('name')`, so a
- * test checks the `loggerNames` of the module manifest against them.
+ * test checks the `loggers` of the module manifest against them.
  *
  * @example
- * expect([...manifest.loggerNames!].sort()).toEqual(sourceLoggerNames(path.join(__dirname, '../src')));
+ * expect([...manifest.loggers!].sort()).toEqual(sourceLoggerNames(path.join(__dirname, '../src')));
  *
  * @param {string} directory - The source directory, searched with its subdirectories except `test`, `dist` and
  * `node_modules`.

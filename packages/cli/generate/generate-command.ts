@@ -100,7 +100,7 @@ export function generateCommand(program: Command): void {
           await writeConfigSchema(
             configSections.values(),
             configSchemaPath,
-            modules.flatMap(({ module }) => module.loggerNames ?? [])
+            modules.flatMap(({ module }) => module.loggers ?? [])
           );
           console.log(
             `Config schema generated to ${path.relative(process.cwd(), configSchemaPath)}`

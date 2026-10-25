@@ -14,7 +14,7 @@ describe('module', () => {
   });
 
   test('lists every logger of the package', () => {
-    expect([...(manifest.loggerNames ?? [])].sort()).toEqual(
+    expect([...(manifest.loggers ?? [])].sort()).toEqual(
       sourceLoggerNames(path.join(__dirname, '..'))
     );
   });

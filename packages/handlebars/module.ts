@@ -3,7 +3,7 @@ import { defineModule, TemplateEngine } from '@appweaver/common';
 /** The Handlebars template engine. */
 export default defineModule({
   name: '@appweaver/handlebars',
-  loggerNames: ['template'],
+  loggers: ['template'],
   providers: [
     {
       contract: TemplateEngine,
