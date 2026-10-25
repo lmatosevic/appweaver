@@ -518,14 +518,14 @@ route. The listener stays off beside the server of `@appweaver/web`, which answe
 
 #### JWT (JSON Web Tokens)
 
-| Property                          | Type    | Default                        | Description                                                                   |
-|-----------------------------------|---------|--------------------------------|-------------------------------------------------------------------------------|
-| `SECURITY_JWT_SECRET`             | string? | -                              | HMAC secret for symmetric JWT signing (HS256). If set, RSA keys are not used. |
-| `SECURITY_JWT_PUBLIC_KEY_PATH`    | string  | `'./storage/keys/public.key'`  | Path to RSA public key for JWT verification (RS256).                          |
-| `SECURITY_JWT_PRIVATE_KEY_PATH`   | string  | `'./storage/keys/private.key'` | Path to RSA private key for JWT signing (RS256).                              |
-| `SECURITY_JWT_AUTO_GENERATE_KEYS` | boolean | `true`                         | Auto-generate RSA 2048-bit key pair if missing.                               |
-| `SECURITY_JWT_EXPIRES_IN`         | integer | `604800`                       | Access token expiration in seconds (default 7 days).                          |
-| `SECURITY_JWT_REFRESH_EXPIRES_IN` | integer | `5184000`                      | Refresh token expiration in seconds (default 60 days).                        |
+| Property                          | Type    | Default                            | Description                                                                   |
+|-----------------------------------|---------|------------------------------------|-------------------------------------------------------------------------------|
+| `SECURITY_JWT_SECRET`             | string? | -                                  | HMAC secret for symmetric JWT signing (HS256). If set, RSA keys are not used. |
+| `SECURITY_JWT_PUBLIC_KEY_PATH`    | string  | `'./storage/__keys__/public.key'`  | Path to RSA public key for JWT verification (RS256).                          |
+| `SECURITY_JWT_PRIVATE_KEY_PATH`   | string  | `'./storage/__keys__/private.key'` | Path to RSA private key for JWT signing (RS256).                              |
+| `SECURITY_JWT_AUTO_GENERATE_KEYS` | boolean | `true`                             | Auto-generate RSA 2048-bit key pair if missing.                               |
+| `SECURITY_JWT_EXPIRES_IN`         | integer | `604800`                           | Access token expiration in seconds (default 7 days).                          |
+| `SECURITY_JWT_REFRESH_EXPIRES_IN` | integer | `5184000`                          | Refresh token expiration in seconds (default 60 days).                        |
 
 #### OAuth2 general
 
@@ -654,7 +654,7 @@ fail until it is reachable again.
 | Property                     | Type    | Default                       | Description                                                                                                                                                                                                                                                                               |
 |------------------------------|---------|-------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `STORAGE_PATH`               | string  | `'./storage'`                 | Base directory for file storage.                                                                                                                                                                                                                                                          |
-| `STORAGE_RESERVED_PATHS`     | array   | `['keys']`                    | Paths inside the storage directory that files can never be stored under. Each entry is a directory or a full file name relative to `STORAGE_PATH`, matched case-insensitively (no wildcards). Violations fail on startup for configured name patterns, and with a `400` error at runtime. |
+| `STORAGE_RESERVED_PATHS`     | array   | `['__keys__']`                | Paths inside the storage directory that files can never be stored under. Each entry is a directory or a full file name relative to `STORAGE_PATH`, matched case-insensitively (no wildcards). Violations fail on startup for configured name patterns, and with a `400` error at runtime. |
 | `STORAGE_NAME_PATTERN`       | string  | `'{name}-{hash}.{extension}'` | File naming pattern for stored files.                                                                                                                                                                                                                                                     |
 | `STORAGE_CACHE_TTL`          | integer | `86400000`                    | File storage cache TTL in milliseconds. (24h)                                                                                                                                                                                                                                             |
 | `STORAGE_URL_TTL`            | integer | `900000`                      | How long the URL of a storage serving its files directly (a signed URL) is valid, in milliseconds. (15min)                                                                                                                                                                                |

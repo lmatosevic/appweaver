@@ -161,8 +161,8 @@
       },
       "jwt": {
         "secret": "GdvCFezoPIZdOAN3IQZR3JhaAZH6S6AJ",
-        "publicKeyPath": "./storage/keys/public.key",
-        "privateKeyPath": "./storage/keys/private.key",
+        "publicKeyPath": "./storage/__keys__/public.key",
+        "privateKeyPath": "./storage/__keys__/private.key",
         "autoGenerateKeys": true,
         "expiresIn": 604800,
         "refreshExpiresIn": 5184000
@@ -214,7 +214,7 @@
           "clientId": "com.example.service",
           "teamId": "A1B2C3D4E5",
           "keyId": "F6G7H8I9J0",
-          "privateKeyPath": "./storage/keys/apple-auth-key.p8",
+          "privateKeyPath": "./storage/__keys__/apple-auth-key.p8",
           "clientSecretExpiresIn": 15552000
         },
         "microsoft": {
@@ -247,7 +247,7 @@
     },
     "storage": {
       "path": "./storage",
-      "reservedPaths": ["keys"],
+      "reservedPaths": ["__keys__"],
       "namePattern": "{name}-{hash}.{extension}",
       "cacheTtl": 86400000,
       "urlTtl": 900000,

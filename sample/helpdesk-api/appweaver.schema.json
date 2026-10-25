@@ -864,11 +864,11 @@
                   "type": "string"
                 },
                 "publicKeyPath": {
-                  "default": "./storage/keys/public.key",
+                  "default": "./storage/__keys__/public.key",
                   "type": "string"
                 },
                 "privateKeyPath": {
-                  "default": "./storage/keys/private.key",
+                  "default": "./storage/__keys__/private.key",
                   "type": "string"
                 },
                 "autoGenerateKeys": {
@@ -1219,7 +1219,7 @@
             },
             "reservedPaths": {
               "default": [
-                "keys"
+                "__keys__"
               ],
               "type": "array",
               "items": {

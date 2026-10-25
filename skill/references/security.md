@@ -54,10 +54,10 @@ if `SECURITY_JWT_SECRET` is set.
 ### Key management
 
 - RSA 2048-bit key pair generated automatically if `SECURITY_JWT_AUTO_GENERATE_KEYS` is `true` and key files are missing
-- Keys stored at `SECURITY_JWT_PUBLIC_KEY_PATH` and `SECURITY_JWT_PRIVATE_KEY_PATH` (default: `./storage/keys/`)
+- Keys stored at `SECURITY_JWT_PUBLIC_KEY_PATH` and `SECURITY_JWT_PRIVATE_KEY_PATH` (default: `./storage/__keys__/`)
 - Generated keys are written with owner-only permissions (`0600` for the private key, `0700` for its directory)
-- The default `STORAGE_RESERVED_PATHS` value (`['keys']`) makes the `keys` directory unusable by the file storage layer,
-  so uploads can never overwrite the default key location
+- The default `STORAGE_RESERVED_PATHS` value (`['__keys__']`) makes the `__keys__` directory unusable by the file storage
+  layer, so uploads can never overwrite the default key location
 - If `SECURITY_JWT_SECRET` is set, HMAC signing is used instead of RSA
 
 ### Token types and scopes

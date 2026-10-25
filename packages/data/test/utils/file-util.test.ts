@@ -117,18 +117,23 @@ describe('file-util', () => {
           modelsWithPattern('photos/{resourceId}/{name}.{extension}')
         )
       ).not.toThrow();
+      expect(() =>
+        validateFileNamePatterns(modelsWithPattern('keys/{name}.{extension}'))
+      ).not.toThrow();
     });
 
     test('rejects a pattern placed under a reserved storage path', () => {
       expect(() =>
-        validateFileNamePatterns(modelsWithPattern('keys/{name}.{extension}'))
-      ).toThrow(/'Post.image'.*reserved storage path 'keys'/);
+        validateFileNamePatterns(
+          modelsWithPattern('__keys__/{name}.{extension}')
+        )
+      ).toThrow(/'Post.image'.*reserved storage path '__keys__'/);
     });
 
     test('rejects a pattern equal to a reserved storage path', () => {
-      expect(() => validateFileNamePatterns(modelsWithPattern('keys'))).toThrow(
-        /reserved storage path 'keys'/
-      );
+      expect(() =>
+        validateFileNamePatterns(modelsWithPattern('__keys__'))
+      ).toThrow(/reserved storage path '__keys__'/);
     });
 
     test('skips factory function patterns, which are checked on upload', () => {

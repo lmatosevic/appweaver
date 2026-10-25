@@ -59,12 +59,14 @@ describe('FilesystemStorage', () => {
 
     test('refuses to write into a reserved storage path', async () => {
       const fileName = await storage.store(
-        'keys/private.key',
+        '__keys__/private.key',
         Readable.from(['content'])
       );
 
       expect(fileName).toBeNull();
-      expect(fs.existsSync(path.join(tempDir, 'keys/private.key'))).toBe(false);
+      expect(fs.existsSync(path.join(tempDir, '__keys__/private.key'))).toBe(
+        false
+      );
     });
 
     test('refuses an absolute file name', async () => {
@@ -88,10 +90,10 @@ describe('FilesystemStorage', () => {
     });
 
     test('refuses to read from a reserved storage path', async () => {
-      fs.mkdirSync(path.join(tempDir, 'keys'), { recursive: true });
-      fs.writeFileSync(path.join(tempDir, 'keys/private.key'), 'secret');
+      fs.mkdirSync(path.join(tempDir, '__keys__'), { recursive: true });
+      fs.writeFileSync(path.join(tempDir, '__keys__/private.key'), 'secret');
 
-      expect(await storage.stream('keys/private.key', 0)).toBeNull();
+      expect(await storage.stream('__keys__/private.key', 0)).toBeNull();
     });
   });
 
@@ -102,7 +104,7 @@ describe('FilesystemStorage', () => {
     });
 
     test('reports reserved paths as non existing', async () => {
-      expect(await storage.exists('keys/private.key')).toBe(false);
+      expect(await storage.exists('__keys__/private.key')).toBe(false);
     });
   });
 
@@ -112,11 +114,13 @@ describe('FilesystemStorage', () => {
     });
 
     test('refuses to delete inside a reserved storage path', async () => {
-      fs.mkdirSync(path.join(tempDir, 'keys'), { recursive: true });
-      fs.writeFileSync(path.join(tempDir, 'keys/private.key'), 'secret');
+      fs.mkdirSync(path.join(tempDir, '__keys__'), { recursive: true });
+      fs.writeFileSync(path.join(tempDir, '__keys__/private.key'), 'secret');
 
-      expect(await storage.delete('keys/private.key')).toBe(false);
-      expect(fs.existsSync(path.join(tempDir, 'keys/private.key'))).toBe(true);
+      expect(await storage.delete('__keys__/private.key')).toBe(false);
+      expect(fs.existsSync(path.join(tempDir, '__keys__/private.key'))).toBe(
+        true
+      );
     });
 
     test('deletes a regular file', async () => {

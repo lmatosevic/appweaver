@@ -76,13 +76,13 @@ export const basicAuthConfig = defineConfig('security.basic', {
 export const jwtConfig = defineConfig('security.jwt', {
   /** HMAC secret for symmetric JWT signing (HS256). If set, RSA keys are not used. */
   SECRET: Type.Optional(Type.String()),
-  /** Path to an RSA public key for JWT verification (RS256). Default: `'./storage/keys/public.key'`. */
+  /** Path to an RSA public key for JWT verification (RS256). Default: `'./storage/__keys__/public.key'`. */
   PUBLIC_KEY_PATH: Type.String({
-    default: './storage/keys/public.key'
+    default: './storage/__keys__/public.key'
   }),
-  /** Path to an RSA private key for JWT signing (RS256). Default: `'./storage/keys/private.key'`. */
+  /** Path to an RSA private key for JWT signing (RS256). Default: `'./storage/__keys__/private.key'`. */
   PRIVATE_KEY_PATH: Type.String({
-    default: './storage/keys/private.key'
+    default: './storage/__keys__/private.key'
   }),
   /** Auto-generate RSA 2048-bit key pair if missing. Default: `true`. */
   AUTO_GENERATE_KEYS: Type.Boolean({ default: true }),

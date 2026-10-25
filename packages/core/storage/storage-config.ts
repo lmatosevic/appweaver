@@ -5,8 +5,8 @@ export const storageConfig = defineConfig('storage', {
   /** Base directory for file storage. Default: `'./storage'`. */
   PATH: Type.String({ default: './storage' }),
   /** Paths under the storage directory where files cannot be stored. Entries are relative to `STORAGE_PATH`
-   *  (directory or file), matched case-insensitively. Default: `['keys']`. */
-  RESERVED_PATHS: Type.Array(Type.String(), { default: ['keys'] }),
+   *  (directory or file), matched case-insensitively. Default: `['__keys__']`. */
+  RESERVED_PATHS: Type.Array(Type.String(), { default: ['__keys__'] }),
   /** File naming pattern for stored files. Default: `'{name}-{hash}.{extension}'`. */
   NAME_PATTERN: Type.String({ default: '{name}-{hash}.{extension}' }),
   /** File storage cache TTL in milliseconds. Default: `86400000` (24 hours). */

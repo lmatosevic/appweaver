@@ -141,7 +141,7 @@ introduce a subdirectory, a `..` traversal or a hidden file.
 
 ## Reserved paths
 
-`STORAGE_RESERVED_PATHS` (default `['keys']`, protecting the default JWT key location) lists paths inside
+`STORAGE_RESERVED_PATHS` (default `['__keys__']`, protecting the default JWT key location) lists paths inside
 `STORAGE_PATH` that files can never use. An entry is a directory (blocking everything inside it) or a full file name,
 relative to the storage root, and whole segments are matched case-insensitively.
 
@@ -155,7 +155,7 @@ time are rejected with a `400` error.
 | Key                          | Type       | Default                       | Description                                                                                  |
 |------------------------------|------------|-------------------------------|----------------------------------------------------------------------------------------------|
 | `STORAGE_PATH`               | `string`   | `'./storage'`                 | Root directory where files are stored                                                        |
-| `STORAGE_RESERVED_PATHS`     | `string[]` | `['keys']`                    | Paths inside the storage root that files cannot use                                          |
+| `STORAGE_RESERVED_PATHS`     | `string[]` | `['__keys__']`                | Paths inside the storage root that files cannot use                                          |
 | `STORAGE_NAME_PATTERN`       | `string`   | `'{name}-{hash}.{extension}'` | Template for deriving the stored file name                                                   |
 | `STORAGE_CACHE_TTL`          | `int`      | `86400000`                    | Cache TTL for storage responses in milliseconds (24h), also the validity of a storage URL    |
 | `STORAGE_FILES_ROUTE_PREFIX` | `string`   | `/files`                      | URL prefix for file access routes.                                                           |
@@ -168,7 +168,7 @@ time are rejected with a `400` error.
 {
   "STORAGE_PATH": "./uploads",
   "STORAGE_RESERVED_PATHS": [
-    "keys"
+    "__keys__"
   ],
   "STORAGE_NAME_PATTERN": "{name}-{hash}.{extension}"
 }
