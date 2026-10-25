@@ -613,15 +613,15 @@ describe('create', () => {
       expect(config).not.toHaveProperty('cache');
     });
 
-    test('leaves out the negated modules of all', async () => {
+    test('leaves out the excluded modules of all', async () => {
       await run(
         'MyApp',
         '--no-install',
         '--agent',
         'none',
         '--all',
-        '--no-docker',
-        '--no-scheduler'
+        '--exclude',
+        'docker,scheduler'
       );
 
       expect(exists('my-app', 'Dockerfile')).toBe(false);
@@ -963,16 +963,22 @@ describe('create', () => {
       expect(exit).toHaveBeenCalledWith(1);
     });
 
-    test('rejects a module both added and left out', () => {
+    test('rejects a module both added and excluded', () => {
       expect(
-        runInvalid('MyApp', '--add', 'mailer', '--no-mailer').stderr
-      ).toContain('Module mailer cannot be both added and left out.');
+        runInvalid('MyApp', '--add', 'mailer', '--exclude', 'mailer').stderr
+      ).toContain('Module mailer cannot be both added and excluded.');
     });
 
-    test('rejects leaving out a module an added one requires', () => {
-      expect(runInvalid('MyApp', '--all', '--no-redis').stderr).toContain(
-        'Module queue requires redis, leave out queue as well.'
-      );
+    test('rejects an unknown excluded module', () => {
+      expect(
+        runInvalid('MyApp', '--all', '--exclude', 'graphql').stderr
+      ).toContain('Unknown module: graphql.');
+    });
+
+    test('rejects excluding a module an added one requires', () => {
+      expect(
+        runInvalid('MyApp', '--all', '--exclude', 'redis').stderr
+      ).toContain('Module queue requires redis, exclude queue as well.');
     });
 
     test('accepts an uppercase database type', async () => {

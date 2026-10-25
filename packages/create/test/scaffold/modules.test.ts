@@ -48,7 +48,7 @@ describe('modules', () => {
 
     test('rejects excluding a required module', () => {
       expect(() => resolveModules(['queue'], ['redis'])).toThrow(
-        'Module queue requires redis, leave out queue as well.'
+        'Module queue requires redis, exclude queue as well.'
       );
       expect(resolveModules(['queue', 'redis'], ['redis', 'queue'])).toEqual({
         modules: [],

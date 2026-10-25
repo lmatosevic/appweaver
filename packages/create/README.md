@@ -28,23 +28,23 @@ npx @appweaver/create <name> [description] [options]
 
 ```sh
 npm create @appweaver MyApp "My awesome API" -- --database postgresql --add redis queue docker
-npx @appweaver/create MyApp "My awesome API" --all --no-scheduler
+npx @appweaver/create MyApp "My awesome API" --all --exclude scheduler
 ```
 
 npm passes the options after `--` to the `create-appweaver` binary, `npx` takes them directly.
 
-| Flag                 | Description                                                                       | Default      |
-|----------------------|-----------------------------------------------------------------------------------|--------------|
-| `-o, --output-dir`   | Output directory (use ./ for current working directory)                           | project name |
-| `--database`         | `sqlite`, `postgresql`, `mysql`, `sqlserver`                                      | `sqlite`     |
-| `--host`             | Hostname or IP address where the application server will bind                     | `0.0.0.0`    |
-| `--port`             | Port number where the application server will listen                              | `5000`       |
-| `--agent`            | `claude`, `codex`, `junie`, `cursor`, `copilot`, `opencode`, `kiro`, `pi`, `none` | `claude`     |
-| `--add <modules...>` | Modules to add, separated by spaces or commas                                     | none         |
-| `--all`              | Add every module                                                                  | false        |
-| `--no-<module>`      | Leave a module out of `--all`                                                     | —            |
-| `--bun`              | Use Bun as the application runtime                                                | Node         |
-| `--no-install`       | Skip the installation of the dependencies                                         | installs     |
+| Flag                     | Description                                                                       | Default      |
+|--------------------------|-----------------------------------------------------------------------------------|--------------|
+| `-o, --output-dir`       | Output directory (use ./ for current working directory)                           | project name |
+| `--database`             | `sqlite`, `postgresql`, `mysql`, `sqlserver`                                      | `sqlite`     |
+| `--host`                 | Hostname or IP address where the application server will bind                     | `0.0.0.0`    |
+| `--port`                 | Port number where the application server will listen                              | `5000`       |
+| `--agent`                | `claude`, `codex`, `junie`, `cursor`, `copilot`, `opencode`, `kiro`, `pi`, `none` | `claude`     |
+| `--add <modules...>`     | Modules to add, separated by spaces or commas                                     | none         |
+| `--all`                  | Add every module                                                                  | false        |
+| `--exclude <modules...>` | Modules to leave out of `--all`, separated by spaces or commas                    | none         |
+| `--bun`                  | Use Bun as the application runtime                                                | Node         |
+| `--no-install`           | Skip the installation of the dependencies                                         | installs     |
 
 The base project depends on `@appweaver/core`, `@appweaver/data`, `@appweaver/web` and `@appweaver/sharp`, and has
 none of the modules. A module installs its driver package, and a module required by an added one is added along with
