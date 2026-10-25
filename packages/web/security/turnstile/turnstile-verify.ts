@@ -1,5 +1,7 @@
-import { ErrorCode, logger, TurnstileError } from '@appweaver/common';
+import { ErrorCode, createLogger, TurnstileError } from '@appweaver/common';
 import { turnstileConfig } from '../security-config';
+
+const logger = createLogger('security');
 
 type TurnstileResponse = {
   success: boolean;

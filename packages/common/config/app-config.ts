@@ -74,6 +74,10 @@ export const appConfig = defineConfig(
 export const logConfig = defineConfig('log', {
   /** Minimum log level. Values: `silent`, `trace`, `debug`, `info`, `warn`, `error`, `fatal`. Default: `'info'`. */
   LEVEL: Type.Enum(LogLevel, { default: LogLevel.Info }),
+  /** Log level of each named logger (`createLogger`), overriding `LEVEL`, i.e. `{ database: 'trace', cache: 'error' }`.
+   * `silent` disables a logger. An entry is its own key (`LOG_LEVELS_DATABASE=trace`), or a pair of the
+   * `LOG_LEVELS=database:trace,cache:error` list. Default: `{}`. */
+  LEVELS: Type.Record(Type.String(), Type.Enum(LogLevel), { default: {} }),
   /** Path to a log file. If unset, logs to console only. */
   PATH: Type.Optional(Type.String()),
   /** Enable log file rotation. Default: `true`. */

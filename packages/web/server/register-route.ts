@@ -3,7 +3,7 @@ import { TObject, Type } from '@sinclair/typebox';
 import {
   AuthType,
   isArray,
-  logger,
+  createLogger,
   ROUTE,
   RouteCacheConfig,
   RouteConfig
@@ -21,6 +21,8 @@ import {
   buildVirtualProjectionPlan,
   createVirtualProjectionHook
 } from './virtual-projection';
+
+const logger = createLogger('server');
 
 /**
  * Registers custom routes of the application. The routes declared by the handler are captured on a temporary server

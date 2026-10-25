@@ -11,7 +11,7 @@ import {
   isPlainObject,
   isRelationArray,
   isResourceAuthModel,
-  logger,
+  createLogger,
   Nullable,
   OperationConfig,
   OutputType,
@@ -38,6 +38,8 @@ import {
   idSchema as buildIdSchema,
   idValueSchema
 } from '../resource/model-schema';
+
+const logger = createLogger('resource');
 
 /**
  * Creates a resource model from its configuration and defines it in the application context. The names of the

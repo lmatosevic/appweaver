@@ -1,7 +1,9 @@
-import { logger, Memory } from '@appweaver/common';
+import { createLogger, Memory } from '@appweaver/common';
 import { cacheConfig } from '../../cache/cache-config';
 import { Cache } from '../../cache/cache';
 import { InMemory } from '../../memory/in-memory';
+
+const logger = createLogger('cache');
 
 class TestCache extends Cache {
   constructor(memory: Memory) {
@@ -316,7 +318,7 @@ describe('cache', () => {
         const cacheModule = await import('../../cache/cache');
         const memoryModule = await import('../../memory/in-memory');
         const freshErrorSpy = jest
-          .spyOn(common.logger, 'error')
+          .spyOn(common.createLogger('cache'), 'error')
           .mockImplementation(() => undefined);
 
         const memory = new memoryModule.InMemory();

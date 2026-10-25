@@ -4,7 +4,7 @@ import {
   ErrorCode,
   HealthCheckResult,
   IsolationLevel,
-  logger,
+  createLogger,
   resolveDatabaseType,
   TransactionOptions,
   DatabaseError
@@ -18,6 +18,8 @@ import {
   settleTransaction,
   TransactionContext
 } from '@appweaver/core/internal';
+
+const logger = createLogger('database');
 
 /** The transaction of the Prisma client the current call runs in. */
 type PrismaTransaction = TransactionContext<

@@ -7,7 +7,7 @@ import {
   CONFIG,
   ErrorCode,
   Events,
-  logger,
+  createLogger,
   ResourceId,
   RouteConfig,
   SecurityStore,
@@ -43,6 +43,8 @@ import { checkScopeAccess } from './access-util';
 import { OAuth2Service } from './oauth2/oauth2-service';
 import type { HttpServer } from '../server/http-server';
 import { AuthOTTData, AuthTokens, JwtPayload } from '../types/http-auth';
+
+const logger = createLogger('security');
 
 const AUTH_KEY = 'auth';
 

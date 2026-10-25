@@ -58,8 +58,11 @@ export const ${section}Config = defineConfig('${section}', {
 });
 `,
     [path.join(directory, 'main.ts')]:
-      `import { logger } from '@appweaver/common';
+      `import { createLogger } from '@appweaver/common';
 import { ${section}Config } from './config';
+
+// Logs at the level of \`log.levels.${section}\`, otherwise of \`log.level\`
+const logger = createLogger('${section}');
 
 // Runs at startup: scheduled jobs, queue workers, event listeners
 if (${section}Config.ENABLED) {

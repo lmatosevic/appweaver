@@ -1,5 +1,12 @@
-import { Email, HealthCheckResult, logger, Mailer } from '@appweaver/common';
+import {
+  Email,
+  HealthCheckResult,
+  createLogger,
+  Mailer
+} from '@appweaver/common';
 import { completeEmail } from './utils/email-util';
+
+const logger = createLogger('mailer');
 
 /** Writes the emails into the log instead of sending them, for development and tests. */
 export class JsonMailer extends Mailer {

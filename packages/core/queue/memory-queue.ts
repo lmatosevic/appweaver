@@ -1,7 +1,7 @@
 import {
   ErrorCode,
   HealthCheckResult,
-  logger,
+  createLogger,
   Queue as CommonQueue,
   QueueHandlerResponse,
   QueueJob,
@@ -12,6 +12,8 @@ import {
   uuid,
   QueueError
 } from '@appweaver/common';
+
+const logger = createLogger('queue');
 
 type MemoryQueueJob<Data = any, Response = any> = QueueJob<Data, Response> & {
   status: 'waiting' | 'active' | 'completed' | 'failed';

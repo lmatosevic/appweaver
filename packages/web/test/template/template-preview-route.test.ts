@@ -185,7 +185,9 @@ describe('template-preview-route', () => {
     });
 
     test('logs the route once registered', async () => {
-      const info = jest.spyOn(common.logger, 'info').mockImplementation();
+      const info = jest
+        .spyOn(common.createLogger('template'), 'info')
+        .mockImplementation();
       await startServer();
 
       expect(info).toHaveBeenCalledWith(
@@ -195,7 +197,9 @@ describe('template-preview-route', () => {
 
     test('logs that the route requires authentication', async () => {
       configOverrides.TEMPLATE_PREVIEW_AUTH = true;
-      const info = jest.spyOn(common.logger, 'info').mockImplementation();
+      const info = jest
+        .spyOn(common.createLogger('template'), 'info')
+        .mockImplementation();
       await startServer();
 
       expect(info).toHaveBeenCalledWith(

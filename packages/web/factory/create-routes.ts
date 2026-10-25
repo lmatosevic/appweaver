@@ -1,7 +1,7 @@
 import {
   camelToSnakeCase,
   capitalize,
-  logger,
+  createLogger,
   plural,
   RESOURCE_NAME,
   RESOURCE_ROUTES_TYPE,
@@ -11,6 +11,8 @@ import {
 } from '@appweaver/common';
 import { define } from '@appweaver/core';
 import { resourceRoutes } from '../resource/resource-routes';
+
+const logger = createLogger('resource');
 
 /**
  * Creates the resource routes of a model and defines them in the application context. The base path defaults to the

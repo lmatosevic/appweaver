@@ -2,9 +2,11 @@ import fsp from 'node:fs/promises';
 import {
   findFilesByPattern,
   importModule,
-  logger,
+  createLogger,
   appConfig
 } from '@appweaver/common';
+
+const logger = createLogger('app');
 
 /**
  * Loads the files of the application matching `app.scanFilesPattern` using the provided base directory and file pattern.

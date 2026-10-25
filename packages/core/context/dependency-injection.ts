@@ -15,7 +15,7 @@ import {
   isSymbol,
   loadModule,
   ModelName,
-  logger,
+  createLogger,
   RegistryType,
   RESOURCE_NAME,
   ResourceModel,
@@ -30,6 +30,8 @@ import {
   DefinitionMode,
   DefinitionValue
 } from '../types/application-context';
+
+const logger = createLogger('app');
 
 /**
  * Defines a resource or a definition value within the application context.

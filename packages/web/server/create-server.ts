@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { AsyncResource } from 'node:async_hooks';
-import Fastify, { LogController } from 'fastify';
+import Fastify, { FastifyBaseLogger, LogController } from 'fastify';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import fastifyCors from '@fastify/cors';
 import fastifyHelmet from '@fastify/helmet';
@@ -10,9 +10,9 @@ import fastifyMultipart from '@fastify/multipart';
 import type { Redis as RedisClient, RedisOptions } from 'ioredis';
 import { fastifyRequestContext } from '@fastify/request-context';
 import {
+  createLogger,
   Database,
   ErrorCode,
-  loggerConfig,
   Memory,
   PLUGIN,
   RequestError,
@@ -74,6 +74,8 @@ import swagger from './swagger';
 export function createServer(): Server {
   // Create a Fastify server instance
   const validation = requestValidation();
+  // Typed as the base logger of the Server type, not as a pino logger
+  const loggerInstance: FastifyBaseLogger = createLogger('server');
   const server = Fastify({
     ...validation,
     schemaController: {
@@ -91,7 +93,7 @@ export function createServer(): Server {
     logController: new LogController({
       disableRequestLogging: !serverConfig.REQUEST_LOGGING_ENABLED
     }),
-    logger: loggerConfig
+    loggerInstance
   }).withTypeProvider<TypeBoxTypeProvider>();
 
   // Register CORS rules

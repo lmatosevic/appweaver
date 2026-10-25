@@ -1,6 +1,8 @@
-import { logger } from '@appweaver/common';
+import { createLogger } from '@appweaver/common';
 import { JsonMailer } from '../../mailer/json-mailer';
 import { testMailerContract } from '@appweaver/testing';
+
+const logger = createLogger('mailer');
 
 describe('json-mailer', () => {
   afterEach(() => {

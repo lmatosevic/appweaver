@@ -2,7 +2,7 @@ import { Static } from '@sinclair/typebox';
 import {
   ConfigurationError,
   ErrorCode,
-  logger,
+  createLogger,
   TemplateEngine,
   templateContentType,
   TemplateError
@@ -16,6 +16,8 @@ import {
   templatePreviewSchema
 } from './template-preview-schema';
 import { PREVIEW_LOCALE_PARAM, previewData } from './utils/preview-data';
+
+const logger = createLogger('template');
 
 /**
  * Registers the route rendering a template by its name, i.e. `/emails/order-confirmation.html`, with the data of the

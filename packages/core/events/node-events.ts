@@ -3,11 +3,13 @@ import {
   EventData,
   EventListener,
   Events,
-  logger,
+  createLogger,
   uuid
 } from '@appweaver/common';
 import { eventsConfig } from './events-config';
 import { afterCommit, currentTransaction } from '../context';
+
+const logger = createLogger('events');
 
 export class NodeEvents extends Events {
   /** @internal */

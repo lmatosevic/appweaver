@@ -35,6 +35,10 @@
     },
     "log": {
       "level": "info",
+      "levels": {
+        "database": "info",
+        "cache": "info"
+      },
       "path": "./logs",
       "rotate": true,
       "rotateSize": "100M",

@@ -9,7 +9,7 @@ import {
   isFunction,
   isPlainObject,
   isString,
-  logger,
+  createLogger,
   plural,
   QueryResponse,
   QuerySort,
@@ -19,6 +19,8 @@ import { exportConfig } from './export-config';
 import { injectModel, injectService } from '@appweaver/core';
 import { generateFileName } from '../utils/file-util';
 import { toCsv } from '../utils/export-util';
+
+const logger = createLogger('resource');
 
 export type ExportStream = {
   stream: Readable;

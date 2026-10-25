@@ -5,7 +5,7 @@ import {
   errorMessage,
   FieldError,
   isAppweaverError,
-  logger,
+  createLogger,
   ModuleErrorCode,
   ProblemDetails,
   RequestError,
@@ -17,6 +17,8 @@ import {
   findErrorTranslator
 } from '@appweaver/common';
 import { errorHttpMapping } from './error-http-map';
+
+const logger = createLogger('server');
 
 /** The request a problem occurred on. */
 export type ProblemRequest = { url: string; id?: string };

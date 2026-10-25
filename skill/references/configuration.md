@@ -326,6 +326,7 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 | Property               | Type    | Default  | Description                                                                              |
 |------------------------|---------|----------|------------------------------------------------------------------------------------------|
 | `LOG_LEVEL`            | enum    | `'info'` | Minimum log level. Values: `silent`, `trace`, `debug`, `info`, `warn`, `error`, `fatal`. |
+| `LOG_LEVELS`           | record  | `{}`     | Log level of each named logger, overriding `LOG_LEVEL`. See below.                       |
 | `LOG_PATH`             | string? | -        | Path to log file. If unset, logs to console only.                                        |
 | `LOG_ROTATE`           | boolean | `true`   | Enable log file rotation.                                                                |
 | `LOG_ROTATE_SIZE`      | string  | `'100M'` | Maximum size per log file before rotation.                                               |
@@ -335,6 +336,60 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 | `LOG_ROTATE_COMPRESS`  | boolean | `true`   | Compress rotated log files with gzip.                                                    |
 | `LOG_PRETTY`           | boolean | `false`  | Enable pretty-printed JSON logs.                                                         |
 | `LOG_SYNC`             | boolean | `false`  | Write each record before the next statement runs, instead of buffering it.               |
+
+#### Log levels per module
+
+Every module of the framework logs with a named logger, whose records carry the name in their `module` field (shown as
+`[database]` by `LOG_PRETTY`). `LOG_LEVELS` sets the level of a name, any other logger logs at `LOG_LEVEL`, and
+`silent` turns a logger off, so `LOG_LEVEL=silent` with `LOG_LEVELS_DATABASE=debug` prints the database logs only.
+
+```jsonc
+// appweaver.json
+"log": {
+  "level": "info",
+  "levels": { "database": "trace", "cache": "error", "scheduler": "silent" }
+}
+```
+
+```bash
+# Each entry is its own variable, or a name:level pair of the LOG_LEVELS list
+LOG_LEVELS_DATABASE=trace
+LOG_LEVELS=database:trace,cache:error
+```
+
+An entry of the environment overrides the same entry of the JSON files, and keeps the other ones. A name of
+`LOG_LEVELS` no logger uses (a typo, or a disabled module) is reported with a warning when the application is created.
+
+| Name        | Logs of                                                                                     |
+|-------------|---------------------------------------------------------------------------------------------|
+| `app`       | Module discovery, provider loading, the application lifecycle, dependency injection         |
+| `database`  | Prisma (the `DATABASE_LOG_EVENTS` events, a query at `debug`) and the transactions           |
+| `resource`  | Resource and route loading, the services, policies and models, the CSV export              |
+| `server`    | Fastify, the request logs (`SERVER_REQUEST_LOGGING_ENABLED`), the plugins and error handler |
+| `security`  | Authentication, JWT, OAuth2, reCAPTCHA and Turnstile                                        |
+| `cache`     | `Cache` and `CacheService`                                                                  |
+| `memory`    | The Redis memory driver                                                                     |
+| `events`    | The `node` events driver                                                                    |
+| `queue`     | The `memory` and `bullmq` queue drivers                                                     |
+| `scheduler` | The `cron` scheduler                                                                        |
+| `mailer`    | `EmailService` and the `json` mailer                                                        |
+| `template`  | The Handlebars engine and the template preview route                                        |
+| `locale`    | `LocaleService`                                                                             |
+| `storage`   | The `local` storage driver and `FileService`                                                |
+| `health`    | `HealthService` and the health listener                                                     |
+
+An application or a module logs under a name of its own with `createLogger` of `@appweaver/common`, a module package
+under its short name (`gcs`). The `logger` export logs at `LOG_LEVEL`, without a name.
+
+```ts
+import { createLogger } from '@appweaver/common';
+
+const logger = createLogger('billing'); // log.levels.billing, otherwise log.level
+logger.debug({ invoiceId }, 'Invoice sent');
+```
+
+`DATABASE_LOG_EVENTS` still selects the events Prisma emits, so the queries need `DATABASE_LOG_EVENTS=query` and the
+`database` logger at `debug` or `trace`.
 
 ### Server (SERVER\_\*)
 

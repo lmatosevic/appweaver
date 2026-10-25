@@ -1,6 +1,8 @@
 import { TObject } from '@sinclair/typebox';
-import { logger } from '@appweaver/common';
+import { createLogger } from '@appweaver/common';
 import { createSchemaModel } from '@appweaver/core';
+
+const logger = createLogger('server');
 
 /**
  * Registers a schema model, documented in the OpenAPI specification and referenced by its name from the route

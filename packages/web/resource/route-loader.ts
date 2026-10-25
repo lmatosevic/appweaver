@@ -2,11 +2,13 @@ import {
   findFilesByPattern,
   importModule,
   isResourceRoutes,
-  logger,
+  createLogger,
   ModuleSetupContext
 } from '@appweaver/common';
 import { context } from '@appweaver/core/internal';
 import { resourceConfig } from '@appweaver/data';
+
+const logger = createLogger('resource');
 
 /**
  * The setup of `@appweaver/web`: loads the resource routes of the application (`RESOURCE_ROUTES_PATTERN`), then the

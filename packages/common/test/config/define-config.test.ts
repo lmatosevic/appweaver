@@ -244,6 +244,100 @@ describe('define-config', () => {
         `Invalid config of section "${section}": ${prefix}PORT (config.${section}.port): Expected integer`
       );
     });
+    describe('record keys', () => {
+      const levels = Type.Record(
+        Type.String(),
+        Type.Union([Type.Literal('trace'), Type.Literal('error')]),
+        { default: {} }
+      );
+
+      test('reads every entry of the JSON files from its own key', () => {
+        const section = uniqueSection('record');
+        const prefix = sectionPrefix(section);
+        setRawConfig(
+          raw({
+            [`${prefix}LEVELS_DATABASE`]: 'trace',
+            [`${prefix}LEVELS_RATE_LIMIT`]: 'error'
+          }),
+          {}
+        );
+
+        const values = defineConfig(section, { LEVELS: levels });
+
+        expect(values.LEVELS).toEqual({
+          database: 'trace',
+          rateLimit: 'error'
+        });
+      });
+
+      test('reads the name:value pairs of the environment string', () => {
+        const section = uniqueSection('record');
+        const prefix = sectionPrefix(section);
+        setRawConfig(
+          {},
+          raw({ [`${prefix}LEVELS`]: 'database:trace, rateLimit : error,bad' })
+        );
+
+        const values = defineConfig(section, { LEVELS: levels });
+
+        expect(values.LEVELS).toEqual({
+          database: 'trace',
+          rateLimit: 'error'
+        });
+      });
+
+      test('overrides the entries of the JSON files with the environment', () => {
+        const section = uniqueSection('record');
+        const prefix = sectionPrefix(section);
+        setRawConfig(
+          raw({
+            [`${prefix}LEVELS_DATABASE`]: 'trace',
+            [`${prefix}LEVELS_CACHE`]: 'trace'
+          }),
+          raw({
+            [`${prefix}LEVELS`]: 'cache:error',
+            [`${prefix}LEVELS_DATABASE`]: 'error'
+          })
+        );
+
+        const values = defineConfig(section, { LEVELS: levels });
+
+        expect(values.LEVELS).toEqual({ database: 'error', cache: 'error' });
+      });
+
+      test('defaults without an entry', () => {
+        const values = defineConfig(uniqueSection('record'), {
+          LEVELS: levels
+        });
+
+        expect(values.LEVELS).toEqual({});
+      });
+
+      test('rejects an invalid entry', () => {
+        const section = uniqueSection('record');
+        const prefix = sectionPrefix(section);
+        setRawConfig({}, raw({ [`${prefix}LEVELS_CACHE`]: 'loud' }));
+
+        const values = defineConfig(section, { LEVELS: levels });
+
+        expect(() => values.LEVELS).toThrow(ConfigurationError);
+      });
+
+      test('tells the source of the entries', () => {
+        const section = uniqueSection('record');
+        const prefix = sectionPrefix(section);
+        defineConfig(section, { LEVELS: levels, NAME: Type.String() });
+
+        setRawConfig(raw({ [`${prefix}LEVELS_CACHE`]: 'trace' }), {});
+        expect(configSource(`${prefix}LEVELS`)).toBe('json');
+
+        setRawConfig({}, raw({ [`${prefix}LEVELS_CACHE`]: 'trace' }));
+        expect(configSource(`${prefix}LEVELS`)).toBe('env');
+
+        setRawConfig(raw({ [`${prefix}NAME_CACHE`]: 'x' }), {});
+        expect(configSource(`${prefix}NAME`)).toBe('default');
+      });
+    });
   });
 
   describe('configSource', () => {

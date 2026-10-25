@@ -1,7 +1,7 @@
 import { Readable } from 'node:stream';
 import {
   ErrorCode,
-  logger,
+  createLogger,
   RESOURCE_SERVICE_TYPE,
   RESOURCE_TYPE,
   ExportError
@@ -12,6 +12,8 @@ import { ExportService } from '../../export';
 import { createModel } from '../../factory/create-model';
 import { resetContext } from '@appweaver/testing';
 import { linkModels } from '@appweaver/testing';
+
+const logger = createLogger('resource');
 
 const readStream = async (stream: Readable): Promise<string> => {
   const chunks: string[] = [];

@@ -1,13 +1,16 @@
 import {
   configFiles,
-  logger,
+  createLogger,
   resolveSourcePath,
-  appConfig
+  appConfig,
+  unusedLogLevels
 } from '@appweaver/common';
 import { discoverModules, loadModuleParts } from './discover-modules';
 import { loadProviders } from './load-providers';
 import { loadAppFiles } from './load-app-files';
 import { Application } from './application';
+
+const logger = createLogger('app');
 
 export type CreateAppParams = {
   /** A relative path where the application will load resources and other features.
@@ -68,6 +71,15 @@ export async function createApp(
   // Load exported application files
   if (params.autoLoadAppFiles !== false) {
     await loadAppFiles(scanPath, params.appFilesPattern);
+  }
+
+  // Every module and application file has created its loggers by now
+  const unused = unusedLogLevels();
+  if (unused.length > 0) {
+    logger.warn(
+      { loggers: unused },
+      `LOG_LEVELS names no logger: ${unused.join(', ')} (a misspelled name or a disabled module)`
+    );
   }
 
   const app = new Application();

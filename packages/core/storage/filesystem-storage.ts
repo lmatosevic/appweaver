@@ -7,12 +7,14 @@ import {
   ContentStream,
   findReservedStoragePath,
   HealthCheckResult,
-  logger,
+  createLogger,
   normalizeStoragePath,
   resolveStoragePath,
   Storage
 } from '@appweaver/common';
 import { storageConfig } from './storage-config';
+
+const logger = createLogger('storage');
 
 export class FilesystemStorage extends Storage {
   /** @internal */

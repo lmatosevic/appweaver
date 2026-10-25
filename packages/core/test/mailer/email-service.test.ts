@@ -1,7 +1,7 @@
 import {
   configOverrides,
   ErrorCode,
-  logger,
+  createLogger,
   Mailer,
   Queue,
   TemplateEngine
@@ -9,6 +9,8 @@ import {
 import { define } from '../../context/dependency-injection';
 import { EmailService } from '../../mailer';
 import { resetContext } from '../fixtures/context-fixture';
+
+const logger = createLogger('mailer');
 
 const sender = 'shop@test.com';
 const senderless = { to: 'user@test.com', subject: 'Welcome', text: 'Hi' };

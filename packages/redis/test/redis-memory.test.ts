@@ -53,8 +53,10 @@ jest.mock('ioredis', () => {
 
 import { Redis as RedisClient } from 'ioredis';
 import * as common from '@appweaver/common';
-import { ErrorCode, logger } from '@appweaver/common';
+import { ErrorCode, createLogger } from '@appweaver/common';
 import { RedisMemory } from '../redis-memory';
+
+const logger = createLogger('memory');
 
 const clients = () => (RedisClient as any).instances as any[];
 

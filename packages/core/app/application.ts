@@ -1,7 +1,9 @@
-import { logger, appConfig } from '@appweaver/common';
+import { createLogger, appConfig } from '@appweaver/common';
 import { context } from '../context';
 import { checkModuleConfig } from './discover-modules';
 import { LifecycleManager } from './lifecycle-manager';
+
+const logger = createLogger('app');
 
 /**
  * Represents an application that manages the lifecycle of all defined services, the HTTP server among them when the

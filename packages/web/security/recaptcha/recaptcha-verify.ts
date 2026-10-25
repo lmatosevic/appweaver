@@ -1,5 +1,7 @@
-import { ErrorCode, logger, RecaptchaError } from '@appweaver/common';
+import { ErrorCode, createLogger, RecaptchaError } from '@appweaver/common';
 import { recaptchaConfig } from '../security-config';
+
+const logger = createLogger('security');
 
 type ReCaptchaResponse = {
   success: boolean;

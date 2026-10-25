@@ -25,6 +25,7 @@ type Config = Record<string, unknown>;
 const defaultConfig: Config = {
   APP_NAME: 'Appweaver',
   LOG_LEVEL: LogLevel.Info,
+  LOG_LEVELS: {},
   LOG_PRETTY: false,
   LOG_ROTATE: true,
   LOG_ROTATE_SIZE: '100M',
@@ -158,7 +159,8 @@ describe('logger', () => {
       expect(pretty).toHaveBeenCalledWith({
         colorize: true,
         translateTime: 'SYS:yyyy-mm-dd HH:MM:ss.l Z',
-        ignore: 'pid,hostname',
+        ignore: 'pid,hostname,module',
+        messageFormat: '{if module}[{module}] {end}{msg}',
         sync: false
       });
       expect(destination).not.toHaveBeenCalled();
@@ -237,6 +239,17 @@ describe('logger', () => {
       );
     });
 
+    test('is registered when only a named logger is enabled', () => {
+      const { loggerConfig } = loadLogger({
+        LOG_PATH,
+        LOG_LEVEL: LogLevel.Silent,
+        LOG_LEVELS: { database: LogLevel.Trace }
+      });
+
+      expect(loggerConfig).not.toBe(false);
+      expect(createStream).toHaveBeenCalled();
+    });
+
     test('is skipped entirely when the level is silent', () => {
       const { loggerConfig } = loadLogger({
         LOG_PATH,
@@ -279,6 +292,85 @@ describe('logger', () => {
       logger.info('ignored');
 
       expect(destination.mock.results[0].value.write).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('createLogger', () => {
+    const written = () =>
+      destination.mock.results[0].value.write.mock.calls.map(
+        ([record]: [string]) => JSON.parse(record)
+      );
+
+    test('logs at the default level without a level of its own', () => {
+      const { createLogger } = loadLogger({ LOG_LEVEL: LogLevel.Warn });
+
+      expect(createLogger('cache').level).toBe(LogLevel.Warn);
+    });
+
+    test('logs at its level of LOG_LEVELS', () => {
+      const { createLogger, logger } = loadLogger({
+        LOG_LEVEL: LogLevel.Info,
+        LOG_LEVELS: { database: LogLevel.Trace, cache: LogLevel.Error }
+      });
+
+      expect(createLogger('database').level).toBe(LogLevel.Trace);
+      expect(createLogger('cache').level).toBe(LogLevel.Error);
+      expect(logger.level).toBe(LogLevel.Info);
+    });
+
+    test('writes the records below the default level of a lower named level', () => {
+      const { createLogger, logger } = loadLogger({
+        LOG_LEVEL: LogLevel.Silent,
+        LOG_LEVELS: { database: LogLevel.Trace }
+      });
+
+      createLogger('database').trace('query');
+      logger.error('ignored');
+
+      expect(written()).toEqual([
+        expect.objectContaining({ level: 10, module: 'database', msg: 'query' })
+      ]);
+    });
+
+    test('disables a logger with the silent level', () => {
+      const { createLogger, logger } = loadLogger({
+        LOG_LEVELS: { cache: LogLevel.Silent }
+      });
+
+      createLogger('cache').error('ignored');
+      logger.info('kept');
+
+      expect(written()).toEqual([expect.objectContaining({ msg: 'kept' })]);
+    });
+
+    test('returns the same logger for the same name', () => {
+      const { createLogger } = loadLogger();
+
+      expect(createLogger('queue')).toBe(createLogger('queue'));
+      expect(createLogger('queue')).not.toBe(createLogger('events'));
+    });
+
+    test('ignores LOG_LEVELS when running through the CLI', () => {
+      process.env.WEAVER_CLI = 'true';
+
+      const { createLogger, loggerConfig } = loadLogger({
+        LOG_LEVELS: { database: LogLevel.Trace }
+      });
+
+      expect(loggerConfig).toBe(false);
+      expect(createLogger('database').level).toBe(LogLevel.Silent);
+    });
+  });
+
+  describe('unusedLogLevels', () => {
+    test('returns the names of LOG_LEVELS without a logger', () => {
+      const { createLogger, unusedLogLevels } = loadLogger({
+        LOG_LEVELS: { database: LogLevel.Trace, databse: LogLevel.Debug }
+      });
+
+      createLogger('database');
+
+      expect(unusedLogLevels()).toEqual(['databse']);
     });
   });
 });

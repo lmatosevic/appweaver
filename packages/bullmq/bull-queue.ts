@@ -5,7 +5,7 @@ import { JobsOptions } from 'bullmq/dist/esm/types';
 import {
   ErrorCode,
   HealthCheckResult,
-  logger,
+  createLogger,
   Queue as CommonQueue,
   QueueHandlerResponse,
   QueueListener,
@@ -18,6 +18,8 @@ import {
   ConfigurationError
 } from '@appweaver/common';
 import { inject, queueConfig } from '@appweaver/core';
+
+const logger = createLogger('queue');
 
 type EventName = keyof WorkerListener;
 

@@ -8,7 +8,7 @@ import {
   DatabaseEvent,
   DatabaseType,
   isTypeScriptRuntime,
-  logger,
+  createLogger,
   requireModule,
   resolveDatabaseType,
   Runtime,
@@ -16,6 +16,8 @@ import {
 } from '@appweaver/common';
 import { databaseConfig } from './database-config';
 import { Prisma, PrismaClient } from '../prisma/client/client';
+
+const logger = createLogger('database');
 
 const options: Omit<PrismaClientOptions, 'adapter'> = {
   transactionOptions: {

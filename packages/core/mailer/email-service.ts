@@ -2,7 +2,7 @@ import {
   ConfigurationError,
   Email,
   ErrorCode,
-  logger,
+  createLogger,
   Mailer,
   Queue,
   QueueJob,
@@ -14,6 +14,8 @@ import {
 import { inject } from '../context';
 import { formatSender } from './utils/email-util';
 import { htmlToText } from './utils/html-util';
+
+const logger = createLogger('mailer');
 
 export class EmailService {
   /** @internal */

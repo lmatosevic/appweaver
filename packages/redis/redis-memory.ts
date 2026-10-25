@@ -5,12 +5,14 @@ import {
   ErrorCode,
   HealthCheckConfig,
   HealthCheckResult,
-  logger,
+  createLogger,
   Memory,
   uuid,
   LockError
 } from '@appweaver/common';
 import { redisConfig } from './config';
+
+const logger = createLogger('memory');
 
 export class RedisMemory extends Memory<RedisOptions, RedisClient> {
   /** @internal */

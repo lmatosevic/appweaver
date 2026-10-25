@@ -1,5 +1,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { logger } from '@appweaver/common';
+import { createLogger } from '@appweaver/common';
+
+const logger = createLogger('app');
 
 /**
  * The state of the transaction the current call runs in, opened by the database for its transactions, so the code

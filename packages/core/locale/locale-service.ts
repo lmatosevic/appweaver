@@ -6,7 +6,7 @@ import {
   isPlainObject,
   isString,
   LIFECYCLE,
-  logger,
+  createLogger,
   OnInit,
   LocaleError
 } from '@appweaver/common';
@@ -14,6 +14,8 @@ import { moduleDirectories } from '../app/discover-modules';
 import { localeConfig } from './locale-config';
 import { defaultTranslations } from './default-translations';
 import { formatMessage, parseMessage } from './utils/message-format';
+
+const logger = createLogger('locale');
 
 /** The translations of a locale, nested objects of messages, i.e. `{ emails: { footer: 'Sent by {appName}.' } }`. */
 export interface Translations {

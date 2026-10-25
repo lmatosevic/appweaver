@@ -1,4 +1,4 @@
-import { LIFECYCLE, logger, OnReady, OnShutdown } from '@appweaver/common';
+import { LIFECYCLE, OnReady, OnShutdown } from '@appweaver/common';
 import { Application, inject } from '@appweaver/core';
 import { Server } from '../types/server';
 import { createServer } from './create-server';

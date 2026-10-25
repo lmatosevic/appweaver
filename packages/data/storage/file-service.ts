@@ -10,7 +10,7 @@ import {
   ImageProcessor,
   isArray,
   isFunction,
-  logger,
+  createLogger,
   makeHash,
   Resource,
   ResourceClient,
@@ -47,6 +47,8 @@ import {
   afterRollback,
   currentTransaction
 } from '@appweaver/core/internal';
+
+const logger = createLogger('storage');
 
 export type FileStream = {
   content: ContentStream;

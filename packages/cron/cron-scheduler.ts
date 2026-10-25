@@ -1,6 +1,8 @@
 import { CronJob } from 'cron';
-import { JobParams, logger, Scheduler, uuid } from '@appweaver/common';
+import { JobParams, createLogger, Scheduler, uuid } from '@appweaver/common';
 import { schedulerConfig } from '@appweaver/core';
+
+const logger = createLogger('scheduler');
 
 export class CronScheduler extends Scheduler<CronJob> {
   /** @internal */

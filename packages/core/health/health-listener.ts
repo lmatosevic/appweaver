@@ -3,13 +3,15 @@ import { AddressInfo } from 'node:net';
 import {
   HealthCheckStatus,
   LIFECYCLE,
-  logger,
+  createLogger,
   OnReady,
   OnShutdown
 } from '@appweaver/common';
 import { inject, isDefined } from '../context';
 import { healthConfig } from './health-config';
 import { HealthService } from './health-service';
+
+const logger = createLogger('health');
 
 /**
  * Answers the health checks of an application without the HTTP server of `@appweaver/web`, i.e. a worker in a

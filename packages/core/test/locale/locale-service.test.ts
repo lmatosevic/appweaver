@@ -2,9 +2,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import * as common from '@appweaver/common';
-import { defineModule, ErrorCode, logger } from '@appweaver/common';
+import { defineModule, ErrorCode, createLogger } from '@appweaver/common';
 import { context } from '../../context/context';
 import { LocaleService } from '../../locale/locale-service';
+
+const logger = createLogger('locale');
 
 const { configOverrides } = common as unknown as {
   configOverrides: Record<string, unknown>;

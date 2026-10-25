@@ -4,11 +4,13 @@ import {
   HealthCheckStatus,
   IHealthCheck,
   isHealthCheck,
-  logger,
+  createLogger,
   uncapitalize
 } from '@appweaver/common';
 import { healthConfig } from './health-config';
 import { injectAllWhere } from '../context';
+
+const logger = createLogger('health');
 
 export type HealthCheckResponse = {
   status: HealthCheckStatus;
