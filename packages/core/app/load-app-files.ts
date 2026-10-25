@@ -1,4 +1,5 @@
 import fsp from 'node:fs/promises';
+import path from 'node:path';
 import {
   findFilesByPattern,
   importModule,
@@ -27,11 +28,14 @@ export async function loadAppFiles(
   // Find all project files matching provided glob pattern
   const modulePaths = await findFilesByPattern(pathPattern, cwd);
 
-  for (const path of modulePaths) {
-    await loadModule(path);
+  for (const modulePath of modulePaths) {
+    await loadModule(modulePath);
   }
 
-  logger.debug({ files: modulePaths }, 'Application files loaded');
+  logger.debug(
+    { files: modulePaths.map((file) => path.relative(process.cwd(), file)) },
+    'Application files loaded'
+  );
 }
 
 /**

@@ -65,7 +65,7 @@ export class CronScheduler extends Scheduler<CronJob> {
         timeZone,
         nextRun: this._jobs[jobId].nextDate().toISO()
       },
-      'Job added'
+      'Job scheduled'
     );
     return jobId;
   }

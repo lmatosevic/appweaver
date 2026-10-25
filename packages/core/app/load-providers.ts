@@ -61,13 +61,7 @@ export async function loadProviders(
     }
   }
 
-  logger.debug(
-    {
-      modules: modules.map(({ module }) => module.name),
-      providers: selected
-    },
-    'Modules loaded'
-  );
+  logger.debug({ providers: selected }, 'Providers selected');
 
   if (
     selected[Queue.name] === 'memory' &&
