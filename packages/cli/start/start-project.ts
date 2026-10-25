@@ -132,9 +132,8 @@ async function watchNodeProject(
   });
 
   // Restart on template and translation changes while the last build succeeded
-  const fileWatcher = watchPaths(runtimePaths(), (fileName) => {
+  const fileWatcher = watchPaths(runtimePaths(), () => {
     if (compiled) {
-      console.log(`\nFile changed: ${fileName}, restarting...`);
       void restart();
     }
   });

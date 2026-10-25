@@ -58,6 +58,37 @@ describe('watch-paths', () => {
       expect(onChange).toHaveBeenCalledTimes(1);
     });
 
+    test('ignores reading a file', async () => {
+      const file = path.join(dir, 'templates', 'emails', 'welcome.html.hbs');
+      fs.writeFileSync(file, 'Hi');
+      // An old access time makes the file system update it on the next read
+      const { mtime } = fs.statSync(file);
+      fs.utimesSync(file, new Date(Date.now() - 2 * 86_400_000), mtime);
+
+      const onChange = jest.fn();
+      controller = watchPaths([path.join(dir, 'templates')], onChange, 50);
+      await wait(50);
+
+      fs.readFileSync(file, 'utf8');
+      await wait(300);
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    test('calls the callback when a file is deleted', async () => {
+      const file = path.join(dir, 'locales', 'en.json');
+      fs.writeFileSync(file, '{}');
+
+      const onChange = jest.fn();
+      controller = watchPaths([path.join(dir, 'locales')], onChange, 50);
+      await wait(50);
+
+      fs.rmSync(file);
+      await wait(300);
+
+      expect(onChange).toHaveBeenCalledWith(file);
+    });
+
     test('stops watching once aborted', async () => {
       const onChange = jest.fn();
       controller = watchPaths([path.join(dir, 'locales')], onChange, 50);
