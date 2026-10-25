@@ -340,6 +340,11 @@
                 ]
               }
             },
+            "slowQueryThreshold": {
+              "default": 1500,
+              "minimum": 0,
+              "type": "integer"
+            },
             "provider": {
               "default": "auto",
               "type": "string"
@@ -482,6 +487,44 @@
                   "type": "string"
                 }
               ]
+            },
+            "levels": {
+              "default": {},
+              "type": "object",
+              "patternProperties": {
+                "^(.*)$": {
+                  "anyOf": [
+                    {
+                      "const": "fatal",
+                      "type": "string"
+                    },
+                    {
+                      "const": "error",
+                      "type": "string"
+                    },
+                    {
+                      "const": "warn",
+                      "type": "string"
+                    },
+                    {
+                      "const": "info",
+                      "type": "string"
+                    },
+                    {
+                      "const": "debug",
+                      "type": "string"
+                    },
+                    {
+                      "const": "trace",
+                      "type": "string"
+                    },
+                    {
+                      "const": "silent",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
             },
             "path": {
               "type": "string"

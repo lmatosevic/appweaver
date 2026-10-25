@@ -61,7 +61,10 @@
     "dev": {
       "log": {
         "level": "debug",
-        "pretty": true
+        "pretty": true,
+        "levels": {
+          "cache": "trace"
+        }
       },
       "database": {
         "logEvents": ["query", "warn"]
