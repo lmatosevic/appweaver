@@ -161,7 +161,7 @@ weaver module new audit-log --dry-run  # print the files without writing them
 The name is kebab-case, and the config section the camelCase of it (`auditLog`, read from `config.auditLog` and the
 `AUDIT_LOG_*` variables), with an `ENABLED` key. `module.ts` names the module, its config and its `main`, with
 commented `providers` and `services` entries to fill in; `main.ts` is its startup code, logging with
-`createLogger('auditLog')`, whose level is `log.levels.auditLog`. The command refuses to
+`createLogger('auditLog')` (see [logging](./logging.md)). The command refuses to
 overwrite an existing module. A driver nests its section under its contract, so rename the section of a new driver
 module (`defineConfig('storage.gcs', ...)`), as in the example below.
 

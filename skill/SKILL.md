@@ -793,23 +793,8 @@ call with `toDatabaseError(e, 'Model')`.
 
 ### Logging
 
-Log with a named logger of `@appweaver/common`, so its level can be set apart from the rest: `log.levels` (or
-`LOG_LEVELS_<NAME>`) sets the level of a name, any other logger logs at `log.level`, and `silent` turns one off. The
-framework modules log under `app`, `database`, `resource`, `server`, `security`, `cache`, `memory`, `events`, `queue`,
-`scheduler`, `mailer`, `template`, `locale`, `storage` and `health`.
-
-```ts
-import { createLogger } from '@appweaver/common';
-
-const logger = createLogger('billing');
-logger.info({ invoiceId }, 'Invoice sent');
-```
-
-```json
-"log": { "level": "warn", "levels": { "billing": "debug", "database": "trace", "cache": "silent" } }
-```
-
-See [configuration.md](references/configuration.md#log-levels-per-module).
+Log with a named logger, `createLogger('billing')` of `@appweaver/common`, so `log.levels.billing` can set its level
+apart from `log.level`. See [logging.md](references/logging.md) for the framework loggers and the config.
 
 ### Registering a custom model
 
@@ -1110,6 +1095,7 @@ npm run lint  # eslint "./**/*.ts"
 
 - Application CLI (weaver): [cli.md](references/cli.md)
 - Application configuration: [configuration.md](references/configuration.md)
+- Logging & log levels per module: [logging.md](references/logging.md)
 - Modules & providers: [modules.md](references/modules.md)
 - Application resources: [resources.md](references/resources.md)
 - Dependency injection: [dependency-injection.md](references/dependency-injection.md)
