@@ -53,9 +53,9 @@ resolves to `dev`, and `production` or an unset `NODE_ENV` to `prod`.
 ### Scaffolding a new application
 
 Use `@appweaver/create` (the `create-appweaver` binary) to scaffold a new project. It copies the base template, a
-minimal application of the core module, adds the selected modules, installs dependencies, and generates the Prisma
-schema and the types with `data` (only the JSON Schema of `appweaver.json` without it). It is a one-shot command without
-prompts.
+minimal application of the core module, adds the selected modules (`data` and `web` by default), installs dependencies,
+and generates the Prisma schema and the types with `data` (only the JSON Schema of `appweaver.json` without it). It is a
+one-shot command without prompts.
 
 ```sh
 npx @appweaver/create <name> [description] [options]
@@ -64,35 +64,38 @@ npm create @appweaver <name> [description] -- [options]  # the same, npm passes 
 
 **Options:**
 
-| Flag                     | Description                                                      | Default      |
-|--------------------------|------------------------------------------------------------------|--------------|
-| `-o, --output-dir`       | Output directory (use ./ for current working directory)          | project name |
-| `--database`             | Database of `data`: `sqlite`, `postgresql`, `mysql`, `sqlserver` | `sqlite`     |
-| `--host`                 | Hostname or IP address where the server of `web` will bind.      | 0.0.0.0      |
-| `--port`                 | Port number where the server of `web` will listen.               | 5000         |
-| `--agent`                | The AI agent for which to configure guidelines and skill files   | `claude`     |
-| `--add <modules...>`     | Modules to add, separated by spaces or commas                    | none         |
-| `--all`                  | Add every module                                                 | false        |
-| `--exclude <modules...>` | Modules to leave out of `--all` (e.g. `--all --exclude docker`)  | none         |
-| `--bun`                  | Use Bun as application runtime. (default is node and npm)        | false        |
-| `--no-install`           | Skip all dependencies installation.                              | installs     |
+| Flag                     | Description                                                                   | Default      |
+|--------------------------|-------------------------------------------------------------------------------|--------------|
+| `-o, --output-dir`       | Output directory (use ./ for current working directory)                       | project name |
+| `--database`             | Database of `data`: `sqlite`, `postgresql`, `mysql`, `sqlserver`              | `sqlite`     |
+| `--host`                 | Hostname or IP address where the server of `web` will bind.                   | 0.0.0.0      |
+| `--port`                 | Port number where the server of `web` will listen.                            | 5000         |
+| `--agent`                | The AI agent for which to configure guidelines and skill files                | `claude`     |
+| `--add <modules...>`     | Modules to add to the default ones, separated by spaces or commas             | `data web`   |
+| `--all`                  | Add every module                                                              | false        |
+| `--exclude <modules...>` | Modules to leave out of the default ones or of `--all` (e.g. `--exclude web`) | none         |
+| `--bun`                  | Use Bun as application runtime. (default is node and npm)                     | false        |
+| `--no-install`           | Skip all dependencies installation.                                           | installs     |
 
 **Modules:** the base project depends only on `@appweaver/cli`, `@appweaver/common`, `@appweaver/core` and TypeBox: an
-application with neither a database nor a server (`src/main.ts`, an e2e test of its health checks), for a worker or a
-one-shot task (`weaver run`). Each module is added with `--add`, `--all`, or later with `weaver module add` (see
-[Managing modules](#managing-modules)), and `--database`, `--host` and `--port` apply only with `data` and `web`:
+application with neither a database nor a server (`src/main.ts`, an e2e test of its health checks). `data` and `web`
+are the default modules, added to it unless excluded, so a project is a web API by default. Every other module is added
+with `--add`, `--all`, or later with `weaver module add` (see [Managing modules](#managing-modules)). `--exclude` leaves
+out any module, with or without `--all`: `--exclude web` for a database worker without a server, `--exclude data web`
+for the core application alone, i.e. a one-shot task (`weaver run`). `--database`, `--host` and `--port` apply only
+with `data` and `web`:
 
-| Module      | Adds                                                                                                            | Without it                                   |
-|-------------|-----------------------------------------------------------------------------------------------------------------|----------------------------------------------|
-| `data`      | `@appweaver/data`, `@appweaver/sharp`, Prisma, `database/`, the generated types, the test database              | no database, no resources                    |
-| `web`       | `@appweaver/web` (requires `data`), the server config, the `User` auth resource and its admin seeder, `public/` | no HTTP server, no auth model                |
-| `redis`     | `@appweaver/redis`, the `memory.redis.url`, the docker-compose Redis service                                    | memory, cache and rate limit in the process  |
-| `queue`     | `@appweaver/bullmq` (requires `redis`, added along with it)                                                     | in-memory queue                              |
-| `scheduler` | `@appweaver/cron`                                                                                               | scheduler disabled                           |
-| `mailer`    | `@appweaver/nodemailer`                                                                                         | mailer disabled (email features respond 501) |
-| `templates` | `@appweaver/handlebars`, `templates/`, the account emails with the mailer                                       | no template engine                           |
-| `locales`   | `locales/en.json`, the account email texts with the mailer                                                      | English texts written into the templates     |
-| `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                 | no Docker files                              |
+| Module           | Adds                                                                                                            | Without it                                   |
+|------------------|-----------------------------------------------------------------------------------------------------------------|----------------------------------------------|
+| `data` (default) | `@appweaver/data`, `@appweaver/sharp`, Prisma, `database/`, the generated types, the test database              | no database, no resources                    |
+| `web` (default)  | `@appweaver/web` (requires `data`), the server config, the `User` auth resource and its admin seeder, `public/` | no HTTP server, no auth model                |
+| `redis`          | `@appweaver/redis`, the `memory.redis.url`, the docker-compose Redis service                                    | memory, cache and rate limit in the process  |
+| `queue`          | `@appweaver/bullmq` (requires `redis`, added along with it)                                                     | in-memory queue                              |
+| `scheduler`      | `@appweaver/cron`                                                                                               | scheduler disabled                           |
+| `mailer`         | `@appweaver/nodemailer`                                                                                         | mailer disabled (email features respond 501) |
+| `templates`      | `@appweaver/handlebars`, `templates/`, the account emails with the mailer                                       | no template engine                           |
+| `locales`        | `locales/en.json`, the account email texts with the mailer                                                      | English texts written into the templates     |
+| `docker`         | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                 | no Docker files                              |
 
 Options are given after the positional arguments, since `--add` and `--exclude` take every following value up to the
 next option.
@@ -100,9 +103,10 @@ next option.
 **Example — PostgreSQL API with Redis, mailer and Docker:**
 
 ```sh
-npx @appweaver/create MyBlogAPI "My own CMS for blogging" --database postgresql --add web redis mailer docker
+npx @appweaver/create MyBlogAPI "My own CMS for blogging" --database postgresql --add redis mailer docker
 npx @appweaver/create MyBlogAPI "My own CMS for blogging" --database postgresql --all --exclude queue
-npx @appweaver/create Reports "Nightly reports" --add data scheduler  # a database worker without a server
+npx @appweaver/create Reports "Nightly reports" --add scheduler --exclude web  # a database worker without a server
+npx @appweaver/create Calculator "Loan calculator" --exclude data web         # the core application alone
 ```
 
 This creates a `./my-blog-api` directory, installs all dependencies, and runs the initial schema and type generation.

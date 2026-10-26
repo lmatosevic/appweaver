@@ -12,6 +12,7 @@ import {
   moduleContracts,
   DatabaseType,
   databaseTypes,
+  defaultModules,
   ModuleName,
   moduleNames,
   parseModuleNames,
@@ -143,12 +144,12 @@ function createProjectProgram(): Command {
     )
     .option(
       '--add <modules...>',
-      `Modules to add to the core application, separated by spaces or commas (${moduleNames.join(', ')}).`
+      `Modules to add to the default ones (${defaultModules.join(', ')}), separated by spaces or commas (${moduleNames.join(', ')}).`
     )
     .option('--all', 'Add every module.')
     .option(
       '--exclude <modules...>',
-      'Modules to leave out of --all, separated by spaces or commas.'
+      `Modules to leave out of the default ones or of --all, separated by spaces or commas (--exclude ${defaultModules.join(' ')} for the core application alone).`
     )
     .option('--bun', 'Use Bun as application runtime.')
     .option('--no-install', 'Skip all dependencies installation.');
@@ -318,9 +319,10 @@ async function createApp(
 }
 
 /**
- * Selects the modules of `--all` or `--add` with the modules they require, leaving out the `--exclude` ones.
+ * Selects the default modules with the `--add` ones, or every module with `--all`, and the modules they require, leaving
+ * out the `--exclude` ones.
  *
- * @throws {ScaffoldError} When a module is unknown, both added and excluded, or required by an added module.
+ * @throws {ScaffoldError} When a module is unknown, both added and excluded, or required by a selected module.
  */
 function selectModules(command: Command): ModuleName[] {
   const excluded = parseModuleNames(command.getOptionValue('exclude') ?? []);
@@ -333,7 +335,9 @@ function selectModules(command: Command): ModuleName[] {
     );
   }
 
-  const selected = command.getOptionValue('all') ? [...moduleNames] : added;
+  const selected = command.getOptionValue('all')
+    ? [...moduleNames]
+    : [...defaultModules, ...added];
   const { modules: resolved, required } = resolveModules(selected, excluded);
   for (const [requirement, by] of required) {
     console.log(`Adding module ${requirement}, required by ${by}.`);
@@ -349,7 +353,7 @@ function selectModules(command: Command): ModuleName[] {
       !resolved.includes(module)
     ) {
       console.log(
-        `Ignoring --${option}, it configures the ${module} module, which is not added.`
+        `Ignoring --${option}, the ${module} module it configures is left out.`
       );
     }
   }

@@ -27,8 +27,10 @@ npx @appweaver/create <name> [description] [options]
 ```
 
 ```sh
-npm create @appweaver MyApp "My awesome API" -- --database postgresql --add web redis queue docker
+npm create @appweaver MyApp "My awesome API" -- --database postgresql --add redis queue docker
 npx @appweaver/create MyApp "My awesome API" --all --exclude scheduler
+npx @appweaver/create Reports "Nightly reports" --add scheduler --exclude web   # a database worker, no server
+npx @appweaver/create Calculator "A calculator" --exclude data web              # the core application alone
 ```
 
 npm passes the options after `--` to the `create-appweaver` binary, `npx` takes them directly.
@@ -40,27 +42,29 @@ npm passes the options after `--` to the `create-appweaver` binary, `npx` takes 
 | `--host`                 | Hostname or IP address where the server of `web` will bind                        | `0.0.0.0`    |
 | `--port`                 | Port number where the server of `web` will listen                                 | `5000`       |
 | `--agent`                | `claude`, `codex`, `junie`, `cursor`, `copilot`, `opencode`, `kiro`, `pi`, `none` | `claude`     |
-| `--add <modules...>`     | Modules to add, separated by spaces or commas                                     | none         |
+| `--add <modules...>`     | Modules to add to the default ones, separated by spaces or commas                 | `data web`   |
 | `--all`                  | Add every module                                                                  | false        |
-| `--exclude <modules...>` | Modules to leave out of `--all`, separated by spaces or commas                    | none         |
+| `--exclude <modules...>` | Modules to leave out of the default ones or of `--all`, by spaces or commas       | none         |
 | `--bun`                  | Use Bun as the application runtime                                                | Node         |
 | `--no-install`           | Skip the installation of the dependencies                                         | installs     |
 
 The base project depends only on `@appweaver/cli`, `@appweaver/common`, `@appweaver/core` and TypeBox, a minimal
-application without a database or a server. A module installs its packages, and a module required by an added one is
-added along with it:
+application without a database or a server, and `data` and `web` are added to it by default, making a web API.
+`--exclude` leaves out any module, the default ones included and without `--all`: `--exclude web` keeps the database
+without a server, `--exclude data web` the core application alone (`web` requires `data`, so excluding `data` alone is
+refused). A module installs its packages, and a module required by an added one is added along with it:
 
-| Module      | Adds                                                                                                           | Without it                                  |
-|-------------|----------------------------------------------------------------------------------------------------------------|---------------------------------------------|
-| `data`      | `@appweaver/data`, `@appweaver/sharp`, Prisma, `database/`, the generated types, the test database             | no database                                 |
-| `web`       | `@appweaver/web`, requires `data`, the server config, the `User` auth resource, its admin seeder and `public/` | no HTTP server, no auth model               |
-| `redis`     | `@appweaver/redis`, the Redis connection, the Redis service of `docker-compose.yml`                            | memory, cache and rate limit in the process |
-| `queue`     | `@appweaver/bullmq`, requires `redis`                                                                          | in-memory queue                             |
-| `scheduler` | `@appweaver/cron`                                                                                              | scheduler disabled                          |
-| `mailer`    | `@appweaver/nodemailer`, the account email templates with `templates`, their texts with `locales`              | mailer disabled                             |
-| `templates` | `@appweaver/handlebars` and `templates/`                                                                       | no template engine                          |
-| `locales`   | `locales/en.json`, empty without the mailer                                                                    | English texts written into the templates    |
-| `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                | no Docker files                             |
+| Module           | Adds                                                                                                           | Without it                                  |
+|------------------|----------------------------------------------------------------------------------------------------------------|---------------------------------------------|
+| `data` (default) | `@appweaver/data`, `@appweaver/sharp`, Prisma, `database/`, the generated types, the test database             | no database                                 |
+| `web` (default)  | `@appweaver/web`, requires `data`, the server config, the `User` auth resource, its admin seeder and `public/` | no HTTP server, no auth model               |
+| `redis`          | `@appweaver/redis`, the Redis connection, the Redis service of `docker-compose.yml`                            | memory, cache and rate limit in the process |
+| `queue`          | `@appweaver/bullmq`, requires `redis`                                                                          | in-memory queue                             |
+| `scheduler`      | `@appweaver/cron`                                                                                              | scheduler disabled                          |
+| `mailer`         | `@appweaver/nodemailer`, the account email templates with `templates`, their texts with `locales`              | mailer disabled                             |
+| `templates`      | `@appweaver/handlebars` and `templates/`                                                                       | no template engine                          |
+| `locales`        | `locales/en.json`, empty without the mailer                                                                    | English texts written into the templates    |
+| `docker`         | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                | no Docker files                             |
 
 The modules of an existing project are managed with the `weaver` CLI, from the same templates:
 

@@ -6,8 +6,8 @@ A background worker with a database and no HTTP server: it keeps a ledger of tra
 day after midnight, archives the transactions past their retention (their totals stay in the reports), imports bank
 exports from CSV files, and prints reports from the command line.
 
-Created with `npm create @appweaver reports-worker -- --add data scheduler docker`, so it has `@appweaver/data` and
-`@appweaver/cron`, but not `@appweaver/web`.
+Created with `npm create @appweaver reports-worker -- --add scheduler docker --exclude web`, so it has the default
+`@appweaver/data`, and `@appweaver/cron`, but not the default `@appweaver/web`.
 
 ## What it showcases
 

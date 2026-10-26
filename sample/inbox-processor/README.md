@@ -7,8 +7,8 @@ API, each is recorded as an entry and put on a queue, and a worker analyses it (
 tags, a checksum), stores the results and appends them to an outbox file. Rejected lines fail at once, other errors
 are retried, and an admin triggers a scan of the inbox file or a retry of a failed entry over the API.
 
-Created with `npm create @appweaver inbox-processor -- --add web queue docker --port 5007`, which brings `data` (with
-`web`) and `redis` (with `queue`).
+Created with `npm create @appweaver inbox-processor -- --add queue docker --port 5007`, the default `data` and `web`
+with `queue` and the `redis` it requires.
 
 ## What it showcases
 

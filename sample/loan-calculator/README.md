@@ -7,18 +7,18 @@ database nor a server. It calculates the amortization schedule of a loan, compar
 results from one-shot tasks, showing that the framework's modules, config, dependency injection and lifecycle work the
 same without `@appweaver/data` and `@appweaver/web`.
 
-Created with `npm create @appweaver loan-calculator`, without any `--add`.
+Created with `npm create @appweaver loan-calculator -- --exclude data web`, leaving out the default modules.
 
 ## What it showcases
 
 | Feature                                                                              | Where                                                                    |
 |--------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| A minimal scaffolded application: core, common and the CLI only                      | [`package.json`](package.json)                                           |
+| A minimal scaffolded application (`--exclude data web`): core, common and the CLI    | [`package.json`](package.json)                                           |
 | A local module (`weaver module new loan`) with its manifest, config section and main | [`modules/loan/module.ts`](src/modules/loan/module.ts)                   |
 | A validated config section (`loan.*`, `LOAN_*`) checked by `weaver config check`     | [`modules/loan/config.ts`](src/modules/loan/config.ts)                   |
 | A service class of the module, injected with `inject(LoanCalculator)`                | [`modules/loan/loan-calculator.ts`](src/modules/loan/loan-calculator.ts) |
 | The in-process `Cache` of core, keeping the calculated schedules                     | [`modules/loan/loan-calculator.ts`](src/modules/loan/loan-calculator.ts) |
-| An application error code of its own (`defineErrors`), without an API to map it     | [`modules/loan/errors.ts`](src/modules/loan/errors.ts)                   |
+| An application error code of its own (`defineErrors`), without an API to map it      | [`modules/loan/errors.ts`](src/modules/loan/errors.ts)                   |
 | One-shot tasks with arguments and an exit code (`weaver run`)                        | [`tasks/`](src/tasks/amortize.ts)                                        |
 | An application that starts, does its work and stops by itself                        | [`main.ts`](src/main.ts)                                                 |
 | Pure calculations in cents, unit tested without the application                      | [`modules/loan/amortization.ts`](src/modules/loan/amortization.ts)       |

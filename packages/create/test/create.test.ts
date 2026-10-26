@@ -519,8 +519,16 @@ describe('create', () => {
       '@appweaver/redis'
     ];
 
-    test('creates the core application without any module by default', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none');
+    test('creates the core application alone without the default modules', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--exclude',
+        'data',
+        'web'
+      );
 
       const { dependencies, scripts } = readJson('my-app', 'package.json');
       expect(Object.keys(dependencies)).toEqual([
@@ -559,8 +567,15 @@ describe('create', () => {
       }
     });
 
-    test('leaves the providers of the missing modules to auto by default', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none');
+    test('leaves the providers of the missing modules to auto', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--exclude',
+        'data,web'
+      );
 
       const appConfig = readJson('my-app', 'appweaver.json');
       expect(appConfig.config).toEqual({ app: expect.any(Object) });
@@ -568,8 +583,8 @@ describe('create', () => {
       expect(Object.keys(appConfig.environments.test)).toEqual(['log']);
     });
 
-    test('adds the database with the data module', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'data');
+    test('creates the database without a server when web is excluded', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--exclude', 'web');
 
       const { dependencies, scripts } = readJson('my-app', 'package.json');
       for (const name of [
@@ -603,17 +618,12 @@ describe('create', () => {
       );
     });
 
-    test('adds the server and the data module it requires with the web module', async () => {
-      const logs = await run(
-        'MyApp',
-        '--no-install',
-        '--agent',
-        'none',
-        '--add',
-        'web'
-      );
+    test('creates a web API with its database by default', async () => {
+      const logs = await run('MyApp', '--no-install', '--agent', 'none');
 
-      expect(logs).toContain('Adding module data, required by web.');
+      expect(logs).toContain(
+        'Generating application files with modules: data, web...'
+      );
       const { dependencies } = readJson('my-app', 'package.json');
       expect(dependencies).toHaveProperty('@appweaver/web');
       expect(dependencies).toHaveProperty('@appweaver/data');
@@ -648,14 +658,17 @@ describe('create', () => {
         '--database',
         'mysql',
         '--port',
-        '8080'
+        '8080',
+        '--exclude',
+        'data',
+        'web'
       );
 
       expect(logs).toContain(
-        'Ignoring --database, it configures the data module, which is not added.'
+        'Ignoring --database, the data module it configures is left out.'
       );
       expect(logs).toContain(
-        'Ignoring --port, it configures the web module, which is not added.'
+        'Ignoring --port, the web module it configures is left out.'
       );
       expect(
         readJson('my-app', 'package.json').dependencies
@@ -882,7 +895,17 @@ describe('create', () => {
     });
 
     test('copies only the build of the core application', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'docker');
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--add',
+        'docker',
+        '--exclude',
+        'data',
+        'web'
+      );
 
       expect(read('my-app', 'Dockerfile')).toContain(
         '# Copy build files\nCOPY --from=build /usr/app/dist /usr/app/dist\n\n# Copy config file/s'
@@ -1130,6 +1153,12 @@ describe('create', () => {
       expect(
         runInvalid('MyApp', '--all', '--exclude', 'graphql').stderr
       ).toContain('Unknown module: graphql.');
+    });
+
+    test('rejects excluding the data module of the default web module', () => {
+      expect(runInvalid('MyApp', '--exclude', 'data').stderr).toContain(
+        'Module web requires data, exclude web as well.'
+      );
     });
 
     test('rejects excluding a module an added one requires', () => {

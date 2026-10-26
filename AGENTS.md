@@ -362,9 +362,11 @@ It exposes the **`create-appweaver`** CLI binary (entry point `create.ts`), run 
 `npx @appweaver/create <name>`, and as `npm create @appweaver module <package>` for a module package.
 
 A generated project starts from the base template (`templates/base/`), a minimal application of the core module, and
-adds the optional modules selected with `--add <modules...>` or `--all` (minus the `--exclude <modules...>` ones):
-`data`, `web` (requires `data`), `redis`, `queue` (requires `redis`), `scheduler`, `mailer`, `templates`, `locales`
-and `docker`. The base project depends only on `@appweaver/cli`, `common`, `core` and TypeBox, and a module adds its
+adds the optional modules selected: the default ones (`defaultModules` of `scaffold/modules.ts`, `data` and `web`)
+with the `--add <modules...>` ones, or every module with `--all`, minus the `--exclude <modules...>` ones, which leave
+out the default modules too, with or without `--all` (`--exclude data web` for the core application alone). The
+modules are `data`, `web` (requires `data`), `redis`, `queue` (requires `redis`), `scheduler`, `mailer`, `templates`,
+`locales` and `docker`. The base project depends only on `@appweaver/cli`, `common`, `core` and TypeBox, and a module adds its
 packages: `@appweaver/data`, `@appweaver/sharp`, Prisma and the driver adapter of `--database` (`data`, its
 `projectPackages`), `@appweaver/web` (`web`), `@appweaver/redis` (`redis`), `@appweaver/bullmq` (`queue`),
 `@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`) and `@appweaver/handlebars` (`templates`), every
@@ -1017,7 +1019,7 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
 | `sample/reports-worker`  | Node    | SQLite             | No server: daily reports by cron, archive job, CSV import and report tasks, the health listener            |
 | `sample/loan-calculator` | Node    | —                  | Core only (no data, no web): a local module, its config, a cached calculator service, `weaver run` tasks   |
 
-- `reports-worker` (`--add data scheduler docker`) and `loan-calculator` (no `--add`) show the applications without a
+- `reports-worker` (`--add scheduler docker --exclude web`) and `loan-calculator` (`--exclude data web`) show the applications without a
   server: the worker is kept running by its cron jobs and answers the health checks on `healthCheck.port`, the
   calculator starts, calculates and stops, and both do their work in `weaver run` tasks. `loan-calculator` has no
   database, so no migrations, seeders or e2e database setup.

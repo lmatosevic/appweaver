@@ -197,6 +197,12 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
   }
 };
 
+/**
+ * The modules a new project is created with besides the ones added, a web API with its database. `--exclude data web`
+ * leaves them out for the minimal application of the core module.
+ */
+export const defaultModules: ModuleName[] = ['data', 'web'];
+
 /** The appweaver.json values a module sets while enabled, in a project. */
 export function moduleConfig(
   module: ModuleDefinition,
