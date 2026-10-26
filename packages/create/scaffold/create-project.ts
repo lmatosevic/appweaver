@@ -22,12 +22,13 @@ export type CreateProjectOptions = {
   /** The package name of the project, naming its containers. */
   packageName: string;
   description: string;
-  /** The host and port of the server, when the web module is added. */
-  host: string;
+  /** The port of the server, when the web module is added. */
   port: number;
   runtime: Runtime;
   /** The database, when the data module is added. */
   database: DatabaseType;
+  /** The host of the server, when the web module is added. Default: `'0.0.0.0'`. */
+  host?: string;
   /** The modules to add, including the modules they require. */
   modules: ModuleName[];
 };

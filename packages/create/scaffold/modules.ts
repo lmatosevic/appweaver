@@ -117,7 +117,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     packages: ['@appweaver/web'],
     requires: ['data'],
     enabledConfig: ({ host, port }) => [
-      ['config.server.host', host],
+      ['config.server.host', host ?? '0.0.0.0'],
       ['config.server.port', port],
       ['environments.test.server.listen', false]
     ],

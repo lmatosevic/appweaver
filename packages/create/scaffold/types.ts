@@ -28,12 +28,13 @@ export type Runtime = 'node' | 'bun';
 export type ProjectContext = {
   /** The package name of the project, naming its containers. */
   name: string;
-  /** The host and port the server of the web module listens on. */
-  host: string;
+  /** The port the server of the web module listens on. */
   port: number;
   runtime: Runtime;
   /** The database of the data module. */
   database: DatabaseType;
+  /** The host the server of the web module binds to. Default: `'0.0.0.0'`. */
+  host?: string;
 };
 
 /** Thrown for a module selection or a project that cannot be scaffolded. */

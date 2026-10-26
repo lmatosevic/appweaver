@@ -65,12 +65,30 @@ describe('load-project', () => {
 
       expect(context).toEqual({
         name: 'my-app',
-        host: '0.0.0.0',
         port: 5000,
         runtime: 'node',
         database: 'sqlite'
       });
       expect(enabled).toEqual([]);
+    });
+
+    test('binds the server to every interface without a host', async () => {
+      await createProject({
+        dir,
+        name: 'MyApp',
+        packageName: 'my-app',
+        description: 'My description',
+        port: 5000,
+        database: 'sqlite',
+        runtime: 'node',
+        modules: ['data', 'web']
+      });
+
+      const appConfig = JSON.parse(
+        fs.readFileSync(path.join(dir, 'appweaver.json'), 'utf8')
+      );
+      expect(appConfig.config.server).toEqual({ host: '0.0.0.0', port: 5000 });
+      expect(loadProject(dir).context.host).toBe('0.0.0.0');
     });
 
     test('rejects a directory without a project', () => {
