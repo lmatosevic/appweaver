@@ -1,0 +1,69 @@
+services:
+  reports-worker.migrations:
+    image: reports-worker:latest
+    container_name: reports-worker-migrations
+    restart: no
+    build:
+      context: .
+    env_file:
+      - .env
+    command: [ "migrations" ]
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+      - sqlite-data:/usr/app/data
+    networks:
+      - reports-worker
+
+  reports-worker.seed:
+    image: reports-worker:latest
+    container_name: reports-worker-seed
+    restart: no
+    build:
+      context: .
+    depends_on:
+      reports-worker.migrations:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    command: [ "seed" ]
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+      - sqlite-data:/usr/app/data
+    networks:
+      - reports-worker
+
+  reports-worker:
+    image: reports-worker:latest
+    container_name: reports-worker
+    restart: unless-stopped
+    build:
+      context: .
+    # The health listener of an application without a server (healthCheck.port)
+    healthcheck:
+      test: "wget -qO - http://127.0.0.1:5006/health/ready || exit 1"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+      start_interval: 5s
+    depends_on:
+      reports-worker.seed:
+        condition: service_completed_successfully
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+      - sqlite-data:/usr/app/data
+    env_file:
+      - .env
+    networks:
+      - reports-worker
+
+networks:
+  reports-worker:
+    driver: bridge
+    name: reports-worker-network
+
+volumes:
+  sqlite-data:

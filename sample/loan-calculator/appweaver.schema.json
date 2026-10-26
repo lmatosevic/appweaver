@@ -1,0 +1,596 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "title": "Appweaver Workspace Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "config": {
+      "description": "Base configuration, applied in every environment.",
+      "$ref": "#/definitions/config"
+    },
+    "environments": {
+      "type": "object",
+      "description": "Configuration of each environment, keyed by the environment name and merged over `config`.",
+      "additionalProperties": {
+        "$ref": "#/definitions/config"
+      }
+    }
+  },
+  "definitions": {
+    "config": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "object",
+          "properties": {
+            "env": {
+              "default": "prod",
+              "anyOf": [
+                {
+                  "anyOf": [
+                    {
+                      "const": "test",
+                      "type": "string"
+                    },
+                    {
+                      "const": "local",
+                      "type": "string"
+                    },
+                    {
+                      "const": "dev",
+                      "type": "string"
+                    },
+                    {
+                      "const": "staging",
+                      "type": "string"
+                    },
+                    {
+                      "const": "qa",
+                      "type": "string"
+                    },
+                    {
+                      "const": "prod",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "name": {
+              "default": "Appweaver",
+              "type": "string"
+            },
+            "version": {
+              "default": "unknown",
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "hostname": {
+              "default": "",
+              "type": "string"
+            },
+            "typeBase": {
+              "default": "urn:appweaver",
+              "type": "string"
+            },
+            "runtime": {
+              "default": "node",
+              "anyOf": [
+                {
+                  "const": "node",
+                  "type": "string"
+                },
+                {
+                  "const": "bun",
+                  "type": "string"
+                }
+              ]
+            },
+            "buildPath": {
+              "default": "./dist",
+              "type": "string"
+            },
+            "sourcePath": {
+              "default": "./src",
+              "type": "string"
+            },
+            "scanFilesPattern": {
+              "default": "<srcPath>/*/index.ts",
+              "type": "string"
+            },
+            "mainFilePath": {
+              "default": "<srcPath>/main.ts",
+              "type": "string"
+            },
+            "modulesPattern": {
+              "default": "<srcPath>/modules/*/module.ts",
+              "type": "string"
+            },
+            "modules": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "modulesDisabled": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "cache": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "default": true,
+              "type": "boolean"
+            },
+            "cleanStart": {
+              "default": false,
+              "type": "boolean"
+            },
+            "keyPrefix": {
+              "default": "cache:",
+              "type": "string"
+            },
+            "maxItems": {
+              "default": 1000,
+              "type": "integer"
+            },
+            "maxSize": {
+              "type": "string"
+            },
+            "defaultTtl": {
+              "default": 5000,
+              "type": "integer"
+            },
+            "evictionGracePeriod": {
+              "default": 1000,
+              "type": "integer"
+            },
+            "evictionStrategy": {
+              "default": "LRU",
+              "anyOf": [
+                {
+                  "const": "LRU",
+                  "type": "string"
+                },
+                {
+                  "const": "LFU",
+                  "type": "string"
+                },
+                {
+                  "const": "FIFO",
+                  "type": "string"
+                }
+              ]
+            },
+            "evictionDeferred": {
+              "default": false,
+              "type": "boolean"
+            },
+            "invalidationStrategy": {
+              "default": "expire-related",
+              "anyOf": [
+                {
+                  "const": "expire-related",
+                  "type": "string"
+                },
+                {
+                  "const": "expire-all",
+                  "type": "string"
+                },
+                {
+                  "const": "none",
+                  "type": "string"
+                }
+              ]
+            },
+            "invalidationDeferred": {
+              "default": false,
+              "type": "boolean"
+            },
+            "skipOnError": {
+              "default": true,
+              "type": "boolean"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            }
+          }
+        },
+        "events": {
+          "type": "object",
+          "properties": {
+            "maxListeners": {
+              "default": 20,
+              "type": "integer"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            }
+          }
+        },
+        "healthCheck": {
+          "type": "object",
+          "properties": {
+            "port": {
+              "default": 0,
+              "type": "integer"
+            },
+            "host": {
+              "default": "0.0.0.0",
+              "type": "string"
+            },
+            "pickInstances": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "omitInstances": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "loan": {
+          "type": "object",
+          "properties": {
+            "defaultRate": {
+              "default": 5,
+              "minimum": 0,
+              "maximum": 100,
+              "type": "number"
+            },
+            "defaultTermMonths": {
+              "default": 360,
+              "minimum": 1,
+              "maximum": 600,
+              "type": "integer"
+            },
+            "currency": {
+              "default": "EUR",
+              "pattern": "^[A-Z]{3}$",
+              "type": "string"
+            },
+            "cacheTtl": {
+              "default": 600000,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        },
+        "locale": {
+          "type": "object",
+          "properties": {
+            "default": {
+              "default": "en",
+              "type": "string"
+            },
+            "path": {
+              "default": "./locales",
+              "type": "string"
+            }
+          }
+        },
+        "log": {
+          "type": "object",
+          "properties": {
+            "level": {
+              "default": "info",
+              "anyOf": [
+                {
+                  "const": "fatal",
+                  "type": "string"
+                },
+                {
+                  "const": "error",
+                  "type": "string"
+                },
+                {
+                  "const": "warn",
+                  "type": "string"
+                },
+                {
+                  "const": "info",
+                  "type": "string"
+                },
+                {
+                  "const": "debug",
+                  "type": "string"
+                },
+                {
+                  "const": "trace",
+                  "type": "string"
+                },
+                {
+                  "const": "silent",
+                  "type": "string"
+                }
+              ]
+            },
+            "levels": {
+              "default": {},
+              "type": "object",
+              "patternProperties": {
+                "^(.*)$": {
+                  "$ref": "#/definitions/logLevel"
+                }
+              },
+              "properties": {
+                "app": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "cache": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "events": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "health": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "loan": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "locale": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "mailer": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "queue": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "storage": {
+                  "$ref": "#/definitions/logLevel"
+                }
+              }
+            },
+            "path": {
+              "type": "string"
+            },
+            "rotate": {
+              "default": true,
+              "type": "boolean"
+            },
+            "rotateSize": {
+              "default": "100M",
+              "type": "string"
+            },
+            "rotateMaxSize": {
+              "default": "5G",
+              "type": "string"
+            },
+            "rotateMaxFiles": {
+              "default": 1000,
+              "type": "integer"
+            },
+            "rotateInterval": {
+              "default": "1d",
+              "type": "string"
+            },
+            "rotateCompress": {
+              "default": true,
+              "type": "boolean"
+            },
+            "pretty": {
+              "default": false,
+              "type": "boolean"
+            },
+            "sync": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        },
+        "mailer": {
+          "type": "object",
+          "properties": {
+            "senderName": {
+              "type": "string"
+            },
+            "senderAddress": {
+              "type": "string"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            }
+          }
+        },
+        "memory": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            },
+            "maxSize": {
+              "type": "string"
+            }
+          }
+        },
+        "queue": {
+          "type": "object",
+          "properties": {
+            "keepCompletedCount": {
+              "default": 0,
+              "type": "integer"
+            },
+            "keepCompletedSeconds": {
+              "type": "integer"
+            },
+            "keepFailedCount": {
+              "default": 50,
+              "type": "integer"
+            },
+            "keepFailedSeconds": {
+              "type": "integer"
+            },
+            "retryAttempts": {
+              "default": 3,
+              "type": "integer"
+            },
+            "retryBackoff": {
+              "default": 3000,
+              "type": "integer"
+            },
+            "retryBackoffType": {
+              "default": "fixed",
+              "anyOf": [
+                {
+                  "const": "fixed",
+                  "type": "string"
+                },
+                {
+                  "const": "exponential",
+                  "type": "string"
+                }
+              ]
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            }
+          }
+        },
+        "scheduler": {
+          "type": "object",
+          "properties": {
+            "autoStartJob": {
+              "default": true,
+              "type": "boolean"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            }
+          }
+        },
+        "security": {
+          "type": "object",
+          "properties": {
+            "store": {
+              "type": "object",
+              "properties": {
+                "provider": {
+                  "default": "auto",
+                  "type": "string"
+                },
+                "keepDatabaseTable": {
+                  "default": false,
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "storage": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "default": "./storage",
+              "type": "string"
+            },
+            "reservedPaths": {
+              "default": [
+                "__keys__"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "namePattern": {
+              "default": "{name}-{hash}.{extension}",
+              "type": "string"
+            },
+            "cacheTtl": {
+              "default": 86400000,
+              "type": "integer"
+            },
+            "urlTtl": {
+              "default": 900000,
+              "type": "integer"
+            },
+            "filesRoutePrefix": {
+              "default": "/files",
+              "type": "string"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            }
+          }
+        },
+        "template": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "default": "./templates",
+              "type": "string"
+            },
+            "cache": {
+              "default": true,
+              "type": "boolean"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "logLevel": {
+      "anyOf": [
+        {
+          "const": "fatal",
+          "type": "string"
+        },
+        {
+          "const": "error",
+          "type": "string"
+        },
+        {
+          "const": "warn",
+          "type": "string"
+        },
+        {
+          "const": "info",
+          "type": "string"
+        },
+        {
+          "const": "debug",
+          "type": "string"
+        },
+        {
+          "const": "trace",
+          "type": "string"
+        },
+        {
+          "const": "silent",
+          "type": "string"
+        }
+      ]
+    }
+  }
+}

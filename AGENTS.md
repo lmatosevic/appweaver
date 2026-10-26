@@ -1005,13 +1005,20 @@ start.sh seed         # Seed the database
 Scaffolded with `@appweaver/create`, each showcases a different part of the framework and documents it in its own
 `README.md`. They follow the `cms-api` workflow above, with the differences listed here.
 
-| Sample                  | Runtime | Database           | Showcases                                                                                                  |
-|-------------------------|---------|--------------------|------------------------------------------------------------------------------------------------------------|
-| `sample/webshop-api`    | Node    | PostgreSQL + Redis | Transactional checkout, BullMQ payment worker on a resource event, API key partner, localized order emails |
-| `sample/hr-api`         | Node    | SQLite             | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades        |
-| `sample/helpdesk-api`   | Node    | MySQL (MariaDB)    | Non-auth customers connected by email, auto-assignment, SLA escalation job, cursor pagination              |
-| `sample/movies-api-bun` | Bun     | SQLite (libsql)    | Public cached catalog, join model with payload, OAuth2 sign-up, generated typed client                     |
+| Sample                   | Runtime | Database           | Showcases                                                                                                  |
+|--------------------------|---------|--------------------|------------------------------------------------------------------------------------------------------------|
+| `sample/webshop-api`     | Node    | PostgreSQL + Redis | Transactional checkout, BullMQ payment worker on a resource event, API key partner, localized order emails |
+| `sample/hr-api`          | Node    | SQLite             | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades        |
+| `sample/helpdesk-api`    | Node    | MySQL (MariaDB)    | Non-auth customers connected by email, auto-assignment, SLA escalation job, cursor pagination              |
+| `sample/movies-api-bun`  | Bun     | SQLite (libsql)    | Public cached catalog, join model with payload, OAuth2 sign-up, generated typed client                     |
+| `sample/inbox-processor` | Node    | SQLite + Redis     | A file and API fed BullMQ pipeline with retries, a local module with a watcher service and routes          |
+| `sample/reports-worker`  | Node    | SQLite             | No server: daily reports by cron, archive job, CSV import and report tasks, the health listener            |
+| `sample/loan-calculator` | Node    | —                  | Core only (no data, no web): a local module, its config, a cached calculator service, `weaver run` tasks   |
 
+- `reports-worker` (`--add data scheduler docker`) and `loan-calculator` (no `--add`) show the applications without a
+  server: the worker is kept running by its cron jobs and answers the health checks on `healthCheck.port`, the
+  calculator starts, calculates and stops, and both do their work in `weaver run` tasks. `loan-calculator` has no
+  database, so no migrations, seeders or e2e database setup.
 - The PostgreSQL and MySQL samples start their database with `docker compose up -d postgres redis` (or `mysql`); their
   end-to-end tests run against a `-test` database of the same container.
 - Like a generated project, every sample configures its database and Redis URLs in `appweaver.json`, referencing the

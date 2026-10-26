@@ -1,0 +1,9 @@
+reference,occurredAt,kind,category,amount,description
+BANK-0001,2026-10-01T08:12:00Z,Income,Salary,4200.00,October salary
+BANK-0002,2026-10-01T09:30:00Z,Expense,Rent,1200.00,October rent
+BANK-0003,2026-10-02T17:45:00Z,Expense,Groceries,64.30,Weekly shopping
+BANK-0004,2026-10-02T19:05:00Z,Expense,Restaurants,38.90,"Dinner, two people"
+BANK-0005,2026-10-03T07:50:00Z,Expense,Transport,2.40,Bus ticket
+BANK-0006,2026-10-03T15:20:00Z,Income,Freelance,650.00,Logo design
+BANK-0007,2026-10-04T11:00:00Z,Expense,Utilities,96.15,Electricity
+BANK-0008,2026-10-04T18:30:00Z,Expense,Groceries,23.75,

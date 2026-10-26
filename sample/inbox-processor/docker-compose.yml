@@ -1,0 +1,101 @@
+services:
+  redis:
+    image: redis:7.4.9
+    container_name: inbox-processor-redis
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 5s
+      start_interval: 5s
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - inbox-processor
+
+  inbox-processor.migrations:
+    image: inbox-processor:latest
+    container_name: inbox-processor-migrations
+    restart: no
+    build:
+      context: .
+    env_file:
+      - .env
+    environment:
+      REDIS_HOST: "redis"
+    command: [ "migrations" ]
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+      - sqlite-data:/usr/app/data
+    networks:
+      - inbox-processor
+
+  inbox-processor.seed:
+    image: inbox-processor:latest
+    container_name: inbox-processor-seed
+    restart: no
+    build:
+      context: .
+    depends_on:
+      inbox-processor.migrations:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    environment:
+      REDIS_HOST: "redis"
+    command: [ "seed" ]
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+      - sqlite-data:/usr/app/data
+    networks:
+      - inbox-processor
+
+  inbox-processor:
+    image: inbox-processor:latest
+    container_name: inbox-processor
+    restart: unless-stopped
+    build:
+      context: .
+    healthcheck:
+      test: "wget -qO - http://127.0.0.1:5007/health/ready || exit 1"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+      start_interval: 5s
+    depends_on:
+      redis:
+        condition: service_healthy
+      inbox-processor.seed:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:5007:5007"
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+      - sqlite-data:/usr/app/data
+      - ./inbox:/usr/app/inbox
+    env_file:
+      - .env
+    environment:
+      REDIS_HOST: "redis"
+      # The inbox and outbox files in the mounted inbox/ directory
+      INBOX_FILE_PATH: "/usr/app/inbox/inbox.txt"
+      INBOX_OUTBOX_PATH: "/usr/app/inbox/outbox.txt"
+    networks:
+      - inbox-processor
+
+networks:
+  inbox-processor:
+    driver: bridge
+    name: inbox-processor-network
+
+volumes:
+  sqlite-data:
+  redis-data:

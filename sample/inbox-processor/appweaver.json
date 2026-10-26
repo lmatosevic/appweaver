@@ -1,0 +1,62 @@
+{
+  "$schema": "./appweaver.schema.json",
+  "config": {
+    "app": {
+      "name": "Inbox Processor",
+      "description": "Appweaver sample - Inbox processor analysing text lines on a queue, fed by a file and an API"
+    },
+    "database": {
+      "url": "file:./data/inbox-processor.db"
+    },
+    "server": {
+      "host": "0.0.0.0",
+      "port": 5007
+    },
+    "memory": {
+      "redis": {
+        "url": "redis://${REDIS_HOST:-localhost}:6379/0"
+      }
+    },
+    "system": {
+      "adminInitialEmail": "admin@inbox.example.com"
+    }
+  },
+  "environments": {
+    "dev": {
+      "log": {
+        "level": "debug",
+        "pretty": true
+      }
+    },
+    "test": {
+      "log": {
+        "level": "silent",
+        "sync": true
+      },
+      "database": {
+        "url": "file:./temp/inbox-processor-test.db",
+        "schemaPath": "./temp/database/schema.prisma",
+        "migrationsDirPath": "./temp/database/migrations",
+        "clientOutputDirPath": "./temp/database/client"
+      },
+      "storage": {
+        "path": "./temp/storage"
+      },
+      "server": {
+        "listen": false
+      },
+      "memory": {
+        "provider": "memory"
+      },
+      "queue": {
+        "provider": "memory"
+      },
+      "inbox": {
+        "filePath": "./temp/inbox.txt",
+        "outboxPath": "./temp/outbox.txt",
+        "watch": false,
+        "retryDelay": 0
+      }
+    }
+  }
+}
