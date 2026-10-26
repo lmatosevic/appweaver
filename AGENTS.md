@@ -370,7 +370,8 @@ packages: `@appweaver/data`, `@appweaver/sharp`, Prisma and the driver adapter o
 `@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`) and `@appweaver/handlebars` (`templates`), every
 `@appweaver/*` package at the framework version, the version of `@appweaver/create` (`scaffold/package-versions.ts`).
 `--database`, `--host` and `--port` configure `data` and `web` only (`ProjectContext`), and `weaver module add` takes
-`--database` for `data`. A module sets values in the other JSON files of the project with its `jsonFiles` (the
+`--database` for `data`. The `User` auth model and its admin seeder come with `web`, which brings the authentication, so
+a project with `data` alone has no auth model. A module sets values in the other JSON files of the project with its `jsonFiles` (the
 `package.json` scripts of `data`, the Jest e2e `globalSetup`), and a module file at the path of a base file replaces it
 while unchanged, restored on removal (the `/api` e2e test of `web`).
 The scaffolding engine lives in `scaffold/` and is exported as
@@ -543,7 +544,8 @@ Running with no flags generates **both** types and schema. With the types, it wr
 `appweaver.json` from the config sections the enabled modules list (`appweaver.schema.json`, like
 `weaver config schema`). The generated types register every model in the
 `ResourceRegistry` of `@appweaver/common`, so the factories and `injectService` infer the model types from a model
-name. The models come from the project and from the `resources` of the enabled modules. The framework models are left
+name, and without any model the file holds only `export {};`. On SQLite a `json` default is written as the quoted SQL
+literal `@default(dbgenerated("'{}'"))`, since the migrations of Prisma write a plain JSON default unquoted. The models come from the project and from the `resources` of the enabled modules. The framework models are left
 out unless used: `Role`, `Permission`, `ApiKey`, `OneTimeToken` and `ConnectedAccount` without an auth model, `File`
 without a model declaring `files`, `Seeder` without a seeders directory (`data/resource/utils/prune-util.ts`). The
 `npm run generate` of `packages/data` passes `--no-registry`, `--no-prune` and `--no-config-schema`, since the
@@ -627,8 +629,8 @@ weaver module remove <modules...> [options] (alias: rm)
 
 `add` brings in the required modules too, `remove` refuses to remove a module a remaining one requires. Removing a
 module deletes its files (the whole `templates/`, `locales/` or `database/` directory, the Docker files) and reverts its
-`appweaver.json` values and packages; in `src/` it deletes only the unchanged files of `data` and `web` (the `User`
-resource), keeping the changed ones with a warning. The enabled modules are read from the project's
+`appweaver.json` values and packages; in `src/` and `database/seeders/` it deletes only the unchanged files of `web`
+(the `User` resource and its admin seeder), keeping the changed ones with a warning. The enabled modules are read from the project's
 dependencies, and for `locales` and `docker` from the `locales/` directory and the `Dockerfile`.
 
 `new <name>` creates a local module in `<APP_SOURCE_PATH>/modules/<name>/` (`module/local-module.ts`), enabled by

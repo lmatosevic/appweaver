@@ -470,9 +470,12 @@ function copyFiles(scaffold: ModuleScaffold, unit: string): void {
   }
 }
 
+/** The directories of the code written in the project, whose scaffolded files are kept once changed. */
+const sourceDirs = ['src', 'database/seeders'];
+
 /**
  * Deletes the files of a module or integration directory from the project, restoring the files of the base project
- * they replaced. The source files changed in the project are kept.
+ * they replaced. The source files and seeders changed in the project are kept.
  */
 function removeFiles(scaffold: ModuleScaffold, unit: string): void {
   const { files, context } = scaffold;
@@ -492,7 +495,7 @@ function removeFiles(scaffold: ModuleScaffold, unit: string): void {
     const changed =
       existing !== undefined &&
       existing !== readTemplateFile(file, variables).toString();
-    if (changed && file.path.startsWith('src/')) {
+    if (changed && sourceDirs.some((dir) => isInside(file.path, dir))) {
       scaffold.warnings.push(`Kept the changed file ${file.path}`);
       continue;
     }

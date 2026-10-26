@@ -422,20 +422,43 @@ describe('apply-modules', () => {
       expect(files.read('templates/page.html.hbs')).toBe(page);
     });
 
-    test('keeps the changed source files, deleting the database files', async () => {
-      const dir = await create(['data']);
+    test('keeps the changed source files and seeders', async () => {
+      const dir = await create(['data', 'web']);
       const model = path.join(dir, 'src', 'resources', 'user', 'model.ts');
+      const seeder = path.join(
+        dir,
+        'database',
+        'seeders',
+        '001-create-roles-and-admin-user.ts'
+      );
       fs.writeFileSync(model, 'export default {};\n');
-      fs.writeFileSync(path.join(dir, 'src', 'types', 'generated.ts'), '');
+      fs.appendFileSync(seeder, '// Changed\n');
 
       const { files, context, enabled } = loadProject(dir);
-      const { warnings } = disableModules(files, context, enabled, ['data']);
+      const { warnings } = disableModules(files, context, enabled, ['web']);
       await files.commit();
 
       expect(warnings).toEqual([
+        'Kept the changed file database/seeders/001-create-roles-and-admin-user.ts',
         'Kept the changed file src/resources/user/model.ts'
       ]);
       expect(fs.readFileSync(model, 'utf8')).toBe('export default {};\n');
+      expect(fs.existsSync(seeder)).toBe(true);
+      expect(
+        fs.existsSync(path.join(dir, 'src', 'resources', 'user', 'service.ts'))
+      ).toBe(false);
+    });
+
+    test('deletes the database directory and the generated types with the data module', async () => {
+      const dir = await create(['data']);
+      fs.writeFileSync(path.join(dir, 'src', 'types', 'generated.ts'), '');
+      fs.writeFileSync(
+        path.join(dir, 'database', 'seeders', '001-mine.ts'),
+        ''
+      );
+
+      await remove(dir, 'data');
+
       for (const file of ['database', 'src/types', 'prisma.config.ts']) {
         expect(fs.existsSync(path.join(dir, file))).toBe(false);
       }

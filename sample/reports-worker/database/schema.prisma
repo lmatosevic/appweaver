@@ -19,7 +19,7 @@ model DailyReport {
   income       Int
   expenses     Int
   net          Int
-  categories   Json
+  categories   Json   @default(dbgenerated("'{}'"))
 
   /// Audit columns
   updatedAt DateTime @updatedAt

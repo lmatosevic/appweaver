@@ -52,7 +52,7 @@ export type DailyReportCreate = {
   income: number;
   expenses: number;
   net: number;
-  categories: any;
+  categories?: any;
 };
 
 export type DailyReportUpdate = {
@@ -70,7 +70,7 @@ export type DailyReportReplace = {
   income: number;
   expenses: number;
   net: number;
-  categories: any;
+  categories?: any;
 };
 
 export type DailyReportRelationCreate = {
@@ -79,7 +79,7 @@ export type DailyReportRelationCreate = {
   income: number;
   expenses: number;
   net: number;
-  categories: any;
+  categories?: any;
 };
 
 export type DailyReportRelationUpdate = {

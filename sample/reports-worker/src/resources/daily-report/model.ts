@@ -24,7 +24,8 @@ export default createModel({
     },
     // The net amount of every category
     categories: {
-      type: 'json'
+      type: 'json',
+      default: {}
     }
   }
 });

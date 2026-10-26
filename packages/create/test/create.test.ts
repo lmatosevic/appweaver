@@ -589,11 +589,13 @@ describe('create', () => {
         globalSetup: '<rootDir>/test/e2e/support/setup.ts',
         globalTeardown: '<rootDir>/test/e2e/support/teardown.ts'
       });
-      expect(exists('my-app', 'src', 'resources', 'user', 'model.ts')).toBe(
-        true
-      );
-      expect(exists('my-app', 'src', 'resources', 'user', 'routes.ts')).toBe(
-        false
+      // The User auth model comes with the authentication of the web module
+      expect(exists('my-app', 'src', 'resources')).toBe(false);
+      expect(
+        fs.readdirSync(path.join(tempDir, 'my-app', 'database', 'seeders'))
+      ).toEqual(['.gitkeep']);
+      expect(read('my-app', 'src', 'types', 'generated.ts')).toContain(
+        'export {};'
       );
       expect(exists('my-app', 'public')).toBe(false);
       expect(readJson('my-app', 'appweaver.json').config).not.toHaveProperty(
@@ -615,9 +617,19 @@ describe('create', () => {
       const { dependencies } = readJson('my-app', 'package.json');
       expect(dependencies).toHaveProperty('@appweaver/web');
       expect(dependencies).toHaveProperty('@appweaver/data');
-      expect(exists('my-app', 'src', 'resources', 'user', 'routes.ts')).toBe(
-        true
-      );
+      for (const file of ['model', 'policy', 'service', 'routes']) {
+        expect(exists('my-app', 'src', 'resources', 'user', `${file}.ts`)).toBe(
+          true
+        );
+      }
+      expect(
+        exists(
+          'my-app',
+          'database',
+          'seeders',
+          '001-create-roles-and-admin-user.ts'
+        )
+      ).toBe(true);
       expect(exists('my-app', 'public', 'robots.txt')).toBe(true);
       expect(read('my-app', 'test', 'e2e', 'main.test.ts')).toContain(
         "url: '/api'"

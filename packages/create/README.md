@@ -50,17 +50,17 @@ The base project depends only on `@appweaver/cli`, `@appweaver/common`, `@appwea
 application without a database or a server. A module installs its packages, and a module required by an added one is
 added along with it:
 
-| Module      | Adds                                                                                                 | Without it                                  |
-|-------------|------------------------------------------------------------------------------------------------------|---------------------------------------------|
-| `data`      | `@appweaver/data`, `@appweaver/sharp`, Prisma, the `User` auth model, the seeders, the test database | no database                                 |
-| `web`       | `@appweaver/web`, requires `data`, the server config, the `User` routes and `public/`                | no HTTP server                              |
-| `redis`     | `@appweaver/redis`, the Redis connection, the Redis service of `docker-compose.yml`                  | memory, cache and rate limit in the process |
-| `queue`     | `@appweaver/bullmq`, requires `redis`                                                                | in-memory queue                             |
-| `scheduler` | `@appweaver/cron`                                                                                    | scheduler disabled                          |
-| `mailer`    | `@appweaver/nodemailer`, the account email templates with `templates`, their texts with `locales`    | mailer disabled                             |
-| `templates` | `@appweaver/handlebars` and `templates/`                                                             | no template engine                          |
-| `locales`   | `locales/en.json`, empty without the mailer                                                          | English texts written into the templates    |
-| `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                      | no Docker files                             |
+| Module      | Adds                                                                                                           | Without it                                  |
+|-------------|----------------------------------------------------------------------------------------------------------------|---------------------------------------------|
+| `data`      | `@appweaver/data`, `@appweaver/sharp`, Prisma, `database/`, the generated types, the test database             | no database                                 |
+| `web`       | `@appweaver/web`, requires `data`, the server config, the `User` auth resource, its admin seeder and `public/` | no HTTP server, no auth model               |
+| `redis`     | `@appweaver/redis`, the Redis connection, the Redis service of `docker-compose.yml`                            | memory, cache and rate limit in the process |
+| `queue`     | `@appweaver/bullmq`, requires `redis`                                                                          | in-memory queue                             |
+| `scheduler` | `@appweaver/cron`                                                                                              | scheduler disabled                          |
+| `mailer`    | `@appweaver/nodemailer`, the account email templates with `templates`, their texts with `locales`              | mailer disabled                             |
+| `templates` | `@appweaver/handlebars` and `templates/`                                                                       | no template engine                          |
+| `locales`   | `locales/en.json`, empty without the mailer                                                                    | English texts written into the templates    |
+| `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                | no Docker files                             |
 
 The modules of an existing project are managed with the `weaver` CLI, from the same templates:
 

@@ -327,7 +327,7 @@ export type DailyReportCreateInput = {
   income: number
   expenses: number
   net: number
-  categories: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  categories?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   updatedAt?: Date | string
   createdAt?: Date | string
 }
@@ -339,7 +339,7 @@ export type DailyReportUncheckedCreateInput = {
   income: number
   expenses: number
   net: number
-  categories: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  categories?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   updatedAt?: Date | string
   createdAt?: Date | string
 }
@@ -374,7 +374,7 @@ export type DailyReportCreateManyInput = {
   income: number
   expenses: number
   net: number
-  categories: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  categories?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   updatedAt?: Date | string
   createdAt?: Date | string
 }

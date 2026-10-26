@@ -82,17 +82,17 @@ application with neither a database nor a server (`src/main.ts`, an e2e test of 
 one-shot task (`weaver run`). Each module is added with `--add`, `--all`, or later with `weaver module add` (see
 [Managing modules](#managing-modules)), and `--database`, `--host` and `--port` apply only with `data` and `web`:
 
-| Module      | Adds                                                                                            | Without it                                   |
-|-------------|-------------------------------------------------------------------------------------------------|----------------------------------------------|
-| `data`      | `@appweaver/data`, `@appweaver/sharp`, Prisma, the `User` model, the seeders, the test database | no database, no resources                    |
-| `web`       | `@appweaver/web` (requires `data`), the server config, the `User` routes, `public/`             | no HTTP server                               |
-| `redis`     | `@appweaver/redis`, the `memory.redis.url`, the docker-compose Redis service                    | memory, cache and rate limit in the process  |
-| `queue`     | `@appweaver/bullmq` (requires `redis`, added along with it)                                     | in-memory queue                              |
-| `scheduler` | `@appweaver/cron`                                                                               | scheduler disabled                           |
-| `mailer`    | `@appweaver/nodemailer`                                                                         | mailer disabled (email features respond 501) |
-| `templates` | `@appweaver/handlebars`, `templates/`, the account emails with the mailer                       | no template engine                           |
-| `locales`   | `locales/en.json`, the account email texts with the mailer                                      | English texts written into the templates     |
-| `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                 | no Docker files                              |
+| Module      | Adds                                                                                                            | Without it                                   |
+|-------------|-----------------------------------------------------------------------------------------------------------------|----------------------------------------------|
+| `data`      | `@appweaver/data`, `@appweaver/sharp`, Prisma, `database/`, the generated types, the test database              | no database, no resources                    |
+| `web`       | `@appweaver/web` (requires `data`), the server config, the `User` auth resource and its admin seeder, `public/` | no HTTP server, no auth model                |
+| `redis`     | `@appweaver/redis`, the `memory.redis.url`, the docker-compose Redis service                                    | memory, cache and rate limit in the process  |
+| `queue`     | `@appweaver/bullmq` (requires `redis`, added along with it)                                                     | in-memory queue                              |
+| `scheduler` | `@appweaver/cron`                                                                                               | scheduler disabled                           |
+| `mailer`    | `@appweaver/nodemailer`                                                                                         | mailer disabled (email features respond 501) |
+| `templates` | `@appweaver/handlebars`, `templates/`, the account emails with the mailer                                       | no template engine                           |
+| `locales`   | `locales/en.json`, the account email texts with the mailer                                                      | English texts written into the templates     |
+| `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                 | no Docker files                              |
 
 Options are given after the positional arguments, since `--add` and `--exclude` take every following value up to the
 next option.
@@ -579,8 +579,8 @@ export default createAuthService({
 });
 ```
 
-The create and update inputs of an auth model include its `roles`, `password`, and `enabled` fields, so a scaffolded
-project lets only the `Admin` role create, update, delete, and change the files of users through the `User` routes, and
+The create and update inputs of an auth model include its `roles`, `password`, and `enabled` fields, so a project
+scaffolded with `web` lets only the `Admin` role create, update, delete, and change the files of users through the `User` routes, and
 signs new users up with the `User` role. A policy on the auth model applies only to the API routes: the framework's own
 sign-up, logout, password change, and 2FA flows run with `withoutPolicies`, so a policy never blocks them.
 
@@ -1046,8 +1046,8 @@ files, the mailer's email templates and its unchanged `emails` texts of `locales
 templates, so they keep rendering (the other languages are lost). A module another enabled module requires cannot be
 removed alone (`queue` requires `redis`, `web` requires `data`). Removing `data` deletes the whole `database/`
 directory and the generated types. An `appweaver.json` value changed in the project is kept, and the only files of
-`src/` touched are the scaffolded ones of `data` and `web` (the `User` resource), deleted only while unchanged, so
-remove the code using a removed module yourself.
+`src/` and `database/seeders/` touched are the scaffolded ones of `web` (the `User` resource and its admin seeder),
+deleted only while unchanged, so remove the code using a removed module yourself.
 
 A name that is not a scaffold module, with a scope, a `-` or a `/`, is a module package: `add` installs it with
 `npm install --ignore-scripts` (`bun
