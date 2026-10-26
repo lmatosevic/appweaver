@@ -217,6 +217,36 @@ describe('generate-schema', () => {
       expect(schema).toContain('@default(["a", "b"])');
     });
 
+    test('quotes a JSON default as an SQL literal on SQLite', async () => {
+      databaseType = 'sqlite';
+      const { schema } = await generate({
+        Report: model('Report', {
+          scalars: {
+            totals: { type: 'json', default: {} },
+            labels: { type: 'json', default: { note: 'it\'s \\ "ok"' } },
+            raw: { type: 'json', default: [1, 2] }
+          }
+        })
+      });
+
+      expect(schema).toContain(`totals Json @default(dbgenerated("'{}'"))`);
+      expect(schema).toContain(
+        `labels Json @default(dbgenerated("'{\\"note\\":\\"it''s \\\\\\\\ \\\\\\"ok\\\\\\"\\"}'"))`
+      );
+      expect(schema).toContain(`raw    Json @default(dbgenerated("'[1,2]'"))`);
+    });
+
+    test('keeps a JSON default as a string on the other databases', async () => {
+      databaseType = 'postgresql';
+      const { schema } = await generate({
+        Report: model('Report', {
+          scalars: { totals: { type: 'json', default: { a: 1 } } }
+        })
+      });
+
+      expect(schema).toContain('@default("{\\"a\\":1}")');
+    });
+
     test('supports default generators and database expressions', async () => {
       const { schema } = await generate({
         Post: model('Post', {

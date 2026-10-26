@@ -151,7 +151,8 @@ Per model, the type file holds `<Model>`, `<Model>Single`, `<Model>Multiple`, `<
 `<Model>RelationCreate`, `<Model>RelationUpdate`, `<Model>RelationInput`, `<Model>Query`, `<Model>Sort`,
 `<Model>Aggregate`, and last `<Model>ResourceService`, the `injectService` type of that model. The file ends by
 registering the types of every model in the `ResourceRegistry` of `@appweaver/common`, which lets the factories and
-`injectService` infer them from a model name. `--no-registry` leaves the registration out.
+`injectService` infer them from a model name. `--no-registry` leaves the registration out. Without any model the file
+holds only `export {};`, so the `export * from './generated'` of the types index still compiles.
 
 The models come from the project and from the `resources` of the enabled modules (see [modules](./modules.md)). The
 framework models reach the schema only when the project uses them: `Role`, `Permission`, `ApiKey`, `OneTimeToken` and
