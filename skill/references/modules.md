@@ -22,7 +22,7 @@ first-party module does.
 Every first-party module but core is a package of its own, enabled like any [package module](#package-modules): by
 being a dependency of the application's `package.json`. A driver package carries the library it wraps as a dependency,
 so `npm install @appweaver/redis` moves the memory, the cache and the rate limit to Redis without any config, and
-installing `ioredis` alone enables nothing. The scaffold modules of `weaver module add` (`redis`, `queue`, `mailer`,
+installing `ioredis` alone enables nothing. The scaffold modules of `weaver module add` (`data`, `web`, `redis`, `queue`, `mailer`,
 ...) install these packages along with their config and files.
 
 ## Discovery

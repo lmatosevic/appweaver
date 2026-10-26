@@ -43,6 +43,8 @@ describe('apply-modules', () => {
   let tempDir: string;
   let count = 0;
   const createdSnapshots = new Map<string, Record<string, unknown>>();
+  /** The database of each project, which the data module is added with. */
+  const databases = new Map<string, DatabaseType>();
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'appweaver-modules-'));
@@ -62,6 +64,7 @@ describe('apply-modules', () => {
   ): Promise<string> => {
     const dir = path.join(tempDir, `project-${count++}`);
     await createProject(projectOptions(dir, modules, options));
+    databases.set(dir, options.database ?? 'postgresql');
     return dir;
   };
 
@@ -88,10 +91,18 @@ describe('apply-modules', () => {
     modules
   });
 
-  const load = (project: Project) =>
-    typeof project === 'string'
-      ? loadProject(project)
-      : loadProject(project.dir, project);
+  /** Loads a project, with the database the data module is added with, like `weaver module add --database`. */
+  const load = (project: Project) => {
+    const loaded =
+      typeof project === 'string'
+        ? loadProject(project)
+        : loadProject(project.dir, project);
+    const dir = typeof project === 'string' ? project : project.dir;
+    if (!loaded.enabled.includes('data')) {
+      loaded.context.database = databases.get(dir) ?? 'postgresql';
+    }
+    return loaded;
+  };
 
   /** Adds the modules one at a time, the way `weaver module add` does. */
   const add = async (project: Project, ...modules: ModuleName[]) => {
@@ -143,7 +154,11 @@ describe('apply-modules', () => {
   const combinations = (): ModuleName[][] =>
     Array.from({ length: 2 ** moduleNames.length }, (_, mask) =>
       moduleNames.filter((_, i) => mask & (1 << i))
-    ).filter((names) => !names.includes('queue') || names.includes('redis'));
+    ).filter(
+      (names) =>
+        (!names.includes('queue') || names.includes('redis')) &&
+        (!names.includes('web') || names.includes('data'))
+    );
 
   describe('enableModules', () => {
     test('adds every combination of modules like a created project', async () => {
@@ -170,7 +185,7 @@ describe('apply-modules', () => {
         const created = await create([...moduleNames], { database, runtime });
         const added = await create([], { database, runtime });
         await add(added, 'docker', 'locales', 'redis', 'templates', 'mailer');
-        await add(added, 'scheduler', 'queue');
+        await add(added, 'data', 'scheduler', 'queue', 'web');
 
         expect(snapshot(added)).toEqual(snapshot(created));
       }
@@ -256,6 +271,32 @@ describe('apply-modules', () => {
         ...defaultTranslations,
         page: { title: 'Home' }
       });
+    });
+
+    test('replaces the end-to-end test of the base project with the one of the server', async () => {
+      const dir = await create(['data']);
+      const base = read(dir, 'test/e2e/main.test.ts');
+      expect(base).toContain('HealthService');
+
+      await add(dir, 'web');
+      expect(read(dir, 'test/e2e/main.test.ts')).toContain("url: '/api'");
+
+      await remove(dir, 'web');
+      expect(read(dir, 'test/e2e/main.test.ts')).toBe(base);
+    });
+
+    test('adds the database password of the server databases only', async () => {
+      const dir = await create([]);
+      await add(dir, 'data');
+      expect(read(dir, '.env')).toContain('DB_PASSWORD=my-app\n');
+      expect(read(dir, '.env.example')).toContain('DB_PASSWORD=my-app\n');
+      expect(read(dir, '.gitignore')).not.toContain('/data/*.db');
+
+      const sqlite = await create([], { database: 'sqlite' });
+      await add(sqlite, 'data');
+      expect(read(sqlite, '.env')).toBe('NODE_ENV=dev\n');
+      expect(read(sqlite, '.gitignore')).toContain('/data/*.db\n');
+      expect(fs.existsSync(path.join(sqlite, 'data', '.gitkeep'))).toBe(true);
     });
 
     test('reports whether the dependencies changed', async () => {
@@ -379,6 +420,26 @@ describe('apply-modules', () => {
         )
       ]);
       expect(files.read('templates/page.html.hbs')).toBe(page);
+    });
+
+    test('keeps the changed source files, deleting the database files', async () => {
+      const dir = await create(['data']);
+      const model = path.join(dir, 'src', 'resources', 'user', 'model.ts');
+      fs.writeFileSync(model, 'export default {};\n');
+      fs.writeFileSync(path.join(dir, 'src', 'types', 'generated.ts'), '');
+
+      const { files, context, enabled } = loadProject(dir);
+      const { warnings } = disableModules(files, context, enabled, ['data']);
+      await files.commit();
+
+      expect(warnings).toEqual([
+        'Kept the changed file src/resources/user/model.ts'
+      ]);
+      expect(fs.readFileSync(model, 'utf8')).toBe('export default {};\n');
+      for (const file of ['database', 'src/types', 'prisma.config.ts']) {
+        expect(fs.existsSync(path.join(dir, file))).toBe(false);
+      }
+      expect(read(dir, 'test/e2e/main.test.ts')).toContain('HealthService');
     });
 
     test('keeps the configuration values changed in the project', async () => {

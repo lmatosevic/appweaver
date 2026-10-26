@@ -17,7 +17,7 @@ describe('modules', () => {
 
     test('rejects an unknown module', () => {
       expect(() => parseModuleNames(['redis', 'cron'])).toThrow(
-        'Unknown module: cron. Must be one of following: redis, queue, scheduler, mailer, templates, locales, docker.'
+        'Unknown module: cron. Must be one of following: data, web, redis, queue, scheduler, mailer, templates, locales, docker.'
       );
     });
   });
@@ -37,6 +37,13 @@ describe('modules', () => {
       expect(resolveModules(['queue', 'mailer'])).toEqual({
         modules: ['redis', 'queue', 'mailer'],
         required: [['redis', 'queue']]
+      });
+    });
+
+    test('adds the data module the server requires', () => {
+      expect(resolveModules(['web'])).toEqual({
+        modules: ['data', 'web'],
+        required: [['data', 'web']]
       });
     });
 

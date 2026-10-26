@@ -1,4 +1,6 @@
 export const moduleNames = [
+  'data',
+  'web',
   'redis',
   'queue',
   'scheduler',
@@ -26,8 +28,11 @@ export type Runtime = 'node' | 'bun';
 export type ProjectContext = {
   /** The package name of the project, naming its containers. */
   name: string;
+  /** The host and port the server of the web module listens on. */
+  host: string;
   port: number;
   runtime: Runtime;
+  /** The database of the data module. */
   database: DatabaseType;
 };
 

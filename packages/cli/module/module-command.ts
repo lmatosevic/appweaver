@@ -1,5 +1,7 @@
-import { Command } from 'commander';
+import { Command, InvalidOptionArgumentError } from 'commander';
 import {
+  DatabaseType,
+  databaseTypes,
   disableModules,
   enableModules,
   findDependents,
@@ -85,11 +87,26 @@ export function moduleCommand(program: Command): void {
       '-f, --force',
       'Overwrite the existing files instead of skipping them.'
     )
+    .option(
+      '--database [database]',
+      `Type of SQL database of the data module (${databaseTypes.join(', ')}). (default: sqlite)`,
+      parseDatabaseType
+    )
     .option('--dry-run', 'Print the changes without applying them.')
     .option('--no-install', 'Skip the installation of the dependencies.')
     .option('--verbose', 'Print verbose output.')
     .action(async (allNames: string[], _, command: Command) => {
       const project = load();
+      const database = command.getOptionValue('database');
+      if (database) {
+        if (project.enabled.includes('data')) {
+          console.error(
+            `Module data is already enabled with the ${project.context.database} database.`
+          );
+          process.exit(1);
+        }
+        project.context.database = database;
+      }
       const isPackage = (name: string) => isPackageName(name, moduleNames);
       const packageNames = allNames.filter(isPackage);
       if (packageNames.length > 0) {
@@ -225,6 +242,16 @@ async function addPackageModules(
       console.log(line)
     );
   }
+}
+
+function parseDatabaseType(value: string): DatabaseType {
+  const database = value.toLowerCase() as DatabaseType;
+  if (!databaseTypes.includes(database)) {
+    throw new InvalidOptionArgumentError(
+      `Must be one of following: ${databaseTypes.join(', ')}.`
+    );
+  }
+  return database;
 }
 
 /** Loads the project of the working directory, exiting on an error. */

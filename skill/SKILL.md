@@ -52,9 +52,10 @@ resolves to `dev`, and `production` or an unset `NODE_ENV` to `prod`.
 
 ### Scaffolding a new application
 
-Use `@appweaver/create` (the `create-appweaver` binary) to scaffold a new project. It copies the base template, adds
-the selected modules, installs dependencies, and generates initial Prisma schema and models. It is a one-shot command
-without prompts.
+Use `@appweaver/create` (the `create-appweaver` binary) to scaffold a new project. It copies the base template, a
+minimal application of the core module, adds the selected modules, installs dependencies, and generates the Prisma
+schema and the types with `data` (only the JSON Schema of `appweaver.json` without it). It is a one-shot command without
+prompts.
 
 ```sh
 npx @appweaver/create <name> [description] [options]
@@ -63,41 +64,45 @@ npm create @appweaver <name> [description] -- [options]  # the same, npm passes 
 
 **Options:**
 
-| Flag                     | Description                                                     | Default      |
-|--------------------------|-----------------------------------------------------------------|--------------|
-| `-o, --output-dir`       | Output directory (use ./ for current working directory)         | project name |
-| `--database`             | Database type: `sqlite`, `postgresql`, `mysql`, `sqlserver`     | `sqlite`     |
-| `--host`                 | Hostname or IP address where the application server will bind.  | 0.0.0.0      |
-| `--port`                 | Port number where the application server will listen.           | 5000         |
-| `--agent`                | The AI agent for which to configure guidelines and skill files  | `claude`     |
-| `--add <modules...>`     | Modules to add, separated by spaces or commas                   | none         |
-| `--all`                  | Add every module                                                | false        |
-| `--exclude <modules...>` | Modules to leave out of `--all` (e.g. `--all --exclude docker`) | none         |
-| `--bun`                  | Use Bun as application runtime. (default is node and npm)       | false        |
-| `--no-install`           | Skip all dependencies installation.                             | installs     |
+| Flag                     | Description                                                      | Default      |
+|--------------------------|------------------------------------------------------------------|--------------|
+| `-o, --output-dir`       | Output directory (use ./ for current working directory)          | project name |
+| `--database`             | Database of `data`: `sqlite`, `postgresql`, `mysql`, `sqlserver` | `sqlite`     |
+| `--host`                 | Hostname or IP address where the server of `web` will bind.      | 0.0.0.0      |
+| `--port`                 | Port number where the server of `web` will listen.               | 5000         |
+| `--agent`                | The AI agent for which to configure guidelines and skill files   | `claude`     |
+| `--add <modules...>`     | Modules to add, separated by spaces or commas                    | none         |
+| `--all`                  | Add every module                                                 | false        |
+| `--exclude <modules...>` | Modules to leave out of `--all` (e.g. `--all --exclude docker`)  | none         |
+| `--bun`                  | Use Bun as application runtime. (default is node and npm)        | false        |
+| `--no-install`           | Skip all dependencies installation.                              | installs     |
 
-**Modules:** the base project depends on `@appweaver/core`, `@appweaver/data` (the database), `@appweaver/web` (the
-server) and `@appweaver/sharp` (the image transforms), and has none of these modules. Each one is added with `--add`,
-`--all`, or later with `weaver module add` (see [Managing modules](#managing-modules)):
+**Modules:** the base project depends only on `@appweaver/cli`, `@appweaver/common`, `@appweaver/core` and TypeBox: an
+application with neither a database nor a server (`src/main.ts`, an e2e test of its health checks), for a worker or a
+one-shot task (`weaver run`). Each module is added with `--add`, `--all`, or later with `weaver module add` (see
+[Managing modules](#managing-modules)), and `--database`, `--host` and `--port` apply only with `data` and `web`:
 
-| Module      | Adds                                                                         | Without it                                   |
-|-------------|------------------------------------------------------------------------------|----------------------------------------------|
-| `redis`     | `@appweaver/redis`, the `memory.redis.url`, the docker-compose Redis service | memory, cache and rate limit in the process  |
-| `queue`     | `@appweaver/bullmq` (requires `redis`, added along with it)                  | in-memory queue                              |
-| `scheduler` | `@appweaver/cron`                                                            | scheduler disabled                           |
-| `mailer`    | `@appweaver/nodemailer`                                                      | mailer disabled (email features respond 501) |
-| `templates` | `@appweaver/handlebars`, `templates/`, the account emails with the mailer    | no template engine                           |
-| `locales`   | `locales/en.json`, the account email texts with the mailer                   | English texts written into the templates     |
-| `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`              | no Docker files                              |
+| Module      | Adds                                                                                            | Without it                                   |
+|-------------|-------------------------------------------------------------------------------------------------|----------------------------------------------|
+| `data`      | `@appweaver/data`, `@appweaver/sharp`, Prisma, the `User` model, the seeders, the test database | no database, no resources                    |
+| `web`       | `@appweaver/web` (requires `data`), the server config, the `User` routes, `public/`             | no HTTP server                               |
+| `redis`     | `@appweaver/redis`, the `memory.redis.url`, the docker-compose Redis service                    | memory, cache and rate limit in the process  |
+| `queue`     | `@appweaver/bullmq` (requires `redis`, added along with it)                                     | in-memory queue                              |
+| `scheduler` | `@appweaver/cron`                                                                               | scheduler disabled                           |
+| `mailer`    | `@appweaver/nodemailer`                                                                         | mailer disabled (email features respond 501) |
+| `templates` | `@appweaver/handlebars`, `templates/`, the account emails with the mailer                       | no template engine                           |
+| `locales`   | `locales/en.json`, the account email texts with the mailer                                      | English texts written into the templates     |
+| `docker`    | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                 | no Docker files                              |
 
 Options are given after the positional arguments, since `--add` and `--exclude` take every following value up to the
 next option.
 
-**Example — PostgreSQL project with Redis, mailer and Docker:**
+**Example — PostgreSQL API with Redis, mailer and Docker:**
 
 ```sh
-npx @appweaver/create MyBlogAPI "My own CMS for blogging" --database postgresql --add redis mailer docker
+npx @appweaver/create MyBlogAPI "My own CMS for blogging" --database postgresql --add web redis mailer docker
 npx @appweaver/create MyBlogAPI "My own CMS for blogging" --database postgresql --all --exclude queue
+npx @appweaver/create Reports "Nightly reports" --add data scheduler  # a database worker without a server
 ```
 
 This creates a `./my-blog-api` directory, installs all dependencies, and runs the initial schema and type generation.
@@ -1019,6 +1024,7 @@ of the version the project's `@appweaver/cli` is at:
 ```sh
 weaver module list                     # the modules, whether enabled, their packages and requirements
 weaver module add redis queue docker   # add modules with the modules they require, and install them
+weaver module add web --database mysql # add the server and the database (data) it requires, on MySQL
 weaver module add templates --dry-run  # print the files and configuration it would change
 weaver module add docker --force       # overwrite the existing files instead of skipping them
 weaver module remove docker            # remove modules (alias: rm), deleting their files
@@ -1029,15 +1035,19 @@ weaver module new audit-log            # create the local module src/modules/aud
 
 A module is enabled when the project depends on its packages (`locales` and `docker` when `locales/` and `Dockerfile`
 exist). `add` writes the module's packages into `package.json`, its values into `appweaver.json`, its files (skipping
-the existing ones that differ), and what it adds to the enabled modules: the Redis service of `docker-compose.yml`, the
-Dockerfile `COPY` of the templates and translation files, the email templates and texts of the mailer. Adding `locales` restores
+the existing ones that differ), and what it adds to the enabled modules: the database, migrations and seed services and
+the Redis service of `docker-compose.yml`, the server port and health check, the Dockerfile `COPY` of the public,
+template, translation and Prisma files, the email templates and texts of the mailer. `data` is added on the database of
+`--database` (`sqlite` by default), with its password in `.env` and `.env.example`. Adding `locales` restores
 the `t` calls of the scaffolded templates that still hold the English texts.
 
 `remove` reverts all of it and deletes the module's files: the whole `templates/` or `locales/` directory, the Docker
 files, the mailer's email templates and its unchanged `emails` texts of `locales/en.json`. Removing `locales` first writes the English texts of `locales/en.json` into the
 templates, so they keep rendering (the other languages are lost). A module another enabled module requires cannot be
-removed alone (`queue` requires `redis`). An `appweaver.json` value changed in the project is kept, and `src/` is never
-touched, so remove the code using a removed module yourself.
+removed alone (`queue` requires `redis`, `web` requires `data`). Removing `data` deletes the whole `database/`
+directory and the generated types. An `appweaver.json` value changed in the project is kept, and the only files of
+`src/` touched are the scaffolded ones of `data` and `web` (the `User` resource), deleted only while unchanged, so
+remove the code using a removed module yourself.
 
 A name that is not a scaffold module, with a scope, a `-` or a `/`, is a module package: `add` installs it with
 `npm install --ignore-scripts` (`bun

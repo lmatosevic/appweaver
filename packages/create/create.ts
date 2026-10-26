@@ -119,19 +119,19 @@ function createProjectProgram(): Command {
     )
     .option(
       '--database [database]',
-      `Type of SQL database (${databaseTypes.join(', ')}).`,
+      `Type of SQL database of the data module (${databaseTypes.join(', ')}).`,
       parseDatabaseType,
       'sqlite'
     )
     .option(
       '--port [port]',
-      'Port number where the application server will listen.',
+      'Port number where the server of the web module will listen.',
       parsePortNumber,
       5000
     )
     .option(
       '--host [host]',
-      'Hostname or IP address where the application server will bind.',
+      'Hostname or IP address where the server of the web module will bind.',
       parseHostname,
       '0.0.0.0'
     )
@@ -143,7 +143,7 @@ function createProjectProgram(): Command {
     )
     .option(
       '--add <modules...>',
-      `Modules to add, separated by spaces or commas (${moduleNames.join(', ')}).`
+      `Modules to add to the core application, separated by spaces or commas (${moduleNames.join(', ')}).`
     )
     .option('--all', 'Add every module.')
     .option(
@@ -301,7 +301,16 @@ async function createApp(
 
   console.log(`Configuring application...`);
 
-  await runProcess(packageManager, ['run', 'generate'], { destDir });
+  // Without the data module, there are no types to generate, only the schema of appweaver.json
+  if (selectedModules.includes('data')) {
+    await runProcess(packageManager, ['run', 'generate'], { destDir });
+  } else {
+    await runProcess(
+      runtime === 'bun' ? 'bun' : 'npx',
+      ['weaver', 'config', 'schema'],
+      { destDir }
+    );
+  }
 
   console.log(`Done\n`);
 
@@ -328,6 +337,21 @@ function selectModules(command: Command): ModuleName[] {
   const { modules: resolved, required } = resolveModules(selected, excluded);
   for (const [requirement, by] of required) {
     console.log(`Adding module ${requirement}, required by ${by}.`);
+  }
+
+  for (const [option, module] of [
+    ['database', 'data'],
+    ['port', 'web'],
+    ['host', 'web']
+  ] as [string, ModuleName][]) {
+    if (
+      command.getOptionValueSource(option) === 'cli' &&
+      !resolved.includes(module)
+    ) {
+      console.log(
+        `Ignoring --${option}, it configures the ${module} module, which is not added.`
+      );
+    }
   }
   return resolved;
 }

@@ -8,11 +8,8 @@
     "build": "weaver build",
     "start": "weaver start",
     "dev": "weaver start --watch",
-    "generate": "weaver generate",
-    "migrate": "weaver migrate",
-    "seed": "weaver seed",
     "test": "bun test ./test/unit --coverage --reporter=junit --reporter-outfile=./reports/junit.xml",
-    "e2e": "bun test ./test/e2e --reporter=junit --reporter-outfile=./reports/e2e.xml --preload ./test/e2e/support/preload.ts",
+    "e2e": "bun test ./test/e2e --reporter=junit --reporter-outfile=./reports/e2e.xml",
     "format": "prettier --write \"./**/*.ts\"",
     "lint": "eslint \"./**/*.ts\""
   },
@@ -20,9 +17,6 @@
     "@appweaver/cli": "{{VERSION}}",
     "@appweaver/common": "{{VERSION}}",
     "@appweaver/core": "{{VERSION}}",
-    "@appweaver/data": "{{VERSION}}",
-    "@appweaver/sharp": "{{VERSION}}",
-    "@appweaver/web": "{{VERSION}}",
 {{DEPENDENCIES}}
   },
   "devDependencies": {

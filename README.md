@@ -53,14 +53,15 @@ Optional:
 Bootstrap the new application with the scaffolding tool, `@appweaver/create`:
 
 ```sh
-npm create @appweaver MyApp "My awesome API" -- --database postgresql --add redis mailer docker
+npm create @appweaver MyApp "My awesome API" -- --database postgresql --add web redis mailer docker
 ```
 
 npm passes the options after `--` to the tool. `npx @appweaver/create MyApp ...` takes them directly, and a global
 install (`npm install -g @appweaver/create`) runs it as `create-appweaver`.
 
 This creates a `./my-app` directory, installs all dependencies, and runs the initial schema and type generation. The
-base project has no optional module: add them with `--add`, all of them with `--all` (leaving some out with
+base project is a minimal application of `@appweaver/core`, without a database or a server: add the modules with
+`--add` (`data` for the database, `web` for the HTTP server), all of them with `--all` (leaving some out with
 `--exclude`), or later with `weaver module add`.
 
 Without the scaffolder, an API installs the runtime, the database and the server packages, and a driver package for
@@ -80,18 +81,18 @@ The driver adapters are `@prisma/adapter-pg` (PostgreSQL), `@prisma/adapter-mari
 
 Common options:
 
-| Flag                     | Description                                                               | Default      |
-|--------------------------|---------------------------------------------------------------------------|--------------|
-| `-o, --output-dir`       | Output directory (use ./ for current working directory)                   | project name |
-| `--database`             | `sqlite`, `postgresql`, `mysql`, `sqlserver`                              | `sqlite`     |
-| `--host`                 | Hostname or IP address where the application server will bind.            | 0.0.0.0      |
-| `--port`                 | Port number where the application server will listen.                     | 5000         |
-| `--agent`                | The AI agent for which to configure guidelines and skill files            | `claude`     |
-| `--add <modules...>`     | `redis`, `queue`, `scheduler`, `mailer`, `templates`, `locales`, `docker` | none         |
-| `--all`                  | Add every module                                                          | false        |
-| `--exclude <modules...>` | Modules to leave out of `--all`                                           | none         |
-| `--bun`                  | Use Bun as application runtime.                                           | false        |
-| `--no-install`           | Skip all dependencies installation.                                       | installs     |
+| Flag                     | Description                                                                              | Default      |
+|--------------------------|------------------------------------------------------------------------------------------|--------------|
+| `-o, --output-dir`       | Output directory (use ./ for current working directory)                                  | project name |
+| `--database`             | `sqlite`, `postgresql`, `mysql`, `sqlserver`, with the `data` module                     | `sqlite`     |
+| `--host`                 | Hostname or IP address where the server of the `web` module will bind.                   | 0.0.0.0      |
+| `--port`                 | Port number where the server of the `web` module will listen.                            | 5000         |
+| `--agent`                | The AI agent for which to configure guidelines and skill files                           | `claude`     |
+| `--add <modules...>`     | `data`, `web`, `redis`, `queue`, `scheduler`, `mailer`, `templates`, `locales`, `docker` | none         |
+| `--all`                  | Add every module                                                                         | false        |
+| `--exclude <modules...>` | Modules to leave out of `--all`                                                          | none         |
+| `--bun`                  | Use Bun as application runtime.                                                          | false        |
+| `--no-install`           | Skip all dependencies installation.                                                      | installs     |
 
 ### 2. Run the initial migration and seed
 

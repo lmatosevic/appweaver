@@ -1,5 +1,5 @@
-import { Application, createApp } from '@appweaver/core';
-import { resetTestData } from './support/reset';
+import { HealthCheckStatus } from '@appweaver/common';
+import { Application, createApp, HealthService, inject } from '@appweaver/core';
 
 describe('Sample e2e test', () => {
   let app: Application;
@@ -12,16 +12,12 @@ describe('Sample e2e test', () => {
     await app.stop();
   });
 
-  afterAll(resetTestData, 10_000);
+  test('Application is healthy', async () => {
+    const health = inject(HealthService);
 
-  test('Info endpoint /api', async () => {
-    const resp = await app.server.inject({
-      method: 'GET',
-      url: '/api'
-    });
-    expect(resp.json()).toEqual({
-      name: '{{NAME}}',
-      version: '1.0.0'
-    });
+    expect(await health.checkReadiness()).toBe(true);
+    for (const check of Object.values(await health.checkHealth())) {
+      expect(check.status).toBe(HealthCheckStatus.Up);
+    }
   });
 });

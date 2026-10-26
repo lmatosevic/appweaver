@@ -23,7 +23,7 @@ lerna-debug.log*
 # Local storage files
 storage
 
-{{SQLITE_GITIGNORE}}# OS
+# OS
 .DS_Store
 
 # IDEs and editors

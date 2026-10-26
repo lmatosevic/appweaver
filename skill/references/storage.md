@@ -219,7 +219,7 @@ declares `files`.
 
 The `image` options of a file field (dimensions, fit, quality) are applied by the `ImageProcessor` contract of
 `@appweaver/common`, `supports(mimeType)` and `process(stream, mimeType, config?)`. Its `sharp` driver
-(`SharpImageProcessor` of `@appweaver/sharp`, a dependency of every scaffolded project) is selected when the package is
+(`SharpImageProcessor` of `@appweaver/sharp`, installed by the `data` module of a scaffolded project) is selected when the package is
 installed. Without a processor (`IMAGE_PROVIDER=none`, or no `@appweaver/sharp`), the images are stored as they are
 uploaded, and the application warns at startup naming the file fields whose `image` options are not applied.
 

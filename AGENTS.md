@@ -361,13 +361,18 @@ The `@appweaver/create` package is the scaffolding tool that generates new Appwe
 It exposes the **`create-appweaver`** CLI binary (entry point `create.ts`), run as `npm create @appweaver <name>` or
 `npx @appweaver/create <name>`, and as `npm create @appweaver module <package>` for a module package.
 
-A generated project starts from the base template (`templates/base/`) and adds the optional modules selected with
-`--add <modules...>` or `--all` (minus the `--exclude <modules...>` ones): `redis`, `queue` (requires `redis`),
-`scheduler`,
-`mailer`, `templates`, `locales` and `docker`. The base project depends on `@appweaver/cli`, `common`, `core`, `data`,
-`web` and `sharp`, and a module adds its driver package: `@appweaver/redis` (`redis`), `@appweaver/bullmq` (`queue`),
+A generated project starts from the base template (`templates/base/`), a minimal application of the core module, and
+adds the optional modules selected with `--add <modules...>` or `--all` (minus the `--exclude <modules...>` ones):
+`data`, `web` (requires `data`), `redis`, `queue` (requires `redis`), `scheduler`, `mailer`, `templates`, `locales`
+and `docker`. The base project depends only on `@appweaver/cli`, `common`, `core` and TypeBox, and a module adds its
+packages: `@appweaver/data`, `@appweaver/sharp`, Prisma and the driver adapter of `--database` (`data`, its
+`projectPackages`), `@appweaver/web` (`web`), `@appweaver/redis` (`redis`), `@appweaver/bullmq` (`queue`),
 `@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`) and `@appweaver/handlebars` (`templates`), every
 `@appweaver/*` package at the framework version, the version of `@appweaver/create` (`scaffold/package-versions.ts`).
+`--database`, `--host` and `--port` configure `data` and `web` only (`ProjectContext`), and `weaver module add` takes
+`--database` for `data`. A module sets values in the other JSON files of the project with its `jsonFiles` (the
+`package.json` scripts of `data`, the Jest e2e `globalSetup`), and a module file at the path of a base file replaces it
+while unchanged, restored on removal (the `/api` e2e test of `web`).
 The scaffolding engine lives in `scaffold/` and is exported as
 `@appweaver/create/scaffold`, which `weaver module add|remove` of `packages/cli` uses on an existing
 project, so both apply the same templates. `@appweaver/cli` depends on `@appweaver/create` at its exact
@@ -383,7 +388,7 @@ version (`tools/copy-packages.js` pins the `@appweaver/*` dependencies of the pu
 | `scaffold/load-project.ts`          | Reads an existing project and its enabled modules (from its packages or marker files)                                |
 | `scaffold/project-files.ts`         | `ProjectFiles`, staging the writes and deletions until `commit` (dry runs print them)                                |
 | `scaffold/compose-util.ts`          | Adds and removes the Redis service of `docker-compose.yml` with the `yaml` document API                              |
-| `templates/base/`                   | The project every module is added to                                                                                 |
+| `templates/base/`                   | The minimal core application every module is added to                                                                |
 | `templates/modules/<name>/`         | The files of a module, deleted when it is removed                                                                    |
 | `templates/modules/<a>+<b>/`        | The files of two modules enabled together (`mailer+templates` holds the email templates)                             |
 | `templates/translations/en.json`    | The English texts of the scaffolded templates, merged into `locales/en.json` with the mailer                         |
@@ -415,9 +420,11 @@ A template file can have runtime-specific variants:
 - **`.bun`** extension: Bun-specific files that are only included when generating a project for the Bun runtime,
   replacing the file without the extension.
 
-A module is defined by data (packages, config values) and its files, and anything else it adds to another enabled
-module is an integration of the two in `apply-modules.ts` (the Redis service of `docker-compose.yml`, the Dockerfile
-`COPY` blocks of templates and locales, the `emails` texts the mailer merges into `locales/en.json`).
+A module is defined by data (packages, config values) and its files, its edits of the base files are its
+`moduleEdits` of `apply-modules.ts` (the database password of `.env`, the SQLite rules of `.gitignore`), and anything
+else it adds to another enabled module is an integration of the two in `apply-modules.ts` (the database, Redis and
+server parts of `docker-compose.yml`, the Dockerfile `COPY` blocks of public files, templates, locales and Prisma, the
+database roles of `start.sh`, the `emails` texts the mailer merges into `locales/en.json`).
 `@appweaver/create` creates the base project with every module's disabled config, then adds the selected modules
 exactly like `weaver module add`, so a test checks that every combination of modules created, added one at a time, or
 removed from a full project gives the same files. Keep any new module or
@@ -599,8 +606,8 @@ unless `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is `false`. Call it before any ne
 
 ### `weaver module` (alias: `mod`)
 
-Add and remove the optional modules of `@appweaver/create` (`redis`, `queue`, `scheduler`, `mailer`, `templates`,
-`locales`, `docker`) in the current project, with the scaffold templates of `@appweaver/create/scaffold`, install
+Add and remove the optional modules of `@appweaver/create` (`data`, `web`, `redis`, `queue`, `scheduler`, `mailer`,
+`templates`, `locales`, `docker`) in the current project, with the scaffold templates of `@appweaver/create/scaffold`, install
 module packages, and create local modules.
 
 ```
@@ -613,13 +620,15 @@ weaver module remove <modules...> [options] (alias: rm)
 | Option         | Description                                                  | Default   |
 |----------------|--------------------------------------------------------------|-----------|
 | `-f, --force`  | `add` only: overwrite the existing files instead of skipping | false     |
+| `--database`   | `add` only: the database of the `data` module                | `sqlite`  |
 | `--dry-run`    | Print the file changes without applying them                 | false     |
 | `--no-install` | Skip the installation of the dependencies                    | installed |
 | `--verbose`    | Verbose output                                               | false     |
 
 `add` brings in the required modules too, `remove` refuses to remove a module a remaining one requires. Removing a
-module deletes its files (the whole `templates/` or `locales/` directory, the Docker files) and reverts its
-`appweaver.json` values and packages; it never touches `src/`. The enabled modules are read from the project's
+module deletes its files (the whole `templates/`, `locales/` or `database/` directory, the Docker files) and reverts its
+`appweaver.json` values and packages; in `src/` it deletes only the unchanged files of `data` and `web` (the `User`
+resource), keeping the changed ones with a warning. The enabled modules are read from the project's
 dependencies, and for `locales` and `docker` from the `locales/` directory and the `Dockerfile`.
 
 `new <name>` creates a local module in `<APP_SOURCE_PATH>/modules/<name>/` (`module/local-module.ts`), enabled by

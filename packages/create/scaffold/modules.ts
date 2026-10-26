@@ -1,27 +1,128 @@
-import { moduleNames, ModuleName, ScaffoldError } from './types';
+import { getDatabaseAdapter, getDatabaseUrl } from './database-config';
+import {
+  moduleNames,
+  ModuleName,
+  ProjectContext,
+  ScaffoldError
+} from './types';
 
-/** A value of the appweaver.json file, at a dotted path such as `config.redis.url`. */
+/** A value of a JSON file, at a dotted path such as `config.redis.url`. */
 export type ConfigEntry = [path: string, value: unknown];
+
+/** The values a module sets in a JSON file of the project other than appweaver.json, skipped when it is missing. */
+export type JsonFileEntries = {
+  file: string;
+  enabled: ConfigEntry[];
+  disabled: ConfigEntry[];
+};
 
 /** An optional module a project is scaffolded with, or adds and removes later. */
 export type ModuleDefinition = {
   name: ModuleName;
   description: string;
-  /** The npm packages the module installs. */
+  /** The npm packages the module installs, marking it as enabled. */
   packages: string[];
   /** The modules it cannot run without. */
   requires: ModuleName[];
   /** The appweaver.json values set while the module is enabled. */
-  enabledConfig: ConfigEntry[];
+  enabledConfig: ConfigEntry[] | ((context: ProjectContext) => ConfigEntry[]);
   /** The appweaver.json values set while the module is disabled. */
   disabledConfig: ConfigEntry[];
-  /** The directories the module owns, deleted with all of their contents when it is removed. */
+  /** The npm packages it installs that depend on the project, i.e. the driver adapter of its database. */
+  projectPackages?: (context: ProjectContext) => string[];
+  /** The values of the other JSON files of the project, i.e. the scripts of package.json. */
+  jsonFiles?: (context: ProjectContext) => JsonFileEntries[];
+  /** The directories and generated files the module owns, deleted whatever their contents when it is removed. */
   directories?: string[];
   /** The file whose presence marks a module without packages as enabled. */
   marker?: string;
 };
 
+const bunE2eScript =
+  'bun test ./test/e2e --reporter=junit --reporter-outfile=./reports/e2e.xml';
+
 export const modules: Record<ModuleName, ModuleDefinition> = {
+  data: {
+    name: 'data',
+    description:
+      'Prisma database with the resources, the User auth model and the seeders, otherwise no database',
+    packages: [
+      '@appweaver/data',
+      '@appweaver/sharp',
+      '@prisma/client',
+      'prisma'
+    ],
+    requires: [],
+    enabledConfig: ({ database, name }) => [
+      ['config.database.url', getDatabaseUrl(database, name, 'dev')],
+      [
+        'environments.test.database.url',
+        getDatabaseUrl(database, name, 'test')
+      ],
+      [
+        'environments.test.database.schemaPath',
+        './temp/database/schema.prisma'
+      ],
+      [
+        'environments.test.database.migrationsDirPath',
+        './temp/database/migrations'
+      ],
+      [
+        'environments.test.database.clientOutputDirPath',
+        './temp/database/client'
+      ],
+      ['environments.test.storage.path', './temp/storage']
+    ],
+    disabledConfig: [],
+    projectPackages: ({ database, runtime }) => [
+      getDatabaseAdapter(database, runtime)
+    ],
+    jsonFiles: ({ runtime }) => [
+      {
+        file: 'package.json',
+        enabled: [
+          ['scripts.generate', 'weaver generate'],
+          ['scripts.migrate', 'weaver migrate'],
+          [
+            'scripts.seed',
+            runtime === 'bun' ? 'weaver seed' : 'weaver seed --build-project'
+          ],
+          // The test database is set up before the end-to-end tests, and torn down after them
+          ...(runtime === 'bun'
+            ? ([
+                [
+                  'scripts.e2e',
+                  `${bunE2eScript} --preload ./test/e2e/support/preload.ts`
+                ]
+              ] as ConfigEntry[])
+            : [])
+        ],
+        disabled: runtime === 'bun' ? [['scripts.e2e', bunE2eScript]] : []
+      },
+      {
+        file: 'test/e2e/jest.e2e-config.json',
+        enabled: [
+          ['globalSetup', '<rootDir>/test/e2e/support/setup.ts'],
+          ['globalTeardown', '<rootDir>/test/e2e/support/teardown.ts']
+        ],
+        disabled: []
+      }
+    ],
+    directories: ['database', 'src/types/generated.ts']
+  },
+  web: {
+    name: 'web',
+    description:
+      'Fastify HTTP server with the resource routes, authentication and Swagger, otherwise no server',
+    packages: ['@appweaver/web'],
+    requires: ['data'],
+    enabledConfig: ({ host, port }) => [
+      ['config.server.host', host],
+      ['config.server.port', port],
+      ['environments.test.server.listen', false]
+    ],
+    disabledConfig: []
+  },
   redis: {
     name: 'redis',
     description:
@@ -87,7 +188,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
   docker: {
     name: 'docker',
     description:
-      'Dockerfile, docker-compose.yml with the database and Redis services, and start.sh',
+      'Dockerfile, docker-compose.yml with the database and Redis services of the enabled modules, and start.sh',
     packages: [],
     requires: [],
     enabledConfig: [],
@@ -95,6 +196,16 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     marker: 'Dockerfile'
   }
 };
+
+/** The appweaver.json values a module sets while enabled, in a project. */
+export function moduleConfig(
+  module: ModuleDefinition,
+  context: ProjectContext
+): ConfigEntry[] {
+  return typeof module.enabledConfig === 'function'
+    ? module.enabledConfig(context)
+    : module.enabledConfig;
+}
 
 /**
  * Parses module names, given one per value or separated by commas.
