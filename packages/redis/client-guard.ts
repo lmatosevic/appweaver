@@ -4,9 +4,8 @@ import { CircuitBreaker } from './circuit-breaker';
 
 /**
  * Sends the commands of a ready client through the circuit breaker, and fails
- * every command that Redis did not answer (a timeout, a closed connection, an
- * open breaker) with a `MemoryUnavailable` error. The commands of a client that
- * is not ready, i.e. the handshake of a reconnection, bypass the breaker.
+ * the ones Redis did not answer with `MemoryUnavailable`. A client that is not
+ * ready, i.e. reconnecting, bypasses the breaker.
  */
 export function guardClient(
   client: RedisClient,

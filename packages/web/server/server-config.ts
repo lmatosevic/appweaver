@@ -58,8 +58,7 @@ export const rateLimitConfig = defineConfig('rateLimit', {
   STORE: Type.Enum(RateLimitStore, { default: RateLimitStore.Auto }),
   /** Skip rate limiting instead of failing requests when the store errors, e.g. while Redis is down. Default: `true`. */
   SKIP_ON_ERROR: Type.Boolean({ default: true }),
-  /** Skip rate limiting of the secure routes (`rateLimit.secure`, i.e. login, password and 2FA routes) when the store
-   * errors, otherwise they respond with `503 MEMORY_UNAVAILABLE`. Default: `false`. */
+  /** The same for the secure routes (`rateLimit.secure`), which otherwise respond with `503`. Default: `false`. */
   SECURE_SKIP_ON_ERROR: Type.Boolean({ default: false })
 });
 

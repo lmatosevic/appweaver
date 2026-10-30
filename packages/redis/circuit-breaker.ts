@@ -5,10 +5,9 @@ export type CircuitBreakerListener = {
 };
 
 /**
- * Stops the calls to a failing service. It opens after `threshold` consecutive
- * failures and rejects the calls for `cooldown` milliseconds, then lets one
- * call through to probe the service: a success closes it, a failure keeps it
- * open for another cooldown. A threshold of `0` never opens it.
+ * Opens after `threshold` consecutive failures and rejects the calls for
+ * `cooldown` ms, then lets one call through as a probe. A threshold of `0`
+ * never opens it.
  */
 export class CircuitBreaker {
   /** @internal */
@@ -35,11 +34,7 @@ export class CircuitBreaker {
     return Math.max(0, this._openedAt + this.cooldown - Date.now());
   }
 
-  /**
-   * Checks whether a call may run. Once the cooldown elapsed it allows the
-   * call as the probe and restarts the cooldown, so the other calls keep
-   * being rejected until the probe succeeds.
-   */
+  /** Checks whether a call may run, letting one probe through per cooldown. */
   public acquire(): boolean {
     if (this._openedAt === undefined) {
       return true;
@@ -51,7 +46,6 @@ export class CircuitBreaker {
     return true;
   }
 
-  /** Records a successful call, which closes the breaker. */
   public success(): void {
     this._failures = 0;
     if (this._openedAt !== undefined) {
@@ -60,7 +54,6 @@ export class CircuitBreaker {
     }
   }
 
-  /** Records a failed call, which opens the breaker at the threshold. */
   public failure(): void {
     if (this.threshold <= 0) {
       return;

@@ -5,7 +5,6 @@ import '@fastify/auth';
 import '@fastify/rate-limit';
 
 declare module '@fastify/rate-limit' {
-  // The secure routes of `RouteConfig`, mapped to `skipOnError` by the server
   interface RateLimitOptions {
     secure?: boolean;
   }

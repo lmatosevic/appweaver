@@ -1594,8 +1594,8 @@ const config = {
 | `timeWindow`   | number \| string \| function | Window duration in ms. Function: `(req, key) => number`.                                                            |
 | `allowList`    | string[] \| function         | IPs exempt from limiting. Function: `(req, key) => boolean`.                                                        |
 | `keyGenerator` | function                     | Custom key generator. Signature: `(req) => string \| number`.                                                       |
-| `secure`       | boolean                      | A security critical route (login, OTP, expensive calls): fails with `503 MEMORY_UNAVAILABLE` while Redis is down, unless `RATE_LIMIT_SECURE_SKIP_ON_ERROR`. |
-| `skipOnError`  | boolean                      | Skip the limit while the store is unavailable, overriding `RATE_LIMIT_SKIP_ON_ERROR` and `secure`.                  |
+| `secure`       | boolean                      | Respond `503 MEMORY_UNAVAILABLE` while Redis is down (login, OTP, expensive calls).                                 |
+| `skipOnError`  | boolean                      | Skip the limit while Redis is down, overriding the config and `secure`.                                             |
 
 ---
 

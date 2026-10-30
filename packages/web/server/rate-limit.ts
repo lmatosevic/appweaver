@@ -7,10 +7,7 @@ import { rateLimitConfig, RateLimitStore } from './server-config';
 
 /**
  * Registers the global rate limiter, counting in the Redis connection of the
- * `Memory` provider when it has one. While the store fails, i.e. Redis is
- * down, a route skips the limit with `RATE_LIMIT_SKIP_ON_ERROR`, and a secure
- * route (`rateLimit.secure`) with `RATE_LIMIT_SECURE_SKIP_ON_ERROR`, otherwise
- * it responds with the error of the store (`MEMORY_UNAVAILABLE`).
+ * `Memory` provider when it has one.
  */
 export function registerRateLimit(server: Server): void {
   const redisClient =
@@ -27,7 +24,7 @@ export function registerRateLimit(server: Server): void {
     server.addHook('onClose', async () => redisClient.disconnect());
   }
 
-  // Runs before the hook of the plugin, which reads the route options
+  // A secure route takes RATE_LIMIT_SECURE_SKIP_ON_ERROR, before the plugin reads it
   server.addHook('onRoute', (route) => {
     const rateLimit = route.config?.rateLimit;
     if (rateLimit && rateLimit.secure && rateLimit.skipOnError === undefined) {

@@ -61,10 +61,8 @@ export class RedisMemory extends Memory<RedisOptions, RedisClient> {
   }
 
   /**
-   * Creates a client of the Redis connection. A guarded client, the default,
-   * fails its commands after the `COMMAND_TIMEOUT` and shares the circuit
-   * breaker of the memory. An unguarded one suits the blocking commands of a
-   * queue, which wait longer than any command timeout.
+   * Creates a client of the Redis connection, guarded by the command timeout
+   * and the circuit breaker unless `guarded` is false (blocking commands).
    */
   public createClient(
     options: RedisOptions = {},

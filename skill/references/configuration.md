@@ -369,13 +369,11 @@ See [logging](./logging.md) for the loggers and the levels per module.
 | `RATE_LIMIT_ALLOW_LIST`    | string[]? | -        | IP addresses/patterns exempt from rate limiting.                                                                                        |
 | `RATE_LIMIT_STORE`         | enum      | `'auto'` | Store of the counters. `auto`: the Redis connection of the `Memory` provider with `redis`, otherwise the process. `local`: the process. |
 | `RATE_LIMIT_SKIP_ON_ERROR` | boolean   | `true`   | Skip rate limiting instead of failing requests with `503 MEMORY_UNAVAILABLE` when the store errors, e.g. while Redis is down.           |
-| `RATE_LIMIT_SECURE_SKIP_ON_ERROR` | boolean | `false` | The same for the secure routes (`rateLimit.secure`), which fail with `503 MEMORY_UNAVAILABLE` by default.                    |
+| `RATE_LIMIT_SECURE_SKIP_ON_ERROR` | boolean | `false` | The same for the secure routes (`rateLimit.secure`).                                                                           |
 
-A route marked `rateLimit: { secure: true }` fails closed while the store is unavailable, so it cannot be brute-forced
-or run up costs without its limit, while the other routes keep serving without one. The secure routes of the framework
-are the login, the password change, the email verification and password reset emails, and the 2FA code routes. Mark
-the routes of the application calling an expensive service (SMS, LLM, payments) the same way. A route's own
-`rateLimit.skipOnError` overrides both keys.
+A route marked `rateLimit: { secure: true }` fails closed while the store is unavailable, the others skip the limit.
+The login, password change, email verification and reset emails, and 2FA code routes are secure; mark the routes
+calling an expensive service (SMS, LLM, payments) the same way. A route's `rateLimit.skipOnError` overrides both keys.
 
 ### Swagger / OpenAPI (SWAGGER\_\*)
 
@@ -690,18 +688,16 @@ in the process (`memory`) or in Redis (`redis`).
 | `MEMORY_REDIS_URL` | string  | `'redis://localhost:6379/0'` | Redis connection URL of the `redis` provider (`config.memory.redis.url`).                          |
 | `MEMORY_REDIS_COMMAND_TIMEOUT` | integer | `200` | Milliseconds a command waits for its reply before it fails, `0` waits indefinitely. |
 | `MEMORY_REDIS_CIRCUIT_BREAKER_THRESHOLD` | integer | `5` | Consecutive failed commands opening the circuit breaker, `0` disables it. |
-| `MEMORY_REDIS_CIRCUIT_BREAKER_COOLDOWN` | integer | `10000` | Milliseconds the open breaker waits before letting one command through to probe Redis. |
+| `MEMORY_REDIS_CIRCUIT_BREAKER_COOLDOWN` | integer | `10000` | Milliseconds the open breaker skips Redis before probing it. |
 
 The application starts and keeps running while Redis is unreachable. Connections reconnect in the background, each
-outage and recovery is logged once, and commands fail right away instead of waiting for the reconnection. A command
-Redis does not answer within `MEMORY_REDIS_COMMAND_TIMEOUT` fails too, and after
-`MEMORY_REDIS_CIRCUIT_BREAKER_THRESHOLD` such failures in a row the circuit breaker opens: the commands fail without
-reaching Redis and `isAvailable()` of the memory is `false` for the cooldown, then one command probes Redis and closes
-the breaker when answered (as does a reconnection). The opening and the closing are logged once. Every failure is a
-`MemoryError` with the code `MEMORY_UNAVAILABLE` (`503`, with `retryAfter` while the breaker is open). By default the
-cache falls back to the database (see `CACHE_SKIP_ON_ERROR`), rate limiting is skipped except on the secure routes,
-which respond `503` (see `RATE_LIMIT_SECURE_SKIP_ON_ERROR`), and queues throw (see `queue.md`). The BullMQ connections
-have neither the timeout nor the breaker, since their workers wait on blocking commands.
+outage and recovery is logged once, and commands fail right away instead of waiting for the reconnection, or after
+`MEMORY_REDIS_COMMAND_TIMEOUT` when Redis stops answering. After `MEMORY_REDIS_CIRCUIT_BREAKER_THRESHOLD` such failures
+in a row the circuit breaker skips Redis (`isAvailable()` is `false`) until a probe after the cooldown, or a
+reconnection, succeeds. The failures are `MEMORY_UNAVAILABLE` errors (`503`). By default the cache falls back to the
+database (see `CACHE_SKIP_ON_ERROR`), rate limiting is skipped except on the secure routes (see
+`RATE_LIMIT_SECURE_SKIP_ON_ERROR`), and queues throw (see `queue.md`). The BullMQ connections have neither the timeout
+nor the breaker, which would fail their blocking commands.
 
 ### Cache (CACHE\_\*)
 
