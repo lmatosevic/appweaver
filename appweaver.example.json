@@ -55,7 +55,8 @@
       "window": 60000,
       "allowList": ["127.0.0.1", "192.168.5.1"],
       "store": "auto",
-      "skipOnError": true
+      "skipOnError": true,
+      "secureSkipOnError": false
     },
     "swagger": {
       "enabled": true,
@@ -266,7 +267,10 @@
       "maxSize": "100M",
       "provider": "auto",
       "redis": {
-        "url": "redis://localhost:6379/0"
+        "url": "redis://localhost:6379/0",
+        "commandTimeout": 200,
+        "circuitBreakerThreshold": 5,
+        "circuitBreakerCooldown": 10000
       }
     },
     "cache": {

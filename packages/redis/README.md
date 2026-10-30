@@ -28,6 +28,11 @@ or `weaver module add redis` in a project created with `@appweaver/create`.
 
 The connection URL is `memory.redis.url` (`MEMORY_REDIS_URL`). The cache, the rate limit (`rateLimit.store` `auto`) and the BullMQ queue use its connection.
 
+A command Redis does not answer within `memory.redis.commandTimeout` (200 ms) fails, and after
+`memory.redis.circuitBreakerThreshold` (5) such failures in a row the circuit breaker skips Redis for
+`memory.redis.circuitBreakerCooldown` (10 s). Meanwhile the cache falls back to the database, the rate limit is skipped,
+and the secure routes (login, password, 2FA) respond with `503 MEMORY_UNAVAILABLE`.
+
 ## Documentation
 
 - [Appweaver README](https://github.com/lmatosevic/appweaver#readme) – getting started, configuration, and the overview of every package

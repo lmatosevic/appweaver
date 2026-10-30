@@ -9,6 +9,11 @@ jest.mock('ioredis', () => {
     connect = jest.fn(async () => {});
     quit = jest.fn(async () => 'OK');
     disconnect = jest.fn();
+    // Fails every command sent through it, as Redis not answering
+    sendCommand = jest.fn((command: any) => {
+      command.reject(new Error('Command timed out'));
+      return command.promise;
+    });
     ping = jest.fn(async () => 'PONG');
     memory = jest.fn(async () => 42);
     get = jest.fn(async (key: string) => this.store.get(key) ?? null);
@@ -48,10 +53,10 @@ jest.mock('ioredis', () => {
     }
   }
 
-  return { Redis };
+  return { ...jest.requireActual('ioredis'), Redis };
 });
 
-import { Redis as RedisClient } from 'ioredis';
+import { Command, Redis as RedisClient } from 'ioredis';
 import * as common from '@appweaver/common';
 import { ErrorCode, createLogger } from '@appweaver/common';
 import { RedisMemory } from '../redis-memory';
@@ -73,7 +78,14 @@ describe('redis-memory', () => {
   afterEach(() => {
     jest.restoreAllMocks();
     delete (common as any).configOverrides.MEMORY_REDIS_URL;
+    delete (common as any).configOverrides.MEMORY_REDIS_COMMAND_TIMEOUT;
   });
+
+  const failCommands = async (times: number) => {
+    for (let i = 0; i < times; i++) {
+      await client.sendCommand(new Command('get', ['key'])).catch(() => {});
+    }
+  };
 
   describe('constructor', () => {
     test.each([
@@ -122,6 +134,52 @@ describe('redis-memory', () => {
       expect(info).toHaveBeenCalledWith(
         "Redis connection 'appweaver' is restored"
       );
+    });
+  });
+
+  describe('circuit breaker', () => {
+    test('gives a guarded client the command timeout', () => {
+      expect(client.options.commandTimeout).toBe(200);
+
+      (common as any).configOverrides.MEMORY_REDIS_COMMAND_TIMEOUT = 0;
+      redis.createClient({ connectionName: 'other' });
+
+      expect(clients()[1].options.commandTimeout).toBeUndefined();
+    });
+
+    test('leaves an unguarded client as it is', () => {
+      const unguarded: any = redis.createClient({}, false);
+
+      expect(unguarded.options.commandTimeout).toBeUndefined();
+      expect(jest.isMockFunction(unguarded.sendCommand)).toBe(true);
+      expect(jest.isMockFunction(client.sendCommand)).toBe(false);
+    });
+
+    test('opens after the failed commands, making the memory unavailable', async () => {
+      const error = jest.spyOn(logger, 'error').mockImplementation();
+
+      await failCommands(5);
+
+      expect(redis.isAvailable()).toBe(false);
+      expect(error).toHaveBeenCalledWith(
+        'Redis circuit breaker is open after 5 failed commands, skipping Redis for 10000 ms'
+      );
+      await expect(
+        client.sendCommand(new Command('get', ['key']))
+      ).rejects.toMatchObject({
+        message: 'Redis is unavailable: Redis circuit breaker is open'
+      });
+    });
+
+    test('closes once a connection is ready again', async () => {
+      jest.spyOn(logger, 'error').mockImplementation();
+      const info = jest.spyOn(logger, 'info').mockImplementation();
+      await failCommands(5);
+
+      client.emit('ready');
+
+      expect(redis.isAvailable()).toBe(true);
+      expect(info).toHaveBeenCalledWith('Redis circuit breaker is closed');
     });
   });
 

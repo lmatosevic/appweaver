@@ -23,7 +23,13 @@ const logger = createLogger('queue');
 
 type EventName = keyof WorkerListener;
 
-type IoRedis = Memory<RedisOptions, RedisClient>;
+// The memory of @appweaver/redis, which creates an unguarded client
+type IoRedis = Memory<RedisOptions, RedisClient> & {
+  createClient(
+    options: RedisOptions,
+    guarded: boolean
+  ): RedisClient | undefined;
+};
 
 export class BullQueue extends CommonQueue {
   /** @internal */
@@ -95,10 +101,14 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
 
   constructor(public readonly name: string) {
     super();
-    const connection = inject<IoRedis>(Memory).createClient({
-      connectionName: `queue:${name}`,
-      maxRetriesPerRequest: null
-    });
+    // Unguarded, a command timeout would fail the blocking commands of the workers
+    const connection = inject<IoRedis>(Memory).createClient(
+      {
+        connectionName: `queue:${name}`,
+        maxRetriesPerRequest: null
+      },
+      false
+    );
     if (!connection) {
       throw new ConfigurationError(
         ErrorCode.ConfigurationInvalid,

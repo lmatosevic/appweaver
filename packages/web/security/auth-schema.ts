@@ -75,7 +75,8 @@ export const loginSchema = {
     200: createSchemaModel(AuthenticationResponse),
     ...errorResponses(
       ErrorCode.AuthInvalidCredentials,
-      ErrorCode.AuthPasswordDisabled
+      ErrorCode.AuthPasswordDisabled,
+      ErrorCode.MemoryUnavailable
     )
   },
   body: createSchemaModel(LoginRequest)
@@ -114,7 +115,8 @@ export const changePasswordSchema = {
       ...authErrorCodes(),
       ErrorCode.AuthPasswordDisabled,
       ErrorCode.AuthPasswordInvalid,
-      ErrorCode.AuthPasswordWeak
+      ErrorCode.AuthPasswordWeak,
+      ErrorCode.MemoryUnavailable
     )
   },
   body: createSchemaModel(ChangePasswordRequest)

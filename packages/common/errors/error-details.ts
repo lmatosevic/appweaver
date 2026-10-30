@@ -92,6 +92,8 @@ export interface ErrorDetailsMap {
   [ErrorCode.TemplatePreviewNotFound]: { template: string; locale?: string };
 
   [ErrorCode.LocaleLoadFailed]: { path: string };
+
+  [ErrorCode.MemoryUnavailable]: { retryAfter?: number };
 }
 
 /** The details of an error code, see {@link ErrorDetailsMap}. */

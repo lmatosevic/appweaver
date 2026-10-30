@@ -10,11 +10,26 @@ import {
   uuid,
   LockError
 } from '@appweaver/common';
+import { CircuitBreaker } from './circuit-breaker';
+import { guardClient } from './client-guard';
 import { redisConfig } from './config';
 
 const logger = createLogger('memory');
 
 export class RedisMemory extends Memory<RedisOptions, RedisClient> {
+  /** @internal */
+  private readonly _breaker = new CircuitBreaker(
+    redisConfig.CIRCUIT_BREAKER_THRESHOLD,
+    redisConfig.CIRCUIT_BREAKER_COOLDOWN,
+    {
+      onOpen: (failures) =>
+        logger.error(
+          `Redis circuit breaker is open after ${failures} failed commands, ` +
+            `skipping Redis for ${redisConfig.CIRCUIT_BREAKER_COOLDOWN} ms`
+        ),
+      onClose: () => logger.info('Redis circuit breaker is closed')
+    }
+  );
   /** @internal */
   private readonly _options: RedisOptions;
   /** @internal */
@@ -45,13 +60,25 @@ export class RedisMemory extends Memory<RedisOptions, RedisClient> {
     await this.disconnect();
   }
 
-  public createClient(options: RedisOptions = {}): RedisClient {
+  /**
+   * Creates a client of the Redis connection. A guarded client, the default,
+   * fails its commands after the `COMMAND_TIMEOUT` and shares the circuit
+   * breaker of the memory. An unguarded one suits the blocking commands of a
+   * queue, which wait longer than any command timeout.
+   */
+  public createClient(
+    options: RedisOptions = {},
+    guarded: boolean = true
+  ): RedisClient {
     const client = new RedisClient({
       ...this._options,
+      ...(guarded
+        ? { commandTimeout: redisConfig.COMMAND_TIMEOUT || undefined }
+        : {}),
       ...options
     });
     this.monitorConnection(client);
-    return client;
+    return guarded ? guardClient(client, this._breaker) : client;
   }
 
   public async connect(): Promise<void> {
@@ -153,7 +180,7 @@ export class RedisMemory extends Memory<RedisOptions, RedisClient> {
   }
 
   public isAvailable(): boolean {
-    return this._client.status === 'ready';
+    return this._client.status === 'ready' && !this._breaker.isOpen();
   }
 
   public checkHealthConfig(): HealthCheckConfig {
@@ -179,6 +206,8 @@ export class RedisMemory extends Memory<RedisOptions, RedisClient> {
     });
 
     client.on('ready', () => {
+      // A new connection is not affected by the failures of the old one
+      this._breaker.success();
       if (lost) {
         logger.info(`Redis connection '${name}' is restored`);
       } else if (!connected) {

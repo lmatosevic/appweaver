@@ -686,6 +686,10 @@
             "skipOnError": {
               "default": true,
               "type": "boolean"
+            },
+            "secureSkipOnError": {
+              "default": false,
+              "type": "boolean"
             }
           }
         },

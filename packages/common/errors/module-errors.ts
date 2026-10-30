@@ -73,6 +73,13 @@ export class LockError<
   public readonly module = 'lock';
 }
 
+/** An error of the memory, i.e. a Redis server that is down or not responding. */
+export class MemoryError<
+  C extends ModuleErrorCode<'MEMORY'> = ModuleErrorCode<'MEMORY'>
+> extends AppweaverError<C> {
+  public readonly module = 'memory';
+}
+
 /** An error of loading or rendering a template. */
 export class TemplateError<
   C extends ModuleErrorCode<'TEMPLATE'> = ModuleErrorCode<'TEMPLATE'>

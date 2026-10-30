@@ -59,6 +59,7 @@ const workers = () => (Worker as any).instances as any[];
 
 describe('bull-queue', () => {
   let connection: FakeConnection;
+  let createClient: jest.Mock;
   let queue: BullQueue;
 
   beforeEach(() => {
@@ -66,7 +67,8 @@ describe('bull-queue', () => {
     queues().length = 0;
     workers().length = 0;
     connection = new FakeConnection();
-    define({ createClient: () => connection }, Memory);
+    createClient = jest.fn(() => connection);
+    define({ createClient }, Memory);
     queue = new BullQueue();
   });
 
@@ -82,6 +84,15 @@ describe('bull-queue', () => {
       expect(queue.get('emails')).toBe(processor);
       expect(queue.get('reports')).not.toBe(processor);
       expect(queues()).toHaveLength(2);
+    });
+
+    test('connects without the command timeout of a guarded client', () => {
+      queue.get('emails');
+
+      expect(createClient).toHaveBeenCalledWith(
+        { connectionName: 'queue:emails', maxRetriesPerRequest: null },
+        false
+      );
     });
   });
 

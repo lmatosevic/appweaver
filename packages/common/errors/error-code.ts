@@ -133,7 +133,10 @@ export enum ErrorCode {
   LocaleLoadFailed = 'LOCALE_LOAD_FAILED',
 
   // Locks
-  LockNotAcquired = 'LOCK_NOT_ACQUIRED'
+  LockNotAcquired = 'LOCK_NOT_ACQUIRED',
+
+  // Memory
+  MemoryUnavailable = 'MEMORY_UNAVAILABLE'
 }
 
 /** The error codes starting with the prefix of a module, i.e. `'RESOURCE'`. */
