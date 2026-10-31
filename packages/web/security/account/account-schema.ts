@@ -147,7 +147,8 @@ export const sendEmailVerificationSchema = {
       ErrorCode.AccountFeatureUnavailable,
       ErrorCode.AccountEmailAlreadyVerified,
       ErrorCode.AuthInvalidRedirectUrl,
-      ErrorCode.QueueUnavailable
+      ErrorCode.QueueUnavailable,
+      ErrorCode.MemoryUnavailable
     )
   },
   body: createSchemaModel(AccountSendEmailVerificationRequest)
@@ -204,7 +205,8 @@ export const sendResetPasswordSchema = {
       }),
       ErrorCode.AccountFeatureUnavailable,
       ErrorCode.AuthInvalidRedirectUrl,
-      ErrorCode.QueueUnavailable
+      ErrorCode.QueueUnavailable,
+      ErrorCode.MemoryUnavailable
     )
   },
   body: createSchemaModel(AccountSendResetPasswordRequest)
@@ -244,7 +246,8 @@ export const send2FACodeSchema = {
     ...errorResponses(
       ...authErrorCodes([AuthType.Jwt]),
       ErrorCode.AccountFeatureUnavailable,
-      ErrorCode.QueueUnavailable
+      ErrorCode.QueueUnavailable,
+      ErrorCode.MemoryUnavailable
     )
   },
   body: createSchemaModel(AccountSend2FACodeRequest)
@@ -260,7 +263,8 @@ export const verify2FACodeSchema = {
     ...errorResponses(
       ...authErrorCodes([AuthType.Jwt]),
       ErrorCode.AuthInvalidToken,
-      ErrorCode.AuthUserNotFound
+      ErrorCode.AuthUserNotFound,
+      ErrorCode.MemoryUnavailable
     )
   },
   body: createSchemaModel(AccountVerify2FARequest)

@@ -1582,17 +1582,20 @@ const config = {
     max: 100,
     timeWindow: 60000,
     allowList: ['127.0.0.1'],
-    keyGenerator: (req) => req.ip
+    keyGenerator: (req) => req.ip,
+    secure: true
   }
 };
 ```
 
-| Property       | Type                         | Description                                                         |
-|----------------|------------------------------|---------------------------------------------------------------------|
-| `max`          | number \| function           | Maximum requests per time window. Function: `(req, key) => number`. |
-| `timeWindow`   | number \| string \| function | Window duration in ms. Function: `(req, key) => number`.            |
-| `allowList`    | string[] \| function         | IPs exempt from limiting. Function: `(req, key) => boolean`.        |
-| `keyGenerator` | function                     | Custom key generator. Signature: `(req) => string \| number`.       |
+| Property       | Type                         | Description                                                                                                         |
+|----------------|------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| `max`          | number \| function           | Maximum requests per time window. Function: `(req, key) => number`.                                                 |
+| `timeWindow`   | number \| string \| function | Window duration in ms. Function: `(req, key) => number`.                                                            |
+| `allowList`    | string[] \| function         | IPs exempt from limiting. Function: `(req, key) => boolean`.                                                        |
+| `keyGenerator` | function                     | Custom key generator. Signature: `(req) => string \| number`.                                                       |
+| `secure`       | boolean                      | Respond `503 MEMORY_UNAVAILABLE` while Redis is down (login, OTP, expensive calls).                                 |
+| `skipOnError`  | boolean                      | Skip the limit while Redis is down, overriding the config and `secure`.                                             |
 
 ---
 

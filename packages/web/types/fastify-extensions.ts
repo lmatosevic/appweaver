@@ -2,6 +2,13 @@ import { AuthType, AuthUser, RouteConfig } from '@appweaver/common';
 
 import '@fastify/request-context';
 import '@fastify/auth';
+import '@fastify/rate-limit';
+
+declare module '@fastify/rate-limit' {
+  interface RateLimitOptions {
+    secure?: boolean;
+  }
+}
 
 declare module 'fastify' {
   // Override fastify context data type.

@@ -20,6 +20,7 @@ export type ErrorModule =
   | 'template'
   | 'locale'
   | 'lock'
+  | 'memory'
   | 'application';
 
 /** The details and the options of an error, the details being optional for

@@ -33,6 +33,10 @@ export type RateLimitConfig =
         | ((req: any, key: string) => boolean | Promise<boolean>);
       /** Custom function to derive the rate limit key from the request */
       keyGenerator?: (req: any) => string | number | Promise<string | number>;
+      /** Fail instead of skipping the limit while the store is unavailable, i.e. a login or an expensive call */
+      secure?: boolean;
+      /** Skip the limit while the store is unavailable, overriding the config and `secure` */
+      skipOnError?: boolean;
     };
 
 export type RecaptchaConfig = {

@@ -213,6 +213,7 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `TEMPLATE_PREVIEW_NOT_FOUND`         | 404    | Template preview not found            |
 | `LOCALE_LOAD_FAILED`                 | 500    | Locale loading failed                 |
 | `LOCK_NOT_ACQUIRED`                  | 503    | Resource is locked                    |
+| `MEMORY_UNAVAILABLE`                 | 503    | Memory unavailable                    |
 
 `REQUEST_FAILED` keeps the 4xx status of an error a Fastify plugin raised with no code of its own.
 

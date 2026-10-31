@@ -34,6 +34,7 @@ export function accountRoutes(server: Server): void {
         onRequest: authenticate(),
         config: {
           rateLimit: {
+            secure: true,
             max: 10,
             timeWindow: 900000 // 15 minutes
           }
@@ -102,6 +103,7 @@ export function accountRoutes(server: Server): void {
           recaptchaAction: 'send-reset-password',
           turnstileAction: 'send-reset-password',
           rateLimit: {
+            secure: true,
             max: 10,
             timeWindow: 900000 // 15 minutes
           }
@@ -149,6 +151,7 @@ export function accountRoutes(server: Server): void {
         onRequest: authenticate([AuthType.Jwt]),
         config: {
           rateLimit: {
+            secure: true,
             max: 10,
             timeWindow: 900000 // 15 minutes
           }
@@ -173,6 +176,7 @@ export function accountRoutes(server: Server): void {
         onRequest: authenticate([AuthType.Jwt]),
         config: {
           rateLimit: {
+            secure: true,
             max: 12
           }
         }

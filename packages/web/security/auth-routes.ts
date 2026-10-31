@@ -29,6 +29,7 @@ export function authRoutes(server: Server): void {
       schema: loginSchema,
       config: {
         rateLimit: {
+          secure: true,
           max: 12
         }
       }
@@ -88,6 +89,7 @@ export function authRoutes(server: Server): void {
       onRequest: authenticate(),
       config: {
         rateLimit: {
+          secure: true,
           max: 12
         }
       }

@@ -635,6 +635,21 @@
                 "url": {
                   "default": "redis://localhost:6379/0",
                   "type": "string"
+                },
+                "commandTimeout": {
+                  "default": 200,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "circuitBreakerThreshold": {
+                  "default": 5,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "circuitBreakerCooldown": {
+                  "default": 10000,
+                  "minimum": 0,
+                  "type": "integer"
                 }
               }
             }
@@ -720,6 +735,10 @@
             },
             "skipOnError": {
               "default": true,
+              "type": "boolean"
+            },
+            "secureSkipOnError": {
+              "default": false,
               "type": "boolean"
             }
           }

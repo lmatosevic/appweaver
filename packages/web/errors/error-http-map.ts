@@ -263,7 +263,9 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     title: 'Locale loading failed'
   },
 
-  [ErrorCode.LockNotAcquired]: { status: 503, title: 'Resource is locked' }
+  [ErrorCode.LockNotAcquired]: { status: 503, title: 'Resource is locked' },
+
+  [ErrorCode.MemoryUnavailable]: { status: 503, title: 'Memory unavailable' }
 };
 
 /**

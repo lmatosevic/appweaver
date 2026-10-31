@@ -5,24 +5,18 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import fastifyCors from '@fastify/cors';
 import fastifyHelmet from '@fastify/helmet';
 import fastifyStatic from '@fastify/static';
-import fastifyRateLimit from '@fastify/rate-limit';
 import fastifyMultipart from '@fastify/multipart';
-import type { Redis as RedisClient, RedisOptions } from 'ioredis';
 import { fastifyRequestContext } from '@fastify/request-context';
 import {
   createLogger,
   Database,
-  ErrorCode,
-  Memory,
   PLUGIN,
-  RequestError,
   ROUTE,
   textToBytes
 } from '@appweaver/common';
 import {
   storageConfig,
   cacheConfig,
-  inject,
   injectAll,
   injectModel,
   isDefined,
@@ -30,12 +24,7 @@ import {
 } from '@appweaver/core';
 import { templatePreviewConfig } from '../template/template-preview-config';
 import { healthCheckConfig } from '../health/health-check-config';
-import {
-  corsConfig,
-  rateLimitConfig,
-  RateLimitStore,
-  serverConfig
-} from './server-config';
+import { corsConfig, rateLimitConfig, serverConfig } from './server-config';
 import { context } from '@appweaver/core/internal';
 import { errorHandler, notFoundHandler } from '../errors';
 import { stashErrorResponses } from '../errors';
@@ -47,6 +36,7 @@ import caching from '../cache/caching';
 import { Router, Server } from '../types/server';
 import { info } from './info-route';
 import { PluginEntry } from './register-plugin';
+import { registerRateLimit } from './rate-limit';
 import { requestValidation } from './request-validation';
 import { referencedSerializer } from './response-serialization';
 import schemas from './schemas';
@@ -143,36 +133,7 @@ export function createServer(): Server {
 
   // Register global request rate limiter
   if (rateLimitConfig.ENABLED) {
-    const redisClient =
-      rateLimitConfig.STORE === RateLimitStore.Auto
-        ? inject<Memory<RedisOptions, RedisClient>>(Memory).createClient({
-            connectionName: 'rate-limit',
-            connectTimeout: 500,
-            maxRetriesPerRequest: 1,
-            enableOfflineQueue: false
-          })
-        : undefined;
-
-    if (redisClient) {
-      server.addHook('onClose', async () => redisClient.disconnect());
-    }
-
-    server.register(fastifyRateLimit, {
-      max: rateLimitConfig.MAX,
-      timeWindow: rateLimitConfig.WINDOW,
-      allowList: rateLimitConfig.ALLOW_LIST,
-      skipOnError: rateLimitConfig.SKIP_ON_ERROR,
-      nameSpace: 'rate-limit:',
-      redis: redisClient,
-      onExceeded: (request, key) =>
-        request.log.debug({ key, url: request.url }, 'Rate limit exceeded'),
-      errorResponseBuilder: (_, context) =>
-        new RequestError(
-          ErrorCode.RateLimited,
-          `Rate limit exceeded, retry in ${context.after}`,
-          { retryAfter: Math.ceil(context.ttl / 1000) }
-        )
-    });
+    registerRateLimit(server);
   }
 
   // Register request context plugin with default values

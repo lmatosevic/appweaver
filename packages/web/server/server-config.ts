@@ -57,7 +57,9 @@ export const rateLimitConfig = defineConfig('rateLimit', {
    * otherwise the process), `local` (the process). Default: `'auto'`. */
   STORE: Type.Enum(RateLimitStore, { default: RateLimitStore.Auto }),
   /** Skip rate limiting instead of failing requests when the store errors, e.g. while Redis is down. Default: `true`. */
-  SKIP_ON_ERROR: Type.Boolean({ default: true })
+  SKIP_ON_ERROR: Type.Boolean({ default: true }),
+  /** The same for the secure routes (`rateLimit.secure`), which otherwise respond with `503`. Default: `false`. */
+  SECURE_SKIP_ON_ERROR: Type.Boolean({ default: false })
 });
 
 export const swaggerConfig = defineConfig('swagger', {
