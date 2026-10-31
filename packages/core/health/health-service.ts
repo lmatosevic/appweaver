@@ -26,6 +26,8 @@ export type HealthCheckInstance = {
 export class HealthService {
   /** @internal */
   private readonly _statuses = new Map<string, HealthCheckStatus>();
+  /** @internal */
+  private _ready = false;
 
   /**
    * Performs a health check for multiple health check instances by invoking their respective health check methods.
@@ -73,13 +75,23 @@ export class HealthService {
   }
 
   /**
-   * Asynchronously checks the readiness status of a system or component.
+   * Checks whether the application can handle requests: once the `onReady` hook of every service completed, until
+   * its shutdown starts.
    *
-   * @return {Promise<boolean>} A promise that resolves to a boolean value indicating readiness status. Returns `true`
-   * if ready, otherwise `false`.
+   * @return {Promise<boolean>} A promise that resolves to `true` if ready, otherwise `false`.
    */
   public async checkReadiness(): Promise<boolean> {
-    return true;
+    return this._ready;
+  }
+
+  /**
+   * Sets whether the application can handle requests, which the application does when it is ready and when its
+   * shutdown starts.
+   *
+   * @param {boolean} ready - Whether the application is ready.
+   */
+  public setReady(ready: boolean): void {
+    this._ready = ready;
   }
 
   /**

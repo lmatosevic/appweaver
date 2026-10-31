@@ -280,7 +280,7 @@ describe('create', () => {
 
   describe('server options', () => {
     test('uses the default host and port', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none');
+      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'web');
 
       const config = readJson('my-app', 'appweaver.json');
       expect(config.config.server.host).toBe('0.0.0.0');
@@ -296,7 +296,9 @@ describe('create', () => {
         '--host',
         '127.0.0.1',
         '--port',
-        '8080'
+        '8080',
+        '--add',
+        'web'
       );
 
       const config = readJson('my-app', 'appweaver.json');
@@ -307,7 +309,7 @@ describe('create', () => {
 
   describe('database options', () => {
     test('configures SQLite by default', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none');
+      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'data');
 
       const config = readJson('my-app', 'appweaver.json');
       expect(config.config.database.url).toBe('file:./data/my-app.db');
@@ -322,7 +324,7 @@ describe('create', () => {
     });
 
     test('uses a separate test database url', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none');
+      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'data');
 
       expect(
         readJson('my-app', 'appweaver.json').environments.test.database.url
@@ -336,7 +338,9 @@ describe('create', () => {
         '--agent',
         'none',
         '--database',
-        'postgresql'
+        'postgresql',
+        '--add',
+        'data'
       );
 
       expect(read('my-app', '.env.example')).toBe(read('my-app', '.env'));
@@ -351,6 +355,7 @@ describe('create', () => {
         '--database',
         'postgresql',
         '--add',
+        'data',
         'docker'
       );
 
@@ -400,6 +405,7 @@ describe('create', () => {
         '--database',
         'mysql',
         '--add',
+        'data',
         'docker'
       );
 
@@ -437,6 +443,7 @@ describe('create', () => {
         '--database',
         'postgresql',
         '--add',
+        'data',
         'docker'
       );
 
@@ -452,6 +459,7 @@ describe('create', () => {
         '--database',
         'sqlserver',
         '--add',
+        'data',
         'docker'
       );
 
@@ -472,7 +480,9 @@ describe('create', () => {
         '--agent',
         'none',
         '--database',
-        'postgresql'
+        'postgresql',
+        '--add',
+        'data'
       );
 
       expect(exists('my-app', 'docker-compose.yml')).toBe(false);
@@ -483,7 +493,15 @@ describe('create', () => {
     });
 
     test('adds a named volume for the embedded SQLite database', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'docker');
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--add',
+        'data',
+        'docker'
+      );
 
       const compose = read('my-app', 'docker-compose.yml');
       expect(compose).toContain('sqlite-data:/usr/app/data');
@@ -501,16 +519,43 @@ describe('create', () => {
       '@appweaver/redis'
     ];
 
-    test('creates a project without any module by default', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none');
+    test('creates the core application alone without the default modules', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--exclude',
+        'data',
+        'web'
+      );
 
-      const { dependencies } = readJson('my-app', 'package.json');
-      for (const name of modulePackages) {
-        expect(dependencies).not.toHaveProperty(name);
-      }
-      expect(dependencies).toHaveProperty('@prisma/client');
+      const { dependencies, scripts } = readJson('my-app', 'package.json');
+      expect(Object.keys(dependencies)).toEqual([
+        '@appweaver/cli',
+        '@appweaver/common',
+        '@appweaver/core',
+        '@sinclair/typebox'
+      ]);
+      expect(scripts).not.toHaveProperty('generate');
+      expect(scripts).not.toHaveProperty('migrate');
+      expect(scripts).not.toHaveProperty('seed');
+      expect(
+        readJson('my-app', 'test', 'e2e', 'jest.e2e-config.json')
+      ).not.toHaveProperty('globalSetup');
+      expect(read('my-app', 'test', 'e2e', 'main.test.ts')).toContain(
+        'HealthService'
+      );
+      expect(read('my-app', '.env')).toBe('NODE_ENV=dev\n');
 
       for (const file of [
+        'database',
+        'prisma.config.ts',
+        'data',
+        'public',
+        'src/resources',
+        'src/types',
+        'test/e2e/support',
         'templates',
         'locales',
         'Dockerfile',
@@ -522,22 +567,112 @@ describe('create', () => {
       }
     });
 
-    test('leaves the providers of the missing modules to auto by default', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none');
+    test('leaves the providers of the missing modules to auto', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--exclude',
+        'data,web'
+      );
 
       const appConfig = readJson('my-app', 'appweaver.json');
-      expect(appConfig.config).toEqual({
-        app: expect.any(Object),
-        server: expect.any(Object),
-        database: expect.any(Object)
-      });
+      expect(appConfig.config).toEqual({ app: expect.any(Object) });
       expect(appConfig.environments.dev).not.toHaveProperty('template');
-      expect(Object.keys(appConfig.environments.test)).toEqual([
-        'log',
-        'server',
-        'database',
-        'storage'
-      ]);
+      expect(Object.keys(appConfig.environments.test)).toEqual(['log']);
+    });
+
+    test('creates the database without a server when web is excluded', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--exclude', 'web');
+
+      const { dependencies, scripts } = readJson('my-app', 'package.json');
+      for (const name of [
+        '@appweaver/data',
+        '@appweaver/sharp',
+        '@prisma/client',
+        'prisma'
+      ]) {
+        expect(dependencies).toHaveProperty(name);
+      }
+      expect(dependencies).not.toHaveProperty('@appweaver/web');
+      expect(scripts.generate).toBe('weaver generate');
+      expect(scripts.seed).toBe('weaver seed --build-project');
+      expect(
+        readJson('my-app', 'test', 'e2e', 'jest.e2e-config.json')
+      ).toMatchObject({
+        globalSetup: '<rootDir>/test/e2e/support/setup.ts',
+        globalTeardown: '<rootDir>/test/e2e/support/teardown.ts'
+      });
+      // The User auth model comes with the authentication of the web module
+      expect(exists('my-app', 'src', 'resources')).toBe(false);
+      expect(
+        fs.readdirSync(path.join(tempDir, 'my-app', 'database', 'seeders'))
+      ).toEqual(['.gitkeep']);
+      expect(read('my-app', 'src', 'types', 'generated.ts')).toContain(
+        'export {};'
+      );
+      expect(exists('my-app', 'public')).toBe(false);
+      expect(readJson('my-app', 'appweaver.json').config).not.toHaveProperty(
+        'server'
+      );
+    });
+
+    test('creates a web API with its database by default', async () => {
+      const logs = await run('MyApp', '--no-install', '--agent', 'none');
+
+      expect(logs).toContain(
+        'Generating application files with modules: data, web...'
+      );
+      const { dependencies } = readJson('my-app', 'package.json');
+      expect(dependencies).toHaveProperty('@appweaver/web');
+      expect(dependencies).toHaveProperty('@appweaver/data');
+      for (const file of ['model', 'policy', 'service', 'routes']) {
+        expect(exists('my-app', 'src', 'resources', 'user', `${file}.ts`)).toBe(
+          true
+        );
+      }
+      expect(
+        exists(
+          'my-app',
+          'database',
+          'seeders',
+          '001-create-roles-and-admin-user.ts'
+        )
+      ).toBe(true);
+      expect(exists('my-app', 'public', 'robots.txt')).toBe(true);
+      expect(read('my-app', 'test', 'e2e', 'main.test.ts')).toContain(
+        "url: '/api'"
+      );
+      expect(
+        readJson('my-app', 'appweaver.json').environments.test.server
+      ).toEqual({ listen: false });
+    });
+
+    test('ignores the options of the modules that are not added', async () => {
+      const logs = await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--database',
+        'mysql',
+        '--port',
+        '8080',
+        '--exclude',
+        'data',
+        'web'
+      );
+
+      expect(logs).toContain(
+        'Ignoring --database, the data module it configures is left out.'
+      );
+      expect(logs).toContain(
+        'Ignoring --port, the web module it configures is left out.'
+      );
+      expect(
+        readJson('my-app', 'package.json').dependencies
+      ).not.toHaveProperty('@prisma/adapter-mariadb');
     });
 
     test('adds every module with the all flag', async () => {
@@ -551,8 +686,8 @@ describe('create', () => {
       const appConfig = readJson('my-app', 'appweaver.json');
       expect(Object.keys(appConfig.config)).toEqual([
         'app',
-        'server',
         'database',
+        'server',
         'memory'
       ]);
       expect(appConfig.config.memory).toEqual({
@@ -742,13 +877,44 @@ describe('create', () => {
     });
 
     test('copies neither the templates nor the translations without them', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'docker');
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--add',
+        'web',
+        'docker'
+      );
 
       const dockerfile = read('my-app', 'Dockerfile');
       expect(dockerfile).not.toMatch(/templates|locales|# Copy translation/);
       expect(dockerfile).toContain(
         '# Copy public static files\nCOPY --from=build /usr/app/public /usr/app/public\n\n# Copy Prisma'
       );
+    });
+
+    test('copies only the build of the core application', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--add',
+        'docker',
+        '--exclude',
+        'data',
+        'web'
+      );
+
+      expect(read('my-app', 'Dockerfile')).toContain(
+        '# Copy build files\nCOPY --from=build /usr/app/dist /usr/app/dist\n\n# Copy config file/s'
+      );
+      const compose = read('my-app', 'docker-compose.yml');
+      expect(compose).not.toMatch(
+        /migrations|seed|ports|healthcheck|^volumes:/m
+      );
+      expect(read('my-app', 'start.sh')).not.toContain('migrations');
     });
 
     test('adds the Redis service to docker-compose.yml', async () => {
@@ -777,7 +943,15 @@ describe('create', () => {
     });
 
     test('generates docker-compose.yml without Redis', async () => {
-      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'docker');
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--add',
+        'data',
+        'docker'
+      );
 
       const compose = read('my-app', 'docker-compose.yml');
       expect(compose).not.toContain('redis');
@@ -981,6 +1155,12 @@ describe('create', () => {
       ).toContain('Unknown module: graphql.');
     });
 
+    test('rejects excluding the data module of the default web module', () => {
+      expect(runInvalid('MyApp', '--exclude', 'data').stderr).toContain(
+        'Module web requires data, exclude web as well.'
+      );
+    });
+
     test('rejects excluding a module an added one requires', () => {
       expect(
         runInvalid('MyApp', '--all', '--exclude', 'redis').stderr
@@ -994,7 +1174,9 @@ describe('create', () => {
         '--agent',
         'none',
         '--database',
-        'PostgreSQL'
+        'PostgreSQL',
+        '--add',
+        'data'
       );
 
       expect(

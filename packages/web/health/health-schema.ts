@@ -28,12 +28,15 @@ export const ReadyResponse = Type.Object(
   { $id: 'HealthReadyResponse' }
 );
 
+const readyResponse = createSchemaModel(ReadyResponse);
+
 export const healthReadySchema = {
   tags: ['Health'],
   summary: 'Application ready status',
-  description: 'Application ready status',
+  description: 'Application ready status, responding with 503 while not ready',
   response: {
-    200: createSchemaModel(ReadyResponse),
+    200: readyResponse,
+    503: readyResponse,
     ...errorResponses()
   }
 };

@@ -1,0 +1,25 @@
+{
+  "$schema": "./appweaver.schema.json",
+  "config": {
+    "app": {
+      "name": "Loan Calculator",
+      "description": "Appweaver sample - Loan calculator, a minimal application of the core module"
+    },
+    "loan": {
+      "currency": "EUR"
+    }
+  },
+  "environments": {
+    "dev": {
+      "log": {
+        "pretty": true
+      }
+    },
+    "test": {
+      "log": {
+        "level": "silent",
+        "sync": true
+      }
+    }
+  }
+}

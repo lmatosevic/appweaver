@@ -53,7 +53,7 @@ export function health(server: Server): void {
     async (_, reply) => {
       const ready = await healthService.checkReadiness();
 
-      return reply.send({ ready });
+      return reply.status(ready ? 200 : 503).send({ ready });
     }
   );
 }

@@ -353,6 +353,9 @@ const config = {
 |----------|----------|------------------------------------------------------|
 | `type`   | `'json'` | JSON field type. Stores arbitrary objects or arrays. |
 
+On SQLite the default is written to the schema as the quoted SQL literal (`@default(dbgenerated("'{}'"))`), since the
+migrations of Prisma would write a plain `@default("{}")` unquoted, which SQLite rejects.
+
 #### Enum
 
 ```ts

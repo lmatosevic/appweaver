@@ -7,7 +7,8 @@ checked with a `SELECT 1`, the failure is logged as an error, and the next query
 
 ## Injecting the client
 
-A scaffolded project exports the typed client from `database/client.ts`, imported as `@db/client`:
+A project scaffolded with the `data` module exports the typed client from `database/client.ts`, imported as
+`@db/client`:
 
 ```ts
 import { injectDatabaseClient } from '@appweaver/core';

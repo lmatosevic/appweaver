@@ -114,6 +114,11 @@ export async function generateTypes(
       );
     }
 
+    // Without any model the file still has to be a module, re-exported by the types index
+    if (Object.keys(modelTypeNames).length === 0 && !registered) {
+      typesContent.push(`export {};`, ``);
+    }
+
     const outputPath = path.join(cwd, typesPath);
 
     const prettierConfig = await prettier.resolveConfig(outputPath);

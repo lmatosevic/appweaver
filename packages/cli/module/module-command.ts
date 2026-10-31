@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import {
+  databaseTypes,
   disableModules,
   enableModules,
   findDependents,
@@ -8,6 +9,7 @@ import {
   ModuleChangeResult,
   moduleNames,
   modules,
+  parseDatabaseType,
   parseModuleNames,
   resolveModules,
   ScaffoldError
@@ -85,24 +87,44 @@ export function moduleCommand(program: Command): void {
       '-f, --force',
       'Overwrite the existing files instead of skipping them.'
     )
+    .option(
+      '--database [database]',
+      `Type of SQL database of the data module (${databaseTypes.join(', ')}). (default: sqlite)`,
+      parseDatabaseType
+    )
     .option('--dry-run', 'Print the changes without applying them.')
     .option('--no-install', 'Skip the installation of the dependencies.')
     .option('--verbose', 'Print verbose output.')
     .action(async (allNames: string[], _, command: Command) => {
       const project = load();
+      const database = command.getOptionValue('database');
+      if (database) {
+        if (project.enabled.includes('data')) {
+          console.error(
+            `Module data is already enabled with the ${project.context.database} database.`
+          );
+          process.exit(1);
+        }
+        project.context.database = database;
+      }
       const isPackage = (name: string) => isPackageName(name, moduleNames);
       const packageNames = allNames.filter(isPackage);
       if (packageNames.length > 0) {
         await addPackageModules(project, packageNames, command);
       }
       const names = allNames.filter((name) => !isPackage(name));
-      if (names.length === 0) {
-        return;
-      }
-
       const { modules: requested, required } = run(() =>
         resolveModules(parseModuleNames(names))
       );
+      if (database && !requested.includes('data')) {
+        console.log(
+          'Ignoring --database, the data module it configures is not added.'
+        );
+      }
+      if (requested.length === 0) {
+        return;
+      }
+
       for (const [requirement, by] of required) {
         if (!project.enabled.includes(requirement)) {
           console.log(`Adding module ${requirement}, required by ${by}.`);

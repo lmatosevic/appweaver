@@ -5,13 +5,6 @@
       "name": "{{NAME}}",
       "description": "{{DESCRIPTION}}",
       "runtime": "bun"
-    },
-    "server": {
-      "host": "{{HOST}}",
-      "port": {{PORT}}
-    },
-    "database": {
-      "url": "{{DATABASE_URL}}"
     }
   },
   "environments": {
@@ -25,18 +18,6 @@
       "log": {
         "level": "silent",
         "sync": true
-      },
-      "server": {
-        "listen": false
-      },
-      "database": {
-        "url": "{{DATABASE_TEST_URL}}",
-        "schemaPath": "./temp/database/schema.prisma",
-        "migrationsDirPath": "./temp/database/migrations",
-        "clientOutputDirPath": "./temp/database/client"
-      },
-      "storage": {
-        "path": "./temp/storage"
       }
     }
   }

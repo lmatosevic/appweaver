@@ -50,5 +50,25 @@ describe('health-client', () => {
         path: '/health/ready'
       });
     });
+
+    test('returns the error body while the server is not ready', async () => {
+      const stub = createStubClient({
+        error: { ready: false },
+        response: new Response(null, { status: 503 })
+      });
+      const health = new HealthClient<any>(stub.client, '/health');
+
+      await expect(health.ready()).resolves.toEqual({ ready: false });
+    });
+
+    test('throws a ClientError for any other error response', async () => {
+      const stub = createStubClient({
+        error: { detail: 'Too many requests', status: 429 },
+        response: new Response(null, { status: 429 })
+      });
+      const health = new HealthClient<any>(stub.client, '/health');
+
+      await expect(health.ready()).rejects.toThrow(ClientError);
+    });
   });
 });

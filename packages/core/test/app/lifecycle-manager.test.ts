@@ -1,6 +1,7 @@
 import { LIFECYCLE } from '@appweaver/common';
 import { LifecycleManager } from '../../app/lifecycle-manager';
 import { define } from '../../context/dependency-injection';
+import { HealthService } from '../../health/health-service';
 import { resetContext } from '../fixtures/context-fixture';
 
 const created: string[] = [];
@@ -80,6 +81,49 @@ describe('lifecycle-manager', () => {
         'Server.onShutdown',
         'Database.onDestroy'
       ]);
+    });
+
+    test('reports the application as ready once every service is ready, until its shutdown', async () => {
+      const readiness: string[] = [];
+      const health = new HealthService();
+      const record = async (step: string) =>
+        readiness.push(`${step}: ${await health.checkReadiness()}`);
+
+      /** A service still starting while the server listens. */
+      class Worker {
+        static [LIFECYCLE] = true;
+
+        public onReady() {
+          return record('onReady');
+        }
+
+        public onShutdown() {
+          return record('onShutdown');
+        }
+      }
+
+      define(health, HealthService);
+      define(Worker);
+      const manager = new Manager();
+
+      await manager.init();
+      await manager.ready();
+      await record('ready');
+      await manager.destroy();
+
+      expect(readiness).toEqual([
+        'onReady: false',
+        'ready: true',
+        'onShutdown: false'
+      ]);
+    });
+
+    test('sets no readiness without the health service', async () => {
+      const manager = new Manager();
+
+      await manager.init();
+      await expect(manager.ready()).resolves.toBeUndefined();
+      await expect(manager.destroy()).resolves.toBeUndefined();
     });
   });
 });

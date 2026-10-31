@@ -47,8 +47,9 @@ export class HealthListener implements OnReady, OnShutdown {
           checks
         };
       } else if (request.method === 'GET' && path === '/health/ready') {
-        status = 200;
-        body = { ready: await healthService.checkReadiness() };
+        const ready = await healthService.checkReadiness();
+        status = ready ? 200 : 503;
+        body = { ready };
       }
 
       response.writeHead(status, { 'Content-Type': 'application/json' });

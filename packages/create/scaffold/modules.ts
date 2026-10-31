@@ -1,34 +1,138 @@
-import { moduleNames, ModuleName, ScaffoldError } from './types';
+import { getDatabaseAdapter, getDatabaseUrl } from './database-config';
+import {
+  moduleNames,
+  ModuleName,
+  ProjectContext,
+  ScaffoldError
+} from './types';
 
-/** A value of the appweaver.json file, at a dotted path such as `config.redis.url`. */
+/** A value of a JSON file, at a dotted path such as `config.redis.url`. */
 export type ConfigEntry = [path: string, value: unknown];
+
+/** The values a module sets in a JSON file of the project other than appweaver.json, skipped when it is missing. */
+export type JsonFileEntries = {
+  file: string;
+  enabled: ConfigEntry[];
+  disabled: ConfigEntry[];
+};
 
 /** An optional module a project is scaffolded with, or adds and removes later. */
 export type ModuleDefinition = {
   name: ModuleName;
   description: string;
-  /** The npm packages the module installs. */
+  /** The npm packages the module installs, marking it as enabled. */
   packages: string[];
   /** The modules it cannot run without. */
   requires: ModuleName[];
   /** The appweaver.json values set while the module is enabled. */
-  enabledConfig: ConfigEntry[];
+  enabledConfig: (context: ProjectContext) => ConfigEntry[];
   /** The appweaver.json values set while the module is disabled. */
   disabledConfig: ConfigEntry[];
-  /** The directories the module owns, deleted with all of their contents when it is removed. */
+  /** The npm packages it installs that depend on the project, i.e. the driver adapter of its database. */
+  projectPackages?: (context: ProjectContext) => string[];
+  /** The values of the other JSON files of the project, i.e. the scripts of package.json. */
+  jsonFiles?: (context: ProjectContext) => JsonFileEntries[];
+  /** The directories and generated files the module owns, deleted whatever their contents when it is removed. */
   directories?: string[];
+  /** The directories among them holding the files written in the project, reported when they are deleted. */
+  projectDirs?: string[];
   /** The file whose presence marks a module without packages as enabled. */
   marker?: string;
 };
 
+const bunE2eScript =
+  'bun test ./test/e2e --reporter=junit --reporter-outfile=./reports/e2e.xml';
+
 export const modules: Record<ModuleName, ModuleDefinition> = {
+  data: {
+    name: 'data',
+    description:
+      'Prisma database with the resources, the User auth model and the seeders, otherwise no database',
+    packages: [
+      '@appweaver/data',
+      '@appweaver/sharp',
+      '@prisma/client',
+      'prisma'
+    ],
+    requires: [],
+    enabledConfig: ({ database, name }) => [
+      ['config.database.url', getDatabaseUrl(database, name, 'dev')],
+      [
+        'environments.test.database.url',
+        getDatabaseUrl(database, name, 'test')
+      ],
+      [
+        'environments.test.database.schemaPath',
+        './temp/database/schema.prisma'
+      ],
+      [
+        'environments.test.database.migrationsDirPath',
+        './temp/database/migrations'
+      ],
+      [
+        'environments.test.database.clientOutputDirPath',
+        './temp/database/client'
+      ],
+      ['environments.test.storage.path', './temp/storage']
+    ],
+    disabledConfig: [],
+    projectPackages: ({ database, runtime }) => [
+      getDatabaseAdapter(database, runtime)
+    ],
+    jsonFiles: ({ runtime }) => [
+      {
+        file: 'package.json',
+        enabled: [
+          ['scripts.generate', 'weaver generate'],
+          ['scripts.migrate', 'weaver migrate'],
+          [
+            'scripts.seed',
+            runtime === 'bun' ? 'weaver seed' : 'weaver seed --build-project'
+          ],
+          // The test database is set up before the end-to-end tests, and torn down after them
+          ...(runtime === 'bun'
+            ? ([
+                [
+                  'scripts.e2e',
+                  `${bunE2eScript} --preload ./test/e2e/support/preload.ts`
+                ]
+              ] as ConfigEntry[])
+            : [])
+        ],
+        disabled: runtime === 'bun' ? [['scripts.e2e', bunE2eScript]] : []
+      },
+      {
+        file: 'test/e2e/jest.e2e-config.json',
+        enabled: [
+          ['globalSetup', '<rootDir>/test/e2e/support/setup.ts'],
+          ['globalTeardown', '<rootDir>/test/e2e/support/teardown.ts']
+        ],
+        disabled: []
+      }
+    ],
+    directories: ['database', 'src/types/generated.ts'],
+    projectDirs: ['database/migrations', 'database/seeders']
+  },
+  web: {
+    name: 'web',
+    description:
+      'Fastify HTTP server with the resource routes, authentication and Swagger, otherwise no server',
+    packages: ['@appweaver/web'],
+    requires: ['data'],
+    enabledConfig: ({ host, port }) => [
+      ['config.server.host', host ?? '0.0.0.0'],
+      ['config.server.port', port],
+      ['environments.test.server.listen', false]
+    ],
+    disabledConfig: []
+  },
   redis: {
     name: 'redis',
     description:
       'Redis connection (IoRedis) for the cache, rate limit and queue, otherwise in memory',
     packages: ['@appweaver/redis'],
     requires: [],
-    enabledConfig: [
+    enabledConfig: () => [
       ['config.memory.redis.url', 'redis://${REDIS_HOST:-localhost}:6379/0'],
       ['environments.test.memory.provider', 'memory']
     ],
@@ -39,7 +143,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     description: 'BullMQ queue on Redis, otherwise the in-memory queue',
     packages: ['@appweaver/bullmq'],
     requires: ['redis'],
-    enabledConfig: [['environments.test.queue.provider', 'memory']],
+    enabledConfig: () => [['environments.test.queue.provider', 'memory']],
     disabledConfig: []
   },
   scheduler: {
@@ -47,7 +151,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     description: 'Cron job scheduler, otherwise disabled',
     packages: ['@appweaver/cron'],
     requires: [],
-    enabledConfig: [['environments.test.scheduler.autoStartJob', false]],
+    enabledConfig: () => [['environments.test.scheduler.autoStartJob', false]],
     disabledConfig: []
   },
   mailer: {
@@ -57,7 +161,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     packages: ['@appweaver/nodemailer'],
     requires: [],
     // The json mailer of the tests still needs a sender, the other environments set their own
-    enabledConfig: [
+    enabledConfig: () => [
       ['environments.test.mailer.provider', 'json'],
       ['environments.test.mailer.senderAddress', 'no-reply@example.com']
     ],
@@ -69,7 +173,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
       'Handlebars templates in templates/, with the account email templates when the mailer is enabled',
     packages: ['@appweaver/handlebars'],
     requires: [],
-    enabledConfig: [['environments.dev.template.cache', false]],
+    enabledConfig: () => [['environments.dev.template.cache', false]],
     disabledConfig: [],
     directories: ['templates']
   },
@@ -79,7 +183,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
       'Translation files in locales/, with the account email texts when the mailer is enabled, otherwise the English texts are written into the templates',
     packages: [],
     requires: [],
-    enabledConfig: [],
+    enabledConfig: () => [],
     disabledConfig: [],
     directories: ['locales'],
     marker: 'locales'
@@ -87,14 +191,20 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
   docker: {
     name: 'docker',
     description:
-      'Dockerfile, docker-compose.yml with the database and Redis services, and start.sh',
+      'Dockerfile, docker-compose.yml with the database and Redis services of the enabled modules, and start.sh',
     packages: [],
     requires: [],
-    enabledConfig: [],
+    enabledConfig: () => [],
     disabledConfig: [],
     marker: 'Dockerfile'
   }
 };
+
+/**
+ * The modules a new project is created with besides the ones added, a web API with its database. `--exclude data web`
+ * leaves them out for the minimal application of the core module.
+ */
+export const defaultModules: ModuleName[] = ['data', 'web'];
 
 /**
  * Parses module names, given one per value or separated by commas.

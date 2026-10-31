@@ -10,10 +10,11 @@ import {
   createProject,
   ModuleContract,
   moduleContracts,
-  DatabaseType,
   databaseTypes,
+  defaultModules,
   ModuleName,
   moduleNames,
+  parseDatabaseType,
   parseModuleNames,
   resolveModules,
   ScaffoldError
@@ -119,19 +120,19 @@ function createProjectProgram(): Command {
     )
     .option(
       '--database [database]',
-      `Type of SQL database (${databaseTypes.join(', ')}).`,
+      `Type of SQL database of the data module (${databaseTypes.join(', ')}).`,
       parseDatabaseType,
       'sqlite'
     )
     .option(
       '--port [port]',
-      'Port number where the application server will listen.',
+      'Port number where the server of the web module will listen.',
       parsePortNumber,
       5000
     )
     .option(
       '--host [host]',
-      'Hostname or IP address where the application server will bind.',
+      'Hostname or IP address where the server of the web module will bind.',
       parseHostname,
       '0.0.0.0'
     )
@@ -143,12 +144,12 @@ function createProjectProgram(): Command {
     )
     .option(
       '--add <modules...>',
-      `Modules to add, separated by spaces or commas (${moduleNames.join(', ')}).`
+      `Modules to add to the default ones (${defaultModules.join(', ')}), separated by spaces or commas (${moduleNames.join(', ')}).`
     )
     .option('--all', 'Add every module.')
     .option(
       '--exclude <modules...>',
-      'Modules to leave out of --all, separated by spaces or commas.'
+      `Modules to leave out of the default ones or of --all, separated by spaces or commas (--exclude ${defaultModules.join(' ')} for the core application alone).`
     )
     .option('--bun', 'Use Bun as application runtime.')
     .option('--no-install', 'Skip all dependencies installation.');
@@ -301,7 +302,16 @@ async function createApp(
 
   console.log(`Configuring application...`);
 
-  await runProcess(packageManager, ['run', 'generate'], { destDir });
+  // Without the data module, there are no types to generate, only the schema of appweaver.json
+  if (selectedModules.includes('data')) {
+    await runProcess(packageManager, ['run', 'generate'], { destDir });
+  } else {
+    await runProcess(
+      runtime === 'bun' ? 'bun' : 'npx',
+      ['weaver', 'config', 'schema'],
+      { destDir }
+    );
+  }
 
   console.log(`Done\n`);
 
@@ -309,9 +319,10 @@ async function createApp(
 }
 
 /**
- * Selects the modules of `--all` or `--add` with the modules they require, leaving out the `--exclude` ones.
+ * Selects the default modules with the `--add` ones, or every module with `--all`, and the modules they require, leaving
+ * out the `--exclude` ones.
  *
- * @throws {ScaffoldError} When a module is unknown, both added and excluded, or required by an added module.
+ * @throws {ScaffoldError} When a module is unknown, both added and excluded, or required by a selected module.
  */
 function selectModules(command: Command): ModuleName[] {
   const excluded = parseModuleNames(command.getOptionValue('exclude') ?? []);
@@ -324,10 +335,27 @@ function selectModules(command: Command): ModuleName[] {
     );
   }
 
-  const selected = command.getOptionValue('all') ? [...moduleNames] : added;
+  const selected = command.getOptionValue('all')
+    ? [...moduleNames]
+    : [...defaultModules, ...added];
   const { modules: resolved, required } = resolveModules(selected, excluded);
   for (const [requirement, by] of required) {
     console.log(`Adding module ${requirement}, required by ${by}.`);
+  }
+
+  for (const [option, module] of [
+    ['database', 'data'],
+    ['port', 'web'],
+    ['host', 'web']
+  ] as [string, ModuleName][]) {
+    if (
+      command.getOptionValueSource(option) === 'cli' &&
+      !resolved.includes(module)
+    ) {
+      console.log(
+        `Ignoring --${option}, the ${module} module it configures is left out.`
+      );
+    }
   }
   return resolved;
 }
@@ -352,17 +380,6 @@ function runProcess(
       resolve(code);
     });
   });
-}
-
-function parseDatabaseType(value: string): DatabaseType {
-  const lowerDbType = value.toLowerCase() as DatabaseType;
-  if (!databaseTypes.includes(lowerDbType)) {
-    throw new InvalidOptionArgumentError(
-      `Must be one of following: ${databaseTypes.join(', ')}.`
-    );
-  }
-
-  return lowerDbType;
 }
 
 function parsePortNumber(value: string): number {

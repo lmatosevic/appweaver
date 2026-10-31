@@ -4,14 +4,21 @@ import {
   flattenTranslations,
   inlineTranslations
 } from '../utils/translation-util';
-import { addRedisService, removeRedisService } from './compose-util';
-import { getDatabaseDockerVariables } from './database-config';
+import {
+  addDatabaseServices,
+  addRedisService,
+  addServerPort,
+  removeDatabaseServices,
+  removeRedisService,
+  removeServerPort
+} from './compose-util';
+import { getSecretsEnv, getSqliteGitignore } from './database-config';
 import {
   addDockerfileBlock,
   DockerfileBlock,
   removeDockerfileBlock
 } from './dockerfile-util';
-import { ConfigEntry, modules, sortModules } from './modules';
+import { ConfigEntry, ModuleDefinition, modules, sortModules } from './modules';
 import { packageVersion } from './package-versions';
 import { ProjectFiles } from './project-files';
 import {
@@ -20,7 +27,7 @@ import {
   TemplateFile,
   templatesDir
 } from './template-files';
-import { ModuleName, ProjectContext } from './types';
+import { ModuleName, ProjectContext, Runtime } from './types';
 
 /** The outcome of adding or removing modules. */
 export type ModuleChangeResult = {
@@ -41,37 +48,122 @@ type ModuleScaffold = {
   context: ProjectContext;
   /** The enabled modules, updated as each module is added or removed. */
   enabled: Set<ModuleName>;
+  /** The modules being removed, whose directories are deleted after the files of the other ones. */
+  removed: Set<ModuleName>;
   force: boolean;
   warnings: string[];
 };
 
 /**
- * What a module adds to a project when another module is enabled too, with the files of the
- * `templates/modules/<first>+<second>` directory.
+ * What a module changes in the files of the base project, or what it adds to a project when another module is enabled
+ * too, with the files of the `templates/modules/<first>+<second>` directory.
  */
 type ModuleIntegration = {
-  modules: [ModuleName, ModuleName];
+  modules: [ModuleName] | [ModuleName, ModuleName];
   /** Called with the module whose addition enables both. */
   enable?(scaffold: ModuleScaffold, name: ModuleName): void;
   /** Called with the module whose removal disables both. */
   disable?(scaffold: ModuleScaffold, name: ModuleName): void;
 };
 
+const publicBlock: DockerfileBlock = {
+  comment: 'Copy public static files',
+  instructions: ['COPY --from=build /usr/app/public /usr/app/public'],
+  before: [
+    'Copy templates',
+    'Copy translation files',
+    'Copy Prisma config',
+    'Copy config file/s'
+  ]
+};
+
 const templatesBlock: DockerfileBlock = {
   comment: 'Copy templates',
   instructions: ['COPY --from=build /usr/app/templates /usr/app/templates'],
-  before: ['Copy translation files', 'Copy Prisma config']
+  before: ['Copy translation files', 'Copy Prisma config', 'Copy config file/s']
 };
 
 const localesBlock: DockerfileBlock = {
   comment: 'Copy translation files',
   instructions: ['COPY --from=build /usr/app/locales /usr/app/locales'],
-  before: ['Copy Prisma config']
+  before: ['Copy Prisma config', 'Copy config file/s']
 };
+
+const prismaBlock: DockerfileBlock = {
+  comment: 'Copy Prisma config, database migrations, and schema file',
+  instructions: [
+    'COPY --from=build /usr/app/prisma.config.ts /usr/app/prisma.config.ts',
+    'COPY --from=build /usr/app/database/migrations /usr/app/database/migrations',
+    'COPY --from=build /usr/app/database/schema.prisma /usr/app/database/schema.prisma'
+  ],
+  before: ['Copy config file/s']
+};
+
+/** The start.sh anchor the container roles are inserted before. */
+const unknownRole = 'else\n  echo "Could not match the container role';
 
 const translationFile = 'locales/en.json';
 
 const integrations: ModuleIntegration[] = [
+  // The database password referenced by the appweaver.json URL, and the ignored SQLite database files
+  {
+    modules: ['data'],
+    enable: (scaffold) => {
+      const { database, name } = scaffold.context;
+      for (const file of ['.env', '.env.example']) {
+        addText(scaffold, file, getSecretsEnv(database, name));
+      }
+      addText(scaffold, '.gitignore', getSqliteGitignore(database), '# OS');
+    },
+    disable: (scaffold) => {
+      const { database, name } = scaffold.context;
+      for (const file of ['.env', '.env.example']) {
+        removeText(scaffold, file, getSecretsEnv(database, name));
+      }
+      removeText(scaffold, '.gitignore', getSqliteGitignore(database));
+    }
+  },
+  {
+    modules: ['data', 'docker'],
+    enable: (scaffold) => {
+      editFile(scaffold, 'docker-compose.yml', (content) =>
+        addDatabaseServices(content, scaffold.context)
+      );
+      addBlock(scaffold, prismaBlock);
+      addText(
+        scaffold,
+        'start.sh',
+        getDatabaseRoles(scaffold.context.runtime),
+        unknownRole
+      );
+    },
+    disable: (scaffold) => {
+      editFile(scaffold, 'docker-compose.yml', (content) =>
+        removeDatabaseServices(content, scaffold.context)
+      );
+      removeBlock(scaffold, prismaBlock);
+      removeText(
+        scaffold,
+        'start.sh',
+        getDatabaseRoles(scaffold.context.runtime)
+      );
+    }
+  },
+  {
+    modules: ['web', 'docker'],
+    enable: (scaffold) => {
+      editFile(scaffold, 'docker-compose.yml', (content) =>
+        addServerPort(content, scaffold.context)
+      );
+      addBlock(scaffold, publicBlock);
+    },
+    disable: (scaffold) => {
+      editFile(scaffold, 'docker-compose.yml', (content) =>
+        removeServerPort(content, scaffold.context)
+      );
+      removeBlock(scaffold, publicBlock);
+    }
+  },
   {
     modules: ['redis', 'docker'],
     enable: (scaffold) =>
@@ -211,6 +303,7 @@ export function enableModules(
     files,
     context,
     enabled: new Set(enabled),
+    removed: new Set(),
     force: !!options.force,
     warnings: []
   };
@@ -223,13 +316,15 @@ export function enableModules(
     scaffold.enabled.add(name);
 
     const module = modules[name];
-    updateConfig(files, module.enabledConfig, module.disabledConfig);
-    updateDependencies(files, module.packages, []);
+    updateModuleValues(files, context, module, true);
+    updateDependencies(files, modulePackages(module, context), []);
     copyFiles(scaffold, name);
 
     for (const integration of integrations) {
       if (isIntegrationOf(integration, name, scaffold.enabled)) {
-        copyFiles(scaffold, integration.modules.join('+'));
+        if (integration.modules.length > 1) {
+          copyFiles(scaffold, integration.modules.join('+'));
+        }
         integration.enable?.(scaffold, name);
       }
     }
@@ -262,6 +357,7 @@ export function disableModules(
     files,
     context,
     enabled: new Set(enabled),
+    removed: new Set(removed),
     force: false,
     warnings: []
   };
@@ -275,14 +371,19 @@ export function disableModules(
     for (const integration of [...integrations].reverse()) {
       if (isIntegrationOf(integration, name, scaffold.enabled)) {
         integration.disable?.(scaffold, name);
-        removeFiles(scaffold, integration.modules.join('+'));
+        if (integration.modules.length > 1) {
+          removeFiles(scaffold, integration.modules.join('+'));
+        }
       }
     }
 
     const module = modules[name];
-    updateConfig(files, module.disabledConfig, module.enabledConfig);
-    updateDependencies(files, [], module.packages);
+    updateModuleValues(files, context, module, false);
+    updateDependencies(files, [], modulePackages(module, context));
     removeFiles(scaffold, name);
+    for (const dir of module.projectDirs ?? []) {
+      reportDeletedFiles(scaffold, name, dir);
+    }
     for (const dir of module.directories ?? []) {
       files.remove(dir);
     }
@@ -317,9 +418,16 @@ function collectModuleFiles(
     context.runtime
   ).filter(
     (file) =>
-      file.path !== 'database/mariadb-init.sh' || context.database === 'mysql'
+      !(file.path in databaseFiles) ||
+      databaseFiles[file.path] === context.database
   );
 }
+
+/** The module files of a single database. */
+const databaseFiles: Record<string, string> = {
+  'database/mariadb-init.sh': 'mysql',
+  'data/.gitkeep': 'sqlite'
+};
 
 /**
  * Copies the files of a module or integration directory into the project, skipping the existing ones unless forced.
@@ -327,11 +435,8 @@ function collectModuleFiles(
  */
 function copyFiles(scaffold: ModuleScaffold, unit: string): void {
   const { files, context } = scaffold;
-  const variables = {
-    LOWER_NAME: context.name,
-    PORT: String(context.port),
-    ...getDatabaseDockerVariables(context.database, context.name)
-  };
+  const variables = templateVariables(context);
+  const baseFiles = collectBaseFiles(context.runtime);
 
   for (const file of collectModuleFiles(unit, context)) {
     let content = readTemplateFile(file, variables);
@@ -347,7 +452,10 @@ function copyFiles(scaffold: ModuleScaffold, unit: string): void {
     if (existing === content.toString()) {
       continue;
     }
-    if (existing !== undefined && !scaffold.force) {
+    // A module file replacing a file of the base project, i.e. the end-to-end test of the server
+    const replaced =
+      existing !== undefined && existing === readBaseFile(baseFiles, file.path);
+    if (existing !== undefined && !replaced && !scaffold.force) {
       scaffold.warnings.push(`Skipped the existing file ${file.path}`);
       continue;
     }
@@ -355,14 +463,124 @@ function copyFiles(scaffold: ModuleScaffold, unit: string): void {
   }
 }
 
-/** Deletes the files of a module or integration directory from the project. */
+/** The directories of the code written in the project, whose scaffolded files are kept once changed. */
+const sourceDirs = ['src', 'database/seeders'];
+
+/**
+ * Deletes the files of a module or integration directory from the project, restoring the files of the base project
+ * they replaced. The source files, seeders and replaced base files changed in the project are kept, unless the
+ * directory of a module removed with it deletes them.
+ */
 function removeFiles(scaffold: ModuleScaffold, unit: string): void {
+  const { files, context } = scaffold;
+  const variables = templateVariables(context);
+  const baseFiles = collectBaseFiles(context.runtime);
+  const owned = (modules as Record<string, ModuleDefinition>)[unit]
+    ?.directories;
   for (const file of collectTemplateFiles(
     path.join(templatesDir, 'modules', unit),
-    scaffold.context.runtime
+    context.runtime
   )) {
-    scaffold.files.remove(file.path);
+    // Deleted whatever its contents with the directories of the module
+    if (owned?.some((dir) => isInside(file.path, dir))) {
+      continue;
+    }
+
+    const existing = files.read(file.path);
+    const changed =
+      existing !== undefined &&
+      existing !== readTemplateFile(file, variables).toString();
+    const base = readBaseFile(baseFiles, file.path);
+    if (
+      changed &&
+      (base !== undefined || sourceDirs.some((dir) => isInside(file.path, dir)))
+    ) {
+      if (!isDeletedWithDirectory(scaffold, file.path)) {
+        scaffold.warnings.push(`Kept the changed file ${file.path}`);
+      }
+      continue;
+    }
+
+    if (base === undefined) {
+      files.remove(file.path);
+    } else {
+      files.write(file.path, base);
+    }
   }
+}
+
+/** Whether the file lies in a directory of a module being removed, deleted whatever its contents. */
+function isDeletedWithDirectory(
+  scaffold: ModuleScaffold,
+  file: string
+): boolean {
+  return [...scaffold.removed].some((name) =>
+    modules[name].directories?.some((dir) => isInside(file, dir))
+  );
+}
+
+/** Reports the files written in the project that deleting a directory of a removed module takes with it. */
+function reportDeletedFiles(
+  scaffold: ModuleScaffold,
+  name: ModuleName,
+  dir: string
+): void {
+  const { files, context } = scaffold;
+  const variables = templateVariables(context);
+  const scaffolded = collectModuleFiles(name, context);
+  const written = files.list(dir).filter((file) => {
+    const template = scaffolded.find((module) => module.path === file);
+    return (
+      !template ||
+      files.read(file) !== readTemplateFile(template, variables).toString()
+    );
+  });
+  if (written.length > 0) {
+    scaffold.warnings.push(
+      `Deleted the files written in ${dir}: ${written.join(', ')}`
+    );
+  }
+}
+
+function isInside(file: string, dir: string): boolean {
+  return file === dir || file.startsWith(`${dir}/`);
+}
+
+/** The variables of the module templates. */
+function templateVariables(context: ProjectContext): Record<string, string> {
+  return { LOWER_NAME: context.name };
+}
+
+/** The files of the base project template, by their path. */
+function collectBaseFiles(runtime: Runtime): Map<string, TemplateFile> {
+  return new Map(
+    collectTemplateFiles(path.join(templatesDir, 'base'), runtime).map(
+      (file) => [file.path, file]
+    )
+  );
+}
+
+/**
+ * Reads a file of the base project template, or returns `undefined` when it has none at the path. Its variables stay
+ * unreplaced, since `createProject` fills them in from options the project context lacks (`NAME`, `DESCRIPTION`, ...),
+ * so a base file a module replaces must hold none of them, otherwise it never matches the project file and counts as
+ * changed.
+ */
+function readBaseFile(
+  baseFiles: Map<string, TemplateFile>,
+  file: string
+): string | undefined {
+  const template = baseFiles.get(file);
+  return template && readTemplateFile(template, {}).toString();
+}
+
+/** The start.sh container roles applying the migrations and seeding the database. */
+function getDatabaseRoles(runtime: Runtime): string {
+  const weaver = runtime === 'bun' ? 'bun weaver' : 'npx weaver';
+  return (
+    `elif [ "$role" = "migrations" ]; then\n  echo "Executing migrations..."\n  ${weaver} migrate\n\n` +
+    `elif [ "$role" = "seed" ]; then\n  echo "Seeding database..."\n  ${weaver} seed\n\n`
+  );
 }
 
 /** The template files a project is scaffolded with, of the enabled modules. */
@@ -448,6 +666,47 @@ function editFile(
   scaffold.files.write(file, edit(content));
 }
 
+/**
+ * Inserts a text into a file before the anchor, or at its end without one, unless the file has it already. A missing
+ * file is skipped, i.e. the ignored .env file of a cloned project.
+ */
+function addText(
+  scaffold: ModuleScaffold,
+  file: string,
+  text: string,
+  before?: string
+): void {
+  const content = scaffold.files.read(file);
+  if (!text || content === undefined || content.includes(text)) {
+    return;
+  }
+
+  const anchor =
+    before === undefined ? content.length : content.indexOf(before);
+  if (anchor < 0) {
+    scaffold.warnings.push(`Unable to update the changed file ${file}`);
+    return;
+  }
+  scaffold.files.write(
+    file,
+    content.slice(0, anchor) + text + content.slice(anchor)
+  );
+}
+
+function removeText(
+  scaffold: ModuleScaffold,
+  file: string,
+  text: string
+): void {
+  const content = scaffold.files.read(file);
+  if (text && content?.includes(text)) {
+    scaffold.files.write(
+      file,
+      content.replace(text, () => '')
+    );
+  }
+}
+
 function addBlock(scaffold: ModuleScaffold, block: DockerfileBlock): void {
   const content = scaffold.files.read('Dockerfile');
   const updated =
@@ -471,16 +730,49 @@ function removeBlock(scaffold: ModuleScaffold, block: DockerfileBlock): void {
   }
 }
 
+/** The packages a module installs in a project. */
+function modulePackages(
+  module: ModuleDefinition,
+  context: ProjectContext
+): string[] {
+  return [...module.packages, ...(module.projectPackages?.(context) ?? [])];
+}
+
+/** Sets the appweaver.json values and the values of the other JSON files of a module's new state. */
+function updateModuleValues(
+  files: ProjectFiles,
+  context: ProjectContext,
+  module: ModuleDefinition,
+  enabled: boolean
+): void {
+  const config = module.enabledConfig(context);
+  updateJson(
+    files,
+    'appweaver.json',
+    enabled ? config : module.disabledConfig,
+    enabled ? module.disabledConfig : config
+  );
+  for (const entries of module.jsonFiles?.(context) ?? []) {
+    updateJson(
+      files,
+      entries.file,
+      enabled ? entries.enabled : entries.disabled,
+      enabled ? entries.disabled : entries.enabled
+    );
+  }
+}
+
 /**
- * Sets the appweaver.json values of a module's new state, and deletes the ones of its previous state that were not
+ * Sets the values of a JSON file for a module's new state, and deletes the ones of its previous state that were not
  * changed in the project.
  */
-function updateConfig(
+function updateJson(
   files: ProjectFiles,
+  file: string,
   set: ConfigEntry[],
   unset: ConfigEntry[]
 ): void {
-  const config = files.readJson('appweaver.json');
+  const config = files.readJson(file);
   if (!config) {
     return;
   }
@@ -495,7 +787,7 @@ function updateConfig(
     }
   }
 
-  files.writeJson('appweaver.json', config);
+  files.writeJson(file, config);
 }
 
 /** Adds and removes dependencies of package.json, at their scaffold versions, keeping them sorted. */

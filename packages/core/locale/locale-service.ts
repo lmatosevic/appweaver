@@ -172,7 +172,9 @@ export class LocaleService implements OnInit {
 
     this._files = files;
     this._loaded = true;
-    logger.debug({ locales: [...files.keys()] }, 'Translations loaded');
+    if (files.size > 0) {
+      logger.debug({ locales: [...files.keys()] }, 'Translations loaded');
+    }
   }
 
   /** @internal */
@@ -207,14 +209,20 @@ function readTranslationFiles(dir: string): Map<string, FlatTranslations> {
   try {
     fileNames = fs.readdirSync(dir).filter((f) => f.endsWith('.json'));
   } catch {
-    logger.debug({ dir }, 'Locale directory not found');
+    logger.debug(
+      { dir: path.relative(process.cwd(), dir) },
+      'Locale directory not found, using the default English translations'
+    );
   }
 
   for (const fileName of fileNames) {
     const filePath = path.join(dir, fileName);
     const locale = normalizeLocale(fileName.slice(0, -'.json'.length));
     if (!locale) {
-      logger.warn({ filePath }, 'Translation file of an invalid locale');
+      logger.warn(
+        { filePath: path.relative(process.cwd(), filePath) },
+        'Translation file of an invalid locale'
+      );
       continue;
     }
 

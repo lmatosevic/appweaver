@@ -172,6 +172,66 @@ describe('module-command', () => {
       expect(runProcess).not.toHaveBeenCalled();
     });
 
+    test('adds the data module with the database of the option', async () => {
+      await run('add', 'data', '--database', 'mysql');
+
+      expect(readJson('package.json').dependencies).toHaveProperty(
+        '@prisma/adapter-mariadb'
+      );
+      expect(readJson('appweaver.json').config.database.url).toContain(
+        'mysql://'
+      );
+      expect(
+        fs.readFileSync(path.join(dir, 'docker-compose.yml'), 'utf8')
+      ).toContain('image: mariadb:11.4');
+    });
+
+    test('adds the data module with SQLite by default', async () => {
+      await run('add', 'web');
+
+      expect(logs).toContain('Adding module data, required by web.');
+      expect(readJson('appweaver.json').config.database.url).toBe(
+        'file:./data/my-app.db'
+      );
+    });
+
+    test('rejects a database option of an enabled data module', async () => {
+      await run('add', 'data');
+
+      await expect(run('add', 'redis', '--database', 'mysql')).rejects.toThrow(
+        'process.exit(1)'
+      );
+      expect(errors[0]).toBe(
+        'Module data is already enabled with the sqlite database.'
+      );
+    });
+
+    test('ignores the database option without the data module', async () => {
+      await run('add', 'scheduler', '--database', 'mysql', '--no-install');
+
+      expect(logs).toContain(
+        'Ignoring --database, the data module it configures is not added.'
+      );
+      expect(readJson('package.json').dependencies).not.toHaveProperty(
+        '@prisma/adapter-mariadb'
+      );
+    });
+
+    test('rejects an unknown database', async () => {
+      const stderr = jest
+        .spyOn(process.stderr, 'write')
+        .mockImplementation(() => true);
+
+      await expect(run('add', 'data', '--database', 'oracle')).rejects.toThrow(
+        'process.exit(1)'
+      );
+      expect(stderr).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Must be one of following: sqlite, postgresql, mysql, sqlserver.'
+        )
+      );
+    });
+
     test('reports the enabled modules', async () => {
       await run('add', 'docker');
 

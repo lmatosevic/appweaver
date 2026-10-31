@@ -476,10 +476,10 @@ await client.account.resetPassword({ token: 'abc123', password: 'newpass' });
 
 ### `HealthClient`
 
-| Method            | HTTP                | Description         |
-|-------------------|---------------------|---------------------|
-| `check(options?)` | `GET /health`       | Health check status |
-| `ready(options?)` | `GET /health/ready` | Readiness probe     |
+| Method            | HTTP                | Description                                                   |
+|-------------------|---------------------|---------------------------------------------------------------|
+| `check(options?)` | `GET /health`       | Health check status, the body of its 503 when a check is down |
+| `ready(options?)` | `GET /health/ready` | Readiness probe, `{ ready: false }` on its 503                |
 
 ```ts
 const status = await client.health.check();

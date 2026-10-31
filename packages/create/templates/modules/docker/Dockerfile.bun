@@ -36,14 +36,6 @@ COPY --from=build /usr/app/node_modules /usr/app/node_modules
 # Copy build files
 COPY --from=build /usr/app/dist /usr/app/dist
 
-# Copy public static files
-COPY --from=build /usr/app/public /usr/app/public
-
-# Copy Prisma config, database migrations, and schema file
-COPY --from=build /usr/app/prisma.config.ts /usr/app/prisma.config.ts
-COPY --from=build /usr/app/database/migrations /usr/app/database/migrations
-COPY --from=build /usr/app/database/schema.prisma /usr/app/database/schema.prisma
-
 # Copy config file/s
 COPY --from=build /usr/app/appweaver*.json /usr/app/
 

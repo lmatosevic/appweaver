@@ -1,4 +1,4 @@
-import { createLogger, appConfig } from '@appweaver/common';
+import { appConfig, createLogger } from '@appweaver/common';
 import { context } from '../context';
 import { checkModuleConfig } from './discover-modules';
 import { LifecycleManager } from './lifecycle-manager';
@@ -17,8 +17,9 @@ export class Application extends LifecycleManager {
   /**
    * Starts the application by calling the onInit lifecycle methods of the services implementing the `OnInit`
    * interface, then the onReady methods of the `OnReady` ones, i.e. the server of `@appweaver/web` listening for
-   * requests. This process also includes logging the environment in which the application is running, and freezing
-   * the application context to prevent further changes.
+   * requests. It logs the start with the environment and the version of the application, and once every service is
+   * ready, that the application started with the duration of the start. The application context is frozen after the
+   * initialization to prevent further changes.
    *
    * @return {Promise<void>} A promise that resolves once the application is started.
    */
@@ -27,6 +28,11 @@ export class Application extends LifecycleManager {
       logger.warn('Trying to start already started application.');
       return;
     }
+
+    logger.info(
+      { version: appConfig.VERSION, env: appConfig.ENV },
+      'Starting application'
+    );
 
     checkModuleConfig();
 
@@ -43,7 +49,7 @@ export class Application extends LifecycleManager {
 
     logger.info(
       { durationMs: Math.round(performance.now() - start) },
-      `Application started in "${appConfig.ENV}" environment`
+      'Application started'
     );
   }
 

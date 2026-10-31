@@ -39,13 +39,6 @@ const databasePorts: Record<string, number> = {
   sqlserver: 1433
 };
 
-/** Hostnames of the docker-compose database services. */
-const databaseDockerHosts: Record<string, string> = {
-  postgresql: 'postgres',
-  mysql: 'mysql',
-  sqlserver: 'sqlserver'
-};
-
 /**
  * Returns the local development credentials of the database server, shared by
  * the connection URLs and the docker-compose database service.
@@ -114,121 +107,108 @@ export function getSqliteGitignore(database: DatabaseType): string {
   return '# Local SQLite database files\n/data/*.db\n/data/*.db-*\n\n';
 }
 
+/** The docker-compose.yml service of a database server. */
+export type DatabaseDockerService = {
+  /** The service name, the hostname of the database. */
+  host: string;
+  /** The YAML of the service. */
+  service: string;
+  /** The named volume of its data. */
+  volume: string;
+};
+
 /**
- * Returns the variables of the docker-compose.yml template: the database
- * service, and the environment block of the application services pointing the
- * database host of the appweaver.json URL at the database container.
+ * Returns the docker-compose.yml service of the database server, or `undefined` for SQLite, which runs embedded in
+ * the application, with its file in a named volume shared by the application services.
  */
-export function getDatabaseDockerVariables(
+export function getDatabaseDockerService(
   database: DatabaseType,
   name: string
-): Record<string, string> {
-  // SQLite runs embedded in the application, so there is no database service.
-  // The database file is persisted in a named volume shared by the migration,
-  // seed, and application containers (see the "data/" DATABASE_URL location).
-  if (database === 'sqlite') {
-    return {
-      DATABASE_DOCKER_SERVICE: '',
-      DATABASE_DOCKER_MIGRATE_DEPENDS: '',
-      DATABASE_DOCKER_APP_VOLUME: `\n      - sqlite-data:/usr/app/data`,
-      DATABASE_DOCKER_NAMED_VOLUME: `  sqlite-data:\n`,
-      DOCKER_APP_ENVIRONMENT: ''
-    };
+): DatabaseDockerService | undefined {
+  switch (database) {
+    case 'sqlite':
+      return undefined;
+    case 'postgresql':
+      return {
+        host: 'postgres',
+        service: `postgres:
+  image: postgres:18.4
+  container_name: ${name}-postgres
+  restart: unless-stopped
+  healthcheck:
+    test: "PGPASSWORD=$$POSTGRES_PASSWORD psql -U $$POSTGRES_USER -d $$POSTGRES_DB -c 'SELECT 1'"
+    interval: 30s
+    timeout: 10s
+    retries: 10
+    start_period: 5s
+    start_interval: 5s
+  ports:
+    - "127.0.0.1:5432:5432"
+  environment:
+    POSTGRES_DB: "\${DB_NAME:-${name}}"
+    POSTGRES_USER: "\${DB_USER:-${name}}"
+    POSTGRES_PASSWORD: "\${DB_PASSWORD}"
+  volumes:
+    - postgres-data:/var/lib/postgresql
+  networks:
+    - ${name}
+`,
+        volume: 'postgres-data'
+      };
+    case 'mysql':
+      return {
+        host: 'mysql',
+        service: `mysql:
+  image: mariadb:11.4
+  container_name: ${name}-mysql
+  restart: unless-stopped
+  healthcheck:
+    test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+    interval: 30s
+    timeout: 10s
+    retries: 10
+    start_period: 5s
+    start_interval: 5s
+  ports:
+    - "127.0.0.1:3306:3306"
+  environment:
+    MARIADB_DATABASE: "\${DB_NAME:-${name}}"
+    MARIADB_USER: "\${DB_USER:-${name}}"
+    MARIADB_PASSWORD: "\${DB_PASSWORD}"
+    MARIADB_ROOT_PASSWORD: "\${DB_PASSWORD}"
+  volumes:
+    - mysql-data:/var/lib/mysql
+    - ./database/mariadb-init.sh:/docker-entrypoint-initdb.d/mariadb-init.sh:ro
+  networks:
+    - ${name}
+`,
+        volume: 'mysql-data'
+      };
+    case 'sqlserver':
+      return {
+        host: 'sqlserver',
+        service: `sqlserver:
+  image: mcr.microsoft.com/mssql/server:2022-latest
+  container_name: ${name}-sqlserver
+  restart: unless-stopped
+  healthcheck:
+    test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \\"$$MSSQL_SA_PASSWORD\\" -C -Q 'SELECT 1' || exit 1" ]
+    interval: 30s
+    timeout: 10s
+    retries: 10
+    start_period: 10s
+    start_interval: 5s
+  ports:
+    - "127.0.0.1:1433:1433"
+  environment:
+    ACCEPT_EULA: "Y"
+    MSSQL_SA_PASSWORD: "\${DB_PASSWORD}"
+  volumes:
+    - sqlserver-data:/var/opt/mssql
+  networks:
+    - ${name}
+`,
+        volume: 'sqlserver-data'
+      };
   }
-
-  const services: Record<string, { service: string; volume: string }> = {
-    postgresql: {
-      service: `  postgres:
-    image: postgres:18.4
-    container_name: ${name}-postgres
-    restart: unless-stopped
-    healthcheck:
-      test: "PGPASSWORD=$$POSTGRES_PASSWORD psql -U $$POSTGRES_USER -d $$POSTGRES_DB -c 'SELECT 1'"
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 5s
-      start_interval: 5s
-    ports:
-      - "127.0.0.1:5432:5432"
-    environment:
-      POSTGRES_DB: "\${DB_NAME:-${name}}"
-      POSTGRES_USER: "\${DB_USER:-${name}}"
-      POSTGRES_PASSWORD: "\${DB_PASSWORD}"
-    volumes:
-      - postgres-data:/var/lib/postgresql
-    networks:
-      - ${name}
-
-`,
-      volume: `  postgres-data:\n`
-    },
-    mysql: {
-      service: `  mysql:
-    image: mariadb:11.4
-    container_name: ${name}-mysql
-    restart: unless-stopped
-    healthcheck:
-      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 5s
-      start_interval: 5s
-    ports:
-      - "127.0.0.1:3306:3306"
-    environment:
-      MARIADB_DATABASE: "\${DB_NAME:-${name}}"
-      MARIADB_USER: "\${DB_USER:-${name}}"
-      MARIADB_PASSWORD: "\${DB_PASSWORD}"
-      MARIADB_ROOT_PASSWORD: "\${DB_PASSWORD}"
-    volumes:
-      - mysql-data:/var/lib/mysql
-      - ./database/mariadb-init.sh:/docker-entrypoint-initdb.d/mariadb-init.sh:ro
-    networks:
-      - ${name}
-
-`,
-      volume: `  mysql-data:\n`
-    },
-    sqlserver: {
-      service: `  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: ${name}-sqlserver
-    restart: unless-stopped
-    healthcheck:
-      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \\"$$MSSQL_SA_PASSWORD\\" -C -Q 'SELECT 1' || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 10s
-      start_interval: 5s
-    ports:
-      - "127.0.0.1:1433:1433"
-    environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "\${DB_PASSWORD}"
-    volumes:
-      - sqlserver-data:/var/opt/mssql
-    networks:
-      - ${name}
-
-`,
-      volume: `  sqlserver-data:\n`
-    }
-  };
-
-  const config = services[database];
-  const host = databaseDockerHosts[database];
-
-  return {
-    DATABASE_DOCKER_SERVICE: config.service,
-    DATABASE_DOCKER_MIGRATE_DEPENDS: `    depends_on:
-      ${host}:
-        condition: service_healthy
-`,
-    DATABASE_DOCKER_APP_VOLUME: '',
-    DATABASE_DOCKER_NAMED_VOLUME: config.volume,
-    DOCKER_APP_ENVIRONMENT: `    environment:\n      DB_HOST: "${host}"\n`
-  };
 }

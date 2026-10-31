@@ -48,5 +48,5 @@
     }
   },
   "include": ["packages/**/*", "eslint.config.mjs"],
-  "exclude": ["node_modules", "dist", "sample"]
+  "exclude": ["node_modules", "dist", "packages/*/dist", "sample"]
 }
