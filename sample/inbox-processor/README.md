@@ -14,7 +14,7 @@ with `queue` and the `redis` it requires.
 
 | Feature                                                                                    | Where                                                                  |
 |--------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-| A local module with its config, a lifecycle service, a `main` part and a `web` part         | [`modules/inbox/module.ts`](src/modules/inbox/module.ts)               |
+| A local module with its config, a lifecycle service, a `main` part and a `web` part        | [`modules/inbox/module.ts`](src/modules/inbox/module.ts)               |
 | A queue worker with retries (BullMQ on Redis, in memory for the tests)                     | [`modules/inbox/main.ts`](src/modules/inbox/main.ts)                   |
 | Permanent and transient failures: the attempts tracked on the entry, the same on any queue | [`modules/inbox/process-entry.ts`](src/modules/inbox/process-entry.ts) |
 | A file watcher started and stopped with the application, its position kept in `Memory`     | [`modules/inbox/inbox-watcher.ts`](src/modules/inbox/inbox-watcher.ts) |
@@ -22,7 +22,7 @@ with `queue` and the `redis` it requires.
 | Public reads and admin-only writes of a resource written only by the pipeline              | [`resources/entry/routes.ts`](src/resources/entry/routes.ts)           |
 | Application error codes (`LINE_REJECTED`, `ENTRY_NOT_FAILED`) mapped to 422 and 409        | [`modules/inbox/errors.ts`](src/modules/inbox/errors.ts)               |
 | A JSON column of tags, and a Prisma `groupBy` for the counts                               | [`modules/inbox/entries.ts`](src/modules/inbox/entries.ts)             |
-| End-to-end tests waiting for the queue, over HTTP and through the file                    | [`test/e2e/inbox.test.ts`](test/e2e/inbox.test.ts)                     |
+| End-to-end tests waiting for the queue, over HTTP and through the file                     | [`test/e2e/inbox.test.ts`](test/e2e/inbox.test.ts)                     |
 
 ## Getting started
 

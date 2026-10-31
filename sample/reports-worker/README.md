@@ -11,17 +11,17 @@ Created with `npm create @appweaver reports-worker -- --add scheduler docker --e
 
 ## What it showcases
 
-| Feature                                                                                 | Where                                                                                    |
-|-----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
-| An application with a database and no server: resources without routes                  | [`resources/`](src/resources/transaction/model.ts)                                       |
-| A worker kept running by its cron jobs, the scheduled report and archive jobs            | [`features/reports/report-jobs.ts`](src/features/reports/report-jobs.ts)                 |
-| The health listener of an app without a server (`healthCheck.port`), the Docker check   | [`appweaver.json`](appweaver.json), [`docker-compose.yml`](docker-compose.yml)           |
-| Idempotent upserts by a unique key (one report per day), rebuilt for late transactions | [`features/reports/daily-report.ts`](src/features/reports/daily-report.ts)               |
-| A JSON column holding the net amount of every category                                  | [`resources/daily-report/model.ts`](src/resources/daily-report/model.ts)                 |
-| One-shot tasks with arguments: a CSV import and a report printed as a table              | [`tasks/`](src/tasks/report.ts)                                                          |
-| Imports deduplicated by the reference of the source system                              | [`features/import/import-transactions.ts`](src/features/import/import-transactions.ts)   |
-| A seeder generating a reproducible ledger, and its reports                              | [`database/seeders/`](database/seeders/001-create-transactions.ts)                       |
-| Amounts stored in cents, totals calculated without floating point errors                | [`features/reports/summary.ts`](src/features/reports/summary.ts)                         |
+| Feature                                                                                | Where                                                                                  |
+|----------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| An application with a database and no server: resources without routes                 | [`resources/`](src/resources/transaction/model.ts)                                     |
+| A worker kept running by its cron jobs, the scheduled report and archive jobs          | [`features/reports/report-jobs.ts`](src/features/reports/report-jobs.ts)               |
+| The health listener of an app without a server (`healthCheck.port`), the Docker check  | [`appweaver.json`](appweaver.json), [`docker-compose.yml`](docker-compose.yml)         |
+| Idempotent upserts by a unique key (one report per day), rebuilt for late transactions | [`features/reports/daily-report.ts`](src/features/reports/daily-report.ts)             |
+| A JSON column holding the net amount of every category                                 | [`resources/daily-report/model.ts`](src/resources/daily-report/model.ts)               |
+| One-shot tasks with arguments: a CSV import and a report printed as a table            | [`tasks/`](src/tasks/report.ts)                                                        |
+| Imports deduplicated by the reference of the source system                             | [`features/import/import-transactions.ts`](src/features/import/import-transactions.ts) |
+| A seeder generating a reproducible ledger, and its reports                             | [`database/seeders/`](database/seeders/001-create-transactions.ts)                     |
+| Amounts stored in cents, totals calculated without floating point errors               | [`features/reports/summary.ts`](src/features/reports/summary.ts)                       |
 
 ## Getting started
 

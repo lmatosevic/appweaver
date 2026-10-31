@@ -5,7 +5,6 @@ import { inboxConfig } from './config';
 export default defineModule({
   name: 'inbox',
   config: [inboxConfig],
-  // The loggers it creates, suggested in log.levels of appweaver.json
   loggers: ['inbox'],
   // The watcher of the inbox file, started and stopped with the application
   services: [

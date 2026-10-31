@@ -6,6 +6,7 @@ import {
   formatTable,
   yearlyInstallments
 } from '@/modules/loan/format';
+import { Schedule } from '@/modules/loan/amortization';
 import { LoanCalculator } from '@/modules/loan/loan-calculator';
 
 const usage =
@@ -22,7 +23,7 @@ export default async function (args: string[]): Promise<number> {
     return 1;
   }
 
-  let schedule;
+  let schedule: Schedule;
   try {
     schedule = await inject(LoanCalculator).calculate({
       principal: Number(principal),

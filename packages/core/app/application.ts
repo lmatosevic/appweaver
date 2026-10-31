@@ -30,7 +30,7 @@ export class Application extends LifecycleManager {
     }
 
     logger.info(
-      { env: appConfig.ENV, version: appConfig.VERSION },
+      { version: appConfig.VERSION, env: appConfig.ENV },
       'Starting application'
     );
 

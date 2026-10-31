@@ -4,8 +4,8 @@ import {
   createLogger,
   LIFECYCLE,
   Memory,
-  OnDestroy,
-  OnInit
+  OnReady,
+  OnShutdown
 } from '@appweaver/common';
 import { inject } from '@appweaver/core';
 import { inboxConfig } from './config';
@@ -19,15 +19,16 @@ const OFFSET_KEY = 'inbox:offset';
 /**
  * Submits the lines appended to the inbox file. The file is polled, which also sees the changes of an editor
  * replacing it and of a mounted volume, and its read position is kept in the `Memory` provider, Redis in development
- * and production.
+ * and production. It starts once every service is initialized, the Memory connected, so neither the seeder nor a
+ * command creating the application without starting it reads the inbox.
  */
-export class InboxWatcher implements OnInit, OnDestroy {
+export class InboxWatcher implements OnReady, OnShutdown {
   static [LIFECYCLE] = true;
 
   private _scanning: Promise<number> = Promise.resolve(0);
   private _watching = false;
 
-  public async onInit(): Promise<void> {
+  public async onReady(): Promise<void> {
     if (!inboxConfig.WATCH) {
       return;
     }
@@ -47,7 +48,7 @@ export class InboxWatcher implements OnInit, OnDestroy {
     logger.info(`Watching ${inboxConfig.FILE_PATH}`);
   }
 
-  public async onDestroy(): Promise<void> {
+  public async onShutdown(): Promise<void> {
     if (this._watching) {
       fs.unwatchFile(inboxConfig.FILE_PATH);
       this._watching = false;

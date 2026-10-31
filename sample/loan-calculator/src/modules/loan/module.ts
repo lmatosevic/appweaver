@@ -5,7 +5,6 @@ import { loanConfig } from './config';
 export default defineModule({
   name: 'loan',
   config: [loanConfig],
-  // The loggers it creates, suggested in log.levels of appweaver.json
   loggers: ['loan'],
   // Defined at startup, injected as inject(LoanCalculator)
   services: [{ load: () => import('./loan-calculator') }],

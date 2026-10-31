@@ -5,7 +5,6 @@ export default defineModule({
   name: '{{PACKAGE_NAME}}',
   framework: '^{{VERSION}}',
   config: [{{CONFIG_NAME}}],
-  // The loggers it creates, suggested in log.levels of appweaver.json
   loggers: ['{{LOGGER_NAME}}'],
   // Classes defined at startup, with their lifecycle hooks:
   // services: [{ load: () => import('./service') }],

@@ -12,7 +12,6 @@
   "environments": {
     "dev": {
       "log": {
-        "level": "debug",
         "pretty": true
       }
     },

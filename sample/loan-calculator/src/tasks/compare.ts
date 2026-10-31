@@ -1,7 +1,7 @@
 import { inject } from '@appweaver/core';
 import { loanConfig } from '@/modules/loan/config';
 import { formatMoney, formatTable } from '@/modules/loan/format';
-import { LoanCalculator } from '@/modules/loan/loan-calculator';
+import { LoanCalculator, RateComparison } from '@/modules/loan/loan-calculator';
 import { reportError } from './amortize';
 
 const usage =
@@ -15,7 +15,7 @@ export default async function (args: string[]): Promise<number> {
     return 1;
   }
 
-  let comparisons;
+  let comparisons: RateComparison[];
   try {
     comparisons = await inject(LoanCalculator).compare(
       Number(principal),
