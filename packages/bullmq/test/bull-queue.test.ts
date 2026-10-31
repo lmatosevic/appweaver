@@ -158,6 +158,19 @@ describe('bull-queue', () => {
       );
     });
 
+    test('leaves the history metadata out of the job options', async () => {
+      await queue.get('emails').sendJob({}, 'report', {
+        jobId: 'r-1',
+        metadata: { orderId: 'o-1' }
+      });
+
+      expect(queues()[0].add).toHaveBeenCalledWith(
+        'report',
+        {},
+        { jobId: 'r-1' }
+      );
+    });
+
     test('waits for a connection being established', async () => {
       connection.status = 'connecting';
       const sent = queue.get('emails').sendJob({});
@@ -176,6 +189,28 @@ describe('bull-queue', () => {
         details: { queue: 'emails' }
       });
       expect(queues()[0].add).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('jobInfo', () => {
+    test('reports the started attempt and the attempts of the job', () => {
+      const info = queue.get('emails').jobInfo({
+        attemptsStarted: 2,
+        attemptsMade: 1,
+        opts: { attempts: 3 }
+      } as any);
+
+      expect(info).toEqual({ attempt: 2, maxAttempts: 3 });
+    });
+
+    test('falls back to the attempts made and a single attempt', () => {
+      const info = queue.get('emails').jobInfo({
+        attemptsStarted: 0,
+        attemptsMade: 0,
+        opts: {}
+      } as any);
+
+      expect(info).toEqual({ attempt: 1, maxAttempts: 1 });
     });
   });
 

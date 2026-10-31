@@ -18,7 +18,8 @@ import {
   textToBytes,
   toText,
   uncapitalize,
-  uuid
+  uuid,
+  uuid7
 } from '../../utils/string-util';
 
 const UUID_PATTERN =
@@ -128,6 +129,24 @@ describe('string-util', () => {
 
     test('generates unique values', () => {
       expect(uuid()).not.toBe(uuid());
+    });
+  });
+
+  describe('uuid7', () => {
+    test('generates a v7 uuid starting with the time', () => {
+      const before = Date.now();
+      const id = uuid7();
+
+      expect(id).toMatch(
+        /^[\da-f]{8}-[\da-f]{4}-7[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/
+      );
+      const time = parseInt(id.replace(/-/g, '').slice(0, 12), 16);
+      expect(time).toBeGreaterThanOrEqual(before);
+      expect(time).toBeLessThanOrEqual(Date.now());
+    });
+
+    test('generates unique values', () => {
+      expect(uuid7()).not.toBe(uuid7());
     });
   });
 

@@ -11,5 +11,6 @@ export const context: ApplicationContext = {
     enabled: [],
     providers: new Map()
   },
-  definitions: []
+  definitions: [],
+  decorators: new Map()
 };

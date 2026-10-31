@@ -26,12 +26,16 @@ import {
 import { context } from './context';
 import {
   DefinitionClass,
+  DefinitionDecorator,
   DefinitionEntry,
   DefinitionMode,
   DefinitionValue
 } from '../types/application-context';
 
 const logger = createLogger('app');
+
+// The instances already wrapped by their decorators
+const decorated = new WeakSet<object>();
 
 /**
  * Defines a resource or a definition value within the application context.
@@ -89,7 +93,12 @@ export function define<T = DefinitionValue, S extends T = T>(
     const index = context.definitions.findIndex(
       (def) => def.name === definitionName
     );
-    const entry: DefinitionEntry = { name: definitionName, value };
+    const entry: DefinitionEntry = {
+      name: definitionName,
+      value: isConstructor(value)
+        ? value
+        : applyDecorators(definitionName, value)
+    };
     if (mode === 'default') {
       entry.fallback = true;
     }
@@ -102,6 +111,32 @@ export function define<T = DefinitionValue, S extends T = T>(
       context.definitions.splice(index, 1, entry);
     } else if (shouldAddDefinition(context.definitions, definitionName, mode)) {
       context.definitions.push(entry);
+    }
+  }
+}
+
+/**
+ * Wraps the instance of a definition with a decorator, i.e. to record what the selected driver of a contract does.
+ * An instance already created is wrapped right away, and a class once its instance is created.
+ *
+ * @param {string | symbol | DefinitionClass} nameOrClass - The name or class of the definition.
+ * @param {DefinitionDecorator} decorator - Takes the instance and returns the one to use instead.
+ */
+export function decorate(
+  nameOrClass: string | symbol | DefinitionClass,
+  decorator: DefinitionDecorator
+): void {
+  const name =
+    isString(nameOrClass) || isSymbol(nameOrClass)
+      ? nameOrClass
+      : nameOrClass.name;
+  const decorators = context.decorators.get(name) ?? [];
+  decorators.push(decorator);
+  context.decorators.set(name, decorators);
+
+  for (const entry of context.definitions) {
+    if (entry.name === name && !isConstructor(entry.value)) {
+      entry.value = markDecorated(decorator(entry.value) ?? entry.value);
     }
   }
 }
@@ -468,12 +503,12 @@ function checkClassAndInit(
   value?: DefinitionValue
 ): DefinitionValue | undefined {
   if (value && isConstructor(value)) {
-    const instance = new value();
+    const name =
+      isString(nameOrClass) || isSymbol(nameOrClass)
+        ? nameOrClass
+        : nameOrClass.name;
+    const instance = applyDecorators(name, new value());
     if (instance) {
-      const name =
-        isString(nameOrClass) || isSymbol(nameOrClass)
-          ? nameOrClass
-          : nameOrClass.name;
       const entry = context.definitions.find(
         (def) => def.name === name && def.value === value
       );
@@ -485,5 +520,28 @@ function checkClassAndInit(
       return instance;
     }
   }
+  return value;
+}
+
+/** Wraps an instance with the decorators of its definition, unless they already wrapped it. */
+function applyDecorators(
+  name: string | symbol,
+  value: DefinitionValue
+): DefinitionValue {
+  const decorators = context.decorators.get(name);
+  if (!decorators || decorated.has(value)) {
+    return value;
+  }
+  return markDecorated(
+    decorators.reduce(
+      (instance, decorator) => decorator(instance) ?? instance,
+      value
+    )
+  );
+}
+
+/** Marks a wrapped instance, so the decorators never wrap it again. */
+function markDecorated(value: DefinitionValue): DefinitionValue {
+  decorated.add(value);
   return value;
 }

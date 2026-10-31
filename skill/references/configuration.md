@@ -132,7 +132,7 @@ databaseConfig.URL; // string
 | Section variable                                                                                                                                                                                                                                                                                                                                                                                         | Keys                             | Imported from           |
 |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|-------------------------|
 | `appConfig`, `logConfig`                                                                                                                                                                                                                                                                                                                                                                                 | `APP_*`, `LOG_*`                 | `@appweaver/common`     |
-| `cacheConfig`, `eventsConfig`, `healthConfig` (`HEALTH_CHECK_*`: `PORT`, `HOST`, `PICK_INSTANCES`, `OMIT_INSTANCES`), `localeConfig`, `mailerConfig`, `memoryConfig`, `queueConfig`, `schedulerConfig`, `securityStoreConfig` (`SECURITY_STORE_*`), `storageConfig`, `templateConfig`                                                                                                                    | `CACHE_*`, `HEALTH_CHECK_*`, ... | `@appweaver/core`       |
+| `cacheConfig`, `eventsConfig`, `healthConfig` (`HEALTH_CHECK_*`: `PORT`, `HOST`, `PICK_INSTANCES`, `OMIT_INSTANCES`), `localeConfig`, `mailerConfig`, `memoryConfig`, `queueConfig`, `queueHistoryConfig` (`QUEUE_HISTORY_*`), `schedulerConfig`, `securityStoreConfig` (`SECURITY_STORE_*`), `storageConfig`, `templateConfig`                                                                                                                    | `CACHE_*`, `HEALTH_CHECK_*`, ... | `@appweaver/core`       |
 | `databaseConfig`, `resourceConfig`, `exportConfig`, `imageConfig`, `passwordConfig`, `apiKeyConfig`, `connectedAccountConfig` (`SECURITY_OAUTH2_CONNECTED_ACCOUNTS_*`), `systemConfig`                                                                                                                                                                                                                   | `DATABASE_*`, `RESOURCE_*`, ...  | `@appweaver/data`       |
 | `serverConfig`, `rateLimitConfig`, `swaggerConfig`, `corsConfig`, `healthCheckConfig`, `templatePreviewConfig`, `securityConfig` (`SECURITY_*` not elsewhere), `accountConfig`, `twoFactorConfig` (`SECURITY_ACCOUNT_2FA_*`), `recaptchaConfig`, `turnstileConfig`, `basicAuthConfig`, `jwtConfig`, `oauth2Config`, `oauth2<Provider>Config` (`SECURITY_OAUTH2_<PROVIDER>_*`, i.e. `oauth2GoogleConfig`) | `SERVER_*`, `SECURITY_*`, ...    | `@appweaver/web`        |
 | `redisConfig`                                                                                                                                                                                                                                                                                                                                                                                            | `MEMORY_REDIS_*`                 | `@appweaver/redis`      |
@@ -261,6 +261,7 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 | `Storage`        | `STORAGE_PROVIDER`        | `local`              | `local`, unless a module of another driver is enabled                                   |
 | `SecurityStore`  | `SECURITY_STORE_PROVIDER` | `database`, `memory` | `database` with the `@appweaver/data` module, otherwise none; `memory` only by its name |
 | `Queue`          | `QUEUE_PROVIDER`          | `memory`, `bullmq`   | `bullmq` with `@appweaver/bullmq` (it requires `@appweaver/redis`), otherwise `memory`  |
+| `QueueHistory`   | `QUEUE_HISTORY_PROVIDER`  | `database`           | `database` with `@appweaver/data`, only while `QUEUE_HISTORY_ENABLED`, otherwise none   |
 | `Mailer`         | `MAILER_PROVIDER`         | `smtp`, `json`       | `smtp` with `@appweaver/nodemailer`, otherwise none; `json` only by its name            |
 | `TemplateEngine` | `TEMPLATE_PROVIDER`       | `handlebars`         | `handlebars` with `@appweaver/handlebars`, otherwise none                               |
 | `Scheduler`      | `SCHEDULER_PROVIDER`      | `cron`               | `cron` with `@appweaver/cron`, otherwise none                                           |
@@ -744,6 +745,25 @@ nor the breaker, which would fail their blocking commands.
 | `QUEUE_RETRY_BACKOFF`          | integer  | `3000`    | Initial backoff delay between retries in milliseconds.                                                        |
 | `QUEUE_RETRY_BACKOFF_TYPE`     | enum     | `'fixed'` | Retry backoff type. Values: `fixed`, `exponential`.                                                           |
 | `QUEUE_PROVIDER`               | string   | `'auto'`  | `auto` (`bullmq` with `@appweaver/bullmq`, otherwise `memory`), `memory`, `bullmq`, `none`, or a module path. |
+
+### Queue history (QUEUE_HISTORY\_\*)
+
+Records every job of the queues in the `_queue_jobs` table (see [queue.md](queue.md#queue-history)). Enabling it needs
+`weaver generate` and a migration.
+
+| Property                                 | Type     | Default  | Description                                                                                                 |
+|------------------------------------------|----------|----------|-------------------------------------------------------------------------------------------------------------|
+| `QUEUE_HISTORY_ENABLED`                  | boolean  | `false`  | Record every job of the queues: who sent it, each attempt, its errors and the result.                       |
+| `QUEUE_HISTORY_PROVIDER`                 | string   | `'auto'` | `auto` (`database` with `@appweaver/data`, otherwise none), `database`, `none`, or a module path.           |
+| `QUEUE_HISTORY_KEEP_DATABASE_TABLE`      | boolean  | `false`  | Keep the queue job table when the history is disabled.                                                      |
+| `QUEUE_HISTORY_STORE_DATA`               | boolean  | `true`   | Store the payload of the jobs.                                                                              |
+| `QUEUE_HISTORY_STORE_RESULT`             | boolean  | `true`   | Store the results of the jobs.                                                                              |
+| `QUEUE_HISTORY_MAX_PAYLOAD_BYTES`        | integer  | `65536`  | The largest payload or result stored, in bytes of JSON, a larger one is stored as `{ truncated: true, bytes }`. |
+| `QUEUE_HISTORY_QUEUES`                   | string[] | `[]`     | The queues to record, all of them when empty.                                                               |
+| `QUEUE_HISTORY_EXCLUDE_QUEUES`           | string[] | `[]`     | The queues never recorded.                                                                                  |
+| `QUEUE_HISTORY_RECORD_CALLER_SITE`       | boolean  | `false`  | Record the `file:line:column` of the code sending a job, which costs a stack trace per job.                 |
+| `QUEUE_HISTORY_RETENTION_DAYS`           | integer  | `30`     | Days to keep the records of the finished jobs, `0` keeps them forever.                                      |
+| `QUEUE_HISTORY_CLEANUP_INTERVAL_SECONDS` | integer  | `3600`   | Seconds between the deletions of the expired records.                                                       |
 
 ### Scheduler (SCHEDULER\_\*)
 

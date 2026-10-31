@@ -15,7 +15,8 @@ describe('core resources barrel', () => {
     Object.assign(process.env, {
       SECURITY_API_KEY_ENABLED: 'true',
       SECURITY_STORE_KEEP_DATABASE_TABLE: 'true',
-      SECURITY_OAUTH2_GOOGLE_ENABLED: 'true'
+      SECURITY_OAUTH2_GOOGLE_ENABLED: 'true',
+      QUEUE_HISTORY_ENABLED: 'true'
     });
     jest.resetModules();
 
@@ -50,6 +51,7 @@ describe('core resources barrel', () => {
       'File',
       'OneTimeToken',
       'Permission',
+      'QueueJobRecord',
       'Role',
       'Seeder'
     ]);

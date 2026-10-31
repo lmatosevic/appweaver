@@ -18,6 +18,11 @@ export { Prisma }
 export * as $Enums from './enums'
 export * from './enums';
 /**
+ * Model QueueJobRecord
+ * 
+ */
+export type QueueJobRecord = Prisma.QueueJobRecordModel
+/**
  * Model ApiKey
  * 
  */

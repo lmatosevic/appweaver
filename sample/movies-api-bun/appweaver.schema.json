@@ -646,6 +646,64 @@
             "provider": {
               "default": "auto",
               "type": "string"
+            },
+            "history": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "provider": {
+                  "default": "auto",
+                  "type": "string"
+                },
+                "keepDatabaseTable": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "storeData": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "storeResult": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "maxPayloadBytes": {
+                  "default": 65536,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "queues": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "excludeQueues": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "recordCallerSite": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "retentionDays": {
+                  "default": 30,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "cleanupIntervalSeconds": {
+                  "default": 3600,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              }
             }
           }
         },

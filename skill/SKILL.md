@@ -880,6 +880,11 @@ A registered class setting the static `[LIFECYCLE] = true` tag has its hooks of 
 first on stop, and `onDestroy()` last;
 see [dependency-injection.md](references/dependency-injection.md#lifecycle-hooks).
 
+`QUEUE_HISTORY_ENABLED=true` records every job of every queue (any driver) in the `_queue_jobs` table of the
+`QueueJobRecord` model: the sender (user, API key, parent job, process), the payload, each attempt with its error, the
+result and the timing. It is off by default, and enabling it needs `weaver generate` and a migration; see
+[queue.md](references/queue.md#queue-history).
+
 ### Writing a seeder
 
 A seeder is a TypeScript file that must export at least one asynchronous function responsible for executing database
@@ -1122,7 +1127,7 @@ npm run lint  # eslint "./**/*.ts"
 - Database & Migrations: [database.md](references/database.md)
 - Events & Hooks: [events.md](references/events.md)
 - Cache management: [cache.md](references/cache.md)
-- Queue jobs: [queue.md](references/queue.md)
+- Queue jobs and the queue history of every job in the database: [queue.md](references/queue.md)
 - Scheduling jobs: [scheduler.md](references/scheduler.md)
 - Sending emails: [mailer.md](references/mailer.md)
 - Templates & localization: [templates.md](references/templates.md)

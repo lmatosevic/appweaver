@@ -7,12 +7,15 @@ import {
   Mailer,
   Memory,
   Queue,
+  QueueHistory,
   Scheduler,
   SecurityStore,
-  Storage
+  Storage,
+  createLogger
 } from '@appweaver/common';
 import { context } from '../../context/context';
 import { define, inject, isDefined } from '../../context/dependency-injection';
+import { MemoryQueue } from '../../queue/memory-queue';
 import { EnabledModule } from '../../app/discover-modules';
 import { loadProviders, selectedProvider } from '../../app/load-providers';
 import coreModule from '../../modules/core';
@@ -196,6 +199,60 @@ describe('load-providers', () => {
         code: ErrorCode.ModuleProviderAmbiguous,
         details: { contract: 'Memory', providers: ['redis', 'valkey'] }
       });
+    });
+  });
+  describe('decorators', () => {
+    const historyModule: EnabledModule = {
+      module: defineModule({
+        name: '@appweaver/data',
+        providers: [
+          {
+            contract: QueueHistory,
+            name: 'database',
+            load: async () => ({ StubHistory: class StubHistory {} })
+          }
+        ]
+      }),
+      source: 'package'
+    };
+
+    test('wraps the queue with the history once it is enabled', async () => {
+      configOverrides.QUEUE_HISTORY_ENABLED = true;
+
+      await loadProviders(
+        [{ module: coreModule, source: 'core' }, historyModule],
+        __dirname
+      );
+
+      expect(selectedProvider(QueueHistory)).toBe('database');
+      expect(context.decorators.get('Queue')).toHaveLength(1);
+      expect(definedNames()).toContain('QueueHistoryCleaner');
+      expect(inject(Queue)).toBeInstanceOf(MemoryQueue);
+    });
+
+    test('leaves the queue and the history out while it is disabled', async () => {
+      await loadProviders(
+        [{ module: coreModule, source: 'core' }, historyModule],
+        __dirname
+      );
+
+      expect(isDefined(QueueHistory)).toBe(false);
+      expect(context.decorators.has('Queue')).toBe(false);
+      expect(definedNames()).not.toContain('QueueHistoryCleaner');
+    });
+
+    test('warns of an enabled history without a provider', async () => {
+      configOverrides.QUEUE_HISTORY_ENABLED = true;
+      const warn = jest
+        .spyOn(createLogger('app'), 'warn')
+        .mockImplementation(() => undefined);
+
+      await loadProviders(coreModules, __dirname);
+
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining('queue history is enabled')
+      );
+      warn.mockRestore();
     });
   });
 });

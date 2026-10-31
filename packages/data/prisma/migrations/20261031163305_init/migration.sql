@@ -1,4 +1,38 @@
 -- CreateTable
+CREATE TABLE "_queue_jobs" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "queue" TEXT NOT NULL,
+    "jobId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "state" TEXT NOT NULL,
+    "driver" TEXT,
+    "data" JSONB,
+    "result" JSONB,
+    "metadata" JSONB,
+    "options" JSONB,
+    "attempt" INTEGER NOT NULL DEFAULT 0,
+    "maxAttempts" INTEGER,
+    "priority" INTEGER,
+    "errors" JSONB NOT NULL DEFAULT '[]',
+    "lastError" TEXT,
+    "enqueuedAt" DATETIME,
+    "scheduledAt" DATETIME,
+    "startedAt" DATETIME,
+    "finishedAt" DATETIME,
+    "durationMs" INTEGER,
+    "enqueuedBy" TEXT,
+    "attemptedBy" TEXT,
+    "userId" TEXT,
+    "authType" TEXT,
+    "authSource" TEXT,
+    "apiKeyId" TEXT,
+    "parentId" TEXT,
+    "callerSite" TEXT,
+    "updatedAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
 CREATE TABLE "ApiKey" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "key" TEXT NOT NULL,
@@ -83,6 +117,21 @@ CREATE TABLE "_RolePermissionsPermission" (
     CONSTRAINT "_RolePermissionsPermission_A_fkey" FOREIGN KEY ("A") REFERENCES "Permission" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "_RolePermissionsPermission_B_fkey" FOREIGN KEY ("B") REFERENCES "Role" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+-- CreateIndex
+CREATE INDEX "_queue_jobs_queue_jobId_idx" ON "_queue_jobs"("queue", "jobId");
+
+-- CreateIndex
+CREATE INDEX "_queue_jobs_queue_state_idx" ON "_queue_jobs"("queue", "state");
+
+-- CreateIndex
+CREATE INDEX "_queue_jobs_state_finishedAt_idx" ON "_queue_jobs"("state", "finishedAt");
+
+-- CreateIndex
+CREATE INDEX "_queue_jobs_userId_idx" ON "_queue_jobs"("userId");
+
+-- CreateIndex
+CREATE INDEX "_queue_jobs_parentId_idx" ON "_queue_jobs"("parentId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ApiKey_keyHash_key" ON "ApiKey"("keyHash");

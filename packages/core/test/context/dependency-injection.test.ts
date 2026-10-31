@@ -11,6 +11,7 @@ import {
 } from '@appweaver/common';
 import { context } from '../../context/context';
 import {
+  decorate,
   define,
   inject,
   injectAll,
@@ -499,6 +500,61 @@ describe('dependency-injection', () => {
       expect(() =>
         loadProvider(__dirname, '../../memory/missing', Memory)
       ).toThrow();
+    });
+  });
+
+  describe('decorate', () => {
+    class Greeter {
+      public greet(): string {
+        return 'hello';
+      }
+    }
+
+    const shout = (instance: Greeter) => ({
+      greet: () => instance.greet().toUpperCase()
+    });
+
+    test('wraps the instance of a class once it is created', () => {
+      define(Greeter);
+      decorate(Greeter, shout);
+
+      expect(inject(Greeter).greet()).toBe('HELLO');
+      expect(inject(Greeter)).toBe(inject(Greeter));
+    });
+
+    test('wraps an instance already defined right away', () => {
+      define(new Greeter(), Greeter);
+      decorate('Greeter', shout);
+
+      expect(inject(Greeter).greet()).toBe('HELLO');
+    });
+
+    test('wraps an instance defined after the decorator', () => {
+      decorate(Greeter, shout);
+      define(new Greeter(), Greeter, 'override');
+
+      expect(inject(Greeter).greet()).toBe('HELLO');
+    });
+
+    test('applies the decorators in the order they were added, each once', () => {
+      const exclaim = jest.fn((instance: Greeter) => ({
+        greet: () => `${instance.greet()}!`
+      }));
+      define(Greeter);
+      decorate(Greeter, shout);
+      decorate(Greeter, exclaim);
+
+      expect(inject(Greeter).greet()).toBe('HELLO!');
+      inject(Greeter);
+      expect(exclaim).toHaveBeenCalledTimes(1);
+    });
+
+    test('keeps the instance a decorator returns nothing for', () => {
+      const instance = new Greeter();
+      define(instance, Greeter);
+      decorate(Greeter, () => undefined);
+
+      expect(inject(Greeter)).toBe(instance);
     });
   });
 });

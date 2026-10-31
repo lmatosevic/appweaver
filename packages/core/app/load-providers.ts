@@ -9,17 +9,20 @@ import {
   ModuleProvider,
   PROVIDER_AUTO,
   PROVIDER_NONE,
-  Queue
+  Queue,
+  QueueHistory
 } from '@appweaver/common';
 import { context } from '../context';
-import { define, isDefined, loadProvider } from '../context';
+import { decorate, define, isDefined, loadProvider } from '../context';
+import { queueHistoryConfig } from '../queue/queue-history-config';
 import { EnabledModule } from './discover-modules';
 
 const logger = createLogger('app');
 
 /**
  * Defines the provider selected for every contract the enabled modules declare, then the services of the modules
- * whose required contracts are provided, in the order of the modules. A provider key holds `auto`, `none`, the name
+ * whose required contracts are provided, in the order of the modules, and registers the decorators of the modules
+ * whose contracts are provided. A provider key holds `auto`, `none`, the name
  * of a provider of an enabled module, or the module path of an implementation (`@/infra/my-storage`).
  *
  * @param {EnabledModule[]} modules - The enabled modules.
@@ -61,7 +64,22 @@ export async function loadProviders(
     }
   }
 
+  for (const { module } of modules) {
+    for (const decorator of module.decorators ?? []) {
+      const contracts = [decorator.contract, ...(decorator.requires ?? [])];
+      if (contracts.every((contract) => isDefined(contract))) {
+        decorate(decorator.contract, (await decorator.load()).default);
+      }
+    }
+  }
+
   logger.debug({ providers: selected }, 'Providers selected');
+
+  if (queueHistoryConfig.ENABLED && !isDefined(QueueHistory)) {
+    logger.warn(
+      'The queue history is enabled, but no provider stores it, enable @appweaver/data or select one in queue.history.provider'
+    );
+  }
 
   if (
     selected[Queue.name] === 'memory' &&

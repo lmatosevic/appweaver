@@ -6,6 +6,7 @@ export * from './locale/locale-config';
 export * from './mailer/mailer-config';
 export * from './memory/memory-config';
 export * from './queue/queue-config';
+export * from './queue/queue-history-config';
 export * from './scheduler/scheduler-config';
 export * from './security/security-store-config';
 export * from './storage/storage-config';

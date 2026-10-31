@@ -31,8 +31,18 @@ export type QueueJobOptions = {
   priority?: number;
   /** A custom job id. */
   jobId?: string;
+  /** Free-form details of the job, i.e. a correlation id, kept in the queue history only. */
+  metadata?: Record<string, unknown>;
   /** Options of the queue driver. */
   providerOptions?: Record<string, unknown>;
+};
+
+/** The attempts of a job, read by {@link QueueProcessor.jobInfo}. */
+export type QueueJobInfo = {
+  /** The attempt being processed, the first one is `1`. */
+  attempt?: number;
+  /** The number of attempts the job has, the first one included. */
+  maxAttempts?: number;
 };
 
 /** The options of a worker, the same for every queue. */
@@ -257,4 +267,15 @@ export abstract class QueueProcessor<
    * @return {Promise<void>} A promise that resolves when queue is closed.
    */
   abstract close(): Promise<void>;
+
+  /**
+   * Returns the attempt a worker processes and the number of attempts of a job, which the queue history records. A
+   * driver that does not override it reports neither, so its every failure is recorded as final.
+   *
+   * @param {Object} _job - The job, as the driver gives it to its workers.
+   * @return {QueueJobInfo} The attempts of the job.
+   */
+  public jobInfo(_job: Job): QueueJobInfo {
+    return {};
+  }
 }

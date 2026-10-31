@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { Readable } from 'node:stream';
 import { DefaultGenerationOptions, generateApiKey } from 'generate-api-key';
 import { plural as pluralize, singular as singularize } from 'pluralize';
@@ -122,6 +122,21 @@ export function generateToken(
  */
 export function uuid(): string {
   return randomUUID();
+}
+
+/**
+ * Generates a UUID in version 7 format, which starts with the time it was generated at, so the ids sort by their
+ * creation and keep the inserts of an index in order.
+ *
+ * @return {string} A UUID in version 7 format, 36 characters in the format 8-4-4-4-12.
+ */
+export function uuid7(): string {
+  const bytes = randomBytes(16);
+  bytes.writeUIntBE(Date.now(), 0, 6);
+  bytes[6] = (bytes[6] & 0x0f) | 0x70;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = bytes.toString('hex');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 /**

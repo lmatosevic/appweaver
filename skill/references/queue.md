@@ -82,6 +82,7 @@ Enqueues a single job. Returns the created `QueueJob`.
 | `backoff`         | `{ type: 'fixed' \| 'exponential'; delay: number }` | Wait between the attempts (`QUEUE_RETRY_BACKOFF*`)        |
 | `priority`        | `number`                                            | A lower number is processed first                         |
 | `jobId`           | `string`                                            | A custom job id                                           |
+| `metadata`        | `Record<string, unknown>`                           | Free-form details, kept in the queue history only         |
 | `providerOptions` | `Record<string, unknown>`                           | Options of the driver, i.e. the `JobsOptions` of BullMQ   |
 
 ```ts
@@ -172,6 +173,65 @@ type QueueJob<Data, Response> = {
 };
 ```
 
+`processor.jobInfo(job)` returns the attempt a worker processes (the first one is `1`) and the number of attempts of a
+job, `{ attempt, maxAttempts }`, the same for every driver. A driver that does not override it returns `{}`.
+
+---
+
+## Queue history
+
+With `queue.history.enabled` (`QUEUE_HISTORY_ENABLED=true`), every job of every queue is recorded in the database, in
+the `_queue_jobs` table of the `QueueJobRecord` model of `@appweaver/data`: who sent it, on which queue, its payload,
+each attempt with its error, the result and the timing, like the job table of River. The queue (BullMQ on Redis, or the
+memory queue) stays the source of truth: the history is written beside it, never fails or delays a job (a failed write
+is logged as a `Queue history write failed` warning of the `queue` logger), and is not transactional with the queue.
+It is disabled by default, so the table exists only when enabled (or with `queue.history.keepDatabaseTable`). Enabling
+it needs `weaver generate` and `weaver migration new add_queue_history`.
+
+Core wraps the `Queue` of the selected driver (a decorator of its manifest), so every driver is recorded the same way,
+and the `database` provider of `QueueHistory` (`@appweaver/data`) stores the records. A job sent without a `jobId`
+gets a generated UUID, and every send gets a record of its own, with its own UUIDv7 `id`, so a custom `jobId` sent again
+(a deduplication key, a re-run) adds a new record.
+
+| State       | When                                                                     |
+|-------------|--------------------------------------------------------------------------|
+| `pending`   | Sent, waiting for a worker                                               |
+| `scheduled` | Sent with a `delay`, `scheduledAt` is when it is due                     |
+| `running`   | A worker processes an attempt                                            |
+| `retrying`  | An attempt failed and the job has attempts left                          |
+| `completed` | An attempt succeeded, its result is stored                               |
+| `failed`    | The last attempt failed (or threw an `UnrecoverableError`), or the queue refused the job (attempt `0`) |
+| `stalled`   | The worker stopped responding during an attempt (BullMQ), retried by BullMQ |
+
+| Field                                      | Holds                                                                                  |
+|--------------------------------------------|----------------------------------------------------------------------------------------|
+| `id`                                       | The UUIDv7 of the record                                                               |
+| `queue`, `jobId`, `name`, `driver`         | The queue, the id and name of the job, the provider (`bullmq`, `memory`)               |
+| `state`, `attempt`, `maxAttempts`          | The state and the last attempt                                                         |
+| `data`, `result`, `metadata`, `options`    | The payload, the result, the `metadata` option and the job options (`delay`, `attempts`, `backoff`, `priority`) |
+| `errors`, `lastError`                      | Every failed attempt, `{ attempt, at, message, name, code, stack }`, and the last message |
+| `enqueuedAt`, `scheduledAt`, `startedAt`, `finishedAt`, `durationMs` | The timing of the job and of its last attempt                |
+| `enqueuedBy`, `attemptedBy`                | The processes (`<hostname>:<pid>`) sending the job and running its last attempt        |
+| `userId`, `authType`, `authSource`, `apiKeyId` | The user sending the job, from the request or `runAs`                              |
+| `parentId`                                 | The record of the job whose worker sent this one                                       |
+| `callerSite`                               | The `file:line:column` of the `sendJob` call, with `queue.history.recordCallerSite`    |
+
+A job sent outside of a transaction is recorded before it is sent, so no worker starts it first. One sent inside a
+transaction is recorded once the transaction commits or rolls back (the job is sent either way), outside of it. A job
+sent by another application without the history gets its record when a worker starts it. The records are resources,
+read with `injectService('QueueJobRecord')` or the Prisma client (`db.queueJobRecord`):
+
+```ts
+const failed = await db.queueJobRecord.findMany({
+  where: { queue: 'payments', state: 'failed' },
+  orderBy: { createdAt: 'desc' }
+});
+```
+
+The `QueueHistoryCleaner` of core deletes the completed and failed records older than `queue.history.retentionDays`
+once the application is ready, then every `queue.history.cleanupIntervalSeconds`. Another store implements the
+`QueueHistory` contract of `@appweaver/common`, selected with `queue.history.provider`.
+
 ---
 
 ## Configuration
@@ -184,6 +244,8 @@ type QueueJob<Data, Response> = {
 | `QUEUE_RETRY_ATTEMPTS`       | `int`    | `3`       | Number of retry attempts on failure                                                                          |
 | `QUEUE_RETRY_BACKOFF`        | `int`    | `3000`    | Backoff delay in milliseconds                                                                                |
 | `QUEUE_RETRY_BACKOFF_TYPE`   | `enum`   | `'fixed'` | `fixed` or `exponential`                                                                                     |
+
+The `QUEUE_HISTORY_*` keys of the queue history are listed in [configuration.md](configuration.md).
 
 **Use `MemoryQueue` in the tests:**
 

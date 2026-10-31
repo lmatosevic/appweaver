@@ -43,8 +43,13 @@ export type ModuleContext = {
   providers: Map<string, string>;
 };
 
+/** Wraps the instance of a definition once it is created, returning the one to use instead. */
+export type DefinitionDecorator = (instance: any) => any;
+
 export type ApplicationContext = {
   resource: ResourceContext;
   modules: ModuleContext;
   definitions: DefinitionEntry[];
+  /** The decorators of the definitions, keyed by their name. */
+  decorators: Map<string | symbol, DefinitionDecorator[]>;
 };

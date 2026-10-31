@@ -45,6 +45,21 @@ describe('memory-queue', () => {
   });
 
   describe('sendJob', () => {
+    test('keeps a given job id', async () => {
+      const job = await queue.get('emails').sendJob({}, 'a', { jobId: 'j-1' });
+
+      expect(job.id).toBe('j-1');
+    });
+
+    test('takes the attempts from the queue config by default', async () => {
+      const job = await queue.get('emails').sendJob({});
+
+      expect(queue.get('emails').jobInfo(job)).toEqual({
+        attempt: 0,
+        maxAttempts: 3
+      });
+    });
+
     test('processes a job with the registered worker', async () => {
       const processor = queue.get('emails');
       const processed: any[] = [];

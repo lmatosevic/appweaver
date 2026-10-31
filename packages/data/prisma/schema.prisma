@@ -12,6 +12,49 @@ generator client {
   output   = "./client"
 }
 
+model QueueJobRecord {
+  id          String              @id @default(uuid(7))
+  queue       String
+  jobId       String
+  name        String
+  state       QueueJobRecordState
+  driver      String?
+  data        Json?
+  result      Json?
+  metadata    Json?
+  options     Json?
+  attempt     Int                 @default(0)
+  maxAttempts Int?
+  priority    Int?
+  errors      Json                @default(dbgenerated("'[]'"))
+  lastError   String?
+  enqueuedAt  DateTime?
+  scheduledAt DateTime?
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  durationMs  Int?
+  enqueuedBy  String?
+  attemptedBy String?
+  userId      String?
+  authType    String?
+  authSource  String?
+  apiKeyId    String?
+  parentId    String?
+  callerSite  String?
+
+  /// Audit columns
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@index([queue, jobId])
+  @@index([queue, state])
+  @@index([state, finishedAt])
+  @@index([userId])
+  @@index([parentId])
+
+  @@map("_queue_jobs")
+}
+
 model ApiKey {
   id          Int       @id @default(autoincrement())
   key         String
@@ -107,4 +150,14 @@ model File {
   deletedAt DateTime?
 
   @@index([resourceName, resourceId, resourceField])
+}
+
+enum QueueJobRecordState {
+  pending
+  scheduled
+  running
+  retrying
+  completed
+  failed
+  stalled
 }

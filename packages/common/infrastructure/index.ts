@@ -5,6 +5,7 @@ export * from './image-processor';
 export * from './mailer';
 export * from './memory';
 export * from './queue';
+export * from './queue-history';
 export * from './scheduler';
 export * from './security-store';
 export * from './storage';

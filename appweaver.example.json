@@ -313,7 +313,20 @@
       "retryAttempts": 3,
       "retryBackoff": 3000,
       "retryBackoffType": "fixed",
-      "provider": "auto"
+      "provider": "auto",
+      "history": {
+        "enabled": false,
+        "provider": "auto",
+        "keepDatabaseTable": false,
+        "storeData": true,
+        "storeResult": true,
+        "maxPayloadBytes": 65536,
+        "queues": [],
+        "excludeQueues": [],
+        "recordCallerSite": false,
+        "retentionDays": 30,
+        "cleanupIntervalSeconds": 3600
+      }
     },
     "scheduler": {
       "autoStartJob": true,

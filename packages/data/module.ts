@@ -2,6 +2,7 @@ import {
   Database,
   defineModule,
   ImageProcessor,
+  QueueHistory,
   SecurityStore,
   Storage
 } from '@appweaver/common';
@@ -39,6 +40,11 @@ export default defineModule({
       contract: Database,
       name: 'prisma',
       load: () => import('./database/prisma-database')
+    },
+    {
+      contract: QueueHistory,
+      name: 'database',
+      load: () => import('./queue/database-queue-history')
     },
     {
       contract: SecurityStore,

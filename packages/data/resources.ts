@@ -4,6 +4,7 @@ export { default as oneTimeToken } from './security/resources/one-time-token/mod
 export { default as role } from './security/resources/role/model';
 export { default as permission } from './security/resources/permission/model';
 export { default as seeder } from './seeder/resources/seeder/model';
+export { default as queueJobRecord } from './queue/resources/queue-job-record/model';
 export { default as file } from './storage/resources/file/model';
 
 export { default as apiKeyService } from './security/resources/api-key/service';

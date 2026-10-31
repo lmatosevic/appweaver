@@ -9,8 +9,8 @@ first-party module does.
 
 | Module                  | Enabled                      | Brings                                                                                                            |
 |-------------------------|------------------------------|-------------------------------------------------------------------------------------------------------------------|
-| `@appweaver/core`       | Always                       | The contracts and the in-process drivers: `memory`, `node` events, `local` storage, `memory` queue, `json` mailer |
-| `@appweaver/data`       | Installed                    | The `prisma` database, the resources, `FileService`, the `database` security store                                |
+| `@appweaver/core`       | Always                       | The contracts and the in-process drivers: `memory`, `node` events, `local` storage, `memory` queue, `json` mailer, the queue history recording |
+| `@appweaver/data`       | Installed                    | The `prisma` database, the resources, `FileService`, the `database` security store and queue history             |
 | `@appweaver/web`        | Installed (requires `data`)  | The Fastify server (`HttpServer`), authentication, account and OAuth2 services                                    |
 | `@appweaver/redis`      | Installed                    | The `redis` memory, also the store of the cache and the rate limit                                                |
 | `@appweaver/bullmq`     | Installed (requires `redis`) | The `bullmq` queue                                                                                                |
@@ -104,6 +104,7 @@ export default defineModule({ name: 'appweaver-newsletter' /* ... */ });
 | `contracts` | `{ contract, provider: () => string }[]` | The contracts it declares, with the function reading the provider key, i.e. `() => paymentConfig.PROVIDER`                                           |
 | `providers` | `{ contract, name, load, auto? }[]`      | Its contract implementations. `load` imports the class lazily (`() => import('./gcs-storage')`), `auto` is `true`, `'fallback'` or `false`           |
 | `services`  | `{ load, requires? }[]`                  | Classes defined at startup by their class name, with their lifecycle hooks and health checks; `requires` lists the contracts that must be provided   |
+| `decorators` | `{ contract, load, requires? }[]`       | Wrappers of the instance of a contract, whichever driver provides it: the default export of `load` takes the instance and returns the one to use, applied once it is created when the contract and `requires` are provided (core records the queue history so) |
 | `setup`     | `(context) => unknown`                   | Run after the providers and services of every module, before the `main` parts and the application files (see below)                                  |
 | `resources` | `() => import(...)`                      | A file exporting its models, resource services and policies, loaded by the `setup` of `@appweaver/data`, and by `weaver generate`                    |
 | `main`      | `() => import(...)`                      | Code run at startup: scheduled jobs, queue workers, event listeners                                                                                  |
@@ -383,7 +384,7 @@ A driver of an external service runs the suite on an in-memory stand-in of its c
 |-------------------------|-------------|---------------------------------------------------------------------------------------------|
 | `testMemoryContract`    | `Memory`    | Values and their expiry, `exists` and `delete`, key patterns, locks, the health check       |
 | `testStorageContract`   | `Storage`   | Storing and streaming a file and a byte range, `exists`, `delete`, `url`, the health check  |
-| `testQueueContract`     | `Queue`     | A job processed by a worker and its result, a failed job, closing a queue, the health check |
+| `testQueueContract`     | `Queue`     | A job processed by a worker and its result, a failed job, a given job id, closing a queue, the health check |
 | `testSchedulerContract` | `Scheduler` | Adding, starting, stopping and removing a job, an unknown job id (yearly jobs, none ticks)  |
 | `testMailerContract`    | `Mailer`    | Sending an email with every field of the contract, the health check                         |
 

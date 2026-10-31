@@ -6,6 +6,7 @@ export type DelegateMethod =
   | 'findMany'
   | 'count'
   | 'create'
+  | 'createMany'
   | 'update'
   | 'updateMany'
   | 'delete'
@@ -24,6 +25,7 @@ const METHODS: DelegateMethod[] = [
   'findMany',
   'count',
   'create',
+  'createMany',
   'update',
   'updateMany',
   'delete',

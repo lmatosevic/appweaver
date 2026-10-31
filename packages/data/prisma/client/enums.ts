@@ -9,7 +9,14 @@
 * 🟢 You can import this file directly.
 */
 
+export const QueueJobRecordState = {
+  pending: 'pending',
+  scheduled: 'scheduled',
+  running: 'running',
+  retrying: 'retrying',
+  completed: 'completed',
+  failed: 'failed',
+  stalled: 'stalled'
+} as const
 
-
-// This file is empty because there are no enums in the schema.
-export {}
+export type QueueJobRecordState = (typeof QueueJobRecordState)[keyof typeof QueueJobRecordState]

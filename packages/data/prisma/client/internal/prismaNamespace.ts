@@ -397,6 +397,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 
 export const ModelName = {
+  QueueJobRecord: 'QueueJobRecord',
   ApiKey: 'ApiKey',
   ConnectedAccount: 'ConnectedAccount',
   OneTimeToken: 'OneTimeToken',
@@ -419,10 +420,84 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "apiKey" | "connectedAccount" | "oneTimeToken" | "permission" | "role" | "seeder" | "file"
+    modelProps: "queueJobRecord" | "apiKey" | "connectedAccount" | "oneTimeToken" | "permission" | "role" | "seeder" | "file"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
+    QueueJobRecord: {
+      payload: Prisma.$QueueJobRecordPayload<ExtArgs>
+      fields: Prisma.QueueJobRecordFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.QueueJobRecordFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QueueJobRecordPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.QueueJobRecordFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QueueJobRecordPayload>
+        }
+        findFirst: {
+          args: Prisma.QueueJobRecordFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QueueJobRecordPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.QueueJobRecordFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QueueJobRecordPayload>
+        }
+        findMany: {
+          args: Prisma.QueueJobRecordFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QueueJobRecordPayload>[]
+        }
+        create: {
+          args: Prisma.QueueJobRecordCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QueueJobRecordPayload>
+        }
+        createMany: {
+          args: Prisma.QueueJobRecordCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.QueueJobRecordCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QueueJobRecordPayload>[]
+        }
+        delete: {
+          args: Prisma.QueueJobRecordDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QueueJobRecordPayload>
+        }
+        update: {
+          args: Prisma.QueueJobRecordUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QueueJobRecordPayload>
+        }
+        deleteMany: {
+          args: Prisma.QueueJobRecordDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.QueueJobRecordUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.QueueJobRecordUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QueueJobRecordPayload>[]
+        }
+        upsert: {
+          args: Prisma.QueueJobRecordUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QueueJobRecordPayload>
+        }
+        aggregate: {
+          args: Prisma.QueueJobRecordAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateQueueJobRecord>
+        }
+        groupBy: {
+          args: Prisma.QueueJobRecordGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.QueueJobRecordGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.QueueJobRecordCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.QueueJobRecordCountAggregateOutputType> | number
+        }
+      }
+    }
     ApiKey: {
       payload: Prisma.$ApiKeyPayload<ExtArgs>
       fields: Prisma.ApiKeyFieldRefs
@@ -977,6 +1052,42 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const QueueJobRecordScalarFieldEnum = {
+  id: 'id',
+  queue: 'queue',
+  jobId: 'jobId',
+  name: 'name',
+  state: 'state',
+  driver: 'driver',
+  data: 'data',
+  result: 'result',
+  metadata: 'metadata',
+  options: 'options',
+  attempt: 'attempt',
+  maxAttempts: 'maxAttempts',
+  priority: 'priority',
+  errors: 'errors',
+  lastError: 'lastError',
+  enqueuedAt: 'enqueuedAt',
+  scheduledAt: 'scheduledAt',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  durationMs: 'durationMs',
+  enqueuedBy: 'enqueuedBy',
+  attemptedBy: 'attemptedBy',
+  userId: 'userId',
+  authType: 'authType',
+  authSource: 'authSource',
+  apiKeyId: 'apiKeyId',
+  parentId: 'parentId',
+  callerSite: 'callerSite',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type QueueJobRecordScalarFieldEnum = (typeof QueueJobRecordScalarFieldEnum)[keyof typeof QueueJobRecordScalarFieldEnum]
+
+
 export const ApiKeyScalarFieldEnum = {
   id: 'id',
   key: 'key',
@@ -1077,19 +1188,19 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
 export const JsonNullValueInput = {
   JsonNull: JsonNull
 } as const
 
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
-
-
-export const NullsOrder = {
-  first: 'first',
-  last: 'last'
-} as const
-
-export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
 export const JsonNullValueFilter = {
@@ -1109,17 +1220,18 @@ export const QueryMode = {
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
 
 /**
  * Field references
  */
-
-
-/**
- * Reference to a field of type 'Int'
- */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
 
 
 /**
@@ -1130,16 +1242,9 @@ export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 
 
 
 /**
- * Reference to a field of type 'Boolean'
+ * Reference to a field of type 'QueueJobRecordState'
  */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
-    
-
-
-/**
- * Reference to a field of type 'DateTime'
- */
-export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+export type EnumQueueJobRecordStateFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueueJobRecordState'>
     
 
 
@@ -1154,6 +1259,27 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
  * Reference to a field of type 'QueryMode'
  */
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
+ * Reference to a field of type 'DateTime'
+ */
+export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -1314,6 +1440,7 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
  */
 export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaClientOptionsWithAdapter
 export type GlobalOmitConfig = {
+  queueJobRecord?: Prisma.QueueJobRecordOmit
   apiKey?: Prisma.ApiKeyOmit
   connectedAccount?: Prisma.ConnectedAccountOmit
   oneTimeToken?: Prisma.OneTimeTokenOmit

@@ -8,6 +8,7 @@ import {
   createLogger,
   Queue as CommonQueue,
   QueueHandlerResponse,
+  QueueJobInfo,
   QueueListener,
   QueueJobOptions,
   QueueProcessor,
@@ -322,6 +323,14 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     return true;
   }
 
+  public jobInfo(job: Job<Data, Response>): QueueJobInfo {
+    return {
+      // Counted when a worker takes the job, the attempts made only once it ends
+      attempt: job.attemptsStarted || job.attemptsMade + 1,
+      maxAttempts: job.opts.attempts ?? 1
+    };
+  }
+
   public async close(): Promise<void> {
     const connected = this._connection.status === 'ready';
 
@@ -455,7 +464,7 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
 
 /** Converts the job options of the contract into the ones of BullMQ, leaving the defaults of the queue as they are. */
 function toJobsOptions(options: QueueJobOptions): JobsOptions {
-  const { providerOptions, ...jobOptions } = options;
+  const { providerOptions, metadata: _metadata, ...jobOptions } = options;
   return Object.fromEntries(
     Object.entries({ ...providerOptions, ...jobOptions }).filter(
       ([, value]) => value !== undefined

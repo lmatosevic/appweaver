@@ -51,6 +51,7 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  QueueJobRecord: 'QueueJobRecord',
   ApiKey: 'ApiKey',
   ConnectedAccount: 'ConnectedAccount',
   OneTimeToken: 'OneTimeToken',
@@ -71,6 +72,42 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 } as const)
 
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
+
+
+export const QueueJobRecordScalarFieldEnum = {
+  id: 'id',
+  queue: 'queue',
+  jobId: 'jobId',
+  name: 'name',
+  state: 'state',
+  driver: 'driver',
+  data: 'data',
+  result: 'result',
+  metadata: 'metadata',
+  options: 'options',
+  attempt: 'attempt',
+  maxAttempts: 'maxAttempts',
+  priority: 'priority',
+  errors: 'errors',
+  lastError: 'lastError',
+  enqueuedAt: 'enqueuedAt',
+  scheduledAt: 'scheduledAt',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  durationMs: 'durationMs',
+  enqueuedBy: 'enqueuedBy',
+  attemptedBy: 'attemptedBy',
+  userId: 'userId',
+  authType: 'authType',
+  authSource: 'authSource',
+  apiKeyId: 'apiKeyId',
+  parentId: 'parentId',
+  callerSite: 'callerSite',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type QueueJobRecordScalarFieldEnum = (typeof QueueJobRecordScalarFieldEnum)[keyof typeof QueueJobRecordScalarFieldEnum]
 
 
 export const ApiKeyScalarFieldEnum = {
@@ -173,19 +210,19 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
 export const JsonNullValueInput = {
   JsonNull: JsonNull
 } as const
 
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
-
-
-export const NullsOrder = {
-  first: 'first',
-  last: 'last'
-} as const
-
-export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
 export const JsonNullValueFilter = {
@@ -203,4 +240,12 @@ export const QueryMode = {
 } as const
 
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 

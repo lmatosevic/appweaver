@@ -5,6 +5,7 @@ import {
   Queue as CommonQueue,
   QueueHandlerResponse,
   QueueJob,
+  QueueJobInfo,
   QueueListener,
   QueueJobOptions,
   QueueProcessor,
@@ -12,6 +13,7 @@ import {
   uuid,
   QueueError
 } from '@appweaver/common';
+import { queueConfig } from './queue-config';
 
 const logger = createLogger('queue');
 
@@ -136,7 +138,7 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       );
     }
 
-    const jobId = uuid();
+    const jobId = options.jobId ?? uuid();
     const job: MemoryQueueJob<Data, Response> = {
       id: jobId,
       name: name ?? 'defaultJob',
@@ -144,7 +146,7 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       returnvalue: undefined as any,
       status: 'waiting',
       attempts: 0,
-      maxAttempts: options.attempts ?? 3,
+      maxAttempts: options.attempts ?? queueConfig.RETRY_ATTEMPTS,
       createdAt: Date.now()
     };
 
@@ -294,6 +296,10 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
 
     delete this._listeners[id];
     return true;
+  }
+
+  public jobInfo(job: MemoryQueueJob<Data, Response>): QueueJobInfo {
+    return { attempt: job.attempts, maxAttempts: job.maxAttempts };
   }
 
   public async close(): Promise<void> {

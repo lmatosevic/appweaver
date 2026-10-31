@@ -7,6 +7,327 @@ import {
   QuerySort
 } from '@appweaver/common';
 
+export type QueueJobRecord = {
+  id: string;
+  queue: string;
+  jobId: string;
+  name: string;
+  state:
+    | 'pending'
+    | 'scheduled'
+    | 'running'
+    | 'retrying'
+    | 'completed'
+    | 'failed'
+    | 'stalled';
+  driver?: string | null;
+  data?: any | null;
+  result?: any | null;
+  metadata?: any | null;
+  options?: any | null;
+  attempt: number;
+  maxAttempts?: number | null;
+  priority?: number | null;
+  errors: any;
+  lastError?: string | null;
+  enqueuedAt?: Date | null;
+  scheduledAt?: Date | null;
+  startedAt?: Date | null;
+  finishedAt?: Date | null;
+  durationMs?: number | null;
+  enqueuedBy?: string | null;
+  attemptedBy?: string | null;
+  userId?: string | null;
+  authType?: string | null;
+  authSource?: string | null;
+  apiKeyId?: string | null;
+  parentId?: string | null;
+  callerSite?: string | null;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type QueueJobRecordSingle = {
+  id: string;
+  queue: string;
+  jobId: string;
+  name: string;
+  state:
+    | 'pending'
+    | 'scheduled'
+    | 'running'
+    | 'retrying'
+    | 'completed'
+    | 'failed'
+    | 'stalled';
+  driver?: string | null;
+  data?: any | null;
+  result?: any | null;
+  metadata?: any | null;
+  options?: any | null;
+  attempt: number;
+  maxAttempts?: number | null;
+  priority?: number | null;
+  errors: any;
+  lastError?: string | null;
+  enqueuedAt?: Date | null;
+  scheduledAt?: Date | null;
+  startedAt?: Date | null;
+  finishedAt?: Date | null;
+  durationMs?: number | null;
+  enqueuedBy?: string | null;
+  attemptedBy?: string | null;
+  userId?: string | null;
+  authType?: string | null;
+  authSource?: string | null;
+  apiKeyId?: string | null;
+  parentId?: string | null;
+  callerSite?: string | null;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type QueueJobRecordMultiple = {
+  id: string;
+  queue: string;
+  jobId: string;
+  name: string;
+  state:
+    | 'pending'
+    | 'scheduled'
+    | 'running'
+    | 'retrying'
+    | 'completed'
+    | 'failed'
+    | 'stalled';
+  driver?: string | null;
+  data?: any | null;
+  result?: any | null;
+  metadata?: any | null;
+  options?: any | null;
+  attempt: number;
+  maxAttempts?: number | null;
+  priority?: number | null;
+  errors: any;
+  lastError?: string | null;
+  enqueuedAt?: Date | null;
+  scheduledAt?: Date | null;
+  startedAt?: Date | null;
+  finishedAt?: Date | null;
+  durationMs?: number | null;
+  enqueuedBy?: string | null;
+  attemptedBy?: string | null;
+  userId?: string | null;
+  authType?: string | null;
+  authSource?: string | null;
+  apiKeyId?: string | null;
+  parentId?: string | null;
+  callerSite?: string | null;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type QueueJobRecordCreate = {
+  queue: string;
+  jobId: string;
+  name: string;
+  state:
+    | 'pending'
+    | 'scheduled'
+    | 'running'
+    | 'retrying'
+    | 'completed'
+    | 'failed'
+    | 'stalled';
+  driver?: string | null;
+  data?: any | null;
+  result?: any | null;
+  metadata?: any | null;
+  options?: any | null;
+  attempt?: number;
+  maxAttempts?: number | null;
+  priority?: number | null;
+  errors?: any;
+  lastError?: string | null;
+  enqueuedAt?: Date | null;
+  scheduledAt?: Date | null;
+  startedAt?: Date | null;
+  finishedAt?: Date | null;
+  durationMs?: number | null;
+  enqueuedBy?: string | null;
+  attemptedBy?: string | null;
+  userId?: string | null;
+  authType?: string | null;
+  authSource?: string | null;
+  apiKeyId?: string | null;
+  parentId?: string | null;
+  callerSite?: string | null;
+};
+
+export type QueueJobRecordUpdate = {
+  queue?: string;
+  jobId?: string;
+  name?: string;
+  state?:
+    | 'pending'
+    | 'scheduled'
+    | 'running'
+    | 'retrying'
+    | 'completed'
+    | 'failed'
+    | 'stalled';
+  driver?: string | null;
+  data?: any | null;
+  result?: any | null;
+  metadata?: any | null;
+  options?: any | null;
+  attempt?: number;
+  maxAttempts?: number | null;
+  priority?: number | null;
+  errors?: any;
+  lastError?: string | null;
+  enqueuedAt?: Date | null;
+  scheduledAt?: Date | null;
+  startedAt?: Date | null;
+  finishedAt?: Date | null;
+  durationMs?: number | null;
+  enqueuedBy?: string | null;
+  attemptedBy?: string | null;
+  userId?: string | null;
+  authType?: string | null;
+  authSource?: string | null;
+  apiKeyId?: string | null;
+  parentId?: string | null;
+  callerSite?: string | null;
+};
+
+export type QueueJobRecordReplace = {
+  queue: string;
+  jobId: string;
+  name: string;
+  state:
+    | 'pending'
+    | 'scheduled'
+    | 'running'
+    | 'retrying'
+    | 'completed'
+    | 'failed'
+    | 'stalled';
+  driver?: string | null;
+  data?: any | null;
+  result?: any | null;
+  metadata?: any | null;
+  options?: any | null;
+  attempt?: number;
+  maxAttempts?: number | null;
+  priority?: number | null;
+  errors?: any;
+  lastError?: string | null;
+  enqueuedAt?: Date | null;
+  scheduledAt?: Date | null;
+  startedAt?: Date | null;
+  finishedAt?: Date | null;
+  durationMs?: number | null;
+  enqueuedBy?: string | null;
+  attemptedBy?: string | null;
+  userId?: string | null;
+  authType?: string | null;
+  authSource?: string | null;
+  apiKeyId?: string | null;
+  parentId?: string | null;
+  callerSite?: string | null;
+};
+
+export type QueueJobRecordRelationCreate = {
+  queue: string;
+  jobId: string;
+  name: string;
+  state:
+    | 'pending'
+    | 'scheduled'
+    | 'running'
+    | 'retrying'
+    | 'completed'
+    | 'failed'
+    | 'stalled';
+  driver?: string | null;
+  data?: any | null;
+  result?: any | null;
+  metadata?: any | null;
+  options?: any | null;
+  attempt?: number;
+  maxAttempts?: number | null;
+  priority?: number | null;
+  errors?: any;
+  lastError?: string | null;
+  enqueuedAt?: Date | null;
+  scheduledAt?: Date | null;
+  startedAt?: Date | null;
+  finishedAt?: Date | null;
+  durationMs?: number | null;
+  enqueuedBy?: string | null;
+  attemptedBy?: string | null;
+  userId?: string | null;
+  authType?: string | null;
+  authSource?: string | null;
+  apiKeyId?: string | null;
+  parentId?: string | null;
+  callerSite?: string | null;
+};
+
+export type QueueJobRecordRelationUpdate = {
+  id: string;
+  queue?: string;
+  jobId?: string;
+  name?: string;
+  state?:
+    | 'pending'
+    | 'scheduled'
+    | 'running'
+    | 'retrying'
+    | 'completed'
+    | 'failed'
+    | 'stalled';
+  driver?: string | null;
+  data?: any | null;
+  result?: any | null;
+  metadata?: any | null;
+  options?: any | null;
+  attempt?: number;
+  maxAttempts?: number | null;
+  priority?: number | null;
+  errors?: any;
+  lastError?: string | null;
+  enqueuedAt?: Date | null;
+  scheduledAt?: Date | null;
+  startedAt?: Date | null;
+  finishedAt?: Date | null;
+  durationMs?: number | null;
+  enqueuedBy?: string | null;
+  attemptedBy?: string | null;
+  userId?: string | null;
+  authType?: string | null;
+  authSource?: string | null;
+  apiKeyId?: string | null;
+  parentId?: string | null;
+  callerSite?: string | null;
+};
+
+export type QueueJobRecordQuery = QueryFilter<QueueJobRecord>;
+
+export type QueueJobRecordSort = QuerySort<QueueJobRecordMultiple>;
+
+export type QueueJobRecordAggregate = AggregateSelect<QueueJobRecord>;
+
+export type QueueJobRecordResourceService = IResourceService<
+  QueueJobRecord,
+  QueueJobRecordMultiple,
+  QueueJobRecordCreate,
+  QueueJobRecordUpdate,
+  QueueJobRecordQuery,
+  QueueJobRecordReplace
+>;
+
 export type ApiKey = {
   id: number;
   key: string;

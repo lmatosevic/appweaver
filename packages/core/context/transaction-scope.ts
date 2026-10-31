@@ -44,6 +44,17 @@ export function runInTransaction<T, Tx = unknown, IsolationLevel = string>(
 }
 
 /**
+ * Runs the given function outside of the current transaction, so its queries are not part of it, i.e. to record what
+ * happened whether the transaction commits or not.
+ *
+ * @param {Function} fn - The function to run.
+ * @return {Object} The value returned by the function.
+ */
+export function runOutsideTransaction<T>(fn: () => T): T {
+  return transactionStorage.exit(fn);
+}
+
+/**
  * Runs the given callback once the current transaction commits, and drops it if
  * the transaction rolls back. Outside a transaction, the callback runs right away.
  * An error thrown by the callback is logged, since the transaction has already

@@ -43,6 +43,19 @@ export type ModuleService = {
   requires?: AbstractCtor[];
 };
 
+/**
+ * Wraps the instance of a contract once it is created, i.e. to record what the selected driver does, whichever driver
+ * it is.
+ */
+export type ModuleDecorator = {
+  /** The contract whose instance is wrapped, i.e. `Queue`. */
+  contract: AbstractCtor;
+  /** Imports the decorator, a module whose default export takes the instance and returns the one to use instead. */
+  load: ModuleLoader<{ default: (instance: any) => any }>;
+  /** The contracts the decorator needs, which must all be provided for it to be applied. */
+  requires?: AbstractCtor[];
+};
+
 /** What the setup of a module receives. */
 export type ModuleSetupContext = {
   /** The enabled modules, in their load order. */
@@ -78,6 +91,8 @@ export type ModuleManifest = {
   providers?: ModuleProvider[];
   /** Its classes defined at startup. */
   services?: ModuleService[];
+  /** Its wrappers of the contract instances, applied to the instance of any provider when it is created. */
+  decorators?: ModuleDecorator[];
   /**
    * Runs once the providers and the services of every module are defined, before the `main` parts and the files of
    * the application, i.e. `@appweaver/data` loads the resources of the application and of the modules here.

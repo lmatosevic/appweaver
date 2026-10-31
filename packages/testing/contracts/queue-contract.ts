@@ -51,6 +51,16 @@ export function testQueueContract(
       await expect(failed).resolves.toBe('broken');
     });
 
+    test('keeps a given job id', async () => {
+      const processor = queue.get('contract-ids');
+
+      const job = await processor.sendJob({}, 'named', {
+        jobId: 'contract-job-1'
+      });
+
+      expect(job.id).toBe('contract-job-1');
+    });
+
     test('closes a queue by its name', async () => {
       queue.get('contract-closed');
 

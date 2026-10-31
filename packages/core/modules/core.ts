@@ -4,7 +4,9 @@ import {
   Events,
   Mailer,
   Memory,
+  PROVIDER_NONE,
   Queue,
+  QueueHistory,
   Scheduler,
   SecurityStore,
   Storage,
@@ -17,6 +19,7 @@ import { localeConfig } from '../locale/locale-config';
 import { mailerConfig } from '../mailer/mailer-config';
 import { memoryConfig } from '../memory/memory-config';
 import { queueConfig } from '../queue/queue-config';
+import { queueHistoryConfig } from '../queue/queue-history-config';
 import { schedulerConfig } from '../scheduler/scheduler-config';
 import { securityStoreConfig } from '../security/security-store-config';
 import { storageConfig } from '../storage/storage-config';
@@ -32,6 +35,7 @@ export default defineModule({
     storageConfig,
     securityStoreConfig,
     queueConfig,
+    queueHistoryConfig,
     mailerConfig,
     templateConfig,
     schedulerConfig,
@@ -55,6 +59,11 @@ export default defineModule({
     { contract: Storage, provider: () => storageConfig.PROVIDER },
     { contract: SecurityStore, provider: () => securityStoreConfig.PROVIDER },
     { contract: Queue, provider: () => queueConfig.PROVIDER },
+    {
+      contract: QueueHistory,
+      provider: () =>
+        queueHistoryConfig.ENABLED ? queueHistoryConfig.PROVIDER : PROVIDER_NONE
+    },
     { contract: Mailer, provider: () => mailerConfig.PROVIDER },
     { contract: TemplateEngine, provider: () => templateConfig.PROVIDER },
     { contract: Scheduler, provider: () => schedulerConfig.PROVIDER }
@@ -110,7 +119,18 @@ export default defineModule({
       load: () => import('../mailer/email-service'),
       requires: [Mailer, Queue]
     },
+    {
+      load: () => import('../queue/history/queue-history-cleaner'),
+      requires: [QueueHistory]
+    },
     { load: () => import('../health/health-service') },
     { load: () => import('../health/health-listener') }
+  ],
+  decorators: [
+    {
+      contract: Queue,
+      requires: [QueueHistory],
+      load: () => import('../queue/history/history-queue')
+    }
   ]
 });

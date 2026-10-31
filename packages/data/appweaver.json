@@ -1,5 +1,8 @@
 {
   "config": {
+    "queue": {
+      "history": { "keepDatabaseTable": true }
+    },
     "security": {
       "apiKey": { "keepDatabaseTable": true },
       "store": { "keepDatabaseTable": true },

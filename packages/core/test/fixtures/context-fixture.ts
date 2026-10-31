@@ -12,4 +12,5 @@ export function resetContext(): void {
   context.modules.enabled.length = 0;
   context.modules.providers.clear();
   context.definitions.length = 0;
+  context.decorators.clear();
 }

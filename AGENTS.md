@@ -175,7 +175,7 @@ The runtime every application has, with neither a server nor a database. Organiz
 | `memory/`    | The in-process `memory` driver of `Memory`                                                                                           |
 | `events/`    | The `node` driver of `Events`                                                                                                        |
 | `storage/`   | The `local` filesystem driver of `Storage`                                                                                           |
-| `queue/`     | The in-process `memory` driver of `Queue`                                                                                            |
+| `queue/`     | The in-process `memory` driver of `Queue`, the queue history decorator and its cleaner (`history/`)                                  |
 | `scheduler/` | The scheduler config, its driver is `@appweaver/cron`                                                                                |
 | `mailer/`    | `EmailService`, rendering the template emails, and the `json` mailer of development and tests                                        |
 | `template/`  | The template config and `registerTemplate` / `registerTemplateHelper`, the engine is `@appweaver/handlebars`                         |
@@ -187,7 +187,8 @@ The runtime every application has, with neither a server nor a database. Organiz
 
 **Module system**: every part of the framework is a module declared with `defineModule`
 (`packages/common/module/define-module.ts`): the contracts it declares, its providers (drivers) by name, its services,
-its `setup`, resources, `main` and `web` parts. `discoverModules` enables the core module, the dependencies with an
+its `decorators` (wrappers of a contract's instance, whichever driver provides it, registered with `decorate` of the
+container), its `setup`, resources, `main` and `web` parts. `discoverModules` enables the core module, the dependencies with an
 `appweaver.module` field in their `package.json` (and the modules they `require`), the local manifests of
 `APP_MODULES_PATTERN` and the paths of `APP_MODULES`, minus `APP_MODULES_DISABLED`, ordered by their `requires`.
 `createApp` then loads the providers and services, runs the `setup` of every module (data loads the resources of the
@@ -197,7 +198,8 @@ driver of an enabled module, else the fallback of core, `none` disables the cont
 name selects a provider, and a module path still loads a class. The provider names are `memory` and `redis`
 (`Memory`), `memory` (`Cache`), `node` (`Events`), `local` (`Storage`), `database` and `memory` (`SecurityStore`),
 `memory` and `bullmq` (`Queue`), `smtp` and `json` (`Mailer`), `handlebars` (`TemplateEngine`), `cron` (`Scheduler`),
-`prisma` (`Database`) and `sharp` (`ImageProcessor`). A new driver goes into a module manifest with a provider name,
+`prisma` (`Database`), `sharp` (`ImageProcessor`) and `database` (`QueueHistory`, only while
+`QUEUE_HISTORY_ENABLED`). A new driver goes into a module manifest with a provider name,
 never into `load-providers.ts`, and is documented in `skill/references/modules.md` and
 `skill/references/configuration.md`.
 
@@ -219,6 +221,7 @@ loads the resources of the application, then the `resources` of the modules.
 | `storage/`  | `FileService`, the File model and the image config                                                                                                 |
 | `seeder/`   | `createSeeder` and the Seeder model                                                                                                                |
 | `export/`   | `ExportService` (CSV)                                                                                                                              |
+| `queue/`    | `DatabaseQueueHistory` (the `database` provider of `QueueHistory`) and the `QueueJobRecord` model of the queue history                             |
 | `types/`    | The auth and storage types, and the generated types of the framework models (`generated.ts`)                                                       |
 | `utils/`    | Helpers shared by the modules or meant for library users: export, file, model, policy and virtual field utilities                                  |
 | `prisma/`   | The generated Prisma schema, client and migration of the framework models                                                                          |
@@ -247,7 +250,7 @@ npm run db:recreate   # drop dev.db and prisma/migrations, then recreate the ini
 ```
 
 The `appweaver.json` of `packages/data` (never published) turns on the `KEEP_DATABASE_TABLE` keys of the API keys,
-the security store and the connected accounts, so `npm run generate` emits every framework model whatever the
+the security store, the connected accounts and the queue history, so `npm run generate` emits every framework model whatever the
 environment.
 
 A stale `prisma/client` makes Prisma reject writes with a misleading "Unknown argument" naming an *unrelated* field
