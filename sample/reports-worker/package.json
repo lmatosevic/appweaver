@@ -19,12 +19,12 @@
     "seed": "weaver seed --build-project"
   },
   "dependencies": {
-    "@appweaver/cli": "^2.1.2",
-    "@appweaver/common": "^2.1.2",
-    "@appweaver/core": "^2.1.2",
-    "@appweaver/cron": "^2.1.2",
-    "@appweaver/data": "^2.1.2",
-    "@appweaver/sharp": "^2.1.2",
+    "@appweaver/cli": "^2.2.0",
+    "@appweaver/common": "^2.2.0",
+    "@appweaver/core": "^2.2.0",
+    "@appweaver/cron": "^2.2.0",
+    "@appweaver/data": "^2.2.0",
+    "@appweaver/sharp": "^2.2.0",
     "@prisma/adapter-better-sqlite3": "7.9.1",
     "@prisma/client": "7.9.1",
     "@sinclair/typebox": "0.34.49",
