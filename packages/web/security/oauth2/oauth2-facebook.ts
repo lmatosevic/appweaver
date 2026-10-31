@@ -1,5 +1,5 @@
 import { AuthSource } from '@appweaver/common';
-import { oauth2Config } from '../security-config';
+import { oauth2FacebookConfig } from '../security-config';
 import { UserInfo } from '@appweaver/data';
 import { createOAuth2Plugin } from './create-oauth2-plugin';
 import { fetchUserInfo, requireEmail, splitFullName } from './oauth2-util';
@@ -12,10 +12,10 @@ type FacebookUser = {
 };
 
 export const oauth2Facebook = createOAuth2Plugin(AuthSource.OAuth2Facebook, {
-  enabled: oauth2Config.FACEBOOK_ENABLED,
-  authorizationParams: oauth2Config.FACEBOOK_AUTHORIZATION_PARAMS,
-  clientId: oauth2Config.FACEBOOK_CLIENT_ID,
-  clientSecret: oauth2Config.FACEBOOK_CLIENT_SECRET,
+  enabled: oauth2FacebookConfig.ENABLED,
+  authorizationParams: oauth2FacebookConfig.AUTHORIZATION_PARAMS,
+  clientId: oauth2FacebookConfig.CLIENT_ID,
+  clientSecret: oauth2FacebookConfig.CLIENT_SECRET,
   scope: ['public_profile', 'email'],
   extractUserInfo: (accessToken) => fetchFacebookUser(accessToken)
 });
@@ -28,7 +28,7 @@ export async function fetchFacebookUser(
 
   const data = await fetchUserInfo<FacebookUser>(
     'Facebook Graph',
-    `${oauth2Config.FACEBOOK_USER_INFO_URL}?${params}`,
+    `${oauth2FacebookConfig.USER_INFO_URL}?${params}`,
     accessToken
   );
 

@@ -1,5 +1,5 @@
 import { AuthSource, ErrorCode, OAuth2Error } from '@appweaver/common';
-import { oauth2Config } from '../security-config';
+import { oauth2GithubConfig } from '../security-config';
 import { UserInfo } from '@appweaver/data';
 import { createOAuth2Plugin } from './create-oauth2-plugin';
 import { fetchUserInfo, splitFullName } from './oauth2-util';
@@ -25,10 +25,10 @@ const GITHUB_HEADERS = {
 };
 
 export const oauth2Github = createOAuth2Plugin(AuthSource.OAuth2Github, {
-  enabled: oauth2Config.GITHUB_ENABLED,
-  authorizationParams: oauth2Config.GITHUB_AUTHORIZATION_PARAMS,
-  clientId: oauth2Config.GITHUB_CLIENT_ID,
-  clientSecret: oauth2Config.GITHUB_CLIENT_SECRET,
+  enabled: oauth2GithubConfig.ENABLED,
+  authorizationParams: oauth2GithubConfig.AUTHORIZATION_PARAMS,
+  clientId: oauth2GithubConfig.CLIENT_ID,
+  clientSecret: oauth2GithubConfig.CLIENT_SECRET,
   displayName: 'GitHub',
   scope: ['read:user', 'user:email'],
   extractUserInfo: (accessToken) => fetchGithubUser(accessToken)
@@ -37,7 +37,7 @@ export const oauth2Github = createOAuth2Plugin(AuthSource.OAuth2Github, {
 export async function fetchGithubUser(accessToken: string): Promise<UserInfo> {
   const data = await fetchUserInfo<GithubUser>(
     'GitHub',
-    oauth2Config.GITHUB_USER_INFO_URL,
+    oauth2GithubConfig.USER_INFO_URL,
     accessToken,
     GITHUB_HEADERS
   );
@@ -61,7 +61,7 @@ export async function fetchGithubUser(accessToken: string): Promise<UserInfo> {
 async function fetchGithubEmail(accessToken: string): Promise<string> {
   const emails = await fetchUserInfo<GithubEmail[]>(
     'GitHub',
-    `${oauth2Config.GITHUB_USER_INFO_URL}/emails`,
+    `${oauth2GithubConfig.USER_INFO_URL}/emails`,
     accessToken,
     GITHUB_HEADERS
   );

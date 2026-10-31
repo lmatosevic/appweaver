@@ -6,7 +6,7 @@ import {
   createLogger,
   OAuth2Error
 } from '@appweaver/common';
-import { oauth2Config } from '../security-config';
+import { oauth2Config, oauth2AppleConfig } from '../security-config';
 import { AvatarFile } from '@appweaver/data';
 
 const logger = createLogger('security');
@@ -170,13 +170,13 @@ export function decodeJwtPayload<T>(providerName: string, token?: string): T {
  * @throws {Error} If neither a literal secret nor a complete signing key configuration is available.
  */
 export function createAppleClientSecret(): string {
-  if (oauth2Config.APPLE_CLIENT_SECRET) {
-    return oauth2Config.APPLE_CLIENT_SECRET;
+  if (oauth2AppleConfig.CLIENT_SECRET) {
+    return oauth2AppleConfig.CLIENT_SECRET;
   }
 
-  const clientId = oauth2Config.APPLE_CLIENT_ID;
-  const teamId = oauth2Config.APPLE_TEAM_ID;
-  const keyId = oauth2Config.APPLE_KEY_ID;
+  const clientId = oauth2AppleConfig.CLIENT_ID;
+  const teamId = oauth2AppleConfig.TEAM_ID;
+  const keyId = oauth2AppleConfig.KEY_ID;
   const privateKey = readApplePrivateKey();
 
   if (!clientId || !teamId || !keyId || !privateKey) {
@@ -193,7 +193,7 @@ export function createAppleClientSecret(): string {
     {
       iss: teamId,
       iat: issuedAt,
-      exp: issuedAt + oauth2Config.APPLE_CLIENT_SECRET_EXPIRES_IN,
+      exp: issuedAt + oauth2AppleConfig.CLIENT_SECRET_EXPIRES_IN,
       aud: APPLE_TOKEN_AUDIENCE,
       sub: clientId
     },
@@ -208,12 +208,12 @@ export function createAppleClientSecret(): string {
  */
 function readApplePrivateKey(): string | undefined {
   // Escaped newlines survive the trip through an environment variable, so restore them.
-  const inlineKey = oauth2Config.APPLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+  const inlineKey = oauth2AppleConfig.PRIVATE_KEY?.replace(/\\n/g, '\n');
   if (inlineKey) {
     return inlineKey;
   }
 
-  const keyPath = oauth2Config.APPLE_PRIVATE_KEY_PATH;
+  const keyPath = oauth2AppleConfig.PRIVATE_KEY_PATH;
 
   return keyPath ? fs.readFileSync(keyPath, 'utf8') : undefined;
 }

@@ -34,7 +34,10 @@
       },
       "oauth2": {
         "google": {
-          "enabled": true
+          "enabled": true,
+          "authorizationParams": {
+            "prompt": "select_account"
+          }
         },
         "facebook": {
           "enabled": true

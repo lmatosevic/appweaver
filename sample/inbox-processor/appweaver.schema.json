@@ -644,6 +644,21 @@
                 "url": {
                   "default": "redis://localhost:6379/0",
                   "type": "string"
+                },
+                "commandTimeout": {
+                  "default": 200,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "circuitBreakerThreshold": {
+                  "default": 5,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "circuitBreakerCooldown": {
+                  "default": 10000,
+                  "minimum": 0,
+                  "type": "integer"
                 }
               }
             }
@@ -729,6 +744,10 @@
             },
             "skipOnError": {
               "default": true,
+              "type": "boolean"
+            },
+            "secureSkipOnError": {
+              "default": false,
               "type": "boolean"
             }
           }
@@ -983,150 +1002,276 @@
                   "default": true,
                   "type": "boolean"
                 },
-                "googleEnabled": {
-                  "default": false,
-                  "type": "boolean"
+                "apple": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "default": false,
+                      "type": "boolean"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "teamId": {
+                      "type": "string"
+                    },
+                    "keyId": {
+                      "type": "string"
+                    },
+                    "privateKey": {
+                      "type": "string"
+                    },
+                    "privateKeyPath": {
+                      "type": "string"
+                    },
+                    "clientSecretExpiresIn": {
+                      "default": 15552000,
+                      "type": "integer"
+                    },
+                    "authorizationParams": {
+                      "default": {},
+                      "type": "object",
+                      "patternProperties": {
+                        "^(.*)$": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
                 },
-                "googleClientId": {
-                  "type": "string"
+                "custom": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "default": false,
+                      "type": "boolean"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "issuer": {
+                      "type": "string"
+                    },
+                    "authorizationParams": {
+                      "default": {},
+                      "type": "object",
+                      "patternProperties": {
+                        "^(.*)$": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
                 },
-                "googleClientSecret": {
-                  "type": "string"
+                "facebook": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "default": false,
+                      "type": "boolean"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "userInfoUrl": {
+                      "default": "https://graph.facebook.com/me",
+                      "type": "string"
+                    },
+                    "authorizationParams": {
+                      "default": {},
+                      "type": "object",
+                      "patternProperties": {
+                        "^(.*)$": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
                 },
-                "googleUserInfoUrl": {
-                  "default": "https://www.googleapis.com/oauth2/v2/userinfo",
-                  "type": "string"
+                "github": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "default": false,
+                      "type": "boolean"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "userInfoUrl": {
+                      "default": "https://api.github.com/user",
+                      "type": "string"
+                    },
+                    "authorizationParams": {
+                      "default": {},
+                      "type": "object",
+                      "patternProperties": {
+                        "^(.*)$": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
                 },
-                "facebookEnabled": {
-                  "default": false,
-                  "type": "boolean"
+                "gitlab": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "default": false,
+                      "type": "boolean"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "baseUrl": {
+                      "default": "https://gitlab.com",
+                      "type": "string"
+                    },
+                    "userInfoUrl": {
+                      "default": "https://gitlab.com/api/v4/user",
+                      "type": "string"
+                    },
+                    "authorizationParams": {
+                      "default": {},
+                      "type": "object",
+                      "patternProperties": {
+                        "^(.*)$": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
                 },
-                "facebookClientId": {
-                  "type": "string"
+                "google": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "default": false,
+                      "type": "boolean"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "userInfoUrl": {
+                      "default": "https://www.googleapis.com/oauth2/v2/userinfo",
+                      "type": "string"
+                    },
+                    "authorizationParams": {
+                      "default": {},
+                      "type": "object",
+                      "patternProperties": {
+                        "^(.*)$": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
                 },
-                "facebookClientSecret": {
-                  "type": "string"
+                "linkedin": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "default": false,
+                      "type": "boolean"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "userInfoUrl": {
+                      "default": "https://api.linkedin.com/v2/userinfo",
+                      "type": "string"
+                    },
+                    "authorizationParams": {
+                      "default": {},
+                      "type": "object",
+                      "patternProperties": {
+                        "^(.*)$": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
                 },
-                "facebookUserInfoUrl": {
-                  "default": "https://graph.facebook.com/me",
-                  "type": "string"
+                "microsoft": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "default": false,
+                      "type": "boolean"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "tenant": {
+                      "default": "common",
+                      "type": "string"
+                    },
+                    "userInfoUrl": {
+                      "default": "https://graph.microsoft.com/v1.0/me",
+                      "type": "string"
+                    },
+                    "authorizationParams": {
+                      "default": {},
+                      "type": "object",
+                      "patternProperties": {
+                        "^(.*)$": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
                 },
-                "xEnabled": {
-                  "default": false,
-                  "type": "boolean"
-                },
-                "xClientId": {
-                  "type": "string"
-                },
-                "xClientSecret": {
-                  "type": "string"
-                },
-                "xUserInfoUrl": {
-                  "default": "https://api.x.com/2/users/me",
-                  "type": "string"
-                },
-                "githubEnabled": {
-                  "default": false,
-                  "type": "boolean"
-                },
-                "githubClientId": {
-                  "type": "string"
-                },
-                "githubClientSecret": {
-                  "type": "string"
-                },
-                "githubUserInfoUrl": {
-                  "default": "https://api.github.com/user",
-                  "type": "string"
-                },
-                "gitlabEnabled": {
-                  "default": false,
-                  "type": "boolean"
-                },
-                "gitlabClientId": {
-                  "type": "string"
-                },
-                "gitlabClientSecret": {
-                  "type": "string"
-                },
-                "gitlabBaseUrl": {
-                  "default": "https://gitlab.com",
-                  "type": "string"
-                },
-                "gitlabUserInfoUrl": {
-                  "default": "https://gitlab.com/api/v4/user",
-                  "type": "string"
-                },
-                "linkedinEnabled": {
-                  "default": false,
-                  "type": "boolean"
-                },
-                "linkedinClientId": {
-                  "type": "string"
-                },
-                "linkedinClientSecret": {
-                  "type": "string"
-                },
-                "linkedinUserInfoUrl": {
-                  "default": "https://api.linkedin.com/v2/userinfo",
-                  "type": "string"
-                },
-                "appleEnabled": {
-                  "default": false,
-                  "type": "boolean"
-                },
-                "appleClientId": {
-                  "type": "string"
-                },
-                "appleClientSecret": {
-                  "type": "string"
-                },
-                "appleTeamId": {
-                  "type": "string"
-                },
-                "appleKeyId": {
-                  "type": "string"
-                },
-                "applePrivateKey": {
-                  "type": "string"
-                },
-                "applePrivateKeyPath": {
-                  "type": "string"
-                },
-                "appleClientSecretExpiresIn": {
-                  "default": 15552000,
-                  "type": "integer"
-                },
-                "microsoftEnabled": {
-                  "default": false,
-                  "type": "boolean"
-                },
-                "microsoftClientId": {
-                  "type": "string"
-                },
-                "microsoftClientSecret": {
-                  "type": "string"
-                },
-                "microsoftTenant": {
-                  "default": "common",
-                  "type": "string"
-                },
-                "microsoftUserInfoUrl": {
-                  "default": "https://graph.microsoft.com/v1.0/me",
-                  "type": "string"
-                },
-                "customEnabled": {
-                  "default": false,
-                  "type": "boolean"
-                },
-                "customClientId": {
-                  "type": "string"
-                },
-                "customClientSecret": {
-                  "type": "string"
-                },
-                "customIssuer": {
-                  "type": "string"
+                "x": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "default": false,
+                      "type": "boolean"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "userInfoUrl": {
+                      "default": "https://api.x.com/2/users/me",
+                      "type": "string"
+                    },
+                    "authorizationParams": {
+                      "default": {},
+                      "type": "object",
+                      "patternProperties": {
+                        "^(.*)$": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
                 }
               }
             },

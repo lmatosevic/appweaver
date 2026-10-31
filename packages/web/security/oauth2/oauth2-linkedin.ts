@@ -1,5 +1,5 @@
 import { AuthSource } from '@appweaver/common';
-import { oauth2Config } from '../security-config';
+import { oauth2LinkedinConfig } from '../security-config';
 import { UserInfo } from '@appweaver/data';
 import { createOAuth2Plugin } from './create-oauth2-plugin';
 import { fetchUserInfo, requireEmail, splitFullName } from './oauth2-util';
@@ -14,10 +14,10 @@ type LinkedinUser = {
 };
 
 export const oauth2Linkedin = createOAuth2Plugin(AuthSource.OAuth2Linkedin, {
-  enabled: oauth2Config.LINKEDIN_ENABLED,
-  authorizationParams: oauth2Config.LINKEDIN_AUTHORIZATION_PARAMS,
-  clientId: oauth2Config.LINKEDIN_CLIENT_ID,
-  clientSecret: oauth2Config.LINKEDIN_CLIENT_SECRET,
+  enabled: oauth2LinkedinConfig.ENABLED,
+  authorizationParams: oauth2LinkedinConfig.AUTHORIZATION_PARAMS,
+  clientId: oauth2LinkedinConfig.CLIENT_ID,
+  clientSecret: oauth2LinkedinConfig.CLIENT_SECRET,
   displayName: 'LinkedIn',
   scope: ['openid', 'profile', 'email'],
   // LinkedIn's token endpoint rejects HTTP Basic credentials.
@@ -30,7 +30,7 @@ export async function fetchLinkedinUser(
 ): Promise<UserInfo> {
   const data = await fetchUserInfo<LinkedinUser>(
     'LinkedIn',
-    oauth2Config.LINKEDIN_USER_INFO_URL,
+    oauth2LinkedinConfig.USER_INFO_URL,
     accessToken
   );
 

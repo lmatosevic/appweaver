@@ -1,5 +1,5 @@
 import { AuthSource } from '@appweaver/common';
-import { oauth2Config } from '../security-config';
+import { oauth2GoogleConfig } from '../security-config';
 import { UserInfo } from '@appweaver/data';
 import { createOAuth2Plugin } from './create-oauth2-plugin';
 import { fetchUserInfo, requireEmail } from './oauth2-util';
@@ -13,10 +13,10 @@ type GoogleUser = {
 };
 
 export const oauth2Google = createOAuth2Plugin(AuthSource.OAuth2Google, {
-  enabled: oauth2Config.GOOGLE_ENABLED,
-  authorizationParams: oauth2Config.GOOGLE_AUTHORIZATION_PARAMS,
-  clientId: oauth2Config.GOOGLE_CLIENT_ID,
-  clientSecret: oauth2Config.GOOGLE_CLIENT_SECRET,
+  enabled: oauth2GoogleConfig.ENABLED,
+  authorizationParams: oauth2GoogleConfig.AUTHORIZATION_PARAMS,
+  clientId: oauth2GoogleConfig.CLIENT_ID,
+  clientSecret: oauth2GoogleConfig.CLIENT_SECRET,
   scope: ['profile', 'email'],
   extractUserInfo: (accessToken) => fetchGoogleUser(accessToken)
 });
@@ -24,7 +24,7 @@ export const oauth2Google = createOAuth2Plugin(AuthSource.OAuth2Google, {
 export async function fetchGoogleUser(accessToken: string): Promise<UserInfo> {
   const data = await fetchUserInfo<GoogleUser>(
     'Google',
-    oauth2Config.GOOGLE_USER_INFO_URL,
+    oauth2GoogleConfig.USER_INFO_URL,
     accessToken
   );
 
