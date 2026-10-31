@@ -947,9 +947,10 @@ weaver start --project tsconfig.json  # path to tsconfig file
 ### Generate types and schema
 
 ```sh
-weaver generate --types           # TypeScript types only
-weaver generate --schema          # Prisma schema only
-weaver generate --types --schema  # both (same as with no option flags)
+weaver generate                   # everything: types, Prisma schema and config schema
+weaver generate -t                # TypeScript types only
+weaver generate -p                # Prisma schema only
+weaver generate -c                # appweaver.schema.json only, no @appweaver/data needed
 weaver generate --no-prune        # keep the framework models the project does not use
 ```
 

@@ -131,20 +131,22 @@ module is not installed or disabled (`APP_MODULES_DISABLED`).
 weaver generate|g [options]
 ```
 
-Generate types and/or schemas. With no flags, generates both types and schema.
+Generate types and/or schemas. The flags select the outputs; with none, it generates all three, the types and the
+Prisma schema only when `@appweaver/data` is enabled.
 
 | Option                        | Description                                         | Default                                         |
 |-------------------------------|-----------------------------------------------------|-------------------------------------------------|
 | `-t, --types`                 | Generate TypeScript types                           | —                                               |
-| `-s, --schema`                | Generate Prisma schema                              | —                                               |
+| `-p, --prisma-schema`         | Generate Prisma schema                              | —                                               |
+| `-c, --config-schema`         | Generate the JSON Schema of `appweaver.json`        | —                                               |
 | `--model-pattern [pattern]`   | Glob pattern for finding model files                | from config (`RESOURCE_MODEL_PATTERN`)          |
 | `--types-path [path]`         | Output path for generated types                     | from config (`RESOURCE_GENERATED_TYPES_PATH`)   |
-| `--schema-path [path]`        | Output path for generated Prisma schema             | from config (`DATABASE_SCHEMA_PATH`)            |
+| `--prisma-schema-path [path]` | Output path for generated Prisma schema             | from config (`DATABASE_SCHEMA_PATH`)            |
 | `--client-path [path]`        | Output path for generated Prisma client             | from config (`DATABASE_CLIENT_OUTPUT_DIR_PATH`) |
 | `--no-registry`               | Skip registering the model types                    | registered                                      |
 | `--no-prune`                  | Keep the framework models not used                  | pruned                                          |
 | `--config-schema-path [path]` | Output path for the JSON Schema of `appweaver.json` | `./appweaver.schema.json`                       |
-| `--no-config-schema`          | Skip writing the JSON Schema of `appweaver.json`    | written                                         |
+| `--no-config-schema`          | Leave the config schema out of a run without flags  | written                                         |
 | `--verbose`                   | Print verbose output                                | `false`                                         |
 
 Per model, the type file holds `<Model>`, `<Model>Single`, `<Model>Multiple`, `<Model>Create`, `<Model>Update`,
@@ -163,8 +165,9 @@ The registry belongs to the application: in a module package (`appweaver.module`
 generate` never writes it, and in an application it leaves out, with a warning, the models of a module package whose
 declaration files register them already, so no model is registered twice.
 
-With the types, `weaver generate` writes `appweaver.schema.json`, the JSON Schema the `$schema` of `appweaver.json`
-points to, from the config sections the enabled modules list in their manifests, so rerun it after adding a module.
+The config schema is `appweaver.schema.json`, the JSON Schema the `$schema` of `appweaver.json` points to, built from
+the config sections the enabled modules list in their manifests, so rerun it after adding a module. `weaver generate
+-c` writes it without loading `@appweaver/data`, so it works in an application without a database too.
 
 ---
 

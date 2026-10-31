@@ -99,6 +99,9 @@ describe('weaver', () => {
     [['module', 'add'], '--dry-run', 'dryRun'],
     [['module', 'remove'], '--dry-run', 'dryRun'],
     [['test', 'setup'], '--migration-name', 'migrationName'],
+    [['generate'], '--prisma-schema', 'prismaSchema'],
+    [['generate'], '--prisma-schema-path', 'prismaSchemaPath'],
+    [['generate'], '--config-schema', 'configSchema'],
     [['openapi'], '--output-path', 'outputPath']
   ])('reads %s %s as the %s option', (path, flag, attribute) => {
     expect(findOption(path, flag)?.attributeName()).toBe(attribute);

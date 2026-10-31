@@ -524,7 +524,7 @@ its section, each with its environment variable and JSON path. Run it in CI for 
 
 ### `weaver generate` (alias: `g`)
 
-Generate TypeScript types and/or a Prisma schema from resource model files.
+Generate TypeScript types and/or a Prisma schema from resource model files, and the JSON Schema of `appweaver.json`.
 
 ```
 weaver generate [options]
@@ -532,29 +532,31 @@ weaver generate [options]
 
 | Option                        | Description                                         | Default                   |
 |-------------------------------|-----------------------------------------------------|---------------------------|
-| `-t, --types`                 | Generate TypeScript types only                      | —                         |
-| `-s, --schema`                | Generate Prisma schema (and client) only            | —                         |
+| `-t, --types`                 | Generate TypeScript types                           | —                         |
+| `-p, --prisma-schema`         | Generate Prisma schema (and client)                 | —                         |
+| `-c, --config-schema`         | Generate the JSON Schema of `appweaver.json`        | —                         |
 | `--model-pattern [pattern]`   | Glob for model files                                | from config               |
 | `--types-path [path]`         | Output path for generated types                     | from config               |
-| `--schema-path [path]`        | Output path for Prisma schema                       | from config               |
+| `--prisma-schema-path [path]` | Output path for Prisma schema                       | from config               |
 | `--client-path [path]`        | Output path for Prisma client                       | from config               |
 | `--no-registry`               | Skip registering the model types                    | registered                |
 | `--no-prune`                  | Keep the framework models not used                  | pruned                    |
 | `--config-schema-path [path]` | Output path for the JSON Schema of `appweaver.json` | `./appweaver.schema.json` |
-| `--no-config-schema`          | Skip writing the JSON Schema of `appweaver.json`    | written                   |
+| `--no-config-schema`          | Leave the config schema out of a run without flags  | written                   |
 | `--verbose`                   | Verbose output                                      | false                     |
 
-Running with no flags generates **both** types and schema. With the types, it writes the JSON Schema of
-`appweaver.json` from the config sections the enabled modules list (`appweaver.schema.json`, like
-`weaver config schema`). The generated types register every model in the
-`ResourceRegistry` of `@appweaver/common`, so the factories and `injectService` infer the model types from a model
+The flags select the outputs; with none it generates all three, the types and the Prisma schema only when
+`@appweaver/data` is enabled, so a core application (`sample/loan-calculator`) gets its config schema from `weaver
+generate` or `weaver generate -c`, which never loads `@appweaver/data`. The config schema (`appweaver.schema.json`, like
+`weaver config schema`) holds the config sections the enabled modules list. The generated types register every model in
+the `ResourceRegistry` of `@appweaver/common`, so the factories and `injectService` infer the model types from a model
 name, and without any model the file holds only `export {};`. On SQLite a `json` default is written as the quoted SQL
 literal `@default(dbgenerated("'{}'"))`, since the migrations of Prisma write a plain JSON default unquoted. The models
-come from the project and from the `resources` of the enabled modules. The framework models are left
-out unless used: `Role`, `Permission`, `ApiKey`, `OneTimeToken` and `ConnectedAccount` without an auth model, `File`
-without a model declaring `files`, `Seeder` without a seeders directory (`data/resource/utils/prune-util.ts`). The
-`npm run generate` of `packages/data` passes `--no-registry`, `--no-prune` and `--no-config-schema`, since the
-registry and the config belong to the application and data keeps every model.
+come from the project and from the `resources` of the enabled modules. The framework models are left out unless used:
+`Role`, `Permission`, `ApiKey`, `OneTimeToken` and `ConnectedAccount` without an auth model, `File` without a model
+declaring `files`, `Seeder` without a seeders directory (`data/resource/utils/prune-util.ts`). The `npm run generate` of
+`packages/data` passes `-t -p`, `--no-registry` and `--no-prune`, since the registry and the config belong to the
+application and data keeps every model.
 
 The registry belongs to the application, so a model is registered once: run in a module package (its `package.json` has
 the `appweaver.module` field), `weaver generate` never writes the registry, and in an application it leaves out the

@@ -54,6 +54,26 @@ export async function isModulePackage(): Promise<boolean> {
   }
 }
 
+/**
+ * Discovers the enabled modules of the project from its sources, compiled by the registered TypeScript loader. The
+ * discovery registers the config sections the modules list in their manifests.
+ *
+ * @return {Promise<EnabledModule[]>} The enabled modules, in their load order.
+ */
+export async function discoverProjectModules(): Promise<EnabledModule[]> {
+  register({
+    transpileOnly: true,
+    compilerOptions: {
+      module: 'CommonJS'
+    }
+  });
+
+  return discoverModules({
+    scanPath: path.resolve(appConfig.SOURCE_PATH),
+    sources: true
+  });
+}
+
 /** The models of the project and its modules, with the modules found in its sources. */
 export type LoadedModels = {
   /** The resource models, keyed by their names. */
@@ -74,30 +94,19 @@ export type LoadedModels = {
  * model without an auth model, File without file fields, Seeder without a seeders directory of the project or a module).
  * @param {Set<string>} [registeredByModules] - Collects the names of the models whose module package registers them in
  * the resource registry itself, which the project must not register again.
+ * @param {EnabledModule[]} [discovered] - The modules already discovered with `discoverProjectModules`.
  * @return {Promise<LoadedModels>} A promise resolving to the loaded resource models, keyed by their names, and the
  * enabled modules.
  */
 export async function loadModels(
   modelPattern: string,
   prune: boolean = true,
-  registeredByModules?: Set<string>
+  registeredByModules?: Set<string>,
+  discovered?: EnabledModule[]
 ): Promise<LoadedModels> {
   const cwd = process.cwd();
-
-  register({
-    transpileOnly: true,
-    compilerOptions: {
-      module: 'CommonJS'
-    }
-  });
-
+  const modules = discovered ?? (await discoverProjectModules());
   const models: Record<string, ResourceModel> = {};
-
-  // The modules are found in the sources, which the registered loader compiles
-  const modules = await discoverModules({
-    scanPath: path.resolve(appConfig.SOURCE_PATH),
-    sources: true
-  });
   const modelExports: any[] = [];
   const moduleExports: any[] = [];
 

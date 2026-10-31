@@ -212,96 +212,6 @@
             }
           }
         },
-        "database": {
-          "type": "object",
-          "properties": {
-            "type": {
-              "anyOf": [
-                {
-                  "const": "sqlite",
-                  "type": "string"
-                },
-                {
-                  "const": "postgresql",
-                  "type": "string"
-                },
-                {
-                  "const": "mysql",
-                  "type": "string"
-                },
-                {
-                  "const": "sqlserver",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "default": "",
-              "type": "string"
-            },
-            "schemaPath": {
-              "default": "./database/schema.prisma",
-              "type": "string"
-            },
-            "migrationsDirPath": {
-              "default": "./database/migrations",
-              "type": "string"
-            },
-            "seedersDirPath": {
-              "default": "./database/seeders",
-              "type": "string"
-            },
-            "clientOutputDirPath": {
-              "default": "./database/client",
-              "type": "string"
-            },
-            "transactionMaxWait": {
-              "default": 2000,
-              "type": "integer"
-            },
-            "transactionTimeout": {
-              "default": 5000,
-              "type": "integer"
-            },
-            "aiDangerousActionsEnabled": {
-              "default": true,
-              "type": "boolean"
-            },
-            "logEvents": {
-              "default": [],
-              "type": "array",
-              "items": {
-                "anyOf": [
-                  {
-                    "const": "query",
-                    "type": "string"
-                  },
-                  {
-                    "const": "info",
-                    "type": "string"
-                  },
-                  {
-                    "const": "warn",
-                    "type": "string"
-                  },
-                  {
-                    "const": "error",
-                    "type": "string"
-                  }
-                ]
-              }
-            },
-            "slowQueryThreshold": {
-              "default": 0,
-              "minimum": 0,
-              "type": "integer"
-            },
-            "provider": {
-              "default": "auto",
-              "type": "string"
-            }
-          }
-        },
         "events": {
           "type": "object",
           "properties": {
@@ -312,31 +222,6 @@
             "provider": {
               "default": "auto",
               "type": "string"
-            }
-          }
-        },
-        "export": {
-          "type": "object",
-          "properties": {
-            "batchSize": {
-              "default": 1000,
-              "type": "integer"
-            },
-            "csvDelimiter": {
-              "default": ";",
-              "type": "string"
-            },
-            "csvJoinDelimiter": {
-              "default": ",",
-              "type": "string"
-            },
-            "csvAddHeaders": {
-              "default": true,
-              "type": "boolean"
-            },
-            "csvAddSepRow": {
-              "default": false,
-              "type": "boolean"
             }
           }
         },
@@ -362,15 +247,6 @@
               "items": {
                 "type": "string"
               }
-            }
-          }
-        },
-        "image": {
-          "type": "object",
-          "properties": {
-            "provider": {
-              "default": "auto",
-              "type": "string"
             }
           }
         },
@@ -596,90 +472,6 @@
             }
           }
         },
-        "resource": {
-          "type": "object",
-          "properties": {
-            "modelPattern": {
-              "default": "<srcPath>/resources/*/*model.ts",
-              "type": "string"
-            },
-            "servicePattern": {
-              "default": "<srcPath>/resources/*/*service.ts",
-              "type": "string"
-            },
-            "policyPattern": {
-              "default": "<srcPath>/resources/*/*policy.ts",
-              "type": "string"
-            },
-            "routesPattern": {
-              "default": "<srcPath>/resources/*/*routes.ts",
-              "type": "string"
-            },
-            "generatedTypesPath": {
-              "default": "<srcPath>/types/generated.ts",
-              "type": "string"
-            },
-            "queryMethod": {
-              "default": "post",
-              "anyOf": [
-                {
-                  "const": "post",
-                  "type": "string"
-                },
-                {
-                  "const": "get",
-                  "type": "string"
-                },
-                {
-                  "const": "get-post",
-                  "type": "string"
-                }
-              ]
-            },
-            "aggregateMethod": {
-              "default": "post",
-              "anyOf": [
-                {
-                  "const": "post",
-                  "type": "string"
-                },
-                {
-                  "const": "get",
-                  "type": "string"
-                },
-                {
-                  "const": "get-post",
-                  "type": "string"
-                }
-              ]
-            },
-            "bulkCreateEnabled": {
-              "default": false,
-              "type": "boolean"
-            },
-            "bulkUpdateEnabled": {
-              "default": false,
-              "type": "boolean"
-            },
-            "bulkDeleteEnabled": {
-              "default": false,
-              "type": "boolean"
-            },
-            "bulkMaxItems": {
-              "default": 2000,
-              "minimum": 1,
-              "type": "integer"
-            },
-            "bulkTransactionTimeout": {
-              "default": 5000,
-              "type": "integer"
-            },
-            "bulkReturnRecords": {
-              "default": true,
-              "type": "boolean"
-            }
-          }
-        },
         "scheduler": {
           "type": "object",
           "properties": {
@@ -696,72 +488,6 @@
         "security": {
           "type": "object",
           "properties": {
-            "apiKey": {
-              "type": "object",
-              "properties": {
-                "enabled": {
-                  "default": false,
-                  "type": "boolean"
-                },
-                "keepDatabaseTable": {
-                  "default": false,
-                  "type": "boolean"
-                },
-                "headerName": {
-                  "default": "x-api-key",
-                  "type": "string"
-                },
-                "maxDuration": {
-                  "type": "integer"
-                },
-                "delimiter": {
-                  "default": "AK",
-                  "type": "string"
-                }
-              }
-            },
-            "oauth2": {
-              "type": "object",
-              "properties": {
-                "connectedAccountsKeepDatabaseTable": {
-                  "default": false,
-                  "type": "boolean"
-                }
-              }
-            },
-            "password": {
-              "type": "object",
-              "properties": {
-                "enabled": {
-                  "default": true,
-                  "type": "boolean"
-                },
-                "minLength": {
-                  "default": 8,
-                  "type": "integer"
-                },
-                "maxLength": {
-                  "default": 100,
-                  "type": "integer"
-                },
-                "uppercase": {
-                  "default": true,
-                  "type": "boolean"
-                },
-                "lowercase": {
-                  "default": true,
-                  "type": "boolean"
-                },
-                "numeric": {
-                  "default": true,
-                  "type": "boolean"
-                },
-                "special": {
-                  "default": true,
-                  "type": "boolean"
-                }
-              }
-            },
             "store": {
               "type": "object",
               "properties": {
@@ -811,18 +537,6 @@
             },
             "provider": {
               "default": "auto",
-              "type": "string"
-            }
-          }
-        },
-        "system": {
-          "type": "object",
-          "properties": {
-            "adminInitialEmail": {
-              "default": "admin@appweaver.co",
-              "type": "string"
-            },
-            "adminInitialPassword": {
               "type": "string"
             }
           }
