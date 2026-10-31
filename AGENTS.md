@@ -423,9 +423,9 @@ A template file can have runtime-specific variants:
 - **`.bun`** extension: Bun-specific files that are only included when generating a project for the Bun runtime,
   replacing the file without the extension.
 
-A module is defined by data (packages, config values) and its files, its edits of the base files are its
-`moduleEdits` of `apply-modules.ts` (the database password of `.env`, the SQLite rules of `.gitignore`), and anything
-else it adds to another enabled module is an integration of the two in `apply-modules.ts` (the database, Redis and
+A module is defined by data (packages, config values) and its files, its edits of the base files are an integration of
+the module alone in `apply-modules.ts` (the database password of `.env`, the SQLite rules of `.gitignore`), and anything
+else it adds to another enabled module is an integration of the two (the database, Redis and
 server parts of `docker-compose.yml`, the Dockerfile `COPY` blocks of public files, templates, locales and Prisma, the
 database roles of `start.sh`, the `emails` texts the mailer merges into `locales/en.json`).
 `@appweaver/create` creates the base project with every module's disabled config, then adds the selected modules
@@ -632,7 +632,10 @@ weaver module remove <modules...> [options] (alias: rm)
 `add` brings in the required modules too, `remove` refuses to remove a module a remaining one requires. Removing a
 module deletes its files (the whole `templates/`, `locales/` or `database/` directory, the Docker files) and reverts its
 `appweaver.json` values and packages; in `src/` and `database/seeders/` it deletes only the unchanged files of `web`
-(the `User` resource and its admin seeder), keeping the changed ones with a warning. The enabled modules are read from the project's
+(the `User` resource and its admin seeder), keeping the changed ones with a warning, like a changed base file a module
+replaced (the e2e test of `web`). Removing `data` warns of the files written in `database/migrations/` and
+`database/seeders/` it deletes with `database/` (the `projectDirs` of the module). With `--database` and no `data`
+added, `add` reports the option as ignored. The enabled modules are read from the project's
 dependencies, and for `locales` and `docker` from the `locales/` directory and the `Dockerfile`.
 
 `new <name>` creates a local module in `<APP_SOURCE_PATH>/modules/<name>/` (`module/local-module.ts`), enabled by

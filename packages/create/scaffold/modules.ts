@@ -25,7 +25,7 @@ export type ModuleDefinition = {
   /** The modules it cannot run without. */
   requires: ModuleName[];
   /** The appweaver.json values set while the module is enabled. */
-  enabledConfig: ConfigEntry[] | ((context: ProjectContext) => ConfigEntry[]);
+  enabledConfig: (context: ProjectContext) => ConfigEntry[];
   /** The appweaver.json values set while the module is disabled. */
   disabledConfig: ConfigEntry[];
   /** The npm packages it installs that depend on the project, i.e. the driver adapter of its database. */
@@ -34,6 +34,8 @@ export type ModuleDefinition = {
   jsonFiles?: (context: ProjectContext) => JsonFileEntries[];
   /** The directories and generated files the module owns, deleted whatever their contents when it is removed. */
   directories?: string[];
+  /** The directories among them holding the files written in the project, reported when they are deleted. */
+  projectDirs?: string[];
   /** The file whose presence marks a module without packages as enabled. */
   marker?: string;
 };
@@ -108,7 +110,8 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
         disabled: []
       }
     ],
-    directories: ['database', 'src/types/generated.ts']
+    directories: ['database', 'src/types/generated.ts'],
+    projectDirs: ['database/migrations', 'database/seeders']
   },
   web: {
     name: 'web',
@@ -129,7 +132,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
       'Redis connection (IoRedis) for the cache, rate limit and queue, otherwise in memory',
     packages: ['@appweaver/redis'],
     requires: [],
-    enabledConfig: [
+    enabledConfig: () => [
       ['config.memory.redis.url', 'redis://${REDIS_HOST:-localhost}:6379/0'],
       ['environments.test.memory.provider', 'memory']
     ],
@@ -140,7 +143,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     description: 'BullMQ queue on Redis, otherwise the in-memory queue',
     packages: ['@appweaver/bullmq'],
     requires: ['redis'],
-    enabledConfig: [['environments.test.queue.provider', 'memory']],
+    enabledConfig: () => [['environments.test.queue.provider', 'memory']],
     disabledConfig: []
   },
   scheduler: {
@@ -148,7 +151,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     description: 'Cron job scheduler, otherwise disabled',
     packages: ['@appweaver/cron'],
     requires: [],
-    enabledConfig: [['environments.test.scheduler.autoStartJob', false]],
+    enabledConfig: () => [['environments.test.scheduler.autoStartJob', false]],
     disabledConfig: []
   },
   mailer: {
@@ -158,7 +161,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     packages: ['@appweaver/nodemailer'],
     requires: [],
     // The json mailer of the tests still needs a sender, the other environments set their own
-    enabledConfig: [
+    enabledConfig: () => [
       ['environments.test.mailer.provider', 'json'],
       ['environments.test.mailer.senderAddress', 'no-reply@example.com']
     ],
@@ -170,7 +173,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
       'Handlebars templates in templates/, with the account email templates when the mailer is enabled',
     packages: ['@appweaver/handlebars'],
     requires: [],
-    enabledConfig: [['environments.dev.template.cache', false]],
+    enabledConfig: () => [['environments.dev.template.cache', false]],
     disabledConfig: [],
     directories: ['templates']
   },
@@ -180,7 +183,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
       'Translation files in locales/, with the account email texts when the mailer is enabled, otherwise the English texts are written into the templates',
     packages: [],
     requires: [],
-    enabledConfig: [],
+    enabledConfig: () => [],
     disabledConfig: [],
     directories: ['locales'],
     marker: 'locales'
@@ -191,7 +194,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
       'Dockerfile, docker-compose.yml with the database and Redis services of the enabled modules, and start.sh',
     packages: [],
     requires: [],
-    enabledConfig: [],
+    enabledConfig: () => [],
     disabledConfig: [],
     marker: 'Dockerfile'
   }
@@ -202,16 +205,6 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
  * leaves them out for the minimal application of the core module.
  */
 export const defaultModules: ModuleName[] = ['data', 'web'];
-
-/** The appweaver.json values a module sets while enabled, in a project. */
-export function moduleConfig(
-  module: ModuleDefinition,
-  context: ProjectContext
-): ConfigEntry[] {
-  return typeof module.enabledConfig === 'function'
-    ? module.enabledConfig(context)
-    : module.enabledConfig;
-}
 
 /**
  * Parses module names, given one per value or separated by commas.

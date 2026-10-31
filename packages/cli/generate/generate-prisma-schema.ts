@@ -649,10 +649,11 @@ function createScalarSchema(
   if (scalar.default !== undefined) {
     if (scalar.type === 'json' && isSqlite && !scalar.array) {
       // The SQLite migrations of Prisma write a JSON default unquoted, i.e.
-      // `DEFAULT {}`, so it is given as the quoted SQL literal
+      // `DEFAULT {}`, so it is given as the quoted SQL literal, in a Prisma
+      // string escaped like a JSON one
       const json = JSON.stringify(scalar.default);
       const literal = `'${json.replace(/'/g, "''")}'`;
-      defaultAttribute = `@default(dbgenerated("${literal.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"))`;
+      defaultAttribute = `@default(dbgenerated(${JSON.stringify(literal)}))`;
     } else if (
       ['string', 'dateTime', 'json'].includes(scalar.type) &&
       !scalar.array

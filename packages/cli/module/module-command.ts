@@ -1,6 +1,5 @@
-import { Command, InvalidOptionArgumentError } from 'commander';
+import { Command } from 'commander';
 import {
-  DatabaseType,
   databaseTypes,
   disableModules,
   enableModules,
@@ -10,6 +9,7 @@ import {
   ModuleChangeResult,
   moduleNames,
   modules,
+  parseDatabaseType,
   parseModuleNames,
   resolveModules,
   ScaffoldError
@@ -113,13 +113,18 @@ export function moduleCommand(program: Command): void {
         await addPackageModules(project, packageNames, command);
       }
       const names = allNames.filter((name) => !isPackage(name));
-      if (names.length === 0) {
-        return;
-      }
-
       const { modules: requested, required } = run(() =>
         resolveModules(parseModuleNames(names))
       );
+      if (database && !requested.includes('data')) {
+        console.log(
+          'Ignoring --database, the data module it configures is not added.'
+        );
+      }
+      if (requested.length === 0) {
+        return;
+      }
+
       for (const [requirement, by] of required) {
         if (!project.enabled.includes(requirement)) {
           console.log(`Adding module ${requirement}, required by ${by}.`);
@@ -242,16 +247,6 @@ async function addPackageModules(
       console.log(line)
     );
   }
-}
-
-function parseDatabaseType(value: string): DatabaseType {
-  const database = value.toLowerCase() as DatabaseType;
-  if (!databaseTypes.includes(database)) {
-    throw new InvalidOptionArgumentError(
-      `Must be one of following: ${databaseTypes.join(', ')}.`
-    );
-  }
-  return database;
 }
 
 /** Loads the project of the working directory, exiting on an error. */

@@ -397,7 +397,8 @@ health listener the `healthCheck` section of `@appweaver/core` (`healthConfig`).
 
 An application without the `@appweaver/web` server (a worker, a scheduled job runner) answers `GET /health/check` and
 `GET /health/ready` on its own `node:http` listener, without authentication, running the same checks as the health
-route. The listener stays off beside the server of `@appweaver/web`, which answers the health routes itself, and in
+route: `/health/check` responds with 503 when a check is down, `/health/ready` with 503 while the application is not
+ready. The listener stays off beside the server of `@appweaver/web`, which answers the health routes itself, and in
 `weaver run`, whose task may run beside an application listening on the port.
 
 | Property            | Type    | Default     | Description                                |

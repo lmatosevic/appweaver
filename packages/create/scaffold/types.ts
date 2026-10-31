@@ -1,3 +1,5 @@
+import { InvalidOptionArgumentError } from 'commander';
+
 export const moduleNames = [
   'data',
   'web',
@@ -21,6 +23,23 @@ export const databaseTypes = [
 ] as const;
 
 export type DatabaseType = (typeof databaseTypes)[number];
+
+/**
+ * Parses the `--database` option of `create-appweaver` and `weaver module add`, a Commander argument parser.
+ *
+ * @param {string} value - The option value, in any case.
+ * @return {DatabaseType} The database.
+ * @throws {InvalidOptionArgumentError} When the value is not a database.
+ */
+export function parseDatabaseType(value: string): DatabaseType {
+  const database = value.toLowerCase() as DatabaseType;
+  if (!databaseTypes.includes(database)) {
+    throw new InvalidOptionArgumentError(
+      `Must be one of following: ${databaseTypes.join(', ')}.`
+    );
+  }
+  return database;
+}
 
 export type Runtime = 'node' | 'bun';
 

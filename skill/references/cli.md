@@ -265,7 +265,9 @@ weaver module add <modules...> [options]
 Add the modules, with the modules they require: their packages to `package.json` (at the versions of the release),
 their values to `appweaver.json`, their files, and what they add to the other enabled modules. An existing file that
 differs is skipped and reported. Adding `locales` restores the `t` calls of the scaffolded templates still holding
-the English texts. The dependencies are installed when `package.json` changed.
+the English texts. The dependencies are installed when `package.json` changed. `--database` picks the database of
+the `data` module (`weaver module add data --database postgresql`), SQLite by default; it is refused once `data` is
+enabled, and reported as ignored when `data` is not added.
 
 A name that is not a scaffold module, with a scope, a `-` or a `/`, is a module package
 (`weaver module add @acme/appweaver-gcs`), installed with
@@ -277,6 +279,7 @@ that the package is not a module (no `appweaver.module` field in its `package.js
 | Option         | Description                                      | Default   |
 |----------------|--------------------------------------------------|-----------|
 | `-f, --force`  | Overwrite the existing files instead of skipping | `false`   |
+| `--database`   | `sqlite`, `postgresql`, `mysql` or `sqlserver`   | `sqlite`  |
 | `--dry-run`    | Print the changes without applying them          | `false`   |
 | `--no-install` | Skip the installation of the dependencies        | installed |
 | `--verbose`    | Print verbose output                             | `false`   |
@@ -288,11 +291,13 @@ weaver module remove|rm <modules...> [options]
 ```
 
 Remove the modules: their packages, their `appweaver.json` values (the ones changed in the project are kept), their
-files (the whole `templates/` and `locales/` directories, the Docker files), and what they added to the other enabled
-modules. Removing `locales` writes the English texts of `locales/en.json` into the templates first. Removing `mailer`
-deletes
-the `emails` texts of `locales/en.json` that still hold their scaffolded value. A module that an
-enabled module requires is removed only along with it. The `src/` code is never touched.
+files (the whole `templates/`, `locales/` and `database/` directories, the Docker files), and what they added to the
+other enabled modules. Removing `locales` writes the English texts of `locales/en.json` into the templates first.
+Removing `mailer` deletes the `emails` texts of `locales/en.json` that still hold their scaffolded value. A module that
+an enabled module requires is removed only along with it. In `src/` and `database/seeders/` only the unchanged files
+of `web` are deleted (the `User` resource and its admin seeder), the changed ones are kept with a warning, and so is a
+changed e2e test of `web`. Removing `data` deletes `database/` with its migrations and seeders, listing the ones written
+in the project in a warning.
 
 | Option         | Description                               | Default   |
 |----------------|-------------------------------------------|-----------|

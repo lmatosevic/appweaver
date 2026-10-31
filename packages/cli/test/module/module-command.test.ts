@@ -206,6 +206,32 @@ describe('module-command', () => {
       );
     });
 
+    test('ignores the database option without the data module', async () => {
+      await run('add', 'scheduler', '--database', 'mysql', '--no-install');
+
+      expect(logs).toContain(
+        'Ignoring --database, the data module it configures is not added.'
+      );
+      expect(readJson('package.json').dependencies).not.toHaveProperty(
+        '@prisma/adapter-mariadb'
+      );
+    });
+
+    test('rejects an unknown database', async () => {
+      const stderr = jest
+        .spyOn(process.stderr, 'write')
+        .mockImplementation(() => true);
+
+      await expect(run('add', 'data', '--database', 'oracle')).rejects.toThrow(
+        'process.exit(1)'
+      );
+      expect(stderr).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Must be one of following: sqlite, postgresql, mysql, sqlserver.'
+        )
+      );
+    });
+
     test('reports the enabled modules', async () => {
       await run('add', 'docker');
 

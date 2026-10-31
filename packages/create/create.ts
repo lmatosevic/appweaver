@@ -10,11 +10,11 @@ import {
   createProject,
   ModuleContract,
   moduleContracts,
-  DatabaseType,
   databaseTypes,
   defaultModules,
   ModuleName,
   moduleNames,
+  parseDatabaseType,
   parseModuleNames,
   resolveModules,
   ScaffoldError
@@ -380,17 +380,6 @@ function runProcess(
       resolve(code);
     });
   });
-}
-
-function parseDatabaseType(value: string): DatabaseType {
-  const lowerDbType = value.toLowerCase() as DatabaseType;
-  if (!databaseTypes.includes(lowerDbType)) {
-    throw new InvalidOptionArgumentError(
-      `Must be one of following: ${databaseTypes.join(', ')}.`
-    );
-  }
-
-  return lowerDbType;
 }
 
 function parsePortNumber(value: string): number {

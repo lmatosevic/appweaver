@@ -17,14 +17,16 @@ async function freePort(): Promise<number> {
 describe('health-listener', () => {
   let listener: HealthListener;
   let status: HealthCheckStatus;
+  let ready: boolean;
 
   beforeEach(() => {
     resetContext();
     status = HealthCheckStatus.Up;
+    ready = true;
     define(
       {
         checkHealth: async () => ({ database: { status } }),
-        checkReadiness: async () => true
+        checkReadiness: async () => ready
       },
       HealthService
     );
@@ -62,7 +64,7 @@ describe('health-listener', () => {
 
       await listener.onReady();
       const check = await fetch(`http://localhost:${port}/health/check`);
-      const ready = await fetch(`http://localhost:${port}/health/ready`);
+      const readiness = await fetch(`http://localhost:${port}/health/ready`);
       const missing = await fetch(`http://localhost:${port}/other`);
 
       expect(listener.port()).toBe(port);
@@ -71,7 +73,8 @@ describe('health-listener', () => {
         status: HealthCheckStatus.Up,
         checks: { database: { status: HealthCheckStatus.Up } }
       });
-      expect(await ready.json()).toEqual({ ready: true });
+      expect(readiness.status).toBe(200);
+      expect(await readiness.json()).toEqual({ ready: true });
       expect(missing.status).toBe(404);
     });
 
@@ -84,6 +87,18 @@ describe('health-listener', () => {
       const check = await fetch(`http://localhost:${port}/health/check`);
 
       expect(check.status).toBe(503);
+    });
+
+    test('responds with 503 while not ready', async () => {
+      const port = await freePort();
+      configOverrides.HEALTH_CHECK_PORT = port;
+      ready = false;
+
+      await listener.onReady();
+      const readiness = await fetch(`http://localhost:${port}/health/ready`);
+
+      expect(readiness.status).toBe(503);
+      expect(await readiness.json()).toEqual({ ready: false });
     });
   });
 

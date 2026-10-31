@@ -53,6 +53,20 @@ export class HealthClient<Health extends HealthType>
   public async ready(
     options: RequestOptions = {}
   ): Promise<Health['readyResponse']> {
-    return this.sendRequest('get', `${this.basePath}/ready`, options);
+    const { data, error, response } = await this.sendRequestRaw(
+      'get',
+      `${this.basePath}/ready`,
+      options
+    );
+
+    // A server not ready yet responds with 503 and `{ ready: false }`
+    if (error && response.status !== 503) {
+      this.handleError(error, response, {
+        method: 'get',
+        path: `${this.basePath}/ready`
+      });
+    }
+
+    return data ?? error;
   }
 }

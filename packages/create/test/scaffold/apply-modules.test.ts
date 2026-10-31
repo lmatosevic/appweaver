@@ -449,20 +449,81 @@ describe('apply-modules', () => {
       ).toBe(false);
     });
 
+    test('keeps a changed base file the module replaced', async () => {
+      const dir = await create(['data', 'web']);
+      fs.appendFileSync(
+        path.join(dir, 'test', 'e2e', 'main.test.ts'),
+        '// Changed\n'
+      );
+
+      const { files, context, enabled } = loadProject(dir);
+      const { warnings } = disableModules(files, context, enabled, ['web']);
+
+      expect(warnings).toEqual(['Kept the changed file test/e2e/main.test.ts']);
+      expect(files.read('test/e2e/main.test.ts')).toContain('// Changed');
+    });
+
     test('deletes the database directory and the generated types with the data module', async () => {
       const dir = await create(['data']);
       fs.writeFileSync(path.join(dir, 'src', 'types', 'generated.ts'), '');
+      fs.mkdirSync(path.join(dir, 'database', 'migrations', '1_init'), {
+        recursive: true
+      });
+      fs.writeFileSync(
+        path.join(dir, 'database', 'migrations', '1_init', 'migration.sql'),
+        ''
+      );
       fs.writeFileSync(
         path.join(dir, 'database', 'seeders', '001-mine.ts'),
         ''
       );
 
-      await remove(dir, 'data');
+      const { files, context, enabled } = loadProject(dir);
+      const { warnings } = disableModules(files, context, enabled, ['data']);
+      await files.commit();
 
+      expect(warnings).toEqual([
+        'Deleted the files written in database/migrations: database/migrations/1_init/migration.sql',
+        'Deleted the files written in database/seeders: database/seeders/001-mine.ts'
+      ]);
       for (const file of ['database', 'src/types', 'prisma.config.ts']) {
         expect(fs.existsSync(path.join(dir, file))).toBe(false);
       }
       expect(read(dir, 'test/e2e/main.test.ts')).toContain('HealthService');
+    });
+
+    test('reports the changed seeder of web as deleted with the data module', async () => {
+      const dir = await create(['data', 'web']);
+      fs.appendFileSync(
+        path.join(
+          dir,
+          'database',
+          'seeders',
+          '001-create-roles-and-admin-user.ts'
+        ),
+        '// Changed\n'
+      );
+
+      const { files, context, enabled } = loadProject(dir);
+      const { warnings } = disableModules(files, context, enabled, [
+        'web',
+        'data'
+      ]);
+      await files.commit();
+
+      expect(warnings).toEqual([
+        'Deleted the files written in database/seeders: database/seeders/001-create-roles-and-admin-user.ts'
+      ]);
+      expect(fs.existsSync(path.join(dir, 'database'))).toBe(false);
+    });
+
+    test('removes the modules from a Bun project like a created one', async () => {
+      const options = { database: 'sqlite', runtime: 'bun' } as const;
+      const removed = await create(['data', 'web'], options);
+
+      await remove(removed, 'web', 'data');
+
+      expect(snapshot(removed)).toEqual(snapshot(await create([], options)));
     });
 
     test('keeps the configuration values changed in the project', async () => {

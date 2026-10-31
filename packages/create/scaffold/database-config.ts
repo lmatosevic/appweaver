@@ -125,10 +125,13 @@ export function getDatabaseDockerService(
   database: DatabaseType,
   name: string
 ): DatabaseDockerService | undefined {
-  const services: Record<string, () => DatabaseDockerService> = {
-    postgresql: () => ({
-      host: 'postgres',
-      service: `postgres:
+  switch (database) {
+    case 'sqlite':
+      return undefined;
+    case 'postgresql':
+      return {
+        host: 'postgres',
+        service: `postgres:
   image: postgres:18.4
   container_name: ${name}-postgres
   restart: unless-stopped
@@ -150,11 +153,12 @@ export function getDatabaseDockerService(
   networks:
     - ${name}
 `,
-      volume: 'postgres-data'
-    }),
-    mysql: () => ({
-      host: 'mysql',
-      service: `mysql:
+        volume: 'postgres-data'
+      };
+    case 'mysql':
+      return {
+        host: 'mysql',
+        service: `mysql:
   image: mariadb:11.4
   container_name: ${name}-mysql
   restart: unless-stopped
@@ -178,11 +182,12 @@ export function getDatabaseDockerService(
   networks:
     - ${name}
 `,
-      volume: 'mysql-data'
-    }),
-    sqlserver: () => ({
-      host: 'sqlserver',
-      service: `sqlserver:
+        volume: 'mysql-data'
+      };
+    case 'sqlserver':
+      return {
+        host: 'sqlserver',
+        service: `sqlserver:
   image: mcr.microsoft.com/mssql/server:2022-latest
   container_name: ${name}-sqlserver
   restart: unless-stopped
@@ -203,9 +208,7 @@ export function getDatabaseDockerService(
   networks:
     - ${name}
 `,
-      volume: 'sqlserver-data'
-    })
-  };
-
-  return services[database]?.();
+        volume: 'sqlserver-data'
+      };
+  }
 }
