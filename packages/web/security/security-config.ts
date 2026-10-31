@@ -112,6 +112,11 @@ export const oauth2Config = defineConfig('security.oauth2', {
   GOOGLE_USER_INFO_URL: Type.String({
     default: 'https://www.googleapis.com/oauth2/v2/userinfo'
   }),
+  /** Extra query parameters of the Google authorization request, i.e. `{ "prompt": "select_account" }`.
+   * Default: `{}`. */
+  GOOGLE_AUTHORIZATION_PARAMS: Type.Record(Type.String(), Type.String(), {
+    default: {}
+  }),
   /** Enable Facebook OAuth2 provider. Default: `false`. */
   FACEBOOK_ENABLED: Type.Boolean({ default: false }),
   /** Facebook OAuth2 client ID. */
@@ -121,6 +126,11 @@ export const oauth2Config = defineConfig('security.oauth2', {
   /** Facebook user info endpoint. Default: `'https://graph.facebook.com/me'`. */
   FACEBOOK_USER_INFO_URL: Type.String({
     default: 'https://graph.facebook.com/me'
+  }),
+  /** Extra query parameters of the Facebook authorization request, i.e. `{ "auth_type": "reauthenticate" }`.
+   * Default: `{}`. */
+  FACEBOOK_AUTHORIZATION_PARAMS: Type.Record(Type.String(), Type.String(), {
+    default: {}
   }),
   /** Enable X (Twitter) OAuth2 provider. Default: `false`. */
   X_ENABLED: Type.Boolean({ default: false }),
@@ -132,6 +142,10 @@ export const oauth2Config = defineConfig('security.oauth2', {
   X_USER_INFO_URL: Type.String({
     default: 'https://api.x.com/2/users/me'
   }),
+  /** Extra query parameters of the X authorization request. Default: `{}`. */
+  X_AUTHORIZATION_PARAMS: Type.Record(Type.String(), Type.String(), {
+    default: {}
+  }),
   /** Enable GitHub OAuth2 provider. Default: `false`. */
   GITHUB_ENABLED: Type.Boolean({ default: false }),
   /** GitHub OAuth2 client ID. */
@@ -141,6 +155,11 @@ export const oauth2Config = defineConfig('security.oauth2', {
   /** GitHub user info endpoint. Default: `'https://api.github.com/user'`. */
   GITHUB_USER_INFO_URL: Type.String({
     default: 'https://api.github.com/user'
+  }),
+  /** Extra query parameters of the GitHub authorization request, i.e. `{ "prompt": "select_account" }`.
+   * Default: `{}`. */
+  GITHUB_AUTHORIZATION_PARAMS: Type.Record(Type.String(), Type.String(), {
+    default: {}
   }),
   /** Enable GitLab OAuth2 provider. Default: `false`. */
   GITLAB_ENABLED: Type.Boolean({ default: false }),
@@ -157,6 +176,10 @@ export const oauth2Config = defineConfig('security.oauth2', {
   GITLAB_USER_INFO_URL: Type.String({
     default: 'https://gitlab.com/api/v4/user'
   }),
+  /** Extra query parameters of the GitLab authorization request. Default: `{}`. */
+  GITLAB_AUTHORIZATION_PARAMS: Type.Record(Type.String(), Type.String(), {
+    default: {}
+  }),
   /** Enable LinkedIn OAuth2 provider. Default: `false`. */
   LINKEDIN_ENABLED: Type.Boolean({ default: false }),
   /** LinkedIn OAuth2 client ID. */
@@ -166,6 +189,10 @@ export const oauth2Config = defineConfig('security.oauth2', {
   /** LinkedIn user info endpoint. Default: `'https://api.linkedin.com/v2/userinfo'`. */
   LINKEDIN_USER_INFO_URL: Type.String({
     default: 'https://api.linkedin.com/v2/userinfo'
+  }),
+  /** Extra query parameters of the LinkedIn authorization request. Default: `{}`. */
+  LINKEDIN_AUTHORIZATION_PARAMS: Type.Record(Type.String(), Type.String(), {
+    default: {}
   }),
   /** Enable Apple OAuth2 provider. Default: `false`. */
   APPLE_ENABLED: Type.Boolean({ default: false }),
@@ -188,6 +215,10 @@ export const oauth2Config = defineConfig('security.oauth2', {
   APPLE_CLIENT_SECRET_EXPIRES_IN: Type.Integer({
     default: 15552000
   }),
+  /** Extra query parameters of the Apple authorization request. Default: `{}`. */
+  APPLE_AUTHORIZATION_PARAMS: Type.Record(Type.String(), Type.String(), {
+    default: {}
+  }),
   /** Enable Microsoft OAuth2 provider. Default: `false`. */
   MICROSOFT_ENABLED: Type.Boolean({ default: false }),
   /** Microsoft OAuth2 client ID (the Entra ID application ID). */
@@ -201,6 +232,11 @@ export const oauth2Config = defineConfig('security.oauth2', {
   MICROSOFT_USER_INFO_URL: Type.String({
     default: 'https://graph.microsoft.com/v1.0/me'
   }),
+  /** Extra query parameters of the Microsoft authorization request, i.e. `{ "prompt": "select_account" }`.
+   * Default: `{}`. */
+  MICROSOFT_AUTHORIZATION_PARAMS: Type.Record(Type.String(), Type.String(), {
+    default: {}
+  }),
   /** Enable a custom OpenID Connect provider. Default: `false`. */
   CUSTOM_ENABLED: Type.Boolean({ default: false }),
   /** Custom OAuth2 client ID. */
@@ -208,5 +244,10 @@ export const oauth2Config = defineConfig('security.oauth2', {
   /** Custom OAuth2 client secret. */
   CUSTOM_CLIENT_SECRET: Type.Optional(Type.String()),
   /** OpenID Connect issuer URL (used for discovery). */
-  CUSTOM_ISSUER: Type.Optional(Type.String())
+  CUSTOM_ISSUER: Type.Optional(Type.String()),
+  /** Extra query parameters of the custom OpenID Connect authorization request, i.e. `{ "prompt": "login" }`.
+   * Default: `{}`. */
+  CUSTOM_AUTHORIZATION_PARAMS: Type.Record(Type.String(), Type.String(), {
+    default: {}
+  })
 });

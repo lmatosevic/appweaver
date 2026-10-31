@@ -15,6 +15,7 @@ type LinkedinUser = {
 
 export const oauth2Linkedin = createOAuth2Plugin(AuthSource.OAuth2Linkedin, {
   enabled: oauth2Config.LINKEDIN_ENABLED,
+  authorizationParams: oauth2Config.LINKEDIN_AUTHORIZATION_PARAMS,
   clientId: oauth2Config.LINKEDIN_CLIENT_ID,
   clientSecret: oauth2Config.LINKEDIN_CLIENT_SECRET,
   displayName: 'LinkedIn',

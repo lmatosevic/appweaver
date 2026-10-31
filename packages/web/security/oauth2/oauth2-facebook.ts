@@ -13,6 +13,7 @@ type FacebookUser = {
 
 export const oauth2Facebook = createOAuth2Plugin(AuthSource.OAuth2Facebook, {
   enabled: oauth2Config.FACEBOOK_ENABLED,
+  authorizationParams: oauth2Config.FACEBOOK_AUTHORIZATION_PARAMS,
   clientId: oauth2Config.FACEBOOK_CLIENT_ID,
   clientSecret: oauth2Config.FACEBOOK_CLIENT_SECRET,
   scope: ['public_profile', 'email'],

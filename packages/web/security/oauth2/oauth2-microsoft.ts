@@ -22,6 +22,7 @@ const tenant = oauth2Config.MICROSOFT_TENANT;
 
 export const oauth2Microsoft = createOAuth2Plugin(AuthSource.OAuth2Microsoft, {
   enabled: oauth2Config.MICROSOFT_ENABLED,
+  authorizationParams: oauth2Config.MICROSOFT_AUTHORIZATION_PARAMS,
   clientId: oauth2Config.MICROSOFT_CLIENT_ID,
   clientSecret: oauth2Config.MICROSOFT_CLIENT_SECRET,
   scope: ['openid', 'profile', 'email', 'User.Read'],

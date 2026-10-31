@@ -26,6 +26,7 @@ type AppleFormUser = {
 
 export const oauth2Apple = createOAuth2Plugin(AuthSource.OAuth2Apple, {
   enabled: oauth2Config.APPLE_ENABLED,
+  authorizationParams: oauth2Config.APPLE_AUTHORIZATION_PARAMS,
   clientId: oauth2Config.APPLE_CLIENT_ID,
   // Resolved lazily so the signing key is only read when the provider is actually enabled.
   clientSecret: createAppleClientSecret,

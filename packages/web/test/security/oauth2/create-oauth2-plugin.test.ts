@@ -202,6 +202,58 @@ describe('createOAuth2Plugin', () => {
     await server.close();
   });
 
+  test('should add the configured parameters to the authorization request in snake case', async () => {
+    const server = await startServer(AuthSource.OAuth2Google, {
+      authorizationParams: { prompt: 'select_account', loginHint: 'ada' }
+    });
+
+    const redirect = await server.inject({
+      method: 'GET',
+      url: `/auth/login/google?redirectToUrl=${encodeURIComponent(REDIRECT_TO)}`
+    });
+
+    const location = new URL(redirect.headers.location as string);
+    expect(location.searchParams.get('prompt')).toBe('select_account');
+    expect(location.searchParams.get('login_hint')).toBe('ada');
+    expect(location.searchParams.get('state')).toBe('oauth2state-token');
+    await server.close();
+  });
+
+  test('should keep the form post response mode of Apple beside the configured parameters', async () => {
+    const server = await startServer(AuthSource.OAuth2Apple, {
+      scope: ['name', 'email'],
+      authorizationParams: { locale: 'de_DE' }
+    });
+
+    const redirect = await server.inject({
+      method: 'GET',
+      url: `/auth/login/apple?redirectToUrl=${encodeURIComponent(REDIRECT_TO)}`
+    });
+
+    const location = new URL(redirect.headers.location as string);
+    expect(location.searchParams.get('locale')).toBe('de_DE');
+    expect(location.searchParams.get('response_mode')).toBe('form_post');
+    await server.close();
+  });
+
+  test('should fail to register when an authorization parameter is one the flow sets', async () => {
+    const server = createTestServer();
+    server.register(
+      createOAuth2Plugin(AuthSource.OAuth2Google, {
+        enabled: true,
+        clientId: 'client-id',
+        clientSecret: 'client-secret',
+        scope: [],
+        authorizationParams: { redirectUri: 'https://evil.example.com' },
+        extractUserInfo: async () => userInfo
+      })
+    );
+
+    await expect(server.ready()).rejects.toThrow(
+      "Google OAuth2 authorization parameter 'redirect_uri' is set by the flow and cannot be configured"
+    );
+  });
+
   test('should add the PKCE challenge to the authorization request when enabled', async () => {
     const server = await startServer(AuthSource.OAuth2X, { pkce: 'S256' });
 

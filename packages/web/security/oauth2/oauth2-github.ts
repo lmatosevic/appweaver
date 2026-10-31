@@ -26,6 +26,7 @@ const GITHUB_HEADERS = {
 
 export const oauth2Github = createOAuth2Plugin(AuthSource.OAuth2Github, {
   enabled: oauth2Config.GITHUB_ENABLED,
+  authorizationParams: oauth2Config.GITHUB_AUTHORIZATION_PARAMS,
   clientId: oauth2Config.GITHUB_CLIENT_ID,
   clientSecret: oauth2Config.GITHUB_CLIENT_SECRET,
   displayName: 'GitHub',

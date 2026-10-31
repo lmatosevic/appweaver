@@ -16,6 +16,7 @@ export type OAuth2UserInfo = {
 
 export const oauth2Custom = createOAuth2Plugin(AuthSource.OAuth2Custom, {
   enabled: oauth2Config.CUSTOM_ENABLED,
+  authorizationParams: oauth2Config.CUSTOM_AUTHORIZATION_PARAMS,
   clientId: oauth2Config.CUSTOM_CLIENT_ID,
   clientSecret: oauth2Config.CUSTOM_CLIENT_SECRET,
   issuer: oauth2Config.CUSTOM_ISSUER,

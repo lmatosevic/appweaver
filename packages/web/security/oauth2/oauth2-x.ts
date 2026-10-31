@@ -16,6 +16,7 @@ type XUser = {
 
 export const oauth2X = createOAuth2Plugin(AuthSource.OAuth2X, {
   enabled: oauth2Config.X_ENABLED,
+  authorizationParams: oauth2Config.X_AUTHORIZATION_PARAMS,
   clientId: oauth2Config.X_CLIENT_ID,
   clientSecret: oauth2Config.X_CLIENT_SECRET,
   scope: ['users.read', 'tweet.read'],

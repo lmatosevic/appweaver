@@ -14,6 +14,7 @@ type GoogleUser = {
 
 export const oauth2Google = createOAuth2Plugin(AuthSource.OAuth2Google, {
   enabled: oauth2Config.GOOGLE_ENABLED,
+  authorizationParams: oauth2Config.GOOGLE_AUTHORIZATION_PARAMS,
   clientId: oauth2Config.GOOGLE_CLIENT_ID,
   clientSecret: oauth2Config.GOOGLE_CLIENT_SECRET,
   scope: ['profile', 'email'],

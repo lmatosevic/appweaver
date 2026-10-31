@@ -10,6 +10,7 @@ import {
   SecurityStore,
   appConfig,
   AuthError,
+  camelToSnakeCase,
   OAuth2Error
 } from '@appweaver/common';
 import { oauth2Config, securityConfig } from '../security-config';
@@ -58,7 +59,22 @@ export type OAuth2Config = {
   /** How client credentials are sent to the token endpoint. Defaults to `header` (HTTP Basic); providers such as
    * Apple and LinkedIn only accept them in the request body. */
   authorizationMethod?: 'header' | 'body';
+  /** Extra query parameters of the authorization request, i.e. `{ prompt: 'select_account' }`. A camelCase name is
+   * sent in snake case (`loginHint` as `login_hint`), since the config reads the entries of a record in camelCase. */
+  authorizationParams?: Record<string, string>;
 };
+
+/** The parameters of the authorization request the flow sets itself. */
+const reservedAuthorizationParams = [
+  'client_id',
+  'response_type',
+  'response_mode',
+  'redirect_uri',
+  'scope',
+  'state',
+  'code_challenge',
+  'code_challenge_method'
+];
 
 /**
  * Creates the plugin registering the redirect and callback routes of an OAuth2 provider. The callback signs the user
@@ -67,7 +83,7 @@ export type OAuth2Config = {
  * @param {AuthSource} authSource - The auth source of the provider, naming its routes and config.
  * @param {OAuth2Config} oAuth2Config - The provider config.
  * @return {Function} The plugin, rejecting its registration with a `ConfigurationError` if the client credentials are
- * missing, the provider is already registered, or it has no endpoints.
+ * missing, the provider is already registered, it has no endpoints, or an authorization parameter is one the flow sets.
  */
 export function createOAuth2Plugin(
   authSource: AuthSource,
@@ -111,6 +127,11 @@ export function createOAuth2Plugin(
       );
     }
 
+    const authorizationParams = toAuthorizationParams(
+      name,
+      oAuth2Config.authorizationParams
+    );
+
     const authService = inject(AuthService);
     const oauth2Service = inject(OAuth2Service);
     const securityStore = inject(SecurityStore);
@@ -143,6 +164,7 @@ export function createOAuth2Plugin(
         ? { discovery: { issuer: oAuth2Config.issuer } }
         : {}),
       scope: oAuth2Config.scope,
+      callbackUriParams: authorizationParams,
       schema: createOAuth2RedirectSchema(displayName),
       startRedirectPath: `${prefix}/login/${lowerName}`,
       callbackUri: `${appConfig.HOSTNAME}${callbackPath}`,
@@ -278,4 +300,29 @@ export function createOAuth2Plugin(
       );
     });
   });
+}
+
+/**
+ * Converts the configured authorization parameters to the snake case names of the authorization request.
+ *
+ * @param {string} name - The provider name, shown in the error.
+ * @param {Record<string, string>} [params] - The configured parameters.
+ * @return {Record<string, string>} The parameters by their snake case names.
+ */
+function toAuthorizationParams(
+  name: string,
+  params: Record<string, string> = {}
+): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const [key, value] of Object.entries(params)) {
+    const param = camelToSnakeCase(key);
+    if (reservedAuthorizationParams.includes(param)) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `${name} OAuth2 authorization parameter '${param}' is set by the flow and cannot be configured`
+      );
+    }
+    result[param] = value;
+  }
+  return result;
 }

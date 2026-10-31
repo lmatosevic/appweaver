@@ -16,6 +16,7 @@ const baseUrl = oauth2Config.GITLAB_BASE_URL.replace(/\/$/, '');
 
 export const oauth2Gitlab = createOAuth2Plugin(AuthSource.OAuth2Gitlab, {
   enabled: oauth2Config.GITLAB_ENABLED,
+  authorizationParams: oauth2Config.GITLAB_AUTHORIZATION_PARAMS,
   clientId: oauth2Config.GITLAB_CLIENT_ID,
   clientSecret: oauth2Config.GITLAB_CLIENT_SECRET,
   displayName: 'GitLab',

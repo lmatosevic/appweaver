@@ -268,6 +268,19 @@ with the provider.
   authenticated binary, so it arrives as `avatarFile` instead of `avatarUrl`.
 - **Custom** targets any OpenID Connect provider (Keycloak, Auth0, …) and needs `issuer` instead of preset endpoints.
 
+### Authorization parameters
+
+`security.oauth2.<name>.authorizationParams` adds query parameters to the authorization request of a provider, e.g.
+to show the account chooser after a logout instead of signing the user straight back in:
+
+```dotenv
+SECURITY_OAUTH2_GOOGLE_AUTHORIZATION_PARAMS=prompt:select_account
+SECURITY_OAUTH2_FACEBOOK_AUTHORIZATION_PARAMS=auth_type:reauthenticate
+```
+
+`prompt` works with Google, Microsoft, GitHub and OpenID Connect providers (`custom`); Facebook uses `auth_type`.
+Parameters the flow sets itself (`client_id`, `redirect_uri`, `state`, `scope`, ...) fail the startup.
+
 ### Account takeover protection
 
 An OAuth2 sign-in matches an existing user by email, so a provider account carrying someone else's address must not by
