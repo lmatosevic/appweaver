@@ -1,3 +1,17 @@
+## [2.2.0](https://github.com/lmatosevic/appweaver/compare/v2.1.2...v2.2.0) (2026-10-31)
+
+### Features
+
+* add authorization params for OAuth2 login flow ([2cd0930](https://github.com/lmatosevic/appweaver/commit/2cd093016910aa69cefadadc36a17264e87c2c77))
+* add authorization params for OAuth2 login flow ([c4dca7e](https://github.com/lmatosevic/appweaver/commit/c4dca7ebb6321cf7bdee1509c87b67b920b54b07))
+* Redis command timeout and circuit breaker, secure routes fail closed while Redis is down ([ebbba43](https://github.com/lmatosevic/appweaver/commit/ebbba4320274686d04703ffff3438ef294f91775))
+* split the scaffold into a core application with data and web as default modules ([7240f20](https://github.com/lmatosevic/appweaver/commit/7240f205447b5c2398e4e86cc942dc26b6deae08))
+
+### Bug Fixes
+
+* rename flags for weaver generate command ([837abe9](https://github.com/lmatosevic/appweaver/commit/837abe9aeb286043b7b24de481610d0c41adb5d4))
+* use weaver generate config schema for projects without data module ([34b83f6](https://github.com/lmatosevic/appweaver/commit/34b83f6c3ab2d58bfdcd04230355beef6ea66094))
+
 ## [2.1.2](https://github.com/lmatosevic/appweaver/compare/v2.1.1...v2.1.2) (2026-10-25)
 
 ### Bug Fixes

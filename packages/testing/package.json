@@ -1,6 +1,6 @@
 {
   "name": "@appweaver/testing",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "description": "Appweaver - the backend framework for AI-first development (@testing)",
   "author": "Luka Matosevic",
   "license": "MIT",

@@ -1,6 +1,6 @@
 {
   "name": "@appweaver/bullmq",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "description": "Appweaver - the backend framework for AI-first development (@bullmq)",
   "author": "Luka Matosevic",
   "license": "MIT",
