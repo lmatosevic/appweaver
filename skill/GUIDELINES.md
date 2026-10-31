@@ -300,25 +300,25 @@ export async function createAdminUser(): Promise<void> {
 
 ## Common commands
 
-| Command                       | Description                               |
-|-------------------------------|-------------------------------------------|
-| `npm run generate`            | Generate TypeScript types + Prisma schema |
-| `npm run build`               | Build the application                     |
-| `npm run start`               | Start in production mode                  |
-| `npm run dev`                 | Start in development (watch) mode         |
-| `npm run seed`                | Seed the database                         |
-| `npm run migrate`             | Apply pending database migrations         |
-| `npm run test`                | Run unit tests                            |
-| `npm run e2e`                 | Run end-to-end tests                      |
-| `npm run format`              | Format code with Prettier                 |
-| `npm run lint`                | Lint code with ESLint                     |
-| `weaver migration new <name>` | Create a new database migration           |
-| `weaver upgrade`              | Upgrade all @appweaver/* packages         |
-| `weaver module add <name>`    | Add a module (redis, docker, templates…)  |
-| `weaver module new <name>`    | Create a local module in `src/modules/`   |
-| `weaver config check`         | Validate the config of every module       |
-| `weaver openapi`              | Generate OpenAPI specification            |
-| `weaver run <file> [args...]` | Run a one-shot task, then exit            |
+| Command                       | Description                                                                                                     |
+|-------------------------------|-----------------------------------------------------------------------------------------------------------------|
+| `npm run generate`            | Generate the types and Prisma schema of the models and `appweaver.schema.json` (only the latter without `data`) |
+| `npm run build`               | Build the application                                                                                           |
+| `npm run start`               | Start in production mode                                                                                        |
+| `npm run dev`                 | Start in development (watch) mode                                                                               |
+| `npm run seed`                | Seed the database                                                                                               |
+| `npm run migrate`             | Apply pending database migrations                                                                               |
+| `npm run test`                | Run unit tests                                                                                                  |
+| `npm run e2e`                 | Run end-to-end tests                                                                                            |
+| `npm run format`              | Format code with Prettier                                                                                       |
+| `npm run lint`                | Lint code with ESLint                                                                                           |
+| `weaver migration new <name>` | Create a new database migration                                                                                 |
+| `weaver upgrade`              | Upgrade all @appweaver/* packages                                                                               |
+| `weaver module add <name>`    | Add a module (redis, docker, templates…)                                                                        |
+| `weaver module new <name>`    | Create a local module in `src/modules/`                                                                         |
+| `weaver config check`         | Validate the config of every module                                                                             |
+| `weaver openapi`              | Generate OpenAPI specification                                                                                  |
+| `weaver run <file> [args...]` | Run a one-shot task, then exit                                                                                  |
 
 ## Testing
 

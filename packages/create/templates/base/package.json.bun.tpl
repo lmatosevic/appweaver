@@ -8,6 +8,7 @@
     "build": "weaver build",
     "start": "weaver start",
     "dev": "weaver start --watch",
+    "generate": "weaver generate -c",
     "test": "bun test ./test/unit --coverage --reporter=junit --reporter-outfile=./reports/junit.xml",
     "e2e": "bun test ./test/e2e --reporter=junit --reporter-outfile=./reports/e2e.xml",
     "format": "prettier --write \"./**/*.ts\"",

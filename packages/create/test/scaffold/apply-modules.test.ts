@@ -492,6 +492,19 @@ describe('apply-modules', () => {
       expect(read(dir, 'test/e2e/main.test.ts')).toContain('HealthService');
     });
 
+    test('switches the generate script to the config schema without the data module', async () => {
+      const project = await stage([]);
+      const generateScript = () =>
+        JSON.parse(project.read('package.json')!).scripts.generate;
+      expect(generateScript()).toBe('weaver generate -c');
+
+      await add(project, 'data');
+      expect(generateScript()).toBe('weaver generate');
+
+      await remove(project, 'data');
+      expect(generateScript()).toBe('weaver generate -c');
+    });
+
     test('reports the changed seeder of web as deleted with the data module', async () => {
       const dir = await create(['data', 'web']);
       fs.appendFileSync(

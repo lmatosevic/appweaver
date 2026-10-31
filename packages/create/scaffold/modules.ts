@@ -99,7 +99,13 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
               ] as ConfigEntry[])
             : [])
         ],
-        disabled: runtime === 'bun' ? [['scripts.e2e', bunE2eScript]] : []
+        disabled: [
+          // Without models, only the JSON Schema of appweaver.json is generated
+          ['scripts.generate', 'weaver generate -c'],
+          ...(runtime === 'bun'
+            ? ([['scripts.e2e', bunE2eScript]] as ConfigEntry[])
+            : [])
+        ]
       },
       {
         file: 'test/e2e/jest.e2e-config.json',

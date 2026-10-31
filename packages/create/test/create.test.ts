@@ -537,7 +537,7 @@ describe('create', () => {
         '@appweaver/core',
         '@sinclair/typebox'
       ]);
-      expect(scripts).not.toHaveProperty('generate');
+      expect(scripts.generate).toBe('weaver generate -c');
       expect(scripts).not.toHaveProperty('migrate');
       expect(scripts).not.toHaveProperty('seed');
       expect(
