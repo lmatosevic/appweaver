@@ -34,6 +34,17 @@ export default tsEslint.config(
     }
   },
   {
+    // One program of the root tsconfig for every package file: the project service would open the build project of
+    // each package beside it, and run out of memory with the programs of the samples
+    files: ['packages/**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        projectService: false,
+        project: './tsconfig.json'
+      }
+    }
+  },
+  {
     rules: {
       '@typescript-eslint/interface-name-prefix': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',

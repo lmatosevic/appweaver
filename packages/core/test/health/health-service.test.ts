@@ -153,8 +153,14 @@ describe('health-service', () => {
   });
 
   describe('checkReadiness', () => {
-    test('reports the application as ready', async () => {
+    test('reports the application as not ready until it is set ready', async () => {
+      await expect(service.checkReadiness()).resolves.toBe(false);
+
+      service.setReady(true);
       await expect(service.checkReadiness()).resolves.toBe(true);
+
+      service.setReady(false);
+      await expect(service.checkReadiness()).resolves.toBe(false);
     });
   });
 

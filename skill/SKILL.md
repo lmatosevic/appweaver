@@ -162,8 +162,8 @@ containers.
 The generated `Dockerfile` builds the application and its production dependencies in a build stage, so the final image
 carries no build tools. The image runs as the unprivileged `node` user (`bun` for Bun) and defaults to `NODE_ENV=prod`.
 It declares no health check, which belongs to the orchestrator: point the Docker Compose `healthcheck` or the Kubernetes
-probes at `GET /health/ready`, which answers `{ "ready": true }` once the application can serve requests (503 with
-`{ "ready": false }` until then) and needs no authentication. The `docker-compose.yml` services read `NODE_ENV` from `.env`, so the environment a container starts
+probes at `GET /health/ready`, which answers `{ "ready": true }` once every service has started (503 with
+`{ "ready": false }` before, and again from the start of the shutdown) and needs no authentication. The `docker-compose.yml` services read `NODE_ENV` from `.env`, so the environment a container starts
 in stays up to the project. Mounted `storage`, `logs`, and `data` directories must be writable by the image user.
 
 **Linux hosts:** the `docker-compose.yml` services bind-mount the project's `./storage` and `./logs` directories, which

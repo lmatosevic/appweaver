@@ -180,7 +180,7 @@ The runtime every application has, with neither a server nor a database. Organiz
 | `mailer/`    | `EmailService`, rendering the template emails, and the `json` mailer of development and tests                                        |
 | `template/`  | The template config and `registerTemplate` / `registerTemplateHelper`, the engine is `@appweaver/handlebars`                         |
 | `locale/`    | Locale service — translating the dotted keys of the nested JSON translation files, with the framework's own English translations     |
-| `health/`    | `HealthService`, and the `node:http` health listener of an app without web (`HEALTH_CHECK_PORT`)                                     |
+| `health/`    | `HealthService` (the checks, and the readiness the lifecycle sets), the `node:http` health listener of an app without web            |
 | `security/`  | The `security.store` config and the `memory` security store (`store/`)                                                               |
 | `types/`     | `ApplicationContext`                                                                                                                 |
 | `utils/`     | `createSchemaModel`                                                                                                                  |
@@ -366,14 +366,16 @@ adds the optional modules selected: the default ones (`defaultModules` of `scaff
 with the `--add <modules...>` ones, or every module with `--all`, minus the `--exclude <modules...>` ones, which leave
 out the default modules too, with or without `--all` (`--exclude data web` for the core application alone). The
 modules are `data`, `web` (requires `data`), `redis`, `queue` (requires `redis`), `scheduler`, `mailer`, `templates`,
-`locales` and `docker`. The base project depends only on `@appweaver/cli`, `common`, `core` and TypeBox, and a module adds its
+`locales` and `docker`. The base project depends only on `@appweaver/cli`, `common`, `core` and TypeBox, and a module
+adds its
 packages: `@appweaver/data`, `@appweaver/sharp`, Prisma and the driver adapter of `--database` (`data`, its
 `projectPackages`), `@appweaver/web` (`web`), `@appweaver/redis` (`redis`), `@appweaver/bullmq` (`queue`),
 `@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`) and `@appweaver/handlebars` (`templates`), every
 `@appweaver/*` package at the framework version, the version of `@appweaver/create` (`scaffold/package-versions.ts`).
 `--database`, `--host` and `--port` configure `data` and `web` only (`ProjectContext`), and `weaver module add` takes
 `--database` for `data`. The `User` auth model and its admin seeder come with `web`, which brings the authentication, so
-a project with `data` alone has no auth model. A module sets values in the other JSON files of the project with its `jsonFiles` (the
+a project with `data` alone has no auth model. A module sets values in the other JSON files of the project with its
+`jsonFiles` (the
 `package.json` scripts of `data`, the Jest e2e `globalSetup`), and a module file at the path of a base file replaces it
 while unchanged, restored on removal (the `/api` e2e test of `web`).
 The scaffolding engine lives in `scaffold/` and is exported as
@@ -547,7 +549,8 @@ Running with no flags generates **both** types and schema. With the types, it wr
 `weaver config schema`). The generated types register every model in the
 `ResourceRegistry` of `@appweaver/common`, so the factories and `injectService` infer the model types from a model
 name, and without any model the file holds only `export {};`. On SQLite a `json` default is written as the quoted SQL
-literal `@default(dbgenerated("'{}'"))`, since the migrations of Prisma write a plain JSON default unquoted. The models come from the project and from the `resources` of the enabled modules. The framework models are left
+literal `@default(dbgenerated("'{}'"))`, since the migrations of Prisma write a plain JSON default unquoted. The models
+come from the project and from the `resources` of the enabled modules. The framework models are left
 out unless used: `Role`, `Permission`, `ApiKey`, `OneTimeToken` and `ConnectedAccount` without an auth model, `File`
 without a model declaring `files`, `Seeder` without a seeders directory (`data/resource/utils/prune-util.ts`). The
 `npm run generate` of `packages/data` passes `--no-registry`, `--no-prune` and `--no-config-schema`, since the
@@ -611,7 +614,8 @@ unless `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is `false`. Call it before any ne
 ### `weaver module` (alias: `mod`)
 
 Add and remove the optional modules of `@appweaver/create` (`data`, `web`, `redis`, `queue`, `scheduler`, `mailer`,
-`templates`, `locales`, `docker`) in the current project, with the scaffold templates of `@appweaver/create/scaffold`, install
+`templates`, `locales`, `docker`) in the current project, with the scaffold templates of `@appweaver/create/scaffold`,
+install
 module packages, and create local modules.
 
 ```
@@ -639,7 +643,8 @@ added, `add` reports the option as ignored. The enabled modules are read from th
 dependencies, and for `locales` and `docker` from the `locales/` directory and the `Dockerfile`.
 
 `new <name>` creates a local module in `<APP_SOURCE_PATH>/modules/<name>/` (`module/local-module.ts`), enabled by
-`APP_MODULES_PATTERN`: `module.ts` (the manifest, with its `loggers` and commented `providers` and `services`), `config.ts` (the section
+`APP_MODULES_PATTERN`: `module.ts` (the manifest, with its `loggers` and commented `providers` and `services`),
+`config.ts` (the section
 named after the camelCase of the name, `audit-log` → `auditLog`, with an `ENABLED` key) and `main.ts`. The name must be
 kebab-case, and the command fails without writing anything when a file of the module exists. `--dry-run` prints the
 files.
@@ -1022,7 +1027,8 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
 | `sample/reports-worker`  | Node    | SQLite             | No server: daily reports by cron, archive job, CSV import and report tasks, the health listener            |
 | `sample/loan-calculator` | Node    | —                  | Core only (no data, no web): a local module, its config, a cached calculator service, `weaver run` tasks   |
 
-- `reports-worker` (`--add scheduler docker --exclude web`) and `loan-calculator` (`--exclude data web`) show the applications without a
+- `reports-worker` (`--add scheduler docker --exclude web`) and `loan-calculator` (`--exclude data web`) show the
+  applications without a
   server: the worker is kept running by its cron jobs and answers the health checks on `healthCheck.port`, the
   calculator starts, calculates and stops, and both do their work in `weaver run` tasks. `loan-calculator` has no
   database, so no migrations, seeders or e2e database setup.

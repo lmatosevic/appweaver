@@ -384,6 +384,11 @@ The route keys are the `healthCheck` section of `@appweaver/web` (`healthCheckCo
 health listener the `healthCheck` section of `@appweaver/core` (`healthConfig`). The filters are read by
 `HealthService` for the route and the health listener alike.
 
+`GET <prefix>/ready` needs no authentication and answers `{ "ready": true }` only once the `onReady` hook of every
+service completed (the server listens while the queue workers and the scheduled jobs still start), and from the start
+of the shutdown on `{ "ready": false }` with 503 again, while the requests in flight complete. The application sets it
+with `HealthService.setReady`, so `checkReadiness()` reports the same state in code.
+
 | Property                      | Type      | Default     | Description                                                   |
 |-------------------------------|-----------|-------------|---------------------------------------------------------------|
 | `HEALTH_CHECK_ENABLED`        | boolean   | `true`      | Enable the health check endpoint.                             |

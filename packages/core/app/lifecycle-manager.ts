@@ -10,8 +10,8 @@ import {
   OnShutdown,
   isConstructor
 } from '@appweaver/common';
-import { context } from '../context';
-import { injectAllWhere } from '../context';
+import { context, inject, injectAllWhere, injectCreated } from '../context';
+import { HealthService } from '../health/health-service';
 
 const logger = createLogger('app');
 
@@ -46,6 +46,10 @@ export abstract class LifecycleManager {
       isLifecycleReady(def.value)
     );
     await runHooks('onReady', services, (service) => service.onReady());
+
+    // Not before every hook completed, since the server listens while the other
+    // services still start
+    inject(HealthService, false)?.setReady(true);
   }
 
   /**
@@ -58,14 +62,20 @@ export abstract class LifecycleManager {
    * @return A promise that resolves when all cleanup operations are completed.
    */
   public async destroy(): Promise<void> {
+    // The readiness probes fail while the requests in flight complete
+    injectCreated(HealthService)?.setReady(false);
+
     const shutdownServices = createdServices<OnShutdown>(isLifecycleShutdown);
+
     await runHooks('onShutdown', shutdownServices, (service) =>
       service.onShutdown()
     );
     if (!this._initialized) {
       return;
     }
+
     const destroyServices = createdServices<OnDestroy>(isLifecycleDestroy);
+
     await runHooks('onDestroy', destroyServices, (service) =>
       service.onDestroy()
     );
