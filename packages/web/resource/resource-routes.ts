@@ -4,6 +4,7 @@ import {
   BulkItem,
   BulkResponse,
   CaptchaConfig,
+  ErrorCode,
   QueryOptions,
   ResourceId,
   QueryRouteConfig,
@@ -105,15 +106,28 @@ export function resourceRoutes(
     return acc;
   }, {} as any);
 
+  const routeErrorCodes = Object.fromEntries(
+    routeNames.map((routeName) => [
+      routeName,
+      routeConfig(routeName)?.errorCodes
+    ])
+  ) as Partial<Record<ResourceRouteName, ErrorCode[]>>;
+
   return (server: Server) => {
     const { authenticate, recaptcha, turnstile } = server;
 
-    const schema = createSchema(name, routeAuthTypes, routeCaptcha, {
-      bulkCreate: routeConfig('bulkCreate'),
-      bulkUpdate: routeConfig('bulkUpdate'),
-      bulkReplace: routeConfig('bulkReplace'),
-      bulkDelete: routeConfig('bulkDelete')
-    });
+    const schema = createSchema(
+      name,
+      routeAuthTypes,
+      routeCaptcha,
+      {
+        bulkCreate: routeConfig('bulkCreate'),
+        bulkUpdate: routeConfig('bulkUpdate'),
+        bulkReplace: routeConfig('bulkReplace'),
+        bulkDelete: routeConfig('bulkDelete')
+      },
+      routeErrorCodes
+    );
 
     const service = injectService(name);
     const resourceModel = injectModel(name);

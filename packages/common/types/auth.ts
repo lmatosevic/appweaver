@@ -13,6 +13,7 @@ export type AuthUser = {
   createdAt?: Date;
   updatedAt?: Date;
   createdById?: ResourceId | null;
+  permissions?: Permission[];
 };
 
 export type Role = {

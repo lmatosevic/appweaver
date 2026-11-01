@@ -58,6 +58,10 @@ export interface ErrorDetailsMap {
 
   [ErrorCode.AuthPasswordWeak]: { reason: string };
   [ErrorCode.AuthApiKeyMissing]: { header: string };
+  [ErrorCode.AuthApiKeyPermissionDenied]: {
+    roles: string[];
+    permissions: string[];
+  };
 
   [ErrorCode.AccountFeatureUnavailable]: { feature: string };
 

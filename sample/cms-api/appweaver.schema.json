@@ -927,6 +927,10 @@
                 "delimiter": {
                   "default": "AK",
                   "type": "string"
+                },
+                "routesEnabled": {
+                  "default": true,
+                  "type": "boolean"
                 }
               }
             },

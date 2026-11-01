@@ -104,6 +104,7 @@ export const BulkResponse = Type.Object(
  * @param {Object} routeAuthTypes - The authentication types accepted by each route.
  * @param {Object} routeCaptcha - The bot check config of each route.
  * @param {Object} [routeBulk={}] - The maximum items and the response type of each bulk route.
+ * @param {Object} [routeErrorCodes={}] - The error codes of each route besides the ones of the framework.
  * @return {ResourceSchemaConfig} The schema of each route.
  */
 export function createSchema(
@@ -115,7 +116,8 @@ export function createSchema(
       ResourceRouteName,
       Pick<BulkRouteConfig, 'maxItems' | 'returnRecords'>
     >
-  > = {}
+  > = {},
+  routeErrorCodes: Partial<Record<ResourceRouteName, ErrorCode[]>> = {}
 ): ResourceSchemaConfig {
   const resourceModel = injectModel(name);
 
@@ -133,7 +135,8 @@ export function createSchema(
       ...captchaErrorCodes(routeCaptcha[route]),
       ErrorCode.DatabaseOperationFailed,
       ErrorCode.DatabaseUnavailable,
-      ...codes
+      ...codes,
+      ...(routeErrorCodes[route] ?? [])
     );
 
   const createErrors = [

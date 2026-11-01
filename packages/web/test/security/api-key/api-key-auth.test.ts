@@ -273,6 +273,90 @@ describe('api-key-auth', () => {
         expect(response.statusCode).toBe(403);
       });
     });
+
+    describe('with a scope', () => {
+      const role = (id: number, name: string, permissions: string[]) =>
+        ({
+          id,
+          name,
+          permissions: permissions.map((permission, i) => ({
+            id: id * 10 + i,
+            name: permission
+          }))
+        }) as any;
+
+      beforeEach(() => {
+        context.resource.models.set('ApiKey', {
+          name: 'ApiKey',
+          config: { relations: { roles: {}, permissions: {} } },
+          [RESOURCE_TYPE]: RESOURCE_MODEL_TYPE
+        } as any);
+        findById.mockResolvedValue(
+          authUser({
+            roles: [
+              role(1, 'Admin', ['post.delete']),
+              role(2, 'Editor', ['post.read', 'post.write'])
+            ]
+          })
+        );
+      });
+
+      test('reads the roles and the permissions of the key', async () => {
+        await startServer();
+
+        await getMe(`5AK${SECRET}`);
+
+        expect(findFirst).toHaveBeenCalledWith({
+          where: { id: 5 },
+          include: {
+            roles: { select: { id: true } },
+            permissions: { select: { id: true } }
+          }
+        });
+      });
+
+      test('narrows the owner to the roles of the key', async () => {
+        findFirst.mockResolvedValue(
+          apiKey({ roles: [{ id: 2 }], permissions: [] })
+        );
+        await startServer({ roles: ['Admin'] });
+
+        const response = await getMe(`5AK${SECRET}`);
+
+        expect(response.statusCode).toBe(403);
+      });
+
+      test('narrows the owner to the permissions of the key', async () => {
+        findFirst.mockResolvedValue(
+          apiKey({ roles: [], permissions: [{ id: 20 }] })
+        );
+        await startServer({ permissions: ['post.write'] });
+
+        expect((await getMe(`5AK${SECRET}`)).statusCode).toBe(403);
+      });
+
+      test('keeps a permission of the scope the owner holds', async () => {
+        findFirst.mockResolvedValue(
+          apiKey({ roles: [], permissions: [{ id: 20 }] })
+        );
+        await startServer({ permissions: ['post.read'] });
+
+        const response = await getMe(`5AK${SECRET}`);
+
+        expect(response.statusCode).toBe(200);
+        expect(response.json().user).toMatchObject({
+          roles: [],
+          permissions: [{ id: 20, name: 'post.read' }]
+        });
+      });
+
+      test('acts as the owner for a key without a scope', async () => {
+        findFirst.mockResolvedValue(apiKey({ roles: [], permissions: [] }));
+        await startServer({ roles: ['Admin'] });
+
+        expect((await getMe(`5AK${SECRET}`)).statusCode).toBe(200);
+      });
+    });
   });
 
   describe('hasApiKey', () => {

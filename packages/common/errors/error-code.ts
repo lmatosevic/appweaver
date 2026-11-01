@@ -70,6 +70,7 @@ export enum ErrorCode {
   AuthApiKeyMissing = 'AUTH_API_KEY_MISSING',
   AuthApiKeyInvalid = 'AUTH_API_KEY_INVALID',
   AuthApiKeyExpired = 'AUTH_API_KEY_EXPIRED',
+  AuthApiKeyPermissionDenied = 'AUTH_API_KEY_PERMISSION_DENIED',
   AuthProxyAuthenticationRequired = 'AUTH_PROXY_AUTHENTICATION_REQUIRED',
   AuthInvalidRedirectUrl = 'AUTH_INVALID_REDIRECT_URL',
 

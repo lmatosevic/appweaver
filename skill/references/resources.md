@@ -1487,6 +1487,7 @@ export default createRoutes({
 | `recaptchaAction` | string                   | -       | Expected reCAPTCHA action name for score validation.          |
 | `turnstile`       | boolean                  | `false` | Require Cloudflare Turnstile verification.                    |
 | `turnstileAction` | string                   | -       | Expected Turnstile action name (enables the check).           |
+| `errorCodes`      | ErrorCode[]              | -       | Codes the route responds with besides the framework ones (a service hook throws them), listed in its OpenAPI error responses. |
 
 ### Read route config (find, query, aggregate)
 

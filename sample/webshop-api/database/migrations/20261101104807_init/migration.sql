@@ -109,6 +109,7 @@ CREATE TABLE "Order" (
     "carrier" VARCHAR(50),
     "trackingNumber" VARCHAR(100),
     "note" VARCHAR(500),
+    "language" VARCHAR(8) NOT NULL DEFAULT 'en',
     "customerId" INTEGER NOT NULL,
     "couponId" INTEGER,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -165,6 +166,7 @@ CREATE TABLE "User" (
     "email" VARCHAR(255) NOT NULL,
     "phone" VARCHAR(32),
     "marketingOptIn" BOOLEAN NOT NULL DEFAULT false,
+    "language" VARCHAR(8) NOT NULL DEFAULT 'en',
     "passwordHash" TEXT,
     "verifiedEmail" BOOLEAN NOT NULL DEFAULT false,
     "twoFactorAuth" "UserTwoFactorAuth" NOT NULL DEFAULT 'None',
@@ -260,6 +262,22 @@ CREATE TABLE "File" (
     "deletedById" INTEGER,
 
     CONSTRAINT "File_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "_ApiKeyRolesRole" (
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL,
+
+    CONSTRAINT "_ApiKeyRolesRole_AB_pkey" PRIMARY KEY ("A","B")
+);
+
+-- CreateTable
+CREATE TABLE "_ApiKeyPermissionsPermission" (
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL,
+
+    CONSTRAINT "_ApiKeyPermissionsPermission_AB_pkey" PRIMARY KEY ("A","B")
 );
 
 -- CreateTable
@@ -422,6 +440,12 @@ CREATE INDEX "File_createdById_idx" ON "File"("createdById");
 CREATE INDEX "File_deletedById_idx" ON "File"("deletedById");
 
 -- CreateIndex
+CREATE INDEX "_ApiKeyRolesRole_B_index" ON "_ApiKeyRolesRole"("B");
+
+-- CreateIndex
+CREATE INDEX "_ApiKeyPermissionsPermission_B_index" ON "_ApiKeyPermissionsPermission"("B");
+
+-- CreateIndex
 CREATE INDEX "_UserRolesRole_B_index" ON "_UserRolesRole"("B");
 
 -- CreateIndex
@@ -504,6 +528,18 @@ ALTER TABLE "File" ADD CONSTRAINT "File_createdById_fkey" FOREIGN KEY ("createdB
 
 -- AddForeignKey
 ALTER TABLE "File" ADD CONSTRAINT "File_deletedById_fkey" FOREIGN KEY ("deletedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_ApiKeyRolesRole" ADD CONSTRAINT "_ApiKeyRolesRole_A_fkey" FOREIGN KEY ("A") REFERENCES "ApiKey"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_ApiKeyRolesRole" ADD CONSTRAINT "_ApiKeyRolesRole_B_fkey" FOREIGN KEY ("B") REFERENCES "Role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_ApiKeyPermissionsPermission" ADD CONSTRAINT "_ApiKeyPermissionsPermission_A_fkey" FOREIGN KEY ("A") REFERENCES "ApiKey"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_ApiKeyPermissionsPermission" ADD CONSTRAINT "_ApiKeyPermissionsPermission_B_fkey" FOREIGN KEY ("B") REFERENCES "Permission"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_UserRolesRole" ADD CONSTRAINT "_UserRolesRole_A_fkey" FOREIGN KEY ("A") REFERENCES "Role"("id") ON DELETE CASCADE ON UPDATE CASCADE;

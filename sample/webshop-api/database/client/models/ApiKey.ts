@@ -273,6 +273,8 @@ export type ApiKeyWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"ApiKey"> | Date | string
   createdById?: Prisma.IntNullableFilter<"ApiKey"> | number | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  roles?: Prisma.RoleListRelationFilter
+  permissions?: Prisma.PermissionListRelationFilter
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
@@ -289,6 +291,8 @@ export type ApiKeyOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrderInput | Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
+  roles?: Prisma.RoleOrderByRelationAggregateInput
+  permissions?: Prisma.PermissionOrderByRelationAggregateInput
   createdBy?: Prisma.UserOrderByWithRelationInput
 }
 
@@ -308,6 +312,8 @@ export type ApiKeyWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"ApiKey"> | Date | string
   createdById?: Prisma.IntNullableFilter<"ApiKey"> | number | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  roles?: Prisma.RoleListRelationFilter
+  permissions?: Prisma.PermissionListRelationFilter
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id" | "keyHash">
 
@@ -357,6 +363,8 @@ export type ApiKeyCreateInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutApiKeysInput
+  roles?: Prisma.RoleCreateNestedManyWithoutApiKeysInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutApiKeysInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedApiKeysInput
 }
 
@@ -372,6 +380,8 @@ export type ApiKeyUncheckedCreateInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutApiKeysInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutApiKeysInput
 }
 
 export type ApiKeyUpdateInput = {
@@ -384,6 +394,8 @@ export type ApiKeyUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutApiKeysNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutApiKeysNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutApiKeysNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedApiKeysNestedInput
 }
 
@@ -399,6 +411,8 @@ export type ApiKeyUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutApiKeysNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutApiKeysNestedInput
 }
 
 export type ApiKeyCreateManyInput = {
@@ -588,6 +602,82 @@ export type ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput = {
   deleteMany?: Prisma.ApiKeyScalarWhereInput | Prisma.ApiKeyScalarWhereInput[]
 }
 
+export type ApiKeyCreateNestedManyWithoutRolesInput = {
+  create?: Prisma.XOR<Prisma.ApiKeyCreateWithoutRolesInput, Prisma.ApiKeyUncheckedCreateWithoutRolesInput> | Prisma.ApiKeyCreateWithoutRolesInput[] | Prisma.ApiKeyUncheckedCreateWithoutRolesInput[]
+  connectOrCreate?: Prisma.ApiKeyCreateOrConnectWithoutRolesInput | Prisma.ApiKeyCreateOrConnectWithoutRolesInput[]
+  connect?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+}
+
+export type ApiKeyUncheckedCreateNestedManyWithoutRolesInput = {
+  create?: Prisma.XOR<Prisma.ApiKeyCreateWithoutRolesInput, Prisma.ApiKeyUncheckedCreateWithoutRolesInput> | Prisma.ApiKeyCreateWithoutRolesInput[] | Prisma.ApiKeyUncheckedCreateWithoutRolesInput[]
+  connectOrCreate?: Prisma.ApiKeyCreateOrConnectWithoutRolesInput | Prisma.ApiKeyCreateOrConnectWithoutRolesInput[]
+  connect?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+}
+
+export type ApiKeyUpdateManyWithoutRolesNestedInput = {
+  create?: Prisma.XOR<Prisma.ApiKeyCreateWithoutRolesInput, Prisma.ApiKeyUncheckedCreateWithoutRolesInput> | Prisma.ApiKeyCreateWithoutRolesInput[] | Prisma.ApiKeyUncheckedCreateWithoutRolesInput[]
+  connectOrCreate?: Prisma.ApiKeyCreateOrConnectWithoutRolesInput | Prisma.ApiKeyCreateOrConnectWithoutRolesInput[]
+  upsert?: Prisma.ApiKeyUpsertWithWhereUniqueWithoutRolesInput | Prisma.ApiKeyUpsertWithWhereUniqueWithoutRolesInput[]
+  set?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+  disconnect?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+  delete?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+  connect?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+  update?: Prisma.ApiKeyUpdateWithWhereUniqueWithoutRolesInput | Prisma.ApiKeyUpdateWithWhereUniqueWithoutRolesInput[]
+  updateMany?: Prisma.ApiKeyUpdateManyWithWhereWithoutRolesInput | Prisma.ApiKeyUpdateManyWithWhereWithoutRolesInput[]
+  deleteMany?: Prisma.ApiKeyScalarWhereInput | Prisma.ApiKeyScalarWhereInput[]
+}
+
+export type ApiKeyUncheckedUpdateManyWithoutRolesNestedInput = {
+  create?: Prisma.XOR<Prisma.ApiKeyCreateWithoutRolesInput, Prisma.ApiKeyUncheckedCreateWithoutRolesInput> | Prisma.ApiKeyCreateWithoutRolesInput[] | Prisma.ApiKeyUncheckedCreateWithoutRolesInput[]
+  connectOrCreate?: Prisma.ApiKeyCreateOrConnectWithoutRolesInput | Prisma.ApiKeyCreateOrConnectWithoutRolesInput[]
+  upsert?: Prisma.ApiKeyUpsertWithWhereUniqueWithoutRolesInput | Prisma.ApiKeyUpsertWithWhereUniqueWithoutRolesInput[]
+  set?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+  disconnect?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+  delete?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+  connect?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+  update?: Prisma.ApiKeyUpdateWithWhereUniqueWithoutRolesInput | Prisma.ApiKeyUpdateWithWhereUniqueWithoutRolesInput[]
+  updateMany?: Prisma.ApiKeyUpdateManyWithWhereWithoutRolesInput | Prisma.ApiKeyUpdateManyWithWhereWithoutRolesInput[]
+  deleteMany?: Prisma.ApiKeyScalarWhereInput | Prisma.ApiKeyScalarWhereInput[]
+}
+
+export type ApiKeyCreateNestedManyWithoutPermissionsInput = {
+  create?: Prisma.XOR<Prisma.ApiKeyCreateWithoutPermissionsInput, Prisma.ApiKeyUncheckedCreateWithoutPermissionsInput> | Prisma.ApiKeyCreateWithoutPermissionsInput[] | Prisma.ApiKeyUncheckedCreateWithoutPermissionsInput[]
+  connectOrCreate?: Prisma.ApiKeyCreateOrConnectWithoutPermissionsInput | Prisma.ApiKeyCreateOrConnectWithoutPermissionsInput[]
+  connect?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+}
+
+export type ApiKeyUncheckedCreateNestedManyWithoutPermissionsInput = {
+  create?: Prisma.XOR<Prisma.ApiKeyCreateWithoutPermissionsInput, Prisma.ApiKeyUncheckedCreateWithoutPermissionsInput> | Prisma.ApiKeyCreateWithoutPermissionsInput[] | Prisma.ApiKeyUncheckedCreateWithoutPermissionsInput[]
+  connectOrCreate?: Prisma.ApiKeyCreateOrConnectWithoutPermissionsInput | Prisma.ApiKeyCreateOrConnectWithoutPermissionsInput[]
+  connect?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+}
+
+export type ApiKeyUpdateManyWithoutPermissionsNestedInput = {
+  create?: Prisma.XOR<Prisma.ApiKeyCreateWithoutPermissionsInput, Prisma.ApiKeyUncheckedCreateWithoutPermissionsInput> | Prisma.ApiKeyCreateWithoutPermissionsInput[] | Prisma.ApiKeyUncheckedCreateWithoutPermissionsInput[]
+  connectOrCreate?: Prisma.ApiKeyCreateOrConnectWithoutPermissionsInput | Prisma.ApiKeyCreateOrConnectWithoutPermissionsInput[]
+  upsert?: Prisma.ApiKeyUpsertWithWhereUniqueWithoutPermissionsInput | Prisma.ApiKeyUpsertWithWhereUniqueWithoutPermissionsInput[]
+  set?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+  disconnect?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+  delete?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+  connect?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+  update?: Prisma.ApiKeyUpdateWithWhereUniqueWithoutPermissionsInput | Prisma.ApiKeyUpdateWithWhereUniqueWithoutPermissionsInput[]
+  updateMany?: Prisma.ApiKeyUpdateManyWithWhereWithoutPermissionsInput | Prisma.ApiKeyUpdateManyWithWhereWithoutPermissionsInput[]
+  deleteMany?: Prisma.ApiKeyScalarWhereInput | Prisma.ApiKeyScalarWhereInput[]
+}
+
+export type ApiKeyUncheckedUpdateManyWithoutPermissionsNestedInput = {
+  create?: Prisma.XOR<Prisma.ApiKeyCreateWithoutPermissionsInput, Prisma.ApiKeyUncheckedCreateWithoutPermissionsInput> | Prisma.ApiKeyCreateWithoutPermissionsInput[] | Prisma.ApiKeyUncheckedCreateWithoutPermissionsInput[]
+  connectOrCreate?: Prisma.ApiKeyCreateOrConnectWithoutPermissionsInput | Prisma.ApiKeyCreateOrConnectWithoutPermissionsInput[]
+  upsert?: Prisma.ApiKeyUpsertWithWhereUniqueWithoutPermissionsInput | Prisma.ApiKeyUpsertWithWhereUniqueWithoutPermissionsInput[]
+  set?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+  disconnect?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+  delete?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+  connect?: Prisma.ApiKeyWhereUniqueInput | Prisma.ApiKeyWhereUniqueInput[]
+  update?: Prisma.ApiKeyUpdateWithWhereUniqueWithoutPermissionsInput | Prisma.ApiKeyUpdateWithWhereUniqueWithoutPermissionsInput[]
+  updateMany?: Prisma.ApiKeyUpdateManyWithWhereWithoutPermissionsInput | Prisma.ApiKeyUpdateManyWithWhereWithoutPermissionsInput[]
+  deleteMany?: Prisma.ApiKeyScalarWhereInput | Prisma.ApiKeyScalarWhereInput[]
+}
+
 export type ApiKeyCreateWithoutUserInput = {
   key: string
   keyHash: string
@@ -597,6 +687,8 @@ export type ApiKeyCreateWithoutUserInput = {
   expiresAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
+  roles?: Prisma.RoleCreateNestedManyWithoutApiKeysInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutApiKeysInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedApiKeysInput
 }
 
@@ -611,6 +703,8 @@ export type ApiKeyUncheckedCreateWithoutUserInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutApiKeysInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutApiKeysInput
 }
 
 export type ApiKeyCreateOrConnectWithoutUserInput = {
@@ -633,6 +727,8 @@ export type ApiKeyCreateWithoutCreatedByInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutApiKeysInput
+  roles?: Prisma.RoleCreateNestedManyWithoutApiKeysInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutApiKeysInput
 }
 
 export type ApiKeyUncheckedCreateWithoutCreatedByInput = {
@@ -646,6 +742,8 @@ export type ApiKeyUncheckedCreateWithoutCreatedByInput = {
   userId: number
   updatedAt?: Date | string
   createdAt?: Date | string
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutApiKeysInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutApiKeysInput
 }
 
 export type ApiKeyCreateOrConnectWithoutCreatedByInput = {
@@ -707,6 +805,106 @@ export type ApiKeyUpdateManyWithWhereWithoutCreatedByInput = {
   data: Prisma.XOR<Prisma.ApiKeyUpdateManyMutationInput, Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByInput>
 }
 
+export type ApiKeyCreateWithoutRolesInput = {
+  key: string
+  keyHash: string
+  name?: string | null
+  description?: string | null
+  enabled?: boolean
+  expiresAt?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutApiKeysInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutApiKeysInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedApiKeysInput
+}
+
+export type ApiKeyUncheckedCreateWithoutRolesInput = {
+  id?: number
+  key: string
+  keyHash: string
+  name?: string | null
+  description?: string | null
+  enabled?: boolean
+  expiresAt?: Date | string | null
+  userId: number
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutApiKeysInput
+}
+
+export type ApiKeyCreateOrConnectWithoutRolesInput = {
+  where: Prisma.ApiKeyWhereUniqueInput
+  create: Prisma.XOR<Prisma.ApiKeyCreateWithoutRolesInput, Prisma.ApiKeyUncheckedCreateWithoutRolesInput>
+}
+
+export type ApiKeyUpsertWithWhereUniqueWithoutRolesInput = {
+  where: Prisma.ApiKeyWhereUniqueInput
+  update: Prisma.XOR<Prisma.ApiKeyUpdateWithoutRolesInput, Prisma.ApiKeyUncheckedUpdateWithoutRolesInput>
+  create: Prisma.XOR<Prisma.ApiKeyCreateWithoutRolesInput, Prisma.ApiKeyUncheckedCreateWithoutRolesInput>
+}
+
+export type ApiKeyUpdateWithWhereUniqueWithoutRolesInput = {
+  where: Prisma.ApiKeyWhereUniqueInput
+  data: Prisma.XOR<Prisma.ApiKeyUpdateWithoutRolesInput, Prisma.ApiKeyUncheckedUpdateWithoutRolesInput>
+}
+
+export type ApiKeyUpdateManyWithWhereWithoutRolesInput = {
+  where: Prisma.ApiKeyScalarWhereInput
+  data: Prisma.XOR<Prisma.ApiKeyUpdateManyMutationInput, Prisma.ApiKeyUncheckedUpdateManyWithoutRolesInput>
+}
+
+export type ApiKeyCreateWithoutPermissionsInput = {
+  key: string
+  keyHash: string
+  name?: string | null
+  description?: string | null
+  enabled?: boolean
+  expiresAt?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutApiKeysInput
+  roles?: Prisma.RoleCreateNestedManyWithoutApiKeysInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedApiKeysInput
+}
+
+export type ApiKeyUncheckedCreateWithoutPermissionsInput = {
+  id?: number
+  key: string
+  keyHash: string
+  name?: string | null
+  description?: string | null
+  enabled?: boolean
+  expiresAt?: Date | string | null
+  userId: number
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutApiKeysInput
+}
+
+export type ApiKeyCreateOrConnectWithoutPermissionsInput = {
+  where: Prisma.ApiKeyWhereUniqueInput
+  create: Prisma.XOR<Prisma.ApiKeyCreateWithoutPermissionsInput, Prisma.ApiKeyUncheckedCreateWithoutPermissionsInput>
+}
+
+export type ApiKeyUpsertWithWhereUniqueWithoutPermissionsInput = {
+  where: Prisma.ApiKeyWhereUniqueInput
+  update: Prisma.XOR<Prisma.ApiKeyUpdateWithoutPermissionsInput, Prisma.ApiKeyUncheckedUpdateWithoutPermissionsInput>
+  create: Prisma.XOR<Prisma.ApiKeyCreateWithoutPermissionsInput, Prisma.ApiKeyUncheckedCreateWithoutPermissionsInput>
+}
+
+export type ApiKeyUpdateWithWhereUniqueWithoutPermissionsInput = {
+  where: Prisma.ApiKeyWhereUniqueInput
+  data: Prisma.XOR<Prisma.ApiKeyUpdateWithoutPermissionsInput, Prisma.ApiKeyUncheckedUpdateWithoutPermissionsInput>
+}
+
+export type ApiKeyUpdateManyWithWhereWithoutPermissionsInput = {
+  where: Prisma.ApiKeyScalarWhereInput
+  data: Prisma.XOR<Prisma.ApiKeyUpdateManyMutationInput, Prisma.ApiKeyUncheckedUpdateManyWithoutPermissionsInput>
+}
+
 export type ApiKeyCreateManyUserInput = {
   id?: number
   key: string
@@ -742,6 +940,8 @@ export type ApiKeyUpdateWithoutUserInput = {
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  roles?: Prisma.RoleUpdateManyWithoutApiKeysNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutApiKeysNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedApiKeysNestedInput
 }
 
@@ -756,6 +956,8 @@ export type ApiKeyUncheckedUpdateWithoutUserInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutApiKeysNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutApiKeysNestedInput
 }
 
 export type ApiKeyUncheckedUpdateManyWithoutUserInput = {
@@ -781,6 +983,8 @@ export type ApiKeyUpdateWithoutCreatedByInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutApiKeysNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutApiKeysNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutApiKeysNestedInput
 }
 
 export type ApiKeyUncheckedUpdateWithoutCreatedByInput = {
@@ -794,6 +998,8 @@ export type ApiKeyUncheckedUpdateWithoutCreatedByInput = {
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutApiKeysNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutApiKeysNestedInput
 }
 
 export type ApiKeyUncheckedUpdateManyWithoutCreatedByInput = {
@@ -809,6 +1015,130 @@ export type ApiKeyUncheckedUpdateManyWithoutCreatedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+export type ApiKeyUpdateWithoutRolesInput = {
+  key?: Prisma.StringFieldUpdateOperationsInput | string
+  keyHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutApiKeysNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutApiKeysNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedApiKeysNestedInput
+}
+
+export type ApiKeyUncheckedUpdateWithoutRolesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  key?: Prisma.StringFieldUpdateOperationsInput | string
+  keyHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutApiKeysNestedInput
+}
+
+export type ApiKeyUncheckedUpdateManyWithoutRolesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  key?: Prisma.StringFieldUpdateOperationsInput | string
+  keyHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type ApiKeyUpdateWithoutPermissionsInput = {
+  key?: Prisma.StringFieldUpdateOperationsInput | string
+  keyHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutApiKeysNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutApiKeysNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedApiKeysNestedInput
+}
+
+export type ApiKeyUncheckedUpdateWithoutPermissionsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  key?: Prisma.StringFieldUpdateOperationsInput | string
+  keyHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutApiKeysNestedInput
+}
+
+export type ApiKeyUncheckedUpdateManyWithoutPermissionsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  key?: Prisma.StringFieldUpdateOperationsInput | string
+  keyHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+
+/**
+ * Count Type ApiKeyCountOutputType
+ */
+
+export type ApiKeyCountOutputType = {
+  roles: number
+  permissions: number
+}
+
+export type ApiKeyCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  roles?: boolean | ApiKeyCountOutputTypeCountRolesArgs
+  permissions?: boolean | ApiKeyCountOutputTypeCountPermissionsArgs
+}
+
+/**
+ * ApiKeyCountOutputType without action
+ */
+export type ApiKeyCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ApiKeyCountOutputType
+   */
+  select?: Prisma.ApiKeyCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ApiKeyCountOutputType without action
+ */
+export type ApiKeyCountOutputTypeCountRolesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RoleWhereInput
+}
+
+/**
+ * ApiKeyCountOutputType without action
+ */
+export type ApiKeyCountOutputTypeCountPermissionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PermissionWhereInput
+}
 
 
 export type ApiKeySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -824,7 +1154,10 @@ export type ApiKeySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   createdAt?: boolean
   createdById?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  roles?: boolean | Prisma.ApiKey$rolesArgs<ExtArgs>
+  permissions?: boolean | Prisma.ApiKey$permissionsArgs<ExtArgs>
   createdBy?: boolean | Prisma.ApiKey$createdByArgs<ExtArgs>
+  _count?: boolean | Prisma.ApiKeyCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["apiKey"]>
 
 export type ApiKeySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -876,7 +1209,10 @@ export type ApiKeySelectScalar = {
 export type ApiKeyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "key" | "keyHash" | "name" | "description" | "enabled" | "expiresAt" | "userId" | "updatedAt" | "createdAt" | "createdById", ExtArgs["result"]["apiKey"]>
 export type ApiKeyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  roles?: boolean | Prisma.ApiKey$rolesArgs<ExtArgs>
+  permissions?: boolean | Prisma.ApiKey$permissionsArgs<ExtArgs>
   createdBy?: boolean | Prisma.ApiKey$createdByArgs<ExtArgs>
+  _count?: boolean | Prisma.ApiKeyCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ApiKeyIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -894,6 +1230,8 @@ export type $ApiKeyPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
      * Related columns
      */
     user: Prisma.$UserPayload<ExtArgs>
+    roles: Prisma.$RolePayload<ExtArgs>[]
+    permissions: Prisma.$PermissionPayload<ExtArgs>[]
     createdBy: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1306,6 +1644,8 @@ readonly fields: ApiKeyFieldRefs;
 export interface Prisma__ApiKeyClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  roles<T extends Prisma.ApiKey$rolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApiKey$rolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  permissions<T extends Prisma.ApiKey$permissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApiKey$permissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdBy<T extends Prisma.ApiKey$createdByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApiKey$createdByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1745,6 +2085,54 @@ export type ApiKeyDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Limit how many ApiKeys to delete.
    */
   limit?: number
+}
+
+/**
+ * ApiKey.roles
+ */
+export type ApiKey$rolesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Role
+   */
+  select?: Prisma.RoleSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Role
+   */
+  omit?: Prisma.RoleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RoleInclude<ExtArgs> | null
+  where?: Prisma.RoleWhereInput
+  orderBy?: Prisma.RoleOrderByWithRelationInput | Prisma.RoleOrderByWithRelationInput[]
+  cursor?: Prisma.RoleWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RoleScalarFieldEnum | Prisma.RoleScalarFieldEnum[]
+}
+
+/**
+ * ApiKey.permissions
+ */
+export type ApiKey$permissionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Permission
+   */
+  select?: Prisma.PermissionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Permission
+   */
+  omit?: Prisma.PermissionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PermissionInclude<ExtArgs> | null
+  where?: Prisma.PermissionWhereInput
+  orderBy?: Prisma.PermissionOrderByWithRelationInput | Prisma.PermissionOrderByWithRelationInput[]
+  cursor?: Prisma.PermissionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PermissionScalarFieldEnum | Prisma.PermissionScalarFieldEnum[]
 }
 
 /**

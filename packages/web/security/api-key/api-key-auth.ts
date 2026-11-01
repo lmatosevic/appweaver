@@ -7,6 +7,7 @@ import {
   Database,
   ErrorCode,
   makeHash,
+  ResourceId,
   toResourceId,
   uncapitalize,
   AuthError
@@ -16,6 +17,7 @@ import {
   apiKeyConfig,
   liveRecordFilter,
   resourceAuthModel,
+  scopeAuthUser,
   PrismaDatabase,
   ApiKey
 } from '@appweaver/data';
@@ -29,6 +31,27 @@ import { AuthService } from '../auth-service';
 import { Server } from '../../types/server';
 
 const logger = createLogger('security');
+
+/** An API key with the ids of its scope. */
+type ScopedApiKey = ApiKey & {
+  roles?: { id: ResourceId }[];
+  permissions?: { id: ResourceId }[];
+};
+
+/**
+ * The API key delegate of the Prisma client with the relations of the scope,
+ * which the client of the framework lacks, since only the auth model of the
+ * app generates them. Its id is typed after the configured primary key.
+ */
+type ScopedApiKeys = {
+  findFirst(args: {
+    where: { id: ResourceId; [field: string]: unknown };
+    include?: {
+      roles: { select: { id: true } };
+      permissions: { select: { id: true } };
+    };
+  }): Promise<ScopedApiKey | null>;
+};
 
 export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
   const authService = inject(AuthService);
@@ -63,12 +86,19 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
       modelName: 'ApiKey'
     });
 
-    let apiKey = await cacheService.getCachedValue<ApiKey>(cacheKey);
+    let apiKey = await cacheService.getCachedValue<ScopedApiKey>(cacheKey);
     if (!apiKey) {
       try {
-        // The generated client types the id after the configured primary key
-        apiKey = await db.client().apiKey.findFirst({
-          where: { id: apiKeyId as any, ...liveRecordFilter('ApiKey') }
+        apiKey = await db.client<{ apiKey: ScopedApiKeys }>().apiKey.findFirst({
+          where: { id: apiKeyId, ...liveRecordFilter('ApiKey') },
+          ...(hasScope()
+            ? {
+                include: {
+                  roles: { select: { id: true } },
+                  permissions: { select: { id: true } }
+                }
+              }
+            : {})
         });
       } catch (e) {
         throw new AuthError(
@@ -107,7 +137,9 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
     }
 
     const authModelField = uncapitalize(resourceAuthModel()!.name);
-    const authUser = await authService.findById(apiKey[`${authModelField}Id`]);
+    const owner = await authService.findById(apiKey[`${authModelField}Id`]);
+    // The key acts with the roles and permissions of its scope its owner still holds
+    const authUser = owner ? scopeAuthUser(owner, apiKey) : owner;
 
     authService.authorize(authUser, request.url, request.routeOptions.config);
 
@@ -119,6 +151,11 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
     });
   });
 });
+
+/** Checks whether the API keys have a scope, the roles and the permissions of the auth model. */
+function hasScope(): boolean {
+  return !!injectModel('ApiKey', false)?.config.relations?.roles;
+}
 
 /** Checks whether a request carries an API key in its configured header. */
 export function hasApiKey(request: FastifyRequest): boolean {

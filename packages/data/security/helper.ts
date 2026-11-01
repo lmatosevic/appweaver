@@ -3,6 +3,7 @@ import {
   AuthSource,
   AuthUser,
   ErrorCode,
+  Permission,
   IResourceService,
   isResourceAuthModel,
   isResourceAuthService,
@@ -282,9 +283,117 @@ export function hasRoles(
  * @return {boolean} Returns true if the user has the specified permission, otherwise false.
  */
 export function hasPermission(authUser: AuthUser, permission: string): boolean {
-  return authUser.roles
-    .flatMap((r) => r.permissions)
-    .some((p) => p.name === permission);
+  return userPermissions(authUser).some((p) => p.name === permission);
+}
+
+/**
+ * Returns the permissions of a user: the ones it is narrowed to by the scope of an API key, otherwise the ones of its
+ * roles, each once.
+ *
+ * @param {AuthUser} authUser - The user.
+ * @return {Permission[]} The permissions of the user.
+ */
+export function userPermissions(authUser: AuthUser): Permission[] {
+  if (authUser.permissions) {
+    return authUser.permissions;
+  }
+  const permissions = new Map<string, Permission>();
+  for (const permission of authUser.roles.flatMap((r) => r.permissions)) {
+    permissions.set(String(permission.id ?? permission.name), permission);
+  }
+  return [...permissions.values()];
+}
+
+/**
+ * Narrows the owner of an API key to the scope of the key, its roles and permissions. A key with neither acts as its
+ * owner. A key with a scope keeps only the roles it lists, that the owner still holds, and the permissions it lists
+ * among the ones of those roles (or of all the roles of the owner, when it lists no role). The scope is checked
+ * against the current roles of the owner on every request, so a key loses what its owner loses.
+ *
+ * @param {AuthUser} owner - The owner of the key.
+ * @param {Object} scope - The roles and the permissions of the key, by their ids.
+ * @return {AuthUser} The owner, narrowed to the scope of the key.
+ */
+export function scopeAuthUser(
+  owner: AuthUser,
+  scope: {
+    roles?: { id: unknown }[] | null;
+    permissions?: { id: unknown }[] | null;
+  }
+): AuthUser {
+  const roleIds = new Set((scope.roles ?? []).map(({ id }) => String(id)));
+  const permissionIds = new Set(
+    (scope.permissions ?? []).map(({ id }) => String(id))
+  );
+  if (roleIds.size === 0 && permissionIds.size === 0) {
+    return owner;
+  }
+
+  const roles = owner.roles.filter((role) => roleIds.has(String(role.id)));
+  const permissions = userPermissions(
+    roleIds.size ? { ...owner, roles } : owner
+  ).filter(
+    (permission) =>
+      permissionIds.size === 0 || permissionIds.has(String(permission.id))
+  );
+  const allowed = new Set(permissions.map(({ id }) => String(id)));
+
+  return {
+    ...owner,
+    roles: roles.map((role) => ({
+      ...role,
+      permissions: role.permissions.filter(({ id }) => allowed.has(String(id)))
+    })),
+    permissions
+  };
+}
+
+/**
+ * Checks that a user grants an API key only the roles and the permissions it holds itself, by their ids in the
+ * relation input of the key (`[3, { id: 5 }]`).
+ *
+ * @param {AuthUser} owner - The user granting the scope, the owner of the key.
+ * @param {Object} scope - The `roles` and the `permissions` input of the key.
+ * @throws {AuthError} `AUTH_API_KEY_PERMISSION_DENIED` with the ids of the roles and the permissions the user does not
+ * hold.
+ */
+export function checkApiKeyScope(
+  owner: AuthUser,
+  scope: { roles?: unknown; permissions?: unknown }
+): void {
+  const ownedRoles = new Set(owner.roles.map(({ id }) => String(id)));
+  const ownedPermissions = new Set(
+    userPermissions(owner).map(({ id }) => String(id))
+  );
+
+  const roles = relationIds(scope.roles).filter((id) => !ownedRoles.has(id));
+  const permissions = relationIds(scope.permissions).filter(
+    (id) => !ownedPermissions.has(id)
+  );
+
+  if (roles.length || permissions.length) {
+    throw new AuthError(
+      ErrorCode.AuthApiKeyPermissionDenied,
+      'An API key cannot be given a role or a permission its owner does not hold',
+      { roles, permissions }
+    );
+  }
+}
+
+/** The ids of a relation input: an id, an `{ id }` object, or a list of either. */
+function relationIds(input: unknown): string[] {
+  if (input === undefined || input === null) {
+    return [];
+  }
+  return [input]
+    .flat()
+    .map((item) =>
+      String(
+        typeof item === 'object' && item !== null
+          ? (item as { id: unknown }).id
+          : item
+      )
+    );
 }
 
 /**

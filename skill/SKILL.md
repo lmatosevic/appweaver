@@ -540,7 +540,9 @@ authenticatable user. They cannot be used independently! If an auth model is cre
 
 `createAuthModel` extends the config with: `email`, `passwordHash`, `verifiedEmail`, `twoFactorAuth`, `enabled`,
 `logoutAt` scalars; a virtual `password` field (write-only); a `roles` relation; and an optional `apiKeys` relation
-(when `SECURITY_API_KEY_ENABLED` is set).
+(when `SECURITY_API_KEY_ENABLED` is set). An API key acts as its owner, or within the `roles` and `permissions` it lists,
+a subset of its owner's (`AUTH_API_KEY_PERMISSION_DENIED` otherwise), narrowed on every request; see
+[security.md](references/security.md#api-key-scope).
 
 `createAuthService` extends the config with automatic password hashing on create/update, an optional
 `registrationData` callback to customize registration payload (for OAuth2 logins its `additionalData` argument includes
@@ -1117,7 +1119,7 @@ npm run lint  # eslint "./**/*.ts"
 - Modules & providers: [modules.md](references/modules.md)
 - Application resources: [resources.md](references/resources.md)
 - Dependency injection: [dependency-injection.md](references/dependency-injection.md)
-- Security details: [security.md](references/security.md)
+- Security details, API keys and their scope: [security.md](references/security.md)
 - Storage & File management: [storage.md](references/storage.md)
 - Database & Migrations: [database.md](references/database.md)
 - Events & Hooks: [events.md](references/events.md)
