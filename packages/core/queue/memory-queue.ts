@@ -18,7 +18,7 @@ import { queueConfig } from './queue-config';
 const logger = createLogger('queue');
 
 type MemoryQueueJob<Data = any, Response = any> = QueueJob<Data, Response> & {
-  status: 'waiting' | 'active' | 'completed' | 'failed';
+  status: 'delayed' | 'waiting' | 'active' | 'completed' | 'failed';
   attempts: number;
   maxAttempts: number;
   createdAt: number;
@@ -117,6 +117,8 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
   private _closed = false;
   /** @internal */
   private _processingTimeout?: NodeJS.Timeout;
+  /** @internal */
+  private readonly _delayTimeouts = new Set<NodeJS.Timeout>();
 
   constructor(public readonly name: string) {
     super();
@@ -139,6 +141,16 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     }
 
     const jobId = options.jobId ?? uuid();
+    // Like BullMQ, a job id still in the queue ignores the send
+    const existing = this._jobs.get(jobId);
+    if (existing) {
+      logger.debug(
+        { queue: this.name, jobId, name: existing.name },
+        'Job already in the queue'
+      );
+      return existing;
+    }
+
     const job: MemoryQueueJob<Data, Response> = {
       id: jobId,
       name: name ?? 'defaultJob',
@@ -150,13 +162,16 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       createdAt: Date.now()
     };
 
+    this._jobs.set(jobId, job);
     if (options.delay) {
-      setTimeout(() => {
-        this._jobs.set(jobId, job);
+      job.status = 'delayed';
+      const timeout = setTimeout(() => {
+        this._delayTimeouts.delete(timeout);
+        job.status = 'waiting';
         this.processJobs();
       }, options.delay);
+      this._delayTimeouts.add(timeout);
     } else {
-      this._jobs.set(jobId, job);
       this.processJobs();
     }
 
@@ -299,7 +314,11 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
   }
 
   public jobInfo(job: MemoryQueueJob<Data, Response>): QueueJobInfo {
-    return { attempt: job.attempts, maxAttempts: job.maxAttempts };
+    return {
+      attempt: job.attempts,
+      maxAttempts: job.maxAttempts,
+      createdAt: job.createdAt
+    };
   }
 
   public async close(): Promise<void> {
@@ -309,6 +328,11 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     if (this._processingTimeout) {
       clearTimeout(this._processingTimeout);
     }
+    // The delayed jobs are lost with the closed queue
+    for (const timeout of this._delayTimeouts) {
+      clearTimeout(timeout);
+    }
+    this._delayTimeouts.clear();
 
     // Wait for active jobs to complete
     const activeJobs = Array.from(this._jobs.values()).filter(

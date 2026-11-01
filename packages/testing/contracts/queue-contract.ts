@@ -61,6 +61,20 @@ export function testQueueContract(
       expect(job.id).toBe('contract-job-1');
     });
 
+    test('ignores a send of a job id still in the queue', async () => {
+      const processor = queue.get('contract-duplicates');
+      await processor.sendJob({ value: 1 }, 'first', {
+        jobId: 'contract-job-2',
+        delay: 60_000
+      });
+
+      const job = await processor.sendJob({ value: 2 }, 'second', {
+        jobId: 'contract-job-2'
+      });
+
+      expect(job.data).toEqual({ value: 1 });
+    });
+
     test('closes a queue by its name', async () => {
       queue.get('contract-closed');
 

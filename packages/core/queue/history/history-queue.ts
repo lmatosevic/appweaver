@@ -110,6 +110,7 @@ export class QueueHistoryRecorder {
       ) => {
         const site = callerSite();
         const [job] = await this.send(
+          processor,
           queue,
           [{ data, name, options }],
           site,
@@ -120,7 +121,7 @@ export class QueueHistoryRecorder {
         return job;
       },
       sendBulkJobs: (jobs: SentJob<unknown>[]) =>
-        this.send(queue, jobs, callerSite(), (sent) =>
+        this.send(processor, queue, jobs, callerSite(), (sent) =>
           processor.sendBulkJobs(sent)
         ),
       addWorker: (
@@ -139,11 +140,13 @@ export class QueueHistoryRecorder {
   /**
    * Records the jobs sent to a queue, then sends them with their job ids, generating the missing ones. Outside of a
    * transaction they are recorded before they are sent, so no worker starts them first, and inside one once it
-   * settles, since a query outside of it could wait for it.
+   * settles, since a query outside of it could wait for it. A send the queue ignores, since a job with its id is still
+   * in it, is counted on the record of that job instead.
    *
    * @internal
    */
-  public async send<Data, Job>(
+  public async send<Data, Job extends QueueJob>(
+    processor: QueueProcessor,
     queue: string,
     jobs: SentJob<Data>[],
     site: string | undefined,
@@ -177,13 +180,33 @@ export class QueueHistoryRecorder {
           : undefined
       })
     );
+    // The creation time of the job in the queue a send was ignored for, the job being older than the send
+    const ignoredBy = (added: Job[]) =>
+      added.map((job) => {
+        const { createdAt } = processor.jobInfo(job);
+        return createdAt !== undefined && createdAt < sentAt.getTime()
+          ? new Date(createdAt)
+          : undefined;
+      });
 
     if (currentTransaction()) {
       const added = await sendJobs(sent);
-      const record = () =>
-        this.write(() =>
-          inject(QueueHistory).recordSent(records, { sent: true })
-        );
+      const ignored = ignoredBy(added);
+      const record = async () => {
+        const history = inject(QueueHistory);
+        const recorded = records.filter((_, i) => !ignored[i]);
+        if (recorded.length) {
+          await this.write(() => history.recordSent(recorded, { sent: true }));
+        }
+        for (const [i, record] of records.entries()) {
+          const createdAt = ignored[i];
+          if (createdAt) {
+            await this.write(() =>
+              history.recordIgnored(queue, record.jobId, createdAt)
+            );
+          }
+        }
+      };
       afterCommit(record);
       afterRollback(record);
       return added;
@@ -192,8 +215,9 @@ export class QueueHistoryRecorder {
     const ids = await this.write(() =>
       inject(QueueHistory).recordSent(records)
     );
+    let added: Job[];
     try {
-      return await sendJobs(sent);
+      added = await sendJobs(sent);
     } catch (error) {
       const finishedAt = new Date();
       for (const id of ids ?? []) {
@@ -209,6 +233,16 @@ export class QueueHistoryRecorder {
       }
       throw error;
     }
+
+    for (const [i, createdAt] of ignoredBy(added).entries()) {
+      if (createdAt) {
+        const { jobId } = records[i];
+        void this.serial(`${queue}\u0000${jobId}`, () =>
+          inject(QueueHistory).recordIgnored(queue, jobId, createdAt, ids?.[i])
+        );
+      }
+    }
+    return added;
   }
 
   /**
@@ -223,7 +257,7 @@ export class QueueHistoryRecorder {
     job: Job,
     handler: (job: Job) => Promise<unknown>
   ): Promise<unknown> {
-    const { attempt = 1, maxAttempts } = processor.jobInfo(job);
+    const { attempt = 1, maxAttempts, createdAt } = processor.jobInfo(job);
     const jobId = String(job.id ?? '');
     const key = `${queue}\u0000${jobId}`;
     const startedAt = new Date();
@@ -239,6 +273,7 @@ export class QueueHistoryRecorder {
         instance,
         driver: this.driver,
         maxAttempts,
+        createdAt: createdAt === undefined ? undefined : new Date(createdAt),
         data: queueHistoryConfig.STORE_DATA ? payload(job.data) : undefined
       })
     );

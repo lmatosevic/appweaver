@@ -56,8 +56,36 @@ describe('memory-queue', () => {
 
       expect(queue.get('emails').jobInfo(job)).toEqual({
         attempt: 0,
-        maxAttempts: 3
+        maxAttempts: 3,
+        createdAt: job.createdAt
       });
+    });
+
+    test('returns the job still in the queue for its job id', async () => {
+      const processor = queue.get('emails');
+      const first = await processor.sendJob({ n: 1 }, 'a', {
+        jobId: 'j-1',
+        delay: 50
+      });
+
+      const second = await processor.sendJob({ n: 2 }, 'a', { jobId: 'j-1' });
+
+      expect(second).toBe(first);
+      expect(second.data).toEqual({ n: 1 });
+    });
+
+    test('processes a delayed job once it is due', async () => {
+      const processor = queue.get('emails');
+      const processed: unknown[] = [];
+      processor.addWorker(async (job) => {
+        processed.push(job.data);
+      });
+
+      const job = await processor.sendJob({ n: 1 }, 'a', { delay: 20 });
+      expect(job.status).toBe('delayed');
+
+      await waitFor(() => processed.length === 1);
+      expect(processed).toEqual([{ n: 1 }]);
     });
 
     test('processes a job with the registered worker', async () => {

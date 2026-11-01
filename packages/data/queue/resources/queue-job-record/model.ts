@@ -4,7 +4,7 @@ import { createModel } from '../../../factory/create-model';
 const shouldCreateModel =
   queueHistoryConfig.ENABLED || queueHistoryConfig.KEEP_DATABASE_TABLE;
 
-// One record per sent job, a job id sent again gets a new one
+// One record per job, a job id the queue takes again gets a new one
 export default shouldCreateModel
   ? createModel({
       name: 'QueueJobRecord',
@@ -40,9 +40,11 @@ export default shouldCreateModel
         attempt: { type: 'int', default: 0 },
         maxAttempts: { type: 'int', required: false },
         priority: { type: 'int', required: false },
+        duplicates: { type: 'int', default: 0 },
         errors: { type: 'json', default: [] },
         lastError: { type: 'string', required: false },
         enqueuedAt: { type: 'dateTime', required: false },
+        jobCreatedAt: { type: 'dateTime', required: false },
         scheduledAt: { type: 'dateTime', required: false },
         startedAt: { type: 'dateTime', required: false },
         finishedAt: { type: 'dateTime', required: false },

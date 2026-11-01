@@ -3,14 +3,23 @@ jest.mock('bullmq', () => {
 
   class Queue extends EventEmitter {
     static instances: Queue[] = [];
+    // The timestamps stored in Redis, by job key
+    stored = new Map<string, string>();
     add = jest.fn(async (name: string, data: any, opts: any) => ({
-      id: '1',
+      id: opts.jobId ?? '1',
       name,
       data,
-      opts
+      opts,
+      timestamp: 2000
     }));
-    addBulk = jest.fn(async (jobs: any[]) => jobs);
+    addBulk = jest.fn(async (jobs: any[]) =>
+      jobs.map((job) => ({ ...job, id: job.opts.jobId, timestamp: 2000 }))
+    );
     close = jest.fn(async () => {});
+    client = Promise.resolve({
+      hget: jest.fn(async (key: string) => this.stored.get(key) ?? null)
+    });
+    toKey = (id: string) => `bull:${this.name}:${id}`;
 
     constructor(
       public name: string,
@@ -37,7 +46,17 @@ jest.mock('bullmq', () => {
     }
   }
 
-  return { Queue, Worker };
+  const Job = {
+    fromId: jest.fn(async (queue: any, id: string) => ({
+      id,
+      name: 'existing',
+      data: { existing: true },
+      opts: {},
+      timestamp: Number(queue.stored.get(queue.toKey(id)))
+    }))
+  };
+
+  return { Job, Queue, Worker };
 });
 
 import { EventEmitter } from 'node:events';
@@ -171,6 +190,59 @@ describe('bull-queue', () => {
       );
     });
 
+    test('returns the added job of a new job id', async () => {
+      const processor = queue.get('emails');
+      queues()[0].stored.set('bull:emails:r-1', '2000');
+
+      const job = await processor.sendJob({ to: 'a' }, 'report', {
+        jobId: 'r-1'
+      });
+
+      expect(job).toMatchObject({ id: 'r-1', data: { to: 'a' } });
+    });
+
+    test('returns the added job when the queue lost the existing one', async () => {
+      const processor = queue.get('emails');
+      queues()[0].stored.set('bull:emails:r-1', '1000');
+      const { Job } = jest.requireMock('bullmq');
+      Job.fromId.mockResolvedValueOnce(undefined);
+
+      const job = await processor.sendJob({ to: 'a' }, 'report', {
+        jobId: 'r-1'
+      });
+
+      expect(job).toMatchObject({ data: { to: 'a' }, timestamp: 2000 });
+    });
+
+    test('returns the job already in the queue under a given job id', async () => {
+      const processor = queue.get('emails');
+      queues()[0].stored.set('bull:emails:r-1', '1000');
+
+      const job = await processor.sendJob({ to: 'a' }, 'report', {
+        jobId: 'r-1'
+      });
+
+      expect(job).toMatchObject({
+        id: 'r-1',
+        data: { existing: true },
+        timestamp: 1000
+      });
+      expect(processor.jobInfo(job as any).createdAt).toBe(1000);
+    });
+
+    test('returns the jobs already in the queue among the bulk jobs', async () => {
+      const processor = queue.get('emails');
+      queues()[0].stored.set('bull:emails:b', '1000');
+
+      const jobs = await processor.sendBulkJobs([
+        { data: 1, options: { jobId: 'a' } },
+        { data: 2, options: { jobId: 'b' } },
+        { data: 3 }
+      ]);
+
+      expect(jobs.map((job: any) => job.timestamp)).toEqual([2000, 1000, 2000]);
+    });
+
     test('waits for a connection being established', async () => {
       connection.status = 'connecting';
       const sent = queue.get('emails').sendJob({});
@@ -200,7 +272,11 @@ describe('bull-queue', () => {
         opts: { attempts: 3 }
       } as any);
 
-      expect(info).toEqual({ attempt: 2, maxAttempts: 3 });
+      expect(info).toEqual({
+        attempt: 2,
+        maxAttempts: 3,
+        createdAt: undefined
+      });
     });
 
     test('falls back to the attempts made and a single attempt', () => {
@@ -210,7 +286,11 @@ describe('bull-queue', () => {
         opts: {}
       } as any);
 
-      expect(info).toEqual({ attempt: 1, maxAttempts: 1 });
+      expect(info).toEqual({
+        attempt: 1,
+        maxAttempts: 1,
+        createdAt: undefined
+      });
     });
   });
 

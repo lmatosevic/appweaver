@@ -156,9 +156,37 @@ describe('database-queue-history', () => {
           state: 'running',
           attempt: 2,
           startedAt: started.startedAt,
+          finishedAt: null,
           attemptedBy: 'worker:2',
           maxAttempts: 3
         }
+      });
+    });
+
+    test('finds the record of a job by its creation time', async () => {
+      db.setResult('QueueJobRecord', 'findFirst', { id: 'record-1' });
+      const createdAt = new Date('2026-10-31T12:00:00.500Z');
+
+      await history.recordStarted({ ...started, createdAt });
+
+      expect(db.lastQuery('findFirst').args.where).toEqual({
+        queue: 'payments',
+        jobId: 'job-1',
+        OR: [
+          { jobCreatedAt: createdAt },
+          {
+            jobCreatedAt: null,
+            state: {
+              in: ['pending', 'scheduled', 'running', 'retrying', 'stalled']
+            },
+            OR: [{ enqueuedAt: null }, { enqueuedAt: { lte: createdAt } }]
+          }
+        ]
+      });
+      expect(db.lastQuery('update').args.data).toMatchObject({
+        state: 'running',
+        finishedAt: null,
+        jobCreatedAt: createdAt
       });
     });
 
@@ -181,6 +209,37 @@ describe('database-queue-history', () => {
         data: { orderId: 'o-1' }
       });
       expect(data).not.toHaveProperty('maxAttempts');
+    });
+  });
+
+  describe('recordIgnored', () => {
+    test('deletes the record of the send and counts it on the job', async () => {
+      db.setResult('QueueJobRecord', 'findFirst', { id: 'record-1' });
+
+      const createdAt = new Date('2026-10-31T12:00:00Z');
+
+      await history.recordIgnored('payments', 'job-1', createdAt, 'record-2');
+
+      expect(db.lastQuery('deleteMany').args).toEqual({
+        where: { id: 'record-2' }
+      });
+      expect(db.lastQuery('findFirst').args.where).toMatchObject({
+        queue: 'payments',
+        jobId: 'job-1',
+        OR: [{ jobCreatedAt: createdAt }, expect.any(Object)]
+      });
+      expect(db.lastQuery('update').args).toEqual({
+        where: { id: 'record-1' },
+        data: { duplicates: { increment: 1 } }
+      });
+    });
+
+    test('counts a send made without a record', async () => {
+      db.setResult('QueueJobRecord', 'findFirst', null);
+
+      await history.recordIgnored('payments', 'job-1', new Date());
+
+      expect(db.queries.map((query) => query.method)).toEqual(['findFirst']);
     });
   });
 

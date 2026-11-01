@@ -23,7 +23,10 @@ const unfinishedStates: QueueJobState[] = [
 /** A worker recording the first attempt of a sent job before it, within this time of the sending, completes it. */
 const SENT_MERGE_WINDOW_MS = 5000;
 
-/** Stores the queue history in the `_queue_jobs` table, one record per sent job. */
+/**
+ * Stores the queue history in the `_queue_jobs` table, one record per job: its retries, a retry by hand and the
+ * ignored sends of its id update it, and a send of its id the queue takes as a new job gets a new record.
+ */
 export class DatabaseQueueHistory extends QueueHistory {
   /** @internal */
   private readonly _db = inject<PrismaDatabase>(Database as any);
@@ -78,12 +81,36 @@ export class DatabaseQueueHistory extends QueueHistory {
     return ids;
   }
 
+  public async recordIgnored(
+    queue: string,
+    jobId: string,
+    createdAt: Date,
+    id?: string
+  ): Promise<void> {
+    if (id) {
+      await this.records().deleteMany({ where: { id } });
+    }
+    const record = await this.records().findFirst({
+      where: { queue, jobId, ...jobRecordOf(createdAt) },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true }
+    });
+    if (record) {
+      await this.records().update({
+        where: { id: record.id },
+        data: { duplicates: { increment: 1 } }
+      });
+    }
+  }
+
   public async recordStarted(job: QueueJobStarted): Promise<string> {
     const attempt = {
       state: 'running',
       attempt: job.attempt,
       startedAt: job.startedAt,
+      finishedAt: null,
       attemptedBy: job.instance,
+      ...(job.createdAt ? { jobCreatedAt: job.createdAt } : {}),
       ...(job.maxAttempts === undefined ? {} : { maxAttempts: job.maxAttempts })
     };
 
@@ -91,7 +118,9 @@ export class DatabaseQueueHistory extends QueueHistory {
       where: {
         queue: job.queue,
         jobId: job.jobId,
-        state: { in: unfinishedStates }
+        ...(job.createdAt
+          ? jobRecordOf(job.createdAt)
+          : { state: { in: unfinishedStates } })
       },
       orderBy: { createdAt: 'desc' },
       select: { id: true }
@@ -173,6 +202,24 @@ export class DatabaseQueueHistory extends QueueHistory {
   private records(): any {
     return this._db.client<any>().queueJobRecord;
   }
+}
+
+/**
+ * The records a job created at a time may have: the one it started before, a retry by hand reopening it, or an
+ * unfinished one of its id sent before it, so neither a later send of its id nor an earlier job of the same id is
+ * taken for it.
+ */
+function jobRecordOf(createdAt: Date) {
+  return {
+    OR: [
+      { jobCreatedAt: createdAt },
+      {
+        jobCreatedAt: null,
+        state: { in: unfinishedStates },
+        OR: [{ enqueuedAt: null }, { enqueuedAt: { lte: createdAt } }]
+      }
+    ]
+  };
 }
 
 /** The fields of a sent job, without its state. */

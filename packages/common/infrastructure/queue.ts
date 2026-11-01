@@ -43,6 +43,9 @@ export type QueueJobInfo = {
   attempt?: number;
   /** The number of attempts the job has, the first one included. */
   maxAttempts?: number;
+  /** When the queue created the job, in milliseconds since the epoch, which tells a job from an earlier one with the
+   * same id. */
+  createdAt?: number;
 };
 
 /** The options of a worker, the same for every queue. */
@@ -96,7 +99,8 @@ export abstract class QueueProcessor<
   Worker = any
 > {
   /**
-   * Sends a single job to the queue.
+   * Sends a single job to the queue. A job id still in the queue (waiting, delayed, running, or a finished job the
+   * queue keeps) ignores the send and returns the existing job.
    *
    * @param {Object} data - The job payload.
    * @param {name} name - Optional job name.
@@ -269,8 +273,9 @@ export abstract class QueueProcessor<
   abstract close(): Promise<void>;
 
   /**
-   * Returns the attempt a worker processes and the number of attempts of a job, which the queue history records. A
-   * driver that does not override it reports neither, so its every failure is recorded as final.
+   * Returns the attempt a worker processes, the number of attempts and the creation time of a job, which the queue
+   * history records. A driver that does not override it reports none, so its every failure is recorded as final and
+   * an ignored send of a job id is recorded as a new job.
    *
    * @param {Object} _job - The job, as the driver gives it to its workers.
    * @return {QueueJobInfo} The attempts of the job.

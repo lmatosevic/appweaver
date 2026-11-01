@@ -56,6 +56,8 @@ export type QueueJobStarted = {
   instance: string;
   driver?: string;
   maxAttempts?: number;
+  /** When the queue created the job, which finds its record among the ones of the same job id. */
+  createdAt?: Date;
   /** The payload, stored when no record of the sent job exists. */
   data?: unknown;
 };
@@ -101,7 +103,25 @@ export abstract class QueueHistory {
   ): Promise<string[]>;
 
   /**
-   * Records the start of an attempt, on the latest unfinished record of the job, or a new one when it has none.
+   * Records a send the queue ignored, since a job with its id was still in the queue: deletes the record of the send,
+   * when one was made, and counts it in the `duplicates` of the record of the job in the queue.
+   *
+   * @param {string} queue - The queue name.
+   * @param {string} jobId - The id of the job.
+   * @param {Date} createdAt - When the queue created the job in it, which finds its record.
+   * @param {string} [id] - The record made for the send, returned by {@link recordSent}.
+   */
+  abstract recordIgnored(
+    queue: string,
+    jobId: string,
+    createdAt: Date,
+    id?: string
+  ): Promise<void>;
+
+  /**
+   * Records the start of an attempt on the record of its job: with the creation time of the job, the latest record
+   * sent before it, reopened when it is finished (a job retried by hand), otherwise the latest unfinished one, or a new
+   * record when the job has none.
    *
    * @param {QueueJobStarted} job - The started attempt.
    * @return {Promise<string>} The id of the record.

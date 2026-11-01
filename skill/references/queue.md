@@ -65,7 +65,8 @@ Obtained via `queue.get(name)`.
 
 #### `processor.sendJob(data, name?, options?)`
 
-Enqueues a single job. Returns the created `QueueJob`.
+Enqueues a single job. Returns the created `QueueJob`. A `jobId` still in the queue (waiting, delayed, running, or a
+finished job the queue keeps) ignores the send and returns the existing job, with every driver.
 
 | Parameter | Type              | Description                  |
 |-----------|-------------------|------------------------------|
@@ -173,8 +174,9 @@ type QueueJob<Data, Response> = {
 };
 ```
 
-`processor.jobInfo(job)` returns the attempt a worker processes (the first one is `1`) and the number of attempts of a
-job, `{ attempt, maxAttempts }`, the same for every driver. A driver that does not override it returns `{}`.
+`processor.jobInfo(job)` returns the attempt a worker processes (the first one is `1`), the number of attempts and the
+creation time of a job in milliseconds, `{ attempt, maxAttempts, createdAt }`, the same for every driver. A driver that
+does not override it returns `{}`.
 
 ---
 
@@ -190,8 +192,20 @@ it needs `weaver generate` and `weaver migration new add_queue_history`.
 
 Core wraps the `Queue` of the selected driver (a decorator of its manifest), so every driver is recorded the same way,
 and the `database` provider of `QueueHistory` (`@appweaver/data`) stores the records. A job sent without a `jobId`
-gets a generated UUID, and every send gets a record of its own, with its own UUIDv7 `id`, so a custom `jobId` sent again
-(a deduplication key, a re-run) adds a new record.
+gets a generated UUID.
+
+A record is one job as the queue sees it, with its own UUIDv7 `id`, like the job table of River:
+
+| The same `jobId`                                         | Queue                                        | History                                       |
+|----------------------------------------------------------|----------------------------------------------|-----------------------------------------------|
+| Retried after a failed attempt                           | The same job, its next attempt               | Its record, `attempt` and `errors` grow       |
+| Sent while its job is still in the queue (waiting, delayed, running, or failed and kept by `QUEUE_KEEP_FAILED_COUNT`) | Ignores the send, returns the existing job | No new record, `duplicates` of the job's record grows |
+| Sent after its job left the queue (`QUEUE_KEEP_COMPLETED_COUNT=0` removes the completed ones) | A new job | A new record, the earlier one kept          |
+| Retried by hand (`job.retry()` of BullMQ)                | The same job                                 | Its record reopened (`running`)               |
+
+The queue tells a job from an earlier one of its id by its creation time, `jobInfo(job).createdAt`, stored as
+`jobCreatedAt` once a worker starts it, so a send in the same millisecond as the job it repeats is recorded as a new
+job. A driver without `createdAt` records every send as a new job.
 
 | State       | When                                                                     |
 |-------------|--------------------------------------------------------------------------|
@@ -208,9 +222,10 @@ gets a generated UUID, and every send gets a record of its own, with its own UUI
 | `id`                                       | The UUIDv7 of the record                                                               |
 | `queue`, `jobId`, `name`, `driver`         | The queue, the id and name of the job, the provider (`bullmq`, `memory`)               |
 | `state`, `attempt`, `maxAttempts`          | The state and the last attempt                                                         |
+| `duplicates`                               | The sends of its `jobId` the queue ignored while the job was in it                     |
 | `data`, `result`, `metadata`, `options`    | The payload, the result, the `metadata` option and the job options (`delay`, `attempts`, `backoff`, `priority`) |
 | `errors`, `lastError`                      | Every failed attempt, `{ attempt, at, message, name, code, stack }`, and the last message |
-| `enqueuedAt`, `scheduledAt`, `startedAt`, `finishedAt`, `durationMs` | The timing of the job and of its last attempt                |
+| `enqueuedAt`, `jobCreatedAt`, `scheduledAt`, `startedAt`, `finishedAt`, `durationMs` | The sending, the creation in the queue, the timing of the last attempt |
 | `enqueuedBy`, `attemptedBy`                | The processes (`<hostname>:<pid>`) sending the job and running its last attempt        |
 | `userId`, `authType`, `authSource`, `apiKeyId` | The user sending the job, from the request or `runAs`                              |
 | `parentId`                                 | The record of the job whose worker sent this one                                       |

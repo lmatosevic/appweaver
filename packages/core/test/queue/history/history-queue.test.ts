@@ -24,6 +24,9 @@ import { resetContext } from '../../fixtures/context-fixture';
 
 const logger = createLogger('queue');
 
+// A send is told from the job it repeats by the millisecond the job was created
+const nextMillisecond = () => new Promise((resolve) => setTimeout(resolve, 2));
+
 /** Waits until the condition holds or the timeout elapses. */
 const waitFor = async (
   condition: () => boolean,
@@ -46,6 +49,12 @@ class FakeHistory extends QueueHistory {
   public readonly started: QueueJobStarted[] = [];
   public readonly finished: { id: string; outcome: QueueJobFinished }[] = [];
   public readonly stalled: string[] = [];
+  public readonly ignored: {
+    queue: string;
+    jobId: string;
+    createdAt: Date;
+    id?: string;
+  }[] = [];
   public inTransaction = false;
   private _ids = 0;
 
@@ -72,6 +81,16 @@ class FakeHistory extends QueueHistory {
   ): Promise<void> {
     this.calls.push(outcome.state);
     this.finished.push({ id, outcome });
+  }
+
+  public async recordIgnored(
+    queue: string,
+    jobId: string,
+    createdAt: Date,
+    id?: string
+  ): Promise<void> {
+    this.calls.push('ignored');
+    this.ignored.push({ queue, jobId, createdAt, id });
   }
 
   public async recordStalled(queue: string, jobId: string): Promise<void> {
@@ -328,6 +347,81 @@ describe('history-queue', () => {
     });
   });
 
+  describe('ignored sends', () => {
+    test('counts a send of a job id still in the queue on its record', async () => {
+      const processor = queue.get('jobs');
+      await processor.sendJob({ n: 1 }, 'a', { jobId: 'j-1', delay: 50 });
+      await nextMillisecond();
+
+      const job = await processor.sendJob({ n: 2 }, 'a', { jobId: 'j-1' });
+
+      expect(job.data).toEqual({ n: 1 });
+      await waitFor(() => history.ignored.length === 1);
+      expect(history.ignored).toEqual([
+        {
+          queue: 'jobs',
+          jobId: 'j-1',
+          createdAt: new Date((job as any).createdAt),
+          id: 'record-2'
+        }
+      ]);
+    });
+
+    test('records a new job for a job id the queue takes again', async () => {
+      const memory = inner.get('jobs');
+      await queue.get('jobs').sendJob({ n: 1 }, 'a', { jobId: 'j-1' });
+      jest
+        .spyOn(memory, 'jobInfo')
+        .mockReturnValue({ createdAt: Date.now() + 1000 });
+
+      await queue.get('jobs').sendJob({ n: 2 }, 'a', { jobId: 'j-1' });
+
+      expect(history.sent).toHaveLength(2);
+      expect(history.ignored).toHaveLength(0);
+    });
+
+    test('records the ignored sends of a transaction without a record', async () => {
+      const transaction: TransactionContext = {
+        tx: {},
+        commitCallbacks: new Map(),
+        rollbackCallbacks: []
+      };
+      await queue.get('jobs').sendJob({}, 'a', { jobId: 'j-1', delay: 50 });
+      await nextMillisecond();
+
+      await runInTransaction(transaction, () =>
+        queue.get('jobs').sendBulkJobs([
+          { data: {}, options: { jobId: 'j-1' } },
+          { data: {}, options: { jobId: 'j-2' } }
+        ])
+      );
+      await settleTransaction(transaction, true);
+
+      expect(history.sent[1].jobs.map((job) => job.jobId)).toEqual(['j-2']);
+      expect(history.ignored).toEqual([
+        { queue: 'jobs', jobId: 'j-1', createdAt: expect.any(Date) }
+      ]);
+    });
+
+    test('records only the ignored sends of a transaction sending no new job', async () => {
+      const transaction: TransactionContext = {
+        tx: {},
+        commitCallbacks: new Map(),
+        rollbackCallbacks: []
+      };
+      await queue.get('jobs').sendJob({}, 'a', { jobId: 'j-1', delay: 50 });
+      await nextMillisecond();
+
+      await runInTransaction(transaction, () =>
+        queue.get('jobs').sendJob({}, 'a', { jobId: 'j-1' })
+      );
+      await settleTransaction(transaction, true);
+
+      expect(history.sent).toHaveLength(1);
+      expect(history.ignored).toHaveLength(1);
+    });
+  });
+
   describe('sendBulkJobs', () => {
     test('records every job, then sends them', async () => {
       const jobs = await queue.get('jobs').sendBulkJobs([
@@ -360,6 +454,7 @@ describe('history-queue', () => {
         name: 'double',
         attempt: 1,
         maxAttempts: 3,
+        createdAt: expect.any(Date),
         data: { value: 21 }
       });
       expect(history.finished[0]).toMatchObject({
