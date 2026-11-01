@@ -268,6 +268,16 @@ describe('auth', () => {
       expect((await getMe({ 'x-api-key': 'valid' })).statusCode).toBe(200);
     });
 
+    test('rejects an API key on a route of JWT only, i.e. the API key routes', async () => {
+      configOverrides.SECURITY_API_KEY_ENABLED = true;
+      await startServer([AuthType.Jwt]);
+
+      expect((await getMe({ 'x-api-key': 'valid' })).statusCode).toBe(401);
+      expect((await getMe({ authorization: 'Bearer valid' })).statusCode).toBe(
+        200
+      );
+    });
+
     test('rejects a listed type that is disabled', async () => {
       await startServer([AuthType.ApiKey]);
 

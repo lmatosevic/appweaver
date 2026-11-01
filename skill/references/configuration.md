@@ -529,6 +529,7 @@ ready. The listener stays off beside the server of `@appweaver/web`, which answe
 | `SECURITY_API_KEY_HEADER_NAME`         | string   | `'x-api-key'` | Request header name for the API key.               |
 | `SECURITY_API_KEY_MAX_DURATION`        | integer? | -             | Maximum API key validity duration in milliseconds. |
 | `SECURITY_API_KEY_DELIMITER`           | string   | `'AK'`        | Prefix delimiter between key ID and secret value.  |
+| `SECURITY_API_KEY_ROUTES_ENABLED`      | boolean  | `true`        | Register the built-in `/api-keys` routes (JWT only), off to expose your own. |
 
 #### JWT (JSON Web Tokens)
 
