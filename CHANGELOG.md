@@ -1,3 +1,9 @@
+## [2.4.1](https://github.com/lmatosevic/appweaver/compare/v2.4.0...v2.4.1) (2026-11-01)
+
+### Bug Fixes
+
+* client no longer sends id in body of update request ([7d0ce1d](https://github.com/lmatosevic/appweaver/commit/7d0ce1d605b81359d722df022fb77195402463dc))
+
 ## [2.4.0](https://github.com/lmatosevic/appweaver/compare/v2.3.0...v2.4.0) (2026-11-01)
 
 ### Features
