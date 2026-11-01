@@ -347,7 +347,7 @@ A type-safe HTTP client generator and runtime library for consuming Appweaver-co
 - **Code generator** — reads an OpenAPI v3 schema (JSON or YAML, from a file or URL) and emits typed TypeScript
   interfaces and a client class tailored to the API's resources, auth, account, health, and file routes.
 - **Runtime library** — provides `FetchClient` and a set of module clients (`ResourceClient`, `AuthClient`,
-  `AccountClient`, `HealthClient`, `FilesClient`) that wrap `openapi-fetch` with built-in authentication strategies (JWT
+  `AccountClient`, `TwoFactorClient`, `HealthClient`, `FilesClient`) that wrap `openapi-fetch` with built-in authentication strategies (JWT
   Bearer, API key, HTTP Basic), timeout handling, and middleware support.
 
 The package exposes a `weaver-client` CLI binary. See **Section 6** for the full command reference.
@@ -569,7 +569,7 @@ the `ResourceRegistry` of `@appweaver/common`, so the factories and `injectServi
 name, and without any model the file holds only `export {};`. On SQLite a `json` default is written as the quoted SQL
 literal `@default(dbgenerated("'{}'"))`, since the migrations of Prisma write a plain JSON default unquoted. The models
 come from the project and from the `resources` of the enabled modules. The framework models are left out unless used:
-`Role`, `Permission`, `ApiKey`, `OneTimeToken` and `ConnectedAccount` without an auth model, `File` without a model
+`Role`, `Permission`, `ApiKey`, `OneTimeToken`, `ConnectedAccount` and `TwoFactorMethod` without an auth model, `File` without a model
 declaring `files`, `Seeder` without a seeders directory (`data/resource/utils/prune-util.ts`). The `npm run generate` of
 `packages/data` passes `--types --prisma-schema`, `--no-registry` and `--no-prune`, since the registry and the config belong to the
 application and data keeps every model.
@@ -919,13 +919,14 @@ const users = await client.user.query({ filter: { enabled: true } });
 
 **Generated module clients and their operations:**
 
-| Client           | Key operations                                                                                                                                                         |
-|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `ResourceClient` | `find`, `query`, `aggregate`, `create`, `update`, `replace`, `delete`, `export`, `uploadFiles`, `deleteFiles`, `bulkCreate`, `bulkUpdate`, `bulkReplace`, `bulkDelete` |
-| `AuthClient`     | `login`, `logout`, `refresh`, `changePassword`, `exchangeToken`, `me`                                                                                                  |
-| `AccountClient`  | `sendVerifyEmail`, `verifyEmail`, `verifyEmailRedirect`, `sendResetPassword`, `resetPassword`, `send2FACode`, `verify2FACode`                                          |
-| `HealthClient`   | `check`, `ready`                                                                                                                                                       |
-| `FilesClient`    | `public`, `protected`                                                                                                                                                  |
+| Client            | Key operations                                                                                                                                                         |
+|-------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `ResourceClient`  | `find`, `query`, `aggregate`, `create`, `update`, `replace`, `delete`, `export`, `uploadFiles`, `deleteFiles`, `bulkCreate`, `bulkUpdate`, `bulkReplace`, `bulkDelete` |
+| `AuthClient`      | `login`, `logout`, `refresh`, `changePassword`, `exchangeToken`, `me`                                                                                                  |
+| `AccountClient`   | `sendVerifyEmail`, `verifyEmail`, `verifyEmailRedirect`, `sendResetPassword`, `resetPassword`, `sendVerifyPhone`, `verifyPhone`                                        |
+| `TwoFactorClient` | `challenge`, `verify`, `listMethods`, `enableMethod`, `orderMethods`, `disableMethod`, `setupTotp`, `confirmTotp`                                                      |
+| `HealthClient`    | `check`, `ready`                                                                                                                                                       |
+| `FilesClient`     | `public`, `protected`                                                                                                                                                  |
 
 ---
 
