@@ -5,15 +5,15 @@
     "": {
       "name": "sample-movies-api-bun",
       "dependencies": {
-        "@appweaver/cli": "^2.3.0",
-        "@appweaver/client": "^2.3.0",
-        "@appweaver/common": "^2.3.0",
-        "@appweaver/core": "^2.3.0",
-        "@appweaver/cron": "^2.3.0",
-        "@appweaver/data": "^2.3.0",
-        "@appweaver/handlebars": "^2.3.0",
-        "@appweaver/sharp": "^2.3.0",
-        "@appweaver/web": "^2.3.0",
+        "@appweaver/cli": "^2.4.0",
+        "@appweaver/client": "^2.4.0",
+        "@appweaver/common": "^2.4.0",
+        "@appweaver/core": "^2.4.0",
+        "@appweaver/cron": "^2.4.0",
+        "@appweaver/data": "^2.4.0",
+        "@appweaver/handlebars": "^2.4.0",
+        "@appweaver/sharp": "^2.4.0",
+        "@appweaver/web": "^2.4.0",
         "@prisma/adapter-libsql": "7.9.1",
         "@prisma/client": "7.9.1",
         "@sinclair/typebox": "0.34.49",
@@ -40,25 +40,25 @@
     "prisma",
   ],
   "packages": {
-    "@appweaver/cli": ["@appweaver/cli@2.3.0", "", { "dependencies": { "@appweaver/create": "2.3.0", "@sinclair/typebox": "0.34.49", "@sinclair/typebox-codegen": "0.11.1", "commander": "15.0.0", "fkill": "10.0.3", "glob": "13.0.6", "prettier": "3.8.4", "rimraf": "6.1.3", "ts-node": "10.9.2", "tsc-alias": "1.8.17", "tsc-watch": "7.2.0" }, "peerDependencies": { "@appweaver/common": "^2.3.0", "@appweaver/core": "^2.3.0", "@appweaver/data": "^2.3.0", "@appweaver/web": "^2.3.0", "prisma": "^7.9.0", "typescript": "^5.9.0" }, "optionalPeers": ["@appweaver/data", "@appweaver/web", "prisma"], "bin": { "weaver": "weaver.js" } }, "sha512-ytCFKkem6UiaBDpinOTnl2UWTodKlLRdYj1uQTGnhYjxSqkqEQr+h/1hIEk4wigj4L8j4csIRueLOr1B4bi/wQ=="],
+    "@appweaver/cli": ["@appweaver/cli@2.4.0", "", { "dependencies": { "@appweaver/create": "2.4.0", "@sinclair/typebox": "0.34.49", "@sinclair/typebox-codegen": "0.11.1", "commander": "15.0.0", "fkill": "10.0.3", "glob": "13.0.6", "prettier": "3.8.4", "rimraf": "6.1.3", "ts-node": "10.9.2", "tsc-alias": "1.8.17", "tsc-watch": "7.2.0" }, "peerDependencies": { "@appweaver/common": "^2.4.0", "@appweaver/core": "^2.4.0", "@appweaver/data": "^2.4.0", "@appweaver/web": "^2.4.0", "prisma": "^7.9.0", "typescript": "^5.9.0" }, "optionalPeers": ["@appweaver/data", "@appweaver/web", "prisma"], "bin": { "weaver": "weaver.js" } }, "sha512-3cp+H8xCA+CZr1Cdy6NzgFoKZmLjtvMOCuBKQJxfhdSiLk/9mgrMdVXYxrrpjydJl2ZsyIs7oO+0lmhxLgcS4w=="],
 
-    "@appweaver/client": ["@appweaver/client@2.3.0", "", { "dependencies": { "commander": "15.0.0", "js-yaml": "5.2.3", "openapi-fetch": "0.17.0", "openapi-typescript": "7.13.0", "openapi-typescript-helpers": "0.1.0", "prettier": "3.8.4", "typescript": "5.9.3" }, "peerDependencies": { "rxjs": "^7.8.0" }, "optionalPeers": ["rxjs"], "bin": { "weaver-client": "cjs/weaver-client.js" } }, "sha512-e9U0nLQQEu0w7kbw7pmkZRpeXSD8YMEO6uRLZSIPNJ4TIc2VrelmrTzIDi3oyemR14x+vV9vw7/rMzJUkuBFQg=="],
+    "@appweaver/client": ["@appweaver/client@2.4.0", "", { "dependencies": { "commander": "15.0.0", "js-yaml": "5.2.3", "openapi-fetch": "0.17.0", "openapi-typescript": "7.13.0", "openapi-typescript-helpers": "0.1.0", "prettier": "3.8.4", "typescript": "5.9.3" }, "peerDependencies": { "rxjs": "^7.8.0" }, "optionalPeers": ["rxjs"], "bin": { "weaver-client": "cjs/weaver-client.js" } }, "sha512-u3SQBo97XgEw4SMT4YQWPXk7YqYRB0t8XjlWmKC827mk4MVSq25vtdkbWtOK4LAfYYeuAtsbUAt9xWG2rvgBLQ=="],
 
-    "@appweaver/common": ["@appweaver/common@2.3.0", "", { "dependencies": { "@sinclair/typebox": "0.34.49", "dotenv": "17.4.2", "dotenv-expand": "13.0.0", "generate-api-key": "1.0.2", "glob": "13.0.6", "pino": "10.3.1", "pino-pretty": "13.1.3", "pluralize": "8.0.0", "rotating-file-stream": "3.2.9" } }, "sha512-QdlhUyTYOawlC0sM19t2MBjxXVrGO6MlmCgxmfGYhPEk5EBhbFZyBISFTybukNM9hd2u8HifMB278ynOLKo3OQ=="],
+    "@appweaver/common": ["@appweaver/common@2.4.0", "", { "dependencies": { "@sinclair/typebox": "0.34.49", "dotenv": "17.4.2", "dotenv-expand": "13.0.0", "generate-api-key": "1.0.2", "glob": "13.0.6", "pino": "10.3.1", "pino-pretty": "13.1.3", "pluralize": "8.0.0", "rotating-file-stream": "3.2.9" } }, "sha512-fj1txijt+2yVZcc9QzpHzco4rLgciIbffzS8L+f8XGhW9bUy0eyiy5PyjGK/PfPQD89QQfjzs22ntx0S9MwYkg=="],
 
-    "@appweaver/core": ["@appweaver/core@2.3.0", "", { "dependencies": { "@sinclair/typebox": "0.34.49", "flatted": "3.4.2" }, "peerDependencies": { "@appweaver/common": "^2.3.0" } }, "sha512-xTtDcVUKRRCIdYQxC/SgHUUNik5bEhn+wgHxJQ+FM810QMo3KXCXusq6O0G35gS4zRju0w+UkP/UAviWcaAVWw=="],
+    "@appweaver/core": ["@appweaver/core@2.4.0", "", { "dependencies": { "@sinclair/typebox": "0.34.49", "flatted": "3.4.2" }, "peerDependencies": { "@appweaver/common": "^2.4.0" } }, "sha512-bgXydakwVlDUuRWCDD6996Ao+YhjypqrhLIgPEpVt+yucQPhgK8UjLAmwyhuU0xsVzxBjvbq5xWX6NXRk7QOrg=="],
 
-    "@appweaver/create": ["@appweaver/create@2.3.0", "", { "dependencies": { "commander": "15.0.0", "yaml": "2.9.0" }, "bin": { "create-appweaver": "create.js" } }, "sha512-G5UGbYtpnmPZY2T5hCNjOpvc8YcHKA0MmZvX1Zu/dLg7xQz6XK4ezHeAEUjmE+ZmScgl0q4BJzGbMvmMqhfOyw=="],
+    "@appweaver/create": ["@appweaver/create@2.4.0", "", { "dependencies": { "commander": "15.0.0", "yaml": "2.9.0" }, "bin": { "create-appweaver": "create.js" } }, "sha512-vVYK2sbrlHQprbqw/w3g4pn3mD8Z0PyQSQ6/Mz3p72TjTscgbxzVVhMVSREvQn5cthIH0y2kYMmL5JTqbeBULA=="],
 
-    "@appweaver/cron": ["@appweaver/cron@2.3.0", "", { "dependencies": { "cron": "4.4.0" }, "peerDependencies": { "@appweaver/common": "^2.3.0", "@appweaver/core": "^2.3.0" } }, "sha512-NoMxpkTGkLCGiUCHScc/ePWx/XQPD1MINf/bmUFDpdUAGAW9sd3v6q0uGFrY4n5t0/IqyJ+cRIao+db0gConjQ=="],
+    "@appweaver/cron": ["@appweaver/cron@2.4.0", "", { "dependencies": { "cron": "4.4.0" }, "peerDependencies": { "@appweaver/common": "^2.4.0", "@appweaver/core": "^2.4.0" } }, "sha512-kgoGTIOKbuE1g0SLpppHIS3NlWJlFoMnt98q6l8/txMXN4nHK+Rnf/W9GCj3WhnZI73e4KfqKEMcIVMOBsio1g=="],
 
-    "@appweaver/data": ["@appweaver/data@2.3.0", "", { "dependencies": { "@sinclair/typebox": "0.34.49", "csv-stringify": "6.8.0" }, "peerDependencies": { "@appweaver/common": "^2.3.0", "@appweaver/core": "^2.3.0", "@prisma/client": "^7.9.0" } }, "sha512-ZI/0gYnIu+LtpLqDMUHCcMXVYmfi78vAE665Q8wMYQXbT9UD9MF8JCNilmLhY3yZ5UEaE5s8YN8kjf1pT0emNA=="],
+    "@appweaver/data": ["@appweaver/data@2.4.0", "", { "dependencies": { "@sinclair/typebox": "0.34.49", "csv-stringify": "6.8.0" }, "peerDependencies": { "@appweaver/common": "^2.4.0", "@appweaver/core": "^2.4.0", "@prisma/client": "^7.9.0" } }, "sha512-ijNrgJQ2QOh5o7x0MKdbQqE6FrbZtE7N5UHtLhRejj+O3mbMWCjUXg2g8//qIQtw3pLL5H1JdtwPuy+VIvzXdg=="],
 
-    "@appweaver/handlebars": ["@appweaver/handlebars@2.3.0", "", { "dependencies": { "handlebars": "4.7.10" }, "peerDependencies": { "@appweaver/common": "^2.3.0", "@appweaver/core": "^2.3.0" } }, "sha512-7LA+qt/fd9+GwCQzJotYCfD9E5w7lB9gTm13esBJZs9P7IsU1057SmMUyE7mrT8S7zgQ/SOLH/0DDWBghw7yyw=="],
+    "@appweaver/handlebars": ["@appweaver/handlebars@2.4.0", "", { "dependencies": { "handlebars": "4.7.10" }, "peerDependencies": { "@appweaver/common": "^2.4.0", "@appweaver/core": "^2.4.0" } }, "sha512-2OsA+pSlPll16gqRYwXJ6LPAMW1r74meEvxiAJAqJsEJyizrNszIh3W9Prlx+fP4K91qVbdY90uSBy3FppffdA=="],
 
-    "@appweaver/sharp": ["@appweaver/sharp@2.3.0", "", { "dependencies": { "sharp": "0.35.5" }, "peerDependencies": { "@appweaver/common": "^2.3.0", "@appweaver/core": "^2.3.0" } }, "sha512-lWuAtSR41ej1jeJRMOU1WnLLvaUvM2e9CiLBO7G+pKMXGt+GVzIgBcoRvD0u8Zf7G9UGkdOccFEC+X8FcSIwPw=="],
+    "@appweaver/sharp": ["@appweaver/sharp@2.4.0", "", { "dependencies": { "sharp": "0.35.5" }, "peerDependencies": { "@appweaver/common": "^2.4.0", "@appweaver/core": "^2.4.0" } }, "sha512-AoPcwQ3r6QejOiMD+ARxF9+lPBJvkqkQxQ7ACEV1HyVq55p0H21SON7mjnnJSECFS/rpcdN9Qi/dbtOhJYExfw=="],
 
-    "@appweaver/web": ["@appweaver/web@2.3.0", "", { "dependencies": { "@fastify/ajv-compiler": "4.0.5", "@fastify/auth": "5.1.1", "@fastify/basic-auth": "6.3.0", "@fastify/cors": "11.3.0", "@fastify/fast-json-stringify-compiler": "5.0.3", "@fastify/helmet": "13.1.1", "@fastify/jwt": "10.2.5", "@fastify/multipart": "10.1.2", "@fastify/oauth2": "8.3.2", "@fastify/rate-limit": "11.2.0", "@fastify/request-context": "7.0.0", "@fastify/static": "10.1.5", "@fastify/swagger": "9.9.1", "@fastify/swagger-ui": "6.1.1", "@fastify/type-provider-typebox": "6.1.0", "@sinclair/typebox": "0.34.49", "fastify": "5.12.7", "fastify-plugin": "6.0.0" }, "peerDependencies": { "@appweaver/common": "^2.3.0", "@appweaver/core": "^2.3.0", "@appweaver/data": "^2.3.0" } }, "sha512-e0+88Mxgoyp5uHNzrILJKJ6cku8IBztjdUbtqv3HpUw38N1s5G0ejnF56yx5nwZz6kbJwzjGjrRTS2Ah2Y/HEw=="],
+    "@appweaver/web": ["@appweaver/web@2.4.0", "", { "dependencies": { "@fastify/ajv-compiler": "4.0.5", "@fastify/auth": "5.1.1", "@fastify/basic-auth": "6.3.0", "@fastify/cors": "11.3.0", "@fastify/fast-json-stringify-compiler": "5.0.3", "@fastify/helmet": "13.1.1", "@fastify/jwt": "10.2.5", "@fastify/multipart": "10.1.2", "@fastify/oauth2": "8.3.2", "@fastify/rate-limit": "11.2.0", "@fastify/request-context": "7.0.0", "@fastify/static": "10.1.5", "@fastify/swagger": "9.9.1", "@fastify/swagger-ui": "6.1.1", "@fastify/type-provider-typebox": "6.1.0", "@sinclair/typebox": "0.34.49", "fastify": "5.12.7", "fastify-plugin": "6.0.0" }, "peerDependencies": { "@appweaver/common": "^2.4.0", "@appweaver/core": "^2.4.0", "@appweaver/data": "^2.4.0" } }, "sha512-1NAVUqp+vOUdmEaDUjN4OnSshqg8hXu20stZxOLLd5Zw+KF/aOs8qpEnZk+eiYiSdfuP7pb5oD+9p3Y/l2ct5g=="],
 
     "@babel/code-frame": ["@babel/code-frame@7.29.7", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.29.7", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw=="],
 

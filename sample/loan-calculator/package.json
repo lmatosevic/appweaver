@@ -17,9 +17,9 @@
     "lint": "eslint \"./**/*.ts\""
   },
   "dependencies": {
-    "@appweaver/cli": "^2.3.0",
-    "@appweaver/common": "^2.3.0",
-    "@appweaver/core": "^2.3.0",
+    "@appweaver/cli": "^2.4.0",
+    "@appweaver/common": "^2.4.0",
+    "@appweaver/core": "^2.4.0",
     "@sinclair/typebox": "0.34.49"
   },
   "devDependencies": {
