@@ -191,10 +191,10 @@ type QueueJob<Data, Response> = {
 
 ### Keeping the finished jobs
 
-BullMQ keeps the finished jobs of each queue in Redis by the `QUEUE_KEEP_*` keys, with a count and an age together
-(i.e. `keepCompletedCount: 5000` and `keepCompletedSeconds: 2592000` keep at most 5000 jobs of the last 30 days),
+BullMQ keeps the finished jobs of each queue in Redis by the `QUEUE_KEEP_*` keys, with a count and an age together (i.e.
+`keepCompletedCount: 5000` and `keepCompletedSeconds: 2592000` keep at most 5000 jobs of the last 30 days),
 which a dashboard such as Bull Board shows. The memory queue removes them right away. The queue keeps no audit trail:
-a worker records what its work needs in the database itself.
+a worker needs to record what it works on and the results in the database itself.
 
 **Use `MemoryQueue` in the tests:**
 
