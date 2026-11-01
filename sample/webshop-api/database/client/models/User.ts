@@ -314,6 +314,7 @@ export type UserWhereInput = {
   roles?: Prisma.RoleListRelationFilter
   apiKeys?: Prisma.ApiKeyListRelationFilter
   twoFactorMethods?: Prisma.TwoFactorMethodListRelationFilter
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeListRelationFilter
   createdAddresses?: Prisma.AddressListRelationFilter
   createdBrands?: Prisma.BrandListRelationFilter
   createdCategories?: Prisma.CategoryListRelationFilter
@@ -354,6 +355,7 @@ export type UserOrderByWithRelationInput = {
   roles?: Prisma.RoleOrderByRelationAggregateInput
   apiKeys?: Prisma.ApiKeyOrderByRelationAggregateInput
   twoFactorMethods?: Prisma.TwoFactorMethodOrderByRelationAggregateInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeOrderByRelationAggregateInput
   createdAddresses?: Prisma.AddressOrderByRelationAggregateInput
   createdBrands?: Prisma.BrandOrderByRelationAggregateInput
   createdCategories?: Prisma.CategoryOrderByRelationAggregateInput
@@ -397,6 +399,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   roles?: Prisma.RoleListRelationFilter
   apiKeys?: Prisma.ApiKeyListRelationFilter
   twoFactorMethods?: Prisma.TwoFactorMethodListRelationFilter
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeListRelationFilter
   createdAddresses?: Prisma.AddressListRelationFilter
   createdBrands?: Prisma.BrandListRelationFilter
   createdCategories?: Prisma.CategoryListRelationFilter
@@ -481,6 +484,7 @@ export type UserCreateInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -521,6 +525,7 @@ export type UserUncheckedCreateInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -558,6 +563,7 @@ export type UserUpdateInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -598,6 +604,7 @@ export type UserUncheckedUpdateInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1032,6 +1039,20 @@ export type UserUpdateOneRequiredWithoutTwoFactorMethodsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTwoFactorMethodsInput, Prisma.UserUpdateWithoutTwoFactorMethodsInput>, Prisma.UserUncheckedUpdateWithoutTwoFactorMethodsInput>
 }
 
+export type UserCreateNestedOneWithoutTwoFactorRecoveryCodesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTwoFactorRecoveryCodesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutTwoFactorRecoveryCodesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTwoFactorRecoveryCodesInput
+  upsert?: Prisma.UserUpsertWithoutTwoFactorRecoveryCodesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTwoFactorRecoveryCodesInput, Prisma.UserUpdateWithoutTwoFactorRecoveryCodesInput>, Prisma.UserUncheckedUpdateWithoutTwoFactorRecoveryCodesInput>
+}
+
 export type UserCreateNestedManyWithoutRolesInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutRolesInput, Prisma.UserUncheckedCreateWithoutRolesInput> | Prisma.UserCreateWithoutRolesInput[] | Prisma.UserUncheckedCreateWithoutRolesInput[]
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutRolesInput | Prisma.UserCreateOrConnectWithoutRolesInput[]
@@ -1154,6 +1175,7 @@ export type UserCreateWithoutAddressesInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -1193,6 +1215,7 @@ export type UserUncheckedCreateWithoutAddressesInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1235,6 +1258,7 @@ export type UserCreateWithoutCreatedAddressesInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
   createdCoupons?: Prisma.CouponCreateNestedManyWithoutCreatedByInput
@@ -1274,6 +1298,7 @@ export type UserUncheckedCreateWithoutCreatedAddressesInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdCoupons?: Prisma.CouponUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1325,6 +1350,7 @@ export type UserUpdateWithoutAddressesInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -1364,6 +1390,7 @@ export type UserUncheckedUpdateWithoutAddressesInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1412,6 +1439,7 @@ export type UserUpdateWithoutCreatedAddressesInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
   createdCoupons?: Prisma.CouponUpdateManyWithoutCreatedByNestedInput
@@ -1451,6 +1479,7 @@ export type UserUncheckedUpdateWithoutCreatedAddressesInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCoupons?: Prisma.CouponUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1487,6 +1516,7 @@ export type UserCreateWithoutCreatedBrandsInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
   createdCoupons?: Prisma.CouponCreateNestedManyWithoutCreatedByInput
@@ -1526,6 +1556,7 @@ export type UserUncheckedCreateWithoutCreatedBrandsInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdCoupons?: Prisma.CouponUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1578,6 +1609,7 @@ export type UserUpdateWithoutCreatedBrandsInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
   createdCoupons?: Prisma.CouponUpdateManyWithoutCreatedByNestedInput
@@ -1617,6 +1649,7 @@ export type UserUncheckedUpdateWithoutCreatedBrandsInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCoupons?: Prisma.CouponUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1653,6 +1686,7 @@ export type UserCreateWithoutCreatedCategoriesInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCoupons?: Prisma.CouponCreateNestedManyWithoutCreatedByInput
@@ -1692,6 +1726,7 @@ export type UserUncheckedCreateWithoutCreatedCategoriesInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCoupons?: Prisma.CouponUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1744,6 +1779,7 @@ export type UserUpdateWithoutCreatedCategoriesInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCoupons?: Prisma.CouponUpdateManyWithoutCreatedByNestedInput
@@ -1783,6 +1819,7 @@ export type UserUncheckedUpdateWithoutCreatedCategoriesInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCoupons?: Prisma.CouponUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1819,6 +1856,7 @@ export type UserCreateWithoutCreatedCouponsInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -1858,6 +1896,7 @@ export type UserUncheckedCreateWithoutCreatedCouponsInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1910,6 +1949,7 @@ export type UserUpdateWithoutCreatedCouponsInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -1949,6 +1989,7 @@ export type UserUncheckedUpdateWithoutCreatedCouponsInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1985,6 +2026,7 @@ export type UserCreateWithoutCreatedOrderItemsInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -2024,6 +2066,7 @@ export type UserUncheckedCreateWithoutCreatedOrderItemsInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2076,6 +2119,7 @@ export type UserUpdateWithoutCreatedOrderItemsInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -2115,6 +2159,7 @@ export type UserUncheckedUpdateWithoutCreatedOrderItemsInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2150,6 +2195,7 @@ export type UserCreateWithoutOrdersInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -2189,6 +2235,7 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2231,6 +2278,7 @@ export type UserCreateWithoutCreatedOrdersInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -2270,6 +2318,7 @@ export type UserUncheckedCreateWithoutCreatedOrdersInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2321,6 +2370,7 @@ export type UserUpdateWithoutOrdersInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -2360,6 +2410,7 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2408,6 +2459,7 @@ export type UserUpdateWithoutCreatedOrdersInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -2447,6 +2499,7 @@ export type UserUncheckedUpdateWithoutCreatedOrdersInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2483,6 +2536,7 @@ export type UserCreateWithoutCreatedProductsInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -2522,6 +2576,7 @@ export type UserUncheckedCreateWithoutCreatedProductsInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2574,6 +2629,7 @@ export type UserUpdateWithoutCreatedProductsInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -2613,6 +2669,7 @@ export type UserUncheckedUpdateWithoutCreatedProductsInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2648,6 +2705,7 @@ export type UserCreateWithoutReviewsInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -2687,6 +2745,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2729,6 +2788,7 @@ export type UserCreateWithoutCreatedReviewsInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -2768,6 +2828,7 @@ export type UserUncheckedCreateWithoutCreatedReviewsInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2819,6 +2880,7 @@ export type UserUpdateWithoutReviewsInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -2858,6 +2920,7 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2906,6 +2969,7 @@ export type UserUpdateWithoutCreatedReviewsInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -2945,6 +3009,7 @@ export type UserUncheckedUpdateWithoutCreatedReviewsInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2981,6 +3046,7 @@ export type UserCreateWithoutCreatedByInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -3019,6 +3085,7 @@ export type UserUncheckedCreateWithoutCreatedByInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3066,6 +3133,7 @@ export type UserCreateWithoutCreatedUsersInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -3105,6 +3173,7 @@ export type UserUncheckedCreateWithoutCreatedUsersInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3195,6 +3264,7 @@ export type UserUpdateWithoutCreatedUsersInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -3234,6 +3304,7 @@ export type UserUncheckedUpdateWithoutCreatedUsersInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3269,6 +3340,7 @@ export type UserCreateWithoutApiKeysInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -3308,6 +3380,7 @@ export type UserUncheckedCreateWithoutApiKeysInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3350,6 +3423,7 @@ export type UserCreateWithoutCreatedApiKeysInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -3389,6 +3463,7 @@ export type UserUncheckedCreateWithoutCreatedApiKeysInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3440,6 +3515,7 @@ export type UserUpdateWithoutApiKeysInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -3479,6 +3555,7 @@ export type UserUncheckedUpdateWithoutApiKeysInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3527,6 +3604,7 @@ export type UserUpdateWithoutCreatedApiKeysInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -3566,6 +3644,7 @@ export type UserUncheckedUpdateWithoutCreatedApiKeysInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3601,6 +3680,7 @@ export type UserCreateWithoutTwoFactorMethodsInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -3640,6 +3720,7 @@ export type UserUncheckedCreateWithoutTwoFactorMethodsInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3692,6 +3773,7 @@ export type UserUpdateWithoutTwoFactorMethodsInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -3731,6 +3813,177 @@ export type UserUncheckedUpdateWithoutTwoFactorMethodsInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+  createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdCoupons?: Prisma.CouponUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdOrderItems?: Prisma.OrderItemUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdOrders?: Prisma.OrderUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdProducts?: Prisma.ProductUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdReviews?: Prisma.ReviewUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
+}
+
+export type UserCreateWithoutTwoFactorRecoveryCodesInput = {
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string | null
+  marketingOptIn?: boolean
+  language?: string
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  addresses?: Prisma.AddressCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
+  createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
+  createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
+  createdCoupons?: Prisma.CouponCreateNestedManyWithoutCreatedByInput
+  createdOrderItems?: Prisma.OrderItemCreateNestedManyWithoutCreatedByInput
+  createdOrders?: Prisma.OrderCreateNestedManyWithoutCreatedByInput
+  createdProducts?: Prisma.ProductCreateNestedManyWithoutCreatedByInput
+  createdReviews?: Prisma.ReviewCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
+}
+
+export type UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput = {
+  id?: number
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string | null
+  marketingOptIn?: boolean
+  language?: string
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  addresses?: Prisma.AddressUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
+  createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
+  createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
+  createdCoupons?: Prisma.CouponUncheckedCreateNestedManyWithoutCreatedByInput
+  createdOrderItems?: Prisma.OrderItemUncheckedCreateNestedManyWithoutCreatedByInput
+  createdOrders?: Prisma.OrderUncheckedCreateNestedManyWithoutCreatedByInput
+  createdProducts?: Prisma.ProductUncheckedCreateNestedManyWithoutCreatedByInput
+  createdReviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
+}
+
+export type UserCreateOrConnectWithoutTwoFactorRecoveryCodesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
+}
+
+export type UserUpsertWithoutTwoFactorRecoveryCodesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedUpdateWithoutTwoFactorRecoveryCodesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutTwoFactorRecoveryCodesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedUpdateWithoutTwoFactorRecoveryCodesInput>
+}
+
+export type UserUpdateWithoutTwoFactorRecoveryCodesInput = {
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  marketingOptIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  addresses?: Prisma.AddressUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
+  createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
+  createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
+  createdCoupons?: Prisma.CouponUpdateManyWithoutCreatedByNestedInput
+  createdOrderItems?: Prisma.OrderItemUpdateManyWithoutCreatedByNestedInput
+  createdOrders?: Prisma.OrderUpdateManyWithoutCreatedByNestedInput
+  createdProducts?: Prisma.ProductUpdateManyWithoutCreatedByNestedInput
+  createdReviews?: Prisma.ReviewUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutTwoFactorRecoveryCodesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  marketingOptIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  addresses?: Prisma.AddressUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3767,6 +4020,7 @@ export type UserCreateWithoutRolesInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -3806,6 +4060,7 @@ export type UserUncheckedCreateWithoutRolesInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3848,6 +4103,7 @@ export type UserCreateWithoutCreatedRolesInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -3887,6 +4143,7 @@ export type UserUncheckedCreateWithoutCreatedRolesInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3955,6 +4212,7 @@ export type UserUpdateWithoutCreatedRolesInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -3994,6 +4252,7 @@ export type UserUncheckedUpdateWithoutCreatedRolesInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4030,6 +4289,7 @@ export type UserCreateWithoutCreatedPermissionsInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -4069,6 +4329,7 @@ export type UserUncheckedCreateWithoutCreatedPermissionsInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -4121,6 +4382,7 @@ export type UserUpdateWithoutCreatedPermissionsInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -4160,6 +4422,7 @@ export type UserUncheckedUpdateWithoutCreatedPermissionsInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4196,6 +4459,7 @@ export type UserCreateWithoutCreatedFilesInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -4235,6 +4499,7 @@ export type UserUncheckedCreateWithoutCreatedFilesInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -4276,6 +4541,7 @@ export type UserCreateWithoutDeletedFilesInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -4315,6 +4581,7 @@ export type UserUncheckedCreateWithoutDeletedFilesInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdAddresses?: Prisma.AddressUncheckedCreateNestedManyWithoutCreatedByInput
   createdBrands?: Prisma.BrandUncheckedCreateNestedManyWithoutCreatedByInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
@@ -4367,6 +4634,7 @@ export type UserUpdateWithoutCreatedFilesInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -4406,6 +4674,7 @@ export type UserUncheckedUpdateWithoutCreatedFilesInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4453,6 +4722,7 @@ export type UserUpdateWithoutDeletedFilesInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -4492,6 +4762,7 @@ export type UserUncheckedUpdateWithoutDeletedFilesInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4546,6 +4817,7 @@ export type UserUpdateWithoutCreatedByInput = {
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -4584,6 +4856,7 @@ export type UserUncheckedUpdateWithoutCreatedByInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4638,6 +4911,7 @@ export type UserUpdateWithoutRolesInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -4677,6 +4951,7 @@ export type UserUncheckedUpdateWithoutRolesInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdAddresses?: Prisma.AddressUncheckedUpdateManyWithoutCreatedByNestedInput
   createdBrands?: Prisma.BrandUncheckedUpdateManyWithoutCreatedByNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4724,6 +4999,7 @@ export type UserCountOutputType = {
   roles: number
   apiKeys: number
   twoFactorMethods: number
+  twoFactorRecoveryCodes: number
   createdAddresses: number
   createdBrands: number
   createdCategories: number
@@ -4747,6 +5023,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   roles?: boolean | UserCountOutputTypeCountRolesArgs
   apiKeys?: boolean | UserCountOutputTypeCountApiKeysArgs
   twoFactorMethods?: boolean | UserCountOutputTypeCountTwoFactorMethodsArgs
+  twoFactorRecoveryCodes?: boolean | UserCountOutputTypeCountTwoFactorRecoveryCodesArgs
   createdAddresses?: boolean | UserCountOutputTypeCountCreatedAddressesArgs
   createdBrands?: boolean | UserCountOutputTypeCountCreatedBrandsArgs
   createdCategories?: boolean | UserCountOutputTypeCountCreatedCategoriesArgs
@@ -4813,6 +5090,13 @@ export type UserCountOutputTypeCountApiKeysArgs<ExtArgs extends runtime.Types.Ex
  */
 export type UserCountOutputTypeCountTwoFactorMethodsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.TwoFactorMethodWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountTwoFactorRecoveryCodesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TwoFactorRecoveryCodeWhereInput
 }
 
 /**
@@ -4937,6 +5221,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   roles?: boolean | Prisma.User$rolesArgs<ExtArgs>
   apiKeys?: boolean | Prisma.User$apiKeysArgs<ExtArgs>
   twoFactorMethods?: boolean | Prisma.User$twoFactorMethodsArgs<ExtArgs>
+  twoFactorRecoveryCodes?: boolean | Prisma.User$twoFactorRecoveryCodesArgs<ExtArgs>
   createdAddresses?: boolean | Prisma.User$createdAddressesArgs<ExtArgs>
   createdBrands?: boolean | Prisma.User$createdBrandsArgs<ExtArgs>
   createdCategories?: boolean | Prisma.User$createdCategoriesArgs<ExtArgs>
@@ -5022,6 +5307,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   roles?: boolean | Prisma.User$rolesArgs<ExtArgs>
   apiKeys?: boolean | Prisma.User$apiKeysArgs<ExtArgs>
   twoFactorMethods?: boolean | Prisma.User$twoFactorMethodsArgs<ExtArgs>
+  twoFactorRecoveryCodes?: boolean | Prisma.User$twoFactorRecoveryCodesArgs<ExtArgs>
   createdAddresses?: boolean | Prisma.User$createdAddressesArgs<ExtArgs>
   createdBrands?: boolean | Prisma.User$createdBrandsArgs<ExtArgs>
   createdCategories?: boolean | Prisma.User$createdCategoriesArgs<ExtArgs>
@@ -5058,6 +5344,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     roles: Prisma.$RolePayload<ExtArgs>[]
     apiKeys: Prisma.$ApiKeyPayload<ExtArgs>[]
     twoFactorMethods: Prisma.$TwoFactorMethodPayload<ExtArgs>[]
+    twoFactorRecoveryCodes: Prisma.$TwoFactorRecoveryCodePayload<ExtArgs>[]
     /**
      * Ownership models referenced with createdById column
      */
@@ -5500,6 +5787,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   roles<T extends Prisma.User$rolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$rolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   apiKeys<T extends Prisma.User$apiKeysArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$apiKeysArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   twoFactorMethods<T extends Prisma.User$twoFactorMethodsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$twoFactorMethodsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TwoFactorMethodPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  twoFactorRecoveryCodes<T extends Prisma.User$twoFactorRecoveryCodesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$twoFactorRecoveryCodesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TwoFactorRecoveryCodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdAddresses<T extends Prisma.User$createdAddressesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdAddressesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AddressPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdBrands<T extends Prisma.User$createdBrandsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdBrandsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdCategories<T extends Prisma.User$createdCategoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdCategoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -6102,6 +6390,30 @@ export type User$twoFactorMethodsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.TwoFactorMethodScalarFieldEnum | Prisma.TwoFactorMethodScalarFieldEnum[]
+}
+
+/**
+ * User.twoFactorRecoveryCodes
+ */
+export type User$twoFactorRecoveryCodesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TwoFactorRecoveryCode
+   */
+  select?: Prisma.TwoFactorRecoveryCodeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TwoFactorRecoveryCode
+   */
+  omit?: Prisma.TwoFactorRecoveryCodeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TwoFactorRecoveryCodeInclude<ExtArgs> | null
+  where?: Prisma.TwoFactorRecoveryCodeWhereInput
+  orderBy?: Prisma.TwoFactorRecoveryCodeOrderByWithRelationInput | Prisma.TwoFactorRecoveryCodeOrderByWithRelationInput[]
+  cursor?: Prisma.TwoFactorRecoveryCodeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TwoFactorRecoveryCodeScalarFieldEnum | Prisma.TwoFactorRecoveryCodeScalarFieldEnum[]
 }
 
 /**

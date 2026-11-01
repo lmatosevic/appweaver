@@ -153,4 +153,21 @@ export class TwoFactorClient<TwoFactor extends TwoFactorType>
       body: request
     });
   }
+
+  /**
+   * Generates the recovery codes of the signed-in user, replacing the ones they had. The codes are returned only once.
+   *
+   * @param {Object} request - The password of the user, required when the user has one.
+   * @param {RequestOptions} options - Additional request options.
+   * @return The new recovery codes.
+   */
+  public async generateRecoveryCodes(
+    request: TwoFactor['recoveryCodesRequest'] = {},
+    options: RequestOptions = {}
+  ): Promise<TwoFactor['recoveryCodesResponse']> {
+    return this.sendRequest('post', `${this.basePath}/recovery-codes`, {
+      ...options,
+      body: request
+    });
+  }
 }

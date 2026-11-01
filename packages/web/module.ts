@@ -18,6 +18,7 @@ import {
   securityConfig,
   turnstileConfig,
   apiKeyRoutesConfig,
+  recoveryCodesConfig,
   totpConfig,
   twoFactorConfig
 } from './security/security-config';
@@ -43,6 +44,7 @@ export default defineModule({
     accountConfig,
     twoFactorConfig,
     totpConfig,
+    recoveryCodesConfig,
     recaptchaConfig,
     turnstileConfig,
     apiKeyRoutesConfig,

@@ -300,6 +300,7 @@ export type UserWhereInput = {
   watchlist?: Prisma.WatchlistEntryListRelationFilter
   roles?: Prisma.RoleListRelationFilter
   twoFactorMethods?: Prisma.TwoFactorMethodListRelationFilter
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeListRelationFilter
   avatar?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   createdCredits?: Prisma.CreditListRelationFilter
   createdGenres?: Prisma.GenreListRelationFilter
@@ -334,6 +335,7 @@ export type UserOrderByWithRelationInput = {
   watchlist?: Prisma.WatchlistEntryOrderByRelationAggregateInput
   roles?: Prisma.RoleOrderByRelationAggregateInput
   twoFactorMethods?: Prisma.TwoFactorMethodOrderByRelationAggregateInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeOrderByRelationAggregateInput
   avatar?: Prisma.FileOrderByWithRelationInput
   createdCredits?: Prisma.CreditOrderByRelationAggregateInput
   createdGenres?: Prisma.GenreOrderByRelationAggregateInput
@@ -371,6 +373,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   watchlist?: Prisma.WatchlistEntryListRelationFilter
   roles?: Prisma.RoleListRelationFilter
   twoFactorMethods?: Prisma.TwoFactorMethodListRelationFilter
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeListRelationFilter
   avatar?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   createdCredits?: Prisma.CreditListRelationFilter
   createdGenres?: Prisma.GenreListRelationFilter
@@ -444,6 +447,7 @@ export type UserCreateInput = {
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -478,6 +482,7 @@ export type UserUncheckedCreateInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -507,6 +512,7 @@ export type UserUpdateInput = {
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -541,6 +547,7 @@ export type UserUncheckedUpdateInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -885,6 +892,20 @@ export type UserUpdateOneRequiredWithoutTwoFactorMethodsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTwoFactorMethodsInput, Prisma.UserUpdateWithoutTwoFactorMethodsInput>, Prisma.UserUncheckedUpdateWithoutTwoFactorMethodsInput>
 }
 
+export type UserCreateNestedOneWithoutTwoFactorRecoveryCodesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTwoFactorRecoveryCodesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutTwoFactorRecoveryCodesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTwoFactorRecoveryCodesInput
+  upsert?: Prisma.UserUpsertWithoutTwoFactorRecoveryCodesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTwoFactorRecoveryCodesInput, Prisma.UserUpdateWithoutTwoFactorRecoveryCodesInput>, Prisma.UserUncheckedUpdateWithoutTwoFactorRecoveryCodesInput>
+}
+
 export type UserCreateNestedManyWithoutRolesInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutRolesInput, Prisma.UserUncheckedCreateWithoutRolesInput> | Prisma.UserCreateWithoutRolesInput[] | Prisma.UserUncheckedCreateWithoutRolesInput[]
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutRolesInput | Prisma.UserCreateOrConnectWithoutRolesInput[]
@@ -1045,6 +1066,7 @@ export type UserCreateWithoutCreatedCreditsInput = {
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieCreateNestedManyWithoutCreatedByInput
@@ -1078,6 +1100,7 @@ export type UserUncheckedCreateWithoutCreatedCreditsInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
   createdPeople?: Prisma.PersonUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1122,6 +1145,7 @@ export type UserUpdateWithoutCreatedCreditsInput = {
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUpdateManyWithoutCreatedByNestedInput
@@ -1155,6 +1179,7 @@ export type UserUncheckedUpdateWithoutCreatedCreditsInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPeople?: Prisma.PersonUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1183,6 +1208,7 @@ export type UserCreateWithoutCreatedGenresInput = {
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieCreateNestedManyWithoutCreatedByInput
@@ -1216,6 +1242,7 @@ export type UserUncheckedCreateWithoutCreatedGenresInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
   createdPeople?: Prisma.PersonUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1260,6 +1287,7 @@ export type UserUpdateWithoutCreatedGenresInput = {
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUpdateManyWithoutCreatedByNestedInput
@@ -1293,6 +1321,7 @@ export type UserUncheckedUpdateWithoutCreatedGenresInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPeople?: Prisma.PersonUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1321,6 +1350,7 @@ export type UserCreateWithoutCreatedMoviesInput = {
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -1354,6 +1384,7 @@ export type UserUncheckedCreateWithoutCreatedMoviesInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdPeople?: Prisma.PersonUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1398,6 +1429,7 @@ export type UserUpdateWithoutCreatedMoviesInput = {
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -1431,6 +1463,7 @@ export type UserUncheckedUpdateWithoutCreatedMoviesInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPeople?: Prisma.PersonUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1459,6 +1492,7 @@ export type UserCreateWithoutCreatedPeopleInput = {
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -1492,6 +1526,7 @@ export type UserUncheckedCreateWithoutCreatedPeopleInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1536,6 +1571,7 @@ export type UserUpdateWithoutCreatedPeopleInput = {
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -1569,6 +1605,7 @@ export type UserUncheckedUpdateWithoutCreatedPeopleInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1596,6 +1633,7 @@ export type UserCreateWithoutReviewsInput = {
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -1629,6 +1667,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1663,6 +1702,7 @@ export type UserCreateWithoutCreatedReviewsInput = {
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -1696,6 +1736,7 @@ export type UserUncheckedCreateWithoutCreatedReviewsInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1739,6 +1780,7 @@ export type UserUpdateWithoutReviewsInput = {
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -1772,6 +1814,7 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1812,6 +1855,7 @@ export type UserUpdateWithoutCreatedReviewsInput = {
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -1845,6 +1889,7 @@ export type UserUncheckedUpdateWithoutCreatedReviewsInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1873,6 +1918,7 @@ export type UserCreateWithoutCreatedByInput = {
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -1905,6 +1951,7 @@ export type UserUncheckedCreateWithoutCreatedByInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1943,6 +1990,7 @@ export type UserCreateWithoutCreatedUsersInput = {
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -1976,6 +2024,7 @@ export type UserUncheckedCreateWithoutCreatedUsersInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2056,6 +2105,7 @@ export type UserUpdateWithoutCreatedUsersInput = {
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -2089,6 +2139,7 @@ export type UserUncheckedUpdateWithoutCreatedUsersInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2116,6 +2167,7 @@ export type UserCreateWithoutWatchlistInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -2149,6 +2201,7 @@ export type UserUncheckedCreateWithoutWatchlistInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2183,6 +2236,7 @@ export type UserCreateWithoutCreatedWatchlistEntriesInput = {
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -2216,6 +2270,7 @@ export type UserUncheckedCreateWithoutCreatedWatchlistEntriesInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2259,6 +2314,7 @@ export type UserUpdateWithoutWatchlistInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -2292,6 +2348,7 @@ export type UserUncheckedUpdateWithoutWatchlistInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2332,6 +2389,7 @@ export type UserUpdateWithoutCreatedWatchlistEntriesInput = {
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -2365,6 +2423,7 @@ export type UserUncheckedUpdateWithoutCreatedWatchlistEntriesInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2392,6 +2451,7 @@ export type UserCreateWithoutTwoFactorMethodsInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -2425,6 +2485,7 @@ export type UserUncheckedCreateWithoutTwoFactorMethodsInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2469,6 +2530,7 @@ export type UserUpdateWithoutTwoFactorMethodsInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -2502,6 +2564,149 @@ export type UserUncheckedUpdateWithoutTwoFactorMethodsInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+  createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPeople?: Prisma.PersonUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdReviews?: Prisma.ReviewUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdWatchlistEntries?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
+}
+
+export type UserCreateWithoutTwoFactorRecoveryCodesInput = {
+  displayName: string
+  email: string
+  bio?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
+  watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
+  roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
+  createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
+  createdMovies?: Prisma.MovieCreateNestedManyWithoutCreatedByInput
+  createdPeople?: Prisma.PersonCreateNestedManyWithoutCreatedByInput
+  createdReviews?: Prisma.ReviewCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdWatchlistEntries?: Prisma.WatchlistEntryCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
+}
+
+export type UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput = {
+  id?: number
+  displayName: string
+  email: string
+  bio?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  avatarId?: number | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
+  watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
+  createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
+  createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPeople?: Prisma.PersonUncheckedCreateNestedManyWithoutCreatedByInput
+  createdReviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdWatchlistEntries?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
+}
+
+export type UserCreateOrConnectWithoutTwoFactorRecoveryCodesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
+}
+
+export type UserUpsertWithoutTwoFactorRecoveryCodesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedUpdateWithoutTwoFactorRecoveryCodesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutTwoFactorRecoveryCodesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedUpdateWithoutTwoFactorRecoveryCodesInput>
+}
+
+export type UserUpdateWithoutTwoFactorRecoveryCodesInput = {
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
+  watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
+  createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
+  createdMovies?: Prisma.MovieUpdateManyWithoutCreatedByNestedInput
+  createdPeople?: Prisma.PersonUpdateManyWithoutCreatedByNestedInput
+  createdReviews?: Prisma.ReviewUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdWatchlistEntries?: Prisma.WatchlistEntryUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutTwoFactorRecoveryCodesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
+  watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2530,6 +2735,7 @@ export type UserCreateWithoutRolesInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -2563,6 +2769,7 @@ export type UserUncheckedCreateWithoutRolesInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2597,6 +2804,7 @@ export type UserCreateWithoutCreatedRolesInput = {
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -2630,6 +2838,7 @@ export type UserUncheckedCreateWithoutCreatedRolesInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2690,6 +2899,7 @@ export type UserUpdateWithoutCreatedRolesInput = {
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -2723,6 +2933,7 @@ export type UserUncheckedUpdateWithoutCreatedRolesInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2751,6 +2962,7 @@ export type UserCreateWithoutCreatedPermissionsInput = {
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -2784,6 +2996,7 @@ export type UserUncheckedCreateWithoutCreatedPermissionsInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2828,6 +3041,7 @@ export type UserUpdateWithoutCreatedPermissionsInput = {
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -2861,6 +3075,7 @@ export type UserUncheckedUpdateWithoutCreatedPermissionsInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2889,6 +3104,7 @@ export type UserCreateWithoutAvatarInput = {
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieCreateNestedManyWithoutCreatedByInput
@@ -2921,6 +3137,7 @@ export type UserUncheckedCreateWithoutAvatarInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2959,6 +3176,7 @@ export type UserCreateWithoutCreatedFilesInput = {
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -2992,6 +3210,7 @@ export type UserUncheckedCreateWithoutCreatedFilesInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3025,6 +3244,7 @@ export type UserCreateWithoutDeletedFilesInput = {
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -3058,6 +3278,7 @@ export type UserUncheckedCreateWithoutDeletedFilesInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3118,6 +3339,7 @@ export type UserUpdateWithoutCreatedFilesInput = {
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -3151,6 +3373,7 @@ export type UserUncheckedUpdateWithoutCreatedFilesInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3190,6 +3413,7 @@ export type UserUpdateWithoutDeletedFilesInput = {
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -3223,6 +3447,7 @@ export type UserUncheckedUpdateWithoutDeletedFilesInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3267,6 +3492,7 @@ export type UserUpdateWithoutCreatedByInput = {
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -3299,6 +3525,7 @@ export type UserUncheckedUpdateWithoutCreatedByInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3343,6 +3570,7 @@ export type UserUpdateWithoutRolesInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -3376,6 +3604,7 @@ export type UserUncheckedUpdateWithoutRolesInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3438,6 +3667,7 @@ export type UserUpdateWithoutAvatarInput = {
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUpdateManyWithoutCreatedByNestedInput
@@ -3470,6 +3700,7 @@ export type UserUncheckedUpdateWithoutAvatarInput = {
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3509,6 +3740,7 @@ export type UserCountOutputType = {
   watchlist: number
   roles: number
   twoFactorMethods: number
+  twoFactorRecoveryCodes: number
   createdCredits: number
   createdGenres: number
   createdMovies: number
@@ -3527,6 +3759,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   watchlist?: boolean | UserCountOutputTypeCountWatchlistArgs
   roles?: boolean | UserCountOutputTypeCountRolesArgs
   twoFactorMethods?: boolean | UserCountOutputTypeCountTwoFactorMethodsArgs
+  twoFactorRecoveryCodes?: boolean | UserCountOutputTypeCountTwoFactorRecoveryCodesArgs
   createdCredits?: boolean | UserCountOutputTypeCountCreatedCreditsArgs
   createdGenres?: boolean | UserCountOutputTypeCountCreatedGenresArgs
   createdMovies?: boolean | UserCountOutputTypeCountCreatedMoviesArgs
@@ -3576,6 +3809,13 @@ export type UserCountOutputTypeCountRolesArgs<ExtArgs extends runtime.Types.Exte
  */
 export type UserCountOutputTypeCountTwoFactorMethodsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.TwoFactorMethodWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountTwoFactorRecoveryCodesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TwoFactorRecoveryCodeWhereInput
 }
 
 /**
@@ -3675,6 +3915,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   watchlist?: boolean | Prisma.User$watchlistArgs<ExtArgs>
   roles?: boolean | Prisma.User$rolesArgs<ExtArgs>
   twoFactorMethods?: boolean | Prisma.User$twoFactorMethodsArgs<ExtArgs>
+  twoFactorRecoveryCodes?: boolean | Prisma.User$twoFactorRecoveryCodesArgs<ExtArgs>
   avatar?: boolean | Prisma.User$avatarArgs<ExtArgs>
   createdCredits?: boolean | Prisma.User$createdCreditsArgs<ExtArgs>
   createdGenres?: boolean | Prisma.User$createdGenresArgs<ExtArgs>
@@ -3752,6 +3993,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   watchlist?: boolean | Prisma.User$watchlistArgs<ExtArgs>
   roles?: boolean | Prisma.User$rolesArgs<ExtArgs>
   twoFactorMethods?: boolean | Prisma.User$twoFactorMethodsArgs<ExtArgs>
+  twoFactorRecoveryCodes?: boolean | Prisma.User$twoFactorRecoveryCodesArgs<ExtArgs>
   avatar?: boolean | Prisma.User$avatarArgs<ExtArgs>
   createdCredits?: boolean | Prisma.User$createdCreditsArgs<ExtArgs>
   createdGenres?: boolean | Prisma.User$createdGenresArgs<ExtArgs>
@@ -3786,6 +4028,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     watchlist: Prisma.$WatchlistEntryPayload<ExtArgs>[]
     roles: Prisma.$RolePayload<ExtArgs>[]
     twoFactorMethods: Prisma.$TwoFactorMethodPayload<ExtArgs>[]
+    twoFactorRecoveryCodes: Prisma.$TwoFactorRecoveryCodePayload<ExtArgs>[]
     /**
      * File columns
      */
@@ -4225,6 +4468,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   watchlist<T extends Prisma.User$watchlistArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$watchlistArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WatchlistEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   roles<T extends Prisma.User$rolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$rolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   twoFactorMethods<T extends Prisma.User$twoFactorMethodsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$twoFactorMethodsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TwoFactorMethodPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  twoFactorRecoveryCodes<T extends Prisma.User$twoFactorRecoveryCodesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$twoFactorRecoveryCodesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TwoFactorRecoveryCodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   avatar<T extends Prisma.User$avatarArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$avatarArgs<ExtArgs>>): Prisma.Prisma__FileClient<runtime.Types.Result.GetResult<Prisma.$FilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   createdCredits<T extends Prisma.User$createdCreditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdCreditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CreditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdGenres<T extends Prisma.User$createdGenresArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdGenresArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GenrePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -4773,6 +5017,30 @@ export type User$twoFactorMethodsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.TwoFactorMethodScalarFieldEnum | Prisma.TwoFactorMethodScalarFieldEnum[]
+}
+
+/**
+ * User.twoFactorRecoveryCodes
+ */
+export type User$twoFactorRecoveryCodesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TwoFactorRecoveryCode
+   */
+  select?: Prisma.TwoFactorRecoveryCodeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TwoFactorRecoveryCode
+   */
+  omit?: Prisma.TwoFactorRecoveryCodeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TwoFactorRecoveryCodeInclude<ExtArgs> | null
+  where?: Prisma.TwoFactorRecoveryCodeWhereInput
+  orderBy?: Prisma.TwoFactorRecoveryCodeOrderByWithRelationInput | Prisma.TwoFactorRecoveryCodeOrderByWithRelationInput[]
+  cursor?: Prisma.TwoFactorRecoveryCodeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TwoFactorRecoveryCodeScalarFieldEnum | Prisma.TwoFactorRecoveryCodeScalarFieldEnum[]
 }
 
 /**

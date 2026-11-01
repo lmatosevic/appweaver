@@ -242,12 +242,13 @@ model User {
   logoutAt       DateTime?
 
   /// Related columns
-  addresses        Address[]         @relation("AddressUserUser")
-  orders           Order[]           @relation("OrderCustomerUser")
-  reviews          Review[]          @relation("ReviewAuthorUser")
-  roles            Role[]            @relation("UserRolesRole")
-  apiKeys          ApiKey[]          @relation("UserApiKeysApiKey")
-  twoFactorMethods TwoFactorMethod[] @relation("UserTwoFactorMethodsTwoFactorMethod")
+  addresses              Address[]               @relation("AddressUserUser")
+  orders                 Order[]                 @relation("OrderCustomerUser")
+  reviews                Review[]                @relation("ReviewAuthorUser")
+  roles                  Role[]                  @relation("UserRolesRole")
+  apiKeys                ApiKey[]                @relation("UserApiKeysApiKey")
+  twoFactorMethods       TwoFactorMethod[]       @relation("UserTwoFactorMethodsTwoFactorMethod")
+  twoFactorRecoveryCodes TwoFactorRecoveryCode[] @relation("UserTwoFactorRecoveryCodesTwoFactorRecoveryCode")
 
   /// Ownership models referenced with createdById column
   createdAddresses   Address[]    @relation("AddressCreatedByUser")
@@ -331,6 +332,21 @@ model TwoFactorMethod {
   createdAt DateTime @default(now())
 
   @@unique([userId, type])
+}
+
+model TwoFactorRecoveryCode {
+  id       Int       @id @default(autoincrement())
+  codeHash String    @unique @db.VarChar(64)
+  usedAt   DateTime?
+
+  /// Related columns
+  user   User @relation("UserTwoFactorRecoveryCodesTwoFactorRecoveryCode", fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  /// Audit columns
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Role {

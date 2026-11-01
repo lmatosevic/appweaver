@@ -3,6 +3,7 @@ import {
   AuthScope,
   AuthSource,
   ResourceId,
+  TwoFactorChallengeMethod,
   TwoFactorMethodType
 } from '@appweaver/common';
 
@@ -36,14 +37,14 @@ export type AuthOTTData = {
 /** The data of a one-time token challenging a user for a code, counting the wrong ones. */
 export type CodeChallengeData = {
   authUserId: ResourceId;
-  /** The hash of the code sent by email or SMS, missing for a code of an authenticator app. */
+  /** The hash of the code sent by email or SMS, missing for a code of an authenticator app or a recovery code. */
   codeHash?: string;
   /** The wrong codes entered so far. */
   attempts?: number;
 };
 
 export type TwoFactorChallengeData = CodeChallengeData & {
-  method: `${TwoFactorMethodType}`;
+  method: TwoFactorChallengeMethod;
   /** The purpose of the one-time token issued when the challenge is passed. */
   purpose: string;
   /** The source the user signed in with, kept by the tokens exchanged after the challenge. */

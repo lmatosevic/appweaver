@@ -55,6 +55,20 @@ export const twoFactorConfig = defineConfig('security.account.2fa', {
   MAX_ATTEMPTS: Type.Integer({ default: 5, minimum: 1 })
 });
 
+export const recoveryCodesConfig = defineConfig(
+  'security.account.2fa.recoveryCodes',
+  {
+    /** Enable the recovery codes, used once each instead of a 2FA code. Default: `true`. */
+    ENABLED: Type.Boolean({ default: true }),
+    /** Number of recovery codes generated at once. Default: `10`. */
+    COUNT: Type.Integer({ default: 10, minimum: 1, maximum: 100 }),
+    /** Characters of a recovery code, shown in groups of four. Default: `16`. */
+    LENGTH: Type.Integer({ default: 16, minimum: 8, maximum: 128 }),
+    /** Email the user when one of their recovery codes is used. Default: `true`. */
+    NOTIFY_ON_USE: Type.Boolean({ default: true })
+  }
+);
+
 export const totpConfig = defineConfig('security.account.2fa.totp', {
   /** Issuer the authenticator apps show the account under. Defaults to the `app.name` config. */
   ISSUER: Type.Optional(Type.String()),

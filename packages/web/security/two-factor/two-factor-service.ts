@@ -11,7 +11,9 @@ import {
   ErrorCode,
   makeHash,
   RequestError,
+  ResourceId,
   SecurityStore,
+  TwoFactorChallengeMethod,
   TwoFactorMethodType,
   uncapitalize
 } from '@appweaver/common';
@@ -25,12 +27,15 @@ import {
 import {
   checkPassword,
   resourceAuthService,
+  runTransaction,
   toDatabaseError,
   TwoFactorMethod,
   TwoFactorMethodResourceService,
+  TwoFactorRecoveryCodeResourceService,
   withoutPolicies
 } from '@appweaver/data';
 import {
+  recoveryCodesConfig,
   securityConfig,
   totpConfig,
   twoFactorConfig
@@ -46,6 +51,11 @@ import {
   matchesCodeHash
 } from './utils/code-util';
 import { effectiveTwoFactorMethods } from './utils/method-util';
+import {
+  generateRecoveryCode,
+  hashRecoveryCode,
+  normalizeRecoveryCode
+} from './utils/recovery-code-util';
 import { generateTotpSecret, totpUri, verifyTotp } from './utils/totp-util';
 
 const logger = createLogger('security');
@@ -56,11 +66,15 @@ const reservedPurposes: string[] = Object.values(AuthOTTPurpose).filter(
   (purpose) => purpose !== AuthOTTPurpose.Authentication
 );
 
+/** The challenge method of the recovery codes, never a method a user enables. */
+const RECOVERY = 'recovery';
+
 export type TwoFactorChallenge = {
   challengeId: string;
   expiresIn: number;
-  method: TwoFactorMethodType;
-  /** The masked email address or phone number the code was sent to, `null` for an authenticator app. */
+  method: TwoFactorChallengeMethod;
+  /** The masked email address or phone number the code was sent to, `null` for an authenticator app or a recovery
+   * code. */
   destination: string | null;
   /** The methods of the user, the first being the default. */
   methods: TwoFactorMethodType[];
@@ -71,6 +85,12 @@ export type TwoFactorMethods = {
   enabled: TwoFactorMethodType[];
   /** The methods the user may enable. */
   available: TwoFactorMethodType[];
+};
+
+export type RecoveryCodes = {
+  /** The codes, shown once, each used once instead of a 2FA code. */
+  codes: string[];
+  generatedAt: Date;
 };
 
 export type TotpSetup = {
@@ -102,6 +122,11 @@ export class TwoFactorService {
   private readonly _methodService = injectService('TwoFactorMethod', false) as
     | TwoFactorMethodResourceService
     | undefined;
+  /** @internal */
+  private readonly _recoveryCodeService = injectService(
+    'TwoFactorRecoveryCode',
+    false
+  ) as TwoFactorRecoveryCodeResourceService | undefined;
 
   /**
    * Returns the methods users may enable: the ones of the `methods` config whose service is available, a mailer for
@@ -143,7 +168,8 @@ export class TwoFactorService {
 
   /**
    * Starts a 2FA challenge of a signed-in user, sending a code by email or SMS, or waiting for the code of the
-   * authenticator app. Without a method, the default one of the user is used.
+   * authenticator app or for one of the recovery codes of the user (the `recovery` method). Without a method, the
+   * default one of the user is used.
    *
    * @param {AuthUser} authUser - The user to challenge.
    * @param {Object} [options] - The `method` to verify with, the `purpose` of the one-time token issued when the
@@ -153,12 +179,13 @@ export class TwoFactorService {
    * @throws {RequestError} `VALIDATION_FAILED` for a purpose reserved to the framework.
    * @throws {AccountError} `ACCOUNT_2FA_METHOD_UNAVAILABLE` for a method this application does not offer,
    * `ACCOUNT_2FA_METHOD_NOT_ENABLED` for one the user has not enabled, `ACCOUNT_PHONE_NOT_VERIFIED` for an SMS code
-   * without a verified phone number.
+   * without a verified phone number, and `ACCOUNT_2FA_METHOD_NOT_ENABLED` for the `recovery` method of a user without
+   * an unused recovery code.
    */
   public async sendChallenge(
     authUser: AuthUser,
     options: {
-      method?: `${TwoFactorMethodType}`;
+      method?: TwoFactorChallengeMethod;
       purpose?: string;
       authSource?: AuthSource;
       locale?: string;
@@ -183,14 +210,17 @@ export class TwoFactorService {
     }
 
     const methods = effectiveTwoFactorMethods(authUser);
-    const method = this.checkMethod(
-      authUser,
-      (options.method ?? methods[0]) as TwoFactorMethodType | undefined
-    );
+    const method: TwoFactorChallengeMethod =
+      options.method === RECOVERY
+        ? await this.checkRecoveryCodes(authUser)
+        : this.checkMethod(
+            authUser,
+            (options.method ?? methods[0]) as TwoFactorMethodType | undefined
+          );
 
     const expiresIn = twoFactorConfig.OTT_TTL;
     const code =
-      method === TwoFactorMethodType.Totp ? undefined : generateCode();
+      method === 'email' || method === 'sms' ? generateCode() : undefined;
 
     const challengeId =
       await this._securityStore.generateOneTimeToken<TwoFactorChallengeData>(
@@ -207,10 +237,10 @@ export class TwoFactorService {
       );
 
     let destination: string | null = null;
-    if (method === TwoFactorMethodType.Email) {
+    if (method === 'email') {
       await this.sendEmailCode(authUser, code!, purpose, options.locale);
       destination = maskEmail(authUser.email);
-    } else if (method === TwoFactorMethodType.Sms) {
+    } else if (method === 'sms') {
       await this.sendSmsCode(authUser.phoneNumber!, code!, options.locale);
       destination = maskPhoneNumber(authUser.phoneNumber!);
     }
@@ -225,7 +255,8 @@ export class TwoFactorService {
 
   /**
    * Verifies the code of a 2FA challenge of the user, issuing the one-time token of its purpose. A wrong code counts
-   * against the `maxAttempts` of the challenge.
+   * against the `maxAttempts` of the challenge. A recovery code is used up, and the user is emailed about it unless
+   * `recoveryCodes.notifyOnUse` is off.
    *
    * @param {AuthUser} authUser - The user the challenge was sent to.
    * @param {string} challengeId - The id of the challenge.
@@ -245,6 +276,7 @@ export class TwoFactorService {
     )
       ? await this.findMethod(authUser, TwoFactorMethodType.Totp)
       : null;
+    const recoveryCodeId = await this.findRecoveryCode(authUser, code);
 
     // Set by the validation, the time step of an accepted TOTP code
     const totp: { step: number | null } = { step: null };
@@ -253,6 +285,9 @@ export class TwoFactorService {
         challengeId,
         AuthOTTPurpose.TwoFAVerification,
         codeChallengeValidator(authUser.id, (challenge) => {
+          if (challenge.method === RECOVERY) {
+            return recoveryCodeId !== null;
+          }
           if (
             (challenge.method as TwoFactorMethodType) !==
             TwoFactorMethodType.Totp
@@ -266,6 +301,10 @@ export class TwoFactorService {
 
     if (totp.step !== null && totpMethod) {
       await this.useTotpStep(totpMethod, totp.step);
+    }
+    if (data.method === RECOVERY && recoveryCodeId !== null) {
+      await this.useRecoveryCode(recoveryCodeId);
+      await this.notifyRecoveryCodeUsed(authUser);
     }
 
     const expiresIn = securityConfig.AUTH_OTT_TTL;
@@ -522,20 +561,7 @@ export class TwoFactorService {
     method: `${TwoFactorMethodType}`,
     password?: string
   ): Promise<TwoFactorMethodType[]> {
-    if (authUser.passwordHash) {
-      if (!password) {
-        throw new AuthError(
-          ErrorCode.AuthPasswordRequired,
-          'The password is required to disable a 2FA method'
-        );
-      }
-      if (!(await checkPassword(password, authUser.passwordHash))) {
-        throw new AuthError(
-          ErrorCode.AuthInvalidCredentials,
-          'Invalid user credentials'
-        );
-      }
-    }
+    await this.confirmPassword(authUser, password);
 
     const row = await this.findMethod(authUser, method);
     if (!row?.confirmedAt) {
@@ -550,7 +576,91 @@ export class TwoFactorService {
 
     logger.debug({ id: authUser.id, method }, '2FA method disabled');
 
-    return this.enabledMethods(authUser);
+    const enabled = await this.enabledMethods(authUser);
+    // The recovery codes only stand in for the methods, so they go with the last one
+    if (enabled.length === 0) {
+      await this.deleteRecoveryCodes(authUser.id);
+    }
+
+    return enabled;
+  }
+
+  /**
+   * Generates the recovery codes of a user, confirmed by the password of a user who has one, replacing the ones they
+   * had. The codes are returned only here, the database keeps their hashes.
+   *
+   * @param {AuthUser} authUser - The user, with a 2FA method.
+   * @param {string} [password] - The password of the user.
+   * @return {Promise<RecoveryCodes>} The `recoveryCodes.count` new codes.
+   * @throws {AuthError} `AUTH_PASSWORD_REQUIRED` without the password of a user who has one, `AUTH_INVALID_CREDENTIALS`
+   * for a wrong one.
+   * @throws {AccountError} `ACCOUNT_2FA_METHOD_UNAVAILABLE` with the recovery codes disabled,
+   * `ACCOUNT_2FA_METHOD_NOT_ENABLED` for a user without a 2FA method.
+   */
+  public async generateRecoveryCodes(
+    authUser: AuthUser,
+    password?: string
+  ): Promise<RecoveryCodes> {
+    const service = this.recoveryCodeService();
+    await this.confirmPassword(authUser, password);
+
+    const methods = effectiveTwoFactorMethods(authUser);
+    if (methods.length === 0) {
+      throw new AccountError(
+        ErrorCode.Account2FAMethodNotEnabled,
+        'The recovery codes need a 2FA method',
+        { method: RECOVERY, enabledMethods: methods }
+      );
+    }
+
+    const codes = Array.from({ length: recoveryCodesConfig.COUNT }, () =>
+      generateRecoveryCode(recoveryCodesConfig.LENGTH)
+    );
+    const foreignKey = this.authForeignKey();
+
+    try {
+      await runTransaction(async () => {
+        await service.client.deleteMany({
+          where: { [foreignKey]: authUser.id }
+        });
+        await service.client.createMany({
+          data: codes.map((code) => ({
+            codeHash: hashRecoveryCode(code),
+            [foreignKey]: authUser.id
+          }))
+        });
+      });
+    } catch (e) {
+      throw toDatabaseError(e);
+    }
+
+    logger.debug({ id: authUser.id }, '2FA recovery codes generated');
+
+    return { codes, generatedAt: new Date() };
+  }
+
+  /**
+   * Removes every 2FA method and recovery code of a user, i.e. by an administrator for a user who lost them all.
+   * Without methods, the user signs in without 2FA, unless it is forced.
+   *
+   * @param {ResourceId} authUserId - The id of the user.
+   * @return {Promise<void>} A promise that resolves once the methods and the codes are removed.
+   */
+  public async resetTwoFactor(authUserId: ResourceId): Promise<void> {
+    const foreignKey = this.authForeignKey();
+    try {
+      await this._methodService?.client.deleteMany({
+        where: { [foreignKey]: authUserId }
+      });
+    } catch (e) {
+      throw toDatabaseError(e);
+    }
+    await this.deleteRecoveryCodes(authUserId);
+
+    const authUser = await this._authService.findById(authUserId);
+    await this._authService.evictCachedUsers(authUser ?? undefined);
+
+    logger.debug({ id: authUserId }, '2FA reset');
   }
 
   /**
@@ -575,6 +685,164 @@ export class TwoFactorService {
     logger.debug({ id: authUser.id }, '2FA SMS method removed');
 
     return true;
+  }
+
+  /**
+   * Checks the password confirming a change of the 2FA of a user who has one.
+   *
+   * @internal
+   */
+  private async confirmPassword(
+    authUser: AuthUser,
+    password?: string
+  ): Promise<void> {
+    if (!authUser.passwordHash) {
+      return;
+    }
+    if (!password) {
+      throw new AuthError(
+        ErrorCode.AuthPasswordRequired,
+        'The password is required to change the 2FA of the user'
+      );
+    }
+    if (!(await checkPassword(password, authUser.passwordHash))) {
+      throw new AuthError(
+        ErrorCode.AuthInvalidCredentials,
+        'Invalid user credentials'
+      );
+    }
+  }
+
+  /**
+   * Checks that a user can be challenged for a recovery code: the codes are enabled, and the user has an unused one.
+   *
+   * @internal
+   */
+  private async checkRecoveryCodes(authUser: AuthUser): Promise<'recovery'> {
+    const service = this.recoveryCodeService();
+
+    let unused: number;
+    try {
+      unused = await service.client.count({
+        where: { [this.authForeignKey()]: authUser.id, usedAt: null }
+      });
+    } catch (e) {
+      throw toDatabaseError(e);
+    }
+
+    if (unused === 0) {
+      throw new AccountError(
+        ErrorCode.Account2FAMethodNotEnabled,
+        'The user has no unused recovery code',
+        {
+          method: RECOVERY,
+          enabledMethods: effectiveTwoFactorMethods(authUser)
+        }
+      );
+    }
+
+    return RECOVERY;
+  }
+
+  /**
+   * Finds the unused recovery code of a user matching an entered code. Only a code of the length of the recovery codes
+   * is looked up, so the other codes of a challenge need no query.
+   *
+   * @internal
+   */
+  private async findRecoveryCode(
+    authUser: AuthUser,
+    code: string
+  ): Promise<ResourceId | null> {
+    const service = this._recoveryCodeService;
+    if (
+      !service ||
+      !recoveryCodesConfig.ENABLED ||
+      normalizeRecoveryCode(code).length !== recoveryCodesConfig.LENGTH
+    ) {
+      return null;
+    }
+
+    try {
+      const row = await service.client.findFirst({
+        where: {
+          [this.authForeignKey()]: authUser.id,
+          codeHash: hashRecoveryCode(code),
+          usedAt: null
+        },
+        select: { id: true }
+      });
+      return row?.id ?? null;
+    } catch (e) {
+      throw toDatabaseError(e);
+    }
+  }
+
+  /**
+   * Marks a recovery code as used, failing when a concurrent verification used it first.
+   *
+   * @internal
+   */
+  private async useRecoveryCode(id: ResourceId): Promise<void> {
+    let count: number;
+    try {
+      ({ count } = await this.recoveryCodeService().client.updateMany({
+        where: { id, usedAt: null },
+        data: { usedAt: new Date() }
+      }));
+    } catch (e) {
+      throw toDatabaseError(e);
+    }
+
+    if (count === 0) {
+      throw new AccountError(
+        ErrorCode.Account2FACodeInvalid,
+        'The code was already used',
+        { attemptsLeft: 0 }
+      );
+    }
+  }
+
+  /**
+   * Emails the user about a used recovery code, without failing the sign-in when the email cannot be sent.
+   *
+   * @internal
+   */
+  private async notifyRecoveryCodeUsed(authUser: AuthUser): Promise<void> {
+    logger.info({ id: authUser.id }, '2FA recovery code used');
+
+    if (!recoveryCodesConfig.NOTIFY_ON_USE || !this._emailService) {
+      return;
+    }
+
+    try {
+      await sendAccountEmail(
+        this._emailService,
+        {
+          to: authUser.email,
+          template: 'emails/recovery-code-used',
+          data: { email: authUser.email }
+        },
+        'emails.recoveryCodeUsed',
+        (t) => [
+          t('emails.recoveryCodeUsed.message'),
+          t('emails.recoveryCodeUsed.advice')
+        ]
+      );
+    } catch (e) {
+      logger.warn({ id: authUser.id, err: e }, 'Recovery code email failed');
+    }
+  }
+
+  /** @internal */
+  private async deleteRecoveryCodes(authUserId: ResourceId): Promise<void> {
+    try {
+      await this._recoveryCodeService?.client.deleteMany({
+        where: { [this.authForeignKey()]: authUserId }
+      });
+    } catch (e) {
+      throw toDatabaseError(e);
+    }
   }
 
   /**
@@ -836,7 +1104,25 @@ export class TwoFactorService {
   }
 
   /** @internal */
+  private recoveryCodeService(): TwoFactorRecoveryCodeResourceService {
+    if (!this._recoveryCodeService || !recoveryCodesConfig.ENABLED) {
+      throw new AccountError(
+        ErrorCode.Account2FAMethodUnavailable,
+        'The recovery codes are not available',
+        { method: RECOVERY, availableMethods: this.availableMethods() }
+      );
+    }
+    return this._recoveryCodeService;
+  }
+
+  /** @internal */
   private authRelation(): string {
     return uncapitalize(this._authUserService.modelName);
+  }
+
+  /** The foreign key column of the auth model, i.e. `userId`.
+   * @internal */
+  private authForeignKey(): string {
+    return `${this.authRelation()}Id`;
   }
 }

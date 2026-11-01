@@ -61,6 +61,14 @@ CREATE TABLE "TwoFactorMethod" (
 );
 
 -- CreateTable
+CREATE TABLE "TwoFactorRecoveryCode" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "codeHash" TEXT NOT NULL,
+    "usedAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
 CREATE TABLE "_seeders" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "checksum" TEXT NOT NULL,
@@ -113,6 +121,9 @@ CREATE UNIQUE INDEX "Permission_name_key" ON "Permission"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "TwoFactorRecoveryCode_codeHash_key" ON "TwoFactorRecoveryCode"("codeHash");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_seeders_seederName_key" ON "_seeders"("seederName");

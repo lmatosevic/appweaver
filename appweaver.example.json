@@ -147,6 +147,12 @@
           "codeLength": 6,
           "maxAttempts": 5,
           "keepDatabaseTable": false,
+          "recoveryCodes": {
+            "enabled": true,
+            "count": 10,
+            "length": 16,
+            "notifyOnUse": true
+          },
           "totp": {
             "issuer": "Appweaver",
             "encryptionKey": "",

@@ -38,9 +38,15 @@ weaver-client generate ./openapi.json --output-path ./src/generated/client.ts
 ```ts
 import { createClient } from './src/generated/client';
 
-const client = createClient({ baseUrl: 'http://localhost:5000', auth: { apiKey: 'myApiKey' } });
+const client = createClient({
+  baseUrl: 'http://localhost:5000',
+  auth: { apiKey: 'myApiKey' }
+});
 
-const posts = await client.post.query({ filter: { published: true }, sort: '-createdAt' });
+const posts = await client.post.query({
+  filter: { published: true },
+  sort: '-createdAt'
+});
 ```
 
 See the [client reference](https://github.com/lmatosevic/appweaver/blob/main/skill/references/client.md) for every generator option and client module.

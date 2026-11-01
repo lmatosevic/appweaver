@@ -61,6 +61,7 @@ export const ModelName = {
   ConnectedAccount: 'ConnectedAccount',
   OneTimeToken: 'OneTimeToken',
   TwoFactorMethod: 'TwoFactorMethod',
+  TwoFactorRecoveryCode: 'TwoFactorRecoveryCode',
   Role: 'Role',
   Permission: 'Permission',
   Seeder: 'Seeder',
@@ -252,6 +253,17 @@ export const TwoFactorMethodScalarFieldEnum = {
 } as const
 
 export type TwoFactorMethodScalarFieldEnum = (typeof TwoFactorMethodScalarFieldEnum)[keyof typeof TwoFactorMethodScalarFieldEnum]
+
+
+export const TwoFactorRecoveryCodeScalarFieldEnum = {
+  id: 'id',
+  codeHash: 'codeHash',
+  usedAt: 'usedAt',
+  userId: 'userId',
+  createdAt: 'createdAt'
+} as const
+
+export type TwoFactorRecoveryCodeScalarFieldEnum = (typeof TwoFactorRecoveryCodeScalarFieldEnum)[keyof typeof TwoFactorRecoveryCodeScalarFieldEnum]
 
 
 export const RoleScalarFieldEnum = {

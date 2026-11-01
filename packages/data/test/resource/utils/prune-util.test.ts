@@ -25,6 +25,7 @@ const withFrameworkModels = (...models: ResourceModel[]) =>
       model('ApiKey'),
       model('OneTimeToken'),
       model('TwoFactorMethod'),
+      model('TwoFactorRecoveryCode'),
       model('File'),
       model('Seeder'),
       ...models
@@ -59,7 +60,8 @@ describe('prune-util', () => {
           'Permission',
           'ApiKey',
           'OneTimeToken',
-          'TwoFactorMethod'
+          'TwoFactorMethod',
+          'TwoFactorRecoveryCode'
         ])
       );
       expect(models).not.toHaveProperty('Role');

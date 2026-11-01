@@ -90,6 +90,15 @@ model TwoFactorMethod {
   createdAt DateTime @default(now())
 }
 
+model TwoFactorRecoveryCode {
+  id       Int       @id @default(autoincrement())
+  codeHash String    @unique
+  usedAt   DateTime?
+
+  /// Audit columns
+  createdAt DateTime @default(now())
+}
+
 model Seeder {
   id         String   @id @default(uuid())
   checksum   String

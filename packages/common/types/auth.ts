@@ -33,3 +33,6 @@ export type Permission = {
   id: ResourceId;
   name: string;
 };
+
+/** The method of a 2FA challenge: a method of the user, or one of their recovery codes. */
+export type TwoFactorChallengeMethod = `${TwoFactorMethodType}` | 'recovery';

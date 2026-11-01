@@ -156,7 +156,8 @@ export const TWO_FACTOR_OPERATIONS = {
   orderMethods: 'put',
   disableMethod: 'delete',
   setupTotp: 'post',
-  confirmTotp: 'post'
+  confirmTotp: 'post',
+  generateRecoveryCodes: 'post'
 } as const;
 
 /** The paths of the two-factor authentication operations whose name is not their path, relative to the 2FA prefix,
@@ -169,7 +170,8 @@ export const TWO_FACTOR_OPERATION_PATHS: Partial<
   orderMethods: 'methods/order',
   disableMethod: 'methods',
   setupTotp: 'totp/setup',
-  confirmTotp: 'totp/confirm'
+  confirmTotp: 'totp/confirm',
+  generateRecoveryCodes: 'recovery-codes'
 };
 
 /** Expected type keys for the two-factor authentication module. */
@@ -183,7 +185,9 @@ export const TWO_FACTOR_TYPES = [
   'orderMethodsRequest',
   'disableMethodRequest',
   'totpSetupResponse',
-  'totpConfirmRequest'
+  'totpConfirmRequest',
+  'recoveryCodesRequest',
+  'recoveryCodesResponse'
 ] as const;
 
 /** Type name used when generating the TypeScript module type for the health module. */

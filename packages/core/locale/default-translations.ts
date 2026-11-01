@@ -26,6 +26,13 @@ export const defaultTranslations: Translations = {
       message: 'Please enter the following code to continue:',
       expires:
         'The code expires in {count, plural, one {# minute} other {# minutes}}.'
+    },
+    recoveryCodeUsed: {
+      subject: 'A recovery code was used',
+      message:
+        'A recovery code was just used to sign in to your account, and cannot be used again.',
+      advice:
+        'If it was not you, change your password and generate new recovery codes.'
     }
   },
   sms: {

@@ -288,11 +288,12 @@ The account routes send their emails from the templates of the application, alwa
 in another locale, call the services directly: `sendEmailVerification` and `sendResetPassword` of `AccountService` take
 the locale as their last argument, `sendChallenge` of `TwoFactorService` as its `locale` option. The framework ships no templates of its own:
 
-| Template                 | Data                                           |
-|--------------------------|------------------------------------------------|
-| `emails/verify-email`    | `email`, `link`                                |
-| `emails/password-reset`  | `email`, `link`                                |
-| `emails/two-factor-code` | `email`, `code`, `purpose`, `expiresInMinutes` |
+| Template                    | Data                                           |
+|-----------------------------|------------------------------------------------|
+| `emails/verify-email`       | `email`, `link`                                |
+| `emails/password-reset`     | `email`, `link`                                |
+| `emails/two-factor-code`    | `email`, `code`, `purpose`, `expiresInMinutes` |
+| `emails/recovery-code-used` | `email`                                        |
 
 An email is rendered when its `.html` or `.txt` template exists, with the translated `emails.<email>.subject` key when
 it has no `.subject` template. Without a template, or without the `@appweaver/handlebars` package, it is sent as plain

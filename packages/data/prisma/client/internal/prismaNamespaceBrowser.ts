@@ -57,6 +57,7 @@ export const ModelName = {
   Permission: 'Permission',
   Role: 'Role',
   TwoFactorMethod: 'TwoFactorMethod',
+  TwoFactorRecoveryCode: 'TwoFactorRecoveryCode',
   Seeder: 'Seeder',
   File: 'File'
 } as const
@@ -146,6 +147,16 @@ export const TwoFactorMethodScalarFieldEnum = {
 } as const
 
 export type TwoFactorMethodScalarFieldEnum = (typeof TwoFactorMethodScalarFieldEnum)[keyof typeof TwoFactorMethodScalarFieldEnum]
+
+
+export const TwoFactorRecoveryCodeScalarFieldEnum = {
+  id: 'id',
+  codeHash: 'codeHash',
+  usedAt: 'usedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type TwoFactorRecoveryCodeScalarFieldEnum = (typeof TwoFactorRecoveryCodeScalarFieldEnum)[keyof typeof TwoFactorRecoveryCodeScalarFieldEnum]
 
 
 export const SeederScalarFieldEnum = {

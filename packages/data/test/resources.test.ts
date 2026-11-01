@@ -52,7 +52,8 @@ describe('core resources barrel', () => {
       'Permission',
       'Role',
       'Seeder',
-      'TwoFactorMethod'
+      'TwoFactorMethod',
+      'TwoFactorRecoveryCode'
     ]);
   });
 

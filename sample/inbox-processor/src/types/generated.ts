@@ -153,6 +153,7 @@ export type User = {
   password: string;
   roles: Array<RoleSingle>;
   twoFactorMethods: Array<TwoFactorMethodSingle>;
+  twoFactorRecoveryCodes: Array<TwoFactorRecoveryCodeSingle>;
   avatar?: FileSingle | null;
   updatedAt: Date;
   createdAt: Date;
@@ -419,6 +420,64 @@ export type TwoFactorMethodResourceService = IResourceService<
   TwoFactorMethodUpdate,
   TwoFactorMethodQuery,
   TwoFactorMethodReplace
+>;
+
+export type TwoFactorRecoveryCode = {
+  id: number;
+  codeHash: string;
+  usedAt?: Date | null;
+  user: UserSingle;
+  createdAt: Date;
+};
+
+export type TwoFactorRecoveryCodeSingle = {
+  id: number;
+  usedAt?: Date | null;
+  createdAt: Date;
+};
+
+export type TwoFactorRecoveryCodeMultiple = {
+  id: number;
+  usedAt?: Date | null;
+  createdAt: Date;
+};
+
+export type TwoFactorRecoveryCodeCreate = {
+  usedAt?: Date | null;
+};
+
+export type TwoFactorRecoveryCodeUpdate = {
+  usedAt?: Date | null;
+};
+
+export type TwoFactorRecoveryCodeReplace = {
+  usedAt?: Date | null;
+};
+
+export type TwoFactorRecoveryCodeRelationCreate = {
+  usedAt?: Date | null;
+};
+
+export type TwoFactorRecoveryCodeRelationUpdate = {
+  id: number;
+  usedAt?: Date | null;
+};
+
+export type TwoFactorRecoveryCodeQuery = QueryFilter<TwoFactorRecoveryCode>;
+
+export type TwoFactorRecoveryCodeSort =
+  QuerySort<TwoFactorRecoveryCodeMultiple>;
+
+export type TwoFactorRecoveryCodeAggregate =
+  AggregateSelect<TwoFactorRecoveryCode>;
+
+export type TwoFactorRecoveryCodeResourceService = IResourceService<
+  TwoFactorRecoveryCode,
+  TwoFactorRecoveryCodeMultiple,
+  TwoFactorRecoveryCodeCreate,
+  TwoFactorRecoveryCodeUpdate,
+  TwoFactorRecoveryCodeQuery,
+  TwoFactorRecoveryCodeReplace
 >;
 
 export type Role = {
@@ -688,7 +747,7 @@ declare module '@appweaver/common' {
       replace: UserReplace;
       query: UserQuery;
       service: UserResourceService;
-      relations: 'roles' | 'twoFactorMethods';
+      relations: 'roles' | 'twoFactorMethods' | 'twoFactorRecoveryCodes';
     };
     OneTimeToken: {
       model: OneTimeToken;
@@ -710,6 +769,17 @@ declare module '@appweaver/common' {
       replace: TwoFactorMethodReplace;
       query: TwoFactorMethodQuery;
       service: TwoFactorMethodResourceService;
+      relations: 'user';
+    };
+    TwoFactorRecoveryCode: {
+      model: TwoFactorRecoveryCode;
+      single: TwoFactorRecoveryCodeSingle;
+      multiple: TwoFactorRecoveryCodeMultiple;
+      create: TwoFactorRecoveryCodeCreate;
+      update: TwoFactorRecoveryCodeUpdate;
+      replace: TwoFactorRecoveryCodeReplace;
+      query: TwoFactorRecoveryCodeQuery;
+      service: TwoFactorRecoveryCodeResourceService;
       relations: 'user';
     };
     Role: {

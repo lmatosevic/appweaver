@@ -41,7 +41,8 @@ type AuthFieldName =
   | 'password'
   | 'roles'
   | 'apiKeys'
-  | 'twoFactorMethods';
+  | 'twoFactorMethods'
+  | 'twoFactorRecoveryCodes';
 
 /**
  * Creates the resource model of an authenticatable user, adding the email, password, verification, phone, two-factor
@@ -151,6 +152,17 @@ export function createAuthModel<
       ? {
           twoFactorMethods: {
             model: 'TwoFactorMethod',
+            type: 'oneToMany',
+            mappedBy: uncapitalize(config.name),
+            input: {
+              type: 'none'
+            },
+            output: {
+              type: 'none'
+            }
+          },
+          twoFactorRecoveryCodes: {
+            model: 'TwoFactorRecoveryCode',
             type: 'oneToMany',
             mappedBy: uncapitalize(config.name),
             input: {

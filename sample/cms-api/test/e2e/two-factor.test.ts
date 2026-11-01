@@ -361,4 +361,51 @@ describe('Two-factor authentication', () => {
 
     expect((await login()).twoFactorMethods).toEqual(['email', 'sms']);
   });
+
+  test('signs in once with a recovery code', async () => {
+    const generated = await request(
+      'POST',
+      '/auth/account/2fa/recovery-codes',
+      fullToken,
+      { password }
+    );
+    const { codes } = generated.json();
+    expect(codes).toHaveLength(10);
+    expect(codes[0]).toMatch(/^\w{4}-\w{4}-\w{4}-\w{4}$/);
+
+    const signIn = async (code: string) => {
+      const tokens = await login();
+      const challenge = await request(
+        'POST',
+        '/auth/account/2fa/challenge',
+        tokens.accessToken,
+        { method: 'recovery' }
+      );
+      expect(challenge.json()).toMatchObject({
+        method: 'recovery',
+        destination: null
+      });
+      return request('POST', '/auth/account/2fa/verify', tokens.accessToken, {
+        challengeId: challenge.json().challengeId,
+        code
+      });
+    };
+
+    const verified = await signIn(codes[0].toLowerCase());
+    const exchanged = await request('POST', '/auth/exchange-token', undefined, {
+      token: verified.json().token
+    });
+    const me = await request('GET', '/auth/me', exchanged.json().accessToken);
+    expect(me.json().email).toBe(email);
+
+    for (let i = 0; i < 100 && sendEmail.mock.calls.length === 0; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    expect(sendEmail.mock.calls.at(-1)[0].subject).toBe(
+      'A recovery code was used'
+    );
+
+    const reused = await signIn(codes[0]);
+    expect(reused.json().code).toBe('ACCOUNT_2FA_CODE_INVALID');
+  });
 });

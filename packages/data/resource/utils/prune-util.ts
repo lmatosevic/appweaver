@@ -15,7 +15,8 @@ const authModelNames = [
   'ApiKey',
   'OneTimeToken',
   'ConnectedAccount',
-  'TwoFactorMethod'
+  'TwoFactorMethod',
+  'TwoFactorRecoveryCode'
 ];
 
 /**

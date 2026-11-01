@@ -177,13 +177,14 @@ model User {
   logoutAt      DateTime?
 
   /// Related columns
-  team             Team?             @relation("TeamMembersUser", fields: [teamId], references: [id])
-  teamId           Int?
-  assignedTickets  Ticket[]          @relation("TicketAssigneeUser")
-  messages         TicketMessage[]   @relation("TicketMessageAuthorUser")
-  roles            Role[]            @relation("UserRolesRole")
-  apiKeys          ApiKey[]          @relation("UserApiKeysApiKey")
-  twoFactorMethods TwoFactorMethod[] @relation("UserTwoFactorMethodsTwoFactorMethod")
+  team                   Team?                   @relation("TeamMembersUser", fields: [teamId], references: [id])
+  teamId                 Int?
+  assignedTickets        Ticket[]                @relation("TicketAssigneeUser")
+  messages               TicketMessage[]         @relation("TicketMessageAuthorUser")
+  roles                  Role[]                  @relation("UserRolesRole")
+  apiKeys                ApiKey[]                @relation("UserApiKeysApiKey")
+  twoFactorMethods       TwoFactorMethod[]       @relation("UserTwoFactorMethodsTwoFactorMethod")
+  twoFactorRecoveryCodes TwoFactorRecoveryCode[] @relation("UserTwoFactorRecoveryCodesTwoFactorRecoveryCode")
 
   /// Ownership models referenced with createdById column
   createdCannedResponses CannedResponse[] @relation("CannedResponseCreatedByUser")
@@ -267,6 +268,21 @@ model TwoFactorMethod {
   createdAt DateTime @default(now())
 
   @@unique([userId, type])
+}
+
+model TwoFactorRecoveryCode {
+  id       Int       @id @default(autoincrement())
+  codeHash String    @unique @db.VarChar(64)
+  usedAt   DateTime?
+
+  /// Related columns
+  user   User @relation("UserTwoFactorRecoveryCodesTwoFactorRecoveryCode", fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  /// Audit columns
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Role {

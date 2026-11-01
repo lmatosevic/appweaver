@@ -39,7 +39,11 @@ describe('two-factor-routes', () => {
         otpauthUrl: 'otpauth://totp/App:user?secret=JBSWY3DPEHPK3PXP',
         expiresIn: 600000
       }),
-      confirmTotp: jest.fn().mockResolvedValue(['totp'])
+      confirmTotp: jest.fn().mockResolvedValue(['totp']),
+      generateRecoveryCodes: jest.fn().mockResolvedValue({
+        codes: ['7G2K-QX9M-4TZB-8HRW'],
+        generatedAt: new Date('2026-11-01T12:00:00.000Z')
+      })
     };
     define(service as any, TwoFactorService, 'override');
 
@@ -155,5 +159,27 @@ describe('two-factor-routes', () => {
     expect(setup.json()).toMatchObject({ secret: 'JBSWY3DPEHPK3PXP' });
     expect(confirm.json().enabled).toEqual(['totp']);
     expect(service.confirmTotp).toHaveBeenCalledWith(user, '123456');
+  });
+
+  test('sends a challenge for a recovery code', async () => {
+    const response = await inject('POST', '/challenge', { method: 'recovery' });
+
+    expect(response.statusCode).toBe(200);
+    expect(service.sendChallenge).toHaveBeenCalledWith(
+      user,
+      expect.objectContaining({ method: 'recovery' })
+    );
+  });
+
+  test('generates the recovery codes with the password', async () => {
+    const response = await inject('POST', '/recovery-codes', {
+      password: 'secret'
+    });
+
+    expect(response.json()).toEqual({
+      codes: ['7G2K-QX9M-4TZB-8HRW'],
+      generatedAt: '2026-11-01T12:00:00.000Z'
+    });
+    expect(service.generateRecoveryCodes).toHaveBeenCalledWith(user, 'secret');
   });
 });

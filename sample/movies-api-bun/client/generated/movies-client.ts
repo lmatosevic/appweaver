@@ -109,7 +109,7 @@ export function createClient(config: ClientConfig): MoviesClient {
 export { ClientError };
 
 /** An error response of the API, its `code` typed by the error codes of the API. */
-export type ApiError = ClientError<components['schemas']['def-182']['code']>;
+export type ApiError = ClientError<components['schemas']['def-196']['code']>;
 
 /** Checks whether a caught error is an error response of the API, typing its `code`. */
 export function isApiError(error: unknown): error is ApiError {
@@ -1114,6 +1114,54 @@ export type paths = {
         429: components['responses']['RateLimitedError'];
         500: components['responses']['InternalError'];
         501: components['responses']['AccountFeatureUnavailableError'];
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/auth/account/2fa/recovery-codes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Generate the recovery codes
+     * @description Generate the recovery codes of the signed-in user, replacing the ones they had, confirmed by the password of a user who has one
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': TwoFactorRecoveryCodesRequest;
+        };
+      };
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': TwoFactorRecoveryCodesResponse;
+          };
+        };
+        400: components['responses']['BadRequestError_c80dfa'];
+        401: components['responses']['UnauthorizedError_085ea4'];
+        403: components['responses']['ForbiddenError_4e336d'];
+        429: components['responses']['RateLimitedError'];
+        500: components['responses']['InternalError'];
       };
     };
     delete?: never;
@@ -3855,35 +3903,35 @@ export type webhooks = Record<string, never>;
 export type components = {
   schemas: {
     /** AccountChallengeResponse */
-    'def-194': AccountChallengeResponse;
+    'def-208': AccountChallengeResponse;
     /** AccountEmailVerificationRequest */
-    'def-191': AccountEmailVerificationRequest;
+    'def-205': AccountEmailVerificationRequest;
     /** AccountResetPasswordRequest */
-    'def-193': AccountResetPasswordRequest;
+    'def-207': AccountResetPasswordRequest;
     /** AccountSendEmailVerificationRequest */
-    'def-190': AccountSendEmailVerificationRequest;
+    'def-204': AccountSendEmailVerificationRequest;
     /** AccountSendPhoneVerificationRequest */
-    'def-195': AccountSendPhoneVerificationRequest;
+    'def-209': AccountSendPhoneVerificationRequest;
     /** AccountSendResetPasswordRequest */
-    'def-192': AccountSendResetPasswordRequest;
+    'def-206': AccountSendResetPasswordRequest;
     /** AccountStatusResponse */
-    'def-189': AccountStatusResponse;
+    'def-203': AccountStatusResponse;
     /** AccountVerifyPhoneRequest */
-    'def-196': AccountVerifyPhoneRequest;
+    'def-210': AccountVerifyPhoneRequest;
     /**
      * AggregateDateOperators
      * @description Aggregation operators applicable to a date field
      */
-    'def-238': AggregateDateOperators;
+    'def-256': AggregateDateOperators;
     /**
      * AggregateNumericOperators
      * @description Aggregation operators applicable to a numeric field
      */
-    'def-237': AggregateNumericOperators;
+    'def-255': AggregateNumericOperators;
     /** AuthenticationResponse */
-    'def-183': AuthenticationResponse;
+    'def-197': AuthenticationResponse;
     /** ChangePasswordRequest */
-    'def-186': ChangePasswordRequest;
+    'def-200': ChangePasswordRequest;
     /** CreditCreate */
     'def-4': CreditCreate;
     /** CreditMultiple */
@@ -3892,16 +3940,16 @@ export type components = {
      * CreditQueryFilter
      * @description Query filter for the Credit resource
      */
-    'def-211': CreditQueryFilter;
+    'def-227': CreditQueryFilter;
     /** CreditQueryRequest */
-    'def-253': CreditQueryRequest;
+    'def-272': CreditQueryRequest;
     /** CreditQueryResponse */
-    'def-252': CreditQueryResponse;
+    'def-271': CreditQueryResponse;
     /**
      * CreditQuerySort
      * @description Query sort for the Credit resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-224': CreditQuerySort;
+    'def-241': CreditQuerySort;
     /** CreditReplace */
     'def-6': CreditReplace;
     /** CreditSingle */
@@ -3909,19 +3957,19 @@ export type components = {
     /** CreditUpdate */
     'def-5': CreditUpdate;
     /** ExchangeTokenRequest */
-    'def-187': ExchangeTokenRequest;
+    'def-201': ExchangeTokenRequest;
     /**
      * FileQueryFilter
      * @description Query filter for the File resource
      */
-    'def-223': FileQueryFilter;
+    'def-240': FileQueryFilter;
     /**
      * FileQuerySort
      * @description Query sort for the File resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-236': FileQuerySort;
+    'def-254': FileQuerySort;
     /** FileSingle */
-    'def-169': FileSingle;
+    'def-183': FileSingle;
     /** GenreCreate */
     'def-18': GenreCreate;
     /** GenreMultiple */
@@ -3930,16 +3978,16 @@ export type components = {
      * GenreQueryFilter
      * @description Query filter for the Genre resource
      */
-    'def-212': GenreQueryFilter;
+    'def-228': GenreQueryFilter;
     /** GenreQueryRequest */
-    'def-258': GenreQueryRequest;
+    'def-277': GenreQueryRequest;
     /** GenreQueryResponse */
-    'def-257': GenreQueryResponse;
+    'def-276': GenreQueryResponse;
     /**
      * GenreQuerySort
      * @description Query sort for the Genre resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-225': GenreQuerySort;
+    'def-242': GenreQuerySort;
     /** GenreRelationCreate */
     'def-21': GenreRelationCreate;
     /** GenreReplace */
@@ -3949,30 +3997,30 @@ export type components = {
     /** GenreUpdate */
     'def-19': GenreUpdate;
     /** HealthCheckResponse */
-    'def-209': HealthCheckResponse;
+    'def-225': HealthCheckResponse;
     /** HealthCheckResult */
-    'def-208': HealthCheckResult;
+    'def-224': HealthCheckResult;
     /** HealthReadyResponse */
-    'def-188': HealthReadyResponse;
+    'def-202': HealthReadyResponse;
     /** InfoResponse */
-    'def-207': InfoResponse;
+    'def-223': InfoResponse;
     /** LoginRequest */
-    'def-184': LoginRequest;
+    'def-198': LoginRequest;
     /** LogoutResponse */
-    'def-185': LogoutResponse;
+    'def-199': LogoutResponse;
     /** MovieAggregateRequest */
-    'def-265': MovieAggregateRequest;
+    'def-284': MovieAggregateRequest;
     /** MovieAggregateResponse */
-    'def-264': MovieAggregateResponse;
+    'def-283': MovieAggregateResponse;
     /**
      * MovieAggregateSelect
      * @description Aggregate selection for the Movie resource, holding the operators to apply per aggregated field
      */
-    'def-241': MovieAggregateSelect;
+    'def-259': MovieAggregateSelect;
     /** MovieCreate */
     'def-32': MovieCreate;
     /** MovieExportRequest */
-    'def-266': MovieExportRequest;
+    'def-285': MovieExportRequest;
     /** MovieFileDelete */
     'def-41': MovieFileDelete;
     /** MovieFiles */
@@ -3985,16 +4033,16 @@ export type components = {
      * MovieQueryFilter
      * @description Query filter for the Movie resource
      */
-    'def-213': MovieQueryFilter;
+    'def-229': MovieQueryFilter;
     /** MovieQueryRequest */
-    'def-263': MovieQueryRequest;
+    'def-282': MovieQueryRequest;
     /** MovieQueryResponse */
-    'def-262': MovieQueryResponse;
+    'def-281': MovieQueryResponse;
     /**
      * MovieQuerySort
      * @description Query sort for the Movie resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-226': MovieQuerySort;
+    'def-243': MovieQuerySort;
     /** MovieReplace */
     'def-34': MovieReplace;
     /** MovieSingle */
@@ -4005,13 +4053,13 @@ export type components = {
      * PermissionQueryFilter
      * @description Query filter for the Permission resource
      */
-    'def-221': PermissionQueryFilter;
+    'def-238': PermissionQueryFilter;
     /** PermissionSingle */
-    'def-141': PermissionSingle;
+    'def-155': PermissionSingle;
     /** PersonCreate */
     'def-46': PersonCreate;
     /** PersonExportRequest */
-    'def-271': PersonExportRequest;
+    'def-290': PersonExportRequest;
     /** PersonFileDelete */
     'def-55': PersonFileDelete;
     /** PersonFiles */
@@ -4024,16 +4072,16 @@ export type components = {
      * PersonQueryFilter
      * @description Query filter for the Person resource
      */
-    'def-214': PersonQueryFilter;
+    'def-230': PersonQueryFilter;
     /** PersonQueryRequest */
-    'def-268': PersonQueryRequest;
+    'def-287': PersonQueryRequest;
     /** PersonQueryResponse */
-    'def-267': PersonQueryResponse;
+    'def-286': PersonQueryResponse;
     /**
      * PersonQuerySort
      * @description Query sort for the Person resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-227': PersonQuerySort;
+    'def-244': PersonQuerySort;
     /** PersonReplace */
     'def-48': PersonReplace;
     /** PersonSingle */
@@ -4041,41 +4089,41 @@ export type components = {
     /** PersonUpdate */
     'def-47': PersonUpdate;
     /** ProblemDetails */
-    'def-182': ProblemDetails;
+    'def-196': ProblemDetails;
     /**
      * QueryCondition
      * @description Field condition object combining comparison operators on a single field
      */
-    'def-210': QueryCondition;
+    'def-226': QueryCondition;
     /** ReviewAggregateRequest */
-    'def-275': ReviewAggregateRequest;
+    'def-294': ReviewAggregateRequest;
     /** ReviewAggregateResponse */
-    'def-274': ReviewAggregateResponse;
+    'def-293': ReviewAggregateResponse;
     /**
      * ReviewAggregateSelect
      * @description Aggregate selection for the Review resource, holding the operators to apply per aggregated field
      */
-    'def-243': ReviewAggregateSelect;
+    'def-261': ReviewAggregateSelect;
     /** ReviewCreate */
     'def-60': ReviewCreate;
     /** ReviewExportRequest */
-    'def-276': ReviewExportRequest;
+    'def-295': ReviewExportRequest;
     /** ReviewMultiple */
     'def-58': ReviewMultiple;
     /**
      * ReviewQueryFilter
      * @description Query filter for the Review resource
      */
-    'def-215': ReviewQueryFilter;
+    'def-231': ReviewQueryFilter;
     /** ReviewQueryRequest */
-    'def-273': ReviewQueryRequest;
+    'def-292': ReviewQueryRequest;
     /** ReviewQueryResponse */
-    'def-272': ReviewQueryResponse;
+    'def-291': ReviewQueryResponse;
     /**
      * ReviewQuerySort
      * @description Query sort for the Review resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-228': ReviewQuerySort;
+    'def-245': ReviewQuerySort;
     /** ReviewReplace */
     'def-62': ReviewReplace;
     /** ReviewSingle */
@@ -4086,43 +4134,52 @@ export type components = {
      * RoleQueryFilter
      * @description Query filter for the Role resource
      */
-    'def-220': RoleQueryFilter;
+    'def-237': RoleQueryFilter;
     /** RoleSingle */
-    'def-127': RoleSingle;
+    'def-141': RoleSingle;
     /** TwoFactorChallengeRequest */
-    'def-198': TwoFactorChallengeRequest;
+    'def-212': TwoFactorChallengeRequest;
     /** TwoFactorChallengeResponse */
-    'def-197': TwoFactorChallengeResponse;
+    'def-211': TwoFactorChallengeResponse;
     /** TwoFactorDisableMethodRequest */
-    'def-204': TwoFactorDisableMethodRequest;
+    'def-218': TwoFactorDisableMethodRequest;
     /** TwoFactorEnableMethodRequest */
-    'def-202': TwoFactorEnableMethodRequest;
+    'def-216': TwoFactorEnableMethodRequest;
     /**
      * TwoFactorMethodQueryFilter
      * @description Query filter for the TwoFactorMethod resource
      */
-    'def-219': TwoFactorMethodQueryFilter;
+    'def-235': TwoFactorMethodQueryFilter;
     /** TwoFactorMethodsResponse */
-    'def-201': TwoFactorMethodsResponse;
+    'def-215': TwoFactorMethodsResponse;
     /** TwoFactorOrderMethodsRequest */
-    'def-203': TwoFactorOrderMethodsRequest;
+    'def-217': TwoFactorOrderMethodsRequest;
+    /**
+     * TwoFactorRecoveryCodeQueryFilter
+     * @description Query filter for the TwoFactorRecoveryCode resource
+     */
+    'def-236': TwoFactorRecoveryCodeQueryFilter;
+    /** TwoFactorRecoveryCodesRequest */
+    'def-222': TwoFactorRecoveryCodesRequest;
+    /** TwoFactorRecoveryCodesResponse */
+    'def-221': TwoFactorRecoveryCodesResponse;
     /** TwoFactorTotpConfirmRequest */
-    'def-206': TwoFactorTotpConfirmRequest;
+    'def-220': TwoFactorTotpConfirmRequest;
     /** TwoFactorTotpSetupResponse */
-    'def-205': TwoFactorTotpSetupResponse;
+    'def-219': TwoFactorTotpSetupResponse;
     /** TwoFactorVerifyRequest */
-    'def-200': TwoFactorVerifyRequest;
+    'def-214': TwoFactorVerifyRequest;
     /** TwoFactorVerifyResponse */
-    'def-199': TwoFactorVerifyResponse;
+    'def-213': TwoFactorVerifyResponse;
     /** UserAggregateRequest */
-    'def-280': UserAggregateRequest;
+    'def-299': UserAggregateRequest;
     /** UserAggregateResponse */
-    'def-279': UserAggregateResponse;
+    'def-298': UserAggregateResponse;
     /**
      * UserAggregateSelect
      * @description Aggregate selection for the User resource, holding the operators to apply per aggregated field
      */
-    'def-244': UserAggregateSelect;
+    'def-262': UserAggregateSelect;
     /** UserCreate */
     'def-74': UserCreate;
     /** UserFileDelete */
@@ -4137,16 +4194,16 @@ export type components = {
      * UserQueryFilter
      * @description Query filter for the User resource
      */
-    'def-216': UserQueryFilter;
+    'def-232': UserQueryFilter;
     /** UserQueryRequest */
-    'def-278': UserQueryRequest;
+    'def-297': UserQueryRequest;
     /** UserQueryResponse */
-    'def-277': UserQueryResponse;
+    'def-296': UserQueryResponse;
     /**
      * UserQuerySort
      * @description Query sort for the User resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-229': UserQuerySort;
+    'def-246': UserQuerySort;
     /** UserReplace */
     'def-76': UserReplace;
     /** UserSingle */
@@ -4161,16 +4218,16 @@ export type components = {
      * WatchlistEntryQueryFilter
      * @description Query filter for the WatchlistEntry resource
      */
-    'def-217': WatchlistEntryQueryFilter;
+    'def-233': WatchlistEntryQueryFilter;
     /** WatchlistEntryQueryRequest */
-    'def-283': WatchlistEntryQueryRequest;
+    'def-302': WatchlistEntryQueryRequest;
     /** WatchlistEntryQueryResponse */
-    'def-282': WatchlistEntryQueryResponse;
+    'def-301': WatchlistEntryQueryResponse;
     /**
      * WatchlistEntryQuerySort
      * @description Query sort for the WatchlistEntry resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-230': WatchlistEntryQuerySort;
+    'def-247': WatchlistEntryQuerySort;
     /** WatchlistEntryReplace */
     'def-90': WatchlistEntryReplace;
     /** WatchlistEntrySingle */
@@ -4206,6 +4263,11 @@ export type components = {
      * @enum {string}
      */
     PersonKnownFor: PersonKnownFor;
+    /**
+     * TwoFactorChallengeMethod
+     * @enum {string}
+     */
+    TwoFactorChallengeMethod: TwoFactorChallengeMethod;
     /**
      * WatchlistEntryStatus
      * @enum {string}
@@ -5077,20 +5139,6 @@ export const ReviewAggregateRequestDateField = {
 } as const;
 export type ReviewAggregateRequestDateField =
   (typeof ReviewAggregateRequestDateField)[keyof typeof ReviewAggregateRequestDateField];
-export const TwoFactorChallengeRequestMethod = {
-  email: 'email',
-  sms: 'sms',
-  totp: 'totp'
-} as const;
-export type TwoFactorChallengeRequestMethod =
-  (typeof TwoFactorChallengeRequestMethod)[keyof typeof TwoFactorChallengeRequestMethod];
-export const TwoFactorChallengeResponseMethod = {
-  email: 'email',
-  sms: 'sms',
-  totp: 'totp'
-} as const;
-export type TwoFactorChallengeResponseMethod =
-  (typeof TwoFactorChallengeResponseMethod)[keyof typeof TwoFactorChallengeResponseMethod];
 export const TwoFactorChallengeResponseMethods = {
   email: 'email',
   sms: 'sms',
@@ -5166,6 +5214,14 @@ export const PersonKnownFor = {
 } as const;
 export type PersonKnownFor =
   (typeof PersonKnownFor)[keyof typeof PersonKnownFor];
+export const TwoFactorChallengeMethod = {
+  email: 'email',
+  sms: 'sms',
+  totp: 'totp',
+  recovery: 'recovery'
+} as const;
+export type TwoFactorChallengeMethod =
+  (typeof TwoFactorChallengeMethod)[keyof typeof TwoFactorChallengeMethod];
 export const WatchlistEntryStatus = {
   Planned: 'Planned',
   Watching: 'Watching',
@@ -7514,11 +7570,10 @@ export type RoleSingle = {
 
 export type TwoFactorChallengeRequest = {
   /**
-   * @description A 2FA method: email or SMS codes, or an authenticator app
+   * @description A 2FA method of the user, or `recovery` for one of their recovery codes
    * @example totp
-   * @enum {string}
    */
-  method?: TwoFactorChallengeRequestMethod;
+  method?: TwoFactorChallengeMethod;
   /**
    * @description The purpose of the one-time token issued when the challenge is passed, `authentication` (the default) for `/exchange-token`
    * @example authentication
@@ -7538,11 +7593,10 @@ export type TwoFactorChallengeResponse = {
    */
   expiresIn: number;
   /**
-   * @description A 2FA method: email or SMS codes, or an authenticator app
+   * @description A 2FA method of the user, or `recovery` for one of their recovery codes
    * @example totp
-   * @enum {string}
    */
-  method: TwoFactorChallengeResponseMethod;
+  method: TwoFactorChallengeMethod;
   /**
    * @description The masked email address or phone number the code was sent to, null for an authenticator app
    * @example +385*******67
@@ -7639,6 +7693,61 @@ export type TwoFactorOrderMethodsRequest = {
    *     ]
    */
   methods: TwoFactorOrderMethodsRequestMethods[];
+};
+
+export type TwoFactorRecoveryCodeQueryFilter = {
+  /** @description Matches records satisfying all the nested conditions */
+  _and?: TwoFactorRecoveryCodeQueryFilter | TwoFactorRecoveryCodeQueryFilter[];
+  /** @description Matches records satisfying at least one nested condition */
+  _or?: TwoFactorRecoveryCodeQueryFilter | TwoFactorRecoveryCodeQueryFilter[];
+  /** @description Matches records satisfying none of the nested conditions */
+  _not?: TwoFactorRecoveryCodeQueryFilter | TwoFactorRecoveryCodeQueryFilter[];
+  /** @description Matches records satisfying none of the nested conditions (alias of _not) */
+  _nor?: TwoFactorRecoveryCodeQueryFilter | TwoFactorRecoveryCodeQueryFilter[];
+  _some?: TwoFactorRecoveryCodeQueryFilter;
+  _every?: TwoFactorRecoveryCodeQueryFilter;
+  _none?: TwoFactorRecoveryCodeQueryFilter;
+  /** @description Matches records with a related record (true) or without one (false) */
+  _exists?: boolean;
+  /** @description Full-text search input resolved by the resource service */
+  searchText?: string;
+  /** @description Filter by the record id */
+  id?: QueryFilterValue;
+  /** @description Filter by the createdAt field */
+  createdAt?: QueryFilterValue;
+  /** @description Filter by the usedAt field */
+  usedAt?: QueryFilterValue;
+  /** @description Filter by the user relation, matching an id, a list of ids, or a nested User filter */
+  user?:
+    | QueryFilterScalar
+    | QueryFilterScalar[]
+    | UserQueryFilter
+    | UserQueryFilter[];
+};
+
+export type TwoFactorRecoveryCodesRequest = {
+  /**
+   * @description The password of the user, required when the user has one
+   * @example yourPassword123!
+   */
+  password?: string;
+};
+
+export type TwoFactorRecoveryCodesResponse = {
+  /**
+   * @description The recovery codes, shown only once, each used once instead of a 2FA code
+   * @example [
+   *       "7G2K-QX9M-4TZB-8HRW",
+   *       "M3NP-2VXC-9KQT-6JZD"
+   *     ]
+   */
+  codes: string[];
+  /**
+   * @format date-time
+   *
+   * @example 2026-11-01T12:00:00.000Z
+   */
+  generatedAt: string;
 };
 
 export type TwoFactorTotpConfirmRequest = {
@@ -7932,6 +8041,12 @@ export type UserQueryFilter = {
     | QueryFilterScalar[]
     | TwoFactorMethodQueryFilter
     | TwoFactorMethodQueryFilter[];
+  /** @description Filter by the twoFactorRecoveryCodes relation, matching an id, a list of ids, or a nested TwoFactorRecoveryCode filter */
+  twoFactorRecoveryCodes?:
+    | QueryFilterScalar
+    | QueryFilterScalar[]
+    | TwoFactorRecoveryCodeQueryFilter
+    | TwoFactorRecoveryCodeQueryFilter[];
   /** @description Filter by the avatar file field, matching an id, a list of ids, or a nested File filter */
   avatar?:
     | QueryFilterScalar
@@ -8015,6 +8130,10 @@ export type UserQuerySort = {
   twoFactorMethods?: SortDirection;
   /** @example desc */
   twoFactorMethodsCount?: SortDirection;
+  /** @example desc */
+  twoFactorRecoveryCodes?: SortDirection;
+  /** @example desc */
+  twoFactorRecoveryCodesCount?: SortDirection;
   avatar?: FileQuerySort;
 };
 
@@ -8412,6 +8531,8 @@ export type TwoFactorModuleType = {
   disableMethodRequest: TwoFactorDisableMethodRequest;
   totpSetupResponse: TwoFactorTotpSetupResponse;
   totpConfirmRequest: TwoFactorTotpConfirmRequest;
+  recoveryCodesRequest: TwoFactorRecoveryCodesRequest;
+  recoveryCodesResponse: TwoFactorRecoveryCodesResponse;
 };
 
 export type HealthModuleType = {

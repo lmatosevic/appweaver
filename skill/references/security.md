@@ -600,7 +600,7 @@ challenge fails with `ACCOUNT_2FA_METHOD_UNAVAILABLE` until the method is availa
    -> 2FA not required: tokens of the auth scope (full access)
 
 2. POST /auth/account/2fa/challenge { method?, purpose? }      (with the token of the 2fa scope)
-   -> Without a method, the default one of the user (the first of twoFactorMethods)
+   -> Without a method, the default one of the user (the first of twoFactorMethods), 'recovery' for a recovery code
    -> email / sms: sends a code; totp: waits for the code of the authenticator app
    -> Returns { challengeId, expiresIn, method, destination, methods }
       (destination: the masked address or number, i.e. "+385*******67", null for totp)
@@ -639,7 +639,36 @@ DELETE /auth/account/2fa/methods/:method { password }  -> disables a method, the
 ```
 
 `TwoFactorService` of `@appweaver/web` does the same in code: `availableMethods`, `listMethods`, `sendChallenge`,
-`verifyChallenge`, `enableMethod`, `setupTotp`, `confirmTotp`, `orderMethods`, `disableMethod` and `removeSmsMethod`.
+`verifyChallenge`, `enableMethod`, `setupTotp`, `confirmTotp`, `orderMethods`, `disableMethod`,
+`generateRecoveryCodes`, `resetTwoFactor` and `removeSmsMethod`.
+
+### Recovery codes
+
+Recovery codes stand in for the 2FA methods of a user who lost them, i.e. a lost phone. A user with a method generates
+`recoveryCodes.count` codes (10 by default) of `recoveryCodes.length` characters (16 by default, at most 128), shown in
+groups of four (`7G2K-QX9M-4TZB-8HRW`, Crockford Base32 without `I`, `L`, `O` and `U`):
+
+```
+POST /auth/account/2fa/recovery-codes { password }   -> { codes: [...], generatedAt }, shown only this once
+```
+
+The password is required when the user has one, and a new set replaces the previous one. Only the SHA-256 of each code
+is stored, in the `TwoFactorRecoveryCode` framework model, since the randomness of a code makes a slow hash pointless.
+A code signs the user in once, by the challenge of the `recovery` method, which sends nothing:
+
+```
+1. POST /auth/account/2fa/challenge { method: 'recovery' }       (with the token of the 2fa scope)
+2. POST /auth/account/2fa/verify { challengeId, code: '7g2k qx9m 4tzb 8hrw' }   (case, spaces and hyphens ignored)
+3. POST /auth/exchange-token { token }
+```
+
+A used code is never accepted again, also by a concurrent verification, and a wrong one counts against the
+`maxAttempts` of the challenge. The user is emailed about every used code (`emails/recovery-code-used`), unless
+`recoveryCodes.notifyOnUse` is off, and a failing email never fails the sign-in. `recovery` is a challenge method only,
+never one of the enabled methods, so it is not ordered and never the default; a challenge for it fails with
+`ACCOUNT_2FA_METHOD_NOT_ENABLED` without an unused code. Disabling the last method deletes the codes, and
+`TwoFactorService.resetTwoFactor(authUserId)` removes every method and code of a user, i.e. for an administrator helping
+a user who lost them all.
 
 ### Phone verification
 
@@ -667,6 +696,7 @@ enabled again for the new number. Without an SMS sender the routes respond with 
 | `DELETE` | `/auth/account/2fa/methods/:method` | JWT (auth scope) | 12/window  | Disable a method, with the password.               |
 | `POST`   | `/auth/account/2fa/totp/setup`      | JWT (auth scope) | -          | Start the setup of an authenticator app.           |
 | `POST`   | `/auth/account/2fa/totp/confirm`    | JWT (auth scope) | 12/window  | Confirm the setup with a first code.               |
+| `POST`   | `/auth/account/2fa/recovery-codes`  | JWT (auth scope) | 12/window  | Generate the recovery codes, with the password.    |
 | `POST`   | `/auth/account/send-verify-phone`   | JWT (auth scope) | 5/15min    | Send a phone verification code by SMS.             |
 | `POST`   | `/auth/account/verify-phone`        | JWT (auth scope) | 12/window  | Verify the phone number.                           |
 
@@ -858,11 +888,12 @@ The security module automatically adds the following fields to the user model. `
 
 **Relations:**
 
-| Relation           | Type              | Description                                                                      |
-|--------------------|-------------------|----------------------------------------------------------------------------------|
-| `roles`            | Role[]            | Assigned roles with nested permissions (always included in output).              |
-| `apiKeys`          | ApiKey[]          | User's API keys (if API key auth is enabled).                                    |
-| `twoFactorMethods` | TwoFactorMethod[] | The 2FA methods (if 2FA is enabled), managed by the 2FA routes, never in output. |
+| Relation                 | Type                    | Description                                                                      |
+|--------------------------|-------------------------|----------------------------------------------------------------------------------|
+| `roles`                  | Role[]                  | Assigned roles with nested permissions (always included in output).              |
+| `apiKeys`                | ApiKey[]                | User's API keys (if API key auth is enabled).                                    |
+| `twoFactorMethods`       | TwoFactorMethod[]       | The 2FA methods (if 2FA is enabled), managed by the 2FA routes, never in output. |
+| `twoFactorRecoveryCodes` | TwoFactorRecoveryCode[] | The hashes of the recovery codes (if 2FA is enabled), never in output.           |
 
 ---
 
@@ -915,3 +946,4 @@ tokens across all devices. The `change-password` endpoint returns new tokens so 
 | `POST /auth/account/2fa/verify`            | 12 per window     |
 | `POST /auth/account/2fa/totp/confirm`      | 12 per window     |
 | `DELETE /auth/account/2fa/methods/:method` | 12 per window     |
+| `POST /auth/account/2fa/recovery-codes`    | 12 per window     |

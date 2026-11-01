@@ -63,6 +63,11 @@ export type OneTimeToken = Prisma.OneTimeTokenModel
  */
 export type TwoFactorMethod = Prisma.TwoFactorMethodModel
 /**
+ * Model TwoFactorRecoveryCode
+ * 
+ */
+export type TwoFactorRecoveryCode = Prisma.TwoFactorRecoveryCodeModel
+/**
  * Model Role
  * 
  */

@@ -298,6 +298,7 @@ export type UserWhereInput = {
   createdById?: Prisma.IntNullableFilter<"User"> | number | null
   roles?: Prisma.RoleListRelationFilter
   twoFactorMethods?: Prisma.TwoFactorMethodListRelationFilter
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeListRelationFilter
   avatar?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   createdEntries?: Prisma.EntryListRelationFilter
   createdUsers?: Prisma.UserListRelationFilter
@@ -325,6 +326,7 @@ export type UserOrderByWithRelationInput = {
   createdById?: Prisma.SortOrderInput | Prisma.SortOrder
   roles?: Prisma.RoleOrderByRelationAggregateInput
   twoFactorMethods?: Prisma.TwoFactorMethodOrderByRelationAggregateInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeOrderByRelationAggregateInput
   avatar?: Prisma.FileOrderByWithRelationInput
   createdEntries?: Prisma.EntryOrderByRelationAggregateInput
   createdUsers?: Prisma.UserOrderByRelationAggregateInput
@@ -355,6 +357,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   createdById?: Prisma.IntNullableFilter<"User"> | number | null
   roles?: Prisma.RoleListRelationFilter
   twoFactorMethods?: Prisma.TwoFactorMethodListRelationFilter
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeListRelationFilter
   avatar?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   createdEntries?: Prisma.EntryListRelationFilter
   createdUsers?: Prisma.UserListRelationFilter
@@ -421,6 +424,7 @@ export type UserCreateInput = {
   createdAt?: Date | string
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdEntries?: Prisma.EntryCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
@@ -448,6 +452,7 @@ export type UserUncheckedCreateInput = {
   createdById?: number | null
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdEntries?: Prisma.EntryUncheckedCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
@@ -470,6 +475,7 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdEntries?: Prisma.EntryUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
@@ -497,6 +503,7 @@ export type UserUncheckedUpdateInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdEntries?: Prisma.EntryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -728,6 +735,20 @@ export type UserUpdateOneRequiredWithoutTwoFactorMethodsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTwoFactorMethodsInput, Prisma.UserUpdateWithoutTwoFactorMethodsInput>, Prisma.UserUncheckedUpdateWithoutTwoFactorMethodsInput>
 }
 
+export type UserCreateNestedOneWithoutTwoFactorRecoveryCodesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTwoFactorRecoveryCodesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutTwoFactorRecoveryCodesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTwoFactorRecoveryCodesInput
+  upsert?: Prisma.UserUpsertWithoutTwoFactorRecoveryCodesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTwoFactorRecoveryCodesInput, Prisma.UserUpdateWithoutTwoFactorRecoveryCodesInput>, Prisma.UserUncheckedUpdateWithoutTwoFactorRecoveryCodesInput>
+}
+
 export type UserCreateNestedManyWithoutRolesInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutRolesInput, Prisma.UserUncheckedCreateWithoutRolesInput> | Prisma.UserCreateWithoutRolesInput[] | Prisma.UserUncheckedCreateWithoutRolesInput[]
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutRolesInput | Prisma.UserCreateOrConnectWithoutRolesInput[]
@@ -886,6 +907,7 @@ export type UserCreateWithoutCreatedEntriesInput = {
   createdAt?: Date | string
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
@@ -912,6 +934,7 @@ export type UserUncheckedCreateWithoutCreatedEntriesInput = {
   createdById?: number | null
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -949,6 +972,7 @@ export type UserUpdateWithoutCreatedEntriesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
@@ -975,6 +999,7 @@ export type UserUncheckedUpdateWithoutCreatedEntriesInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -996,6 +1021,7 @@ export type UserCreateWithoutCreatedByInput = {
   createdAt?: Date | string
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdEntries?: Prisma.EntryCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
@@ -1021,6 +1047,7 @@ export type UserUncheckedCreateWithoutCreatedByInput = {
   createdAt?: Date | string
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdEntries?: Prisma.EntryUncheckedCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1052,6 +1079,7 @@ export type UserCreateWithoutCreatedUsersInput = {
   createdAt?: Date | string
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdEntries?: Prisma.EntryCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
@@ -1078,6 +1106,7 @@ export type UserUncheckedCreateWithoutCreatedUsersInput = {
   createdById?: number | null
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdEntries?: Prisma.EntryUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1151,6 +1180,7 @@ export type UserUpdateWithoutCreatedUsersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdEntries?: Prisma.EntryUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
@@ -1177,6 +1207,7 @@ export type UserUncheckedUpdateWithoutCreatedUsersInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdEntries?: Prisma.EntryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1197,6 +1228,7 @@ export type UserCreateWithoutTwoFactorMethodsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdEntries?: Prisma.EntryCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
@@ -1223,6 +1255,7 @@ export type UserUncheckedCreateWithoutTwoFactorMethodsInput = {
   createdAt?: Date | string
   createdById?: number | null
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdEntries?: Prisma.EntryUncheckedCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1260,6 +1293,7 @@ export type UserUpdateWithoutTwoFactorMethodsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdEntries?: Prisma.EntryUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
@@ -1286,6 +1320,121 @@ export type UserUncheckedUpdateWithoutTwoFactorMethodsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+  createdEntries?: Prisma.EntryUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
+}
+
+export type UserCreateWithoutTwoFactorRecoveryCodesInput = {
+  firstName: string
+  lastName: string
+  email: string
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdEntries?: Prisma.EntryCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
+}
+
+export type UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput = {
+  id?: number
+  firstName: string
+  lastName: string
+  email: string
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  avatarId?: number | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  createdEntries?: Prisma.EntryUncheckedCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
+}
+
+export type UserCreateOrConnectWithoutTwoFactorRecoveryCodesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
+}
+
+export type UserUpsertWithoutTwoFactorRecoveryCodesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedUpdateWithoutTwoFactorRecoveryCodesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutTwoFactorRecoveryCodesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedUpdateWithoutTwoFactorRecoveryCodesInput>
+}
+
+export type UserUpdateWithoutTwoFactorRecoveryCodesInput = {
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdEntries?: Prisma.EntryUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutTwoFactorRecoveryCodesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdEntries?: Prisma.EntryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1307,6 +1456,7 @@ export type UserCreateWithoutRolesInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdEntries?: Prisma.EntryCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
@@ -1333,6 +1483,7 @@ export type UserUncheckedCreateWithoutRolesInput = {
   createdAt?: Date | string
   createdById?: number | null
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdEntries?: Prisma.EntryUncheckedCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1360,6 +1511,7 @@ export type UserCreateWithoutCreatedRolesInput = {
   createdAt?: Date | string
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdEntries?: Prisma.EntryCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
@@ -1386,6 +1538,7 @@ export type UserUncheckedCreateWithoutCreatedRolesInput = {
   createdById?: number | null
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdEntries?: Prisma.EntryUncheckedCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
   createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1439,6 +1592,7 @@ export type UserUpdateWithoutCreatedRolesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdEntries?: Prisma.EntryUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
@@ -1465,6 +1619,7 @@ export type UserUncheckedUpdateWithoutCreatedRolesInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdEntries?: Prisma.EntryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1486,6 +1641,7 @@ export type UserCreateWithoutCreatedPermissionsInput = {
   createdAt?: Date | string
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdEntries?: Prisma.EntryCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
@@ -1512,6 +1668,7 @@ export type UserUncheckedCreateWithoutCreatedPermissionsInput = {
   createdById?: number | null
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdEntries?: Prisma.EntryUncheckedCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1549,6 +1706,7 @@ export type UserUpdateWithoutCreatedPermissionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdEntries?: Prisma.EntryUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
@@ -1575,6 +1733,7 @@ export type UserUncheckedUpdateWithoutCreatedPermissionsInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdEntries?: Prisma.EntryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1596,6 +1755,7 @@ export type UserCreateWithoutAvatarInput = {
   createdAt?: Date | string
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   createdEntries?: Prisma.EntryCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
@@ -1621,6 +1781,7 @@ export type UserUncheckedCreateWithoutAvatarInput = {
   createdById?: number | null
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdEntries?: Prisma.EntryUncheckedCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1652,6 +1813,7 @@ export type UserCreateWithoutCreatedFilesInput = {
   createdAt?: Date | string
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdEntries?: Prisma.EntryCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
@@ -1678,6 +1840,7 @@ export type UserUncheckedCreateWithoutCreatedFilesInput = {
   createdById?: number | null
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdEntries?: Prisma.EntryUncheckedCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1704,6 +1867,7 @@ export type UserCreateWithoutDeletedFilesInput = {
   createdAt?: Date | string
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdEntries?: Prisma.EntryCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
@@ -1730,6 +1894,7 @@ export type UserUncheckedCreateWithoutDeletedFilesInput = {
   createdById?: number | null
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdEntries?: Prisma.EntryUncheckedCreateNestedManyWithoutCreatedByInput
   createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
   createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1783,6 +1948,7 @@ export type UserUpdateWithoutCreatedFilesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdEntries?: Prisma.EntryUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
@@ -1809,6 +1975,7 @@ export type UserUncheckedUpdateWithoutCreatedFilesInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdEntries?: Prisma.EntryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1841,6 +2008,7 @@ export type UserUpdateWithoutDeletedFilesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdEntries?: Prisma.EntryUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
@@ -1867,6 +2035,7 @@ export type UserUncheckedUpdateWithoutDeletedFilesInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdEntries?: Prisma.EntryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1904,6 +2073,7 @@ export type UserUpdateWithoutCreatedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdEntries?: Prisma.EntryUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
@@ -1929,6 +2099,7 @@ export type UserUncheckedUpdateWithoutCreatedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdEntries?: Prisma.EntryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1966,6 +2137,7 @@ export type UserUpdateWithoutRolesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdEntries?: Prisma.EntryUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
@@ -1992,6 +2164,7 @@ export type UserUncheckedUpdateWithoutRolesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdEntries?: Prisma.EntryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2047,6 +2220,7 @@ export type UserUpdateWithoutAvatarInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   createdEntries?: Prisma.EntryUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
@@ -2072,6 +2246,7 @@ export type UserUncheckedUpdateWithoutAvatarInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   createdEntries?: Prisma.EntryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2104,6 +2279,7 @@ export type UserUncheckedUpdateManyWithoutAvatarInput = {
 export type UserCountOutputType = {
   roles: number
   twoFactorMethods: number
+  twoFactorRecoveryCodes: number
   createdEntries: number
   createdUsers: number
   createdRoles: number
@@ -2115,6 +2291,7 @@ export type UserCountOutputType = {
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   roles?: boolean | UserCountOutputTypeCountRolesArgs
   twoFactorMethods?: boolean | UserCountOutputTypeCountTwoFactorMethodsArgs
+  twoFactorRecoveryCodes?: boolean | UserCountOutputTypeCountTwoFactorRecoveryCodesArgs
   createdEntries?: boolean | UserCountOutputTypeCountCreatedEntriesArgs
   createdUsers?: boolean | UserCountOutputTypeCountCreatedUsersArgs
   createdRoles?: boolean | UserCountOutputTypeCountCreatedRolesArgs
@@ -2145,6 +2322,13 @@ export type UserCountOutputTypeCountRolesArgs<ExtArgs extends runtime.Types.Exte
  */
 export type UserCountOutputTypeCountTwoFactorMethodsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.TwoFactorMethodWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountTwoFactorRecoveryCodesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TwoFactorRecoveryCodeWhereInput
 }
 
 /**
@@ -2207,6 +2391,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdById?: boolean
   roles?: boolean | Prisma.User$rolesArgs<ExtArgs>
   twoFactorMethods?: boolean | Prisma.User$twoFactorMethodsArgs<ExtArgs>
+  twoFactorRecoveryCodes?: boolean | Prisma.User$twoFactorRecoveryCodesArgs<ExtArgs>
   avatar?: boolean | Prisma.User$avatarArgs<ExtArgs>
   createdEntries?: boolean | Prisma.User$createdEntriesArgs<ExtArgs>
   createdUsers?: boolean | Prisma.User$createdUsersArgs<ExtArgs>
@@ -2277,6 +2462,7 @@ export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = run
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   roles?: boolean | Prisma.User$rolesArgs<ExtArgs>
   twoFactorMethods?: boolean | Prisma.User$twoFactorMethodsArgs<ExtArgs>
+  twoFactorRecoveryCodes?: boolean | Prisma.User$twoFactorRecoveryCodesArgs<ExtArgs>
   avatar?: boolean | Prisma.User$avatarArgs<ExtArgs>
   createdEntries?: boolean | Prisma.User$createdEntriesArgs<ExtArgs>
   createdUsers?: boolean | Prisma.User$createdUsersArgs<ExtArgs>
@@ -2304,6 +2490,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
      */
     roles: Prisma.$RolePayload<ExtArgs>[]
     twoFactorMethods: Prisma.$TwoFactorMethodPayload<ExtArgs>[]
+    twoFactorRecoveryCodes: Prisma.$TwoFactorRecoveryCodePayload<ExtArgs>[]
     /**
      * File columns
      */
@@ -2736,6 +2923,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   roles<T extends Prisma.User$rolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$rolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   twoFactorMethods<T extends Prisma.User$twoFactorMethodsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$twoFactorMethodsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TwoFactorMethodPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  twoFactorRecoveryCodes<T extends Prisma.User$twoFactorRecoveryCodesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$twoFactorRecoveryCodesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TwoFactorRecoveryCodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   avatar<T extends Prisma.User$avatarArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$avatarArgs<ExtArgs>>): Prisma.Prisma__FileClient<runtime.Types.Result.GetResult<Prisma.$FilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   createdEntries<T extends Prisma.User$createdEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdUsers<T extends Prisma.User$createdUsersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdUsersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3231,6 +3419,30 @@ export type User$twoFactorMethodsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.TwoFactorMethodScalarFieldEnum | Prisma.TwoFactorMethodScalarFieldEnum[]
+}
+
+/**
+ * User.twoFactorRecoveryCodes
+ */
+export type User$twoFactorRecoveryCodesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TwoFactorRecoveryCode
+   */
+  select?: Prisma.TwoFactorRecoveryCodeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TwoFactorRecoveryCode
+   */
+  omit?: Prisma.TwoFactorRecoveryCodeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TwoFactorRecoveryCodeInclude<ExtArgs> | null
+  where?: Prisma.TwoFactorRecoveryCodeWhereInput
+  orderBy?: Prisma.TwoFactorRecoveryCodeOrderByWithRelationInput | Prisma.TwoFactorRecoveryCodeOrderByWithRelationInput[]
+  cursor?: Prisma.TwoFactorRecoveryCodeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TwoFactorRecoveryCodeScalarFieldEnum | Prisma.TwoFactorRecoveryCodeScalarFieldEnum[]
 }
 
 /**

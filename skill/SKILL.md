@@ -601,7 +601,9 @@ sign-in of a user with a method (or of every user with `SECURITY_ACCOUNT_2FA_FOR
 scope with `twoFactorMethods`, passed by `POST /auth/account/2fa/challenge { method? }` and
 `POST /auth/account/2fa/verify { challengeId, code }`, then `POST /auth/exchange-token`. The SMS method needs a phone
 number verified with `/auth/account/send-verify-phone` and an SMS sender (`@appweaver/twilio`), the TOTP method the
-`SECURITY_ACCOUNT_2FA_TOTP_ENCRYPTION_KEY`. See [security.md](references/security.md#two-factor-authentication-2fa).
+`SECURITY_ACCOUNT_2FA_TOTP_ENCRYPTION_KEY`. A user who lost their methods signs in once per code with the recovery codes
+of `POST /auth/account/2fa/recovery-codes` (challenge `method: 'recovery'`). See
+[security.md](references/security.md#two-factor-authentication-2fa).
 
 #### Querying resources with filters
 

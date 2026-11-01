@@ -48,8 +48,9 @@ model User {
   logoutAt      DateTime?
 
   /// Related columns
-  roles            Role[]            @relation("UserRolesRole")
-  twoFactorMethods TwoFactorMethod[] @relation("UserTwoFactorMethodsTwoFactorMethod")
+  roles                  Role[]                  @relation("UserRolesRole")
+  twoFactorMethods       TwoFactorMethod[]       @relation("UserTwoFactorMethodsTwoFactorMethod")
+  twoFactorRecoveryCodes TwoFactorRecoveryCode[] @relation("UserTwoFactorRecoveryCodesTwoFactorRecoveryCode")
 
   /// File columns
   avatar   File? @relation("UserAvatarFile", fields: [avatarId], references: [id])
@@ -104,6 +105,21 @@ model TwoFactorMethod {
   createdAt DateTime @default(now())
 
   @@unique([userId, type])
+}
+
+model TwoFactorRecoveryCode {
+  id       Int       @id @default(autoincrement())
+  codeHash String    @unique
+  usedAt   DateTime?
+
+  /// Related columns
+  user   User @relation("UserTwoFactorRecoveryCodesTwoFactorRecoveryCode", fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  /// Audit columns
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Role {

@@ -489,6 +489,7 @@ The two-factor authentication, under the `/2fa` path of the account routes (`two
 | `disableMethod(method, request?, options?)` | `DELETE /auth/account/2fa/methods/{method}` | Disable a method, with the password          |
 | `setupTotp(options?)`                       | `POST /auth/account/2fa/totp/setup`         | Start the setup of an authenticator app      |
 | `confirmTotp(request, options?)`            | `POST /auth/account/2fa/totp/confirm`       | Confirm the setup with a code of the app     |
+| `generateRecoveryCodes(request?, options?)` | `POST /auth/account/2fa/recovery-codes`     | Generate the recovery codes, shown once      |
 
 ```ts
 const session = await client.auth.login({ username: 'user@example.com', password: 'secret' });

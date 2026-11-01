@@ -942,6 +942,31 @@
                       "minimum": 1,
                       "type": "integer"
                     },
+                    "recoveryCodes": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "default": true,
+                          "type": "boolean"
+                        },
+                        "count": {
+                          "default": 10,
+                          "minimum": 1,
+                          "maximum": 100,
+                          "type": "integer"
+                        },
+                        "length": {
+                          "default": 16,
+                          "minimum": 8,
+                          "maximum": 128,
+                          "type": "integer"
+                        },
+                        "notifyOnUse": {
+                          "default": true,
+                          "type": "boolean"
+                        }
+                      }
+                    },
                     "totp": {
                       "type": "object",
                       "properties": {

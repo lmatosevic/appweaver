@@ -140,4 +140,27 @@ describe('two-factor-client', () => {
       });
     });
   });
+
+  describe('generateRecoveryCodes', () => {
+    test('posts the password to the recovery codes path', async () => {
+      const { stub, twoFactor } = createTwoFactor({ codes: ['A'] });
+
+      await expect(
+        twoFactor.generateRecoveryCodes({ password: 'secret' })
+      ).resolves.toEqual({ codes: ['A'] });
+      expect(stub.lastCall()).toMatchObject({
+        method: 'post',
+        path: '/auth/account/2fa/recovery-codes',
+        params: { body: { password: 'secret' } }
+      });
+    });
+
+    test('posts an empty body for a user without a password', async () => {
+      const { stub, twoFactor } = createTwoFactor();
+
+      await twoFactor.generateRecoveryCodes();
+
+      expect(stub.lastCall().params.body).toEqual({});
+    });
+  });
 });

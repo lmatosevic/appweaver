@@ -1,4 +1,8 @@
-import { AuthType, TwoFactorMethodType } from '@appweaver/common';
+import {
+  AuthType,
+  TwoFactorChallengeMethod,
+  TwoFactorMethodType
+} from '@appweaver/common';
 import { currentAuthSource, inject } from '@appweaver/core';
 import { Server } from '../../types/server';
 import { TwoFactorService } from './two-factor-service';
@@ -8,6 +12,7 @@ import {
   twoFactorEnableMethodSchema,
   twoFactorMethodsSchema,
   twoFactorOrderMethodsSchema,
+  twoFactorRecoveryCodesSchema,
   twoFactorTotpConfirmSchema,
   twoFactorTotpSetupSchema,
   twoFactorVerifySchema
@@ -15,7 +20,7 @@ import {
 
 /**
  * Registers the two-factor authentication routes: the challenge and its verification of the `2fa` scope, and the
- * management of the methods of the signed-in user.
+ * management of the methods and the recovery codes of the signed-in user.
  *
  * @param {Server} server - The server to register the routes on.
  */
@@ -39,7 +44,7 @@ export function twoFactorRoutes(server: Server): void {
     },
     async (request, reply) => {
       const response = await twoFactorService.sendChallenge(currentUser(), {
-        method: request.body.method as TwoFactorMethodType | undefined,
+        method: request.body.method as TwoFactorChallengeMethod | undefined,
         purpose: request.body.purpose,
         authSource: currentAuthSource() ?? undefined
       });
@@ -180,6 +185,28 @@ export function twoFactorRoutes(server: Server): void {
         enabled,
         available: twoFactorService.availableMethods()
       });
+    }
+  );
+
+  server.post(
+    '/recovery-codes',
+    {
+      schema: twoFactorRecoveryCodesSchema,
+      onRequest: authenticate([AuthType.Jwt]),
+      config: {
+        rateLimit: {
+          secure: true,
+          max: 12
+        }
+      }
+    },
+    async (request, reply) => {
+      return reply.send(
+        await twoFactorService.generateRecoveryCodes(
+          currentUser(),
+          request.body?.password
+        )
+      );
     }
   );
 }

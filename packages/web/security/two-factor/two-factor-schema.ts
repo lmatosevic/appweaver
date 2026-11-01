@@ -14,6 +14,15 @@ const TwoFactorMethodSchema = StringEnum(TwoFactorMethodType, {
   example: 'totp'
 });
 
+const TwoFactorChallengeMethodSchema = StringEnum(
+  { ...TwoFactorMethodType, Recovery: 'recovery' },
+  {
+    description:
+      'A 2FA method of the user, or `recovery` for one of their recovery codes',
+    example: 'totp'
+  }
+);
+
 const TwoFactorMethodListSchema = (description: string) =>
   Type.Array(TwoFactorMethodSchema, {
     description,
@@ -22,7 +31,7 @@ const TwoFactorMethodListSchema = (description: string) =>
 
 export const TwoFactorChallengeRequest = Type.Object(
   {
-    method: Type.Optional(TwoFactorMethodSchema),
+    method: Type.Optional(TwoFactorChallengeMethodSchema),
     purpose: Type.Optional(
       Type.String({
         description:
@@ -45,7 +54,7 @@ export const TwoFactorChallengeResponse = Type.Object(
       description: 'The expiration time of the challenge in milliseconds',
       example: 300000
     }),
-    method: TwoFactorMethodSchema,
+    method: TwoFactorChallengeMethodSchema,
     destination: Type.Union([Type.String(), Type.Null()], {
       description:
         'The masked email address or phone number the code was sent to, null for an authenticator app',
@@ -169,6 +178,33 @@ export const TwoFactorTotpConfirmRequest = Type.Object(
 );
 
 const TwoFactorMethodsChangeResponse = TwoFactorMethodsResponse;
+
+export const TwoFactorRecoveryCodesRequest = Type.Object(
+  {
+    password: Type.Optional(
+      Type.String({
+        description: 'The password of the user, required when the user has one',
+        example: 'yourPassword123!'
+      })
+    )
+  },
+  { $id: 'TwoFactorRecoveryCodesRequest' }
+);
+
+export const TwoFactorRecoveryCodesResponse = Type.Object(
+  {
+    codes: Type.Array(Type.String(), {
+      description:
+        'The recovery codes, shown only once, each used once instead of a 2FA code',
+      example: ['7G2K-QX9M-4TZB-8HRW', 'M3NP-2VXC-9KQT-6JZD']
+    }),
+    generatedAt: Type.String({
+      format: 'date-time',
+      example: '2026-11-01T12:00:00.000Z'
+    })
+  },
+  { $id: 'TwoFactorRecoveryCodesResponse' }
+);
 
 const jwtSecurity = {
   tags: ['Two-factor authentication'],
@@ -314,4 +350,23 @@ export const twoFactorTotpConfirmSchema = {
     )
   },
   body: createSchemaModel(TwoFactorTotpConfirmRequest)
+};
+
+export const twoFactorRecoveryCodesSchema = {
+  ...jwtSecurity,
+  summary: 'Generate the recovery codes',
+  description:
+    'Generate the recovery codes of the signed-in user, replacing the ones they had, confirmed by the password of a ' +
+    'user who has one',
+  response: {
+    200: createSchemaModel(TwoFactorRecoveryCodesResponse),
+    ...errorResponses(
+      ...authErrorCodes([AuthType.Jwt]),
+      ErrorCode.AuthPasswordRequired,
+      ErrorCode.AuthInvalidCredentials,
+      ErrorCode.Account2FAMethodUnavailable,
+      ErrorCode.Account2FAMethodNotEnabled
+    )
+  },
+  body: createSchemaModel(TwoFactorRecoveryCodesRequest)
 };

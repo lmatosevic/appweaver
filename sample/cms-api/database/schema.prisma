@@ -175,12 +175,13 @@ model User {
   logoutAt      DateTime?
 
   /// Related columns
-  posts             Post[]             @relation("PostAuthorUser")
-  pages             Page[]             @relation("PageAuthorUser")
-  roles             Role[]             @relation("UserRolesRole")
-  apiKeys           ApiKey[]           @relation("UserApiKeysApiKey")
-  twoFactorMethods  TwoFactorMethod[]  @relation("UserTwoFactorMethodsTwoFactorMethod")
-  connectedAccounts ConnectedAccount[] @relation("UserConnectedAccountsConnectedAccount")
+  posts                  Post[]                  @relation("PostAuthorUser")
+  pages                  Page[]                  @relation("PageAuthorUser")
+  roles                  Role[]                  @relation("UserRolesRole")
+  apiKeys                ApiKey[]                @relation("UserApiKeysApiKey")
+  twoFactorMethods       TwoFactorMethod[]       @relation("UserTwoFactorMethodsTwoFactorMethod")
+  twoFactorRecoveryCodes TwoFactorRecoveryCode[] @relation("UserTwoFactorRecoveryCodesTwoFactorRecoveryCode")
+  connectedAccounts      ConnectedAccount[]      @relation("UserConnectedAccountsConnectedAccount")
 
   /// File columns
   avatar   File? @relation("UserAvatarFile", fields: [avatarId], references: [id])
@@ -286,6 +287,21 @@ model TwoFactorMethod {
   createdAt DateTime @default(now())
 
   @@unique([userId, type])
+}
+
+model TwoFactorRecoveryCode {
+  id       Int       @id @default(autoincrement())
+  codeHash String    @unique
+  usedAt   DateTime?
+
+  /// Related columns
+  user   User @relation("UserTwoFactorRecoveryCodesTwoFactorRecoveryCode", fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  /// Audit columns
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Role {

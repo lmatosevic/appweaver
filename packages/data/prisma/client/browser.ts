@@ -48,6 +48,11 @@ export type Role = Prisma.RoleModel
  */
 export type TwoFactorMethod = Prisma.TwoFactorMethodModel
 /**
+ * Model TwoFactorRecoveryCode
+ * 
+ */
+export type TwoFactorRecoveryCode = Prisma.TwoFactorRecoveryCodeModel
+/**
  * Model Seeder
  * 
  */
