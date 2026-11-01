@@ -45,6 +45,80 @@ describe('memory-queue', () => {
   });
 
   describe('sendJob', () => {
+    test('keeps a given job id', async () => {
+      const job = await queue.get('emails').sendJob({}, 'a', { jobId: 'j-1' });
+
+      expect(job.id).toBe('j-1');
+    });
+
+    test('takes the attempts from the queue config by default', async () => {
+      const job = await queue.get('emails').sendJob({});
+
+      expect(job.maxAttempts).toBe(3);
+    });
+
+    test('returns the job still in the queue for its job id', async () => {
+      const processor = queue.get('emails');
+      const first = await processor.sendJob({ n: 1 }, 'a', {
+        jobId: 'j-1',
+        delay: 50
+      });
+
+      const second = await processor.sendJob({ n: 2 }, 'a', { jobId: 'j-1' });
+
+      expect(second).toBe(first);
+      expect(second.data).toEqual({ n: 1 });
+    });
+
+    test('takes a job id again once its job completed', async () => {
+      const processor = queue.get('emails');
+      const processed: unknown[] = [];
+      processor.addWorker(async (job) => {
+        processed.push(job.data);
+      });
+      await processor.sendJob({ n: 1 }, 'a', { jobId: 'j-1' });
+      await waitFor(() => processed.length === 1);
+
+      const second = await processor.sendJob({ n: 2 }, 'a', {
+        jobId: 'j-1',
+        delay: 5000
+      });
+      expect(second.data).toEqual({ n: 2 });
+
+      // The removal of the completed job keeps the later one of its id
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+      const third = await processor.sendJob({ n: 3 }, 'a', { jobId: 'j-1' });
+      expect(third).toBe(second);
+    });
+
+    test('processes a delayed job once it is due', async () => {
+      const processor = queue.get('emails');
+      const processed: unknown[] = [];
+      processor.addWorker(async (job) => {
+        processed.push(job.data);
+      });
+
+      const job = await processor.sendJob({ n: 1 }, 'a', { delay: 20 });
+      expect(job.status).toBe('delayed');
+
+      await waitFor(() => processed.length === 1);
+      expect(processed).toEqual([{ n: 1 }]);
+    });
+
+    test('drops the delayed jobs of a closed queue', async () => {
+      const processor = queue.get('emails');
+      const processed: unknown[] = [];
+      processor.addWorker(async (job) => {
+        processed.push(job.data);
+      });
+      await processor.sendJob({ n: 1 }, 'a', { delay: 20 });
+
+      await processor.close();
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(processed).toEqual([]);
+    });
+
     test('processes a job with the registered worker', async () => {
       const processor = queue.get('emails');
       const processed: any[] = [];

@@ -12,11 +12,12 @@ import {
   uuid,
   QueueError
 } from '@appweaver/common';
+import { queueConfig } from './queue-config';
 
 const logger = createLogger('queue');
 
 type MemoryQueueJob<Data = any, Response = any> = QueueJob<Data, Response> & {
-  status: 'waiting' | 'active' | 'completed' | 'failed';
+  status: 'delayed' | 'waiting' | 'active' | 'completed' | 'failed';
   attempts: number;
   maxAttempts: number;
   createdAt: number;
@@ -115,6 +116,8 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
   private _closed = false;
   /** @internal */
   private _processingTimeout?: NodeJS.Timeout;
+  /** @internal */
+  private readonly _delayTimeouts = new Set<NodeJS.Timeout>();
 
   constructor(public readonly name: string) {
     super();
@@ -136,7 +139,17 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       );
     }
 
-    const jobId = uuid();
+    const jobId = options.jobId ?? uuid();
+    // Like BullMQ with its default retention, the id of a job still in the queue or failed ignores the send
+    const existing = this._jobs.get(jobId);
+    if (existing && existing.status !== 'completed') {
+      logger.debug(
+        { queue: this.name, jobId, name: existing.name },
+        'Job already in the queue'
+      );
+      return existing;
+    }
+
     const job: MemoryQueueJob<Data, Response> = {
       id: jobId,
       name: name ?? 'defaultJob',
@@ -144,17 +157,20 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       returnvalue: undefined as any,
       status: 'waiting',
       attempts: 0,
-      maxAttempts: options.attempts ?? 3,
+      maxAttempts: options.attempts ?? queueConfig.RETRY_ATTEMPTS,
       createdAt: Date.now()
     };
 
+    this._jobs.set(jobId, job);
     if (options.delay) {
-      setTimeout(() => {
-        this._jobs.set(jobId, job);
+      job.status = 'delayed';
+      const timeout = setTimeout(() => {
+        this._delayTimeouts.delete(timeout);
+        job.status = 'waiting';
         this.processJobs();
       }, options.delay);
+      this._delayTimeouts.add(timeout);
     } else {
-      this._jobs.set(jobId, job);
       this.processJobs();
     }
 
@@ -303,6 +319,11 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     if (this._processingTimeout) {
       clearTimeout(this._processingTimeout);
     }
+    // The delayed jobs are lost with the closed queue
+    for (const timeout of this._delayTimeouts) {
+      clearTimeout(timeout);
+    }
+    this._delayTimeouts.clear();
 
     // Wait for active jobs to complete
     const activeJobs = Array.from(this._jobs.values()).filter(
@@ -352,6 +373,17 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     }
 
     await Promise.allSettled(handlerActions);
+  }
+
+  /**
+   * Removes a finished job, unless a later job took its id.
+   *
+   * @internal
+   */
+  private removeJob(job: MemoryQueueJob<Data, Response>): void {
+    if (this._jobs.get(job.id!) === job) {
+      this._jobs.delete(job.id!);
+    }
   }
 
   /** @internal */
@@ -435,9 +467,7 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       await this.emitEvent('completed', job, result, 'active');
 
       // Clean up completed job after a short delay
-      setTimeout(() => {
-        this._jobs.delete(job.id!);
-      }, 1000);
+      setTimeout(() => this.removeJob(job), 1000);
     } catch (error) {
       job.error = error as Error;
 
@@ -459,9 +489,7 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
         await this.emitEvent('failed', job, error, 'active');
 
         // Clean up failed job after a short delay
-        setTimeout(() => {
-          this._jobs.delete(job.id!);
-        }, 1000);
+        setTimeout(() => this.removeJob(job), 1000);
       } else {
         // Retry the job
         job.status = 'waiting';

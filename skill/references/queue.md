@@ -65,7 +65,9 @@ Obtained via `queue.get(name)`.
 
 #### `processor.sendJob(data, name?, options?)`
 
-Enqueues a single job. Returns the created `QueueJob`.
+Enqueues a single job. Returns the created `QueueJob`. A `jobId` is the identity of the job in the queue: a send with
+the id of a job still in it (waiting, delayed, running, or a finished job the queue keeps) is ignored and returns the
+existing job, with every driver, so a send can be made idempotent (``{ jobId: `invoice-${id}` }``).
 
 | Parameter | Type              | Description                  |
 |-----------|-------------------|------------------------------|
@@ -176,14 +178,46 @@ type QueueJob<Data, Response> = {
 
 ## Configuration
 
-| Key                          | Type     | Default   | Description                                                                                                  |
-|------------------------------|----------|-----------|--------------------------------------------------------------------------------------------------------------|
-| `QUEUE_PROVIDER`             | `string` | `'auto'`  | `auto` (`bullmq` with `@appweaver/bullmq`, otherwise `memory`), `memory`, `bullmq`, `none`, or a module path |
-| `QUEUE_KEEP_COMPLETED_COUNT` | `int`    | `0`       | How many completed jobs to retain (0 = remove all)                                                           |
-| `QUEUE_KEEP_FAILED_COUNT`    | `int`    | `50`      | How many failed jobs to retain for inspection                                                                |
-| `QUEUE_RETRY_ATTEMPTS`       | `int`    | `3`       | Number of retry attempts on failure                                                                          |
-| `QUEUE_RETRY_BACKOFF`        | `int`    | `3000`    | Backoff delay in milliseconds                                                                                |
-| `QUEUE_RETRY_BACKOFF_TYPE`   | `enum`   | `'fixed'` | `fixed` or `exponential`                                                                                     |
+| Key                            | Type     | Default   | Description                                                                                                  |
+|--------------------------------|----------|-----------|--------------------------------------------------------------------------------------------------------------|
+| `QUEUE_PROVIDER`               | `string` | `'auto'`  | `auto` (`bullmq` with `@appweaver/bullmq`, otherwise `memory`), `memory`, `bullmq`, `none`, or a module path |
+| `QUEUE_KEEP_COMPLETED_COUNT`   | `int`    | `0`       | How many completed jobs to retain (0 = remove all)                                                           |
+| `QUEUE_KEEP_COMPLETED_SECONDS` | `int?`   | -         | How long to retain the completed jobs, in seconds                                                            |
+| `QUEUE_KEEP_FAILED_COUNT`      | `int`    | `50`      | How many failed jobs to retain for inspection                                                                |
+| `QUEUE_KEEP_FAILED_SECONDS`    | `int?`   | -         | How long to retain the failed jobs, in seconds                                                               |
+| `QUEUE_RETRY_ATTEMPTS`         | `int`    | `3`       | Number of retry attempts on failure                                                                          |
+| `QUEUE_RETRY_BACKOFF`          | `int`    | `3000`    | Backoff delay in milliseconds                                                                                |
+| `QUEUE_RETRY_BACKOFF_TYPE`     | `enum`   | `'fixed'` | `fixed` or `exponential`                                                                                     |
+
+### Keeping the finished jobs
+
+BullMQ keeps the finished jobs in Redis by the `QUEUE_KEEP_*` keys, each with its data, result, error and stack trace,
+attempts, timestamps and `job.log()` lines, so a dashboard reading Redis (i.e. Bull Board or Taskforce.sh) shows and
+retries them. With both a count and an age, a job is kept while it satisfies both, i.e. at most 5000 jobs of the last
+30 days:
+
+```json
+{
+  "config": {
+    "queue": {
+      "keepCompletedCount": 5000,
+      "keepCompletedSeconds": 2592000,
+      "keepFailedCount": 5000,
+      "keepFailedSeconds": 2592000
+    }
+  }
+}
+```
+
+- The limits apply to each queue, and the busier limit wins: a queue of more than 5000 jobs a month keeps less than 30
+  days.
+- The old jobs are removed as the next jobs of the queue finish, so an idle queue keeps them until then.
+- The jobs take Redis memory, about the count times the size of a payload and its result per queue. Redis needs its
+  persistence (AOF or RDB) to keep them across a restart.
+- The memory queue removes its finished jobs right away, whatever these keys.
+
+The queue keeps no durable audit trail. A worker records what its work needs in the database itself, i.e. the order
+it charged, the email it sent, or the synchronization with a provider, along with the id of its job.
 
 **Use `MemoryQueue` in the tests:**
 
