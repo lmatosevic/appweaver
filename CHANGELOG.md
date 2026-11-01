@@ -1,3 +1,9 @@
+## [2.4.0](https://github.com/lmatosevic/appweaver/compare/v2.3.0...v2.4.0) (2026-11-01)
+
+### Features
+
+* standardized CLI commands to POSIX/GNU style ([2393bc7](https://github.com/lmatosevic/appweaver/commit/2393bc7a958a6c7b9f99977a730f574853e71db2))
+
 ## [2.3.0](https://github.com/lmatosevic/appweaver/compare/v2.2.0...v2.3.0) (2026-11-01)
 
 ### Features
