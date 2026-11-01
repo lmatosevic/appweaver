@@ -4,7 +4,7 @@ import { createModel } from '../../../factory/create-model';
 const shouldCreateModel =
   queueHistoryConfig.ENABLED || queueHistoryConfig.KEEP_DATABASE_TABLE;
 
-// One record per job, a job id the queue takes again gets a new one
+// One record per send, a send of a job id still in the queue recorded `ignored`
 export default shouldCreateModel
   ? createModel({
       name: 'QueueJobRecord',
@@ -29,7 +29,8 @@ export default shouldCreateModel
             'retrying',
             'completed',
             'failed',
-            'stalled'
+            'stalled',
+            'ignored'
           ]
         },
         driver: { type: 'string', maxLength: 64, required: false },
@@ -40,7 +41,6 @@ export default shouldCreateModel
         attempt: { type: 'int', default: 0 },
         maxAttempts: { type: 'int', required: false },
         priority: { type: 'int', required: false },
-        duplicates: { type: 'int', default: 0 },
         errors: { type: 'json', default: [] },
         lastError: { type: 'string', required: false },
         enqueuedAt: { type: 'dateTime', required: false },
@@ -56,6 +56,7 @@ export default shouldCreateModel
         authSource: { type: 'string', maxLength: 32, required: false },
         apiKeyId: { type: 'string', maxLength: 64, required: false },
         parentId: { type: 'string', maxLength: 64, required: false },
+        duplicateOfId: { type: 'string', maxLength: 64, required: false },
         callerSite: { type: 'string', maxLength: 1024, required: false }
       },
       index: [
@@ -63,7 +64,8 @@ export default shouldCreateModel
         ['queue', 'state'],
         ['state', 'finishedAt'],
         ['userId'],
-        ['parentId']
+        ['parentId'],
+        ['duplicateOfId']
       ]
     })
   : undefined;

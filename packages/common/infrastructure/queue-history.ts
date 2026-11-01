@@ -6,7 +6,8 @@ export type QueueJobState =
   | 'retrying'
   | 'completed'
   | 'failed'
-  | 'stalled';
+  | 'stalled'
+  | 'ignored';
 
 /** Who sent a job, from the context of the call sending it. */
 export type QueueJobCaller = {
@@ -103,20 +104,13 @@ export abstract class QueueHistory {
   ): Promise<string[]>;
 
   /**
-   * Records a send the queue ignored, since a job with its id was still in the queue: deletes the record of the send,
-   * when one was made, and counts it in the `duplicates` of the record of the job in the queue.
+   * Records a send the queue ignored, since a job with its id was still in the queue: marks the record of the send
+   * `ignored`, finished and linked by its `duplicateOfId` to the record of the job in the queue.
    *
-   * @param {string} queue - The queue name.
-   * @param {string} jobId - The id of the job.
+   * @param {string} id - The record of the send, returned by {@link recordSent}.
    * @param {Date} createdAt - When the queue created the job in it, which finds its record.
-   * @param {string} [id] - The record made for the send, returned by {@link recordSent}.
    */
-  abstract recordIgnored(
-    queue: string,
-    jobId: string,
-    createdAt: Date,
-    id?: string
-  ): Promise<void>;
+  abstract recordIgnored(id: string, createdAt: Date): Promise<void>;
 
   /**
    * Records the start of an attempt on the record of its job: with the creation time of the job, the latest record

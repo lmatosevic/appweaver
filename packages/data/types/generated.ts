@@ -19,7 +19,8 @@ export type QueueJobRecord = {
     | 'retrying'
     | 'completed'
     | 'failed'
-    | 'stalled';
+    | 'stalled'
+    | 'ignored';
   driver?: string | null;
   data?: any | null;
   result?: any | null;
@@ -28,7 +29,6 @@ export type QueueJobRecord = {
   attempt: number;
   maxAttempts?: number | null;
   priority?: number | null;
-  duplicates: number;
   errors: any;
   lastError?: string | null;
   enqueuedAt?: Date | null;
@@ -44,6 +44,7 @@ export type QueueJobRecord = {
   authSource?: string | null;
   apiKeyId?: string | null;
   parentId?: string | null;
+  duplicateOfId?: string | null;
   callerSite?: string | null;
   updatedAt: Date;
   createdAt: Date;
@@ -61,7 +62,8 @@ export type QueueJobRecordSingle = {
     | 'retrying'
     | 'completed'
     | 'failed'
-    | 'stalled';
+    | 'stalled'
+    | 'ignored';
   driver?: string | null;
   data?: any | null;
   result?: any | null;
@@ -70,7 +72,6 @@ export type QueueJobRecordSingle = {
   attempt: number;
   maxAttempts?: number | null;
   priority?: number | null;
-  duplicates: number;
   errors: any;
   lastError?: string | null;
   enqueuedAt?: Date | null;
@@ -86,6 +87,7 @@ export type QueueJobRecordSingle = {
   authSource?: string | null;
   apiKeyId?: string | null;
   parentId?: string | null;
+  duplicateOfId?: string | null;
   callerSite?: string | null;
   updatedAt: Date;
   createdAt: Date;
@@ -103,7 +105,8 @@ export type QueueJobRecordMultiple = {
     | 'retrying'
     | 'completed'
     | 'failed'
-    | 'stalled';
+    | 'stalled'
+    | 'ignored';
   driver?: string | null;
   data?: any | null;
   result?: any | null;
@@ -112,7 +115,6 @@ export type QueueJobRecordMultiple = {
   attempt: number;
   maxAttempts?: number | null;
   priority?: number | null;
-  duplicates: number;
   errors: any;
   lastError?: string | null;
   enqueuedAt?: Date | null;
@@ -128,6 +130,7 @@ export type QueueJobRecordMultiple = {
   authSource?: string | null;
   apiKeyId?: string | null;
   parentId?: string | null;
+  duplicateOfId?: string | null;
   callerSite?: string | null;
   updatedAt: Date;
   createdAt: Date;
@@ -144,7 +147,8 @@ export type QueueJobRecordCreate = {
     | 'retrying'
     | 'completed'
     | 'failed'
-    | 'stalled';
+    | 'stalled'
+    | 'ignored';
   driver?: string | null;
   data?: any | null;
   result?: any | null;
@@ -153,7 +157,6 @@ export type QueueJobRecordCreate = {
   attempt?: number;
   maxAttempts?: number | null;
   priority?: number | null;
-  duplicates?: number;
   errors?: any;
   lastError?: string | null;
   enqueuedAt?: Date | null;
@@ -169,6 +172,7 @@ export type QueueJobRecordCreate = {
   authSource?: string | null;
   apiKeyId?: string | null;
   parentId?: string | null;
+  duplicateOfId?: string | null;
   callerSite?: string | null;
 };
 
@@ -183,7 +187,8 @@ export type QueueJobRecordUpdate = {
     | 'retrying'
     | 'completed'
     | 'failed'
-    | 'stalled';
+    | 'stalled'
+    | 'ignored';
   driver?: string | null;
   data?: any | null;
   result?: any | null;
@@ -192,7 +197,6 @@ export type QueueJobRecordUpdate = {
   attempt?: number;
   maxAttempts?: number | null;
   priority?: number | null;
-  duplicates?: number;
   errors?: any;
   lastError?: string | null;
   enqueuedAt?: Date | null;
@@ -208,6 +212,7 @@ export type QueueJobRecordUpdate = {
   authSource?: string | null;
   apiKeyId?: string | null;
   parentId?: string | null;
+  duplicateOfId?: string | null;
   callerSite?: string | null;
 };
 
@@ -222,7 +227,8 @@ export type QueueJobRecordReplace = {
     | 'retrying'
     | 'completed'
     | 'failed'
-    | 'stalled';
+    | 'stalled'
+    | 'ignored';
   driver?: string | null;
   data?: any | null;
   result?: any | null;
@@ -231,7 +237,6 @@ export type QueueJobRecordReplace = {
   attempt?: number;
   maxAttempts?: number | null;
   priority?: number | null;
-  duplicates?: number;
   errors?: any;
   lastError?: string | null;
   enqueuedAt?: Date | null;
@@ -247,6 +252,7 @@ export type QueueJobRecordReplace = {
   authSource?: string | null;
   apiKeyId?: string | null;
   parentId?: string | null;
+  duplicateOfId?: string | null;
   callerSite?: string | null;
 };
 
@@ -261,7 +267,8 @@ export type QueueJobRecordRelationCreate = {
     | 'retrying'
     | 'completed'
     | 'failed'
-    | 'stalled';
+    | 'stalled'
+    | 'ignored';
   driver?: string | null;
   data?: any | null;
   result?: any | null;
@@ -270,7 +277,6 @@ export type QueueJobRecordRelationCreate = {
   attempt?: number;
   maxAttempts?: number | null;
   priority?: number | null;
-  duplicates?: number;
   errors?: any;
   lastError?: string | null;
   enqueuedAt?: Date | null;
@@ -286,6 +292,7 @@ export type QueueJobRecordRelationCreate = {
   authSource?: string | null;
   apiKeyId?: string | null;
   parentId?: string | null;
+  duplicateOfId?: string | null;
   callerSite?: string | null;
 };
 
@@ -301,7 +308,8 @@ export type QueueJobRecordRelationUpdate = {
     | 'retrying'
     | 'completed'
     | 'failed'
-    | 'stalled';
+    | 'stalled'
+    | 'ignored';
   driver?: string | null;
   data?: any | null;
   result?: any | null;
@@ -310,7 +318,6 @@ export type QueueJobRecordRelationUpdate = {
   attempt?: number;
   maxAttempts?: number | null;
   priority?: number | null;
-  duplicates?: number;
   errors?: any;
   lastError?: string | null;
   enqueuedAt?: Date | null;
@@ -326,6 +333,7 @@ export type QueueJobRecordRelationUpdate = {
   authSource?: string | null;
   apiKeyId?: string | null;
   parentId?: string | null;
+  duplicateOfId?: string | null;
   callerSite?: string | null;
 };
 

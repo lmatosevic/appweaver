@@ -30,7 +30,6 @@ export type QueueJobRecordAvgAggregateOutputType = {
   attempt: number | null
   maxAttempts: number | null
   priority: number | null
-  duplicates: number | null
   durationMs: number | null
 }
 
@@ -38,7 +37,6 @@ export type QueueJobRecordSumAggregateOutputType = {
   attempt: number | null
   maxAttempts: number | null
   priority: number | null
-  duplicates: number | null
   durationMs: number | null
 }
 
@@ -52,7 +50,6 @@ export type QueueJobRecordMinAggregateOutputType = {
   attempt: number | null
   maxAttempts: number | null
   priority: number | null
-  duplicates: number | null
   lastError: string | null
   enqueuedAt: Date | null
   jobCreatedAt: Date | null
@@ -67,6 +64,7 @@ export type QueueJobRecordMinAggregateOutputType = {
   authSource: string | null
   apiKeyId: string | null
   parentId: string | null
+  duplicateOfId: string | null
   callerSite: string | null
   updatedAt: Date | null
   createdAt: Date | null
@@ -82,7 +80,6 @@ export type QueueJobRecordMaxAggregateOutputType = {
   attempt: number | null
   maxAttempts: number | null
   priority: number | null
-  duplicates: number | null
   lastError: string | null
   enqueuedAt: Date | null
   jobCreatedAt: Date | null
@@ -97,6 +94,7 @@ export type QueueJobRecordMaxAggregateOutputType = {
   authSource: string | null
   apiKeyId: string | null
   parentId: string | null
+  duplicateOfId: string | null
   callerSite: string | null
   updatedAt: Date | null
   createdAt: Date | null
@@ -116,7 +114,6 @@ export type QueueJobRecordCountAggregateOutputType = {
   attempt: number
   maxAttempts: number
   priority: number
-  duplicates: number
   errors: number
   lastError: number
   enqueuedAt: number
@@ -132,6 +129,7 @@ export type QueueJobRecordCountAggregateOutputType = {
   authSource: number
   apiKeyId: number
   parentId: number
+  duplicateOfId: number
   callerSite: number
   updatedAt: number
   createdAt: number
@@ -143,7 +141,6 @@ export type QueueJobRecordAvgAggregateInputType = {
   attempt?: true
   maxAttempts?: true
   priority?: true
-  duplicates?: true
   durationMs?: true
 }
 
@@ -151,7 +148,6 @@ export type QueueJobRecordSumAggregateInputType = {
   attempt?: true
   maxAttempts?: true
   priority?: true
-  duplicates?: true
   durationMs?: true
 }
 
@@ -165,7 +161,6 @@ export type QueueJobRecordMinAggregateInputType = {
   attempt?: true
   maxAttempts?: true
   priority?: true
-  duplicates?: true
   lastError?: true
   enqueuedAt?: true
   jobCreatedAt?: true
@@ -180,6 +175,7 @@ export type QueueJobRecordMinAggregateInputType = {
   authSource?: true
   apiKeyId?: true
   parentId?: true
+  duplicateOfId?: true
   callerSite?: true
   updatedAt?: true
   createdAt?: true
@@ -195,7 +191,6 @@ export type QueueJobRecordMaxAggregateInputType = {
   attempt?: true
   maxAttempts?: true
   priority?: true
-  duplicates?: true
   lastError?: true
   enqueuedAt?: true
   jobCreatedAt?: true
@@ -210,6 +205,7 @@ export type QueueJobRecordMaxAggregateInputType = {
   authSource?: true
   apiKeyId?: true
   parentId?: true
+  duplicateOfId?: true
   callerSite?: true
   updatedAt?: true
   createdAt?: true
@@ -229,7 +225,6 @@ export type QueueJobRecordCountAggregateInputType = {
   attempt?: true
   maxAttempts?: true
   priority?: true
-  duplicates?: true
   errors?: true
   lastError?: true
   enqueuedAt?: true
@@ -245,6 +240,7 @@ export type QueueJobRecordCountAggregateInputType = {
   authSource?: true
   apiKeyId?: true
   parentId?: true
+  duplicateOfId?: true
   callerSite?: true
   updatedAt?: true
   createdAt?: true
@@ -351,7 +347,6 @@ export type QueueJobRecordGroupByOutputType = {
   attempt: number
   maxAttempts: number | null
   priority: number | null
-  duplicates: number
   errors: runtime.JsonValue
   lastError: string | null
   enqueuedAt: Date | null
@@ -367,6 +362,7 @@ export type QueueJobRecordGroupByOutputType = {
   authSource: string | null
   apiKeyId: string | null
   parentId: string | null
+  duplicateOfId: string | null
   callerSite: string | null
   updatedAt: Date
   createdAt: Date
@@ -409,7 +405,6 @@ export type QueueJobRecordWhereInput = {
   attempt?: Prisma.IntFilter<"QueueJobRecord"> | number
   maxAttempts?: Prisma.IntNullableFilter<"QueueJobRecord"> | number | null
   priority?: Prisma.IntNullableFilter<"QueueJobRecord"> | number | null
-  duplicates?: Prisma.IntFilter<"QueueJobRecord"> | number
   errors?: Prisma.JsonFilter<"QueueJobRecord">
   lastError?: Prisma.StringNullableFilter<"QueueJobRecord"> | string | null
   enqueuedAt?: Prisma.DateTimeNullableFilter<"QueueJobRecord"> | Date | string | null
@@ -425,6 +420,7 @@ export type QueueJobRecordWhereInput = {
   authSource?: Prisma.StringNullableFilter<"QueueJobRecord"> | string | null
   apiKeyId?: Prisma.StringNullableFilter<"QueueJobRecord"> | string | null
   parentId?: Prisma.StringNullableFilter<"QueueJobRecord"> | string | null
+  duplicateOfId?: Prisma.StringNullableFilter<"QueueJobRecord"> | string | null
   callerSite?: Prisma.StringNullableFilter<"QueueJobRecord"> | string | null
   updatedAt?: Prisma.DateTimeFilter<"QueueJobRecord"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"QueueJobRecord"> | Date | string
@@ -444,7 +440,6 @@ export type QueueJobRecordOrderByWithRelationInput = {
   attempt?: Prisma.SortOrder
   maxAttempts?: Prisma.SortOrderInput | Prisma.SortOrder
   priority?: Prisma.SortOrderInput | Prisma.SortOrder
-  duplicates?: Prisma.SortOrder
   errors?: Prisma.SortOrder
   lastError?: Prisma.SortOrderInput | Prisma.SortOrder
   enqueuedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -460,6 +455,7 @@ export type QueueJobRecordOrderByWithRelationInput = {
   authSource?: Prisma.SortOrderInput | Prisma.SortOrder
   apiKeyId?: Prisma.SortOrderInput | Prisma.SortOrder
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  duplicateOfId?: Prisma.SortOrderInput | Prisma.SortOrder
   callerSite?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -482,7 +478,6 @@ export type QueueJobRecordWhereUniqueInput = Prisma.AtLeast<{
   attempt?: Prisma.IntFilter<"QueueJobRecord"> | number
   maxAttempts?: Prisma.IntNullableFilter<"QueueJobRecord"> | number | null
   priority?: Prisma.IntNullableFilter<"QueueJobRecord"> | number | null
-  duplicates?: Prisma.IntFilter<"QueueJobRecord"> | number
   errors?: Prisma.JsonFilter<"QueueJobRecord">
   lastError?: Prisma.StringNullableFilter<"QueueJobRecord"> | string | null
   enqueuedAt?: Prisma.DateTimeNullableFilter<"QueueJobRecord"> | Date | string | null
@@ -498,6 +493,7 @@ export type QueueJobRecordWhereUniqueInput = Prisma.AtLeast<{
   authSource?: Prisma.StringNullableFilter<"QueueJobRecord"> | string | null
   apiKeyId?: Prisma.StringNullableFilter<"QueueJobRecord"> | string | null
   parentId?: Prisma.StringNullableFilter<"QueueJobRecord"> | string | null
+  duplicateOfId?: Prisma.StringNullableFilter<"QueueJobRecord"> | string | null
   callerSite?: Prisma.StringNullableFilter<"QueueJobRecord"> | string | null
   updatedAt?: Prisma.DateTimeFilter<"QueueJobRecord"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"QueueJobRecord"> | Date | string
@@ -517,7 +513,6 @@ export type QueueJobRecordOrderByWithAggregationInput = {
   attempt?: Prisma.SortOrder
   maxAttempts?: Prisma.SortOrderInput | Prisma.SortOrder
   priority?: Prisma.SortOrderInput | Prisma.SortOrder
-  duplicates?: Prisma.SortOrder
   errors?: Prisma.SortOrder
   lastError?: Prisma.SortOrderInput | Prisma.SortOrder
   enqueuedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -533,6 +528,7 @@ export type QueueJobRecordOrderByWithAggregationInput = {
   authSource?: Prisma.SortOrderInput | Prisma.SortOrder
   apiKeyId?: Prisma.SortOrderInput | Prisma.SortOrder
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  duplicateOfId?: Prisma.SortOrderInput | Prisma.SortOrder
   callerSite?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -560,7 +556,6 @@ export type QueueJobRecordScalarWhereWithAggregatesInput = {
   attempt?: Prisma.IntWithAggregatesFilter<"QueueJobRecord"> | number
   maxAttempts?: Prisma.IntNullableWithAggregatesFilter<"QueueJobRecord"> | number | null
   priority?: Prisma.IntNullableWithAggregatesFilter<"QueueJobRecord"> | number | null
-  duplicates?: Prisma.IntWithAggregatesFilter<"QueueJobRecord"> | number
   errors?: Prisma.JsonWithAggregatesFilter<"QueueJobRecord">
   lastError?: Prisma.StringNullableWithAggregatesFilter<"QueueJobRecord"> | string | null
   enqueuedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"QueueJobRecord"> | Date | string | null
@@ -576,6 +571,7 @@ export type QueueJobRecordScalarWhereWithAggregatesInput = {
   authSource?: Prisma.StringNullableWithAggregatesFilter<"QueueJobRecord"> | string | null
   apiKeyId?: Prisma.StringNullableWithAggregatesFilter<"QueueJobRecord"> | string | null
   parentId?: Prisma.StringNullableWithAggregatesFilter<"QueueJobRecord"> | string | null
+  duplicateOfId?: Prisma.StringNullableWithAggregatesFilter<"QueueJobRecord"> | string | null
   callerSite?: Prisma.StringNullableWithAggregatesFilter<"QueueJobRecord"> | string | null
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"QueueJobRecord"> | Date | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"QueueJobRecord"> | Date | string
@@ -595,7 +591,6 @@ export type QueueJobRecordCreateInput = {
   attempt?: number
   maxAttempts?: number | null
   priority?: number | null
-  duplicates?: number
   errors?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   lastError?: string | null
   enqueuedAt?: Date | string | null
@@ -611,6 +606,7 @@ export type QueueJobRecordCreateInput = {
   authSource?: string | null
   apiKeyId?: string | null
   parentId?: string | null
+  duplicateOfId?: string | null
   callerSite?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -630,7 +626,6 @@ export type QueueJobRecordUncheckedCreateInput = {
   attempt?: number
   maxAttempts?: number | null
   priority?: number | null
-  duplicates?: number
   errors?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   lastError?: string | null
   enqueuedAt?: Date | string | null
@@ -646,6 +641,7 @@ export type QueueJobRecordUncheckedCreateInput = {
   authSource?: string | null
   apiKeyId?: string | null
   parentId?: string | null
+  duplicateOfId?: string | null
   callerSite?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -665,7 +661,6 @@ export type QueueJobRecordUpdateInput = {
   attempt?: Prisma.IntFieldUpdateOperationsInput | number
   maxAttempts?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   priority?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  duplicates?: Prisma.IntFieldUpdateOperationsInput | number
   errors?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   lastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enqueuedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -681,6 +676,7 @@ export type QueueJobRecordUpdateInput = {
   authSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   apiKeyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  duplicateOfId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   callerSite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -700,7 +696,6 @@ export type QueueJobRecordUncheckedUpdateInput = {
   attempt?: Prisma.IntFieldUpdateOperationsInput | number
   maxAttempts?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   priority?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  duplicates?: Prisma.IntFieldUpdateOperationsInput | number
   errors?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   lastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enqueuedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -716,6 +711,7 @@ export type QueueJobRecordUncheckedUpdateInput = {
   authSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   apiKeyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  duplicateOfId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   callerSite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -735,7 +731,6 @@ export type QueueJobRecordCreateManyInput = {
   attempt?: number
   maxAttempts?: number | null
   priority?: number | null
-  duplicates?: number
   errors?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   lastError?: string | null
   enqueuedAt?: Date | string | null
@@ -751,6 +746,7 @@ export type QueueJobRecordCreateManyInput = {
   authSource?: string | null
   apiKeyId?: string | null
   parentId?: string | null
+  duplicateOfId?: string | null
   callerSite?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -770,7 +766,6 @@ export type QueueJobRecordUpdateManyMutationInput = {
   attempt?: Prisma.IntFieldUpdateOperationsInput | number
   maxAttempts?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   priority?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  duplicates?: Prisma.IntFieldUpdateOperationsInput | number
   errors?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   lastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enqueuedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -786,6 +781,7 @@ export type QueueJobRecordUpdateManyMutationInput = {
   authSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   apiKeyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  duplicateOfId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   callerSite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -805,7 +801,6 @@ export type QueueJobRecordUncheckedUpdateManyInput = {
   attempt?: Prisma.IntFieldUpdateOperationsInput | number
   maxAttempts?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   priority?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  duplicates?: Prisma.IntFieldUpdateOperationsInput | number
   errors?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   lastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enqueuedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -821,6 +816,7 @@ export type QueueJobRecordUncheckedUpdateManyInput = {
   authSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   apiKeyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  duplicateOfId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   callerSite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -840,7 +836,6 @@ export type QueueJobRecordCountOrderByAggregateInput = {
   attempt?: Prisma.SortOrder
   maxAttempts?: Prisma.SortOrder
   priority?: Prisma.SortOrder
-  duplicates?: Prisma.SortOrder
   errors?: Prisma.SortOrder
   lastError?: Prisma.SortOrder
   enqueuedAt?: Prisma.SortOrder
@@ -856,6 +851,7 @@ export type QueueJobRecordCountOrderByAggregateInput = {
   authSource?: Prisma.SortOrder
   apiKeyId?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
+  duplicateOfId?: Prisma.SortOrder
   callerSite?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -865,7 +861,6 @@ export type QueueJobRecordAvgOrderByAggregateInput = {
   attempt?: Prisma.SortOrder
   maxAttempts?: Prisma.SortOrder
   priority?: Prisma.SortOrder
-  duplicates?: Prisma.SortOrder
   durationMs?: Prisma.SortOrder
 }
 
@@ -879,7 +874,6 @@ export type QueueJobRecordMaxOrderByAggregateInput = {
   attempt?: Prisma.SortOrder
   maxAttempts?: Prisma.SortOrder
   priority?: Prisma.SortOrder
-  duplicates?: Prisma.SortOrder
   lastError?: Prisma.SortOrder
   enqueuedAt?: Prisma.SortOrder
   jobCreatedAt?: Prisma.SortOrder
@@ -894,6 +888,7 @@ export type QueueJobRecordMaxOrderByAggregateInput = {
   authSource?: Prisma.SortOrder
   apiKeyId?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
+  duplicateOfId?: Prisma.SortOrder
   callerSite?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -909,7 +904,6 @@ export type QueueJobRecordMinOrderByAggregateInput = {
   attempt?: Prisma.SortOrder
   maxAttempts?: Prisma.SortOrder
   priority?: Prisma.SortOrder
-  duplicates?: Prisma.SortOrder
   lastError?: Prisma.SortOrder
   enqueuedAt?: Prisma.SortOrder
   jobCreatedAt?: Prisma.SortOrder
@@ -924,6 +918,7 @@ export type QueueJobRecordMinOrderByAggregateInput = {
   authSource?: Prisma.SortOrder
   apiKeyId?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
+  duplicateOfId?: Prisma.SortOrder
   callerSite?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -933,7 +928,6 @@ export type QueueJobRecordSumOrderByAggregateInput = {
   attempt?: Prisma.SortOrder
   maxAttempts?: Prisma.SortOrder
   priority?: Prisma.SortOrder
-  duplicates?: Prisma.SortOrder
   durationMs?: Prisma.SortOrder
 }
 
@@ -989,7 +983,6 @@ export type QueueJobRecordSelect<ExtArgs extends runtime.Types.Extensions.Intern
   attempt?: boolean
   maxAttempts?: boolean
   priority?: boolean
-  duplicates?: boolean
   errors?: boolean
   lastError?: boolean
   enqueuedAt?: boolean
@@ -1005,6 +998,7 @@ export type QueueJobRecordSelect<ExtArgs extends runtime.Types.Extensions.Intern
   authSource?: boolean
   apiKeyId?: boolean
   parentId?: boolean
+  duplicateOfId?: boolean
   callerSite?: boolean
   updatedAt?: boolean
   createdAt?: boolean
@@ -1024,7 +1018,6 @@ export type QueueJobRecordSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   attempt?: boolean
   maxAttempts?: boolean
   priority?: boolean
-  duplicates?: boolean
   errors?: boolean
   lastError?: boolean
   enqueuedAt?: boolean
@@ -1040,6 +1033,7 @@ export type QueueJobRecordSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   authSource?: boolean
   apiKeyId?: boolean
   parentId?: boolean
+  duplicateOfId?: boolean
   callerSite?: boolean
   updatedAt?: boolean
   createdAt?: boolean
@@ -1059,7 +1053,6 @@ export type QueueJobRecordSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   attempt?: boolean
   maxAttempts?: boolean
   priority?: boolean
-  duplicates?: boolean
   errors?: boolean
   lastError?: boolean
   enqueuedAt?: boolean
@@ -1075,6 +1068,7 @@ export type QueueJobRecordSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   authSource?: boolean
   apiKeyId?: boolean
   parentId?: boolean
+  duplicateOfId?: boolean
   callerSite?: boolean
   updatedAt?: boolean
   createdAt?: boolean
@@ -1094,7 +1088,6 @@ export type QueueJobRecordSelectScalar = {
   attempt?: boolean
   maxAttempts?: boolean
   priority?: boolean
-  duplicates?: boolean
   errors?: boolean
   lastError?: boolean
   enqueuedAt?: boolean
@@ -1110,12 +1103,13 @@ export type QueueJobRecordSelectScalar = {
   authSource?: boolean
   apiKeyId?: boolean
   parentId?: boolean
+  duplicateOfId?: boolean
   callerSite?: boolean
   updatedAt?: boolean
   createdAt?: boolean
 }
 
-export type QueueJobRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "queue" | "jobId" | "name" | "state" | "driver" | "data" | "result" | "metadata" | "options" | "attempt" | "maxAttempts" | "priority" | "duplicates" | "errors" | "lastError" | "enqueuedAt" | "jobCreatedAt" | "scheduledAt" | "startedAt" | "finishedAt" | "durationMs" | "enqueuedBy" | "attemptedBy" | "userId" | "authType" | "authSource" | "apiKeyId" | "parentId" | "callerSite" | "updatedAt" | "createdAt", ExtArgs["result"]["queueJobRecord"]>
+export type QueueJobRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "queue" | "jobId" | "name" | "state" | "driver" | "data" | "result" | "metadata" | "options" | "attempt" | "maxAttempts" | "priority" | "errors" | "lastError" | "enqueuedAt" | "jobCreatedAt" | "scheduledAt" | "startedAt" | "finishedAt" | "durationMs" | "enqueuedBy" | "attemptedBy" | "userId" | "authType" | "authSource" | "apiKeyId" | "parentId" | "duplicateOfId" | "callerSite" | "updatedAt" | "createdAt", ExtArgs["result"]["queueJobRecord"]>
 
 export type $QueueJobRecordPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "QueueJobRecord"
@@ -1134,7 +1128,6 @@ export type $QueueJobRecordPayload<ExtArgs extends runtime.Types.Extensions.Inte
     attempt: number
     maxAttempts: number | null
     priority: number | null
-    duplicates: number
     errors: runtime.JsonValue
     lastError: string | null
     enqueuedAt: Date | null
@@ -1150,6 +1143,7 @@ export type $QueueJobRecordPayload<ExtArgs extends runtime.Types.Extensions.Inte
     authSource: string | null
     apiKeyId: string | null
     parentId: string | null
+    duplicateOfId: string | null
     callerSite: string | null
     /**
      * Audit columns
@@ -1592,7 +1586,6 @@ export interface QueueJobRecordFieldRefs {
   readonly attempt: Prisma.FieldRef<"QueueJobRecord", 'Int'>
   readonly maxAttempts: Prisma.FieldRef<"QueueJobRecord", 'Int'>
   readonly priority: Prisma.FieldRef<"QueueJobRecord", 'Int'>
-  readonly duplicates: Prisma.FieldRef<"QueueJobRecord", 'Int'>
   readonly errors: Prisma.FieldRef<"QueueJobRecord", 'Json'>
   readonly lastError: Prisma.FieldRef<"QueueJobRecord", 'String'>
   readonly enqueuedAt: Prisma.FieldRef<"QueueJobRecord", 'DateTime'>
@@ -1608,6 +1601,7 @@ export interface QueueJobRecordFieldRefs {
   readonly authSource: Prisma.FieldRef<"QueueJobRecord", 'String'>
   readonly apiKeyId: Prisma.FieldRef<"QueueJobRecord", 'String'>
   readonly parentId: Prisma.FieldRef<"QueueJobRecord", 'String'>
+  readonly duplicateOfId: Prisma.FieldRef<"QueueJobRecord", 'String'>
   readonly callerSite: Prisma.FieldRef<"QueueJobRecord", 'String'>
   readonly updatedAt: Prisma.FieldRef<"QueueJobRecord", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"QueueJobRecord", 'DateTime'>

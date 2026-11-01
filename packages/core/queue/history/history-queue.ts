@@ -141,7 +141,7 @@ export class QueueHistoryRecorder {
    * Records the jobs sent to a queue, then sends them with their job ids, generating the missing ones. Outside of a
    * transaction they are recorded before they are sent, so no worker starts them first, and inside one once it
    * settles, since a query outside of it could wait for it. A send the queue ignores, since a job with its id is still
-   * in it, is counted on the record of that job instead.
+   * in it, keeps its record, marked `ignored` and linked to the record of that job.
    *
    * @internal
    */
@@ -192,17 +192,24 @@ export class QueueHistoryRecorder {
     if (currentTransaction()) {
       const added = await sendJobs(sent);
       const ignored = ignoredBy(added);
+      // A job already in the queue has no worker to record it first
       const record = async () => {
         const history = inject(QueueHistory);
-        const recorded = records.filter((_, i) => !ignored[i]);
-        if (recorded.length) {
-          await this.write(() => history.recordSent(recorded, { sent: true }));
-        }
-        for (const [i, record] of records.entries()) {
+        const taken = records.filter((_, i) => !ignored[i]);
+        const repeated = records.flatMap((record, i) => {
           const createdAt = ignored[i];
-          if (createdAt) {
+          return createdAt ? [{ record, createdAt }] : [];
+        });
+        if (taken.length) {
+          await this.write(() => history.recordSent(taken, { sent: true }));
+        }
+        if (repeated.length) {
+          const ids = await this.write(() =>
+            history.recordSent(repeated.map(({ record }) => record))
+          );
+          for (const [i, id] of (ids ?? []).entries()) {
             await this.write(() =>
-              history.recordIgnored(queue, record.jobId, createdAt)
+              history.recordIgnored(id, repeated[i].createdAt)
             );
           }
         }
@@ -235,10 +242,10 @@ export class QueueHistoryRecorder {
     }
 
     for (const [i, createdAt] of ignoredBy(added).entries()) {
-      if (createdAt) {
-        const { jobId } = records[i];
-        void this.serial(`${queue}\u0000${jobId}`, () =>
-          inject(QueueHistory).recordIgnored(queue, jobId, createdAt, ids?.[i])
+      const id = ids?.[i];
+      if (createdAt && id) {
+        void this.serial(`${queue}\u0000${records[i].jobId}`, () =>
+          inject(QueueHistory).recordIgnored(id, createdAt)
         );
       }
     }

@@ -88,7 +88,6 @@ export const QueueJobRecordScalarFieldEnum = {
   attempt: 'attempt',
   maxAttempts: 'maxAttempts',
   priority: 'priority',
-  duplicates: 'duplicates',
   errors: 'errors',
   lastError: 'lastError',
   enqueuedAt: 'enqueuedAt',
@@ -104,6 +103,7 @@ export const QueueJobRecordScalarFieldEnum = {
   authSource: 'authSource',
   apiKeyId: 'apiKeyId',
   parentId: 'parentId',
+  duplicateOfId: 'duplicateOfId',
   callerSite: 'callerSite',
   updatedAt: 'updatedAt',
   createdAt: 'createdAt'

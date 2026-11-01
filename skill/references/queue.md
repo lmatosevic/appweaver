@@ -194,12 +194,13 @@ Core wraps the `Queue` of the selected driver (a decorator of its manifest), so 
 and the `database` provider of `QueueHistory` (`@appweaver/data`) stores the records. A job sent without a `jobId`
 gets a generated UUID.
 
-A record is one job as the queue sees it, with its own UUIDv7 `id`, like the job table of River:
+A record is one send, with its own UUIDv7 `id`, the real identifier of the record, while `jobId` is the identity of
+the job in the queue, which keeps a send idempotent:
 
 | The same `jobId`                                         | Queue                                        | History                                       |
 |----------------------------------------------------------|----------------------------------------------|-----------------------------------------------|
 | Retried after a failed attempt                           | The same job, its next attempt               | Its record, `attempt` and `errors` grow       |
-| Sent while its job is still in the queue (waiting, delayed, running, or failed and kept by `QUEUE_KEEP_FAILED_COUNT`) | Ignores the send, returns the existing job | No new record, `duplicates` of the job's record grows |
+| Sent while its job is still in the queue (waiting, delayed, running, or failed and kept by `QUEUE_KEEP_FAILED_COUNT`) | Ignores the send, returns the existing job | A record of the send, `ignored`, its `duplicateOfId` the record of the job |
 | Sent after its job left the queue (`QUEUE_KEEP_COMPLETED_COUNT=0` removes the completed ones) | A new job | A new record, the earlier one kept          |
 | Retried by hand (`job.retry()` of BullMQ)                | The same job                                 | Its record reopened (`running`)               |
 
@@ -216,13 +217,14 @@ job. A driver without `createdAt` records every send as a new job.
 | `completed` | An attempt succeeded, its result is stored                               |
 | `failed`    | The last attempt failed (or threw an `UnrecoverableError`), or the queue refused the job (attempt `0`) |
 | `stalled`   | The worker stopped responding during an attempt (BullMQ), retried by BullMQ |
+| `ignored`   | The queue ignored the send, since a job with its `jobId` was still in it    |
 
 | Field                                      | Holds                                                                                  |
 |--------------------------------------------|----------------------------------------------------------------------------------------|
 | `id`                                       | The UUIDv7 of the record                                                               |
 | `queue`, `jobId`, `name`, `driver`         | The queue, the id and name of the job, the provider (`bullmq`, `memory`)               |
 | `state`, `attempt`, `maxAttempts`          | The state and the last attempt                                                         |
-| `duplicates`                               | The sends of its `jobId` the queue ignored while the job was in it                     |
+| `duplicateOfId`                            | The record of the job in the queue an `ignored` send repeated                          |
 | `data`, `result`, `metadata`, `options`    | The payload, the result, the `metadata` option and the job options (`delay`, `attempts`, `backoff`, `priority`) |
 | `errors`, `lastError`                      | Every failed attempt, `{ attempt, at, message, name, code, stack }`, and the last message |
 | `enqueuedAt`, `jobCreatedAt`, `scheduledAt`, `startedAt`, `finishedAt`, `durationMs` | The sending, the creation in the queue, the timing of the last attempt |
@@ -243,7 +245,7 @@ const failed = await db.queueJobRecord.findMany({
 });
 ```
 
-The `QueueHistoryCleaner` of core deletes the completed and failed records older than `queue.history.retentionDays`
+The `QueueHistoryCleaner` of core deletes the completed, failed and ignored records older than `queue.history.retentionDays`
 once the application is ready, then every `queue.history.cleanupIntervalSeconds`. Another store implements the
 `QueueHistory` contract of `@appweaver/common`, selected with `queue.history.provider`.
 

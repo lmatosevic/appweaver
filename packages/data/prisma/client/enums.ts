@@ -16,7 +16,8 @@ export const QueueJobRecordState = {
   retrying: 'retrying',
   completed: 'completed',
   failed: 'failed',
-  stalled: 'stalled'
+  stalled: 'stalled',
+  ignored: 'ignored'
 } as const
 
 export type QueueJobRecordState = (typeof QueueJobRecordState)[keyof typeof QueueJobRecordState]

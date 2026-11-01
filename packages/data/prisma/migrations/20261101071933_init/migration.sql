@@ -13,7 +13,6 @@ CREATE TABLE "_queue_jobs" (
     "attempt" INTEGER NOT NULL DEFAULT 0,
     "maxAttempts" INTEGER,
     "priority" INTEGER,
-    "duplicates" INTEGER NOT NULL DEFAULT 0,
     "errors" JSONB NOT NULL DEFAULT '[]',
     "lastError" TEXT,
     "enqueuedAt" DATETIME,
@@ -29,6 +28,7 @@ CREATE TABLE "_queue_jobs" (
     "authSource" TEXT,
     "apiKeyId" TEXT,
     "parentId" TEXT,
+    "duplicateOfId" TEXT,
     "callerSite" TEXT,
     "updatedAt" DATETIME NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -134,6 +134,9 @@ CREATE INDEX "_queue_jobs_userId_idx" ON "_queue_jobs"("userId");
 
 -- CreateIndex
 CREATE INDEX "_queue_jobs_parentId_idx" ON "_queue_jobs"("parentId");
+
+-- CreateIndex
+CREATE INDEX "_queue_jobs_duplicateOfId_idx" ON "_queue_jobs"("duplicateOfId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ApiKey_keyHash_key" ON "ApiKey"("keyHash");

@@ -213,33 +213,52 @@ describe('database-queue-history', () => {
   });
 
   describe('recordIgnored', () => {
-    test('deletes the record of the send and counts it on the job', async () => {
+    const createdAt = new Date('2026-10-31T12:00:00Z');
+
+    test('marks the send ignored, linked to the record of the job', async () => {
+      db.setResult('QueueJobRecord', 'findUnique', {
+        queue: 'payments',
+        jobId: 'job-1'
+      });
       db.setResult('QueueJobRecord', 'findFirst', { id: 'record-1' });
 
-      const createdAt = new Date('2026-10-31T12:00:00Z');
+      await history.recordIgnored('record-2', createdAt);
 
-      await history.recordIgnored('payments', 'job-1', createdAt, 'record-2');
-
-      expect(db.lastQuery('deleteMany').args).toEqual({
-        where: { id: 'record-2' }
-      });
+      expect(db.lastQuery('findUnique').args.where).toEqual({ id: 'record-2' });
       expect(db.lastQuery('findFirst').args.where).toMatchObject({
         queue: 'payments',
         jobId: 'job-1',
+        id: { not: 'record-2' },
         OR: [{ jobCreatedAt: createdAt }, expect.any(Object)]
       });
       expect(db.lastQuery('update').args).toEqual({
-        where: { id: 'record-1' },
-        data: { duplicates: { increment: 1 } }
+        where: { id: 'record-2' },
+        data: {
+          state: 'ignored',
+          finishedAt: expect.any(Date),
+          duplicateOfId: 'record-1'
+        }
       });
     });
 
-    test('counts a send made without a record', async () => {
+    test('marks a send ignored for a job without a record', async () => {
+      db.setResult('QueueJobRecord', 'findUnique', {
+        queue: 'payments',
+        jobId: 'job-1'
+      });
       db.setResult('QueueJobRecord', 'findFirst', null);
 
-      await history.recordIgnored('payments', 'job-1', new Date());
+      await history.recordIgnored('record-2', createdAt);
 
-      expect(db.queries.map((query) => query.method)).toEqual(['findFirst']);
+      expect(db.lastQuery('update').args.data.duplicateOfId).toBeNull();
+    });
+
+    test('ignores a missing record', async () => {
+      db.setResult('QueueJobRecord', 'findUnique', null);
+
+      await history.recordIgnored('record-2', createdAt);
+
+      expect(db.queries.map((query) => query.method)).toEqual(['findUnique']);
     });
   });
 
@@ -344,7 +363,7 @@ describe('database-queue-history', () => {
 
       expect(db.lastQuery('deleteMany').args).toEqual({
         where: {
-          state: { in: ['completed', 'failed'] },
+          state: { in: ['completed', 'failed', 'ignored'] },
           finishedAt: { lt: before }
         }
       });

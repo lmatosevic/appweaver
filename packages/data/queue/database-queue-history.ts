@@ -24,8 +24,8 @@ const unfinishedStates: QueueJobState[] = [
 const SENT_MERGE_WINDOW_MS = 5000;
 
 /**
- * Stores the queue history in the `_queue_jobs` table, one record per job: its retries, a retry by hand and the
- * ignored sends of its id update it, and a send of its id the queue takes as a new job gets a new record.
+ * Stores the queue history in the `_queue_jobs` table, one record per send: the retries of a job and a retry by hand
+ * update its record, and a send of its id the queue ignores is recorded `ignored`, linked to the record of the job.
  */
 export class DatabaseQueueHistory extends QueueHistory {
   /** @internal */
@@ -81,26 +81,32 @@ export class DatabaseQueueHistory extends QueueHistory {
     return ids;
   }
 
-  public async recordIgnored(
-    queue: string,
-    jobId: string,
-    createdAt: Date,
-    id?: string
-  ): Promise<void> {
-    if (id) {
-      await this.records().deleteMany({ where: { id } });
+  public async recordIgnored(id: string, createdAt: Date): Promise<void> {
+    const sent = await this.records().findUnique({
+      where: { id },
+      select: { queue: true, jobId: true }
+    });
+    if (!sent) {
+      return;
     }
-    const record = await this.records().findFirst({
-      where: { queue, jobId, ...jobRecordOf(createdAt) },
+    const job = await this.records().findFirst({
+      where: {
+        queue: sent.queue,
+        jobId: sent.jobId,
+        id: { not: id },
+        ...jobRecordOf(createdAt)
+      },
       orderBy: { createdAt: 'desc' },
       select: { id: true }
     });
-    if (record) {
-      await this.records().update({
-        where: { id: record.id },
-        data: { duplicates: { increment: 1 } }
-      });
-    }
+    await this.records().update({
+      where: { id },
+      data: {
+        state: 'ignored',
+        finishedAt: new Date(),
+        duplicateOfId: job?.id ?? null
+      }
+    });
   }
 
   public async recordStarted(job: QueueJobStarted): Promise<string> {
@@ -191,7 +197,7 @@ export class DatabaseQueueHistory extends QueueHistory {
   public async prune(before: Date): Promise<number> {
     const { count } = await this.records().deleteMany({
       where: {
-        state: { in: ['completed', 'failed'] },
+        state: { in: ['completed', 'failed', 'ignored'] },
         finishedAt: { lt: before }
       }
     });
