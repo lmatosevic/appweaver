@@ -316,7 +316,7 @@ describe('history-queue', () => {
         settleTransaction(transaction, true)
       );
 
-      expect(history.sent).toHaveLength(1);
+      await waitFor(() => history.sent.length === 1);
       expect(history.sent[0].sent).toBe(true);
       expect(history.inTransaction).toBe(false);
     });
@@ -333,7 +333,27 @@ describe('history-queue', () => {
       );
       await settleTransaction(transaction, false);
 
-      expect(history.sent).toHaveLength(1);
+      await waitFor(() => history.sent.length === 1);
+      expect(history.sent[0].sent).toBe(true);
+    });
+
+    test('records the job of a transaction after the start of its worker in this process', async () => {
+      const transaction: TransactionContext = {
+        tx: {},
+        commitCallbacks: new Map(),
+        rollbackCallbacks: []
+      };
+      const processor = queue.get('jobs');
+      processor.addWorker(async () => 'done');
+
+      await runInTransaction(transaction, () => processor.sendJob({ id: 1 }));
+      await waitFor(() => history.started.length === 1);
+      await settleTransaction(transaction, true);
+
+      await waitFor(() => history.sent.length === 1);
+      expect(history.calls.indexOf('started')).toBeLessThan(
+        history.calls.indexOf('sent')
+      );
     });
   });
 
@@ -383,6 +403,7 @@ describe('history-queue', () => {
       );
       await settleTransaction(transaction, true);
 
+      await waitFor(() => history.ignored.length === 1);
       expect(history.sent.slice(1)).toEqual([
         { jobs: [expect.objectContaining({ jobId: 'j-2' })], sent: true },
         { jobs: [expect.objectContaining({ jobId: 'j-1' })], sent: undefined }
@@ -406,6 +427,7 @@ describe('history-queue', () => {
       );
       await settleTransaction(transaction, true);
 
+      await waitFor(() => history.ignored.length === 1);
       expect(history.sent).toHaveLength(2);
       expect(history.sent[1].sent).toBeUndefined();
       expect(history.ignored).toHaveLength(1);

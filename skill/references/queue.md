@@ -267,7 +267,8 @@ export default createRoutes({
 });
 ```
 
-The `QueueHistoryCleaner` of core deletes the completed, failed and ignored records older than `queue.history.retentionDays`
+The `QueueHistoryCleaner` of core deletes the completed, failed and ignored records, and the unfinished ones not
+updated since and not due later (a job the queue lost, i.e. the memory queue on a restart), older than `queue.history.retentionDays`
 once the application is ready, then every `queue.history.cleanupIntervalSeconds`. Another store implements the
 `QueueHistory` contract of `@appweaver/common`, selected with `queue.history.provider`.
 

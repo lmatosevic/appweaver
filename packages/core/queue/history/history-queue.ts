@@ -192,28 +192,31 @@ export class QueueHistoryRecorder {
     if (currentTransaction()) {
       const added = await sendJobs(sent);
       const ignored = ignoredBy(added);
-      // A job already in the queue has no worker to record it first
-      const record = async () => {
-        const history = inject(QueueHistory);
-        const taken = records.filter((_, i) => !ignored[i]);
-        const repeated = records.flatMap((record, i) => {
-          const createdAt = ignored[i];
-          return createdAt ? [{ record, createdAt }] : [];
-        });
-        if (taken.length) {
-          await this.write(() => history.recordSent(taken, { sent: true }));
-        }
-        if (repeated.length) {
-          const ids = await this.write(() =>
-            history.recordSent(repeated.map(({ record }) => record))
-          );
-          for (const [i, id] of (ids ?? []).entries()) {
-            await this.write(() =>
-              history.recordIgnored(id, repeated[i].createdAt)
-            );
+      // After the writes of their workers in this process, never delaying the commit. A job already in the queue has
+      // no worker to record it first
+      const keys = records.map((record) => jobKey(queue, record.jobId));
+      const record = () =>
+        void this.serial(keys, async () => {
+          const history = inject(QueueHistory);
+          const taken = records.filter((_, i) => !ignored[i]);
+          const repeated = records.flatMap((record, i) => {
+            const createdAt = ignored[i];
+            return createdAt ? [{ record, createdAt }] : [];
+          });
+          if (taken.length) {
+            await this.write(() => history.recordSent(taken, { sent: true }));
           }
-        }
-      };
+          if (repeated.length) {
+            const ids = await this.write(() =>
+              history.recordSent(repeated.map(({ record }) => record))
+            );
+            for (const [i, id] of (ids ?? []).entries()) {
+              await this.write(() =>
+                history.recordIgnored(id, repeated[i].createdAt)
+              );
+            }
+          }
+        });
       afterCommit(record);
       afterRollback(record);
       return added;
@@ -244,7 +247,7 @@ export class QueueHistoryRecorder {
     for (const [i, createdAt] of ignoredBy(added).entries()) {
       const id = ids?.[i];
       if (createdAt && id) {
-        void this.serial(`${queue}\u0000${records[i].jobId}`, () =>
+        void this.serial(jobKey(queue, records[i].jobId), () =>
           inject(QueueHistory).recordIgnored(id, createdAt)
         );
       }
@@ -266,7 +269,7 @@ export class QueueHistoryRecorder {
   ): Promise<unknown> {
     const { attempt = 1, maxAttempts, createdAt } = processor.jobInfo(job);
     const jobId = String(job.id ?? '');
-    const key = `${queue}\u0000${jobId}`;
+    const key = jobKey(queue, jobId);
     const startedAt = new Date();
     const start = performance.now();
 
@@ -328,7 +331,7 @@ export class QueueHistoryRecorder {
     }
     this._stalledWatched.add(processor);
     processor.onStalled((jobId) => {
-      void this.serial(`${queue}\u0000${jobId}`, () =>
+      void this.serial(jobKey(queue, String(jobId)), () =>
         inject(QueueHistory).recordStalled(queue, String(jobId))
       );
     });
@@ -353,17 +356,27 @@ export class QueueHistoryRecorder {
   }
 
   /**
-   * Runs a write after the previous write of the same job, so an outcome never lands before its start.
+   * Runs a write after the previous writes of the same jobs, so an outcome never lands before its start.
    *
    * @internal
    */
-  private serial<T>(key: string, fn: () => Promise<T>): Promise<T | undefined> {
-    const previous = this._writes.get(key) ?? Promise.resolve();
+  private serial<T>(
+    keys: string | string[],
+    fn: () => Promise<T>
+  ): Promise<T | undefined> {
+    const jobKeys = [keys].flat();
+    const previous = Promise.all(
+      jobKeys.map((key) => this._writes.get(key) ?? Promise.resolve())
+    );
     const next = previous.then(() => this.write(fn));
-    this._writes.set(key, next);
+    for (const key of jobKeys) {
+      this._writes.set(key, next);
+    }
     void next.then(() => {
-      if (this._writes.get(key) === next) {
-        this._writes.delete(key);
+      for (const key of jobKeys) {
+        if (this._writes.get(key) === next) {
+          this._writes.delete(key);
+        }
       }
     });
     return next;
@@ -382,6 +395,11 @@ export class QueueHistoryRecorder {
       return undefined;
     }
   }
+}
+
+/** The key of a job, whose writes run one after another. */
+function jobKey(queue: string, jobId: string): string {
+  return `${queue}\u0000${jobId}`;
 }
 
 /**

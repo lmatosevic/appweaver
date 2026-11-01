@@ -197,8 +197,18 @@ export class DatabaseQueueHistory extends QueueHistory {
   public async prune(before: Date): Promise<number> {
     const { count } = await this.records().deleteMany({
       where: {
-        state: { in: ['completed', 'failed', 'ignored'] },
-        finishedAt: { lt: before }
+        OR: [
+          {
+            state: { in: ['completed', 'failed', 'ignored'] },
+            finishedAt: { lt: before }
+          },
+          // A job the queue lost, i.e. with the memory queue on a restart, unless it is due later
+          {
+            state: { in: unfinishedStates },
+            updatedAt: { lt: before },
+            OR: [{ scheduledAt: null }, { scheduledAt: { lt: before } }]
+          }
+        ]
       }
     });
     return count;

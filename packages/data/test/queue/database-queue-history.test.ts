@@ -355,7 +355,7 @@ describe('database-queue-history', () => {
   });
 
   describe('prune', () => {
-    test('deletes the finished records before a date', async () => {
+    test('deletes the finished and the lost records before a date', async () => {
       db.setResult('QueueJobRecord', 'deleteMany', { count: 5 });
       const before = new Date('2026-10-01T00:00:00Z');
 
@@ -363,8 +363,19 @@ describe('database-queue-history', () => {
 
       expect(db.lastQuery('deleteMany').args).toEqual({
         where: {
-          state: { in: ['completed', 'failed', 'ignored'] },
-          finishedAt: { lt: before }
+          OR: [
+            {
+              state: { in: ['completed', 'failed', 'ignored'] },
+              finishedAt: { lt: before }
+            },
+            {
+              state: {
+                in: ['pending', 'scheduled', 'running', 'retrying', 'stalled']
+              },
+              updatedAt: { lt: before },
+              OR: [{ scheduledAt: null }, { scheduledAt: { lt: before } }]
+            }
+          ]
         }
       });
     });

@@ -139,7 +139,8 @@ export abstract class QueueHistory {
   abstract recordStalled(queue: string, jobId: string): Promise<void>;
 
   /**
-   * Deletes the records of the jobs finished before a date.
+   * Deletes the records of the jobs finished before a date, and of the unfinished ones not updated since then and not
+   * due after it, which the queue lost.
    *
    * @param {Date} before - The date.
    * @return {Promise<number>} The number of deleted records.
