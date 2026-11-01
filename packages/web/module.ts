@@ -17,6 +17,7 @@ import {
   recaptchaConfig,
   securityConfig,
   turnstileConfig,
+  apiKeyRoutesConfig,
   twoFactorConfig
 } from './security/security-config';
 import {
@@ -42,6 +43,7 @@ export default defineModule({
     twoFactorConfig,
     recaptchaConfig,
     turnstileConfig,
+    apiKeyRoutesConfig,
     basicAuthConfig,
     jwtConfig,
     oauth2Config,
