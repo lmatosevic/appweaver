@@ -148,6 +148,10 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
   [ErrorCode.AuthApiKeyMissing]: { status: 401, title: 'API key missing' },
   [ErrorCode.AuthApiKeyInvalid]: { status: 401, title: 'Invalid API key' },
   [ErrorCode.AuthApiKeyExpired]: { status: 403, title: 'API key expired' },
+  [ErrorCode.AuthApiKeyPermissionDenied]: {
+    status: 403,
+    title: 'API key permission denied'
+  },
   [ErrorCode.AuthProxyAuthenticationRequired]: {
     status: 407,
     title: 'Proxy authentication required'

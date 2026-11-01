@@ -1,4 +1,4 @@
-import { AuthType } from '@appweaver/common';
+import { AuthType, ErrorCode } from '@appweaver/common';
 import { apiKeyConfig } from '@appweaver/data';
 import { createRoutes } from '../../../factory/create-routes';
 import { apiKeyRoutesConfig } from '../../security-config';
@@ -10,6 +10,10 @@ export default apiKeyConfig.ENABLED && apiKeyRoutesConfig.ROUTES_ENABLED
       defaults: {
         auth: [AuthType.Jwt]
       },
+      // A key is given only roles and permissions its owner holds
+      create: { errorCodes: [ErrorCode.AuthApiKeyPermissionDenied] },
+      update: { errorCodes: [ErrorCode.AuthApiKeyPermissionDenied] },
+      replace: { errorCodes: [ErrorCode.AuthApiKeyPermissionDenied] },
       aggregate: {
         exclude: true
       },

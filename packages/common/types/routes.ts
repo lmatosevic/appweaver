@@ -1,4 +1,5 @@
 import { AuthType, QueryMethod } from '../enums';
+import { ErrorCode } from '../errors/error-code';
 import { ModelName } from './registry';
 
 export type RouteSchema = {
@@ -61,6 +62,9 @@ export type CaptchaConfig = RecaptchaConfig & TurnstileConfig;
 export type RouteConfig = {
   /** Remove this route from registration */
   exclude?: boolean;
+  /** Error codes the route responds with besides the ones of the framework, i.e. the ones a service hook throws,
+   * listed in the error responses of its OpenAPI schema */
+  errorCodes?: ErrorCode[];
   /** Allow unauthenticated access. If any of the `auth`, `roles` or
    * `permissions` properties are set, they will be ignored. */
   public?: boolean;

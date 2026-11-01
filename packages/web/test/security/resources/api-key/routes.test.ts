@@ -29,6 +29,9 @@ describe('api-key routes', () => {
     expect(routes.config).toMatchObject({
       modelName: 'ApiKey',
       defaults: { auth: ['jwt'] },
+      create: { errorCodes: ['AUTH_API_KEY_PERMISSION_DENIED'] },
+      update: { errorCodes: ['AUTH_API_KEY_PERMISSION_DENIED'] },
+      replace: { errorCodes: ['AUTH_API_KEY_PERMISSION_DENIED'] },
       aggregate: { exclude: true },
       export: { exclude: true }
     });

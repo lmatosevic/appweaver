@@ -171,6 +171,7 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `AUTH_API_KEY_MISSING`               | 401    | API key missing                       |
 | `AUTH_API_KEY_INVALID`               | 401    | Invalid API key                       |
 | `AUTH_API_KEY_EXPIRED`               | 403    | API key expired                       |
+| `AUTH_API_KEY_PERMISSION_DENIED`     | 403    | API key permission denied             |
 | `AUTH_PROXY_AUTHENTICATION_REQUIRED` | 407    | Proxy authentication required         |
 | `AUTH_INVALID_REDIRECT_URL`          | 400    | Invalid redirect URL                  |
 | `ACCOUNT_FEATURE_UNAVAILABLE`        | 501    | Account feature unavailable           |

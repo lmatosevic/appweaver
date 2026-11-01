@@ -13,6 +13,7 @@ import { define } from '@appweaver/core';
 import { resetContext } from '@appweaver/testing';
 import { createAuthService } from '../../security/create-auth-resources';
 import {
+  checkApiKeyScope,
   checkPassword,
   hasPermission,
   hasPermissions,
@@ -23,6 +24,8 @@ import {
   needsRehash,
   resourceAuthModel,
   resourceAuthService,
+  scopeAuthUser,
+  userPermissions,
   updatePasswordHash,
   validatePasswordComplexity
 } from '../../security/helper';
@@ -325,6 +328,131 @@ describe('helper', () => {
 
       expect(hasPermission(user, 'post:read')).toBe(true);
       expect(hasPermission(user, 'post:write')).toBe(true);
+    });
+  });
+
+  describe('userPermissions', () => {
+    const owner = authUser([
+      { id: 1, name: 'Admin', permissions: [{ id: 10, name: 'post:delete' }] },
+      {
+        id: 2,
+        name: 'Editor',
+        permissions: [
+          { id: 20, name: 'post:read' },
+          { id: 10, name: 'post:delete' }
+        ]
+      }
+    ]);
+
+    test('returns the permissions of the roles, each once', () => {
+      expect(userPermissions(owner)).toEqual([
+        { id: 10, name: 'post:delete' },
+        { id: 20, name: 'post:read' }
+      ]);
+    });
+
+    test('returns the permissions a user is narrowed to', () => {
+      const user = { ...owner, permissions: [{ id: 20, name: 'post:read' }] };
+
+      expect(userPermissions(user)).toEqual([{ id: 20, name: 'post:read' }]);
+      expect(hasPermission(user, 'post:delete')).toBe(false);
+    });
+  });
+
+  describe('scopeAuthUser', () => {
+    const owner = authUser([
+      { id: 1, name: 'Admin', permissions: [{ id: 10, name: 'post:delete' }] },
+      {
+        id: 2,
+        name: 'Editor',
+        permissions: [
+          { id: 20, name: 'post:read' },
+          { id: 21, name: 'post:write' }
+        ]
+      }
+    ]);
+
+    test('keeps the owner for a key without a scope', () => {
+      expect(scopeAuthUser(owner, {})).toBe(owner);
+      expect(scopeAuthUser(owner, { roles: [], permissions: null })).toBe(
+        owner
+      );
+    });
+
+    test('keeps the roles of the key with their permissions', () => {
+      const user = scopeAuthUser(owner, { roles: [{ id: 2 }] });
+
+      expect(hasRole(user, 'Editor')).toBe(true);
+      expect(hasRole(user, 'Admin')).toBe(false);
+      expect(hasPermission(user, 'post:write')).toBe(true);
+      expect(hasPermission(user, 'post:delete')).toBe(false);
+    });
+
+    test('keeps the permissions of the key among all the roles, without a role', () => {
+      const user = scopeAuthUser(owner, { permissions: [{ id: 10 }] });
+
+      expect(user.roles).toEqual([]);
+      expect(hasPermission(user, 'post:delete')).toBe(true);
+      expect(hasPermission(user, 'post:read')).toBe(false);
+    });
+
+    test('keeps the permissions of the key among the ones of its roles', () => {
+      const user = scopeAuthUser(owner, {
+        roles: [{ id: 2 }],
+        permissions: [{ id: 20 }, { id: 10 }]
+      });
+
+      expect(user.permissions).toEqual([{ id: 20, name: 'post:read' }]);
+      expect(user.roles).toEqual([
+        { id: 2, name: 'Editor', permissions: [{ id: 20, name: 'post:read' }] }
+      ]);
+    });
+
+    test('drops a role or a permission the owner no longer holds', () => {
+      const user = scopeAuthUser(owner, {
+        roles: [{ id: 3 }],
+        permissions: [{ id: 99 }]
+      });
+
+      expect(user.roles).toEqual([]);
+      expect(user.permissions).toEqual([]);
+    });
+
+    test('leaves the owner unchanged', () => {
+      scopeAuthUser(owner, { roles: [{ id: 2 }], permissions: [{ id: 20 }] });
+
+      expect(owner.roles).toHaveLength(2);
+      expect(owner.permissions).toBeUndefined();
+    });
+  });
+
+  describe('checkApiKeyScope', () => {
+    const owner = authUser([
+      { id: 2, name: 'Editor', permissions: [{ id: 20, name: 'post:read' }] }
+    ]);
+
+    test('accepts the roles and the permissions the owner holds', () => {
+      expect(() =>
+        checkApiKeyScope(owner, { roles: [2], permissions: [{ id: '20' }] })
+      ).not.toThrow();
+      expect(() => checkApiKeyScope(owner, {})).not.toThrow();
+      expect(() =>
+        checkApiKeyScope(owner, { roles: null, permissions: 20 })
+      ).not.toThrow();
+    });
+
+    test('rejects the roles and the permissions the owner does not hold', () => {
+      expect(() =>
+        checkApiKeyScope(owner, {
+          roles: [2, { id: 1 }],
+          permissions: [20, 10]
+        })
+      ).toThrow(
+        expect.objectContaining({
+          code: 'AUTH_API_KEY_PERMISSION_DENIED',
+          details: { roles: ['1'], permissions: ['10'] }
+        })
+      );
     });
   });
 

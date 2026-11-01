@@ -16,6 +16,7 @@ import {
   apiKeyConfig,
   liveRecordFilter,
   resourceAuthModel,
+  scopeAuthUser,
   PrismaDatabase,
   ApiKey
 } from '@appweaver/data';
@@ -68,7 +69,15 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
       try {
         // The generated client types the id after the configured primary key
         apiKey = await db.client().apiKey.findFirst({
-          where: { id: apiKeyId as any, ...liveRecordFilter('ApiKey') }
+          where: { id: apiKeyId as any, ...liveRecordFilter('ApiKey') },
+          ...(hasScope()
+            ? {
+                include: {
+                  roles: { select: { id: true } },
+                  permissions: { select: { id: true } }
+                }
+              }
+            : {})
         });
       } catch (e) {
         throw new AuthError(
@@ -107,7 +116,11 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
     }
 
     const authModelField = uncapitalize(resourceAuthModel()!.name);
-    const authUser = await authService.findById(apiKey[`${authModelField}Id`]);
+    const owner = await authService.findById(apiKey[`${authModelField}Id`]);
+    // The key acts with the roles and permissions of its scope its owner still holds
+    const authUser = owner
+      ? scopeAuthUser(owner, apiKey as Parameters<typeof scopeAuthUser>[1])
+      : owner;
 
     authService.authorize(authUser, request.url, request.routeOptions.config);
 
@@ -119,6 +132,11 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
     });
   });
 });
+
+/** Checks whether the API keys have a scope, the roles and the permissions of the auth model. */
+function hasScope(): boolean {
+  return !!injectModel('ApiKey', false)?.config.relations?.roles;
+}
 
 /** Checks whether a request carries an API key in its configured header. */
 export function hasApiKey(request: FastifyRequest): boolean {

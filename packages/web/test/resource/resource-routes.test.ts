@@ -14,7 +14,8 @@ import { define } from '@appweaver/core';
 import { createModel } from '@appweaver/data';
 import { resourceRoutes } from '../../resource/resource-routes';
 import { errorHandler } from '../../errors/error-handler';
-import { ProblemDetailsSchema } from '../../errors';
+import { ERROR_CODES_EXTENSION, ProblemDetailsSchema } from '../../errors';
+import { createSchema } from '../../resource/resource-schema';
 import schemas from '../../server/schemas';
 import { resetContext } from '@appweaver/testing';
 import { linkModels } from '@appweaver/testing';
@@ -464,6 +465,25 @@ describe('resource-routes', () => {
         expect(status).toBe(400);
         expect(body.code).toBe(ErrorCode.ValidationFailed);
         expect(service.replace).not.toHaveBeenCalled();
+      });
+
+      test('documents the error codes a route adds to the ones of the framework', () => {
+        const schema = createSchema(
+          'Post',
+          {} as any,
+          {} as any,
+          {},
+          { create: [ErrorCode.AuthApiKeyPermissionDenied] }
+        );
+        const codes = (route: any) =>
+          Object.values(route.response['4xx'][ERROR_CODES_EXTENSION]).flat();
+
+        expect(codes(schema.createSchema)).toContain(
+          ErrorCode.AuthApiKeyPermissionDenied
+        );
+        expect(codes(schema.updateSchema)).not.toContain(
+          ErrorCode.AuthApiKeyPermissionDenied
+        );
       });
 
       test('documents both operations on the same path', async () => {

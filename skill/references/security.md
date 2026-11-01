@@ -167,6 +167,36 @@ Default delimiter is `AK`, so a key looks like: `42AKa1b2c3d4e5f6...`
 | `description` | string?   | Optional description.                                |
 | `enabled`     | boolean   | Whether the key is active.                           |
 | `expiresAt`   | dateTime? | Optional expiration date. Enforced on every request. |
+| `roles`       | Role[]    | The roles of its scope, see below.                   |
+| `permissions` | Permission[] | The permissions of its scope, see below.          |
+
+### API key scope
+
+A key acts as its owner, with every role and permission of the owner, unless it lists a scope: the `roles` and the
+`permissions` relations of the `ApiKey` model (the `Role` and `Permission` models of the auth data model), given by
+their ids like any relation input, and read back with the key.
+
+```ts
+// POST /api/api-keys, with the JWT of the owner
+{ "name": "CI deploys", "roles": [3], "permissions": [12, { "id": 15 }] }
+```
+
+- A key is given only the roles and the permissions its owner holds: any other fails the create, update or replace
+  with `403` `AUTH_API_KEY_PERMISSION_DENIED`, whose details list the ids not held (`{ roles, permissions }`). The check
+  runs for the current user, so a service call without one is not checked, the scope is still narrowed below.
+- On every request, the owner is narrowed to the scope of the key: a key with a scope keeps only the roles it lists,
+  and the permissions it lists among the ones of those roles (or of all the roles of the owner, when it lists no
+  role). The scope is matched against the current roles of the owner, so a key loses a role or a permission its owner
+  loses.
+- The narrowed user is the auth user of the request, so the `roles` and `permissions` of the routes, `hasRole`,
+  `hasPermission` and the policies apply the scope without changes. Its `permissions` field holds the permissions it
+  is narrowed to, which `hasPermission` and `userPermissions` read instead of the ones of its roles.
+- A key listing permissions but no role passes no route requiring a role. A key with neither keeps the full access of
+  its owner, as before.
+- Since the routes of the keys accept a JWT only, a key never changes its own scope.
+
+`scopeAuthUser(owner, { roles, permissions })` and `checkApiKeyScope(owner, input)` of `@appweaver/data` narrow a user
+and check a scope the same way, for the routes of an application exposing the keys itself.
 
 ### API key policy
 
