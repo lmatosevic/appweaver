@@ -33,6 +33,9 @@ export type QueueJobOptions = {
   jobId?: string;
   /** Free-form details of the job, i.e. a correlation id, kept in the queue history only. */
   metadata?: Record<string, unknown>;
+  /** The id of the queue history record of the job, set by the queue history. A driver stores it with the job and
+   * reports it in {@link QueueProcessor.jobInfo}, so the worker of any process records the attempts on it. */
+  historyId?: string;
   /** Options of the queue driver. */
   providerOptions?: Record<string, unknown>;
 };
@@ -43,9 +46,10 @@ export type QueueJobInfo = {
   attempt?: number;
   /** The number of attempts the job has, the first one included. */
   maxAttempts?: number;
-  /** When the queue created the job, in milliseconds since the epoch, which tells a job from an earlier one with the
-   * same id. */
+  /** When the queue created the job, in milliseconds since the epoch. */
   createdAt?: number;
+  /** The `historyId` option the job was sent with, which tells a job from an earlier one with the same id. */
+  historyId?: string;
 };
 
 /** The options of a worker, the same for every queue. */
@@ -273,9 +277,9 @@ export abstract class QueueProcessor<
   abstract close(): Promise<void>;
 
   /**
-   * Returns the attempt a worker processes, the number of attempts and the creation time of a job, which the queue
-   * history records. A driver that does not override it reports none, so its every failure is recorded as final and
-   * an ignored send of a job id is recorded as a new job.
+   * Returns the attempt a worker processes, the number of attempts, the creation time and the history id of a job,
+   * which the queue history records. A driver that does not override it reports none, so its every failure is
+   * recorded as final, and its jobs are told apart by their creation time only.
    *
    * @param {Object} _job - The job, as the driver gives it to its workers.
    * @return {QueueJobInfo} The attempts of the job.

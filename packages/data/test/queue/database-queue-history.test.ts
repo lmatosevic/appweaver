@@ -11,6 +11,7 @@ const UUID7 =
   /^[\da-f]{8}-[\da-f]{4}-7[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/;
 
 const sentJob = (overrides: Partial<QueueJobSent> = {}): QueueJobSent => ({
+  id: 'record-1',
   queue: 'payments',
   jobId: 'job-1',
   name: 'charge',
@@ -50,18 +51,20 @@ describe('database-queue-history', () => {
 
   describe('recordSent', () => {
     test('creates a pending record per job with its caller', async () => {
-      const ids = await history.recordSent([
+      await history.recordSent([
         sentJob(),
         sentJob({
+          id: 'record-2',
           jobId: 'job-2',
           scheduledAt: new Date('2026-10-31T13:00:00Z')
         })
       ]);
 
-      expect(ids).toHaveLength(2);
-      expect(ids[0]).toMatch(UUID7);
       const { data } = db.lastQuery('createMany').args;
-      expect(data.map((record: any) => record.id)).toEqual(ids);
+      expect(data.map((record: any) => record.id)).toEqual([
+        'record-1',
+        'record-2'
+      ]);
       expect(data[0]).toMatchObject({
         queue: 'payments',
         jobId: 'job-1',
@@ -83,34 +86,38 @@ describe('database-queue-history', () => {
       expect(data[1].state).toBe('scheduled');
     });
 
-    test('completes the record a worker created first for a sent job', async () => {
+    test('completes the record a worker created first by its history id', async () => {
+      db.setResult('QueueJobRecord', 'findUnique', { id: 'record-1' });
+
+      await history.recordSent([sentJob()], { sent: true });
+
+      expect(db.lastQuery('findUnique').args.where).toEqual({
+        id: 'record-1'
+      });
+      const update = db.lastQuery('update').args;
+      expect(update.where).toEqual({ id: 'record-1' });
+      expect(update.data).toMatchObject({ userId: '7', enqueuedBy: 'api:1' });
+      expect(update.data.id).toBeUndefined();
+      expect(update.data.state).toBeUndefined();
+    });
+
+    test('completes the record a worker without history ids created first', async () => {
+      db.setResult('QueueJobRecord', 'findUnique', null);
       db.setResult('QueueJobRecord', 'findFirst', { id: 'started-1' });
 
-      const ids = await history.recordSent([sentJob()], { sent: true });
+      await history.recordSent([sentJob()], { sent: true });
 
-      expect(ids).toEqual(['started-1']);
       expect(db.lastQuery('findFirst').args.where).toEqual({
         queue: 'payments',
         jobId: 'job-1',
         enqueuedAt: null,
         createdAt: { gte: new Date('2026-10-31T11:59:55Z') }
       });
-      const update = db.lastQuery('update').args;
-      expect(update.where).toEqual({ id: 'started-1' });
-      expect(update.data).toMatchObject({ userId: '7', enqueuedBy: 'api:1' });
-      expect(update.data.state).toBeUndefined();
+      expect(db.lastQuery('update').args.where).toEqual({ id: 'started-1' });
     });
 
-    test('creates the record of a sent job no worker recorded', async () => {
-      db.setResult('QueueJobRecord', 'findFirst', null);
-
-      const ids = await history.recordSent([sentJob()], { sent: true });
-
-      const { data } = db.lastQuery('create').args;
-      expect(data).toMatchObject({ id: ids[0], state: 'pending' });
-    });
-
-    test('creates a scheduled record of a sent delayed job', async () => {
+    test('creates the record of a sent job no worker recorded yet', async () => {
+      db.setResult('QueueJobRecord', 'findUnique', null);
       db.setResult('QueueJobRecord', 'findFirst', null);
 
       await history.recordSent(
@@ -118,7 +125,13 @@ describe('database-queue-history', () => {
         { sent: true }
       );
 
-      expect(db.lastQuery('create').args.data.state).toBe('scheduled');
+      const { args } = db.lastQuery('upsert');
+      expect(args.where).toEqual({ id: 'record-1' });
+      expect(args.create).toMatchObject({
+        id: 'record-1',
+        state: 'scheduled'
+      });
+      expect(args.update.state).toBeUndefined();
     });
   });
 
@@ -134,6 +147,36 @@ describe('database-queue-history', () => {
       maxAttempts: 3,
       data: { orderId: 'o-1' }
     };
+
+    test('records the attempt on the record of its history id', async () => {
+      const createdAt = new Date('2026-10-31T12:00:00.500Z');
+
+      await expect(
+        history.recordStarted({ ...started, id: 'record-9', createdAt })
+      ).resolves.toBe('record-9');
+
+      expect(db.queries.map((query) => query.method)).toEqual(['upsert']);
+      const { args } = db.lastQuery('upsert');
+      expect(args.where).toEqual({ id: 'record-9' });
+      expect(args.create).toMatchObject({
+        id: 'record-9',
+        queue: 'payments',
+        jobId: 'job-1',
+        name: 'charge',
+        data: { orderId: 'o-1' },
+        state: 'running',
+        jobCreatedAt: createdAt
+      });
+      expect(args.update).toEqual({
+        state: 'running',
+        attempt: 2,
+        startedAt: started.startedAt,
+        finishedAt: null,
+        attemptedBy: 'worker:2',
+        jobCreatedAt: createdAt,
+        maxAttempts: 3
+      });
+    });
 
     test('updates the latest unfinished record of the job', async () => {
       db.setResult('QueueJobRecord', 'findFirst', { id: 'record-1' });
@@ -215,22 +258,10 @@ describe('database-queue-history', () => {
   describe('recordIgnored', () => {
     const createdAt = new Date('2026-10-31T12:00:00Z');
 
-    test('marks the send ignored, linked to the record of the job', async () => {
-      db.setResult('QueueJobRecord', 'findUnique', {
-        queue: 'payments',
-        jobId: 'job-1'
-      });
-      db.setResult('QueueJobRecord', 'findFirst', { id: 'record-1' });
+    test('links the ignored send to the record of the history id of the job', async () => {
+      await history.recordIgnored('record-2', { historyId: 'record-1' });
 
-      await history.recordIgnored('record-2', createdAt);
-
-      expect(db.lastQuery('findUnique').args.where).toEqual({ id: 'record-2' });
-      expect(db.lastQuery('findFirst').args.where).toMatchObject({
-        queue: 'payments',
-        jobId: 'job-1',
-        id: { not: 'record-2' },
-        OR: [{ jobCreatedAt: createdAt }, expect.any(Object)]
-      });
+      expect(db.queries.map((query) => query.method)).toEqual(['update']);
       expect(db.lastQuery('update').args).toEqual({
         where: { id: 'record-2' },
         data: {
@@ -241,6 +272,24 @@ describe('database-queue-history', () => {
       });
     });
 
+    test('finds the record of a job without a history id by its creation time', async () => {
+      db.setResult('QueueJobRecord', 'findUnique', {
+        queue: 'payments',
+        jobId: 'job-1'
+      });
+      db.setResult('QueueJobRecord', 'findFirst', { id: 'record-1' });
+
+      await history.recordIgnored('record-2', { createdAt });
+
+      expect(db.lastQuery('findFirst').args.where).toMatchObject({
+        queue: 'payments',
+        jobId: 'job-1',
+        id: { not: 'record-2' },
+        OR: [{ jobCreatedAt: createdAt }, expect.any(Object)]
+      });
+      expect(db.lastQuery('update').args.data.duplicateOfId).toBe('record-1');
+    });
+
     test('marks a send ignored for a job without a record', async () => {
       db.setResult('QueueJobRecord', 'findUnique', {
         queue: 'payments',
@@ -248,17 +297,27 @@ describe('database-queue-history', () => {
       });
       db.setResult('QueueJobRecord', 'findFirst', null);
 
-      await history.recordIgnored('record-2', createdAt);
+      await history.recordIgnored('record-2', { createdAt });
 
       expect(db.lastQuery('update').args.data.duplicateOfId).toBeNull();
     });
 
-    test('ignores a missing record', async () => {
+    test('marks a send ignored without its own record found', async () => {
       db.setResult('QueueJobRecord', 'findUnique', null);
 
-      await history.recordIgnored('record-2', createdAt);
+      await history.recordIgnored('record-2', { createdAt });
 
-      expect(db.queries.map((query) => query.method)).toEqual(['findUnique']);
+      expect(db.queries.map((query) => query.method)).toEqual([
+        'findUnique',
+        'update'
+      ]);
+      expect(db.lastQuery('update').args.data.duplicateOfId).toBeNull();
+    });
+
+    test('marks a send ignored for a job unknown to it', async () => {
+      await history.recordIgnored('record-2', {});
+
+      expect(db.lastQuery('update').args.data.duplicateOfId).toBeNull();
     });
   });
 

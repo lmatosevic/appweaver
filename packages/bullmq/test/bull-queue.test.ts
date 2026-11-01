@@ -3,8 +3,8 @@ jest.mock('bullmq', () => {
 
   class Queue extends EventEmitter {
     static instances: Queue[] = [];
-    // The timestamps stored in Redis, by job key
-    stored = new Map<string, string>();
+    // The job hashes stored in Redis, by job key
+    stored = new Map<string, Record<string, string>>();
     add = jest.fn(async (name: string, data: any, opts: any) => ({
       id: opts.jobId ?? '1',
       name,
@@ -17,7 +17,10 @@ jest.mock('bullmq', () => {
     );
     close = jest.fn(async () => {});
     client = Promise.resolve({
-      hget: jest.fn(async (key: string) => this.stored.get(key) ?? null)
+      hget: jest.fn(
+        async (key: string, field: string) =>
+          this.stored.get(key)?.[field] ?? null
+      )
     });
     toKey = (id: string) => `bull:${this.name}:${id}`;
 
@@ -52,7 +55,7 @@ jest.mock('bullmq', () => {
       name: 'existing',
       data: { existing: true },
       opts: {},
-      timestamp: Number(queue.stored.get(queue.toKey(id)))
+      timestamp: Number(queue.stored.get(queue.toKey(id)).timestamp)
     }))
   };
 
@@ -192,7 +195,7 @@ describe('bull-queue', () => {
 
     test('returns the added job of a new job id', async () => {
       const processor = queue.get('emails');
-      queues()[0].stored.set('bull:emails:r-1', '2000');
+      queues()[0].stored.set('bull:emails:r-1', { timestamp: '2000' });
 
       const job = await processor.sendJob({ to: 'a' }, 'report', {
         jobId: 'r-1'
@@ -203,7 +206,7 @@ describe('bull-queue', () => {
 
     test('returns the added job when the queue lost the existing one', async () => {
       const processor = queue.get('emails');
-      queues()[0].stored.set('bull:emails:r-1', '1000');
+      queues()[0].stored.set('bull:emails:r-1', { timestamp: '1000' });
       const { Job } = jest.requireMock('bullmq');
       Job.fromId.mockResolvedValueOnce(undefined);
 
@@ -214,9 +217,49 @@ describe('bull-queue', () => {
       expect(job).toMatchObject({ data: { to: 'a' }, timestamp: 2000 });
     });
 
+    test('tells the job in the queue by its history id', async () => {
+      const processor = queue.get('emails');
+      queues()[0].stored.set('bull:emails:r-1', {
+        timestamp: '2000',
+        opts: JSON.stringify({ historyId: 'record-1' })
+      });
+
+      const job = await processor.sendJob({ to: 'a' }, 'report', {
+        jobId: 'r-1',
+        historyId: 'record-2'
+      });
+
+      expect(job).toMatchObject({ data: { existing: true } });
+    });
+
+    test('returns the added job of its own history id', async () => {
+      const processor = queue.get('emails');
+      queues()[0].stored.set('bull:emails:r-1', {
+        timestamp: '1000',
+        opts: JSON.stringify({ historyId: 'record-2' })
+      });
+
+      const job = await processor.sendJob({ to: 'a' }, 'report', {
+        jobId: 'r-1',
+        historyId: 'record-2'
+      });
+
+      expect(job).toMatchObject({ data: { to: 'a' } });
+      expect(processor.jobInfo(job).historyId).toBe('record-2');
+    });
+
+    test('returns the added job when the queue has no job of its id', async () => {
+      const job = await queue.get('emails').sendJob({ to: 'a' }, 'report', {
+        jobId: 'r-1',
+        historyId: 'record-2'
+      });
+
+      expect(job).toMatchObject({ data: { to: 'a' } });
+    });
+
     test('returns the job already in the queue under a given job id', async () => {
       const processor = queue.get('emails');
-      queues()[0].stored.set('bull:emails:r-1', '1000');
+      queues()[0].stored.set('bull:emails:r-1', { timestamp: '1000' });
 
       const job = await processor.sendJob({ to: 'a' }, 'report', {
         jobId: 'r-1'
@@ -232,7 +275,7 @@ describe('bull-queue', () => {
 
     test('returns the jobs already in the queue among the bulk jobs', async () => {
       const processor = queue.get('emails');
-      queues()[0].stored.set('bull:emails:b', '1000');
+      queues()[0].stored.set('bull:emails:b', { timestamp: '1000' });
 
       const jobs = await processor.sendBulkJobs([
         { data: 1, options: { jobId: 'a' } },
@@ -289,7 +332,8 @@ describe('bull-queue', () => {
       expect(info).toEqual({
         attempt: 1,
         maxAttempts: 1,
-        createdAt: undefined
+        createdAt: undefined,
+        historyId: undefined
       });
     });
   });

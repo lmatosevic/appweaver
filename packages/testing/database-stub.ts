@@ -8,6 +8,7 @@ export type DelegateMethod =
   | 'create'
   | 'createMany'
   | 'update'
+  | 'upsert'
   | 'updateMany'
   | 'delete'
   | 'deleteMany'
@@ -27,6 +28,7 @@ const METHODS: DelegateMethod[] = [
   'create',
   'createMany',
   'update',
+  'upsert',
   'updateMany',
   'delete',
   'deleteMany',

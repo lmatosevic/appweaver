@@ -20,7 +20,8 @@ const unfinishedStates: QueueJobState[] = [
   'stalled'
 ];
 
-/** A worker recording the first attempt of a sent job before it, within this time of the sending, completes it. */
+/** A worker of a driver without history ids recording the first attempt of a sent job before it, within this time of
+ * the sending, completes it. */
 const SENT_MERGE_WINDOW_MS = 5000;
 
 /**
@@ -34,78 +35,78 @@ export class DatabaseQueueHistory extends QueueHistory {
   public async recordSent(
     jobs: QueueJobSent[],
     options: { sent?: boolean } = {}
-  ): Promise<string[]> {
-    const records = jobs.map((job) => ({ id: uuid7(), ...sentFields(job) }));
-
+  ): Promise<void> {
     if (!options.sent) {
       await this.records().createMany({
-        data: records.map((record, i) => ({
-          ...record,
-          state: jobs[i].scheduledAt ? 'scheduled' : 'pending'
-        }))
+        data: jobs.map((job) => ({ ...sentFields(job), state: sentState(job) }))
       });
-      return records.map((record) => record.id);
+      return;
     }
 
-    const ids: string[] = [];
-    for (const [i, record] of records.entries()) {
-      const { id, ...fields } = record;
-      const started = await this.records().findFirst({
-        where: {
-          queue: record.queue,
-          jobId: record.jobId,
-          enqueuedAt: null,
-          createdAt: {
-            gte: new Date(jobs[i].sentAt.getTime() - SENT_MERGE_WINDOW_MS)
-          }
-        },
-        orderBy: { createdAt: 'desc' },
-        select: { id: true }
-      });
+    for (const job of jobs) {
+      const fields = sentFields(job);
+      // The record of a worker that started the job first: by its history id, or without one by its job id
+      const started =
+        (await this.records().findUnique({
+          where: { id: job.id },
+          select: { id: true }
+        })) ??
+        (await this.records().findFirst({
+          where: {
+            queue: job.queue,
+            jobId: job.jobId,
+            enqueuedAt: null,
+            createdAt: {
+              gte: new Date(job.sentAt.getTime() - SENT_MERGE_WINDOW_MS)
+            }
+          },
+          orderBy: { createdAt: 'desc' },
+          select: { id: true }
+        }));
+      const { id: _id, ...update } = fields;
       if (started) {
         await this.records().update({
           where: { id: started.id },
-          data: fields
+          data: update
         });
-        ids.push(started.id);
       } else {
-        await this.records().create({
-          data: {
-            ...record,
-            state: jobs[i].scheduledAt ? 'scheduled' : 'pending'
-          }
+        // A worker of another process may still create it
+        await this.records().upsert({
+          where: { id: job.id },
+          create: { ...fields, state: sentState(job) },
+          update
         });
-        ids.push(id);
       }
     }
-    return ids;
   }
 
-  public async recordIgnored(id: string, createdAt: Date): Promise<void> {
-    const sent = await this.records().findUnique({
-      where: { id },
-      select: { queue: true, jobId: true }
-    });
-    if (!sent) {
-      return;
+  public async recordIgnored(
+    id: string,
+    job: { historyId?: string; createdAt?: Date }
+  ): Promise<void> {
+    let duplicateOfId = job.historyId ?? null;
+    if (!duplicateOfId && job.createdAt) {
+      const sent = await this.records().findUnique({
+        where: { id },
+        select: { queue: true, jobId: true }
+      });
+      const record = sent
+        ? await this.records().findFirst({
+            where: {
+              queue: sent.queue,
+              jobId: sent.jobId,
+              id: { not: id },
+              ...jobRecordOf(job.createdAt)
+            },
+            orderBy: { createdAt: 'desc' },
+            select: { id: true }
+          })
+        : null;
+      duplicateOfId = record?.id ?? null;
     }
-    const job = await this.records().findFirst({
-      where: {
-        queue: sent.queue,
-        jobId: sent.jobId,
-        id: { not: id },
-        ...jobRecordOf(createdAt)
-      },
-      orderBy: { createdAt: 'desc' },
-      select: { id: true }
-    });
     await this.records().update({
       where: { id },
-      data: {
-        state: 'ignored',
-        finishedAt: new Date(),
-        duplicateOfId: job?.id ?? null
-      }
+      data: { state: 'ignored', finishedAt: new Date(), duplicateOfId }
     });
   }
 
@@ -119,6 +120,24 @@ export class DatabaseQueueHistory extends QueueHistory {
       ...(job.createdAt ? { jobCreatedAt: job.createdAt } : {}),
       ...(job.maxAttempts === undefined ? {} : { maxAttempts: job.maxAttempts })
     };
+
+    const created = {
+      queue: job.queue,
+      jobId: job.jobId,
+      name: job.name,
+      driver: job.driver,
+      data: job.data as any,
+      ...attempt
+    };
+    if (job.id) {
+      // The sender may still create it, i.e. once its transaction commits
+      await this.records().upsert({
+        where: { id: job.id },
+        create: { id: job.id, ...created },
+        update: attempt
+      });
+      return job.id;
+    }
 
     const record = await this.records().findFirst({
       where: {
@@ -137,17 +156,7 @@ export class DatabaseQueueHistory extends QueueHistory {
     }
 
     const id = uuid7();
-    await this.records().create({
-      data: {
-        id,
-        queue: job.queue,
-        jobId: job.jobId,
-        name: job.name,
-        driver: job.driver,
-        data: job.data as any,
-        ...attempt
-      }
-    });
+    await this.records().create({ data: { id, ...created } });
     return id;
   }
 
@@ -238,10 +247,16 @@ function jobRecordOf(createdAt: Date) {
   };
 }
 
+/** The state of a sent job, before a worker starts it. */
+function sentState(job: QueueJobSent): QueueJobState {
+  return job.scheduledAt ? 'scheduled' : 'pending';
+}
+
 /** The fields of a sent job, without its state. */
 function sentFields(job: QueueJobSent) {
   const { caller } = job;
   return {
+    id: job.id,
     queue: job.queue,
     jobId: job.jobId,
     name: job.name,

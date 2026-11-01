@@ -84,6 +84,7 @@ finished job the queue keeps) ignores the send and returns the existing job, wit
 | `priority`        | `number`                                            | A lower number is processed first                         |
 | `jobId`           | `string`                                            | A custom job id                                           |
 | `metadata`        | `Record<string, unknown>`                           | Free-form details, kept in the queue history only         |
+| `historyId`       | `string`                                            | Set by the queue history, the id of the record of the job |
 | `providerOptions` | `Record<string, unknown>`                           | Options of the driver, i.e. the `JobsOptions` of BullMQ   |
 
 ```ts
@@ -174,9 +175,11 @@ type QueueJob<Data, Response> = {
 };
 ```
 
-`processor.jobInfo(job)` returns the attempt a worker processes (the first one is `1`), the number of attempts and the
-creation time of a job in milliseconds, `{ attempt, maxAttempts, createdAt }`, the same for every driver. A driver that
-does not override it returns `{}`.
+`processor.jobInfo(job)` returns the attempt a worker processes (the first one is `1`), the number of attempts, the
+creation time of a job in milliseconds and its `historyId` option, `{ attempt, maxAttempts, createdAt, historyId }`, the
+same for every driver. A driver stores the `historyId` option with the job (BullMQ keeps it in the options of the job in
+Redis) and returns the existing job for a `jobId` still in the queue. A driver that does not override `jobInfo` returns
+`{}`.
 
 ---
 
@@ -204,9 +207,13 @@ the job in the queue, which keeps a send idempotent:
 | Sent after its job left the queue (`QUEUE_KEEP_COMPLETED_COUNT=0` removes the completed ones) | A new job | A new record, the earlier one kept          |
 | Retried by hand (`job.retry()` of BullMQ)                | The same job                                 | Its record reopened (`running`)               |
 
-The queue tells a job from an earlier one of its id by its creation time, `jobInfo(job).createdAt`, stored as
-`jobCreatedAt` once a worker starts it, so a send in the same millisecond as the job it repeats is recorded as a new
-job. A driver without `createdAt` records every send as a new job.
+Every send gets the UUIDv7 of its record before it is sent, passed to the driver as the `historyId` option and stored
+with the job, so the records are matched by their id, never by a time: the job a send is ignored for is the one
+reporting another `historyId` (even in the same millisecond, or from another instance with another clock), a worker of
+any process records its attempts on the record of the `historyId` of the job, and the record of a job sent in a
+transaction is completed with the attempt a worker recorded before the commit. Only the jobs of a driver reporting no
+`historyId` are matched by their creation time, `jobInfo(job).createdAt`, which a send in the same millisecond as the job
+it repeats cannot be told from. The creation time is stored as `jobCreatedAt` once a worker starts a job.
 
 | State       | When                                                                     |
 |-------------|--------------------------------------------------------------------------|

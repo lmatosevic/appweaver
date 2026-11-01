@@ -12,7 +12,8 @@ import {
   QueueJobSent,
   QueueProcessor,
   QueueWorkerOptions,
-  uuid
+  uuid,
+  uuid7
 } from '@appweaver/common';
 import {
   afterCommit,
@@ -138,10 +139,11 @@ export class QueueHistoryRecorder {
   }
 
   /**
-   * Records the jobs sent to a queue, then sends them with their job ids, generating the missing ones. Outside of a
-   * transaction they are recorded before they are sent, so no worker starts them first, and inside one once it
-   * settles, since a query outside of it could wait for it. A send the queue ignores, since a job with its id is still
-   * in it, keeps its record, marked `ignored` and linked to the record of that job.
+   * Records the jobs sent to a queue, then sends them with their job ids, generating the missing ones, and the ids of
+   * their records as their `historyId`. Outside of a transaction they are recorded before they are sent, so no worker
+   * starts them first, and inside one once it settles, since a query outside of it could wait for it. A send the queue
+   * ignores, since a job with its id is still in it, keeps its record, marked `ignored` and linked to the record of
+   * that job.
    *
    * @internal
    */
@@ -154,18 +156,11 @@ export class QueueHistoryRecorder {
   ): Promise<Job[]> {
     const sentAt = new Date();
     const caller = await this.caller(site);
-    const sent = jobs.map(({ data, name, options = {} }) => {
-      const { metadata: _metadata, ...driverOptions } = options;
-      return {
-        data,
-        name,
-        options: { ...driverOptions, jobId: options.jobId ?? uuid() }
-      };
-    });
     const records = jobs.map(
-      (job, i): QueueJobSent => ({
+      (job): QueueJobSent => ({
+        id: uuid7(),
         queue,
-        jobId: sent[i].options.jobId,
+        jobId: job.options?.jobId ?? uuid(),
         name: job.name ?? 'defaultJob',
         sentAt,
         caller,
@@ -180,12 +175,27 @@ export class QueueHistoryRecorder {
           : undefined
       })
     );
-    // The creation time of the job in the queue a send was ignored for, the job being older than the send
+    const sent = jobs.map(({ data, name, options = {} }, i) => {
+      const { metadata: _metadata, ...driverOptions } = options;
+      return {
+        data,
+        name,
+        options: {
+          ...driverOptions,
+          jobId: records[i].jobId,
+          historyId: records[i].id
+        }
+      };
+    });
+    // The job in the queue a send was ignored for: one of another record, or without a record one older than the send
     const ignoredBy = (added: Job[]) =>
-      added.map((job) => {
-        const { createdAt } = processor.jobInfo(job);
+      added.map((job, i) => {
+        const { historyId, createdAt } = processor.jobInfo(job);
+        if (historyId !== undefined) {
+          return historyId === records[i].id ? undefined : { historyId };
+        }
         return createdAt !== undefined && createdAt < sentAt.getTime()
-          ? new Date(createdAt)
+          ? { createdAt: new Date(createdAt) }
           : undefined;
       });
 
@@ -199,21 +209,17 @@ export class QueueHistoryRecorder {
         void this.serial(keys, async () => {
           const history = inject(QueueHistory);
           const taken = records.filter((_, i) => !ignored[i]);
-          const repeated = records.flatMap((record, i) => {
-            const createdAt = ignored[i];
-            return createdAt ? [{ record, createdAt }] : [];
-          });
+          const repeated = records.filter((_, i) => ignored[i]);
           if (taken.length) {
             await this.write(() => history.recordSent(taken, { sent: true }));
           }
           if (repeated.length) {
-            const ids = await this.write(() =>
-              history.recordSent(repeated.map(({ record }) => record))
-            );
-            for (const [i, id] of (ids ?? []).entries()) {
-              await this.write(() =>
-                history.recordIgnored(id, repeated[i].createdAt)
-              );
+            await this.write(() => history.recordSent(repeated));
+            for (const [i, record] of records.entries()) {
+              const job = ignored[i];
+              if (job) {
+                await this.write(() => history.recordIgnored(record.id, job));
+              }
             }
           }
         });
@@ -222,15 +228,13 @@ export class QueueHistoryRecorder {
       return added;
     }
 
-    const ids = await this.write(() =>
-      inject(QueueHistory).recordSent(records)
-    );
+    await this.write(() => inject(QueueHistory).recordSent(records));
     let added: Job[];
     try {
       added = await sendJobs(sent);
     } catch (error) {
       const finishedAt = new Date();
-      for (const id of ids ?? []) {
+      for (const { id } of records) {
         void this.write(() =>
           inject(QueueHistory).recordFinished(id, {
             state: 'failed',
@@ -244,11 +248,11 @@ export class QueueHistoryRecorder {
       throw error;
     }
 
-    for (const [i, createdAt] of ignoredBy(added).entries()) {
-      const id = ids?.[i];
-      if (createdAt && id) {
-        void this.serial(jobKey(queue, records[i].jobId), () =>
-          inject(QueueHistory).recordIgnored(id, createdAt)
+    for (const [i, job] of ignoredBy(added).entries()) {
+      if (job) {
+        const { id, jobId } = records[i];
+        void this.serial(jobKey(queue, jobId), () =>
+          inject(QueueHistory).recordIgnored(id, job)
         );
       }
     }
@@ -267,7 +271,12 @@ export class QueueHistoryRecorder {
     job: Job,
     handler: (job: Job) => Promise<unknown>
   ): Promise<unknown> {
-    const { attempt = 1, maxAttempts, createdAt } = processor.jobInfo(job);
+    const {
+      attempt = 1,
+      maxAttempts,
+      createdAt,
+      historyId
+    } = processor.jobInfo(job);
     const jobId = String(job.id ?? '');
     const key = jobKey(queue, jobId);
     const startedAt = new Date();
@@ -283,6 +292,7 @@ export class QueueHistoryRecorder {
         instance,
         driver: this.driver,
         maxAttempts,
+        id: historyId,
         createdAt: createdAt === undefined ? undefined : new Date(createdAt),
         data: queueHistoryConfig.STORE_DATA ? payload(job.data) : undefined
       })

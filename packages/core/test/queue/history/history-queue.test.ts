@@ -24,6 +24,9 @@ import { resetContext } from '../../fixtures/context-fixture';
 
 const logger = createLogger('queue');
 
+const UUID7 =
+  /^[\da-f]{8}-[\da-f]{4}-7[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/;
+
 // A send is told from the job it repeats by the millisecond the job was created
 const nextMillisecond = () => new Promise((resolve) => setTimeout(resolve, 2));
 
@@ -49,25 +52,27 @@ class FakeHistory extends QueueHistory {
   public readonly started: QueueJobStarted[] = [];
   public readonly finished: { id: string; outcome: QueueJobFinished }[] = [];
   public readonly stalled: string[] = [];
-  public readonly ignored: { id: string; createdAt: Date }[] = [];
+  public readonly ignored: {
+    id: string;
+    job: { historyId?: string; createdAt?: Date };
+  }[] = [];
   public inTransaction = false;
   private _ids = 0;
 
   public async recordSent(
     jobs: QueueJobSent[],
     options: { sent?: boolean } = {}
-  ): Promise<string[]> {
+  ): Promise<void> {
     this.inTransaction ||= currentTransaction() !== undefined;
     this.calls.push('sent');
     this.sent.push({ jobs, sent: options.sent });
-    return jobs.map(() => `record-${++this._ids}`);
   }
 
   public async recordStarted(job: QueueJobStarted): Promise<string> {
     this.inTransaction ||= currentTransaction() !== undefined;
     this.calls.push('started');
     this.started.push(job);
-    return `record-${++this._ids}`;
+    return job.id ?? `started-${++this._ids}`;
   }
 
   public async recordFinished(
@@ -78,9 +83,12 @@ class FakeHistory extends QueueHistory {
     this.finished.push({ id, outcome });
   }
 
-  public async recordIgnored(id: string, createdAt: Date): Promise<void> {
+  public async recordIgnored(
+    id: string,
+    job: { historyId?: string; createdAt?: Date }
+  ): Promise<void> {
     this.calls.push('ignored');
-    this.ignored.push({ id, createdAt });
+    this.ignored.push({ id, job });
   }
 
   public async recordStalled(queue: string, jobId: string): Promise<void> {
@@ -186,13 +194,15 @@ describe('history-queue', () => {
       expect(record.scheduledAt!.getTime()).toBe(
         record.sentAt.getTime() + 1000
       );
+      expect(record.id).toMatch(UUID7);
       expect(history.sent[0].sent).toBeUndefined();
       expect(send.mock.calls[0][2]).toEqual({
         delay: 1000,
         priority: 2,
         attempts: 5,
         providerOptions: { lifo: true },
-        jobId: job.id
+        jobId: job.id,
+        historyId: record.id
       });
     });
 
@@ -274,7 +284,7 @@ describe('history-queue', () => {
 
       await waitFor(() => history.finished.length === 1);
       expect(history.finished[0]).toMatchObject({
-        id: 'record-1',
+        id: history.sent[0].jobs[0].id,
         outcome: {
           state: 'failed',
           attempt: 0,
@@ -367,10 +377,44 @@ describe('history-queue', () => {
 
       expect(job.data).toEqual({ n: 1 });
       await waitFor(() => history.ignored.length === 1);
-      expect(history.sent).toHaveLength(2);
+      const [first, second] = history.sent.map(({ jobs }) => jobs[0].id);
       expect(history.ignored).toEqual([
-        { id: 'record-2', createdAt: new Date((job as any).createdAt) }
+        { id: second, job: { historyId: first } }
       ]);
+    });
+
+    test('marks a send in the same millisecond as its job as ignored', async () => {
+      const processor = queue.get('jobs');
+      const [first] = await processor.sendBulkJobs([
+        { data: { n: 1 }, options: { jobId: 'j-1', delay: 50 } },
+        { data: { n: 2 }, options: { jobId: 'j-1' } }
+      ]);
+
+      expect(first.data).toEqual({ n: 1 });
+      await waitFor(() => history.ignored.length === 1);
+      const [original, repeated] = history.sent[0].jobs.map((job) => job.id);
+      expect(history.ignored).toEqual([
+        { id: repeated, job: { historyId: original } }
+      ]);
+    });
+
+    test('tells an ignored send by the creation time for a driver without history ids', async () => {
+      const processor = queue.get('jobs');
+      await processor.sendJob({ n: 1 }, 'a', { jobId: 'j-1', delay: 50 });
+      await nextMillisecond();
+      const memory = inner.get('jobs');
+      const jobInfo = memory.jobInfo.bind(memory);
+      jest.spyOn(memory, 'jobInfo').mockImplementation((job) => ({
+        ...jobInfo(job),
+        historyId: undefined
+      }));
+
+      const job = await processor.sendJob({ n: 2 }, 'a', { jobId: 'j-1' });
+
+      await waitFor(() => history.ignored.length === 1);
+      expect(history.ignored[0].job).toEqual({
+        createdAt: new Date((job as any).createdAt)
+      });
     });
 
     test('records a new job for a job id the queue takes again', async () => {
@@ -409,7 +453,10 @@ describe('history-queue', () => {
         { jobs: [expect.objectContaining({ jobId: 'j-1' })], sent: undefined }
       ]);
       expect(history.ignored).toEqual([
-        { id: 'record-3', createdAt: expect.any(Date) }
+        {
+          id: history.sent[2].jobs[0].id,
+          job: { historyId: history.sent[0].jobs[0].id }
+        }
       ]);
     });
 
@@ -469,8 +516,9 @@ describe('history-queue', () => {
         createdAt: expect.any(Date),
         data: { value: 21 }
       });
+      expect(history.started[0].id).toBe(history.sent[0].jobs[0].id);
       expect(history.finished[0]).toMatchObject({
-        id: 'record-2',
+        id: history.sent[0].jobs[0].id,
         outcome: { state: 'completed', attempt: 1, result: 42 }
       });
     });
@@ -564,7 +612,7 @@ describe('history-queue', () => {
       await waitFor(() => history.sent.length === 2);
       expect(history.sent[1].jobs[0]).toMatchObject({
         queue: 'children',
-        caller: { parentId: 'record-2' }
+        caller: { parentId: history.sent[0].jobs[0].id }
       });
     });
 

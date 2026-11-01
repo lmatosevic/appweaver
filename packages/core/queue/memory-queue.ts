@@ -22,6 +22,7 @@ type MemoryQueueJob<Data = any, Response = any> = QueueJob<Data, Response> & {
   attempts: number;
   maxAttempts: number;
   createdAt: number;
+  historyId?: string;
   error?: Error;
   processedAt?: number;
   finishedAt?: number;
@@ -159,7 +160,8 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       status: 'waiting',
       attempts: 0,
       maxAttempts: options.attempts ?? queueConfig.RETRY_ATTEMPTS,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      historyId: options.historyId
     };
 
     this._jobs.set(jobId, job);
@@ -317,7 +319,8 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     return {
       attempt: job.attempts,
       maxAttempts: job.maxAttempts,
-      createdAt: job.createdAt
+      createdAt: job.createdAt,
+      historyId: job.historyId
     };
   }
 

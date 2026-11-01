@@ -333,7 +333,9 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       // Counted when a worker takes the job, the attempts made only once it ends
       attempt: job.attemptsStarted || job.attemptsMade + 1,
       maxAttempts: job.opts.attempts ?? 1,
-      createdAt: job.timestamp
+      createdAt: job.timestamp,
+      // Kept in the options of the job in Redis, which BullMQ stores with the unknown ones
+      historyId: (job.opts as { historyId?: string }).historyId
     };
   }
 
@@ -389,7 +391,8 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
 
   /**
    * Returns the job already in the queue under the id of an added one, which BullMQ ignores, returning the added job
-   * with the data and the timestamp it was given instead.
+   * with the data, the options and the timestamp it was given instead. The job is told from the added one by its
+   * `historyId` option, or by its timestamp without one.
    *
    * @internal
    */
@@ -397,11 +400,24 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     added: Job<Data, Response>
   ): Promise<Job<Data, Response>> {
     const client = await this._queue.client;
-    const timestamp = await client.hget(
-      this._queue.toKey(added.id!),
-      'timestamp'
-    );
-    if (timestamp === null || Number(timestamp) === added.timestamp) {
+    const key = this._queue.toKey(added.id!);
+    const { historyId } = added.opts as { historyId?: string };
+    const existing = historyId
+      ? await client
+          .hget(key, 'opts')
+          .then((opts) =>
+            opts === null
+              ? false
+              : (JSON.parse(opts) as { historyId?: string }).historyId !==
+                historyId
+          )
+      : await client
+          .hget(key, 'timestamp')
+          .then(
+            (timestamp) =>
+              timestamp !== null && Number(timestamp) !== added.timestamp
+          );
+    if (!existing) {
       return added;
     }
     logger.debug(

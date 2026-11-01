@@ -29,6 +29,8 @@ export type QueueJobCaller = {
 
 /** A job sent to a queue. */
 export type QueueJobSent = {
+  /** The id of its record, sent with the job as its `historyId` option. */
+  id: string;
   queue: string;
   jobId: string;
   name: string;
@@ -57,7 +59,9 @@ export type QueueJobStarted = {
   instance: string;
   driver?: string;
   maxAttempts?: number;
-  /** When the queue created the job, which finds its record among the ones of the same job id. */
+  /** The record of the job, its `historyId`, when the driver reports it. */
+  id?: string;
+  /** When the queue created the job, which finds its record without a `historyId`. */
   createdAt?: Date;
   /** The payload, stored when no record of the sent job exists. */
   data?: unknown;
@@ -93,29 +97,32 @@ export abstract class QueueHistory {
   /**
    * Records the jobs sent to a queue.
    *
-   * @param {QueueJobSent[]} jobs - The sent jobs.
+   * @param {QueueJobSent[]} jobs - The sent jobs, each with the id of its record.
    * @param {Object} [options] - With `sent`, the jobs are already in the queue, so a worker may have recorded their
    * first attempt before, which the record of a job then completes.
-   * @return {Promise<string[]>} The ids of the records, in the order of the jobs.
    */
   abstract recordSent(
     jobs: QueueJobSent[],
     options?: { sent?: boolean }
-  ): Promise<string[]>;
+  ): Promise<void>;
 
   /**
    * Records a send the queue ignored, since a job with its id was still in the queue: marks the record of the send
    * `ignored`, finished and linked by its `duplicateOfId` to the record of the job in the queue.
    *
-   * @param {string} id - The record of the send, returned by {@link recordSent}.
-   * @param {Date} createdAt - When the queue created the job in it, which finds its record.
+   * @param {string} id - The record of the send.
+   * @param {Object} job - The job in the queue: the `historyId` it reports, or its creation time, which finds its
+   * record without one.
    */
-  abstract recordIgnored(id: string, createdAt: Date): Promise<void>;
+  abstract recordIgnored(
+    id: string,
+    job: { historyId?: string; createdAt?: Date }
+  ): Promise<void>;
 
   /**
-   * Records the start of an attempt on the record of its job: with the creation time of the job, the latest record
-   * sent before it, reopened when it is finished (a job retried by hand), otherwise the latest unfinished one, or a new
-   * record when the job has none.
+   * Records the start of an attempt on the record of its job, reopened when it is finished (a job retried by hand):
+   * the record of its `historyId`, created when missing, or without one the record found by the creation time of the
+   * job, otherwise the latest unfinished one, or a new record when the job has none.
    *
    * @param {QueueJobStarted} job - The started attempt.
    * @return {Promise<string>} The id of the record.
@@ -125,7 +132,7 @@ export abstract class QueueHistory {
   /**
    * Records the outcome of an attempt, or of a job the queue refused, with the attempt `0`.
    *
-   * @param {string} id - The id of the record, returned by {@link recordStarted} or {@link recordSent}.
+   * @param {string} id - The id of the record, of the sent job or returned by {@link recordStarted}.
    * @param {QueueJobFinished} outcome - The outcome of the attempt.
    */
   abstract recordFinished(id: string, outcome: QueueJobFinished): Promise<void>;
