@@ -233,6 +233,8 @@
           "teamId": "A1B2C3D4E5",
           "keyId": "F6G7H8I9J0",
           "privateKeyPath": "./storage/__keys__/apple-auth-key.p8",
+          "privateKey": "-----BEGIN PRIVATE KEY-----\nMIGTM49...MaterialPlaceholder\n-----END PRIVATE KEY-----",
+          "clientSecret": "eyJhbGRkcifQ.eyJpc3MiOiJE...EXAMPLE_SIGNATURE_PLACEHOLDER",
           "clientSecretExpiresIn": 15552000,
           "authorizationParams": {}
         },
