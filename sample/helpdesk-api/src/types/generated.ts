@@ -836,8 +836,8 @@ export type ApiKey = {
   enabled: boolean;
   expiresAt?: Date | null;
   user: UserSingle;
-  roles: Array<RoleSingle>;
-  permissions: Array<PermissionSingle>;
+  roles?: Array<RoleSingle>;
+  permissions?: Array<PermissionSingle>;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
@@ -876,18 +876,18 @@ export type ApiKeyCreate = {
   description?: string | null;
   enabled?: boolean;
   expiresAt?: Date | null;
-  roles: Array<
+  roles?: Array<
     | {
         id: number;
       }
     | number
-  >;
-  permissions: Array<
+  > | null;
+  permissions?: Array<
     | {
         id: number;
       }
     | number
-  >;
+  > | null;
 };
 
 export type ApiKeyUpdate = {
@@ -899,31 +899,31 @@ export type ApiKeyUpdate = {
         id: number;
       }
     | number
-  >;
+  > | null;
   permissions?: Array<
     | {
         id: number;
       }
     | number
-  >;
+  > | null;
 };
 
 export type ApiKeyReplace = {
   name?: string | null;
   description?: string | null;
   enabled?: boolean;
-  roles: Array<
+  roles?: Array<
     | {
         id: number;
       }
     | number
-  >;
-  permissions: Array<
+  > | null;
+  permissions?: Array<
     | {
         id: number;
       }
     | number
-  >;
+  > | null;
 };
 
 export type ApiKeyRelationCreate = {

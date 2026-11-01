@@ -60,6 +60,7 @@ export default shouldCreateModel
               roles: {
                 model: 'Role',
                 type: 'manyToMany',
+                required: false,
                 input: {
                   type: 'all'
                 },
@@ -70,6 +71,7 @@ export default shouldCreateModel
               permissions: {
                 model: 'Permission',
                 type: 'manyToMany',
+                required: false,
                 input: {
                   type: 'all'
                 },

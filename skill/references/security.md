@@ -158,21 +158,21 @@ Default delimiter is `AK`, so a key looks like: `42AKa1b2c3d4e5f6...`
 
 ### API key model
 
-| Field         | Type         | Description                                          |
-|---------------|--------------|------------------------------------------------------|
-| `id`          | int          | Auto-generated ID.                                   |
-| `key`         | string       | 64-char secret (shown only at creation).             |
-| `keyHash`     | string       | SHA256 hash of the key (stored, hidden from API).    |
-| `name`        | string?      | Optional friendly name.                              |
-| `description` | string?      | Optional description.                                |
-| `enabled`     | boolean      | Whether the key is active.                           |
-| `expiresAt`   | dateTime?    | Optional expiration date. Enforced on every request. |
-| `roles`       | Role[]       | The roles of its scope.                              |
-| `permissions` | Permission[] | The permissions of its scope.                        |
+| Field         | Type          | Description                                          |
+|---------------|---------------|------------------------------------------------------|
+| `id`          | int           | Auto-generated ID.                                   |
+| `key`         | string        | 64-char secret (shown only at creation).             |
+| `keyHash`     | string        | SHA256 hash of the key (stored, hidden from API).    |
+| `name`        | string?       | Optional friendly name.                              |
+| `description` | string?       | Optional description.                                |
+| `enabled`     | boolean       | Whether the key is active.                           |
+| `expiresAt`   | dateTime?     | Optional expiration date. Enforced on every request. |
+| `roles`       | Role[]?       | The roles of its optional scope.                     |
+| `permissions` | Permission[]? | The permissions of its optional scope.               |
 
 ### API key scope
 
-A key has the full access of its owner unless it lists a scope, its `roles` and `permissions` given by id:
+A key has the full access of its owner unless it lists a scope, its optional `roles` and `permissions` given by id:
 
 ```ts
 // POST /api/api-keys, with the JWT of the owner
