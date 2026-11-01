@@ -191,33 +191,10 @@ type QueueJob<Data, Response> = {
 
 ### Keeping the finished jobs
 
-BullMQ keeps the finished jobs in Redis by the `QUEUE_KEEP_*` keys, each with its data, result, error and stack trace,
-attempts, timestamps and `job.log()` lines, so a dashboard reading Redis (i.e. Bull Board or Taskforce.sh) shows and
-retries them. With both a count and an age, a job is kept while it satisfies both, i.e. at most 5000 jobs of the last
-30 days:
-
-```json
-{
-  "config": {
-    "queue": {
-      "keepCompletedCount": 5000,
-      "keepCompletedSeconds": 2592000,
-      "keepFailedCount": 5000,
-      "keepFailedSeconds": 2592000
-    }
-  }
-}
-```
-
-- The limits apply to each queue, and the busier limit wins: a queue of more than 5000 jobs a month keeps less than 30
-  days.
-- The old jobs are removed as the next jobs of the queue finish, so an idle queue keeps them until then.
-- The jobs take Redis memory, about the count times the size of a payload and its result per queue. Redis needs its
-  persistence (AOF or RDB) to keep them across a restart.
-- The memory queue removes its finished jobs right away, whatever these keys.
-
-The queue keeps no durable audit trail. A worker records what its work needs in the database itself, i.e. the order
-it charged, the email it sent, or the synchronization with a provider, along with the id of its job.
+BullMQ keeps the finished jobs of each queue in Redis by the `QUEUE_KEEP_*` keys, with a count and an age together
+(i.e. `keepCompletedCount: 5000` and `keepCompletedSeconds: 2592000` keep at most 5000 jobs of the last 30 days),
+which a dashboard such as Bull Board shows. The memory queue removes them right away. The queue keeps no audit trail:
+a worker records what its work needs in the database itself.
 
 **Use `MemoryQueue` in the tests:**
 

@@ -140,7 +140,6 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     }
 
     const jobId = options.jobId ?? uuid();
-    // Like BullMQ with its default retention, the id of a job still in the queue or failed ignores the send
     const existing = this._jobs.get(jobId);
     if (existing && existing.status !== 'completed') {
       logger.debug(
@@ -375,11 +374,7 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     await Promise.allSettled(handlerActions);
   }
 
-  /**
-   * Removes a finished job, unless a later job took its id.
-   *
-   * @internal
-   */
+  /** @internal */
   private removeJob(job: MemoryQueueJob<Data, Response>): void {
     if (this._jobs.get(job.id!) === job) {
       this._jobs.delete(job.id!);
