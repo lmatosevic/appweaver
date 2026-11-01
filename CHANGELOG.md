@@ -1,3 +1,13 @@
+## [2.3.0](https://github.com/lmatosevic/appweaver/compare/v2.2.0...v2.3.0) (2026-11-01)
+
+### Features
+
+* add API key scopes and JWT-only API key routes ([2ee8a38](https://github.com/lmatosevic/appweaver/commit/2ee8a382e102d1293e4a3f4cee37c1670ff72b25))
+
+### Bug Fixes
+
+* keep the given job ids of the queues and return the job a send repeats ([2976952](https://github.com/lmatosevic/appweaver/commit/297695283bd20eb01c78f9a485c8a64edec8da99))
+
 ## [2.2.0](https://github.com/lmatosevic/appweaver/compare/v2.1.2...v2.2.0) (2026-10-31)
 
 ### Features
