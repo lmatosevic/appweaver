@@ -65,7 +65,9 @@ Obtained via `queue.get(name)`.
 
 #### `processor.sendJob(data, name?, options?)`
 
-Enqueues a single job. Returns the created `QueueJob`.
+Enqueues a single job. Returns the created `QueueJob`. A `jobId` is the identity of the job in the queue: a send with
+the id of a job still in it (waiting, delayed, running, or a finished job the queue keeps) is ignored and returns the
+existing job, with every driver, so a send can be made idempotent (``{ jobId: `invoice-${id}` }``).
 
 | Parameter | Type              | Description                  |
 |-----------|-------------------|------------------------------|
@@ -176,14 +178,23 @@ type QueueJob<Data, Response> = {
 
 ## Configuration
 
-| Key                          | Type     | Default   | Description                                                                                                  |
-|------------------------------|----------|-----------|--------------------------------------------------------------------------------------------------------------|
-| `QUEUE_PROVIDER`             | `string` | `'auto'`  | `auto` (`bullmq` with `@appweaver/bullmq`, otherwise `memory`), `memory`, `bullmq`, `none`, or a module path |
-| `QUEUE_KEEP_COMPLETED_COUNT` | `int`    | `0`       | How many completed jobs to retain (0 = remove all)                                                           |
-| `QUEUE_KEEP_FAILED_COUNT`    | `int`    | `50`      | How many failed jobs to retain for inspection                                                                |
-| `QUEUE_RETRY_ATTEMPTS`       | `int`    | `3`       | Number of retry attempts on failure                                                                          |
-| `QUEUE_RETRY_BACKOFF`        | `int`    | `3000`    | Backoff delay in milliseconds                                                                                |
-| `QUEUE_RETRY_BACKOFF_TYPE`   | `enum`   | `'fixed'` | `fixed` or `exponential`                                                                                     |
+| Key                            | Type     | Default   | Description                                                                                                  |
+|--------------------------------|----------|-----------|--------------------------------------------------------------------------------------------------------------|
+| `QUEUE_PROVIDER`               | `string` | `'auto'`  | `auto` (`bullmq` with `@appweaver/bullmq`, otherwise `memory`), `memory`, `bullmq`, `none`, or a module path |
+| `QUEUE_KEEP_COMPLETED_COUNT`   | `int`    | `0`       | How many completed jobs to retain (0 = remove all)                                                           |
+| `QUEUE_KEEP_COMPLETED_SECONDS` | `int?`   | -         | How long to retain the completed jobs, in seconds                                                            |
+| `QUEUE_KEEP_FAILED_COUNT`      | `int`    | `50`      | How many failed jobs to retain for inspection                                                                |
+| `QUEUE_KEEP_FAILED_SECONDS`    | `int?`   | -         | How long to retain the failed jobs, in seconds                                                               |
+| `QUEUE_RETRY_ATTEMPTS`         | `int`    | `3`       | Number of retry attempts on failure                                                                          |
+| `QUEUE_RETRY_BACKOFF`          | `int`    | `3000`    | Backoff delay in milliseconds                                                                                |
+| `QUEUE_RETRY_BACKOFF_TYPE`     | `enum`   | `'fixed'` | `fixed` or `exponential`                                                                                     |
+
+### Keeping the finished jobs
+
+BullMQ keeps the finished jobs of each queue in Redis by the `QUEUE_KEEP_*` keys, with a count and an age together (i.e.
+`keepCompletedCount: 5000` and `keepCompletedSeconds: 2592000` keep at most 5000 jobs of the last 30 days),
+which a dashboard such as Bull Board shows. The memory queue removes them right away. The queue keeps no audit trail:
+a worker needs to record what it works on and the results in the database itself.
 
 **Use `MemoryQueue` in the tests:**
 

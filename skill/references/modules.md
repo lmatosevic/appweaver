@@ -383,7 +383,7 @@ A driver of an external service runs the suite on an in-memory stand-in of its c
 |-------------------------|-------------|---------------------------------------------------------------------------------------------|
 | `testMemoryContract`    | `Memory`    | Values and their expiry, `exists` and `delete`, key patterns, locks, the health check       |
 | `testStorageContract`   | `Storage`   | Storing and streaming a file and a byte range, `exists`, `delete`, `url`, the health check  |
-| `testQueueContract`     | `Queue`     | A job processed by a worker and its result, a failed job, closing a queue, the health check |
+| `testQueueContract`     | `Queue`     | A job processed by a worker and its result, a failed job, a given job id and an ignored send of one still queued, closing a queue, the health check |
 | `testSchedulerContract` | `Scheduler` | Adding, starting, stopping and removing a job, an unknown job id (yearly jobs, none ticks)  |
 | `testMailerContract`    | `Mailer`    | Sending an email with every field of the contract, the health check                         |
 

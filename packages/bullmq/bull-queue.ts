@@ -149,11 +149,12 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     options: QueueJobOptions = {}
   ): Promise<Job<Data, Response>> {
     await this.ensureConnected();
-    const job = await this._queue.add(
+    const added = await this._queue.add(
       name ?? 'defaultJob',
       data,
       toJobsOptions(options)
     );
+    const job = options.jobId ? await this.existingJob(added) : added;
     logger.debug(
       { queue: this.name, jobId: job.id, name: job.name, delay: options.delay },
       'Job added'
@@ -177,7 +178,11 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       }))
     );
     logger.debug({ queue: this.name, count: added.length }, 'Jobs added');
-    return added;
+    return Promise.all(
+      added.map(async (job, i) =>
+        jobs[i].options?.jobId ? this.existingJob(job) : job
+      )
+    );
   }
 
   public addWorker(
@@ -370,6 +375,30 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
         { queue: this.name }
       );
     }
+  }
+
+  /**
+   * Returns the job already in the queue under the id of an added one, which BullMQ ignores, returning the added job
+   * with the data and the timestamp it was given instead. The stored job is told from the added one by its timestamp.
+   *
+   * @internal
+   */
+  private async existingJob(
+    added: Job<Data, Response>
+  ): Promise<Job<Data, Response>> {
+    const client = await this._queue.client;
+    const timestamp = await client.hget(
+      this._queue.toKey(added.id!),
+      'timestamp'
+    );
+    if (timestamp === null || Number(timestamp) === added.timestamp) {
+      return added;
+    }
+    logger.debug(
+      { queue: this.name, jobId: added.id, name: added.name },
+      'Job already in the queue'
+    );
+    return (await Job.fromId<Data, Response>(this._queue, added.id!)) ?? added;
   }
 
   /** @internal */
