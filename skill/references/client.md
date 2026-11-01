@@ -42,29 +42,29 @@ weaver-client <command>
 ### `weaver-client generate`
 
 ```
-weaver-client generate|g <schemaPath> [options]
+weaver-client generate|g <schema-path> [options]
 ```
 
 Reads an OpenAPI v3 schema and generates TypeScript types and a typed client class.
 
 **Arguments:**
 
-| Argument       | Description                                                                                                                                                                                                                |
-|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `<schemaPath>` | Path to the OpenAPI schema. Accepts a relative or absolute file path (including a Windows drive path such as `C:\api\openapi.json`) or a URL (`http://`, `https://`, `file://`). JSON and YAML formats are both supported. |
+| Argument        | Description                                                                                                                                                                                                                |
+|-----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `<schema-path>` | Path to the OpenAPI schema. Accepts a relative or absolute file path (including a Windows drive path such as `C:\api\openapi.json`) or a URL (`http://`, `https://`, `file://`). JSON and YAML formats are both supported. |
 
 **Options:**
 
-| Option                 | Description                                                                                  | Default                   |
-|------------------------|----------------------------------------------------------------------------------------------|---------------------------|
-| `--output-path [path]` | Output path for both types and client (used when `--types-path`/`--client-path` are not set) | `./generated/client.ts`   |
-| `--types-path [path]`  | Output path for generated TypeScript types only                                              | same as `--output-path`   |
-| `--client-path [path]` | Output path for generated client class only                                                  | same as `--output-path`   |
-| `--client-name [name]` | Custom name for the generated client class                                                   | derived from schema title |
-| `--framework [name]`   | Framework for the generated client class (`fetch` or `angular`)                              | `fetch`                   |
-| `--types-only`         | Generate TypeScript types only, skip client class generation                                 | `false`                   |
-| `--client-only`        | Generate client class only, skip TypeScript types generation                                 | `false`                   |
-| `--no-types`           | Generate client class without TypeScript type support                                        | typed                     |
+| Option                     | Description                                                                                  | Default                   |
+|----------------------------|----------------------------------------------------------------------------------------------|---------------------------|
+| `--types-only`             | Generate TypeScript types only, skip client class generation                                 | `false`                   |
+| `--client-only`            | Generate client class only, skip TypeScript types generation                                 | `false`                   |
+| `-o, --output-path <path>` | Output path for both types and client (used when `--types-path`/`--client-path` are not set) | `./generated/client.ts`   |
+| `--types-path <path>`      | Output path for generated TypeScript types only                                              | same as `--output-path`   |
+| `--client-path <path>`     | Output path for generated client class only                                                  | same as `--output-path`   |
+| `--client-name <name>`     | Custom name for the generated client class                                                   | derived from schema title |
+| `--framework <framework>`  | Framework for the generated client class (`fetch` or `angular`)                              | `fetch`                   |
+| `--no-types`               | Generate an untyped client class, without the TypeScript types                               | typed                     |
 
 **Generation process:**
 

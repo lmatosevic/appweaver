@@ -16,11 +16,20 @@ The project is a TypeScript monorepo using `tsc -b` for builds.
 
 ### CLI conventions
 
-Every CLI (`weaver`, `weaver-client`, `create-appweaver`) uses **kebab-case** long flags (`--dry-run`,
-`--model-pattern`). A flag that turns something off is declared as a Commander negation (`--no-install`,
-`--no-skill`), which the action reads as the positive option (`command.getOptionValue('install')`, `true` unless the
-flag is passed). Never add `--skipX` or camelCase flags. `-v` is reserved for `--version` on the program level, so
-`--verbose` has no short form.
+Every CLI (`weaver`, `weaver-client`, `create-appweaver`) follows the POSIX/GNU style of git and npm, checked by
+`cliConventionViolations` of `@appweaver/testing` in the test of each CLI:
+
+- **Flags**: kebab-case long flags (`--dry-run`), never `--skipX` or camelCase. A flag turning something off is a
+  Commander negation (`--no-install`), read as the positive option (`command.getOptionValue('install')`).
+- **Values**: required `<placeholder>`, never `[placeholder]`, named after the kind of value in kebab-case (`<path>`,
+  `<dir>`, `<pattern>`, `<name>`). A file path flag ends with `-path`, a directory with `-dir`, and the same value has
+  the same flag in every command (`--prisma-schema-path`, `--client-dir`, `--temp-dir`).
+- **Short flags**: only `-h --help`, `-v --version`, `-o --output-path|--output-dir` (the one output of a command),
+  `-p --project`, `-w --watch`, `-y --yes` and `-f --force`, each with this meaning only. Every other flag has none.
+- **Order**: the selection flags (what to do), the input and output paths, the behavior options, then `--dry-run`,
+  `--yes`, `--force` and `--verbose` last. `--verbose` is on a command hiding the output of the processes it runs.
+- **Text**: arguments declared with `.argument()`, kebab-case (`<schema-path>`). Every description is a sentence with
+  a period, a default Commander cannot show written as `(default: from config)`.
 
 ## 2. Testing
 
@@ -34,8 +43,8 @@ Tests are located in `packages/*/test` and use **Jest** with **SWC** for fast ex
 - **Package sources**: the `moduleNameMapper` of `jest.config.json` maps every `@appweaver/*` import (and subpath) to
   the sources of its package, so the tests need no build and the tests of every package share one instance of each
   module. A new package is added to both of its patterns
-- **Test helpers**: `resetContext`, `linkModels`, `createDatabaseStub`, `prismaError` and `sourceLoggerNames` of
-  `@appweaver/testing` (`packages/testing`), shared by the tests of every package
+- **Test helpers**: `resetContext`, `linkModels`, `createDatabaseStub`, `prismaError`, `sourceLoggerNames` and
+  `cliConventionViolations` of `@appweaver/testing` (`packages/testing`), shared by the tests of every package
 - **Contract suites**: the test of a driver runs the suite of its contract from `@appweaver/testing`, i.e.
   `testStorageContract('FilesystemStorage', () => new FilesystemStorage())` (see `packages/testing`)
 
@@ -300,7 +309,8 @@ installs `@appweaver/redis`, never `ioredis`.
 `@appweaver/testing` holds the test helpers of the packages and their modules: `resetContext` (clears the application
 context between tests), `linkModels` (links the models defined in a test), `createDatabaseStub` (records the queries of
 a stubbed Prisma client), `prismaError` and `sourceLoggerNames` (the `createLogger` names of a source directory, the
-`loggers` of a manifest are checked against). The tests of `data`, `web` and the drivers import them from
+`loggers` of a manifest are checked against) and `cliConventionViolations` (the violations of the CLI conventions by a
+Commander program, see **CLI conventions**). The tests of `data`, `web` and the drivers import them from
 `@appweaver/testing`, and the other packages by their names (`@appweaver/core`, `@appweaver/data`), never by a relative
 path into another package. Jest maps every `@appweaver/*` import to the sources of its package (`moduleNameMapper` of
 `jest.config.json`), so the tests need no build and share one instance of each module.
@@ -472,7 +482,7 @@ weaver build [options]
 
 | Option                 | Description                     | Default               |
 |------------------------|---------------------------------|-----------------------|
-| `-p, --project [path]` | TypeScript project config file. | `tsconfig.build.json` |
+| `-p, --project <path>` | TypeScript project config file. | `tsconfig.build.json` |
 
 1. Removes the build directory (`APP_BUILD_PATH`, `./dist` by default).
 2. Runs `tsc -p <project>`.
@@ -494,9 +504,9 @@ weaver config check
 
 #### `weaver config schema`
 
-| Option                     | Description                          | Default                   |
-|----------------------------|--------------------------------------|---------------------------|
-| `-o, --output-path [path]` | Output path for the generated schema | `./appweaver.schema.json` |
+| Option                     | Description                    | Default                   |
+|----------------------------|--------------------------------|---------------------------|
+| `-o, --output-path <path>` | Output path of the JSON Schema | `./appweaver.schema.json` |
 
 Writes the JSON Schema of `appweaver.json` (`config/config-schema.ts`): every key under its camelCase name in the
 nested object of its section, with its type and default, under `config` and each `environments.<env>`.
@@ -530,32 +540,32 @@ Generate TypeScript types and/or a Prisma schema from resource model files, and 
 weaver generate [options]
 ```
 
-| Option                        | Description                                         | Default                   |
-|-------------------------------|-----------------------------------------------------|---------------------------|
-| `-t, --types`                 | Generate TypeScript types                           | —                         |
-| `-p, --prisma-schema`         | Generate Prisma schema (and client)                 | —                         |
-| `-c, --config-schema`         | Generate the JSON Schema of `appweaver.json`        | —                         |
-| `--model-pattern [pattern]`   | Glob for model files                                | from config               |
-| `--types-path [path]`         | Output path for generated types                     | from config               |
-| `--prisma-schema-path [path]` | Output path for Prisma schema                       | from config               |
-| `--client-path [path]`        | Output path for Prisma client                       | from config               |
-| `--no-registry`               | Skip registering the model types                    | registered                |
-| `--no-prune`                  | Keep the framework models not used                  | pruned                    |
-| `--config-schema-path [path]` | Output path for the JSON Schema of `appweaver.json` | `./appweaver.schema.json` |
-| `--no-config-schema`          | Leave the config schema out of a run without flags  | written                   |
-| `--verbose`                   | Verbose output                                      | false                     |
+| Option                        | Description                                        | Default                   |
+|-------------------------------|----------------------------------------------------|---------------------------|
+| `--types`                     | Generate the TypeScript types                      | —                         |
+| `--prisma-schema`             | Generate the Prisma schema (and client)            | —                         |
+| `--config-schema`             | Generate the JSON Schema of `appweaver.json`       | —                         |
+| `--no-config-schema`          | Leave the config schema out of a run without flags | written                   |
+| `--model-pattern <pattern>`   | Glob of the model files                            | from config               |
+| `--types-path <path>`         | Output path of the types                           | from config               |
+| `--prisma-schema-path <path>` | Output path of the Prisma schema                   | from config               |
+| `--client-dir <dir>`          | Output directory of the Prisma client              | from config               |
+| `--config-schema-path <path>` | Output path of the JSON Schema of `appweaver.json` | `./appweaver.schema.json` |
+| `--no-registry`               | Skip registering the model types                   | registered                |
+| `--no-prune`                  | Keep the framework models not used                 | pruned                    |
+| `--verbose`                   | Verbose output                                     | false                     |
 
 The flags select the outputs; with none it generates all three, the types and the Prisma schema only when
 `@appweaver/data` is enabled, so a core application (`sample/loan-calculator`) gets its config schema from `weaver
-generate` or `weaver generate -c`, which never loads `@appweaver/data`. The config schema (`appweaver.schema.json`, like
-`weaver config schema`) holds the config sections the enabled modules list. The generated types register every model in
+generate` or `weaver generate --config-schema`, which never loads `@appweaver/data`. The config schema
+(`appweaver.schema.json`, like `weaver config schema`) holds the config sections the enabled modules list. The generated types register every model in
 the `ResourceRegistry` of `@appweaver/common`, so the factories and `injectService` infer the model types from a model
 name, and without any model the file holds only `export {};`. On SQLite a `json` default is written as the quoted SQL
 literal `@default(dbgenerated("'{}'"))`, since the migrations of Prisma write a plain JSON default unquoted. The models
 come from the project and from the `resources` of the enabled modules. The framework models are left out unless used:
 `Role`, `Permission`, `ApiKey`, `OneTimeToken` and `ConnectedAccount` without an auth model, `File` without a model
 declaring `files`, `Seeder` without a seeders directory (`data/resource/utils/prune-util.ts`). The `npm run generate` of
-`packages/data` passes `-t -p`, `--no-registry` and `--no-prune`, since the registry and the config belong to the
+`packages/data` passes `--types --prisma-schema`, `--no-registry` and `--no-prune`, since the registry and the config belong to the
 application and data keeps every model.
 
 The registry belongs to the application, so a model is registered once: run in a module package (its `package.json` has
@@ -602,8 +612,8 @@ weaver migration reset [options]
 
 | Option        | Description                                  | Default |
 |---------------|----------------------------------------------|---------|
+| `-y, --yes`   | Skip the confirmation prompt                 | false   |
 | `-f, --force` | Force reset for non-development environments | false   |
-| `-y, --yes`   | Skip confirmation prompt                     | false   |
 
 Executes `prisma migrate reset` (with `--force` when `-y` or `-f` is passed).
 
@@ -627,13 +637,13 @@ weaver module add <modules...> [options]
 weaver module remove <modules...> [options] (alias: rm)
 ```
 
-| Option         | Description                                                  | Default   |
-|----------------|--------------------------------------------------------------|-----------|
-| `-f, --force`  | `add` only: overwrite the existing files instead of skipping | false     |
-| `--database`   | `add` only: the database of the `data` module                | `sqlite`  |
-| `--dry-run`    | Print the file changes without applying them                 | false     |
-| `--no-install` | Skip the installation of the dependencies                    | installed |
-| `--verbose`    | Verbose output                                               | false     |
+| Option              | Description                                                  | Default   |
+|---------------------|--------------------------------------------------------------|-----------|
+| `--database <type>` | `add` only: the database of the `data` module                | `sqlite`  |
+| `--no-install`      | Skip the installation of the dependencies                    | installed |
+| `--dry-run`         | Print the file changes without applying them                 | false     |
+| `-f, --force`       | `add` only: overwrite the existing files instead of skipping | false     |
+| `--verbose`         | Verbose output                                               | false     |
 
 `add` brings in the required modules too, `remove` refuses to remove a module a remaining one requires. Removing a
 module deletes its files (the whole `templates/`, `locales/` or `database/` directory, the Docker files) and reverts its
@@ -672,10 +682,10 @@ Generate the application's OpenAPI specification schema. Creates the application
 weaver openapi [options]
 ```
 
-| Option                     | Description                                            | Default          |
-|----------------------------|--------------------------------------------------------|------------------|
-| `-o, --output-path [path]` | Output path for the generated OpenAPI specification    | `./openapi.json` |
-| `-f, --format [format]`    | Output format for the specification (`json` or `yaml`) | `json`           |
+| Option                     | Description                                    | Default          |
+|----------------------------|------------------------------------------------|------------------|
+| `-o, --output-path <path>` | Output path of the OpenAPI specification       | `./openapi.json` |
+| `--format <format>`        | Format of the specification (`json` or `yaml`) | `json`           |
 
 With `--format yaml` and the default output path, the specification is written to `./openapi.yaml`. Fails with a message
 when the `@appweaver/web` module is not installed or disabled.
@@ -706,13 +716,13 @@ Seed the database with initial data.
 weaver seed [options]
 ```
 
-| Option                    | Description                                                | Default               |
-|---------------------------|------------------------------------------------------------|-----------------------|
-| `--seeders-path [path]`   | Seeders directory                                          | from config           |
-| `-b, --build-project`     | Build the project before seeding                           | false                 |
-| `-p, --project [path]`    | TypeScript project config file used by `--build-project`   | `tsconfig.build.json` |
-| `-c, --continue-on-error` | Continue on seeder errors                                  | false                 |
-| `-f, --fix-warnings`      | Fix seeder warnings (wrong checksum, deleted seeder files) | false                 |
+| Option                 | Description                                                | Default               |
+|------------------------|------------------------------------------------------------|-----------------------|
+| `--build-project`      | Build the project before seeding                           | false                 |
+| `-p, --project <path>` | TypeScript project config file used by `--build-project`   | `tsconfig.build.json` |
+| `--seeders-dir <dir>`  | Seeders directory                                          | from config           |
+| `--continue-on-error`  | Continue on seeder errors                                  | false                 |
+| `--fix-warnings`       | Fix seeder warnings (wrong checksum, deleted seeder files) | false                 |
 
 The seeders of the enabled modules run first, each recorded under its module name (`billing/1-plans`), then the
 seeders of the application. A missing seeders directory is skipped with a warning (its recorded seeders are not
@@ -730,8 +740,8 @@ weaver start [options]
 
 | Option                 | Description                                          | Default               |
 |------------------------|------------------------------------------------------|-----------------------|
-| `-p, --project [path]` | TypeScript project config file used in watch mode    | `tsconfig.build.json` |
 | `-w, --watch`          | Watch mode — recompiles and restarts on file changes | false                 |
+| `-p, --project <path>` | TypeScript project config file used in watch mode    | `tsconfig.build.json` |
 
 - **Normal mode**: `node <APP_BUILD_PATH>/<APP_MAIN_FILE_PATH>` (`./dist/src/main.js` by default), or `bun` for the Bun
   runtime.
@@ -755,14 +765,14 @@ Set up a temporary test database and storage directory.
 weaver test setup [options]
 ```
 
-| Option                      | Description               | Default     |
-|-----------------------------|---------------------------|-------------|
-| `-d, --dir [tempDir]`       | Temporary directory       | `./temp`    |
-| `--model-pattern [pattern]` | Glob for model files      | from config |
-| `--schema-path [path]`      | Prisma schema output path | from config |
-| `--client-path [path]`      | Prisma client output path | from config |
-| `--migration-name [name]`   | Initial migration name    | `init_test` |
-| `--verbose`                 | Verbose output            | false       |
+| Option                        | Description                    | Default     |
+|-------------------------------|--------------------------------|-------------|
+| `--temp-dir <dir>`            | Temporary directory            | `./temp`    |
+| `--model-pattern <pattern>`   | Glob of the model files        | from config |
+| `--prisma-schema-path <path>` | Prisma schema output path      | from config |
+| `--client-dir <dir>`          | Prisma client output directory | from config |
+| `--migration-name <name>`     | Initial migration name         | `init_test` |
+| `--verbose`                   | Verbose output                 | false       |
 
 Steps: removes temp dir → creates storage dir → generates schema → resets the test database (`prisma migrate reset
 --force`, since a database server keeps the tables of the last run) → runs initial migration. The storage, schema, and
@@ -776,12 +786,12 @@ Reset test database contents and/or file storage without tearing down the direct
 weaver test reset [options]
 ```
 
-| Option                | Description         | Default  |
-|-----------------------|---------------------|----------|
-| `-d, --dir [tempDir]` | Temporary directory | `./temp` |
-| `--database`          | Reset database      | —        |
-| `--storage`           | Reset file storage  | —        |
-| `--verbose`           | Verbose output      | false    |
+| Option             | Description         | Default  |
+|--------------------|---------------------|----------|
+| `--database`       | Reset database      | —        |
+| `--storage`        | Reset file storage  | —        |
+| `--temp-dir <dir>` | Temporary directory | `./temp` |
+| `--verbose`        | Verbose output      | false    |
 
 With no flags, resets **both** database and storage. The database is reset with `prisma migrate reset`, which Prisma
 refuses to run for an AI agent without the user's consent, which the command gives unless
@@ -795,10 +805,10 @@ Remove the temporary test directory entirely.
 weaver test teardown [options]
 ```
 
-| Option                | Description         | Default  |
-|-----------------------|---------------------|----------|
-| `-d, --dir [tempDir]` | Temporary directory | `./temp` |
-| `--verbose`           | Verbose output      | false    |
+| Option             | Description         | Default  |
+|--------------------|---------------------|----------|
+| `--temp-dir <dir>` | Temporary directory | `./temp` |
+| `--verbose`        | Verbose output      | false    |
 
 ---
 
@@ -816,10 +826,10 @@ weaver upgrade [packages...] [options]
 
 | Option                       | Description                                                                           | Default  |
 |------------------------------|---------------------------------------------------------------------------------------|----------|
-| `--target-version [version]` | The version to upgrade the packages to.                                               | `latest` |
-| `--no-skill`                 | Skip upgrading AI agent skill files in agent directories (`.claude`, `.agents`, …).   | upgraded |
 | `--no-companions`            | Skip upgrading the companion packages (Prisma and its adapters, TypeBox, TypeScript). | upgraded |
 | `--tooling`                  | Also upgrade the tooling packages (ESLint, Jest, SWC, Prettier…).                     | false    |
+| `--no-skill`                 | Skip upgrading AI agent skill files in agent directories (`.claude`, `.agents`, …).   | upgraded |
+| `--target-version <version>` | The version to upgrade the packages to.                                               | `latest` |
 | `--dry-run`                  | Print the packages that would be upgraded without installing them.                    | false    |
 | `-f, --force`                | Force upgrade despite `peerDependency` version mismatches.                            | false    |
 | `--verbose`                  | Print verbose output.                                                                 | false    |
@@ -842,22 +852,22 @@ All commands are available via `weaver-client <command>`. The program takes `-v,
 Generate TypeScript types and/or a typed client class from an OpenAPI v3 schema.
 
 ```
-weaver-client generate <schemaPath> [options]
+weaver-client generate <schema-path> [options]
 ```
 
-`<schemaPath>` accepts a local file path, relative or absolute (including a Windows drive path such as
+`<schema-path>` accepts a local file path, relative or absolute (including a Windows drive path such as
 `C:\api\openapi.json`), or a URL (`http://`, `https://`, `file://`). The schema may be JSON or YAML.
 
-| Option                 | Description                                                                                  | Default                   |
-|------------------------|----------------------------------------------------------------------------------------------|---------------------------|
-| `--output-path [path]` | Output path for both types and client (used when `--types-path`/`--client-path` are omitted) | `./generated/client.ts`   |
-| `--types-path [path]`  | Output path for generated TypeScript types only                                              | same as `--output-path`   |
-| `--client-path [path]` | Output path for generated client class only                                                  | same as `--output-path`   |
-| `--client-name [name]` | Custom name for the generated client class                                                   | derived from schema title |
-| `--framework [name]`   | Framework for the generated client class (`fetch` or `angular`)                              | `fetch`                   |
-| `--types-only`         | Generate TypeScript types only, skip client class generation                                 | false                     |
-| `--client-only`        | Generate the client class only, skip TypeScript types generation                             | false                     |
-| `--no-types`           | Generate an untyped client class, without the TypeScript types                               | typed                     |
+| Option                     | Description                                                                                  | Default                   |
+|----------------------------|----------------------------------------------------------------------------------------------|---------------------------|
+| `--types-only`             | Generate TypeScript types only, skip client class generation                                 | false                     |
+| `--client-only`            | Generate the client class only, skip TypeScript types generation                             | false                     |
+| `-o, --output-path <path>` | Output path for both types and client (used when `--types-path`/`--client-path` are omitted) | `./generated/client.ts`   |
+| `--types-path <path>`      | Output path for generated TypeScript types only                                              | same as `--output-path`   |
+| `--client-path <path>`     | Output path for generated client class only                                                  | same as `--output-path`   |
+| `--client-name <name>`     | Custom name for the generated client class                                                   | derived from schema title |
+| `--framework <framework>`  | Framework for the generated client class (`fetch` or `angular`)                              | `fetch`                   |
+| `--no-types`               | Generate an untyped client class, without the TypeScript types                               | typed                     |
 
 **Example:**
 

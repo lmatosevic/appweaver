@@ -45,9 +45,10 @@ const program = new Command();
 
 program
   .name('weaver')
-  .description('Appweaver CLI - Build and manage your application')
+  .description('Appweaver CLI - build and manage your application.')
   .version(pkg.version, '-v, --version', 'Output the current version.')
   .helpOption('-h, --help', 'Output usage information.')
+  .helpCommand('help [command]', 'Output usage information of a command.')
   .usage('<command> [options]');
 
 buildCommand(program);

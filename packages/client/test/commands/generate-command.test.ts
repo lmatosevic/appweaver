@@ -10,6 +10,7 @@ jest.mock('prettier', () => ({
 }));
 
 import { Command } from 'commander';
+import { cliConventionViolations } from '@appweaver/testing';
 import { generateCommand, parseSchema, relativePathFrom } from '../../commands';
 
 describe('generate-command', () => {
@@ -20,10 +21,8 @@ describe('generate-command', () => {
       return program.commands[0];
     };
 
-    test('uses kebab-case long flags', () => {
-      for (const option of generate().options) {
-        expect(option.long).toMatch(/^--[a-z0-9]+(-[a-z0-9]+)*$/);
-      }
+    test('follows the CLI conventions', () => {
+      expect(cliConventionViolations(generate())).toEqual([]);
     });
 
     test('declares --no-types as a negation of the types option', () => {

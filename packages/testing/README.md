@@ -16,7 +16,8 @@
 
 `@appweaver/testing` holds the helpers the Appweaver packages and their modules test with: `resetContext()` clears
 the application context between tests, `linkModels()` links the models defined in a test, and
-`createDatabaseStub()` records the queries of a stubbed Prisma client. Its contract suites test a driver against the
+`createDatabaseStub()` records the queries of a stubbed Prisma client, and `cliConventionViolations()` lists the
+violations of the CLI conventions by a Commander program. Its contract suites test a driver against the
 behavior every driver of its contract shares.
 
 ## Installation

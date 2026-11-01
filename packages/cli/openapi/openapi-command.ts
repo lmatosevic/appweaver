@@ -15,15 +15,15 @@ export function openapiCommand(program: Command): void {
   program
     .command('openapi')
     .alias('oa')
-    .description("Generate application's OpenAPI specification schema.")
+    .description('Generate the OpenAPI specification of the application.')
     .option(
-      '-o, --output-path [path]',
-      'Output path for generated OpenAPI specification.',
+      '-o, --output-path <path>',
+      'Output path of the OpenAPI specification.',
       './openapi.json'
     )
     .option(
-      '-f, --format [format]',
-      `Output format for generated OpenAPI specification (${formats.join(', ')}).`,
+      '--format <format>',
+      `Format of the OpenAPI specification (${formats.join(', ')}).`,
       parseFormat,
       'json'
     )

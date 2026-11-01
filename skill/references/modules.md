@@ -338,12 +338,12 @@ npx @appweaver/create module @acme/appweaver-audit                       # a fea
 npx @appweaver/create module appweaver-postmark --contract mailer -o ./postmark
 ```
 
-| Option                         | Description                                                                         | Default                        |
-|--------------------------------|-------------------------------------------------------------------------------------|--------------------------------|
-| `<package>`                    | npm name of the package, i.e. `@acme/appweaver-gcs`                                 | —                              |
-| `[description]`                | Description of the package                                                          | `Appweaver module`             |
-| `--contract [contract]`        | Contract its driver implements: `storage`, `mailer`, or `none` for a feature module | `none`                         |
-| `-o, --output-dir [outputDir]` | Directory of the package                                                            | package name without its scope |
+| Option                   | Description                                                                         | Default                        |
+|--------------------------|-------------------------------------------------------------------------------------|--------------------------------|
+| `<package>`              | npm name of the package, i.e. `@acme/appweaver-gcs`                                 | —                              |
+| `[description]`          | Description of the package                                                          | `Appweaver module`             |
+| `-o, --output-dir <dir>` | Directory of the package                                                            | package name without its scope |
+| `--contract <contract>`  | Contract its driver implements: `storage`, `mailer`, or `none` for a feature module | `none`                         |
 
 The short name of the module strips the scope and the `appweaver-` prefix (`@acme/appweaver-gcs` → `gcs`), and is the
 name of its provider. The package holds:
@@ -379,13 +379,13 @@ testStorageContract('GcsStorage', () => new GcsStorage());
 A driver of an external service runs the suite on an in-memory stand-in of its client, the way `@appweaver/redis` runs
 `testMemoryContract` on `ioredis-mock` (`jest.mock('ioredis', ...)`), or on a real service in an integration test.
 
-| Suite                   | Contract    | Tests                                                                                       |
-|-------------------------|-------------|---------------------------------------------------------------------------------------------|
-| `testMemoryContract`    | `Memory`    | Values and their expiry, `exists` and `delete`, key patterns, locks, the health check       |
-| `testStorageContract`   | `Storage`   | Storing and streaming a file and a byte range, `exists`, `delete`, `url`, the health check  |
+| Suite                   | Contract    | Tests                                                                                                                                               |
+|-------------------------|-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `testMemoryContract`    | `Memory`    | Values and their expiry, `exists` and `delete`, key patterns, locks, the health check                                                               |
+| `testStorageContract`   | `Storage`   | Storing and streaming a file and a byte range, `exists`, `delete`, `url`, the health check                                                          |
 | `testQueueContract`     | `Queue`     | A job processed by a worker and its result, a failed job, a given job id and an ignored send of one still queued, closing a queue, the health check |
-| `testSchedulerContract` | `Scheduler` | Adding, starting, stopping and removing a job, an unknown job id (yearly jobs, none ticks)  |
-| `testMailerContract`    | `Mailer`    | Sending an email with every field of the contract, the health check                         |
+| `testSchedulerContract` | `Scheduler` | Adding, starting, stopping and removing a job, an unknown job id (yearly jobs, none ticks)                                                          |
+| `testMailerContract`    | `Mailer`    | Sending an email with every field of the contract, the health check                                                                                 |
 
 The suites use the `describe`, `test`, `beforeEach`, `afterEach` and `expect` globals, so they run under Jest, Vitest
 (with `globals: true`) and Bun. A driver of a remote service runs them against a test instance or emulator, the

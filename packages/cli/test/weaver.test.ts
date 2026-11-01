@@ -11,6 +11,7 @@ jest.mock('prettier', () => ({
 }));
 
 import { Command } from 'commander';
+import { cliConventionViolations } from '@appweaver/testing';
 import { buildCommand } from '../build';
 import { configCommand } from '../config';
 import { generateCommand } from '../generate';
@@ -23,8 +24,6 @@ import { seedCommand } from '../seed';
 import { startCommand } from '../start';
 import { testingCommand } from '../testing';
 import { upgradeCommand } from '../upgrade';
-
-const KEBAB_CASE_FLAG = /^--[a-z0-9]+(-[a-z0-9]+)*$/;
 
 /** Registers every command the way `weaver.ts` does. */
 function createProgram(): Command {
@@ -48,11 +47,6 @@ function createProgram(): Command {
   return program;
 }
 
-/** Collects every command and nested subcommand of the program. */
-function allCommands(command: Command): Command[] {
-  return command.commands.flatMap((sub) => [sub, ...allCommands(sub)]);
-}
-
 function findOption(path: string[], flag: string) {
   let command: Command | undefined = createProgram();
   for (const name of path) {
@@ -62,15 +56,10 @@ function findOption(path: string[], flag: string) {
 }
 
 describe('weaver', () => {
-  test('uses kebab-case long flags in every command', () => {
-    const flags = allCommands(createProgram()).flatMap((command) =>
-      command.options.map((option) => `${command.name()} ${option.long}`)
-    );
+  test('follows the CLI conventions in every command', () => {
+    const program = createProgram().description('Appweaver CLI.');
 
-    expect(flags.length).toBeGreaterThan(0);
-    for (const flag of flags) {
-      expect(flag.split(' ')[1]).toMatch(KEBAB_CASE_FLAG);
-    }
+    expect(cliConventionViolations(program)).toEqual([]);
   });
 
   test.each([
@@ -98,9 +87,16 @@ describe('weaver', () => {
     [['upgrade'], '--target-version', 'targetVersion'],
     [['module', 'add'], '--dry-run', 'dryRun'],
     [['module', 'remove'], '--dry-run', 'dryRun'],
+    [['seed'], '--seeders-dir', 'seedersDir'],
+    [['test', 'setup'], '--temp-dir', 'tempDir'],
+    [['test', 'setup'], '--prisma-schema-path', 'prismaSchemaPath'],
+    [['test', 'setup'], '--client-dir', 'clientDir'],
     [['test', 'setup'], '--migration-name', 'migrationName'],
+    [['test', 'reset'], '--temp-dir', 'tempDir'],
+    [['test', 'teardown'], '--temp-dir', 'tempDir'],
     [['generate'], '--prisma-schema', 'prismaSchema'],
     [['generate'], '--prisma-schema-path', 'prismaSchemaPath'],
+    [['generate'], '--client-dir', 'clientDir'],
     [['generate'], '--config-schema', 'configSchema'],
     [['openapi'], '--output-path', 'outputPath']
   ])('reads %s %s as the %s option', (path, flag, attribute) => {

@@ -37,8 +37,8 @@ export function configCommand(program: Command): void {
       'Generate the JSON Schema of appweaver.json from the config sections of the enabled modules.'
     )
     .option(
-      '-o, --output-path [path]',
-      'Output path for the generated JSON Schema.',
+      '-o, --output-path <path>',
+      'Output path of the JSON Schema.',
       './appweaver.schema.json'
     )
     .action(async (_, subcommand: Command) => {

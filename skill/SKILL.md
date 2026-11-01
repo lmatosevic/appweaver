@@ -66,16 +66,16 @@ npm create @appweaver <name> [description] -- [options]  # the same, npm passes 
 
 | Flag                     | Description                                                                   | Default      |
 |--------------------------|-------------------------------------------------------------------------------|--------------|
-| `-o, --output-dir`       | Output directory (use ./ for current working directory)                       | project name |
-| `--database`             | Database of `data`: `sqlite`, `postgresql`, `mysql`, `sqlserver`              | `sqlite`     |
-| `--host`                 | Hostname or IP address where the server of `web` will bind.                   | 0.0.0.0      |
-| `--port`                 | Port number where the server of `web` will listen.                            | 5000         |
-| `--agent`                | The AI agent for which to configure guidelines and skill files                | `claude`     |
 | `--add <modules...>`     | Modules to add to the default ones, separated by spaces or commas             | `data web`   |
 | `--all`                  | Add every module                                                              | false        |
 | `--exclude <modules...>` | Modules to leave out of the default ones or of `--all` (e.g. `--exclude web`) | none         |
-| `--bun`                  | Use Bun as application runtime. (default is node and npm)                     | false        |
-| `--no-install`           | Skip all dependencies installation.                                           | installs     |
+| `-o, --output-dir <dir>` | Output directory (use ./ for current working directory)                       | project name |
+| `--database <type>`      | Database of `data`: `sqlite`, `postgresql`, `mysql`, `sqlserver`              | `sqlite`     |
+| `--host <host>`          | Hostname or IP address the server of `web` binds to                           | `0.0.0.0`    |
+| `--port <port>`          | Port number the server of `web` listens on                                    | `5000`       |
+| `--bun`                  | Use Bun as the application runtime (Node and npm otherwise)                   | Node         |
+| `--agent <agent>`        | The AI agent to configure the guidelines and skill files for                  | `claude`     |
+| `--no-install`           | Skip the installation of the dependencies                                     | installs     |
 
 **Modules:** the base project depends only on `@appweaver/cli`, `@appweaver/common`, `@appweaver/core` and TypeBox: an
 application with neither a database nor a server (`src/main.ts`, an e2e test of its health checks). `data` and `web`
@@ -163,7 +163,8 @@ The generated `Dockerfile` builds the application and its production dependencie
 carries no build tools. The image runs as the unprivileged `node` user (`bun` for Bun) and defaults to `NODE_ENV=prod`.
 It declares no health check, which belongs to the orchestrator: point the Docker Compose `healthcheck` or the Kubernetes
 probes at `GET /health/ready`, which answers `{ "ready": true }` once every service has started (503 with
-`{ "ready": false }` before, and again from the start of the shutdown) and needs no authentication. The `docker-compose.yml` services read `NODE_ENV` from `.env`, so the environment a container starts
+`{ "ready": false }` before, and again from the start of the shutdown) and needs no authentication. The
+`docker-compose.yml` services read `NODE_ENV` from `.env`, so the environment a container starts
 in stays up to the project. Mounted `storage`, `logs`, and `data` directories must be writable by the image user.
 
 **Linux hosts:** the `docker-compose.yml` services bind-mount the project's `./storage` and `./logs` directories, which
@@ -540,7 +541,8 @@ authenticatable user. They cannot be used independently! If an auth model is cre
 
 `createAuthModel` extends the config with: `email`, `passwordHash`, `verifiedEmail`, `twoFactorAuth`, `enabled`,
 `logoutAt` scalars; a virtual `password` field (write-only); a `roles` relation; and an optional `apiKeys` relation
-(when `SECURITY_API_KEY_ENABLED` is set). An API key acts as its owner, or within the `roles` and `permissions` it lists,
+(when `SECURITY_API_KEY_ENABLED` is set). An API key acts as its owner, or within the `roles` and `permissions` it
+lists,
 a subset of its owner's (`AUTH_API_KEY_PERMISSION_DENIED` otherwise), narrowed on every request; see
 [security.md](references/security.md#api-key-scope).
 
@@ -586,7 +588,8 @@ export default createAuthService({
 ```
 
 The create and update inputs of an auth model include its `roles`, `password`, and `enabled` fields, so a project
-scaffolded with `web` lets only the `Admin` role create, update, delete, and change the files of users through the `User` routes, and
+scaffolded with `web` lets only the `Admin` role create, update, delete, and change the files of users through the
+`User` routes, and
 signs new users up with the `User` role. A policy on the auth model applies only to the API routes: the framework's own
 sign-up, logout, password change, and 2FA flows run with `withoutPolicies`, so a policy never blocks them.
 
@@ -806,7 +809,8 @@ call with `toDatabaseError(e, 'Model')`.
 
 Log with a named logger, `createLogger('billing')` of `@appweaver/common`, so `log.levels.billing` can set its level
 apart from `log.level`. A module lists the names of its loggers in the `loggers` of its manifest, so
-`appweaver.schema.json` suggests them in `log.levels`. The application chooses its own levels: `info` for the behavior worth seeing in the
+`appweaver.schema.json` suggests them in `log.levels`. The application chooses its own levels: `info` for the behavior
+worth seeing in the
 production logs (a scheduled job's result, an order placed), `debug` for the details of how it got there. See
 [logging.md](references/logging.md) for the levels the framework logs at, its loggers and the config.
 
@@ -950,9 +954,9 @@ weaver start --project tsconfig.json  # path to tsconfig file
 
 ```sh
 weaver generate                   # everything: types, Prisma schema and config schema
-weaver generate -t                # TypeScript types only
-weaver generate -p                # Prisma schema only
-weaver generate -c                # appweaver.schema.json only, no @appweaver/data needed
+weaver generate --types           # TypeScript types only
+weaver generate --prisma-schema   # Prisma schema only
+weaver generate --config-schema   # appweaver.schema.json only, no @appweaver/data needed
 weaver generate --no-prune        # keep the framework models the project does not use
 ```
 
@@ -965,7 +969,7 @@ The framework models are generated only when used: `Role`, `Permission`, `ApiKey
 weaver migrate                        # run pending migrations
 weaver migration new <name>           # create a new migration
 weaver migration reset                # reset database (prompts confirmation)
-weaver migration reset --force --yes  # force reset, skip confirmation
+weaver migration reset --yes --force  # force reset, skip confirmation
 ```
 
 ### Seed the database
@@ -1049,7 +1053,8 @@ template, translation and Prisma files, the email templates and texts of the mai
 the `t` calls of the scaffolded templates that still hold the English texts.
 
 `remove` reverts all of it and deletes the module's files: the whole `templates/` or `locales/` directory, the Docker
-files, the mailer's email templates and its unchanged `emails` texts of `locales/en.json`. Removing `locales` first writes the English texts of `locales/en.json` into the
+files, the mailer's email templates and its unchanged `emails` texts of `locales/en.json`. Removing `locales` first
+writes the English texts of `locales/en.json` into the
 templates, so they keep rendering (the other languages are lost). A module another enabled module requires cannot be
 removed alone (`queue` requires `redis`, `web` requires `data`). Removing `data` deletes the whole `database/`
 directory and the generated types. An `appweaver.json` value changed in the project is kept, and the only files of

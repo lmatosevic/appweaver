@@ -20,46 +20,48 @@ export function generateCommand(program: Command): void {
   program
     .command('generate')
     .alias('g')
-    .description('Generates types and client class.')
+    .description(
+      'Generate the TypeScript types and the client class of an OpenAPI schema.'
+    )
     .argument(
-      '<schemaPath>',
-      'The path to the OpenAPI schema (file or URL)',
+      '<schema-path>',
+      'Path or URL of the OpenAPI schema (JSON or YAML).',
       parseSchema
     )
     .option(
-      '--output-path [path]',
-      'Output path for both generated types and client class.',
+      '--types-only',
+      'Generate the TypeScript types only, without the client class.'
+    )
+    .option(
+      '--client-only',
+      'Generate the client class only, without the TypeScript types.'
+    )
+    .option(
+      '-o, --output-path <path>',
+      'Output path of both the TypeScript types and the client class.',
       './generated/client.ts'
     )
     .option(
-      '--types-path [path]',
-      'Output path for generated types. (default: output path)'
+      '--types-path <path>',
+      'Output path of the TypeScript types. (default: the output path)'
     )
     .option(
-      '--client-path [path]',
-      'Output path for generated client class. (default: output path)'
+      '--client-path <path>',
+      'Output path of the client class. (default: the output path)'
     )
     .option(
-      '--client-name [name]',
-      'Name for generated client class. (default: OpenAPI schema title)'
+      '--client-name <name>',
+      'Name of the client class. (default: from the OpenAPI schema title)'
     )
     .option(
-      '--framework [name]',
-      `The framework for generated client class (${FRAMEWORKS.join(', ')})`,
+      '--framework <framework>',
+      `Framework of the client class (${FRAMEWORKS.join(', ')}).`,
       parseFramework,
       'fetch'
     )
     .option(
-      '--types-only',
-      'Generate TypeScript types only (without client class).'
-    )
-    .option(
-      '--client-only',
-      'Generate only client class (without TypeScript types).'
-    )
-    .option(
       '--no-types',
-      'Generate client class without TypeScript type support.'
+      'Generate an untyped client class, without the TypeScript types.'
     )
     .action(async (schemaPath: string, _, command: Command) => {
       const outputPath = command.getOptionValue('outputPath');

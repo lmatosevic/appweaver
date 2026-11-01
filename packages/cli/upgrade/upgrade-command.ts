@@ -22,25 +22,24 @@ export function upgradeCommand(program: Command): void {
     .description('Upgrade the Appweaver packages and their companion packages.')
     .argument(
       '[packages...]',
-      'A list of packages to upgrade (e.g. @appweaver/core @appweaver/cli). ' +
-        'Defaults to all currently installed @appweaver/* packages.'
-    )
-    .option(
-      '--target-version [version]',
-      'The version to upgrade the packages to.',
-      'latest'
-    )
-    .option(
-      '--no-skill',
-      'Skip upgrading AI agents skill files in the agent directories (e.g. .claude, .agents) of the current project.'
+      '@appweaver/* packages to upgrade, i.e. @appweaver/core @appweaver/cli. (default: every installed one)'
     )
     .option(
       '--no-companions',
-      'Skip upgrading the installed companion packages (e.g. prisma, its adapters, typebox) to the versions of the target release.'
+      'Skip upgrading the installed companion packages (i.e. prisma, its adapters, typebox) to the versions of the target release.'
     )
     .option(
       '--tooling',
-      'Also upgrade the installed tooling packages (e.g. eslint, jest, prettier) to the versions of the target release.'
+      'Also upgrade the installed tooling packages (i.e. eslint, jest, prettier) to the versions of the target release.'
+    )
+    .option(
+      '--no-skill',
+      'Skip upgrading the AI agent skill files in the agent directories (i.e. .claude, .agents) of the project.'
+    )
+    .option(
+      '--target-version <version>',
+      'Version to upgrade the packages to.',
+      'latest'
     )
     .option(
       '--dry-run',
@@ -48,7 +47,7 @@ export function upgradeCommand(program: Command): void {
     )
     .option(
       '-f, --force',
-      'Force upgrade despite peerDependency version mismatches.'
+      'Upgrade despite the peerDependency version mismatches.'
     )
     .option('--verbose', 'Print verbose output.')
     .action(async (packages: string[], _, command: Command) => {

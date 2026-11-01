@@ -37,15 +37,15 @@ npm passes the options after `--` to the `create-appweaver` binary, `npx` takes 
 
 | Flag                     | Description                                                                       | Default      |
 |--------------------------|-----------------------------------------------------------------------------------|--------------|
-| `-o, --output-dir`       | Output directory (use ./ for current working directory)                           | project name |
-| `--database`             | `sqlite`, `postgresql`, `mysql`, `sqlserver`, the database of `data`              | `sqlite`     |
-| `--host`                 | Hostname or IP address where the server of `web` will bind                        | `0.0.0.0`    |
-| `--port`                 | Port number where the server of `web` will listen                                 | `5000`       |
-| `--agent`                | `claude`, `codex`, `junie`, `cursor`, `copilot`, `opencode`, `kiro`, `pi`, `none` | `claude`     |
 | `--add <modules...>`     | Modules to add to the default ones, separated by spaces or commas                 | `data web`   |
 | `--all`                  | Add every module                                                                  | false        |
 | `--exclude <modules...>` | Modules to leave out of the default ones or of `--all`, by spaces or commas       | none         |
+| `-o, --output-dir <dir>` | Output directory (use ./ for current working directory)                           | project name |
+| `--database <type>`      | `sqlite`, `postgresql`, `mysql`, `sqlserver`, the database of `data`              | `sqlite`     |
+| `--host <host>`          | Hostname or IP address the server of `web` binds to                               | `0.0.0.0`    |
+| `--port <port>`          | Port number the server of `web` listens on                                        | `5000`       |
 | `--bun`                  | Use Bun as the application runtime                                                | Node         |
+| `--agent <agent>`        | `claude`, `codex`, `junie`, `cursor`, `copilot`, `opencode`, `kiro`, `pi`, `none` | `claude`     |
 | `--no-install`           | Skip the installation of the dependencies                                         | installs     |
 
 The base project depends only on `@appweaver/cli`, `@appweaver/common`, `@appweaver/core` and TypeBox, a minimal
@@ -94,10 +94,10 @@ npm create @appweaver module @acme/appweaver-gcs "Google Cloud Storage driver" -
 npx @appweaver/create module @acme/appweaver-audit
 ```
 
-| Flag               | Description                                                                   | Default                        |
-|--------------------|-------------------------------------------------------------------------------|--------------------------------|
-| `--contract`       | The contract its driver implements: `storage`, `mailer`, `none` for a feature | `none`                         |
-| `-o, --output-dir` | Output directory                                                              | package name without its scope |
+| Flag                     | Description                                                                   | Default                        |
+|--------------------------|-------------------------------------------------------------------------------|--------------------------------|
+| `-o, --output-dir <dir>` | Output directory                                                              | package name without its scope |
+| `--contract <contract>`  | The contract its driver implements: `storage`, `mailer`, `none` for a feature | `none`                         |
 
 The package is a module enabled by installing it: its `package.json` has the `appweaver.module` field and the
 `appweaver-module` keyword, with `@appweaver/common` and `@appweaver/core` as peer dependencies. It holds the manifest

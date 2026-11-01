@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { defaultTranslations } from '../../core/locale/default-translations';
+import { cliConventionViolations } from '@appweaver/testing';
 
 // The CLI is loaded again for every run, while its dependencies are loaded
 // once, as evaluating them again takes most of the time of a run
@@ -537,7 +538,7 @@ describe('create', () => {
         '@appweaver/core',
         '@sinclair/typebox'
       ]);
-      expect(scripts.generate).toBe('weaver generate -c');
+      expect(scripts.generate).toBe('weaver generate --config-schema');
       expect(scripts).not.toHaveProperty('migrate');
       expect(scripts).not.toHaveProperty('seed');
       expect(
@@ -1081,6 +1082,28 @@ describe('create', () => {
       expect(exists('my-app', 'AGENTS.md')).toBe(false);
       expect(exists('my-app', '.claude')).toBe(false);
     });
+  });
+
+  describe('conventions', () => {
+    /** Loads the CLI with the given arguments, returning the program it parses instead of running it. */
+    const loadProgram = (...args: string[]) => {
+      const parse = jest
+        .spyOn(mockCommander.Command.prototype, 'parse')
+        .mockReturnValue(undefined);
+      process.argv = ['node', 'create', ...args];
+      jest.isolateModules(() => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        require('../create');
+      });
+      return parse.mock.contexts[0];
+    };
+
+    test.each([[[]], [['module']]])(
+      'follows the CLI conventions with the arguments %j',
+      (args: string[]) => {
+        expect(cliConventionViolations(loadProgram(...args))).toEqual([]);
+      }
+    );
   });
 
   describe('option validation', () => {

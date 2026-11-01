@@ -52,10 +52,11 @@ export function moduleCommand(program: Command): void {
     });
 
   module
-    .command('new <name>')
+    .command('new')
     .description(
       'Create a local module in <sourcePath>/modules/<name>/, enabled by app.modulesPattern.'
     )
+    .argument('<name>', 'Name of the module in kebab-case, i.e. audit-log.')
     .option('--dry-run', 'Print the files without writing them.')
     .action((name: string, _, command: Command) => {
       let files: Record<string, string>;
@@ -77,23 +78,27 @@ export function moduleCommand(program: Command): void {
     });
 
   module
-    .command('add <modules...>')
+    .command('add')
     .description(
       'Add modules to the project: the optional modules with their packages, configuration and files and the ' +
         'modules they require, or any module package by its name (i.e. @acme/appweaver-gcs), installed without ' +
         'running its scripts.'
     )
+    .argument(
+      '<modules...>',
+      `Optional modules (${moduleNames.join(', ')}) or module packages to add.`
+    )
+    .option(
+      '--database <type>',
+      `Type of SQL database of the data module (${databaseTypes.join(', ')}). (default: sqlite)`,
+      parseDatabaseType
+    )
+    .option('--no-install', 'Skip the installation of the dependencies.')
+    .option('--dry-run', 'Print the changes without applying them.')
     .option(
       '-f, --force',
       'Overwrite the existing files instead of skipping them.'
     )
-    .option(
-      '--database [database]',
-      `Type of SQL database of the data module (${databaseTypes.join(', ')}). (default: sqlite)`,
-      parseDatabaseType
-    )
-    .option('--dry-run', 'Print the changes without applying them.')
-    .option('--no-install', 'Skip the installation of the dependencies.')
     .option('--verbose', 'Print verbose output.')
     .action(async (allNames: string[], _, command: Command) => {
       const project = load();
@@ -155,14 +160,15 @@ export function moduleCommand(program: Command): void {
     });
 
   module
-    .command('remove <modules...>')
+    .command('remove')
     .alias('rm')
     .description(
       'Remove modules from the project: their packages, configuration and files, including the template, ' +
         'translation and Docker files.'
     )
-    .option('--dry-run', 'Print the changes without applying them.')
+    .argument('<modules...>', 'Optional modules to remove.')
     .option('--no-install', 'Skip the installation of the dependencies.')
+    .option('--dry-run', 'Print the changes without applying them.')
     .option('--verbose', 'Print verbose output.')
     .action(async (names: string[], _, command: Command) => {
       const project = load();

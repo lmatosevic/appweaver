@@ -48,20 +48,24 @@ function createModuleProgram(): Command {
   return new Command()
     .name('create-appweaver module')
     .description(
-      'Create an Appweaver module package, run as npm create @appweaver module <package>'
+      'Create an Appweaver module package, run as npm create @appweaver module <package>.'
     )
     .helpOption('-h, --help', 'Output usage information.')
-    .argument('<package>', 'npm name of the package, i.e. @acme/appweaver-gcs')
-    .argument('[description]', 'Description of the package', 'Appweaver module')
+    .argument('<package>', 'npm name of the package, i.e. @acme/appweaver-gcs.')
+    .argument(
+      '[description]',
+      'Description of the package.',
+      'Appweaver module'
+    )
     .option(
-      '--contract [contract]',
+      '-o, --output-dir <dir>',
+      'Directory of the package. (default: name of the package without its scope)'
+    )
+    .option(
+      '--contract <contract>',
       `Contract the driver of the module implements (${moduleContracts.join(', ')}), none for a feature module.`,
       parseContract,
       'none'
-    )
-    .option(
-      '-o, --output-dir [outputDir]',
-      'Directory where to create the package. (default: name of the package)'
     )
     .action(async (packageName: string, description: string, _, command) => {
       const dir = path.resolve(
@@ -104,43 +108,17 @@ function createProjectProgram(): Command {
 
   program
     .name('create-appweaver')
-    .description('Create a new Appweaver project, run as npm create @appweaver')
+    .description(
+      'Create a new Appweaver project, run as npm create @appweaver <name>.'
+    )
     .version(pkg.version, '-v, --version', 'Output the current version.')
     .helpOption('-h, --help', 'Output usage information.')
     .usage('<name> [description] [options]')
-    .argument('<name>', 'Name of the new project')
+    .argument('<name>', 'Name of the new project.')
     .argument(
       '[description]',
-      'Description of the new project',
+      'Description of the new project.',
       'Appweaver project'
-    )
-    .option(
-      '-o, --output-dir [outputDir]',
-      'Directory where to generate new project. (default: name of project)'
-    )
-    .option(
-      '--database [database]',
-      `Type of SQL database of the data module (${databaseTypes.join(', ')}).`,
-      parseDatabaseType,
-      'sqlite'
-    )
-    .option(
-      '--port [port]',
-      'Port number where the server of the web module will listen.',
-      parsePortNumber,
-      5000
-    )
-    .option(
-      '--host [host]',
-      'Hostname or IP address where the server of the web module will bind.',
-      parseHostname,
-      '0.0.0.0'
-    )
-    .option(
-      '--agent [agent]',
-      `The AI agent for which to configure guidelines and skill files (${agentTypes.join(', ')}).`,
-      parseAgentType,
-      'claude'
     )
     .option(
       '--add <modules...>',
@@ -151,8 +129,36 @@ function createProjectProgram(): Command {
       '--exclude <modules...>',
       `Modules to leave out of the default ones or of --all, separated by spaces or commas (--exclude ${defaultModules.join(' ')} for the core application alone).`
     )
-    .option('--bun', 'Use Bun as application runtime.')
-    .option('--no-install', 'Skip all dependencies installation.');
+    .option(
+      '-o, --output-dir <dir>',
+      'Directory of the new project, ./ for the working directory. (default: name of the project)'
+    )
+    .option(
+      '--database <type>',
+      `Type of SQL database of the data module (${databaseTypes.join(', ')}).`,
+      parseDatabaseType,
+      'sqlite'
+    )
+    .option(
+      '--host <host>',
+      'Hostname or IP address the server of the web module binds to.',
+      parseHostname,
+      '0.0.0.0'
+    )
+    .option(
+      '--port <port>',
+      'Port number the server of the web module listens on.',
+      parsePortNumber,
+      5000
+    )
+    .option('--bun', 'Use Bun as the application runtime.')
+    .option(
+      '--agent <agent>',
+      `AI agent to configure the guidelines and skill files for (${agentTypes.join(', ')}).`,
+      parseAgentType,
+      'claude'
+    )
+    .option('--no-install', 'Skip the installation of the dependencies.');
 
   program.action((name: string, description: string, _, command: Command) => {
     // Validated before anything is created, reported as an invalid option

@@ -14,10 +14,11 @@ const program = new Command();
 program
   .name('weaver-client')
   .description(
-    'Weaver Client - generate client code and use any Appweaver compatible API'
+    'Weaver Client - generate the typed client of any Appweaver compatible API.'
   )
   .version(pkg.version, '-v, --version', 'Output the current version.')
   .helpOption('-h, --help', 'Output usage information.')
+  .helpCommand('help [command]', 'Output usage information of a command.')
   .usage('<command> [options]');
 
 generateCommand(program);

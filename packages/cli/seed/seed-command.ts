@@ -12,26 +12,26 @@ export function seedCommand(program: Command): void {
     .command('seed')
     .alias('sd')
     .description('Seed the database.')
+    .option('--build-project', 'Build the project before seeding.')
     .option(
-      '--seeders-path [path]',
-      'Seeders directory path. (default: from config or env).'
-    )
-    .option('-b, --build-project', 'Build the project before seeding.')
-    .option(
-      '-p, --project [path]',
-      'TypeScript project config file.',
+      '-p, --project <path>',
+      'TypeScript project config file of --build-project.',
       'tsconfig.build.json'
     )
     .option(
-      '-c, --continue-on-error',
-      'Continue seeder execution if error is thrown.'
+      '--seeders-dir <dir>',
+      'Directory of the seeders. (default: from config)'
     )
     .option(
-      '-f, --fix-warnings',
-      'Fix all seeder warnings like wrong checksum or deleted seeder files.'
+      '--continue-on-error',
+      'Continue running the seeders when one throws an error.'
+    )
+    .option(
+      '--fix-warnings',
+      'Fix the seeder warnings, like a wrong checksum or a deleted seeder file.'
     )
     .action(async (_, command: Command) => {
-      const seedersPath = command.getOptionValue('seedersPath');
+      const seedersPath = command.getOptionValue('seedersDir');
       const projectFile = command.getOptionValue('project');
       const continueOnError = command.getOptionValue('continueOnError');
       const fixWarnings = command.getOptionValue('fixWarnings');

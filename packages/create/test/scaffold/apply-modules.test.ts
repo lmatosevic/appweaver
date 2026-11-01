@@ -496,13 +496,13 @@ describe('apply-modules', () => {
       const project = await stage([]);
       const generateScript = () =>
         JSON.parse(project.read('package.json')!).scripts.generate;
-      expect(generateScript()).toBe('weaver generate -c');
+      expect(generateScript()).toBe('weaver generate --config-schema');
 
       await add(project, 'data');
       expect(generateScript()).toBe('weaver generate');
 
       await remove(project, 'data');
-      expect(generateScript()).toBe('weaver generate -c');
+      expect(generateScript()).toBe('weaver generate --config-schema');
     });
 
     test('reports the changed seeder of web as deleted with the data module', async () => {

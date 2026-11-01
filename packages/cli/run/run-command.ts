@@ -13,8 +13,8 @@ export function runCommand(program: Command): void {
     .description(
       'Run the default export of a file with the application, without starting its server, then exit.'
     )
-    .argument('<file>', 'The task file, i.e. src/tasks/report.ts.')
-    .argument('[args...]', 'The arguments passed to the task.')
+    .argument('<file>', 'Task file, i.e. src/tasks/report.ts.')
+    .argument('[args...]', 'Arguments passed to the task.')
     .action(async (file: string, args: string[]) => {
       try {
         process.exit(await runTask(file, args));

@@ -12,7 +12,7 @@ export function buildCommand(program: Command): void {
     .alias('b')
     .description('Build the application.')
     .option(
-      '-p, --project [path]',
+      '-p, --project <path>',
       'TypeScript project config file.',
       'tsconfig.build.json'
     )

@@ -101,7 +101,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
         ],
         disabled: [
           // Without models, only the JSON Schema of appweaver.json is generated
-          ['scripts.generate', 'weaver generate -c'],
+          ['scripts.generate', 'weaver generate --config-schema'],
           ...(runtime === 'bun'
             ? ([['scripts.e2e', bunE2eScript]] as ConfigEntry[])
             : [])

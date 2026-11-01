@@ -21,31 +21,33 @@ export function testingCommand(program: Command): void {
   const testCommand = program
     .command('test')
     .alias('t')
-    .description('Perform operations used during testing.');
+    .description('Set up, reset and tear down the test environment.');
 
   testCommand
     .command('setup')
-    .description('Setup temporary test data (database schema and migrations).')
+    .description(
+      'Set up the temporary test data: the storage directory, the Prisma schema and the database.'
+    )
     .option(
-      '-d, --dir [tempDir]',
-      'Directory used by tests to store temporary data.',
+      '--temp-dir <dir>',
+      'Directory of the temporary test data.',
       './temp'
     )
     .option(
-      '--model-pattern [pattern]',
-      'Glob pattern for finding model files. (default: from config or env).'
+      '--model-pattern <pattern>',
+      'Glob pattern of the model files. (default: from config)'
     )
     .option(
-      '--schema-path [path]',
-      'Output path for generated Prisma schema. (default: from config or env).'
+      '--prisma-schema-path <path>',
+      'Output path of the Prisma schema. (default: from config)'
     )
     .option(
-      '--client-path [path]',
-      'Output path for generated Prisma client (default: from config or env).'
+      '--client-dir <dir>',
+      'Output directory of the Prisma client. (default: from config)'
     )
     .option(
-      '--migration-name [name]',
-      'Name for the new migration.',
+      '--migration-name <name>',
+      'Name of the initial migration.',
       'init_test'
     )
     .option('--verbose', 'Print verbose output.')
@@ -60,15 +62,16 @@ export function testingCommand(program: Command): void {
         typeof import('@appweaver/data/config')
       >('@appweaver/data/config', 'test setup');
 
-      const tempDir = command.getOptionValue('dir');
+      const tempDir = command.getOptionValue('tempDir');
 
       const storagePath = storageConfig.PATH;
 
       const schemaPath =
-        command.getOptionValue('schemaPath') ?? databaseConfig.SCHEMA_PATH;
+        command.getOptionValue('prismaSchemaPath') ??
+        databaseConfig.SCHEMA_PATH;
 
       const clientPath =
-        command.getOptionValue('clientPath') ??
+        command.getOptionValue('clientDir') ??
         databaseConfig.CLIENT_OUTPUT_DIR_PATH;
 
       assertPathInside(
@@ -138,14 +141,16 @@ export function testingCommand(program: Command): void {
 
   testCommand
     .command('reset')
-    .description('Reset database and/or file storage in temporary directory.')
+    .description(
+      'Reset the test database and/or the storage files, both without a flag.'
+    )
+    .option('--database', 'Reset the database.')
+    .option('--storage', 'Reset the storage files.')
     .option(
-      '-d, --dir [tempDir]',
-      'Directory used by tests to store temporary data.',
+      '--temp-dir <dir>',
+      'Directory of the temporary test data.',
       './temp'
     )
-    .option('--database', 'Reset database content.')
-    .option('--storage', 'Reset storage files.')
     .option('--verbose', 'Print verbose output.')
     .action(async (_, command: Command) => {
       assertEnv(
@@ -155,7 +160,7 @@ export function testingCommand(program: Command): void {
 
       const quiet = !command.getOptionValue('verbose');
 
-      const tempDir = command.getOptionValue('dir');
+      const tempDir = command.getOptionValue('tempDir');
 
       const storagePath = storageConfig.PATH;
 
@@ -193,10 +198,10 @@ export function testingCommand(program: Command): void {
 
   testCommand
     .command('teardown')
-    .description('Remove temporary test directory.')
+    .description('Remove the temporary test directory.')
     .option(
-      '-d, --dir [tempDir]',
-      'Directory used by tests to store temporary data.',
+      '--temp-dir <dir>',
+      'Directory of the temporary test data.',
       './temp'
     )
     .option('--verbose', 'Print verbose output.')
@@ -208,7 +213,7 @@ export function testingCommand(program: Command): void {
 
       const quiet = !command.getOptionValue('verbose');
 
-      const tempDir = command.getOptionValue('dir');
+      const tempDir = command.getOptionValue('tempDir');
 
       const result = await rimrafPath(tempDir, quiet);
       if (result) {

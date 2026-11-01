@@ -36,45 +36,44 @@ export function generateCommand(program: Command): void {
   program
     .command('generate')
     .alias('g')
-    .description('Generate application types and/or schemas.')
-    .option('-t, --types', 'Generate TypeScript types.')
-    .option('-p, --prisma-schema', 'Generate Prisma schema.')
+    .description(
+      'Generate the TypeScript types and the Prisma schema of the models, and the JSON Schema of appweaver.json.'
+    )
+    .option('--types', 'Generate the TypeScript types.')
+    .option('--prisma-schema', 'Generate the Prisma schema and client.')
+    .option('--config-schema', 'Generate the JSON Schema of appweaver.json.')
     .option(
-      '-c, --config-schema',
-      'Generate the JSON Schema of appweaver.json.'
+      '--no-config-schema',
+      'Leave the JSON Schema of appweaver.json out when generating everything.'
     )
     .option(
-      '--model-pattern [pattern]',
-      'Glob pattern for finding model files. (default: from config or env).'
+      '--model-pattern <pattern>',
+      'Glob pattern of the model files. (default: from config)'
     )
     .option(
-      '--types-path [path]',
-      'Output path for generated types. (default: from config or env).'
+      '--types-path <path>',
+      'Output path of the TypeScript types. (default: from config)'
     )
     .option(
-      '--prisma-schema-path [path]',
-      'Output path for generated Prisma schema. (default: from config or env).'
+      '--prisma-schema-path <path>',
+      'Output path of the Prisma schema. (default: from config)'
     )
     .option(
-      '--client-path [path]',
-      'Output path for generated Prisma client (default: from config or env).'
+      '--client-dir <dir>',
+      'Output directory of the Prisma client. (default: from config)'
+    )
+    .option(
+      '--config-schema-path <path>',
+      'Output path of the JSON Schema of appweaver.json.',
+      './appweaver.schema.json'
     )
     .option(
       '--no-registry',
-      'Skip registering the generated types of every model in the resource registry of @appweaver/common.'
+      'Skip registering the types of every model in the resource registry of @appweaver/common.'
     )
     .option(
       '--no-prune',
       'Keep the framework models the project does not use (auth data model, File, Seeder).'
-    )
-    .option(
-      '--config-schema-path [path]',
-      'Output path for the JSON Schema of appweaver.json.',
-      './appweaver.schema.json'
-    )
-    .option(
-      '--no-config-schema',
-      'Skip writing the JSON Schema of appweaver.json when generating everything.'
     )
     .option('--verbose', 'Print verbose output.')
     .action(async (_, command: Command) => {
@@ -154,7 +153,7 @@ export function generateCommand(program: Command): void {
             models,
             command.getOptionValue('prismaSchemaPath') ??
               databaseConfig.SCHEMA_PATH,
-            command.getOptionValue('clientPath') ??
+            command.getOptionValue('clientDir') ??
               databaseConfig.CLIENT_OUTPUT_DIR_PATH,
             quiet
           );

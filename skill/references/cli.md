@@ -1,7 +1,10 @@
 # CLI
 
-All long flags are kebab-case. A flag that turns a default behavior off is a `--no-*` negation (`--no-registry`,
-`--no-skill`), so leaving it out keeps the behavior on. `-v` is reserved for `--version`; `--verbose` has no short form.
+All long flags are kebab-case, and an option taking a value requires it (`--types-path <path>`). A flag that turns a
+default behavior off is a `--no-*` negation (`--no-registry`, `--no-skill`), so leaving it out keeps the behavior on.
+The short flags have one meaning in every command: `-h` help, `-v` version, `-o` the output of a command, `-p` the
+TypeScript project, `-w` watch, `-y` yes and `-f` force; every other flag has none. A path flag ends with `-path` for a
+file and `-dir` for a directory (`--prisma-schema-path`, `--client-dir`).
 
 The CLI needs only `@appweaver/core`. `generate`, `seed` and `test setup` load the `@appweaver/data` package of the
 project when they run, and exit with `weaver <command> needs the @appweaver/data package` without it.
@@ -12,23 +15,23 @@ project when they run, and exit with `weaver <command> needs the @appweaver/data
 weaver <command> [options]
 ```
 
-| Option/Command  | Alias | Description                            |
-|-----------------|-------|----------------------------------------|
-| `build`         | `b`   | Build the application                  |
-| `config`        | `cfg` | Inspect the configuration              |
-| `openapi`       | `oa`  | Generate OpenAPI specification schema  |
-| `generate`      | `g`   | Generate types and/or schemas          |
-| `migrate`       | `mge` | Run database migrations                |
-| `migration`     | `mgn` | Database migration commands            |
-| `module`        | `mod` | Manage the modules of the project      |
-| `run`           | `r`   | Run a one-shot task file               |
-| `seed`          | `sd`  | Seed the database                      |
-| `start`         | `s`   | Start the application                  |
-| `test`          | `t`   | Perform operations used during testing |
-| `upgrade`       | `up`  | Upgrade the Appweaver packages         |
-| `help`          |       | Display help for command               |
-| `-v, --version` |       | Output the current version             |
-| `-h, --help`    |       | Output usage information               |
+| Option/Command   | Alias | Description                                      |
+|------------------|-------|--------------------------------------------------|
+| `build`          | `b`   | Build the application                            |
+| `config`         | `cfg` | Inspect the configuration                        |
+| `openapi`        | `oa`  | Generate the OpenAPI specification               |
+| `generate`       | `g`   | Generate the types and the schemas               |
+| `migrate`        | `mge` | Apply the pending database migrations            |
+| `migration`      | `mgn` | Create the migrations and reset the database     |
+| `module`         | `mod` | Manage the modules of the project                |
+| `run`            | `r`   | Run a one-shot task file                         |
+| `seed`           | `sd`  | Seed the database                                |
+| `start`          | `s`   | Start the application                            |
+| `test`           | `t`   | Set up, reset and tear down the test environment |
+| `upgrade`        | `up`  | Upgrade the Appweaver packages                   |
+| `help [command]` |       | Output usage information of a command            |
+| `-v, --version`  |       | Output the current version                       |
+| `-h, --help`     |       | Output usage information                         |
 
 ---
 
@@ -40,10 +43,10 @@ weaver build|b [options]
 
 Build the application.
 
-| Option                 | Description                          | Default               |
-|------------------------|--------------------------------------|-----------------------|
-| `-p, --project [path]` | TypeScript project build config file | `tsconfig.build.json` |
-| `-h, --help`           | Output usage information             |                       |
+| Option                 | Description                    | Default               |
+|------------------------|--------------------------------|-----------------------|
+| `-p, --project <path>` | TypeScript project config file | `tsconfig.build.json` |
+| `-h, --help`           | Output usage information       |                       |
 
 ---
 
@@ -65,9 +68,9 @@ all defined.
 
 ### `weaver config schema`
 
-| Option                     | Description                          | Default                   |
-|----------------------------|--------------------------------------|---------------------------|
-| `-o, --output-path [path]` | Output path for the generated schema | `./appweaver.schema.json` |
+| Option                     | Description                    | Default                   |
+|----------------------------|--------------------------------|---------------------------|
+| `-o, --output-path <path>` | Output path of the JSON Schema | `./appweaver.schema.json` |
 
 Writes the JSON Schema of `appweaver.json`, built from the config sections of the enabled modules: every key under its
 camelCase name in the nested object of its section, with its type and default, for `config` and each
@@ -112,12 +115,12 @@ NODE_ENV=prod weaver config check
 weaver openapi|oa [options]
 ```
 
-Generate application OpenAPI specification schema.
+Generate the OpenAPI specification of the application.
 
-| Option                     | Description                                                      | Default          |
-|----------------------------|------------------------------------------------------------------|------------------|
-| `-o, --output-path [path]` | Output path for generated OpenAPI specification                  | `./openapi.json` |
-| `-f, --format [format]`    | Output format for generated OpenAPI specification (json or yaml) | `json`           |
+| Option                     | Description                                            | Default          |
+|----------------------------|--------------------------------------------------------|------------------|
+| `-o, --output-path <path>` | Output path of the OpenAPI specification               | `./openapi.json` |
+| `--format <format>`        | Format of the OpenAPI specification (`json` or `yaml`) | `json`           |
 
 When `--format yaml` is used and `--output-path` is left at its default, the output path becomes `./openapi.yaml`.
 Missing output directories are created automatically. The command fails with a message when the `@appweaver/web`
@@ -131,23 +134,24 @@ module is not installed or disabled (`APP_MODULES_DISABLED`).
 weaver generate|g [options]
 ```
 
-Generate types and/or schemas. The flags select the outputs; with none, it generates all three, the types and the
-Prisma schema only when `@appweaver/data` is enabled.
+Generate the TypeScript types and the Prisma schema of the models, and the JSON Schema of `appweaver.json`. The flags
+select the outputs; with none, it generates all three, the types and the Prisma schema only when `@appweaver/data` is
+enabled.
 
-| Option                        | Description                                         | Default                                         |
-|-------------------------------|-----------------------------------------------------|-------------------------------------------------|
-| `-t, --types`                 | Generate TypeScript types                           | —                                               |
-| `-p, --prisma-schema`         | Generate Prisma schema                              | —                                               |
-| `-c, --config-schema`         | Generate the JSON Schema of `appweaver.json`        | —                                               |
-| `--model-pattern [pattern]`   | Glob pattern for finding model files                | from config (`RESOURCE_MODEL_PATTERN`)          |
-| `--types-path [path]`         | Output path for generated types                     | from config (`RESOURCE_GENERATED_TYPES_PATH`)   |
-| `--prisma-schema-path [path]` | Output path for generated Prisma schema             | from config (`DATABASE_SCHEMA_PATH`)            |
-| `--client-path [path]`        | Output path for generated Prisma client             | from config (`DATABASE_CLIENT_OUTPUT_DIR_PATH`) |
-| `--no-registry`               | Skip registering the model types                    | registered                                      |
-| `--no-prune`                  | Keep the framework models not used                  | pruned                                          |
-| `--config-schema-path [path]` | Output path for the JSON Schema of `appweaver.json` | `./appweaver.schema.json`                       |
-| `--no-config-schema`          | Leave the config schema out of a run without flags  | written                                         |
-| `--verbose`                   | Print verbose output                                | `false`                                         |
+| Option                        | Description                                        | Default                                         |
+|-------------------------------|----------------------------------------------------|-------------------------------------------------|
+| `--types`                     | Generate the TypeScript types                      | —                                               |
+| `--prisma-schema`             | Generate the Prisma schema and client              | —                                               |
+| `--config-schema`             | Generate the JSON Schema of `appweaver.json`       | —                                               |
+| `--no-config-schema`          | Leave the config schema out of a run without flags | written                                         |
+| `--model-pattern <pattern>`   | Glob pattern of the model files                    | from config (`RESOURCE_MODEL_PATTERN`)          |
+| `--types-path <path>`         | Output path of the TypeScript types                | from config (`RESOURCE_GENERATED_TYPES_PATH`)   |
+| `--prisma-schema-path <path>` | Output path of the Prisma schema                   | from config (`DATABASE_SCHEMA_PATH`)            |
+| `--client-dir <dir>`          | Output directory of the Prisma client              | from config (`DATABASE_CLIENT_OUTPUT_DIR_PATH`) |
+| `--config-schema-path <path>` | Output path of the JSON Schema of `appweaver.json` | `./appweaver.schema.json`                       |
+| `--no-registry`               | Skip registering the model types                   | registered                                      |
+| `--no-prune`                  | Keep the framework models not used                 | pruned                                          |
+| `--verbose`                   | Print verbose output                               | `false`                                         |
 
 Per model, the type file holds `<Model>`, `<Model>Single`, `<Model>Multiple`, `<Model>Create`, `<Model>Update`,
 `<Model>RelationCreate`, `<Model>RelationUpdate`, `<Model>RelationInput`, `<Model>Query`, `<Model>Sort`,
@@ -167,7 +171,7 @@ declaration files register them already, so no model is registered twice.
 
 The config schema is `appweaver.schema.json`, the JSON Schema the `$schema` of `appweaver.json` points to, built from
 the config sections the enabled modules list in their manifests, so rerun it after adding a module. `weaver generate
--c` writes it without loading `@appweaver/data`, so it works in an application without a database too.
+--config-schema` writes it without loading `@appweaver/data`, so it works in an application without a database too.
 
 ---
 
@@ -188,14 +192,14 @@ prompts, which makes it the command to run in CI, in containers, and in producti
 weaver migration|mgn [options] [command]
 ```
 
-Database migration commands.
+Create the database migrations and reset the database.
 
 **Subcommands:**
 
-| Command           | Description                     |
-|-------------------|---------------------------------|
-| `new <name>`      | Create a new database migration |
-| `reset [options]` | Reset the database              |
+| Command           | Description                                  |
+|-------------------|----------------------------------------------|
+| `new <name>`      | Create a new database migration and apply it |
+| `reset [options]` | Reset the database                           |
 
 ### `weaver migration reset`
 
@@ -205,8 +209,8 @@ of `weaver migration new` and `weaver test setup`, see **Run tests** in [SKILL.m
 
 | Option        | Description                                               | Default |
 |---------------|-----------------------------------------------------------|---------|
+| `-y, --yes`   | Skip the confirmation prompt                              | `false` |
 | `-f, --force` | Allow the reset outside the `dev` and `test` environments | `false` |
-| `-y, --yes`   | Skip confirmation prompt                                  | `false` |
 
 Without `--force` the command runs only when `NODE_ENV` resolves to `dev` or `test`, and aborts otherwise. Either
 `--force` or `--yes` skips the Prisma confirmation prompt.
@@ -279,13 +283,13 @@ prints the providers of its manifest, selected in the provider key of their cont
 that the package is not a module (no `appweaver.module` field in its `package.json`, or no valid manifest). With
 `--dry-run` it prints the install command instead.
 
-| Option         | Description                                      | Default   |
-|----------------|--------------------------------------------------|-----------|
-| `-f, --force`  | Overwrite the existing files instead of skipping | `false`   |
-| `--database`   | `sqlite`, `postgresql`, `mysql` or `sqlserver`   | `sqlite`  |
-| `--dry-run`    | Print the changes without applying them          | `false`   |
-| `--no-install` | Skip the installation of the dependencies        | installed |
-| `--verbose`    | Print verbose output                             | `false`   |
+| Option              | Description                                      | Default   |
+|---------------------|--------------------------------------------------|-----------|
+| `--database <type>` | `sqlite`, `postgresql`, `mysql` or `sqlserver`   | `sqlite`  |
+| `--no-install`      | Skip the installation of the dependencies        | installed |
+| `--dry-run`         | Print the changes without applying them          | `false`   |
+| `-f, --force`       | Overwrite the existing files instead of skipping | `false`   |
+| `--verbose`         | Print verbose output                             | `false`   |
 
 ### `weaver module remove`
 
@@ -304,8 +308,8 @@ in the project in a warning.
 
 | Option         | Description                               | Default   |
 |----------------|-------------------------------------------|-----------|
-| `--dry-run`    | Print the changes without applying them   | `false`   |
 | `--no-install` | Skip the installation of the dependencies | installed |
+| `--dry-run`    | Print the changes without applying them   | `false`   |
 | `--verbose`    | Print verbose output                      | `false`   |
 
 ---
@@ -344,13 +348,13 @@ weaver seed|sd [options]
 
 Seed the database.
 
-| Option                    | Description                                                         | Default                                   |
-|---------------------------|---------------------------------------------------------------------|-------------------------------------------|
-| `--seeders-path [path]`   | Seeders directory path                                              | from config (`DATABASE_SEEDERS_DIR_PATH`) |
-| `-b, --build-project`     | Build the project before seeding                                    | `false`                                   |
-| `-p, --project [path]`    | TypeScript project build config file (used when `-b` is set)        | `tsconfig.build.json`                     |
-| `-c, --continue-on-error` | Continue seeder execution if error is thrown                        | `false`                                   |
-| `-f, --fix-warnings`      | Fix all seeder warnings like wrong checksum or deleted seeder files | `false`                                   |
+| Option                 | Description                                                             | Default                                   |
+|------------------------|-------------------------------------------------------------------------|-------------------------------------------|
+| `--build-project`      | Build the project before seeding                                        | `false`                                   |
+| `-p, --project <path>` | TypeScript project config file of `--build-project`                     | `tsconfig.build.json`                     |
+| `--seeders-dir <dir>`  | Directory of the seeders                                                | from config (`DATABASE_SEEDERS_DIR_PATH`) |
+| `--continue-on-error`  | Continue running the seeders when one throws an error                   | `false`                                   |
+| `--fix-warnings`       | Fix the seeder warnings, like a wrong checksum or a deleted seeder file | `false`                                   |
 
 The seeders of the enabled modules (their `seeders` directory) run first, each recorded under its module name
 (`billing/1-plans`), then the seeders of the application. A missing seeders directory is skipped with a warning, and
@@ -368,8 +372,8 @@ Start the application.
 
 | Option                 | Description                                                 | Default               |
 |------------------------|-------------------------------------------------------------|-----------------------|
-| `-p, --project [path]` | TypeScript project config file                              | `tsconfig.build.json` |
 | `-w, --watch`          | Run in watch mode (recompiles and restarts on file changes) | `false`               |
+| `-p, --project <path>` | TypeScript project config file of the watch mode            | `tsconfig.build.json` |
 
 In watch mode the server also restarts when a file of the template or translation directories (`TEMPLATE_PATH`,
 `LOCALE_PATH`) changes, the Node runtime only while the last build succeeded.
@@ -382,30 +386,30 @@ In watch mode the server also restarts when a file of the template or translatio
 weaver test|t [options] [command]
 ```
 
-Perform operations used during testing.
+Set up, reset and tear down the test environment.
 
 **Subcommands:**
 
-| Command              | Description                                                |
-|----------------------|------------------------------------------------------------|
-| `setup [options]`    | Setup temporary test data (database schema and migrations) |
-| `reset [options]`    | Reset database and/or file storage in temporary directory  |
-| `teardown [options]` | Remove temporary test directory                            |
+| Command              | Description                                                                               |
+|----------------------|-------------------------------------------------------------------------------------------|
+| `setup [options]`    | Set up the temporary test data: the storage directory, the Prisma schema and the database |
+| `reset [options]`    | Reset the test database and/or the storage files                                          |
+| `teardown [options]` | Remove the temporary test directory                                                       |
 
 ### `weaver test setup`
 
 Requires `NODE_ENV=test`.
 
-| Option                      | Description                             | Default                                         |
-|-----------------------------|-----------------------------------------|-------------------------------------------------|
-| `-d, --dir [tempDir]`       | Directory for temporary test data       | `./temp`                                        |
-| `--model-pattern [pattern]` | Glob pattern for finding model files    | from config (`RESOURCE_MODEL_PATTERN`)          |
-| `--schema-path [path]`      | Output path for generated Prisma schema | from config (`DATABASE_SCHEMA_PATH`)            |
-| `--client-path [path]`      | Output path for generated Prisma client | from config (`DATABASE_CLIENT_OUTPUT_DIR_PATH`) |
-| `--migration-name [name]`   | Name for the initial migration          | `init_test`                                     |
-| `--verbose`                 | Print verbose output                    | `false`                                         |
+| Option                        | Description                           | Default                                         |
+|-------------------------------|---------------------------------------|-------------------------------------------------|
+| `--temp-dir <dir>`            | Directory of the temporary test data  | `./temp`                                        |
+| `--model-pattern <pattern>`   | Glob pattern of the model files       | from config (`RESOURCE_MODEL_PATTERN`)          |
+| `--prisma-schema-path <path>` | Output path of the Prisma schema      | from config (`DATABASE_SCHEMA_PATH`)            |
+| `--client-dir <dir>`          | Output directory of the Prisma client | from config (`DATABASE_CLIENT_OUTPUT_DIR_PATH`) |
+| `--migration-name <name>`     | Name of the initial migration         | `init_test`                                     |
+| `--verbose`                   | Print verbose output                  | `false`                                         |
 
-Aborts unless the storage, schema and client paths all resolve inside `--dir`, so a misconfigured test run cannot
+Aborts unless the storage, schema and client paths all resolve inside `--temp-dir`, so a misconfigured test run cannot
 touch the development database or uploads. It resets the test database (`prisma migrate reset --force`) before the
 initial migration, since a PostgreSQL or MySQL test database keeps the tables and migrations of the last run.
 
@@ -415,21 +419,21 @@ Requires `NODE_ENV=test`. With no flags, resets both database and storage. The d
 `prisma migrate reset`, which Prisma refuses to run for an AI agent when `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is
 `false`, see **Run tests** in [SKILL.md](../SKILL.md). An agent never changes it itself.
 
-| Option                | Description                       | Default  |
-|-----------------------|-----------------------------------|----------|
-| `-d, --dir [tempDir]` | Directory for temporary test data | `./temp` |
-| `--database`          | Reset database                    | —        |
-| `--storage`           | Reset file storage                | —        |
-| `--verbose`           | Print verbose output              | `false`  |
+| Option             | Description                          | Default  |
+|--------------------|--------------------------------------|----------|
+| `--database`       | Reset the database                   | —        |
+| `--storage`        | Reset the storage files              | —        |
+| `--temp-dir <dir>` | Directory of the temporary test data | `./temp` |
+| `--verbose`        | Print verbose output                 | `false`  |
 
 ### `weaver test teardown`
 
 Requires `NODE_ENV=test`.
 
-| Option                | Description                       | Default  |
-|-----------------------|-----------------------------------|----------|
-| `-d, --dir [tempDir]` | Directory for temporary test data | `./temp` |
-| `--verbose`           | Print verbose output              | `false`  |
+| Option             | Description                          | Default  |
+|--------------------|--------------------------------------|----------|
+| `--temp-dir <dir>` | Directory of the temporary test data | `./temp` |
+| `--verbose`        | Print verbose output                 | `false`  |
 
 ---
 
@@ -447,18 +451,18 @@ is upgraded.
 
 **Arguments:**
 
-| Argument   | Description                                                                                                       | Default                               |
-|------------|-------------------------------------------------------------------------------------------------------------------|---------------------------------------|
-| `packages` | A list of packages to upgrade (e.g. `@appweaver/core @appweaver/cli`). Only `@appweaver/*` packages are upgraded. | All installed `@appweaver/*` packages |
+| Argument   | Description                                                                    | Default                               |
+|------------|--------------------------------------------------------------------------------|---------------------------------------|
+| `packages` | The `@appweaver/*` packages to upgrade (i.e. `@appweaver/core @appweaver/cli`) | All installed `@appweaver/*` packages |
 
 **Options:**
 
-| Option                       | Description                                                                  | Default    |
-|------------------------------|------------------------------------------------------------------------------|------------|
-| `--target-version [version]` | The version to upgrade the packages to                                       | `"latest"` |
-| `--no-skill`                 | Skip upgrading AI agents skill files in agent dirs (`.claude`, `.agents`, …) | upgraded   |
-| `--no-companions`            | Skip upgrading the companion packages                                        | upgraded   |
-| `--tooling`                  | Also upgrade the tooling packages (`eslint`, `jest`, `prettier`, …)          | `false`    |
-| `--dry-run`                  | Print the packages that would be upgraded without installing them            | `false`    |
-| `-f, --force`                | Force upgrade despite peerDependency version mismatches                      | `false`    |
-| `--verbose`                  | Print verbose output                                                         | `false`    |
+| Option                       | Description                                                                     | Default  |
+|------------------------------|---------------------------------------------------------------------------------|----------|
+| `--no-companions`            | Skip upgrading the companion packages                                           | upgraded |
+| `--tooling`                  | Also upgrade the tooling packages (`eslint`, `jest`, `prettier`, …)             | `false`  |
+| `--no-skill`                 | Skip upgrading the AI agent skill files in agent dirs (`.claude`, `.agents`, …) | upgraded |
+| `--target-version <version>` | Version to upgrade the packages to                                              | `latest` |
+| `--dry-run`                  | Print the packages that would be upgraded without installing them               | `false`  |
+| `-f, --force`                | Upgrade despite the peerDependency version mismatches                           | `false`  |
+| `--verbose`                  | Print verbose output                                                            | `false`  |

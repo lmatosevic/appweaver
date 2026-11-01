@@ -32,7 +32,7 @@ describe('generateTargets', () => {
     });
   });
 
-  test('should generate only the config schema with -c, whatever the modules', () => {
+  test('should generate only the config schema with --config-schema, whatever the modules', () => {
     for (const dataEnabled of [true, false]) {
       expect(generateTargets({ configSchema: true }, dataEnabled)).toEqual({
         types: false,

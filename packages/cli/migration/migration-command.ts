@@ -10,11 +10,12 @@ export function migrationCommand(program: Command): void {
   const migration = program
     .command('migration')
     .alias('mgn')
-    .description('Database migration commands.');
+    .description('Create the database migrations and reset the database.');
 
   migration
-    .command('new <name>')
-    .description('Create a new database migration.')
+    .command('new')
+    .description('Create a new database migration and apply it.')
+    .argument('<name>', 'Name of the migration, i.e. add_category_to_post.')
     .action(async (name: string) => {
       setAiDangerousActionConsent();
       process.exit(
@@ -24,9 +25,14 @@ export function migrationCommand(program: Command): void {
 
   migration
     .command('reset')
-    .description('Reset the database.')
-    .option('-f, --force', 'Force reset for non-development environments')
-    .option('-y, --yes', 'Skip confirmation prompt')
+    .description(
+      'Reset the database, dropping its data and applying the migrations again.'
+    )
+    .option('-y, --yes', 'Skip the confirmation prompt.')
+    .option(
+      '-f, --force',
+      'Reset outside the dev and test environments, without a prompt.'
+    )
     .action(async (_, command: Command) => {
       const force = command.getOptionValue('force');
       const yes = command.getOptionValue('yes');

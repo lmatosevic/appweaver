@@ -84,16 +84,16 @@ Common options:
 
 | Flag                     | Description                                                                                          | Default      |
 |--------------------------|------------------------------------------------------------------------------------------------------|--------------|
-| `-o, --output-dir`       | Output directory (use ./ for current working directory)                                              | project name |
-| `--database`             | `sqlite`, `postgresql`, `mysql`, `sqlserver`, with the `data` module                                 | `sqlite`     |
-| `--host`                 | Hostname or IP address where the server of the `web` module will bind.                               | 0.0.0.0      |
-| `--port`                 | Port number where the server of the `web` module will listen.                                        | 5000         |
-| `--agent`                | The AI agent for which to configure guidelines and skill files                                       | `claude`     |
 | `--add <modules...>`     | Added to the default ones: `redis`, `queue`, `scheduler`, `mailer`, `templates`, `locales`, `docker` | `data web`   |
 | `--all`                  | Add every module                                                                                     | false        |
 | `--exclude <modules...>` | Modules to leave out of the default ones or of `--all`                                               | none         |
-| `--bun`                  | Use Bun as application runtime.                                                                      | false        |
-| `--no-install`           | Skip all dependencies installation.                                                                  | installs     |
+| `-o, --output-dir <dir>` | Output directory (use ./ for current working directory)                                              | project name |
+| `--database <type>`      | `sqlite`, `postgresql`, `mysql`, `sqlserver`, with the `data` module                                 | `sqlite`     |
+| `--host <host>`          | Hostname or IP address the server of the `web` module binds to                                       | `0.0.0.0`    |
+| `--port <port>`          | Port number the server of the `web` module listens on                                                | `5000`       |
+| `--bun`                  | Use Bun as the application runtime                                                                   | Node         |
+| `--agent <agent>`        | The AI agent to configure the guidelines and skill files for                                         | `claude`     |
+| `--no-install`           | Skip the installation of the dependencies                                                            | installs     |
 
 ### 2. Run the initial migration and seed
 
