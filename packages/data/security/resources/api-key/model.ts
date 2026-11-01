@@ -56,8 +56,7 @@ export default shouldCreateModel
                   type: 'none'
                 }
               },
-              // The scope of the key, a subset of the ones of its owner, the full access of the owner when both are
-              // empty
+              // The scope of the key, a subset of the ones of its owner, the full access of the owner when empty
               roles: {
                 model: 'Role',
                 type: 'manyToMany',

@@ -13,7 +13,6 @@ export type AuthUser = {
   createdAt?: Date;
   updatedAt?: Date;
   createdById?: ResourceId | null;
-  /** The permissions of a user narrowed to the scope of an API key, checked instead of the ones of its roles. */
   permissions?: Permission[];
 };
 

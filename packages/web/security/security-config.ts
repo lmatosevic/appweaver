@@ -66,7 +66,7 @@ export const turnstileConfig = defineConfig('security.turnstile', {
 
 export const apiKeyRoutesConfig = defineConfig('security.apiKey', {
   /** Register the built-in API key routes (`/api-keys`), which only a JWT session uses, so an API key never manages
-   * the keys. Disable them to expose your own with `createRoutes({ modelName: 'ApiKey' })`. Default: `true`. */
+   * the keys. Default: `true`. */
   ROUTES_ENABLED: Type.Boolean({ default: true })
 });
 

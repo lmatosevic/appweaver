@@ -1182,8 +1182,6 @@ export type ApiKey = {
   enabled: boolean;
   expiresAt?: Date | null;
   user: UserSingle;
-  roles: Array<RoleSingle>;
-  permissions: Array<PermissionSingle>;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
@@ -1199,8 +1197,6 @@ export type ApiKeySingle = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  roles?: Array<RoleSingle>;
-  permissions?: Array<PermissionSingle>;
 };
 
 export type ApiKeyMultiple = {
@@ -1213,8 +1209,6 @@ export type ApiKeyMultiple = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  roles?: Array<RoleSingle>;
-  permissions?: Array<PermissionSingle>;
 };
 
 export type ApiKeyCreate = {
@@ -1222,54 +1216,18 @@ export type ApiKeyCreate = {
   description?: string | null;
   enabled?: boolean;
   expiresAt?: Date | null;
-  roles: Array<
-    | {
-        id: number;
-      }
-    | number
-  >;
-  permissions: Array<
-    | {
-        id: number;
-      }
-    | number
-  >;
 };
 
 export type ApiKeyUpdate = {
   name?: string | null;
   description?: string | null;
   enabled?: boolean;
-  roles?: Array<
-    | {
-        id: number;
-      }
-    | number
-  >;
-  permissions?: Array<
-    | {
-        id: number;
-      }
-    | number
-  >;
 };
 
 export type ApiKeyReplace = {
   name?: string | null;
   description?: string | null;
   enabled?: boolean;
-  roles: Array<
-    | {
-        id: number;
-      }
-    | number
-  >;
-  permissions: Array<
-    | {
-        id: number;
-      }
-    | number
-  >;
 };
 
 export type ApiKeyRelationCreate = {
@@ -1734,7 +1692,7 @@ declare module '@appweaver/common' {
       replace: ApiKeyReplace;
       query: ApiKeyQuery;
       service: ApiKeyResourceService;
-      relations: 'user' | 'roles' | 'permissions';
+      relations: 'user';
     };
     OneTimeToken: {
       model: OneTimeToken;

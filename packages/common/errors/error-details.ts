@@ -58,7 +58,6 @@ export interface ErrorDetailsMap {
 
   [ErrorCode.AuthPasswordWeak]: { reason: string };
   [ErrorCode.AuthApiKeyMissing]: { header: string };
-  /** The ids of the roles and the permissions the owner of the key does not hold. */
   [ErrorCode.AuthApiKeyPermissionDenied]: {
     roles: string[];
     permissions: string[];

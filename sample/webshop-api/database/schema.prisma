@@ -284,10 +284,8 @@ model ApiKey {
   expiresAt   DateTime?
 
   /// Related columns
-  user        User         @relation("UserApiKeysApiKey", fields: [userId], references: [id], onDelete: Cascade)
-  userId      Int
-  roles       Role[]       @relation("ApiKeyRolesRole")
-  permissions Permission[] @relation("ApiKeyPermissionsPermission")
+  user   User @relation("UserApiKeysApiKey", fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
 
   /// Audit columns
   updatedAt   DateTime @updatedAt
@@ -319,7 +317,6 @@ model Role {
   /// Related columns
   permissions Permission[] @relation("RolePermissionsPermission")
   users       User[]       @relation("UserRolesRole")
-  apiKeys     ApiKey[]     @relation("ApiKeyRolesRole")
 
   /// Audit columns
   updatedAt   DateTime @updatedAt
@@ -335,8 +332,7 @@ model Permission {
   name String @unique @db.VarChar(255)
 
   /// Related columns
-  apiKeys ApiKey[] @relation("ApiKeyPermissionsPermission")
-  roles   Role[]   @relation("RolePermissionsPermission")
+  roles Role[] @relation("RolePermissionsPermission")
 
   /// Audit columns
   updatedAt   DateTime @updatedAt
