@@ -413,7 +413,7 @@ const stats = await client.post.aggregate({
 // Create
 const newPost = await client.post.create({ title: 'Hello', body: '...' });
 
-// Update (id must be part of the payload)
+// Update (id must be part of the payload, the client sends it in the path only)
 const updated = await client.post.update({ id: 1, title: 'Updated' });
 
 // Replace the whole record (omitted fields reset to their default or null)

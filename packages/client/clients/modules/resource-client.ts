@@ -119,7 +119,8 @@ export class ResourceClient<Resource extends ResourceType>
   }
 
   /**
-   * Updates the given fields of an existing resource record identified by `id` (PATCH).
+   * Updates the given fields of an existing resource record identified by `id` (PATCH). The `id` goes into the path
+   * only, since the server rejects the body properties its schema does not declare.
    *
    * @param {Object} resource - The updated field values including the mandatory `id`.
    * @param {RequestOptions} options - Additional request options.
@@ -129,21 +130,22 @@ export class ResourceClient<Resource extends ResourceType>
     resource: Resource['update'] & { id: ResourceId },
     options: RequestOptions = {}
   ): Promise<Resource['single']> {
+    const { id, ...body } = resource;
     return this.sendRequest('patch', `${this.basePath}/{id}`, {
       ...options,
       params: {
         ...(options.params ?? {}),
         path: {
-          id: resource['id']
+          id
         }
       },
-      body: resource
+      body
     });
   }
 
   /**
    * Replaces an existing resource record identified by `id` as a whole (PUT). The fields left out are reset to their
-   * default value, or to null.
+   * default value, or to null. The `id` goes into the path only.
    *
    * @param {Object} resource - The new state of the record including the mandatory `id`.
    * @param {RequestOptions} options - Additional request options.
@@ -153,15 +155,16 @@ export class ResourceClient<Resource extends ResourceType>
     resource: Resource['replace'] & { id: ResourceId },
     options: RequestOptions = {}
   ): Promise<Resource['single']> {
+    const { id, ...body } = resource;
     return this.sendRequest('put', `${this.basePath}/{id}`, {
       ...options,
       params: {
         ...(options.params ?? {}),
         path: {
-          id: resource['id']
+          id
         }
       },
-      body: resource
+      body
     });
   }
 
