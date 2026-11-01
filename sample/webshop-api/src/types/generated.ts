@@ -1023,7 +1023,8 @@ export type User = {
   language: string;
   passwordHash?: string | null;
   verifiedEmail: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  phoneNumber?: string | null;
+  verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
   fullName: string;
@@ -1033,6 +1034,7 @@ export type User = {
   reviews?: Array<ReviewSingle>;
   roles: Array<RoleSingle>;
   apiKeys: Array<ApiKeySingle>;
+  twoFactorMethods: Array<TwoFactorMethodSingle>;
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
@@ -1047,7 +1049,8 @@ export type UserSingle = {
   marketingOptIn: boolean;
   language: string;
   verifiedEmail: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  phoneNumber?: string | null;
+  verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
   fullName: string;
@@ -1068,7 +1071,8 @@ export type UserMultiple = {
   marketingOptIn: boolean;
   language: string;
   verifiedEmail: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  phoneNumber?: string | null;
+  verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
   fullName: string;
@@ -1086,7 +1090,6 @@ export type UserCreate = {
   phone?: string | null;
   marketingOptIn?: boolean;
   language?: string;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
   roles: Array<
@@ -1104,7 +1107,6 @@ export type UserUpdate = {
   phone?: string | null;
   marketingOptIn?: boolean;
   language?: string;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
   roles?: Array<
@@ -1122,7 +1124,6 @@ export type UserReplace = {
   phone?: string | null;
   marketingOptIn?: boolean;
   language?: string;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
   roles: Array<
@@ -1140,7 +1141,6 @@ export type UserRelationCreate = {
   phone?: string | null;
   marketingOptIn?: boolean;
   language?: string;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
 };
@@ -1153,7 +1153,6 @@ export type UserRelationUpdate = {
   phone?: string | null;
   marketingOptIn?: boolean;
   language?: string;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
 };
@@ -1377,6 +1376,82 @@ export type OneTimeTokenResourceService = IResourceService<
   OneTimeTokenUpdate,
   OneTimeTokenQuery,
   OneTimeTokenReplace
+>;
+
+export type TwoFactorMethod = {
+  id: number;
+  type: 'email' | 'sms' | 'totp';
+  priority: number;
+  secret?: string | null;
+  confirmedAt?: Date | null;
+  lastUsedStep?: number | null;
+  user: UserSingle;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type TwoFactorMethodSingle = {
+  id: number;
+  type: 'email' | 'sms' | 'totp';
+  priority: number;
+  confirmedAt?: Date | null;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type TwoFactorMethodMultiple = {
+  id: number;
+  type: 'email' | 'sms' | 'totp';
+  priority: number;
+  confirmedAt?: Date | null;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type TwoFactorMethodCreate = {
+  type: 'email' | 'sms' | 'totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodUpdate = {
+  type?: 'email' | 'sms' | 'totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodReplace = {
+  type: 'email' | 'sms' | 'totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodRelationCreate = {
+  type: 'email' | 'sms' | 'totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodRelationUpdate = {
+  id: number;
+  type?: 'email' | 'sms' | 'totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodQuery = QueryFilter<TwoFactorMethod>;
+
+export type TwoFactorMethodSort = QuerySort<TwoFactorMethodMultiple>;
+
+export type TwoFactorMethodAggregate = AggregateSelect<TwoFactorMethod>;
+
+export type TwoFactorMethodResourceService = IResourceService<
+  TwoFactorMethod,
+  TwoFactorMethodMultiple,
+  TwoFactorMethodCreate,
+  TwoFactorMethodUpdate,
+  TwoFactorMethodQuery,
+  TwoFactorMethodReplace
 >;
 
 export type Role = {
@@ -1723,7 +1798,13 @@ declare module '@appweaver/common' {
       replace: UserReplace;
       query: UserQuery;
       service: UserResourceService;
-      relations: 'addresses' | 'orders' | 'reviews' | 'roles' | 'apiKeys';
+      relations:
+        | 'addresses'
+        | 'orders'
+        | 'reviews'
+        | 'roles'
+        | 'apiKeys'
+        | 'twoFactorMethods';
     };
     ApiKey: {
       model: ApiKey;
@@ -1746,6 +1827,17 @@ declare module '@appweaver/common' {
       query: OneTimeTokenQuery;
       service: OneTimeTokenResourceService;
       relations: never;
+    };
+    TwoFactorMethod: {
+      model: TwoFactorMethod;
+      single: TwoFactorMethodSingle;
+      multiple: TwoFactorMethodMultiple;
+      create: TwoFactorMethodCreate;
+      update: TwoFactorMethodUpdate;
+      replace: TwoFactorMethodReplace;
+      query: TwoFactorMethodQuery;
+      service: TwoFactorMethodResourceService;
+      relations: 'user';
     };
     Role: {
       model: Role;

@@ -380,6 +380,81 @@ export type RoleResourceService = IResourceService<
   RoleReplace
 >;
 
+export type TwoFactorMethod = {
+  id: number;
+  type: 'email' | 'sms' | 'totp';
+  priority: number;
+  secret?: string | null;
+  confirmedAt?: Date | null;
+  lastUsedStep?: number | null;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type TwoFactorMethodSingle = {
+  id: number;
+  type: 'email' | 'sms' | 'totp';
+  priority: number;
+  confirmedAt?: Date | null;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type TwoFactorMethodMultiple = {
+  id: number;
+  type: 'email' | 'sms' | 'totp';
+  priority: number;
+  confirmedAt?: Date | null;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type TwoFactorMethodCreate = {
+  type: 'email' | 'sms' | 'totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodUpdate = {
+  type?: 'email' | 'sms' | 'totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodReplace = {
+  type: 'email' | 'sms' | 'totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodRelationCreate = {
+  type: 'email' | 'sms' | 'totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodRelationUpdate = {
+  id: number;
+  type?: 'email' | 'sms' | 'totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodQuery = QueryFilter<TwoFactorMethod>;
+
+export type TwoFactorMethodSort = QuerySort<TwoFactorMethodMultiple>;
+
+export type TwoFactorMethodAggregate = AggregateSelect<TwoFactorMethod>;
+
+export type TwoFactorMethodResourceService = IResourceService<
+  TwoFactorMethod,
+  TwoFactorMethodMultiple,
+  TwoFactorMethodCreate,
+  TwoFactorMethodUpdate,
+  TwoFactorMethodQuery,
+  TwoFactorMethodReplace
+>;
+
 export type File = {
   id: number;
   name: string;

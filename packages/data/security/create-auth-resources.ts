@@ -12,12 +12,15 @@ import {
   ResourceServiceConfig,
   ScalarConfig,
   ScalarFieldString,
-  TwoFactorAuth,
   uncapitalize,
   VirtualConfig
 } from '@appweaver/common';
 import { apiKeyConfig } from './auth-config';
-import { isOAuth2Enabled, updatePasswordHash } from './helper';
+import {
+  isOAuth2Enabled,
+  isTwoFactorEnabled,
+  updatePasswordHash
+} from './helper';
 import { createModel } from '../factory/create-model';
 import { createService } from '../factory/create-service';
 import {
@@ -31,16 +34,18 @@ type AuthFieldName =
   | 'email'
   | 'passwordHash'
   | 'verifiedEmail'
-  | 'twoFactorAuth'
+  | 'phoneNumber'
+  | 'verifiedPhone'
   | 'enabled'
   | 'logoutAt'
   | 'password'
   | 'roles'
-  | 'apiKeys';
+  | 'apiKeys'
+  | 'twoFactorMethods';
 
 /**
- * Creates the resource model of an authenticatable user, adding the email, password, verification, two-factor, and
- * role fields to the configured ones.
+ * Creates the resource model of an authenticatable user, adding the email, password, verification, phone, two-factor
+ * method, and role fields to the configured ones.
  *
  * @param {ResourceModelConfig} modelConfig - The model configuration.
  * @return {ResourceModel} The created auth resource model.
@@ -69,10 +74,16 @@ export function createAuthModel<
       type: 'boolean',
       default: false
     },
-    twoFactorAuth: {
-      type: 'enum',
-      values: Object.values(TwoFactorAuth),
-      default: TwoFactorAuth.None
+    // Set by the phone verification only, in the E.164 format
+    phoneNumber: {
+      type: 'string',
+      required: false,
+      maxLength: 16,
+      pattern: '^\\+[1-9]\\d{6,14}$'
+    },
+    verifiedPhone: {
+      type: 'boolean',
+      default: false
     },
     enabled: {
       type: 'boolean',
@@ -136,6 +147,21 @@ export function createAuthModel<
           }
         }
       : {}),
+    ...(isTwoFactorEnabled()
+      ? {
+          twoFactorMethods: {
+            model: 'TwoFactorMethod',
+            type: 'oneToMany',
+            mappedBy: uncapitalize(config.name),
+            input: {
+              type: 'none'
+            },
+            output: {
+              type: 'none'
+            }
+          }
+        }
+      : {}),
     ...(isOAuth2Enabled()
       ? {
           connectedAccounts: {
@@ -153,7 +179,12 @@ export function createAuthModel<
       : {})
   };
 
-  const authModelInputOmit = ['verifiedEmail', 'logoutAt'];
+  const authModelInputOmit = [
+    'verifiedEmail',
+    'phoneNumber',
+    'verifiedPhone',
+    'logoutAt'
+  ];
 
   config.scalars = { ...config.scalars, ...authModelScalars };
   config.virtual = { ...config.virtual, ...authModelVirtual };

@@ -150,20 +150,22 @@ model Review {
 }
 
 model User {
-  id            Int               @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   displayName   String
-  email         String            @unique
+  email         String    @unique
   bio           String?
   passwordHash  String?
-  verifiedEmail Boolean           @default(false)
-  twoFactorAuth UserTwoFactorAuth @default(None)
-  enabled       Boolean           @default(true)
+  verifiedEmail Boolean   @default(false)
+  phoneNumber   String?
+  verifiedPhone Boolean   @default(false)
+  enabled       Boolean   @default(true)
   logoutAt      DateTime?
 
   /// Related columns
-  reviews   Review[]         @relation("ReviewAuthorUser")
-  watchlist WatchlistEntry[] @relation("UserWatchlistWatchlistEntry")
-  roles     Role[]           @relation("UserRolesRole")
+  reviews          Review[]          @relation("ReviewAuthorUser")
+  watchlist        WatchlistEntry[]  @relation("UserWatchlistWatchlistEntry")
+  roles            Role[]            @relation("UserRolesRole")
+  twoFactorMethods TwoFactorMethod[] @relation("UserTwoFactorMethodsTwoFactorMethod")
 
   /// File columns
   avatar   File? @relation("UserAvatarFile", fields: [avatarId], references: [id])
@@ -227,6 +229,25 @@ model OneTimeToken {
   createdAt DateTime @default(now())
 
   @@index([expiresAt])
+}
+
+model TwoFactorMethod {
+  id           Int                 @id @default(autoincrement())
+  type         TwoFactorMethodType
+  priority     Int                 @default(0)
+  secret       String?
+  confirmedAt  DateTime?
+  lastUsedStep Int?
+
+  /// Related columns
+  user   User @relation("UserTwoFactorMethodsTwoFactorMethod", fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  /// Audit columns
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([userId, type])
 }
 
 model Role {
@@ -328,13 +349,14 @@ enum PersonKnownFor {
   Music
 }
 
-enum UserTwoFactorAuth {
-  None
-  Email
-}
-
 enum WatchlistEntryStatus {
   Planned
   Watching
   Watched
+}
+
+enum TwoFactorMethodType {
+  email
+  sms
+  totp
 }

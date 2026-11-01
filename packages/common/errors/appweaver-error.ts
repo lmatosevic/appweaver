@@ -17,6 +17,7 @@ export type ErrorModule =
   | 'export'
   | 'queue'
   | 'mailer'
+  | 'sms'
   | 'template'
   | 'locale'
   | 'lock'

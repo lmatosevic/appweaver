@@ -82,18 +82,18 @@ The driver adapters are `@prisma/adapter-pg` (PostgreSQL), `@prisma/adapter-mari
 
 Common options:
 
-| Flag                     | Description                                                                                          | Default      |
-|--------------------------|------------------------------------------------------------------------------------------------------|--------------|
-| `--add <modules...>`     | Added to the default ones: `redis`, `queue`, `scheduler`, `mailer`, `templates`, `locales`, `docker` | `data web`   |
-| `--all`                  | Add every module                                                                                     | false        |
-| `--exclude <modules...>` | Modules to leave out of the default ones or of `--all`                                               | none         |
-| `-o, --output-dir <dir>` | Output directory (use ./ for current working directory)                                              | project name |
-| `--database <type>`      | `sqlite`, `postgresql`, `mysql`, `sqlserver`, with the `data` module                                 | `sqlite`     |
-| `--host <host>`          | Hostname or IP address the server of the `web` module binds to                                       | `0.0.0.0`    |
-| `--port <port>`          | Port number the server of the `web` module listens on                                                | `5000`       |
-| `--bun`                  | Use Bun as the application runtime                                                                   | Node         |
-| `--agent <agent>`        | The AI agent to configure the guidelines and skill files for                                         | `claude`     |
-| `--no-install`           | Skip the installation of the dependencies                                                            | installs     |
+| Flag                     | Description                                                                                                 | Default      |
+|--------------------------|-------------------------------------------------------------------------------------------------------------|--------------|
+| `--add <modules...>`     | Added to the default ones: `redis`, `queue`, `scheduler`, `mailer`, `sms`, `templates`, `locales`, `docker` | `data web`   |
+| `--all`                  | Add every module                                                                                            | false        |
+| `--exclude <modules...>` | Modules to leave out of the default ones or of `--all`                                                      | none         |
+| `-o, --output-dir <dir>` | Output directory (use ./ for current working directory)                                                     | project name |
+| `--database <type>`      | `sqlite`, `postgresql`, `mysql`, `sqlserver`, with the `data` module                                        | `sqlite`     |
+| `--host <host>`          | Hostname or IP address the server of the `web` module binds to                                              | `0.0.0.0`    |
+| `--port <port>`          | Port number the server of the `web` module listens on                                                       | `5000`       |
+| `--bun`                  | Use Bun as the application runtime                                                                          | Node         |
+| `--agent <agent>`        | The AI agent to configure the guidelines and skill files for                                                | `claude`     |
+| `--no-install`           | Skip the installation of the dependencies                                                                   | installs     |
 
 ### 2. Run the initial migration and seed
 
@@ -292,7 +292,7 @@ Swagger. It requires `@appweaver/data`, and an application without a server leav
 
 ### Drivers
 
-One package per library, each carrying the library as a dependency and enabled by installing it:
+One package per library or service, each carrying the library as a dependency and enabled by installing it:
 
 | Package                 | Provides                                                                 |
 |-------------------------|--------------------------------------------------------------------------|
@@ -300,6 +300,7 @@ One package per library, each carrying the library as a dependency and enabled b
 | `@appweaver/bullmq`     | The `bullmq` queue, requires `@appweaver/redis`                          |
 | `@appweaver/cron`       | The `cron` scheduler                                                     |
 | `@appweaver/nodemailer` | The `smtp` mailer                                                        |
+| `@appweaver/twilio`     | The `twilio` SMS sender of the SMS 2FA codes and the phone verification  |
 | `@appweaver/handlebars` | The `handlebars` template engine                                         |
 | `@appweaver/sharp`      | The `sharp` image processor of the uploads                               |
 
@@ -307,7 +308,7 @@ One package per library, each carrying the library as a dependency and enabled b
 
 The test helpers of the packages and their modules: `resetContext`, `linkModels` and `createDatabaseStub`, and the
 contract suites testing a driver against its contract (`testStorageContract('GcsStorage', () => new GcsStorage())`,
-also for `Memory`, `Queue`, `Scheduler` and `Mailer`), under Jest, Vitest or Bun.
+also for `Memory`, `Queue`, `Scheduler`, `Mailer` and `SmsSender`), under Jest, Vitest or Bun.
 
 ### `@appweaver/common`
 

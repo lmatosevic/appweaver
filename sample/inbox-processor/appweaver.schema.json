@@ -568,6 +568,9 @@
                 "server": {
                   "$ref": "#/definitions/logLevel"
                 },
+                "sms": {
+                  "$ref": "#/definitions/logLevel"
+                },
                 "storage": {
                   "$ref": "#/definitions/logLevel"
                 },
@@ -896,9 +899,21 @@
                   "default": 1800000,
                   "type": "integer"
                 },
+                "verifyPhoneEnabled": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "verifyPhoneOttTtl": {
+                  "default": 600000,
+                  "type": "integer"
+                },
                 "2fa": {
                   "type": "object",
                   "properties": {
+                    "keepDatabaseTable": {
+                      "default": false,
+                      "type": "boolean"
+                    },
                     "enabled": {
                       "default": true,
                       "type": "boolean"
@@ -910,6 +925,90 @@
                     "ottTtl": {
                       "default": 300000,
                       "type": "integer"
+                    },
+                    "methods": {
+                      "default": [
+                        "email",
+                        "sms",
+                        "totp"
+                      ],
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "const": "email",
+                            "type": "string"
+                          },
+                          {
+                            "const": "sms",
+                            "type": "string"
+                          },
+                          {
+                            "const": "totp",
+                            "type": "string"
+                          }
+                        ]
+                      }
+                    },
+                    "defaultMethod": {
+                      "default": "email",
+                      "anyOf": [
+                        {
+                          "const": "email",
+                          "type": "string"
+                        },
+                        {
+                          "const": "sms",
+                          "type": "string"
+                        },
+                        {
+                          "const": "totp",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "codeLength": {
+                      "default": 6,
+                      "minimum": 4,
+                      "maximum": 10,
+                      "type": "integer"
+                    },
+                    "maxAttempts": {
+                      "default": 5,
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "totp": {
+                      "type": "object",
+                      "properties": {
+                        "issuer": {
+                          "type": "string"
+                        },
+                        "encryptionKey": {
+                          "secret": true,
+                          "type": "string"
+                        },
+                        "digits": {
+                          "default": 6,
+                          "minimum": 6,
+                          "maximum": 8,
+                          "type": "integer"
+                        },
+                        "period": {
+                          "default": 30,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "window": {
+                          "default": 1,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "setupTtl": {
+                          "default": 600000,
+                          "type": "integer"
+                        }
+                      }
                     }
                   }
                 }
@@ -1435,6 +1534,18 @@
             "errorResponseMaxCount": {
               "default": 20,
               "type": "integer"
+            }
+          }
+        },
+        "sms": {
+          "type": "object",
+          "properties": {
+            "sender": {
+              "type": "string"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
             }
           }
         },

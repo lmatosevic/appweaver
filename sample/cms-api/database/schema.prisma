@@ -158,19 +158,20 @@ model Tag {
 }
 
 model User {
-  id            Int               @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   firstName     String
   lastName      String
-  email         String            @unique
+  email         String    @unique
   phone         String?
   displayName   String?
   bio           String?
   website       String?
   internalNotes String?
   passwordHash  String?
-  verifiedEmail Boolean           @default(false)
-  twoFactorAuth UserTwoFactorAuth @default(None)
-  enabled       Boolean           @default(true)
+  verifiedEmail Boolean   @default(false)
+  phoneNumber   String?
+  verifiedPhone Boolean   @default(false)
+  enabled       Boolean   @default(true)
   logoutAt      DateTime?
 
   /// Related columns
@@ -178,6 +179,7 @@ model User {
   pages             Page[]             @relation("PageAuthorUser")
   roles             Role[]             @relation("UserRolesRole")
   apiKeys           ApiKey[]           @relation("UserApiKeysApiKey")
+  twoFactorMethods  TwoFactorMethod[]  @relation("UserTwoFactorMethodsTwoFactorMethod")
   connectedAccounts ConnectedAccount[] @relation("UserConnectedAccountsConnectedAccount")
 
   /// File columns
@@ -265,6 +267,25 @@ model OneTimeToken {
   createdAt DateTime @default(now())
 
   @@index([expiresAt])
+}
+
+model TwoFactorMethod {
+  id           Int                 @id @default(autoincrement())
+  type         TwoFactorMethodType
+  priority     Int                 @default(0)
+  secret       String?
+  confirmedAt  DateTime?
+  lastUsedStep Int?
+
+  /// Related columns
+  user   User @relation("UserTwoFactorMethodsTwoFactorMethod", fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  /// Audit columns
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([userId, type])
 }
 
 model Role {
@@ -365,7 +386,8 @@ enum PostStatus {
   Archived
 }
 
-enum UserTwoFactorAuth {
-  None
-  Email
+enum TwoFactorMethodType {
+  email
+  sms
+  totp
 }

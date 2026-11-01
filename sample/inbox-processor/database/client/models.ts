@@ -11,6 +11,7 @@
 export type * from './models/Entry'
 export type * from './models/User'
 export type * from './models/OneTimeToken'
+export type * from './models/TwoFactorMethod'
 export type * from './models/Role'
 export type * from './models/Permission'
 export type * from './models/Seeder'

@@ -3,6 +3,17 @@ export type ValidationResult = {
   message: string;
 };
 
+/** The result of validating the content of a one-time token, telling what happens to a token failing it. */
+export type TokenValidationResult<T = any> = ValidationResult & {
+  /** The data replacing the stored one of a token failing the validation, kept until it expires, i.e. a count of the
+   * failed attempts. */
+  data?: T;
+  /** Whether a token failing the validation is removed, so it cannot be used again. */
+  revoke?: boolean;
+  /** The error thrown for a token failing the validation, instead of the `AUTH_INVALID_TOKEN` one. */
+  error?: Error;
+};
+
 export abstract class SecurityStore {
   /**
    * Generates a one-time-use token for the provided authenticated user.
@@ -24,8 +35,8 @@ export abstract class SecurityStore {
    *
    * @param {string} token - The one-time token to be consumed.
    * @param {string} purpose - The intended purpose of the one-time token.
-   * @param {(value: Object) => boolean} [validateContent] - The optional function used to check if token content is
-   * valid.
+   * @param {(value: Object) => TokenValidationResult} [validateContent] - The optional function used to check if
+   * token content is valid. A token failing it is kept with its data unless the result has new `data` or `revoke`s it.
    * @return A promise resolving to the value associated with the token. The resolved type defaults to `any` but can
    * be specified using generics.
    * @throws {Error} - Throws an error if the token is invalid or expired and if `validateContent` function is
@@ -34,6 +45,6 @@ export abstract class SecurityStore {
   abstract useOneTimeToken<T = any>(
     token: string,
     purpose: string,
-    validateContent?: (value: T) => ValidationResult
+    validateContent?: (value: T) => TokenValidationResult<T>
   ): Promise<T>;
 }

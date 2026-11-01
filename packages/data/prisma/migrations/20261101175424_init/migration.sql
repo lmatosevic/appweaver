@@ -49,6 +49,18 @@ CREATE TABLE "Role" (
 );
 
 -- CreateTable
+CREATE TABLE "TwoFactorMethod" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "type" TEXT NOT NULL,
+    "priority" INTEGER NOT NULL DEFAULT 0,
+    "secret" TEXT,
+    "confirmedAt" DATETIME,
+    "lastUsedStep" INTEGER,
+    "updatedAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
 CREATE TABLE "_seeders" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "checksum" TEXT NOT NULL,

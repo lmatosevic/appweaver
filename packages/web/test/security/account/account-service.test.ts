@@ -16,13 +16,15 @@ import {
   TemplateEngine,
   AuthError
 } from '@appweaver/common';
+import { accountConfig } from '../../../security/security-config';
 import {
-  accountConfig,
-  securityConfig,
-  twoFactorConfig
-} from '../../../security/security-config';
-import { define, EmailService, LocaleService } from '@appweaver/core';
+  define,
+  EmailService,
+  LocaleService,
+  SmsService
+} from '@appweaver/core';
 import { AuthService } from '../../../security/auth-service';
+import { TwoFactorService } from '../../../security/two-factor/two-factor-service';
 import {
   AccountService,
   VerificationType
@@ -39,6 +41,8 @@ describe('account-service', () => {
   let sendEmail: jest.Mock;
   let sendPlainEmail: jest.Mock;
   let hasTemplate: jest.Mock;
+  let sendSms: jest.Mock;
+  let removeSmsMethod: jest.Mock;
   let tokenData: Record<string, any>;
   let service: AccountService;
 
@@ -46,12 +50,17 @@ describe('account-service', () => {
    * unless told otherwise. */
   function createService(
     withEmail: boolean = true,
-    withTemplates: boolean = true
+    withTemplates: boolean = true,
+    withSms: boolean = true
   ): AccountService {
     resetContext();
     define(authService, AuthService);
     define(securityStore, SecurityStore as any);
     define(LocaleService);
+    define({ removeSmsMethod }, TwoFactorService);
+    if (withSms) {
+      define({ sendSms }, SmsService);
+    }
     if (withEmail) {
       // Tells the template emails apart from the plain text ones
       define(
@@ -89,7 +98,13 @@ describe('account-service', () => {
         .mockImplementation(async (_token, _purpose, validate) => {
           const result = validate?.(tokenData);
           if (result && !result.valid) {
-            throw new AuthError(ErrorCode.AuthInvalidToken, result.message);
+            if (result.data) {
+              tokenData = result.data;
+            }
+            throw (
+              result.error ??
+              new AuthError(ErrorCode.AuthInvalidToken, result.message)
+            );
           }
           return tokenData;
         })
@@ -98,6 +113,8 @@ describe('account-service', () => {
     sendEmail = jest.fn().mockResolvedValue(true);
     sendPlainEmail = jest.fn().mockResolvedValue(true);
     hasTemplate = jest.fn().mockResolvedValue(true);
+    sendSms = jest.fn().mockResolvedValue(undefined);
+    removeSmsMethod = jest.fn().mockResolvedValue(true);
 
     service = createService();
   });
@@ -449,89 +466,123 @@ describe('account-service', () => {
     });
   });
 
-  describe('send2FACode', () => {
-    test('emails a six digit code and stores only its hash', async () => {
-      const result = await service.send2FACode(authUser());
+  describe('sendPhoneVerification', () => {
+    test('texts a code to the phone number and stores only its hash', async () => {
+      const result = await service.sendPhoneVerification(
+        authUser(),
+        '+385911234567'
+      );
 
-      const code = lastEmail().data.code;
-      expect(code).toMatch(/^\d{6}$/);
-      expect(lastEmail().template).toBe('emails/two-factor-code');
+      const { to, text } = sendSms.mock.calls[0][0];
+      const code = text.match(/^(\d{6}) is your /)[1];
+      expect(to).toBe('+385911234567');
+      expect(text).toMatch(
+        /phone verification code\. It expires in 10 minutes\.$/
+      );
       expect(securityStore.generateOneTimeToken).toHaveBeenCalledWith(
-        AuthOTTPurpose.TwoFAVerification,
-        { authUserId: 1, codeHash: makeHash(code), purpose: 'authentication' },
-        twoFactorConfig.OTT_TTL
+        AuthOTTPurpose.PhoneVerification,
+        {
+          authUserId: 1,
+          phoneNumber: '+385911234567',
+          codeHash: makeHash(code),
+          attempts: 0
+        },
+        accountConfig.VERIFY_PHONE_OTT_TTL
       );
       expect(result).toEqual({
         challengeId: 'ott',
-        expiresIn: twoFactorConfig.OTT_TTL
+        expiresIn: accountConfig.VERIFY_PHONE_OTT_TTL
       });
     });
 
-    test('keeps the requested purpose', async () => {
-      await service.send2FACode(authUser(), 'passwordReset');
-
-      expect(securityStore.generateOneTimeToken.mock.calls[0][1].purpose).toBe(
-        'passwordReset'
+    test('sends a code to change a verified phone number', async () => {
+      await service.sendPhoneVerification(
+        authUser({ phoneNumber: '+385911111111', verifiedPhone: true }),
+        '+385912222222'
       );
+
+      expect(sendSms.mock.calls[0][0].to).toBe('+385912222222');
     });
 
-    test('sends the plain text of the translations without the template engine', async () => {
-      await createService(true, false).send2FACode(authUser());
-
-      const email = sendPlainEmail.mock.calls[0][0];
-      expect(sendEmail).not.toHaveBeenCalled();
-      expect(email.to).toBe('user@test.com');
-      expect(email.subject).toBe('Your verification code');
-      expect(email.text).toMatch(
-        /^Hello,\n\nPlease enter the following code to continue:\n\n\d{6}\n\nThe code expires in 5 minutes\.\n\n--\nThis email was sent by /
-      );
-    });
-
-    test('is not supported without the mailer', async () => {
+    test('rejects the verified phone number of the user', async () => {
       await expect(
-        createService(false).send2FACode(authUser())
+        service.sendPhoneVerification(
+          authUser({ phoneNumber: '+385911234567', verifiedPhone: true }),
+          '+385911234567'
+        )
+      ).rejects.toMatchObject({ code: ErrorCode.AccountPhoneAlreadyVerified });
+      expect(sendSms).not.toHaveBeenCalled();
+    });
+
+    test('is not supported without an SMS sender', async () => {
+      await expect(
+        createService(true, true, false).sendPhoneVerification(
+          authUser(),
+          '+385911234567'
+        )
       ).rejects.toMatchObject({ code: ErrorCode.AccountFeatureUnavailable });
     });
   });
 
-  describe('verify2FACode', () => {
+  describe('verifyPhone', () => {
     beforeEach(() => {
       tokenData = {
         authUserId: 1,
+        phoneNumber: '+385911234567',
         codeHash: makeHash('123456'),
-        purpose: AuthOTTPurpose.Authentication
+        attempts: 0
       };
     });
 
-    test('issues a token for the purpose of the challenge', async () => {
+    test('sets the verified phone number of the user', async () => {
       await expect(
-        service.verify2FACode('challenge', '123456')
-      ).resolves.toEqual({
-        token: 'ott',
-        expiresIn: securityConfig.AUTH_OTT_TTL
-      });
+        service.verifyPhone(authUser(), 'challenge', '123456')
+      ).resolves.toBe('Phone number verified');
 
-      expect(securityStore.generateOneTimeToken).toHaveBeenCalledWith(
-        AuthOTTPurpose.Authentication,
-        { authUserId: 1, authSource: AuthSource.Password },
-        securityConfig.AUTH_OTT_TTL
+      expect(securityStore.useOneTimeToken).toHaveBeenCalledWith(
+        'challenge',
+        AuthOTTPurpose.PhoneVerification,
+        expect.any(Function)
       );
+      expect(authService.updateAuthUser).toHaveBeenCalledWith(1, {
+        phoneNumber: '+385911234567',
+        verifiedPhone: true
+      });
     });
 
-    test('rejects a wrong code', async () => {
-      await expect(
-        service.verify2FACode('challenge', '654321')
-      ).rejects.toThrow('Invalid 2FA code provided');
-      expect(securityStore.generateOneTimeToken).not.toHaveBeenCalled();
+    test('removes the SMS method of a changed phone number', async () => {
+      const user = authUser({ phoneNumber: '+385910000000' });
+
+      await service.verifyPhone(user, 'challenge', '123456');
+
+      expect(removeSmsMethod).toHaveBeenCalledWith(user);
     });
 
-    test('rejects a disabled user', async () => {
-      authService.findById.mockResolvedValue(authUser({ enabled: false }));
+    test('keeps the SMS method of the same phone number', async () => {
+      await service.verifyPhone(
+        authUser({ phoneNumber: '+385911234567' }),
+        'challenge',
+        '123456'
+      );
 
+      expect(removeSmsMethod).not.toHaveBeenCalled();
+    });
+
+    test('counts a wrong code', async () => {
       await expect(
-        service.verify2FACode('challenge', '123456')
-      ).rejects.toMatchObject({ code: ErrorCode.AuthUserNotFound });
-      expect(securityStore.generateOneTimeToken).not.toHaveBeenCalled();
+        service.verifyPhone(authUser(), 'challenge', '654321')
+      ).rejects.toMatchObject({
+        code: ErrorCode.Account2FACodeInvalid,
+        details: { attemptsLeft: 4 }
+      });
+      expect(tokenData.attempts).toBe(1);
+      expect(authService.updateAuthUser).not.toHaveBeenCalled();
+    });
+
+    test('rejects the challenge of another user', async () => {
+      await expect(
+        service.verifyPhone(authUser({ id: 2 }), 'challenge', '123456')
+      ).rejects.toMatchObject({ code: ErrorCode.AuthInvalidToken });
     });
   });
 });

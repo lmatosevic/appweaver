@@ -140,13 +140,13 @@ constraint. When adding an error code:
 The framework is split into packages, each a module (see the module system below) an application enables by depending
 on it:
 
-| Package                                                 | Holds                                                                                        |
-|---------------------------------------------------------|----------------------------------------------------------------------------------------------|
-| `@appweaver/core`                                       | The runtime: modules, lifecycle, dependency injection, the in-process drivers                |
-| `@appweaver/data`                                       | Prisma, the resources, the auth data model, `FileService`, the seeders and the CSV export    |
-| `@appweaver/web`                                        | The Fastify server, the resource routes, the authentication, the problem details and Swagger |
-| `@appweaver/redis`, `bullmq`, `cron`, `nodemailer`, ... | One driver each, carrying the library it wraps as a dependency                               |
-| `@appweaver/testing`                                    | The test helpers shared by the packages                                                      |
+| Package                                                           | Holds                                                                                        |
+|-------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| `@appweaver/core`                                                 | The runtime: modules, lifecycle, dependency injection, the in-process drivers                |
+| `@appweaver/data`                                                 | Prisma, the resources, the auth data model, `FileService`, the seeders and the CSV export    |
+| `@appweaver/web`                                                  | The Fastify server, the resource routes, the authentication, the problem details and Swagger |
+| `@appweaver/redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, ... | One driver each, carrying the library it wraps as a dependency                               |
+| `@appweaver/testing`                                              | The test helpers shared by the packages                                                      |
 
 The directories moved as they were, so a file keeps its path within its package (`core/server/register-route.ts` is
 now `web/server/register-route.ts`). `@appweaver/common` and `@appweaver/core` are peer dependencies of every other
@@ -187,6 +187,7 @@ The runtime every application has, with neither a server nor a database. Organiz
 | `queue/`     | The in-process `memory` driver of `Queue`                                                                                            |
 | `scheduler/` | The scheduler config, its driver is `@appweaver/cron`                                                                                |
 | `mailer/`    | `EmailService`, rendering the template emails, and the `json` mailer of development and tests                                        |
+| `sms/`       | `SmsService`, sending the text messages right away, and the `json` SMS sender of development and tests                               |
 | `template/`  | The template config and `registerTemplate` / `registerTemplateHelper`, the engine is `@appweaver/handlebars`                         |
 | `locale/`    | Locale service — translating the dotted keys of the nested JSON translation files, with the framework's own English translations     |
 | `health/`    | `HealthService` (the checks, and the readiness the lifecycle sets), the `node:http` health listener of an app without web            |
@@ -205,7 +206,8 @@ app and the modules, web the resource routes and the `web` parts), the `main` pa
 driver of an enabled module, else the fallback of core, `none` disables the contract and the services requiring it, a
 name selects a provider, and a module path still loads a class. The provider names are `memory` and `redis`
 (`Memory`), `memory` (`Cache`), `node` (`Events`), `local` (`Storage`), `database` and `memory` (`SecurityStore`),
-`memory` and `bullmq` (`Queue`), `smtp` and `json` (`Mailer`), `handlebars` (`TemplateEngine`), `cron` (`Scheduler`),
+`memory` and `bullmq` (`Queue`), `smtp` and `json` (`Mailer`), `twilio` and `json` (`SmsSender`), `handlebars`
+(`TemplateEngine`), `cron` (`Scheduler`),
 `prisma` (`Database`) and `sharp` (`ImageProcessor`). A new driver goes into a module manifest with a provider name,
 never into `load-providers.ts`, and is documented in `skill/references/modules.md` and
 `skill/references/configuration.md`.
@@ -256,8 +258,8 @@ npm run db:recreate   # drop dev.db and prisma/migrations, then recreate the ini
 ```
 
 The `appweaver.json` of `packages/data` (never published) turns on the `KEEP_DATABASE_TABLE` keys of the API keys,
-the security store and the connected accounts, so `npm run generate` emits every framework model whatever the
-environment.
+the security store, the connected accounts and the 2FA methods, so `npm run generate` emits every framework model
+whatever the environment.
 
 A stale `prisma/client` makes Prisma reject writes with a misleading "Unknown argument" naming an *unrelated* field
 (usually `createdById`) — suspect regeneration before the calling code.
@@ -276,24 +278,25 @@ The HTTP module (`@appweaver/web`), built on Fastify. Its manifest `requires` `@
 the resource routes of the application (`RESOURCE_ROUTES_PATTERN`), then the `web` part of every module. It augments
 `Application` with `app.server` and `app.spec()`.
 
-| Module      | Purpose                                                                                                                                        |
-|-------------|------------------------------------------------------------------------------------------------------------------------------------------------|
-| `server/`   | Fastify server creation, the `HttpServer` lifecycle service, `registerRoute`, `registerPlugin`, `registerModel`, Swagger/OpenAPI               |
-| `resource/` | The resource routes and their schemas, the route loader (the `setup`) and the route `utils/`                                                   |
-| `factory/`  | `createRoutes`                                                                                                                                 |
-| `security/` | Authentication and authorization — `AuthService`, JWT, OAuth2, API key, basic auth, reCAPTCHA, Turnstile, account management, `access-util.ts` |
-| `errors/`   | The API error layer: error code to HTTP status map (`errorHttpMap`), RFC 9457 problem details, error handler and `errorResponses` schemas      |
-| `health/`   | The health check routes and their config                                                                                                       |
-| `cache/`    | The response caching of the routes                                                                                                             |
-| `storage/`  | The file routes                                                                                                                                |
-| `template/` | The template preview route of development                                                                                                      |
-| `types/`    | The `Server` and `Router` types, the Fastify extensions and the HTTP auth types                                                                |
+| Module      | Purpose                                                                                                                                                                                       |
+|-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `server/`   | Fastify server creation, the `HttpServer` lifecycle service, `registerRoute`, `registerPlugin`, `registerModel`, Swagger/OpenAPI                                                              |
+| `resource/` | The resource routes and their schemas, the route loader (the `setup`) and the route `utils/`                                                                                                  |
+| `factory/`  | `createRoutes`                                                                                                                                                                                |
+| `security/` | Authentication and authorization — `AuthService`, JWT, OAuth2, API key, basic auth, reCAPTCHA, Turnstile, account management, 2FA (`two-factor/`: `TwoFactorService`, TOTP), `access-util.ts` |
+| `errors/`   | The API error layer: error code to HTTP status map (`errorHttpMap`), RFC 9457 problem details, error handler and `errorResponses` schemas                                                     |
+| `health/`   | The health check routes and their config                                                                                                                                                      |
+| `cache/`    | The response caching of the routes                                                                                                                                                            |
+| `storage/`  | The file routes                                                                                                                                                                               |
+| `template/` | The template preview route of development                                                                                                                                                     |
+| `types/`    | The `Server` and `Router` types, the Fastify extensions and the HTTP auth types                                                                                                               |
 
 ### Driver packages
 
-`packages/{redis,bullmq,cron,nodemailer,handlebars,sharp}` each hold one driver, its `module.ts` manifest and, when it
-has one, its `config.ts` section. The library a driver wraps is a dependency of its package, so an application
-installs `@appweaver/redis`, never `ioredis`.
+`packages/{redis,bullmq,cron,nodemailer,twilio,handlebars,sharp}` each hold one driver, its `module.ts` manifest and,
+when it has one, its `config.ts` section. The library a driver wraps is a dependency of its package, so an application
+installs `@appweaver/redis`, never `ioredis`. `@appweaver/twilio` calls the REST API of Twilio with `fetch`, without
+the Twilio SDK.
 
 | Package                 | Driver                     | Provider                        | Config                          |
 |-------------------------|----------------------------|---------------------------------|---------------------------------|
@@ -301,6 +304,7 @@ installs `@appweaver/redis`, never `ioredis`.
 | `@appweaver/bullmq`     | `BullQueue`                | `bullmq` (`Queue`)              | — (requires `@appweaver/redis`) |
 | `@appweaver/cron`       | `CronScheduler`            | `cron` (`Scheduler`)            | —                               |
 | `@appweaver/nodemailer` | `SmtpMailer`               | `smtp` (`Mailer`)               | `smtpConfig` (`mailer.smtp`)    |
+| `@appweaver/twilio`     | `TwilioSms`                | `twilio` (`SmsSender`)          | `twilioConfig` (`sms.twilio`)   |
 | `@appweaver/handlebars` | `HandlebarsTemplateEngine` | `handlebars` (`TemplateEngine`) | —                               |
 | `@appweaver/sharp`      | `SharpImageProcessor`      | `sharp` (`ImageProcessor`)      | —                               |
 
@@ -316,11 +320,12 @@ path into another package. Jest maps every `@appweaver/*` import to the sources 
 `jest.config.json`), so the tests need no build and share one instance of each module.
 
 The contract suites of `contracts/` test a driver against the behavior every driver of its contract shares:
-`testMemoryContract`, `testStorageContract`, `testQueueContract`, `testSchedulerContract` and `testMailerContract`,
+`testMemoryContract`, `testStorageContract`, `testQueueContract`, `testSchedulerContract`, `testMailerContract` and
+`testSmsContract`,
 each called as `(name, () => driver)` at the top level of a test file. They use the `describe`, `test`, `beforeEach`,
 `afterEach` and `expect` globals, so they run under Jest, Vitest and Bun, and create a fresh driver for every test.
 `InMemory`, `RedisMemory` (on `ioredis-mock`, which runs its Lua scripts), `FilesystemStorage`, `MemoryQueue`,
-`JsonMailer` and `CronScheduler` run them, and so does the test of a driver package scaffolded with
+`JsonMailer`, `JsonSms`, `TwilioSms` (on a mocked `fetch`) and `CronScheduler` run them, and so does the test of a driver package scaffolded with
 `npm create @appweaver module`. A change of a contract's shared behavior goes into its
 suite, so every driver is held to it.
 
@@ -375,12 +380,13 @@ A generated project starts from the base template (`templates/base/`), a minimal
 adds the optional modules selected: the default ones (`defaultModules` of `scaffold/modules.ts`, `data` and `web`)
 with the `--add <modules...>` ones, or every module with `--all`, minus the `--exclude <modules...>` ones, which leave
 out the default modules too, with or without `--all` (`--exclude data web` for the core application alone). The
-modules are `data`, `web` (requires `data`), `redis`, `queue` (requires `redis`), `scheduler`, `mailer`, `templates`,
-`locales` and `docker`. The base project depends only on `@appweaver/cli`, `common`, `core` and TypeBox, and a module
+modules are `data`, `web` (requires `data`), `redis`, `queue` (requires `redis`), `scheduler`, `mailer`, `sms`,
+`templates`, `locales` and `docker`. The base project depends only on `@appweaver/cli`, `common`, `core` and TypeBox, and a module
 adds its
 packages: `@appweaver/data`, `@appweaver/sharp`, Prisma and the driver adapter of `--database` (`data`, its
 `projectPackages`), `@appweaver/web` (`web`), `@appweaver/redis` (`redis`), `@appweaver/bullmq` (`queue`),
-`@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`) and `@appweaver/handlebars` (`templates`), every
+`@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`), `@appweaver/twilio` (`sms`, with the `json`
+sender in dev and test and the Twilio keys of `.env`) and `@appweaver/handlebars` (`templates`), every
 `@appweaver/*` package at the framework version, the version of `@appweaver/create` (`scaffold/package-versions.ts`).
 `--database`, `--host` and `--port` configure `data` and `web` only (`ProjectContext`), and `weaver module add` takes
 `--database` for `data`. The `User` auth model and its admin seeder come with `web`, which brings the authentication, so
@@ -626,7 +632,7 @@ unless `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is `false`. Call it before any ne
 ### `weaver module` (alias: `mod`)
 
 Add and remove the optional modules of `@appweaver/create` (`data`, `web`, `redis`, `queue`, `scheduler`, `mailer`,
-`templates`, `locales`, `docker`) in the current project, with the scaffold templates of `@appweaver/create/scaffold`,
+`sms`, `templates`, `locales`, `docker`) in the current project, with the scaffold templates of `@appweaver/create/scaffold`,
 install
 module packages, and create local modules.
 
@@ -1087,8 +1093,8 @@ This runs the following steps automatically:
 4. **Changelog** (`@semantic-release/changelog`) — appends notes to `CHANGELOG.md`.
 5. **Version bump** (`@semantic-release/npm`, no publish) — updates `version` in the root `package.json` and in the
    `package.json` of every published package, listed in `release.config.js` (and `tools/lock-samples.js`): `core`,
-   `common`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `handlebars`, `sharp`, `testing`, `cli`, `client`
-   and `create`.
+   `common`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, `handlebars`, `sharp`, `testing`, `cli`,
+   `client` and `create`.
 6. **Package copy** (`@semantic-release/exec`) — runs `node ./tools/copy-packages.js` to sync built packages into
    `node_modules/@appweaver`.
 7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the npm registry with
@@ -1104,6 +1110,7 @@ This runs the following steps automatically:
     cd packages/bullmq/dist     && npm publish
     cd packages/cron/dist       && npm publish
     cd packages/nodemailer/dist && npm publish
+    cd packages/twilio/dist     && npm publish
     cd packages/handlebars/dist && npm publish
     cd packages/sharp/dist      && npm publish
     cd packages/testing/dist    && npm publish

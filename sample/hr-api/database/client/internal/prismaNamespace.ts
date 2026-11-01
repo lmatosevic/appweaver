@@ -406,6 +406,7 @@ export const ModelName = {
   PerformanceReview: 'PerformanceReview',
   Position: 'Position',
   OneTimeToken: 'OneTimeToken',
+  TwoFactorMethod: 'TwoFactorMethod',
   Role: 'Role',
   Permission: 'Permission',
   Seeder: 'Seeder',
@@ -425,7 +426,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "compensation" | "department" | "employeeDocument" | "employee" | "leaveBalance" | "leaveRequest" | "performanceReview" | "position" | "oneTimeToken" | "role" | "permission" | "seeder" | "file"
+    modelProps: "compensation" | "department" | "employeeDocument" | "employee" | "leaveBalance" | "leaveRequest" | "performanceReview" | "position" | "oneTimeToken" | "twoFactorMethod" | "role" | "permission" | "seeder" | "file"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1095,6 +1096,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TwoFactorMethod: {
+      payload: Prisma.$TwoFactorMethodPayload<ExtArgs>
+      fields: Prisma.TwoFactorMethodFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TwoFactorMethodFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TwoFactorMethodFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>
+        }
+        findFirst: {
+          args: Prisma.TwoFactorMethodFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TwoFactorMethodFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>
+        }
+        findMany: {
+          args: Prisma.TwoFactorMethodFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>[]
+        }
+        create: {
+          args: Prisma.TwoFactorMethodCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>
+        }
+        createMany: {
+          args: Prisma.TwoFactorMethodCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TwoFactorMethodCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>[]
+        }
+        delete: {
+          args: Prisma.TwoFactorMethodDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>
+        }
+        update: {
+          args: Prisma.TwoFactorMethodUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>
+        }
+        deleteMany: {
+          args: Prisma.TwoFactorMethodDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TwoFactorMethodUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TwoFactorMethodUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>[]
+        }
+        upsert: {
+          args: Prisma.TwoFactorMethodUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>
+        }
+        aggregate: {
+          args: Prisma.TwoFactorMethodAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTwoFactorMethod>
+        }
+        groupBy: {
+          args: Prisma.TwoFactorMethodGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TwoFactorMethodGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TwoFactorMethodCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TwoFactorMethodCountAggregateOutputType> | number
+        }
+      }
+    }
     Role: {
       payload: Prisma.$RolePayload<ExtArgs>
       fields: Prisma.RoleFieldRefs
@@ -1491,7 +1566,8 @@ export const EmployeeScalarFieldEnum = {
   terminatedAt: 'terminatedAt',
   passwordHash: 'passwordHash',
   verifiedEmail: 'verifiedEmail',
-  twoFactorAuth: 'twoFactorAuth',
+  phoneNumber: 'phoneNumber',
+  verifiedPhone: 'verifiedPhone',
   enabled: 'enabled',
   logoutAt: 'logoutAt',
   departmentId: 'departmentId',
@@ -1594,6 +1670,23 @@ export const OneTimeTokenScalarFieldEnum = {
 } as const
 
 export type OneTimeTokenScalarFieldEnum = (typeof OneTimeTokenScalarFieldEnum)[keyof typeof OneTimeTokenScalarFieldEnum]
+
+
+export const TwoFactorMethodScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  priority: 'priority',
+  secret: 'secret',
+  confirmedAt: 'confirmedAt',
+  lastUsedStep: 'lastUsedStep',
+  employeeId: 'employeeId',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt',
+  deletedAt: 'deletedAt',
+  deletedById: 'deletedById'
+} as const
+
+export type TwoFactorMethodScalarFieldEnum = (typeof TwoFactorMethodScalarFieldEnum)[keyof typeof TwoFactorMethodScalarFieldEnum]
 
 
 export const RoleScalarFieldEnum = {
@@ -1777,13 +1870,6 @@ export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
- * Reference to a field of type 'EmployeeTwoFactorAuth'
- */
-export type EnumEmployeeTwoFactorAuthFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EmployeeTwoFactorAuth'>
-    
-
-
-/**
  * Reference to a field of type 'LeaveRequestType'
  */
 export type EnumLeaveRequestTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LeaveRequestType'>
@@ -1822,6 +1908,13 @@ export type EnumPerformanceReviewStatusFieldRefInput<$PrismaModel> = FieldRefInp
  * Reference to a field of type 'PositionLevel'
  */
 export type EnumPositionLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PositionLevel'>
+    
+
+
+/**
+ * Reference to a field of type 'TwoFactorMethodType'
+ */
+export type EnumTwoFactorMethodTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TwoFactorMethodType'>
     
 
 /**
@@ -1984,6 +2077,7 @@ export type GlobalOmitConfig = {
   performanceReview?: Prisma.PerformanceReviewOmit
   position?: Prisma.PositionOmit
   oneTimeToken?: Prisma.OneTimeTokenOmit
+  twoFactorMethod?: Prisma.TwoFactorMethodOmit
   role?: Prisma.RoleOmit
   permission?: Prisma.PermissionOmit
   seeder?: Prisma.SeederOmit

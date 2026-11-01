@@ -48,8 +48,8 @@ export function checkScopeAccess(url: string, authScope: AuthScope): boolean {
   const accountPrefix = accountConfig.ROUTE_PREFIX.replace(/\/$/, '');
 
   const refreshPath = `${securityPrefix}/refresh`;
-  const twoFASendPath = `${accountPrefix}/send-2fa-code`;
-  const twoFAVerifyPath = `${accountPrefix}/verify-2fa-code`;
+  const twoFAChallengePath = `${accountPrefix}/2fa/challenge`;
+  const twoFAVerifyPath = `${accountPrefix}/2fa/verify`;
 
   const scopeConfigs: {
     scope: AuthScope;
@@ -58,7 +58,7 @@ export function checkScopeAccess(url: string, authScope: AuthScope): boolean {
   }[] = [
     {
       scope: AuthScope.Auth,
-      disallowedPaths: [refreshPath, twoFASendPath, twoFAVerifyPath]
+      disallowedPaths: [refreshPath, twoFAChallengePath, twoFAVerifyPath]
     },
     {
       scope: AuthScope.Refresh,
@@ -66,7 +66,7 @@ export function checkScopeAccess(url: string, authScope: AuthScope): boolean {
     },
     {
       scope: AuthScope.TwoFA,
-      allowedPaths: [twoFASendPath, twoFAVerifyPath]
+      allowedPaths: [twoFAChallengePath, twoFAVerifyPath]
     }
   ];
 

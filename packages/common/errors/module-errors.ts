@@ -66,6 +66,13 @@ export class MailerError<
   public readonly module = 'mailer';
 }
 
+/** An error of sending a text message. */
+export class SmsError<
+  C extends ModuleErrorCode<'SMS'> = ModuleErrorCode<'SMS'>
+> extends AppweaverError<C> {
+  public readonly module = 'sms';
+}
+
 /** An error of a lock on a shared resource. */
 export class LockError<
   C extends ModuleErrorCode<'LOCK'> = ModuleErrorCode<'LOCK'>
@@ -94,7 +101,7 @@ export class AuthError<
   public readonly module = 'auth';
 }
 
-/** An error of an account operation, i.e. an email verification or a password reset. */
+/** An error of an account operation, i.e. an email or phone verification, a password reset or a 2FA method. */
 export class AccountError<
   C extends ModuleErrorCode<'ACCOUNT'> = ModuleErrorCode<'ACCOUNT'>
 > extends AppweaverError<C> {

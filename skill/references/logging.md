@@ -83,13 +83,14 @@ LOG_LEVELS=database:trace,cache:error
 | `database`  | The connection (info), slow queries (warn), Prisma events, transaction retries and rollbacks                                 |
 | `resource`  | Resources created, updated and deleted, bulk operations, denied policies, the loaded models, services and routes, CSV export |
 | `server`    | Fastify and its request logs, 5xx (error) and 4xx (debug) responses, rate limit hits, plugins, routes and shutdown           |
-| `security`  | Logins and their rejection reason, rejected API keys, password, email and 2FA flows, OAuth2, reCAPTCHA and Turnstile         |
+| `security`  | Logins and their rejection reason, rejected API keys, password, email, phone and 2FA flows, OAuth2, reCAPTCHA and Turnstile  |
 | `cache`     | Cache hits and misses, writes, invalidation, eviction, and the cache going away and coming back                              |
 | `memory`    | The Redis connections: established and restored (info), lost (error)                                                         |
 | `events`    | The listeners added and the events emitted, or deferred to the commit of a transaction                                       |
 | `queue`     | Jobs added and completed with their duration, retried (warn), failed (error) and stalled (warn)                              |
 | `scheduler` | Jobs added with their next run, started, stopped and removed, each run with its duration                                     |
 | `mailer`    | E-mails queued and sent, the SMTP message id, and the e-mails of the `json` mailer                                           |
+| `sms`       | Text messages sent, the message id of Twilio, and the messages of the `json` SMS sender                                      |
 | `template`  | The loaded templates and the template preview route                                                                          |
 | `locale`    | The loaded translations and the missing keys                                                                                 |
 | `storage`   | `FileService`, the `local` storage driver and the processed images                                                           |

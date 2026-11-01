@@ -45,7 +45,8 @@ export type UserMinAggregateOutputType = {
   bio: string | null
   passwordHash: string | null
   verifiedEmail: boolean | null
-  twoFactorAuth: $Enums.UserTwoFactorAuth | null
+  phoneNumber: string | null
+  verifiedPhone: boolean | null
   enabled: boolean | null
   logoutAt: Date | null
   avatarId: number | null
@@ -61,7 +62,8 @@ export type UserMaxAggregateOutputType = {
   bio: string | null
   passwordHash: string | null
   verifiedEmail: boolean | null
-  twoFactorAuth: $Enums.UserTwoFactorAuth | null
+  phoneNumber: string | null
+  verifiedPhone: boolean | null
   enabled: boolean | null
   logoutAt: Date | null
   avatarId: number | null
@@ -77,7 +79,8 @@ export type UserCountAggregateOutputType = {
   bio: number
   passwordHash: number
   verifiedEmail: number
-  twoFactorAuth: number
+  phoneNumber: number
+  verifiedPhone: number
   enabled: number
   logoutAt: number
   avatarId: number
@@ -107,7 +110,8 @@ export type UserMinAggregateInputType = {
   bio?: true
   passwordHash?: true
   verifiedEmail?: true
-  twoFactorAuth?: true
+  phoneNumber?: true
+  verifiedPhone?: true
   enabled?: true
   logoutAt?: true
   avatarId?: true
@@ -123,7 +127,8 @@ export type UserMaxAggregateInputType = {
   bio?: true
   passwordHash?: true
   verifiedEmail?: true
-  twoFactorAuth?: true
+  phoneNumber?: true
+  verifiedPhone?: true
   enabled?: true
   logoutAt?: true
   avatarId?: true
@@ -139,7 +144,8 @@ export type UserCountAggregateInputType = {
   bio?: true
   passwordHash?: true
   verifiedEmail?: true
-  twoFactorAuth?: true
+  phoneNumber?: true
+  verifiedPhone?: true
   enabled?: true
   logoutAt?: true
   avatarId?: true
@@ -242,7 +248,8 @@ export type UserGroupByOutputType = {
   bio: string | null
   passwordHash: string | null
   verifiedEmail: boolean
-  twoFactorAuth: $Enums.UserTwoFactorAuth
+  phoneNumber: string | null
+  verifiedPhone: boolean
   enabled: boolean
   logoutAt: Date | null
   avatarId: number | null
@@ -281,7 +288,8 @@ export type UserWhereInput = {
   bio?: Prisma.StringNullableFilter<"User"> | string | null
   passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
   verifiedEmail?: Prisma.BoolFilter<"User"> | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFilter<"User"> | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  verifiedPhone?: Prisma.BoolFilter<"User"> | boolean
   enabled?: Prisma.BoolFilter<"User"> | boolean
   logoutAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   avatarId?: Prisma.IntNullableFilter<"User"> | number | null
@@ -291,6 +299,7 @@ export type UserWhereInput = {
   reviews?: Prisma.ReviewListRelationFilter
   watchlist?: Prisma.WatchlistEntryListRelationFilter
   roles?: Prisma.RoleListRelationFilter
+  twoFactorMethods?: Prisma.TwoFactorMethodListRelationFilter
   avatar?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   createdCredits?: Prisma.CreditListRelationFilter
   createdGenres?: Prisma.GenreListRelationFilter
@@ -313,7 +322,8 @@ export type UserOrderByWithRelationInput = {
   bio?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  twoFactorAuth?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrderInput | Prisma.SortOrder
   avatarId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -323,6 +333,7 @@ export type UserOrderByWithRelationInput = {
   reviews?: Prisma.ReviewOrderByRelationAggregateInput
   watchlist?: Prisma.WatchlistEntryOrderByRelationAggregateInput
   roles?: Prisma.RoleOrderByRelationAggregateInput
+  twoFactorMethods?: Prisma.TwoFactorMethodOrderByRelationAggregateInput
   avatar?: Prisma.FileOrderByWithRelationInput
   createdCredits?: Prisma.CreditOrderByRelationAggregateInput
   createdGenres?: Prisma.GenreOrderByRelationAggregateInput
@@ -349,7 +360,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   bio?: Prisma.StringNullableFilter<"User"> | string | null
   passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
   verifiedEmail?: Prisma.BoolFilter<"User"> | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFilter<"User"> | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  verifiedPhone?: Prisma.BoolFilter<"User"> | boolean
   enabled?: Prisma.BoolFilter<"User"> | boolean
   logoutAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -358,6 +370,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   reviews?: Prisma.ReviewListRelationFilter
   watchlist?: Prisma.WatchlistEntryListRelationFilter
   roles?: Prisma.RoleListRelationFilter
+  twoFactorMethods?: Prisma.TwoFactorMethodListRelationFilter
   avatar?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   createdCredits?: Prisma.CreditListRelationFilter
   createdGenres?: Prisma.GenreListRelationFilter
@@ -380,7 +393,8 @@ export type UserOrderByWithAggregationInput = {
   bio?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  twoFactorAuth?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrderInput | Prisma.SortOrder
   avatarId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -404,7 +418,8 @@ export type UserScalarWhereWithAggregatesInput = {
   bio?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   passwordHash?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   verifiedEmail?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthWithAggregatesFilter<"User"> | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  verifiedPhone?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   enabled?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   logoutAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   avatarId?: Prisma.IntNullableWithAggregatesFilter<"User"> | number | null
@@ -419,7 +434,8 @@ export type UserCreateInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -427,6 +443,7 @@ export type UserCreateInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -449,7 +466,8 @@ export type UserUncheckedCreateInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -459,6 +477,7 @@ export type UserUncheckedCreateInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -478,7 +497,8 @@ export type UserUpdateInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -486,6 +506,7 @@ export type UserUpdateInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -508,7 +529,8 @@ export type UserUncheckedUpdateInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -518,6 +540,7 @@ export type UserUncheckedUpdateInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -538,7 +561,8 @@ export type UserCreateManyInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -553,7 +577,8 @@ export type UserUpdateManyMutationInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -567,7 +592,8 @@ export type UserUncheckedUpdateManyInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -598,7 +624,8 @@ export type UserCountOrderByAggregateInput = {
   bio?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  twoFactorAuth?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrder
   avatarId?: Prisma.SortOrder
@@ -620,7 +647,8 @@ export type UserMaxOrderByAggregateInput = {
   bio?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  twoFactorAuth?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrder
   avatarId?: Prisma.SortOrder
@@ -636,7 +664,8 @@ export type UserMinOrderByAggregateInput = {
   bio?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  twoFactorAuth?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrder
   avatarId?: Prisma.SortOrder
@@ -649,6 +678,11 @@ export type UserSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   avatarId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+}
+
+export type UserScalarRelationFilter = {
+  is?: Prisma.UserWhereInput
+  isNot?: Prisma.UserWhereInput
 }
 
 export type UserCreateNestedOneWithoutCreatedCreditsInput = {
@@ -767,10 +801,6 @@ export type UserUncheckedCreateNestedManyWithoutCreatedByInput = {
   connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
 }
 
-export type EnumUserTwoFactorAuthFieldUpdateOperationsInput = {
-  set?: $Enums.UserTwoFactorAuth
-}
-
 export type UserUpdateManyWithoutCreatedByNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedByInput, Prisma.UserUncheckedCreateWithoutCreatedByInput> | Prisma.UserCreateWithoutCreatedByInput[] | Prisma.UserUncheckedCreateWithoutCreatedByInput[]
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedByInput | Prisma.UserCreateOrConnectWithoutCreatedByInput[]
@@ -839,6 +869,20 @@ export type UserUpdateOneWithoutCreatedWatchlistEntriesNestedInput = {
   delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreatedWatchlistEntriesInput, Prisma.UserUpdateWithoutCreatedWatchlistEntriesInput>, Prisma.UserUncheckedUpdateWithoutCreatedWatchlistEntriesInput>
+}
+
+export type UserCreateNestedOneWithoutTwoFactorMethodsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorMethodsInput, Prisma.UserUncheckedCreateWithoutTwoFactorMethodsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTwoFactorMethodsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutTwoFactorMethodsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorMethodsInput, Prisma.UserUncheckedCreateWithoutTwoFactorMethodsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTwoFactorMethodsInput
+  upsert?: Prisma.UserUpsertWithoutTwoFactorMethodsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTwoFactorMethodsInput, Prisma.UserUpdateWithoutTwoFactorMethodsInput>, Prisma.UserUncheckedUpdateWithoutTwoFactorMethodsInput>
 }
 
 export type UserCreateNestedManyWithoutRolesInput = {
@@ -991,7 +1035,8 @@ export type UserCreateWithoutCreatedCreditsInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -999,6 +1044,7 @@ export type UserCreateWithoutCreatedCreditsInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieCreateNestedManyWithoutCreatedByInput
@@ -1020,7 +1066,8 @@ export type UserUncheckedCreateWithoutCreatedCreditsInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -1030,6 +1077,7 @@ export type UserUncheckedCreateWithoutCreatedCreditsInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
   createdPeople?: Prisma.PersonUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1064,7 +1112,8 @@ export type UserUpdateWithoutCreatedCreditsInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1072,6 +1121,7 @@ export type UserUpdateWithoutCreatedCreditsInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUpdateManyWithoutCreatedByNestedInput
@@ -1093,7 +1143,8 @@ export type UserUncheckedUpdateWithoutCreatedCreditsInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1103,6 +1154,7 @@ export type UserUncheckedUpdateWithoutCreatedCreditsInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPeople?: Prisma.PersonUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1121,7 +1173,8 @@ export type UserCreateWithoutCreatedGenresInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1129,6 +1182,7 @@ export type UserCreateWithoutCreatedGenresInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieCreateNestedManyWithoutCreatedByInput
@@ -1150,7 +1204,8 @@ export type UserUncheckedCreateWithoutCreatedGenresInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -1160,6 +1215,7 @@ export type UserUncheckedCreateWithoutCreatedGenresInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
   createdPeople?: Prisma.PersonUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1194,7 +1250,8 @@ export type UserUpdateWithoutCreatedGenresInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1202,6 +1259,7 @@ export type UserUpdateWithoutCreatedGenresInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUpdateManyWithoutCreatedByNestedInput
@@ -1223,7 +1281,8 @@ export type UserUncheckedUpdateWithoutCreatedGenresInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1233,6 +1292,7 @@ export type UserUncheckedUpdateWithoutCreatedGenresInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPeople?: Prisma.PersonUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1251,7 +1311,8 @@ export type UserCreateWithoutCreatedMoviesInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1259,6 +1320,7 @@ export type UserCreateWithoutCreatedMoviesInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -1280,7 +1342,8 @@ export type UserUncheckedCreateWithoutCreatedMoviesInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -1290,6 +1353,7 @@ export type UserUncheckedCreateWithoutCreatedMoviesInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdPeople?: Prisma.PersonUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1324,7 +1388,8 @@ export type UserUpdateWithoutCreatedMoviesInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1332,6 +1397,7 @@ export type UserUpdateWithoutCreatedMoviesInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -1353,7 +1419,8 @@ export type UserUncheckedUpdateWithoutCreatedMoviesInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1363,6 +1430,7 @@ export type UserUncheckedUpdateWithoutCreatedMoviesInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPeople?: Prisma.PersonUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1381,7 +1449,8 @@ export type UserCreateWithoutCreatedPeopleInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1389,6 +1458,7 @@ export type UserCreateWithoutCreatedPeopleInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -1410,7 +1480,8 @@ export type UserUncheckedCreateWithoutCreatedPeopleInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -1420,6 +1491,7 @@ export type UserUncheckedCreateWithoutCreatedPeopleInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1454,7 +1526,8 @@ export type UserUpdateWithoutCreatedPeopleInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1462,6 +1535,7 @@ export type UserUpdateWithoutCreatedPeopleInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -1483,7 +1557,8 @@ export type UserUncheckedUpdateWithoutCreatedPeopleInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1493,6 +1568,7 @@ export type UserUncheckedUpdateWithoutCreatedPeopleInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1511,13 +1587,15 @@ export type UserCreateWithoutReviewsInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -1540,7 +1618,8 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -1549,6 +1628,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   createdById?: number | null
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1573,7 +1653,8 @@ export type UserCreateWithoutCreatedReviewsInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1581,6 +1662,7 @@ export type UserCreateWithoutCreatedReviewsInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -1602,7 +1684,8 @@ export type UserUncheckedCreateWithoutCreatedReviewsInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -1612,6 +1695,7 @@ export type UserUncheckedCreateWithoutCreatedReviewsInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1646,13 +1730,15 @@ export type UserUpdateWithoutReviewsInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -1675,7 +1761,8 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1684,6 +1771,7 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1714,7 +1802,8 @@ export type UserUpdateWithoutCreatedReviewsInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1722,6 +1811,7 @@ export type UserUpdateWithoutCreatedReviewsInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -1743,7 +1833,8 @@ export type UserUncheckedUpdateWithoutCreatedReviewsInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1753,6 +1844,7 @@ export type UserUncheckedUpdateWithoutCreatedReviewsInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1771,7 +1863,8 @@ export type UserCreateWithoutCreatedByInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1779,6 +1872,7 @@ export type UserCreateWithoutCreatedByInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -1800,7 +1894,8 @@ export type UserUncheckedCreateWithoutCreatedByInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -1809,6 +1904,7 @@ export type UserUncheckedCreateWithoutCreatedByInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1837,7 +1933,8 @@ export type UserCreateWithoutCreatedUsersInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1845,6 +1942,7 @@ export type UserCreateWithoutCreatedUsersInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -1866,7 +1964,8 @@ export type UserUncheckedCreateWithoutCreatedUsersInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -1876,6 +1975,7 @@ export type UserUncheckedCreateWithoutCreatedUsersInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1919,7 +2019,8 @@ export type UserScalarWhereInput = {
   bio?: Prisma.StringNullableFilter<"User"> | string | null
   passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
   verifiedEmail?: Prisma.BoolFilter<"User"> | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFilter<"User"> | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  verifiedPhone?: Prisma.BoolFilter<"User"> | boolean
   enabled?: Prisma.BoolFilter<"User"> | boolean
   logoutAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   avatarId?: Prisma.IntNullableFilter<"User"> | number | null
@@ -1945,7 +2046,8 @@ export type UserUpdateWithoutCreatedUsersInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1953,6 +2055,7 @@ export type UserUpdateWithoutCreatedUsersInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -1974,7 +2077,8 @@ export type UserUncheckedUpdateWithoutCreatedUsersInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1984,6 +2088,7 @@ export type UserUncheckedUpdateWithoutCreatedUsersInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2002,13 +2107,15 @@ export type UserCreateWithoutWatchlistInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -2031,7 +2138,8 @@ export type UserUncheckedCreateWithoutWatchlistInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -2040,6 +2148,7 @@ export type UserUncheckedCreateWithoutWatchlistInput = {
   createdById?: number | null
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2064,7 +2173,8 @@ export type UserCreateWithoutCreatedWatchlistEntriesInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2072,6 +2182,7 @@ export type UserCreateWithoutCreatedWatchlistEntriesInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -2093,7 +2204,8 @@ export type UserUncheckedCreateWithoutCreatedWatchlistEntriesInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -2103,6 +2215,7 @@ export type UserUncheckedCreateWithoutCreatedWatchlistEntriesInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2137,13 +2250,15 @@ export type UserUpdateWithoutWatchlistInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -2166,7 +2281,8 @@ export type UserUncheckedUpdateWithoutWatchlistInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2175,6 +2291,7 @@ export type UserUncheckedUpdateWithoutWatchlistInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2205,7 +2322,8 @@ export type UserUpdateWithoutCreatedWatchlistEntriesInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2213,6 +2331,7 @@ export type UserUpdateWithoutCreatedWatchlistEntriesInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -2234,7 +2353,146 @@ export type UserUncheckedUpdateWithoutCreatedWatchlistEntriesInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
+  watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPeople?: Prisma.PersonUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdReviews?: Prisma.ReviewUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
+}
+
+export type UserCreateWithoutTwoFactorMethodsInput = {
+  displayName: string
+  email: string
+  bio?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
+  watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
+  roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
+  createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
+  createdMovies?: Prisma.MovieCreateNestedManyWithoutCreatedByInput
+  createdPeople?: Prisma.PersonCreateNestedManyWithoutCreatedByInput
+  createdReviews?: Prisma.ReviewCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdWatchlistEntries?: Prisma.WatchlistEntryCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
+}
+
+export type UserUncheckedCreateWithoutTwoFactorMethodsInput = {
+  id?: number
+  displayName: string
+  email: string
+  bio?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  avatarId?: number | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
+  watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
+  createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
+  createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPeople?: Prisma.PersonUncheckedCreateNestedManyWithoutCreatedByInput
+  createdReviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdWatchlistEntries?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
+}
+
+export type UserCreateOrConnectWithoutTwoFactorMethodsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorMethodsInput, Prisma.UserUncheckedCreateWithoutTwoFactorMethodsInput>
+}
+
+export type UserUpsertWithoutTwoFactorMethodsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutTwoFactorMethodsInput, Prisma.UserUncheckedUpdateWithoutTwoFactorMethodsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorMethodsInput, Prisma.UserUncheckedCreateWithoutTwoFactorMethodsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutTwoFactorMethodsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTwoFactorMethodsInput, Prisma.UserUncheckedUpdateWithoutTwoFactorMethodsInput>
+}
+
+export type UserUpdateWithoutTwoFactorMethodsInput = {
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
+  watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
+  createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
+  createdMovies?: Prisma.MovieUpdateManyWithoutCreatedByNestedInput
+  createdPeople?: Prisma.PersonUpdateManyWithoutCreatedByNestedInput
+  createdReviews?: Prisma.ReviewUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdWatchlistEntries?: Prisma.WatchlistEntryUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutTwoFactorMethodsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2250,6 +2508,7 @@ export type UserUncheckedUpdateWithoutCreatedWatchlistEntriesInput = {
   createdPeople?: Prisma.PersonUncheckedUpdateManyWithoutCreatedByNestedInput
   createdReviews?: Prisma.ReviewUncheckedUpdateManyWithoutCreatedByNestedInput
   createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdWatchlistEntries?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2262,13 +2521,15 @@ export type UserCreateWithoutRolesInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -2291,7 +2552,8 @@ export type UserUncheckedCreateWithoutRolesInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -2300,6 +2562,7 @@ export type UserUncheckedCreateWithoutRolesInput = {
   createdById?: number | null
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2324,7 +2587,8 @@ export type UserCreateWithoutCreatedRolesInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2332,6 +2596,7 @@ export type UserCreateWithoutCreatedRolesInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -2353,7 +2618,8 @@ export type UserUncheckedCreateWithoutCreatedRolesInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -2363,6 +2629,7 @@ export type UserUncheckedCreateWithoutCreatedRolesInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2413,7 +2680,8 @@ export type UserUpdateWithoutCreatedRolesInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2421,6 +2689,7 @@ export type UserUpdateWithoutCreatedRolesInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -2442,7 +2711,8 @@ export type UserUncheckedUpdateWithoutCreatedRolesInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2452,6 +2722,7 @@ export type UserUncheckedUpdateWithoutCreatedRolesInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2470,7 +2741,8 @@ export type UserCreateWithoutCreatedPermissionsInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2478,6 +2750,7 @@ export type UserCreateWithoutCreatedPermissionsInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -2499,7 +2772,8 @@ export type UserUncheckedCreateWithoutCreatedPermissionsInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -2509,6 +2783,7 @@ export type UserUncheckedCreateWithoutCreatedPermissionsInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2543,7 +2818,8 @@ export type UserUpdateWithoutCreatedPermissionsInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2551,6 +2827,7 @@ export type UserUpdateWithoutCreatedPermissionsInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -2572,7 +2849,8 @@ export type UserUncheckedUpdateWithoutCreatedPermissionsInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2582,6 +2860,7 @@ export type UserUncheckedUpdateWithoutCreatedPermissionsInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2600,7 +2879,8 @@ export type UserCreateWithoutAvatarInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2608,6 +2888,7 @@ export type UserCreateWithoutAvatarInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieCreateNestedManyWithoutCreatedByInput
@@ -2629,7 +2910,8 @@ export type UserUncheckedCreateWithoutAvatarInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2638,6 +2920,7 @@ export type UserUncheckedCreateWithoutAvatarInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2666,7 +2949,8 @@ export type UserCreateWithoutCreatedFilesInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2674,6 +2958,7 @@ export type UserCreateWithoutCreatedFilesInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -2695,7 +2980,8 @@ export type UserUncheckedCreateWithoutCreatedFilesInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -2705,6 +2991,7 @@ export type UserUncheckedCreateWithoutCreatedFilesInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2728,7 +3015,8 @@ export type UserCreateWithoutDeletedFilesInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2736,6 +3024,7 @@ export type UserCreateWithoutDeletedFilesInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCredits?: Prisma.CreditCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreCreateNestedManyWithoutCreatedByInput
@@ -2757,7 +3046,8 @@ export type UserUncheckedCreateWithoutDeletedFilesInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -2767,6 +3057,7 @@ export type UserUncheckedCreateWithoutDeletedFilesInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutAuthorInput
   watchlist?: Prisma.WatchlistEntryUncheckedCreateNestedManyWithoutUserInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
   createdCredits?: Prisma.CreditUncheckedCreateNestedManyWithoutCreatedByInput
   createdGenres?: Prisma.GenreUncheckedCreateNestedManyWithoutCreatedByInput
   createdMovies?: Prisma.MovieUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2817,7 +3108,8 @@ export type UserUpdateWithoutCreatedFilesInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2825,6 +3117,7 @@ export type UserUpdateWithoutCreatedFilesInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -2846,7 +3139,8 @@ export type UserUncheckedUpdateWithoutCreatedFilesInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2856,6 +3150,7 @@ export type UserUncheckedUpdateWithoutCreatedFilesInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2885,7 +3180,8 @@ export type UserUpdateWithoutDeletedFilesInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2893,6 +3189,7 @@ export type UserUpdateWithoutDeletedFilesInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -2914,7 +3211,8 @@ export type UserUncheckedUpdateWithoutDeletedFilesInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2924,6 +3222,7 @@ export type UserUncheckedUpdateWithoutDeletedFilesInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2943,7 +3242,8 @@ export type UserCreateManyCreatedByInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -2957,7 +3257,8 @@ export type UserUpdateWithoutCreatedByInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2965,6 +3266,7 @@ export type UserUpdateWithoutCreatedByInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -2986,7 +3288,8 @@ export type UserUncheckedUpdateWithoutCreatedByInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2995,6 +3298,7 @@ export type UserUncheckedUpdateWithoutCreatedByInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3015,7 +3319,8 @@ export type UserUncheckedUpdateManyWithoutCreatedByInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -3029,13 +3334,15 @@ export type UserUpdateWithoutRolesInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
@@ -3058,7 +3365,8 @@ export type UserUncheckedUpdateWithoutRolesInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -3067,6 +3375,7 @@ export type UserUncheckedUpdateWithoutRolesInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3087,7 +3396,8 @@ export type UserUncheckedUpdateManyWithoutRolesInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -3103,7 +3413,8 @@ export type UserCreateManyAvatarInput = {
   bio?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3117,7 +3428,8 @@ export type UserUpdateWithoutAvatarInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3125,6 +3437,7 @@ export type UserUpdateWithoutAvatarInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUpdateManyWithoutCreatedByNestedInput
@@ -3146,7 +3459,8 @@ export type UserUncheckedUpdateWithoutAvatarInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3155,6 +3469,7 @@ export type UserUncheckedUpdateWithoutAvatarInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutAuthorNestedInput
   watchlist?: Prisma.WatchlistEntryUncheckedUpdateManyWithoutUserNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
   createdCredits?: Prisma.CreditUncheckedUpdateManyWithoutCreatedByNestedInput
   createdGenres?: Prisma.GenreUncheckedUpdateManyWithoutCreatedByNestedInput
   createdMovies?: Prisma.MovieUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3175,7 +3490,8 @@ export type UserUncheckedUpdateManyWithoutAvatarInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3192,6 +3508,7 @@ export type UserCountOutputType = {
   reviews: number
   watchlist: number
   roles: number
+  twoFactorMethods: number
   createdCredits: number
   createdGenres: number
   createdMovies: number
@@ -3209,6 +3526,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   reviews?: boolean | UserCountOutputTypeCountReviewsArgs
   watchlist?: boolean | UserCountOutputTypeCountWatchlistArgs
   roles?: boolean | UserCountOutputTypeCountRolesArgs
+  twoFactorMethods?: boolean | UserCountOutputTypeCountTwoFactorMethodsArgs
   createdCredits?: boolean | UserCountOutputTypeCountCreatedCreditsArgs
   createdGenres?: boolean | UserCountOutputTypeCountCreatedGenresArgs
   createdMovies?: boolean | UserCountOutputTypeCountCreatedMoviesArgs
@@ -3251,6 +3569,13 @@ export type UserCountOutputTypeCountWatchlistArgs<ExtArgs extends runtime.Types.
  */
 export type UserCountOutputTypeCountRolesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.RoleWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountTwoFactorMethodsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TwoFactorMethodWhereInput
 }
 
 /**
@@ -3338,7 +3663,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   bio?: boolean
   passwordHash?: boolean
   verifiedEmail?: boolean
-  twoFactorAuth?: boolean
+  phoneNumber?: boolean
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: boolean
   avatarId?: boolean
@@ -3348,6 +3674,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   reviews?: boolean | Prisma.User$reviewsArgs<ExtArgs>
   watchlist?: boolean | Prisma.User$watchlistArgs<ExtArgs>
   roles?: boolean | Prisma.User$rolesArgs<ExtArgs>
+  twoFactorMethods?: boolean | Prisma.User$twoFactorMethodsArgs<ExtArgs>
   avatar?: boolean | Prisma.User$avatarArgs<ExtArgs>
   createdCredits?: boolean | Prisma.User$createdCreditsArgs<ExtArgs>
   createdGenres?: boolean | Prisma.User$createdGenresArgs<ExtArgs>
@@ -3371,7 +3698,8 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   bio?: boolean
   passwordHash?: boolean
   verifiedEmail?: boolean
-  twoFactorAuth?: boolean
+  phoneNumber?: boolean
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: boolean
   avatarId?: boolean
@@ -3389,7 +3717,8 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   bio?: boolean
   passwordHash?: boolean
   verifiedEmail?: boolean
-  twoFactorAuth?: boolean
+  phoneNumber?: boolean
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: boolean
   avatarId?: boolean
@@ -3407,7 +3736,8 @@ export type UserSelectScalar = {
   bio?: boolean
   passwordHash?: boolean
   verifiedEmail?: boolean
-  twoFactorAuth?: boolean
+  phoneNumber?: boolean
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: boolean
   avatarId?: boolean
@@ -3416,11 +3746,12 @@ export type UserSelectScalar = {
   createdById?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "displayName" | "email" | "bio" | "passwordHash" | "verifiedEmail" | "twoFactorAuth" | "enabled" | "logoutAt" | "avatarId" | "updatedAt" | "createdAt" | "createdById", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "displayName" | "email" | "bio" | "passwordHash" | "verifiedEmail" | "phoneNumber" | "verifiedPhone" | "enabled" | "logoutAt" | "avatarId" | "updatedAt" | "createdAt" | "createdById", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   reviews?: boolean | Prisma.User$reviewsArgs<ExtArgs>
   watchlist?: boolean | Prisma.User$watchlistArgs<ExtArgs>
   roles?: boolean | Prisma.User$rolesArgs<ExtArgs>
+  twoFactorMethods?: boolean | Prisma.User$twoFactorMethodsArgs<ExtArgs>
   avatar?: boolean | Prisma.User$avatarArgs<ExtArgs>
   createdCredits?: boolean | Prisma.User$createdCreditsArgs<ExtArgs>
   createdGenres?: boolean | Prisma.User$createdGenresArgs<ExtArgs>
@@ -3454,6 +3785,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     reviews: Prisma.$ReviewPayload<ExtArgs>[]
     watchlist: Prisma.$WatchlistEntryPayload<ExtArgs>[]
     roles: Prisma.$RolePayload<ExtArgs>[]
+    twoFactorMethods: Prisma.$TwoFactorMethodPayload<ExtArgs>[]
     /**
      * File columns
      */
@@ -3484,7 +3816,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     bio: string | null
     passwordHash: string | null
     verifiedEmail: boolean
-    twoFactorAuth: $Enums.UserTwoFactorAuth
+    phoneNumber: string | null
+    verifiedPhone: boolean
     enabled: boolean
     logoutAt: Date | null
     avatarId: number | null
@@ -3891,6 +4224,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   reviews<T extends Prisma.User$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   watchlist<T extends Prisma.User$watchlistArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$watchlistArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WatchlistEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   roles<T extends Prisma.User$rolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$rolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  twoFactorMethods<T extends Prisma.User$twoFactorMethodsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$twoFactorMethodsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TwoFactorMethodPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   avatar<T extends Prisma.User$avatarArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$avatarArgs<ExtArgs>>): Prisma.Prisma__FileClient<runtime.Types.Result.GetResult<Prisma.$FilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   createdCredits<T extends Prisma.User$createdCreditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdCreditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CreditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdGenres<T extends Prisma.User$createdGenresArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdGenresArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GenrePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3939,7 +4273,8 @@ export interface UserFieldRefs {
   readonly bio: Prisma.FieldRef<"User", 'String'>
   readonly passwordHash: Prisma.FieldRef<"User", 'String'>
   readonly verifiedEmail: Prisma.FieldRef<"User", 'Boolean'>
-  readonly twoFactorAuth: Prisma.FieldRef<"User", 'UserTwoFactorAuth'>
+  readonly phoneNumber: Prisma.FieldRef<"User", 'String'>
+  readonly verifiedPhone: Prisma.FieldRef<"User", 'Boolean'>
   readonly enabled: Prisma.FieldRef<"User", 'Boolean'>
   readonly logoutAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly avatarId: Prisma.FieldRef<"User", 'Int'>
@@ -4414,6 +4749,30 @@ export type User$rolesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
   take?: number
   skip?: number
   distinct?: Prisma.RoleScalarFieldEnum | Prisma.RoleScalarFieldEnum[]
+}
+
+/**
+ * User.twoFactorMethods
+ */
+export type User$twoFactorMethodsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TwoFactorMethod
+   */
+  select?: Prisma.TwoFactorMethodSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TwoFactorMethod
+   */
+  omit?: Prisma.TwoFactorMethodOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TwoFactorMethodInclude<ExtArgs> | null
+  where?: Prisma.TwoFactorMethodWhereInput
+  orderBy?: Prisma.TwoFactorMethodOrderByWithRelationInput | Prisma.TwoFactorMethodOrderByWithRelationInput[]
+  cursor?: Prisma.TwoFactorMethodWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TwoFactorMethodScalarFieldEnum | Prisma.TwoFactorMethodScalarFieldEnum[]
 }
 
 /**

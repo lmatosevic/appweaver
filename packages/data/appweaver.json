@@ -3,7 +3,8 @@
     "security": {
       "apiKey": { "keepDatabaseTable": true },
       "store": { "keepDatabaseTable": true },
-      "oauth2": { "connectedAccountsKeepDatabaseTable": true }
+      "oauth2": { "connectedAccountsKeepDatabaseTable": true },
+      "account": { "2fa": { "keepDatabaseTable": true } }
     }
   }
 }

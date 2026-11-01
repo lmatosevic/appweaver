@@ -24,6 +24,7 @@ const withFrameworkModels = (...models: ResourceModel[]) =>
       model('Permission'),
       model('ApiKey'),
       model('OneTimeToken'),
+      model('TwoFactorMethod'),
       model('File'),
       model('Seeder'),
       ...models
@@ -53,7 +54,13 @@ describe('prune-util', () => {
       const removed = pruneUnusedModels(models);
 
       expect(removed).toEqual(
-        expect.arrayContaining(['Role', 'Permission', 'ApiKey', 'OneTimeToken'])
+        expect.arrayContaining([
+          'Role',
+          'Permission',
+          'ApiKey',
+          'OneTimeToken',
+          'TwoFactorMethod'
+        ])
       );
       expect(models).not.toHaveProperty('Role');
     });

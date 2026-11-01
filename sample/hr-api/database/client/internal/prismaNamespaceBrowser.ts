@@ -60,6 +60,7 @@ export const ModelName = {
   PerformanceReview: 'PerformanceReview',
   Position: 'Position',
   OneTimeToken: 'OneTimeToken',
+  TwoFactorMethod: 'TwoFactorMethod',
   Role: 'Role',
   Permission: 'Permission',
   Seeder: 'Seeder',
@@ -143,7 +144,8 @@ export const EmployeeScalarFieldEnum = {
   terminatedAt: 'terminatedAt',
   passwordHash: 'passwordHash',
   verifiedEmail: 'verifiedEmail',
-  twoFactorAuth: 'twoFactorAuth',
+  phoneNumber: 'phoneNumber',
+  verifiedPhone: 'verifiedPhone',
   enabled: 'enabled',
   logoutAt: 'logoutAt',
   departmentId: 'departmentId',
@@ -246,6 +248,23 @@ export const OneTimeTokenScalarFieldEnum = {
 } as const
 
 export type OneTimeTokenScalarFieldEnum = (typeof OneTimeTokenScalarFieldEnum)[keyof typeof OneTimeTokenScalarFieldEnum]
+
+
+export const TwoFactorMethodScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  priority: 'priority',
+  secret: 'secret',
+  confirmedAt: 'confirmedAt',
+  lastUsedStep: 'lastUsedStep',
+  employeeId: 'employeeId',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt',
+  deletedAt: 'deletedAt',
+  deletedById: 'deletedById'
+} as const
+
+export type TwoFactorMethodScalarFieldEnum = (typeof TwoFactorMethodScalarFieldEnum)[keyof typeof TwoFactorMethodScalarFieldEnum]
 
 
 export const RoleScalarFieldEnum = {

@@ -27,5 +27,11 @@ export const defaultTranslations: Translations = {
       expires:
         'The code expires in {count, plural, one {# minute} other {# minutes}}.'
     }
+  },
+  sms: {
+    twoFactorCode:
+      '{code} is your {appName} verification code. It expires in {count, plural, one {# minute} other {# minutes}}.',
+    verifyPhone:
+      '{code} is your {appName} phone verification code. It expires in {count, plural, one {# minute} other {# minutes}}.'
   }
 };

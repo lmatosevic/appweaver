@@ -7,6 +7,7 @@ import {
   Queue,
   Scheduler,
   SecurityStore,
+  SmsSender,
   Storage,
   TemplateEngine
 } from '@appweaver/common';
@@ -19,6 +20,7 @@ import { memoryConfig } from '../memory/memory-config';
 import { queueConfig } from '../queue/queue-config';
 import { schedulerConfig } from '../scheduler/scheduler-config';
 import { securityStoreConfig } from '../security/security-store-config';
+import { smsConfig } from '../sms/sms-config';
 import { storageConfig } from '../storage/storage-config';
 import { templateConfig } from '../template/template-config';
 
@@ -33,6 +35,7 @@ export default defineModule({
     securityStoreConfig,
     queueConfig,
     mailerConfig,
+    smsConfig,
     templateConfig,
     schedulerConfig,
     localeConfig,
@@ -46,6 +49,7 @@ export default defineModule({
     'locale',
     'mailer',
     'queue',
+    'sms',
     'storage'
   ],
   contracts: [
@@ -56,6 +60,7 @@ export default defineModule({
     { contract: SecurityStore, provider: () => securityStoreConfig.PROVIDER },
     { contract: Queue, provider: () => queueConfig.PROVIDER },
     { contract: Mailer, provider: () => mailerConfig.PROVIDER },
+    { contract: SmsSender, provider: () => smsConfig.PROVIDER },
     { contract: TemplateEngine, provider: () => templateConfig.PROVIDER },
     { contract: Scheduler, provider: () => schedulerConfig.PROVIDER }
   ],
@@ -101,6 +106,12 @@ export default defineModule({
       name: 'json',
       load: () => import('../mailer/json-mailer'),
       auto: false
+    },
+    {
+      contract: SmsSender,
+      name: 'json',
+      load: () => import('../sms/json-sms'),
+      auto: false
     }
   ],
   services: [
@@ -110,6 +121,7 @@ export default defineModule({
       load: () => import('../mailer/email-service'),
       requires: [Mailer, Queue]
     },
+    { load: () => import('../sms/sms-service'), requires: [SmsSender] },
     { load: () => import('../health/health-service') },
     { load: () => import('../health/health-listener') }
   ]

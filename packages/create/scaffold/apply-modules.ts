@@ -104,6 +104,10 @@ const unknownRole = 'else\n  echo "Could not match the container role';
 
 const translationFile = 'locales/en.json';
 
+/** The Twilio account of the SMS sender, set in the environment of a deployment. */
+const twilioEnv =
+  '\n# Twilio account of the SMS sender, used outside the dev and test environments\nSMS_TWILIO_ACCOUNT_SID=\nSMS_TWILIO_AUTH_TOKEN=\nSMS_SENDER=\n';
+
 const integrations: ModuleIntegration[] = [
   // The database password referenced by the appweaver.json URL, and the ignored SQLite database files
   {
@@ -111,7 +115,11 @@ const integrations: ModuleIntegration[] = [
     enable: (scaffold) => {
       const { database, name } = scaffold.context;
       for (const file of ['.env', '.env.example']) {
-        addText(scaffold, file, getSecretsEnv(database, name));
+        // Before the Twilio account, so the order does not depend on the module added first
+        const before = scaffold.files.read(file)?.includes(twilioEnv)
+          ? twilioEnv
+          : undefined;
+        addText(scaffold, file, getSecretsEnv(database, name), before);
       }
       addText(scaffold, '.gitignore', getSqliteGitignore(database), '# OS');
     },
@@ -121,6 +129,20 @@ const integrations: ModuleIntegration[] = [
         removeText(scaffold, file, getSecretsEnv(database, name));
       }
       removeText(scaffold, '.gitignore', getSqliteGitignore(database));
+    }
+  },
+  // The Twilio account of the SMS sender
+  {
+    modules: ['sms'],
+    enable: (scaffold) => {
+      for (const file of ['.env', '.env.example']) {
+        addText(scaffold, file, twilioEnv);
+      }
+    },
+    disable: (scaffold) => {
+      for (const file of ['.env', '.env.example']) {
+        removeText(scaffold, file, twilioEnv);
+      }
     }
   },
   {

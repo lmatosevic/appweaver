@@ -77,6 +77,19 @@ model Role {
   createdAt DateTime @default(now())
 }
 
+model TwoFactorMethod {
+  id           Int                 @id @default(autoincrement())
+  type         TwoFactorMethodType
+  priority     Int                 @default(0)
+  secret       String?
+  confirmedAt  DateTime?
+  lastUsedStep Int?
+
+  /// Audit columns
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
 model Seeder {
   id         String   @id @default(uuid())
   checksum   String
@@ -107,4 +120,10 @@ model File {
   deletedAt DateTime?
 
   @@index([resourceName, resourceId, resourceField])
+}
+
+enum TwoFactorMethodType {
+  email
+  sms
+  totp
 }

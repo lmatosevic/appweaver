@@ -170,6 +170,38 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     title: 'Email already verified'
   },
   [ErrorCode.AccountPasswordNotSet]: { status: 403, title: 'Password not set' },
+  [ErrorCode.AccountEmailNotVerified]: {
+    status: 403,
+    title: 'Email not verified'
+  },
+  [ErrorCode.AccountPhoneNotVerified]: {
+    status: 403,
+    title: 'Phone number not verified'
+  },
+  [ErrorCode.AccountPhoneAlreadyVerified]: {
+    status: 409,
+    title: 'Phone number already verified'
+  },
+  [ErrorCode.Account2FAMethodUnavailable]: {
+    status: 400,
+    title: '2FA method unavailable'
+  },
+  [ErrorCode.Account2FAMethodNotEnabled]: {
+    status: 400,
+    title: '2FA method not enabled'
+  },
+  [ErrorCode.Account2FAMethodAlreadyEnabled]: {
+    status: 409,
+    title: '2FA method already enabled'
+  },
+  [ErrorCode.Account2FACodeInvalid]: {
+    status: 400,
+    title: 'Invalid 2FA code'
+  },
+  [ErrorCode.Account2FATooManyAttempts]: {
+    status: 429,
+    title: 'Too many 2FA attempts'
+  },
 
   [ErrorCode.OAuth2ProviderError]: {
     status: 502,
@@ -247,6 +279,8 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     status: 500,
     title: 'Email sender missing'
   },
+
+  [ErrorCode.SmsSendFailed]: { status: 502, title: 'SMS sending failed' },
 
   [ErrorCode.TemplateNotFound]: { status: 500, title: 'Template not found' },
   [ErrorCode.TemplateRenderFailed]: {

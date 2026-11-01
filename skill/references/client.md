@@ -464,14 +464,40 @@ await client.auth.logout();
 | `verifyEmailRedirect(token, options?)` | `GET /auth/account/verify-email-redirect` | Handle redirect-based verification |
 | `sendResetPassword(request, options?)` | `POST /auth/account/send-reset-password`  | Send password reset email          |
 | `resetPassword(request, options?)`     | `POST /auth/account/reset-password`       | Reset password with token          |
-| `send2FACode(request, options?)`       | `POST /auth/account/send-2fa-code`        | Send a 2FA code to the user        |
-| `verify2FACode(request, options?)`     | `POST /auth/account/verify-2fa-code`      | Verify a submitted 2FA code        |
+| `sendVerifyPhone(request, options?)`   | `POST /auth/account/send-verify-phone`    | Send a phone verification code     |
+| `verifyPhone(request, options?)`       | `POST /auth/account/verify-phone`         | Verify the phone with the code     |
 
 ```ts
 await client.account.sendVerifyEmail({ email: 'user@example.com' });
 await client.account.verifyEmail({ token: 'abc123' });
 await client.account.sendResetPassword({ email: 'user@example.com' });
 await client.account.resetPassword({ token: 'abc123', password: 'newpass' });
+```
+
+### `TwoFactorClient`
+
+The two-factor authentication, under the `/2fa` path of the account routes (`twoFactor` of the
+`x-appweaver-config.routePrefixes` of the schema).
+
+| Method                                      | HTTP                                        | Description                                  |
+|---------------------------------------------|---------------------------------------------|----------------------------------------------|
+| `challenge(request?, options?)`             | `POST /auth/account/2fa/challenge`          | Send a challenge by a method, or the default |
+| `verify(request, options?)`                 | `POST /auth/account/2fa/verify`             | Verify a code, returns the token to exchange |
+| `listMethods(options?)`                     | `GET /auth/account/2fa/methods`             | List the enabled and the available methods   |
+| `enableMethod(request, options?)`           | `POST /auth/account/2fa/methods`            | Enable the email or SMS method               |
+| `orderMethods(request, options?)`           | `PUT /auth/account/2fa/methods/order`       | Order the methods, the first is the default  |
+| `disableMethod(method, request?, options?)` | `DELETE /auth/account/2fa/methods/{method}` | Disable a method, with the password          |
+| `setupTotp(options?)`                       | `POST /auth/account/2fa/totp/setup`         | Start the setup of an authenticator app      |
+| `confirmTotp(request, options?)`            | `POST /auth/account/2fa/totp/confirm`       | Confirm the setup with a code of the app     |
+
+```ts
+const session = await client.auth.login({ username: 'user@example.com', password: 'secret' });
+if (session.twoFactorMethods) {
+  // The tokens of the 2fa scope, used by the challenge and its verification only
+  const { challengeId } = await client.twoFactor.challenge({ method: 'totp' });
+  const { token } = await client.twoFactor.verify({ challengeId, code: '123456' });
+  await client.auth.exchangeToken({ token });
+}
 ```
 
 ### `HealthClient`

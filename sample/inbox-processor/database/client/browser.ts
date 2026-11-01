@@ -33,6 +33,11 @@ export type User = Prisma.UserModel
  */
 export type OneTimeToken = Prisma.OneTimeTokenModel
 /**
+ * Model TwoFactorMethod
+ * 
+ */
+export type TwoFactorMethod = Prisma.TwoFactorMethodModel
+/**
  * Model Role
  * 
  */

@@ -27,7 +27,10 @@ import {
   ResourceClient,
   ResourceInterface,
   ResourceMethods,
-  ResourceType
+  ResourceType,
+  TwoFactorClient,
+  TwoFactorInterface,
+  TwoFactorType
 } from './modules';
 
 /** Maps a `Promise`-returning type to a concrete RxJS `Observable`. */
@@ -139,6 +142,20 @@ export class AngularClient<
     ClientResult<AccountClient<Account>, AccountInterface, OmitFields>
   > {
     const instance = super.accountClient<Account, OmitFields>(accountPath);
+    return this.wrapWithObservables(instance);
+  }
+
+  protected twoFactorClient<
+    TwoFactor extends TwoFactorType,
+    OmitFields extends readonly (keyof TwoFactorInterface)[] = []
+  >(
+    twoFactorPath: string
+  ): ObservableMethods<
+    ClientResult<TwoFactorClient<TwoFactor>, TwoFactorInterface, OmitFields>
+  > {
+    const instance = super.twoFactorClient<TwoFactor, OmitFields>(
+      twoFactorPath
+    );
     return this.wrapWithObservables(instance);
   }
 

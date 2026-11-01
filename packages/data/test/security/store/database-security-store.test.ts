@@ -155,6 +155,36 @@ describe('database-security-store', () => {
       );
     });
 
+    test('replaces the data of a token failing validation', async () => {
+      await expect(
+        store.useOneTimeToken('token', 'verifyEmail', () => ({
+          valid: false,
+          message: 'Invalid code',
+          data: { userId: 7, attempts: 1 }
+        }))
+      ).rejects.toThrow('Invalid code');
+
+      expect(db.lastQuery('updateMany').args).toEqual({
+        where: { id: 10 },
+        data: { data: { userId: 7, attempts: 1 } }
+      });
+    });
+
+    test('revokes a token failing validation', async () => {
+      const error = new Error('Too many attempts');
+
+      await expect(
+        store.useOneTimeToken('token', 'verifyEmail', () => ({
+          valid: false,
+          message: 'Invalid code',
+          revoke: true,
+          error
+        }))
+      ).rejects.toBe(error);
+
+      expect(db.lastQuery('deleteMany').args.where).toEqual({ id: 10 });
+    });
+
     test('consumes a token that passes validation', async () => {
       await expect(
         store.useOneTimeToken('token', 'verifyEmail', () => ({

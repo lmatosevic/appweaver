@@ -12,6 +12,7 @@ const packages = [
   'nodemailer',
   'handlebars',
   'sharp',
+  'twilio',
   'testing',
   'create',
   'cli',

@@ -4,12 +4,18 @@ import {
   makeHash,
   Memory,
   SecurityStore,
-  ValidationResult,
+  TokenValidationResult,
   AuthError
 } from '@appweaver/common';
 import { inject } from '../../context';
 
 const SECURITY_OTT_KEY = 'security:ott';
+
+/** A stored token, with its expiration, so data replaced on a failed validation keeps the remaining time to live. */
+type StoredToken<T> = {
+  data: T;
+  expiresAt: number;
+};
 
 export class MemorySecurityStore extends SecurityStore {
   /** @internal */
@@ -23,8 +29,8 @@ export class MemorySecurityStore extends SecurityStore {
     const token = generateToken('bytes', 64);
 
     await this._memory.set(
-      `${SECURITY_OTT_KEY}:${purpose}:${makeHash(token)}`,
-      data,
+      this.tokenKey(token, purpose),
+      { data, expiresAt: Date.now() + ttl } satisfies StoredToken<T>,
       ttl
     );
 
@@ -34,12 +40,12 @@ export class MemorySecurityStore extends SecurityStore {
   public async useOneTimeToken<T = any>(
     token: string,
     purpose: string,
-    validateContent?: (value: T) => ValidationResult
+    validateContent?: (value: T) => TokenValidationResult<T>
   ): Promise<T> {
-    const tokenKey = `${SECURITY_OTT_KEY}:${purpose}:${makeHash(token)}`;
-    const value = await this._memory.get<T>(tokenKey);
+    const tokenKey = this.tokenKey(token, purpose);
+    const stored = await this._memory.get<StoredToken<T>>(tokenKey);
 
-    if (value === null) {
+    if (stored === null) {
       throw new AuthError(
         ErrorCode.AuthInvalidToken,
         'Invalid or expired token provided'
@@ -48,9 +54,22 @@ export class MemorySecurityStore extends SecurityStore {
 
     // A token failing the validation is kept, so it can be used again
     if (validateContent) {
-      const result = validateContent(value);
+      const result = validateContent(stored.data);
       if (!result.valid) {
-        throw new AuthError(ErrorCode.AuthInvalidToken, result.message);
+        const ttl = stored.expiresAt - Date.now();
+        if (result.revoke || ttl <= 0) {
+          await this._memory.delete(tokenKey);
+        } else if (result.data !== undefined) {
+          await this._memory.set(
+            tokenKey,
+            { data: result.data, expiresAt: stored.expiresAt },
+            ttl
+          );
+        }
+        throw (
+          result.error ??
+          new AuthError(ErrorCode.AuthInvalidToken, result.message)
+        );
       }
     }
 
@@ -63,6 +82,11 @@ export class MemorySecurityStore extends SecurityStore {
       );
     }
 
-    return value;
+    return stored.data;
+  }
+
+  /** @internal */
+  private tokenKey(token: string, purpose: string): string {
+    return `${SECURITY_OTT_KEY}:${purpose}:${makeHash(token)}`;
   }
 }

@@ -346,7 +346,8 @@ export type Employee = {
   terminatedAt?: Date | null;
   passwordHash?: string | null;
   verifiedEmail: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  phoneNumber?: string | null;
+  verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
   fullName: string;
@@ -365,6 +366,7 @@ export type Employee = {
   reviews?: Array<PerformanceReviewSingle>;
   writtenReviews?: Array<PerformanceReviewSingle>;
   roles: Array<RoleSingle>;
+  twoFactorMethods: Array<TwoFactorMethodSingle>;
   avatar?: FileSingle | null;
   updatedAt: Date;
   createdAt: Date;
@@ -385,7 +387,8 @@ export type EmployeeSingle = {
   hireDate: Date;
   terminatedAt?: Date | null;
   verifiedEmail: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  phoneNumber?: string | null;
+  verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
   fullName: string;
@@ -417,7 +420,8 @@ export type EmployeeMultiple = {
   hireDate: Date;
   terminatedAt?: Date | null;
   verifiedEmail: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  phoneNumber?: string | null;
+  verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
   fullName: string;
@@ -441,7 +445,6 @@ export type EmployeeCreate = {
   phone?: string | null;
   employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   hireDate: Date;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
   department?:
@@ -475,7 +478,6 @@ export type EmployeeUpdate = {
   employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   status?: 'Active' | 'OnLeave' | 'Terminated';
   hireDate?: Date;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
   department?:
@@ -509,7 +511,6 @@ export type EmployeeReplace = {
   employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   status?: 'Active' | 'OnLeave' | 'Terminated';
   hireDate: Date;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
   department?:
@@ -542,7 +543,6 @@ export type EmployeeRelationCreate = {
   phone?: string | null;
   employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   hireDate: Date;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
 };
@@ -556,7 +556,6 @@ export type EmployeeRelationUpdate = {
   employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   status?: 'Active' | 'OnLeave' | 'Terminated';
   hireDate?: Date;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
 };
@@ -1112,6 +1111,84 @@ export type OneTimeTokenResourceService = IResourceService<
   OneTimeTokenReplace
 >;
 
+export type TwoFactorMethod = {
+  id: number;
+  type: 'email' | 'sms' | 'totp';
+  priority: number;
+  secret?: string | null;
+  confirmedAt?: Date | null;
+  lastUsedStep?: number | null;
+  employee: EmployeeSingle;
+  updatedAt: Date;
+  createdAt: Date;
+  deletedAt?: Date | null;
+  deletedById?: string | null;
+};
+
+export type TwoFactorMethodSingle = {
+  id: number;
+  type: 'email' | 'sms' | 'totp';
+  priority: number;
+  confirmedAt?: Date | null;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type TwoFactorMethodMultiple = {
+  id: number;
+  type: 'email' | 'sms' | 'totp';
+  priority: number;
+  confirmedAt?: Date | null;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type TwoFactorMethodCreate = {
+  type: 'email' | 'sms' | 'totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodUpdate = {
+  type?: 'email' | 'sms' | 'totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodReplace = {
+  type: 'email' | 'sms' | 'totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodRelationCreate = {
+  type: 'email' | 'sms' | 'totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodRelationUpdate = {
+  id: number;
+  type?: 'email' | 'sms' | 'totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodQuery = QueryFilter<TwoFactorMethod>;
+
+export type TwoFactorMethodSort = QuerySort<TwoFactorMethodMultiple>;
+
+export type TwoFactorMethodAggregate = AggregateSelect<TwoFactorMethod>;
+
+export type TwoFactorMethodResourceService = IResourceService<
+  TwoFactorMethod,
+  TwoFactorMethodMultiple,
+  TwoFactorMethodCreate,
+  TwoFactorMethodUpdate,
+  TwoFactorMethodQuery,
+  TwoFactorMethodReplace
+>;
+
 export type Role = {
   id: number;
   name: string;
@@ -1414,7 +1491,8 @@ declare module '@appweaver/common' {
         | 'compensations'
         | 'reviews'
         | 'writtenReviews'
-        | 'roles';
+        | 'roles'
+        | 'twoFactorMethods';
     };
     LeaveBalance: {
       model: LeaveBalance;
@@ -1470,6 +1548,17 @@ declare module '@appweaver/common' {
       query: OneTimeTokenQuery;
       service: OneTimeTokenResourceService;
       relations: never;
+    };
+    TwoFactorMethod: {
+      model: TwoFactorMethod;
+      single: TwoFactorMethodSingle;
+      multiple: TwoFactorMethodMultiple;
+      create: TwoFactorMethodCreate;
+      update: TwoFactorMethodUpdate;
+      replace: TwoFactorMethodReplace;
+      query: TwoFactorMethodQuery;
+      service: TwoFactorMethodResourceService;
+      relations: 'employee';
     };
     Role: {
       model: Role;

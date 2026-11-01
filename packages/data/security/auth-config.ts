@@ -42,3 +42,9 @@ export const connectedAccountConfig = defineConfig('security.oauth2', {
   /** Keep the `ConnectedAccount` database table even when every OAuth2 provider is disabled. Default: `false`. */
   CONNECTED_ACCOUNTS_KEEP_DATABASE_TABLE: Type.Boolean({ default: false })
 });
+
+export const twoFactorModelConfig = defineConfig('security.account.2fa', {
+  /** Keep the `TwoFactorMethod` database table even when the two-factor authentication is disabled. Default:
+   * `false`. */
+  KEEP_DATABASE_TABLE: Type.Boolean({ default: false })
+});

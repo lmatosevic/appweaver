@@ -12,7 +12,8 @@ import {
   apiKeyConfig,
   connectedAccountConfig,
   passwordConfig,
-  systemConfig
+  systemConfig,
+  twoFactorModelConfig
 } from './security/auth-config';
 import { imageConfig } from './storage/image-config';
 
@@ -27,6 +28,7 @@ export default defineModule({
     passwordConfig,
     apiKeyConfig,
     connectedAccountConfig,
+    twoFactorModelConfig,
     systemConfig
   ],
   loggers: ['database', 'resource', 'storage'],

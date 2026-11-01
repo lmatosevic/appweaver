@@ -7,23 +7,24 @@ first-party module does.
 
 ## First-party modules
 
-| Module                  | Enabled                      | Brings                                                                                                            |
-|-------------------------|------------------------------|-------------------------------------------------------------------------------------------------------------------|
-| `@appweaver/core`       | Always                       | The contracts and the in-process drivers: `memory`, `node` events, `local` storage, `memory` queue, `json` mailer |
-| `@appweaver/data`       | Installed                    | The `prisma` database, the resources, `FileService`, the `database` security store                                |
-| `@appweaver/web`        | Installed (requires `data`)  | The Fastify server (`HttpServer`), authentication, account and OAuth2 services                                    |
-| `@appweaver/redis`      | Installed                    | The `redis` memory, also the store of the cache and the rate limit                                                |
-| `@appweaver/bullmq`     | Installed (requires `redis`) | The `bullmq` queue                                                                                                |
-| `@appweaver/cron`       | Installed                    | The `cron` scheduler                                                                                              |
-| `@appweaver/nodemailer` | Installed                    | The `smtp` mailer                                                                                                 |
-| `@appweaver/handlebars` | Installed                    | The `handlebars` template engine                                                                                  |
-| `@appweaver/sharp`      | Installed                    | The `sharp` image processor                                                                                       |
+| Module                  | Enabled                      | Brings                                                                                                                               |
+|-------------------------|------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| `@appweaver/core`       | Always                       | The contracts and the in-process drivers: `memory`, `node` events, `local` storage, `memory` queue, `json` mailer, `json` SMS sender |
+| `@appweaver/data`       | Installed                    | The `prisma` database, the resources, `FileService`, the `database` security store                                                   |
+| `@appweaver/web`        | Installed (requires `data`)  | The Fastify server (`HttpServer`), authentication, account, 2FA (`TwoFactorService`) and OAuth2 services                             |
+| `@appweaver/redis`      | Installed                    | The `redis` memory, also the store of the cache and the rate limit                                                                   |
+| `@appweaver/bullmq`     | Installed (requires `redis`) | The `bullmq` queue                                                                                                                   |
+| `@appweaver/cron`       | Installed                    | The `cron` scheduler                                                                                                                 |
+| `@appweaver/nodemailer` | Installed                    | The `smtp` mailer                                                                                                                    |
+| `@appweaver/twilio`     | Installed                    | The `twilio` SMS sender (`SmsSender`), with the REST API of Twilio and no SDK                                                        |
+| `@appweaver/handlebars` | Installed                    | The `handlebars` template engine                                                                                                     |
+| `@appweaver/sharp`      | Installed                    | The `sharp` image processor                                                                                                          |
 
 Every first-party module but core is a package of its own, enabled like any [package module](#package-modules): by
 being a dependency of the application's `package.json`. A driver package carries the library it wraps as a dependency,
 so `npm install @appweaver/redis` moves the memory, the cache and the rate limit to Redis without any config, and
 installing `ioredis` alone enables nothing. The scaffold modules of `weaver module add` (`data`, `web`, `redis`,
-`queue`, `mailer`,
+`queue`, `mailer`, `sms`,
 ...) install these packages along with their config and files.
 
 ## Discovery
@@ -386,10 +387,12 @@ A driver of an external service runs the suite on an in-memory stand-in of its c
 | `testQueueContract`     | `Queue`     | A job processed by a worker and its result, a failed job, a given job id and an ignored send of one still queued, closing a queue, the health check |
 | `testSchedulerContract` | `Scheduler` | Adding, starting, stopping and removing a job, an unknown job id (yearly jobs, none ticks)                                                          |
 | `testMailerContract`    | `Mailer`    | Sending an email with every field of the contract, the health check                                                                                 |
+| `testSmsContract`       | `SmsSender` | Sending a text message with and without a sender, the name of its health check, the health check                                                    |
 
 The suites use the `describe`, `test`, `beforeEach`, `afterEach` and `expect` globals, so they run under Jest, Vitest
 (with `globals: true`) and Bun. A driver of a remote service runs them against a test instance or emulator, the
-mailer suite against a test inbox or a mocked transport, since it sends a real email. Set the config the driver reads
+mailer suite against a test inbox or a mocked transport, since it sends a real email, and the SMS suite against a test
+number or a mocked API (`jest.spyOn(global, 'fetch')` for Twilio). Set the config the driver reads
 with `configOverrides` of `@appweaver/common` in the factory or a `beforeAll`.
 
 ### Adding a module package

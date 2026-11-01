@@ -51,7 +51,8 @@ describe('core resources barrel', () => {
       'OneTimeToken',
       'Permission',
       'Role',
-      'Seeder'
+      'Seeder',
+      'TwoFactorMethod'
     ]);
   });
 
