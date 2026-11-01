@@ -9,5 +9,6 @@ export { default as file } from './storage/resources/file/model';
 
 export { default as apiKeyService } from './security/resources/api-key/service';
 export { default as connectedAccountService } from './security/resources/connected-account/service';
+export { default as queueJobRecordService } from './queue/resources/queue-job-record/service';
 
 export { default as apiKeyPolicy } from './security/resources/api-key/policy';

@@ -61,5 +61,6 @@ describe('core resources barrel', () => {
     // Without a service registered under the model name `injectService` finds nothing and the writes silently no-op
     expect(serviceNames).toContain('ApiKey');
     expect(serviceNames).toContain('ConnectedAccount');
+    expect(serviceNames).toContain('QueueJobRecord');
   });
 });

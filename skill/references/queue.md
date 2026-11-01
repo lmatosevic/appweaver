@@ -235,13 +235,35 @@ job. A driver without `createdAt` records every send as a new job.
 
 A job sent outside of a transaction is recorded before it is sent, so no worker starts it first. One sent inside a
 transaction is recorded once the transaction commits or rolls back (the job is sent either way), outside of it. A job
-sent by another application without the history gets its record when a worker starts it. The records are resources,
-read with `injectService('QueueJobRecord')` or the Prisma client (`db.queueJobRecord`):
+sent by another application without the history gets its record when a worker starts it.
+
+The records are resources of `@appweaver/data` with their service, read with `injectService('QueueJobRecord')` or the
+Prisma client (`db.queueJobRecord`), once `weaver generate` registered the model:
 
 ```ts
-const failed = await db.queueJobRecord.findMany({
-  where: { queue: 'payments', state: 'failed' },
-  orderBy: { createdAt: 'desc' }
+const failed = await injectService('QueueJobRecord').query({
+  filter: { queue: 'payments', state: 'failed' },
+  sort: '-createdAt'
+});
+```
+
+The framework exposes no route of the history. An application exposing it declares read only resource routes with
+the roles allowed to read it, like the routes of any resource, and gets the query (filter, sort, pagination), find,
+aggregate and export routes of `/queue-job-records`:
+
+```ts
+// src/resources/queue-job-record/routes.ts
+import { createRoutes } from '@appweaver/web';
+
+export default createRoutes({
+  modelName: 'QueueJobRecord',
+  defaults: { roles: ['Admin'] },
+  create: { exclude: true },
+  update: { exclude: true },
+  replace: { exclude: true },
+  delete: { exclude: true },
+  fileUpload: { exclude: true },
+  fileDelete: { exclude: true }
 });
 ```
 
