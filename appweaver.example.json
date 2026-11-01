@@ -162,8 +162,7 @@
         "enabled": false,
         "keepDatabaseTable": false,
         "headerName": "x-api-key",
-        "delimiter": "AK",
-        "routesEnabled": true
+        "delimiter": "AK"
       },
       "jwt": {
         "secret": "GdvCFezoPIZdOAN3IQZR3JhaAZH6S6AJ",

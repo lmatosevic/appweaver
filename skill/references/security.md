@@ -141,7 +141,7 @@ API keys provide long-lived, per-user credentials for programmatic access.
 
 ### How it works
 
-1. A user signed in with a JWT creates an API key via the CRUD endpoints of `/api-keys`
+1. An authenticated user creates an API key via the CRUD endpoints
 2. The server generates a 64-character random secret and stores its SHA256 hash
 3. The full key is returned once as `{id}{delimiter}{secret}` (e.g. `42AKa1b2c3d4...`)
 4. Subsequent reads show only a masked version: `{id}...{last6chars}`
@@ -171,31 +171,7 @@ Default delimiter is `AK`, so a key looks like: `42AKa1b2c3d4e5f6...`
 ### API key policy
 
 - Users can only see and manage their own API keys
-- `SECURITY_API_KEY_MAX_DURATION` limits how far in the future `expiresAt` can be set, and an update cannot change
-  `expiresAt` or the key
-
-### API key routes
-
-`@appweaver/web` registers the routes of `/api-keys` (query, find, create, update, replace and delete, without the
-aggregate and export ones) while API keys are enabled. They accept a JWT only, so a request authenticated with an API
-key never manages the keys: a leaked key cannot create new ones that outlive its revocation.
-
-`SECURITY_API_KEY_ROUTES_ENABLED=false` leaves them out, so an application exposes its own, with another path, roles
-or operations, or none. The service and the policy of `@appweaver/data` still generate, hash and mask the keys and
-limit every user to their own:
-
-```ts
-// src/resources/api-key/routes.ts
-import { createRoutes } from '@appweaver/web';
-
-export default createRoutes({
-  modelName: 'ApiKey',
-  defaults: { auth: ['jwt'], roles: ['Developer'] },
-  replace: { exclude: true },
-  aggregate: { exclude: true },
-  export: { exclude: true }
-});
-```
+- `SECURITY_API_KEY_MAX_DURATION` limits how far in the future `expiresAt` can be set
 
 **Configuration:**
 
