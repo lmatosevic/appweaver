@@ -153,36 +153,81 @@ describe('twilio-sms', () => {
   });
 
   describe('checkHealth', () => {
-    test('is up when the account is readable', async () => {
-      fetchMock.mockResolvedValue(json(200, { sid: 'AC123' }));
+    const status = (
+      indicator: string,
+      description = 'All Systems Operational'
+    ) => json(200, { status: { indicator, description } });
+
+    test('is up while Twilio reports no outage', async () => {
+      fetchMock.mockResolvedValue(status('none'));
 
       await expect(new TwilioSms().checkHealth()).resolves.toEqual({
         success: true
       });
-      expect(fetchMock.mock.calls[0][0]).toBe(
-        'https://api.twilio.com/2010-04-01/Accounts/AC123.json'
-      );
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url).toBe('https://status.twilio.com/api/v2/status.json');
+      expect(init.headers).not.toHaveProperty('Authorization');
     });
 
-    test('is down for rejected credentials', async () => {
+    test('is up during a minor outage', async () => {
+      fetchMock.mockResolvedValue(status('minor', 'Minor Service Outage'));
+
+      await expect(new TwilioSms().checkHealth()).resolves.toEqual({
+        success: true
+      });
+    });
+
+    test.each(['major', 'critical'])(
+      'is down during a %s outage',
+      async (indicator) => {
+        fetchMock.mockResolvedValue(status(indicator, 'Major Service Outage'));
+
+        await expect(new TwilioSms().checkHealth()).resolves.toEqual({
+          success: false,
+          message: 'Major Service Outage'
+        });
+      }
+    );
+
+    test('names the indicator of an outage without a description', async () => {
       fetchMock.mockResolvedValue(
-        json(401, { code: 20003, message: 'Authenticate' })
+        json(200, { status: { indicator: 'major' } })
       );
 
       await expect(new TwilioSms().checkHealth()).resolves.toEqual({
         success: false,
-        message: 'Authenticate'
+        message: 'major'
       });
     });
 
-    test('is down for a rejection without a body', async () => {
+    test('is up for a status without an indicator', async () => {
+      fetchMock.mockResolvedValue(json(200, {}));
+
+      await expect(new TwilioSms().checkHealth()).resolves.toMatchObject({
+        success: true
+      });
+    });
+
+    test('reads the configured status URL', async () => {
+      configure({
+        ...credentials,
+        SMS_TWILIO_STATUS_URL: 'http://status.test'
+      });
+      fetchMock.mockResolvedValue(status('none'));
+
+      await new TwilioSms().checkHealth();
+
+      expect(fetchMock.mock.calls[0][0]).toBe('http://status.test');
+    });
+
+    test('is down when the status page fails', async () => {
       fetchMock.mockResolvedValue(
         new Response('', { status: 503, statusText: 'Service Unavailable' })
       );
 
       await expect(new TwilioSms().checkHealth()).resolves.toEqual({
         success: false,
-        message: 'Service Unavailable'
+        message: 'Twilio status unavailable: Service Unavailable'
       });
     });
 
@@ -191,7 +236,7 @@ describe('twilio-sms', () => {
 
       await expect(new TwilioSms().checkHealth()).resolves.toEqual({
         success: false,
-        message: 'Twilio request failed: ECONNREFUSED'
+        message: 'ECONNREFUSED'
       });
     });
   });

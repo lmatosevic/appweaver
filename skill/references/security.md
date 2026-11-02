@@ -131,7 +131,9 @@ When enabled, requests with an `Authorization: Basic` header are authenticated a
 ```
 
 Uses `@fastify/basic-auth` plugin. Extracts Base64-encoded `username:password` from the header and validates against the
-user's stored password hash.
+user's stored password hash. A user who has to pass 2FA (a user with a method, or every user when it is forced) is
+rejected with `AUTH_FORBIDDEN`, since the password alone would skip the second factor; such a user authenticates with a
+JWT or an API key.
 
 ---
 
@@ -613,7 +615,8 @@ challenge fails with `ACCOUNT_2FA_METHOD_UNAVAILABLE` until the method is availa
    -> Returns the tokens of the auth scope, keeping the source of the sign-in (i.e. oauth2Google)
 ```
 
-The refresh token of the tokens of the `2fa` scope keeps that scope and the expiration of the access token, so
+Changing the password (`POST /auth/change-password`) returns the tokens of the `auth` scope, since the user passed 2FA
+to call it. The refresh token of the tokens of the `2fa` scope keeps that scope and the expiration of the access token, so
 `/auth/refresh` never turns them into the tokens of the `auth` scope without the challenge.
 
 The challenge fails with `ACCOUNT_2FA_METHOD_UNAVAILABLE` for a method the application does not offer, and with

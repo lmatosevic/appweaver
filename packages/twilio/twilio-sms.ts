@@ -100,23 +100,30 @@ export class TwilioSms extends SmsSender {
     return true;
   }
 
-  /** Checks the credentials by reading the account, without sending a message. */
+  /**
+   * Checks the status of the Twilio platform on its status page, without a request to the account, so the probes cost
+   * nothing. A major or critical outage reports the sender as down.
+   */
   async checkHealth(): Promise<HealthCheckResult> {
     try {
-      const response = await this.request(
-        `/Accounts/${this._accountSid}.json`,
-        {
-          method: 'GET'
-        }
-      );
+      const response = await fetch(twilioConfig.STATUS_URL, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(twilioConfig.TIMEOUT)
+      });
       if (!response.ok) {
-        const error = await this.readError(response);
         return {
           success: false,
-          message: error.message ?? response.statusText
+          message: `Twilio status unavailable: ${response.statusText}`
         };
       }
-      return { success: true };
+
+      const { status } = (await response.json()) as {
+        status?: { indicator?: string; description?: string };
+      };
+      const indicator = status?.indicator ?? 'none';
+      return ['major', 'critical'].includes(indicator)
+        ? { success: false, message: status?.description ?? indicator }
+        : { success: true };
     } catch (e) {
       return { success: false, message: errorMessage(e) };
     }

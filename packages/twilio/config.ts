@@ -11,6 +11,11 @@ export const twilioConfig = defineConfig('sms.twilio', {
   MESSAGING_SERVICE_SID: Type.Optional(Type.String()),
   /** Base URL of the Twilio REST API. Default: `'https://api.twilio.com'`. */
   API_URL: Type.String({ default: 'https://api.twilio.com' }),
+  /** URL of the status of the Twilio platform, read by the health check. Default:
+   * `'https://status.twilio.com/api/v2/status.json'`. */
+  STATUS_URL: Type.String({
+    default: 'https://status.twilio.com/api/v2/status.json'
+  }),
   /** Timeout of a request to the Twilio API in milliseconds. Default: `10000`. */
   TIMEOUT: Type.Integer({ default: 10000 })
 });

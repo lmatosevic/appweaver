@@ -369,6 +369,7 @@
         "authToken": "",
         "messagingServiceSid": "",
         "apiUrl": "https://api.twilio.com",
+        "statusUrl": "https://status.twilio.com/api/v2/status.json",
         "timeout": 10000
       }
     },

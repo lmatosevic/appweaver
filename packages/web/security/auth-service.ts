@@ -37,6 +37,7 @@ import {
 } from '@appweaver/data';
 import {
   cacheConfig,
+  currentAuthSource,
   inject,
   injectCreated,
   injectService,
@@ -254,7 +255,8 @@ export class AuthService {
    * @param {string} currentPassword - The current password of the authenticated user.
    * @param {string} newPassword - The new password to be set for the authenticated user.
    * @return {Promise<AuthTokens>} A promise that resolves to the new authentication tokens after the password is
-   * successfully changed.
+   * successfully changed, of the `auth` scope and the source of the current session, since the user passed 2FA to
+   * call it.
    * @throws {AuthError} `AUTH_PASSWORD_INVALID` if the current password does not match the stored password hash.
    */
   public async changePassword(
@@ -293,7 +295,11 @@ export class AuthService {
 
     logger.debug({ id: authUser.id }, 'Password changed successfully');
 
-    return this.login(authUser.email, newPassword);
+    return this.generateAuthTokens(
+      authUser,
+      AuthScope.Auth,
+      currentAuthSource() ?? AuthSource.Password
+    );
   }
 
   /**

@@ -839,6 +839,26 @@ describe('auth-service', () => {
       );
       expect(tokens.accessToken).toBeDefined();
     });
+
+    test('returns tokens of the auth scope to a user with 2FA', async () => {
+      const passwordHash = await hashPassword('Str0ng!Pass');
+      useTwoFactorMethods([
+        { type: 'totp', priority: 0, confirmedAt: new Date() }
+      ]);
+
+      const tokens = await service.changePassword(
+        user({ passwordHash, twoFactorMethods: ['totp'] }),
+        'Str0ng!Pass',
+        'New!Pass123'
+      );
+
+      expect(signedTokens[0].payload).toMatchObject({
+        scope: AuthScope.Auth,
+        source: AuthSource.Password
+      });
+      expect(signedTokens[1].payload.scope).toBe(AuthScope.Refresh);
+      expect(tokens).not.toHaveProperty('twoFactorMethods');
+    });
   });
 
   describe('logout', () => {
