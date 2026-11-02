@@ -80,6 +80,7 @@ const SCHEMA: any = {
       health: '/health',
       auth: '/auth',
       account: '/auth/account',
+      twoFactor: '/auth/account/2fa',
       files: '/files'
     }
   },

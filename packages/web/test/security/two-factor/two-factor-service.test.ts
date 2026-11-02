@@ -151,18 +151,16 @@ describe('two-factor-service', () => {
 
     methodService = {
       modelName: 'TwoFactorMethod',
-      query: jest.fn(async ({ filter }) => ({
-        items: rows.filter((row) => row.userId === filter.user)
-      })),
-      create: jest.fn(async (data) =>
-        addRow({ ...data, userId: data.user.id, user: undefined })
-      ),
-      update: jest.fn(async (id, data) => {
-        const row = rows.find((entry) => entry.id === id)!;
-        Object.assign(row, data, { updatedAt: new Date() });
-        return row;
-      }),
       client: {
+        findMany: jest.fn(async ({ where }) =>
+          rows.filter((row) => row.userId === where.userId)
+        ),
+        create: jest.fn(async ({ data }) => addRow(data)),
+        update: jest.fn(async ({ where, data }) => {
+          const row = rows.find((entry) => entry.id === where.id)!;
+          Object.assign(row, data, { updatedAt: new Date() });
+          return row;
+        }),
         updateMany: jest.fn(async ({ where, data }) => {
           const row = rows.find((entry) => entry.id === where.id);
           if (!row || (row.lastUsedStep ?? -1) >= data.lastUsedStep) {
@@ -1098,7 +1096,9 @@ describe('two-factor-service', () => {
 
   describe('database errors', () => {
     test('wraps the errors of the method queries', async () => {
-      methodService.query.mockRejectedValue(prismaError('P2010', 'db down'));
+      methodService.client.findMany.mockRejectedValue(
+        prismaError('P2010', 'db down')
+      );
 
       await expect(service.setupTotp(currentUser())).rejects.toMatchObject({
         code: ErrorCode.DatabaseOperationFailed

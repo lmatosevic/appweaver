@@ -3,7 +3,6 @@ import {
   generateToken,
   makeHash,
   Memory,
-  isPlainObject,
   SecurityStore,
   TokenValidationResult,
   AuthError
@@ -12,11 +11,10 @@ import { inject } from '../../context';
 
 const SECURITY_OTT_KEY = 'security:ott';
 
-/** A stored token, with its expiration, so data replaced on a failed validation keeps the remaining time to live. A
- * token stored by an earlier version, holding its data alone, has no expiration. */
+/** A stored token, with its expiration, so data replaced on a failed validation keeps the remaining time to live. */
 type StoredToken<T> = {
   data: T;
-  expiresAt?: number;
+  expiresAt: number;
 };
 
 export class MemorySecurityStore extends SecurityStore {
@@ -45,9 +43,7 @@ export class MemorySecurityStore extends SecurityStore {
     validateContent?: (value: T) => TokenValidationResult<T>
   ): Promise<T> {
     const tokenKey = this.tokenKey(token, purpose);
-    const stored = toStoredToken(
-      await this._memory.get<StoredToken<T> | T>(tokenKey)
-    );
+    const stored = await this._memory.get<StoredToken<T>>(tokenKey);
 
     if (stored === null) {
       throw new AuthError(
@@ -60,13 +56,10 @@ export class MemorySecurityStore extends SecurityStore {
     if (validateContent) {
       const result = validateContent(stored.data);
       if (!result.valid) {
-        const ttl =
-          stored.expiresAt === undefined
-            ? undefined
-            : stored.expiresAt - Date.now();
-        if (result.revoke || (ttl !== undefined && ttl <= 0)) {
+        const ttl = stored.expiresAt - Date.now();
+        if (result.revoke || ttl <= 0) {
           await this._memory.delete(tokenKey);
-        } else if (result.data !== undefined && ttl !== undefined) {
+        } else if (result.data !== undefined) {
           await this._memory.set(
             tokenKey,
             { data: result.data, expiresAt: stored.expiresAt },
@@ -96,19 +89,4 @@ export class MemorySecurityStore extends SecurityStore {
   private tokenKey(token: string, purpose: string): string {
     return `${SECURITY_OTT_KEY}:${purpose}:${makeHash(token)}`;
   }
-}
-
-/** Reads a stored token, wrapping the data of a token stored by an earlier version, which held its data alone. */
-function toStoredToken<T>(
-  value: StoredToken<T> | T | null
-): StoredToken<T> | null {
-  if (value === null) {
-    return null;
-  }
-  const stored = value as StoredToken<T>;
-  return isPlainObject(value) &&
-    'data' in stored &&
-    typeof stored.expiresAt === 'number'
-    ? stored
-    : { data: value as T };
 }

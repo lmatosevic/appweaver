@@ -70,11 +70,14 @@ describe('generate-client', () => {
 
     test('takes the 2FA prefix of the schema', async () => {
       const schema = createOpenApiSchema();
-      schema['x-appweaver-config'].routePrefixes.twoFactor =
-        '/auth/account/2fa';
-      schema['x-appweaver-config'].routePrefixes.account = '/auth/account';
+      schema['x-appweaver-config'].routePrefixes.twoFactor = '/mfa';
+      schema.paths!['/mfa/verify'] =
+        schema.paths!['/auth/account/2fa/challenge'];
 
-      expect(await generateClient(schema)).toContain(`>('/auth/account/2fa')`);
+      const generated = await generateClient(schema);
+
+      expect(generated).toContain(`>('/mfa')`);
+      expect(generated).not.toContain(`'/auth/account/2fa'`);
     });
 
     test('adds a health client omitting the unused operations', () => {

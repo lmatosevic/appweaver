@@ -6,8 +6,7 @@ export type RoutePathConfig = {
     health: string;
     auth: string;
     account: string;
-    /** The prefix of the 2FA routes, `<account>/2fa` when missing. */
-    twoFactor?: string;
+    twoFactor: string;
     files: string;
   };
 };

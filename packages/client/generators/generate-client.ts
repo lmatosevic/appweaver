@@ -209,7 +209,7 @@ export async function generateClient(
     );
     clientMethods.push({
       name: 'twoFactor',
-      expression: `this.twoFactorClient${genericTypes}('${twoFactorPrefix(config)}')`
+      expression: `this.twoFactorClient${genericTypes}('${config.routePrefixes.twoFactor}')`
     });
   }
 
@@ -533,7 +533,7 @@ function routeDetails(
       ['auth', config.routePrefixes.auth, AUTH_OPERATIONS],
       [
         'twoFactor',
-        twoFactorPrefix(config),
+        config.routePrefixes.twoFactor,
         TWO_FACTOR_OPERATIONS,
         TWO_FACTOR_OPERATION_PATHS
       ],
@@ -659,14 +659,6 @@ function routeOperation(
       normalizedRoute === normalize(paths[operation] ?? operation) &&
       method === operationMethod
   )?.[0];
-}
-
-/** Returns the prefix of the 2FA routes, the `/2fa` path of the account routes unless the schema names it. */
-function twoFactorPrefix(config: RoutePathConfig): string {
-  return (
-    config.routePrefixes.twoFactor ??
-    `${config.routePrefixes.account.replace(/\/$/, '')}/2fa`
-  );
 }
 
 /**

@@ -31,8 +31,7 @@ import {
   toDatabaseError,
   TwoFactorMethod,
   TwoFactorMethodResourceService,
-  TwoFactorRecoveryCodeResourceService,
-  withoutPolicies
+  TwoFactorRecoveryCodeResourceService
 } from '@appweaver/data';
 import {
   recoveryCodesConfig,
@@ -402,20 +401,16 @@ export class TwoFactorService {
     const secret = generateTotpSecret();
     const encrypted = encryptText(secret, totpConfig.ENCRYPTION_KEY!);
 
-    try {
-      await withoutPolicies(() =>
-        existing
-          ? this.methodService().update(existing.id, {
-              secret: encrypted,
-              lastUsedStep: null
-            } as any)
-          : this.saveMethod(authUser, {
-              type: TwoFactorMethodType.Totp,
-              secret: encrypted
-            })
-      );
-    } catch (e) {
-      throw toDatabaseError(e);
+    if (existing) {
+      await this.updateMethod(existing.id, {
+        secret: encrypted,
+        lastUsedStep: null
+      });
+    } else {
+      await this.saveMethod(authUser, {
+        type: TwoFactorMethodType.Totp,
+        secret: encrypted
+      });
     }
 
     logger.debug({ id: authUser.id }, 'TOTP setup started');
@@ -479,18 +474,11 @@ export class TwoFactorService {
       );
     }
 
-    const priority = await this.nextPriority(authUser);
-    try {
-      await withoutPolicies(() =>
-        this.methodService().update(method.id, {
-          confirmedAt: new Date(),
-          lastUsedStep: step,
-          priority
-        } as any)
-      );
-    } catch (e) {
-      throw toDatabaseError(e);
-    }
+    await this.updateMethod(method.id, {
+      confirmedAt: new Date(),
+      lastUsedStep: step,
+      priority: await this.nextPriority(authUser)
+    });
     await this._authService.evictCachedUsers(authUser);
 
     logger.debug({ id: authUser.id }, '2FA method enabled');
@@ -524,18 +512,11 @@ export class TwoFactorService {
       );
     }
 
-    const rows = await this.findMethods(authUser);
-    try {
-      await withoutPolicies(async () => {
-        for (const row of rows) {
-          const priority = methods.indexOf(row.type);
-          if (priority >= 0 && priority !== row.priority) {
-            await this.methodService().update(row.id, { priority });
-          }
-        }
-      });
-    } catch (e) {
-      throw toDatabaseError(e);
+    for (const row of await this.findMethods(authUser)) {
+      const priority = methods.indexOf(row.type);
+      if (priority >= 0 && priority !== row.priority) {
+        await this.updateMethod(row.id, { priority });
+      }
     }
     await this._authService.evictCachedUsers(authUser);
 
@@ -1004,14 +985,9 @@ export class TwoFactorService {
   /** @internal */
   private async findMethods(authUser: AuthUser): Promise<TwoFactorMethod[]> {
     try {
-      const { items } = await withoutPolicies(() =>
-        this.methodService().query({
-          filter: { [this.authRelation()]: authUser.id } as any,
-          size: 100,
-          totalCount: false
-        })
-      );
-      return items;
+      return await this.methodService().client.findMany({
+        where: { [this.authForeignKey()]: authUser.id }
+      });
     } catch (e) {
       throw toDatabaseError(e);
     }
@@ -1040,17 +1016,25 @@ export class TwoFactorService {
   ): Promise<void> {
     const priority = await this.nextPriority(authUser);
     try {
-      await withoutPolicies(() =>
-        this.methodService().create({
-          ...data,
-          priority,
-          [this.authRelation()]: { id: authUser.id }
-        } as any)
-      );
+      await this.methodService().client.create({
+        data: { ...data, priority, [this.authForeignKey()]: authUser.id }
+      });
     } catch (e) {
       throw toDatabaseError(e);
     }
     await this._authService.evictCachedUsers(authUser);
+  }
+
+  /** @internal */
+  private async updateMethod(
+    id: ResourceId,
+    data: Partial<TwoFactorMethod>
+  ): Promise<void> {
+    try {
+      await this.methodService().client.update({ where: { id }, data });
+    } catch (e) {
+      throw toDatabaseError(e);
+    }
   }
 
   /**
@@ -1115,14 +1099,9 @@ export class TwoFactorService {
     return this._recoveryCodeService;
   }
 
-  /** @internal */
-  private authRelation(): string {
-    return uncapitalize(this._authUserService.modelName);
-  }
-
   /** The foreign key column of the auth model, i.e. `userId`.
    * @internal */
   private authForeignKey(): string {
-    return `${this.authRelation()}Id`;
+    return `${uncapitalize(this._authUserService.modelName)}Id`;
   }
 }

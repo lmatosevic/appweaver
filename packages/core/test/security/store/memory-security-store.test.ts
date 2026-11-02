@@ -159,32 +159,6 @@ describe('memory-security-store', () => {
       await expect(memory.has(key)).resolves.toBe(false);
     });
 
-    test('reads a token stored by an earlier version, holding its data alone', async () => {
-      await memory.set(
-        tokenKey('verifyEmail', 'legacy'),
-        { userId: 7 },
-        60_000
-      );
-
-      await expect(
-        store.useOneTimeToken('legacy', 'verifyEmail')
-      ).resolves.toEqual({ userId: 7 });
-    });
-
-    test('keeps the data of an earlier token failing validation', async () => {
-      const key = tokenKey('twoFA', 'legacy');
-      await memory.set(key, { attempts: 0 }, 60_000);
-
-      await expect(
-        store.useOneTimeToken('legacy', 'twoFA', () => ({
-          valid: false,
-          message: 'Invalid code',
-          data: { attempts: 1 }
-        }))
-      ).rejects.toThrow('Invalid code');
-      await expect(memory.get(key)).resolves.toEqual({ attempts: 0 });
-    });
-
     test('lets only one of concurrent uses consume the token', async () => {
       const token = await store.generateOneTimeToken(
         'passwordReset',

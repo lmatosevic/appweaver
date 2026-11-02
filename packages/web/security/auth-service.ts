@@ -689,16 +689,12 @@ export class AuthService {
       return authUser;
     }
 
-    const authRelation = uncapitalize(this._authUserService.modelName);
-    const { items } = await withoutPolicies(() =>
-      service.query({
-        filter: { [authRelation]: authUser.id } as any,
-        size: 100,
-        totalCount: false
-      })
-    );
+    const authForeignKey = `${uncapitalize(this._authUserService.modelName)}Id`;
+    const items: TwoFactorMethod[] = await service.client.findMany({
+      where: { [authForeignKey]: authUser.id }
+    });
 
-    const twoFactorMethods = (items as TwoFactorMethod[])
+    const twoFactorMethods = items
       .filter((method) => method.confirmedAt)
       .sort((a, b) => a.priority - b.priority)
       .map((method) => method.type);

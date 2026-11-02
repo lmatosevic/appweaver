@@ -59,7 +59,7 @@ describe('auth-service', () => {
   const useTwoFactorMethods = (methods: object[]) => {
     const methodService = {
       modelName: 'TwoFactorMethod',
-      query: jest.fn().mockResolvedValue({ items: methods })
+      client: { findMany: jest.fn().mockResolvedValue(methods) }
     };
     context.resource.services.set('TwoFactorMethod', methodService as any);
     service = new AuthService();
@@ -203,9 +203,9 @@ describe('auth-service', () => {
       await expect(service.findById(1)).resolves.toMatchObject({
         twoFactorMethods: ['email', 'sms']
       });
-      expect(methodService.query).toHaveBeenCalledWith(
-        expect.objectContaining({ filter: { user: 1 } })
-      );
+      expect(methodService.client.findMany).toHaveBeenCalledWith({
+        where: { userId: 1 }
+      });
       expect(cacheService.addToCache).toHaveBeenCalledWith(
         'auth:1:inv',
         expect.objectContaining({ twoFactorMethods: ['email', 'sms'] }),
@@ -234,7 +234,7 @@ describe('auth-service', () => {
       const methodService = useTwoFactorMethods([]);
 
       await expect(service.findById(1)).resolves.toBeNull();
-      expect(methodService.query).not.toHaveBeenCalled();
+      expect(methodService.client.findMany).not.toHaveBeenCalled();
     });
 
     test('wraps a lookup failure into a server error', async () => {
