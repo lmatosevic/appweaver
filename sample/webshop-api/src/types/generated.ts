@@ -898,6 +898,12 @@ export type ProductRelationUpdate = {
   weightGrams?: number | null;
 };
 
+export type ProductSeries = {
+  price?: number | null;
+  stock?: number | null;
+  sold?: number | null;
+};
+
 export type ProductQuery = QueryFilter<Product>;
 
 export type ProductSort = QuerySort<ProductMultiple>;
@@ -1702,6 +1708,7 @@ declare module '@appweaver/common' {
       query: ProductQuery;
       service: ProductResourceService;
       relations: 'category' | 'brand' | 'reviews' | 'orderItems';
+      series: ProductSeries;
     };
     Review: {
       model: Review;

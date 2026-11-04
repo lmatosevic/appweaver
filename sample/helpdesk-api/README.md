@@ -4,7 +4,8 @@
 
 A customer support desk in the spirit of Zendesk or Freshdesk: tickets from a public form and from other systems,
 customers without accounts, automatic assignment to agents, SLA targets with escalation, internal notes, and long
-threads read page by page. It runs on MySQL (MariaDB) without Redis.
+threads read page by page. It runs on MySQL (MariaDB) without Redis, and keeps the workload metrics of the teams in
+InfluxDB 3.
 
 ## What it showcases
 
@@ -24,21 +25,24 @@ threads read page by page. It runs on MySQL (MariaDB) without Redis.
 | Cursor pagination through long message threads                                         | [`test/e2e/conversation.test.ts`](test/e2e/conversation.test.ts)                                               |
 | Message attachments (array files) and a computed `overdue` flag                        | message and ticket models                                                                                      |
 | OAuth2 sign-in limited to existing staff (`checkOAuth2User`)                           | [`resources/user/service.ts`](src/resources/user/service.ts)                                                   |
+| **Time series** of the teams (open, unassigned, overdue tickets) in **InfluxDB 3**     | [`resources/team/model.ts`](src/resources/team/model.ts), [`docker-compose.yml`](docker-compose.yml)           |
+| A scheduled job recording the workload of every team every 15 minutes                  | [`features/metrics/team-metrics-job.ts`](src/features/metrics/team-metrics-job.ts)                             |
+| Staff-only series queries, by bucket and across the teams of a filter                  | [`resources/team/routes.ts`](src/resources/team/routes.ts)                                                     |
 
 ## Getting started
 
 Build the monorepo once from the repository root (`npm install && npm run build`), then in this directory:
 
 ```bash
-cp .env.example .env         # NODE_ENV=dev and the database password
-docker compose up -d mysql   # MariaDB on :3306
-npm run migrate              # apply the migrations
-npm run seed                 # roles, teams, agents, the SLA policies, and demo tickets
-npm run dev                  # http://localhost:5004, Swagger UI at http://localhost:5004/swagger
+cp .env.example .env                  # NODE_ENV=dev and the database password
+docker compose up -d mysql influxdb   # MariaDB on :3306, InfluxDB 3 on :8181
+npm run migrate                       # apply the migrations
+npm run seed                          # roles, teams, agents, the SLA policies, and demo tickets
+npm run dev                           # http://localhost:5004, Swagger UI at http://localhost:5004/swagger
 ```
 
-`docker compose up` runs the whole stack instead, its containers setting the `DB_HOST` the URL of `appweaver.json`
-references to the `mysql` service. The database password comes from `.env`.
+`docker compose up` runs the whole stack instead, its containers setting the `DB_HOST` and `INFLUXDB_HOST` the URLs of
+`appweaver.json` reference to the `mysql` and `influxdb` services. The database password comes from `.env`.
 
 The seeder prints the generated admin password (`admin@helpdesk.example.com`) and the **status page API key**; keep
 the key, it is not shown again. The agents `nicole@`, `ethan@`, `laura@`, and `tom@helpdesk.example.com` (Tom is away)
@@ -85,12 +89,30 @@ curl -s localhost:5004/api/messages/query -H "authorization: Bearer $TOKEN" -H '
   -d '{"filter":{"ticket":"<id>"},"sort":"createdAt","size":2}' | jq '{bodies: [.items[].body], nextCursor}'
 ```
 
+The workload of every team is written to InfluxDB every 15 minutes, installing `@appweaver/influxdb` being enough to
+select it (`timeseries.provider: auto`), so no table of the database holds the points. The InfluxDB service of
+[`docker-compose.yml`](docker-compose.yml) runs without authentication, reachable from the host only; a server
+requiring a token takes it in `TIMESERIES_INFLUXDB_TOKEN`. InfluxDB 3 deletes points only by the retention period of
+its database, so the delete route is left out.
+
+```bash
+# The open and overdue tickets of a team by hour, and its latest point
+curl -s "localhost:5004/api/teams/1/series?fields=open,overdue&bucket=1h&aggregate=max" -H "authorization: Bearer $TOKEN"
+curl -s "localhost:5004/api/teams/1/series?aggregate=last" -H "authorization: Bearer $TOKEN"
+
+# The share of the day each team spent with an overdue ticket
+curl -s localhost:5004/api/teams/series/query -H "authorization: Bearer $TOKEN" -H 'content-type: application/json' \
+  -d '{"filter":{},"fields":["breached"],"bucket":"1d"}'
+```
+
 ## Tests
 
 ```bash
 npm run test  # unit tests
-npm run e2e   # end-to-end tests, against the helpdesk-api-test database of the MariaDB container
+npm run e2e   # end-to-end tests, against the helpdesk-api-test database of the MariaDB container and InfluxDB
 ```
+
+The end-to-end tests write the team metrics to a database of their own in the InfluxDB container, one for each run.
 
 ## License
 

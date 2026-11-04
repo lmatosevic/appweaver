@@ -29,6 +29,9 @@
     },
     "system": {
       "adminInitialEmail": "admin@webshop.example.com"
+    },
+    "timeseries": {
+      "provider": "timescale"
     }
   },
   "environments": {

@@ -1,4 +1,5 @@
 import { PrismaClient } from '@db/client/client';
+import { recordStock } from '@/features/catalog/product-history';
 
 type Transaction = Omit<
   PrismaClient,
@@ -17,12 +18,15 @@ export async function releaseOrder(
     where: { orderId: order.id, productId: { not: null } }
   });
 
+  const released: { productId: number; stock: number }[] = [];
   for (const item of items) {
-    await tx.product.update({
+    const product = await tx.product.update({
       where: { id: item.productId! },
       data: { stock: { increment: item.quantity } }
     });
+    released.push({ productId: product.id, stock: product.stock });
   }
+  await recordStock(released);
 
   if (order.couponId) {
     await tx.coupon.update({

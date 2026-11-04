@@ -33,6 +33,12 @@
     },
     "system": {
       "adminInitialEmail": "admin@helpdesk.example.com"
+    },
+    "timeseries": {
+      "influxdb": {
+        "host": "http://${INFLUXDB_HOST:-localhost}:8181",
+        "database": "helpdesk-api"
+      }
     }
   },
   "environments": {
@@ -67,6 +73,11 @@
       },
       "scheduler": {
         "autoStartJob": false
+      },
+      "timeseries": {
+        "influxdb": {
+          "database": "helpdesk-api-test"
+        }
       }
     }
   }

@@ -63,5 +63,34 @@ export default createModel({
         type: 'none'
       }
     }
+  },
+  // The workload of the team every 15 minutes, written to InfluxDB by the
+  // metrics job, for the dashboards of the support leads
+  series: {
+    open: {
+      type: 'int',
+      minimum: 0,
+      description: 'Tickets not resolved yet'
+    },
+    unassigned: {
+      type: 'int',
+      minimum: 0,
+      description: 'Open tickets without an agent'
+    },
+    overdue: {
+      type: 'int',
+      minimum: 0,
+      description: 'Open tickets past their resolution target'
+    },
+    firstResponseMinutes: {
+      type: 'float',
+      minimum: 0,
+      description:
+        'Average minutes to the first response of the tickets answered since the previous point'
+    },
+    breached: {
+      type: 'boolean',
+      description: 'Whether a ticket of the team is overdue'
+    }
   }
 });

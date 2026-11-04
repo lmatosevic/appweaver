@@ -65,7 +65,8 @@ export const ModelName = {
   Role: 'Role',
   Permission: 'Permission',
   Seeder: 'Seeder',
-  File: 'File'
+  File: 'File',
+  ProductSeries: 'ProductSeries'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -336,6 +337,17 @@ export const FileScalarFieldEnum = {
 } as const
 
 export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
+
+
+export const ProductSeriesScalarFieldEnum = {
+  resourceId: 'resourceId',
+  time: 'time',
+  price: 'price',
+  stock: 'stock',
+  sold: 'sold'
+} as const
+
+export type ProductSeriesScalarFieldEnum = (typeof ProductSeriesScalarFieldEnum)[keyof typeof ProductSeriesScalarFieldEnum]
 
 
 export const SortOrder = {

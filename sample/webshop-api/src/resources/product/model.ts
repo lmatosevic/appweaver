@@ -124,6 +124,31 @@ export default createModel({
       }
     }
   },
+  // The price and stock history of each product, and the units sold, in a
+  // TimescaleDB hypertable kept for two years, compressed after a month
+  series: {
+    price: {
+      type: 'int',
+      minimum: 0,
+      description: 'The price in cents from this time on'
+    },
+    stock: {
+      type: 'int',
+      minimum: 0,
+      description: 'The stock from this time on'
+    },
+    sold: {
+      type: 'int',
+      minimum: 0,
+      description: 'The units sold by an order placed at this time'
+    }
+  },
+  seriesOptions: {
+    // Written by a BullMQ worker, so a checkout never waits for them
+    ingest: 'queue',
+    retention: '730d',
+    compressAfter: '30d'
+  },
   virtual: {
     inStock: {
       type: 'boolean',
