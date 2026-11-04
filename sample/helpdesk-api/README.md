@@ -93,7 +93,9 @@ The workload of every team is written to InfluxDB every 15 minutes, installing `
 select it (`timeseries.provider: auto`), so no table of the database holds the points. The InfluxDB service of
 [`docker-compose.yml`](docker-compose.yml) runs without authentication, reachable from the host only; a server
 requiring a token takes it in `TIMESERIES_INFLUXDB_TOKEN`. InfluxDB 3 deletes points only by the retention period of
-its database, so the delete route is left out.
+its database, so the delete route is left out. The team model keeps its points for 13 months
+(`seriesOptions.retention: '400d'`), which the application sets when it starts on a database of its own,
+`helpdesk-api_TeamSeries`.
 
 ```bash
 # The open and overdue tickets of a team by hour, and its latest point

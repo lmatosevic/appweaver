@@ -1588,6 +1588,10 @@
                   "default": "appweaver",
                   "type": "string"
                 },
+                "retention": {
+                  "default": "",
+                  "type": "string"
+                },
                 "writeTimeout": {
                   "default": 10000,
                   "minimum": 1,

@@ -317,7 +317,9 @@ export type SeriesOptions = {
   tableName?: string;
   /** How the points are written (default: the `timeseries.ingest` config) */
   ingest?: SeriesIngest;
-  /** How long the points are kept, i.e. `90d`, applied by the stores supporting a retention (TimescaleDB) */
+  /** How long the points are kept, i.e. `90d`, overriding the retention of the store config: the policy of the
+   * TimescaleDB hypertable, or the retention of a database of the model's own on InfluxDB. The `database` and
+   * `memory` stores keep every point */
   retention?: string;
   /** The time range of a TimescaleDB chunk, i.e. `7d` (default: the `timeseries.timescale.chunkInterval` config) */
   chunkInterval?: string;

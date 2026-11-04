@@ -1,4 +1,5 @@
 import {
+  ConfigurationError,
   configOverrides,
   createLogger,
   DatabaseError,
@@ -539,14 +540,29 @@ describe('time-series-service', () => {
     });
   });
 
-  test('registers the models again after a failed registration', async () => {
+  test('starts with an unreachable store, registering the models on the next use', async () => {
+    jest.spyOn(logger, 'error').mockImplementation();
     const register = jest
       .spyOn(store, 'register')
       .mockRejectedValueOnce(new Error('Down'));
 
-    await expect(service.onReady()).rejects.toThrow('Down');
-    await service.onReady();
+    await expect(service.onReady()).resolves.toBeUndefined();
+    await service.query('Sensor', { resourceIds: [1] });
 
+    expect(logger.error).toHaveBeenCalledTimes(1);
     expect(register).toHaveBeenCalledTimes(2);
+  });
+
+  test('fails the start on an invalid setup of the store', async () => {
+    jest
+      .spyOn(store, 'register')
+      .mockRejectedValueOnce(
+        new ConfigurationError(
+          ErrorCode.ConfigurationInvalid,
+          'Invalid retention'
+        )
+      );
+
+    await expect(service.onReady()).rejects.toThrow('Invalid retention');
   });
 });

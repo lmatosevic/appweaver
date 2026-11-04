@@ -116,9 +116,26 @@ export class TimeSeriesService implements OnReady {
   /** @internal */
   private _workerStarted = false;
 
-  /** Registers the series of the models with the store, and starts the worker of the queued points. */
+  /**
+   * Registers the series of the models with the store (the hypertables of TimescaleDB, the retention of the InfluxDB
+   * databases), and starts the worker of the queued points.
+   *
+   * @throws {ConfigurationError} When the store refuses its setup, i.e. an invalid retention.
+   */
   public async onReady(): Promise<void> {
-    await this.ensureRegistered();
+    try {
+      await this.ensureRegistered();
+    } catch (error) {
+      // An invalid setup fails the start, while an unreachable store is set up
+      // again by the next write or query, like the database reconnects
+      if (isAppweaverError(error) && error.module === 'configuration') {
+        throw error;
+      }
+      logger.error(
+        error,
+        'Cannot set up the time series store, retrying on the next use'
+      );
+    }
     this.startWorker();
   }
 

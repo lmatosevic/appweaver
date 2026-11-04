@@ -1,8 +1,10 @@
 import { InfluxDBClient } from '@influxdata/influxdb3-client';
 import {
+  ConfigurationError,
   createLogger,
   ErrorCode,
   HealthCheckResult,
+  parseDuration,
   ResourceId,
   SeriesAggregate,
   SeriesDeleteQuery,
@@ -23,6 +25,11 @@ const logger = createLogger('timeseries');
  * written as line protocol and queried with SQL. The server creates the database and the tables on the first write.
  * InfluxDB 3 deletes no points but by the retention period of its database, so the points of a deleted resource are
  * kept until then, and are no longer served, since the routes read the resource first.
+ *
+ * InfluxDB 3 keeps a retention period per database, not per table, so the `timeseries.influxdb.retention` config sets
+ * the one of the database, and a model with its own `seriesOptions.retention` writes to a database of its own,
+ * `<database>_<table>`, with that retention. Both are set when the application starts, through the configure API of
+ * InfluxDB 3 Core and Enterprise.
  */
 export class InfluxTimeSeries extends TimeSeries {
   public readonly supportsDelete: boolean = false;
@@ -39,7 +46,28 @@ export class InfluxTimeSeries extends TimeSeries {
     this._client = undefined;
   }
 
-  public async register(_models: SeriesModel[]): Promise<void> {}
+  /**
+   * Creates the databases with a retention period, or updates their retention: the database of the config with the
+   * `timeseries.influxdb.retention`, and the database of each model with its own `seriesOptions.retention`.
+   *
+   * @throws {ConfigurationError} `CONFIGURATION_INVALID` for a retention that is not a duration of whole seconds, or a
+   * server without the configure API (InfluxDB Cloud, whose databases set their retention themselves).
+   */
+  public async register(models: SeriesModel[]): Promise<void> {
+    const retentions = new Map<string, string>();
+    if (influxConfig.RETENTION) {
+      retentions.set(influxConfig.DATABASE, influxConfig.RETENTION);
+    }
+    for (const model of models) {
+      if (model.options.retention) {
+        retentions.set(databaseOf(model), model.options.retention);
+      }
+    }
+
+    for (const [database, retention] of retentions) {
+      await this.configureDatabase(database, retentionPeriod(retention));
+    }
+  }
 
   public async write(
     model: SeriesModel,
@@ -55,7 +83,7 @@ export class InfluxTimeSeries extends TimeSeries {
     try {
       await this.client().write(
         lines.join('\n'),
-        influxConfig.DATABASE,
+        databaseOf(model),
         undefined,
         {
           precision: 'ms'
@@ -86,7 +114,7 @@ export class InfluxTimeSeries extends TimeSeries {
 
     try {
       const rows: Record<string, unknown>[] = [];
-      for await (const row of this.client().query(sql, influxConfig.DATABASE, {
+      for await (const row of this.client().query(sql, databaseOf(model), {
         type: 'sql',
         params
       })) {
@@ -143,7 +171,7 @@ export class InfluxTimeSeries extends TimeSeries {
     try {
       for await (const row of this.client().query(
         `SELECT column_name FROM information_schema.columns WHERE table_name = $table`,
-        influxConfig.DATABASE,
+        databaseOf(model),
         { type: 'sql', params: { table: model.table } }
       )) {
         columns.add(String(row.column_name));
@@ -157,7 +185,92 @@ export class InfluxTimeSeries extends TimeSeries {
     }
     return columns.size > 0 ? columns : undefined;
   }
+
+  /** Creates a database with a retention period, or updates the retention of an existing one. @internal */
+  private async configureDatabase(
+    database: string,
+    retention: string
+  ): Promise<void> {
+    const send = async (method: 'POST' | 'PUT') => {
+      try {
+        return await fetch(
+          new URL('/api/v3/configure/database', influxConfig.HOST),
+          {
+            method,
+            headers: {
+              'content-type': 'application/json',
+              ...(influxConfig.TOKEN
+                ? {
+                    authorization: `${influxConfig.AUTH_SCHEME || 'Token'} ${influxConfig.TOKEN}`
+                  }
+                : {})
+            },
+            body: JSON.stringify({ db: database, retention_period: retention })
+          }
+        );
+      } catch (error) {
+        throw unavailable('database configuration', error);
+      }
+    };
+
+    let response = await send('POST');
+    if (response.status === 409) {
+      response = await send('PUT');
+    }
+    if (response.status === 404) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `The InfluxDB server at ${influxConfig.HOST} cannot set the retention of the database ${database}, ` +
+          'only InfluxDB 3 Core and Enterprise can: set it on the server and leave the retention of the config and ' +
+          'the models empty'
+      );
+    }
+    // Refused, i.e. the database limit of InfluxDB 3 Core (5 databases)
+    if (response.status >= 400 && response.status < 500) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `The InfluxDB server refused the retention of the database ${database}: ${await response.text()}`
+      );
+    }
+    if (!response.ok) {
+      throw unavailable(
+        'database configuration',
+        new Error(`${response.status} ${await response.text()}`)
+      );
+    }
+    logger.debug({ database, retention }, 'InfluxDB database retention set');
+  }
 }
+
+/** The database of the points of a model, a database of its own for a model with a retention of its own. */
+function databaseOf(model: SeriesModel): string {
+  return model.options.retention
+    ? `${influxConfig.DATABASE}_${model.table.replace(/[^A-Za-z0-9_-]/g, '_')}`
+    : influxConfig.DATABASE;
+}
+
+/** The retention period of a duration, in its largest whole unit (`30d`, `12h`), as InfluxDB takes it. */
+function retentionPeriod(duration: string): string {
+  const seconds = parseDuration(duration);
+  if (!seconds || !Number.isInteger(seconds)) {
+    throw new ConfigurationError(
+      ErrorCode.ConfigurationInvalid,
+      `The InfluxDB retention '${duration}' is not a duration of whole seconds, i.e. 365d`
+    );
+  }
+
+  const [unit, size] =
+    RETENTION_UNITS.find(([, length]) => seconds % length === 0) ??
+    RETENTION_UNITS[RETENTION_UNITS.length - 1];
+  return `${seconds / size}${unit}`;
+}
+
+const RETENTION_UNITS: [string, number][] = [
+  ['d', 86_400],
+  ['h', 3600],
+  ['m', 60],
+  ['s', 1]
+];
 
 /** The line of a point, or undefined for a point without a value. */
 function lineProtocol(

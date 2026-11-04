@@ -92,5 +92,9 @@ export default createModel({
       type: 'boolean',
       description: 'Whether a ticket of the team is overdue'
     }
+  },
+  // Kept for 13 months, in an InfluxDB database of its own with that retention
+  seriesOptions: {
+    retention: '400d'
   }
 });

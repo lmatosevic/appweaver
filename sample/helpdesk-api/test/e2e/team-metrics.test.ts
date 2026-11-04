@@ -1,5 +1,6 @@
 import { configOverrides } from '@appweaver/common';
 import { Application, createApp } from '@appweaver/core';
+import { influxConfig } from '@appweaver/influxdb';
 import { resetTestData } from './support/reset';
 import {
   agent,
@@ -101,6 +102,14 @@ describe('Team metrics', () => {
 
   afterAll(async () => {
     await app.stop();
+    // The databases of the run, as InfluxDB 3 Core holds up to 5 of them
+    const database = configOverrides.TIMESERIES_INFLUXDB_DATABASE as string;
+    for (const db of [database, `${database}_TeamSeries`]) {
+      await fetch(
+        new URL(`/api/v3/configure/database?db=${db}`, influxConfig.HOST),
+        { method: 'DELETE' }
+      );
+    }
     delete configOverrides.TIMESERIES_INFLUXDB_DATABASE;
   });
 

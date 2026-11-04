@@ -340,6 +340,7 @@
         "token": "",
         "authScheme": "Bearer",
         "database": "appweaver",
+        "retention": "",
         "writeTimeout": 10000,
         "queryTimeout": 60000
       }

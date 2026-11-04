@@ -773,6 +773,7 @@ The `influxdb` provider (`config.timeseries.influxdb`), of `@appweaver/influxdb`
 | `TIMESERIES_INFLUXDB_TOKEN`         | string  | `''`                      | Authentication token, empty for a server started without authentication (secret). |
 | `TIMESERIES_INFLUXDB_AUTH_SCHEME`   | string  | `'Bearer'`                | Scheme of the token: `Bearer` for InfluxDB 3 Core and Enterprise, empty for Cloud. |
 | `TIMESERIES_INFLUXDB_DATABASE`      | string  | `'appweaver'`             | Database the points are written to, created by the server on the first write.     |
+| `TIMESERIES_INFLUXDB_RETENTION`     | string  | `''`                      | Retention period of the database (`365d`), set at startup, empty to leave it as it is. A model with its own `seriesOptions.retention` gets the database `<database>_<table>` with that retention instead. |
 | `TIMESERIES_INFLUXDB_WRITE_TIMEOUT` | integer | `10000`                   | Maximum milliseconds of a write.                                                  |
 | `TIMESERIES_INFLUXDB_QUERY_TIMEOUT` | integer | `60000`                   | Maximum milliseconds of a query.                                                  |
 

@@ -31,10 +31,15 @@ them, no longer served by the routes.
 npm install @appweaver/influxdb
 ```
 
-or `weaver module add timeseries-influxdb` in a project created with `@appweaver/create`.
+or `weaver module add influxdb` in a project created with `@appweaver/create`.
 
 The connection is configured in `timeseries.influxdb` (`TIMESERIES_INFLUXDB_HOST`, `TIMESERIES_INFLUXDB_TOKEN`,
 `TIMESERIES_INFLUXDB_DATABASE`, ...).
+
+InfluxDB 3 keeps a retention period per database. `timeseries.influxdb.retention` (`365d`) sets the one of the
+database, and a model with its own `seriesOptions.retention` writes to a database of its own, `<database>_<table>`,
+with that retention, the model winning. Both are applied when the application starts (InfluxDB 3 Core and
+Enterprise). InfluxDB 3 Core holds up to 5 databases, so at most 4 models can have a retention of their own there.
 
 ## Documentation
 

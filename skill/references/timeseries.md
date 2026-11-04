@@ -41,7 +41,7 @@ export default createModel({
 |-----------------|-------------------------------------------------------------------------------------------|
 | `ingest`        | `direct`, `queue` or `auto`, how the points are written (see [Ingestion](#ingestion))     |
 | `tableName`     | The table (InfluxDB table) of the points, default `<Model>Series` or `<tableName>_series` |
-| `retention`     | How long TimescaleDB keeps the points, a duration (`90d`), default `timeseries.timescale.retention` |
+| `retention`     | How long the points are kept, a duration (`90d`): the TimescaleDB policy (default `timeseries.timescale.retention`), or a database of the model's own on InfluxDB (default `timeseries.influxdb.retention`, see [influxdb](#influxdb)). The `database` store keeps every point |
 | `compressAfter` | The age TimescaleDB compresses the points from, default `timeseries.timescale.compressAfter` |
 | `chunkInterval` | The time range of a TimescaleDB chunk, default `timeseries.timescale.chunkInterval`       |
 
@@ -134,7 +134,8 @@ npm install @appweaver/influxdb
       "influxdb": {
         "host": "http://${INFLUXDB_HOST:-localhost}:8181",
         "token": "${INFLUXDB_TOKEN}",
-        "database": "my-app"
+        "database": "my-app",
+        "retention": "365d"
       }
     }
   }
@@ -147,6 +148,24 @@ database and the tables on the first write. InfluxDB 3 deletes points only by th
 `delete` fails with `TIMESERIES_UNSUPPORTED` (`501`), and the points of a deleted resource are kept until the retention
 removes them, no longer served by the routes, which read the resource first. Leave out the delete route
 (`seriesDelete: { exclude: true }`).
+
+InfluxDB 3 keeps a retention period per database, not per table, so the retention is set in two places, the model
+winning:
+
+| Setting                              | Applies to                                                                                     |
+|--------------------------------------|------------------------------------------------------------------------------------------------|
+| `seriesOptions.retention` of a model | A database of the model's own, `<database>_<table>` (`my-app_SensorSeries`), with that retention |
+| `timeseries.influxdb.retention`      | The `timeseries.influxdb.database`, holding the points of every other model                   |
+| neither                              | The database is left as it is (created by the first write without a retention)                |
+
+The application creates the databases with their retention when it starts, or updates the retention of the existing
+ones, through the configure API of InfluxDB 3 Core and Enterprise (the token needs the right to manage databases). A
+store unreachable at startup is set up by the next write or query, while a refused setup fails the start with
+`CONFIGURATION_INVALID`: an invalid duration, InfluxDB Cloud, which has no such API (set the retention in the Cloud
+console and leave both empty), or the database limit of the server. **InfluxDB 3 Core holds up to 5 databases**, so
+the main database leaves room for 4 models with a retention of their own. Adding or removing the `retention` of a
+model moves its points to the other database, leaving the written ones behind, while changing its value only updates
+the retention.
 
 ## Ingestion
 
