@@ -53,7 +53,6 @@
     "@fastify/swagger": "9.9.1",
     "@fastify/swagger-ui": "6.1.1",
     "@fastify/type-provider-typebox": "6.1.0",
-    "@influxdata/influxdb3-client": "2.4.0",
     "@prisma/adapter-better-sqlite3": "7.9.1",
     "@prisma/client": "7.9.1",
     "@sinclair/typebox": "0.34.49",

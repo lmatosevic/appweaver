@@ -23,27 +23,6 @@ services:
     networks:
       - helpdesk-api
 
-  influxdb:
-    image: influxdb:3.12.2-core
-    container_name: helpdesk-api-influxdb
-    restart: unless-stopped
-    # Without authentication, reachable only from the host and the network of the project; start it with an
-    # --admin-token-file and set TIMESERIES_INFLUXDB_TOKEN to require a token
-    command: [ "influxdb3", "serve", "--node-id", "helpdesk-api", "--object-store", "file", "--data-dir", "/var/lib/influxdb3", "--without-auth" ]
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -sf http://127.0.0.1:8181/health || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 5s
-      start_interval: 5s
-    ports:
-      - "127.0.0.1:8181:8181"
-    volumes:
-      - influxdb-data:/var/lib/influxdb3
-    networks:
-      - helpdesk-api
-
   helpdesk-api.migrations:
     image: helpdesk-api:latest
     container_name: helpdesk-api-migrations
@@ -57,7 +36,6 @@ services:
       - .env
     environment:
       DB_HOST: "mysql"
-      INFLUXDB_HOST: "influxdb"
     command: [ "migrations" ]
     volumes:
       - ./storage:/usr/app/storage
@@ -78,7 +56,6 @@ services:
       - .env
     environment:
       DB_HOST: "mysql"
-      INFLUXDB_HOST: "influxdb"
     command: [ "seed" ]
     volumes:
       - ./storage:/usr/app/storage
@@ -100,8 +77,6 @@ services:
       start_period: 5s
       start_interval: 5s
     depends_on:
-      influxdb:
-        condition: service_healthy
       helpdesk-api.seed:
         condition: service_completed_successfully
     ports:
@@ -113,7 +88,6 @@ services:
       - .env
     environment:
       DB_HOST: "mysql"
-      INFLUXDB_HOST: "influxdb"
     networks:
       - helpdesk-api
 
@@ -124,4 +98,3 @@ networks:
 
 volumes:
   mysql-data:
-  influxdb-data:

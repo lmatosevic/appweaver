@@ -360,6 +360,24 @@ export function deleteStatement(
   )}`;
 }
 
+/**
+ * Builds the statement deleting the points of a model older than a time, of every resource.
+ *
+ * @param {SeriesDialect} dialect - The SQL dialect.
+ * @param {SeriesModel} model - The series model.
+ * @param {Date} before - The time the points are older than.
+ * @return {Sql} The statement.
+ */
+export function expiredStatement(
+  dialect: SeriesDialect,
+  model: SeriesModel,
+  before: Date
+): Sql {
+  return sqltag`DELETE FROM ${raw(dialect.quote(model.table))} WHERE ${raw(
+    dialect.quote('time')
+  )} < ${before}`;
+}
+
 /** The row of a time series query. */
 export type SeriesRow = Record<string, unknown>;
 

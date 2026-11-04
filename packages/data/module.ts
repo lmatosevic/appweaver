@@ -16,6 +16,7 @@ import {
   systemConfig
 } from './security/auth-config';
 import { imageConfig } from './storage/image-config';
+import { databaseSeriesConfig } from './timeseries/database-series-config';
 import { timescaleConfig } from './timeseries/timescale-config';
 
 /** The database, the resources and the auth data model, built on Prisma. */
@@ -30,6 +31,7 @@ export default defineModule({
     apiKeyConfig,
     connectedAccountConfig,
     systemConfig,
+    databaseSeriesConfig,
     timescaleConfig
   ],
   loggers: ['database', 'resource', 'storage', 'timeseries'],

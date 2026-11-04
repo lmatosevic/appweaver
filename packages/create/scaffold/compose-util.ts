@@ -1,9 +1,5 @@
 import { Document, Pair, parseDocument, Scalar, YAMLMap, YAMLSeq } from 'yaml';
-import {
-  getDatabaseDockerService,
-  postgresImage,
-  timescaleImage
-} from './database-config';
+import { getDatabaseDockerService } from './database-config';
 import type { ProjectContext } from './types';
 
 const sqliteVolume = 'sqlite-data:/usr/app/data';
@@ -24,9 +20,9 @@ export function addRedisService(content: string, name: string): string {
     return content;
   }
 
-  // Before InfluxDB and the application services, after the database one
+  // Before the application services, after the database one
   const index = services.items.findIndex((pair) =>
-    ['influxdb', ...getServiceNames(name)].includes(keyOf(pair) as string)
+    getServiceNames(name).includes(keyOf(pair) as string)
   );
   insertService(
     services,
@@ -52,7 +48,7 @@ export function addRedisService(content: string, name: string): string {
   );
 
   for (const app of getApplicationServices(services, name)) {
-    setEnvironment(app, 'REDIS_HOST', 'redis', false, ['INFLUXDB_HOST']);
+    setEnvironment(app, 'REDIS_HOST', 'redis', false);
   }
 
   const app = services.get(name);
@@ -60,7 +56,7 @@ export function addRedisService(content: string, name: string): string {
     addDependency(app, 'redis', 'service_healthy', true);
   }
 
-  addVolume(doc, 'redis-data', false, ['influxdb-data']);
+  addVolume(doc, 'redis-data', false);
 
   return doc.toString({ lineWidth: 0 });
 }
@@ -89,113 +85,6 @@ export function removeRedisService(content: string, name: string): string {
   return doc.toString({ lineWidth: 0 });
 }
 
-/** The InfluxDB 3 Core image of the time series. */
-export const influxImage = 'influxdb:3.12.2-core';
-
-/**
- * Adds the InfluxDB 3 service of the time series to a docker-compose.yml file: the service itself, started without
- * authentication on the network of the project, the application's dependency on it, the `INFLUXDB_HOST` of the
- * application services, and the named volume of its data.
- *
- * @param {string} content - The docker-compose.yml content.
- * @param {string} name - The project name, naming the containers and the network.
- * @return {string} The docker-compose.yml content with the InfluxDB service.
- */
-export function addInfluxService(content: string, name: string): string {
-  const doc = parseDocument(content);
-  const services = getMap(doc, 'services');
-  if (!services || services.has('influxdb')) {
-    return content;
-  }
-
-  // Before the application services, after the database and Redis ones
-  const index = services.items.findIndex((pair) =>
-    getServiceNames(name).includes(keyOf(pair) as string)
-  );
-  insertService(
-    services,
-    index < 0 ? services.items.length : index,
-    parsePair(`influxdb:
-  image: ${influxImage}
-  container_name: ${name}-influxdb
-  restart: unless-stopped
-  # Without authentication, reachable only from the host and the network of the project; start it with an
-  # --admin-token-file and set TIMESERIES_INFLUXDB_TOKEN to require a token
-  command: [ "influxdb3", "serve", "--node-id", "${name}", "--object-store", "file", "--data-dir", "/var/lib/influxdb3", "--without-auth" ]
-  healthcheck:
-    test: [ "CMD-SHELL", "curl -sf http://127.0.0.1:8181/health || exit 1" ]
-    interval: 30s
-    timeout: 10s
-    retries: 10
-    start_period: 5s
-    start_interval: 5s
-  ports:
-    - "127.0.0.1:8181:8181"
-  volumes:
-    - influxdb-data:/var/lib/influxdb3
-  networks:
-    - ${name}
-`)
-  );
-
-  for (const app of getApplicationServices(services, name)) {
-    setEnvironment(app, 'INFLUXDB_HOST', 'influxdb', false);
-  }
-
-  const app = services.get(name);
-  if (app instanceof YAMLMap) {
-    addDependencyAfter(app, 'influxdb', 'service_healthy', ['redis']);
-  }
-
-  addVolume(doc, 'influxdb-data', false);
-
-  return doc.toString({ lineWidth: 0 });
-}
-
-/**
- * Removes the InfluxDB service of {@link addInfluxService} from a docker-compose.yml file.
- *
- * @param {string} content - The docker-compose.yml content.
- * @param {string} name - The project name, naming the containers and the network.
- * @return {string} The docker-compose.yml content without the InfluxDB service.
- */
-export function removeInfluxService(content: string, name: string): string {
-  const doc = parseDocument(content);
-  const services = getMap(doc, 'services');
-  if (!services) {
-    return content;
-  }
-
-  removeService(services, 'influxdb');
-  for (const app of getApplicationServices(services, name)) {
-    deleteEnvironment(app, 'INFLUXDB_HOST');
-    removeDependency(app, 'influxdb');
-  }
-  removeVolume(doc, 'influxdb-data');
-
-  return doc.toString({ lineWidth: 0 });
-}
-
-/**
- * Sets the image of the PostgreSQL service of a docker-compose.yml file: the TimescaleDB one of the time series,
- * or the PostgreSQL one. A project on another database has no PostgreSQL service, and is returned unchanged.
- *
- * @param {string} content - The docker-compose.yml content.
- * @param {boolean} timescale - Whether the service runs TimescaleDB.
- * @return {string} The docker-compose.yml content with the image.
- */
-export function setPostgresImage(content: string, timescale: boolean): string {
-  const doc = parseDocument(content);
-  const postgres = getMap(doc, 'services')?.get('postgres');
-  if (!(postgres instanceof YAMLMap)) {
-    return content;
-  }
-
-  postgres.set('image', timescale ? timescaleImage : postgresImage);
-
-  return doc.toString({ lineWidth: 0 });
-}
-
 /**
  * Adds the database services to a docker-compose.yml file: the database server (none for SQLite), the services
  * applying the migrations and seeding the database before the application starts, the `DB_HOST` of the
@@ -203,13 +92,11 @@ export function setPostgresImage(content: string, timescale: boolean): string {
  *
  * @param {string} content - The docker-compose.yml content.
  * @param {ProjectContext} context - The project, naming the containers and choosing the database.
- * @param {boolean} [timescale=false] - Whether a PostgreSQL server runs TimescaleDB, for the time series.
  * @return {string} The docker-compose.yml content with the database services.
  */
 export function addDatabaseServices(
   content: string,
-  context: ProjectContext,
-  timescale: boolean = false
+  context: ProjectContext
 ): string {
   const { name, database } = context;
   const doc = parseDocument(content);
@@ -218,7 +105,7 @@ export function addDatabaseServices(
     return content;
   }
 
-  const db = getDatabaseDockerService(database, name, timescale);
+  const db = getDatabaseDockerService(database, name);
   if (db) {
     insertService(services, 0, parsePair(db.service));
   }
@@ -226,8 +113,7 @@ export function addDatabaseServices(
   // Rendered with the environment of the other application services
   const environment = [
     ...(db ? [`DB_HOST: "${db.host}"`] : []),
-    ...(services.has('redis') ? ['REDIS_HOST: "redis"'] : []),
-    ...(services.has('influxdb') ? ['INFLUXDB_HOST: "influxdb"'] : [])
+    ...(services.has('redis') ? ['REDIS_HOST: "redis"'] : [])
   ];
   const service = (role: string, dependency: string) =>
     parsePair(`${name}.${role}:
@@ -427,8 +313,7 @@ function setEnvironment(
   service: YAMLMap,
   key: string,
   value: string,
-  first: boolean,
-  before: string[] = []
+  first: boolean
 ): void {
   let environment = service.get('environment');
   if (!(environment instanceof YAMLMap)) {
@@ -443,17 +328,10 @@ function setEnvironment(
   const scalar = new Scalar(value);
   scalar.type = Scalar.QUOTE_DOUBLE;
   const map = environment as YAMLMap;
-  const next = map.items.findIndex((pair) =>
-    before.includes(keyOf(pair) as string)
-  );
-  if (map.has(key)) {
-    map.set(key, scalar);
-  } else if (first) {
+  if (first && !map.has(key)) {
     map.items.unshift(new Pair(new Scalar(key), scalar));
-  } else if (next >= 0) {
-    map.items.splice(next, 0, new Pair(new Scalar(key), scalar));
   } else {
-    map.items.push(new Pair(new Scalar(key), scalar));
+    map.set(key, scalar);
   }
 }
 
@@ -492,24 +370,6 @@ function addDependency(
   }
 }
 
-/** Adds a dependency of the service after the first of the given ones it has, otherwise first. */
-function addDependencyAfter(
-  service: YAMLMap,
-  name: string,
-  condition: string,
-  after: string[]
-): void {
-  addDependency(service, name, condition, true);
-  const dependsOn = service.get('depends_on') as YAMLMap;
-  const previous = dependsOn.items.findIndex((pair) =>
-    after.includes(keyOf(pair) as string)
-  );
-  if (previous > 0) {
-    const [dependency] = dependsOn.items.splice(0, 1);
-    dependsOn.items.splice(previous, 0, dependency);
-  }
-}
-
 function removeDependency(service: YAMLMap, name: string): void {
   const dependsOn = service.get('depends_on');
   if (dependsOn instanceof YAMLMap) {
@@ -521,12 +381,7 @@ function removeDependency(service: YAMLMap, name: string): void {
 }
 
 /** Adds a named volume, creating the top-level `volumes` after the other entries. */
-function addVolume(
-  doc: Document,
-  name: string,
-  first: boolean,
-  before: string[] = []
-): void {
+function addVolume(doc: Document, name: string, first: boolean): void {
   let volumes = getMap(doc, 'volumes');
   if (!volumes) {
     volumes = new YAMLMap();
@@ -536,13 +391,8 @@ function addVolume(
   }
 
   const volume = parsePair(`${name}:\n`);
-  const next = volumes.items.findIndex((pair) =>
-    before.includes(keyOf(pair) as string)
-  );
   if (first) {
     volumes.items.unshift(volume);
-  } else if (next >= 0) {
-    volumes.items.splice(next, 0, volume);
   } else {
     volumes.items.push(volume);
   }
