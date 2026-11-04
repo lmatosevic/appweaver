@@ -35,6 +35,8 @@ export class DatabaseTimeSeries extends TimeSeries {
 
   public readonly cascadesDeletes: boolean = true;
 
+  public readonly transactional: boolean = true;
+
   /** @internal */
   protected readonly _db = inject<PrismaDatabase>(Database as any);
   /** @internal */

@@ -21,6 +21,11 @@ testDatabaseContract(
   DatabaseType.MySQL,
   process.env.TIMESERIES_TEST_MYSQL_URL
 );
+testDatabaseContract(
+  'DatabaseTimeSeries',
+  DatabaseType.SQLServer,
+  process.env.TIMESERIES_TEST_SQLSERVER_URL
+);
 
 afterAll(() => {
   fs.rmSync(dir, { recursive: true, force: true });
@@ -46,5 +51,50 @@ describe('DatabaseTimeSeries', () => {
       new DatabaseTimeSeries().write(contractSeriesModel, [])
     ).resolves.toBe(0);
     expect(client.$executeRaw).not.toHaveBeenCalled();
+  });
+
+  test('writes the statements of many points in a transaction', async () => {
+    configOverrides.DATABASE_TYPE = DatabaseType.SQLServer;
+    const tx = { $executeRaw: jest.fn() };
+    define(
+      { client: () => ({}), transaction: async (fn: any) => fn(tx) },
+      Database,
+      'override'
+    );
+    const points = Array.from({ length: 1000 }, (_, i) => ({
+      resourceId: 1,
+      time: new Date(i),
+      values: { count: i }
+    }));
+
+    await expect(
+      new DatabaseTimeSeries().write(contractSeriesModel, points)
+    ).resolves.toBe(1000);
+    expect(tx.$executeRaw).toHaveBeenCalledTimes(3);
+    delete configOverrides.DATABASE_TYPE;
+  });
+
+  test('passes on the errors of the database', async () => {
+    const error = new Error('Down');
+    define(
+      {
+        client: () => ({
+          $queryRaw: jest.fn().mockRejectedValue(error),
+          $executeRaw: jest.fn().mockRejectedValue(error)
+        })
+      },
+      Database,
+      'override'
+    );
+    const store = new DatabaseTimeSeries();
+    const point = { resourceId: 1, time: new Date(0), values: { count: 1 } };
+
+    await expect(store.write(contractSeriesModel, [point])).rejects.toBe(error);
+    await expect(
+      store.query(contractSeriesModel, { resourceIds: [1] })
+    ).rejects.toBe(error);
+    await expect(
+      store.delete(contractSeriesModel, { resourceIds: [1] })
+    ).rejects.toBe(error);
   });
 });

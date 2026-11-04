@@ -22,7 +22,7 @@ import {
   TimeSeries,
   TimeSeriesError
 } from '@appweaver/common';
-import { context, inject } from '../context';
+import { afterCommit, context, currentTransaction, inject } from '../context';
 import { MemoryQueue } from '../queue/memory-queue';
 import { timeseriesConfig } from './timeseries-config';
 
@@ -102,7 +102,9 @@ type SeriesJob = {
 /**
  * Validates, writes and queries the points of the `series` fields of the resource models, in the `TimeSeries` store
  * selected by `timeseries.provider`. A write is applied directly or sent to the queue, so a worker writes it (see
- * `timeseries.ingest`), and either way the points are validated first, so an invalid write fails at once.
+ * `timeseries.ingest`), and either way the points are validated first, so an invalid write fails at once. A write made
+ * in a transaction takes part in it on a store writing over the connection of the database (`database`, `timescale`),
+ * otherwise it waits for the commit, and is dropped on a rollback.
  */
 export class TimeSeriesService implements OnReady {
   static [LIFECYCLE] = true;
@@ -201,14 +203,31 @@ export class TimeSeriesService implements OnReady {
       return { count: 0, queued: false };
     }
 
-    if (this.ingestOf(modelName, options.ingest) === 'queue') {
-      await this.enqueue(model, normalized);
-      return { count: normalized.length, queued: true };
-    }
+    const queued = this.ingestOf(modelName, options.ingest) === 'queue';
+    const write = async () => {
+      if (queued) {
+        await this.enqueue(model, normalized);
+      } else {
+        await this.ensureRegistered();
+        await this._store.write(model, normalized);
+      }
+    };
 
-    await this.ensureRegistered();
-    await this._store.write(model, normalized);
-    return { count: normalized.length, queued: false };
+    // Inside a transaction, a store writing over the connection of the database
+    // takes part in it, while the queue and any other store wait for its commit
+    if (currentTransaction() && (queued || !this._store.transactional)) {
+      afterCommit(() =>
+        write().catch((error) =>
+          logger.error(
+            { err: error, model: model.name, points: normalized.length },
+            'Cannot write the time series points of a committed transaction'
+          )
+        )
+      );
+    } else {
+      await write();
+    }
+    return { count: normalized.length, queued };
   }
 
   /**

@@ -9,6 +9,11 @@ import {
 } from '@appweaver/common';
 import { context } from '../../context/context';
 import { define } from '../../context/dependency-injection';
+import {
+  runInTransaction,
+  settleTransaction,
+  TransactionContext
+} from '../../context/transaction-scope';
 import { MemoryQueue } from '../../queue/memory-queue';
 import { MemoryTimeSeries } from '../../timeseries/memory-time-series';
 import { TimeSeriesService } from '../../timeseries/time-series-service';
@@ -191,6 +196,64 @@ describe('time-series-service', () => {
       ).resolves.toMatchObject({
         count: 2
       });
+    });
+  });
+
+  describe('write in a transaction', () => {
+    const transaction = (): TransactionContext => ({
+      tx: {},
+      commitCallbacks: new Map(),
+      rollbackCallbacks: []
+    });
+
+    test('waits for the commit on a store outside the database, and drops the points on a rollback', async () => {
+      const committed = transaction();
+      const rolledBack = transaction();
+      const point = { resourceId: 1, time: at(0), values: { errors: 1 } };
+
+      await runInTransaction(committed, () => service.write('Sensor', [point]));
+      await runInTransaction(rolledBack, () =>
+        service.write('Sensor', [{ ...point, resourceId: 2 }])
+      );
+      await expect(
+        service.query('Sensor', { resourceIds: [1, 2] })
+      ).resolves.toEqual([]);
+
+      await settleTransaction(committed, true);
+      await settleTransaction(rolledBack, false);
+      await new Promise((resolve) => setImmediate(resolve));
+
+      await expect(
+        service.query('Sensor', { resourceIds: [1, 2] })
+      ).resolves.toHaveLength(1);
+    });
+
+    test('writes in the transaction on a store of the database', async () => {
+      Object.assign(store, { transactional: true });
+
+      await runInTransaction(transaction(), () =>
+        service.write('Sensor', [
+          { resourceId: 1, time: at(0), values: { errors: 1 } }
+        ])
+      );
+
+      await expect(
+        service.query('Sensor', { resourceIds: [1] })
+      ).resolves.toHaveLength(1);
+    });
+
+    test('logs a write failing after the commit', async () => {
+      jest.spyOn(logger, 'error').mockImplementation();
+      jest.spyOn(store, 'write').mockRejectedValue(new Error('Down'));
+      const committed = transaction();
+
+      await runInTransaction(committed, () =>
+        service.write('Sensor', [{ resourceId: 1, values: { errors: 1 } }])
+      );
+      await settleTransaction(committed, true);
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(logger.error).toHaveBeenCalledTimes(1);
     });
   });
 

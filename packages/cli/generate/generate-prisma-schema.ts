@@ -115,13 +115,16 @@ type PrismaSchemaModel = {
  * @param {string} schemaPath - The file path where the generated Prisma schema should be stored.
  * @param {string} clientPath - The file path where the Prisma client output should be generated.
  * @param {boolean} [quiet=false] - Optional flag to suppress logs. Default is false.
+ * @param {boolean} [seriesTables=true] - Whether to add the time series tables of the models with series fields, left
+ * out when another store than the database holds the points (see `seriesInDatabase`).
  * @return {Promise<number>} A promise that resolves to the number of models processed for the schema generation.
  */
 export async function generatePrismaSchema(
   models: Record<string, ResourceModel>,
   schemaPath: string,
   clientPath: string,
-  quiet: boolean = false
+  quiet: boolean = false,
+  seriesTables: boolean = true
 ): Promise<number> {
   const cwd = process.cwd();
 
@@ -377,7 +380,7 @@ export async function generatePrismaSchema(
     const seriesModels: string[] = [];
     for (const [name, model] of Object.entries(prismaModels)) {
       const config = models[name].config;
-      if (!hasSeries(config)) {
+      if (!seriesTables || !hasSeries(config)) {
         continue;
       }
 

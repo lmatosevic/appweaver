@@ -28,6 +28,9 @@ export abstract class TimeSeries implements IHealthCheck, OnInit, OnDestroy {
   /** Whether the store deletes points. */
   public readonly supportsDelete: boolean = true;
 
+  /** Whether the store writes over the connection of the database, so a write takes part in its transactions. */
+  public readonly transactional: boolean = false;
+
   abstract onInit(): Promise<void>;
 
   abstract onDestroy(): Promise<void>;

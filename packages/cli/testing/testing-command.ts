@@ -9,6 +9,7 @@ import {
   loadModels,
   rimrafPath,
   runProcess,
+  seriesInDatabase,
   setAiDangerousActionConsent
 } from '../utils';
 
@@ -98,7 +99,7 @@ export function testingCommand(program: Command): void {
 
       console.log('\nStorage initialized');
 
-      const { models } = await loadModels(
+      const { models, modules } = await loadModels(
         command.getOptionValue('modelPattern') ?? resourceConfig.MODEL_PATTERN
       );
 
@@ -106,7 +107,8 @@ export function testingCommand(program: Command): void {
         models,
         schemaPath,
         clientPath,
-        quiet
+        quiet,
+        seriesInDatabase(modules)
       );
       if (generateStatus !== 0) {
         console.error('Failed to generate Prisma schema');

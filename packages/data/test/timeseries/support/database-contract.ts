@@ -16,12 +16,16 @@ const TABLES: Record<string, string> = {
     '"temperature" DOUBLE PRECISION, "count" INTEGER, "online" BOOLEAN, PRIMARY KEY ("resourceId", "time"))',
   [DatabaseType.MySQL]:
     'CREATE TABLE `ContractSensorSeries` (`resourceId` INT NOT NULL, `time` DATETIME(3) NOT NULL, ' +
-    '`temperature` DOUBLE NULL, `count` INT NULL, `online` BOOLEAN NULL, PRIMARY KEY (`resourceId`, `time`))'
+    '`temperature` DOUBLE NULL, `count` INT NULL, `online` BOOLEAN NULL, PRIMARY KEY (`resourceId`, `time`))',
+  [DatabaseType.SQLServer]:
+    'CREATE TABLE [ContractSensorSeries] ([resourceId] INT NOT NULL, [time] DATETIME2(3) NOT NULL, ' +
+    '[temperature] FLOAT NULL, [count] INT NULL, [online] BIT NULL, PRIMARY KEY ([resourceId], [time]))'
 };
 
 /**
  * Runs the contract suite on a database, the series table of the suite created first. The databases other than
- * SQLite run when their URL is set: `TIMESERIES_TEST_POSTGRES_URL` and `TIMESERIES_TEST_MYSQL_URL`.
+ * SQLite run when their URL is set: `TIMESERIES_TEST_POSTGRES_URL`, `TIMESERIES_TEST_MYSQL_URL` and
+ * `TIMESERIES_TEST_SQLSERVER_URL`.
  */
 export function testDatabaseContract(
   name: string,
@@ -47,12 +51,12 @@ export function testDatabaseContract(
       resetContext();
       db = new PrismaDatabase();
       define(db, Database);
-      const quote = type === DatabaseType.MySQL ? '`' : '"';
-      await db
-        .client<any>()
-        .$executeRawUnsafe(
-          `DROP TABLE IF EXISTS ${quote}ContractSensorSeries${quote}`
-        );
+      const table =
+        {
+          [DatabaseType.MySQL]: '`ContractSensorSeries`',
+          [DatabaseType.SQLServer]: '[ContractSensorSeries]'
+        }[type as string] ?? '"ContractSensorSeries"';
+      await db.client<any>().$executeRawUnsafe(`DROP TABLE IF EXISTS ${table}`);
       await db.client<any>().$executeRawUnsafe(TABLES[type]);
     }, 60_000);
 
