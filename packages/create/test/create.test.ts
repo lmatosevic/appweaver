@@ -516,6 +516,7 @@ describe('create', () => {
       '@appweaver/bullmq',
       '@appweaver/cron',
       '@appweaver/handlebars',
+      '@appweaver/influxdb',
       '@appweaver/nodemailer',
       '@appweaver/redis'
     ];
@@ -689,17 +690,26 @@ describe('create', () => {
         'app',
         'database',
         'server',
-        'memory'
+        'memory',
+        'timeseries'
       ]);
       expect(appConfig.config.memory).toEqual({
         redis: { url: 'redis://${REDIS_HOST:-localhost}:6379/0' }
+      });
+      expect(appConfig.config.timeseries).toEqual({
+        provider: 'influxdb',
+        influxdb: {
+          host: 'http://${INFLUXDB_HOST:-localhost}:8181',
+          database: 'my-app'
+        }
       });
       expect(appConfig.environments.dev.template).toEqual({ cache: false });
       expect(appConfig.environments.test).toMatchObject({
         memory: { provider: 'memory' },
         queue: { provider: 'memory' },
         scheduler: { autoStartJob: false },
-        mailer: { provider: 'json', senderAddress: 'no-reply@example.com' }
+        mailer: { provider: 'json', senderAddress: 'no-reply@example.com' },
+        timeseries: { provider: 'memory' }
       });
       expect(exists('my-app', 'Dockerfile')).toBe(true);
       expect(exists('my-app', 'locales', 'en.json')).toBe(true);

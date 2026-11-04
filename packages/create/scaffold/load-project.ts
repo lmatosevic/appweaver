@@ -17,7 +17,7 @@ export type LoadedProject = {
 
 /**
  * Loads an existing project from its package.json and appweaver.json files. A module is enabled when the project
- * depends on its packages, or for a module without packages, when its marker file exists. The database is the one of
+ * depends on its packages, or for a module without packages, when its marker file or appweaver.json value exists. The database is the one of
  * its Prisma driver adapter, SQLite without one, and the server listens on its configured port, by default `5000`, and
  * host, by default the `0.0.0.0` of the web module.
  *
@@ -55,9 +55,14 @@ export function loadProject(
   };
 
   const enabled = moduleNames.filter((name) => {
-    const { packages, marker } = modules[name];
-    return packages.length > 0
-      ? packages.every((pkgName) => dependencies[pkgName])
+    const { packages, marker, configMarker } = modules[name];
+    if (packages.length > 0) {
+      return packages.every((pkgName) => dependencies[pkgName]);
+    }
+    return configMarker
+      ? configMarker
+          .split('.')
+          .reduce<any>((value, key) => value?.[key], appConfig) !== undefined
       : files.exists(marker!);
   });
 

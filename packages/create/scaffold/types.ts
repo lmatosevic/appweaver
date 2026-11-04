@@ -9,6 +9,8 @@ export const moduleNames = [
   'mailer',
   'templates',
   'locales',
+  'timeseries',
+  'influxdb',
   'docker'
 ] as const;
 

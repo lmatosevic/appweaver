@@ -38,6 +38,8 @@ export type ModuleDefinition = {
   projectDirs?: string[];
   /** The file whose presence marks a module without packages as enabled. */
   marker?: string;
+  /** The appweaver.json value whose presence marks a module without packages and files as enabled. */
+  configMarker?: string;
 };
 
 const bunE2eScript =
@@ -194,10 +196,41 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     directories: ['locales'],
     marker: 'locales'
   },
+  timeseries: {
+    name: 'timeseries',
+    description:
+      'Time series fields of the models (series) in the database, on TimescaleDB with PostgreSQL, otherwise none',
+    packages: [],
+    requires: ['data'],
+    enabledConfig: ({ database }) => [
+      [
+        'config.timeseries.provider',
+        database === 'postgresql' ? 'timescale' : 'database'
+      ]
+    ],
+    disabledConfig: [],
+    configMarker: 'config.timeseries.provider'
+  },
+  influxdb: {
+    name: 'influxdb',
+    description:
+      'InfluxDB 3 store of the time series instead of the database, in memory for the tests',
+    packages: ['@appweaver/influxdb'],
+    requires: ['timeseries'],
+    enabledConfig: ({ name }) => [
+      [
+        'config.timeseries.influxdb.host',
+        'http://${INFLUXDB_HOST:-localhost}:8181'
+      ],
+      ['config.timeseries.influxdb.database', name],
+      ['environments.test.timeseries.provider', 'memory']
+    ],
+    disabledConfig: []
+  },
   docker: {
     name: 'docker',
     description:
-      'Dockerfile, docker-compose.yml with the database and Redis services of the enabled modules, and start.sh',
+      'Dockerfile, docker-compose.yml with the database, Redis and InfluxDB services of the enabled modules, and start.sh',
     packages: [],
     requires: [],
     enabledConfig: () => [],

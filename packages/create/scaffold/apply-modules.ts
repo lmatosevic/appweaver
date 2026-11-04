@@ -6,11 +6,14 @@ import {
 } from '../utils/translation-util';
 import {
   addDatabaseServices,
+  addInfluxService,
   addRedisService,
   addServerPort,
   removeDatabaseServices,
+  removeInfluxService,
   removeRedisService,
-  removeServerPort
+  removeServerPort,
+  setPostgresImage
 } from './compose-util';
 import { getSecretsEnv, getSqliteGitignore } from './database-config';
 import {
@@ -127,7 +130,11 @@ const integrations: ModuleIntegration[] = [
     modules: ['data', 'docker'],
     enable: (scaffold) => {
       editFile(scaffold, 'docker-compose.yml', (content) =>
-        addDatabaseServices(content, scaffold.context)
+        addDatabaseServices(
+          content,
+          scaffold.context,
+          scaffold.enabled.has('timeseries')
+        )
       );
       addBlock(scaffold, prismaBlock);
       addText(
@@ -173,6 +180,39 @@ const integrations: ModuleIntegration[] = [
     disable: (scaffold) =>
       editFile(scaffold, 'docker-compose.yml', (content) =>
         removeRedisService(content, scaffold.context.name)
+      )
+  },
+  // The time series of PostgreSQL in TimescaleDB, run by the PostgreSQL service
+  {
+    modules: ['timeseries', 'docker'],
+    enable: (scaffold) =>
+      editFile(scaffold, 'docker-compose.yml', (content) =>
+        setPostgresImage(content, true)
+      ),
+    disable: (scaffold) =>
+      editFile(scaffold, 'docker-compose.yml', (content) =>
+        setPostgresImage(content, false)
+      )
+  },
+  // The provider of the time series, InfluxDB while it is enabled
+  {
+    modules: ['timeseries', 'influxdb'],
+    enable: (scaffold) => setTimeSeriesProvider(scaffold, 'influxdb'),
+    disable: (scaffold) =>
+      setTimeSeriesProvider(
+        scaffold,
+        modules.timeseries.enabledConfig(scaffold.context)[0][1] as string
+      )
+  },
+  {
+    modules: ['influxdb', 'docker'],
+    enable: (scaffold) =>
+      editFile(scaffold, 'docker-compose.yml', (content) =>
+        addInfluxService(content, scaffold.context.name)
+      ),
+    disable: (scaffold) =>
+      editFile(scaffold, 'docker-compose.yml', (content) =>
+        removeInfluxService(content, scaffold.context.name)
       )
   },
   // The account email templates, copied by the generic file handling, replace the placeholder of the empty directory
@@ -651,6 +691,25 @@ function inlineTemplate(
   translations: Record<string, string>
 ): string {
   return inlineTranslations(content, translations, file.endsWith('.html.hbs'));
+}
+
+/** Sets the time series provider of appweaver.json, unless it was changed in the project. */
+function setTimeSeriesProvider(
+  scaffold: ModuleScaffold,
+  provider: string
+): void {
+  const config = scaffold.files.readJson('appweaver.json');
+  const current = config
+    ? getValue(config, 'config.timeseries.provider')
+    : undefined;
+  const expected = [
+    'influxdb',
+    modules.timeseries.enabledConfig(scaffold.context)[0][1]
+  ];
+  if (config && (current === undefined || expected.includes(current))) {
+    setValue(config, 'config.timeseries.provider', provider);
+    scaffold.files.writeJson('appweaver.json', config);
+  }
 }
 
 function editFile(
