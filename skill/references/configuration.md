@@ -266,6 +266,7 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 | `Scheduler`      | `SCHEDULER_PROVIDER`      | `cron`               | `cron` with `@appweaver/cron`, otherwise none                                           |
 | `Database`       | `DATABASE_PROVIDER`       | `prisma`             | `prisma` with `@appweaver/data`                                                         |
 | `ImageProcessor` | `IMAGE_PROVIDER`          | `sharp`              | `sharp` with `@appweaver/sharp`, otherwise none (images stored as uploaded)             |
+| `TimeSeries`     | `TIMESERIES_PROVIDER`     | `database`, `timescale`, `influxdb`, `memory` | `influxdb` with `@appweaver/influxdb`, otherwise `database` with `@appweaver/data`; `timescale` and `memory` only by their names |
 
 - Each driver is the module of its package (see [modules](./modules.md)), enabled by installing the package, so
   `npm install @appweaver/redis` moves the memory, the cache and the rate limit to Redis without any config.
@@ -732,6 +733,48 @@ nor the breaker, which would fail their blocking commands.
 | `CACHE_INVALIDATION_DEFERRED` | boolean | `false`            | Defer invalidation to a background process.                                     |
 | `CACHE_SKIP_ON_ERROR`         | boolean | `true`             | Return empty results instead of failing when the cache backend errors.          |
 | `CACHE_PROVIDER`              | string  | `'auto'`           | `auto` or `memory` (stored in the `Memory` provider), `none`, or a module path. |
+
+### Time series (TIMESERIES\_\*)
+
+The store of the `series` fields of the models, see [timeseries.md](./timeseries.md).
+
+| Property                             | Type    | Default        | Description                                                                                                         |
+|--------------------------------------|---------|----------------|---------------------------------------------------------------------------------------------------------------------|
+| `TIMESERIES_INGEST`                  | enum    | `'direct'`     | How the points are written: `direct`, `queue` (by a queue worker), or `auto` (queued on a durable queue only). A model overrides it with `seriesOptions.ingest`. |
+| `TIMESERIES_MAX_POINTS_PER_WRITE`    | integer | `5000`         | Maximum number of points a write accepts.                                                                           |
+| `TIMESERIES_MAX_POINTS_PER_QUERY`    | integer | `10000`        | Maximum number of points a query returns, and its default limit.                                                    |
+| `TIMESERIES_MAX_RESOURCES_PER_QUERY` | integer | `100`          | Maximum number of resources a query or a write of many resources covers.                                            |
+| `TIMESERIES_QUEUE_NAME`              | string  | `'timeseries'` | Name of the queue the queued points are sent to.                                                                    |
+| `TIMESERIES_QUEUE_BATCH_SIZE`        | integer | `1000`         | Maximum number of points of a queue job, a larger write is split into several jobs.                                 |
+| `TIMESERIES_QUEUE_CONCURRENCY`       | integer | `1`            | Number of jobs the worker writes at once.                                                                           |
+| `TIMESERIES_QUEUE_WORKER`            | boolean | `true`         | Run the worker writing the queued points in this instance, `false` for an instance only queueing them.              |
+| `TIMESERIES_ACCESS_CACHE_TTL`        | integer | `0`            | Milliseconds the routes keep an allowed access check of a resource, `0` to check every request.                     |
+| `TIMESERIES_PROVIDER`                | string  | `'auto'`       | `auto` (`influxdb` with `@appweaver/influxdb`, otherwise `database` with `@appweaver/data`), `database`, `timescale`, `influxdb`, `memory`, `none`, or a module path. |
+
+#### TimescaleDB (TIMESERIES_TIMESCALE\_\*)
+
+The `timescale` provider (`config.timeseries.timescale`), of `@appweaver/data`. The durations are overridden by the
+`seriesOptions` of a model.
+
+| Property                              | Type    | Default  | Description                                                                         |
+|---------------------------------------|---------|----------|-------------------------------------------------------------------------------------|
+| `TIMESERIES_TIMESCALE_CHUNK_INTERVAL` | string  | `'7d'`   | Time range of a chunk of the hypertables, a duration.                               |
+| `TIMESERIES_TIMESCALE_COMPRESS_AFTER` | string  | `''`     | Age from which the chunks are compressed, a duration, empty to compress none.       |
+| `TIMESERIES_TIMESCALE_RETENTION`      | string  | `''`     | Age from which the chunks are dropped, a duration, empty to keep every point.       |
+| `TIMESERIES_TIMESCALE_SETUP_TIMEOUT`  | integer | `60000`  | Maximum milliseconds the hypertables and their policies take to set up at startup.  |
+
+#### InfluxDB (TIMESERIES_INFLUXDB\_\*)
+
+The `influxdb` provider (`config.timeseries.influxdb`), of `@appweaver/influxdb`.
+
+| Property                            | Type    | Default                   | Description                                                                       |
+|-------------------------------------|---------|---------------------------|-----------------------------------------------------------------------------------|
+| `TIMESERIES_INFLUXDB_HOST`          | string  | `'http://localhost:8181'` | URL of the InfluxDB 3 server.                                                     |
+| `TIMESERIES_INFLUXDB_TOKEN`         | string  | `''`                      | Authentication token, empty for a server started without authentication (secret). |
+| `TIMESERIES_INFLUXDB_AUTH_SCHEME`   | string  | `'Bearer'`                | Scheme of the token: `Bearer` for InfluxDB 3 Core and Enterprise, empty for Cloud. |
+| `TIMESERIES_INFLUXDB_DATABASE`      | string  | `'appweaver'`             | Database the points are written to, created by the server on the first write.     |
+| `TIMESERIES_INFLUXDB_WRITE_TIMEOUT` | integer | `10000`                   | Maximum milliseconds of a write.                                                  |
+| `TIMESERIES_INFLUXDB_QUERY_TIMEOUT` | integer | `60000`                   | Maximum milliseconds of a query.                                                  |
 
 ### Job queue (QUEUE\_\*)
 

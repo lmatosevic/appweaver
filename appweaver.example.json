@@ -318,6 +318,32 @@
       "retryBackoffType": "fixed",
       "provider": "auto"
     },
+    "timeseries": {
+      "ingest": "direct",
+      "maxPointsPerWrite": 5000,
+      "maxPointsPerQuery": 10000,
+      "maxResourcesPerQuery": 100,
+      "queueName": "timeseries",
+      "queueBatchSize": 1000,
+      "queueConcurrency": 1,
+      "queueWorker": true,
+      "accessCacheTtl": 0,
+      "provider": "auto",
+      "timescale": {
+        "chunkInterval": "7d",
+        "compressAfter": "",
+        "retention": "",
+        "setupTimeout": 60000
+      },
+      "influxdb": {
+        "host": "http://localhost:8181",
+        "token": "",
+        "authScheme": "Bearer",
+        "database": "appweaver",
+        "writeTimeout": 10000,
+        "queryTimeout": 60000
+      }
+    },
     "scheduler": {
       "autoStartJob": true,
       "provider": "auto"

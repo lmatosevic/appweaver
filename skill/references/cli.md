@@ -155,10 +155,16 @@ enabled.
 
 Per model, the type file holds `<Model>`, `<Model>Single`, `<Model>Multiple`, `<Model>Create`, `<Model>Update`,
 `<Model>RelationCreate`, `<Model>RelationUpdate`, `<Model>RelationInput`, `<Model>Query`, `<Model>Sort`,
-`<Model>Aggregate`, and last `<Model>ResourceService`, the `injectService` type of that model. The file ends by
+`<Model>Aggregate`, `<Model>Series` (the values of its `series` fields, if any), and last `<Model>ResourceService`, the
+`injectService` type of that model. The file ends by
 registering the types of every model in the `ResourceRegistry` of `@appweaver/common`, which lets the factories and
 `injectService` infer them from a model name. `--no-registry` leaves the registration out. Without any model the file
 holds only `export {};`, so the `export * from './generated'` of the types index still compiles.
+
+A model with `series` fields gets the `<Model>Series` table of its points in the Prisma schema (see
+[timeseries](./timeseries.md)), left out when another store holds them: `timeseries.provider` set to `influxdb`, `memory`
+or `none`, or `auto` with the module of another store enabled (`@appweaver/influxdb`). `weaver test setup` follows the
+provider of the `test` environment.
 
 The models come from the project and from the `resources` of the enabled modules (see [modules](./modules.md)). The
 framework models reach the schema only when the project uses them: `Role`, `Permission`, `ApiKey`, `OneTimeToken` and

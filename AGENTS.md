@@ -145,7 +145,7 @@ on it:
 | `@appweaver/core`                                       | The runtime: modules, lifecycle, dependency injection, the in-process drivers                |
 | `@appweaver/data`                                       | Prisma, the resources, the auth data model, `FileService`, the seeders and the CSV export    |
 | `@appweaver/web`                                        | The Fastify server, the resource routes, the authentication, the problem details and Swagger |
-| `@appweaver/redis`, `bullmq`, `cron`, `nodemailer`, ... | One driver each, carrying the library it wraps as a dependency                               |
+| `@appweaver/redis`, `bullmq`, `cron`, `influxdb`, ...   | One driver each, carrying the library it wraps as a dependency                               |
 | `@appweaver/testing`                                    | The test helpers shared by the packages                                                      |
 
 The directories moved as they were, so a file keeps its path within its package (`core/server/register-route.ts` is
@@ -190,6 +190,7 @@ The runtime every application has, with neither a server nor a database. Organiz
 | `template/`  | The template config and `registerTemplate` / `registerTemplateHelper`, the engine is `@appweaver/handlebars`                         |
 | `locale/`    | Locale service — translating the dotted keys of the nested JSON translation files, with the framework's own English translations     |
 | `health/`    | `HealthService` (the checks, and the readiness the lifecycle sets), the `node:http` health listener of an app without web            |
+| `timeseries/` | The time series config, `TimeSeriesService` (validation, direct or queued writes, queries) and the in-process `memory` driver       |
 | `security/`  | The `security.store` config and the `memory` security store (`store/`)                                                               |
 | `types/`     | `ApplicationContext`                                                                                                                 |
 | `utils/`     | `createSchemaModel`                                                                                                                  |
@@ -206,7 +207,7 @@ driver of an enabled module, else the fallback of core, `none` disables the cont
 name selects a provider, and a module path still loads a class. The provider names are `memory` and `redis`
 (`Memory`), `memory` (`Cache`), `node` (`Events`), `local` (`Storage`), `database` and `memory` (`SecurityStore`),
 `memory` and `bullmq` (`Queue`), `smtp` and `json` (`Mailer`), `handlebars` (`TemplateEngine`), `cron` (`Scheduler`),
-`prisma` (`Database`) and `sharp` (`ImageProcessor`). A new driver goes into a module manifest with a provider name,
+`prisma` (`Database`), `sharp` (`ImageProcessor`), and `database`, `timescale`, `influxdb` and `memory` (`TimeSeries`). A new driver goes into a module manifest with a provider name,
 never into `load-providers.ts`, and is documented in `skill/references/modules.md` and
 `skill/references/configuration.md`.
 
@@ -228,6 +229,7 @@ loads the resources of the application, then the `resources` of the modules.
 | `storage/`  | `FileService`, the File model and the image config                                                                                                 |
 | `seeder/`   | `createSeeder` and the Seeder model                                                                                                                |
 | `export/`   | `ExportService` (CSV)                                                                                                                              |
+| `timeseries/` | The `database` and `timescale` drivers of `TimeSeries` (the `<Model>Series` tables, SQL per database, the hypertables) and the TimescaleDB config |
 | `types/`    | The auth and storage types, and the generated types of the framework models (`generated.ts`)                                                       |
 | `utils/`    | Helpers shared by the modules or meant for library users: export, file, model, policy and virtual field utilities                                  |
 | `prisma/`   | The generated Prisma schema, client and migration of the framework models                                                                          |
@@ -286,12 +288,13 @@ the resource routes of the application (`RESOURCE_ROUTES_PATTERN`), then the `we
 | `health/`   | The health check routes and their config                                                                                                       |
 | `cache/`    | The response caching of the routes                                                                                                             |
 | `storage/`  | The file routes                                                                                                                                |
+| `timeseries/` | The time series routes of the models with `series` fields and their schemas                                                                  |
 | `template/` | The template preview route of development                                                                                                      |
 | `types/`    | The `Server` and `Router` types, the Fastify extensions and the HTTP auth types                                                                |
 
 ### Driver packages
 
-`packages/{redis,bullmq,cron,nodemailer,handlebars,sharp}` each hold one driver, its `module.ts` manifest and, when it
+`packages/{redis,bullmq,cron,nodemailer,handlebars,sharp,influxdb}` each hold one driver, its `module.ts` manifest and, when it
 has one, its `config.ts` section. The library a driver wraps is a dependency of its package, so an application
 installs `@appweaver/redis`, never `ioredis`.
 
@@ -303,6 +306,7 @@ installs `@appweaver/redis`, never `ioredis`.
 | `@appweaver/nodemailer` | `SmtpMailer`               | `smtp` (`Mailer`)               | `smtpConfig` (`mailer.smtp`)    |
 | `@appweaver/handlebars` | `HandlebarsTemplateEngine` | `handlebars` (`TemplateEngine`) | —                               |
 | `@appweaver/sharp`      | `SharpImageProcessor`      | `sharp` (`ImageProcessor`)      | —                               |
+| `@appweaver/influxdb`   | `InfluxTimeSeries`         | `influxdb` (`TimeSeries`)       | `influxConfig` (`timeseries.influxdb`, requires `@appweaver/data`) |
 
 ### `packages/testing`
 
@@ -316,11 +320,14 @@ path into another package. Jest maps every `@appweaver/*` import to the sources 
 `jest.config.json`), so the tests need no build and share one instance of each module.
 
 The contract suites of `contracts/` test a driver against the behavior every driver of its contract shares:
-`testMemoryContract`, `testStorageContract`, `testQueueContract`, `testSchedulerContract` and `testMailerContract`,
-each called as `(name, () => driver)` at the top level of a test file. They use the `describe`, `test`, `beforeEach`,
+`testMemoryContract`, `testStorageContract`, `testQueueContract`, `testSchedulerContract`, `testMailerContract` and
+`testTimeSeriesContract`, each called as `(name, () => driver)` at the top level of a test file. They use the `describe`, `test`, `beforeEach`,
 `afterEach` and `expect` globals, so they run under Jest, Vitest and Bun, and create a fresh driver for every test.
 `InMemory`, `RedisMemory` (on `ioredis-mock`, which runs its Lua scripts), `FilesystemStorage`, `MemoryQueue`,
-`JsonMailer` and `CronScheduler` run them, and so does the test of a driver package scaffolded with
+`JsonMailer`, `CronScheduler`, `MemoryTimeSeries`, `DatabaseTimeSeries` and `TimescaleTimeSeries` (on SQLite, and on
+the databases of `TIMESERIES_TEST_POSTGRES_URL`, `TIMESERIES_TEST_MYSQL_URL`, `TIMESERIES_TEST_SQLSERVER_URL` and
+`TIMESERIES_TEST_TIMESCALE_URL` when set) and `InfluxTimeSeries` (on the server of `TIMESERIES_TEST_INFLUXDB_URL` when
+set) run them, and so does the test of a driver package scaffolded with
 `npm create @appweaver module`. A change of a contract's shared behavior goes into its
 suite, so every driver is held to it.
 
@@ -376,11 +383,12 @@ adds the optional modules selected: the default ones (`defaultModules` of `scaff
 with the `--add <modules...>` ones, or every module with `--all`, minus the `--exclude <modules...>` ones, which leave
 out the default modules too, with or without `--all` (`--exclude data web` for the core application alone). The
 modules are `data`, `web` (requires `data`), `redis`, `queue` (requires `redis`), `scheduler`, `mailer`, `templates`,
-`locales` and `docker`. The base project depends only on `@appweaver/cli`, `common`, `core` and TypeBox, and a module
+`locales`, `timeseries` (requires `data`), `influxdb` (requires `timeseries`) and `docker`. The base project depends only on `@appweaver/cli`, `common`, `core` and TypeBox, and a module
 adds its
 packages: `@appweaver/data`, `@appweaver/sharp`, Prisma and the driver adapter of `--database` (`data`, its
 `projectPackages`), `@appweaver/web` (`web`), `@appweaver/redis` (`redis`), `@appweaver/bullmq` (`queue`),
-`@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`) and `@appweaver/handlebars` (`templates`), every
+`@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`), `@appweaver/handlebars` (`templates`) and
+`@appweaver/influxdb` (`influxdb`), every
 `@appweaver/*` package at the framework version, the version of `@appweaver/create` (`scaffold/package-versions.ts`).
 `--database`, `--host` and `--port` configure `data` and `web` only (`ProjectContext`), and `weaver module add` takes
 `--database` for `data`. The `User` auth model and its admin seeder come with `web`, which brings the authentication, so
@@ -626,7 +634,7 @@ unless `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is `false`. Call it before any ne
 ### `weaver module` (alias: `mod`)
 
 Add and remove the optional modules of `@appweaver/create` (`data`, `web`, `redis`, `queue`, `scheduler`, `mailer`,
-`templates`, `locales`, `docker`) in the current project, with the scaffold templates of `@appweaver/create/scaffold`,
+`templates`, `locales`, `timeseries`, `influxdb`, `docker`) in the current project, with the scaffold templates of `@appweaver/create/scaffold`,
 install
 module packages, and create local modules.
 
@@ -1031,9 +1039,9 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
 
 | Sample                   | Runtime | Database           | Showcases                                                                                                  |
 |--------------------------|---------|--------------------|------------------------------------------------------------------------------------------------------------|
-| `sample/webshop-api`     | Node    | PostgreSQL + Redis | Transactional checkout, BullMQ payment worker on a resource event, API key partner, localized order emails |
+| `sample/webshop-api`     | Node    | PostgreSQL + Redis | Transactional checkout, BullMQ payment worker on a resource event, API key partner, localized order emails, product price and stock time series in a TimescaleDB hypertable |
 | `sample/hr-api`          | Node    | SQLite             | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades        |
-| `sample/helpdesk-api`    | Node    | MySQL (MariaDB)    | Non-auth customers connected by email, auto-assignment, SLA escalation job, cursor pagination              |
+| `sample/helpdesk-api`    | Node    | MySQL (MariaDB)    | Non-auth customers connected by email, auto-assignment, SLA escalation job, cursor pagination, team workload time series in InfluxDB 3 |
 | `sample/movies-api-bun`  | Bun     | SQLite (libsql)    | Public cached catalog, join model with payload, OAuth2 sign-up, generated typed client                     |
 | `sample/inbox-processor` | Node    | SQLite + Redis     | A file and API fed BullMQ pipeline with retries, a local module with a watcher service and routes          |
 | `sample/reports-worker`  | Node    | SQLite             | No server: daily reports by cron, archive job, CSV import and report tasks, the health listener            |
@@ -1044,8 +1052,10 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
   server: the worker is kept running by its cron jobs and answers the health checks on `healthCheck.port`, the
   calculator starts, calculates and stops, and both do their work in `weaver run` tasks. `loan-calculator` has no
   database, so no migrations, seeders or e2e database setup.
-- The PostgreSQL and MySQL samples start their database with `docker compose up -d postgres redis` (or `mysql`); their
-  end-to-end tests run against a `-test` database of the same container.
+- The PostgreSQL and MySQL samples start their database with `docker compose up -d postgres redis` (or
+  `mysql influxdb`); their end-to-end tests run against a `-test` database of the same container. The PostgreSQL service
+  of `webshop-api` runs the TimescaleDB image, and the end-to-end tests of `helpdesk-api` write to a database of their
+  own in the InfluxDB container for each run.
 - Like a generated project, every sample configures its database and Redis URLs in `appweaver.json`, referencing the
   database password of `.env` (copied from `.env.example`) as `${DB_PASSWORD}`, and the hosts as
   `${DB_HOST:-localhost}` and `${REDIS_HOST:-localhost}`, which the compose application services override. The database
@@ -1087,8 +1097,8 @@ This runs the following steps automatically:
 4. **Changelog** (`@semantic-release/changelog`) — appends notes to `CHANGELOG.md`.
 5. **Version bump** (`@semantic-release/npm`, no publish) — updates `version` in the root `package.json` and in the
    `package.json` of every published package, listed in `release.config.js` (and `tools/lock-samples.js`): `core`,
-   `common`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `handlebars`, `sharp`, `testing`, `cli`, `client`
-   and `create`.
+   `common`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `influxdb`, `handlebars`, `sharp`, `testing`, `cli`,
+   `client` and `create`.
 6. **Package copy** (`@semantic-release/exec`) — runs `node ./tools/copy-packages.js` to sync built packages into
    `node_modules/@appweaver`.
 7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the npm registry with
@@ -1104,6 +1114,7 @@ This runs the following steps automatically:
     cd packages/bullmq/dist     && npm publish
     cd packages/cron/dist       && npm publish
     cd packages/nodemailer/dist && npm publish
+    cd packages/influxdb/dist   && npm publish
     cd packages/handlebars/dist && npm publish
     cd packages/sharp/dist      && npm publish
     cd packages/testing/dist    && npm publish

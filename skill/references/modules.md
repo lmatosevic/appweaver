@@ -9,8 +9,8 @@ first-party module does.
 
 | Module                  | Enabled                      | Brings                                                                                                            |
 |-------------------------|------------------------------|-------------------------------------------------------------------------------------------------------------------|
-| `@appweaver/core`       | Always                       | The contracts and the in-process drivers: `memory`, `node` events, `local` storage, `memory` queue, `json` mailer |
-| `@appweaver/data`       | Installed                    | The `prisma` database, the resources, `FileService`, the `database` security store                                |
+| `@appweaver/core`       | Always                       | The contracts and the in-process drivers: `memory`, `node` events, `local` storage, `memory` queue, `json` mailer, `memory` time series |
+| `@appweaver/data`       | Installed                    | The `prisma` database, the resources, `FileService`, the `database` security store, the `database` and `timescale` time series |
 | `@appweaver/web`        | Installed (requires `data`)  | The Fastify server (`HttpServer`), authentication, account and OAuth2 services                                    |
 | `@appweaver/redis`      | Installed                    | The `redis` memory, also the store of the cache and the rate limit                                                |
 | `@appweaver/bullmq`     | Installed (requires `redis`) | The `bullmq` queue                                                                                                |
@@ -18,6 +18,7 @@ first-party module does.
 | `@appweaver/nodemailer` | Installed                    | The `smtp` mailer                                                                                                 |
 | `@appweaver/handlebars` | Installed                    | The `handlebars` template engine                                                                                  |
 | `@appweaver/sharp`      | Installed                    | The `sharp` image processor                                                                                       |
+| `@appweaver/influxdb`   | Installed (requires `data`)  | The `influxdb` time series store (InfluxDB 3)                                                                     |
 
 Every first-party module but core is a package of its own, enabled like any [package module](#package-modules): by
 being a dependency of the application's `package.json`. A driver package carries the library it wraps as a dependency,
@@ -386,6 +387,7 @@ A driver of an external service runs the suite on an in-memory stand-in of its c
 | `testQueueContract`     | `Queue`     | A job processed by a worker and its result, a failed job, a given job id and an ignored send of one still queued, closing a queue, the health check |
 | `testSchedulerContract` | `Scheduler` | Adding, starting, stopping and removing a job, an unknown job id (yearly jobs, none ticks)                                                          |
 | `testMailerContract`    | `Mailer`    | Sending an email with every field of the contract, the health check                                                                                 |
+| `testTimeSeriesContract` | `TimeSeries` | Writing and merging points, selecting fields and ranges, ordering and limiting, every aggregate by bucket and over the range, deleting a range (a store with `supportsDelete`), the health check |
 
 The suites use the `describe`, `test`, `beforeEach`, `afterEach` and `expect` globals, so they run under Jest, Vitest
 (with `globals: true`) and Bun. A driver of a remote service runs them against a test instance or emulator, the

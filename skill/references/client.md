@@ -380,6 +380,11 @@ Exposes CRUD and file operations for a single resource endpoint.
 | `bulkUpdate(items, options?)`     | `PATCH /{resource}/bulk`             | Update many `{ id, data }` items                         |
 | `bulkReplace(items, options?)`    | `PUT /{resource}/bulk`               | Replace many `{ id, data }` items                        |
 | `bulkDelete(ids, options?)`       | `DELETE /{resource}/bulk`            | Delete many records by ID                                |
+| `writeSeries(id, points, options?)` | `POST /{resource}/{id}/series`     | Write time series points, `{ direct: true }` skips the queue |
+| `writeManySeries(points, options?)` | `POST /{resource}/series`          | Write the points of many records, each with `resourceId` |
+| `querySeries(id, query?, options?)` | `GET /{resource}/{id}/series`      | Query the points, `fields` an array, by `bucket` and `aggregate` |
+| `queryManySeries(request, options?)` | `POST /{resource}/series/query`   | Query the points of the records of `ids` and `filter`    |
+| `deleteSeries(id, range?, options?)` | `POST /{resource}/{id}/delete-series` | Delete the points of a `{ from, to }` range          |
 
 ```ts
 // Find a single record

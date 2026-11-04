@@ -99,6 +99,7 @@ their prefix:
 | `TemplateError`      | `@appweaver/common` | `TEMPLATE_`      | The template engine: a missing, unreadable or failing template  |
 | `LocaleError`        | `@appweaver/common` | `LOCALE_`        | The locale service: an unreadable file or an invalid message    |
 | `LockError`          | `@appweaver/common` | `LOCK_`          | A lock that could not be acquired                               |
+| `TimeSeriesError`    | `@appweaver/common` | `TIMESERIES_`    | The time series service and stores: invalid points and queries  |
 
 ```ts
 import { ErrorCode } from '@appweaver/common';
@@ -215,6 +216,18 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `LOCALE_LOAD_FAILED`                 | 500    | Locale loading failed                 |
 | `LOCK_NOT_ACQUIRED`                  | 503    | Resource is locked                    |
 | `MEMORY_UNAVAILABLE`                 | 503    | Memory unavailable                    |
+| `TIMESERIES_NOT_ENABLED`             | 404    | Time series not enabled               |
+| `TIMESERIES_INVALID_FIELD`           | 400    | Invalid time series field             |
+| `TIMESERIES_INVALID_VALUE`           | 400    | Invalid time series value             |
+| `TIMESERIES_INVALID_TIME`            | 400    | Invalid time series point time        |
+| `TIMESERIES_INVALID_RANGE`           | 400    | Invalid time series range             |
+| `TIMESERIES_INVALID_BUCKET`          | 400    | Invalid time series bucket            |
+| `TIMESERIES_INVALID_AGGREGATE`       | 400    | Invalid time series aggregate         |
+| `TIMESERIES_TOO_MANY_POINTS`         | 413    | Too many time series points           |
+| `TIMESERIES_TOO_MANY_RESOURCES`      | 400    | Too many time series resources        |
+| `TIMESERIES_FORBIDDEN`               | 403    | Time series access forbidden          |
+| `TIMESERIES_UNSUPPORTED`             | 501    | Time series operation not supported   |
+| `TIMESERIES_UNAVAILABLE`             | 503    | Time series store unavailable         |
 
 `REQUEST_FAILED` keeps the 4xx status of an error a Fastify plugin raised with no code of its own.
 
