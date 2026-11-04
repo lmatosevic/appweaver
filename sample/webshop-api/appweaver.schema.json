@@ -1595,6 +1595,23 @@
               "default": "auto",
               "type": "string"
             },
+            "database": {
+              "type": "object",
+              "properties": {
+                "retention": {
+                  "default": "",
+                  "type": "string"
+                },
+                "retentionInterval": {
+                  "default": "1h",
+                  "type": "string"
+                },
+                "retentionWorker": {
+                  "default": true,
+                  "type": "boolean"
+                }
+              }
+            },
             "timescale": {
               "type": "object",
               "properties": {

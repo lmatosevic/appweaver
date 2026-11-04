@@ -19,7 +19,7 @@ testDatabaseContract(
   undefined,
   () => {
     test('deletes the points older than the retention of their model', async () => {
-      configOverrides.TIMESERIES_DATABASE_RETENTION_INTERVAL = '';
+      configOverrides.TIMESERIES_DATABASE_RETENTION_WORKER = false;
       const store = new DatabaseTimeSeries();
       const model = { ...contractSeriesModel, options: { retention: '1d' } };
       // Before the points of the contract suite, which share the table
@@ -48,7 +48,7 @@ testDatabaseContract(
       await expect(store.purge(now)).resolves.toBe(2);
       const points = await store.query(model, { resourceIds: [900, 901] });
       expect(points.map((point) => point.values.count)).toEqual([3]);
-      delete configOverrides.TIMESERIES_DATABASE_RETENTION_INTERVAL;
+      delete configOverrides.TIMESERIES_DATABASE_RETENTION_WORKER;
     });
   }
 );
@@ -153,6 +153,7 @@ describe('DatabaseTimeSeries', () => {
       jest.restoreAllMocks();
       delete configOverrides.TIMESERIES_DATABASE_RETENTION;
       delete configOverrides.TIMESERIES_DATABASE_RETENTION_INTERVAL;
+      delete configOverrides.TIMESERIES_DATABASE_RETENTION_WORKER;
     });
 
     const model = (retention?: string) => ({
@@ -188,11 +189,11 @@ describe('DatabaseTimeSeries', () => {
       await store.onDestroy();
     });
 
-    test('deletes nothing without a retention or an interval', async () => {
+    test('deletes nothing without a retention, or in an instance without the worker', async () => {
       const store = new DatabaseTimeSeries();
       await store.register([model()]);
 
-      configOverrides.TIMESERIES_DATABASE_RETENTION_INTERVAL = '';
+      configOverrides.TIMESERIES_DATABASE_RETENTION_WORKER = false;
       const manual = new DatabaseTimeSeries();
       await manual.register([model('1d')]);
       await jest.advanceTimersByTimeAsync(2 * 3_600_000);

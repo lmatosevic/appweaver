@@ -36,7 +36,8 @@ const logger = createLogger('timeseries');
  * the Prisma schema, keyed by the resource and the time, written and queried with SQL over the connection of the
  * database, on SQLite, PostgreSQL, MySQL and SQL Server. The points of a resource are deleted with it by the foreign
  * key of the table, and the points older than the retention of their model (`seriesOptions.retention`, or the
- * `timeseries.database.retention` config) once the application starts, then every `timeseries.database.retentionInterval`.
+ * `timeseries.database.retention` config) once the application starts, then every `timeseries.database.retentionInterval`,
+ * in the instances with `timeseries.database.retentionWorker`.
  */
 export class DatabaseTimeSeries extends TimeSeries {
   // The database has its own health check
@@ -87,8 +88,14 @@ export class DatabaseTimeSeries extends TimeSeries {
 
     clearInterval(this._purgeTimer);
     this._purgeTimer = undefined;
-    const interval = databaseSeriesConfig.RETENTION_INTERVAL;
-    if (this._retentions.length === 0 || !interval) {
+    const interval = seconds(
+      databaseSeriesConfig.RETENTION_INTERVAL,
+      'retention interval'
+    );
+    if (
+      this._retentions.length === 0 ||
+      !databaseSeriesConfig.RETENTION_WORKER
+    ) {
       return;
     }
 
@@ -96,10 +103,7 @@ export class DatabaseTimeSeries extends TimeSeries {
       void this.purge().catch((error) =>
         logger.error(error, 'Cannot delete the expired time series points')
       );
-    this._purgeTimer = setInterval(
-      run,
-      seconds(interval, 'retention interval') * 1000
-    );
+    this._purgeTimer = setInterval(run, interval * 1000);
     this._purgeTimer.unref();
     run();
   }

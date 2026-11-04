@@ -756,10 +756,11 @@ The store of the `series` fields of the models, see [timeseries.md](./timeseries
 The `database` provider (`config.timeseries.database`), of `@appweaver/data`. The retention is overridden by the
 `seriesOptions.retention` of a model.
 
-| Property                                 | Type   | Default | Description                                                                                     |
-|------------------------------------------|--------|---------|-------------------------------------------------------------------------------------------------|
-| `TIMESERIES_DATABASE_RETENTION`          | string | `''`    | How long the points are kept, a duration (`365d`), empty to keep every point.                   |
-| `TIMESERIES_DATABASE_RETENTION_INTERVAL` | string | `'1h'`  | How often the points older than their retention are deleted, a duration, empty to delete none.  |
+| Property                                 | Type    | Default | Description                                                                                       |
+|------------------------------------------|---------|---------|---------------------------------------------------------------------------------------------------|
+| `TIMESERIES_DATABASE_RETENTION`          | string  | `''`    | How long the points are kept, a duration (`365d`), empty to keep every point.                     |
+| `TIMESERIES_DATABASE_RETENTION_INTERVAL` | string  | `'1h'`  | How often the points older than their retention are deleted, a duration.                          |
+| `TIMESERIES_DATABASE_RETENTION_WORKER`   | boolean | `true`  | Delete the expired points in this instance, `false` on the others when one instance deletes them. |
 
 #### TimescaleDB (TIMESERIES_TIMESCALE\_\*)
 

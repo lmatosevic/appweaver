@@ -331,7 +331,8 @@
       "provider": "auto",
       "database": {
         "retention": "",
-        "retentionInterval": "1h"
+        "retentionInterval": "1h",
+        "retentionWorker": true
       },
       "timescale": {
         "chunkInterval": "7d",

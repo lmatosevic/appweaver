@@ -1578,6 +1578,10 @@
                 "retentionInterval": {
                   "default": "1h",
                   "type": "string"
+                },
+                "retentionWorker": {
+                  "default": true,
+                  "type": "boolean"
                 }
               }
             },

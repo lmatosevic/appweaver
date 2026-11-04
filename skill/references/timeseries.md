@@ -100,8 +100,10 @@ module package of another store enabled).
 
 The points older than the retention of their model (`seriesOptions.retention`, otherwise
 `timeseries.database.retention`) are deleted when the application starts, then every
-`timeseries.database.retentionInterval` (`1h`) by every instance, a single `DELETE` per model. With an empty interval
-nothing is deleted on its own, so a scheduled task deletes them instead:
+`timeseries.database.retentionInterval` (`1h`), a single `DELETE` per model. Every instance runs them by default,
+which is safe, since a delete of the points already deleted deletes nothing, but repeats the work: run them in one
+instance only with `TIMESERIES_DATABASE_RETENTION_WORKER=false` on the others. The points then wait for that instance
+while it is down, and none is lost. Without any worker, a scheduled task deletes them instead:
 
 ```ts
 import { TimeSeries } from '@appweaver/common';
