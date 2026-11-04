@@ -83,7 +83,7 @@ describe('two-factor-service', () => {
       define({ sendEmail }, EmailService);
     }
     if (sms) {
-      define({ sendSms }, SmsService);
+      define({ sendSmsAndWait: sendSms }, SmsService);
     }
 
     const authUserService = {

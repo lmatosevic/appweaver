@@ -59,7 +59,7 @@ describe('account-service', () => {
     define(LocaleService);
     define({ removeSmsMethod }, TwoFactorService);
     if (withSms) {
-      define({ sendSms }, SmsService);
+      define({ sendSmsAndWait: sendSms }, SmsService);
     }
     if (withEmail) {
       // Tells the template emails apart from the plain text ones
@@ -467,6 +467,11 @@ describe('account-service', () => {
   });
 
   describe('sendPhoneVerification', () => {
+    beforeEach(() => {
+      // The texts of the translations, the templates are tested with sendAccountSms
+      hasTemplate.mockResolvedValue(false);
+    });
+
     test('texts a code to the phone number and stores only its hash', async () => {
       const result = await service.sendPhoneVerification(
         authUser(),

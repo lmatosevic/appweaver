@@ -798,6 +798,8 @@ nor the breaker, which would fail their blocking commands.
 
 ### SMS (SMS\_\*)
 
+The messages are sent through the `sms` queue, see [sms](./sms.md).
+
 | Property                           | Type    | Default                                          | Description                                                                                                                                                                                                                       |
 |------------------------------------|---------|--------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `SMS_SENDER`                       | string? | -                                                | Default sender of the text messages, a phone number in the E.164 format or an alphanumeric sender ID.                                                                                                                             |

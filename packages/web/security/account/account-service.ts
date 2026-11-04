@@ -15,12 +15,7 @@ import { accountConfig } from '../security-config';
 import { AuthService } from '../auth-service';
 import { hashPassword, validatePasswordComplexity } from '@appweaver/data';
 import { validateRedirectUrl } from '../access-util';
-import {
-  inject,
-  EmailService,
-  LocaleService,
-  SmsService
-} from '@appweaver/core';
+import { inject, EmailService, SmsService } from '@appweaver/core';
 import { AuthOTTData, PhoneVerificationData } from '../../types/http-auth';
 import { TwoFactorService } from '../two-factor/two-factor-service';
 import {
@@ -29,6 +24,7 @@ import {
   matchesCodeHash
 } from '../two-factor/utils/code-util';
 import { sendAccountEmail } from './utils/account-email';
+import { sendAccountSms } from './utils/account-sms';
 
 const logger = createLogger('security');
 
@@ -374,12 +370,17 @@ export class AccountService {
         expiresIn
       );
 
-    const text = inject(LocaleService).translate('sms.verifyPhone', locale, {
-      code,
-      appName: appConfig.NAME,
-      count: Math.ceil(expiresIn / 60_000)
-    });
-    await this._smsService.sendSms({ to: phoneNumber, text });
+    await sendAccountSms(
+      this._smsService,
+      {
+        to: phoneNumber,
+        template: 'sms/verify-phone',
+        code,
+        expiresInMinutes: Math.ceil(expiresIn / 60_000),
+        locale
+      },
+      'sms.verifyPhone'
+    );
 
     logger.debug({ id: authUser.id, challengeId }, 'Phone verification sent');
 

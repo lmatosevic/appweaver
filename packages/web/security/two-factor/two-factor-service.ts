@@ -21,7 +21,6 @@ import {
   EmailService,
   inject,
   injectService,
-  LocaleService,
   SmsService
 } from '@appweaver/core';
 import {
@@ -41,6 +40,7 @@ import {
 } from '../security-config';
 import { AuthService } from '../auth-service';
 import { sendAccountEmail } from '../account/utils/account-email';
+import { sendAccountSms } from '../account/utils/account-sms';
 import { AuthOTTData, TwoFactorChallengeData } from '../../types/http-auth';
 import {
   codeChallengeValidator,
@@ -914,13 +914,17 @@ export class TwoFactorService {
     code: string,
     locale?: string
   ): Promise<void> {
-    const text = inject(LocaleService).translate('sms.twoFactorCode', locale, {
-      code,
-      appName: appConfig.NAME,
-      count: Math.ceil(twoFactorConfig.OTT_TTL / 60_000)
-    });
-
-    await this._smsService!.sendSms({ to: phoneNumber, text });
+    await sendAccountSms(
+      this._smsService!,
+      {
+        to: phoneNumber,
+        template: 'sms/two-factor-code',
+        code,
+        expiresInMinutes: Math.ceil(twoFactorConfig.OTT_TTL / 60_000),
+        locale
+      },
+      'sms.twoFactorCode'
+    );
   }
 
   /**

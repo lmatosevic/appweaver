@@ -281,6 +281,7 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
   },
 
   [ErrorCode.SmsSendFailed]: { status: 502, title: 'SMS sending failed' },
+  [ErrorCode.SmsJobNotFound]: { status: 500, title: 'SMS job not found' },
 
   [ErrorCode.TemplateNotFound]: { status: 500, title: 'Template not found' },
   [ErrorCode.TemplateRenderFailed]: {

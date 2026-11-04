@@ -17,6 +17,16 @@ export type SmsMessage = {
   providerOptions?: Record<string, unknown>;
 };
 
+/** A text message rendered from a template, the `<template>.txt` template giving its text. */
+export type TemplateSms = Omit<SmsMessage, 'text'> & {
+  /** The template name without the format, i.e. `sms/order-shipped` for `sms/order-shipped.txt`. */
+  template: string;
+  /** The data to render the template with. */
+  data?: Record<string, any>;
+  /** The locale to render the template in. Defaults to the `LOCALE_DEFAULT` config. */
+  locale?: string;
+};
+
 export abstract class SmsSender implements IHealthCheck {
   static [HEALTH_CHECK] = true;
 

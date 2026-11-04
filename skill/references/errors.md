@@ -218,6 +218,7 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `MAILER_JOB_NOT_FOUND`               | 500    | Email job not found                   |
 | `MAILER_SENDER_MISSING`              | 500    | Email sender missing                  |
 | `SMS_SEND_FAILED`                    | 502    | SMS sending failed                    |
+| `SMS_JOB_NOT_FOUND`                  | 500    | SMS job not found                     |
 | `TEMPLATE_NOT_FOUND`                 | 500    | Template not found                    |
 | `TEMPLATE_RENDER_FAILED`             | 500    | Template rendering failed             |
 | `TEMPLATE_LOAD_FAILED`               | 500    | Template loading failed               |

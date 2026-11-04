@@ -187,7 +187,7 @@ The runtime every application has, with neither a server nor a database. Organiz
 | `queue/`     | The in-process `memory` driver of `Queue`                                                                                            |
 | `scheduler/` | The scheduler config, its driver is `@appweaver/cron`                                                                                |
 | `mailer/`    | `EmailService`, rendering the template emails, and the `json` mailer of development and tests                                        |
-| `sms/`       | `SmsService`, sending the text messages right away, and the `json` SMS sender of development and tests                               |
+| `sms/`       | `SmsService`, sending the text messages through the `sms` queue, and the `json` SMS sender of development and tests                  |
 | `template/`  | The template config and `registerTemplate` / `registerTemplateHelper`, the engine is `@appweaver/handlebars`                         |
 | `locale/`    | Locale service — translating the dotted keys of the nested JSON translation files, with the framework's own English translations     |
 | `health/`    | `HealthService` (the checks, and the readiness the lifecycle sets), the `node:http` health listener of an app without web            |
@@ -411,7 +411,7 @@ version (`tools/copy-packages.js` pins the `@appweaver/*` dependencies of the pu
 | `scaffold/compose-util.ts`          | Adds and removes the Redis service of `docker-compose.yml` with the `yaml` document API                              |
 | `templates/base/`                   | The minimal core application every module is added to                                                                |
 | `templates/modules/<name>/`         | The files of a module, deleted when it is removed                                                                    |
-| `templates/modules/<a>+<b>/`        | The files of two modules enabled together (`mailer+templates` holds the email templates)                             |
+| `templates/modules/<a>+<b>/`        | The files of two modules enabled together (`mailer+templates` and `sms+templates` hold the account templates)        |
 | `templates/translations/en.json`    | The English texts of the scaffolded templates, merged into `locales/en.json` with the mailer                         |
 | `templates/module-package/`         | The files of every module package (`common/`), and those of each contract (`storage/`, `mailer/`, `none/`)           |
 
@@ -445,7 +445,8 @@ A module is defined by data (packages, config values) and its files, its edits o
 the module alone in `apply-modules.ts` (the database password of `.env`, the SQLite rules of `.gitignore`), and anything
 else it adds to another enabled module is an integration of the two (the database, Redis and
 server parts of `docker-compose.yml`, the Dockerfile `COPY` blocks of public files, templates, locales and Prisma, the
-database roles of `start.sh`, the `emails` texts the mailer merges into `locales/en.json`).
+database roles of `start.sh`, the `emails` and `sms` texts the mailer and the SMS module merge into
+`locales/en.json`).
 `@appweaver/create` creates the base project with every module's disabled config, then adds the selected modules
 exactly like `weaver module add`, so a test checks that every combination of modules created, added one at a time, or
 removed from a full project gives the same files. Keep any new module or

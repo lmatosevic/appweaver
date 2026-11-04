@@ -121,7 +121,10 @@ export default defineModule({
       load: () => import('../mailer/email-service'),
       requires: [Mailer, Queue]
     },
-    { load: () => import('../sms/sms-service'), requires: [SmsSender] },
+    {
+      load: () => import('../sms/sms-service'),
+      requires: [SmsSender, Queue]
+    },
     { load: () => import('../health/health-service') },
     { load: () => import('../health/health-listener') }
   ]

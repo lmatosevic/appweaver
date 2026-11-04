@@ -347,6 +347,7 @@ export async function createAdminUser(): Promise<void> {
 - Queue jobs: [queue.md](references/queue.md)
 - Scheduling jobs: [scheduler.md](references/scheduler.md)
 - Sending emails: [mailer.md](references/mailer.md)
+- Sending text messages (SMS): [sms.md](references/sms.md)
 - Templates & translations: [templates.md](references/templates.md)
 - Generating an HTTP client for using API: [client.md](references/client.md)
 - Framework errors: [errors.md](references/errors.md)

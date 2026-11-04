@@ -269,9 +269,17 @@ describe('create', () => {
       expect(exists('my-app', 'templates', 'layouts', 'email.html.hbs')).toBe(
         true
       );
-      expect(readJson('my-app', 'locales', 'en.json')).toEqual({
-        emails: defaultTranslations.emails
-      });
+      expect(readJson('my-app', 'locales', 'en.json')).toEqual(
+        defaultTranslations
+      );
+    });
+
+    test('generates the account SMS templates', () => {
+      for (const sms of ['two-factor-code', 'verify-phone']) {
+        expect(read('my-app', 'templates', 'sms', `${sms}.txt.hbs`)).toContain(
+          '{{t "sms.'
+        );
+      }
     });
 
     test('creates the reports directory', () => {

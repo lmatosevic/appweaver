@@ -202,36 +202,40 @@ const integrations: ModuleIntegration[] = [
     modules: ['mailer', 'templates'],
     enable: (scaffold) => scaffold.files.remove('templates/.gitkeep'),
     disable: (scaffold, name) => {
-      if (name !== 'mailer') {
-        return;
+      if (name === 'mailer') {
+        restoreTemplatesPlaceholder(scaffold, 'mailer+templates');
       }
-      const emails = collectModuleFiles(
-        'mailer+templates',
-        scaffold.context
-      ).map((file) => file.path);
-      if (
-        scaffold.files.list('templates').every((file) => emails.includes(file))
-      ) {
-        copyFiles(scaffold, 'templates');
+    }
+  },
+  // The account SMS templates, like the email ones
+  {
+    modules: ['sms', 'templates'],
+    enable: (scaffold) => scaffold.files.remove('templates/.gitkeep'),
+    disable: (scaffold, name) => {
+      if (name === 'sms') {
+        restoreTemplatesPlaceholder(scaffold, 'sms+templates');
       }
     }
   },
   // The English texts of the account emails, in the translation file of the project
   {
     modules: ['mailer', 'locales'],
-    enable: (scaffold) => {
-      const translations = scaffold.files.readJson(translationFile) ?? {};
-      addTranslations(translations, readSourceTranslations(), scaffold.force);
-      scaffold.files.writeJson(translationFile, translations);
-    },
+    enable: (scaffold) => addSourceTranslations(scaffold, 'emails'),
     // Removing the locales deletes the whole file
     disable: (scaffold, name) => {
-      const translations = scaffold.files.readJson(translationFile);
-      if (name !== 'mailer' || !translations) {
-        return;
+      if (name === 'mailer') {
+        removeSourceTranslations(scaffold, 'emails');
       }
-      removeTranslations(translations, readSourceTranslations());
-      scaffold.files.writeJson(translationFile, translations);
+    }
+  },
+  // The English texts of the account SMS messages, like the email ones
+  {
+    modules: ['sms', 'locales'],
+    enable: (scaffold) => addSourceTranslations(scaffold, 'sms'),
+    disable: (scaffold, name) => {
+      if (name === 'sms') {
+        removeSourceTranslations(scaffold, 'sms');
+      }
     }
   },
   {
@@ -619,7 +623,52 @@ function collectScaffoldedTemplates(scaffold: ModuleScaffold): TemplateFile[] {
     .filter((file) => file.path.endsWith('.hbs'));
 }
 
-/** The English translations of the scaffolded templates, which the mailer adds to the project's translation file. */
+/**
+ * Writes the placeholder of the empty templates directory back when the files of the removed integration are the last
+ * ones left in it.
+ */
+function restoreTemplatesPlaceholder(
+  scaffold: ModuleScaffold,
+  unit: string
+): void {
+  const owned = collectModuleFiles(unit, scaffold.context).map(
+    (file) => file.path
+  );
+  if (scaffold.files.list('templates').every((file) => owned.includes(file))) {
+    copyFiles(scaffold, 'templates');
+  }
+}
+
+/** Adds the English texts of a section of the source translations, i.e. `emails`, to the project's translation file. */
+function addSourceTranslations(
+  scaffold: ModuleScaffold,
+  section: string
+): void {
+  const translations = scaffold.files.readJson(translationFile) ?? {};
+  addTranslations(
+    translations,
+    { [section]: readSourceTranslations()[section] },
+    scaffold.force
+  );
+  scaffold.files.writeJson(translationFile, translations);
+}
+
+/** Deletes the unchanged English texts of a section of the source translations from the project's translation file. */
+function removeSourceTranslations(
+  scaffold: ModuleScaffold,
+  section: string
+): void {
+  const translations = scaffold.files.readJson(translationFile);
+  if (!translations) {
+    return;
+  }
+  removeTranslations(translations, {
+    [section]: readSourceTranslations()[section]
+  });
+  scaffold.files.writeJson(translationFile, translations);
+}
+
+/** The English translations of the scaffolded templates, which the mailer and the SMS add to the translation file. */
 function readSourceTranslations(): Record<string, any> {
   return JSON.parse(
     fs.readFileSync(path.join(templatesDir, 'translations', 'en.json'), 'utf8')

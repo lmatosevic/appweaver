@@ -134,6 +134,7 @@ export enum ErrorCode {
 
   // SMS
   SmsSendFailed = 'SMS_SEND_FAILED',
+  SmsJobNotFound = 'SMS_JOB_NOT_FOUND',
 
   // Templates
   TemplateNotFound = 'TEMPLATE_NOT_FOUND',

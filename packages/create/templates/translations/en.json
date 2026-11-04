@@ -24,5 +24,9 @@
       "message": "A recovery code was just used to sign in to your account, and cannot be used again.",
       "advice": "If it was not you, change your password and generate new recovery codes."
     }
+  },
+  "sms": {
+    "twoFactorCode": "{code} is your {appName} verification code. It expires in {count, plural, one {# minute} other {# minutes}}.",
+    "verifyPhone": "{code} is your {appName} phone verification code. It expires in {count, plural, one {# minute} other {# minutes}}."
   }
 }

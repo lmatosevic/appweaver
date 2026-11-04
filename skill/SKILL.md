@@ -1145,6 +1145,7 @@ npm run lint  # eslint "./**/*.ts"
 - Queue jobs: [queue.md](references/queue.md)
 - Scheduling jobs: [scheduler.md](references/scheduler.md)
 - Sending emails: [mailer.md](references/mailer.md)
+- Sending text messages (SMS): [sms.md](references/sms.md)
 - Templates & localization: [templates.md](references/templates.md)
 - Generating an HTTP client for using API: [client.md](references/client.md)
 - Errors & error responses: [errors.md](references/errors.md)
