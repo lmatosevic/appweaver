@@ -26,6 +26,8 @@ export type ResourceRegistryEntry = {
   service: any;
   /** The names of the relation fields */
   relations: string;
+  /** The values of the time series fields */
+  series?: any;
 };
 
 /** The names of the registered resource models. */

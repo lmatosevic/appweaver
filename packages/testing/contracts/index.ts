@@ -4,3 +4,4 @@ export * from './memory-contract';
 export * from './queue-contract';
 export * from './scheduler-contract';
 export * from './storage-contract';
+export * from './time-series-contract';

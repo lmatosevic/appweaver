@@ -6,6 +6,7 @@ import { ModelToTypeScript } from '@sinclair/typebox-codegen';
 import {
   DateType,
   EnumType,
+  hasSeries,
   isArray,
   NullType,
   ResourceModel
@@ -54,7 +55,10 @@ export async function generateTypes(
         [`${name}Update`, schema.updateOneModel],
         [`${name}Replace`, schema.replaceOneModel],
         [`${name}RelationCreate`, schema.relationCreateModel],
-        [`${name}RelationUpdate`, schema.relationUpdateModel]
+        [`${name}RelationUpdate`, schema.relationUpdateModel],
+        ...(hasSeries(schema.config) && schema.seriesModel
+          ? ([[`${name}Series`, schema.seriesModel]] as [string, TObject][])
+          : [])
       ];
 
       for (const [typeName, typeSchema] of modelSchemas) {
@@ -162,7 +166,12 @@ function registryDeclaration(
       return `    ${name}: { model: any; single: any; multiple: any; create: any; update: any; replace: any; query: any; service: IResourceService; relations: string };`;
     }
 
-    return `    ${name}: { model: ${name}; single: ${name}Single; multiple: ${name}Multiple; create: ${name}Create; update: ${name}Update; replace: ${name}Replace; query: ${name}Query; service: ${name}ResourceService; relations: ${relations} };`;
+    const series =
+      hasSeries(model.config) && model.seriesModel
+        ? `; series: ${name}Series`
+        : '';
+
+    return `    ${name}: { model: ${name}; single: ${name}Single; multiple: ${name}Multiple; create: ${name}Create; update: ${name}Update; replace: ${name}Replace; query: ${name}Query; service: ${name}ResourceService; relations: ${relations}${series} };`;
   });
 
   return [

@@ -10,3 +10,4 @@ export * from './scheduler/scheduler-config';
 export * from './security/security-store-config';
 export * from './storage/storage-config';
 export * from './template/template-config';
+export * from './timeseries/timeseries-config';

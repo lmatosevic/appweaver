@@ -71,9 +71,25 @@ describe('generate-client', () => {
       );
     });
 
+    test('keeps the time series operations of a resource with series routes', async () => {
+      const schema = createOpenApiSchema();
+      const paths: Record<string, any> = schema.paths!;
+      const operation = paths['/api/posts/{id}/files'].post;
+      paths['/api/posts/{id}/series'] = { get: operation, post: operation };
+      paths['/api/posts/series'] = { post: operation };
+      paths['/api/posts/series/query'] = { post: operation };
+      paths['/api/posts/{id}/delete-series'] = { post: operation };
+
+      const generated = await generateClient(schema);
+
+      expect(generated).toContain(
+        `public post = this.resourceClient<PostResourceModuleType, ['aggregate', 'export', 'deleteFiles', 'bulkUpdate', 'bulkReplace']>('/api/posts')`
+      );
+    });
+
     test('adds a resource client for every resource path', () => {
       expect(client).toContain(
-        `public post = this.resourceClient<PostResourceModuleType, ['aggregate', 'export', 'deleteFiles', 'bulkUpdate', 'bulkReplace']>('/api/posts')`
+        `public post = this.resourceClient<PostResourceModuleType, ['aggregate', 'export', 'deleteFiles', 'bulkUpdate', 'bulkReplace', 'writeSeries', 'writeManySeries', 'querySeries', 'queryManySeries', 'deleteSeries']>('/api/posts')`
       );
       expect(client).toContain(`public user = this.resourceClient<`);
       expect(client).toContain(`>('/api/users')`);

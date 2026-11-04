@@ -269,7 +269,56 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
 
   [ErrorCode.LockNotAcquired]: { status: 503, title: 'Resource is locked' },
 
-  [ErrorCode.MemoryUnavailable]: { status: 503, title: 'Memory unavailable' }
+  [ErrorCode.MemoryUnavailable]: { status: 503, title: 'Memory unavailable' },
+
+  [ErrorCode.TimeSeriesNotEnabled]: {
+    status: 404,
+    title: 'Time series not enabled'
+  },
+  [ErrorCode.TimeSeriesInvalidField]: {
+    status: 400,
+    title: 'Invalid time series field'
+  },
+  [ErrorCode.TimeSeriesInvalidValue]: {
+    status: 400,
+    title: 'Invalid time series value'
+  },
+  [ErrorCode.TimeSeriesInvalidTime]: {
+    status: 400,
+    title: 'Invalid time series point time'
+  },
+  [ErrorCode.TimeSeriesInvalidRange]: {
+    status: 400,
+    title: 'Invalid time series range'
+  },
+  [ErrorCode.TimeSeriesInvalidBucket]: {
+    status: 400,
+    title: 'Invalid time series bucket'
+  },
+  [ErrorCode.TimeSeriesInvalidAggregate]: {
+    status: 400,
+    title: 'Invalid time series aggregate'
+  },
+  [ErrorCode.TimeSeriesTooManyPoints]: {
+    status: 413,
+    title: 'Too many time series points'
+  },
+  [ErrorCode.TimeSeriesTooManyResources]: {
+    status: 400,
+    title: 'Too many time series resources'
+  },
+  [ErrorCode.TimeSeriesForbidden]: {
+    status: 403,
+    title: 'Time series access forbidden'
+  },
+  [ErrorCode.TimeSeriesUnsupported]: {
+    status: 501,
+    title: 'Time series operation not supported'
+  },
+  [ErrorCode.TimeSeriesUnavailable]: {
+    status: 503,
+    title: 'Time series store unavailable'
+  }
 };
 
 /**

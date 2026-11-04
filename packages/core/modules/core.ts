@@ -8,7 +8,8 @@ import {
   Scheduler,
   SecurityStore,
   Storage,
-  TemplateEngine
+  TemplateEngine,
+  TimeSeries
 } from '@appweaver/common';
 import { cacheConfig } from '../cache/cache-config';
 import { eventsConfig } from '../events/events-config';
@@ -21,6 +22,7 @@ import { schedulerConfig } from '../scheduler/scheduler-config';
 import { securityStoreConfig } from '../security/security-store-config';
 import { storageConfig } from '../storage/storage-config';
 import { templateConfig } from '../template/template-config';
+import { timeseriesConfig } from '../timeseries/timeseries-config';
 
 /** The runtime every application has, with the in-process drivers the `auto` providers fall back to. */
 export default defineModule({
@@ -36,7 +38,8 @@ export default defineModule({
     templateConfig,
     schedulerConfig,
     localeConfig,
-    healthConfig
+    healthConfig,
+    timeseriesConfig
   ],
   loggers: [
     'app',
@@ -46,7 +49,8 @@ export default defineModule({
     'locale',
     'mailer',
     'queue',
-    'storage'
+    'storage',
+    'timeseries'
   ],
   contracts: [
     { contract: Memory, provider: () => memoryConfig.PROVIDER },
@@ -57,7 +61,8 @@ export default defineModule({
     { contract: Queue, provider: () => queueConfig.PROVIDER },
     { contract: Mailer, provider: () => mailerConfig.PROVIDER },
     { contract: TemplateEngine, provider: () => templateConfig.PROVIDER },
-    { contract: Scheduler, provider: () => schedulerConfig.PROVIDER }
+    { contract: Scheduler, provider: () => schedulerConfig.PROVIDER },
+    { contract: TimeSeries, provider: () => timeseriesConfig.PROVIDER }
   ],
   providers: [
     {
@@ -101,6 +106,12 @@ export default defineModule({
       name: 'json',
       load: () => import('../mailer/json-mailer'),
       auto: false
+    },
+    {
+      contract: TimeSeries,
+      name: 'memory',
+      load: () => import('../timeseries/memory-time-series'),
+      auto: false
     }
   ],
   services: [
@@ -111,6 +122,10 @@ export default defineModule({
       requires: [Mailer, Queue]
     },
     { load: () => import('../health/health-service') },
-    { load: () => import('../health/health-listener') }
+    { load: () => import('../health/health-listener') },
+    {
+      load: () => import('../timeseries/time-series-service'),
+      requires: [TimeSeries]
+    }
   ]
 });

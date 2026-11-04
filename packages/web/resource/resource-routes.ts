@@ -5,6 +5,7 @@ import {
   BulkResponse,
   CaptchaConfig,
   ErrorCode,
+  hasSeries,
   QueryOptions,
   ResourceId,
   QueryRouteConfig,
@@ -25,8 +26,15 @@ import {
   resolveRouteConfig,
   ResourceRouteName
 } from './utils/route-config-util';
-import { inject, injectModel, injectService } from '@appweaver/core';
+import {
+  inject,
+  injectModel,
+  injectService,
+  isDefined,
+  TimeSeriesService
+} from '@appweaver/core';
 import { Server } from '../types/server';
+import { registerSeriesRoutes } from '../timeseries/series-routes';
 
 type FullRouteConfig = RouteConfig &
   RouteCacheConfig &
@@ -34,6 +42,8 @@ type FullRouteConfig = RouteConfig &
     resourceRouteName: ResourceRouteName;
     maxItems?: number;
     returnRecords?: boolean;
+    maxPoints?: number;
+    allowDirect?: boolean;
   };
 
 /** The `:id` path parameter, validated against the primary key schema of the
@@ -73,6 +83,9 @@ export function resourceRoutes(
     'export',
     'fileUpload',
     'fileDelete',
+    'seriesWrite',
+    'seriesQuery',
+    'seriesDelete',
     'bulkCreate',
     'bulkUpdate',
     'bulkReplace',
@@ -126,7 +139,11 @@ export function resourceRoutes(
         bulkReplace: routeConfig('bulkReplace'),
         bulkDelete: routeConfig('bulkDelete')
       },
-      routeErrorCodes
+      routeErrorCodes,
+      {
+        maxPoints: routeConfig('seriesWrite')?.maxPoints,
+        allowDirect: routeConfig('seriesWrite')?.allowDirect
+      }
     );
 
     const service = injectService(name);
@@ -397,6 +414,21 @@ export function resourceRoutes(
 
           return reply.send(aggregateFiles(files, config));
         }
+      );
+    }
+
+    // Left out with the time series disabled (`timeseries.provider: none`)
+    if (hasSeries(resourceModel.config) && isDefined(TimeSeriesService)) {
+      registerSeriesRoutes(
+        server,
+        name,
+        schema as any,
+        {
+          seriesWrite: routeConfig('seriesWrite'),
+          seriesQuery: routeConfig('seriesQuery'),
+          seriesDelete: routeConfig('seriesDelete')
+        },
+        routeAuth
       );
     }
 

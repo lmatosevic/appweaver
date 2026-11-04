@@ -25,6 +25,7 @@ import {
   RelationConfig,
   ResourceModelConfig,
   ScalarField,
+  SeriesConfig,
   StringDate,
   StringEnum,
   VirtualConfig,
@@ -60,6 +61,7 @@ export function createModel<
   override: boolean = false
 ): ResourceModel {
   const config = normalizeRelations(modelConfig);
+  validateSeries(config);
   const resourceModel = buildModel(config);
 
   logger.debug({ modelName: resourceModel.name }, 'Created resource model');
@@ -105,6 +107,54 @@ function normalizeRelations(config: ResourceModelConfig): ResourceModelConfig {
   }
 
   return { ...config, relations };
+}
+
+const SERIES_RESERVED_NAMES = ['time', 'resourceId'];
+const SERIES_TYPES = ['float', 'int', 'boolean'];
+
+/**
+ * Checks the series fields of a model: their types, and names leaving the `time` and `resourceId` of a point free.
+ *
+ * @throws {ConfigurationError} For a series field with a reserved name or an unknown type.
+ */
+function validateSeries(config: ResourceModelConfig): void {
+  for (const [field, series] of Object.entries(config.series ?? {})) {
+    if (SERIES_RESERVED_NAMES.includes(field) || !/^[A-Za-z]\w*$/.test(field)) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `Series field '${config.name}.${field}' must be an identifier other than ${SERIES_RESERVED_NAMES.join(' and ')}`
+      );
+    }
+    if (!SERIES_TYPES.includes(series.type)) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `Series field '${config.name}.${field}' has the type '${series.type}', not one of ${SERIES_TYPES.join(', ')}`
+      );
+    }
+  }
+}
+
+/** The values of the series fields, each optional and nullable, a null leaving the stored value unchanged. */
+function buildSeriesModel(series?: SeriesConfig): TObject {
+  const properties: Record<string, TSchema> = {};
+
+  for (const [name, field] of Object.entries(series ?? {})) {
+    const options = pickProperties(field, [
+      'minimum',
+      'maximum',
+      'description',
+      'example'
+    ]);
+    const schema =
+      field.type === 'boolean'
+        ? Type.Boolean(pickProperties(field, ['description', 'example']))
+        : field.type === 'int'
+          ? Type.Integer(options)
+          : Type.Number(options);
+    properties[name] = Type.Optional(Nullable(schema));
+  }
+
+  return Type.Object(properties);
 }
 
 function buildModel(config: ResourceModelConfig): ResourceModel {
@@ -193,6 +243,7 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
     config
   );
   const { fileUploadModel, fileDeleteModel } = buildFileInputModels(config);
+  const seriesModel = buildSeriesModel(config.series);
 
   const resourceModel: ResourceModel = {
     name,
@@ -213,7 +264,8 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
     relationCreateModel,
     relationUpdateModel,
     fileUploadModel,
-    fileDeleteModel
+    fileDeleteModel,
+    seriesModel
   };
 
   for (const value of Object.values(resourceModel)) {

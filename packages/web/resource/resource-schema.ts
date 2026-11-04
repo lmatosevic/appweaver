@@ -7,6 +7,8 @@ import {
   CaptchaConfig,
   CONFIG_NAME,
   ErrorCode,
+  hasSeries,
+  SeriesWriteRouteConfig,
   Nullable,
   plural,
   ResourceSchemaConfig,
@@ -31,6 +33,7 @@ import {
 } from '../security/auth-schema';
 import { errorResponses } from '../errors';
 import { ResourceRouteName } from './utils/route-config-util';
+import { createSeriesSchemas } from '../timeseries/series-schema';
 
 const CURSOR_EXAMPLE = 'eyJpIjo0MiwiZiI6IkhkQjVfa2VMTVlyNyJ9';
 
@@ -105,6 +108,7 @@ export const BulkResponse = Type.Object(
  * @param {Object} routeCaptcha - The bot check config of each route.
  * @param {Object} [routeBulk={}] - The maximum items and the response type of each bulk route.
  * @param {Object} [routeErrorCodes={}] - The error codes of each route besides the ones of the framework.
+ * @param {Object} [routeSeries={}] - The maximum points and the direct ingest of the series write routes.
  * @return {ResourceSchemaConfig} The schema of each route.
  */
 export function createSchema(
@@ -117,7 +121,8 @@ export function createSchema(
       Pick<BulkRouteConfig, 'maxItems' | 'returnRecords'>
     >
   > = {},
-  routeErrorCodes: Partial<Record<ResourceRouteName, ErrorCode[]>> = {}
+  routeErrorCodes: Partial<Record<ResourceRouteName, ErrorCode[]>> = {},
+  routeSeries: Pick<SeriesWriteRouteConfig, 'maxPoints' | 'allowDirect'> = {}
 ): ResourceSchemaConfig {
   const resourceModel = injectModel(name);
 
@@ -537,6 +542,28 @@ export function createSchema(
       })
     }
   };
+
+  if (hasSeries(resourceModel.config)) {
+    Object.assign(
+      resourceSchemaConfig,
+      createSeriesSchemas({
+        name,
+        resourceName,
+        tag,
+        idParams,
+        idValue,
+        seriesModel: resourceModel.seriesModel,
+        filterName: queryFilterName(name),
+        maxPoints: routeSeries.maxPoints,
+        allowDirect: routeSeries.allowDirect,
+        route: (route) => ({
+          security: authSchema(routeAuthTypes[route]),
+          headers: captchaHeaderSchema(routeCaptcha[route])
+        }),
+        errors: (route, ...codes) => routeErrors(route, ...codes)
+      })
+    );
+  }
 
   for (const schemaConfig of Object.values(resourceSchemaConfig)) {
     schemaConfig[`x-${CONFIG_NAME}-resource`] = name;

@@ -10,6 +10,7 @@ const packages = [
   'bullmq',
   'cron',
   'nodemailer',
+  'influxdb',
   'handlebars',
   'sharp',
   'testing',

@@ -137,7 +137,21 @@ export enum ErrorCode {
   LockNotAcquired = 'LOCK_NOT_ACQUIRED',
 
   // Memory
-  MemoryUnavailable = 'MEMORY_UNAVAILABLE'
+  MemoryUnavailable = 'MEMORY_UNAVAILABLE',
+
+  // Time series
+  TimeSeriesNotEnabled = 'TIMESERIES_NOT_ENABLED',
+  TimeSeriesInvalidField = 'TIMESERIES_INVALID_FIELD',
+  TimeSeriesInvalidValue = 'TIMESERIES_INVALID_VALUE',
+  TimeSeriesInvalidTime = 'TIMESERIES_INVALID_TIME',
+  TimeSeriesInvalidRange = 'TIMESERIES_INVALID_RANGE',
+  TimeSeriesInvalidBucket = 'TIMESERIES_INVALID_BUCKET',
+  TimeSeriesInvalidAggregate = 'TIMESERIES_INVALID_AGGREGATE',
+  TimeSeriesTooManyPoints = 'TIMESERIES_TOO_MANY_POINTS',
+  TimeSeriesTooManyResources = 'TIMESERIES_TOO_MANY_RESOURCES',
+  TimeSeriesForbidden = 'TIMESERIES_FORBIDDEN',
+  TimeSeriesUnsupported = 'TIMESERIES_UNSUPPORTED',
+  TimeSeriesUnavailable = 'TIMESERIES_UNAVAILABLE'
 }
 
 /** The error codes starting with the prefix of a module, i.e. `'RESOURCE'`. */

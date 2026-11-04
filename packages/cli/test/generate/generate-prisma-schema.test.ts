@@ -1195,6 +1195,72 @@ describe('generate-schema', () => {
       expect(schema).not.toContain('model Draft {');
     });
 
+    test('adds the time series table of a model with series fields', async () => {
+      databaseType = 'postgresql';
+      const { status, schema } = await generate({
+        Sensor: model('Sensor', {
+          id: { type: 'string', generator: 'uuid()' },
+          series: {
+            temperature: { type: 'float' },
+            errors: { type: 'int' },
+            online: { type: 'boolean' }
+          }
+        })
+      });
+
+      expect(status).toBe(0);
+      expect(schema).toMatch(
+        /seriesPoints\s+SensorSeries\[\]\s+@relation\("SensorSeries"\)/
+      );
+      expect(schema).toContain('model SensorSeries {');
+      expect(schema).toMatch(/resourceId\s+String\s+@db\.Uuid/);
+      expect(schema).toMatch(/time\s+DateTime/);
+      expect(schema).toMatch(/temperature\s+Float\?/);
+      expect(schema).toMatch(/errors\s+Int\?/);
+      expect(schema).toMatch(/online\s+Boolean\?/);
+      expect(schema).toContain(
+        'resource Sensor @relation("SensorSeries", fields: [resourceId], references: [id], onDelete: Cascade)'
+      );
+      expect(schema).toContain('@@id([resourceId, time])');
+      expect(schema).not.toContain('@@map("SensorSeries")');
+    });
+
+    test('maps the series table of a model with a table name', async () => {
+      const { schema } = await generate({
+        Sensor: model('Sensor', {
+          tableName: 'sensors',
+          series: { load: { type: 'float' } }
+        }),
+        Meter: model('Meter', {
+          series: { load: { type: 'float' } },
+          seriesOptions: { tableName: 'meter_points' }
+        })
+      });
+
+      expect(schema).toContain('@@map("sensors_series")');
+      expect(schema).toContain('@@map("meter_points")');
+    });
+
+    test('fails for a model or field conflicting with the series of a model', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const { status } = await generate({
+        Sensor: model('Sensor', {
+          scalars: { seriesPoints: { type: 'int' } },
+          series: { load: { type: 'float' } }
+        }),
+        SensorSeries: model('SensorSeries', {})
+      });
+
+      expect(status).toBe(2);
+      expect(console.error).toHaveBeenCalledWith(
+        expect.stringContaining("Model 'SensorSeries' conflicts")
+      );
+      expect(console.error).toHaveBeenCalledWith(
+        expect.stringContaining("Field 'Sensor.seriesPoints' conflicts")
+      );
+    });
+
     test('restores the previous schema when the Prisma generator fails', async () => {
       const schemaFile = path.join(tempDir, schemaPath);
       fs.mkdirSync(path.dirname(schemaFile), { recursive: true });

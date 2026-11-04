@@ -290,6 +290,42 @@ export type FileField<T = any> = {
   image?: ImageConfig;
 };
 
+/** The value type of a time series field. */
+export type SeriesFieldType = 'float' | 'int' | 'boolean';
+
+export type SeriesField = {
+  /** Value type: `float`, `int` or `boolean` */
+  type: SeriesFieldType;
+  /** Minimum allowed value of a numeric field */
+  minimum?: number;
+  /** Maximum allowed value of a numeric field */
+  maximum?: number;
+  /** Description used in the generated OpenAPI schema documentation */
+  description?: string;
+  /** Example value used in the generated OpenAPI schema documentation */
+  example?: number | boolean;
+};
+
+/**
+ * How the points of a series are written: `direct` writes them in the request, `queue` sends them to the queue and a
+ * worker writes them, `auto` queues them only on a durable queue (not the in-memory one).
+ */
+export type SeriesIngest = 'direct' | 'queue' | 'auto';
+
+export type SeriesOptions = {
+  /** Override the name of the series table (the InfluxDB table) */
+  tableName?: string;
+  /** How the points are written (default: the `timeseries.ingest` config) */
+  ingest?: SeriesIngest;
+  /** How long the points are kept, i.e. `90d`, applied by the stores supporting a retention (TimescaleDB) */
+  retention?: string;
+  /** The time range of a TimescaleDB chunk, i.e. `7d` (default: the `timeseries.timescale.chunkInterval` config) */
+  chunkInterval?: string;
+  /** The age from which TimescaleDB compresses the chunks, i.e. `7d` (default: the
+   * `timeseries.timescale.compressAfter` config) */
+  compressAfter?: string;
+};
+
 /** The name of a model field: one of the fields the model declares, its id, or one of its audit fields. */
 export type ModelFieldName<F extends string = string> =
   | F
@@ -388,6 +424,12 @@ export type VirtualConfig<K extends string = string> = FieldConfig<
 
 export type ExportConfig = FieldConfig<ExportField | ExportRelations>;
 
+/** The series fields of a model, keyed by their names. The point time and the resource id are named `time` and
+ * `resourceId`, so no field takes these names. */
+export type SeriesConfig<K extends string = string> = {
+  [key in K]: SeriesField;
+} & Disallow<'time' | 'resourceId'>;
+
 /** Indexed field name, optionally prefixed with `-` for descending or `+` for
  * ascending sort order (e.g. `-createdAt`). Without a prefix, the database
  * default order is used. */
@@ -433,6 +475,10 @@ export type ResourceModelConfig<
   relations?: RelationConfig<R>;
   /** File field definitions */
   files?: FilesConfig<F>;
+  /** Time series field definitions, their points stored apart from the records of the model (see `timeseries`) */
+  series?: SeriesConfig;
+  /** Options of the time series of the model */
+  seriesOptions?: SeriesOptions;
   /** Field restrictions for read operations */
   read?: OperationConfig<NoInfer<S | R | F | V | E>>;
   /** Field restrictions for create operations */
