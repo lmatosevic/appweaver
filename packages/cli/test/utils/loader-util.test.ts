@@ -174,7 +174,7 @@ describe('loader-util', () => {
     test.each([
       ['database', true],
       ['timescale', true],
-      ['influxdb', false],
+      ['questdb', false],
       ['memory', false]
     ])('follows the %s provider', (provider, expected) => {
       configOverrides.TIMESERIES_PROVIDER = provider;

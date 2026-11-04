@@ -22,7 +22,7 @@ export default createModel({
   },
   seriesOptions: {
     ingest: 'queue', // or 'direct' / 'auto', default: the `timeseries.ingest` config
-    retention: '365d', // TimescaleDB: dropped after a year
+    retention: '365d', // deleted after a year
     compressAfter: '30d', // TimescaleDB: compressed after a month
     chunkInterval: '7d' // TimescaleDB: the time range of a chunk
   }
@@ -40,8 +40,8 @@ export default createModel({
 | Series option   | Description                                                                               |
 |-----------------|-------------------------------------------------------------------------------------------|
 | `ingest`        | `direct`, `queue` or `auto`, how the points are written (see [Ingestion](#ingestion))     |
-| `tableName`     | The table (InfluxDB table) of the points, default `<Model>Series` or `<tableName>_series` |
-| `retention`     | How long the points are kept, a duration (`90d`): the TimescaleDB policy (default `timeseries.timescale.retention`), or a database of the model's own on InfluxDB (default `timeseries.influxdb.retention`, see [influxdb](#influxdb)). The `database` store keeps every point |
+| `tableName`     | The table of the points, default `<Model>Series` or `<tableName>_series`                  |
+| `retention`     | How long the points are kept, a duration (`90d`), overriding the retention of the store: `timeseries.database.retention` or `timeseries.timescale.retention` |
 | `compressAfter` | The age TimescaleDB compresses the points from, default `timeseries.timescale.compressAfter` |
 | `chunkInterval` | The time range of a TimescaleDB chunk, default `timeseries.timescale.chunkInterval`       |
 
@@ -63,12 +63,13 @@ The store is selected by `timeseries.provider`:
 |-------------|------------------------|-------------------------------------------------------------------------------------------|
 | `database`  | `@appweaver/data`      | The `<Model>Series` table of the database, on SQLite, PostgreSQL, MySQL and SQL Server     |
 | `timescale` | `@appweaver/data`      | The same table, a TimescaleDB hypertable on PostgreSQL, with compression and retention    |
-| `influxdb`  | `@appweaver/influxdb`  | InfluxDB 3 (Core, Enterprise, Cloud), a separate server                                   |
 | `memory`    | `@appweaver/core`      | The process memory, for the tests                                                         |
 | `none`      | —                      | No store: the `TimeSeriesService` and the series routes are left out                      |
 
-With `auto` (the default), the driver of an enabled module wins (`influxdb` once `@appweaver/influxdb` is installed),
-otherwise `database` with `@appweaver/data`. `timescale` and `memory` are selected by their names only.
+With `auto` (the default), the driver of an enabled module package wins, otherwise `database` with `@appweaver/data`.
+`timescale` and `memory` are selected by their names only. Both SQL stores take part in the transactions, delete the
+points of a range, and delete the points of a resource with it by the foreign key of the table. Another store is
+written as a module package, its driver tested with the [contract suite](#testing).
 
 ### database
 
@@ -93,8 +94,23 @@ model SensorSeries {
 The model gets the `seriesPoints` relation of its points, so neither `<Model>Series` nor a `seriesPoints` field may be
 declared by the application. Create the migration of the table like any other: `weaver migration new add_sensor_series`.
 The buckets are computed in SQL on every database (`date_bin` on PostgreSQL, `TIMESTAMPDIFF` on MySQL, `strftime` on
-SQLite, `DATEADD` on SQL Server), suited to moderate volumes. The table is left out of the Prisma schema when
-another store holds the points (`influxdb`, `memory`, `none`, or `auto` with a module of another store enabled).
+SQLite, `DATEADD` on SQL Server), suited to moderate volumes; a high volume belongs in TimescaleDB. The table is left
+out of the Prisma schema when another store holds the points (`memory`, `none`, a module path, or `auto` with the
+module package of another store enabled).
+
+The points older than the retention of their model (`seriesOptions.retention`, otherwise
+`timeseries.database.retention`) are deleted when the application starts, then every
+`timeseries.database.retentionInterval` (`1h`) by every instance, a single `DELETE` per model. With an empty interval
+nothing is deleted on its own, so a scheduled task deletes them instead:
+
+```ts
+import { TimeSeries } from '@appweaver/common';
+import { inject } from '@appweaver/core';
+import { DatabaseTimeSeries } from '@appweaver/data';
+
+// i.e. a `weaver run` task, or a cron job of a single instance
+const deleted = await inject<DatabaseTimeSeries>(TimeSeries as any).purge();
+```
 
 ### timescale
 
@@ -121,52 +137,6 @@ The database user needs the right to create the extension, or the extension is c
 missing from the Apache-only builds of some managed PostgreSQL services: leave `compressAfter` and `retention` empty
 there.
 
-### influxdb
-
-```bash
-npm install @appweaver/influxdb
-```
-
-```json
-{
-  "config": {
-    "timeseries": {
-      "influxdb": {
-        "host": "http://${INFLUXDB_HOST:-localhost}:8181",
-        "token": "${INFLUXDB_TOKEN}",
-        "database": "my-app",
-        "retention": "365d"
-      }
-    }
-  }
-}
-```
-
-The points of a model go to the table of its series (`<Model>Series`): the resource id as the `resourceId` tag and the
-series fields as its fields, written as line protocol in milliseconds and queried with SQL. The server creates the
-database and the tables on the first write. InfluxDB 3 deletes points only by the retention period of the database, so
-`delete` fails with `TIMESERIES_UNSUPPORTED` (`501`), and the points of a deleted resource are kept until the retention
-removes them, no longer served by the routes, which read the resource first. Leave out the delete route
-(`seriesDelete: { exclude: true }`).
-
-InfluxDB 3 keeps a retention period per database, not per table, so the retention is set in two places, the model
-winning:
-
-| Setting                              | Applies to                                                                                     |
-|--------------------------------------|------------------------------------------------------------------------------------------------|
-| `seriesOptions.retention` of a model | A database of the model's own, `<database>_<table>` (`my-app_SensorSeries`), with that retention |
-| `timeseries.influxdb.retention`      | The `timeseries.influxdb.database`, holding the points of every other model                   |
-| neither                              | The database is left as it is (created by the first write without a retention)                |
-
-The application creates the databases with their retention when it starts, or updates the retention of the existing
-ones, through the configure API of InfluxDB 3 Core and Enterprise (the token needs the right to manage databases). A
-store unreachable at startup is set up by the next write or query, while a refused setup fails the start with
-`CONFIGURATION_INVALID`: an invalid duration, InfluxDB Cloud, which has no such API (set the retention in the Cloud
-console and leave both empty), or the database limit of the server. **InfluxDB 3 Core holds up to 5 databases**, so
-the main database leaves room for 4 models with a retention of their own. Adding or removing the `retention` of a
-model moves its points to the other database, leaving the written ones behind, while changing its value only updates
-the retention.
-
 ## Ingestion
 
 A write is validated first (the fields, their types and ranges, the times, `timeseries.maxPointsPerWrite`), so an invalid
@@ -184,7 +154,12 @@ stored at its time, a retried job writes no duplicate. The points of a resource 
 dropped, the others of the job written. `queue` with the in-memory queue loses the queued points on a restart.
 
 A write made in a transaction (`runTransaction`, a service hook) takes part in it on the `database` and `timescale`
-stores, while a queued write, or a write to InfluxDB, waits for the commit and is dropped on a rollback.
+stores, while a queued write, or a write to a store outside the database (a driver whose `transactional` is `false`),
+waits for the commit and is dropped on a rollback.
+
+A store unreachable when the application starts is set up by the next write or query (the hypertables of
+TimescaleDB), and a failed retention delete is logged and run again at the next interval, while an invalid setup (a
+retention that is not a duration) fails the start with `CONFIGURATION_INVALID`.
 
 ## Routes
 
@@ -308,5 +283,4 @@ testTimeSeriesContract('QuestTimeSeries', () => new QuestTimeSeries());
 ## Scaffolding
 
 `npm create @appweaver my-app -- --add timeseries` (or `weaver module add timeseries`) selects the `database` provider,
-`timescale` on PostgreSQL, whose docker-compose service then runs the TimescaleDB image. `--add influxdb` adds
-`@appweaver/influxdb` with the InfluxDB 3 service of docker-compose (`INFLUXDB_HOST`), the `memory` store for the tests.
+`timescale` on PostgreSQL, whose docker-compose service then runs the TimescaleDB image.

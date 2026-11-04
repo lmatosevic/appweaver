@@ -117,8 +117,8 @@ export class TimeSeriesService implements OnReady {
   private _workerStarted = false;
 
   /**
-   * Registers the series of the models with the store (the hypertables of TimescaleDB, the retention of the InfluxDB
-   * databases), and starts the worker of the queued points.
+   * Registers the series of the models with the store (the hypertables and the policies of TimescaleDB, the retention
+   * of the database store), and starts the worker of the queued points.
    *
    * @throws {ConfigurationError} When the store refuses its setup, i.e. an invalid retention.
    */

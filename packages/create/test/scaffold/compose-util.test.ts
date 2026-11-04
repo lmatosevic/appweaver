@@ -1,12 +1,9 @@
 import { parse } from 'yaml';
 import {
   addDatabaseServices,
-  addInfluxService,
   addRedisService,
   addServerPort,
-  influxImage,
   removeDatabaseServices,
-  removeInfluxService,
   removeRedisService,
   removeServerPort,
   setPostgresImage
@@ -278,69 +275,6 @@ describe('compose-util', () => {
       expect(
         removeServerPort(addServerPort(appCompose, context), context)
       ).toBe(appCompose);
-    });
-  });
-
-  describe('addInfluxService', () => {
-    test('adds the InfluxDB service before the application services, after Redis', () => {
-      const result = addInfluxService(addRedisService(compose, 'app'), 'app');
-      const services = parse(result).services;
-
-      expect(Object.keys(services)).toEqual([
-        'postgres',
-        'redis',
-        'influxdb',
-        'app.migrations',
-        'app.seed',
-        'app'
-      ]);
-      expect(services.influxdb.image).toBe(influxImage);
-      expect(services.app.environment).toEqual({
-        REDIS_HOST: 'redis',
-        INFLUXDB_HOST: 'influxdb'
-      });
-      expect(Object.keys(services.app.depends_on)).toEqual([
-        'redis',
-        'influxdb',
-        'app.seed'
-      ]);
-      expect(Object.keys(parse(result).volumes)).toEqual([
-        'postgres-data',
-        'redis-data',
-        'influxdb-data'
-      ]);
-    });
-
-    test('gives the same file added before Redis', () => {
-      expect(addRedisService(addInfluxService(compose, 'app'), 'app')).toBe(
-        addInfluxService(addRedisService(compose, 'app'), 'app')
-      );
-    });
-
-    test('keeps a file that has the InfluxDB service', () => {
-      const result = addInfluxService(compose, 'app');
-
-      expect(addInfluxService(result, 'app')).toBe(result);
-    });
-
-    test('points the database services added later at InfluxDB', () => {
-      const services = parse(
-        addDatabaseServices(addInfluxService(appCompose, 'app'), context)
-      ).services;
-
-      expect(services['app.migrations'].environment).toEqual({
-        DB_HOST: 'postgres',
-        INFLUXDB_HOST: 'influxdb'
-      });
-    });
-  });
-
-  describe('removeInfluxService', () => {
-    test('restores the file of addInfluxService', () => {
-      expect(removeInfluxService(addInfluxService(compose, 'app'), 'app')).toBe(
-        compose
-      );
-      expect(removeInfluxService('', 'app')).toBe('');
     });
   });
 

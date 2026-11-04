@@ -162,8 +162,8 @@ registering the types of every model in the `ResourceRegistry` of `@appweaver/co
 holds only `export {};`, so the `export * from './generated'` of the types index still compiles.
 
 A model with `series` fields gets the `<Model>Series` table of its points in the Prisma schema (see
-[timeseries](./timeseries.md)), left out when another store holds them: `timeseries.provider` set to `influxdb`, `memory`
-or `none`, or `auto` with the module of another store enabled (`@appweaver/influxdb`). `weaver test setup` follows the
+[timeseries](./timeseries.md)), left out when another store holds them: `timeseries.provider` set to `memory`, `none` or a
+module path, or `auto` with a module package of another store enabled. `weaver test setup` follows the
 provider of the `test` environment.
 
 The models come from the project and from the `resources` of the enabled modules (see [modules](./modules.md)). The

@@ -24,7 +24,6 @@
     "@appweaver/core": "^2.4.1",
     "@appweaver/cron": "^2.4.1",
     "@appweaver/data": "^2.4.1",
-    "@appweaver/influxdb": "^2.4.1",
     "@appweaver/handlebars": "^2.4.1",
     "@appweaver/nodemailer": "^2.4.1",
     "@appweaver/web": "^2.4.1",

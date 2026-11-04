@@ -1568,39 +1568,16 @@
               "default": "auto",
               "type": "string"
             },
-            "influxdb": {
+            "database": {
               "type": "object",
               "properties": {
-                "host": {
-                  "default": "http://localhost:8181",
-                  "type": "string"
-                },
-                "token": {
-                  "default": "",
-                  "secret": true,
-                  "type": "string"
-                },
-                "authScheme": {
-                  "default": "Bearer",
-                  "type": "string"
-                },
-                "database": {
-                  "default": "appweaver",
-                  "type": "string"
-                },
                 "retention": {
                   "default": "",
                   "type": "string"
                 },
-                "writeTimeout": {
-                  "default": 10000,
-                  "minimum": 1,
-                  "type": "integer"
-                },
-                "queryTimeout": {
-                  "default": 60000,
-                  "minimum": 1,
-                  "type": "integer"
+                "retentionInterval": {
+                  "default": "1h",
+                  "type": "string"
                 }
               }
             },

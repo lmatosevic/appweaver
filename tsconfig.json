@@ -30,8 +30,6 @@
       "@appweaver/cron/*": ["./packages/cron/*"],
       "@appweaver/nodemailer": ["./packages/nodemailer"],
       "@appweaver/nodemailer/*": ["./packages/nodemailer/*"],
-      "@appweaver/influxdb": ["./packages/influxdb"],
-      "@appweaver/influxdb/*": ["./packages/influxdb/*"],
       "@appweaver/handlebars": ["./packages/handlebars"],
       "@appweaver/handlebars/*": ["./packages/handlebars/*"],
       "@appweaver/redis": ["./packages/redis"],

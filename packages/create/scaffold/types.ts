@@ -10,7 +10,6 @@ export const moduleNames = [
   'templates',
   'locales',
   'timeseries',
-  'influxdb',
   'docker'
 ] as const;
 

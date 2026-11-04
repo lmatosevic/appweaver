@@ -1,12 +1,12 @@
-import { configOverrides } from '@appweaver/common';
-import { Application, createApp } from '@appweaver/core';
-import { influxConfig } from '@appweaver/influxdb';
+import { TimeSeries } from '@appweaver/common';
+import { Application, createApp, inject } from '@appweaver/core';
+import { DatabaseTimeSeries } from '@appweaver/data';
+import { Role } from '@/features/access/roles';
 import { resetTestData } from './support/reset';
 import {
   agent,
   createRoles,
   db,
-  eventually,
   integration,
   request,
   RUN,
@@ -16,9 +16,10 @@ import {
 const MINUTE = 60_000;
 
 /**
- * The workload metrics of the teams in InfluxDB 3: the points the metrics job
- * writes every 15 minutes, read by the staff dashboards, aggregated by bucket
- * and across the teams of a filter.
+ * The workload metrics of the teams in their series table: the points the
+ * metrics job writes every 15 minutes, read by the staff dashboards,
+ * aggregated by bucket and across the teams of a filter, and deleted after
+ * their retention or with their team.
  */
 describe('Team metrics', () => {
   let app: Application;
@@ -40,13 +41,11 @@ describe('Team metrics', () => {
       headers: lead.auth
     });
 
-  /** Waits for InfluxDB to serve the written points. */
-  const pointsOf = (teamId: number, query: string, count: number) =>
-    eventually(
-      async () => (await series(teamId, query)).body.items,
-      (items) => items?.length === count,
-      10_000
-    );
+  const pointsOf = async (teamId: number, query: string, count: number) => {
+    const { items } = (await series(teamId, query)).body;
+    expect(items).toHaveLength(count);
+    return items;
+  };
 
   let tickets = 0;
   const ticket = async (data: Record<string, unknown>) => {
@@ -67,9 +66,6 @@ describe('Team metrics', () => {
   };
 
   beforeAll(async () => {
-    // A database of its own for each run, since InfluxDB keeps the points of
-    // the teams of an earlier run, whose ids the reset database hands out again
-    configOverrides.TIMESERIES_INFLUXDB_DATABASE = `helpdesk-api-test-${RUN}`;
     app = await createApp();
     await createRoles();
     ({ recordTeamMetrics } =
@@ -102,15 +98,6 @@ describe('Team metrics', () => {
 
   afterAll(async () => {
     await app.stop();
-    // The databases of the run, as InfluxDB 3 Core holds up to 5 of them
-    const database = configOverrides.TIMESERIES_INFLUXDB_DATABASE as string;
-    for (const db of [database, `${database}_TeamSeries`]) {
-      await fetch(
-        new URL(`/api/v3/configure/database?db=${db}`, influxConfig.HOST),
-        { method: 'DELETE' }
-      );
-    }
-    delete configOverrides.TIMESERIES_INFLUXDB_DATABASE;
   });
 
   afterAll(resetTestData, 10_000);
@@ -221,17 +208,51 @@ describe('Team metrics', () => {
 
     expect(asIntegration.status).toBe(403);
     expect(write.status).toBe(404);
-    expect(remove.status).toBe(404);
+    expect(remove.status).toBe(403);
   });
 
-  test('serves no points of a deleted team', async () => {
+  test('lets an admin clear a range of points', async () => {
+    const admin = await agent(app, `Admin${RUN}`, { role: Role.Admin });
+
+    const { status, body } = await request(
+      app,
+      'POST',
+      `/teams/${shipping.id}/delete-series`,
+      {
+        headers: admin.auth,
+        payload: { from: at(0).toISOString(), to: at(1).toISOString() }
+      }
+    );
+
+    expect(status).toBe(200);
+    expect(body).toEqual({ count: 1 });
+    await pointsOf(shipping.id, `?from=${at(0).toISOString()}`, 1);
+  });
+
+  test('deletes the points older than the 400 days of the retention', async () => {
+    const day = 24 * 60 * MINUTE;
+    await recordTeamMetrics(new Date(Date.now() - 401 * day));
+    await recordTeamMetrics(new Date(Date.now() - 399 * day));
+    const range = `?from=${new Date(Date.now() - 500 * day).toISOString()}&to=${at(-1).toISOString()}`;
+    await pointsOf(billing.id, range, 2);
+
+    // Run every hour by the store, at once here
+    const deleted = await inject<DatabaseTimeSeries>(TimeSeries as any).purge();
+
+    expect(deleted).toBeGreaterThanOrEqual(1);
+    await pointsOf(billing.id, range, 1);
+  });
+
+  test('deletes the points of a team with it', async () => {
     const support = await team('Support');
     await recordTeamMetrics(at(30));
     await pointsOf(support.id, `?from=${at(0).toISOString()}`, 1);
 
     await db().team.delete({ where: { id: support.id } });
 
-    const { status } = await series(support.id, '');
-    expect(status).toBe(404);
+    await expect(
+      db().teamSeries.count({ where: { resourceId: support.id } })
+    ).resolves.toBe(0);
+    expect((await series(support.id, '')).status).toBe(404);
   });
 });

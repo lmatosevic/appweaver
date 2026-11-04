@@ -186,7 +186,7 @@ describe('apply-modules', () => {
         const added = await create([], { database, runtime });
         await add(added, 'docker', 'locales', 'redis', 'templates', 'mailer');
         await add(added, 'data', 'scheduler', 'queue', 'web');
-        await add(added, 'timeseries', 'influxdb');
+        await add(added, 'timeseries');
 
         expect(snapshot(added)).toEqual(snapshot(created));
       }
@@ -334,23 +334,6 @@ describe('apply-modules', () => {
 
       expect(config(dir).config.timeseries).toEqual({ provider: 'database' });
       expect(loadProject(dir).enabled).toEqual(['data', 'timeseries']);
-    });
-
-    test('selects InfluxDB while it is enabled, keeping a changed provider', async () => {
-      const dir = await create(['data', 'timeseries', 'influxdb']);
-
-      expect(config(dir).config.timeseries.provider).toBe('influxdb');
-      await remove(dir, 'influxdb');
-      expect(config(dir).config.timeseries).toEqual({ provider: 'timescale' });
-
-      const changed = config(dir);
-      changed.config.timeseries.provider = 'memory';
-      fs.writeFileSync(
-        path.join(dir, 'appweaver.json'),
-        JSON.stringify(changed)
-      );
-      await add(dir, 'influxdb');
-      expect(config(dir).config.timeseries.provider).toBe('memory');
     });
   });
 

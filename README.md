@@ -303,7 +303,6 @@ One package per library, each carrying the library as a dependency and enabled b
 | `@appweaver/nodemailer` | The `smtp` mailer                                                        |
 | `@appweaver/handlebars` | The `handlebars` template engine                                         |
 | `@appweaver/sharp`      | The `sharp` image processor of the uploads                               |
-| `@appweaver/influxdb`   | The `influxdb` time series store (InfluxDB 3), requires `@appweaver/data` |
 
 ### `@appweaver/testing`
 

@@ -9,7 +9,7 @@ export const METRICS_INTERVAL_MINUTES = 15;
 
 const OPEN_STATUSES = ['New', 'Open', 'Pending'];
 
-// Every 15 minutes, the workload of every team is written to InfluxDB
+// Every 15 minutes, the workload of every team is written to its series
 inject(Scheduler).addJob({
   cronTime: `*/${METRICS_INTERVAL_MINUTES} * * * *`,
   onTick: async () => {

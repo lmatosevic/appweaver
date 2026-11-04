@@ -64,8 +64,8 @@ export default createModel({
       }
     }
   },
-  // The workload of the team every 15 minutes, written to InfluxDB by the
-  // metrics job, for the dashboards of the support leads
+  // The workload of the team every 15 minutes, written to the TeamSeries
+  // table by the metrics job, for the dashboards of the support leads
   series: {
     open: {
       type: 'int',
@@ -93,7 +93,7 @@ export default createModel({
       description: 'Whether a ticket of the team is overdue'
     }
   },
-  // Kept for 13 months, in an InfluxDB database of its own with that retention
+  // Kept for 13 months, the older points deleted every hour
   seriesOptions: {
     retention: '400d'
   }

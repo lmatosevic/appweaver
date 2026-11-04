@@ -29,7 +29,7 @@ const at = (minutes: number) => new Date(BASE + minutes * MINUTE);
  * Jest, Vitest or Bun. Each test gets a fresh, initialized and registered instance, and writes the points of its own
  * resources, so the points a persistent store keeps between the tests never meet.
  *
- * @param {string} name - The name of the driver, i.e. `InfluxTimeSeries`.
+ * @param {string} name - The name of the driver, i.e. `QuestTimeSeries`.
  * @param {ContractFactory<TimeSeries>} create - Creates the driver.
  * @param {TimeSeriesContractOptions} [options] - The series model to write.
  */

@@ -18,7 +18,6 @@ first-party module does.
 | `@appweaver/nodemailer` | Installed                    | The `smtp` mailer                                                                                                 |
 | `@appweaver/handlebars` | Installed                    | The `handlebars` template engine                                                                                  |
 | `@appweaver/sharp`      | Installed                    | The `sharp` image processor                                                                                       |
-| `@appweaver/influxdb`   | Installed (requires `data`)  | The `influxdb` time series store (InfluxDB 3)                                                                     |
 
 Every first-party module but core is a package of its own, enabled like any [package module](#package-modules): by
 being a dependency of the application's `package.json`. A driver package carries the library it wraps as a dependency,

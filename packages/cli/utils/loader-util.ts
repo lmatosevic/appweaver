@@ -241,7 +241,7 @@ const DATABASE_SERIES_PROVIDERS = ['database', 'timescale'];
 /**
  * Checks if the points of the time series go to the series tables of the database (the `database` and `timescale`
  * providers), so the Prisma schema has them. With `auto`, they do unless an enabled module provides another
- * `TimeSeries` driver selected by `auto`, i.e. `@appweaver/influxdb`.
+ * `TimeSeries` driver selected by `auto`, i.e. the package of another store.
  *
  * @param {EnabledModule[]} modules - The enabled modules.
  * @return {boolean} `true` when the database holds the points.

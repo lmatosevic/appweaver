@@ -1,5 +1,9 @@
 import { Document, Pair, parseDocument, Scalar, YAMLMap, YAMLSeq } from 'yaml';
-import { getDatabaseDockerService } from './database-config';
+import {
+  getDatabaseDockerService,
+  postgresImage,
+  timescaleImage
+} from './database-config';
 import type { ProjectContext } from './types';
 
 const sqliteVolume = 'sqlite-data:/usr/app/data';
@@ -86,17 +90,39 @@ export function removeRedisService(content: string, name: string): string {
 }
 
 /**
+ * Sets the image of the PostgreSQL service of a docker-compose.yml file: the TimescaleDB one of the time series,
+ * or the PostgreSQL one. A project on another database has no PostgreSQL service, and is returned unchanged.
+ *
+ * @param {string} content - The docker-compose.yml content.
+ * @param {boolean} timescale - Whether the service runs TimescaleDB.
+ * @return {string} The docker-compose.yml content with the image.
+ */
+export function setPostgresImage(content: string, timescale: boolean): string {
+  const doc = parseDocument(content);
+  const postgres = getMap(doc, 'services')?.get('postgres');
+  if (!(postgres instanceof YAMLMap)) {
+    return content;
+  }
+
+  postgres.set('image', timescale ? timescaleImage : postgresImage);
+
+  return doc.toString({ lineWidth: 0 });
+}
+
+/**
  * Adds the database services to a docker-compose.yml file: the database server (none for SQLite), the services
  * applying the migrations and seeding the database before the application starts, the `DB_HOST` of the
  * application services (the SQLite volume instead), and the named volume of the database.
  *
  * @param {string} content - The docker-compose.yml content.
  * @param {ProjectContext} context - The project, naming the containers and choosing the database.
+ * @param {boolean} [timescale=false] - Whether a PostgreSQL server runs TimescaleDB, for the time series.
  * @return {string} The docker-compose.yml content with the database services.
  */
 export function addDatabaseServices(
   content: string,
-  context: ProjectContext
+  context: ProjectContext,
+  timescale: boolean = false
 ): string {
   const { name, database } = context;
   const doc = parseDocument(content);
@@ -105,7 +131,7 @@ export function addDatabaseServices(
     return content;
   }
 
-  const db = getDatabaseDockerService(database, name);
+  const db = getDatabaseDockerService(database, name, timescale);
   if (db) {
     insertService(services, 0, parsePair(db.service));
   }

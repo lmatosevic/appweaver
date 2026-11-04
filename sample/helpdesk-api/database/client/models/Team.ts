@@ -239,6 +239,7 @@ export type TeamWhereInput = {
   members?: Prisma.UserListRelationFilter
   tickets?: Prisma.TicketListRelationFilter
   cannedResponses?: Prisma.CannedResponseListRelationFilter
+  seriesPoints?: Prisma.TeamSeriesListRelationFilter
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
@@ -253,6 +254,7 @@ export type TeamOrderByWithRelationInput = {
   members?: Prisma.UserOrderByRelationAggregateInput
   tickets?: Prisma.TicketOrderByRelationAggregateInput
   cannedResponses?: Prisma.CannedResponseOrderByRelationAggregateInput
+  seriesPoints?: Prisma.TeamSeriesOrderByRelationAggregateInput
   createdBy?: Prisma.UserOrderByWithRelationInput
   _relevance?: Prisma.TeamOrderByRelevanceInput
 }
@@ -271,6 +273,7 @@ export type TeamWhereUniqueInput = Prisma.AtLeast<{
   members?: Prisma.UserListRelationFilter
   tickets?: Prisma.TicketListRelationFilter
   cannedResponses?: Prisma.CannedResponseListRelationFilter
+  seriesPoints?: Prisma.TeamSeriesListRelationFilter
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id" | "name" | "slug">
 
@@ -311,6 +314,7 @@ export type TeamCreateInput = {
   members?: Prisma.UserCreateNestedManyWithoutTeamInput
   tickets?: Prisma.TicketCreateNestedManyWithoutTeamInput
   cannedResponses?: Prisma.CannedResponseCreateNestedManyWithoutTeamInput
+  seriesPoints?: Prisma.TeamSeriesCreateNestedManyWithoutResourceInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedTeamsInput
 }
 
@@ -325,6 +329,7 @@ export type TeamUncheckedCreateInput = {
   members?: Prisma.UserUncheckedCreateNestedManyWithoutTeamInput
   tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutTeamInput
   cannedResponses?: Prisma.CannedResponseUncheckedCreateNestedManyWithoutTeamInput
+  seriesPoints?: Prisma.TeamSeriesUncheckedCreateNestedManyWithoutResourceInput
 }
 
 export type TeamUpdateInput = {
@@ -336,6 +341,7 @@ export type TeamUpdateInput = {
   members?: Prisma.UserUpdateManyWithoutTeamNestedInput
   tickets?: Prisma.TicketUpdateManyWithoutTeamNestedInput
   cannedResponses?: Prisma.CannedResponseUpdateManyWithoutTeamNestedInput
+  seriesPoints?: Prisma.TeamSeriesUpdateManyWithoutResourceNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedTeamsNestedInput
 }
 
@@ -350,6 +356,7 @@ export type TeamUncheckedUpdateInput = {
   members?: Prisma.UserUncheckedUpdateManyWithoutTeamNestedInput
   tickets?: Prisma.TicketUncheckedUpdateManyWithoutTeamNestedInput
   cannedResponses?: Prisma.CannedResponseUncheckedUpdateManyWithoutTeamNestedInput
+  seriesPoints?: Prisma.TeamSeriesUncheckedUpdateManyWithoutResourceNestedInput
 }
 
 export type TeamCreateManyInput = {
@@ -439,6 +446,11 @@ export type TeamListRelationFilter = {
 
 export type TeamOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type TeamScalarRelationFilter = {
+  is?: Prisma.TeamWhereInput
+  isNot?: Prisma.TeamWhereInput
 }
 
 export type TeamCreateNestedOneWithoutCannedResponsesInput = {
@@ -531,6 +543,20 @@ export type TeamUncheckedUpdateManyWithoutCreatedByNestedInput = {
   deleteMany?: Prisma.TeamScalarWhereInput | Prisma.TeamScalarWhereInput[]
 }
 
+export type TeamCreateNestedOneWithoutSeriesPointsInput = {
+  create?: Prisma.XOR<Prisma.TeamCreateWithoutSeriesPointsInput, Prisma.TeamUncheckedCreateWithoutSeriesPointsInput>
+  connectOrCreate?: Prisma.TeamCreateOrConnectWithoutSeriesPointsInput
+  connect?: Prisma.TeamWhereUniqueInput
+}
+
+export type TeamUpdateOneRequiredWithoutSeriesPointsNestedInput = {
+  create?: Prisma.XOR<Prisma.TeamCreateWithoutSeriesPointsInput, Prisma.TeamUncheckedCreateWithoutSeriesPointsInput>
+  connectOrCreate?: Prisma.TeamCreateOrConnectWithoutSeriesPointsInput
+  upsert?: Prisma.TeamUpsertWithoutSeriesPointsInput
+  connect?: Prisma.TeamWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TeamUpdateToOneWithWhereWithoutSeriesPointsInput, Prisma.TeamUpdateWithoutSeriesPointsInput>, Prisma.TeamUncheckedUpdateWithoutSeriesPointsInput>
+}
+
 export type TeamCreateWithoutCannedResponsesInput = {
   name: string
   slug: string
@@ -539,6 +565,7 @@ export type TeamCreateWithoutCannedResponsesInput = {
   createdAt?: Date | string
   members?: Prisma.UserCreateNestedManyWithoutTeamInput
   tickets?: Prisma.TicketCreateNestedManyWithoutTeamInput
+  seriesPoints?: Prisma.TeamSeriesCreateNestedManyWithoutResourceInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedTeamsInput
 }
 
@@ -552,6 +579,7 @@ export type TeamUncheckedCreateWithoutCannedResponsesInput = {
   createdById?: number | null
   members?: Prisma.UserUncheckedCreateNestedManyWithoutTeamInput
   tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutTeamInput
+  seriesPoints?: Prisma.TeamSeriesUncheckedCreateNestedManyWithoutResourceInput
 }
 
 export type TeamCreateOrConnectWithoutCannedResponsesInput = {
@@ -578,6 +606,7 @@ export type TeamUpdateWithoutCannedResponsesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.UserUpdateManyWithoutTeamNestedInput
   tickets?: Prisma.TicketUpdateManyWithoutTeamNestedInput
+  seriesPoints?: Prisma.TeamSeriesUpdateManyWithoutResourceNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedTeamsNestedInput
 }
 
@@ -591,6 +620,7 @@ export type TeamUncheckedUpdateWithoutCannedResponsesInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   members?: Prisma.UserUncheckedUpdateManyWithoutTeamNestedInput
   tickets?: Prisma.TicketUncheckedUpdateManyWithoutTeamNestedInput
+  seriesPoints?: Prisma.TeamSeriesUncheckedUpdateManyWithoutResourceNestedInput
 }
 
 export type TeamCreateWithoutTicketsInput = {
@@ -601,6 +631,7 @@ export type TeamCreateWithoutTicketsInput = {
   createdAt?: Date | string
   members?: Prisma.UserCreateNestedManyWithoutTeamInput
   cannedResponses?: Prisma.CannedResponseCreateNestedManyWithoutTeamInput
+  seriesPoints?: Prisma.TeamSeriesCreateNestedManyWithoutResourceInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedTeamsInput
 }
 
@@ -614,6 +645,7 @@ export type TeamUncheckedCreateWithoutTicketsInput = {
   createdById?: number | null
   members?: Prisma.UserUncheckedCreateNestedManyWithoutTeamInput
   cannedResponses?: Prisma.CannedResponseUncheckedCreateNestedManyWithoutTeamInput
+  seriesPoints?: Prisma.TeamSeriesUncheckedCreateNestedManyWithoutResourceInput
 }
 
 export type TeamCreateOrConnectWithoutTicketsInput = {
@@ -640,6 +672,7 @@ export type TeamUpdateWithoutTicketsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.UserUpdateManyWithoutTeamNestedInput
   cannedResponses?: Prisma.CannedResponseUpdateManyWithoutTeamNestedInput
+  seriesPoints?: Prisma.TeamSeriesUpdateManyWithoutResourceNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedTeamsNestedInput
 }
 
@@ -653,6 +686,7 @@ export type TeamUncheckedUpdateWithoutTicketsInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   members?: Prisma.UserUncheckedUpdateManyWithoutTeamNestedInput
   cannedResponses?: Prisma.CannedResponseUncheckedUpdateManyWithoutTeamNestedInput
+  seriesPoints?: Prisma.TeamSeriesUncheckedUpdateManyWithoutResourceNestedInput
 }
 
 export type TeamCreateWithoutMembersInput = {
@@ -663,6 +697,7 @@ export type TeamCreateWithoutMembersInput = {
   createdAt?: Date | string
   tickets?: Prisma.TicketCreateNestedManyWithoutTeamInput
   cannedResponses?: Prisma.CannedResponseCreateNestedManyWithoutTeamInput
+  seriesPoints?: Prisma.TeamSeriesCreateNestedManyWithoutResourceInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedTeamsInput
 }
 
@@ -676,6 +711,7 @@ export type TeamUncheckedCreateWithoutMembersInput = {
   createdById?: number | null
   tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutTeamInput
   cannedResponses?: Prisma.CannedResponseUncheckedCreateNestedManyWithoutTeamInput
+  seriesPoints?: Prisma.TeamSeriesUncheckedCreateNestedManyWithoutResourceInput
 }
 
 export type TeamCreateOrConnectWithoutMembersInput = {
@@ -692,6 +728,7 @@ export type TeamCreateWithoutCreatedByInput = {
   members?: Prisma.UserCreateNestedManyWithoutTeamInput
   tickets?: Prisma.TicketCreateNestedManyWithoutTeamInput
   cannedResponses?: Prisma.CannedResponseCreateNestedManyWithoutTeamInput
+  seriesPoints?: Prisma.TeamSeriesCreateNestedManyWithoutResourceInput
 }
 
 export type TeamUncheckedCreateWithoutCreatedByInput = {
@@ -704,6 +741,7 @@ export type TeamUncheckedCreateWithoutCreatedByInput = {
   members?: Prisma.UserUncheckedCreateNestedManyWithoutTeamInput
   tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutTeamInput
   cannedResponses?: Prisma.CannedResponseUncheckedCreateNestedManyWithoutTeamInput
+  seriesPoints?: Prisma.TeamSeriesUncheckedCreateNestedManyWithoutResourceInput
 }
 
 export type TeamCreateOrConnectWithoutCreatedByInput = {
@@ -735,6 +773,7 @@ export type TeamUpdateWithoutMembersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tickets?: Prisma.TicketUpdateManyWithoutTeamNestedInput
   cannedResponses?: Prisma.CannedResponseUpdateManyWithoutTeamNestedInput
+  seriesPoints?: Prisma.TeamSeriesUpdateManyWithoutResourceNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedTeamsNestedInput
 }
 
@@ -748,6 +787,7 @@ export type TeamUncheckedUpdateWithoutMembersInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   tickets?: Prisma.TicketUncheckedUpdateManyWithoutTeamNestedInput
   cannedResponses?: Prisma.CannedResponseUncheckedUpdateManyWithoutTeamNestedInput
+  seriesPoints?: Prisma.TeamSeriesUncheckedUpdateManyWithoutResourceNestedInput
 }
 
 export type TeamUpsertWithWhereUniqueWithoutCreatedByInput = {
@@ -779,6 +819,72 @@ export type TeamScalarWhereInput = {
   createdById?: Prisma.IntNullableFilter<"Team"> | number | null
 }
 
+export type TeamCreateWithoutSeriesPointsInput = {
+  name: string
+  slug: string
+  email: string
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  members?: Prisma.UserCreateNestedManyWithoutTeamInput
+  tickets?: Prisma.TicketCreateNestedManyWithoutTeamInput
+  cannedResponses?: Prisma.CannedResponseCreateNestedManyWithoutTeamInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedTeamsInput
+}
+
+export type TeamUncheckedCreateWithoutSeriesPointsInput = {
+  id?: number
+  name: string
+  slug: string
+  email: string
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  members?: Prisma.UserUncheckedCreateNestedManyWithoutTeamInput
+  tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutTeamInput
+  cannedResponses?: Prisma.CannedResponseUncheckedCreateNestedManyWithoutTeamInput
+}
+
+export type TeamCreateOrConnectWithoutSeriesPointsInput = {
+  where: Prisma.TeamWhereUniqueInput
+  create: Prisma.XOR<Prisma.TeamCreateWithoutSeriesPointsInput, Prisma.TeamUncheckedCreateWithoutSeriesPointsInput>
+}
+
+export type TeamUpsertWithoutSeriesPointsInput = {
+  update: Prisma.XOR<Prisma.TeamUpdateWithoutSeriesPointsInput, Prisma.TeamUncheckedUpdateWithoutSeriesPointsInput>
+  create: Prisma.XOR<Prisma.TeamCreateWithoutSeriesPointsInput, Prisma.TeamUncheckedCreateWithoutSeriesPointsInput>
+  where?: Prisma.TeamWhereInput
+}
+
+export type TeamUpdateToOneWithWhereWithoutSeriesPointsInput = {
+  where?: Prisma.TeamWhereInput
+  data: Prisma.XOR<Prisma.TeamUpdateWithoutSeriesPointsInput, Prisma.TeamUncheckedUpdateWithoutSeriesPointsInput>
+}
+
+export type TeamUpdateWithoutSeriesPointsInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.UserUpdateManyWithoutTeamNestedInput
+  tickets?: Prisma.TicketUpdateManyWithoutTeamNestedInput
+  cannedResponses?: Prisma.CannedResponseUpdateManyWithoutTeamNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedTeamsNestedInput
+}
+
+export type TeamUncheckedUpdateWithoutSeriesPointsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  members?: Prisma.UserUncheckedUpdateManyWithoutTeamNestedInput
+  tickets?: Prisma.TicketUncheckedUpdateManyWithoutTeamNestedInput
+  cannedResponses?: Prisma.CannedResponseUncheckedUpdateManyWithoutTeamNestedInput
+}
+
 export type TeamCreateManyCreatedByInput = {
   id?: number
   name: string
@@ -797,6 +903,7 @@ export type TeamUpdateWithoutCreatedByInput = {
   members?: Prisma.UserUpdateManyWithoutTeamNestedInput
   tickets?: Prisma.TicketUpdateManyWithoutTeamNestedInput
   cannedResponses?: Prisma.CannedResponseUpdateManyWithoutTeamNestedInput
+  seriesPoints?: Prisma.TeamSeriesUpdateManyWithoutResourceNestedInput
 }
 
 export type TeamUncheckedUpdateWithoutCreatedByInput = {
@@ -809,6 +916,7 @@ export type TeamUncheckedUpdateWithoutCreatedByInput = {
   members?: Prisma.UserUncheckedUpdateManyWithoutTeamNestedInput
   tickets?: Prisma.TicketUncheckedUpdateManyWithoutTeamNestedInput
   cannedResponses?: Prisma.CannedResponseUncheckedUpdateManyWithoutTeamNestedInput
+  seriesPoints?: Prisma.TeamSeriesUncheckedUpdateManyWithoutResourceNestedInput
 }
 
 export type TeamUncheckedUpdateManyWithoutCreatedByInput = {
@@ -829,12 +937,14 @@ export type TeamCountOutputType = {
   members: number
   tickets: number
   cannedResponses: number
+  seriesPoints: number
 }
 
 export type TeamCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   members?: boolean | TeamCountOutputTypeCountMembersArgs
   tickets?: boolean | TeamCountOutputTypeCountTicketsArgs
   cannedResponses?: boolean | TeamCountOutputTypeCountCannedResponsesArgs
+  seriesPoints?: boolean | TeamCountOutputTypeCountSeriesPointsArgs
 }
 
 /**
@@ -868,6 +978,13 @@ export type TeamCountOutputTypeCountCannedResponsesArgs<ExtArgs extends runtime.
   where?: Prisma.CannedResponseWhereInput
 }
 
+/**
+ * TeamCountOutputType without action
+ */
+export type TeamCountOutputTypeCountSeriesPointsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TeamSeriesWhereInput
+}
+
 
 export type TeamSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -880,6 +997,7 @@ export type TeamSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   members?: boolean | Prisma.Team$membersArgs<ExtArgs>
   tickets?: boolean | Prisma.Team$ticketsArgs<ExtArgs>
   cannedResponses?: boolean | Prisma.Team$cannedResponsesArgs<ExtArgs>
+  seriesPoints?: boolean | Prisma.Team$seriesPointsArgs<ExtArgs>
   createdBy?: boolean | Prisma.Team$createdByArgs<ExtArgs>
   _count?: boolean | Prisma.TeamCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["team"]>
@@ -901,6 +1019,7 @@ export type TeamInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   members?: boolean | Prisma.Team$membersArgs<ExtArgs>
   tickets?: boolean | Prisma.Team$ticketsArgs<ExtArgs>
   cannedResponses?: boolean | Prisma.Team$cannedResponsesArgs<ExtArgs>
+  seriesPoints?: boolean | Prisma.Team$seriesPointsArgs<ExtArgs>
   createdBy?: boolean | Prisma.Team$createdByArgs<ExtArgs>
   _count?: boolean | Prisma.TeamCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -914,6 +1033,10 @@ export type $TeamPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     members: Prisma.$UserPayload<ExtArgs>[]
     tickets: Prisma.$TicketPayload<ExtArgs>[]
     cannedResponses: Prisma.$CannedResponsePayload<ExtArgs>[]
+    /**
+     * Time series points
+     */
+    seriesPoints: Prisma.$TeamSeriesPayload<ExtArgs>[]
     createdBy: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1270,6 +1393,7 @@ export interface Prisma__TeamClient<T, Null = never, ExtArgs extends runtime.Typ
   members<T extends Prisma.Team$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Team$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   tickets<T extends Prisma.Team$ticketsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Team$ticketsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   cannedResponses<T extends Prisma.Team$cannedResponsesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Team$cannedResponsesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CannedResponsePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  seriesPoints<T extends Prisma.Team$seriesPointsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Team$seriesPointsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeamSeriesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdBy<T extends Prisma.Team$createdByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Team$createdByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1724,6 +1848,30 @@ export type Team$cannedResponsesArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.CannedResponseScalarFieldEnum | Prisma.CannedResponseScalarFieldEnum[]
+}
+
+/**
+ * Team.seriesPoints
+ */
+export type Team$seriesPointsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TeamSeries
+   */
+  select?: Prisma.TeamSeriesSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TeamSeries
+   */
+  omit?: Prisma.TeamSeriesOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TeamSeriesInclude<ExtArgs> | null
+  where?: Prisma.TeamSeriesWhereInput
+  orderBy?: Prisma.TeamSeriesOrderByWithRelationInput | Prisma.TeamSeriesOrderByWithRelationInput[]
+  cursor?: Prisma.TeamSeriesWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TeamSeriesScalarFieldEnum | Prisma.TeamSeriesScalarFieldEnum[]
 }
 
 /**

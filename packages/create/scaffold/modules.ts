@@ -211,26 +211,10 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     disabledConfig: [],
     configMarker: 'config.timeseries.provider'
   },
-  influxdb: {
-    name: 'influxdb',
-    description:
-      'InfluxDB 3 store of the time series instead of the database, in memory for the tests',
-    packages: ['@appweaver/influxdb'],
-    requires: ['timeseries'],
-    enabledConfig: ({ name }) => [
-      [
-        'config.timeseries.influxdb.host',
-        'http://${INFLUXDB_HOST:-localhost}:8181'
-      ],
-      ['config.timeseries.influxdb.database', name],
-      ['environments.test.timeseries.provider', 'memory']
-    ],
-    disabledConfig: []
-  },
   docker: {
     name: 'docker',
     description:
-      'Dockerfile, docker-compose.yml with the database, Redis and InfluxDB services of the enabled modules, and start.sh',
+      'Dockerfile, docker-compose.yml with the database and Redis services of the enabled modules, and start.sh',
     packages: [],
     requires: [],
     enabledConfig: () => [],

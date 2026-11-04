@@ -96,7 +96,6 @@ with `data` and `web`:
 | `templates`      | `@appweaver/handlebars`, `templates/`, the account emails with the mailer                                       | no template engine                           |
 | `locales`        | `locales/en.json`, the account email texts with the mailer                                                      | English texts written into the templates     |
 | `timeseries`     | The `series` fields in the database (requires `data`), `timescale` and the TimescaleDB image on PostgreSQL      | time series in the database (`auto`)         |
-| `influxdb`       | `@appweaver/influxdb` (requires `timeseries`), the InfluxDB 3 service of docker-compose, `memory` for the tests | time series in the database                  |
 | `docker`         | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                 | no Docker files                              |
 
 Options are given after the positional arguments, since `--add` and `--exclude` take every following value up to the
@@ -409,8 +408,8 @@ file field with `onResourceDeleted` and `onResourceSoftDeleted`. A kept file sta
 is never served again.
 
 The `series` section declares fields measured over time (`float`, `int`, `boolean`), whose points belong to a resource
-and live in a time series store apart from its record: the `<Model>Series` table of the database (`database`), a
-TimescaleDB hypertable (`timescale`), or InfluxDB 3 (`@appweaver/influxdb`). They are written and queried through the
+and live apart from its record: in the `<Model>Series` table of the database (`database`, every database), or a
+TimescaleDB hypertable on PostgreSQL (`timescale`). They are written and queried through the
 series routes (`POST /:id/series`, `GET /:id/series?bucket=1h&aggregate=avg`, `POST /series/query`) and the
 `TimeSeriesService`, directly or through the queue (`seriesOptions.ingest`):
 

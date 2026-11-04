@@ -63,7 +63,7 @@ export type SeriesDeleteQuery = {
 export type SeriesModel = {
   /** The name of the resource model, i.e. `Sensor` */
   name: string;
-  /** The name of the table (the InfluxDB table) holding the points, i.e. `SensorSeries` */
+  /** The name of the table holding the points, i.e. `SensorSeries` */
   table: string;
   /** The type of the resource id, which the store converts the ids it reads back to */
   idType: 'int' | 'bigInt' | 'string';

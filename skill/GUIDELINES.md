@@ -35,8 +35,7 @@ createApp().catch((err) => logger.error(err));
 
 The framework is assembled from modules: `@appweaver/core`, `@appweaver/data` (Prisma, resources, factories),
 `@appweaver/web` (the server, routes, auth, errors) and a driver package per library (`@appweaver/redis`,
-`@appweaver/bullmq`, `@appweaver/cron`, `@appweaver/nodemailer`, `@appweaver/handlebars`, `@appweaver/sharp`,
-`@appweaver/influxdb`), each
+`@appweaver/bullmq`, `@appweaver/cron`, `@appweaver/nodemailer`, `@appweaver/handlebars`, `@appweaver/sharp`), each
 enabled by being a dependency of the project. Install the driver package, never its library (`@appweaver/redis`, not
 `ioredis`), and import each name from the package exporting it (`createModel` from `@appweaver/data`, `createRoutes`
 from `@appweaver/web`). Each `provider` key defaults to `auto` (the driver of an enabled module), `none` turns a

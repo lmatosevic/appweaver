@@ -27,8 +27,7 @@ export const timeseriesConfig = defineConfig('timeseries', {
   /** How long the routes keep the result of the access check of a resource, in milliseconds, so a frequent writer is
    * not checked on every request, `0` to check every request. Default: `0`. */
   ACCESS_CACHE_TTL: Type.Integer({ default: 0, minimum: 0 }),
-  /** Time series provider: `auto` (`influxdb` when its module is enabled, otherwise `database` with
-   * `@appweaver/data`), `database`, `timescale`, `influxdb`, `memory`, `none`, or the module path of an
-   * implementation. Default: `'auto'`. */
+  /** Time series provider: `auto` (the driver of an enabled module, otherwise `database` with `@appweaver/data`),
+   * `database`, `timescale`, `memory`, `none`, or the module path of an implementation. Default: `'auto'`. */
   PROVIDER: Type.String({ default: 'auto' })
 });

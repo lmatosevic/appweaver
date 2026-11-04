@@ -329,20 +329,15 @@
       "queueWorker": true,
       "accessCacheTtl": 0,
       "provider": "auto",
+      "database": {
+        "retention": "",
+        "retentionInterval": "1h"
+      },
       "timescale": {
         "chunkInterval": "7d",
         "compressAfter": "",
         "retention": "",
         "setupTimeout": 60000
-      },
-      "influxdb": {
-        "host": "http://localhost:8181",
-        "token": "",
-        "authScheme": "Bearer",
-        "database": "appweaver",
-        "retention": "",
-        "writeTimeout": 10000,
-        "queryTimeout": 60000
       }
     },
     "scheduler": {

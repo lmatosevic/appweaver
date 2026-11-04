@@ -29,9 +29,6 @@
       "path": "./handlebars/tsconfig.build.json"
     },
     {
-      "path": "./influxdb/tsconfig.build.json"
-    },
-    {
       "path": "./nodemailer/tsconfig.build.json"
     },
     {
