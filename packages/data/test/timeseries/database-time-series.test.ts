@@ -17,11 +17,11 @@ testDatabaseContract(
   DatabaseType.Sqlite,
   `file:${path.join(dir, 'series.db')}`,
   undefined,
-  () => {
+  (_db, contractModel) => {
     test('deletes the points older than the retention of their model', async () => {
       configOverrides.TIMESERIES_DATABASE_RETENTION_WORKER = false;
       const store = new DatabaseTimeSeries();
-      const model = { ...contractSeriesModel, options: { retention: '1d' } };
+      const model = { ...contractModel, options: { retention: '1d' } };
       // Before the points of the contract suite, which share the table
       const now = new Date(Date.UTC(2025, 0, 1));
       const day = 86_400_000;

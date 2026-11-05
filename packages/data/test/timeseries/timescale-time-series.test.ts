@@ -22,14 +22,14 @@ testDatabaseContract(
   DatabaseType.PostgreSQL,
   timescaleUrl,
   () => new TimescaleTimeSeries(),
-  (db) => {
+  (db, contractModel) => {
     const jobs = async () =>
       (
         await db()
           .client<any>()
           .$queryRawUnsafe(
             `SELECT proc_name, config FROM timescaledb_information.jobs
-             WHERE hypertable_schema = '${schema}' AND hypertable_name = 'ContractSensorSeries'
+             WHERE hypertable_schema = '${schema}' AND hypertable_name = '${contractModel.table}'
              ORDER BY proc_name`
           )
       ).map((job: any) => [
@@ -39,20 +39,20 @@ testDatabaseContract(
 
     test('turns the series table into a hypertable', async () => {
       const store = new TimescaleTimeSeries();
-      await store.register([contractSeriesModel]);
+      await store.register([contractModel]);
 
       const tables = await db()
         .client<any>()
         .$queryRawUnsafe(
           `SELECT hypertable_name FROM timescaledb_information.hypertables
-           WHERE hypertable_schema = '${schema}' AND hypertable_name = 'ContractSensorSeries'`
+           WHERE hypertable_schema = '${schema}' AND hypertable_name = '${contractModel.table}'`
         );
       expect(tables).toHaveLength(1);
     });
 
     test('keeps the compression and retention policies in line with the model', async () => {
       const store = new TimescaleTimeSeries();
-      const model = (options: object) => ({ ...contractSeriesModel, options });
+      const model = (options: object) => ({ ...contractModel, options });
 
       await store.register([model({ compressAfter: '7d', retention: '30d' })]);
       await expect(jobs()).resolves.toEqual([
@@ -75,7 +75,7 @@ testDatabaseContract(
 
       await expect(
         store.register([
-          { ...contractSeriesModel, options: { chunkInterval: 'weekly' } }
+          { ...contractModel, options: { chunkInterval: 'weekly' } }
         ])
       ).rejects.toMatchObject({ code: ErrorCode.ConfigurationInvalid });
     });

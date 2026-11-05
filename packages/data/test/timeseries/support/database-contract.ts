@@ -1,9 +1,18 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { configOverrides, Database, DatabaseType } from '@appweaver/common';
+import {
+  configOverrides,
+  Database,
+  DatabaseType,
+  SeriesModel
+} from '@appweaver/common';
 import { define } from '@appweaver/core';
-import { resetContext, testTimeSeriesContract } from '@appweaver/testing';
+import {
+  contractSeriesModel,
+  resetContext,
+  testTimeSeriesContract
+} from '@appweaver/testing';
 import { PrismaDatabase } from '../../../database/prisma-database';
 import { DatabaseTimeSeries } from '../../../timeseries/database-time-series';
 import { seriesDialect } from '../../../timeseries/utils/series-sql-util';
@@ -26,18 +35,23 @@ const TABLES: Record<string, string> = {
 /**
  * Runs the contract suite on a database, the series table of the suite created first. The databases other than
  * SQLite run when their URL is set: `TIMESERIES_TEST_POSTGRES_URL`, `TIMESERIES_TEST_MYSQL_URL` and
- * `TIMESERIES_TEST_SQLSERVER_URL`, the tables of PostgreSQL in the `schema` of its URL.
+ * `TIMESERIES_TEST_SQLSERVER_URL`, the tables of PostgreSQL in the `schema` of its URL. Each store has a table of its
+ * own (`Contract<name>`), so the test files of the stores run in parallel on the same database.
  */
 export function testDatabaseContract(
   name: string,
   type: DatabaseType,
   url: string | undefined,
   create: () => DatabaseTimeSeries = () => new DatabaseTimeSeries(),
-  extra?: (db: () => PrismaDatabase) => void
+  extra?: (db: () => PrismaDatabase, model: SeriesModel) => void
 ): void {
   if (!url) {
     return;
   }
+  const model: SeriesModel = {
+    ...contractSeriesModel,
+    table: `Contract${name}`
+  };
 
   describe(`${name} on ${type}`, () => {
     let db: PrismaDatabase;
@@ -57,9 +71,7 @@ export function testDatabaseContract(
         type === DatabaseType.PostgreSQL
           ? new URL(url).searchParams.get('schema')
           : null;
-      const table = seriesDialect(type, schema ?? undefined).table(
-        'ContractSensorSeries'
-      );
+      const table = seriesDialect(type, schema ?? undefined).table(model.table);
       if (schema) {
         await db
           .client<any>()
@@ -78,8 +90,8 @@ export function testDatabaseContract(
       delete configOverrides.DATABASE_CLIENT_OUTPUT_DIR_PATH;
     });
 
-    testTimeSeriesContract(name, create);
-    extra?.(() => db);
+    testTimeSeriesContract(name, create, { model });
+    extra?.(() => db, model);
   });
 }
 
