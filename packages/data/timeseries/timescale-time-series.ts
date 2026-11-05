@@ -113,7 +113,7 @@ export class TimescaleTimeSeries extends DatabaseTimeSeries {
 
   /** @internal */
   private async setupHypertable(tx: any, model: SeriesModel): Promise<void> {
-    const table = quoteIdentifier(model.table);
+    const table = this.regclass(model.table);
     const chunk = interval(
       model.options.chunkInterval ?? timescaleConfig.CHUNK_INTERVAL,
       'chunkInterval'
@@ -134,11 +134,11 @@ export class TimescaleTimeSeries extends DatabaseTimeSeries {
     if (compressAfter) {
       const [settings]: { compression_enabled: boolean }[] = await tx.$queryRaw(
         sqltag`SELECT compression_enabled FROM timescaledb_information.hypertables
-          WHERE hypertable_schema = current_schema() AND hypertable_name = ${model.table}`
+          WHERE hypertable_schema = ${this._schema ?? raw('current_schema()')} AND hypertable_name = ${model.table}`
       );
       if (!settings?.compression_enabled) {
         await tx.$executeRawUnsafe(
-          `ALTER TABLE ${table} SET (timescaledb.compress, ` +
+          `ALTER TABLE ${this._dialect.table(model.table)} SET (timescaledb.compress, ` +
             `timescaledb.compress_segmentby = '"resourceId"', timescaledb.compress_orderby = '"time" DESC')`
         );
       }
@@ -164,6 +164,11 @@ export class TimescaleTimeSeries extends DatabaseTimeSeries {
     );
   }
 
+  /** The table of a model as a regclass literal, qualified by the schema of the connection. @internal */
+  private regclass(table: string): string {
+    return this._dialect.table(table).replace(/'/g, "''");
+  }
+
   /** Adds, replaces or removes a policy of a hypertable, so it follows its config. @internal */
   private async syncPolicy(
     tx: any,
@@ -172,13 +177,13 @@ export class TimescaleTimeSeries extends DatabaseTimeSeries {
     duration: string,
     option: string
   ): Promise<void> {
-    const table = quoteIdentifier(model.table);
+    const table = this.regclass(model.table);
     const wanted = duration ? interval(duration, option) : undefined;
     const [job]: { same: boolean }[] = await tx.$queryRaw(
       sqltag`SELECT (config->>${policy.key})::interval = ${raw(
         wanted ? `INTERVAL '${wanted}'` : 'NULL'
       )} AS same FROM timescaledb_information.jobs
-        WHERE proc_name = ${policy.proc} AND hypertable_schema = current_schema() AND hypertable_name = ${model.table}`
+        WHERE proc_name = ${policy.proc} AND hypertable_schema = ${this._schema ?? raw('current_schema()')} AND hypertable_name = ${model.table}`
     );
 
     if (job?.same) {
@@ -215,8 +220,3 @@ const INTERVAL_UNITS: [string, number][] = [
   ['hours', 3600],
   ['minutes', 60]
 ];
-
-/** Quotes a table name for a regclass literal. */
-function quoteIdentifier(name: string): string {
-  return `"${name.replace(/"/g, '""').replace(/'/g, "''")}"`;
-}

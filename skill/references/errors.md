@@ -227,7 +227,6 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `TIMESERIES_TOO_MANY_RESOURCES`      | 400    | Too many time series resources        |
 | `TIMESERIES_FORBIDDEN`               | 403    | Time series access forbidden          |
 | `TIMESERIES_UNSUPPORTED`             | 501    | Time series operation not supported   |
-| `TIMESERIES_UNAVAILABLE`             | 503    | Time series store unavailable         |
 
 `REQUEST_FAILED` keeps the 4xx status of an error a Fastify plugin raised with no code of its own.
 

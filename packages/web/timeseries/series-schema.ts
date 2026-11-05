@@ -154,7 +154,7 @@ export function createSeriesSchemas(context: SeriesSchemaContext): {
     ErrorCode.TimeSeriesInvalidValue,
     ErrorCode.TimeSeriesInvalidTime,
     ErrorCode.TimeSeriesTooManyPoints,
-    ErrorCode.TimeSeriesUnavailable,
+    ErrorCode.TimeSeriesTooManyResources,
     ErrorCode.DatabaseForeignKeyViolation,
     ErrorCode.QueueUnavailable
   ];
@@ -167,8 +167,7 @@ export function createSeriesSchemas(context: SeriesSchemaContext): {
     ErrorCode.TimeSeriesInvalidTime,
     ErrorCode.TimeSeriesInvalidBucket,
     ErrorCode.TimeSeriesInvalidAggregate,
-    ErrorCode.TimeSeriesTooManyResources,
-    ErrorCode.TimeSeriesUnavailable
+    ErrorCode.TimeSeriesTooManyResources
   ];
   const writeResponse = (route: 'seriesWrite') => ({
     200: createSchemaModel(WriteResponse),
@@ -284,8 +283,7 @@ export function createSeriesSchemas(context: SeriesSchemaContext): {
           ErrorCode.TimeSeriesForbidden,
           ErrorCode.TimeSeriesInvalidRange,
           ErrorCode.TimeSeriesInvalidTime,
-          ErrorCode.TimeSeriesUnsupported,
-          ErrorCode.TimeSeriesUnavailable
+          ErrorCode.TimeSeriesUnsupported
         )
       }
     }

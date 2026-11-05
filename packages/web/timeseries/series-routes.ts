@@ -218,6 +218,7 @@ export function registerSeriesRoutes(
  * Reads the resources through their service, so the policies of the model apply, and checks the `series` policy of
  * the action on each, keeping an allowed check for `timeseries.accessCacheTtl` milliseconds.
  *
+ * @throws {TimeSeriesError} `TIMESERIES_TOO_MANY_RESOURCES` for more than `timeseries.maxResourcesPerQuery` ids.
  * @throws {ResourceError} `RESOURCE_NOT_FOUND` for a resource that is not found or not readable.
  * @throws {TimeSeriesError} `TIMESERIES_FORBIDDEN` when the series policy denies the action.
  */
@@ -226,23 +227,15 @@ async function checkedResources(
   ids: ResourceId[],
   action: SeriesAction
 ): Promise<void> {
-  if (ids.length > timeseriesConfig.MAX_RESOURCES_PER_QUERY) {
-    throw new TimeSeriesError(
-      ErrorCode.TimeSeriesTooManyResources,
-      `A time series write covers up to ${timeseriesConfig.MAX_RESOURCES_PER_QUERY} resources`,
-      { maxResources: timeseriesConfig.MAX_RESOURCES_PER_QUERY }
-    );
-  }
+  checkResourceCount(ids.length, action);
 
-  const ttl = timeseriesConfig.ACCESS_CACHE_TTL;
-  const cache = ttl > 0 ? inject(CacheService, false) : undefined;
-  const user = currentAuthUser() ?? null;
-  const key = (id: ResourceId) =>
-    `timeseries-access:${name}:${action}:${user?.id ?? '-'}:${id}`;
-
+  const access = seriesAccess(name, action);
   const unchecked: ResourceId[] = [];
   for (const id of ids) {
-    if (!cache || (await cache.getCachedValue<boolean>(key(id))) !== true) {
+    if (
+      !access.cache ||
+      (await access.cache.getCachedValue<boolean>(access.key(id))) !== true
+    ) {
       unchecked.push(id);
     }
   }
@@ -272,17 +265,7 @@ async function checkedResources(
     });
   }
 
-  const check = injectPolicy(name, false)?.series?.[POLICY_CHECKS[action]];
-  for (const resource of resources) {
-    if (check && (await check(user, resource)) === false) {
-      throw new TimeSeriesError(
-        ErrorCode.TimeSeriesForbidden,
-        `${name} time series ${action} is forbidden`,
-        { model: name, action }
-      );
-    }
-    await cache?.addToCache(key(resource.id), true, ttl, true);
-  }
+  await checkPolicy(name, resources, action, access);
 }
 
 /** The ids of the resources of a query of many, by their ids, a filter, or both, checked for the read action. */
@@ -291,7 +274,6 @@ async function matchingResources(
   ids: ResourceId[] | undefined,
   filter: Record<string, unknown> | undefined
 ): Promise<ResourceId[]> {
-  const max = timeseriesConfig.MAX_RESOURCES_PER_QUERY;
   if (ids && !filter) {
     await checkedResources(name, unique(ids), 'read');
     return unique(ids);
@@ -303,21 +285,63 @@ async function matchingResources(
   ];
   const { items } = await injectService(name).query({
     filter: conditions.length > 1 ? { _and: conditions } : conditions[0],
-    size: max + 1,
+    size: timeseriesConfig.MAX_RESOURCES_PER_QUERY + 1,
     sort: 'id',
     totalCount: false
   });
-  if (items.length > max) {
+  checkResourceCount(items.length, 'read');
+
+  await checkPolicy(name, items, 'read', seriesAccess(name, 'read'));
+  return items.map((item: any) => item.id as ResourceId);
+}
+
+/** The cache of the allowed checks of an action of the current user. */
+function seriesAccess(name: string, action: SeriesAction) {
+  const ttl = timeseriesConfig.ACCESS_CACHE_TTL;
+  const user = currentAuthUser() ?? null;
+  return {
+    user,
+    ttl,
+    cache: ttl > 0 ? inject(CacheService, false) : undefined,
+    key: (id: ResourceId) =>
+      `timeseries-access:${name}:${action}:${user?.id ?? '-'}:${id}`
+  };
+}
+
+/** Checks the `series` policy of an action on the resources read, caching the allowed checks. */
+async function checkPolicy(
+  name: string,
+  resources: any[],
+  action: SeriesAction,
+  access: ReturnType<typeof seriesAccess>
+): Promise<void> {
+  const check = injectPolicy(name, false)?.series?.[POLICY_CHECKS[action]];
+  for (const resource of resources) {
+    if (check && (await check(access.user, resource)) === false) {
+      throw new TimeSeriesError(
+        ErrorCode.TimeSeriesForbidden,
+        `${name} time series ${action} is forbidden`,
+        { model: name, action }
+      );
+    }
+    await access.cache?.addToCache(
+      access.key(resource.id),
+      true,
+      access.ttl,
+      true
+    );
+  }
+}
+
+function checkResourceCount(count: number, action: SeriesAction): void {
+  const max = timeseriesConfig.MAX_RESOURCES_PER_QUERY;
+  if (count > max) {
     throw new TimeSeriesError(
       ErrorCode.TimeSeriesTooManyResources,
-      `A time series query covers up to ${max} resources`,
+      `A time series ${action} covers up to ${max} resources`,
       { maxResources: max }
     );
   }
-
-  const matched = items.map((item: any) => item.id as ResourceId);
-  await checkedResources(name, matched, 'read');
-  return matched;
 }
 
 function queryOptions(query: QueryParams) {

@@ -47,6 +47,8 @@ const UUID_LENGTH = 36;
 
 /** The relation field of a model holding its time series points. */
 const SERIES_RELATION_FIELD = 'seriesPoints';
+/** The relation field of the points to their resource. */
+const SERIES_RESOURCE_FIELD = 'resource';
 
 const SERIES_PRISMA_TYPES: Record<SeriesFieldType, string> = {
   float: 'Float',
@@ -827,6 +829,11 @@ function validateRelations(models: Record<string, ResourceModel>): string[] {
         `Field '${name}.${SERIES_RELATION_FIELD}' conflicts with the relation of the time series points of '${name}'.`
       );
     }
+    if (model.config.series?.[SERIES_RESOURCE_FIELD]) {
+      errors.push(
+        `Series field '${name}.${SERIES_RESOURCE_FIELD}' conflicts with the relation of '${name}Series' to its resource.`
+      );
+    }
   }
 
   return errors;
@@ -855,7 +862,7 @@ function createSeriesModel(
     }))
   ];
   const relation: PrismaSchemaField = {
-    name: 'resource',
+    name: SERIES_RESOURCE_FIELD,
     type: name,
     attributes: [
       `@relation("${name}Series", fields: [resourceId], references: [id], onDelete: Cascade)`

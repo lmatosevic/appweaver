@@ -41,6 +41,24 @@ describe('series-sql-util', () => {
         seriesDialect(DatabaseType.Sqlite)
       );
     });
+
+    test('qualifies the PostgreSQL tables by the schema of the connection', () => {
+      const dialect = seriesDialect(DatabaseType.PostgreSQL, 'shop');
+
+      expect(dialect.table('SensorSeries')).toBe('"shop"."SensorSeries"');
+      expect(seriesDialect(DatabaseType.PostgreSQL).table('SensorSeries')).toBe(
+        '"SensorSeries"'
+      );
+      expect(upsertStatements(dialect, model, [point])[0].sql).toContain(
+        'INSERT INTO "shop"."SensorSeries"'
+      );
+      expect(
+        selectStatement(dialect, model, { resourceIds: [1] }).sql
+      ).toContain('FROM "shop"."SensorSeries"');
+      expect(
+        deleteStatement(dialect, model, { resourceIds: [1] }).sql
+      ).toContain('DELETE FROM "shop"."SensorSeries"');
+    });
   });
 
   describe('upsertStatements', () => {

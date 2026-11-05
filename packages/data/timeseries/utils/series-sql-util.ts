@@ -16,6 +16,8 @@ export type SeriesDialect = {
   maxParams: number;
   /** Quotes an identifier */
   quote: (name: string) => string;
+  /** Quotes a table name, qualified by the schema of the connection when it has one */
+  table: (name: string) => string;
   /** The start of the bucket of `width` seconds holding the time column, aligned to the Unix epoch */
   bucket: (column: string, width: number) => string;
   /** A boolean or numeric column as a number */
@@ -24,7 +26,8 @@ export type SeriesDialect = {
   average: (column: string) => string;
   /** Limits the rows of an ordered query */
   limit: (count: number) => string;
-  /** Writes the rows of the columns, merging a row into the stored one of the same resource and time */
+  /** Writes the rows of the columns into the quoted table, merging a row into the stored one of the same resource
+   * and time */
   upsert: (
     table: string,
     columns: string[],
@@ -44,14 +47,14 @@ const conflictUpsert = (
   fields: string[],
   rows: Sql
 ) =>
-  sqltag`INSERT INTO ${raw(ansiQuote(table))} (${raw(columns.map(ansiQuote).join(', '))}) VALUES ${rows} ON CONFLICT (${raw(
+  sqltag`INSERT INTO ${raw(table)} (${raw(columns.map(ansiQuote).join(', '))}) VALUES ${rows} ON CONFLICT (${raw(
     `${ansiQuote('resourceId')}, ${ansiQuote('time')}`
   )}) ${raw(
     fields.length
       ? `DO UPDATE SET ${fields
           .map(
             (field) =>
-              `${ansiQuote(field)} = COALESCE(excluded.${ansiQuote(field)}, ${ansiQuote(table)}.${ansiQuote(field)})`
+              `${ansiQuote(field)} = COALESCE(excluded.${ansiQuote(field)}, ${table}.${ansiQuote(field)})`
           )
           .join(', ')}`
       : 'DO NOTHING'
@@ -60,6 +63,7 @@ const conflictUpsert = (
 export const postgresDialect: SeriesDialect = {
   maxParams: 30_000,
   quote: ansiQuote,
+  table: ansiQuote,
   bucket: (column, width) =>
     `date_bin(INTERVAL '${width} seconds', ${column}, TIMESTAMP '1970-01-01 00:00:00')`,
   numeric: toInteger,
@@ -71,6 +75,7 @@ export const postgresDialect: SeriesDialect = {
 export const sqliteDialect: SeriesDialect = {
   maxParams: 9_999,
   quote: ansiQuote,
+  table: ansiQuote,
   // The times are stored as ISO 8601 text with a `+00:00` offset, the bucket written back the same way
   bucket: (column, width) =>
     `strftime('%Y-%m-%dT%H:%M:%S.000+00:00', (CAST(strftime('%s', ${column}) AS INTEGER) / ${width}) * ${width}, 'unixepoch')`,
@@ -85,6 +90,7 @@ const mysqlQuote = (name: string) => `\`${name.replace(/`/g, '``')}\``;
 export const mysqlDialect: SeriesDialect = {
   maxParams: 30_000,
   quote: mysqlQuote,
+  table: mysqlQuote,
   // Computed apart from the time zone of the session, unlike UNIX_TIMESTAMP
   bucket: (column, width) =>
     `TIMESTAMPADD(SECOND, FLOOR(TIMESTAMPDIFF(SECOND, '1970-01-01 00:00:00', ${column}) / ${width}) * ${width}, '1970-01-01 00:00:00')`,
@@ -93,7 +99,7 @@ export const mysqlDialect: SeriesDialect = {
   average: (column) => column,
   limit: (count) => `LIMIT ${count}`,
   upsert: (table, columns, fields, rows) =>
-    sqltag`INSERT INTO ${raw(mysqlQuote(table))} (${raw(columns.map(mysqlQuote).join(', '))}) VALUES ${rows} ON DUPLICATE KEY UPDATE ${raw(
+    sqltag`INSERT INTO ${raw(table)} (${raw(columns.map(mysqlQuote).join(', '))}) VALUES ${rows} ON DUPLICATE KEY UPDATE ${raw(
       (fields.length ? fields : ['time'])
         .map((field) =>
           field === 'time'
@@ -109,6 +115,7 @@ const mssqlQuote = (name: string) => `[${name.replace(/]/g, ']]')}]`;
 export const mssqlDialect: SeriesDialect = {
   maxParams: 2_000,
   quote: mssqlQuote,
+  table: mssqlQuote,
   bucket: (column, width) => {
     const start = `(DATEDIFF_BIG(SECOND, CAST('1970-01-01' AS DATETIME2), ${column}) / ${width} * ${width})`;
     return `DATEADD(SECOND, CAST(${start} % 86400 AS INT), DATEADD(DAY, CAST(${start} / 86400 AS INT), CAST('1970-01-01' AS DATETIME2)))`;
@@ -127,7 +134,7 @@ export const mssqlDialect: SeriesDialect = {
           )
           .join(', ')} `
       : '';
-    return sqltag`MERGE INTO ${raw(mssqlQuote(table))} AS t USING (VALUES ${rows}) AS s (${raw(quoted.join(', '))}) ON ${raw(
+    return sqltag`MERGE INTO ${raw(table)} AS t USING (VALUES ${rows}) AS s (${raw(quoted.join(', '))}) ON ${raw(
       `t.${mssqlQuote('resourceId')} = s.${mssqlQuote('resourceId')} AND t.${mssqlQuote('time')} = s.${mssqlQuote('time')}`
     )} ${raw(update)}WHEN NOT MATCHED THEN INSERT (${raw(quoted.join(', '))}) VALUES (${raw(
       quoted.map((column) => `s.${column}`).join(', ')
@@ -136,15 +143,25 @@ export const mssqlDialect: SeriesDialect = {
 };
 
 /**
- * Returns the SQL dialect of the time series of a database.
+ * Returns the SQL dialect of the time series of a database, its tables qualified by the PostgreSQL schema of the
+ * connection, since the raw queries are not qualified by the Prisma client.
  *
  * @param {DatabaseType} type - The database type.
+ * @param {string} [schema] - The PostgreSQL schema of the connection (the `schema` parameter of its URL).
  * @return {SeriesDialect} The dialect.
  */
-export function seriesDialect(type: DatabaseType): SeriesDialect {
+export function seriesDialect(
+  type: DatabaseType,
+  schema?: string
+): SeriesDialect {
   switch (type) {
     case DatabaseType.PostgreSQL:
-      return postgresDialect;
+      return schema
+        ? {
+            ...postgresDialect,
+            table: (name) => `${ansiQuote(schema)}.${ansiQuote(name)}`
+          }
+        : postgresDialect;
     case DatabaseType.MySQL:
       return mysqlDialect;
     case DatabaseType.SQLServer:
@@ -186,7 +203,9 @@ export function upsertStatements(
             ...fields.map((field) => point.values[field] ?? null)
           ])})`
       );
-    statements.push(dialect.upsert(model.table, columns, fields, join(rows)));
+    statements.push(
+      dialect.upsert(dialect.table(model.table), columns, fields, join(rows))
+    );
   }
   return statements;
 }
@@ -236,7 +255,7 @@ export function selectStatement(
   const orderBy = (time: string, rid: string) =>
     `ORDER BY ${time} ${direction}, ${rid} ASC ${limit}`;
   const order = orderBy(q('t'), q('rid'));
-  const table = raw(q(model.table));
+  const table = raw(dialect.table(model.table));
 
   if (!query.bucket && !query.aggregate) {
     const columns = [
@@ -354,7 +373,7 @@ export function deleteStatement(
   model: SeriesModel,
   query: Pick<SeriesQuery, 'resourceIds' | 'from' | 'to'>
 ): Sql {
-  return sqltag`DELETE FROM ${raw(dialect.quote(model.table))} WHERE ${join(
+  return sqltag`DELETE FROM ${raw(dialect.table(model.table))} WHERE ${join(
     rangeConditions(dialect, query),
     ' AND '
   )}`;
@@ -373,7 +392,7 @@ export function expiredStatement(
   model: SeriesModel,
   before: Date
 ): Sql {
-  return sqltag`DELETE FROM ${raw(dialect.quote(model.table))} WHERE ${raw(
+  return sqltag`DELETE FROM ${raw(dialect.table(model.table))} WHERE ${raw(
     dialect.quote('time')
   )} < ${before}`;
 }

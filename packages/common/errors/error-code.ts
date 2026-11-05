@@ -150,8 +150,7 @@ export enum ErrorCode {
   TimeSeriesTooManyPoints = 'TIMESERIES_TOO_MANY_POINTS',
   TimeSeriesTooManyResources = 'TIMESERIES_TOO_MANY_RESOURCES',
   TimeSeriesForbidden = 'TIMESERIES_FORBIDDEN',
-  TimeSeriesUnsupported = 'TIMESERIES_UNSUPPORTED',
-  TimeSeriesUnavailable = 'TIMESERIES_UNAVAILABLE'
+  TimeSeriesUnsupported = 'TIMESERIES_UNSUPPORTED'
 }
 
 /** The error codes starting with the prefix of a module, i.e. `'RESOURCE'`. */

@@ -342,8 +342,14 @@ describe('series-routes', () => {
       points: [1, 2, 3].map((resourceId) => ({ resourceId, errors: 1 }))
     });
 
-    expect(byFilter.body.code).toBe(ErrorCode.TimeSeriesTooManyResources);
-    expect(write.body.code).toBe(ErrorCode.TimeSeriesTooManyResources);
+    expect(byFilter.body).toMatchObject({
+      code: ErrorCode.TimeSeriesTooManyResources,
+      detail: 'A time series read covers up to 2 resources'
+    });
+    expect(write.body).toMatchObject({
+      code: ErrorCode.TimeSeriesTooManyResources,
+      detail: 'A time series write covers up to 2 resources'
+    });
   });
 
   test('deletes the points of a time range', async () => {

@@ -314,10 +314,6 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
   [ErrorCode.TimeSeriesUnsupported]: {
     status: 501,
     title: 'Time series operation not supported'
-  },
-  [ErrorCode.TimeSeriesUnavailable]: {
-    status: 503,
-    title: 'Time series store unavailable'
   }
 };
 

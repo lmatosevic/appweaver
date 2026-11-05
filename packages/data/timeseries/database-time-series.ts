@@ -2,6 +2,7 @@ import {
   ConfigurationError,
   createLogger,
   Database,
+  DatabaseType,
   ErrorCode,
   HEALTH_CHECK,
   HealthCheckResult,
@@ -50,8 +51,16 @@ export class DatabaseTimeSeries extends TimeSeries {
   /** @internal */
   protected readonly _db = inject<PrismaDatabase>(Database as any);
   /** @internal */
+  protected readonly _type = resolveDatabaseType(
+    databaseConfig.TYPE,
+    databaseConfig.URL
+  );
+  /** The PostgreSQL schema of the connection, `public` without one. @internal */
+  protected readonly _schema = postgresSchema(this._type);
+  /** @internal */
   protected readonly _dialect: SeriesDialect = seriesDialect(
-    resolveDatabaseType(databaseConfig.TYPE, databaseConfig.URL)
+    this._type,
+    this._schema
   );
 
   /** @internal */
@@ -212,4 +221,16 @@ function seconds(duration: string, option: string): number {
     );
   }
   return value;
+}
+
+/** The `schema` parameter of a PostgreSQL URL, which the Prisma client leaves out of the raw queries. */
+function postgresSchema(type: DatabaseType): string | undefined {
+  if (type !== DatabaseType.PostgreSQL) {
+    return undefined;
+  }
+  try {
+    return new URL(databaseConfig.URL).searchParams.get('schema') ?? undefined;
+  } catch {
+    return undefined;
+  }
 }

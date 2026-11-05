@@ -30,7 +30,8 @@ import {
   StringEnum,
   VirtualConfig,
   ConfigurationError,
-  ErrorCode
+  ErrorCode,
+  parseDuration
 } from '@appweaver/common';
 import { context } from '@appweaver/core/internal';
 import { define } from '@appweaver/core';
@@ -111,11 +112,13 @@ function normalizeRelations(config: ResourceModelConfig): ResourceModelConfig {
 
 const SERIES_RESERVED_NAMES = ['time', 'resourceId'];
 const SERIES_TYPES = ['float', 'int', 'boolean'];
+const SERIES_INGESTS = ['direct', 'queue', 'auto'];
 
 /**
- * Checks the series fields of a model: their types, and names leaving the `time` and `resourceId` of a point free.
+ * Checks the series of a model: the types of its fields, names leaving the `time` and `resourceId` of a point free,
+ * and the durations and the ingest of its options.
  *
- * @throws {ConfigurationError} For a series field with a reserved name or an unknown type.
+ * @throws {ConfigurationError} For a series field with a reserved name or an unknown type, or an invalid option.
  */
 function validateSeries(config: ResourceModelConfig): void {
   for (const [field, series] of Object.entries(config.series ?? {})) {
@@ -131,6 +134,31 @@ function validateSeries(config: ResourceModelConfig): void {
         `Series field '${config.name}.${field}' has the type '${series.type}', not one of ${SERIES_TYPES.join(', ')}`
       );
     }
+  }
+
+  const options = config.seriesOptions ?? {};
+  for (const option of [
+    'retention',
+    'chunkInterval',
+    'compressAfter'
+  ] as const) {
+    const duration = options[option];
+    if (duration === undefined) {
+      continue;
+    }
+    const seconds = parseDuration(duration);
+    if (!seconds || !Number.isInteger(seconds)) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `Series option '${config.name}.${option}' is '${duration}', not a duration of whole seconds, i.e. 30d`
+      );
+    }
+  }
+  if (options.ingest && !SERIES_INGESTS.includes(options.ingest)) {
+    throw new ConfigurationError(
+      ErrorCode.ConfigurationInvalid,
+      `Series option '${config.name}.ingest' is '${options.ingest}', not one of ${SERIES_INGESTS.join(', ')}`
+    );
   }
 }
 

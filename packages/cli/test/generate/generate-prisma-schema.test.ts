@@ -1247,7 +1247,7 @@ describe('generate-schema', () => {
       const { status } = await generate({
         Sensor: model('Sensor', {
           scalars: { seriesPoints: { type: 'int' } },
-          series: { load: { type: 'float' } }
+          series: { load: { type: 'float' }, resource: { type: 'int' } }
         }),
         SensorSeries: model('SensorSeries', {})
       });
@@ -1258,6 +1258,9 @@ describe('generate-schema', () => {
       );
       expect(console.error).toHaveBeenCalledWith(
         expect.stringContaining("Field 'Sensor.seriesPoints' conflicts")
+      );
+      expect(console.error).toHaveBeenCalledWith(
+        expect.stringContaining("Series field 'Sensor.resource' conflicts")
       );
     });
 

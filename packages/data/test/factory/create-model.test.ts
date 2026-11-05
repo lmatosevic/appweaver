@@ -57,5 +57,37 @@ describe('create-model', () => {
         expect.objectContaining({ code: ErrorCode.ConfigurationInvalid })
       );
     });
+
+    test.each([
+      [{ retention: 'yearly' }],
+      [{ chunkInterval: '1.5s' }],
+      [{ compressAfter: '0d' }],
+      [{ ingest: 'batch' }]
+    ])('rejects the series options %j', (seriesOptions) => {
+      expect(() =>
+        createModel({
+          name: 'Sensor',
+          series: { errors: { type: 'int' } },
+          seriesOptions: seriesOptions as any
+        })
+      ).toThrow(
+        expect.objectContaining({ code: ErrorCode.ConfigurationInvalid })
+      );
+    });
+
+    test('accepts the series options of whole durations', () => {
+      expect(() =>
+        createModel({
+          name: 'Sensor',
+          series: { errors: { type: 'int' } },
+          seriesOptions: {
+            retention: '400d',
+            chunkInterval: '1d',
+            compressAfter: '12h',
+            ingest: 'queue'
+          }
+        })
+      ).not.toThrow();
+    });
   });
 });

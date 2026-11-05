@@ -45,8 +45,9 @@ export default createModel({
 | `compressAfter` | The age TimescaleDB compresses the points from, default `timeseries.timescale.compressAfter` |
 | `chunkInterval` | The time range of a TimescaleDB chunk, default `timeseries.timescale.chunkInterval`       |
 
-A field cannot be named `time` or `resourceId`, the time and the resource of a point. The durations are a number and a
-unit of `ms`, `s`, `m`, `h`, `d` or `w` (`15m`, `1h`, `7d`).
+A field cannot be named `time` or `resourceId`, the time and the resource of a point, nor `resource` with the
+`database` store (the relation of its Prisma model). The durations are a number and a unit of `ms`, `s`, `m`, `h`, `d`
+or `w` (`15m`, `1h`, `7d`), of whole seconds; `createModel` rejects an invalid option at once, whatever the store.
 
 A point carries the values of any of the fields, and a point written at the time of a stored one merges into it: the
 fields it carries replace the stored ones, the others stay. So a retried write never duplicates a point. The values of
@@ -96,7 +97,8 @@ declared by the application. Create the migration of the table like any other: `
 The buckets are computed in SQL on every database (`date_bin` on PostgreSQL, `TIMESTAMPDIFF` on MySQL, `strftime` on
 SQLite, `DATEADD` on SQL Server), suited to moderate volumes; a high volume belongs in TimescaleDB. The table is left
 out of the Prisma schema when another store holds the points (`memory`, `none`, a module path, or `auto` with the
-module package of another store enabled).
+module package of another store enabled). On PostgreSQL the SQL of the points names the schema of the `schema`
+parameter of `database.url`, like the queries of Prisma, `public` without one.
 
 The points older than the retention of their model (`seriesOptions.retention`, otherwise
 `timeseries.database.retention`) are deleted when the application starts, then every

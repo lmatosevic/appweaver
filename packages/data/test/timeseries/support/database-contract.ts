@@ -6,26 +6,27 @@ import { define } from '@appweaver/core';
 import { resetContext, testTimeSeriesContract } from '@appweaver/testing';
 import { PrismaDatabase } from '../../../database/prisma-database';
 import { DatabaseTimeSeries } from '../../../timeseries/database-time-series';
+import { seriesDialect } from '../../../timeseries/utils/series-sql-util';
 
 const TABLES: Record<string, string> = {
   [DatabaseType.Sqlite]:
-    'CREATE TABLE "ContractSensorSeries" ("resourceId" INTEGER NOT NULL, "time" DATETIME NOT NULL, ' +
+    'CREATE TABLE %table ("resourceId" INTEGER NOT NULL, "time" DATETIME NOT NULL, ' +
     '"temperature" REAL, "count" INTEGER, "online" BOOLEAN, PRIMARY KEY ("resourceId", "time"))',
   [DatabaseType.PostgreSQL]:
-    'CREATE TABLE "ContractSensorSeries" ("resourceId" INTEGER NOT NULL, "time" TIMESTAMP(3) NOT NULL, ' +
+    'CREATE TABLE %table ("resourceId" INTEGER NOT NULL, "time" TIMESTAMP(3) NOT NULL, ' +
     '"temperature" DOUBLE PRECISION, "count" INTEGER, "online" BOOLEAN, PRIMARY KEY ("resourceId", "time"))',
   [DatabaseType.MySQL]:
-    'CREATE TABLE `ContractSensorSeries` (`resourceId` INT NOT NULL, `time` DATETIME(3) NOT NULL, ' +
+    'CREATE TABLE %table (`resourceId` INT NOT NULL, `time` DATETIME(3) NOT NULL, ' +
     '`temperature` DOUBLE NULL, `count` INT NULL, `online` BOOLEAN NULL, PRIMARY KEY (`resourceId`, `time`))',
   [DatabaseType.SQLServer]:
-    'CREATE TABLE [ContractSensorSeries] ([resourceId] INT NOT NULL, [time] DATETIME2(3) NOT NULL, ' +
+    'CREATE TABLE %table ([resourceId] INT NOT NULL, [time] DATETIME2(3) NOT NULL, ' +
     '[temperature] FLOAT NULL, [count] INT NULL, [online] BIT NULL, PRIMARY KEY ([resourceId], [time]))'
 };
 
 /**
  * Runs the contract suite on a database, the series table of the suite created first. The databases other than
  * SQLite run when their URL is set: `TIMESERIES_TEST_POSTGRES_URL`, `TIMESERIES_TEST_MYSQL_URL` and
- * `TIMESERIES_TEST_SQLSERVER_URL`.
+ * `TIMESERIES_TEST_SQLSERVER_URL`, the tables of PostgreSQL in the `schema` of its URL.
  */
 export function testDatabaseContract(
   name: string,
@@ -51,13 +52,23 @@ export function testDatabaseContract(
       resetContext();
       db = new PrismaDatabase();
       define(db, Database);
-      const table =
-        {
-          [DatabaseType.MySQL]: '`ContractSensorSeries`',
-          [DatabaseType.SQLServer]: '[ContractSensorSeries]'
-        }[type as string] ?? '"ContractSensorSeries"';
+      // In the schema of the URL, like the tables of the migrations
+      const schema =
+        type === DatabaseType.PostgreSQL
+          ? new URL(url).searchParams.get('schema')
+          : null;
+      const table = seriesDialect(type, schema ?? undefined).table(
+        'ContractSensorSeries'
+      );
+      if (schema) {
+        await db
+          .client<any>()
+          .$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${schema}"`);
+      }
       await db.client<any>().$executeRawUnsafe(`DROP TABLE IF EXISTS ${table}`);
-      await db.client<any>().$executeRawUnsafe(TABLES[type]);
+      await db
+        .client<any>()
+        .$executeRawUnsafe(TABLES[type].replace('%table', table));
     }, 60_000);
 
     afterAll(async () => {

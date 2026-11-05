@@ -10,11 +10,17 @@ import { contractSeriesModel, resetContext } from '@appweaver/testing';
 import { TimescaleTimeSeries } from '../../timeseries/timescale-time-series';
 import { dir, testDatabaseContract } from './support/database-contract';
 
+const timescaleUrl = process.env.TIMESERIES_TEST_TIMESCALE_URL;
+// The tables of the store are in the schema of the URL
+const schema = timescaleUrl
+  ? (new URL(timescaleUrl).searchParams.get('schema') ?? 'public')
+  : 'public';
+
 // Runs on a TimescaleDB database when its URL is set
 testDatabaseContract(
   'TimescaleTimeSeries',
   DatabaseType.PostgreSQL,
-  process.env.TIMESERIES_TEST_TIMESCALE_URL,
+  timescaleUrl,
   () => new TimescaleTimeSeries(),
   (db) => {
     const jobs = async () =>
@@ -23,7 +29,8 @@ testDatabaseContract(
           .client<any>()
           .$queryRawUnsafe(
             `SELECT proc_name, config FROM timescaledb_information.jobs
-             WHERE hypertable_name = 'ContractSensorSeries' ORDER BY proc_name`
+             WHERE hypertable_schema = '${schema}' AND hypertable_name = 'ContractSensorSeries'
+             ORDER BY proc_name`
           )
       ).map((job: any) => [
         job.proc_name,
@@ -38,7 +45,7 @@ testDatabaseContract(
         .client<any>()
         .$queryRawUnsafe(
           `SELECT hypertable_name FROM timescaledb_information.hypertables
-           WHERE hypertable_name = 'ContractSensorSeries'`
+           WHERE hypertable_schema = '${schema}' AND hypertable_name = 'ContractSensorSeries'`
         );
       expect(tables).toHaveLength(1);
     });
@@ -86,6 +93,7 @@ describe('TimescaleTimeSeries', () => {
 
   afterEach(() => {
     delete configOverrides.DATABASE_TYPE;
+    delete configOverrides.DATABASE_URL;
   });
 
   test('needs a PostgreSQL database', async () => {
@@ -209,6 +217,21 @@ describe('TimescaleTimeSeries', () => {
       );
       expect(queries).toContain(
         `SELECT add_retention_policy('"ContractSensorSeries"', INTERVAL '45 seconds')`
+      );
+    });
+
+    test('sets up the tables of the schema of the connection', async () => {
+      configOverrides.DATABASE_URL = 'postgresql://localhost/shop?schema=sales';
+      await register({ compressAfter: '1d' });
+
+      expect(queries[1]).toContain(
+        `create_hypertable('"sales"."ContractSensorSeries"'`
+      );
+      expect(queries).toContain(
+        `SELECT add_compression_policy('"sales"."ContractSensorSeries"', INTERVAL '1 days')`
+      );
+      expect(queries.find((sql) => sql.startsWith('ALTER TABLE'))).toContain(
+        'ALTER TABLE "sales"."ContractSensorSeries" SET'
       );
     });
 
