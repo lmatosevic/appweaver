@@ -1,4 +1,3 @@
-import fs from 'node:fs';
 import path from 'node:path';
 import {
   flattenTranslations,
@@ -24,6 +23,7 @@ import { ProjectFiles } from './project-files';
 import {
   collectTemplateFiles,
   readTemplateFile,
+  readTemplateSource,
   TemplateFile,
   templatesDir
 } from './template-files';
@@ -256,7 +256,7 @@ const integrations: ModuleIntegration[] = [
     enable: (scaffold) => {
       const translations = loadSourceTranslations();
       for (const file of collectScaffoldedTemplates(scaffold)) {
-        const source = fs.readFileSync(file.source, 'utf8');
+        const source = readTemplateSource(file.source).toString('utf8');
         if (
           scaffold.files.read(file.path) ===
           inlineTemplate(file.path, source, translations)
@@ -683,7 +683,9 @@ function removeSourceTranslations(
 /** The English translations of the scaffolded templates, which the mailer and the SMS add to the translation file. */
 function readSourceTranslations(): Record<string, any> {
   return JSON.parse(
-    fs.readFileSync(path.join(templatesDir, 'translations', 'en.json'), 'utf8')
+    readTemplateSource(
+      path.join(templatesDir, 'translations', 'en.json')
+    ).toString('utf8')
   );
 }
 

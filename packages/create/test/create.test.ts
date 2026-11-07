@@ -5,11 +5,14 @@ import { defaultTranslations } from '../../core/locale/default-translations';
 import { cliConventionViolations } from '@appweaver/testing';
 
 // The CLI is loaded again for every run, while its dependencies are loaded
-// once, as evaluating them again takes most of the time of a run
+// once, as evaluating them again takes most of the time of a run. So is the
+// template module, whose cache then serves the templates to every run
 const mockYaml = jest.requireActual('yaml');
 const mockCommander = jest.requireActual('commander');
+const mockTemplateFiles = jest.requireActual('../scaffold/template-files');
 jest.mock('yaml', () => mockYaml);
 jest.mock('commander', () => mockCommander);
+jest.mock('../scaffold/template-files', () => mockTemplateFiles);
 
 const packageRoot = path.join(__dirname, '..');
 const skillDir = path.join(packageRoot, 'skill');
@@ -37,6 +40,8 @@ describe('scaffoldDependencies', () => {
 
 describe('create', () => {
   let tempDir: string;
+  /** The directory the projects are read from, the temporary one of the test unless shared by several. */
+  let root: string;
   let originalCwd: string;
   let originalArgv: string[];
   let createdSkillDir = false;
@@ -45,6 +50,7 @@ describe('create', () => {
     originalCwd = process.cwd();
     originalArgv = process.argv;
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'appweaver-create-'));
+    root = tempDir;
     process.chdir(tempDir);
     jest.resetModules();
   });
@@ -102,13 +108,13 @@ describe('create', () => {
     });
 
   const readJson = (...segments: string[]) =>
-    JSON.parse(fs.readFileSync(path.join(tempDir, ...segments), 'utf8'));
+    JSON.parse(fs.readFileSync(path.join(root, ...segments), 'utf8'));
 
   const read = (...segments: string[]) =>
-    fs.readFileSync(path.join(tempDir, ...segments), 'utf8');
+    fs.readFileSync(path.join(root, ...segments), 'utf8');
 
   const exists = (...segments: string[]) =>
-    fs.existsSync(path.join(tempDir, ...segments));
+    fs.existsSync(path.join(root, ...segments));
 
   describe('project directory', () => {
     test('creates a directory from the sanitized project name', async () => {
@@ -155,15 +161,36 @@ describe('create', () => {
   });
 
   describe('template processing', () => {
-    beforeEach(async () => {
-      await run(
-        'MyApp',
-        'My description',
-        '--no-install',
-        '--agent',
-        'none',
-        '--all'
-      );
+    // Only read by the tests, so it is created once for all of them
+    let projectDir: string;
+
+    beforeAll(async () => {
+      projectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'appweaver-create-'));
+      const cwd = process.cwd();
+      const argv = process.argv;
+      process.chdir(projectDir);
+      try {
+        await run(
+          'MyApp',
+          'My description',
+          '--no-install',
+          '--agent',
+          'none',
+          '--all'
+        );
+      } finally {
+        process.chdir(cwd);
+        process.argv = argv;
+        jest.restoreAllMocks();
+      }
+    });
+
+    afterAll(() => {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    });
+
+    beforeEach(() => {
+      root = projectDir;
     });
 
     test('replaces the template variables', () => {
@@ -213,7 +240,7 @@ describe('create', () => {
 
     test('removes every template file', () => {
       const remaining = fs
-        .readdirSync(path.join(tempDir, 'my-app'), { recursive: true })
+        .readdirSync(path.join(root, 'my-app'), { recursive: true })
         .map(String)
         .filter((file) => /\.(tpl|node|bun)$/.test(file));
 
