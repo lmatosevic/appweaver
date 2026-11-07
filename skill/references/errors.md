@@ -181,6 +181,7 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `ACCOUNT_EMAIL_NOT_VERIFIED`         | 403    | Email not verified                    |
 | `ACCOUNT_PHONE_NOT_VERIFIED`         | 403    | Phone number not verified             |
 | `ACCOUNT_PHONE_ALREADY_VERIFIED`     | 409    | Phone number already verified         |
+| `ACCOUNT_PHONE_NOT_SET`              | 400    | Phone number not set                  |
 | `ACCOUNT_2FA_METHOD_UNAVAILABLE`     | 400    | 2FA method unavailable                |
 | `ACCOUNT_2FA_METHOD_NOT_ENABLED`     | 400    | 2FA method not enabled                |
 | `ACCOUNT_2FA_METHOD_ALREADY_ENABLED` | 409    | 2FA method already enabled            |

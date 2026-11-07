@@ -464,7 +464,7 @@ await client.auth.logout();
 | `verifyEmailRedirect(token, options?)` | `GET /auth/account/verify-email-redirect` | Handle redirect-based verification |
 | `sendResetPassword(request, options?)` | `POST /auth/account/send-reset-password`  | Send password reset email          |
 | `resetPassword(request, options?)`     | `POST /auth/account/reset-password`       | Reset password with token          |
-| `sendVerifyPhone(request, options?)`   | `POST /auth/account/send-verify-phone`    | Send a phone verification code     |
+| `sendVerifyPhone(request?, options?)`  | `POST /auth/account/send-verify-phone`    | Send a phone verification code     |
 | `verifyPhone(request, options?)`       | `POST /auth/account/verify-phone`         | Verify the phone with the code     |
 
 ```ts

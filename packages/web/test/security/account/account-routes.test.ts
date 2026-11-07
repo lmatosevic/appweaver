@@ -11,6 +11,7 @@ import { Server } from '../../../types/server';
 describe('account-routes', () => {
   let server: Server;
   let actions: Record<string, unknown>[];
+  let sendPhoneVerification: jest.Mock;
 
   /** Creates the server of the account routes, with the services sending their messages unless left out. */
   const createServer = async (
@@ -30,13 +31,14 @@ describe('account-routes', () => {
         define({} as any, service as any, 'override');
       }
     }
+    sendPhoneVerification = jest
+      .fn()
+      .mockResolvedValue({ challengeId: 'challenge', expiresIn: 600000 });
     define(
       {
         sendResetPassword: jest.fn().mockResolvedValue('Sent'),
         resetPassword: jest.fn().mockResolvedValue('Reset'),
-        sendPhoneVerification: jest
-          .fn()
-          .mockResolvedValue({ challengeId: 'challenge', expiresIn: 600000 }),
+        sendPhoneVerification,
         verifyPhone: jest.fn().mockResolvedValue('Phone number verified')
       } as any,
       AccountService,
@@ -113,6 +115,17 @@ describe('account-routes', () => {
         challengeId: 'challenge',
         expiresIn: 600000
       });
+    });
+
+    test('sends a phone verification code without a phone number', async () => {
+      const response = await server.inject({
+        method: 'POST',
+        url: '/send-verify-phone',
+        payload: {}
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(sendPhoneVerification).toHaveBeenCalledWith({ id: 1 }, undefined);
     });
 
     test('rejects a phone number outside the E.164 format', async () => {

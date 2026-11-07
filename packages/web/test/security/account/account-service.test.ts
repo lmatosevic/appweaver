@@ -509,6 +509,26 @@ describe('account-service', () => {
       expect(sendSms.mock.calls[0][0].to).toBe('+385912222222');
     });
 
+    test('sends the code to the stored phone number of the user', async () => {
+      await service.sendPhoneVerification(
+        authUser({ phoneNumber: '+385911111111', verifiedPhone: false })
+      );
+
+      expect(sendSms.mock.calls[0][0].to).toBe('+385911111111');
+      expect(securityStore.generateOneTimeToken).toHaveBeenCalledWith(
+        AuthOTTPurpose.PhoneVerification,
+        expect.objectContaining({ phoneNumber: '+385911111111' }),
+        accountConfig.VERIFY_PHONE_OTT_TTL
+      );
+    });
+
+    test('rejects a user without a phone number to verify', async () => {
+      await expect(
+        service.sendPhoneVerification(authUser({ phoneNumber: null }))
+      ).rejects.toMatchObject({ code: ErrorCode.AccountPhoneNotSet });
+      expect(sendSms).not.toHaveBeenCalled();
+    });
+
     test('rejects the verified phone number of the user', async () => {
       await expect(
         service.sendPhoneVerification(

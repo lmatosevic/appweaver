@@ -75,7 +75,7 @@ export function createAuthModel<
       type: 'boolean',
       default: false
     },
-    // Set by the phone verification only, in the E.164 format
+    // Set by the phone verification or the app code, never by the resource routes, in the E.164 format
     phoneNumber: {
       type: 'string',
       required: false,

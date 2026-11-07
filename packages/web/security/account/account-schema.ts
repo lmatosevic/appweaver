@@ -74,11 +74,14 @@ export const AccountResetPasswordRequest = Type.Object(
 
 export const AccountSendPhoneVerificationRequest = Type.Object(
   {
-    phoneNumber: Type.String({
-      pattern: '^\\+[1-9]\\d{6,14}$',
-      description: 'The phone number to verify, in the E.164 format',
-      example: '+385911234567'
-    })
+    phoneNumber: Type.Optional(
+      Type.String({
+        pattern: '^\\+[1-9]\\d{6,14}$',
+        description:
+          'The phone number to verify, in the E.164 format. Defaults to the phone number of the user',
+        example: '+385911234567'
+      })
+    )
   },
   { $id: 'AccountSendPhoneVerificationRequest' }
 );
@@ -230,6 +233,7 @@ export const sendPhoneVerificationSchema = {
       ...authErrorCodes([AuthType.Jwt]),
       ErrorCode.AccountFeatureUnavailable,
       ErrorCode.AccountPhoneAlreadyVerified,
+      ErrorCode.AccountPhoneNotSet,
       ErrorCode.SmsSendFailed,
       ErrorCode.MemoryUnavailable
     )

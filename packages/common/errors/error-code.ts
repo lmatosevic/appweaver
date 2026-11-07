@@ -81,6 +81,7 @@ export enum ErrorCode {
   AccountEmailNotVerified = 'ACCOUNT_EMAIL_NOT_VERIFIED',
   AccountPhoneNotVerified = 'ACCOUNT_PHONE_NOT_VERIFIED',
   AccountPhoneAlreadyVerified = 'ACCOUNT_PHONE_ALREADY_VERIFIED',
+  AccountPhoneNotSet = 'ACCOUNT_PHONE_NOT_SET',
   Account2FAMethodUnavailable = 'ACCOUNT_2FA_METHOD_UNAVAILABLE',
   Account2FAMethodNotEnabled = 'ACCOUNT_2FA_METHOD_NOT_ENABLED',
   Account2FAMethodAlreadyEnabled = 'ACCOUNT_2FA_METHOD_ALREADY_ENABLED',

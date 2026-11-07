@@ -182,6 +182,10 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     status: 409,
     title: 'Phone number already verified'
   },
+  [ErrorCode.AccountPhoneNotSet]: {
+    status: 400,
+    title: 'Phone number not set'
+  },
   [ErrorCode.Account2FAMethodUnavailable]: {
     status: 400,
     title: '2FA method unavailable'

@@ -113,6 +113,14 @@ describe('account-client', () => {
         phoneNumber: '+385911234567'
       });
     });
+
+    test('posts an empty body for the phone number of the user', async () => {
+      const { stub, account } = createAccount({ challengeId: 'challenge' });
+
+      await account.sendVerifyPhone();
+
+      expect(stub.lastCall().params.body).toEqual({});
+    });
   });
 
   describe('verifyPhone', () => {

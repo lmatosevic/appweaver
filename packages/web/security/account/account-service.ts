@@ -325,20 +325,21 @@ export class AccountService {
 
   /**
    * Sends a code to a phone number by SMS, which {@link verifyPhone} checks to set it as the verified phone number of
-   * the user.
+   * the user. A new number is verified before it replaces the current one.
    *
    * @param {AuthUser} authUser - The user verifying the phone number.
-   * @param {string} phoneNumber - The phone number in the E.164 format, i.e. `+385911234567`.
+   * @param {string} [phoneNumber] - The phone number in the E.164 format, i.e. `+385911234567`. Defaults to the phone
+   * number of the user.
    * @param {string} [locale] - The locale of the message, the `sms.verifyPhone` translation. Defaults to the
    * `LOCALE_DEFAULT` config.
    * @return {Promise<{ challengeId: string; expiresIn: number }>} The id of the challenge and its expiration time.
-   * @throws {AccountError} `ACCOUNT_FEATURE_UNAVAILABLE` without an SMS sender, `ACCOUNT_PHONE_ALREADY_VERIFIED` for
-   * the verified number of the user.
+   * @throws {AccountError} `ACCOUNT_FEATURE_UNAVAILABLE` without an SMS sender, `ACCOUNT_PHONE_NOT_SET` without a
+   * number given or stored, `ACCOUNT_PHONE_ALREADY_VERIFIED` for the verified number of the user.
    * @throws {SmsError} `SMS_SEND_FAILED` if the provider rejects the message, i.e. for an invalid number.
    */
   public async sendPhoneVerification(
     authUser: AuthUser,
-    phoneNumber: string,
+    phoneNumber: string | undefined = authUser.phoneNumber ?? undefined,
     locale?: string
   ): Promise<{ challengeId: string; expiresIn: number }> {
     if (!this._smsService) {
@@ -346,6 +347,13 @@ export class AccountService {
         ErrorCode.AccountFeatureUnavailable,
         'Phone verification is not supported',
         { feature: 'phone-verification' }
+      );
+    }
+
+    if (!phoneNumber) {
+      throw new AccountError(
+        ErrorCode.AccountPhoneNotSet,
+        'No phone number to verify'
       );
     }
 

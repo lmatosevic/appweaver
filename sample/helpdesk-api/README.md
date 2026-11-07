@@ -67,6 +67,10 @@ SMS_SENDER=+1...                # a number of the Twilio account
 ADMIN_PHONE_NUMBER=+385...      # E.164 format
 ```
 
+A Twilio trial account is enough to try it: buy a US number with the SMS capability (paid from the trial credit) as
+`SMS_SENDER`, enable the country of `ADMIN_PHONE_NUMBER` in Messaging → Settings → Geo permissions, and text only the
+verified numbers (Phone Numbers → Verified Caller IDs).
+
 The sign-in of the admin then answers with tokens of the `2fa` scope, exchanged for the full ones with the code:
 
 ```bash

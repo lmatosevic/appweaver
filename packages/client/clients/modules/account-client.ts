@@ -115,12 +115,12 @@ export class AccountClient<Account extends AccountType>
   /**
    * Sends a verification code by SMS to a phone number of the signed-in user.
    *
-   * @param {Object} request - The phone number in the E.164 format.
+   * @param {Object} request - The phone number in the E.164 format, by default the one of the user.
    * @param {RequestOptions} options - Additional request options.
    * @return The id of the challenge and its expiration time.
    */
   public async sendVerifyPhone(
-    request: Account['sendPhoneVerificationRequest'],
+    request: Account['sendPhoneVerificationRequest'] = {},
     options: RequestOptions = {}
   ): Promise<Account['challengeResponse']> {
     return this.sendRequest('post', `${this.basePath}/send-verify-phone`, {
