@@ -247,7 +247,7 @@ export function isOAuth2Enabled(): boolean {
 export function isTwoFactorEnabled(): boolean {
   // Read by the flattened key, since the 2FA config belongs to the web module
   return (
-    config.bool('SECURITY_ACCOUNT_2FA_ENABLED', true) ||
+    config.bool('SECURITY_ACCOUNT_2FA_ENABLED', false) ||
     twoFactorModelConfig.KEEP_DATABASE_TABLE
   );
 }

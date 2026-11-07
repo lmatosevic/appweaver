@@ -5,7 +5,7 @@ application. Its driver `TwilioSms` (provider `twilio`) of `@appweaver/twilio` c
 selected when the package is installed. The `JsonSms` of core (provider `json`, selected by name only) writes the
 messages into the log at `debug` (the `sms` logger) instead of sending them, for development and tests. Without a
 driver, or with `SMS_PROVIDER=none`, no `SmsSender` and no `SmsService` are defined, the SMS 2FA method is unavailable,
-and the phone verification responds with `501`.
+and the phone verification routes are not registered.
 
 ## SmsService
 

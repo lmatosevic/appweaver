@@ -402,23 +402,6 @@ export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
   _max?: Prisma.NestedJsonFilter<$PrismaModel>
 }
 
-export type EnumTwoFactorMethodTypeFilter<$PrismaModel = never> = {
-  equals?: $Enums.TwoFactorMethodType | Prisma.EnumTwoFactorMethodTypeFieldRefInput<$PrismaModel>
-  in?: $Enums.TwoFactorMethodType[]
-  notIn?: $Enums.TwoFactorMethodType[]
-  not?: Prisma.NestedEnumTwoFactorMethodTypeFilter<$PrismaModel> | $Enums.TwoFactorMethodType
-}
-
-export type EnumTwoFactorMethodTypeWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.TwoFactorMethodType | Prisma.EnumTwoFactorMethodTypeFieldRefInput<$PrismaModel>
-  in?: $Enums.TwoFactorMethodType[]
-  notIn?: $Enums.TwoFactorMethodType[]
-  not?: Prisma.NestedEnumTwoFactorMethodTypeWithAggregatesFilter<$PrismaModel> | $Enums.TwoFactorMethodType
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumTwoFactorMethodTypeFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumTwoFactorMethodTypeFilter<$PrismaModel>
-}
-
 export type NestedIntFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[]
@@ -756,23 +739,6 @@ export type NestedJsonFilterBase<$PrismaModel = never> = {
   array_starts_with?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
   array_ends_with?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
   not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
-}
-
-export type NestedEnumTwoFactorMethodTypeFilter<$PrismaModel = never> = {
-  equals?: $Enums.TwoFactorMethodType | Prisma.EnumTwoFactorMethodTypeFieldRefInput<$PrismaModel>
-  in?: $Enums.TwoFactorMethodType[]
-  notIn?: $Enums.TwoFactorMethodType[]
-  not?: Prisma.NestedEnumTwoFactorMethodTypeFilter<$PrismaModel> | $Enums.TwoFactorMethodType
-}
-
-export type NestedEnumTwoFactorMethodTypeWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.TwoFactorMethodType | Prisma.EnumTwoFactorMethodTypeFieldRefInput<$PrismaModel>
-  in?: $Enums.TwoFactorMethodType[]
-  notIn?: $Enums.TwoFactorMethodType[]
-  not?: Prisma.NestedEnumTwoFactorMethodTypeWithAggregatesFilter<$PrismaModel> | $Enums.TwoFactorMethodType
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumTwoFactorMethodTypeFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumTwoFactorMethodTypeFilter<$PrismaModel>
 }
 
 

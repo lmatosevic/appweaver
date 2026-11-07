@@ -12,7 +12,7 @@ import {
 } from './security-config';
 import { apiKeyConfig } from '@appweaver/data';
 import { Server } from '../types/server';
-import { authRoutes } from './auth-routes';
+import { authRoutes, registerExchangeTokenRoute } from './auth-routes';
 import { accountRoutes } from './account';
 import { twoFactorRoutes } from './two-factor';
 import { recaptcha } from './recaptcha';
@@ -72,6 +72,7 @@ export default fastifyPlugin((server: Server) => {
   });
 
   if (twoFactorConfig.ENABLED) {
+    registerExchangeTokenRoute(server);
     server.register(twoFactorRoutes, {
       prefix: `${accountConfig.ROUTE_PREFIX.replace(/\/$/, '')}/2fa`
     });

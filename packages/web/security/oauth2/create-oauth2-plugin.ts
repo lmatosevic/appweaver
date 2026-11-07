@@ -16,6 +16,7 @@ import {
 import { oauth2Config, securityConfig } from '../security-config';
 import { inject } from '@appweaver/core';
 import { AuthService } from '../auth-service';
+import { registerExchangeTokenRoute } from '../auth-routes';
 import { OAuth2Service } from './oauth2-service';
 import { validateRedirectUrl } from '../access-util';
 import { UserInfo } from '@appweaver/data';
@@ -138,6 +139,9 @@ export function createOAuth2Plugin(
 
     const prefix = securityConfig.ROUTE_PREFIX.replace(/\/$/, '');
     const callbackPath = `${prefix}/login/${lowerName}/callback`;
+
+    // The sign-in redirects with a one-time token, exchanged for the tokens
+    registerExchangeTokenRoute(server);
 
     // With `response_mode=form_post` the authorization response arrives in the request body, while
     // @fastify/oauth2 always reads the `code` and `state` from the query string.

@@ -139,7 +139,7 @@
           "ottTtl": 600000
         },
         "2fa": {
-          "enabled": true,
+          "enabled": false,
           "forced": false,
           "ottTtl": 300000,
           "methods": ["email", "sms", "totp"],

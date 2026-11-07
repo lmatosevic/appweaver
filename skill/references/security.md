@@ -104,6 +104,10 @@ On every authenticated request, the server:
 | `POST` | `/auth/change-password` | Any                 | Change password. Requires current password + new password. Invalidates all tokens. Rate limited: 12/window. |
 | `POST` | `/auth/exchange-token`  | Public              | Exchange a one-time token (OTT) for JWT access + refresh tokens. Rate limited: 12/window.                   |
 
+`/auth/exchange-token` exchanges the one-time tokens of the OAuth2 sign-in and of the 2FA verification, so it is
+registered only with an enabled OAuth2 provider or 2FA, by `registerExchangeTokenRoute` of `@appweaver/web` (once,
+whichever registers it first).
+
 A failed login responds with the same `400` "Invalid user credentials" error whether the user does not exist, is
 disabled, or gave a wrong password, so the response does not reveal which accounts exist. HTTP Basic authentication
 answers the same failures with its `401` challenge instead.
@@ -592,7 +596,8 @@ linked to the auth model and deleted with it, and managed by the 2FA routes only
 }
 ```
 
-- `enabled` - Allow users to enable 2FA methods
+- `enabled` - Enable 2FA, off by default: its routes, the `/auth/exchange-token` route and the `TwoFactorMethod` and
+  `TwoFactorRecoveryCode` models exist only with it
 - `forced` - Require 2FA of every user, a user without a method of their own verifying with the `defaultMethod`
 - `methods` - The methods users may enable, offered only with their service (see the table above)
 - `maxAttempts` - Wrong codes of a challenge, revoked on the last one (`ACCOUNT_2FA_TOO_MANY_ATTEMPTS`)
@@ -693,7 +698,8 @@ verification only):
 ```
 
 The number is in the E.164 format. Verifying another number than the current one removes the `Sms` method of the user,
-enabled again for the new number. Without an SMS sender the routes respond with `ACCOUNT_FEATURE_UNAVAILABLE`.
+enabled again for the new number. The routes are registered only with an SMS sender, and `AccountService` answers
+`ACCOUNT_FEATURE_UNAVAILABLE` without one.
 `AccountService.sendPhoneVerification` and `AccountService.verifyPhone` do the same in code.
 
 ### 2FA routes
@@ -711,6 +717,10 @@ enabled again for the new number. Without an SMS sender the routes respond with 
 | `POST`   | `/auth/account/2fa/recovery-codes`  | JWT (auth scope) | 12/window  | Generate the recovery codes, with the password.    |
 | `POST`   | `/auth/account/send-verify-phone`   | JWT (auth scope) | 5/15min    | Send a phone verification code by SMS.             |
 | `POST`   | `/auth/account/verify-phone`        | JWT (auth scope) | 12/window  | Verify the phone number.                           |
+
+The 2FA routes are registered only with `security.account.2fa.enabled`, the TOTP setup only with the `Totp` method
+available (its `encryptionKey` set), and the recovery codes only with `recoveryCodes.enabled`. The phone verification
+routes need an SMS sender, whether 2FA is enabled or not.
 
 ---
 
@@ -805,6 +815,9 @@ or unreachable API with `TURNSTILE_UNAVAILABLE`. The password reset routes also 
 ---
 
 ## Account management
+
+The email verification and password reset routes are registered only with a mailer (`@appweaver/nodemailer`, or the
+`json` one) and their `enabled` config, so an application without one offers neither in its API.
 
 ### Email verification
 

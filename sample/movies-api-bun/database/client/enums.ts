@@ -47,12 +47,3 @@ export const WatchlistEntryStatus = {
 } as const
 
 export type WatchlistEntryStatus = (typeof WatchlistEntryStatus)[keyof typeof WatchlistEntryStatus]
-
-
-export const TwoFactorMethodType = {
-  Email: 'Email',
-  Sms: 'Sms',
-  Totp: 'Totp'
-} as const
-
-export type TwoFactorMethodType = (typeof TwoFactorMethodType)[keyof typeof TwoFactorMethodType]

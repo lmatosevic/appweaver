@@ -172,36 +172,6 @@ CREATE TABLE [dbo].[OneTimeToken] (
 );
 
 -- CreateTable
-CREATE TABLE [dbo].[TwoFactorMethod] (
-    [id] INT NOT NULL IDENTITY(1,1),
-    [type] NVARCHAR(5) NOT NULL,
-    [priority] INT NOT NULL CONSTRAINT [TwoFactorMethod_priority_df] DEFAULT 0,
-    [secret] NVARCHAR(1000),
-    [confirmedAt] DATETIME2,
-    [lastUsedStep] INT,
-    [employeeId] UNIQUEIDENTIFIER NOT NULL,
-    [updatedAt] DATETIME2 NOT NULL,
-    [createdAt] DATETIME2 NOT NULL CONSTRAINT [TwoFactorMethod_createdAt_df] DEFAULT CURRENT_TIMESTAMP,
-    [deletedAt] DATETIME2,
-    [deletedById] UNIQUEIDENTIFIER,
-    CONSTRAINT [TwoFactorMethod_pkey] PRIMARY KEY CLUSTERED ([id]),
-    CONSTRAINT [TwoFactorMethod_employeeId_type_key] UNIQUE NONCLUSTERED ([employeeId],[type])
-);
-
--- CreateTable
-CREATE TABLE [dbo].[TwoFactorRecoveryCode] (
-    [id] INT NOT NULL IDENTITY(1,1),
-    [codeHash] NVARCHAR(64) NOT NULL,
-    [usedAt] DATETIME2,
-    [employeeId] UNIQUEIDENTIFIER NOT NULL,
-    [createdAt] DATETIME2 NOT NULL CONSTRAINT [TwoFactorRecoveryCode_createdAt_df] DEFAULT CURRENT_TIMESTAMP,
-    [deletedAt] DATETIME2,
-    [deletedById] UNIQUEIDENTIFIER,
-    CONSTRAINT [TwoFactorRecoveryCode_pkey] PRIMARY KEY CLUSTERED ([id]),
-    CONSTRAINT [TwoFactorRecoveryCode_codeHash_key] UNIQUE NONCLUSTERED ([codeHash])
-);
-
--- CreateTable
 CREATE TABLE [dbo].[Role] (
     [id] INT NOT NULL IDENTITY(1,1),
     [name] NVARCHAR(255) NOT NULL,
@@ -362,15 +332,6 @@ CREATE NONCLUSTERED INDEX [Position_createdById_idx] ON [dbo].[Position]([create
 CREATE NONCLUSTERED INDEX [OneTimeToken_expiresAt_idx] ON [dbo].[OneTimeToken]([expiresAt]);
 
 -- CreateIndex
-CREATE NONCLUSTERED INDEX [TwoFactorMethod_deletedById_idx] ON [dbo].[TwoFactorMethod]([deletedById]);
-
--- CreateIndex
-CREATE NONCLUSTERED INDEX [TwoFactorRecoveryCode_employeeId_idx] ON [dbo].[TwoFactorRecoveryCode]([employeeId]);
-
--- CreateIndex
-CREATE NONCLUSTERED INDEX [TwoFactorRecoveryCode_deletedById_idx] ON [dbo].[TwoFactorRecoveryCode]([deletedById]);
-
--- CreateIndex
 CREATE NONCLUSTERED INDEX [Role_createdById_idx] ON [dbo].[Role]([createdById]);
 
 -- CreateIndex
@@ -477,18 +438,6 @@ ALTER TABLE [dbo].[Position] ADD CONSTRAINT [Position_departmentId_fkey] FOREIGN
 
 -- AddForeignKey
 ALTER TABLE [dbo].[Position] ADD CONSTRAINT [Position_createdById_fkey] FOREIGN KEY ([createdById]) REFERENCES [dbo].[Employee]([id]) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
--- AddForeignKey
-ALTER TABLE [dbo].[TwoFactorMethod] ADD CONSTRAINT [TwoFactorMethod_employeeId_fkey] FOREIGN KEY ([employeeId]) REFERENCES [dbo].[Employee]([id]) ON DELETE CASCADE ON UPDATE NO ACTION;
-
--- AddForeignKey
-ALTER TABLE [dbo].[TwoFactorMethod] ADD CONSTRAINT [TwoFactorMethod_deletedById_fkey] FOREIGN KEY ([deletedById]) REFERENCES [dbo].[Employee]([id]) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
--- AddForeignKey
-ALTER TABLE [dbo].[TwoFactorRecoveryCode] ADD CONSTRAINT [TwoFactorRecoveryCode_employeeId_fkey] FOREIGN KEY ([employeeId]) REFERENCES [dbo].[Employee]([id]) ON DELETE CASCADE ON UPDATE NO ACTION;
-
--- AddForeignKey
-ALTER TABLE [dbo].[TwoFactorRecoveryCode] ADD CONSTRAINT [TwoFactorRecoveryCode_deletedById_fkey] FOREIGN KEY ([deletedById]) REFERENCES [dbo].[Employee]([id]) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE [dbo].[Role] ADD CONSTRAINT [Role_createdById_fkey] FOREIGN KEY ([createdById]) REFERENCES [dbo].[Employee]([id]) ON DELETE NO ACTION ON UPDATE NO ACTION;

@@ -285,14 +285,14 @@ describe('helper', () => {
       delete configOverrides.SECURITY_ACCOUNT_2FA_KEEP_DATABASE_TABLE;
     });
 
-    test('reports enabled by default', () => {
-      expect(isTwoFactorEnabled()).toBe(true);
+    test('reports disabled by default', () => {
+      expect(isTwoFactorEnabled()).toBe(false);
     });
 
-    test('reports disabled when 2FA is turned off', () => {
-      configOverrides.SECURITY_ACCOUNT_2FA_ENABLED = false;
+    test('reports enabled when 2FA is turned on', () => {
+      configOverrides.SECURITY_ACCOUNT_2FA_ENABLED = true;
 
-      expect(isTwoFactorEnabled()).toBe(false);
+      expect(isTwoFactorEnabled()).toBe(true);
     });
 
     test('reports enabled when the database table is kept', () => {

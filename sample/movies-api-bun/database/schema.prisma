@@ -162,11 +162,9 @@ model User {
   logoutAt      DateTime?
 
   /// Related columns
-  reviews                Review[]                @relation("ReviewAuthorUser")
-  watchlist              WatchlistEntry[]        @relation("UserWatchlistWatchlistEntry")
-  roles                  Role[]                  @relation("UserRolesRole")
-  twoFactorMethods       TwoFactorMethod[]       @relation("UserTwoFactorMethodsTwoFactorMethod")
-  twoFactorRecoveryCodes TwoFactorRecoveryCode[] @relation("UserTwoFactorRecoveryCodesTwoFactorRecoveryCode")
+  reviews   Review[]         @relation("ReviewAuthorUser")
+  watchlist WatchlistEntry[] @relation("UserWatchlistWatchlistEntry")
+  roles     Role[]           @relation("UserRolesRole")
 
   /// File columns
   avatar   File? @relation("UserAvatarFile", fields: [avatarId], references: [id])
@@ -230,40 +228,6 @@ model OneTimeToken {
   createdAt DateTime @default(now())
 
   @@index([expiresAt])
-}
-
-model TwoFactorMethod {
-  id           Int                 @id @default(autoincrement())
-  type         TwoFactorMethodType
-  priority     Int                 @default(0)
-  secret       String?
-  confirmedAt  DateTime?
-  lastUsedStep Int?
-
-  /// Related columns
-  user   User @relation("UserTwoFactorMethodsTwoFactorMethod", fields: [userId], references: [id], onDelete: Cascade)
-  userId Int
-
-  /// Audit columns
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-
-  @@unique([userId, type])
-}
-
-model TwoFactorRecoveryCode {
-  id       Int       @id @default(autoincrement())
-  codeHash String    @unique
-  usedAt   DateTime?
-
-  /// Related columns
-  user   User @relation("UserTwoFactorRecoveryCodesTwoFactorRecoveryCode", fields: [userId], references: [id], onDelete: Cascade)
-  userId Int
-
-  /// Audit columns
-  createdAt DateTime @default(now())
-
-  @@index([userId])
 }
 
 model Role {
@@ -369,10 +333,4 @@ enum WatchlistEntryStatus {
   Planned
   Watching
   Watched
-}
-
-enum TwoFactorMethodType {
-  Email
-  Sms
-  Totp
 }

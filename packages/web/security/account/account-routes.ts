@@ -10,11 +10,12 @@ import {
   verifyPhoneSchema
 } from './account-schema';
 import { AccountService, VerificationType } from './account-service';
-import { inject } from '@appweaver/core';
+import { EmailService, inject, SmsService } from '@appweaver/core';
 import { Server } from '../../types/server';
 
 /**
- * Registers the account routes: email and phone verification, and password reset.
+ * Registers the account routes: email and phone verification, and password reset, each with its config enabled and
+ * the service sending its messages, a mailer for the email ones and an SMS sender for the phone ones.
  *
  * @param {Server} server - The server to register the routes on.
  */
@@ -26,7 +27,11 @@ export function accountRoutes(server: Server): void {
 
   const accountService = inject(AccountService);
 
-  if (accountConfig.VERIFY_EMAIL_ENABLED) {
+  // Without the service sending their messages the routes could only answer 501
+  const emailService = inject(EmailService, false);
+  const smsService = inject(SmsService, false);
+
+  if (accountConfig.VERIFY_EMAIL_ENABLED && emailService) {
     server.post(
       '/send-verify-email',
       {
@@ -93,7 +98,7 @@ export function accountRoutes(server: Server): void {
     );
   }
 
-  if (accountConfig.RESET_PASSWORD_ENABLED) {
+  if (accountConfig.RESET_PASSWORD_ENABLED && emailService) {
     server.post(
       '/send-reset-password',
       {
@@ -143,7 +148,7 @@ export function accountRoutes(server: Server): void {
     );
   }
 
-  if (accountConfig.VERIFY_PHONE_ENABLED) {
+  if (accountConfig.VERIFY_PHONE_ENABLED && smsService) {
     server.post(
       '/send-verify-phone',
       {

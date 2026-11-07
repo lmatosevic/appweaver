@@ -1,7 +1,7 @@
 import { AsyncResource } from 'node:async_hooks';
 import Fastify from 'fastify';
 import { fastifyRequestContext } from '@fastify/request-context';
-import { AuthSource } from '@appweaver/common';
+import { AuthSource, configOverrides } from '@appweaver/common';
 import { define, runInAuthContext, setAuthContext } from '@appweaver/core';
 import { errorHandler } from '../../../errors/error-handler';
 import { twoFactorRoutes } from '../../../security/two-factor';
@@ -47,27 +47,58 @@ describe('two-factor-routes', () => {
     };
     define(service as any, TwoFactorService, 'override');
 
-    server = Fastify({ logger: false, ...requestValidation() });
-    server.setErrorHandler(errorHandler);
-    server.register(fastifyRequestContext, {
+    server = await createServer();
+  });
+
+  afterEach(async () => {
+    await server.close();
+    delete configOverrides.SECURITY_ACCOUNT_2FA_RECOVERY_CODES_ENABLED;
+  });
+
+  const createServer = async (): Promise<Server> => {
+    const created = Fastify({
+      logger: false,
+      ...requestValidation()
+    }) as unknown as Server;
+    created.setErrorHandler(errorHandler);
+    created.register(fastifyRequestContext, {
       createAsyncResource: () =>
         runInAuthContext(() => new AsyncResource('appweaver-request'))
     });
     // Signs the user in with OAuth2, so the challenge keeps the source
-    server.decorate('authenticate', () => async () => {
+    created.decorate('authenticate', () => async () => {
       setAuthContext({
         authUser: user,
         authSource: AuthSource.OAuth2Google
       });
     });
-    server.decorate('currentUser', () => user as any);
-    server.register(schemas);
-    server.register(twoFactorRoutes);
-    await server.ready();
+    created.decorate('currentUser', () => user as any);
+    created.register(schemas);
+    created.register(twoFactorRoutes);
+    await created.ready();
+    return created;
+  };
+
+  test('leaves out the TOTP setup without the TOTP method', async () => {
+    await server.close();
+    service.availableMethods.mockReturnValue(['Email', 'Sms']);
+    server = await createServer();
+
+    for (const url of ['/totp/setup', '/totp/confirm']) {
+      expect(server.hasRoute({ method: 'POST', url })).toBe(false);
+    }
+    expect(server.hasRoute({ method: 'POST', url: '/challenge' })).toBe(true);
   });
 
-  afterEach(async () => {
+  test('leaves out the recovery codes while they are disabled', async () => {
     await server.close();
+    configOverrides.SECURITY_ACCOUNT_2FA_RECOVERY_CODES_ENABLED = false;
+    server = await createServer();
+
+    expect(server.hasRoute({ method: 'POST', url: '/recovery-codes' })).toBe(
+      false
+    );
+    expect(server.hasRoute({ method: 'POST', url: '/totp/setup' })).toBe(true);
   });
 
   const inject = (method: string, url: string, payload?: object) =>

@@ -144,6 +144,7 @@ describe('two-factor-service', () => {
     )!.data;
 
   beforeEach(() => {
+    configOverrides.SECURITY_ACCOUNT_2FA_ENABLED = true;
     configOverrides.SECURITY_ACCOUNT_2FA_TOTP_ENCRYPTION_KEY = ENCRYPTION_KEY;
     rows = [];
     tokens = new Map();

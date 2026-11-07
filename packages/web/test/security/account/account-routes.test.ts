@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
-import { define } from '@appweaver/core';
+import { define, EmailService, SmsService } from '@appweaver/core';
+import { context } from '@appweaver/core/internal';
 import { errorHandler } from '../../../errors/error-handler';
 import { accountRoutes } from '../../../security/account';
 import { AccountService } from '../../../security/account/account-service';
@@ -11,7 +12,24 @@ describe('account-routes', () => {
   let server: Server;
   let actions: Record<string, unknown>[];
 
-  beforeEach(async () => {
+  /** Creates the server of the account routes, with the services sending their messages unless left out. */
+  const createServer = async (
+    services: { email?: boolean; sms?: boolean } = {}
+  ): Promise<Server> => {
+    for (const [service, defined] of [
+      [EmailService, services.email !== false],
+      [SmsService, services.sms !== false]
+    ] as const) {
+      const index = context.definitions.findIndex(
+        (definition) => definition.name === service.name
+      );
+      if (index > -1) {
+        context.definitions.splice(index, 1);
+      }
+      if (defined) {
+        define({} as any, service as any, 'override');
+      }
+    }
     define(
       {
         sendResetPassword: jest.fn().mockResolvedValue('Sent'),
@@ -26,23 +44,28 @@ describe('account-routes', () => {
     );
 
     actions = [];
-    server = Fastify({
+    const created = Fastify({
       logger: false,
       ...requestValidation()
-    });
-    server.setErrorHandler(errorHandler);
-    server.decorate('authenticate', () => async () => undefined);
-    server.decorate('currentUser', () => ({ id: 1 }) as any);
+    }) as unknown as Server;
+    created.setErrorHandler(errorHandler);
+    created.decorate('authenticate', () => async () => undefined);
+    created.decorate('currentUser', () => ({ id: 1 }) as any);
     // Records the actions each bot check receives from the route config
-    server.decorate('recaptcha', async (request: any) => {
+    created.decorate('recaptcha', async (request: any) => {
       actions.push({ recaptcha: request.routeOptions.config.recaptchaAction });
     });
-    server.decorate('turnstile', async (request: any) => {
+    created.decorate('turnstile', async (request: any) => {
       actions.push({ turnstile: request.routeOptions.config.turnstileAction });
     });
-    server.register(schemas);
-    server.register(accountRoutes);
-    await server.ready();
+    created.register(schemas);
+    created.register(accountRoutes);
+    await created.ready();
+    return created;
+  };
+
+  beforeEach(async () => {
+    server = await createServer();
   });
 
   afterEach(async () => {
@@ -50,6 +73,35 @@ describe('account-routes', () => {
   });
 
   describe('accountRoutes', () => {
+    test('leaves out the email routes without a mailer', async () => {
+      await server.close();
+      server = await createServer({ email: false });
+
+      for (const url of [
+        '/send-verify-email',
+        '/verify-email',
+        '/send-reset-password',
+        '/reset-password'
+      ]) {
+        expect(server.hasRoute({ method: 'POST', url })).toBe(false);
+      }
+      expect(server.hasRoute({ method: 'POST', url: '/verify-phone' })).toBe(
+        true
+      );
+    });
+
+    test('leaves out the phone routes without an SMS sender', async () => {
+      await server.close();
+      server = await createServer({ sms: false });
+
+      for (const url of ['/send-verify-phone', '/verify-phone']) {
+        expect(server.hasRoute({ method: 'POST', url })).toBe(false);
+      }
+      expect(
+        server.hasRoute({ method: 'POST', url: '/send-reset-password' })
+      ).toBe(true);
+    });
+
     test('sends a phone verification code', async () => {
       const response = await server.inject({
         method: 'POST',

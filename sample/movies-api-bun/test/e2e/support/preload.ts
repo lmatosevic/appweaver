@@ -3,9 +3,11 @@ import { stopTestApp } from './app';
 import setup from './setup';
 import teardown from './teardown';
 
+// Generating the schema, resetting and migrating the test database can take
+// longer than the default hook timeout of Bun
 beforeAll(async () => {
   await setup();
-}, 10_000);
+}, 60_000);
 
 afterAll(async () => {
   await stopTestApp();

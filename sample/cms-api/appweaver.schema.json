@@ -906,7 +906,7 @@
                       "type": "boolean"
                     },
                     "enabled": {
-                      "default": true,
+                      "default": false,
                       "type": "boolean"
                     },
                     "forced": {

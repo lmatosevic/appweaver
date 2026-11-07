@@ -77,7 +77,8 @@ jest.mock('../../security/turnstile', () => ({
 }));
 
 jest.mock('../../security/auth-routes', () => ({
-  authRoutes: async () => undefined
+  authRoutes: async () => undefined,
+  registerExchangeTokenRoute: jest.fn()
 }));
 
 jest.mock('../../security/account', () => ({
@@ -98,6 +99,7 @@ jest.mock('../../security/oauth2', () => ({
 import * as common from '@appweaver/common';
 import { AuthType } from '@appweaver/common';
 import * as oauth2 from '../../security/oauth2';
+import { registerExchangeTokenRoute } from '../../security/auth-routes';
 import auth from '../../security/auth';
 import { Server } from '../../types/server';
 import { addMeRoute, createTestServer } from '../fixtures/server-fixture';
@@ -154,6 +156,17 @@ describe('auth', () => {
       expect(server.hasDecorator('basicAuth')).toBe(true);
       expect(server.hasDecorator('recaptcha')).toBe(true);
       expect(server.hasDecorator('turnstile')).toBe(true);
+    });
+
+    test('registers the 2FA routes and the token exchange only with 2FA enabled', async () => {
+      (registerExchangeTokenRoute as jest.Mock).mockClear();
+      await startServer();
+      expect(registerExchangeTokenRoute).not.toHaveBeenCalled();
+      await server.close();
+
+      configOverrides.SECURITY_ACCOUNT_2FA_ENABLED = true;
+      await startServer();
+      expect(registerExchangeTokenRoute).toHaveBeenCalledTimes(1);
     });
 
     test('registers the OAuth2 plugins but not the other exports', async () => {

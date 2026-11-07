@@ -60,8 +60,6 @@ export const ModelName = {
   PerformanceReview: 'PerformanceReview',
   Position: 'Position',
   OneTimeToken: 'OneTimeToken',
-  TwoFactorMethod: 'TwoFactorMethod',
-  TwoFactorRecoveryCode: 'TwoFactorRecoveryCode',
   Role: 'Role',
   Permission: 'Permission',
   Seeder: 'Seeder',
@@ -253,36 +251,6 @@ export const OneTimeTokenScalarFieldEnum = {
 } as const
 
 export type OneTimeTokenScalarFieldEnum = (typeof OneTimeTokenScalarFieldEnum)[keyof typeof OneTimeTokenScalarFieldEnum]
-
-
-export const TwoFactorMethodScalarFieldEnum = {
-  id: 'id',
-  type: 'type',
-  priority: 'priority',
-  secret: 'secret',
-  confirmedAt: 'confirmedAt',
-  lastUsedStep: 'lastUsedStep',
-  employeeId: 'employeeId',
-  updatedAt: 'updatedAt',
-  createdAt: 'createdAt',
-  deletedAt: 'deletedAt',
-  deletedById: 'deletedById'
-} as const
-
-export type TwoFactorMethodScalarFieldEnum = (typeof TwoFactorMethodScalarFieldEnum)[keyof typeof TwoFactorMethodScalarFieldEnum]
-
-
-export const TwoFactorRecoveryCodeScalarFieldEnum = {
-  id: 'id',
-  codeHash: 'codeHash',
-  usedAt: 'usedAt',
-  employeeId: 'employeeId',
-  createdAt: 'createdAt',
-  deletedAt: 'deletedAt',
-  deletedById: 'deletedById'
-} as const
-
-export type TwoFactorRecoveryCodeScalarFieldEnum = (typeof TwoFactorRecoveryCodeScalarFieldEnum)[keyof typeof TwoFactorRecoveryCodeScalarFieldEnum]
 
 
 export const RoleScalarFieldEnum = {

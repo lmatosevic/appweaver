@@ -487,13 +487,13 @@ ready. The listener stays off beside the server of `@appweaver/web`, which answe
 | Property                                            | Type     | Default                    | Description                                                                        |
 |-----------------------------------------------------|----------|----------------------------|------------------------------------------------------------------------------------|
 | `SECURITY_ACCOUNT_ROUTE_PREFIX`                     | string   | `'/auth/account'`          | Base path for account management routes.                                           |
-| `SECURITY_ACCOUNT_VERIFY_EMAIL_ENABLED`             | boolean  | `true`                     | Enable email verification flow.                                                    |
+| `SECURITY_ACCOUNT_VERIFY_EMAIL_ENABLED`             | boolean  | `true`                     | Enable email verification flow, its routes registered only with a mailer.          |
 | `SECURITY_ACCOUNT_VERIFY_EMAIL_OTT_TTL`             | integer  | `7200000`                  | Email verification token TTL (ms, default 2 hours).                                |
-| `SECURITY_ACCOUNT_RESET_PASSWORD_ENABLED`           | boolean  | `true`                     | Enable password reset flow.                                                        |
+| `SECURITY_ACCOUNT_RESET_PASSWORD_ENABLED`           | boolean  | `true`                     | Enable password reset flow, its routes registered only with a mailer.              |
 | `SECURITY_ACCOUNT_RESET_PASSWORD_OTT_TTL`           | integer  | `1800000`                  | Password reset token TTL (ms, default 30 min).                                     |
-| `SECURITY_ACCOUNT_VERIFY_PHONE_ENABLED`             | boolean  | `true`                     | Enable phone verification by an SMS code (needs an SMS sender).                    |
+| `SECURITY_ACCOUNT_VERIFY_PHONE_ENABLED`             | boolean  | `true`                     | Enable phone verification by an SMS code, its routes registered only with an SMS sender. |
 | `SECURITY_ACCOUNT_VERIFY_PHONE_OTT_TTL`             | integer  | `600000`                   | Phone verification code TTL (ms, default 10 min).                                  |
-| `SECURITY_ACCOUNT_2FA_ENABLED`                      | boolean  | `true`                     | Enable two-factor authentication.                                                  |
+| `SECURITY_ACCOUNT_2FA_ENABLED`                      | boolean  | `false`                    | Enable two-factor authentication, its routes and its models.                       |
 | `SECURITY_ACCOUNT_2FA_FORCED`                       | boolean  | `false`                    | Force 2FA for all users, a user without a method verifying with the default one.   |
 | `SECURITY_ACCOUNT_2FA_OTT_TTL`                      | integer  | `300000`                   | 2FA challenge TTL (ms, default 5 min).                                             |
 | `SECURITY_ACCOUNT_2FA_METHODS`                      | string[] | `['Email', 'Sms', 'Totp']` | The methods users may enable, each available only with its service (see below).    |

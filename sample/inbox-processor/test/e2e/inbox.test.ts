@@ -25,6 +25,12 @@ describe('Inbox', () => {
       id: number;
     }[];
 
+  /** The text of the outbox file, empty until the first entry is appended. */
+  const outbox = async () =>
+    fs.existsSync(inboxConfig.OUTBOX_PATH)
+      ? fs.readFileSync(inboxConfig.OUTBOX_PATH, 'utf8')
+      : '';
+
   /** The entry once it is no longer waiting to be processed. */
   const settled = (id: number) =>
     eventually(
@@ -60,9 +66,10 @@ describe('Inbox', () => {
       normalized: `urgent the invoice ${RUN} is broken`,
       tags: ['bug', 'invoice', 'urgent']
     });
-    expect(fs.readFileSync(inboxConfig.OUTBOX_PATH, 'utf8')).toContain(
-      `#${entry.id} `
-    );
+    // Appended once the entry is stored as processed
+    expect(
+      await eventually(outbox, (text) => text.includes(`#${entry.id} `))
+    ).toContain(`#${entry.id} `);
   });
 
   test('fails a rejected line at once, and retries any other error', async () => {

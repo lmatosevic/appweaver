@@ -397,8 +397,6 @@ export type EmployeeWhereInput = {
   reviews?: Prisma.PerformanceReviewListRelationFilter
   writtenReviews?: Prisma.PerformanceReviewListRelationFilter
   roles?: Prisma.RoleListRelationFilter
-  twoFactorMethods?: Prisma.TwoFactorMethodListRelationFilter
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeListRelationFilter
   avatar?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   createdCompensations?: Prisma.CompensationListRelationFilter
   createdDepartments?: Prisma.DepartmentListRelationFilter
@@ -417,8 +415,6 @@ export type EmployeeWhereInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceListRelationFilter
   deletedLeaveRequests?: Prisma.LeaveRequestListRelationFilter
   deletedPerformanceReviews?: Prisma.PerformanceReviewListRelationFilter
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodListRelationFilter
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeListRelationFilter
   deletedFiles?: Prisma.FileListRelationFilter
   createdBy?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null
   deletedBy?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null
@@ -463,8 +459,6 @@ export type EmployeeOrderByWithRelationInput = {
   reviews?: Prisma.PerformanceReviewOrderByRelationAggregateInput
   writtenReviews?: Prisma.PerformanceReviewOrderByRelationAggregateInput
   roles?: Prisma.RoleOrderByRelationAggregateInput
-  twoFactorMethods?: Prisma.TwoFactorMethodOrderByRelationAggregateInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeOrderByRelationAggregateInput
   avatar?: Prisma.FileOrderByWithRelationInput
   createdCompensations?: Prisma.CompensationOrderByRelationAggregateInput
   createdDepartments?: Prisma.DepartmentOrderByRelationAggregateInput
@@ -483,8 +477,6 @@ export type EmployeeOrderByWithRelationInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceOrderByRelationAggregateInput
   deletedLeaveRequests?: Prisma.LeaveRequestOrderByRelationAggregateInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewOrderByRelationAggregateInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodOrderByRelationAggregateInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeOrderByRelationAggregateInput
   deletedFiles?: Prisma.FileOrderByRelationAggregateInput
   createdBy?: Prisma.EmployeeOrderByWithRelationInput
   deletedBy?: Prisma.EmployeeOrderByWithRelationInput
@@ -532,8 +524,6 @@ export type EmployeeWhereUniqueInput = Prisma.AtLeast<{
   reviews?: Prisma.PerformanceReviewListRelationFilter
   writtenReviews?: Prisma.PerformanceReviewListRelationFilter
   roles?: Prisma.RoleListRelationFilter
-  twoFactorMethods?: Prisma.TwoFactorMethodListRelationFilter
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeListRelationFilter
   avatar?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   createdCompensations?: Prisma.CompensationListRelationFilter
   createdDepartments?: Prisma.DepartmentListRelationFilter
@@ -552,8 +542,6 @@ export type EmployeeWhereUniqueInput = Prisma.AtLeast<{
   deletedLeaveBalances?: Prisma.LeaveBalanceListRelationFilter
   deletedLeaveRequests?: Prisma.LeaveRequestListRelationFilter
   deletedPerformanceReviews?: Prisma.PerformanceReviewListRelationFilter
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodListRelationFilter
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeListRelationFilter
   deletedFiles?: Prisma.FileListRelationFilter
   createdBy?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null
   deletedBy?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null
@@ -656,8 +644,6 @@ export type EmployeeCreateInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -676,8 +662,6 @@ export type EmployeeCreateInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -719,8 +703,6 @@ export type EmployeeUncheckedCreateInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -738,8 +720,6 @@ export type EmployeeUncheckedCreateInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -776,8 +756,6 @@ export type EmployeeUpdateInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -796,8 +774,6 @@ export type EmployeeUpdateInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -839,8 +815,6 @@ export type EmployeeUncheckedUpdateInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -858,8 +832,6 @@ export type EmployeeUncheckedUpdateInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -1631,66 +1603,6 @@ export type EmployeeUncheckedUpdateManyWithoutPositionNestedInput = {
   deleteMany?: Prisma.EmployeeScalarWhereInput | Prisma.EmployeeScalarWhereInput[]
 }
 
-export type EmployeeCreateNestedOneWithoutTwoFactorMethodsInput = {
-  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutTwoFactorMethodsInput, Prisma.EmployeeUncheckedCreateWithoutTwoFactorMethodsInput>
-  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutTwoFactorMethodsInput
-  connect?: Prisma.EmployeeWhereUniqueInput
-}
-
-export type EmployeeCreateNestedOneWithoutDeletedTwoFactorMethodsInput = {
-  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutDeletedTwoFactorMethodsInput, Prisma.EmployeeUncheckedCreateWithoutDeletedTwoFactorMethodsInput>
-  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutDeletedTwoFactorMethodsInput
-  connect?: Prisma.EmployeeWhereUniqueInput
-}
-
-export type EmployeeUpdateOneRequiredWithoutTwoFactorMethodsNestedInput = {
-  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutTwoFactorMethodsInput, Prisma.EmployeeUncheckedCreateWithoutTwoFactorMethodsInput>
-  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutTwoFactorMethodsInput
-  upsert?: Prisma.EmployeeUpsertWithoutTwoFactorMethodsInput
-  connect?: Prisma.EmployeeWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutTwoFactorMethodsInput, Prisma.EmployeeUpdateWithoutTwoFactorMethodsInput>, Prisma.EmployeeUncheckedUpdateWithoutTwoFactorMethodsInput>
-}
-
-export type EmployeeUpdateOneWithoutDeletedTwoFactorMethodsNestedInput = {
-  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutDeletedTwoFactorMethodsInput, Prisma.EmployeeUncheckedCreateWithoutDeletedTwoFactorMethodsInput>
-  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutDeletedTwoFactorMethodsInput
-  upsert?: Prisma.EmployeeUpsertWithoutDeletedTwoFactorMethodsInput
-  disconnect?: Prisma.EmployeeWhereInput | boolean
-  delete?: Prisma.EmployeeWhereInput | boolean
-  connect?: Prisma.EmployeeWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutDeletedTwoFactorMethodsInput, Prisma.EmployeeUpdateWithoutDeletedTwoFactorMethodsInput>, Prisma.EmployeeUncheckedUpdateWithoutDeletedTwoFactorMethodsInput>
-}
-
-export type EmployeeCreateNestedOneWithoutTwoFactorRecoveryCodesInput = {
-  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutTwoFactorRecoveryCodesInput, Prisma.EmployeeUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
-  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutTwoFactorRecoveryCodesInput
-  connect?: Prisma.EmployeeWhereUniqueInput
-}
-
-export type EmployeeCreateNestedOneWithoutDeletedTwoFactorRecoveryCodesInput = {
-  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutDeletedTwoFactorRecoveryCodesInput, Prisma.EmployeeUncheckedCreateWithoutDeletedTwoFactorRecoveryCodesInput>
-  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutDeletedTwoFactorRecoveryCodesInput
-  connect?: Prisma.EmployeeWhereUniqueInput
-}
-
-export type EmployeeUpdateOneRequiredWithoutTwoFactorRecoveryCodesNestedInput = {
-  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutTwoFactorRecoveryCodesInput, Prisma.EmployeeUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
-  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutTwoFactorRecoveryCodesInput
-  upsert?: Prisma.EmployeeUpsertWithoutTwoFactorRecoveryCodesInput
-  connect?: Prisma.EmployeeWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutTwoFactorRecoveryCodesInput, Prisma.EmployeeUpdateWithoutTwoFactorRecoveryCodesInput>, Prisma.EmployeeUncheckedUpdateWithoutTwoFactorRecoveryCodesInput>
-}
-
-export type EmployeeUpdateOneWithoutDeletedTwoFactorRecoveryCodesNestedInput = {
-  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutDeletedTwoFactorRecoveryCodesInput, Prisma.EmployeeUncheckedCreateWithoutDeletedTwoFactorRecoveryCodesInput>
-  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutDeletedTwoFactorRecoveryCodesInput
-  upsert?: Prisma.EmployeeUpsertWithoutDeletedTwoFactorRecoveryCodesInput
-  disconnect?: Prisma.EmployeeWhereInput | boolean
-  delete?: Prisma.EmployeeWhereInput | boolean
-  connect?: Prisma.EmployeeWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutDeletedTwoFactorRecoveryCodesInput, Prisma.EmployeeUpdateWithoutDeletedTwoFactorRecoveryCodesInput>, Prisma.EmployeeUncheckedUpdateWithoutDeletedTwoFactorRecoveryCodesInput>
-}
-
 export type EmployeeCreateNestedManyWithoutRolesInput = {
   create?: Prisma.XOR<Prisma.EmployeeCreateWithoutRolesInput, Prisma.EmployeeUncheckedCreateWithoutRolesInput> | Prisma.EmployeeCreateWithoutRolesInput[] | Prisma.EmployeeUncheckedCreateWithoutRolesInput[]
   connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutRolesInput | Prisma.EmployeeCreateOrConnectWithoutRolesInput[]
@@ -1867,8 +1779,6 @@ export type EmployeeCreateWithoutCompensationsInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -1887,8 +1797,6 @@ export type EmployeeCreateWithoutCompensationsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -1929,8 +1837,6 @@ export type EmployeeUncheckedCreateWithoutCompensationsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1948,8 +1854,6 @@ export type EmployeeUncheckedCreateWithoutCompensationsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -1991,8 +1895,6 @@ export type EmployeeCreateWithoutCreatedCompensationsInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentCreateNestedManyWithoutCreatedByInput
@@ -2010,8 +1912,6 @@ export type EmployeeCreateWithoutCreatedCompensationsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -2053,8 +1953,6 @@ export type EmployeeUncheckedCreateWithoutCreatedCompensationsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployees?: Prisma.EmployeeUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2071,8 +1969,6 @@ export type EmployeeUncheckedCreateWithoutCreatedCompensationsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -2114,8 +2010,6 @@ export type EmployeeCreateWithoutDeletedCompensationsInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -2133,8 +2027,6 @@ export type EmployeeCreateWithoutDeletedCompensationsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -2176,8 +2068,6 @@ export type EmployeeUncheckedCreateWithoutDeletedCompensationsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2194,8 +2084,6 @@ export type EmployeeUncheckedCreateWithoutDeletedCompensationsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -2247,8 +2135,6 @@ export type EmployeeUpdateWithoutCompensationsInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -2267,8 +2153,6 @@ export type EmployeeUpdateWithoutCompensationsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -2309,8 +2193,6 @@ export type EmployeeUncheckedUpdateWithoutCompensationsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2328,8 +2210,6 @@ export type EmployeeUncheckedUpdateWithoutCompensationsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -2377,8 +2257,6 @@ export type EmployeeUpdateWithoutCreatedCompensationsInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUpdateManyWithoutCreatedByNestedInput
@@ -2396,8 +2274,6 @@ export type EmployeeUpdateWithoutCreatedCompensationsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -2439,8 +2315,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedCompensationsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployees?: Prisma.EmployeeUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2457,8 +2331,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedCompensationsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -2506,8 +2378,6 @@ export type EmployeeUpdateWithoutDeletedCompensationsInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -2525,8 +2395,6 @@ export type EmployeeUpdateWithoutDeletedCompensationsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -2568,8 +2436,6 @@ export type EmployeeUncheckedUpdateWithoutDeletedCompensationsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2586,8 +2452,6 @@ export type EmployeeUncheckedUpdateWithoutDeletedCompensationsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -2623,8 +2487,6 @@ export type EmployeeCreateWithoutHeadOfInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -2643,8 +2505,6 @@ export type EmployeeCreateWithoutHeadOfInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -2685,8 +2545,6 @@ export type EmployeeUncheckedCreateWithoutHeadOfInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2704,8 +2562,6 @@ export type EmployeeUncheckedCreateWithoutHeadOfInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -2746,8 +2602,6 @@ export type EmployeeCreateWithoutDepartmentInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -2766,8 +2620,6 @@ export type EmployeeCreateWithoutDepartmentInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -2808,8 +2660,6 @@ export type EmployeeUncheckedCreateWithoutDepartmentInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2827,8 +2677,6 @@ export type EmployeeUncheckedCreateWithoutDepartmentInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -2874,8 +2722,6 @@ export type EmployeeCreateWithoutCreatedDepartmentsInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentCreateNestedManyWithoutCreatedByInput
@@ -2893,8 +2739,6 @@ export type EmployeeCreateWithoutCreatedDepartmentsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -2936,8 +2780,6 @@ export type EmployeeUncheckedCreateWithoutCreatedDepartmentsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployees?: Prisma.EmployeeUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2954,8 +2796,6 @@ export type EmployeeUncheckedCreateWithoutCreatedDepartmentsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -3007,8 +2847,6 @@ export type EmployeeUpdateWithoutHeadOfInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -3027,8 +2865,6 @@ export type EmployeeUpdateWithoutHeadOfInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -3069,8 +2905,6 @@ export type EmployeeUncheckedUpdateWithoutHeadOfInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3088,8 +2922,6 @@ export type EmployeeUncheckedUpdateWithoutHeadOfInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -3184,8 +3016,6 @@ export type EmployeeUpdateWithoutCreatedDepartmentsInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUpdateManyWithoutCreatedByNestedInput
@@ -3203,8 +3033,6 @@ export type EmployeeUpdateWithoutCreatedDepartmentsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -3246,8 +3074,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedDepartmentsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployees?: Prisma.EmployeeUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3264,8 +3090,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedDepartmentsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -3301,8 +3125,6 @@ export type EmployeeCreateWithoutDocumentsInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -3321,8 +3143,6 @@ export type EmployeeCreateWithoutDocumentsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -3363,8 +3183,6 @@ export type EmployeeUncheckedCreateWithoutDocumentsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3382,8 +3200,6 @@ export type EmployeeUncheckedCreateWithoutDocumentsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -3425,8 +3241,6 @@ export type EmployeeCreateWithoutCreatedEmployeeDocumentsInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -3444,8 +3258,6 @@ export type EmployeeCreateWithoutCreatedEmployeeDocumentsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -3487,8 +3299,6 @@ export type EmployeeUncheckedCreateWithoutCreatedEmployeeDocumentsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployees?: Prisma.EmployeeUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3505,8 +3315,6 @@ export type EmployeeUncheckedCreateWithoutCreatedEmployeeDocumentsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -3548,8 +3356,6 @@ export type EmployeeCreateWithoutDeletedEmployeeDocumentsInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -3567,8 +3373,6 @@ export type EmployeeCreateWithoutDeletedEmployeeDocumentsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -3610,8 +3414,6 @@ export type EmployeeUncheckedCreateWithoutDeletedEmployeeDocumentsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3628,8 +3430,6 @@ export type EmployeeUncheckedCreateWithoutDeletedEmployeeDocumentsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -3681,8 +3481,6 @@ export type EmployeeUpdateWithoutDocumentsInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -3701,8 +3499,6 @@ export type EmployeeUpdateWithoutDocumentsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -3743,8 +3539,6 @@ export type EmployeeUncheckedUpdateWithoutDocumentsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3762,8 +3556,6 @@ export type EmployeeUncheckedUpdateWithoutDocumentsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -3811,8 +3603,6 @@ export type EmployeeUpdateWithoutCreatedEmployeeDocumentsInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -3830,8 +3620,6 @@ export type EmployeeUpdateWithoutCreatedEmployeeDocumentsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -3873,8 +3661,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedEmployeeDocumentsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployees?: Prisma.EmployeeUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3891,8 +3677,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedEmployeeDocumentsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -3940,8 +3724,6 @@ export type EmployeeUpdateWithoutDeletedEmployeeDocumentsInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -3959,8 +3741,6 @@ export type EmployeeUpdateWithoutDeletedEmployeeDocumentsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -4002,8 +3782,6 @@ export type EmployeeUncheckedUpdateWithoutDeletedEmployeeDocumentsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4020,8 +3798,6 @@ export type EmployeeUncheckedUpdateWithoutDeletedEmployeeDocumentsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -4057,8 +3833,6 @@ export type EmployeeCreateWithoutReportsInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -4077,8 +3851,6 @@ export type EmployeeCreateWithoutReportsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -4119,8 +3891,6 @@ export type EmployeeUncheckedCreateWithoutReportsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -4138,8 +3908,6 @@ export type EmployeeUncheckedCreateWithoutReportsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -4180,8 +3948,6 @@ export type EmployeeCreateWithoutManagerInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -4200,8 +3966,6 @@ export type EmployeeCreateWithoutManagerInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -4242,8 +4006,6 @@ export type EmployeeUncheckedCreateWithoutManagerInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -4261,8 +4023,6 @@ export type EmployeeUncheckedCreateWithoutManagerInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -4308,8 +4068,6 @@ export type EmployeeCreateWithoutCreatedByInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -4328,8 +4086,6 @@ export type EmployeeCreateWithoutCreatedByInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
 }
@@ -4369,8 +4125,6 @@ export type EmployeeUncheckedCreateWithoutCreatedByInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -4388,8 +4142,6 @@ export type EmployeeUncheckedCreateWithoutCreatedByInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -4435,8 +4187,6 @@ export type EmployeeCreateWithoutDeletedByInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -4455,8 +4205,6 @@ export type EmployeeCreateWithoutDeletedByInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
 }
@@ -4496,8 +4244,6 @@ export type EmployeeUncheckedCreateWithoutDeletedByInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -4515,8 +4261,6 @@ export type EmployeeUncheckedCreateWithoutDeletedByInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -4562,8 +4306,6 @@ export type EmployeeCreateWithoutCreatedEmployeesInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -4581,8 +4323,6 @@ export type EmployeeCreateWithoutCreatedEmployeesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -4624,8 +4364,6 @@ export type EmployeeUncheckedCreateWithoutCreatedEmployeesInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -4642,8 +4380,6 @@ export type EmployeeUncheckedCreateWithoutCreatedEmployeesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -4685,8 +4421,6 @@ export type EmployeeCreateWithoutDeletedEmployeesInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -4704,8 +4438,6 @@ export type EmployeeCreateWithoutDeletedEmployeesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -4747,8 +4479,6 @@ export type EmployeeUncheckedCreateWithoutDeletedEmployeesInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -4765,8 +4495,6 @@ export type EmployeeUncheckedCreateWithoutDeletedEmployeesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -4818,8 +4546,6 @@ export type EmployeeUpdateWithoutReportsInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -4838,8 +4564,6 @@ export type EmployeeUpdateWithoutReportsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -4880,8 +4604,6 @@ export type EmployeeUncheckedUpdateWithoutReportsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4899,8 +4621,6 @@ export type EmployeeUncheckedUpdateWithoutReportsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -4996,8 +4716,6 @@ export type EmployeeUpdateWithoutCreatedEmployeesInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -5015,8 +4733,6 @@ export type EmployeeUpdateWithoutCreatedEmployeesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -5058,8 +4774,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedEmployeesInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -5076,8 +4790,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedEmployeesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -5125,8 +4837,6 @@ export type EmployeeUpdateWithoutDeletedEmployeesInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -5144,8 +4854,6 @@ export type EmployeeUpdateWithoutDeletedEmployeesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -5187,8 +4895,6 @@ export type EmployeeUncheckedUpdateWithoutDeletedEmployeesInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -5205,8 +4911,6 @@ export type EmployeeUncheckedUpdateWithoutDeletedEmployeesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -5242,8 +4946,6 @@ export type EmployeeCreateWithoutLeaveBalancesInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -5262,8 +4964,6 @@ export type EmployeeCreateWithoutLeaveBalancesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -5304,8 +5004,6 @@ export type EmployeeUncheckedCreateWithoutLeaveBalancesInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -5323,8 +5021,6 @@ export type EmployeeUncheckedCreateWithoutLeaveBalancesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -5366,8 +5062,6 @@ export type EmployeeCreateWithoutCreatedLeaveBalancesInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -5385,8 +5079,6 @@ export type EmployeeCreateWithoutCreatedLeaveBalancesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -5428,8 +5120,6 @@ export type EmployeeUncheckedCreateWithoutCreatedLeaveBalancesInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -5446,8 +5136,6 @@ export type EmployeeUncheckedCreateWithoutCreatedLeaveBalancesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -5489,8 +5177,6 @@ export type EmployeeCreateWithoutDeletedLeaveBalancesInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -5508,8 +5194,6 @@ export type EmployeeCreateWithoutDeletedLeaveBalancesInput = {
   deletedEmployees?: Prisma.EmployeeCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -5551,8 +5235,6 @@ export type EmployeeUncheckedCreateWithoutDeletedLeaveBalancesInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -5569,8 +5251,6 @@ export type EmployeeUncheckedCreateWithoutDeletedLeaveBalancesInput = {
   deletedEmployees?: Prisma.EmployeeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -5622,8 +5302,6 @@ export type EmployeeUpdateWithoutLeaveBalancesInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -5642,8 +5320,6 @@ export type EmployeeUpdateWithoutLeaveBalancesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -5684,8 +5360,6 @@ export type EmployeeUncheckedUpdateWithoutLeaveBalancesInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -5703,8 +5377,6 @@ export type EmployeeUncheckedUpdateWithoutLeaveBalancesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -5752,8 +5424,6 @@ export type EmployeeUpdateWithoutCreatedLeaveBalancesInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -5771,8 +5441,6 @@ export type EmployeeUpdateWithoutCreatedLeaveBalancesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -5814,8 +5482,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedLeaveBalancesInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -5832,8 +5498,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedLeaveBalancesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -5881,8 +5545,6 @@ export type EmployeeUpdateWithoutDeletedLeaveBalancesInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -5900,8 +5562,6 @@ export type EmployeeUpdateWithoutDeletedLeaveBalancesInput = {
   deletedEmployees?: Prisma.EmployeeUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -5943,8 +5603,6 @@ export type EmployeeUncheckedUpdateWithoutDeletedLeaveBalancesInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -5961,8 +5619,6 @@ export type EmployeeUncheckedUpdateWithoutDeletedLeaveBalancesInput = {
   deletedEmployees?: Prisma.EmployeeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -5998,8 +5654,6 @@ export type EmployeeCreateWithoutLeaveRequestsInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -6018,8 +5672,6 @@ export type EmployeeCreateWithoutLeaveRequestsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -6060,8 +5712,6 @@ export type EmployeeUncheckedCreateWithoutLeaveRequestsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -6079,8 +5729,6 @@ export type EmployeeUncheckedCreateWithoutLeaveRequestsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -6121,8 +5769,6 @@ export type EmployeeCreateWithoutDecidedLeaveRequestsInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -6141,8 +5787,6 @@ export type EmployeeCreateWithoutDecidedLeaveRequestsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -6183,8 +5827,6 @@ export type EmployeeUncheckedCreateWithoutDecidedLeaveRequestsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -6202,8 +5844,6 @@ export type EmployeeUncheckedCreateWithoutDecidedLeaveRequestsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -6245,8 +5885,6 @@ export type EmployeeCreateWithoutCreatedLeaveRequestsInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -6264,8 +5902,6 @@ export type EmployeeCreateWithoutCreatedLeaveRequestsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -6307,8 +5943,6 @@ export type EmployeeUncheckedCreateWithoutCreatedLeaveRequestsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -6325,8 +5959,6 @@ export type EmployeeUncheckedCreateWithoutCreatedLeaveRequestsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -6368,8 +6000,6 @@ export type EmployeeCreateWithoutDeletedLeaveRequestsInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -6387,8 +6017,6 @@ export type EmployeeCreateWithoutDeletedLeaveRequestsInput = {
   deletedEmployees?: Prisma.EmployeeCreateNestedManyWithoutDeletedByInput
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -6430,8 +6058,6 @@ export type EmployeeUncheckedCreateWithoutDeletedLeaveRequestsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -6448,8 +6074,6 @@ export type EmployeeUncheckedCreateWithoutDeletedLeaveRequestsInput = {
   deletedEmployees?: Prisma.EmployeeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -6501,8 +6125,6 @@ export type EmployeeUpdateWithoutLeaveRequestsInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -6521,8 +6143,6 @@ export type EmployeeUpdateWithoutLeaveRequestsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -6563,8 +6183,6 @@ export type EmployeeUncheckedUpdateWithoutLeaveRequestsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -6582,8 +6200,6 @@ export type EmployeeUncheckedUpdateWithoutLeaveRequestsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -6630,8 +6246,6 @@ export type EmployeeUpdateWithoutDecidedLeaveRequestsInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -6650,8 +6264,6 @@ export type EmployeeUpdateWithoutDecidedLeaveRequestsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -6692,8 +6304,6 @@ export type EmployeeUncheckedUpdateWithoutDecidedLeaveRequestsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -6711,8 +6321,6 @@ export type EmployeeUncheckedUpdateWithoutDecidedLeaveRequestsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -6760,8 +6368,6 @@ export type EmployeeUpdateWithoutCreatedLeaveRequestsInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -6779,8 +6385,6 @@ export type EmployeeUpdateWithoutCreatedLeaveRequestsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -6822,8 +6426,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedLeaveRequestsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -6840,8 +6442,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedLeaveRequestsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -6889,8 +6489,6 @@ export type EmployeeUpdateWithoutDeletedLeaveRequestsInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -6908,8 +6506,6 @@ export type EmployeeUpdateWithoutDeletedLeaveRequestsInput = {
   deletedEmployees?: Prisma.EmployeeUpdateManyWithoutDeletedByNestedInput
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -6951,8 +6547,6 @@ export type EmployeeUncheckedUpdateWithoutDeletedLeaveRequestsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -6969,8 +6563,6 @@ export type EmployeeUncheckedUpdateWithoutDeletedLeaveRequestsInput = {
   deletedEmployees?: Prisma.EmployeeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -7006,8 +6598,6 @@ export type EmployeeCreateWithoutReviewsInput = {
   compensations?: Prisma.CompensationCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -7026,8 +6616,6 @@ export type EmployeeCreateWithoutReviewsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -7068,8 +6656,6 @@ export type EmployeeUncheckedCreateWithoutReviewsInput = {
   compensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -7087,8 +6673,6 @@ export type EmployeeUncheckedCreateWithoutReviewsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -7129,8 +6713,6 @@ export type EmployeeCreateWithoutWrittenReviewsInput = {
   compensations?: Prisma.CompensationCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -7149,8 +6731,6 @@ export type EmployeeCreateWithoutWrittenReviewsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -7191,8 +6771,6 @@ export type EmployeeUncheckedCreateWithoutWrittenReviewsInput = {
   compensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -7210,8 +6788,6 @@ export type EmployeeUncheckedCreateWithoutWrittenReviewsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -7253,8 +6829,6 @@ export type EmployeeCreateWithoutCreatedPerformanceReviewsInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -7272,8 +6846,6 @@ export type EmployeeCreateWithoutCreatedPerformanceReviewsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -7315,8 +6887,6 @@ export type EmployeeUncheckedCreateWithoutCreatedPerformanceReviewsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -7333,8 +6903,6 @@ export type EmployeeUncheckedCreateWithoutCreatedPerformanceReviewsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -7376,8 +6944,6 @@ export type EmployeeCreateWithoutDeletedPerformanceReviewsInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -7395,8 +6961,6 @@ export type EmployeeCreateWithoutDeletedPerformanceReviewsInput = {
   deletedEmployees?: Prisma.EmployeeCreateNestedManyWithoutDeletedByInput
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -7438,8 +7002,6 @@ export type EmployeeUncheckedCreateWithoutDeletedPerformanceReviewsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -7456,8 +7018,6 @@ export type EmployeeUncheckedCreateWithoutDeletedPerformanceReviewsInput = {
   deletedEmployees?: Prisma.EmployeeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -7509,8 +7069,6 @@ export type EmployeeUpdateWithoutReviewsInput = {
   compensations?: Prisma.CompensationUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -7529,8 +7087,6 @@ export type EmployeeUpdateWithoutReviewsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -7571,8 +7127,6 @@ export type EmployeeUncheckedUpdateWithoutReviewsInput = {
   compensations?: Prisma.CompensationUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -7590,8 +7144,6 @@ export type EmployeeUncheckedUpdateWithoutReviewsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -7638,8 +7190,6 @@ export type EmployeeUpdateWithoutWrittenReviewsInput = {
   compensations?: Prisma.CompensationUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -7658,8 +7208,6 @@ export type EmployeeUpdateWithoutWrittenReviewsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -7700,8 +7248,6 @@ export type EmployeeUncheckedUpdateWithoutWrittenReviewsInput = {
   compensations?: Prisma.CompensationUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -7719,8 +7265,6 @@ export type EmployeeUncheckedUpdateWithoutWrittenReviewsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -7768,8 +7312,6 @@ export type EmployeeUpdateWithoutCreatedPerformanceReviewsInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -7787,8 +7329,6 @@ export type EmployeeUpdateWithoutCreatedPerformanceReviewsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -7830,8 +7370,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedPerformanceReviewsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -7848,8 +7386,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedPerformanceReviewsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -7897,8 +7433,6 @@ export type EmployeeUpdateWithoutDeletedPerformanceReviewsInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -7916,8 +7450,6 @@ export type EmployeeUpdateWithoutDeletedPerformanceReviewsInput = {
   deletedEmployees?: Prisma.EmployeeUpdateManyWithoutDeletedByNestedInput
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -7959,8 +7491,6 @@ export type EmployeeUncheckedUpdateWithoutDeletedPerformanceReviewsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -7977,8 +7507,6 @@ export type EmployeeUncheckedUpdateWithoutDeletedPerformanceReviewsInput = {
   deletedEmployees?: Prisma.EmployeeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -8014,8 +7542,6 @@ export type EmployeeCreateWithoutPositionInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -8034,8 +7560,6 @@ export type EmployeeCreateWithoutPositionInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -8076,8 +7600,6 @@ export type EmployeeUncheckedCreateWithoutPositionInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -8095,8 +7617,6 @@ export type EmployeeUncheckedCreateWithoutPositionInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -8142,8 +7662,6 @@ export type EmployeeCreateWithoutCreatedPositionsInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -8161,8 +7679,6 @@ export type EmployeeCreateWithoutCreatedPositionsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -8204,8 +7720,6 @@ export type EmployeeUncheckedCreateWithoutCreatedPositionsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -8222,8 +7736,6 @@ export type EmployeeUncheckedCreateWithoutCreatedPositionsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -8292,8 +7804,6 @@ export type EmployeeUpdateWithoutCreatedPositionsInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -8311,8 +7821,6 @@ export type EmployeeUpdateWithoutCreatedPositionsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -8354,8 +7862,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedPositionsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -8372,1016 +7878,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedPositionsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
-}
-
-export type EmployeeCreateWithoutTwoFactorMethodsInput = {
-  id?: string
-  employeeNumber: string
-  firstName: string
-  lastName: string
-  email: string
-  phone?: string | null
-  employmentType?: string
-  status?: string
-  hireDate: Date | string
-  terminatedAt?: Date | string | null
-  passwordHash?: string | null
-  verifiedEmail?: boolean
-  phoneNumber?: string | null
-  verifiedPhone?: boolean
-  enabled?: boolean
-  logoutAt?: Date | string | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  deletedAt?: Date | string | null
-  department?: Prisma.DepartmentCreateNestedOneWithoutEmployeesInput
-  position?: Prisma.PositionCreateNestedOneWithoutEmployeesInput
-  manager?: Prisma.EmployeeCreateNestedOneWithoutReportsInput
-  reports?: Prisma.EmployeeCreateNestedManyWithoutManagerInput
-  headOf?: Prisma.DepartmentCreateNestedOneWithoutHeadInput
-  leaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutEmployeeInput
-  leaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutEmployeeInput
-  decidedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDecidedByInput
-  documents?: Prisma.EmployeeDocumentCreateNestedManyWithoutEmployeeInput
-  compensations?: Prisma.CompensationCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
-  writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
-  roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
-  avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
-  createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
-  createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
-  createdEmployeeDocuments?: Prisma.EmployeeDocumentCreateNestedManyWithoutCreatedByInput
-  createdEmployees?: Prisma.EmployeeCreateNestedManyWithoutCreatedByInput
-  createdLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutCreatedByInput
-  createdLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutCreatedByInput
-  createdPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutCreatedByInput
-  createdPositions?: Prisma.PositionCreateNestedManyWithoutCreatedByInput
-  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
-  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
-  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
-  deletedCompensations?: Prisma.CompensationCreateNestedManyWithoutDeletedByInput
-  deletedEmployeeDocuments?: Prisma.EmployeeDocumentCreateNestedManyWithoutDeletedByInput
-  deletedEmployees?: Prisma.EmployeeCreateNestedManyWithoutDeletedByInput
-  deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
-  deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
-  deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
-  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
-  createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
-  deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
-}
-
-export type EmployeeUncheckedCreateWithoutTwoFactorMethodsInput = {
-  id?: string
-  employeeNumber: string
-  firstName: string
-  lastName: string
-  email: string
-  phone?: string | null
-  employmentType?: string
-  status?: string
-  hireDate: Date | string
-  terminatedAt?: Date | string | null
-  passwordHash?: string | null
-  verifiedEmail?: boolean
-  phoneNumber?: string | null
-  verifiedPhone?: boolean
-  enabled?: boolean
-  logoutAt?: Date | string | null
-  departmentId?: number | null
-  positionId?: number | null
-  managerId?: string | null
-  avatarId?: number | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  createdById?: string | null
-  deletedAt?: Date | string | null
-  deletedById?: string | null
-  reports?: Prisma.EmployeeUncheckedCreateNestedManyWithoutManagerInput
-  headOf?: Prisma.DepartmentUncheckedCreateNestedOneWithoutHeadInput
-  leaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutEmployeeInput
-  leaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutEmployeeInput
-  decidedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDecidedByInput
-  documents?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutEmployeeInput
-  compensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
-  writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
-  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
-  createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
-  createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
-  createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
-  createdEmployees?: Prisma.EmployeeUncheckedCreateNestedManyWithoutCreatedByInput
-  createdLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutCreatedByInput
-  createdLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPositions?: Prisma.PositionUncheckedCreateNestedManyWithoutCreatedByInput
-  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
-  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
-  deletedCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedEmployees?: Prisma.EmployeeUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
-}
-
-export type EmployeeCreateOrConnectWithoutTwoFactorMethodsInput = {
-  where: Prisma.EmployeeWhereUniqueInput
-  create: Prisma.XOR<Prisma.EmployeeCreateWithoutTwoFactorMethodsInput, Prisma.EmployeeUncheckedCreateWithoutTwoFactorMethodsInput>
-}
-
-export type EmployeeCreateWithoutDeletedTwoFactorMethodsInput = {
-  id?: string
-  employeeNumber: string
-  firstName: string
-  lastName: string
-  email: string
-  phone?: string | null
-  employmentType?: string
-  status?: string
-  hireDate: Date | string
-  terminatedAt?: Date | string | null
-  passwordHash?: string | null
-  verifiedEmail?: boolean
-  phoneNumber?: string | null
-  verifiedPhone?: boolean
-  enabled?: boolean
-  logoutAt?: Date | string | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  deletedAt?: Date | string | null
-  department?: Prisma.DepartmentCreateNestedOneWithoutEmployeesInput
-  position?: Prisma.PositionCreateNestedOneWithoutEmployeesInput
-  manager?: Prisma.EmployeeCreateNestedOneWithoutReportsInput
-  reports?: Prisma.EmployeeCreateNestedManyWithoutManagerInput
-  headOf?: Prisma.DepartmentCreateNestedOneWithoutHeadInput
-  leaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutEmployeeInput
-  leaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutEmployeeInput
-  decidedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDecidedByInput
-  documents?: Prisma.EmployeeDocumentCreateNestedManyWithoutEmployeeInput
-  compensations?: Prisma.CompensationCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
-  writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
-  roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
-  avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
-  createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
-  createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
-  createdEmployeeDocuments?: Prisma.EmployeeDocumentCreateNestedManyWithoutCreatedByInput
-  createdEmployees?: Prisma.EmployeeCreateNestedManyWithoutCreatedByInput
-  createdLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutCreatedByInput
-  createdLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutCreatedByInput
-  createdPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutCreatedByInput
-  createdPositions?: Prisma.PositionCreateNestedManyWithoutCreatedByInput
-  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
-  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
-  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
-  deletedCompensations?: Prisma.CompensationCreateNestedManyWithoutDeletedByInput
-  deletedEmployeeDocuments?: Prisma.EmployeeDocumentCreateNestedManyWithoutDeletedByInput
-  deletedEmployees?: Prisma.EmployeeCreateNestedManyWithoutDeletedByInput
-  deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
-  deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
-  deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
-  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
-  createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
-  deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
-}
-
-export type EmployeeUncheckedCreateWithoutDeletedTwoFactorMethodsInput = {
-  id?: string
-  employeeNumber: string
-  firstName: string
-  lastName: string
-  email: string
-  phone?: string | null
-  employmentType?: string
-  status?: string
-  hireDate: Date | string
-  terminatedAt?: Date | string | null
-  passwordHash?: string | null
-  verifiedEmail?: boolean
-  phoneNumber?: string | null
-  verifiedPhone?: boolean
-  enabled?: boolean
-  logoutAt?: Date | string | null
-  departmentId?: number | null
-  positionId?: number | null
-  managerId?: string | null
-  avatarId?: number | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  createdById?: string | null
-  deletedAt?: Date | string | null
-  deletedById?: string | null
-  reports?: Prisma.EmployeeUncheckedCreateNestedManyWithoutManagerInput
-  headOf?: Prisma.DepartmentUncheckedCreateNestedOneWithoutHeadInput
-  leaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutEmployeeInput
-  leaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutEmployeeInput
-  decidedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDecidedByInput
-  documents?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutEmployeeInput
-  compensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
-  writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
-  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
-  createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
-  createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
-  createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
-  createdEmployees?: Prisma.EmployeeUncheckedCreateNestedManyWithoutCreatedByInput
-  createdLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutCreatedByInput
-  createdLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPositions?: Prisma.PositionUncheckedCreateNestedManyWithoutCreatedByInput
-  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
-  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
-  deletedCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedEmployees?: Prisma.EmployeeUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
-}
-
-export type EmployeeCreateOrConnectWithoutDeletedTwoFactorMethodsInput = {
-  where: Prisma.EmployeeWhereUniqueInput
-  create: Prisma.XOR<Prisma.EmployeeCreateWithoutDeletedTwoFactorMethodsInput, Prisma.EmployeeUncheckedCreateWithoutDeletedTwoFactorMethodsInput>
-}
-
-export type EmployeeUpsertWithoutTwoFactorMethodsInput = {
-  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutTwoFactorMethodsInput, Prisma.EmployeeUncheckedUpdateWithoutTwoFactorMethodsInput>
-  create: Prisma.XOR<Prisma.EmployeeCreateWithoutTwoFactorMethodsInput, Prisma.EmployeeUncheckedCreateWithoutTwoFactorMethodsInput>
-  where?: Prisma.EmployeeWhereInput
-}
-
-export type EmployeeUpdateToOneWithWhereWithoutTwoFactorMethodsInput = {
-  where?: Prisma.EmployeeWhereInput
-  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutTwoFactorMethodsInput, Prisma.EmployeeUncheckedUpdateWithoutTwoFactorMethodsInput>
-}
-
-export type EmployeeUpdateWithoutTwoFactorMethodsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  employeeNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  department?: Prisma.DepartmentUpdateOneWithoutEmployeesNestedInput
-  position?: Prisma.PositionUpdateOneWithoutEmployeesNestedInput
-  manager?: Prisma.EmployeeUpdateOneWithoutReportsNestedInput
-  reports?: Prisma.EmployeeUpdateManyWithoutManagerNestedInput
-  headOf?: Prisma.DepartmentUpdateOneWithoutHeadNestedInput
-  leaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutEmployeeNestedInput
-  leaveRequests?: Prisma.LeaveRequestUpdateManyWithoutEmployeeNestedInput
-  decidedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDecidedByNestedInput
-  documents?: Prisma.EmployeeDocumentUpdateManyWithoutEmployeeNestedInput
-  compensations?: Prisma.CompensationUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
-  writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
-  roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
-  avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
-  createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
-  createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
-  createdEmployeeDocuments?: Prisma.EmployeeDocumentUpdateManyWithoutCreatedByNestedInput
-  createdEmployees?: Prisma.EmployeeUpdateManyWithoutCreatedByNestedInput
-  createdLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutCreatedByNestedInput
-  createdLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutCreatedByNestedInput
-  createdPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutCreatedByNestedInput
-  createdPositions?: Prisma.PositionUpdateManyWithoutCreatedByNestedInput
-  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
-  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
-  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
-  deletedCompensations?: Prisma.CompensationUpdateManyWithoutDeletedByNestedInput
-  deletedEmployeeDocuments?: Prisma.EmployeeDocumentUpdateManyWithoutDeletedByNestedInput
-  deletedEmployees?: Prisma.EmployeeUpdateManyWithoutDeletedByNestedInput
-  deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
-  deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
-  deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
-  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
-  createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
-  deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
-}
-
-export type EmployeeUncheckedUpdateWithoutTwoFactorMethodsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  employeeNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  departmentId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  positionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  managerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  deletedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reports?: Prisma.EmployeeUncheckedUpdateManyWithoutManagerNestedInput
-  headOf?: Prisma.DepartmentUncheckedUpdateOneWithoutHeadNestedInput
-  leaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutEmployeeNestedInput
-  leaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutEmployeeNestedInput
-  decidedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDecidedByNestedInput
-  documents?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutEmployeeNestedInput
-  compensations?: Prisma.CompensationUncheckedUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
-  writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
-  roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
-  createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdEmployees?: Prisma.EmployeeUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPositions?: Prisma.PositionUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
-  deletedCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedEmployees?: Prisma.EmployeeUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
-}
-
-export type EmployeeUpsertWithoutDeletedTwoFactorMethodsInput = {
-  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutDeletedTwoFactorMethodsInput, Prisma.EmployeeUncheckedUpdateWithoutDeletedTwoFactorMethodsInput>
-  create: Prisma.XOR<Prisma.EmployeeCreateWithoutDeletedTwoFactorMethodsInput, Prisma.EmployeeUncheckedCreateWithoutDeletedTwoFactorMethodsInput>
-  where?: Prisma.EmployeeWhereInput
-}
-
-export type EmployeeUpdateToOneWithWhereWithoutDeletedTwoFactorMethodsInput = {
-  where?: Prisma.EmployeeWhereInput
-  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutDeletedTwoFactorMethodsInput, Prisma.EmployeeUncheckedUpdateWithoutDeletedTwoFactorMethodsInput>
-}
-
-export type EmployeeUpdateWithoutDeletedTwoFactorMethodsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  employeeNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  department?: Prisma.DepartmentUpdateOneWithoutEmployeesNestedInput
-  position?: Prisma.PositionUpdateOneWithoutEmployeesNestedInput
-  manager?: Prisma.EmployeeUpdateOneWithoutReportsNestedInput
-  reports?: Prisma.EmployeeUpdateManyWithoutManagerNestedInput
-  headOf?: Prisma.DepartmentUpdateOneWithoutHeadNestedInput
-  leaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutEmployeeNestedInput
-  leaveRequests?: Prisma.LeaveRequestUpdateManyWithoutEmployeeNestedInput
-  decidedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDecidedByNestedInput
-  documents?: Prisma.EmployeeDocumentUpdateManyWithoutEmployeeNestedInput
-  compensations?: Prisma.CompensationUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
-  writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
-  roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
-  avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
-  createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
-  createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
-  createdEmployeeDocuments?: Prisma.EmployeeDocumentUpdateManyWithoutCreatedByNestedInput
-  createdEmployees?: Prisma.EmployeeUpdateManyWithoutCreatedByNestedInput
-  createdLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutCreatedByNestedInput
-  createdLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutCreatedByNestedInput
-  createdPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutCreatedByNestedInput
-  createdPositions?: Prisma.PositionUpdateManyWithoutCreatedByNestedInput
-  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
-  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
-  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
-  deletedCompensations?: Prisma.CompensationUpdateManyWithoutDeletedByNestedInput
-  deletedEmployeeDocuments?: Prisma.EmployeeDocumentUpdateManyWithoutDeletedByNestedInput
-  deletedEmployees?: Prisma.EmployeeUpdateManyWithoutDeletedByNestedInput
-  deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
-  deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
-  deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
-  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
-  createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
-  deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
-}
-
-export type EmployeeUncheckedUpdateWithoutDeletedTwoFactorMethodsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  employeeNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  departmentId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  positionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  managerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  deletedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reports?: Prisma.EmployeeUncheckedUpdateManyWithoutManagerNestedInput
-  headOf?: Prisma.DepartmentUncheckedUpdateOneWithoutHeadNestedInput
-  leaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutEmployeeNestedInput
-  leaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutEmployeeNestedInput
-  decidedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDecidedByNestedInput
-  documents?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutEmployeeNestedInput
-  compensations?: Prisma.CompensationUncheckedUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
-  writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
-  roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
-  createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdEmployees?: Prisma.EmployeeUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPositions?: Prisma.PositionUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
-  deletedCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedEmployees?: Prisma.EmployeeUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
-}
-
-export type EmployeeCreateWithoutTwoFactorRecoveryCodesInput = {
-  id?: string
-  employeeNumber: string
-  firstName: string
-  lastName: string
-  email: string
-  phone?: string | null
-  employmentType?: string
-  status?: string
-  hireDate: Date | string
-  terminatedAt?: Date | string | null
-  passwordHash?: string | null
-  verifiedEmail?: boolean
-  phoneNumber?: string | null
-  verifiedPhone?: boolean
-  enabled?: boolean
-  logoutAt?: Date | string | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  deletedAt?: Date | string | null
-  department?: Prisma.DepartmentCreateNestedOneWithoutEmployeesInput
-  position?: Prisma.PositionCreateNestedOneWithoutEmployeesInput
-  manager?: Prisma.EmployeeCreateNestedOneWithoutReportsInput
-  reports?: Prisma.EmployeeCreateNestedManyWithoutManagerInput
-  headOf?: Prisma.DepartmentCreateNestedOneWithoutHeadInput
-  leaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutEmployeeInput
-  leaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutEmployeeInput
-  decidedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDecidedByInput
-  documents?: Prisma.EmployeeDocumentCreateNestedManyWithoutEmployeeInput
-  compensations?: Prisma.CompensationCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
-  writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
-  roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
-  createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
-  createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
-  createdEmployeeDocuments?: Prisma.EmployeeDocumentCreateNestedManyWithoutCreatedByInput
-  createdEmployees?: Prisma.EmployeeCreateNestedManyWithoutCreatedByInput
-  createdLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutCreatedByInput
-  createdLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutCreatedByInput
-  createdPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutCreatedByInput
-  createdPositions?: Prisma.PositionCreateNestedManyWithoutCreatedByInput
-  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
-  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
-  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
-  deletedCompensations?: Prisma.CompensationCreateNestedManyWithoutDeletedByInput
-  deletedEmployeeDocuments?: Prisma.EmployeeDocumentCreateNestedManyWithoutDeletedByInput
-  deletedEmployees?: Prisma.EmployeeCreateNestedManyWithoutDeletedByInput
-  deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
-  deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
-  deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
-  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
-  createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
-  deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
-}
-
-export type EmployeeUncheckedCreateWithoutTwoFactorRecoveryCodesInput = {
-  id?: string
-  employeeNumber: string
-  firstName: string
-  lastName: string
-  email: string
-  phone?: string | null
-  employmentType?: string
-  status?: string
-  hireDate: Date | string
-  terminatedAt?: Date | string | null
-  passwordHash?: string | null
-  verifiedEmail?: boolean
-  phoneNumber?: string | null
-  verifiedPhone?: boolean
-  enabled?: boolean
-  logoutAt?: Date | string | null
-  departmentId?: number | null
-  positionId?: number | null
-  managerId?: string | null
-  avatarId?: number | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  createdById?: string | null
-  deletedAt?: Date | string | null
-  deletedById?: string | null
-  reports?: Prisma.EmployeeUncheckedCreateNestedManyWithoutManagerInput
-  headOf?: Prisma.DepartmentUncheckedCreateNestedOneWithoutHeadInput
-  leaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutEmployeeInput
-  leaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutEmployeeInput
-  decidedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDecidedByInput
-  documents?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutEmployeeInput
-  compensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
-  writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
-  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
-  createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
-  createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
-  createdEmployees?: Prisma.EmployeeUncheckedCreateNestedManyWithoutCreatedByInput
-  createdLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutCreatedByInput
-  createdLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPositions?: Prisma.PositionUncheckedCreateNestedManyWithoutCreatedByInput
-  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
-  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
-  deletedCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedEmployees?: Prisma.EmployeeUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
-}
-
-export type EmployeeCreateOrConnectWithoutTwoFactorRecoveryCodesInput = {
-  where: Prisma.EmployeeWhereUniqueInput
-  create: Prisma.XOR<Prisma.EmployeeCreateWithoutTwoFactorRecoveryCodesInput, Prisma.EmployeeUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
-}
-
-export type EmployeeCreateWithoutDeletedTwoFactorRecoveryCodesInput = {
-  id?: string
-  employeeNumber: string
-  firstName: string
-  lastName: string
-  email: string
-  phone?: string | null
-  employmentType?: string
-  status?: string
-  hireDate: Date | string
-  terminatedAt?: Date | string | null
-  passwordHash?: string | null
-  verifiedEmail?: boolean
-  phoneNumber?: string | null
-  verifiedPhone?: boolean
-  enabled?: boolean
-  logoutAt?: Date | string | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  deletedAt?: Date | string | null
-  department?: Prisma.DepartmentCreateNestedOneWithoutEmployeesInput
-  position?: Prisma.PositionCreateNestedOneWithoutEmployeesInput
-  manager?: Prisma.EmployeeCreateNestedOneWithoutReportsInput
-  reports?: Prisma.EmployeeCreateNestedManyWithoutManagerInput
-  headOf?: Prisma.DepartmentCreateNestedOneWithoutHeadInput
-  leaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutEmployeeInput
-  leaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutEmployeeInput
-  decidedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDecidedByInput
-  documents?: Prisma.EmployeeDocumentCreateNestedManyWithoutEmployeeInput
-  compensations?: Prisma.CompensationCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
-  writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
-  roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
-  avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
-  createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
-  createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
-  createdEmployeeDocuments?: Prisma.EmployeeDocumentCreateNestedManyWithoutCreatedByInput
-  createdEmployees?: Prisma.EmployeeCreateNestedManyWithoutCreatedByInput
-  createdLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutCreatedByInput
-  createdLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutCreatedByInput
-  createdPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutCreatedByInput
-  createdPositions?: Prisma.PositionCreateNestedManyWithoutCreatedByInput
-  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
-  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
-  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
-  deletedCompensations?: Prisma.CompensationCreateNestedManyWithoutDeletedByInput
-  deletedEmployeeDocuments?: Prisma.EmployeeDocumentCreateNestedManyWithoutDeletedByInput
-  deletedEmployees?: Prisma.EmployeeCreateNestedManyWithoutDeletedByInput
-  deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
-  deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
-  deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
-  createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
-  deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
-}
-
-export type EmployeeUncheckedCreateWithoutDeletedTwoFactorRecoveryCodesInput = {
-  id?: string
-  employeeNumber: string
-  firstName: string
-  lastName: string
-  email: string
-  phone?: string | null
-  employmentType?: string
-  status?: string
-  hireDate: Date | string
-  terminatedAt?: Date | string | null
-  passwordHash?: string | null
-  verifiedEmail?: boolean
-  phoneNumber?: string | null
-  verifiedPhone?: boolean
-  enabled?: boolean
-  logoutAt?: Date | string | null
-  departmentId?: number | null
-  positionId?: number | null
-  managerId?: string | null
-  avatarId?: number | null
-  updatedAt?: Date | string
-  createdAt?: Date | string
-  createdById?: string | null
-  deletedAt?: Date | string | null
-  deletedById?: string | null
-  reports?: Prisma.EmployeeUncheckedCreateNestedManyWithoutManagerInput
-  headOf?: Prisma.DepartmentUncheckedCreateNestedOneWithoutHeadInput
-  leaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutEmployeeInput
-  leaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutEmployeeInput
-  decidedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDecidedByInput
-  documents?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutEmployeeInput
-  compensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
-  writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
-  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
-  createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
-  createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
-  createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
-  createdEmployees?: Prisma.EmployeeUncheckedCreateNestedManyWithoutCreatedByInput
-  createdLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutCreatedByInput
-  createdLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPositions?: Prisma.PositionUncheckedCreateNestedManyWithoutCreatedByInput
-  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
-  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
-  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
-  deletedCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedEmployees?: Prisma.EmployeeUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
-}
-
-export type EmployeeCreateOrConnectWithoutDeletedTwoFactorRecoveryCodesInput = {
-  where: Prisma.EmployeeWhereUniqueInput
-  create: Prisma.XOR<Prisma.EmployeeCreateWithoutDeletedTwoFactorRecoveryCodesInput, Prisma.EmployeeUncheckedCreateWithoutDeletedTwoFactorRecoveryCodesInput>
-}
-
-export type EmployeeUpsertWithoutTwoFactorRecoveryCodesInput = {
-  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutTwoFactorRecoveryCodesInput, Prisma.EmployeeUncheckedUpdateWithoutTwoFactorRecoveryCodesInput>
-  create: Prisma.XOR<Prisma.EmployeeCreateWithoutTwoFactorRecoveryCodesInput, Prisma.EmployeeUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
-  where?: Prisma.EmployeeWhereInput
-}
-
-export type EmployeeUpdateToOneWithWhereWithoutTwoFactorRecoveryCodesInput = {
-  where?: Prisma.EmployeeWhereInput
-  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutTwoFactorRecoveryCodesInput, Prisma.EmployeeUncheckedUpdateWithoutTwoFactorRecoveryCodesInput>
-}
-
-export type EmployeeUpdateWithoutTwoFactorRecoveryCodesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  employeeNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  department?: Prisma.DepartmentUpdateOneWithoutEmployeesNestedInput
-  position?: Prisma.PositionUpdateOneWithoutEmployeesNestedInput
-  manager?: Prisma.EmployeeUpdateOneWithoutReportsNestedInput
-  reports?: Prisma.EmployeeUpdateManyWithoutManagerNestedInput
-  headOf?: Prisma.DepartmentUpdateOneWithoutHeadNestedInput
-  leaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutEmployeeNestedInput
-  leaveRequests?: Prisma.LeaveRequestUpdateManyWithoutEmployeeNestedInput
-  decidedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDecidedByNestedInput
-  documents?: Prisma.EmployeeDocumentUpdateManyWithoutEmployeeNestedInput
-  compensations?: Prisma.CompensationUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
-  writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
-  roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
-  createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
-  createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
-  createdEmployeeDocuments?: Prisma.EmployeeDocumentUpdateManyWithoutCreatedByNestedInput
-  createdEmployees?: Prisma.EmployeeUpdateManyWithoutCreatedByNestedInput
-  createdLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutCreatedByNestedInput
-  createdLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutCreatedByNestedInput
-  createdPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutCreatedByNestedInput
-  createdPositions?: Prisma.PositionUpdateManyWithoutCreatedByNestedInput
-  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
-  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
-  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
-  deletedCompensations?: Prisma.CompensationUpdateManyWithoutDeletedByNestedInput
-  deletedEmployeeDocuments?: Prisma.EmployeeDocumentUpdateManyWithoutDeletedByNestedInput
-  deletedEmployees?: Prisma.EmployeeUpdateManyWithoutDeletedByNestedInput
-  deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
-  deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
-  deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
-  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
-  createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
-  deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
-}
-
-export type EmployeeUncheckedUpdateWithoutTwoFactorRecoveryCodesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  employeeNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  departmentId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  positionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  managerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  deletedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reports?: Prisma.EmployeeUncheckedUpdateManyWithoutManagerNestedInput
-  headOf?: Prisma.DepartmentUncheckedUpdateOneWithoutHeadNestedInput
-  leaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutEmployeeNestedInput
-  leaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutEmployeeNestedInput
-  decidedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDecidedByNestedInput
-  documents?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutEmployeeNestedInput
-  compensations?: Prisma.CompensationUncheckedUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
-  writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
-  roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdEmployees?: Prisma.EmployeeUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPositions?: Prisma.PositionUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
-  deletedCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedEmployees?: Prisma.EmployeeUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
-}
-
-export type EmployeeUpsertWithoutDeletedTwoFactorRecoveryCodesInput = {
-  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutDeletedTwoFactorRecoveryCodesInput, Prisma.EmployeeUncheckedUpdateWithoutDeletedTwoFactorRecoveryCodesInput>
-  create: Prisma.XOR<Prisma.EmployeeCreateWithoutDeletedTwoFactorRecoveryCodesInput, Prisma.EmployeeUncheckedCreateWithoutDeletedTwoFactorRecoveryCodesInput>
-  where?: Prisma.EmployeeWhereInput
-}
-
-export type EmployeeUpdateToOneWithWhereWithoutDeletedTwoFactorRecoveryCodesInput = {
-  where?: Prisma.EmployeeWhereInput
-  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutDeletedTwoFactorRecoveryCodesInput, Prisma.EmployeeUncheckedUpdateWithoutDeletedTwoFactorRecoveryCodesInput>
-}
-
-export type EmployeeUpdateWithoutDeletedTwoFactorRecoveryCodesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  employeeNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  department?: Prisma.DepartmentUpdateOneWithoutEmployeesNestedInput
-  position?: Prisma.PositionUpdateOneWithoutEmployeesNestedInput
-  manager?: Prisma.EmployeeUpdateOneWithoutReportsNestedInput
-  reports?: Prisma.EmployeeUpdateManyWithoutManagerNestedInput
-  headOf?: Prisma.DepartmentUpdateOneWithoutHeadNestedInput
-  leaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutEmployeeNestedInput
-  leaveRequests?: Prisma.LeaveRequestUpdateManyWithoutEmployeeNestedInput
-  decidedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDecidedByNestedInput
-  documents?: Prisma.EmployeeDocumentUpdateManyWithoutEmployeeNestedInput
-  compensations?: Prisma.CompensationUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
-  writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
-  roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
-  avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
-  createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
-  createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
-  createdEmployeeDocuments?: Prisma.EmployeeDocumentUpdateManyWithoutCreatedByNestedInput
-  createdEmployees?: Prisma.EmployeeUpdateManyWithoutCreatedByNestedInput
-  createdLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutCreatedByNestedInput
-  createdLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutCreatedByNestedInput
-  createdPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutCreatedByNestedInput
-  createdPositions?: Prisma.PositionUpdateManyWithoutCreatedByNestedInput
-  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
-  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
-  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
-  deletedCompensations?: Prisma.CompensationUpdateManyWithoutDeletedByNestedInput
-  deletedEmployeeDocuments?: Prisma.EmployeeDocumentUpdateManyWithoutDeletedByNestedInput
-  deletedEmployees?: Prisma.EmployeeUpdateManyWithoutDeletedByNestedInput
-  deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
-  deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
-  deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
-  createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
-  deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
-}
-
-export type EmployeeUncheckedUpdateWithoutDeletedTwoFactorRecoveryCodesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  employeeNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  departmentId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  positionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  managerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  deletedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reports?: Prisma.EmployeeUncheckedUpdateManyWithoutManagerNestedInput
-  headOf?: Prisma.DepartmentUncheckedUpdateOneWithoutHeadNestedInput
-  leaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutEmployeeNestedInput
-  leaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutEmployeeNestedInput
-  decidedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDecidedByNestedInput
-  documents?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutEmployeeNestedInput
-  compensations?: Prisma.CompensationUncheckedUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
-  writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
-  roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
-  createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdEmployees?: Prisma.EmployeeUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPositions?: Prisma.PositionUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
-  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
-  deletedCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedEmployees?: Prisma.EmployeeUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -9417,8 +7913,6 @@ export type EmployeeCreateWithoutRolesInput = {
   compensations?: Prisma.CompensationCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -9437,8 +7931,6 @@ export type EmployeeCreateWithoutRolesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -9479,8 +7971,6 @@ export type EmployeeUncheckedCreateWithoutRolesInput = {
   compensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -9498,8 +7988,6 @@ export type EmployeeUncheckedCreateWithoutRolesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -9541,8 +8029,6 @@ export type EmployeeCreateWithoutCreatedRolesInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -9560,8 +8046,6 @@ export type EmployeeCreateWithoutCreatedRolesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -9603,8 +8087,6 @@ export type EmployeeUncheckedCreateWithoutCreatedRolesInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -9621,8 +8103,6 @@ export type EmployeeUncheckedCreateWithoutCreatedRolesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -9691,8 +8171,6 @@ export type EmployeeUpdateWithoutCreatedRolesInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -9710,8 +8188,6 @@ export type EmployeeUpdateWithoutCreatedRolesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -9753,8 +8229,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedRolesInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -9771,8 +8245,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedRolesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -9809,8 +8281,6 @@ export type EmployeeCreateWithoutCreatedPermissionsInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -9828,8 +8298,6 @@ export type EmployeeCreateWithoutCreatedPermissionsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -9871,8 +8339,6 @@ export type EmployeeUncheckedCreateWithoutCreatedPermissionsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -9889,8 +8355,6 @@ export type EmployeeUncheckedCreateWithoutCreatedPermissionsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -9943,8 +8407,6 @@ export type EmployeeUpdateWithoutCreatedPermissionsInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -9962,8 +8424,6 @@ export type EmployeeUpdateWithoutCreatedPermissionsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -10005,8 +8465,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedPermissionsInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -10023,8 +8481,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedPermissionsInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -10061,8 +8517,6 @@ export type EmployeeCreateWithoutAvatarInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentCreateNestedManyWithoutCreatedByInput
@@ -10080,8 +8534,6 @@ export type EmployeeCreateWithoutAvatarInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -10122,8 +8574,6 @@ export type EmployeeUncheckedCreateWithoutAvatarInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -10141,8 +8591,6 @@ export type EmployeeUncheckedCreateWithoutAvatarInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -10188,8 +8636,6 @@ export type EmployeeCreateWithoutCreatedFilesInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -10207,8 +8653,6 @@ export type EmployeeCreateWithoutCreatedFilesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
@@ -10250,8 +8694,6 @@ export type EmployeeUncheckedCreateWithoutCreatedFilesInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -10268,8 +8710,6 @@ export type EmployeeUncheckedCreateWithoutCreatedFilesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
   deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
@@ -10311,8 +8751,6 @@ export type EmployeeCreateWithoutDeletedFilesInput = {
   reviews?: Prisma.PerformanceReviewCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutEmployeeInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarEmployeesInput
   createdCompensations?: Prisma.CompensationCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentCreateNestedManyWithoutCreatedByInput
@@ -10331,8 +8769,6 @@ export type EmployeeCreateWithoutDeletedFilesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutDeletedByInput
   createdBy?: Prisma.EmployeeCreateNestedOneWithoutCreatedEmployeesInput
   deletedBy?: Prisma.EmployeeCreateNestedOneWithoutDeletedEmployeesInput
 }
@@ -10373,8 +8809,6 @@ export type EmployeeUncheckedCreateWithoutDeletedFilesInput = {
   reviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutEmployeeInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutReviewerInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutEmployeesInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutEmployeeInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutEmployeeInput
   createdCompensations?: Prisma.CompensationUncheckedCreateNestedManyWithoutCreatedByInput
   createdDepartments?: Prisma.DepartmentUncheckedCreateNestedManyWithoutCreatedByInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -10392,8 +8826,6 @@ export type EmployeeUncheckedCreateWithoutDeletedFilesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutDeletedByInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedCreateNestedManyWithoutDeletedByInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutDeletedByInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutDeletedByInput
 }
 
 export type EmployeeCreateOrConnectWithoutDeletedFilesInput = {
@@ -10461,8 +8893,6 @@ export type EmployeeUpdateWithoutCreatedFilesInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -10480,8 +8910,6 @@ export type EmployeeUpdateWithoutCreatedFilesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -10523,8 +8951,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedFilesInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -10541,8 +8967,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedFilesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -10590,8 +9014,6 @@ export type EmployeeUpdateWithoutDeletedFilesInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -10610,8 +9032,6 @@ export type EmployeeUpdateWithoutDeletedFilesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
 }
@@ -10652,8 +9072,6 @@ export type EmployeeUncheckedUpdateWithoutDeletedFilesInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -10671,8 +9089,6 @@ export type EmployeeUncheckedUpdateWithoutDeletedFilesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
 export type EmployeeCreateManyDepartmentInput = {
@@ -10734,8 +9150,6 @@ export type EmployeeUpdateWithoutDepartmentInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -10754,8 +9168,6 @@ export type EmployeeUpdateWithoutDepartmentInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -10796,8 +9208,6 @@ export type EmployeeUncheckedUpdateWithoutDepartmentInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -10815,8 +9225,6 @@ export type EmployeeUncheckedUpdateWithoutDepartmentInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -10960,8 +9368,6 @@ export type EmployeeUpdateWithoutManagerInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -10980,8 +9386,6 @@ export type EmployeeUpdateWithoutManagerInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -11022,8 +9426,6 @@ export type EmployeeUncheckedUpdateWithoutManagerInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -11041,8 +9443,6 @@ export type EmployeeUncheckedUpdateWithoutManagerInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -11106,8 +9506,6 @@ export type EmployeeUpdateWithoutCreatedByInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -11126,8 +9524,6 @@ export type EmployeeUpdateWithoutCreatedByInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
 }
@@ -11167,8 +9563,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedByInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -11186,8 +9580,6 @@ export type EmployeeUncheckedUpdateWithoutCreatedByInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -11251,8 +9643,6 @@ export type EmployeeUpdateWithoutDeletedByInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -11271,8 +9661,6 @@ export type EmployeeUpdateWithoutDeletedByInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
 }
@@ -11312,8 +9700,6 @@ export type EmployeeUncheckedUpdateWithoutDeletedByInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -11331,8 +9717,6 @@ export type EmployeeUncheckedUpdateWithoutDeletedByInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -11422,8 +9806,6 @@ export type EmployeeUpdateWithoutPositionInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -11442,8 +9824,6 @@ export type EmployeeUpdateWithoutPositionInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -11484,8 +9864,6 @@ export type EmployeeUncheckedUpdateWithoutPositionInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -11503,8 +9881,6 @@ export type EmployeeUncheckedUpdateWithoutPositionInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -11567,8 +9943,6 @@ export type EmployeeUpdateWithoutRolesInput = {
   compensations?: Prisma.CompensationUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarEmployeesNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
@@ -11587,8 +9961,6 @@ export type EmployeeUpdateWithoutRolesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -11629,8 +10001,6 @@ export type EmployeeUncheckedUpdateWithoutRolesInput = {
   compensations?: Prisma.CompensationUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -11648,8 +10018,6 @@ export type EmployeeUncheckedUpdateWithoutRolesInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -11741,8 +10109,6 @@ export type EmployeeUpdateWithoutAvatarInput = {
   reviews?: Prisma.PerformanceReviewUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUpdateManyWithoutCreatedByNestedInput
@@ -11760,8 +10126,6 @@ export type EmployeeUpdateWithoutAvatarInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
   createdBy?: Prisma.EmployeeUpdateOneWithoutCreatedEmployeesNestedInput
   deletedBy?: Prisma.EmployeeUpdateOneWithoutDeletedEmployeesNestedInput
@@ -11802,8 +10166,6 @@ export type EmployeeUncheckedUpdateWithoutAvatarInput = {
   reviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutEmployeeNestedInput
   writtenReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutReviewerNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutEmployeesNestedInput
-  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutEmployeeNestedInput
-  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutEmployeeNestedInput
   createdCompensations?: Prisma.CompensationUncheckedUpdateManyWithoutCreatedByNestedInput
   createdDepartments?: Prisma.DepartmentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdEmployeeDocuments?: Prisma.EmployeeDocumentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -11821,8 +10183,6 @@ export type EmployeeUncheckedUpdateWithoutAvatarInput = {
   deletedLeaveBalances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedLeaveRequests?: Prisma.LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedPerformanceReviews?: Prisma.PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput
-  deletedTwoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutDeletedByNestedInput
   deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
 }
 
@@ -11868,8 +10228,6 @@ export type EmployeeCountOutputType = {
   reviews: number
   writtenReviews: number
   roles: number
-  twoFactorMethods: number
-  twoFactorRecoveryCodes: number
   createdCompensations: number
   createdDepartments: number
   createdEmployeeDocuments: number
@@ -11887,8 +10245,6 @@ export type EmployeeCountOutputType = {
   deletedLeaveBalances: number
   deletedLeaveRequests: number
   deletedPerformanceReviews: number
-  deletedTwoFactorMethods: number
-  deletedTwoFactorRecoveryCodes: number
   deletedFiles: number
 }
 
@@ -11902,8 +10258,6 @@ export type EmployeeCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   reviews?: boolean | EmployeeCountOutputTypeCountReviewsArgs
   writtenReviews?: boolean | EmployeeCountOutputTypeCountWrittenReviewsArgs
   roles?: boolean | EmployeeCountOutputTypeCountRolesArgs
-  twoFactorMethods?: boolean | EmployeeCountOutputTypeCountTwoFactorMethodsArgs
-  twoFactorRecoveryCodes?: boolean | EmployeeCountOutputTypeCountTwoFactorRecoveryCodesArgs
   createdCompensations?: boolean | EmployeeCountOutputTypeCountCreatedCompensationsArgs
   createdDepartments?: boolean | EmployeeCountOutputTypeCountCreatedDepartmentsArgs
   createdEmployeeDocuments?: boolean | EmployeeCountOutputTypeCountCreatedEmployeeDocumentsArgs
@@ -11921,8 +10275,6 @@ export type EmployeeCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   deletedLeaveBalances?: boolean | EmployeeCountOutputTypeCountDeletedLeaveBalancesArgs
   deletedLeaveRequests?: boolean | EmployeeCountOutputTypeCountDeletedLeaveRequestsArgs
   deletedPerformanceReviews?: boolean | EmployeeCountOutputTypeCountDeletedPerformanceReviewsArgs
-  deletedTwoFactorMethods?: boolean | EmployeeCountOutputTypeCountDeletedTwoFactorMethodsArgs
-  deletedTwoFactorRecoveryCodes?: boolean | EmployeeCountOutputTypeCountDeletedTwoFactorRecoveryCodesArgs
   deletedFiles?: boolean | EmployeeCountOutputTypeCountDeletedFilesArgs
 }
 
@@ -11997,20 +10349,6 @@ export type EmployeeCountOutputTypeCountWrittenReviewsArgs<ExtArgs extends runti
  */
 export type EmployeeCountOutputTypeCountRolesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.RoleWhereInput
-}
-
-/**
- * EmployeeCountOutputType without action
- */
-export type EmployeeCountOutputTypeCountTwoFactorMethodsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.TwoFactorMethodWhereInput
-}
-
-/**
- * EmployeeCountOutputType without action
- */
-export type EmployeeCountOutputTypeCountTwoFactorRecoveryCodesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.TwoFactorRecoveryCodeWhereInput
 }
 
 /**
@@ -12135,20 +10473,6 @@ export type EmployeeCountOutputTypeCountDeletedPerformanceReviewsArgs<ExtArgs ex
 /**
  * EmployeeCountOutputType without action
  */
-export type EmployeeCountOutputTypeCountDeletedTwoFactorMethodsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.TwoFactorMethodWhereInput
-}
-
-/**
- * EmployeeCountOutputType without action
- */
-export type EmployeeCountOutputTypeCountDeletedTwoFactorRecoveryCodesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.TwoFactorRecoveryCodeWhereInput
-}
-
-/**
- * EmployeeCountOutputType without action
- */
 export type EmployeeCountOutputTypeCountDeletedFilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.FileWhereInput
 }
@@ -12193,8 +10517,6 @@ export type EmployeeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   reviews?: boolean | Prisma.Employee$reviewsArgs<ExtArgs>
   writtenReviews?: boolean | Prisma.Employee$writtenReviewsArgs<ExtArgs>
   roles?: boolean | Prisma.Employee$rolesArgs<ExtArgs>
-  twoFactorMethods?: boolean | Prisma.Employee$twoFactorMethodsArgs<ExtArgs>
-  twoFactorRecoveryCodes?: boolean | Prisma.Employee$twoFactorRecoveryCodesArgs<ExtArgs>
   avatar?: boolean | Prisma.Employee$avatarArgs<ExtArgs>
   createdCompensations?: boolean | Prisma.Employee$createdCompensationsArgs<ExtArgs>
   createdDepartments?: boolean | Prisma.Employee$createdDepartmentsArgs<ExtArgs>
@@ -12213,8 +10535,6 @@ export type EmployeeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   deletedLeaveBalances?: boolean | Prisma.Employee$deletedLeaveBalancesArgs<ExtArgs>
   deletedLeaveRequests?: boolean | Prisma.Employee$deletedLeaveRequestsArgs<ExtArgs>
   deletedPerformanceReviews?: boolean | Prisma.Employee$deletedPerformanceReviewsArgs<ExtArgs>
-  deletedTwoFactorMethods?: boolean | Prisma.Employee$deletedTwoFactorMethodsArgs<ExtArgs>
-  deletedTwoFactorRecoveryCodes?: boolean | Prisma.Employee$deletedTwoFactorRecoveryCodesArgs<ExtArgs>
   deletedFiles?: boolean | Prisma.Employee$deletedFilesArgs<ExtArgs>
   createdBy?: boolean | Prisma.Employee$createdByArgs<ExtArgs>
   deletedBy?: boolean | Prisma.Employee$deletedByArgs<ExtArgs>
@@ -12266,8 +10586,6 @@ export type EmployeeInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   reviews?: boolean | Prisma.Employee$reviewsArgs<ExtArgs>
   writtenReviews?: boolean | Prisma.Employee$writtenReviewsArgs<ExtArgs>
   roles?: boolean | Prisma.Employee$rolesArgs<ExtArgs>
-  twoFactorMethods?: boolean | Prisma.Employee$twoFactorMethodsArgs<ExtArgs>
-  twoFactorRecoveryCodes?: boolean | Prisma.Employee$twoFactorRecoveryCodesArgs<ExtArgs>
   avatar?: boolean | Prisma.Employee$avatarArgs<ExtArgs>
   createdCompensations?: boolean | Prisma.Employee$createdCompensationsArgs<ExtArgs>
   createdDepartments?: boolean | Prisma.Employee$createdDepartmentsArgs<ExtArgs>
@@ -12286,8 +10604,6 @@ export type EmployeeInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   deletedLeaveBalances?: boolean | Prisma.Employee$deletedLeaveBalancesArgs<ExtArgs>
   deletedLeaveRequests?: boolean | Prisma.Employee$deletedLeaveRequestsArgs<ExtArgs>
   deletedPerformanceReviews?: boolean | Prisma.Employee$deletedPerformanceReviewsArgs<ExtArgs>
-  deletedTwoFactorMethods?: boolean | Prisma.Employee$deletedTwoFactorMethodsArgs<ExtArgs>
-  deletedTwoFactorRecoveryCodes?: boolean | Prisma.Employee$deletedTwoFactorRecoveryCodesArgs<ExtArgs>
   deletedFiles?: boolean | Prisma.Employee$deletedFilesArgs<ExtArgs>
   createdBy?: boolean | Prisma.Employee$createdByArgs<ExtArgs>
   deletedBy?: boolean | Prisma.Employee$deletedByArgs<ExtArgs>
@@ -12313,8 +10629,6 @@ export type $EmployeePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     reviews: Prisma.$PerformanceReviewPayload<ExtArgs>[]
     writtenReviews: Prisma.$PerformanceReviewPayload<ExtArgs>[]
     roles: Prisma.$RolePayload<ExtArgs>[]
-    twoFactorMethods: Prisma.$TwoFactorMethodPayload<ExtArgs>[]
-    twoFactorRecoveryCodes: Prisma.$TwoFactorRecoveryCodePayload<ExtArgs>[]
     /**
      * File columns
      */
@@ -12342,8 +10656,6 @@ export type $EmployeePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     deletedLeaveBalances: Prisma.$LeaveBalancePayload<ExtArgs>[]
     deletedLeaveRequests: Prisma.$LeaveRequestPayload<ExtArgs>[]
     deletedPerformanceReviews: Prisma.$PerformanceReviewPayload<ExtArgs>[]
-    deletedTwoFactorMethods: Prisma.$TwoFactorMethodPayload<ExtArgs>[]
-    deletedTwoFactorRecoveryCodes: Prisma.$TwoFactorRecoveryCodePayload<ExtArgs>[]
     deletedFiles: Prisma.$FilePayload<ExtArgs>[]
     createdBy: Prisma.$EmployeePayload<ExtArgs> | null
     deletedBy: Prisma.$EmployeePayload<ExtArgs> | null
@@ -12730,8 +11042,6 @@ export interface Prisma__EmployeeClient<T, Null = never, ExtArgs extends runtime
   reviews<T extends Prisma.Employee$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PerformanceReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   writtenReviews<T extends Prisma.Employee$writtenReviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$writtenReviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PerformanceReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   roles<T extends Prisma.Employee$rolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$rolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  twoFactorMethods<T extends Prisma.Employee$twoFactorMethodsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$twoFactorMethodsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TwoFactorMethodPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  twoFactorRecoveryCodes<T extends Prisma.Employee$twoFactorRecoveryCodesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$twoFactorRecoveryCodesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TwoFactorRecoveryCodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   avatar<T extends Prisma.Employee$avatarArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$avatarArgs<ExtArgs>>): Prisma.Prisma__FileClient<runtime.Types.Result.GetResult<Prisma.$FilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   createdCompensations<T extends Prisma.Employee$createdCompensationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$createdCompensationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CompensationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdDepartments<T extends Prisma.Employee$createdDepartmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$createdDepartmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DepartmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -12750,8 +11060,6 @@ export interface Prisma__EmployeeClient<T, Null = never, ExtArgs extends runtime
   deletedLeaveBalances<T extends Prisma.Employee$deletedLeaveBalancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$deletedLeaveBalancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeaveBalancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   deletedLeaveRequests<T extends Prisma.Employee$deletedLeaveRequestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$deletedLeaveRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeaveRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   deletedPerformanceReviews<T extends Prisma.Employee$deletedPerformanceReviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$deletedPerformanceReviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PerformanceReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  deletedTwoFactorMethods<T extends Prisma.Employee$deletedTwoFactorMethodsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$deletedTwoFactorMethodsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TwoFactorMethodPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  deletedTwoFactorRecoveryCodes<T extends Prisma.Employee$deletedTwoFactorRecoveryCodesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$deletedTwoFactorRecoveryCodesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TwoFactorRecoveryCodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   deletedFiles<T extends Prisma.Employee$deletedFilesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$deletedFilesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdBy<T extends Prisma.Employee$createdByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$createdByArgs<ExtArgs>>): Prisma.Prisma__EmployeeClient<runtime.Types.Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   deletedBy<T extends Prisma.Employee$deletedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$deletedByArgs<ExtArgs>>): Prisma.Prisma__EmployeeClient<runtime.Types.Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -13448,54 +11756,6 @@ export type Employee$rolesArgs<ExtArgs extends runtime.Types.Extensions.Internal
 }
 
 /**
- * Employee.twoFactorMethods
- */
-export type Employee$twoFactorMethodsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the TwoFactorMethod
-   */
-  select?: Prisma.TwoFactorMethodSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the TwoFactorMethod
-   */
-  omit?: Prisma.TwoFactorMethodOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.TwoFactorMethodInclude<ExtArgs> | null
-  where?: Prisma.TwoFactorMethodWhereInput
-  orderBy?: Prisma.TwoFactorMethodOrderByWithRelationInput | Prisma.TwoFactorMethodOrderByWithRelationInput[]
-  cursor?: Prisma.TwoFactorMethodWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.TwoFactorMethodScalarFieldEnum | Prisma.TwoFactorMethodScalarFieldEnum[]
-}
-
-/**
- * Employee.twoFactorRecoveryCodes
- */
-export type Employee$twoFactorRecoveryCodesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the TwoFactorRecoveryCode
-   */
-  select?: Prisma.TwoFactorRecoveryCodeSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the TwoFactorRecoveryCode
-   */
-  omit?: Prisma.TwoFactorRecoveryCodeOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.TwoFactorRecoveryCodeInclude<ExtArgs> | null
-  where?: Prisma.TwoFactorRecoveryCodeWhereInput
-  orderBy?: Prisma.TwoFactorRecoveryCodeOrderByWithRelationInput | Prisma.TwoFactorRecoveryCodeOrderByWithRelationInput[]
-  cursor?: Prisma.TwoFactorRecoveryCodeWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.TwoFactorRecoveryCodeScalarFieldEnum | Prisma.TwoFactorRecoveryCodeScalarFieldEnum[]
-}
-
-/**
  * Employee.avatar
  */
 export type Employee$avatarArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -13920,54 +12180,6 @@ export type Employee$deletedPerformanceReviewsArgs<ExtArgs extends runtime.Types
   take?: number
   skip?: number
   distinct?: Prisma.PerformanceReviewScalarFieldEnum | Prisma.PerformanceReviewScalarFieldEnum[]
-}
-
-/**
- * Employee.deletedTwoFactorMethods
- */
-export type Employee$deletedTwoFactorMethodsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the TwoFactorMethod
-   */
-  select?: Prisma.TwoFactorMethodSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the TwoFactorMethod
-   */
-  omit?: Prisma.TwoFactorMethodOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.TwoFactorMethodInclude<ExtArgs> | null
-  where?: Prisma.TwoFactorMethodWhereInput
-  orderBy?: Prisma.TwoFactorMethodOrderByWithRelationInput | Prisma.TwoFactorMethodOrderByWithRelationInput[]
-  cursor?: Prisma.TwoFactorMethodWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.TwoFactorMethodScalarFieldEnum | Prisma.TwoFactorMethodScalarFieldEnum[]
-}
-
-/**
- * Employee.deletedTwoFactorRecoveryCodes
- */
-export type Employee$deletedTwoFactorRecoveryCodesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the TwoFactorRecoveryCode
-   */
-  select?: Prisma.TwoFactorRecoveryCodeSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the TwoFactorRecoveryCode
-   */
-  omit?: Prisma.TwoFactorRecoveryCodeOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.TwoFactorRecoveryCodeInclude<ExtArgs> | null
-  where?: Prisma.TwoFactorRecoveryCodeWhereInput
-  orderBy?: Prisma.TwoFactorRecoveryCodeOrderByWithRelationInput | Prisma.TwoFactorRecoveryCodeOrderByWithRelationInput[]
-  cursor?: Prisma.TwoFactorRecoveryCodeWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.TwoFactorRecoveryCodeScalarFieldEnum | Prisma.TwoFactorRecoveryCodeScalarFieldEnum[]
 }
 
 /**

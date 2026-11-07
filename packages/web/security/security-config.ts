@@ -32,8 +32,8 @@ export const accountConfig = defineConfig('security.account', {
 });
 
 export const twoFactorConfig = defineConfig('security.account.2fa', {
-  /** Enable two-factor authentication. Default: `true`. */
-  ENABLED: Type.Boolean({ default: true }),
+  /** Enable two-factor authentication, its routes and its models. Default: `false`. */
+  ENABLED: Type.Boolean({ default: false }),
   /** Force 2FA for all users, a user without a method of their own verifying with the `defaultMethod`. Default:
    * `false`. */
   FORCED: Type.Boolean({ default: false }),

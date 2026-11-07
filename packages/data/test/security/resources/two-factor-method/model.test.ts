@@ -2,7 +2,7 @@ import { resetContext } from '@appweaver/testing';
 
 /** Imports the TwoFactorMethod model after an auth model, which links the methods to their user. */
 async function loadModels(env: Record<string, string> = {}): Promise<any> {
-  Object.assign(process.env, env);
+  Object.assign(process.env, { SECURITY_ACCOUNT_2FA_ENABLED: 'true', ...env });
   jest.resetModules();
   const { createAuthModel } = await import('@appweaver/data');
   const authModel = createAuthModel({ name: 'User' });

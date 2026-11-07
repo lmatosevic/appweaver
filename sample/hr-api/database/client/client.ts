@@ -85,16 +85,6 @@ export type Position = Prisma.PositionModel
  */
 export type OneTimeToken = Prisma.OneTimeTokenModel
 /**
- * Model TwoFactorMethod
- * 
- */
-export type TwoFactorMethod = Prisma.TwoFactorMethodModel
-/**
- * Model TwoFactorRecoveryCode
- * 
- */
-export type TwoFactorRecoveryCode = Prisma.TwoFactorRecoveryCodeModel
-/**
  * Model Role
  * 
  */

@@ -76,6 +76,7 @@ describe('auth-service', () => {
 
   beforeEach(() => {
     resetContext();
+    configOverrides.SECURITY_ACCOUNT_2FA_ENABLED = true;
 
     authUserService = {
       modelName: 'User',

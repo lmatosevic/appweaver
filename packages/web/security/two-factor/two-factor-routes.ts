@@ -5,6 +5,7 @@ import {
 } from '@appweaver/common';
 import { currentAuthSource, inject } from '@appweaver/core';
 import { Server } from '../../types/server';
+import { recoveryCodesConfig } from '../security-config';
 import { TwoFactorService } from './two-factor-service';
 import {
   twoFactorChallengeSchema,
@@ -20,7 +21,8 @@ import {
 
 /**
  * Registers the two-factor authentication routes: the challenge and its verification of the `2fa` scope, and the
- * management of the methods and the recovery codes of the signed-in user.
+ * management of the methods and the recovery codes of the signed-in user. The TOTP setup is registered only with the
+ * `Totp` method available, and the recovery codes only with their config enabled.
  *
  * @param {Server} server - The server to register the routes on.
  */
@@ -152,61 +154,66 @@ export function twoFactorRoutes(server: Server): void {
     }
   );
 
-  server.post(
-    '/totp/setup',
-    {
-      schema: twoFactorTotpSetupSchema,
-      onRequest: authenticate([AuthType.Jwt])
-    },
-    async (_, reply) => {
-      return reply.send(await twoFactorService.setupTotp(currentUser()));
-    }
-  );
-
-  server.post(
-    '/totp/confirm',
-    {
-      schema: twoFactorTotpConfirmSchema,
-      onRequest: authenticate([AuthType.Jwt]),
-      config: {
-        rateLimit: {
-          secure: true,
-          max: 12
-        }
+  // The authenticator app needs the key encrypting its secret, the recovery codes their config
+  if (twoFactorService.availableMethods().includes(TwoFactorMethodType.Totp)) {
+    server.post(
+      '/totp/setup',
+      {
+        schema: twoFactorTotpSetupSchema,
+        onRequest: authenticate([AuthType.Jwt])
+      },
+      async (_, reply) => {
+        return reply.send(await twoFactorService.setupTotp(currentUser()));
       }
-    },
-    async (request, reply) => {
-      const enabled = await twoFactorService.confirmTotp(
-        currentUser(),
-        request.body.code
-      );
+    );
 
-      return reply.send({
-        enabled,
-        available: twoFactorService.availableMethods()
-      });
-    }
-  );
-
-  server.post(
-    '/recovery-codes',
-    {
-      schema: twoFactorRecoveryCodesSchema,
-      onRequest: authenticate([AuthType.Jwt]),
-      config: {
-        rateLimit: {
-          secure: true,
-          max: 12
+    server.post(
+      '/totp/confirm',
+      {
+        schema: twoFactorTotpConfirmSchema,
+        onRequest: authenticate([AuthType.Jwt]),
+        config: {
+          rateLimit: {
+            secure: true,
+            max: 12
+          }
         }
-      }
-    },
-    async (request, reply) => {
-      return reply.send(
-        await twoFactorService.generateRecoveryCodes(
+      },
+      async (request, reply) => {
+        const enabled = await twoFactorService.confirmTotp(
           currentUser(),
-          request.body?.password
-        )
-      );
-    }
-  );
+          request.body.code
+        );
+
+        return reply.send({
+          enabled,
+          available: twoFactorService.availableMethods()
+        });
+      }
+    );
+  }
+
+  if (recoveryCodesConfig.ENABLED) {
+    server.post(
+      '/recovery-codes',
+      {
+        schema: twoFactorRecoveryCodesSchema,
+        onRequest: authenticate([AuthType.Jwt]),
+        config: {
+          rateLimit: {
+            secure: true,
+            max: 12
+          }
+        }
+      },
+      async (request, reply) => {
+        return reply.send(
+          await twoFactorService.generateRecoveryCodes(
+            currentUser(),
+            request.body?.password
+          )
+        );
+      }
+    );
+  }
 }

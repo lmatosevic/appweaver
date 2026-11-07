@@ -37,6 +37,7 @@ describe('basic-auth', () => {
 
   beforeEach(() => {
     resetContext();
+    configOverrides.SECURITY_ACCOUNT_2FA_ENABLED = true;
     authenticate = jest.fn().mockImplementation(async (username, password) => {
       if (username !== 'user@test.com' || password !== 'secret') {
         throw new AuthError(

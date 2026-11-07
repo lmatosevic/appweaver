@@ -6,6 +6,10 @@ import {
 import { authUser } from '../../../fixtures/server-fixture';
 
 describe('effectiveTwoFactorMethods', () => {
+  beforeEach(() => {
+    configOverrides.SECURITY_ACCOUNT_2FA_ENABLED = true;
+  });
+
   afterEach(() => {
     delete configOverrides.SECURITY_ACCOUNT_2FA_ENABLED;
     delete configOverrides.SECURITY_ACCOUNT_2FA_FORCED;
@@ -43,7 +47,12 @@ describe('effectiveTwoFactorMethods', () => {
 });
 
 describe('isTwoFactorRequired', () => {
+  beforeEach(() => {
+    configOverrides.SECURITY_ACCOUNT_2FA_ENABLED = true;
+  });
+
   afterEach(() => {
+    delete configOverrides.SECURITY_ACCOUNT_2FA_ENABLED;
     delete configOverrides.SECURITY_ACCOUNT_2FA_FORCED;
   });
 
