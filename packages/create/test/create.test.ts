@@ -482,6 +482,53 @@ describe('create', () => {
       );
     });
 
+    test('builds the SQLite driver adapter and keeps its data directory on SQLite only', async () => {
+      await run('Lite', '--no-install', '--agent', 'none', '--add', 'docker');
+      await run(
+        'Server',
+        '--no-install',
+        '--agent',
+        'none',
+        '--database',
+        'postgresql',
+        '--add',
+        'docker'
+      );
+
+      const allowScripts = readJson('lite', 'package.json').allowScripts;
+      expect(allowScripts['better-sqlite3']).toBe(true);
+      expect(Object.keys(allowScripts)).toEqual(
+        [...Object.keys(allowScripts)].sort()
+      );
+      expect(read('lite', 'Dockerfile')).toContain(
+        'RUN mkdir data && chown node:node data\n'
+      );
+
+      expect(
+        readJson('server', 'package.json').allowScripts['better-sqlite3']
+      ).toBeUndefined();
+      expect(read('server', 'Dockerfile')).not.toContain('mkdir data');
+    });
+
+    test('keeps the data directory of the SQLite database of Bun', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--bun',
+        '--add',
+        'docker'
+      );
+
+      expect(read('my-app', 'Dockerfile')).toContain(
+        'RUN mkdir data && chown bun:bun data\n'
+      );
+      expect(
+        readJson('my-app', 'package.json').trustedDependencies
+      ).not.toContain('better-sqlite3');
+    });
+
     test('configures the database connection without Docker', async () => {
       await run(
         'MyApp',

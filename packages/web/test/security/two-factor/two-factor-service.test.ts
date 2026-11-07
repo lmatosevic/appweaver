@@ -132,7 +132,7 @@ describe('two-factor-service', () => {
   /** Adds a confirmed TOTP method with the given secret. */
   const addTotp = (secret: string, lastUsedStep: number | null = null) =>
     addRow({
-      type: 'totp',
+      type: 'Totp',
       secret: encryptText(secret, ENCRYPTION_KEY),
       confirmedAt: new Date(),
       lastUsedStep
@@ -269,7 +269,7 @@ describe('two-factor-service', () => {
 
   describe('availableMethods', () => {
     test('offers every method with its service', () => {
-      expect(service.availableMethods()).toEqual(['email', 'sms', 'totp']);
+      expect(service.availableMethods()).toEqual(['Email', 'Sms', 'Totp']);
     });
 
     test('leaves out the methods without their service', () => {
@@ -281,9 +281,9 @@ describe('two-factor-service', () => {
     });
 
     test('offers only the configured methods, in their order', () => {
-      configOverrides.SECURITY_ACCOUNT_2FA_METHODS = ['totp', 'email'];
+      configOverrides.SECURITY_ACCOUNT_2FA_METHODS = ['Totp', 'Email'];
 
-      expect(service.availableMethods()).toEqual(['totp', 'email']);
+      expect(service.availableMethods()).toEqual(['Totp', 'Email']);
     });
 
     test('offers no method with 2FA disabled', () => {
@@ -296,15 +296,15 @@ describe('two-factor-service', () => {
   describe('listMethods', () => {
     test('lists the enabled and the available methods', () => {
       expect(
-        service.listMethods(authUser({ twoFactorMethods: ['sms'] }))
-      ).toEqual({ enabled: ['sms'], available: ['email', 'sms', 'totp'] });
+        service.listMethods(authUser({ twoFactorMethods: ['Sms'] }))
+      ).toEqual({ enabled: ['Sms'], available: ['Email', 'Sms', 'Totp'] });
       expect(service.listMethods(authUser()).enabled).toEqual([]);
     });
   });
 
   describe('sendChallenge', () => {
     test('emails a code with the default method of the user', async () => {
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
 
       const challenge = await service.sendChallenge(currentUser());
 
@@ -314,7 +314,7 @@ describe('two-factor-service', () => {
       const code = email.text.match(/\n\n(\d{6})\n\n/)[1];
       expect(lastChallenge()).toEqual({
         authUserId: 1,
-        method: 'email',
+        method: 'Email',
         purpose: AuthOTTPurpose.Authentication,
         authSource: AuthSource.Password,
         codeHash: makeHash(code),
@@ -323,19 +323,19 @@ describe('two-factor-service', () => {
       expect(challenge).toEqual({
         challengeId: 'token-1',
         expiresIn: 300000,
-        method: 'email',
+        method: 'Email',
         destination: 'u***@test.com',
-        methods: ['email']
+        methods: ['Email']
       });
     });
 
     test('texts a code with the requested method', async () => {
-      addRow({ type: 'email', confirmedAt: new Date(), priority: 0 });
-      addRow({ type: 'sms', confirmedAt: new Date(), priority: 1 });
+      addRow({ type: 'Email', confirmedAt: new Date(), priority: 0 });
+      addRow({ type: 'Sms', confirmedAt: new Date(), priority: 1 });
 
       const challenge = await service.sendChallenge(
         currentUser({ phoneNumber: '+385911234567', verifiedPhone: true }),
-        { method: 'sms', authSource: AuthSource.OAuth2Google, locale: 'en' }
+        { method: 'Sms', authSource: AuthSource.OAuth2Google, locale: 'en' }
       );
 
       expect(sendEmail).not.toHaveBeenCalled();
@@ -347,9 +347,9 @@ describe('two-factor-service', () => {
       });
       expect(lastChallenge().authSource).toBe(AuthSource.OAuth2Google);
       expect(challenge).toMatchObject({
-        method: 'sms',
+        method: 'Sms',
         destination: '+385*******67',
-        methods: ['email', 'sms']
+        methods: ['Email', 'Sms']
       });
     });
 
@@ -361,7 +361,7 @@ describe('two-factor-service', () => {
       expect(sendEmail).not.toHaveBeenCalled();
       expect(sendSms).not.toHaveBeenCalled();
       expect(lastChallenge().codeHash).toBeUndefined();
-      expect(challenge).toMatchObject({ method: 'totp', destination: null });
+      expect(challenge).toMatchObject({ method: 'Totp', destination: null });
     });
 
     test('challenges with the default method when 2FA is forced', async () => {
@@ -369,12 +369,12 @@ describe('two-factor-service', () => {
 
       const challenge = await service.sendChallenge(currentUser());
 
-      expect(challenge.method).toBe('email');
+      expect(challenge.method).toBe('Email');
       expect(sendEmail).toHaveBeenCalled();
     });
 
     test('keeps a custom purpose', async () => {
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
 
       await service.sendChallenge(currentUser(), { purpose: 'payout' });
 
@@ -386,7 +386,7 @@ describe('two-factor-service', () => {
       AuthOTTPurpose.PasswordReset,
       AuthOTTPurpose.PhoneVerification
     ])('rejects the reserved purpose %p', async (purpose) => {
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
 
       await expect(
         service.sendChallenge(currentUser(), { purpose })
@@ -397,25 +397,25 @@ describe('two-factor-service', () => {
     });
 
     test('rejects a method the application does not offer', async () => {
-      addRow({ type: 'sms', confirmedAt: new Date() });
+      addRow({ type: 'Sms', confirmedAt: new Date() });
       service = createService({ sms: false });
 
       await expect(
-        service.sendChallenge(currentUser(), { method: 'sms' })
+        service.sendChallenge(currentUser(), { method: 'Sms' })
       ).rejects.toMatchObject({
         code: ErrorCode.Account2FAMethodUnavailable,
-        details: { method: 'sms', availableMethods: ['email', 'totp'] }
+        details: { method: 'Sms', availableMethods: ['Email', 'Totp'] }
       });
     });
 
     test('rejects a method the user has not enabled', async () => {
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
 
       await expect(
-        service.sendChallenge(currentUser(), { method: 'totp' })
+        service.sendChallenge(currentUser(), { method: 'Totp' })
       ).rejects.toMatchObject({
         code: ErrorCode.Account2FAMethodNotEnabled,
-        details: { method: 'totp', enabledMethods: ['email'] }
+        details: { method: 'Totp', enabledMethods: ['Email'] }
       });
     });
 
@@ -428,7 +428,7 @@ describe('two-factor-service', () => {
     });
 
     test('rejects an SMS code without a verified phone number', async () => {
-      addRow({ type: 'sms', confirmedAt: new Date() });
+      addRow({ type: 'Sms', confirmedAt: new Date() });
 
       await expect(
         service.sendChallenge(
@@ -440,7 +440,7 @@ describe('two-factor-service', () => {
 
   describe('verifyChallenge', () => {
     test('issues the token of the purpose for the sent code', async () => {
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
       await service.sendChallenge(currentUser(), {
         authSource: AuthSource.OAuth2Github
       });
@@ -465,7 +465,7 @@ describe('two-factor-service', () => {
 
     test('counts the wrong codes and revokes the challenge on the last one', async () => {
       configOverrides.SECURITY_ACCOUNT_2FA_MAX_ATTEMPTS = 2;
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
       await service.sendChallenge(currentUser());
 
       await expect(
@@ -481,7 +481,7 @@ describe('two-factor-service', () => {
     });
 
     test('rejects the challenge of another user', async () => {
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
       await service.sendChallenge(currentUser());
       const code = sendEmail.mock.calls[0][0].text.match(/\n\n(\d{6})\n\n/)[1];
 
@@ -548,7 +548,7 @@ describe('two-factor-service', () => {
 
       await expect(
         service.verifyChallenge(
-          currentUser({ twoFactorMethods: ['email'] }),
+          currentUser({ twoFactorMethods: ['Email'] }),
           'token-1',
           '123456'
         )
@@ -561,10 +561,10 @@ describe('two-factor-service', () => {
       addTotp('JBSWY3DPEHPK3PXP');
 
       await expect(
-        service.enableMethod(currentUser(), 'email')
-      ).resolves.toEqual(['totp', 'email']);
+        service.enableMethod(currentUser(), 'Email')
+      ).resolves.toEqual(['Totp', 'Email']);
 
-      expect(rows[1]).toMatchObject({ type: 'email', priority: 1 });
+      expect(rows[1]).toMatchObject({ type: 'Email', priority: 1 });
       expect(authService.evictCachedUsers).toHaveBeenCalled();
     });
 
@@ -572,28 +572,28 @@ describe('two-factor-service', () => {
       await expect(
         service.enableMethod(
           currentUser({ phoneNumber: '+385911234567', verifiedPhone: true }),
-          'sms'
+          'Sms'
         )
-      ).resolves.toEqual(['sms']);
+      ).resolves.toEqual(['Sms']);
     });
 
     test('rejects the TOTP method, enabled by its setup', async () => {
       await expect(
-        service.enableMethod(currentUser(), 'totp')
+        service.enableMethod(currentUser(), 'Totp')
       ).rejects.toMatchObject({ code: ErrorCode.Account2FAMethodUnavailable });
     });
 
     test('rejects a method the application does not offer', async () => {
       await expect(
-        createService({ sms: false }).enableMethod(currentUser(), 'sms')
+        createService({ sms: false }).enableMethod(currentUser(), 'Sms')
       ).rejects.toMatchObject({ code: ErrorCode.Account2FAMethodUnavailable });
     });
 
     test('rejects an enabled method', async () => {
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
 
       await expect(
-        service.enableMethod(currentUser(), 'email')
+        service.enableMethod(currentUser(), 'Email')
       ).rejects.toMatchObject({
         code: ErrorCode.Account2FAMethodAlreadyEnabled
       });
@@ -601,19 +601,19 @@ describe('two-factor-service', () => {
 
     test('rejects the email method without a verified email', async () => {
       await expect(
-        service.enableMethod(currentUser({ verifiedEmail: false }), 'email')
+        service.enableMethod(currentUser({ verifiedEmail: false }), 'Email')
       ).rejects.toMatchObject({ code: ErrorCode.AccountEmailNotVerified });
     });
 
     test('rejects the SMS method without a verified phone number', async () => {
       await expect(
-        service.enableMethod(currentUser(), 'sms')
+        service.enableMethod(currentUser(), 'Sms')
       ).rejects.toMatchObject({ code: ErrorCode.AccountPhoneNotVerified });
     });
 
     test('is not supported without the TwoFactorMethod model', async () => {
       await expect(
-        createService({ methods: false }).enableMethod(currentUser(), 'email')
+        createService({ methods: false }).enableMethod(currentUser(), 'Email')
       ).rejects.toMatchObject({ code: ErrorCode.AccountFeatureUnavailable });
     });
   });
@@ -630,7 +630,7 @@ describe('two-factor-service', () => {
         `otpauth://totp/Acme:user%40test.com?secret=${setup.secret}&issuer=Acme&algorithm=SHA1&digits=6&period=30`
       );
       expect(setup.expiresIn).toBe(600000);
-      expect(rows[0]).toMatchObject({ type: 'totp' });
+      expect(rows[0]).toMatchObject({ type: 'Totp' });
       expect(rows[0].confirmedAt).toBeUndefined();
       expect(decryptText(rows[0].secret!, ENCRYPTION_KEY)).toBe(setup.secret);
     });
@@ -663,15 +663,15 @@ describe('two-factor-service', () => {
 
   describe('confirmTotp', () => {
     test('enables the TOTP method with a code of the app', async () => {
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
       const { secret } = await service.setupTotp(currentUser());
 
       await expect(
         service.confirmTotp(currentUser(), totpCode(secret, totpStep()))
-      ).resolves.toEqual(['email', 'totp']);
+      ).resolves.toEqual(['Email', 'Totp']);
 
       expect(rows[1]).toMatchObject({
-        type: 'totp',
+        type: 'Totp',
         priority: 1,
         lastUsedStep: totpStep()
       });
@@ -717,31 +717,31 @@ describe('two-factor-service', () => {
 
   describe('orderMethods', () => {
     test('orders the methods, the first becoming the default', async () => {
-      addRow({ type: 'email', confirmedAt: new Date(), priority: 0 });
-      addRow({ type: 'sms', confirmedAt: new Date(), priority: 1 });
+      addRow({ type: 'Email', confirmedAt: new Date(), priority: 0 });
+      addRow({ type: 'Sms', confirmedAt: new Date(), priority: 1 });
 
       await expect(
-        service.orderMethods(currentUser(), ['sms', 'email'])
-      ).resolves.toEqual(['sms', 'email']);
+        service.orderMethods(currentUser(), ['Sms', 'Email'])
+      ).resolves.toEqual(['Sms', 'Email']);
 
       expect(rows.map((row) => [row.type, row.priority])).toEqual([
-        ['email', 1],
-        ['sms', 0]
+        ['Email', 1],
+        ['Sms', 0]
       ]);
       expect(authService.evictCachedUsers).toHaveBeenCalled();
     });
 
-    test.each([[['email']], [['email', 'email']], [['email', 'totp']]])(
+    test.each([[['Email']], [['Email', 'Email']], [['Email', 'Totp']]])(
       'rejects the order %p of other methods than the enabled ones',
       async (methods) => {
-        addRow({ type: 'email', confirmedAt: new Date(), priority: 0 });
-        addRow({ type: 'sms', confirmedAt: new Date(), priority: 1 });
+        addRow({ type: 'Email', confirmedAt: new Date(), priority: 0 });
+        addRow({ type: 'Sms', confirmedAt: new Date(), priority: 1 });
 
         await expect(
           service.orderMethods(currentUser(), methods as any)
         ).rejects.toMatchObject({
           code: ErrorCode.Account2FAMethodNotEnabled,
-          details: { enabledMethods: ['email', 'sms'] }
+          details: { enabledMethods: ['Email', 'Sms'] }
         });
       }
     );
@@ -750,12 +750,12 @@ describe('two-factor-service', () => {
   describe('disableMethod', () => {
     test('deletes the method of a user confirming the password', async () => {
       const passwordHash = await hashPassword('Str0ng!Pass');
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
 
       await expect(
         service.disableMethod(
           currentUser({ passwordHash }),
-          'email',
+          'Email',
           'Str0ng!Pass'
         )
       ).resolves.toEqual([]);
@@ -765,22 +765,22 @@ describe('two-factor-service', () => {
     });
 
     test('deletes the method of a user without a password', async () => {
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
 
       await expect(
-        service.disableMethod(currentUser(), 'email')
+        service.disableMethod(currentUser(), 'Email')
       ).resolves.toEqual([]);
     });
 
     test('requires the password of a user who has one', async () => {
       const passwordHash = await hashPassword('Str0ng!Pass');
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
 
       await expect(
-        service.disableMethod(currentUser({ passwordHash }), 'email')
+        service.disableMethod(currentUser({ passwordHash }), 'Email')
       ).rejects.toMatchObject({ code: ErrorCode.AuthPasswordRequired });
       await expect(
-        service.disableMethod(currentUser({ passwordHash }), 'email', 'wrong')
+        service.disableMethod(currentUser({ passwordHash }), 'Email', 'wrong')
       ).rejects.toMatchObject({ code: ErrorCode.AuthInvalidCredentials });
       expect(rows).toHaveLength(1);
     });
@@ -789,14 +789,14 @@ describe('two-factor-service', () => {
       await service.setupTotp(currentUser());
 
       await expect(
-        service.disableMethod(currentUser(), 'totp')
+        service.disableMethod(currentUser(), 'Totp')
       ).rejects.toMatchObject({ code: ErrorCode.Account2FAMethodNotEnabled });
     });
   });
 
   describe('generateRecoveryCodes', () => {
     test('stores only the hashes of the new codes', async () => {
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
 
       const { codes, generatedAt } =
         await service.generateRecoveryCodes(currentUser());
@@ -814,7 +814,7 @@ describe('two-factor-service', () => {
     });
 
     test('replaces the codes of the user', async () => {
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
       recoveryRows.push({ id: 99, codeHash: 'old', usedAt: null, userId: 1 });
       recoveryRows.push({ id: 98, codeHash: 'other', usedAt: null, userId: 2 });
 
@@ -827,7 +827,7 @@ describe('two-factor-service', () => {
     test('generates the configured count and length', async () => {
       configOverrides.SECURITY_ACCOUNT_2FA_RECOVERY_CODES_COUNT = 3;
       configOverrides.SECURITY_ACCOUNT_2FA_RECOVERY_CODES_LENGTH = 128;
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
 
       const { codes } = await service.generateRecoveryCodes(currentUser());
 
@@ -837,7 +837,7 @@ describe('two-factor-service', () => {
 
     test('requires the password of a user who has one', async () => {
       const passwordHash = await hashPassword('Str0ng!Pass');
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
 
       await expect(
         service.generateRecoveryCodes(currentUser({ passwordHash }))
@@ -855,24 +855,24 @@ describe('two-factor-service', () => {
         service.generateRecoveryCodes(currentUser())
       ).rejects.toMatchObject({
         code: ErrorCode.Account2FAMethodNotEnabled,
-        details: { method: 'recovery' }
+        details: { method: 'Recovery' }
       });
     });
 
     test('is unavailable with the recovery codes disabled', async () => {
       configOverrides.SECURITY_ACCOUNT_2FA_RECOVERY_CODES_ENABLED = false;
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
 
       await expect(
         service.generateRecoveryCodes(currentUser())
       ).rejects.toMatchObject({
         code: ErrorCode.Account2FAMethodUnavailable,
-        details: { method: 'recovery' }
+        details: { method: 'Recovery' }
       });
     });
 
     test('wraps the errors of the database', async () => {
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
       recoveryCodeService.client.createMany.mockRejectedValue(
         prismaError('P2010', 'db down')
       );
@@ -887,16 +887,16 @@ describe('two-factor-service', () => {
     let codes: string[];
 
     beforeEach(async () => {
-      addRow({ type: 'email', confirmedAt: new Date() });
+      addRow({ type: 'Email', confirmedAt: new Date() });
       ({ codes } = await service.generateRecoveryCodes(currentUser()));
     });
 
     test('signs in with a recovery code once', async () => {
       const challenge = await service.sendChallenge(currentUser(), {
-        method: 'recovery'
+        method: 'Recovery'
       });
       expect(challenge).toMatchObject({
-        method: 'recovery',
+        method: 'Recovery',
         destination: null
       });
       expect(sendEmail).not.toHaveBeenCalled();
@@ -911,7 +911,7 @@ describe('two-factor-service', () => {
       expect(recoveryRows[0].usedAt).toBeInstanceOf(Date);
 
       const next = await service.sendChallenge(currentUser(), {
-        method: 'recovery'
+        method: 'Recovery'
       });
       await expect(
         service.verifyChallenge(currentUser(), next.challengeId, codes[0])
@@ -920,7 +920,7 @@ describe('two-factor-service', () => {
 
     test('emails the user about the used code', async () => {
       const challenge = await service.sendChallenge(currentUser(), {
-        method: 'recovery'
+        method: 'Recovery'
       });
 
       await service.verifyChallenge(
@@ -940,7 +940,7 @@ describe('two-factor-service', () => {
     test('signs in when the email fails', async () => {
       sendEmail.mockRejectedValue(new Error('SMTP down'));
       const challenge = await service.sendChallenge(currentUser(), {
-        method: 'recovery'
+        method: 'Recovery'
       });
 
       await expect(
@@ -951,7 +951,7 @@ describe('two-factor-service', () => {
     test('sends no email when the notification is off', async () => {
       configOverrides.SECURITY_ACCOUNT_2FA_RECOVERY_CODES_NOTIFY_ON_USE = false;
       const challenge = await service.sendChallenge(currentUser(), {
-        method: 'recovery'
+        method: 'Recovery'
       });
 
       await service.verifyChallenge(
@@ -965,7 +965,7 @@ describe('two-factor-service', () => {
 
     test('rejects a code used by a concurrent verification', async () => {
       const challenge = await service.sendChallenge(currentUser(), {
-        method: 'recovery'
+        method: 'Recovery'
       });
       recoveryCodeService.client.updateMany.mockResolvedValue({ count: 0 });
 
@@ -979,7 +979,7 @@ describe('two-factor-service', () => {
 
     test('counts a wrong code', async () => {
       const challenge = await service.sendChallenge(currentUser(), {
-        method: 'recovery'
+        method: 'Recovery'
       });
 
       await expect(
@@ -1007,10 +1007,10 @@ describe('two-factor-service', () => {
       recoveryRows.forEach((row) => (row.usedAt = new Date()));
 
       await expect(
-        service.sendChallenge(currentUser(), { method: 'recovery' })
+        service.sendChallenge(currentUser(), { method: 'Recovery' })
       ).rejects.toMatchObject({
         code: ErrorCode.Account2FAMethodNotEnabled,
-        details: { method: 'recovery' }
+        details: { method: 'Recovery' }
       });
     });
 
@@ -1023,7 +1023,7 @@ describe('two-factor-service', () => {
       );
 
       await expect(
-        service.sendChallenge(currentUser(), { method: 'recovery' })
+        service.sendChallenge(currentUser(), { method: 'Recovery' })
       ).rejects.toMatchObject({ code: ErrorCode.DatabaseOperationFailed });
       await expect(
         service.verifyChallenge(currentUser(), 'token-1', codes[0])
@@ -1031,15 +1031,15 @@ describe('two-factor-service', () => {
     });
 
     test('deletes the codes with the last method', async () => {
-      await service.disableMethod(currentUser(), 'email');
+      await service.disableMethod(currentUser(), 'Email');
 
       expect(recoveryRows).toEqual([]);
     });
 
     test('keeps the codes while a method is left', async () => {
-      addRow({ type: 'totp', confirmedAt: new Date(), priority: 1 });
+      addRow({ type: 'Totp', confirmedAt: new Date(), priority: 1 });
 
-      await service.disableMethod(currentUser(), 'totp');
+      await service.disableMethod(currentUser(), 'Totp');
 
       expect(recoveryRows).toHaveLength(10);
     });
@@ -1047,8 +1047,8 @@ describe('two-factor-service', () => {
 
   describe('resetTwoFactor', () => {
     test('removes every method and recovery code of the user', async () => {
-      addRow({ type: 'email', confirmedAt: new Date() });
-      addRow({ type: 'sms', confirmedAt: new Date(), userId: 2 });
+      addRow({ type: 'Email', confirmedAt: new Date() });
+      addRow({ type: 'Sms', confirmedAt: new Date(), userId: 2 });
       await service.generateRecoveryCodes(currentUser());
 
       await service.resetTwoFactor(1);
@@ -1077,7 +1077,7 @@ describe('two-factor-service', () => {
 
   describe('removeSmsMethod', () => {
     test('removes the SMS method of the user', async () => {
-      addRow({ type: 'sms', confirmedAt: new Date() });
+      addRow({ type: 'Sms', confirmedAt: new Date() });
 
       await expect(service.removeSmsMethod(currentUser())).resolves.toBe(true);
       expect(rows).toEqual([]);

@@ -447,7 +447,7 @@ enum ProductStatus {
 }
 
 enum TwoFactorMethodType {
-  email
-  sms
-  totp
+  Email
+  Sms
+  Totp
 }

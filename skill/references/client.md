@@ -495,7 +495,7 @@ The two-factor authentication, under the `/2fa` path of the account routes (`two
 const session = await client.auth.login({ username: 'user@example.com', password: 'secret' });
 if (session.twoFactorMethods) {
   // The tokens of the 2fa scope, used by the challenge and its verification only
-  const { challengeId } = await client.twoFactor.challenge({ method: 'totp' });
+  const { challengeId } = await client.twoFactor.challenge({ method: 'Totp' });
   const { token } = await client.twoFactor.verify({ challengeId, code: '123456' });
   await client.auth.exchangeToken({ token });
 }

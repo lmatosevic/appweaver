@@ -595,14 +595,14 @@ scaffolded with `web` lets only the `Admin` role create, update, delete, and cha
 signs new users up with the `User` role. A policy on the auth model applies only to the API routes: the framework's own
 sign-up, logout, password change, and 2FA flows run with `withoutPolicies`, so a policy never blocks them.
 
-Two-factor authentication offers three methods per user, `email` and `sms` codes and an authenticator app (`totp`),
+Two-factor authentication offers three methods per user, `Email` and `Sms` codes and an authenticator app (`Totp`),
 each enabled, ordered and disabled by the user with the `/auth/account/2fa` routes; the first one is their default. A
 sign-in of a user with a method (or of every user with `SECURITY_ACCOUNT_2FA_FORCED`) returns the tokens of the `2fa`
 scope with `twoFactorMethods`, passed by `POST /auth/account/2fa/challenge { method? }` and
 `POST /auth/account/2fa/verify { challengeId, code }`, then `POST /auth/exchange-token`. The SMS method needs a phone
 number verified with `/auth/account/send-verify-phone` and an SMS sender (`@appweaver/twilio`), the TOTP method the
 `SECURITY_ACCOUNT_2FA_TOTP_ENCRYPTION_KEY`. A user who lost their methods signs in once per code with the recovery codes
-of `POST /auth/account/2fa/recovery-codes` (challenge `method: 'recovery'`). See
+of `POST /auth/account/2fa/recovery-codes` (challenge `method: 'Recovery'`). See
 [security.md](references/security.md#two-factor-authentication-2fa).
 
 #### Querying resources with filters

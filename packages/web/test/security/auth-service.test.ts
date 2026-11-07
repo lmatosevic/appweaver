@@ -195,20 +195,20 @@ describe('auth-service', () => {
     test('adds the confirmed 2FA methods of the user by their priority', async () => {
       authUserService.find.mockResolvedValue(user());
       const methodService = useTwoFactorMethods([
-        { type: 'sms', priority: 2, confirmedAt: new Date() },
-        { type: 'totp', priority: 3, confirmedAt: null },
-        { type: 'email', priority: 1, confirmedAt: new Date() }
+        { type: 'Sms', priority: 2, confirmedAt: new Date() },
+        { type: 'Totp', priority: 3, confirmedAt: null },
+        { type: 'Email', priority: 1, confirmedAt: new Date() }
       ]);
 
       await expect(service.findById(1)).resolves.toMatchObject({
-        twoFactorMethods: ['email', 'sms']
+        twoFactorMethods: ['Email', 'Sms']
       });
       expect(methodService.client.findMany).toHaveBeenCalledWith({
         where: { userId: 1 }
       });
       expect(cacheService.addToCache).toHaveBeenCalledWith(
         'auth:1:inv',
-        expect.objectContaining({ twoFactorMethods: ['email', 'sms'] }),
+        expect.objectContaining({ twoFactorMethods: ['Email', 'Sms'] }),
         securityConfig.CACHE_TTL
       );
     });
@@ -217,12 +217,12 @@ describe('auth-service', () => {
       configOverrides.CACHE_ENABLED = false;
       authUserService.find.mockResolvedValue(user());
       useTwoFactorMethods([
-        { type: 'sms', priority: 0, confirmedAt: new Date() }
+        { type: 'Sms', priority: 0, confirmedAt: new Date() }
       ]);
 
       try {
         await expect(service.findById(1)).resolves.toMatchObject({
-          twoFactorMethods: ['sms']
+          twoFactorMethods: ['Sms']
         });
       } finally {
         delete configOverrides.CACHE_ENABLED;
@@ -500,21 +500,21 @@ describe('auth-service', () => {
       const passwordHash = await hashPassword('Str0ng!Pass');
       authUserService.single.mockResolvedValue(user({ passwordHash }));
       useTwoFactorMethods([
-        { type: 'email', priority: 1, confirmedAt: new Date() },
-        { type: 'totp', priority: 0, confirmedAt: new Date() }
+        { type: 'Email', priority: 1, confirmedAt: new Date() },
+        { type: 'Totp', priority: 0, confirmedAt: new Date() }
       ]);
 
       const tokens = await service.login('user@test.com', 'Str0ng!Pass');
 
       expect(signedTokens[0].payload.scope).toBe(AuthScope.TwoFA);
-      expect(tokens.twoFactorMethods).toEqual(['totp', 'email']);
+      expect(tokens.twoFactorMethods).toEqual(['Totp', 'Email']);
     });
 
     test('never issues a refresh token of a 2FA scoped sign-in', async () => {
       const passwordHash = await hashPassword('Str0ng!Pass');
       authUserService.single.mockResolvedValue(user({ passwordHash }));
       useTwoFactorMethods([
-        { type: 'totp', priority: 0, confirmedAt: new Date() }
+        { type: 'Totp', priority: 0, confirmedAt: new Date() }
       ]);
 
       const tokens = await service.login('user@test.com', 'Str0ng!Pass');
@@ -528,7 +528,7 @@ describe('auth-service', () => {
     test('ignores an unconfirmed 2FA method', async () => {
       const passwordHash = await hashPassword('Str0ng!Pass');
       authUserService.single.mockResolvedValue(user({ passwordHash }));
-      useTwoFactorMethods([{ type: 'totp', priority: 0, confirmedAt: null }]);
+      useTwoFactorMethods([{ type: 'Totp', priority: 0, confirmedAt: null }]);
 
       const tokens = await service.login('user@test.com', 'Str0ng!Pass');
 
@@ -544,14 +544,14 @@ describe('auth-service', () => {
       const tokens = await service.login('user@test.com', 'Str0ng!Pass');
 
       expect(signedTokens[0].payload.scope).toBe(AuthScope.TwoFA);
-      expect(tokens.twoFactorMethods).toEqual(['email']);
+      expect(tokens.twoFactorMethods).toEqual(['Email']);
     });
 
     test('issues regular tokens with 2FA disabled', async () => {
       configOverrides.SECURITY_ACCOUNT_2FA_ENABLED = false;
       const passwordHash = await hashPassword('Str0ng!Pass');
       authUserService.single.mockResolvedValue(
-        user({ passwordHash, twoFactorMethods: ['email'] })
+        user({ passwordHash, twoFactorMethods: ['Email'] })
       );
 
       await service.login('user@test.com', 'Str0ng!Pass');
@@ -609,7 +609,7 @@ describe('auth-service', () => {
       });
       authUserService.find.mockResolvedValue(user());
       useTwoFactorMethods([
-        { type: 'sms', priority: 0, confirmedAt: new Date() }
+        { type: 'Sms', priority: 0, confirmedAt: new Date() }
       ]);
 
       const tokens = await service.exchangeToken('ott-token');
@@ -618,7 +618,7 @@ describe('auth-service', () => {
         scope: AuthScope.TwoFA,
         source: AuthSource.OAuth2Google
       });
-      expect(tokens.twoFactorMethods).toEqual(['sms']);
+      expect(tokens.twoFactorMethods).toEqual(['Sms']);
     });
 
     test('issues auth tokens for a token of a passed 2FA challenge', async () => {
@@ -629,7 +629,7 @@ describe('auth-service', () => {
       });
       authUserService.find.mockResolvedValue(user());
       useTwoFactorMethods([
-        { type: 'sms', priority: 0, confirmedAt: new Date() }
+        { type: 'Sms', priority: 0, confirmedAt: new Date() }
       ]);
 
       await service.exchangeToken('ott-token');
@@ -843,11 +843,11 @@ describe('auth-service', () => {
     test('returns tokens of the auth scope to a user with 2FA', async () => {
       const passwordHash = await hashPassword('Str0ng!Pass');
       useTwoFactorMethods([
-        { type: 'totp', priority: 0, confirmedAt: new Date() }
+        { type: 'Totp', priority: 0, confirmedAt: new Date() }
       ]);
 
       const tokens = await service.changePassword(
-        user({ passwordHash, twoFactorMethods: ['totp'] }),
+        user({ passwordHash, twoFactorMethods: ['Totp'] }),
         'Str0ng!Pass',
         'New!Pass123'
       );

@@ -127,7 +127,7 @@ describe('Two-factor authentication', () => {
     );
     expect(methods.json()).toEqual({
       enabled: [],
-      available: ['email', 'sms', 'totp']
+      available: ['Email', 'Sms', 'Totp']
     });
   });
 
@@ -163,12 +163,12 @@ describe('Two-factor authentication', () => {
         code: totp(secret)
       }
     );
-    expect(confirm.json().enabled).toEqual(['totp']);
+    expect(confirm.json().enabled).toEqual(['Totp']);
   });
 
   test('challenges the sign-in with the default method', async () => {
     const tokens = await login();
-    expect(tokens.twoFactorMethods).toEqual(['totp']);
+    expect(tokens.twoFactorMethods).toEqual(['Totp']);
 
     // The token of the 2fa scope only passes the challenge
     const me = await request('GET', '/auth/me', tokens.accessToken);
@@ -189,9 +189,9 @@ describe('Two-factor authentication', () => {
       {}
     );
     expect(challenge.json()).toMatchObject({
-      method: 'totp',
+      method: 'Totp',
       destination: null,
-      methods: ['totp']
+      methods: ['Totp']
     });
     const { challengeId } = challenge.json();
 
@@ -240,7 +240,7 @@ describe('Two-factor authentication', () => {
       '/auth/account/2fa/methods',
       accessToken,
       {
-        method: 'sms'
+        method: 'Sms'
       }
     );
     expect(notVerified.json().code).toBe('ACCOUNT_PHONE_NOT_VERIFIED');
@@ -272,7 +272,7 @@ describe('Two-factor authentication', () => {
       '/auth/account/2fa/methods',
       accessToken,
       {
-        method: 'sms'
+        method: 'Sms'
       }
     );
     const mail = await request(
@@ -280,25 +280,25 @@ describe('Two-factor authentication', () => {
       '/auth/account/2fa/methods',
       accessToken,
       {
-        method: 'email'
+        method: 'Email'
       }
     );
-    expect(sms.json().enabled).toEqual(['totp', 'sms']);
-    expect(mail.json().enabled).toEqual(['totp', 'sms', 'email']);
+    expect(sms.json().enabled).toEqual(['Totp', 'Sms']);
+    expect(mail.json().enabled).toEqual(['Totp', 'Sms', 'Email']);
 
     // Signed in again, the user picks the SMS code over the default method
     const next = await login();
-    expect(next.twoFactorMethods).toEqual(['totp', 'sms', 'email']);
+    expect(next.twoFactorMethods).toEqual(['Totp', 'Sms', 'Email']);
     const texted = await request(
       'POST',
       '/auth/account/2fa/challenge',
       next.accessToken,
       {
-        method: 'sms'
+        method: 'Sms'
       }
     );
     expect(texted.json()).toMatchObject({
-      method: 'sms',
+      method: 'Sms',
       destination: '+385*******67'
     });
     const passed = await request(
@@ -320,7 +320,7 @@ describe('Two-factor authentication', () => {
       '/auth/account/2fa/challenge',
       tokens.accessToken,
       {
-        method: 'email'
+        method: 'Email'
       }
     );
     expect(challenge.json().destination).toBe('t***@example.com');
@@ -344,22 +344,22 @@ describe('Two-factor authentication', () => {
       '/auth/account/2fa/methods/order',
       accessToken,
       {
-        methods: ['email', 'totp', 'sms']
+        methods: ['Email', 'Totp', 'Sms']
       }
     );
-    expect(ordered.json().enabled).toEqual(['email', 'totp', 'sms']);
+    expect(ordered.json().enabled).toEqual(['Email', 'Totp', 'Sms']);
 
     const disabled = await request(
       'DELETE',
-      '/auth/account/2fa/methods/totp',
+      '/auth/account/2fa/methods/Totp',
       accessToken,
       {
         password
       }
     );
-    expect(disabled.json().enabled).toEqual(['email', 'sms']);
+    expect(disabled.json().enabled).toEqual(['Email', 'Sms']);
 
-    expect((await login()).twoFactorMethods).toEqual(['email', 'sms']);
+    expect((await login()).twoFactorMethods).toEqual(['Email', 'Sms']);
   });
 
   test('signs in once with a recovery code', async () => {
@@ -379,10 +379,10 @@ describe('Two-factor authentication', () => {
         'POST',
         '/auth/account/2fa/challenge',
         tokens.accessToken,
-        { method: 'recovery' }
+        { method: 'Recovery' }
       );
       expect(challenge.json()).toMatchObject({
-        method: 'recovery',
+        method: 'Recovery',
         destination: null
       });
       return request('POST', '/auth/account/2fa/verify', tokens.accessToken, {

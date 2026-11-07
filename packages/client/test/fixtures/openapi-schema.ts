@@ -280,7 +280,7 @@ const SCHEMA: any = {
         title: 'TwoFactorChallengeRequest',
         type: 'object',
         properties: {
-          method: { type: 'string', enum: ['email', 'sms', 'totp'] }
+          method: { type: 'string', enum: ['Email', 'Sms', 'Totp'] }
         }
       },
       'def-27': {

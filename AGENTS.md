@@ -392,7 +392,8 @@ sender in dev and test and the Twilio keys of `.env`) and `@appweaver/handlebars
 `--database` for `data`. The `User` auth model and its admin seeder come with `web`, which brings the authentication, so
 a project with `data` alone has no auth model. A module sets values in the other JSON files of the project with its
 `jsonFiles` (the
-`package.json` scripts of `data`, the Jest e2e `globalSetup`), and a module file at the path of a base file replaces it
+`package.json` scripts of `data` and the `allowScripts` of its SQLite adapter on Node, the Jest e2e `globalSetup`, kept
+sorted like the template's `allowScripts`), and a module file at the path of a base file replaces it
 while unchanged, restored on removal (the `/api` e2e test of `web`).
 The scaffolding engine lives in `scaffold/` and is exported as
 `@appweaver/create/scaffold`, which `weaver module add|remove` of `packages/cli` uses on an existing
@@ -444,8 +445,8 @@ A template file can have runtime-specific variants:
 A module is defined by data (packages, config values) and its files, its edits of the base files are an integration of
 the module alone in `apply-modules.ts` (the database password of `.env`, the SQLite rules of `.gitignore`), and anything
 else it adds to another enabled module is an integration of the two (the database, Redis and
-server parts of `docker-compose.yml`, the Dockerfile `COPY` blocks of public files, templates, locales and Prisma, the
-database roles of `start.sh`, the `emails` and `sms` texts the mailer and the SMS module merge into
+server parts of `docker-compose.yml`, the Dockerfile `COPY` blocks of public files, templates, locales and Prisma and
+its `data` directory of SQLite, the database roles of `start.sh`, the `emails` and `sms` texts the mailer and the SMS module merge into
 `locales/en.json`).
 `@appweaver/create` creates the base project with every module's disabled config, then adds the selected modules
 exactly like `weaver module add`, so a test checks that every combination of modules created, added one at a time, or
@@ -1042,7 +1043,7 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
 |--------------------------|---------|--------------------|------------------------------------------------------------------------------------------------------------|
 | `sample/webshop-api`     | Node    | PostgreSQL + Redis | Transactional checkout, BullMQ payment worker on a resource event, API key partner, localized order emails |
 | `sample/hr-api`          | Node    | SQL Server         | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades        |
-| `sample/helpdesk-api`    | Node    | MySQL (MariaDB)    | Non-auth customers connected by email, auto-assignment, SLA escalation job, cursor pagination              |
+| `sample/helpdesk-api`    | Node    | MySQL (MariaDB)    | Non-auth customers connected by email, auto-assignment, SLA escalation job, SMS 2FA of the admin           |
 | `sample/movies-api-bun`  | Bun     | SQLite (libsql)    | Public cached catalog, join model with payload, OAuth2 sign-up, generated typed client                     |
 | `sample/inbox-processor` | Node    | SQLite + Redis     | A file and API fed BullMQ pipeline with retries, a local module with a watcher service and routes          |
 | `sample/reports-worker`  | Node    | SQLite             | No server: daily reports by cron, archive job, CSV import and report tasks, the health listener            |

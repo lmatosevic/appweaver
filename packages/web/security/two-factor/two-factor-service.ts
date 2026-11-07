@@ -66,7 +66,7 @@ const reservedPurposes: string[] = Object.values(AuthOTTPurpose).filter(
 );
 
 /** The challenge method of the recovery codes, never a method a user enables. */
-const RECOVERY = 'recovery';
+const RECOVERY = 'Recovery';
 
 export type TwoFactorChallenge = {
   challengeId: string;
@@ -129,7 +129,7 @@ export class TwoFactorService {
 
   /**
    * Returns the methods users may enable: the ones of the `methods` config whose service is available, a mailer for
-   * `email`, an SMS sender for `sms`, and the `totp.encryptionKey` config for `totp`.
+   * `Email`, an SMS sender for `Sms`, and the `totp.encryptionKey` config for `Totp`.
    *
    * @return {TwoFactorMethodType[]} The available methods, in the order of the config.
    */
@@ -167,7 +167,7 @@ export class TwoFactorService {
 
   /**
    * Starts a 2FA challenge of a signed-in user, sending a code by email or SMS, or waiting for the code of the
-   * authenticator app or for one of the recovery codes of the user (the `recovery` method). Without a method, the
+   * authenticator app or for one of the recovery codes of the user (the `Recovery` method). Without a method, the
    * default one of the user is used.
    *
    * @param {AuthUser} authUser - The user to challenge.
@@ -178,7 +178,7 @@ export class TwoFactorService {
    * @throws {RequestError} `VALIDATION_FAILED` for a purpose reserved to the framework.
    * @throws {AccountError} `ACCOUNT_2FA_METHOD_UNAVAILABLE` for a method this application does not offer,
    * `ACCOUNT_2FA_METHOD_NOT_ENABLED` for one the user has not enabled, `ACCOUNT_PHONE_NOT_VERIFIED` for an SMS code
-   * without a verified phone number, and `ACCOUNT_2FA_METHOD_NOT_ENABLED` for the `recovery` method of a user without
+   * without a verified phone number, and `ACCOUNT_2FA_METHOD_NOT_ENABLED` for the `Recovery` method of a user without
    * an unused recovery code.
    */
   public async sendChallenge(
@@ -219,7 +219,7 @@ export class TwoFactorService {
 
     const expiresIn = twoFactorConfig.OTT_TTL;
     const code =
-      method === 'email' || method === 'sms' ? generateCode() : undefined;
+      method === 'Email' || method === 'Sms' ? generateCode() : undefined;
 
     const challengeId =
       await this._securityStore.generateOneTimeToken<TwoFactorChallengeData>(
@@ -236,10 +236,10 @@ export class TwoFactorService {
       );
 
     let destination: string | null = null;
-    if (method === 'email') {
+    if (method === 'Email') {
       await this.sendEmailCode(authUser, code!, purpose, options.locale);
       destination = maskEmail(authUser.email);
-    } else if (method === 'sms') {
+    } else if (method === 'Sms') {
       await this.sendSmsCode(authUser.phoneNumber!, code!, options.locale);
       destination = maskPhoneNumber(authUser.phoneNumber!);
     }
@@ -330,10 +330,10 @@ export class TwoFactorService {
    * {@link setupTotp} and {@link confirmTotp} instead.
    *
    * @param {AuthUser} authUser - The user.
-   * @param {TwoFactorMethodType} method - The `email` or `sms` method.
+   * @param {TwoFactorMethodType} method - The `Email` or `Sms` method.
    * @return {Promise<TwoFactorMethodType[]>} The enabled methods of the user.
    * @throws {AccountError} `ACCOUNT_2FA_METHOD_UNAVAILABLE` for a method this application does not offer or the
-   * `totp` one, `ACCOUNT_2FA_METHOD_ALREADY_ENABLED` for an enabled one, `ACCOUNT_EMAIL_NOT_VERIFIED` or
+   * `Totp` one, `ACCOUNT_2FA_METHOD_ALREADY_ENABLED` for an enabled one, `ACCOUNT_EMAIL_NOT_VERIFIED` or
    * `ACCOUNT_PHONE_NOT_VERIFIED` without the verified address or number.
    */
   public async enableMethod(
@@ -393,7 +393,7 @@ export class TwoFactorService {
     if (existing?.confirmedAt) {
       throw new AccountError(
         ErrorCode.Account2FAMethodAlreadyEnabled,
-        "The 2FA method 'totp' is already enabled",
+        `The 2FA method '${TwoFactorMethodType.Totp}' is already enabled`,
         { method: TwoFactorMethodType.Totp }
       );
     }
@@ -448,7 +448,7 @@ export class TwoFactorService {
     if (method?.confirmedAt) {
       throw new AccountError(
         ErrorCode.Account2FAMethodAlreadyEnabled,
-        "The 2FA method 'totp' is already enabled",
+        `The 2FA method '${TwoFactorMethodType.Totp}' is already enabled`,
         { method: TwoFactorMethodType.Totp }
       );
     }
@@ -699,7 +699,7 @@ export class TwoFactorService {
    *
    * @internal
    */
-  private async checkRecoveryCodes(authUser: AuthUser): Promise<'recovery'> {
+  private async checkRecoveryCodes(authUser: AuthUser): Promise<'Recovery'> {
     const service = this.recoveryCodeService();
 
     let unused: number;

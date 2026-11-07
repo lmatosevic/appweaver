@@ -14,8 +14,8 @@ describe('effectiveTwoFactorMethods', () => {
 
   test('should return the methods of the user', () => {
     expect(
-      effectiveTwoFactorMethods(authUser({ twoFactorMethods: ['totp', 'sms'] }))
-    ).toEqual(['totp', 'sms']);
+      effectiveTwoFactorMethods(authUser({ twoFactorMethods: ['Totp', 'Sms'] }))
+    ).toEqual(['Totp', 'Sms']);
   });
 
   test('should return no methods for a user without any', () => {
@@ -24,12 +24,12 @@ describe('effectiveTwoFactorMethods', () => {
 
   test('should return the default method when forced', () => {
     configOverrides.SECURITY_ACCOUNT_2FA_FORCED = true;
-    configOverrides.SECURITY_ACCOUNT_2FA_DEFAULT_METHOD = 'sms';
+    configOverrides.SECURITY_ACCOUNT_2FA_DEFAULT_METHOD = 'Sms';
 
-    expect(effectiveTwoFactorMethods(authUser())).toEqual(['sms']);
+    expect(effectiveTwoFactorMethods(authUser())).toEqual(['Sms']);
     expect(
-      effectiveTwoFactorMethods(authUser({ twoFactorMethods: ['totp'] }))
-    ).toEqual(['totp']);
+      effectiveTwoFactorMethods(authUser({ twoFactorMethods: ['Totp'] }))
+    ).toEqual(['Totp']);
   });
 
   test('should return no methods with 2FA disabled', () => {
@@ -37,7 +37,7 @@ describe('effectiveTwoFactorMethods', () => {
     configOverrides.SECURITY_ACCOUNT_2FA_FORCED = true;
 
     expect(
-      effectiveTwoFactorMethods(authUser({ twoFactorMethods: ['totp'] }))
+      effectiveTwoFactorMethods(authUser({ twoFactorMethods: ['Totp'] }))
     ).toEqual([]);
   });
 });
@@ -48,7 +48,7 @@ describe('isTwoFactorRequired', () => {
   });
 
   test('should require 2FA for a user with a method', () => {
-    expect(isTwoFactorRequired(authUser({ twoFactorMethods: ['email'] }))).toBe(
+    expect(isTwoFactorRequired(authUser({ twoFactorMethods: ['Email'] }))).toBe(
       true
     );
   });

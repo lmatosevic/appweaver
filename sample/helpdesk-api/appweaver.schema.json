@@ -892,41 +892,41 @@
                     },
                     "methods": {
                       "default": [
-                        "email",
-                        "sms",
-                        "totp"
+                        "Email",
+                        "Sms",
+                        "Totp"
                       ],
                       "type": "array",
                       "items": {
                         "anyOf": [
                           {
-                            "const": "email",
+                            "const": "Email",
                             "type": "string"
                           },
                           {
-                            "const": "sms",
+                            "const": "Sms",
                             "type": "string"
                           },
                           {
-                            "const": "totp",
+                            "const": "Totp",
                             "type": "string"
                           }
                         ]
                       }
                     },
                     "defaultMethod": {
-                      "default": "email",
+                      "default": "Email",
                       "anyOf": [
                         {
-                          "const": "email",
+                          "const": "Email",
                           "type": "string"
                         },
                         {
-                          "const": "sms",
+                          "const": "Sms",
                           "type": "string"
                         },
                         {
-                          "const": "totp",
+                          "const": "Totp",
                           "type": "string"
                         }
                       ]
@@ -1535,6 +1535,33 @@
             "provider": {
               "default": "auto",
               "type": "string"
+            },
+            "twilio": {
+              "type": "object",
+              "properties": {
+                "accountSid": {
+                  "type": "string"
+                },
+                "authToken": {
+                  "secret": true,
+                  "type": "string"
+                },
+                "messagingServiceSid": {
+                  "type": "string"
+                },
+                "apiUrl": {
+                  "default": "https://api.twilio.com",
+                  "type": "string"
+                },
+                "statusUrl": {
+                  "default": "https://status.twilio.com/api/v2/status.json",
+                  "type": "string"
+                },
+                "timeout": {
+                  "default": 10000,
+                  "type": "integer"
+                }
+              }
             }
           }
         },

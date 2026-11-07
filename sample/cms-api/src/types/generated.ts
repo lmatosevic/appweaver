@@ -1062,7 +1062,7 @@ export type OneTimeTokenResourceService = IResourceService<
 
 export type TwoFactorMethod = {
   id: number;
-  type: 'email' | 'sms' | 'totp';
+  type: 'Email' | 'Sms' | 'Totp';
   priority: number;
   secret?: string | null;
   confirmedAt?: Date | null;
@@ -1074,7 +1074,7 @@ export type TwoFactorMethod = {
 
 export type TwoFactorMethodSingle = {
   id: number;
-  type: 'email' | 'sms' | 'totp';
+  type: 'Email' | 'Sms' | 'Totp';
   priority: number;
   confirmedAt?: Date | null;
   updatedAt: Date;
@@ -1083,7 +1083,7 @@ export type TwoFactorMethodSingle = {
 
 export type TwoFactorMethodMultiple = {
   id: number;
-  type: 'email' | 'sms' | 'totp';
+  type: 'Email' | 'Sms' | 'Totp';
   priority: number;
   confirmedAt?: Date | null;
   updatedAt: Date;
@@ -1091,32 +1091,32 @@ export type TwoFactorMethodMultiple = {
 };
 
 export type TwoFactorMethodCreate = {
-  type: 'email' | 'sms' | 'totp';
+  type: 'Email' | 'Sms' | 'Totp';
   priority?: number;
   confirmedAt?: Date | null;
 };
 
 export type TwoFactorMethodUpdate = {
-  type?: 'email' | 'sms' | 'totp';
+  type?: 'Email' | 'Sms' | 'Totp';
   priority?: number;
   confirmedAt?: Date | null;
 };
 
 export type TwoFactorMethodReplace = {
-  type: 'email' | 'sms' | 'totp';
+  type: 'Email' | 'Sms' | 'Totp';
   priority?: number;
   confirmedAt?: Date | null;
 };
 
 export type TwoFactorMethodRelationCreate = {
-  type: 'email' | 'sms' | 'totp';
+  type: 'Email' | 'Sms' | 'Totp';
   priority?: number;
   confirmedAt?: Date | null;
 };
 
 export type TwoFactorMethodRelationUpdate = {
   id: number;
-  type?: 'email' | 'sms' | 'totp';
+  type?: 'Email' | 'Sms' | 'Totp';
   priority?: number;
   confirmedAt?: Date | null;
 };

@@ -142,7 +142,7 @@ describe('basic-auth', () => {
     });
 
     test('rejects a user with 2FA, whose password alone does not sign in', async () => {
-      authenticate.mockResolvedValue(authUser({ twoFactorMethods: ['totp'] }));
+      authenticate.mockResolvedValue(authUser({ twoFactorMethods: ['Totp'] }));
       await startServer();
 
       const response = await getMe(credentials('user@test.com', 'secret'));

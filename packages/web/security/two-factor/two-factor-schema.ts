@@ -11,22 +11,22 @@ import { authErrorCodes, authSchema } from '../auth-schema';
 
 const TwoFactorMethodSchema = StringEnum(TwoFactorMethodType, {
   description: 'A 2FA method: email or SMS codes, or an authenticator app',
-  example: 'totp'
+  example: 'Totp'
 });
 
 const TwoFactorChallengeMethodSchema = StringEnum(
-  { ...TwoFactorMethodType, Recovery: 'recovery' },
+  { ...TwoFactorMethodType, Recovery: 'Recovery' },
   {
     description:
-      'A 2FA method of the user, or `recovery` for one of their recovery codes',
-    example: 'totp'
+      'A 2FA method of the user, or `Recovery` for one of their recovery codes',
+    example: 'Totp'
   }
 );
 
 const TwoFactorMethodListSchema = (description: string) =>
   Type.Array(TwoFactorMethodSchema, {
     description,
-    example: ['totp', 'email']
+    example: ['Totp', 'Email']
   });
 
 export const TwoFactorChallengeRequest = Type.Object(
@@ -113,7 +113,7 @@ export const TwoFactorEnableMethodRequest = Type.Object(
       {
         description:
           'The email or SMS method, the authenticator app is enabled by its setup',
-        example: 'sms'
+        example: 'Sms'
       }
     )
   },

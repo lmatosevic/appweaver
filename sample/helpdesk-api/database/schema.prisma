@@ -390,7 +390,7 @@ enum TicketChannel {
 }
 
 enum TwoFactorMethodType {
-  email
-  sms
-  totp
+  Email
+  Sms
+  Totp
 }

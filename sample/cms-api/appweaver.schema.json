@@ -919,41 +919,41 @@
                     },
                     "methods": {
                       "default": [
-                        "email",
-                        "sms",
-                        "totp"
+                        "Email",
+                        "Sms",
+                        "Totp"
                       ],
                       "type": "array",
                       "items": {
                         "anyOf": [
                           {
-                            "const": "email",
+                            "const": "Email",
                             "type": "string"
                           },
                           {
-                            "const": "sms",
+                            "const": "Sms",
                             "type": "string"
                           },
                           {
-                            "const": "totp",
+                            "const": "Totp",
                             "type": "string"
                           }
                         ]
                       }
                     },
                     "defaultMethod": {
-                      "default": "email",
+                      "default": "Email",
                       "anyOf": [
                         {
-                          "const": "email",
+                          "const": "Email",
                           "type": "string"
                         },
                         {
-                          "const": "sms",
+                          "const": "Sms",
                           "type": "string"
                         },
                         {
-                          "const": "totp",
+                          "const": "Totp",
                           "type": "string"
                         }
                       ]

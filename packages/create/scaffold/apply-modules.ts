@@ -99,6 +99,14 @@ const prismaBlock: DockerfileBlock = {
   before: ['Copy config file/s']
 };
 
+/** The directory of the SQLite database file, the volume of docker-compose.yml. */
+const sqliteDataBlock = (runtime: Runtime): DockerfileBlock => ({
+  comment:
+    'Create the directory of the SQLite database, writable by the application user',
+  instructions: [`RUN mkdir data && chown ${runtime}:${runtime} data`],
+  before: ['Run the application as an unprivileged user']
+});
+
 /** The start.sh anchor the container roles are inserted before. */
 const unknownRole = 'else\n  echo "Could not match the container role';
 
@@ -152,6 +160,9 @@ const integrations: ModuleIntegration[] = [
         addDatabaseServices(content, scaffold.context)
       );
       addBlock(scaffold, prismaBlock);
+      if (scaffold.context.database === 'sqlite') {
+        addBlock(scaffold, sqliteDataBlock(scaffold.context.runtime));
+      }
       addText(
         scaffold,
         'start.sh',
@@ -164,6 +175,7 @@ const integrations: ModuleIntegration[] = [
         removeDatabaseServices(content, scaffold.context)
       );
       removeBlock(scaffold, prismaBlock);
+      removeBlock(scaffold, sqliteDataBlock(scaffold.context.runtime));
       removeText(
         scaffold,
         'start.sh',
@@ -856,6 +868,13 @@ function updateJson(
     if (!setKeys.includes(key) && getValue(config, key) === value) {
       deleteValue(config, key);
     }
+  }
+
+  // Kept sorted like in the template, whichever module added a package
+  if (file === 'package.json' && config.allowScripts) {
+    config.allowScripts = Object.fromEntries(
+      Object.entries(config.allowScripts).sort(([a], [b]) => a.localeCompare(b))
+    );
   }
 
   files.writeJson(file, config);

@@ -50,9 +50,9 @@ export type TicketChannel = (typeof TicketChannel)[keyof typeof TicketChannel]
 
 
 export const TwoFactorMethodType = {
-  email: 'email',
-  sms: 'sms',
-  totp: 'totp'
+  Email: 'Email',
+  Sms: 'Sms',
+  Totp: 'Totp'
 } as const
 
 export type TwoFactorMethodType = (typeof TwoFactorMethodType)[keyof typeof TwoFactorMethodType]

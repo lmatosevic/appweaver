@@ -8,7 +8,7 @@ CREATE TYPE "OrderStatus" AS ENUM ('Pending', 'Paid', 'Shipped', 'Delivered', 'C
 CREATE TYPE "ProductStatus" AS ENUM ('Draft', 'Active', 'Archived');
 
 -- CreateEnum
-CREATE TYPE "TwoFactorMethodType" AS ENUM ('email', 'sms', 'totp');
+CREATE TYPE "TwoFactorMethodType" AS ENUM ('Email', 'Sms', 'Totp');
 
 -- CreateTable
 CREATE TABLE "Address" (

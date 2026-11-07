@@ -132,7 +132,7 @@ model File {
 }
 
 enum TwoFactorMethodType {
-  email
-  sms
-  totp
+  Email
+  Sms
+  Totp
 }

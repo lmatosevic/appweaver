@@ -181,7 +181,7 @@ CREATE TABLE `OneTimeToken` (
 -- CreateTable
 CREATE TABLE `TwoFactorMethod` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `type` ENUM('email', 'sms', 'totp') NOT NULL,
+    `type` ENUM('Email', 'Sms', 'Totp') NOT NULL,
     `priority` INTEGER NOT NULL DEFAULT 0,
     `secret` VARCHAR(191) NULL,
     `confirmedAt` DATETIME(3) NULL,

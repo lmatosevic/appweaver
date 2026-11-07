@@ -79,10 +79,14 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     projectPackages: ({ database, runtime }) => [
       getDatabaseAdapter(database, runtime)
     ],
-    jsonFiles: ({ runtime }) => [
+    jsonFiles: ({ runtime, database }) => [
       {
         file: 'package.json',
         enabled: [
+          // The native build of the SQLite driver adapter of Node
+          ...(runtime === 'node' && database === 'sqlite'
+            ? ([['allowScripts.better-sqlite3', true]] as ConfigEntry[])
+            : []),
           ['scripts.generate', 'weaver generate'],
           ['scripts.migrate', 'weaver migrate'],
           [

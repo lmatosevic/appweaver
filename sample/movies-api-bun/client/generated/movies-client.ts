@@ -4997,9 +4997,9 @@ export type components = {
 };
 export type $defs = Record<string, never>;
 export const PathsAuthAccount2faMethodsMethodDeleteParametersPathMethod = {
-  email: 'email',
-  sms: 'sms',
-  totp: 'totp'
+  Email: 'Email',
+  Sms: 'Sms',
+  Totp: 'Totp'
 } as const;
 export type PathsAuthAccount2faMethodsMethodDeleteParametersPathMethod =
   (typeof PathsAuthAccount2faMethodsMethodDeleteParametersPathMethod)[keyof typeof PathsAuthAccount2faMethodsMethodDeleteParametersPathMethod];
@@ -5010,9 +5010,9 @@ export const AccountSendEmailVerificationRequestVerificationType = {
 export type AccountSendEmailVerificationRequestVerificationType =
   (typeof AccountSendEmailVerificationRequestVerificationType)[keyof typeof AccountSendEmailVerificationRequestVerificationType];
 export const AuthenticationResponseTwoFactorMethods = {
-  email: 'email',
-  sms: 'sms',
-  totp: 'totp'
+  Email: 'Email',
+  Sms: 'Sms',
+  Totp: 'Totp'
 } as const;
 export type AuthenticationResponseTwoFactorMethods =
   (typeof AuthenticationResponseTwoFactorMethods)[keyof typeof AuthenticationResponseTwoFactorMethods];
@@ -5122,6 +5122,7 @@ export const ErrorCode = {
   MailerJobNotFound: 'MAILER_JOB_NOT_FOUND',
   MailerSenderMissing: 'MAILER_SENDER_MISSING',
   SmsSendFailed: 'SMS_SEND_FAILED',
+  SmsJobNotFound: 'SMS_JOB_NOT_FOUND',
   TemplateNotFound: 'TEMPLATE_NOT_FOUND',
   TemplateRenderFailed: 'TEMPLATE_RENDER_FAILED',
   TemplateLoadFailed: 'TEMPLATE_LOAD_FAILED',
@@ -5140,36 +5141,36 @@ export const ReviewAggregateRequestDateField = {
 export type ReviewAggregateRequestDateField =
   (typeof ReviewAggregateRequestDateField)[keyof typeof ReviewAggregateRequestDateField];
 export const TwoFactorChallengeResponseMethods = {
-  email: 'email',
-  sms: 'sms',
-  totp: 'totp'
+  Email: 'Email',
+  Sms: 'Sms',
+  Totp: 'Totp'
 } as const;
 export type TwoFactorChallengeResponseMethods =
   (typeof TwoFactorChallengeResponseMethods)[keyof typeof TwoFactorChallengeResponseMethods];
 export const TwoFactorEnableMethodRequestMethod = {
-  email: 'email',
-  sms: 'sms'
+  Email: 'Email',
+  Sms: 'Sms'
 } as const;
 export type TwoFactorEnableMethodRequestMethod =
   (typeof TwoFactorEnableMethodRequestMethod)[keyof typeof TwoFactorEnableMethodRequestMethod];
 export const TwoFactorMethodsResponseEnabled = {
-  email: 'email',
-  sms: 'sms',
-  totp: 'totp'
+  Email: 'Email',
+  Sms: 'Sms',
+  Totp: 'Totp'
 } as const;
 export type TwoFactorMethodsResponseEnabled =
   (typeof TwoFactorMethodsResponseEnabled)[keyof typeof TwoFactorMethodsResponseEnabled];
 export const TwoFactorMethodsResponseAvailable = {
-  email: 'email',
-  sms: 'sms',
-  totp: 'totp'
+  Email: 'Email',
+  Sms: 'Sms',
+  Totp: 'Totp'
 } as const;
 export type TwoFactorMethodsResponseAvailable =
   (typeof TwoFactorMethodsResponseAvailable)[keyof typeof TwoFactorMethodsResponseAvailable];
 export const TwoFactorOrderMethodsRequestMethods = {
-  email: 'email',
-  sms: 'sms',
-  totp: 'totp'
+  Email: 'Email',
+  Sms: 'Sms',
+  Totp: 'Totp'
 } as const;
 export type TwoFactorOrderMethodsRequestMethods =
   (typeof TwoFactorOrderMethodsRequestMethods)[keyof typeof TwoFactorOrderMethodsRequestMethods];
@@ -5215,10 +5216,10 @@ export const PersonKnownFor = {
 export type PersonKnownFor =
   (typeof PersonKnownFor)[keyof typeof PersonKnownFor];
 export const TwoFactorChallengeMethod = {
-  email: 'email',
-  sms: 'sms',
-  totp: 'totp',
-  recovery: 'recovery'
+  Email: 'Email',
+  Sms: 'Sms',
+  Totp: 'Totp',
+  Recovery: 'Recovery'
 } as const;
 export type TwoFactorChallengeMethod =
   (typeof TwoFactorChallengeMethod)[keyof typeof TwoFactorChallengeMethod];
@@ -5404,8 +5405,8 @@ export type AuthenticationResponse = {
   /**
    * @description The 2FA methods of the user, the first being the default, set on the tokens of the 2fa scope
    * @example [
-   *       "totp",
-   *       "email"
+   *       "Totp",
+   *       "Email"
    *     ]
    */
   twoFactorMethods?: AuthenticationResponseTwoFactorMethods[];
@@ -7570,8 +7571,8 @@ export type RoleSingle = {
 
 export type TwoFactorChallengeRequest = {
   /**
-   * @description A 2FA method of the user, or `recovery` for one of their recovery codes
-   * @example totp
+   * @description A 2FA method of the user, or `Recovery` for one of their recovery codes
+   * @example Totp
    */
   method?: TwoFactorChallengeMethod;
   /**
@@ -7593,8 +7594,8 @@ export type TwoFactorChallengeResponse = {
    */
   expiresIn: number;
   /**
-   * @description A 2FA method of the user, or `recovery` for one of their recovery codes
-   * @example totp
+   * @description A 2FA method of the user, or `Recovery` for one of their recovery codes
+   * @example Totp
    */
   method: TwoFactorChallengeMethod;
   /**
@@ -7605,8 +7606,8 @@ export type TwoFactorChallengeResponse = {
   /**
    * @description The methods of the user, the first being the default
    * @example [
-   *       "totp",
-   *       "email"
+   *       "Totp",
+   *       "Email"
    *     ]
    */
   methods: TwoFactorChallengeResponseMethods[];
@@ -7623,7 +7624,7 @@ export type TwoFactorDisableMethodRequest = {
 export type TwoFactorEnableMethodRequest = {
   /**
    * @description The email or SMS method, the authenticator app is enabled by its setup
-   * @example sms
+   * @example Sms
    * @enum {string}
    */
   method: TwoFactorEnableMethodRequestMethod;
@@ -7669,16 +7670,16 @@ export type TwoFactorMethodsResponse = {
   /**
    * @description The enabled methods of the user, the first being the default
    * @example [
-   *       "totp",
-   *       "email"
+   *       "Totp",
+   *       "Email"
    *     ]
    */
   enabled: TwoFactorMethodsResponseEnabled[];
   /**
    * @description The methods the user may enable
    * @example [
-   *       "totp",
-   *       "email"
+   *       "Totp",
+   *       "Email"
    *     ]
    */
   available: TwoFactorMethodsResponseAvailable[];
@@ -7688,8 +7689,8 @@ export type TwoFactorOrderMethodsRequest = {
   /**
    * @description Every enabled method of the user in the new order, the first becoming the default
    * @example [
-   *       "totp",
-   *       "email"
+   *       "Totp",
+   *       "Email"
    *     ]
    */
   methods: TwoFactorOrderMethodsRequestMethods[];

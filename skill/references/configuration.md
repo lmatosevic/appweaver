@@ -496,13 +496,13 @@ ready. The listener stays off beside the server of `@appweaver/web`, which answe
 | `SECURITY_ACCOUNT_2FA_ENABLED`                      | boolean  | `true`                     | Enable two-factor authentication.                                                  |
 | `SECURITY_ACCOUNT_2FA_FORCED`                       | boolean  | `false`                    | Force 2FA for all users, a user without a method verifying with the default one.   |
 | `SECURITY_ACCOUNT_2FA_OTT_TTL`                      | integer  | `300000`                   | 2FA challenge TTL (ms, default 5 min).                                             |
-| `SECURITY_ACCOUNT_2FA_METHODS`                      | string[] | `['email', 'sms', 'totp']` | The methods users may enable, each available only with its service (see below).    |
-| `SECURITY_ACCOUNT_2FA_DEFAULT_METHOD`               | string   | `'email'`                  | The method of a user without one when 2FA is forced.                               |
+| `SECURITY_ACCOUNT_2FA_METHODS`                      | string[] | `['Email', 'Sms', 'Totp']` | The methods users may enable, each available only with its service (see below).    |
+| `SECURITY_ACCOUNT_2FA_DEFAULT_METHOD`               | string   | `'Email'`                  | The method of a user without one when 2FA is forced.                               |
 | `SECURITY_ACCOUNT_2FA_CODE_LENGTH`                  | integer  | `6`                        | Digits of the codes sent by email and SMS (4-10).                                  |
 | `SECURITY_ACCOUNT_2FA_MAX_ATTEMPTS`                 | integer  | `5`                        | Wrong codes of a challenge, revoked on the last one.                               |
 | `SECURITY_ACCOUNT_2FA_KEEP_DATABASE_TABLE`          | boolean  | `false`                    | Keep the `TwoFactorMethod` table while 2FA is disabled.                            |
 | `SECURITY_ACCOUNT_2FA_TOTP_ISSUER`                  | string?  | `app.name`                 | Issuer the authenticator apps show the account under.                              |
-| `SECURITY_ACCOUNT_2FA_TOTP_ENCRYPTION_KEY`          | string?  | -                          | Secret encrypting the TOTP secrets in the database, required by the `totp` method. |
+| `SECURITY_ACCOUNT_2FA_TOTP_ENCRYPTION_KEY`          | string?  | -                          | Secret encrypting the TOTP secrets in the database, required by the `Totp` method. |
 | `SECURITY_ACCOUNT_2FA_TOTP_DIGITS`                  | integer  | `6`                        | Digits of a TOTP code (6-8), `6` for every authenticator app.                      |
 | `SECURITY_ACCOUNT_2FA_TOTP_PERIOD`                  | integer  | `30`                       | Seconds of a TOTP time step, `30` for every authenticator app.                     |
 | `SECURITY_ACCOUNT_2FA_TOTP_WINDOW`                  | integer  | `1`                        | Time steps around the current one whose codes are accepted.                        |
@@ -512,8 +512,8 @@ ready. The listener stays off beside the server of `@appweaver/web`, which answe
 | `SECURITY_ACCOUNT_2FA_RECOVERY_CODES_LENGTH`        | integer  | `16`                       | Characters of a recovery code (8-128), shown in groups of four.                    |
 | `SECURITY_ACCOUNT_2FA_RECOVERY_CODES_NOTIFY_ON_USE` | boolean  | `true`                     | Email the user when one of their recovery codes is used.                           |
 
-A method is available only with its service: `email` with a mailer, `sms` with an SMS sender (`@appweaver/twilio`, or
-`json`), and `totp` with `SECURITY_ACCOUNT_2FA_TOTP_ENCRYPTION_KEY`. Changing the encryption key makes the enabled TOTP
+A method is available only with its service: `Email` with a mailer, `Sms` with an SMS sender (`@appweaver/twilio`, or
+`json`), and `Totp` with `SECURITY_ACCOUNT_2FA_TOTP_ENCRYPTION_KEY`. Changing the encryption key makes the enabled TOTP
 methods unusable, so keep it with the other secrets of the deployment. See [security](./security.md#two-factor-authentication-2fa).
 
 #### reCAPTCHA

@@ -18,7 +18,7 @@ const operations = {
     description:
       'Recreates the database with a single init migration from the current schema.',
     command: () =>
-      'rimraf database/migrations && prisma migrate reset --force && weaver migration new init',
+      'rimraf database/migrations && weaver migration reset -y && weaver migration new init',
     appliesTo: (sampleDir) =>
       fs.existsSync(path.join(sampleDir, 'prisma.config.ts'))
   },

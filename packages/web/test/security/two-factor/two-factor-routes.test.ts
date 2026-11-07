@@ -20,26 +20,26 @@ describe('two-factor-routes', () => {
       sendChallenge: jest.fn().mockResolvedValue({
         challengeId: 'challenge',
         expiresIn: 300000,
-        method: 'sms',
+        method: 'Sms',
         destination: '+385*******67',
-        methods: ['sms']
+        methods: ['Sms']
       }),
       verifyChallenge: jest
         .fn()
         .mockResolvedValue({ token: 'ott', expiresIn: 120000 }),
       listMethods: jest
         .fn()
-        .mockReturnValue({ enabled: ['totp'], available: ['email', 'totp'] }),
-      availableMethods: jest.fn().mockReturnValue(['email', 'totp']),
-      enableMethod: jest.fn().mockResolvedValue(['totp', 'email']),
-      orderMethods: jest.fn().mockResolvedValue(['email', 'totp']),
+        .mockReturnValue({ enabled: ['Totp'], available: ['Email', 'Totp'] }),
+      availableMethods: jest.fn().mockReturnValue(['Email', 'Totp']),
+      enableMethod: jest.fn().mockResolvedValue(['Totp', 'Email']),
+      orderMethods: jest.fn().mockResolvedValue(['Email', 'Totp']),
       disableMethod: jest.fn().mockResolvedValue([]),
       setupTotp: jest.fn().mockResolvedValue({
         secret: 'JBSWY3DPEHPK3PXP',
         otpauthUrl: 'otpauth://totp/App:user?secret=JBSWY3DPEHPK3PXP',
         expiresIn: 600000
       }),
-      confirmTotp: jest.fn().mockResolvedValue(['totp']),
+      confirmTotp: jest.fn().mockResolvedValue(['Totp']),
       generateRecoveryCodes: jest.fn().mockResolvedValue({
         codes: ['7G2K-QX9M-4TZB-8HRW'],
         generatedAt: new Date('2026-11-01T12:00:00.000Z')
@@ -74,15 +74,15 @@ describe('two-factor-routes', () => {
     server.inject({ method: method as any, url, payload });
 
   test('sends a challenge with the source of the sign-in', async () => {
-    const response = await inject('POST', '/challenge', { method: 'sms' });
+    const response = await inject('POST', '/challenge', { method: 'Sms' });
 
     expect(response.statusCode).toBe(200);
     expect(response.json()).toMatchObject({
       challengeId: 'challenge',
-      method: 'sms'
+      method: 'Sms'
     });
     expect(service.sendChallenge).toHaveBeenCalledWith(user, {
-      method: 'sms',
+      method: 'Sms',
       purpose: undefined,
       authSource: AuthSource.OAuth2Google
     });
@@ -113,43 +113,43 @@ describe('two-factor-routes', () => {
     const response = await inject('GET', '/methods');
 
     expect(response.json()).toEqual({
-      enabled: ['totp'],
-      available: ['email', 'totp']
+      enabled: ['Totp'],
+      available: ['Email', 'Totp']
     });
   });
 
   test('enables a method', async () => {
-    const response = await inject('POST', '/methods', { method: 'email' });
+    const response = await inject('POST', '/methods', { method: 'Email' });
 
     expect(response.json()).toEqual({
-      enabled: ['totp', 'email'],
-      available: ['email', 'totp']
+      enabled: ['Totp', 'Email'],
+      available: ['Email', 'Totp']
     });
-    expect(service.enableMethod).toHaveBeenCalledWith(user, 'email');
+    expect(service.enableMethod).toHaveBeenCalledWith(user, 'Email');
   });
 
   test('rejects enabling the TOTP method without its setup', async () => {
-    const response = await inject('POST', '/methods', { method: 'totp' });
+    const response = await inject('POST', '/methods', { method: 'Totp' });
 
     expect(response.statusCode).toBe(400);
   });
 
   test('orders the methods', async () => {
     const response = await inject('PUT', '/methods/order', {
-      methods: ['email', 'totp']
+      methods: ['Email', 'Totp']
     });
 
-    expect(response.json().enabled).toEqual(['email', 'totp']);
-    expect(service.orderMethods).toHaveBeenCalledWith(user, ['email', 'totp']);
+    expect(response.json().enabled).toEqual(['Email', 'Totp']);
+    expect(service.orderMethods).toHaveBeenCalledWith(user, ['Email', 'Totp']);
   });
 
   test('disables a method with the password', async () => {
-    const response = await inject('DELETE', '/methods/totp', {
+    const response = await inject('DELETE', '/methods/Totp', {
       password: 'secret'
     });
 
     expect(response.json().enabled).toEqual([]);
-    expect(service.disableMethod).toHaveBeenCalledWith(user, 'totp', 'secret');
+    expect(service.disableMethod).toHaveBeenCalledWith(user, 'Totp', 'secret');
   });
 
   test('starts and confirms a TOTP setup', async () => {
@@ -157,17 +157,17 @@ describe('two-factor-routes', () => {
     const confirm = await inject('POST', '/totp/confirm', { code: '123456' });
 
     expect(setup.json()).toMatchObject({ secret: 'JBSWY3DPEHPK3PXP' });
-    expect(confirm.json().enabled).toEqual(['totp']);
+    expect(confirm.json().enabled).toEqual(['Totp']);
     expect(service.confirmTotp).toHaveBeenCalledWith(user, '123456');
   });
 
   test('sends a challenge for a recovery code', async () => {
-    const response = await inject('POST', '/challenge', { method: 'recovery' });
+    const response = await inject('POST', '/challenge', { method: 'Recovery' });
 
     expect(response.statusCode).toBe(200);
     expect(service.sendChallenge).toHaveBeenCalledWith(
       user,
-      expect.objectContaining({ method: 'recovery' })
+      expect.objectContaining({ method: 'Recovery' })
     );
   });
 

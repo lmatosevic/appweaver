@@ -39,13 +39,13 @@ export const twoFactorConfig = defineConfig('security.account.2fa', {
   FORCED: Type.Boolean({ default: false }),
   /** 2FA challenge TTL in milliseconds. Default: `300000` (5 min). */
   OTT_TTL: Type.Integer({ default: 300000 }),
-  /** The methods users may enable, of `email`, `sms` and `totp`. A method is available only with its service: a
-   * mailer for `email`, an SMS sender for `sms`, and the `totp.encryptionKey` for `totp`. Default:
-   * `['email', 'sms', 'totp']`. */
+  /** The methods users may enable, of `Email`, `Sms` and `Totp`. A method is available only with its service: a
+   * mailer for `Email`, an SMS sender for `Sms`, and the `totp.encryptionKey` for `Totp`. Default:
+   * `['Email', 'Sms', 'Totp']`. */
   METHODS: Type.Array(Type.Enum(TwoFactorMethodType), {
     default: Object.values(TwoFactorMethodType)
   }),
-  /** The method of a user without one of their own when 2FA is forced. Default: `'email'`. */
+  /** The method of a user without one of their own when 2FA is forced. Default: `'Email'`. */
   DEFAULT_METHOD: Type.Enum(TwoFactorMethodType, {
     default: TwoFactorMethodType.Email
   }),
@@ -72,7 +72,7 @@ export const recoveryCodesConfig = defineConfig(
 export const totpConfig = defineConfig('security.account.2fa.totp', {
   /** Issuer the authenticator apps show the account under. Defaults to the `app.name` config. */
   ISSUER: Type.Optional(Type.String()),
-  /** Secret the TOTP secrets are encrypted with in the database, required by the `totp` method. Changing it makes
+  /** Secret the TOTP secrets are encrypted with in the database, required by the `Totp` method. Changing it makes
    * the enabled TOTP methods unusable. */
   ENCRYPTION_KEY: Type.Optional(Type.String({ secret: true })),
   /** Digits of a TOTP code, `6` being the only one every authenticator app supports. Default: `6`. */

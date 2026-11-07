@@ -40,7 +40,7 @@ export const AuthenticationResponse = Type.Object(
       Type.Array(StringEnum(TwoFactorMethodType), {
         description:
           'The 2FA methods of the user, the first being the default, set on the tokens of the 2fa scope',
-        example: ['totp', 'email']
+        example: ['Totp', 'Email']
       })
     )
   },

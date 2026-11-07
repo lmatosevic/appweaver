@@ -14,14 +14,14 @@ describe('two-factor-client', () => {
     test('posts the method of the challenge', async () => {
       const { stub, twoFactor } = createTwoFactor({ challengeId: 'challenge' });
 
-      await expect(twoFactor.challenge({ method: 'sms' })).resolves.toEqual({
+      await expect(twoFactor.challenge({ method: 'Sms' })).resolves.toEqual({
         challengeId: 'challenge'
       });
 
       expect(stub.lastCall()).toMatchObject({
         method: 'post',
         path: '/auth/account/2fa/challenge',
-        params: { body: { method: 'sms' } }
+        params: { body: { method: 'Sms' } }
       });
     });
 
@@ -50,10 +50,10 @@ describe('two-factor-client', () => {
 
   describe('listMethods', () => {
     test('gets the methods', async () => {
-      const { stub, twoFactor } = createTwoFactor({ enabled: ['totp'] });
+      const { stub, twoFactor } = createTwoFactor({ enabled: ['Totp'] });
 
       await expect(twoFactor.listMethods()).resolves.toEqual({
-        enabled: ['totp']
+        enabled: ['Totp']
       });
       expect(stub.lastCall()).toMatchObject({
         method: 'get',
@@ -66,12 +66,12 @@ describe('two-factor-client', () => {
     test('posts the method to enable', async () => {
       const { stub, twoFactor } = createTwoFactor();
 
-      await twoFactor.enableMethod({ method: 'email' });
+      await twoFactor.enableMethod({ method: 'Email' });
 
       expect(stub.lastCall()).toMatchObject({
         method: 'post',
         path: '/auth/account/2fa/methods',
-        params: { body: { method: 'email' } }
+        params: { body: { method: 'Email' } }
       });
     });
   });
@@ -80,12 +80,12 @@ describe('two-factor-client', () => {
     test('puts the new order', async () => {
       const { stub, twoFactor } = createTwoFactor();
 
-      await twoFactor.orderMethods({ methods: ['sms', 'email'] });
+      await twoFactor.orderMethods({ methods: ['Sms', 'Email'] });
 
       expect(stub.lastCall()).toMatchObject({
         method: 'put',
         path: '/auth/account/2fa/methods/order',
-        params: { body: { methods: ['sms', 'email'] } }
+        params: { body: { methods: ['Sms', 'Email'] } }
       });
     });
   });
@@ -94,14 +94,14 @@ describe('two-factor-client', () => {
     test('deletes the method with the password', async () => {
       const { stub, twoFactor } = createTwoFactor();
 
-      await twoFactor.disableMethod('totp', { password: 'secret' });
+      await twoFactor.disableMethod('Totp', { password: 'secret' });
 
       expect(stub.lastCall()).toMatchObject({
         method: 'delete',
         path: '/auth/account/2fa/methods/{method}',
         params: {
           body: { password: 'secret' },
-          params: { path: { method: 'totp' } }
+          params: { path: { method: 'Totp' } }
         }
       });
     });
@@ -109,7 +109,7 @@ describe('two-factor-client', () => {
     test('deletes the method of a user without a password', async () => {
       const { stub, twoFactor } = createTwoFactor();
 
-      await twoFactor.disableMethod('email');
+      await twoFactor.disableMethod('Email');
 
       expect(stub.lastCall().params.body).toEqual({});
     });
