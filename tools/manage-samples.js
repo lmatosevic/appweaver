@@ -76,7 +76,7 @@ for (const name of samples) {
   console.log(`\n> ${name}: ${command}`);
   const result = spawnSync(command, {
     cwd: sampleDir,
-    env: withBinPath(sampleDir),
+    env: { ...withBinPath(sampleDir), ...operation.env },
     shell: true,
     stdio: 'inherit'
   });
