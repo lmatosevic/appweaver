@@ -110,6 +110,7 @@ export default defineModule({ name: 'appweaver-newsletter' /* ... */ });
 | `main`      | `() => import(...)`                      | Code run at startup: scheduled jobs, queue workers, event listeners                                                                                  |
 | `web`       | `() => import(...)`                      | Its resource routes, custom routes (`registerRoute`) and plugins (`registerPlugin`), loaded by the `setup` of `@appweaver/web`                       |
 | `seeders`   | `string`                                 | The absolute path of its seeders directory, run by `weaver seed` before the seeders of the application                                               |
+| `tasks`     | `string`                                 | The absolute path of its tasks directory (`createTask` files), listed and run by `weaver run`, overridden by a task of the application                |
 | `locales`   | `string`                                 | The absolute path of its translations, overridden by the ones of the application                                                                     |
 | `templates` | `string`                                 | The absolute path of its templates, overridden by the ones of the application                                                                        |
 
@@ -131,7 +132,7 @@ export default defineModule({
 `isModule(value)` checks a manifest, and `PROVIDER_AUTO` / `PROVIDER_NONE` hold `'auto'` and `'none'`. A manifest is
 marked with `Symbol.for('appweaver.module')`, so it is recognized whichever copy of `@appweaver/common` defined it.
 
-The directories of `seeders`, `locales` and `templates` are absolute, i.e. `path.join(__dirname, 'locales')` in
+The directories of `seeders`, `tasks`, `locales` and `templates` are absolute, i.e. `path.join(__dirname, 'locales')` in
 `module.ts`, so they point to the build output of a package or a local module:
 
 - `weaver seed` (`createSeeder`) runs the seeders of the modules first, in their load order, each recorded under the
@@ -146,8 +147,9 @@ The directories of `seeders`, `locales` and `templates` are absolute, i.e. `path
 `moduleDirectories('locales' | 'templates' | 'seeders')` of `@appweaver/core` returns the directories of the enabled
 modules, for a driver of another engine. A config section is registered when its file is imported (the manifest
 imports it to list it), and the sections of `config` are parsed when the application starts, so an invalid value fails
-the start instead of the first read of its key. A module ships its own command line tool, or a task run with
-`weaver run`, since `weaver` has no module subcommands.
+the start instead of the first read of its key. A module ships its commands as tasks (`createTask`) in its `tasks`
+directory, run by `weaver run`. Prefix their names with the module (`billing:sync`), so they never take the name of an
+application task, which would replace them.
 
 A module model relates to the application only through a reference resolved when the app loads, i.e. the auth model.
 

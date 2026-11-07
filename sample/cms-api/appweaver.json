@@ -50,8 +50,7 @@
         "2fa": {
           "enabled": true,
           "totp": {
-            "issuer": "CMS",
-            "encryptionKey": "${TOTP_ENCRYPTION_KEY}"
+            "issuer": "CMS"
           }
         }
       }
@@ -120,15 +119,6 @@
       },
       "sms": {
         "provider": "json"
-      },
-      "security": {
-        "account": {
-          "2fa": {
-            "totp": {
-              "encryptionKey": "test-totp-encryption-key"
-            }
-          }
-        }
       }
     }
   }

@@ -319,6 +319,7 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 | `APP_SOURCE_PATH`        | string   | `'./src'`                          | Path to the application source code. Used in other path variables with <srcPath> placeholder.                               |
 | `APP_SCAN_FILES_PATTERN` | string   | `'<srcPath>/*/index.ts'`           | Glob pattern for scanning application files.                                                                                |
 | `APP_MAIN_FILE_PATH`     | string   | `'<srcPath>/main.ts'`              | Path to main application entrypoint file.                                                                                   |
+| `APP_TASKS_DIR_PATH`     | string   | `'<srcPath>/tasks'`                | Directory of the tasks `weaver run` lists and runs by name. See [cli](./cli.md#weaver-run).                                 |
 | `APP_MODULES_PATTERN`    | string   | `'<srcPath>/modules/*/module.ts'`  | Glob of the manifests of the local modules, empty to find none. See [modules](./modules.md).                                |
 | `APP_MODULES`            | string[] | `[]`                               | Paths of the module manifests to enable besides the package and local ones, relative to the project root.                   |
 | `APP_MODULES_DISABLED`   | string[] | `[]`                               | Names of the modules to leave disabled, i.e. `@appweaver/web` for an application without a server.                          |

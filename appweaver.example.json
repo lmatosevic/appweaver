@@ -11,6 +11,7 @@
       "sourcePath": "./src",
       "scanFilesPattern": "<srcPath>/*/index.ts",
       "mainFilePath": "<srcPath>/main.ts",
+      "tasksDirPath": "<srcPath>/tasks",
       "modulesPattern": "<srcPath>/modules/*/module.ts",
       "modules": [],
       "modulesDisabled": []

@@ -94,6 +94,8 @@ export type ModuleManifest = {
    * the seeders of the application, recorded under the name of the module (`billing/1-plans`).
    */
   seeders?: string;
+  /** The absolute path of its tasks directory, run by `weaver run`, a task of the application replacing one of the same name. */
+  tasks?: string;
   /** The absolute path of its translations directory, overridden by the translations of the application. */
   locales?: string;
   /** The absolute path of its templates directory, overridden by the templates of the application. */

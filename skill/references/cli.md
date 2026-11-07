@@ -24,7 +24,7 @@ weaver <command> [options]
 | `migrate`        | `mge` | Apply the pending database migrations            |
 | `migration`      | `mgn` | Create the migrations and reset the database     |
 | `module`         | `mod` | Manage the modules of the project                |
-| `run`            | `r`   | Run a one-shot task file                         |
+| `run`            | `r`   | Run a one-shot task, or list the tasks           |
 | `seed`           | `sd`  | Seed the database                                |
 | `start`          | `s`   | Start the application                            |
 | `test`           | `t`   | Set up, reset and tear down the test environment |
@@ -317,26 +317,63 @@ in the project in a warning.
 ## `weaver run`
 
 ```
-weaver run|r <file> [args...]
+weaver run|r
+weaver run|r <task> [args...]
 ```
 
-Run a one-shot task with the application, like a Rails runner. The command creates the application without starting
-the server listening, the health listener or the scheduled jobs (`SERVER_LISTEN`, `HEALTH_CHECK_PORT` and
-`SCHEDULER_AUTO_START_JOB` are forced off), calls the default export of the file
-with the arguments given after it, stops the application, and exits with the number the task returns (`0` otherwise,
-`1` when it throws). On Node a `.ts` path runs from the build output (`src/tasks/report.ts` from
-`dist/src/tasks/report.js`), so build first; Bun runs the source.
+Run a one-shot task with the application by its name or its file, or list the tasks without one. The server, the
+health listener and the scheduled jobs never start (`SERVER_LISTEN`, `HEALTH_CHECK_PORT` and `SCHEDULER_AUTO_START_JOB`
+are forced off), and the command exits with the number the task returns (`0` otherwise, `1` when it throws). Invalid
+arguments and `--help` exit before the application starts.
+
+A task is the default export of a file in `src/tasks/` (`APP_TASKS_DIR_PATH`), created with `createTask`. Only `run`
+is required, and the values of the arguments and options are typed from their declarations:
 
 ```ts
-// src/tasks/report.ts
-export default async function (args: string[]): Promise<number | void> {
-  // the full application context is available: inject, injectService, ...
-}
+// src/tasks/orders/count.ts, run with `weaver run orders:count Paid --min 2`
+import { createTask, injectService } from '@appweaver/core';
+
+export default createTask({
+  description: 'Counts the orders of a status.', // listed by `weaver run`
+  arguments: {
+    status: { required: true, choices: ['Pending', 'Paid'] } // <status>: 'Pending' | 'Paid'
+  },
+  options: {
+    min: { type: 'number', default: 1 },                     // --min <min>: number
+    quiet: { type: 'boolean', description: 'Print nothing.' } // --quiet: boolean
+  },
+  run: async ({ args, options }) => {
+    const count = await injectService('Order').count({ status: args.status });
+    if (!options.quiet) {
+      console.log(`${count} orders`);
+    }
+    return count >= options.min ? 0 : 1; // the exit code
+  }
+});
 ```
 
+| Field         | Description                                                                                                                   |
+|---------------|-------------------------------------------------------------------------------------------------------------------------------|
+| `run`         | `({ args, options, argv }) => number \| void`, `argv` holding the arguments as given                                          |
+| `name`        | Default: the path in the tasks directory (`orders/count.ts` is `orders:count`)                                                |
+| `description` | Listed by `weaver run`, shown by `--help`                                                                                     |
+| `arguments`   | Filled in the order of their keys: `description`, `type` (`string`, `number`), `required`, `variadic`, `default`, `choices`   |
+| `options`     | A camelCase key is a kebab-case flag: `description`, `type` (`string`, `number`, `boolean`), `required`, `default`, `choices` |
+
+The required arguments come before the optional ones and have no `default`, only the last one is `variadic`, and no
+key is an integer, otherwise the task fails to run. A task declaring no `arguments` or `options` takes any, read from
+`argv`.
+
 ```sh
-weaver run src/tasks/report.ts 2026-10
+weaver run                                 # list the tasks with their descriptions
+weaver run orders:count --help             # the usage of a task
+weaver run orders:count Pending --quiet    # run a task by its name
+weaver run src/tasks/orders/count.ts Paid  # run the task of a file
 ```
+
+The tasks of the enabled modules are listed and run too (see [modules](./modules.md)), a task of the application
+replacing a module task of the same name. A plain default function, `(args: string[]) => number | void`, still works,
+receiving the raw arguments. On Node the tasks run from the build output (`dist/src/tasks/`), so build first.
 
 ---
 

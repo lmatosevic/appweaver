@@ -320,7 +320,7 @@ export async function createAdminUser(): Promise<void> {
 | `weaver module new <name>`    | Create a local module in `src/modules/`                                                                         |
 | `weaver config check`         | Validate the config of every module                                                                             |
 | `weaver openapi`              | Generate OpenAPI specification                                                                                  |
-| `weaver run <file> [args...]` | Run a one-shot task, then exit                                                                                  |
+| `weaver run <task> [args...]` | Run a `createTask` of `src/tasks/` by name or file, then exit (`weaver run` lists them)                         |
 
 ## Testing
 

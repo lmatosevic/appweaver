@@ -188,6 +188,7 @@ The runtime every application has, with neither a server nor a database. Organiz
 | `scheduler/` | The scheduler config, its driver is `@appweaver/cron`                                                                                |
 | `mailer/`    | `EmailService`, rendering the template emails, and the `json` mailer of development and tests                                        |
 | `sms/`       | `SmsService`, sending the text messages through the `sms` queue, and the `json` SMS sender of development and tests                  |
+| `task/`      | `createTask` and `isTask`, the tasks `weaver run` lists and runs by name                                                             |
 | `template/`  | The template config and `registerTemplate` / `registerTemplateHelper`, the engine is `@appweaver/handlebars`                         |
 | `locale/`    | Locale service — translating the dotted keys of the nested JSON translation files, with the framework's own English translations     |
 | `health/`    | `HealthService` (the checks, and the readiness the lifecycle sets), the `node:http` health listener of an app without web            |
@@ -703,17 +704,33 @@ when the `@appweaver/web` module is not installed or disabled.
 
 ### `weaver run` (alias: `r`)
 
-Run a one-shot task with the application.
+Run a one-shot task with the application, by its name or its file, or list the tasks without one.
 
 ```
-weaver run <file> [args...]
+weaver run
+weaver run <task> [args...]
 ```
 
-Creates the application without starting its server, its health listener or its scheduled jobs (`SERVER_LISTEN`,
-`HEALTH_CHECK_PORT` and `SCHEDULER_AUTO_START_JOB` are forced off), runs the default export of the file,
-`(args: string[]) => number | void`, with the arguments after the file,
-stops the application, and exits with the returned number (`0` otherwise, `1` when the task throws). On Node a `.ts`
-path runs from the build output (`src/tasks/report.ts` from `dist/src/tasks/report.js`).
+A task is the default export of a file created with `createTask` of `@appweaver/core` (`task/create-task.ts`): its
+`run` function and the optional `name`, `description`, `arguments` and `options`, whose values are typed from their
+declarations. A plain default function, `(args: string[]) => number | void`, is wrapped into a task receiving the raw
+arguments, and a file exporting neither is a helper, skipped (`run/load-tasks.ts`).
+
+- **By name**: `weaver run reports:daily` finds the task in `APP_TASKS_DIR_PATH` (`<srcPath>/tasks`, the build output
+  on Node) and the `tasks` directories of the enabled modules, named by its `name` or its path (`reports/daily.ts` is
+  `reports:daily`). A task of the application replaces a module task of the same name, any other duplicate fails.
+- **By file**: a target with a directory or a script extension, a `.ts` path running from the build output on Node.
+- **List**: `weaver run` without a task prints the tasks with their descriptions and modules, and the failed files.
+
+The arguments after the task are passed through to a Commander command built from its declarations
+(`run/parse-task-args.ts`), so `weaver run <task> --help` shows its usage, and a camelCase option is its kebab-case
+flag. A task declaring no `arguments` or `options` takes any, read from `argv`. The values fill the `arguments` in the
+order of their keys, so a `TaskError` rejects an integer key, a required argument after an optional one or with a
+`default`, and a variadic one before the last.
+
+The application is created without starting it, its server, health listener and scheduled jobs forced off, and is
+started only once the arguments parse. The command exits with the number the task returns (`0` otherwise, `1` when it
+throws).
 
 ---
 

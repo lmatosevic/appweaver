@@ -260,20 +260,27 @@ and the [providers](references/configuration.md#providers).
 |------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
 | HTTP API                     | The default: `createApp()` starts the server on `SERVER_PORT`.                                                                           |
 | Queue worker, scheduled jobs | `APP_MODULES_DISABLED=@appweaver/web`: no server, kept alive by its workers or cron jobs. `HEALTH_CHECK_PORT` answers the health checks. |
-| One-shot task                | `weaver run src/tasks/report.ts [args...]`: runs the default export `(args) => number \| void`, then exits.                              |
+| One-shot task                | `weaver run <task> [args...]`: runs a `createTask` of `src/tasks/` by its name (`weaver run` lists them), then exits.                    |
 
 ```ts
-// src/tasks/report.ts, run with `weaver run src/tasks/report.ts Pending`
-import { injectService } from '@appweaver/core';
+// src/tasks/orders/count.ts, run with `weaver run orders:count Pending`
+import { createTask, injectService } from '@appweaver/core';
 
-export default async function (args: string[]) {
-  const count = await injectService('Order').count({ status: args[0] });
-  console.log(`${count} orders`);
-  return count > 0 ? 0 : 1; // the exit code
-}
+export default createTask({
+  description: 'Counts the orders of a status.',
+  arguments: { status: { required: true, choices: ['Pending', 'Paid'] } },
+  options: { min: { type: 'number', default: 1 } }, // --min <min>
+  run: async ({ args, options }) => {
+    const count = await injectService('Order').count({ status: args.status });
+    console.log(`${count} orders`);
+    return count >= options.min ? 0 : 1; // the exit code
+  }
+});
 ```
 
-`weaver run` creates the application without starting the server or the scheduled jobs, and stops it after the task.
+`weaver run` runs the task without the server or the scheduled jobs, `--help` showing its arguments. A task is named by
+its path in `src/tasks/` (`orders/count.ts` is `orders:count`) unless it has a `name`. See
+[cli.md](references/cli.md#weaver-run).
 
 ### Creating resources
 
@@ -1020,7 +1027,9 @@ application file outside a module. See
 ### Run a one-shot task
 
 ```sh
-weaver run src/tasks/report.ts Pending  # run the default export of the file with the arguments, then exit
+weaver run                              # list the tasks of src/tasks/ and the modules
+weaver run orders:count Pending         # run a task by its name with the arguments, then exit
+weaver run orders:count --help          # the arguments and options of a task
 ```
 
 ### Upgrade Appweaver packages
