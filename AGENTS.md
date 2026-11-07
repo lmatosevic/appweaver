@@ -1072,8 +1072,10 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
   a single `init` migration and recreates its database, and `run <script>` runs a `package.json` script of every sample
   having it, with Bun in the Bun sample (`run generate`, `run seed`). The database operations need the PostgreSQL,
   MySQL and SQL Server containers running, and `run generate` runs the built `node_modules/@appweaver`, so run
-  `npm run build` first or it generates the models of the last build. A new operation is an entry of its `operations`,
-  with the names of its `params`.
+  `npm run build` first or it generates the models of the last build. The samples run one after another, stopping at the
+  first failure, or with `--parallel` (anywhere in the arguments) all at once, every output line prefixed with its
+  sample and every failure reported at the end. A new operation is an entry of its `operations`, with the names of its
+  `params`.
 - The Node samples build before their end-to-end tests (`pree2e`), since the application loads the compiled `dist/src`.
 - The Bun sample runs its scripts with `bun run`. Bun runs every test file in one process, where the application
   context is frozen once an application starts, so its end-to-end files share one application instead of resetting the

@@ -1,14 +1,16 @@
 const fs = require('fs');
 const path = require('path');
-const { spawnSync } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 
 // Runs an operation in every sample project it applies to, or only in the
-// samples named after its parameters, stopping at the first failure.
+// samples named after its parameters, one after another stopping at the first
+// failure, or with --parallel all at once, reporting every failure at the end.
 //
 //   node tools/manage-samples.js regenerate:db
 //   node tools/manage-samples.js regenerate:db cms-api hr-api
 //   node tools/manage-samples.js run generate
 //   node tools/manage-samples.js run seed webshop-api
+//   node tools/manage-samples.js run e2e --parallel
 
 const samplesDir = 'sample';
 
@@ -31,7 +33,19 @@ const operations = {
   }
 };
 
-const [operationName, ...cliArgs] = process.argv.slice(2);
+const flags = ['--parallel'];
+const args = process.argv.slice(2);
+const unknownFlags = args.filter(
+  (arg) => arg.startsWith('-') && !flags.includes(arg)
+);
+if (unknownFlags.length) {
+  console.error(`Unknown options: ${unknownFlags.join(', ')}\n`);
+  printUsage();
+  process.exit(1);
+}
+const parallel = args.includes('--parallel');
+
+const [operationName, ...cliArgs] = args.filter((arg) => !flags.includes(arg));
 const operation = operations[operationName];
 if (!operation) {
   if (operationName) {
@@ -70,37 +84,109 @@ const samples = (sampleNames.length ? sampleNames : allSamples).filter(
   }
 );
 
-for (const name of samples) {
-  const sampleDir = path.join(samplesDir, name);
-  const command = operation.command(sampleDir, params);
-  console.log(`\n> ${name}: ${command}`);
-  const result = spawnSync(command, {
-    cwd: sampleDir,
-    env: { ...withBinPath(sampleDir), ...operation.env },
-    shell: true,
-    stdio: 'inherit'
+if (parallel) {
+  runInParallel().then((failed) => {
+    if (failed.length) {
+      console.error(`\n${title} failed in ${failed.join(', ')}`);
+      process.exit(1);
+    }
+    printDone();
   });
-  if (result.status !== 0) {
-    console.error(`\n${title} failed in ${name}`);
-    process.exit(result.status ?? 1);
+} else {
+  for (const name of samples) {
+    const { sampleDir, command } = sampleCommand(name);
+    console.log(`\n> ${name}: ${command}`);
+    const result = spawnSync(command, {
+      cwd: sampleDir,
+      env: withBinPath(sampleDir),
+      shell: true,
+      stdio: 'inherit'
+    });
+    if (result.status !== 0) {
+      console.error(`\n${title} failed in ${name}`);
+      process.exit(result.status ?? 1);
+    }
   }
+  printDone();
 }
 
-console.log(
-  samples.length
-    ? `\n${title} done in ${samples.join(', ')}`
-    : `\n${title} applies to none of the samples`
-);
+/** Runs the command in every sample at once, each output line prefixed with the sample, resolving the failed ones. */
+async function runInParallel() {
+  const width = Math.max(...samples.map((name) => name.length));
+  const results = await Promise.all(
+    samples.map(
+      (name) =>
+        new Promise((resolve) => {
+          const { sampleDir, command } = sampleCommand(name);
+          const prefix = `[${name.padEnd(width)}] `;
+          console.log(`${prefix}> ${command}`);
+          const child = spawn(command, {
+            cwd: sampleDir,
+            env: withBinPath(sampleDir),
+            shell: true,
+            stdio: ['ignore', 'pipe', 'pipe']
+          });
+          const stdout = prefixLines(prefix, process.stdout);
+          const stderr = prefixLines(prefix, process.stderr);
+          child.stdout.on('data', stdout);
+          child.stderr.on('data', stderr);
+          child.on('error', () => resolve(name));
+          child.on('close', (code) => {
+            stdout.flush();
+            stderr.flush();
+            resolve(code === 0 ? undefined : name);
+          });
+        })
+    )
+  );
+  return results.filter(Boolean);
+}
+
+/** Writes the chunks of an output with the prefix before every line, keeping an unfinished line until it ends. */
+function prefixLines(prefix, stream) {
+  let rest = '';
+  const write = (chunk) => {
+    const lines = (rest + chunk.toString()).split(/\r?\n/);
+    rest = lines.pop();
+    for (const line of lines) {
+      stream.write(`${prefix}${line}\n`);
+    }
+  };
+  write.flush = () => {
+    if (rest) {
+      stream.write(`${prefix}${rest}\n`);
+      rest = '';
+    }
+  };
+  return write;
+}
+
+function sampleCommand(name) {
+  const sampleDir = path.join(samplesDir, name);
+  return { sampleDir, command: operation.command(sampleDir, params) };
+}
+
+function printDone() {
+  console.log(
+    samples.length
+      ? `\n${title} done in ${samples.join(', ')}`
+      : `\n${title} applies to none of the samples`
+  );
+}
 
 function printUsage() {
   console.log(
-    'Usage: node tools/manage-samples.js <operation> [params...] [samples...]\n'
+    'Usage: node tools/manage-samples.js <operation> [params...] [samples...] [--parallel]\n'
   );
   console.log('Operations:');
   for (const [name, { params, description }] of Object.entries(operations)) {
     const usage = [name, ...params.map((p) => `<${p}>`)].join(' ');
     console.log(`  ${usage.padEnd(18)}${description}`);
   }
+  console.log('\nOptions:');
+  console.log(
+    '  --parallel        Runs the operation in the samples at once, reporting every failure at the end.'
+  );
 }
 
 function readScripts(sampleDir) {
