@@ -56,8 +56,8 @@ if `SECURITY_JWT_SECRET` is set.
 - RSA 2048-bit key pair generated automatically if `SECURITY_JWT_AUTO_GENERATE_KEYS` is `true` and key files are missing
 - Keys stored at `SECURITY_JWT_PUBLIC_KEY_PATH` and `SECURITY_JWT_PRIVATE_KEY_PATH` (default: `./storage/__keys__/`)
 - Generated keys are written with owner-only permissions (`0600` for the private key, `0700` for its directory)
-- The default `STORAGE_RESERVED_PATHS` value (`['__keys__']`) makes the `__keys__` directory unusable by the file storage
-  layer, so uploads can never overwrite the default key location
+- The default `STORAGE_RESERVED_PATHS` value (`['__keys__']`) makes the `__keys__` directory unusable by the file
+  storage layer, so uploads can never overwrite the default key location
 - If `SECURITY_JWT_SECRET` is set, HMAC signing is used instead of RSA
 
 ### Token types and scopes
@@ -178,7 +178,12 @@ A key has the full access of its owner unless it lists a scope, its optional `ro
 
 ```ts
 // POST /api/api-keys, with the JWT of the owner
-{ "name": "CI deploys", "roles": [3], "permissions": [12, { "id": 15 }] }
+const _ = {
+  'name':
+    'CI deploys', 'roles':
+    [3], 'permissions':
+    [12, { 'id': 15 }]
+};
 ```
 
 - A role or permission the owner does not hold fails with `403` `AUTH_API_KEY_PERMISSION_DENIED`, whose details list
@@ -568,7 +573,11 @@ linked to the auth model and deleted with it, and managed by the 2FA routes only
           "enabled": true,
           "forced": false,
           "ottTtl": 300000,
-          "methods": ["Email", "Sms", "Totp"],
+          "methods": [
+            "Email",
+            "Sms",
+            "Totp"
+          ],
           "defaultMethod": "Email",
           "codeLength": 6,
           "maxAttempts": 5,
@@ -616,8 +625,8 @@ challenge fails with `ACCOUNT_2FA_METHOD_UNAVAILABLE` until the method is availa
 ```
 
 Changing the password (`POST /auth/change-password`) returns the tokens of the `auth` scope, since the user passed 2FA
-to call it. The refresh token of the tokens of the `2fa` scope keeps that scope and the expiration of the access token, so
-`/auth/refresh` never turns them into the tokens of the `auth` scope without the challenge.
+to call it. The refresh token of the tokens of the `2fa` scope keeps that scope and the expiration of the access token,
+so `/auth/refresh` never turns them into the tokens of the `auth` scope without the challenge.
 
 The challenge fails with `ACCOUNT_2FA_METHOD_UNAVAILABLE` for a method the application does not offer, and with
 `ACCOUNT_2FA_METHOD_NOT_ENABLED` (`details.enabledMethods`) for one the user has not enabled. A challenge belongs to the

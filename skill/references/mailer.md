@@ -286,7 +286,8 @@ without a loaded template engine with `CONFIGURATION_INVALID`.
 
 The account routes send their emails from the templates of the application, always in `LOCALE_DEFAULT`. To send one
 in another locale, call the services directly: `sendEmailVerification` and `sendResetPassword` of `AccountService` take
-the locale as their last argument, `sendChallenge` of `TwoFactorService` as its `locale` option. The framework ships no templates of its own:
+the locale as their last argument, `sendChallenge` of `TwoFactorService` as its `locale` option. The framework ships no
+templates of its own:
 
 | Template                    | Data                                           |
 |-----------------------------|------------------------------------------------|

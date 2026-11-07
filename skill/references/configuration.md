@@ -545,13 +545,13 @@ methods unusable, so keep it with the other secrets of the deployment. See [secu
 
 #### API key authentication
 
-| Property                               | Type     | Default       | Description                                        |
-|----------------------------------------|----------|---------------|----------------------------------------------------|
-| `SECURITY_API_KEY_ENABLED`             | boolean  | `false`       | Enable API key authentication.                     |
-| `SECURITY_API_KEY_KEEP_DATABASE_TABLE` | boolean  | `false`       | Keep API key database table after migrations.      |
-| `SECURITY_API_KEY_HEADER_NAME`         | string   | `'x-api-key'` | Request header name for the API key.               |
-| `SECURITY_API_KEY_MAX_DURATION`        | integer? | -             | Maximum API key validity duration in milliseconds. |
-| `SECURITY_API_KEY_DELIMITER`           | string   | `'AK'`        | Prefix delimiter between key ID and secret value.  |
+| Property                               | Type     | Default       | Description                                                                  |
+|----------------------------------------|----------|---------------|------------------------------------------------------------------------------|
+| `SECURITY_API_KEY_ENABLED`             | boolean  | `false`       | Enable API key authentication.                                               |
+| `SECURITY_API_KEY_KEEP_DATABASE_TABLE` | boolean  | `false`       | Keep API key database table after migrations.                                |
+| `SECURITY_API_KEY_HEADER_NAME`         | string   | `'x-api-key'` | Request header name for the API key.                                         |
+| `SECURITY_API_KEY_MAX_DURATION`        | integer? | -             | Maximum API key validity duration in milliseconds.                           |
+| `SECURITY_API_KEY_DELIMITER`           | string   | `'AK'`        | Prefix delimiter between key ID and secret value.                            |
 | `SECURITY_API_KEY_ROUTES_ENABLED`      | boolean  | `true`        | Register the built-in `/api-keys` routes (JWT only), off to expose your own. |
 
 #### JWT (JSON Web Tokens)
@@ -785,16 +785,16 @@ nor the breaker, which would fail their blocking commands.
 
 ### Mailer (MAILER\_\*)
 
-| Property                | Type    | Default       | Description                                                                                                                                                                                                                                            |
-|-------------------------|---------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `MAILER_SENDER_NAME`    | string? | -             | Display name of the default sender of the emails, which send from the bare address without one.                                                                                                                                                        |
-| `MAILER_SENDER_ADDRESS` | string? | -             | Address of the default sender of the emails, required by an enabled mailer, which fails to start without it.                                                                                                                                           |
+| Property                | Type    | Default       | Description                                                                                                                                                                                                                                                               |
+|-------------------------|---------|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `MAILER_SENDER_NAME`    | string? | -             | Display name of the default sender of the emails, which send from the bare address without one.                                                                                                                                                                           |
+| `MAILER_SENDER_ADDRESS` | string? | -             | Address of the default sender of the emails, required by an enabled mailer, which fails to start without it.                                                                                                                                                              |
 | `MAILER_PROVIDER`       | string  | `'auto'`      | `auto` (`smtp` with `@appweaver/nodemailer`, otherwise none), `smtp`, `json` (logs the emails, for development and tests), `none`, or a module path. Without a mailer the email features (email verification, password reset, the `email` 2FA method) respond with `501`. |
-| `MAILER_SMTP_HOST`      | string  | `'127.0.0.1'` | SMTP server hostname.                                                                                                                                                                                                                                  |
-| `MAILER_SMTP_PORT`      | integer | `587`         | SMTP server port.                                                                                                                                                                                                                                      |
-| `MAILER_SMTP_SECURE`    | boolean | `false`       | Use TLS/SSL for SMTP connections.                                                                                                                                                                                                                      |
-| `MAILER_SMTP_USER`      | string? | -             | SMTP authentication username.                                                                                                                                                                                                                          |
-| `MAILER_SMTP_PASSWORD`  | string? | -             | SMTP authentication password.                                                                                                                                                                                                                          |
+| `MAILER_SMTP_HOST`      | string  | `'127.0.0.1'` | SMTP server hostname.                                                                                                                                                                                                                                                     |
+| `MAILER_SMTP_PORT`      | integer | `587`         | SMTP server port.                                                                                                                                                                                                                                                         |
+| `MAILER_SMTP_SECURE`    | boolean | `false`       | Use TLS/SSL for SMTP connections.                                                                                                                                                                                                                                         |
+| `MAILER_SMTP_USER`      | string? | -             | SMTP authentication username.                                                                                                                                                                                                                                             |
+| `MAILER_SMTP_PASSWORD`  | string? | -             | SMTP authentication password.                                                                                                                                                                                                                                             |
 
 ### SMS (SMS\_\*)
 

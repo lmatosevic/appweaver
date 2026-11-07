@@ -377,11 +377,11 @@ Angular, vue-i18n and Symfony, with the plural categories of the Unicode CLDR (`
 | `{n, number}`, `{n, number, integer}`, `{n, number, percent}` | The number formatted in the locale                                |
 | `''`, `'{text}'`                                              | An apostrophe, the quoted text as it is (a lone `'` stays as is)  |
 
-The categories differ by language: English and German have `one` and `other`, Spanish adds `many` (a million and more), Arabic has all six
-(`zero`, `one`, `two`, `few`, `many`, `other`). Every `plural`, `selectordinal` and `select` needs an `other` branch.
-A message is checked when its file loads, failing with `LOCALE_LOAD_FAILED` on an invalid one, and an argument without
-a parameter is written as it is, i.e. `{name}`. The plural forms follow the locale of the file the translation is found
-in.
+The categories differ by language: English and German have `one` and `other`, Spanish adds `many` (a million and more),
+Arabic has all six (`zero`, `one`, `two`, `few`, `many`, `other`). Every `plural`, `selectordinal` and `select` needs an
+`other` branch. A message is checked when its file loads, failing with `LOCALE_LOAD_FAILED` on an invalid one, and an
+argument without a parameter is written as it is, i.e. `{name}`. The plural forms follow the locale of the file the
+translation is found in.
 
 ```ts
 import { inject, LocaleService, registerTranslations } from '@appweaver/core';
